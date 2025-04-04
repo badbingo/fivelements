@@ -1,176 +1,1724 @@
-
-CodePen Home
-Untitled
-Owen Jiang
-HTML
-1 unsaved changes
-908
-
-    </style>
-
-909
-
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-
-910
-
-</head>
-
-911
-
-<body>
-
-912
-
-    <div class="container">
-
-913
-
-        <!-- 精美的Header部分 -->
-
-914
-
-        <div class="header-container">
-
-915
-
-            <a href="index.html" class="bazi-icon"><i class="fas fa-birthday-cake"></i></a>
-
-916
-
-            <i class="fas fa-yin-yang header-decoration left"></i>
-
-917
-
-            <i class="fas fa-star-and-crescent header-decoration right"></i>
-
-918
-
-            <h1 class="header-title">玄机命理</h1>
-
-919
-
-            <div class="header-subtitle">逆天改命 · 运势预测</div>
-
-920
-
-        </div>
-
-921
-
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>玄机命理 - 逆天改命</title>
+    <style>
+        @font-face {
+            font-family: 'SimHei';
+            src: local('SimHei');
+        }
         
-
-922
-
+        :root {
+            --primary-color: #8B0000;
+            --secondary-color: #A52A2A;
+            --light-color: #FFE4E1;
+            --dark-color: #450000;
+            --text-color: #FFDAB9;
+            --text-light: #FFA07A;
+            --text-dark: #FFFFFF;
+            --border-color: #CD5C5C;
+            --success-color: #228B22;
+            --warning-color: #FF8C00;
+            --danger-color: #DC143C;
+            --info-color: #8B0000;
+            --card-shadow: 0 8px 24px rgba(139, 0, 0, 0.5);
+            --header-bg: linear-gradient(135deg, #8B0000, #A52A2A);
+            --title-color: #FFDAB9;
+            --content-color: #FFE4E1;
+            --tab-active-color: #CD5C5C;
+            --border-radius: 12px;
+            --border-radius-sm: 8px;
+            --box-shadow: 0 4px 12px rgba(139, 0, 0, 0.5);
+            --bad-month-color: #FF6347;
+            --love-color: #FF69B4;
+            --work-color: #4682B4;
+            --button-red: #FF0000;
+            --button-dark-red: #8B0000;
+            --button-border-red: #FF4500;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'SimHei', sans-serif;
+        }
+        
+        body {
+            font-family: 'SimHei', sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--dark-color);
+            background-size: 120px;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: var(--dark-color);
+            border-radius: var(--border-radius);
+            box-shadow: var(--card-shadow);
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+        
+        /* Header样式 */
+        .header-container {
+            background: var(--header-bg);
+            padding: 30px 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            margin: 0 auto;
+            border-radius: var(--border-radius) var(--border-radius) 0 0;
+            box-shadow: var(--card-shadow);
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .header-container::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www3.org/0/svg" width="100" height="100" viewBox="0 0 100 100"><path d="M30,50 Q50,30 70,50 T90,50" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1"/></svg>');
+            opacity: 0.3;
+        }
+        
+        .header-title {
+            font-size: 2.5rem;
+            color: white;
+            margin: 0;
+            padding: 0;
+            position: relative;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            font-weight: 700;
+            letter-spacing: 3px;
+            background: linear-gradient(to right, #FFD700, #FFFFFF);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: titleGlow 3s ease-in-out infinite alternate;
+        }
+        
+        .header-subtitle {
+            font-size: 1.1rem;
+            color: var(--title-color);
+            margin-top: 8px;
+            position: relative;
+            font-weight: 300;
+            letter-spacing: 1.5px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .header-subtitle::before,
+        .header-subtitle::after {
+            content: "";
+            display: inline-block;
+            width: 30px;
+            height: 1px;
+            background: var(--title-color);
+            margin: 0 12px;
+            opacity: 0.6;
+        }
+        
+        .header-decoration {
+            position: absolute;
+            font-size: 4rem;
+            opacity: 0.1;
+            color: white;
+        }
+        
+        .header-decoration.left {
+            left: 15px;
+            top: 15px;
+        }
+        
+        .header-decoration.right {
+            right: 15px;
+            bottom: 15px;
+        }
+        
+        .bazi-icon {
+            position: absolute;
+            left: 20px;
+            top: 20px;
+            font-size: 24px;
+            color: var(--title-color);
+            cursor: pointer;
+            z-index: 10;
+            transition: all 0.3s;
+        }
+        
+        .bazi-icon:hover {
+            color: #FFD700;
+            transform: scale(1.1);
+        }
+        
+        @keyframes titleGlow {
+            0% {
+                text-shadow: 0 0 5px rgba(255, 215, 0, 0.3);
+            }
+            100% {
+                text-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
+            }
+        }
+        
+        .input-section {
+            padding: 40px;
+            position: relative;
+        }
+        
+        .input-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 1px dashed var(--border-color);
+        }
+        
+        .input-header i {
+            font-size: 28px;
+            color: var(--title-color);
+            margin-right: 15px;
+        }
+        
+        .input-header h2 {
+            font-size: 24px;
+            color: var(--title-color);
+            font-weight: 500;
+        }
+        
+        .form-row {
+            display: flex;
+            margin-bottom: 25px;
+            gap: 20px;
+        }
+        
+        .form-group {
+            flex: 1;
+            position: relative;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 12px;
+            font-size: 16px;
+            color: var(--text-light);
+            font-weight: 500;
+        }
+        
+        label i {
+            margin-right: 10px;
+            font-size: 18px;
+            color: var(--title-color);
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 16px 20px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-sm);
+            font-size: 16px;
+            transition: all 0.3s;
+            background-color: rgba(0,0,0,0.2);
+            color: var(--text-color);
+            -webkit-appearance: none; /* 移除iOS默认样式 */
+        }
+        
+        /* 修复Safari日期选择器样式 */
+        input[type="date"]::-webkit-inner-spin-button,
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            display: none;
+            -webkit-appearance: none;
+        }
+        
+        /* 修复Safari时间选择器样式 */
+        input[type="time"]::-webkit-inner-spin-button,
+        input[type="time"]::-webkit-calendar-picker-indicator {
+            display: none;
+            -webkit-appearance: none;
+        }
+        
+        /* 自定义日期和时间输入框样式 */
+        .date-time-input {
+            position: relative;
+        }
+        
+        .date-time-input::after {
+            content: "\f073";
+            font-family: "Font Awesome 6 Free";
+            font-weight: 900;
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-light);
+            pointer-events: none;
+        }
+        
+        .time-input::after {
+            content: "\f017";
+        }
+        
+        input:focus, select:focus {
+            border-color: var(--tab-active-color);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(205, 92, 92, 0.3);
+        }
+        
+        input::placeholder {
+            color: var(--text-light);
+            opacity: 0.7;
+        }
+        
+        select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23FFDAB9' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+            background-size: 12px;
+        }
+        
+        .disclaimer {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: rgba(139, 0, 0, 0.3);
+            border-radius: var(--border-radius-sm);
+            font-size: 14px;
+            color: var(--text-light);
+            text-align: center;
+            border-left: 4px solid var(--tab-active-color);
+        }
+        
+        .copyright {
+            text-align: center;
+            padding: 20px;
+            font-size: 13px;
+            color: var(--text-light);
+            border-top: 1px solid var(--border-color);
+            background-color: rgba(139, 0, 0, 0.2);
+        }
+        
+        .calculate-btn-container {
+            text-align: center;
+            margin-top: 40px;
+        }
+        
+        button {
+            background: linear-gradient(135deg, var(--button-red), var(--button-dark-red));
+            color: white;
+            border: 1px solid var(--button-border-red);
+            padding: 18px 40px;
+            font-size: 18px;
+            border-radius: var(--border-radius-sm);
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--box-shadow);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        button::after {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                to bottom right,
+                rgba(255, 255, 255, 0) 0%,
+                rgba(255, 255, 255, 0) 30%,
+                rgba(255, 255, 255, 0.3) 45%,
+                rgba(255, 255, 255, 0) 60%,
+                rgba(255, 255, 255, 0) 100%
+            );
+            transform: translateX(-100%) rotate(30deg);
+            transition: transform 0.6s;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(139, 0, 0, 0.6);
+        }
+        
+        button:hover::after {
+            transform: translateX(100%) rotate(30deg);
+        }
+        
+        button:disabled {
+            background: #424242;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+        
+        button:disabled::after {
+            display: none;
+        }
+        
+        button i {
+            margin-right: 12px;
+            font-size: 20px;
+        }
+        
+        .result-section {
+            display: none;
+            padding: 0 40px 40px;
+        }
+        
+        .basic-info {
+            background: rgba(139, 0, 0, 0.3);
+            padding: 30px;
+            border-radius: var(--border-radius-sm);
+            margin-bottom: 30px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--box-shadow);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .basic-info::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+            background: linear-gradient(to bottom, var(--primary-color), var(--secondary-color));
+        }
+        
+        .info-section {
+            margin-bottom: 30px;
+        }
+        
+        .info-section h3 {
+            font-size: 20px;
+            margin-bottom: 20px;
+            color: var(--title-color);
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+        }
+        
+        .info-section h3 i {
+            margin-right: 15px;
+            font-size: 22px;
+        }
+        
+        .info-content {
+            font-size: 16px;
+            line-height: 1.8;
+            color: var(--content-color);
+        }
+        
+        .luck-indicators {
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .luck-indicator {
+            flex: 1;
+            min-width: 200px;
+            text-align: center;
+            padding: 20px;
+            background-color: rgba(139, 0, 0, 0.5);
+            border-radius: var(--border-radius-sm);
+            border: 1px solid var(--border-color);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+        
+        .luck-indicator:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(139, 0, 0, 0.7);
+        }
+        
+        .luck-title {
+            font-size: 18px;
+            margin-bottom: 10px;
+            color: var(--title-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .luck-title i {
+            margin-right: 8px;
+            font-size: 20px;
+        }
+        
+        .luck-value {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 60px;
+            flex-direction: column;
+        }
+        
+        .luck-desc {
+            font-size: 14px;
+            color: var(--text-light);
+            margin-top: 10px;
+        }
+        
+        .bad-luck {
+            color: var(--danger-color);
+        }
+        
+        .good-luck {
+            color: var(--success-color);
+        }
+        
+        .normal-luck {
+            color: var(--warning-color);
+        }
+        
+        .love-luck {
+            color: var(--love-color);
+        }
+        
+        .work-luck {
+            color: var(--work-color);
+        }
+        
+        /* 星星评分样式 */
+        .stars {
+            font-size: 18px;
+            margin-top: 5px;
+            display: flex;
+            justify-content: center;
+            gap: 3px;
+        }
+        
+        .star-filled {
+            color: #FFD700;
+        }
+        
+        .star-empty {
+            color: #777;
+        }
+        
+        /* 图标样式 */
+        .bomb-icon {
+            color: var(--danger-color);
+        }
+        
+        .warning-icon {
+            color: #FF6347;
+        }
+        
+        .balance-icon {
+            color: #FFD700;
+        }
+        
+        .star-icon {
+            color: #7CFC00;
+        }
+        
+        .thumb-icon {
+            color: #00FF00;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        @keyframes shake {
+            0% { transform: translateX(-3px); }
+            100% { transform: translateX(3px); }
+        }
+        
+        @keyframes float {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+            100% { transform: translateY(0); }
+        }
+        
+        @keyframes glow {
+            0% { text-shadow: 0 0 5px rgba(0, 255, 0, 0.3); }
+            100% { text-shadow: 0 0 15px rgba(0, 255, 0, 0.6); }
+        }
+        
+        .menu-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 20px;
+            background: var(--dark-color);
+            border-radius: var(--border-radius-sm) var(--border-radius-sm) 0 0;
+            overflow: hidden;
+        }
+        
+        .menu-tab {
+            padding: 18px 20px;
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--text-light);
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+            display: flex;
+            align-items: center;
+            flex: 1;
+            justify-content: center;
+            position: relative;
+        }
+        
+        .menu-tab::after {
+            content: "";
+            position: absolute;
+            right: 0;
+            top: 20%;
+            height: 60%;
+            width: 1px;
+            background-color: var(--border-color);
+        }
+        
+        .menu-tab:last-child::after {
+            display: none;
+        }
+        
+        .menu-tab i {
+            margin-right: 12px;
+            font-size: 20px;
+        }
+        
+        .menu-tab:hover {
+            color: var(--tab-active-color);
+            background-color: rgba(205, 92, 92, 0.1);
+        }
+        
+        .menu-tab.active {
+            color: var(--tab-active-color);
+            border-bottom: 3px solid var(--tab-active-color);
+            font-weight: 600;
+            background-color: rgba(205, 92, 92, 0.2);
+        }
+        
+        .tab-content {
+            display: none;
+            background: var(--dark-color);
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .detail-card {
+            background: rgba(139, 0, 0, 0.3);
+            border-radius: var(--border-radius-sm);
+            padding: 25px;
+            margin-bottom: 25px;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+            box-shadow: var(--box-shadow);
+        }
+        
+        .detail-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(139, 0, 0, 0.7);
+        }
+        
+        .load-btn-container {
+            position: relative;
+        }
+        
+        .load-btn {
+            background: linear-gradient(135deg, var(--button-red), var(--button-dark-red));
+            padding: 16px 20px;
+            font-size: 17px;
+            border-radius: var(--border-radius-sm);
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            color: white;
+            border: 1px solid var(--button-border-red);
+            font-weight: bold;
+            box-shadow: 0 4px 8px rgba(139, 0, 0, 0.6);
+            transition: all 0.3s;
+        }
+        
+        .load-btn i {
+            margin-right: 15px;
+            font-size: 20px;
+        }
+        
+        .load-btn .toggle-icon {
+            transition: transform 0.3s ease;
+        }
+        
+        .load-btn.active .toggle-icon {
+            transform: rotate(180deg);
+        }
+        
+        .load-btn-description {
+            font-size: 14px;
+            color: var(--text-light);
+            margin-top: 15px;
+            padding: 0 15px;
+            transition: all 0.3s ease;
+        }
+        
+        .load-btn-container.active .load-btn-description {
+            opacity: 0;
+            max-height: 0;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .section-content {
+            font-size: 16px;
+            line-height: 1.8;
+            color: var(--content-color);
+            margin-top: 20px;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease, opacity 0.3s ease;
+            opacity: 0;
+        }
+        
+        .section-content.active {
+            max-height: 2000px;
+            opacity: 1;
+        }
+        
+        .section-content p {
+            margin-bottom: 15px;
+            position: relative;
+            padding-left: 20px;
+        }
+        
+        .section-content p::before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: var(--tab-active-color);
+            font-size: 20px;
+        }
+        
+        .section-title {
+            font-weight: bold;
+            color: var(--title-color);
+            margin-bottom: 15px;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            padding-bottom: 8px;
+            border-bottom: 1px dashed var(--border-color);
+        }
+        
+        .section-title::before {
+            content: "";
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background-color: var(--tab-active-color);
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        
+        .progress-container {
+            width: 100%;
+            height: 8px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 4px;
+            margin: 20px 0;
+            overflow: hidden;
+            display: none;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            width: 0;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            border-radius: 4px;
+            transition: width 0.4s ease;
+        }
+        
+        /* 美化内容卡片 */
+        .fortune-card {
+            background: linear-gradient(135deg, rgba(139, 0, 0, 0.4), rgba(165, 42, 42, 0.4));
+            border-radius: var(--border-radius-sm);
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 15px rgba(139, 0, 0, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .fortune-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+            background: linear-gradient(to bottom, var(--primary-color), var(--secondary-color));
+        }
+        
+        .fortune-card h4 {
+            color: var(--title-color);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .fortune-card h4 i {
+            margin-right: 10px;
+            font-size: 22px;
+        }
+        
+        @media (max-width: 768px) {
+            .header-title {
+                font-size: 2rem;
+                letter-spacing: 2px;
+            }
+            
+            .header-subtitle {
+                font-size: 1rem;
+            }
+            
+            .header-subtitle::before,
+            .header-subtitle::after {
+                width: 20px;
+                margin: 0 10px;
+            }
+            
+            .form-row {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .menu-tabs {
+                flex-wrap: wrap;
+            }
+            
+            .menu-tab {
+                padding: 14px 15px;
+                font-size: 15px;
+                flex: 1 0 50%;
+            }
+            
+            .menu-tab::after {
+                display: none;
+            }
+            
+            .input-section, .result-section {
+                padding: 30px;
+            }
+            
+            .luck-indicators {
+                flex-direction: column;
+            }
+            
+            .luck-indicator {
+                min-width: 100%;
+            }
+            
+            .bazi-icon {
+                font-size: 20px;
+                left: 15px;
+                top: 15px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .header-container {
+                padding: 20px 10px;
+            }
+            
+            .header-title {
+                font-size: 1.8rem;
+            }
+            
+            .header-subtitle {
+                font-size: 0.9rem;
+            }
+            
+            .header-subtitle::before,
+            .header-subtitle::after {
+                width: 15px;
+                margin: 0 5px;
+            }
+            
+            .header-decoration {
+                font-size: 3rem;
+            }
+            
+            body {
+                padding: 10px;
+            }
+            
+            .container {
+                margin: 0 auto;
+                border-radius: 0;
+            }
+            
+            .input-section, .result-section {
+                padding: 20px;
+            }
+            
+            .menu-tab {
+                flex: 1 0 100%;
+            }
+            
+            .bazi-icon {
+                font-size: 18px;
+                left: 10px;
+                top: 10px;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <!-- 精美的Header部分 -->
+        <div class="header-container">
+            <a href="index.html" class="bazi-icon"><i class="fas fa-birthday-cake"></i></a>
+            <i class="fas fa-yin-yang header-decoration left"></i>
+            <i class="fas fa-star-and-crescent header-decoration right"></i>
+            <h1 class="header-title">玄机命理</h1>
+            <div class="header-subtitle">逆天改命 · 运势预测</div>
+        </div>
+        
         <div class="input-section" id="input-section">
-
-923
-
             <div class="input-header">
-
-924
-
                 <i class="fas fa-user-edit"></i>
-
-925
-
                 <h2>请输入您的信息</h2>
-
-926
-
             </div>
-
-927
-
             
-
-928
-
             <div class="form-row">
-
-929
-
                 <div class="form-group">
-
-930
-
                     <label for="name"><i class="fas fa-user"></i> 姓名</label>
-
-931
-
                     <input type="text" id="name" placeholder="请输入您的姓名">
-
-932
-
                 </div>
-
-933
-
                 <div class="form-group">
-
-934
-
                     <label for="gender"><i class="fas fa-venus-mars"></i> 性别</label>
-
-935
-
                     <select id="gender" required>
-
-936
-
                         <option value="">请选择</option>
-
-937
-
                         <option value="male">男</option>
-
-938
-
                         <option value="female">女</option>
-
-939
-
                     </select>
-
-940
-
                 </div>
-
-941
-
             </div>
-
-942
-
             
-
-943
-
             <div class="form-row">
-
-944
-
                 <div class="form-group date-time-input">
-
-945
-
                     <label for="birth-date"><i class="fas fa-calendar-day"></i> 出生日期</label>
-
-946
-
                     <input type="date" id="birth-date" required>
+                </div>
+                <div class="form-group date-time-input time-input">
+                    <label for="birth-time"><i class="fas fa-clock"></i> 出生时间</label>
+                    <input type="time" id="birth-time" required>
+                </div>
+            </div>
+            
+            <div class="disclaimer">
+                本系统核心数据来自《李虚中命书》《渊海子平》《三命通会》《滴天髓》等古籍库
+            </div>
+            
+            <div class="calculate-btn-container">
+                <button id="calculate-btn"><i class="fas fa-magic"></i> 逆天改命</button>
+            </div>
+        </div>
+        
+        <div class="result-section" id="result-section">
+            <div class="basic-info" id="basic-info">
+                <div class="info-section">
+                    <h3><i class="fas fa-chart-line"></i> 今日运势指数 - <span class="current-date-display"></span></h3>
+                    <div class="info-content">
+                        <div class="luck-indicators">
+                            <div class="luck-indicator">
+                                <div class="luck-title"><i class="fas fa-star"></i>今日运气</div>
+                                <div class="luck-value" id="today-luck-value">
+                                    <div class="stars">
+                                        <i class="fas fa-star star-filled"></i>
+                                        <i class="fas fa-star star-filled"></i>
+                                        <i class="fas fa-star star-filled"></i>
+                                    </div>
+                                </div>
+                                <div class="luck-desc" id="today-luck-desc">宜: 出行 会友 忌: 投资</div>
+                            </div>
+                            <div class="luck-indicator">
+                                <div class="luck-title"><i class="fas fa-coins"></i>今日财运</div>
+                                <div class="luck-value" id="today-money-value">
+                                    <div class="stars">
+                                        <i class="fas fa-star star-filled"></i>
+                                        <i class="fas fa-star star-filled"></i>
+                                    </div>
+                                </div>
+                                <div class="luck-desc" id="today-money-desc">投资需谨慎 求财方位: 东南</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="info-section">
+                    <h3><i class="fas fa-calendar-alt"></i> <span id="current-year"></span>年总体运势</h3>
+                    <div class="info-content">
+                        <div class="luck-indicators">
+                            <div class="luck-indicator">
+                                <div class="luck-title"><i class="fas fa-shield-alt"></i>吉凶指数</div>
+                                <div class="luck-value" id="year-luck-value">
+                                    <div class="stars">
+                                        <i class="fas fa-star star-filled"></i>
+                                        <i class="fas fa-star star-filled"></i>
+                                        <i class="fas fa-star star-filled"></i>
+                                        <i class="fas fa-star star-filled"></i>
+                                    </div>
+                                </div>
+                                <div class="luck-desc" id="year-luck-desc">整体运势良好，需注意农历四月</div>
+                            </div>
+                            <div class="luck-indicator">
+                                <div class="luck-title"><i class="fas fa-piggy-bank"></i>财运指数</div>
+                                <div class="luck-value" id="year-money-value">
+                                    <div class="stars">
+                                        <i class="fas fa-star star-filled"></i>
+                                        <i class="fas fa-star star-filled"></i>
+                                        <i class="fas fa-star star-filled"></i>
+                                    </div>
+                                </div>
+                                <div class="luck-desc" id="year-money-desc">正财稳定，偏财需谨慎</div>
+                            </div>
+                            <div class="luck-indicator">
+                                <div class="luck-title"><i class="fas fa-heart"></i>桃花指数</div>
+                                <div class="luck-value love-luck" id="year-love-value">
+                                    <div class="stars">
+                                        <i class="fas fa-star star-filled"></i>
+                                        <i class="fas fa-star star-filled"></i>
+                                        <i class="fas fa-star star-filled"></i>
+                                        <i class="fas fa-star star-filled"></i>
+                                        <i class="fas fa-star star-filled"></i>
+                                    </div>
+                                </div>
+                                <div class="luck-desc" id="year-love-desc">感情运势旺盛，单身者易遇良缘</div>
+                            </div>
+                            <div class="luck-indicator">
+                                <div class="luck-title"><i class="fas fa-briefcase"></i>工作学习</div>
+                                <div class="luck-value work-luck" id="year-work-value">
+                                    <div class="stars">
+                                        <i class="fas fa-star star-filled"></i>
+                                        <i class="fas fa-star star-filled"></i>
+                                        <i class="fas fa-star star-filled"></i>
+                                        <i class="fas fa-star star-filled"></i>
+                                    </div>
+                                </div>
+                                <div class="luck-desc" id="year-work-desc">事业有突破，学习效率高</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="menu-tabs">
+                <div class="menu-tab active" data-tab="today"><i class="fas fa-sun"></i> 今日运程</div>
+                <div class="menu-tab" data-tab="destiny"><i class="fas fa-magic"></i> 逆天改命</div>
+                <div class="menu-tab" data-tab="divination"><i class="fas fa-question"></i> 六爻起卦</div>
+                <div class="menu-tab" data-tab="prediction"><i class="fas fa-dice"></i> 输赢预测</div>
+            </div>
+            
+            <!-- 今日运程 -->
+            <div class="tab-content active" id="today-tab">
+                <div class="detail-card">
+                    <div class="load-btn-container">
+                        <button class="load-btn" data-section="today-luck">
+                            <span><i class="fas fa-star"></i> 今日(<span class="current-date-inline"></span>)吉凶分析</span>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </button>
+                        <div class="load-btn-description">分析今日整体运势吉凶，包括宜忌事项</div>
+                    </div>
+                    <div id="today-luck-content" class="section-content"></div>
+                </div>
+                
+                <div class="detail-card">
+                    <div class="load-btn-container">
+                        <button class="load-btn" data-section="today-money">
+                            <span><i class="fas fa-coins"></i> 今日(<span class="current-date-inline"></span>)财运分析</span>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </button>
+                        <div class="load-btn-description">分析今日财运走势，投资理财建议</div>
+                    </div>
+                    <div id="today-money-content" class="section-content"></div>
+                </div>
+                
+                <div class="detail-card">
+                    <div class="load-btn-container">
+                        <button class="load-btn" data-section="today-health">
+                            <span><i class="fas fa-heartbeat"></i> 今日(<span class="current-date-inline"></span>)健康分析</span>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </button>
+                        <div class="load-btn-description">分析今日健康状况，注意事项</div>
+                    </div>
+                                        <div id="today-health-content" class="section-content"></div>
+                </div>
+            </div>
+            
+            <!-- 逆天改命 -->
+            <div class="tab-content" id="destiny-tab">
+                <div class="detail-card">
+                    <div class="load-btn-container">
+                        <button class="load-btn" data-section="energy">
+                            <span><i class="fas fa-bolt"></i> 命盘能量分析</span>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </button>
+                        <div class="load-btn-description">综合分析命盘能量分布，找出关键能量点</div>
+                    </div>
+                    <div id="energy-content" class="section-content"></div>
+                </div>
+                
+                <div class="detail-card">
+                    <div class="load-btn-container">
+                        <button class="load-btn" data-section="crystal">
+                            <span><i class="fas fa-gem"></i> 水晶改运建议</span>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </button>
+                        <div class="load-btn-description">根据命盘五行推荐适合的水晶饰品</div>
+                    </div>
+                    <div id="crystal-content" class="section-content"></div>
+                </div>
+                
+                <div class="detail-card">
+                    <div class="load-btn-container">
+                        <button class="load-btn" data-section="money-boost">
+                            <span><i class="fas fa-piggy-bank"></i> 财运提升建议</span>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </button>
+                        <div class="load-btn-description">提供针对性的财运提升方法和时机</div>
+                    </div>
+                    <div id="money-boost-content" class="section-content"></div>
+                </div>
+            </div>
+            
+            <!-- 六爻起卦 -->
+            <div class="tab-content" id="divination-tab">
+                <div class="detail-card">
+                    <div class="load-btn-container">
+                        <button class="load-btn" data-section="divination-luck">
+                            <span><i class="fas fa-star"></i> 六爻问吉凶</span>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </button>
+                        <div class="load-btn-description">通过六爻卦象分析近期吉凶祸福</div>
+                    </div>
+                    <div id="divination-luck-content" class="section-content"></div>
+                </div>
+                
+                <div class="detail-card">
+                    <div class="load-btn-container">
+                        <button class="load-btn" data-section="divination-health">
+                            <span><i class="fas fa-heartbeat"></i> 六爻问健康</span>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </button>
+                        <div class="load-btn-description">通过六爻卦象分析健康状况</div>
+                    </div>
+                    <div id="divination-health-content" class="section-content"></div>
+                </div>
+                
+                <div class="detail-card">
+                    <div class="load-btn-container">
+                        <button class="load-btn" data-section="divination-money">
+                            <span><i class="fas fa-coins"></i> 六爻问财运</span>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </button>
+                        <div class="load-btn-description">通过六爻卦象分析财运走势</div>
+                    </div>
+                    <div id="divination-money-content" class="section-content"></div>
+                </div>
+            </div>
+            
+            <!-- 输赢预测 -->
+            <div class="tab-content" id="prediction-tab">
+                <div class="detail-card">
+                    <div class="load-btn-container">
+                        <button class="load-btn" data-section="mahjong">
+                            <span><i class="fas fa-dice"></i> 今日(<span class="current-date-inline"></span>)麻将输赢</span>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </button>
+                        <div class="load-btn-description">根据今日运势预测麻将输赢概率</div>
+                    </div>
+                    <div id="mahjong-content" class="section-content"></div>
+                </div>
+            </div>
+            
+            <div class="calculate-btn-container" style="margin-top: 30px;">
+                <button id="recalculate-btn"><i class="fas fa-redo"></i> 重新测算</button>
+            </div>
+        </div>
+        
+        <div class="copyright">
+            © 2025 Five Elements 版权所有
+        </div>
+    </div>
 
-!
-CSS
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 获取当前日期和时间
+            const now = new Date();
+            const currentYear = now.getFullYear();
+            const currentDateStr = `${currentYear}年${now.getMonth()+1}月${now.getDate()}日`;
+            
+            // 更新页面显示的日期和年份
+            document.querySelectorAll('.current-date-display, .current-date-inline').forEach(el => {
+                el.textContent = currentDateStr;
+            });
+            document.getElementById('current-year').textContent = currentYear;
+            
+            const calculateBtn = document.getElementById('calculate-btn');
+            const recalculateBtn = document.getElementById('recalculate-btn');
+            const inputSection = document.getElementById('input-section');
+            const resultSection = document.getElementById('result-section');
+            
+            // 运势指数元素
+            const todayLuckValue = document.getElementById('today-luck-value');
+            const todayLuckDesc = document.getElementById('today-luck-desc');
+            const todayMoneyValue = document.getElementById('today-money-value');
+            const todayMoneyDesc = document.getElementById('today-money-desc');
+            
+            // 年运势元素
+            const yearLuckValue = document.getElementById('year-luck-value');
+            const yearLuckDesc = document.getElementById('year-luck-desc');
+            const yearMoneyValue = document.getElementById('year-money-value');
+            const yearMoneyDesc = document.getElementById('year-money-desc');
+            const yearLoveValue = document.getElementById('year-love-value');
+            const yearLoveDesc = document.getElementById('year-love-desc');
+            const yearWorkValue = document.getElementById('year-work-value');
+            const yearWorkDesc = document.getElementById('year-work-desc');
+            
+            let birthData = {};
+            let loadedSections = {};
+            
+            // 重新测算按钮点击事件
+            recalculateBtn.addEventListener('click', function() {
+                // 清空输入框
+                document.getElementById('name').value = '';
+                document.getElementById('birth-date').value = '';
+                document.getElementById('birth-time').value = '';
+                document.getElementById('gender').value = '';
+                
+                // 隐藏结果区域，显示输入区域
+                resultSection.style.display = 'none';
+                inputSection.style.display = 'block';
+                
+                // 重置所有内容
+                resetAllContent();
+                
+                // 滚动到顶部
+                window.scrollTo(0, 0);
+            });
+            
+            function resetAllContent() {
+                // 重置今日运势指数
+                todayLuckValue.innerHTML = '<div class="stars">☆☆☆☆☆</div>';
+                todayLuckDesc.textContent = '等待测算...';
+                todayMoneyValue.innerHTML = '<div class="stars">☆☆☆☆☆</div>';
+                todayMoneyDesc.textContent = '等待测算...';
+                
+                // 重置年运势指数
+                yearLuckValue.innerHTML = '<div class="stars">☆☆☆☆☆</div>';
+                yearLuckDesc.textContent = '等待测算...';
+                yearMoneyValue.innerHTML = '<div class="stars">☆☆☆☆☆</div>';
+                yearMoneyDesc.textContent = '等待测算...';
+                yearLoveValue.innerHTML = '<div class="stars">☆☆☆☆☆</div>';
+                yearLoveDesc.textContent = '等待测算...';
+                yearWorkValue.innerHTML = '<div class="stars">☆☆☆☆☆</div>';
+                yearWorkDesc.textContent = '等待测算...';
+                
+                // 重置所有内容区域
+                document.querySelectorAll('.section-content').forEach(el => {
+                    el.innerHTML = '';
+                    el.classList.remove('active');
+                });
+                
+                // 重置所有加载按钮
+                document.querySelectorAll('.load-btn').forEach(btn => {
+                    btn.innerHTML = `<span><i class="fas fa-${btn.getAttribute('data-section') === 'today-luck' ? 'star' : 
+                                    btn.getAttribute('data-section') === 'today-money' ? 'coins' : 
+                                    btn.getAttribute('data-section') === 'today-health' ? 'heartbeat' : 
+                                    btn.getAttribute('data-section') === 'energy' ? 'bolt' : 
+                                    btn.getAttribute('data-section') === 'crystal' ? 'gem' : 
+                                    btn.getAttribute('data-section') === 'money-boost' ? 'piggy-bank' : 
+                                    btn.getAttribute('data-section') === 'divination-luck' ? 'star' : 
+                                    btn.getAttribute('data-section') === 'divination-health' ? 'heartbeat' : 
+                                    btn.getAttribute('data-section') === 'divination-money' ? 'coins' : 'dice'}"></i> ${btn.textContent.trim()}</span><i class="fas fa-chevron-down toggle-icon"></i>`;
+                    btn.classList.remove('active');
+                    btn.disabled = false;
+                });
+                
+                // 重置描述显示
+                document.querySelectorAll('.load-btn-container').forEach(container => {
+                    container.classList.remove('active');
+                });
+                
+                // 重置标签页
+                document.querySelectorAll('.menu-tab').forEach(tab => tab.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+                document.querySelector('.menu-tab[data-tab="today"]').classList.add('active');
+                document.getElementById('today-tab').classList.add('active');
+                
+                // 重置已加载的章节
+                loadedSections = {};
+            }
+            
+            // 初始化标签页
+            document.querySelectorAll('.menu-tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    document.querySelectorAll('.menu-tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                    
+                    this.classList.add('active');
+                    const tabId = this.getAttribute('data-tab') + '-tab';
+                    document.getElementById(tabId).classList.add('active');
+                });
+            });
+            
+            // 初始化加载按钮和折叠功能
+            function initLoadButtons() {
+                document.querySelectorAll('.load-btn').forEach(button => {
+                    const section = button.getAttribute('data-section');
+                    const contentElement = document.getElementById(`${section}-content`);
+                    const container = button.closest('.load-btn-container');
+                    
+                    button.addEventListener('click', async function(e) {
+                        e.preventDefault();
+                        
+                        if (loadedSections[section]) {
+                            container.classList.toggle('active');
+                            contentElement.classList.toggle('active');
+                            return;
+                        }
+                        
+                        this.disabled = true;
+                        this.innerHTML = '<span><span class="loading"></span> 正在搜索周易命理库...</span><i class="fas fa-chevron-down toggle-icon"></i>';
+                        container.classList.add('active');
+                        
+                        const progressContainer = document.createElement('div');
+                        progressContainer.className = 'progress-container';
+                        progressContainer.innerHTML = '<div class="progress-bar"></div>';
+                        progressContainer.style.display = 'block';
+                        
+                        contentElement.innerHTML = '';
+                        contentElement.appendChild(progressContainer);
+                        
+                        const progressBar = progressContainer.querySelector('.progress-bar');
+                        let progress = 0;
+                        const progressInterval = setInterval(() => {
+                            progress += Math.random() * 10;
+                            if (progress >= 100) progress = 100;
+                            progressBar.style.width = `${progress}%`;
+                        }, 300);
+                        
+                        try {
+                            const result = await getBaziAnalysis(section, birthData);
+                            clearInterval(progressInterval);
+                            displaySectionContent(section, result, contentElement);
+                            
+                            button.innerHTML = `<span><i class="fas fa-check"></i> 分析完成</span><i class="fas fa-chevron-down toggle-icon"></i>`;
+                            button.disabled = false;
+                            contentElement.classList.add('active');
+                            loadedSections[section] = true;
+                        } catch (error) {
+                            console.error(`加载${section}失败:`, error);
+                            clearInterval(progressInterval);
+                            contentElement.innerHTML = '<p style="color:var(--danger-color)">加载失败，请重试</p>';
+                            button.disabled = false;
+                            button.innerHTML = `<span><i class="fas fa-redo"></i> 重新分析</span><i class="fas fa-chevron-down toggle-icon"></i>`;
+                            container.classList.remove('active');
+                        }
+                    });
+                });
+            }
+            
+            calculateBtn.addEventListener('click', async function(e) {
+                e.preventDefault();
+                
+                const name = document.getElementById('name').value;
+                const birthDate = document.getElementById('birth-date').value;
+                const birthTime = document.getElementById('birth-time').value;
+                const gender = document.getElementById('gender').value;
+                
+                if (!birthDate || !birthTime || !gender) {
+                    alert('请填写完整的出生信息');
+                    return;
+                }
+                
+                birthData = { name, date: birthDate, time: birthTime, gender: gender };
+                
+                calculateBtn.disabled = true;
+                calculateBtn.innerHTML = '<span class="loading"></span> 测算中...';
+                
+                try {
+                    // 获取所有需要的信息
+                    const [basicInfo, yearFortune, todayLuck, todayMoney] = await Promise.all([
+                        getBaziAnalysis('basic', birthData),
+                        getBaziAnalysis('year-fortune', birthData),
+                        getBaziAnalysis('today-luck', birthData),
+                        getBaziAnalysis('today-money', birthData)
+                    ]);
+                    
+                    displayBasicInfo(basicInfo);
+                    displayYearFortune(yearFortune);
+                    displayTodayLuck(todayLuck);
+                    displayTodayMoney(todayMoney);
+                    
+                    inputSection.style.display = 'none';
+                    resultSection.style.display = 'block';
+                    calculateBtn.disabled = false;
+                    calculateBtn.innerHTML = '<i class="fas fa-magic"></i> 逆天改命';
+                    
+                    initLoadButtons();
+                    window.scrollTo(0, 0);
+                } catch (error) {
+                    console.error('测算失败:', error);
+                    alert('测算失败，请稍后重试');
+                    calculateBtn.disabled = false;
+                    calculateBtn.innerHTML = '<i class="fas fa-magic"></i> 逆天改命';
+                }
+            });
+            
+            async function getBaziAnalysis(section, data) {
+                const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
+                const apiKey = 'sk-b2950087a9d5427392762814114b22a9';
+                
+                let prompt = `当前日期：${currentDateStr}\n`;
+                prompt += `根据以下八字信息进行分析：
+姓名：${data.name || '未提供'}
+出生日期：${data.date}
+出生时间：${data.time}
+性别：${data.gender === 'male' ? '男' : '女'}
 
-1
-
-​
-
-JS
-
-1
-
-​
-
-Last saved less than a minute ago
+`;
+                
+                switch(section) {
+                    case 'basic':
+                        prompt += `请返回以下信息（基于${currentDateStr}）：
+1 今日运气指数：[1-5星]
+2 今日财运指数：[1-5星]
+用简洁格式返回，不要分析内容，不要使用任何符号如#*、等。`;
+                        break;
+                    case 'year-fortune':
+                        prompt += `分析${currentYear}年总体运势：
+1 吉凶指数：[1-5星]
+2 财运指数：[1-5星]
+3 桃花指数：[1-5星]
+4 工作学习指数：[1-5星]
+用简洁格式返回，不要分析内容，不要使用任何符号如#*、等。`;
+                        break;
+                    case 'today-luck':
+                        prompt += `分析${currentDateStr}整体运势：
+1 今日吉凶评价（1-5星）
+2 宜忌事项
+3 注意事项
+返回格式：
+今日运势：[1-5星]
+吉星方位：[方位]
+宜：[事项]
+忌：[事项]
+不要使用任何特殊符号`;
+                        break;
+                    case 'today-money':
+                        prompt += `分析${currentDateStr}财运：
+1 财运评价（1-5星）
+2 投资理财建议
+3 求财方位
+返回格式：
+今日财运：[1-5星]
+投资建议：[建议]
+求财方位：[方位]
+不要使用任何特殊符号`;
+                        break;
+                    case 'today-health':
+                        prompt += `分析${currentDateStr}健康状况：
+1 健康评价（1-5星）
+2 注意事项
+3 养生建议
+返回格式：
+今日健康：[1-5星]
+注意事项：[事项]
+养生建议：[建议]
+不要使用任何特殊符号`;
+                        break;
+                    case 'energy':
+                        prompt += `分析命盘能量分布（本命局+大运+流年）：
+1 五行能量分布
+2 关键能量点
+3 能量调整建议
+返回格式：
+能量分析：
+[详细分析内容]
+不要使用任何特殊符号`;
+                        break;
+                    case 'crystal':
+                        prompt += `根据命盘五行推荐水晶饰品：
+1 适合的水晶种类
+2 佩戴建议
+3 注意事项
+返回格式：
+水晶推荐：
+1 [水晶1]：[功效]
+2 [水晶2]：[功效]
+...
+不要使用任何特殊符号`;
+                        break;
+                    case 'money-boost':
+                        prompt += `提供财运提升建议：
+1 近期财运走势
+2 提升方法
+3 最佳时机
+返回格式：
+财运提升：
+[详细建议]
+不要使用任何特殊符号`;
+                        break;
+                    case 'divination-luck':
+                        prompt += `通过六爻卦象分析近期吉凶：
+1 卦象解析
+2 吉凶判断
+3 注意事项
+返回格式：
+卦象分析：
+[详细分析]
+不要使用任何特殊符号`;
+                        break;
+                    case 'divination-health':
+                        prompt += `通过六爻卦象分析健康状况：
+1 卦象解析
+2 健康问题
+3 调理建议
+返回格式：
+健康分析：
+[详细分析]
+不要使用任何特殊符号`;
+                        break;
+                    case 'divination-money':
+                        prompt += `通过六爻卦象分析财运：
+1 卦象解析
+2 财运走势
+3 求财建议
+返回格式：
+财运分析：
+[详细分析]
+不要使用任何特殊符号`;
+                        break;
+                    case 'mahjong':
+                        prompt += `预测${currentDateStr}麻将输赢：
+1 今日运势对麻将的影响
+2 输赢概率
+3 最佳方位
+返回格式：
+麻将预测：
+[详细分析]
+不要使用任何特殊符号`;
+                        break;
+                }
+                
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: "deepseek-chat",  // 使用DeepSeek-V3模型
+                        messages: [{ role: "user", content: prompt }],
+                        temperature: 0.7
+                    })
+                });
+                
+                if (!response.ok) throw new Error(`API请求失败: ${response.status}`);
+                const result = await response.json();
+                return result.choices[0].message.content;
+            }
+            
+            function displayBasicInfo(info) {
+                const lines = info.split('\n').filter(line => line.trim());
+                
+                // 提取今日运气指数
+                const luckLine = lines.find(line => line.includes('今日运气指数'));
+                if (luckLine) {
+                    const luckMatch = luckLine.match(/今日运气指数：\[([1-5])星\]/);
+                    if (luckMatch && luckMatch[1]) {
+                        const stars = parseInt(luckMatch[1]);
+                        todayLuckValue.innerHTML = getStarsDisplay(stars);
+                        todayLuckValue.className = 'luck-value ' + getLuckClass(stars);
+                    }
+                }
+                
+                // 提取今日财运指数
+                const moneyLine = lines.find(line => line.includes('今日财运指数'));
+                if (moneyLine) {
+                    const moneyMatch = moneyLine.match(/今日财运指数：\[([1-5])星\]/);
+                    if (moneyMatch && moneyMatch[1]) {
+                        const stars = parseInt(moneyMatch[1]);
+                        todayMoneyValue.innerHTML = getStarsDisplay(stars);
+                        todayMoneyValue.className = 'luck-value ' + getLuckClass(stars);
+                    }
+                }
+            }
+            
+            function displayYearFortune(info) {
+                const lines = info.split('\n').filter(line => line.trim());
+                
+                // 提取吉凶指数
+                const luckLine = lines.find(line => line.includes('吉凶指数'));
+                if (luckLine) {
+                    const luckMatch = luckLine.match(/吉凶指数：\[([1-5])星\]/);
+                    if (luckMatch && luckMatch[1]) {
+                        const stars = parseInt(luckMatch[1]);
+                        yearLuckValue.innerHTML = getStarsDisplay(stars);
+                        yearLuckValue.className = 'luck-value ' + getLuckClass(stars);
+                    }
+                }
+                
+                // 提取财运指数
+                const moneyLine = lines.find(line => line.includes('财运指数'));
+                if (moneyLine) {
+                    const moneyMatch = moneyLine.match(/财运指数：\[([1-5])星\]/);
+                    if (moneyMatch && moneyMatch[1]) {
+                        const stars = parseInt(moneyMatch[1]);
+                        yearMoneyValue.innerHTML = getStarsDisplay(stars);
+                        yearMoneyValue.className = 'luck-value ' + getLuckClass(stars);
+                    }
+                }
+                
+                // 提取桃花指数
+                const loveLine = lines.find(line => line.includes('桃花指数'));
+                if (loveLine) {
+                    const loveMatch = loveLine.match(/桃花指数：\[([1-5])星\]/);
+                    if (loveMatch && loveMatch[1]) {
+                        const stars = parseInt(loveMatch[1]);
+                        yearLoveValue.innerHTML = getStarsDisplay(stars);
+                        yearLoveValue.className = 'luck-value love-luck ' + getLuckClass(stars);
+                    }
+                }
+                
+                // 提取工作学习指数
+                const workLine = lines.find(line => line.includes('工作学习指数'));
+                if (workLine) {
+                    const workMatch = workLine.match(/工作学习指数：\[([1-5])星\]/);
+                    if (workMatch && workMatch[1]) {
+                        const stars = parseInt(workMatch[1]);
+                        yearWorkValue.innerHTML = getStarsDisplay(stars);
+                        yearWorkValue.className = 'luck-value work-luck ' + getLuckClass(stars);
+                    }
+                }
+            }
+            
+            function getStarsDisplay(stars) {
+                let html = '<div class="stars">';
+                for (let i = 0; i < 5; i++) {
+                    if (i < stars) {
+                        html += '<i class="fas fa-star star-filled"></i>';
+                    } else {
+                        html += '<i class="far fa-star star-empty"></i>';
+                    }
+                }
+                html += '</div>';
+                return html;
+            }
+            
+            function getLuckClass(stars) {
+                switch(stars) {
+                    case 1:
+                    case 2: return 'bad-luck';
+                    case 3: return 'normal-luck';
+                    case 4:
+                    case 5: return 'good-luck';
+                    default: return 'normal-luck';
+                }
+            }
+            
+            function displayTodayLuck(info) {
+                const lines = info.split('\n').filter(line => line.trim());
+                
+                // 提取今日运势描述
+                const descLine = lines.find(line => line.includes('宜：'));
+                if (descLine) {
+                    todayLuckDesc.textContent = descLine.replace('宜：', '宜: ').replace('忌：', ' 忌: ');
+                }
+            }
+            
+            function displayTodayMoney(info) {
+                const lines = info.split('\n').filter(line => line.trim());
+                
+                // 提取今日财运描述
+                const descLine = lines.find(line => line.includes('投资建议：'));
+                if (descLine) {
+                    todayMoneyDesc.textContent = descLine.replace('投资建议：', '').replace('求财方位：', ' 求财方位: ');
+                }
+            }
+            
+            function displaySectionContent(section, result, contentElement) {
+                // 处理评分显示
+                if (result.includes('★')) {
+                    result = result.replace(/(★+)/g, '<span style="color:#FFD700">$1</span>');
+                    result = result.replace(/(☆+)/g, '<span style="color:#ddd">$1</span>');
+                }
+                
+                // 处理1-5星评级为图标
+                result = result.replace(/1星/g, '<i class="fas fa-bomb bomb-icon"></i>');
+                result = result.replace(/2星/g, '<i class="fas fa-exclamation-triangle warning-icon"></i>');
+                result = result.replace(/3星/g, '<i class="fas fa-balance-scale balance-icon"></i>');
+                result = result.replace(/4星/g, '<i class="fas fa-star star-icon"></i>');
+                result = result.replace(/5星/g, '<i class="fas fa-thumbs-up thumb-icon"></i>');
+                
+                // 去除特殊符号
+                result = result.replace(/[#*\、]/g, '');
+                
+                // 处理标题和内容样式
+                result = result.replace(/([^\n]+：)/g, '<div class="section-title">$1</div>');
+                
+                // 创建卡片容器
+                const cardHtml = `<div class="fortune-card">${result}</div>`;
+                
+                // 处理换行
+                const formattedResult = cardHtml.split('\n').map(line => {
+                    if (line.trim() === '') return '';
+                    if (line.startsWith('<div class="section-title">')) return line;
+                    return `<p>${line}</p>`;
+                }).join('');
+                
+                contentElement.innerHTML = formattedResult;
+            }
+        });
+    </script>
+</body>
+</html>
+            
+           
