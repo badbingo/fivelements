@@ -214,6 +214,42 @@
             transition: all 0.3s;
             background-color: rgba(0,0,0,0.2);
             color: var(--text-color);
+            -webkit-appearance: none; /* 移除iOS默认样式 */
+        }
+        
+        /* 修复Safari日期选择器样式 */
+        input[type="date"]::-webkit-inner-spin-button,
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            display: none;
+            -webkit-appearance: none;
+        }
+        
+        /* 修复Safari时间选择器样式 */
+        input[type="time"]::-webkit-inner-spin-button,
+        input[type="time"]::-webkit-calendar-picker-indicator {
+            display: none;
+            -webkit-appearance: none;
+        }
+        
+        /* 自定义日期和时间输入框样式 */
+        .date-time-input {
+            position: relative;
+        }
+        
+        .date-time-input::after {
+            content: "\f073";
+            font-family: "Font Awesome 6 Free";
+            font-weight: 900;
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-light);
+            pointer-events: none;
+        }
+        
+        .time-input::after {
+            content: "\f017";
         }
         
         input:focus, select:focus {
@@ -225,6 +261,13 @@
         input::placeholder {
             color: var(--text-light);
             opacity: 0.7;
+        }
+        
+        select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23FFDAB9' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+            background-size: 12px;
         }
         
         .disclaimer {
@@ -869,11 +912,11 @@
             </div>
             
             <div class="form-row">
-                <div class="form-group">
+                <div class="form-group date-time-input">
                     <label for="birth-date"><i class="fas fa-calendar-day"></i> 出生日期</label>
                     <input type="date" id="birth-date" required>
                 </div>
-                <div class="form-group">
+                <div class="form-group date-time-input time-input">
                     <label for="birth-time"><i class="fas fa-clock"></i> 出生时间</label>
                     <input type="time" id="birth-time" required>
                 </div>
@@ -1069,7 +1112,7 @@
                 </div>
                 
                 <div class="detail-card">
-                                        <div class="load-btn-container">
+                    <div class="load-btn-container">
                         <button class="load-btn" data-section="divination-health">
                             <span><i class="fas fa-heartbeat"></i> 六爻问健康</span>
                             <i class="fas fa-chevron-down toggle-icon"></i>
