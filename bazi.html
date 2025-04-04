@@ -140,6 +140,21 @@
             bottom: 15px;
         }
         
+        .bagua-icon {
+            position: absolute;
+            left: 15px;
+            top: 15px;
+            font-size: 2rem;
+            color: white;
+            cursor: pointer;
+            z-index: 10;
+            transition: transform 0.3s ease;
+        }
+        
+        .bagua-icon:hover {
+            transform: rotate(180deg);
+        }
+        
         @keyframes titleGlow {
             0% {
                 text-shadow: 0 0 5px rgba(245, 215, 66, 0.3);
@@ -444,30 +459,15 @@
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
         
-        .hidden-stems {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 15px;
-            margin-bottom: 10px;
-        }
-        
-        .hidden-stems div {
-            text-align: center;
-            padding: 16px;
-            background-color: rgba(26, 35, 126, 0.5);
-            border-radius: var(--border-radius-sm);
-            border: 1px solid var(--border-color);
-        }
-        
-        .rating-stars {
-            color: #FFD700;
-            font-size: 22px;
-            letter-spacing: 5px;
-        }
-        
         .rating-container {
             display: flex;
             align-items: center;
+            margin-top: 15px;
+        }
+        
+        .rating-container-inline {
+            display: flex;
+            justify-content: space-between;
             margin-top: 15px;
         }
         
@@ -476,6 +476,12 @@
             font-weight: bold;
             min-width: 100px;
             color: var(--title-color);
+        }
+        
+        .rating-stars {
+            color: #FFD700;
+            font-size: 22px;
+            letter-spacing: 5px;
         }
         
         .menu-tabs {
@@ -702,10 +708,6 @@
                 flex-direction: column;
             }
             
-            .hidden-stems {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            
             .menu-tabs {
                 flex-wrap: wrap;
             }
@@ -765,16 +767,17 @@
                 flex: 1 0 100%;
             }
             
-            .hidden-stems {
-                grid-template-columns: 1fr;
-            }
-            
             .bazi-columns {
                 flex-wrap: wrap;
             }
             
             .bazi-item {
                 flex: 1 0 45%;
+            }
+            
+            .rating-container-inline {
+                flex-direction: column;
+                gap: 10px;
             }
         }
     </style>
@@ -784,6 +787,7 @@
     <div class="container">
         <!-- 精美的Header部分 -->
         <div class="header-container">
+            <a href="gaiming.html" class="bagua-icon"><i class="fas fa-yin-yang"></i></a>
             <i class="fas fa-yin-yang header-decoration left"></i>
             <i class="fas fa-star-and-crescent header-decoration right"></i>
             <h1 class="header-title">玄机命理</h1>
@@ -834,6 +838,22 @@
         <div class="result-section" id="result-section">
             <div class="basic-info" id="basic-info">
                 <div class="info-section">
+                    <h3><i class="fas fa-chart-bar"></i> 命格评估</h3>
+                    <div class="info-content">
+                        <div class="rating-container-inline">
+                            <div class="rating-container">
+                                <span class="rating-label">命格等级:</span>
+                                <span class="rating-stars" id="fate-rating">-</span>
+                            </div>
+                            <div class="rating-container">
+                                <span class="rating-label">财富等级:</span>
+                                <span class="rating-stars" id="wealth-rating">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="info-section">
                     <h3><i class="fas fa-birthday-cake"></i> 八字四柱</h3>
                     <div class="info-content">
                         <div class="bazi-columns">
@@ -860,30 +880,7 @@
                         </div>
                     </div>
                 </div>
-                
-                <div class="info-section">
-                    <h3><i class="fas fa-layer-group"></i> 藏干情况</h3>
-                    <div class="info-content hidden-stems">
-                        <div><span class="bazi-label">年柱</span><span id="year-hidden">-</span></div>
-                        <div><span class="bazi-label">月柱</span><span id="month-hidden">-</span></div>
-                        <div><span class="bazi-label">日柱</span><span id="day-hidden">-</span></div>
-                        <div><span class="bazi-label">时柱</span><span id="hour-hidden">-</span></div>
-                    </div>
-                </div>
-                
-                <div class="info-section">
-                    <h3><i class="fas fa-chart-bar"></i> 命格评估</h3>
-                    <div class="info-content">
-                        <div class="rating-container">
-                            <span class="rating-label">命格等级:</span>
-                            <span class="rating-stars" id="fate-rating">-</span>
-                        </div>
-                        <div class="rating-container">
-                            <span class="rating-label">财富等级:</span>
-                            <span class="rating-stars" id="wealth-rating">-</span>
-                        </div>
-                    </div>
-                </div>
+
             </div>
             
             <div class="menu-tabs">
@@ -1071,19 +1068,16 @@
             const dayPillar = document.getElementById('day-pillar');
             const hourPillar = document.getElementById('hour-pillar');
             
-                        // 十神列表元素
+            // 十神列表元素
             const stemGodsList = document.getElementById('stem-gods-list');
             const branchGodsList = document.getElementById('branch-gods-list');
-            
-            // 藏干情况元素
-            const yearHidden = document.getElementById('year-hidden');
-            const monthHidden = document.getElementById('month-hidden');
-            const dayHidden = document.getElementById('day-hidden');
-            const hourHidden = document.getElementById('hour-hidden');
             
             // 命格评估元素
             const fateRating = document.getElementById('fate-rating');
             const wealthRating = document.getElementById('wealth-rating');
+            
+            // 神煞内容元素
+            const shenshaContent = document.getElementById('shensha-content');
             
             // 定义当前日期为2025年4月3日
             const currentDate = new Date(2025, 3, 3); // 月份是0-11，所以3表示4月
@@ -1120,15 +1114,12 @@
                 stemGodsList.innerHTML = '';
                 branchGodsList.innerHTML = '';
                 
-                // 重置藏干情况
-                yearHidden.textContent = '-';
-                monthHidden.textContent = '-';
-                dayHidden.textContent = '-';
-                hourHidden.textContent = '-';
-                
                 // 重置命格评估
                 fateRating.textContent = '-';
                 wealthRating.textContent = '-';
+                
+                // 重置神煞内容
+                shenshaContent.innerHTML = '<p>神煞分析将在命运分析中详细展示</p>';
                 
                 // 重置所有内容区域
                 document.querySelectorAll('.section-content').forEach(el => {
@@ -1222,6 +1213,11 @@
                             clearInterval(progressInterval);
                             displaySectionContent(section, result, contentElement);
                             
+                            // 如果是神煞分析，更新神煞内容
+                            if (section === 'pattern') {
+                                updateShenshaContent(result);
+                            }
+                            
                             button.innerHTML = `<span><i class="fas fa-check"></i> 分析完成</span><i class="fas fa-chevron-down toggle-icon"></i>`;
                             button.disabled = false;
                             contentElement.classList.add('active');
@@ -1238,6 +1234,24 @@
                 });
             }
             
+            function updateShenshaContent(result) {
+                // 提取神煞信息
+                const shenshaMatch = result.match(/神煞：([^\n]+)/);
+                if (shenshaMatch && shenshaMatch[1]) {
+                    const shenshaList = shenshaMatch[1].split('、');
+                    let html = '<div class="ten-gods-list">';
+                    
+                    shenshaList.forEach(shensha => {
+                        if (shensha.trim()) {
+                            html += `<div class="ten-gods-item">${shensha.trim()}</div>`;
+                        }
+                    });
+                    
+                    html += '</div>';
+                    shenshaContent.innerHTML = html;
+                }
+            }
+            
             calculateBtn.addEventListener('click', async function(e) {
                 e.preventDefault();
                 
@@ -1251,7 +1265,16 @@
                     return;
                 }
                 
-                birthData = { name, date: birthDate, time: birthTime, gender: gender };
+                // 格式化日期和时间
+                const formattedDate = formatDateForAPI(birthDate);
+                const formattedTime = formatTimeForAPI(birthTime);
+                
+                birthData = { 
+                    name, 
+                    date: formattedDate, 
+                    time: formattedTime, 
+                    gender: gender 
+                };
                 
                 calculateBtn.disabled = true;
                 calculateBtn.innerHTML = '<span class="loading"></span> 测算中...';
@@ -1275,12 +1298,24 @@
                 }
             });
             
+            function formatDateForAPI(dateStr) {
+                // 将YYYY-MM-DD格式转换为YYYY年MM月DD日
+                const [year, month, day] = dateStr.split('-');
+                return `${year}年${month}月${day}日`;
+            }
+            
+            function formatTimeForAPI(timeStr) {
+                // 将HH:MM格式转换为HH时MM分
+                const [hours, minutes] = timeStr.split(':');
+                return `${hours}时${minutes}分`;
+            }
+            
             async function getBaziAnalysis(section, data) {
-                const apiUrl = 'https://api.siliconflow.cn/v1/chat/completions';
-                const apiKey = 'sk-bjqfadtdatvhmjzegrmqhffzmualpwbbqliwajbeqzsdstmx';
+                const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
+                const apiKey = 'sk-b2950087a9d5427392762814114b22a9';
                 
-                // 格式化当前日期为2025-04-03
-                const currentDateStr = '2025-04-03';
+                // 格式化当前日期为2025年4月3日
+                const currentDateStr = '2025年4月3日';
                 
                 let prompt = `当前日期：${currentDateStr}\n根据以下八字信息进行分析：
 姓名：${data.name || '未提供'}
@@ -1295,9 +1330,8 @@
                         prompt += `请返回以下信息：
 1 八字四柱：年柱[内容] 月柱[内容] 日柱[内容] 时柱[内容]
 2 本命局十神：[天干1,天干2,天干3,天干4,地支1,地支2,地支3,地支4]
-3 藏干情况：年柱[内容] 月柱[内容] 日柱[内容] 时柱[内容]
-4 命格等级：[1-5星]
-5 财富等级：[1-5星]
+3 命格等级：[1-5星]
+4 财富等级：[1-5星]
 
 用简洁格式返回，不要分析内容，不要使用任何符号如#*、等。`;
                         break;
@@ -1313,12 +1347,18 @@
 不要使用任何特殊符号`;
                         break;
                     case 'pattern':
-                        prompt += `分析八字是否存在特殊格局：
+                        prompt += `分析八字是否存在特殊格局和神煞：
 1 从格（从强、从弱）
 2 化格
 3 专旺格
 4 其他特殊格局
-返回格式： 特殊格局：[格局名称或"无特殊格局"] 格局分析：[详细分析] 不要使用任何特殊符号`; 
+5 神煞分析（天乙贵人、太极贵人等）
+
+返回格式： 
+特殊格局：[格局名称或"无特殊格局"] 
+神煞：[神煞1、神煞2、神煞3] 
+格局分析：[详细分析] 
+不要使用任何特殊符号`; 
                         break;
                     case 'elements':
                         prompt += `分析八字的五行喜忌： 1 五行分布情况 2 喜用神分析 3 忌神分析
@@ -1373,7 +1413,7 @@
                         'Authorization': `Bearer ${apiKey}`
                     },
                     body: JSON.stringify({
-                        model: "deepseek-ai/DeepSeek-V3",
+                        model: "deepseek-chat",  // 使用DeepSeek-V3模型
                         messages: [{ role: "user", content: prompt }],
                         temperature: 0.7
                     })
@@ -1429,18 +1469,6 @@
                                 branchGodsList.appendChild(item);
                             }
                         });
-                    }
-                }
-                
-                // 提取藏干情况
-                const hiddenLine = lines.find(line => line.includes('藏干情况'));
-                if (hiddenLine) {
-                    const hidden = hiddenLine.match(/年柱\[(.*?)\] 月柱\[(.*?)\] 日柱\[(.*?)\] 时柱\[(.*?)\]/);
-                    if (hidden && hidden.length === 5) {
-                        yearHidden.textContent = hidden[1] || '-';
-                        monthHidden.textContent = hidden[2] || '-';
-                        dayHidden.textContent = hidden[3] || '-';
-                        hourHidden.textContent = hidden[4] || '-';
                     }
                 }
                 
