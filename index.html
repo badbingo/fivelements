@@ -3,11 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>玄机命理 - 八字测算</title>
+    <meta name="description" content="专业的八字命理测算系统，提供精准的命运分析">
+    <meta name="keywords" content="八字,命理,算命,周易,五行,十神,大运">
+    <title>玄机命理 - 专业八字测算系统</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.css">
     <style>
         @font-face {
             font-family: 'SimHei';
             src: local('SimHei');
+            font-display: swap;
         }
         
         :root {
@@ -31,13 +38,20 @@
             --border-radius: 12px;
             --border-radius-sm: 8px;
             --box-shadow: 0 4px 12px rgba(26, 35, 126, 0.3);
+            --wood-color: #4CAF50;
+            --fire-color: #F44336;
+            --earth-color: #FFC107;
+            --metal-color: #9E9E9E;
+            --water-color: #2196F3;
+            --stem-color: #FFD700;
+            --branch-color: #87CEFA;
         }
         
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'SimHei', sans-serif;
+            font-family: 'SimHei', 'Microsoft YaHei', sans-serif;
         }
         
         body {
@@ -45,6 +59,7 @@
             line-height: 1.6;
             color: var(--text-color);
             background-color: #000000;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100" opacity="0.03"><path d="M30,50 Q50,30 70,50 T90,50" fill="none" stroke="white" stroke-width="1"/></svg>');
             background-size: 120px;
             min-height: 100vh;
             padding: 20px;
@@ -402,29 +417,65 @@
             color: var(--content-color);
         }
         
-        .bazi-columns {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
-            gap: 15px;
-        }
-        
-        .bazi-item {
-            flex: 1;
-            text-align: center;
-            padding: 16px;
-            background-color: rgba(26, 35, 126, 0.5);
-            border-radius: var(--border-radius-sm);
+        /* 八字四柱表格样式 */
+        .bazi-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
             border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-sm);
+            overflow: hidden;
+            background: rgba(26, 35, 126, 0.2);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .bazi-row {
+            display: flex;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .bazi-row:last-child {
+            border-bottom: none;
+        }
+        
+        .bazi-cell {
+            flex: 1;
+            padding: 16px;
+            text-align: center;
+            font-size: 18px;
             font-weight: 500;
+            position: relative;
         }
         
-        .bazi-label {
-            font-weight: bold;
-            margin-right: 8px;
+        .bazi-header .bazi-cell {
+            background-color: rgba(26, 35, 126, 0.5);
             color: var(--title-color);
+            font-weight: bold;
+            font-size: 16px;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
         }
         
+        .bazi-row:nth-child(2) .bazi-cell:not(:first-child) {
+            color: var(--stem-color);
+            font-size: 22px;
+            font-weight: bold;
+            text-shadow: 0 0 8px rgba(255, 215, 0, 0.3);
+        }
+        
+        .bazi-row:nth-child(3) .bazi-cell:not(:first-child) {
+            color: var(--branch-color);
+            font-size: 22px;
+            font-weight: bold;
+            text-shadow: 0 0 8px rgba(135, 206, 250, 0.3);
+        }
+        
+        .bazi-cell:first-child {
+            background-color: rgba(26, 35, 126, 0.4);
+            font-weight: bold;
+            min-width: 80px;
+        }
+        
+        /* 十神列表样式 */
         .ten-gods-grid {
             display: flex;
             gap: 20px;
@@ -457,6 +508,12 @@
             font-size: 15px;
             border: 1px solid var(--border-color);
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .ten-gods-item:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
         
         .rating-container {
@@ -683,6 +740,60 @@
             transition: width 0.4s ease;
         }
         
+        /* 五行能量图 */
+        .element-chart-container {
+            width: 100%;
+            height: 300px;
+            margin: 20px 0;
+            position: relative;
+        }
+        
+        .element-chart {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .element-legend {
+            display: flex;
+            justify-content: center;
+            margin-top: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .element-legend-item {
+            display: flex;
+            align-items: center;
+            margin-right: 15px;
+            font-size: 14px;
+        }
+        
+        .element-legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 3px;
+            margin-right: 8px;
+        }
+        
+        .wood-color { background-color: var(--wood-color); }
+        .fire-color { background-color: var(--fire-color); }
+        .earth-color { background-color: var(--earth-color); }
+        .metal-color { background-color: var(--metal-color); }
+        .water-color { background-color: var(--water-color); }
+        
+        /* 大运走势图 */
+        .fortune-chart-container {
+            width: 100%;
+            height: 350px;
+            margin: 20px 0;
+        }
+        
+        .fortune-chart {
+            width: 100%;
+            height: 100%;
+        }
+        
+        /* 响应式设计 */
         @media (max-width: 768px) {
             .header-title {
                 font-size: 2rem;
@@ -724,6 +835,20 @@
             
             .input-section, .result-section {
                 padding: 30px;
+            }
+            
+            .bazi-cell {
+                padding: 12px;
+                font-size: 16px;
+            }
+            
+            .bazi-row:nth-child(2) .bazi-cell:not(:first-child),
+            .bazi-row:nth-child(3) .bazi-cell:not(:first-child) {
+                font-size: 18px;
+            }
+            
+            .element-chart-container, .fortune-chart-container {
+                height: 250px;
             }
         }
         
@@ -767,21 +892,21 @@
                 flex: 1 0 100%;
             }
             
-            .bazi-columns {
-                flex-wrap: wrap;
+            .bazi-cell {
+                padding: 10px;
+                font-size: 14px;
             }
             
-            .bazi-item {
-                flex: 1 0 45%;
+            .bazi-row:nth-child(2) .bazi-cell:not(:first-child),
+            .bazi-row:nth-child(3) .bazi-cell:not(:first-child) {
+                font-size: 16px;
             }
             
-            .rating-container-inline {
-                flex-direction: column;
-                gap: 10px;
+            .element-chart-container, .fortune-chart-container {
+                height: 200px;
             }
         }
     </style>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
     <div class="container">
@@ -827,7 +952,7 @@
             </div>
             
             <div class="disclaimer">
-                本系统核心数据来自《李虚中命书》《渊海子平》《三命通会》《滴天髓》等古籍库
+                <i class="fas fa-info-circle"></i> 本系统核心数据来自《李虚中命书》《渊海子平》《三命通会》《滴天髓》等古籍库
             </div>
             
             <div class="calculate-btn-container">
@@ -856,11 +981,28 @@
                 <div class="info-section">
                     <h3><i class="fas fa-birthday-cake"></i> 八字四柱</h3>
                     <div class="info-content">
-                        <div class="bazi-columns">
-                            <div class="bazi-item"><span class="bazi-label">年柱</span><span id="year-pillar"></span></div>
-                            <div class="bazi-item"><span class="bazi-label">月柱</span><span id="month-pillar"></span></div>
-                            <div class="bazi-item"><span class="bazi-label">日柱</span><span id="day-pillar"></span></div>
-                            <div class="bazi-item"><span class="bazi-label">时柱</span><span id="hour-pillar"></span></div>
+                        <div class="bazi-table">
+                            <div class="bazi-row bazi-header">
+                                <div class="bazi-cell">四柱</div>
+                                <div class="bazi-cell">年柱</div>
+                                <div class="bazi-cell">月柱</div>
+                                <div class="bazi-cell">日柱</div>
+                                <div class="bazi-cell">时柱</div>
+                            </div>
+                            <div class="bazi-row">
+                                <div class="bazi-cell">天干</div>
+                                <div class="bazi-cell" id="year-stem"></div>
+                                <div class="bazi-cell" id="month-stem"></div>
+                                <div class="bazi-cell" id="day-stem"></div>
+                                <div class="bazi-cell" id="hour-stem"></div>
+                            </div>
+                            <div class="bazi-row">
+                                <div class="bazi-cell">地支</div>
+                                <div class="bazi-cell" id="year-branch"></div>
+                                <div class="bazi-cell" id="month-branch"></div>
+                                <div class="bazi-cell" id="day-branch"></div>
+                                <div class="bazi-cell" id="hour-branch"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -870,17 +1012,47 @@
                     <div class="info-content">
                         <div class="ten-gods-grid">
                             <div class="ten-gods-column">
-                                <h4>天干十神</h4>
+                                <h4><i class="fas fa-cloud-sun"></i> 天干十神</h4>
                                 <div class="ten-gods-list" id="stem-gods-list"></div>
                             </div>
                             <div class="ten-gods-column">
-                                <h4>地支十神</h4>
+                                <h4><i class="fas fa-cloud-moon"></i> 地支十神</h4>
                                 <div class="ten-gods-list" id="branch-gods-list"></div>
                             </div>
                         </div>
                     </div>
                 </div>
-
+                
+                <div class="info-section">
+                    <h3><i class="fas fa-chart-pie"></i> 五行能量分布</h3>
+                    <div class="info-content">
+                        <div class="element-chart-container">
+                            <canvas id="element-chart" class="element-chart"></canvas>
+                        </div>
+                        <div class="element-legend">
+                            <div class="element-legend-item">
+                                <div class="element-legend-color wood-color"></div>
+                                <span>木</span>
+                            </div>
+                            <div class="element-legend-item">
+                                <div class="element-legend-color fire-color"></div>
+                                <span>火</span>
+                            </div>
+                            <div class="element-legend-item">
+                                <div class="element-legend-color earth-color"></div>
+                                <span>土</span>
+                            </div>
+                            <div class="element-legend-item">
+                                <div class="element-legend-color metal-color"></div>
+                                <span>金</span>
+                            </div>
+                            <div class="element-legend-item">
+                                <div class="element-legend-color water-color"></div>
+                                <span>水</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
             
             <div class="menu-tabs">
@@ -905,383 +1077,576 @@
                 
                 <div class="detail-card">
                     <div class="load-btn-container">
-                        <button class="load-btn" data-section="pattern">
-                            <span><i class="fas fa-chess-queen"></i> 特殊格局分析</span>
-                            <i class="fas fa-chevron-down toggle-icon"></i>
-                        </button>
-                        <div class="load-btn-description">分析八字中是否存在特殊格局，如从格、化格、专旺格等</div>
-                    </div>
-                    <div id="pattern-content" class="section-content"></div>
+                                            <button class="load-btn" data-section="pattern">
+                        <span><i class="fas fa-chess-queen"></i> 特殊格局分析</span>
+                        <i class="fas fa-chevron-down toggle-icon"></i>
+                    </button>
+                    <div class="load-btn-description">分析八字中是否存在特殊格局，如从格、化格、专旺格等</div>
                 </div>
-                
-                <div class="detail-card">
-                    <div class="load-btn-container">
-                        <button class="load-btn" data-section="elements">
-                            <span><i class="fas fa-yin-yang"></i> 五行喜忌分析</span>
-                            <i class="fas fa-chevron-down toggle-icon"></i>
-                        </button>
-                        <div class="load-btn-description">分析八字五行分布情况，判断喜用神和忌神</div>
-                    </div>
-                    <div id="elements-content" class="section-content"></div>
-                </div>
-                
-                <div class="detail-card">
-                    <div class="load-btn-container">
-                        <button class="load-btn" data-section="flow">
-                            <span><i class="fas fa-water"></i> 五行流通分析</span>
-                            <i class="fas fa-chevron-down toggle-icon"></i>
-                        </button>
-                        <div class="load-btn-description">分析八字中五行相生相克路径，判断流通是否顺畅</div>
-                    </div>
-                    <div id="flow-content" class="section-content"></div>
-                </div>
-                
-                <div class="detail-card">
-                    <div class="load-btn-container">
-                        <button class="load-btn" data-section="drywet">
-                            <span><i class="fas fa-fire"></i> 五行燥湿分析</span>
-                            <i class="fas fa-chevron-down toggle-icon"></i>
-                        </button>
-                        <div class="load-btn-description">分析八字中水火比例，判断命局偏燥、偏湿还是中和</div>
-                    </div>
-                    <div id="drywet-content" class="section-content"></div>
-                </div>
+                <div id="pattern-content" class="section-content"></div>
             </div>
             
-            <!-- 性格事业 -->
-            <div class="tab-content" id="character-tab">
-                <div class="detail-card">
-                    <div class="load-btn-container">
-                        <button class="load-btn" data-section="personality">
-                            <span><i class="fas fa-brain"></i> 性格分析</span>
-                            <i class="fas fa-chevron-down toggle-icon"></i>
-                        </button>
-                        <div class="load-btn-description">根据八字分析命主的主要性格特征和优缺点</div>
-                    </div>
-                    <div id="personality-content" class="section-content"></div>
+            <div class="detail-card">
+                <div class="load-btn-container">
+                    <button class="load-btn" data-section="elements">
+                        <span><i class="fas fa-yin-yang"></i> 五行喜忌分析</span>
+                        <i class="fas fa-chevron-down toggle-icon"></i>
+                    </button>
+                    <div class="load-btn-description">分析八字五行分布情况，判断喜用神和忌神</div>
                 </div>
-                
-                <div class="detail-card">
-                    <div class="load-btn-container">
-                        <button class="load-btn" data-section="career">
-                            <span><i class="fas fa-briefcase"></i> 适合行业分析</span>
-                            <i class="fas fa-chevron-down toggle-icon"></i>
-                        </button>
-                        <div class="load-btn-description">根据八字五行和十神分析适合从事的职业方向</div>
-                    </div>
-                    <div id="career-content" class="section-content"></div>
-                </div>
+                <div id="elements-content" class="section-content"></div>
             </div>
             
-            <!-- 婚姻家庭 -->
-            <div class="tab-content" id="relationship-tab">
-                <div class="detail-card">
-                    <div class="load-btn-container">
-                        <button class="load-btn" data-section="marriage">
-                            <span><i class="fas fa-ring"></i> 婚姻情况分析</span>
-                            <i class="fas fa-chevron-down toggle-icon"></i>
-                        </button>
-                        <div class="load-btn-description">分析八字中婚姻宫和配偶星情况，预测婚姻状况</div>
-                    </div>
-                    <div id="marriage-content" class="section-content"></div>
+            <div class="detail-card">
+                <div class="load-btn-container">
+                    <button class="load-btn" data-section="flow">
+                        <span><i class="fas fa-water"></i> 五行流通分析</span>
+                        <i class="fas fa-chevron-down toggle-icon"></i>
+                    </button>
+                    <div class="load-btn-description">分析八字中五行相生相克路径，判断流通是否顺畅</div>
                 </div>
-                
-                <div class="detail-card">
-                    <div class="load-btn-container">
-                        <button class="load-btn" data-section="children">
-                            <span><i class="fas fa-baby"></i> 子女情况分析</span>
-                            <i class="fas fa-chevron-down toggle-icon"></i>
-                        </button>
-                        <div class="load-btn-description">分析八字中子女宫和子女星情况，预测子女缘分</div>
-                    </div>
-                    <div id="children-content" class="section-content"></div>
-                </div>
+                <div id="flow-content" class="section-content"></div>
             </div>
             
-            <!-- 运势分析 -->
-            <div class="tab-content" id="trend-tab">
-                <div class="detail-card">
-                    <div class="load-btn-container">
-                        <button class="load-btn" data-section="decade-fortune">
-                            <span><i class="fas fa-hourglass-half"></i> 十年大运分析</span>
-                            <i class="fas fa-chevron-down toggle-icon"></i>
-                        </button>
-                        <div class="load-btn-description">分析一生中各阶段大运走势，预测重要时期吉凶</div>
-                    </div>
-                    <div id="decade-fortune-content" class="section-content"></div>
+            <div class="detail-card">
+                <div class="load-btn-container">
+                    <button class="load-btn" data-section="drywet">
+                        <span><i class="fas fa-fire"></i> 五行燥湿分析</span>
+                        <i class="fas fa-chevron-down toggle-icon"></i>
+                    </button>
+                    <div class="load-btn-description">分析八字中水火比例，判断命局偏燥、偏湿还是中和</div>
                 </div>
-                
-                <div class="detail-card">
-                    <div class="load-btn-container">
-                        <button class="load-btn" data-section="milestones">
-                            <span><i class="fas fa-map-marked-alt"></i> 重要节点分析</span>
-                            <i class="fas fa-chevron-down toggle-icon"></i>
-                        </button>
-                        <div class="load-btn-description">指出人生中重要的年份和可能发生的重大事件</div>
-                    </div>
-                    <div id="milestones-content" class="section-content"></div>
-                </div>
-                
-                <div class="detail-card">
-                    <div class="load-btn-container">
-                        <button class="load-btn" data-section="monthly-fortune">
-                            <span><i class="fas fa-calendar-day"></i> 每月运势分析</span>
-                            <i class="fas fa-chevron-down toggle-icon"></i>
-                        </button>
-                        <div class="load-btn-description">预测当前年份每月的运势起伏和注意事项</div>
-                    </div>
-                    <div id="monthly-fortune-content" class="section-content"></div>
-                </div>
-                
-                <div class="detail-card">
-                    <div class="load-btn-container">
-                        <button class="load-btn" data-section="summary">
-                            <span><i class="fas fa-scroll"></i> 命运总结分析</span>
-                            <i class="fas fa-chevron-down toggle-icon"></i>
-                        </button>
-                        <div class="load-btn-description">综合所有分析结果，提供完整的命运总结和建议</div>
-                    </div>
-                    <div id="summary-content" class="section-content"></div>
-                </div>
-            </div>
-            
-            <div class="calculate-btn-container" style="margin-top: 30px;">
-                <button id="recalculate-btn"><i class="fas fa-redo"></i> 重新测算</button>
+                <div id="drywet-content" class="section-content"></div>
             </div>
         </div>
         
-        <div class="copyright">
-            © 2025 Five Elements 版权所有
+        <!-- 性格事业 -->
+        <div class="tab-content" id="character-tab">
+            <div class="detail-card">
+                <div class="load-btn-container">
+                    <button class="load-btn" data-section="personality">
+                        <span><i class="fas fa-brain"></i> 性格分析</span>
+                        <i class="fas fa-chevron-down toggle-icon"></i>
+                    </button>
+                    <div class="load-btn-description">根据八字分析命主的主要性格特征和优缺点</div>
+                </div>
+                <div id="personality-content" class="section-content"></div>
+            </div>
+            
+            <div class="detail-card">
+                <div class="load-btn-container">
+                    <button class="load-btn" data-section="career">
+                        <span><i class="fas fa-briefcase"></i> 适合行业分析</span>
+                        <i class="fas fa-chevron-down toggle-icon"></i>
+                    </button>
+                    <div class="load-btn-description">根据八字五行和十神分析适合从事的职业方向</div>
+                </div>
+                <div id="career-content" class="section-content"></div>
+            </div>
+            
+            <div class="detail-card">
+                <div class="load-btn-container">
+                    <button class="load-btn" data-section="wealth">
+                        <span><i class="fas fa-coins"></i> 财富格局分析</span>
+                        <i class="fas fa-chevron-down toggle-icon"></i>
+                    </button>
+                    <div class="load-btn-description">分析八字中的财富格局和理财建议</div>
+                </div>
+                <div id="wealth-content" class="section-content"></div>
+            </div>
+        </div>
+        
+        <!-- 婚姻家庭 -->
+        <div class="tab-content" id="relationship-tab">
+            <div class="detail-card">
+                <div class="load-btn-container">
+                    <button class="load-btn" data-section="marriage">
+                        <span><i class="fas fa-ring"></i> 婚姻情况分析</span>
+                        <i class="fas fa-chevron-down toggle-icon"></i>
+                    </button>
+                    <div class="load-btn-description">分析八字中婚姻宫和配偶星情况，预测婚姻状况</div>
+                </div>
+                <div id="marriage-content" class="section-content"></div>
+            </div>
+            
+            <div class="detail-card">
+                <div class="load-btn-container">
+                    <button class="load-btn" data-section="children">
+                        <span><i class="fas fa-baby"></i> 子女情况分析</span>
+                        <i class="fas fa-chevron-down toggle-icon"></i>
+                    </button>
+                    <div class="load-btn-description">分析八字中子女宫和子女星情况，预测子女缘分</div>
+                </div>
+                <div id="children-content" class="section-content"></div>
+            </div>
+            
+            <div class="detail-card">
+                <div class="load-btn-container">
+                    <button class="load-btn" data-section="family">
+                        <span><i class="fas fa-home"></i> 家庭关系分析</span>
+                        <i class="fas fa-chevron-down toggle-icon"></i>
+                    </button>
+                    <div class="load-btn-description">分析八字中父母、兄弟姐妹等家庭关系</div>
+                </div>
+                <div id="family-content" class="section-content"></div>
+            </div>
+        </div>
+        
+        <!-- 运势分析 -->
+        <div class="tab-content" id="trend-tab">
+            <div class="detail-card">
+                <div class="load-btn-container">
+                    <button class="load-btn" data-section="decade-fortune">
+                        <span><i class="fas fa-hourglass-half"></i> 十年大运分析</span>
+                        <i class="fas fa-chevron-down toggle-icon"></i>
+                    </button>
+                    <div class="load-btn-description">分析一生中各阶段大运走势，预测重要时期吉凶</div>
+                </div>
+                <div id="decade-fortune-content" class="section-content"></div>
+            </div>
+            
+            <div class="detail-card">
+                <div class="load-btn-container">
+                    <button class="load-btn" data-section="milestones">
+                        <span><i class="fas fa-map-marked-alt"></i> 重要节点分析</span>
+                        <i class="fas fa-chevron-down toggle-icon"></i>
+                    </button>
+                    <div class="load-btn-description">指出人生中重要的年份和可能发生的重大事件</div>
+                </div>
+                <div id="milestones-content" class="section-content"></div>
+            </div>
+            
+            <div class="detail-card">
+                <div class="load-btn-container">
+                    <button class="load-btn" data-section="monthly-fortune">
+                        <span><i class="fas fa-calendar-day"></i> 每月运势分析</span>
+                        <i class="fas fa-chevron-down toggle-icon"></i>
+                    </button>
+                    <div class="load-btn-description">预测当前年份每月的运势起伏和注意事项</div>
+                </div>
+                <div id="monthly-fortune-content" class="section-content"></div>
+            </div>
+            
+            <div class="detail-card">
+                <div class="load-btn-container">
+                    <button class="load-btn" data-section="summary">
+                        <span><i class="fas fa-scroll"></i> 命运总结分析</span>
+                        <i class="fas fa-chevron-down toggle-icon"></i>
+                    </button>
+                    <div class="load-btn-description">综合所有分析结果，提供完整的命运总结和建议</div>
+                </div>
+                <div id="summary-content" class="section-content"></div>
+            </div>
+        </div>
+        
+        <div class="calculate-btn-container" style="margin-top: 30px;">
+            <button id="recalculate-btn"><i class="fas fa-redo"></i> 重新测算</button>
         </div>
     </div>
+    
+    <div class="copyright">
+        © 2025 玄机命理 版权所有 | 数据来自《渊海子平》《三命通会》等古籍
+    </div>
+</div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const calculateBtn = document.getElementById('calculate-btn');
-            const recalculateBtn = document.getElementById('recalculate-btn');
-            const inputSection = document.getElementById('input-section');
-            const resultSection = document.getElementById('result-section');
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const calculateBtn = document.getElementById('calculate-btn');
+        const recalculateBtn = document.getElementById('recalculate-btn');
+        const inputSection = document.getElementById('input-section');
+        const resultSection = document.getElementById('result-section');
+        
+        // 八字四柱元素
+        const yearStem = document.getElementById('year-stem');
+        const yearBranch = document.getElementById('year-branch');
+        const monthStem = document.getElementById('month-stem');
+        const monthBranch = document.getElementById('month-branch');
+        const dayStem = document.getElementById('day-stem');
+        const dayBranch = document.getElementById('day-branch');
+        const hourStem = document.getElementById('hour-stem');
+        const hourBranch = document.getElementById('hour-branch');
+        
+        // 十神列表元素
+        const stemGodsList = document.getElementById('stem-gods-list');
+        const branchGodsList = document.getElementById('branch-gods-list');
+        
+        // 命格评估元素
+        const fateRating = document.getElementById('fate-rating');
+        const wealthRating = document.getElementById('wealth-rating');
+        
+        // 五行图表元素
+        const elementChartCtx = document.getElementById('element-chart').getContext('2d');
+        let elementChart;
+        
+        // 定义当前日期为2025年4月3日
+        const currentDate = new Date(2025, 3, 3); // 月份是0-11，所以3表示4月
+        let birthData = {};
+        let loadedSections = {};
+        
+        // 重新测算按钮点击事件
+        recalculateBtn.addEventListener('click', function() {
+            // 清空输入框
+            document.getElementById('name').value = '';
+            document.getElementById('birth-date').value = '';
+            document.getElementById('birth-time').value = '';
+            document.getElementById('gender').value = '';
             
-            // 八字四柱元素
-            const yearPillar = document.getElementById('year-pillar');
-            const monthPillar = document.getElementById('month-pillar');
-            const dayPillar = document.getElementById('day-pillar');
-            const hourPillar = document.getElementById('hour-pillar');
+            // 隐藏结果区域，显示输入区域
+            resultSection.style.display = 'none';
+            inputSection.style.display = 'block';
             
-            // 十神列表元素
-            const stemGodsList = document.getElementById('stem-gods-list');
-            const branchGodsList = document.getElementById('branch-gods-list');
+            // 重置所有内容
+            resetAllContent();
             
-            // 命格评估元素
-            const fateRating = document.getElementById('fate-rating');
-            const wealthRating = document.getElementById('wealth-rating');
+            // 销毁图表实例
+            if (elementChart) {
+                elementChart.destroy();
+            }
             
-            // 定义当前日期为2025年4月3日
-            const currentDate = new Date(2025, 3, 3); // 月份是0-11，所以3表示4月
-            let birthData = {};
-            let loadedSections = {};
+            // 滚动到顶部
+            window.scrollTo(0, 0);
+        });
+        
+        function resetAllContent() {
+            // 重置八字四柱
+            yearStem.textContent = '';
+            yearBranch.textContent = '';
+            monthStem.textContent = '';
+            monthBranch.textContent = '';
+            dayStem.textContent = '';
+            dayBranch.textContent = '';
+            hourStem.textContent = '';
+            hourBranch.textContent = '';
             
-            // 重新测算按钮点击事件
-            recalculateBtn.addEventListener('click', function() {
-                // 清空输入框
-                document.getElementById('name').value = '';
-                document.getElementById('birth-date').value = '';
-                document.getElementById('birth-time').value = '';
-                document.getElementById('gender').value = '';
+            // 重置十神列表
+            stemGodsList.innerHTML = '';
+            branchGodsList.innerHTML = '';
+            
+            // 重置命格评估
+            fateRating.textContent = '-';
+            wealthRating.textContent = '-';
+            
+            // 重置所有内容区域
+            document.querySelectorAll('.section-content').forEach(el => {
+                el.innerHTML = '';
+                el.classList.remove('active');
+            });
+            
+            // 重置所有加载按钮
+            document.querySelectorAll('.load-btn').forEach(btn => {
+                btn.innerHTML = `<span><i class="fas fa-${btn.getAttribute('data-section') === 'strength' ? 'dumbbell' : 
+                                btn.getAttribute('data-section') === 'pattern' ? 'chess-queen' : 
+                                btn.getAttribute('data-section') === 'elements' ? 'yin-yang' : 
+                                btn.getAttribute('data-section') === 'flow' ? 'water' : 
+                                btn.getAttribute('data-section') === 'drywet' ? 'fire' : 
+                                btn.getAttribute('data-section') === 'personality' ? 'brain' : 
+                                btn.getAttribute('data-section') === 'career' ? 'briefcase' : 
+                                btn.getAttribute('data-section') === 'marriage' ? 'ring' : 
+                                btn.getAttribute('data-section') === 'children' ? 'baby' : 
+                                btn.getAttribute('data-section') === 'decade-fortune' ? 'hourglass-half' : 
+                                btn.getAttribute('data-section') === 'milestones' ? 'map-marked-alt' : 
+                                btn.getAttribute('data-section') === 'monthly-fortune' ? 'calendar-day' : 'scroll'}"></i> ${btn.textContent.trim()}</span><i class="fas fa-chevron-down toggle-icon"></i>`;
+                btn.classList.remove('active');
+                btn.disabled = false;
+            });
+            
+            // 重置描述显示
+            document.querySelectorAll('.load-btn-container').forEach(container => {
+                container.classList.remove('active');
+            });
+            
+            // 重置标签页
+            document.querySelectorAll('.menu-tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.querySelector('.menu-tab[data-tab="fortune"]').classList.add('active');
+            document.getElementById('fortune-tab').classList.add('active');
+            
+            // 重置已加载的章节
+            loadedSections = {};
+        }
+        
+        // 初始化标签页
+        document.querySelectorAll('.menu-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.menu-tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
                 
-                // 隐藏结果区域，显示输入区域
-                resultSection.style.display = 'none';
-                inputSection.style.display = 'block';
+                this.classList.add('active');
+                const tabId = this.getAttribute('data-tab') + '-tab';
+                document.getElementById(tabId).classList.add('active');
+            });
+        });
+        
+        // 初始化加载按钮和折叠功能
+        function initLoadButtons() {
+            document.querySelectorAll('.load-btn').forEach(button => {
+                const section = button.getAttribute('data-section');
+                const contentElement = document.getElementById(`${section}-content`);
+                const container = button.closest('.load-btn-container');
                 
-                // 重置所有内容
-                resetAllContent();
+                button.addEventListener('click', async function(e) {
+                    e.preventDefault();
+                    
+                    if (loadedSections[section]) {
+                        container.classList.toggle('active');
+                        contentElement.classList.toggle('active');
+                        return;
+                    }
+                    
+                    this.disabled = true;
+                    this.innerHTML = '<span><span class="loading"></span> 正在搜索周易命理库...</span><i class="fas fa-chevron-down toggle-icon"></i>';
+                    container.classList.add('active');
+                    
+                    const progressContainer = document.createElement('div');
+                    progressContainer.className = 'progress-container';
+                    progressContainer.innerHTML = '<div class="progress-bar"></div>';
+                    progressContainer.style.display = 'block';
+                    
+                    contentElement.innerHTML = '';
+                    contentElement.appendChild(progressContainer);
+                    
+                    const progressBar = progressContainer.querySelector('.progress-bar');
+                    let progress = 0;
+                    const progressInterval = setInterval(() => {
+                        progress += Math.random() * 10;
+                        if (progress >= 100) progress = 100;
+                        progressBar.style.width = `${progress}%`;
+                    }, 300);
+                    
+                    try {
+                        const result = await getBaziAnalysis(section, birthData);
+                        clearInterval(progressInterval);
+                        displaySectionContent(section, result, contentElement);
+                        
+                        button.innerHTML = `<span><i class="fas fa-check"></i> 分析完成</span><i class="fas fa-chevron-down toggle-icon"></i>`;
+                        button.disabled = false;
+                        contentElement.classList.add('active');
+                        loadedSections[section] = true;
+                        
+                        // 如果是大运分析，初始化图表
+                        if (section === 'decade-fortune') {
+                            initFortuneChart(result);
+                        }
+                    } catch (error) {
+                        console.error(`加载${section}失败:`, error);
+                        clearInterval(progressInterval);
+                        contentElement.innerHTML = '<p style="color:var(--danger-color)">加载失败，请重试</p>';
+                        button.disabled = false;
+                        button.innerHTML = `<span><i class="fas fa-redo"></i> 重新分析</span><i class="fas fa-chevron-down toggle-icon"></i>`;
+                        container.classList.remove('active');
+                    }
+                });
+            });
+        }
+        
+        // 初始化五行能量图
+        function initElementChart(data) {
+            const elementData = {
+                labels: ['木', '火', '土', '金', '水'],
+                datasets: [{
+                    data: data,
+                    backgroundColor: [
+                        'rgba(76, 175, 80, 0.7)',
+                        'rgba(244, 67, 54, 0.7)',
+                        'rgba(255, 193, 7, 0.7)',
+                        'rgba(158, 158, 158, 0.7)',
+                        'rgba(33, 150, 243, 0.7)'
+                    ],
+                    borderColor: [
+                        'rgba(76, 175, 80, 1)',
+                        'rgba(244, 67, 54, 1)',
+                        'rgba(255, 193, 7, 1)',
+                        'rgba(158, 158, 158, 1)',
+                        'rgba(33, 150, 243, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            };
+            
+            elementChart = new Chart(elementChartCtx, {
+                type: 'radar',
+                data: elementData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: {
+                                display: true,
+                                color: 'rgba(255, 255, 255, 0.2)'
+                            },
+                            suggestedMin: 0,
+                            suggestedMax: 10,
+                            ticks: {
+                                backdropColor: 'transparent',
+                                color: 'rgba(255, 255, 255, 0.7)',
+                                font: {
+                                    family: "'SimHei', sans-serif"
+                                }
+                            },
+                            pointLabels: {
+                                color: 'rgba(255, 255, 255, 0.9)',
+                                font: {
+                                    family: "'SimHei', sans-serif",
+                                    size: 14
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `能量值: ${context.raw}`;
+                                }
+                            }
+                        }
+                    },
+                    elements: {
+                        line: {
+                            tension: 0.1
+                        }
+                    }
+                }
+            });
+        }
+        
+        // 初始化大运走势图
+        function initFortuneChart(data) {
+            const fortuneContent = document.getElementById('decade-fortune-content');
+            const canvas = document.createElement('canvas');
+            canvas.className = 'fortune-chart';
+            fortuneContent.appendChild(canvas);
+            
+            const ctx = canvas.getContext('2d');
+            
+            // 示例数据 - 实际应从API获取
+            const fortuneData = {
+                labels: ['10-20岁', '20-30岁', '30-40岁', '40-50岁', '50-60岁', '60-70岁'],
+                datasets: [{
+                    label: '运势指数',
+                    data: [65, 59, 80, 81, 56, 55],
+                    fill: true,
+                    backgroundColor: 'rgba(121, 134, 203, 0.2)',
+                    borderColor: 'rgba(121, 134, 203, 1)',
+                    tension: 0.4,
+                    pointBackgroundColor: 'rgba(121, 134, 203, 1)'
+                }]
+            };
+            
+            new Chart(ctx, {
+                type: 'line',
+                data: fortuneData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: {
+                                color: 'rgba(255, 255, 255, 0.7)'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                color: 'rgba(255, 255, 255, 0.7)'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: 'rgba(255, 255, 255, 0.9)'
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `运势指数: ${context.raw}`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        calculateBtn.addEventListener('click', async function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('name').value;
+            const birthDate = document.getElementById('birth-date').value;
+            const birthTime = document.getElementById('birth-time').value;
+            const gender = document.getElementById('gender').value;
+            
+            if (!birthDate || !birthTime || !gender) {
+                alert('请填写完整的出生信息');
+                return;
+            }
+            
+            // 处理时区问题 - 将输入日期转换为本地时间
+            const [year, month, day] = birthDate.split('-');
+            const [hours, minutes] = birthTime.split(':');
+            const birthDateTime = new Date(year, month-1, day, hours, minutes);
+            
+            // 计算时区偏移量（分钟）
+            const timezoneOffset = birthDateTime.getTimezoneOffset();
+            
+            birthData = { 
+                name, 
+                date: `${year}年${month}月${day}日`,
+                time: `${hours}时${minutes}分`, 
+                gender: gender,
+                timezoneOffset: timezoneOffset  // 添加时区偏移量
+            };
+            
+            calculateBtn.disabled = true;
+            calculateBtn.innerHTML = '<span class="loading"></span> 测算中...';
+            
+            try {
+                const basicInfo = await getBaziAnalysis('basic', birthData);
+                displayBasicInfo(basicInfo);
                 
-                // 滚动到顶部
+                // 初始化五行能量图
+                initElementChart([8, 5, 6, 3, 7]); // 示例数据，实际应从API获取
+                
+                inputSection.style.display = 'none';
+                resultSection.style.display = 'block';
+                calculateBtn.disabled = false;
+                calculateBtn.innerHTML = '<i class="fas fa-calculator"></i> 开始测算';
+                
+                initLoadButtons();
                 window.scrollTo(0, 0);
-            });
-            
-            function resetAllContent() {
-                // 重置八字四柱
-                yearPillar.textContent = '';
-                monthPillar.textContent = '';
-                dayPillar.textContent = '';
-                hourPillar.textContent = '';
-                
-                // 重置十神列表
-                stemGodsList.innerHTML = '';
-                branchGodsList.innerHTML = '';
-                
-                // 重置命格评估
-                fateRating.textContent = '-';
-                wealthRating.textContent = '-';
-                
-                // 重置所有内容区域
-                document.querySelectorAll('.section-content').forEach(el => {
-                    el.innerHTML = '';
-                    el.classList.remove('active');
-                });
-                
-                // 重置所有加载按钮
-                document.querySelectorAll('.load-btn').forEach(btn => {
-                    btn.innerHTML = `<span><i class="fas fa-${btn.getAttribute('data-section') === 'strength' ? 'dumbbell' : 
-                                    btn.getAttribute('data-section') === 'pattern' ? 'chess-queen' : 
-                                    btn.getAttribute('data-section') === 'elements' ? 'yin-yang' : 
-                                    btn.getAttribute('data-section') === 'flow' ? 'water' : 
-                                    btn.getAttribute('data-section') === 'drywet' ? 'fire' : 
-                                    btn.getAttribute('data-section') === 'personality' ? 'brain' : 
-                                    btn.getAttribute('data-section') === 'career' ? 'briefcase' : 
-                                    btn.getAttribute('data-section') === 'marriage' ? 'ring' : 
-                                    btn.getAttribute('data-section') === 'children' ? 'baby' : 
-                                    btn.getAttribute('data-section') === 'decade-fortune' ? 'hourglass-half' : 
-                                    btn.getAttribute('data-section') === 'milestones' ? 'map-marked-alt' : 
-                                    btn.getAttribute('data-section') === 'monthly-fortune' ? 'calendar-day' : 'scroll'}"></i> ${btn.textContent.trim()}</span><i class="fas fa-chevron-down toggle-icon"></i>`;
-                    btn.classList.remove('active');
-                    btn.disabled = false;
-                });
-                
-                // 重置描述显示
-                document.querySelectorAll('.load-btn-container').forEach(container => {
-                    container.classList.remove('active');
-                });
-                
-                // 重置标签页
-                document.querySelectorAll('.menu-tab').forEach(tab => tab.classList.remove('active'));
-                document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-                document.querySelector('.menu-tab[data-tab="fortune"]').classList.add('active');
-                document.getElementById('fortune-tab').classList.add('active');
-                
-                // 重置已加载的章节
-                loadedSections = {};
+            } catch (error) {
+                console.error('测算失败:', error);
+                alert('测算失败，请稍后重试');
+                calculateBtn.disabled = false;
+                calculateBtn.innerHTML = '<i class="fas fa-calculator"></i> 开始测算';
             }
+        });
+        
+        async function getBaziAnalysis(section, data) {
+            const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
+            const apiKey = 'sk-b2950087a9d5427392762814114b22a9';
             
-            // 初始化标签页
-            document.querySelectorAll('.menu-tab').forEach(tab => {
-                tab.addEventListener('click', function() {
-                    document.querySelectorAll('.menu-tab').forEach(t => t.classList.remove('active'));
-                    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-                    
-                    this.classList.add('active');
-                    const tabId = this.getAttribute('data-tab') + '-tab';
-                    document.getElementById(tabId).classList.add('active');
-                });
-            });
+            // 格式化当前日期为2025年4月3日
+            const currentDateStr = '2025年4月3日';
             
-            // 初始化加载按钮和折叠功能
-            function initLoadButtons() {
-                document.querySelectorAll('.load-btn').forEach(button => {
-                    const section = button.getAttribute('data-section');
-                    const contentElement = document.getElementById(`${section}-content`);
-                    const container = button.closest('.load-btn-container');
-                    
-                    button.addEventListener('click', async function(e) {
-                        e.preventDefault();
-                        
-                        if (loadedSections[section]) {
-                            container.classList.toggle('active');
-                            contentElement.classList.toggle('active');
-                            return;
-                        }
-                        
-                        this.disabled = true;
-                        this.innerHTML = '<span><span class="loading"></span> 正在搜索周易命理库...</span><i class="fas fa-chevron-down toggle-icon"></i>';
-                        container.classList.add('active');
-                        
-                        const progressContainer = document.createElement('div');
-                        progressContainer.className = 'progress-container';
-                        progressContainer.innerHTML = '<div class="progress-bar"></div>';
-                        progressContainer.style.display = 'block';
-                        
-                        contentElement.innerHTML = '';
-                        contentElement.appendChild(progressContainer);
-                        
-                        const progressBar = progressContainer.querySelector('.progress-bar');
-                        let progress = 0;
-                        const progressInterval = setInterval(() => {
-                            progress += Math.random() * 10;
-                            if (progress >= 100) progress = 100;
-                            progressBar.style.width = `${progress}%`;
-                        }, 300);
-                        
-                        try {
-                            const result = await getBaziAnalysis(section, birthData);
-                            clearInterval(progressInterval);
-                            displaySectionContent(section, result, contentElement);
-                            
-                            button.innerHTML = `<span><i class="fas fa-check"></i> 分析完成</span><i class="fas fa-chevron-down toggle-icon"></i>`;
-                            button.disabled = false;
-                            contentElement.classList.add('active');
-                            loadedSections[section] = true;
-                        } catch (error) {
-                            console.error(`加载${section}失败:`, error);
-                            clearInterval(progressInterval);
-                            contentElement.innerHTML = '<p style="color:var(--danger-color)">加载失败，请重试</p>';
-                            button.disabled = false;
-                            button.innerHTML = `<span><i class="fas fa-redo"></i> 重新分析</span><i class="fas fa-chevron-down toggle-icon"></i>`;
-                            container.classList.remove('active');
-                        }
-                    });
-                });
-            }
-            
-            calculateBtn.addEventListener('click', async function(e) {
-                e.preventDefault();
-                
-                const name = document.getElementById('name').value;
-                const birthDate = document.getElementById('birth-date').value;
-                const birthTime = document.getElementById('birth-time').value;
-                const gender = document.getElementById('gender').value;
-                
-                if (!birthDate || !birthTime || !gender) {
-                    alert('请填写完整的出生信息');
-                    return;
-                }
-                
-                // 处理时区问题 - 将输入日期转换为本地时间
-                const [year, month, day] = birthDate.split('-');
-                const [hours, minutes] = birthTime.split(':');
-                const birthDateTime = new Date(year, month-1, day, hours, minutes);
-                
-                // 计算时区偏移量（分钟）
-                const timezoneOffset = birthDateTime.getTimezoneOffset();
-                
-                birthData = { 
-                    name, 
-                    date: `${year}年${month}月${day}日`,
-                    time: `${hours}时${minutes}分`, 
-                    gender: gender,
-                    timezoneOffset: timezoneOffset  // 添加时区偏移量
-                };
-                
-                calculateBtn.disabled = true;
-                calculateBtn.innerHTML = '<span class="loading"></span> 测算中...';
-                
-                try {
-                    const basicInfo = await getBaziAnalysis('basic', birthData);
-                    displayBasicInfo(basicInfo);
-                    
-                    inputSection.style.display = 'none';
-                    resultSection.style.display = 'block';
-                    calculateBtn.disabled = false;
-                    calculateBtn.innerHTML = '<i class="fas fa-calculator"></i> 开始测算';
-                    
-                    initLoadButtons();
-                    window.scrollTo(0, 0);
-                } catch (error) {
-                    console.error('测算失败:', error);
-                    alert('测算失败，请稍后重试');
-                    calculateBtn.disabled = false;
-                    calculateBtn.innerHTML = '<i class="fas fa-calculator"></i> 开始测算';
-                }
-            });
-            
-            async function getBaziAnalysis(section, data) {
-                const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
-                const apiKey = 'sk-b2950087a9d5427392762814114b22a9';
-                
-                // 格式化当前日期为2025年4月3日
-                const currentDateStr = '2025年4月3日';
-                
-                let prompt = `当前日期：${currentDateStr}\n根据以下八字信息进行分析：
+            let prompt = `当前日期：${currentDateStr}\n根据以下八字信息进行分析：
 姓名：${data.name || '未提供'}
 出生日期：${data.date}
 出生时间：${data.time}
@@ -1290,19 +1655,20 @@
 
 `;
 
-                // 根据不同的分析部分设置不同的提示词
-                switch(section) {
-                    case 'basic':
-                        prompt += `请返回以下信息：
+            // 根据不同的分析部分设置不同的提示词
+            switch(section) {
+                case 'basic':
+                    prompt += `请返回以下信息：
 1 八字四柱：年柱[内容] 月柱[内容] 日柱[内容] 时柱[内容]
 2 本命局十神：[天干1,天干2,天干3,天干4,地支1,地支2,地支3,地支4]
 3 命格等级：[1-5星]
 4 财富等级：[1-5星]
+5 五行能量：[木,火,土,金,水] (1-10分)
 
 用简洁格式返回，不要分析内容，不要使用任何符号如#*、等。`;
-                        break;
-                    case 'strength':
-                        prompt += `分析命主的身强身弱情况：
+                    break;
+                case 'strength':
+                    prompt += `分析命主的身强身弱情况：
 1 日主得令、得地、得势的情况
 2 天干地支的生助情况
 3 综合分析结论
@@ -1311,124 +1677,160 @@
 身强身弱：[强/弱/中和]
 分析理由：[详细分析]
 不要使用任何特殊符号`;
-                        break;
-                    // 其他分析部分的提示词...
-                    default:
-                        prompt += `请分析${section}相关内容`;
-                }
-                
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${apiKey}`
-                    },
-                    body: JSON.stringify({
-                        model: "deepseek-chat",
-                        messages: [{ role: "user", content: prompt }],
-                        temperature: 0.7
-                    })
-                });
-                
-                if (!response.ok) throw new Error(`API请求失败: ${response.status}`);
-                const result = await response.json();
-                return result.choices[0].message.content;
+                    break;
+                case 'pattern':
+                    prompt += `分析八字中的特殊格局：
+1 是否存在特殊格局
+2 格局名称和特点
+3 对命运的影响
+
+返回格式：
+特殊格局：[格局名称]
+格局分析：[详细分析]`;
+                    break;
+                case 'elements':
+                    prompt += `分析八字五行喜忌：
+1 五行分布情况
+2 喜用神和忌神
+3 调候建议
+
+返回格式：
+五行喜忌：[喜用神/忌神]
+分析理由：[详细分析]`;
+                    break;
+                case 'decade-fortune':
+                    prompt += `分析十年大运走势：
+1 各阶段大运起止时间
+2 大运干支和十神
+3 各阶段运势特点
+
+返回格式：
+大运分析：[详细分析]
+运势走势：[阶段1:分数,阶段2:分数,...] (1-100分)`;
+                    break;
+                default:
+                    prompt += `请分析${section}相关内容`;
             }
             
-            function displayBasicInfo(info) {
-                const lines = info.split('\n').filter(line => line.trim());
-                
-                // 提取八字四柱
-                const pillarsLine = lines.find(line => line.includes('八字四柱'));
-                if (pillarsLine) {
-                    const pillars = pillarsLine.match(/年柱\[(.*?)\] 月柱\[(.*?)\] 日柱\[(.*?)\] 时柱\[(.*?)\]/);
-                    if (pillars && pillars.length === 5) {
-                        yearPillar.textContent = pillars[1];
-                        monthPillar.textContent = pillars[2];
-                        dayPillar.textContent = pillars[3];
-                        hourPillar.textContent = pillars[4];
-                    }
-                }
-                
-                // 提取本命局十神
-                const tenGodsLine = lines.find(line => line.includes('本命局十神'));
-                if (tenGodsLine) {
-                    const tenGodsMatch = tenGodsLine.match(/本命局十神：\[(.*?)\]/);
-                    if (tenGodsMatch && tenGodsMatch[1]) {
-                        const allGods = tenGodsMatch[1].split(',');
-                        
-                        // Clear previous content
-                        stemGodsList.innerHTML = '';
-                        branchGodsList.innerHTML = '';
-                        
-                        // First 4 are stem gods (天干)
-                        allGods.slice(0, 4).forEach((god, index) => {
-                            if (god.trim()) {
-                                const item = document.createElement('div');
-                                item.className = 'ten-gods-item';
-                                item.textContent = `${['年干','月干','日干','时干'][index]}: ${god.trim()}`;
-                                stemGodsList.appendChild(item);
-                            }
-                        });
-                        
-                        // Next 4 are branch gods (地支)
-                        allGods.slice(4, 8).forEach((god, index) => {
-                            if (god.trim()) {
-                                const item = document.createElement('div');
-                                item.className = 'ten-gods-item';
-                                item.textContent = `${['年支','月支','日支','时支'][index]}: ${god.trim()}`;
-                                branchGodsList.appendChild(item);
-                            }
-                        });
-                    }
-                }
-                
-                // 提取命格等级
-                const fateLine = lines.find(line => line.includes('命格等级'));
-                if (fateLine) {
-                    const fateMatch = fateLine.match(/命格等级：\[(.*?)\]/);
-                    if (fateMatch && fateMatch[1]) {
-                        fateRating.textContent = getStarRating(fateMatch[1]);
-                    }
-                }
-                
-                // 提取财富等级
-                const wealthLine = lines.find(line => line.includes('财富等级'));
-                if (wealthLine) {
-                    const wealthMatch = wealthLine.match(/财富等级：\[(.*?)\]/);
-                    if (wealthMatch && wealthMatch[1]) {
-                        wealthRating.textContent = getStarRating(wealthMatch[1]);
-                    }
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`
+                },
+                body: JSON.stringify({
+                    model: "deepseek-chat",
+                    messages: [{ role: "user", content: prompt }],
+                    temperature: 0.7
+                })
+            });
+            
+            if (!response.ok) throw new Error(`API请求失败: ${response.status}`);
+            const result = await response.json();
+            return result.choices[0].message.content;
+        }
+        
+        function displayBasicInfo(info) {
+            const lines = info.split('\n').filter(line => line.trim());
+            
+            // 提取八字四柱
+            const pillarsLine = lines.find(line => line.includes('八字四柱'));
+            if (pillarsLine) {
+                const pillars = pillarsLine.match(/年柱\[(.*?)\] 月柱\[(.*?)\] 日柱\[(.*?)\] 时柱\[(.*?)\]/);
+                if (pillars && pillars.length === 5) {
+                    // 更新八字表格
+                    yearStem.textContent = pillars[1].charAt(0);
+                    yearBranch.textContent = pillars[1].charAt(1);
+                    monthStem.textContent = pillars[2].charAt(0);
+                    monthBranch.textContent = pillars[2].charAt(1);
+                    dayStem.textContent = pillars[3].charAt(0);
+                    dayBranch.textContent = pillars[3].charAt(1);
+                    hourStem.textContent = pillars[4].charAt(0);
+                    hourBranch.textContent = pillars[4].charAt(1);
                 }
             }
             
-            function getStarRating(ratingText) {
-                // 将数字评分转换为星标
-                const rating = parseInt(ratingText);
-                if (isNaN(rating)) return '-';
-                
-                const fullStars = '★'.repeat(rating);
-                const emptyStars = '☆'.repeat(5 - rating);
-                return fullStars + emptyStars;
+            // 提取本命局十神
+            const tenGodsLine = lines.find(line => line.includes('本命局十神'));
+            if (tenGodsLine) {
+                const tenGodsMatch = tenGodsLine.match(/本命局十神：\[(.*?)\]/);
+                if (tenGodsMatch && tenGodsMatch[1]) {
+                    const allGods = tenGodsMatch[1].split(',');
+                    
+                    // Clear previous content
+                    stemGodsList.innerHTML = '';
+                    branchGodsList.innerHTML = '';
+                    
+                    // First 4 are stem gods (天干)
+                    allGods.slice(0, 4).forEach((god, index) => {
+                        if (god.trim()) {
+                            const item = document.createElement('div');
+                            item.className = 'ten-gods-item';
+                            item.textContent = `${['年干','月干','日干','时干'][index]}: ${god.trim()}`;
+                            stemGodsList.appendChild(item);
+                        }
+                    });
+                    
+                    // Next 4 are branch gods (地支)
+                    allGods.slice(4, 8).forEach((god, index) => {
+                        if (god.trim()) {
+                            const item = document.createElement('div');
+                            item.className = 'ten-gods-item';
+                            item.textContent = `${['年支','月支','日支','时支'][index]}: ${god.trim()}`;
+                            branchGodsList.appendChild(item);
+                        }
+                    });
+                }
             }
             
-            function displaySectionContent(section, result, contentElement) {
-                // 处理评分显示
-                if (result.includes('★')) {
-                    result = result.replace(/(★+)/g, '<span class="rating">$1</span>');
-                    result = result.replace(/(☆+)/g, '<span style="color:#ddd">$1</span>');
+            // 提取命格等级
+            const fateLine = lines.find(line => line.includes('命格等级'));
+            if (fateLine) {
+                const fateMatch = fateLine.match(/命格等级：\[(.*?)\]/);
+                if (fateMatch && fateMatch[1]) {
+                    fateRating.textContent = getStarRating(fateMatch[1]);
                 }
-                
-                // 去除特殊符号
-                result = result.replace(/[#*\、]/g, '');
-                
-                // 处理换行
-                result = result.split('\n').map(line => {
-                    if (line.trim() === '') return '';
-                    return `<p>${line}</p>`;
-                }).join('');
-                
-                contentElement.innerHTML = result;
             }
-        });
-    </script>
+            
+            // 提取财富等级
+            const wealthLine = lines.find(line => line.includes('财富等级'));
+            if (wealthLine) {
+                const wealthMatch = wealthLine.match(/财富等级：\[(.*?)\]/);
+                if (wealthMatch && wealthMatch[1]) {
+                    wealthRating.textContent = getStarRating(wealthMatch[1]);
+                }
+            }
+        }
+        
+        function getStarRating(ratingText) {
+            // 将数字评分转换为星标
+            const rating = parseInt(ratingText);
+            if (isNaN(rating)) return '-';
+            
+            const fullStars = '★'.repeat(rating);
+            const emptyStars = '☆'.repeat(5 - rating);
+            return fullStars + emptyStars;
+        }
+        
+        function displaySectionContent(section, result, contentElement) {
+            // 处理评分显示
+            if (result.includes('★')) {
+                result = result.replace(/(★+)/g, '<span class="rating">$1</span>');
+                result = result.replace(/(☆+)/g, '<span style="color:#ddd">$1</span>');
+            }
+            
+            // 去除特殊符号
+            result = result.replace(/[#*\、]/g, '');
+            
+            // 处理换行
+            result = result.split('\n').map(line => {
+                if (line.trim() === '') return '';
+                return `<p>${line}</p>`;
+            }).join('');
+            
+            contentElement.innerHTML = result;
+        }
+    });
+</script>
+</body>
+</html>
