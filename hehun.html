@@ -773,54 +773,6 @@
             transition: width 0.4s ease;
         }
         
-        /* 五行能量图 */
-        .element-charts-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-            margin: 20px 0;
-        }
-        
-        .element-chart-container {
-            flex: 1;
-            min-width: 300px;
-            height: 300px;
-            position: relative;
-        }
-        
-        .element-chart {
-            width: 100%;
-            height: 100%;
-        }
-        
-        .element-legend {
-            display: flex;
-            justify-content: center;
-            margin-top: 15px;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        
-        .element-legend-item {
-            display: flex;
-            align-items: center;
-            margin-right: 15px;
-            font-size: 14px;
-        }
-        
-        .element-legend-color {
-            width: 16px;
-            height: 16px;
-            border-radius: 3px;
-            margin-right: 8px;
-        }
-        
-        .wood-color { background-color: var(--wood-color); }
-        .fire-color { background-color: var(--fire-color); }
-        .earth-color { background-color: var(--earth-color); }
-        .metal-color { background-color: var(--metal-color); }
-        .water-color { background-color: var(--water-color); }
-        
         /* 大运走势图 */
         .fortune-chart-container {
             width: 100%;
@@ -1007,7 +959,7 @@
                 font-size: 18px;
             }
             
-            .element-chart-container, .fortune-chart-container {
+            .fortune-chart-container {
                 height: 250px;
             }
             
@@ -1070,7 +1022,7 @@
                 font-size: 16px;
             }
             
-            .element-chart-container, .fortune-chart-container {
+            .fortune-chart-container {
                 height: 200px;
             }
             
@@ -1236,65 +1188,6 @@
                 <div class="recommendation" id="recommendation">
                     <i class="fas fa-heart"></i> 正在分析姻缘...
                 </div>
-                
-                <!-- 五行能量对比 -->
-                <div class="info-section">
-                    <h3><i class="fas fa-yin-yang"></i> 五行能量对比</h3>
-                    <div class="info-content">
-                        <div class="element-charts-container">
-                            <div class="element-chart-container">
-                                <canvas id="male-element-chart" class="element-chart"></canvas>
-                                <div class="element-legend">
-                                    <div class="element-legend-item">
-                                        <div class="element-legend-color wood-color"></div>
-                                        <span>木 <span id="male-wood-percent">0%</span></span>
-                                    </div>
-                                    <div class="element-legend-item">
-                                        <div class="element-legend-color fire-color"></div>
-                                        <span>火 <span id="male-fire-percent">0%</span></span>
-                                    </div>
-                                    <div class="element-legend-item">
-                                        <div class="element-legend-color earth-color"></div>
-                                        <span>土 <span id="male-earth-percent">0%</span></span>
-                                    </div>
-                                    <div class="element-legend-item">
-                                        <div class="element-legend-color metal-color"></div>
-                                        <span>金 <span id="male-metal-percent">0%</span></span>
-                                    </div>
-                                    <div class="element-legend-item">
-                                        <div class="element-legend-color water-color"></div>
-                                        <span>水 <span id="male-water-percent">0%</span></span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="element-chart-container">
-                                <canvas id="female-element-chart" class="element-chart"></canvas>
-                                <div class="element-legend">
-                                    <div class="element-legend-item">
-                                        <div class="element-legend-color wood-color"></div>
-                                        <span>木 <span id="female-wood-percent">0%</span></span>
-                                    </div>
-                                    <div class="element-legend-item">
-                                        <div class="element-legend-color fire-color"></div>
-                                        <span>火 <span id="female-fire-percent">0%</span></span>
-                                    </div>
-                                    <div class="element-legend-item">
-                                        <div class="element-legend-color earth-color"></div>
-                                        <span>土 <span id="female-earth-percent">0%</span></span>
-                                    </div>
-                                    <div class="element-legend-item">
-                                        <div class="element-legend-color metal-color"></div>
-                                        <span>金 <span id="female-metal-percent">0%</span></span>
-                                    </div>
-                                    <div class="element-legend-item">
-                                        <div class="element-legend-color water-color"></div>
-                                        <span>水 <span id="female-water-percent">0%</span></span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
             
             <!-- 分析选项卡 -->
@@ -1443,11 +1336,6 @@
             const compatibilityMeter = document.getElementById('compatibility-meter');
             const recommendation = document.getElementById('recommendation');
             
-            // 五行图表元素
-            const maleElementChartCtx = document.getElementById('male-element-chart').getContext('2d');
-            const femaleElementChartCtx = document.getElementById('female-element-chart').getContext('2d');
-            let maleElementChart, femaleElementChart;
-            
             // 定义当前日期为2025年4月3日
             const currentDate = new Date(2025, 3, 3);
             let maleData = {};
@@ -1470,14 +1358,6 @@
                 
                 // 重置所有内容
                 resetAllContent();
-                
-                // 销毁图表实例
-                if (maleElementChart) {
-                    maleElementChart.destroy();
-                }
-                if (femaleElementChart) {
-                    femaleElementChart.destroy();
-                }
                 
                 // 滚动到顶部
                 window.scrollTo(0, 0);
@@ -1508,11 +1388,6 @@
                 compatibilityMeter.style.width = '0%';
                 recommendation.className = 'recommendation';
                 recommendation.innerHTML = '<i class="fas fa-heart"></i> 正在分析姻缘...';
-                
-                // 重置五行百分比
-                document.querySelectorAll('[id$="-percent"]').forEach(el => {
-                    el.textContent = '0%';
-                });
                 
                 // 重置所有内容区域
                 document.querySelectorAll('.section-content').forEach(el => {
@@ -1617,152 +1492,6 @@
                 });
             }
             
-            // 初始化五行能量对比图
-            function initElementCharts(maleElements, femaleElements) {
-                // 计算百分比
-                const maleTotal = maleElements.reduce((sum, val) => sum + val, 0);
-                const femaleTotal = femaleElements.reduce((sum, val) => sum + val, 0);
-                
-                // 更新百分比显示
-                document.getElementById('male-wood-percent').textContent = Math.round(maleElements[0] / maleTotal * 100) + '%';
-                document.getElementById('male-fire-percent').textContent = Math.round(maleElements[1] / maleTotal * 100) + '%';
-                document.getElementById('male-earth-percent').textContent = Math.round(maleElements[2] / maleTotal * 100) + '%';
-                document.getElementById('male-metal-percent').textContent = Math.round(maleElements[3] / maleTotal * 100) + '%';
-                document.getElementById('male-water-percent').textContent = Math.round(maleElements[4] / maleTotal * 100) + '%';
-                
-                document.getElementById('female-wood-percent').textContent = Math.round(femaleElements[0] / femaleTotal * 100) + '%';
-                document.getElementById('female-fire-percent').textContent = Math.round(femaleElements[1] / femaleTotal * 100) + '%';
-                document.getElementById('female-earth-percent').textContent = Math.round(femaleElements[2] / femaleTotal * 100) + '%';
-                document.getElementById('female-metal-percent').textContent = Math.round(femaleElements[3] / femaleTotal * 100) + '%';
-                document.getElementById('female-water-percent').textContent = Math.round(femaleElements[4] / femaleTotal * 100) + '%';
-                
-                // 创建男方五行图表
-                maleElementChart = new Chart(maleElementChartCtx, {
-                    type: 'bar',
-                    data: {
-                        labels: ['木', '火', '土', '金', '水'],
-                        datasets: [{
-                            label: '男方五行能量',
-                            data: maleElements,
-                            backgroundColor: [
-                                'rgba(76, 175, 80, 0.7)',
-                                'rgba(244, 67, 54, 0.7)',
-                                'rgba(255, 193, 7, 0.7)',
-                                'rgba(158, 158, 158, 0.7)',
-                                'rgba(33, 150, 243, 0.7)'
-                            ],
-                            borderColor: [
-                                'rgba(76, 175, 80, 1)',
-                                'rgba(244, 67, 54, 1)',
-                                'rgba(255, 193, 7, 1)',
-                                'rgba(158, 158, 158, 1)',
-                                'rgba(33, 150, 243, 1)'
-                            ],
-                            borderWidth: 1
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                max: 10,
-                                ticks: {
-                                    color: 'rgba(255, 255, 255, 0.7)'
-                                },
-                                grid: {
-                                    color: 'rgba(255, 255, 255, 0.1)'
-                                }
-                            },
-                            x: {
-                                ticks: {
-                                    color: 'rgba(255, 255, 255, 0.9)'
-                                },
-                                grid: {
-                                    color: 'rgba(255, 255, 255, 0.1)'
-                                }
-                            }
-                        },
-                        plugins: {
-                            legend: {
-                                display: false
-                            },
-                            tooltip: {
-                                callbacks: {
-                                    label: function(context) {
-                                        return `能量值: ${context.raw} (${Math.round(context.raw / maleTotal * 100)}%)`;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                });
-                
-                // 创建女方五行图表
-                femaleElementChart = new Chart(femaleElementChartCtx, {
-                    type: 'bar',
-                    data: {
-                        labels: ['木', '火', '土', '金', '水'],
-                        datasets: [{
-                            label: '女方五行能量',
-                            data: femaleElements,
-                            backgroundColor: [
-                                'rgba(76, 175, 80, 0.7)',
-                                'rgba(244, 67, 54, 0.7)',
-                                'rgba(255, 193, 7, 0.7)',
-                                'rgba(158, 158, 158, 0.7)',
-                                'rgba(33, 150, 243, 0.7)'
-                            ],
-                            borderColor: [
-                                'rgba(76, 175, 80, 1)',
-                                'rgba(244, 67, 54, 1)',
-                                'rgba(255, 193, 7, 1)',
-                                'rgba(158, 158, 158, 1)',
-                                'rgba(33, 150, 243, 1)'
-                            ],
-                            borderWidth: 1
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                max: 10,
-                                ticks: {
-                                    color: 'rgba(255, 255, 255, 0.7)'
-                                },
-                                grid: {
-                                    color: 'rgba(255, 255, 255, 0.1)'
-                                }
-                            },
-                            x: {
-                                ticks: {
-                                    color: 'rgba(255, 255, 255, 0.9)'
-                                },
-                                grid: {
-                                    color: 'rgba(255, 255, 255, 0.1)'
-                                }
-                            }
-                        },
-                        plugins: {
-                            legend: {
-                                display: false
-                            },
-                            tooltip: {
-                                callbacks: {
-                                    label: function(context) {
-                                        return `能量值: ${context.raw} (${Math.round(context.raw / femaleTotal * 100)}%)`;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                });
-            }
-            
             calculateBtn.addEventListener('click', async function(e) {
                 e.preventDefault();
                 
@@ -1813,9 +1542,6 @@
                     const basicInfo = await getMarriageAnalysis('basic', maleData, femaleData);
                     displayBasicInfo(basicInfo);
                     
-                    // 初始化五行能量对比图
-                    initElementCharts([8, 5, 6, 3, 7], [4, 7, 5, 6, 5]); // 示例数据，实际应从API获取
-                    
                     // 更新合婚评分
                     updateCompatibilityScore(85); // 示例评分，实际应从API获取
                     
@@ -1863,7 +1589,6 @@
 1 男方八字：年柱[内容] 月柱[内容] 日柱[内容] 时柱[内容]
 2 女方八字：年柱[内容] 月柱[内容] 日柱[内容] 时柱[内容]
 3 合婚评分：[1-100分]
-4 五行能量：[男方木,火,土,金,水] [女方木,火,土,金,水] (1-10分)
 
 用简洁格式返回，不要分析内容，不要使用任何符号如#*、等。`;
                         break;
@@ -1960,13 +1685,6 @@
                         femaleHourBranch.textContent = pillars[4].charAt(1);
                     }
                 }
-                
-                // 提取五行能量
-                const elementsLine = lines.find(line => line.includes('五行能量'));
-                if (elementsLine) {
-                    const elementsMatch = elementsLine.match(/五行能量：\[(.*?)\] \[(.*?)\]/);
-                    // 五行能量数据已在initElementCharts中使用
-                }
             }
             
             function updateCompatibilityScore(score) {
@@ -2002,57 +1720,6 @@
                 }).join('');
                 
                 contentElement.innerHTML = result;
-            }
-            
-            // 初始化五行能量百分比显示
-            function updateElementPercentages(maleElements, femaleElements) {
-                const maleTotal = maleElements.reduce((sum, val) => sum + val, 0);
-                const femaleTotal = femaleElements.reduce((sum, val) => sum + val, 0);
-                
-                document.getElementById('male-wood-percent').textContent = Math.round(maleElements[0] / maleTotal * 100) + '%';
-                document.getElementById('male-fire-percent').textContent = Math.round(maleElements[1] / maleTotal * 100) + '%';
-                document.getElementById('male-earth-percent').textContent = Math.round(maleElements[2] / maleTotal * 100) + '%';
-                document.getElementById('male-metal-percent').textContent = Math.round(maleElements[3] / maleTotal * 100) + '%';
-                document.getElementById('male-water-percent').textContent = Math.round(maleElements[4] / maleTotal * 100) + '%';
-                
-                document.getElementById('female-wood-percent').textContent = Math.round(femaleElements[0] / femaleTotal * 100) + '%';
-                document.getElementById('female-fire-percent').textContent = Math.round(femaleElements[1] / femaleTotal * 100) + '%';
-                document.getElementById('female-earth-percent').textContent = Math.round(femaleElements[2] / femaleTotal * 100) + '%';
-                document.getElementById('female-metal-percent').textContent = Math.round(femaleElements[3] / femaleTotal * 100) + '%';
-                document.getElementById('female-water-percent').textContent = Math.round(femaleElements[4] / femaleTotal * 100) + '%';
-            }
-            
-            // 从API获取五行能量数据
-            async function fetchElementData() {
-                try {
-                    const response = await fetch('https://api.example.com/elements', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            maleBirth: maleData.date + ' ' + maleData.time,
-                            femaleBirth: femaleData.date + ' ' + femaleData.time
-                        })
-                    });
-                    
-                    if (!response.ok) {
-                        throw new Error('获取五行数据失败');
-                    }
-                    
-                    const data = await response.json();
-                    return {
-                        maleElements: data.maleElements,
-                        femaleElements: data.femaleElements
-                    };
-                } catch (error) {
-                    console.error('获取五行数据错误:', error);
-                    // 返回默认数据
-                    return {
-                        maleElements: [8, 5, 6, 3, 7],
-                        femaleElements: [4, 7, 5, 6, 5]
-                    };
-                }
             }
             
             // 页面加载时初始化
