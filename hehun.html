@@ -99,26 +99,28 @@
             z-index: 2;
         }
         
-        .header-links {
-            position: absolute;
-            top: 20px;
-            right: 20px;
+        .header-buttons {
             display: flex;
             gap: 15px;
+            justify-content: center;
+            margin-top: 20px;
             z-index: 10;
         }
         
-        .header-link {
+        .header-button {
             color: white;
             text-decoration: none;
             font-size: 16px;
-            padding: 5px 10px;
-            border-radius: 4px;
+            padding: 8px 20px;
+            border-radius: 20px;
             transition: all 0.3s;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
         }
         
-        .header-link:hover {
-            background: rgba(255, 255, 255, 0.2);
+        .header-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
         }
         
         .header-container::before {
@@ -574,6 +576,36 @@
             letter-spacing: 5px;
         }
         
+        .score-explanation {
+            background: rgba(26, 35, 126, 0.5);
+            padding: 20px;
+            border-radius: var(--border-radius-sm);
+            margin-top: 20px;
+            font-size: 14px;
+            line-height: 1.6;
+            color: var(--text-light);
+            border: 1px solid var(--border-color);
+        }
+        
+        .score-explanation h4 {
+            color: var(--title-color);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .score-explanation h4 i {
+            margin-right: 10px;
+        }
+        
+        .score-explanation ul {
+            padding-left: 20px;
+        }
+        
+        .score-explanation li {
+            margin-bottom: 8px;
+        }
+        
         .menu-tabs {
             display: flex;
             border-bottom: 1px solid var(--border-color);
@@ -916,10 +948,14 @@
                 margin: 0 10px;
             }
             
-            .header-links {
-                position: static;
-                justify-content: center;
-                margin-top: 15px;
+            .header-buttons {
+                gap: 10px;
+                flex-wrap: wrap;
+            }
+            
+            .header-button {
+                font-size: 14px;
+                padding: 6px 15px;
             }
             
             .form-row {
@@ -1036,15 +1072,15 @@
     <div class="container">
         <!-- 精美的Header部分 -->
         <div class="header-container">
-            <div class="header-links">
-                <a href="bazi.html" class="header-link">八字测算</a>
-                <a href="gaiming.html" class="header-link">逆天改命</a>
-            </div>
             <div class="header-content">
                 <i class="fas fa-yin-yang header-decoration left"></i>
                 <i class="fas fa-heart header-decoration right"></i>
                 <h1 class="header-title">天作之合</h1>
                 <div class="header-subtitle">八字合婚 · 姻缘测算</div>
+                <div class="header-buttons">
+                    <a href="bazi.html" class="header-button">八字测算</a>
+                    <a href="gaiming.html" class="header-button">逆天改命</a>
+                </div>
             </div>
         </div>
         
@@ -1109,7 +1145,7 @@
         </div>
         
         <div class="result-section" id="result-section">
-                        <!-- 基本信息展示 -->
+            <!-- 基本信息展示 -->
             <div class="basic-info" id="basic-info">
                 <div class="couple-info">
                     <div class="partner-card male-card">
@@ -1136,7 +1172,7 @@
                                 <div class="bazi-cell" id="male-year-branch"></div>
                                 <div class="bazi-cell" id="male-month-branch"></div>
                                 <div class="bazi-cell" id="male-day-branch"></div>
-                                                                <div class="bazi-cell" id="male-hour-branch"></div>
+                                <div class="bazi-cell" id="male-hour-branch"></div>
                             </div>
                         </div>
                     </div>
@@ -1183,6 +1219,20 @@
                         <span>可调和</span>
                         <span>天作之合</span>
                     </div>
+                </div>
+
+                <!-- 评分说明 -->
+                <div class="score-explanation">
+                    <h4><i class="fas fa-info-circle"></i> 评分标准说明</h4>
+                    <p>婚姻契合度评分综合考虑以下因素：</p>
+                    <ul>
+                        <li><strong>90-100分</strong>：天作之合，八字高度匹配，婚后和谐幸福</li>
+                        <li><strong>80-89分</strong>：非常合适，需要少量调和即可</li>
+                        <li><strong>70-79分</strong>：比较合适，需注意沟通方式和相处之道</li>
+                        <li><strong>60-69分</strong>：一般合适，需要双方共同努力维系</li>
+                        <li><strong>50-59分</strong>：需要谨慎考虑，可能存在较多矛盾</li>
+                        <li><strong>50分以下</strong>：不推荐，八字冲克较多，婚姻可能不稳固</li>
+                    </ul>
                 </div>
                 
                 <div class="recommendation" id="recommendation">
@@ -1634,17 +1684,83 @@
 互补情况：[详细分析]
 调候建议：[详细建议]`;
                         break;
+                    case 'god-analysis':
+                        prompt += `分析双方十神之间的相互关系：
+1 十神配对分析（正官vs正印等）
+2 十神相生相克关系
+3 角色定位互补性
+4 潜在矛盾点
+
+返回格式：
+十神配对：[详细分析]
+相生相克：[详细分析]
+互补分析：[详细分析]
+矛盾分析：[详细分析]`;
+                        break;
                     case 'male-fate':
                         prompt += `分析男方八字命理特点：
-1 命格分析
+1 命格分析（正官格、偏印格等）
 2 五行喜忌
 3 性格特点
-4 事业财运
+4 事业财运分析
 
 返回格式：
 命格分析：[详细分析]
 五行喜忌：[详细分析]
-性格特点：[详细分析]`;
+性格特点：[详细分析]
+事业分析：[详细分析]`;
+                        break;
+                    case 'female-fate':
+                        prompt += `分析女方八字命理特点：
+1 命格分析（正印格、食神格等）
+2 五行喜忌
+3 性格特点
+4 婚姻家庭分析
+
+返回格式：
+命格分析：[详细分析]
+五行喜忌：[详细分析]
+性格特点：[详细分析]
+婚姻分析：[详细分析]`;
+                        break;
+                    case 'strength-weakness':
+                        prompt += `分析这段婚姻关系的优劣势：
+1 八字匹配的优势点
+2 八字冲突的劣势点
+3 潜在的危机年份
+4 互补潜力
+
+返回格式：
+优势分析：[详细分析]
+劣势分析：[详细分析]
+危机年份：[年份列表]
+互补潜力：[详细分析]`;
+                        break;
+                    case 'improvement':
+                        prompt += `提供婚姻关系改善建议：
+1 五行调和建议
+2 相处方式建议
+3 重要年份注意事项
+4 子女缘分分析
+
+返回格式：
+五行调和：[详细建议]
+相处建议：[详细建议]
+年份注意：[详细说明]
+子女缘分：[详细分析]`;
+                        break;
+                    case 'timing':
+                        prompt += `分析最适合结婚的时机：
+1 近3年婚运分析
+2 最佳结婚年份
+3 需要避开的年份
+4 婚后运势走向
+
+返回格式：
+近期婚运：[详细分析]
+最佳年份：[年份列表]
+避开年份：[年份列表]
+婚后运势：[详细分析]`;
                         break;
                     default:
                         prompt += `请分析${section}相关内容`;
@@ -1751,6 +1867,55 @@
                 document.getElementById('male-birth-time').value = '12:00';
                 document.getElementById('female-birth-time').value = '12:00';
             });
+
+            // 初始化评分说明的折叠功能
+            const scoreExplanationTitle = document.querySelector('.score-explanation h4');
+            const scoreExplanationContent = document.querySelector('.score-explanation ul');
+            
+            scoreExplanationTitle.addEventListener('click', function() {
+                const icon = this.querySelector('i');
+                if (icon.classList.contains('fa-angle-up')) {
+                    icon.classList.remove('fa-angle-up');
+                    icon.classList.add('fa-angle-down');
+                    scoreExplanationContent.style.display = 'none';
+                } else {
+                    icon.classList.remove('fa-angle-down');
+                    icon.classList.add('fa-angle-up');
+                    scoreExplanationContent.style.display = 'block';
+                }
+            });
+
+            // 添加动画效果
+            function animateElements() {
+                // 合婚评分数字动画
+                const scoreElement = document.getElementById('compatibility-score');
+                const targetScore = parseInt(scoreElement.textContent);
+                if (!isNaN(targetScore)) {
+                    let currentScore = 0;
+                    const increment = Math.ceil(targetScore / 20);
+                    const scoreInterval = setInterval(() => {
+                        currentScore += increment;
+                        if (currentScore >= targetScore) {
+                            currentScore = targetScore;
+                            clearInterval(scoreInterval);
+                        }
+                        scoreElement.textContent = currentScore;
+                    }, 50);
+                }
+            }
+
+            // 重新计算时重置动画
+            recalculateBtn.addEventListener('click', function() {
+                compatibilityScore.textContent = '-';
+                compatibilityMeter.style.width = '0%';
+            });
+
+            // 首次加载时模拟计算
+            setTimeout(() => {
+                if (document.getElementById('compatibility-score').textContent !== '-') {
+                    animateElements();
+                }
+            }, 1000);
         });
     </script>
 </body>
