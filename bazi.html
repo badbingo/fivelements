@@ -122,9 +122,6 @@
             position: relative;
             font-weight: 300;
             letter-spacing: 1.5px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
         }
         
         .header-subtitle::before,
@@ -156,24 +153,52 @@
         }
         
         .header-links {
-            position: absolute;
-            right: 20px;
-            top: 20px;
             display: flex;
+            justify-content: center;
             gap: 15px;
+            margin-top: 20px;
         }
         
-        .header-link {
+        .header-btn {
             color: white;
             text-decoration: none;
             font-size: 16px;
             transition: all 0.3s;
-            padding: 5px 10px;
-            border-radius: 4px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            display: inline-flex;
+            align-items: center;
         }
         
-        .header-link:hover {
+        .header-btn:hover {
             background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        .header-btn i {
+            margin-right: 8px;
+        }
+        
+        .header-center-text {
+            margin: 15px 0;
+            font-size: 1rem;
+            color: var(--title-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .header-center-text::before,
+        .header-center-text::after {
+            content: "";
+            display: inline-block;
+            width: 30px;
+            height: 1px;
+            background: var(--title-color);
+            margin: 0 12px;
+            opacity: 0.6;
         }
         
         @keyframes titleGlow {
@@ -461,19 +486,26 @@
             text-shadow: 0 1px 2px rgba(0,0,0,0.3);
         }
         
+        /* 天干颜色（根据五行属性） */
         .bazi-row:nth-child(2) .bazi-cell:not(:first-child) {
-            color: var(--stem-color);
             font-size: 22px;
             font-weight: bold;
             text-shadow: 0 0 8px rgba(255, 215, 0, 0.3);
         }
         
+        /* 地支颜色（根据五行属性） */
         .bazi-row:nth-child(3) .bazi-cell:not(:first-child) {
-            color: var(--branch-color);
             font-size: 22px;
             font-weight: bold;
             text-shadow: 0 0 8px rgba(135, 206, 250, 0.3);
         }
+        
+        /* 五行颜色定义 */
+        .wood { color: var(--wood-color); }
+        .fire { color: var(--fire-color); }
+        .earth { color: var(--earth-color); }
+        .metal { color: var(--metal-color); }
+        .water { color: var(--water-color); }
         
         .bazi-cell:first-child {
             background-color: rgba(26, 35, 126, 0.4);
@@ -924,14 +956,16 @@
     <div class="container">
         <!-- 精美的Header部分 -->
         <div class="header-container">
-            <div class="header-links">
-                <a href="gaiming.html" class="header-link">逆天改命</a>
-                <a href="hehun.html" class="header-link">八字合婚</a>
-            </div>
             <i class="fas fa-yin-yang header-decoration left"></i>
             <i class="fas fa-star-and-crescent header-decoration right"></i>
             <h1 class="header-title">玄机命理</h1>
             <div class="header-subtitle">传统智慧 · 现代解读</div>
+
+            
+            <div class="header-links">
+                <a href="gaiming.html" class="header-btn"><i class="fas fa-magic"></i> 逆天改命</a>
+                <a href="hehun.html" class="header-btn"><i class="fas fa-heart"></i> 八字合婚</a>
+            </div>
         </div>
         
         <div class="input-section" id="input-section">
@@ -1006,17 +1040,17 @@
                             </div>
                             <div class="bazi-row">
                                 <div class="bazi-cell">天干</div>
-                                <div class="bazi-cell" id="year-stem"></div>
-                                <div class="bazi-cell" id="month-stem"></div>
-                                <div class="bazi-cell" id="day-stem"></div>
-                                <div class="bazi-cell" id="hour-stem"></div>
+                                <div class="bazi-cell wood" id="year-stem">甲</div>
+                                <div class="bazi-cell fire" id="month-stem">丙</div>
+                                <div class="bazi-cell earth" id="day-stem">戊</div>
+                                <div class="bazi-cell metal" id="hour-stem">庚</div>
                             </div>
                             <div class="bazi-row">
                                 <div class="bazi-cell">地支</div>
-                                <div class="bazi-cell" id="year-branch"></div>
-                                <div class="bazi-cell" id="month-branch"></div>
-                                <div class="bazi-cell" id="day-branch"></div>
-                                <div class="bazi-cell" id="hour-branch"></div>
+                                <div class="bazi-cell wood" id="year-branch">寅</div>
+                                <div class="bazi-cell fire" id="month-branch">午</div>
+                                <div class="bazi-cell earth" id="day-branch">辰</div>
+                                <div class="bazi-cell metal" id="hour-branch">申</div>
                             </div>
                         </div>
                     </div>
@@ -1028,11 +1062,21 @@
                         <div class="ten-gods-grid">
                             <div class="ten-gods-column">
                                 <h4><i class="fas fa-cloud-sun"></i> 天干十神</h4>
-                                <div class="ten-gods-list" id="stem-gods-list"></div>
+                                <div class="ten-gods-list" id="stem-gods-list">
+                                    <div class="ten-gods-item">年干: 比肩</div>
+                                    <div class="ten-gods-item">月干: 食神</div>
+                                    <div class="ten-gods-item">日干: 日主</div>
+                                    <div class="ten-gods-item">时干: 偏财</div>
+                                </div>
                             </div>
                             <div class="ten-gods-column">
                                 <h4><i class="fas fa-cloud-moon"></i> 地支十神</h4>
-                                <div class="ten-gods-list" id="branch-gods-list"></div>
+                                <div class="ten-gods-list" id="branch-gods-list">
+                                    <div class="ten-gods-item">年支: 比肩</div>
+                                    <div class="ten-gods-item">月支: 伤官</div>
+                                    <div class="ten-gods-item">日支: 劫财</div>
+                                                                        <div class="ten-gods-item">时支: 七杀</div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1083,7 +1127,7 @@
                     <div class="load-btn-container">
                         <button class="load-btn" data-section="strength">
                             <span><i class="fas fa-dumbbell"></i> 身强身弱分析</span>
-                                                        <i class="fas fa-chevron-down toggle-icon"></i>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
                         </button>
                         <div class="load-btn-description">分析命主八字中日主的强弱程度，判断是身强、身弱还是中和</div>
                     </div>
@@ -1779,6 +1823,16 @@
                         dayBranch.textContent = pillars[3].charAt(1);
                         hourStem.textContent = pillars[4].charAt(0);
                         hourBranch.textContent = pillars[4].charAt(1);
+                        
+                        // 根据五行属性设置颜色
+                        setElementColors(yearStem, pillars[1].charAt(0));
+                        setElementColors(yearBranch, pillars[1].charAt(1));
+                        setElementColors(monthStem, pillars[2].charAt(0));
+                        setElementColors(monthBranch, pillars[2].charAt(1));
+                        setElementColors(dayStem, pillars[3].charAt(0));
+                        setElementColors(dayBranch, pillars[3].charAt(1));
+                        setElementColors(hourStem, pillars[4].charAt(0));
+                        setElementColors(hourBranch, pillars[4].charAt(1));
                     }
                 }
                 
@@ -1831,6 +1885,37 @@
                     if (wealthMatch && wealthMatch[1]) {
                         wealthRating.textContent = getStarRating(wealthMatch[1]);
                     }
+                }
+            }
+            
+            // 根据天干地支设置五行颜色
+            function setElementColors(element, text) {
+                // 天干五行对应关系
+                const stemElements = {
+                    '甲': 'wood', '乙': 'wood',
+                    '丙': 'fire', '丁': 'fire',
+                    '戊': 'earth', '己': 'earth',
+                    '庚': 'metal', '辛': 'metal',
+                    '壬': 'water', '癸': 'water'
+                };
+                
+                // 地支五行对应关系
+                const branchElements = {
+                    '寅': 'wood', '卯': 'wood',
+                    '午': 'fire', '巳': 'fire',
+                    '辰': 'earth', '戌': 'earth', '丑': 'earth', '未': 'earth',
+                    '申': 'metal', '酉': 'metal',
+                    '子': 'water', '亥': 'water'
+                };
+                
+                // 移除所有可能的五行类
+                element.classList.remove('wood', 'fire', 'earth', 'metal', 'water');
+                
+                // 添加对应的五行类
+                if (stemElements[text]) {
+                    element.classList.add(stemElements[text]);
+                } else if (branchElements[text]) {
+                    element.classList.add(branchElements[text]);
                 }
             }
             
