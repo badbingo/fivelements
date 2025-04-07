@@ -1136,7 +1136,7 @@
                                 <div class="bazi-cell" id="male-year-branch"></div>
                                 <div class="bazi-cell" id="male-month-branch"></div>
                                 <div class="bazi-cell" id="male-day-branch"></div>
-                                <div class="bazi-cell" id="male-hour-branch"></div>
+                                                                <div class="bazi-cell" id="male-hour-branch"></div>
                             </div>
                         </div>
                     </div>
@@ -1542,8 +1542,9 @@
                     const basicInfo = await getMarriageAnalysis('basic', maleData, femaleData);
                     displayBasicInfo(basicInfo);
                     
-                    // 更新合婚评分
-                    updateCompatibilityScore(85); // 示例评分，实际应从API获取
+                    // 获取合婚评分
+                    const scoreInfo = await getMarriageAnalysis('score', maleData, femaleData);
+                    updateCompatibilityScore(parseInt(scoreInfo.match(/合婚评分：(\d+)/)[1]));
                     
                     inputSection.style.display = 'none';
                     resultSection.style.display = 'block';
@@ -1591,6 +1592,22 @@
 3 合婚评分：[1-100分]
 
 用简洁格式返回，不要分析内容，不要使用任何符号如#*、等。`;
+                        break;
+                    case 'score':
+                        prompt += `请根据双方八字分析婚姻契合度并给出0-100分的评分，考虑以下因素：
+1 天干地支的相生相克关系
+2 五行互补性（男木旺 vs 女土旺）
+3 十神关系（正官、正印、比肩等）
+4 大运走势是否同步
+5 可能存在的冲突年份（如流年相冲）
+
+返回格式：
+合婚评分：[分数]
+天干分析：[简要分析]
+地支分析：[简要分析]
+五行分析：[简要分析]
+十神分析：[简要分析]
+大运分析：[简要分析]`;
                         break;
                     case 'basic-analysis':
                         prompt += `分析双方八字的基本匹配程度：
