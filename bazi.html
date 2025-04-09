@@ -1089,17 +1089,16 @@
                                     <div class="ten-gods-item">年干: 比肩</div>
                                     <div class="ten-gods-item">月干: 食神</div>
                                     <div class="ten-gods-item">日干: 日主</div>
-                                    <div class="ten-gods-item">时干: 偏财</div>
-                                </div>
+                                <div class="ten-gods-item">时干: 偏财</div>
                             </div>
-                            <div class="ten-gods-column">
-                                <h4><i class="fas fa-cloud-moon"></i> 地支十神</h4>
-                                <div class="ten-gods-list" id="branch-gods-list">
-                                    <div class="ten-gods-item">年支: 比肩</div>
-                                    <div class="ten-gods-item">月支: 伤官</div>
-                                    <div class="ten-gods-item">日支: 劫财</div>
-                                    <div class="ten-gods-item">时支: 七杀</div>
-                                </div>
+                        </div>
+                        <div class="ten-gods-column">
+                            <h4><i class="fas fa-cloud-moon"></i> 地支十神</h4>
+                            <div class="ten-gods-list" id="branch-gods-list">
+                                <div class="ten-gods-item">年支: 比肩</div>
+                                <div class="ten-gods-item">月支: 伤官</div>
+                                <div class="ten-gods-item">日支: 劫财</div>
+                                <div class="ten-gods-item">时支: 七杀</div>
                             </div>
                         </div>
                     </div>
@@ -1775,10 +1774,15 @@
                 const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
                 const apiKey = 'sk-b2950087a9d5427392762814114b22a9';
                 
-                // 格式化当前日期为2025年4月3日
-                const currentDateStr = '2025年4月3日';
-                
-                let prompt = `当前日期：${currentDateStr}\n根据以下八字信息进行分析：
+                // 明确指定八字排盘规则
+                let prompt = `请严格按照以下规则进行八字排盘：
+1. 年柱以立春为分界，不是农历春节
+2. 月柱按节气划分（如正月从立春开始，二月从惊蛰开始）
+3. 日柱按公历日期计算
+4. 时柱按出生时辰的地支划分
+
+当前日期：2025年4月3日
+根据以下八字信息进行分析：
 姓名：${data.name || '未提供'}
 出生日期：${data.date}
 出生时间：${data.time}
@@ -1950,7 +1954,7 @@
                 const stemElements = {
                     '甲': 'wood', '乙': 'wood',
                     '丙': 'fire', '丁': 'fire',
-                    '戊': 'earth', '己': 'earth',
+                                        '戊': 'earth', '己': 'earth',
                     '庚': 'metal', '辛': 'metal',
                     '壬': 'water', '癸': 'water'
                 };
@@ -1961,7 +1965,7 @@
                     '午': 'fire', '巳': 'fire',
                     '辰': 'earth', '戌': 'earth', '丑': 'earth', '未': 'earth',
                     '申': 'metal', '酉': 'metal',
-                                        '子': 'water', '亥': 'water'
+                    '子': 'water', '亥': 'water'
                 };
                 
                 // 添加对应的五行类
