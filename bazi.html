@@ -950,21 +950,48 @@
                 height: 200px;
             }
         }
+        
+        /* 新增全屏加载样式 */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .loading-overlay .loading {
+            width: 50px;
+            height: 50px;
+            border-width: 5px;
+        }
+        
+        .loading-overlay p {
+            color: white;
+            margin-top: 20px;
+            font-size: 18px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <!-- 精美的Header部分 -->
         <div class="header-container">
-    <i class="fas fa-yin-yang header-decoration left"></i>
-    <i class="fas fa-star-and-crescent header-decoration right"></i>
-    <h1 class="header-title">玄机命理</h1>
-    <div class="header-subtitle">传统智慧 · 现代解读</div>
-    <div class="header-links">
-        <button class="calculate-btn"><a href="gaiming.html" style="color: white; text-decoration: none;">逆天改命</a></button>
-        <button class="calculate-btn"><a href="hehun.html" style="color: white; text-decoration: none;">八字合婚</a></button>
-    </div>
-</div>
+            <i class="fas fa-yin-yang header-decoration left"></i>
+            <i class="fas fa-star-and-crescent header-decoration right"></i>
+            <h1 class="header-title">八字测算</h1>
+            <div class="header-subtitle">传统智慧 · 现代解读</div>
+            <div class="header-links">
+                <button class="calculate-btn"><a href="gaiming.html" style="color: white; text-decoration: none;">逆天改命</a></button>
+                <button class="calculate-btn"><a href="hehun.html" style="color: white; text-decoration: none;">八字合婚</a></button>
+            </div>
+        </div>
         
         <div class="input-section" id="input-section">
             <div class="input-header">
@@ -1071,7 +1098,7 @@
                                     <div class="ten-gods-item">年支: 比肩</div>
                                     <div class="ten-gods-item">月支: 伤官</div>
                                     <div class="ten-gods-item">日支: 劫财</div>
-                                                                        <div class="ten-gods-item">时支: 七杀</div>
+                                    <div class="ten-gods-item">时支: 七杀</div>
                                 </div>
                             </div>
                         </div>
@@ -1081,7 +1108,8 @@
                 <div class="info-section">
                     <h3><i class="fas fa-chart-pie"></i> 五行能量分布</h3>
                     <div class="info-content">
-                                                    <canvas id="element-chart" class="element-chart"></canvas>
+                        <div class="element-chart-container">
+                            <canvas id="element-chart" class="element-chart"></canvas>
                         </div>
                         <div class="element-legend">
                             <div class="element-legend-item">
@@ -1436,6 +1464,9 @@
             function initLoadButtons() {
                 document.querySelectorAll('.load-btn').forEach(button => {
                     const section = button.getAttribute('data-section');
+                    // 跳过已经加载的第一个部分
+                    if (loadedSections[section]) return;
+                    
                     const contentElement = document.getElementById(`${section}-content`);
                     const container = button.closest('.load-btn-container');
                     
@@ -1449,7 +1480,7 @@
                         }
                         
                         this.disabled = true;
-                        this.innerHTML = '<span><span class="loading"></span> 正在搜索周易命理库...</span><i class="fas fa-chevron-down toggle-icon"></i>';
+                        this.innerHTML = '<span><span class="loading"></span> 正在搜索周易命理库...</span>';
                         container.classList.add('active');
                         
                         const progressContainer = document.createElement('div');
@@ -1478,7 +1509,6 @@
                             contentElement.classList.add('active');
                             loadedSections[section] = true;
                             
-                            // 如果是大运分析，初始化图表
                             if (section === 'decade-fortune') {
                                 initFortuneChart(result);
                             }
@@ -1487,8 +1517,7 @@
                             clearInterval(progressInterval);
                             contentElement.innerHTML = '<p style="color:var(--danger-color)">加载失败，请重试</p>';
                             button.disabled = false;
-                            button.innerHTML = `<span><i class="fas fa-redo"></i> 重新分析</span><i class="fas fa-chevron-down toggle-icon"></i>`;
-                            container.classList.remove('active');
+                            button.innerHTML = `<span><i class="fas fa-redo"></i> 重新分析</span>`;
                         }
                     });
                 });
@@ -1661,12 +1690,10 @@
                     return;
                 }
                 
-                // 处理时区问题 - 将输入日期转换为本地时间
+                // 处理时区问题
                 const [year, month, day] = birthDate.split('-');
                 const [hours, minutes] = birthTime.split(':');
                 const birthDateTime = new Date(year, month-1, day, hours, minutes);
-                
-                // 计算时区偏移量（分钟）
                 const timezoneOffset = birthDateTime.getTimezoneOffset();
                 
                 birthData = { 
@@ -1674,37 +1701,71 @@
                     date: `${year}年${month}月${day}日`,
                     time: `${hours}时${minutes}分`, 
                     gender: gender,
-                    timezoneOffset: timezoneOffset  // 添加时区偏移量
+                    timezoneOffset: timezoneOffset
                 };
                 
                 calculateBtn.disabled = true;
                 calculateBtn.innerHTML = '<span class="loading"></span> 测算中...';
                 
                 try {
+                    // 添加加载动画
+                    const loadingOverlay = document.createElement('div');
+                    loadingOverlay.className = 'loading-overlay';
+                    loadingOverlay.innerHTML = `
+                        <div class="loading"></div>
+                        <p>正在测算命理数据...</p>
+                    `;
+                    document.body.appendChild(loadingOverlay);
+                    
+                    // 1. 先获取基础信息
                     const basicInfo = await getBaziAnalysis('basic', birthData);
+                    
+                    // 2. 显示基础信息
                     displayBasicInfo(basicInfo);
                     
-                    // 从API响应中提取五行能量数据
+                    // 3. 初始化五行图表
                     const elementsLine = basicInfo.split('\n').find(line => line.includes('五行能量'));
                     if (elementsLine) {
                         const elementsMatch = elementsLine.match(/五行能量：\[(.*?)\]/);
                         if (elementsMatch && elementsMatch[1]) {
                             const elements = elementsMatch[1].split(',').map(Number);
-                            // 初始化五行能量图
                             initElementChart(elements);
                         }
                     }
                     
+                    // 4. 预加载第一个标签页的内容
+                    const firstSection = document.querySelector('.load-btn[data-section="strength"]');
+                    if (firstSection) {
+                        const section = firstSection.getAttribute('data-section');
+                        const contentElement = document.getElementById(`${section}-content`);
+                        const container = firstSection.closest('.load-btn-container');
+                        
+                        firstSection.innerHTML = '<span><span class="loading"></span> 正在加载...</span>';
+                        container.classList.add('active');
+                        
+                        const result = await getBaziAnalysis(section, birthData);
+                        displaySectionContent(section, result, contentElement);
+                        contentElement.classList.add('active');
+                        loadedSections[section] = true;
+                        firstSection.innerHTML = `<span><i class="fas fa-check"></i> 身强身弱分析</span><i class="fas fa-chevron-down toggle-icon"></i>`;
+                    }
+                    
+                    // 5. 所有数据加载完成后再显示结果页面
                     inputSection.style.display = 'none';
                     resultSection.style.display = 'block';
-                    calculateBtn.disabled = false;
-                    calculateBtn.innerHTML = '<i class="fas fa-calculator"></i> 开始测算';
+                    document.body.removeChild(loadingOverlay);
                     
+                    // 6. 初始化其他部分的加载按钮
                     initLoadButtons();
                     window.scrollTo(0, 0);
+                    
                 } catch (error) {
                     console.error('测算失败:', error);
                     alert('测算失败，请稍后重试');
+                    if (document.querySelector('.loading-overlay')) {
+                        document.body.removeChild(document.querySelector('.loading-overlay'));
+                    }
+                } finally {
                     calculateBtn.disabled = false;
                     calculateBtn.innerHTML = '<i class="fas fa-calculator"></i> 开始测算';
                 }
@@ -1900,11 +1961,8 @@
                     '午': 'fire', '巳': 'fire',
                     '辰': 'earth', '戌': 'earth', '丑': 'earth', '未': 'earth',
                     '申': 'metal', '酉': 'metal',
-                    '子': 'water', '亥': 'water'
+                                        '子': 'water', '亥': 'water'
                 };
-                
-                // 移除所有可能的五行类
-                element.classList.remove('wood', 'fire', 'earth', 'metal', 'water');
                 
                 // 添加对应的五行类
                 if (stemElements[text]) {
