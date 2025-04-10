@@ -954,6 +954,40 @@
             color: var(--text-color);
         }
         
+        /* 表格样式 - 新增 */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: rgba(93, 53, 135, 0.2);
+            border-radius: var(--border-radius-sm);
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border: 1px solid var(--border-color);
+        }
+        
+        th {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 14px;
+            letter-spacing: 0.5px;
+        }
+        
+        tr:nth-child(even) {
+            background-color: rgba(93, 53, 135, 0.1);
+        }
+        
+        tr:hover {
+            background-color: rgba(93, 53, 135, 0.3);
+        }
+        
         /* 响应式设计 */
         @media (max-width: 768px) {
             .header-title {
@@ -1006,6 +1040,13 @@
             .wuxing-item {
                 width: 30%;
             }
+            
+            /* 响应式表格 */
+            table {
+                display: block;
+                overflow-x: auto;
+                white-space: nowrap;
+            }
         }
         
         @media (max-width: 480px) {
@@ -1055,9 +1096,17 @@
             .wuxing-item {
                 width: 48%;
             }
+            
+            /* 小屏幕表格调整 */
+            th, td {
+                padding: 8px 10px;
+                font-size: 14px;
+            }
         }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- 引入 marked.js 用于解析 Markdown -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -1122,7 +1171,7 @@
                     <div class="info-content">
                         <!-- 今日八字分析 -->
                         <div class="fortune-card">
-                            <h4><i class="fas fa-scroll"></i> 今日八字分析</h4>
+                            <h4><i class="fas fa-scroll"></i> 今日运势分析</h4>
                             <div class="text-analysis" id="bazi-analysis">
                                 <!-- 这里将通过JavaScript动态填充内容 -->
                             </div>
@@ -1143,10 +1192,10 @@
                 <div class="detail-card">
                     <div class="load-btn-container">
                         <button class="load-btn" data-section="energy-core">
-                            <span><i class="fas fa-atom"></i> 八字核心分析</span>
+                            <span><i class="fas fa-atom"></i> 八字核心问题分析</span>
                             <i class="fas fa-chevron-down toggle-icon"></i>
                         </button>
-                        <div class="load-btn-description">分析您的八字核心特征与命运走向</div>
+                        <div class="load-btn-description">分析您的八字核心问题与命运走向</div>
                     </div>
                     <div id="energy-core-content" class="section-content"></div>
                 </div>
@@ -1154,7 +1203,7 @@
                 <div class="detail-card">
                     <div class="load-btn-container">
                         <button class="load-btn" data-section="energy-chakra">
-                            <span><i class="fas fa-spa"></i> 五行分析</span>
+                            <span><i class="fas fa-spa"></i> 五行能量分析</span>
                             <i class="fas fa-chevron-down toggle-icon"></i>
                         </button>
                         <div class="load-btn-description">分析五行能量状态与平衡度</div>
@@ -1165,10 +1214,10 @@
                 <div class="detail-card">
                     <div class="load-btn-container">
                         <button class="load-btn" data-section="energy-element">
-                            <span><i class="fas fa-mountain"></i> 十神分析</span>
+                            <span><i class="fas fa-mountain"></i>重大灾祸分析</span>
                             <i class="fas fa-chevron-down toggle-icon"></i>
                         </button>
-                        <div class="load-btn-description">分析十神关系与命运影响</div>
+                        <div class="load-btn-description">分析一生重大灾祸与命运影响</div>
                     </div>
                     <div id="energy-element-content" class="section-content"></div>
                 </div>
@@ -1448,81 +1497,109 @@
                 const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
                 const apiKey = 'sk-b2950087a9d5427392762814114b22a9';
                 
+                // 明确指定八字排盘规则
+                const baziRules = `请严格按照以下规则进行八字排盘：
+1. 年柱以立春为分界，不是农历春节
+2. 月柱按节气划分（如正月从立春开始，二月从惊蛰开始）
+3. 日柱按公历日期计算
+4. 时柱按出生时辰的地支划分`;
+
                 const prompt = `根据以下用户信息进行专业的八字测算分析：
 姓名：${data.name || '未提供'}
 出生日期：${data.date}
 出生时间：${data.time}
 性别：${data.gender === 'male' ? '男' : '女'}
 
+${baziRules}
+
 请返回以下详细分析内容：
-1. 包含大运流年的八字排盘
+1. 八字排盘
 2. 今日喜忌
-3. 今日财运分析
-4. 今日七杀能量分析
+3. 今日财运分析（1-5星，图标表示，附带详细说明）
+4. 今日七杀能量分析（1-5闪电，图标表示，附带详细说明）
 5. 今日运势建议
+
+请确保返回纯文本内容，不要包含Markdown格式或代码块。
 
 请以严格的JSON格式返回，包含以下字段：
 {
-    "baziChart": "八字排盘",
-    "tenGods": "今日喜忌",
-    "dayMaster": "今日财运分析",
-    "favorableElements": "七杀能量分析",
-    "todayFortune": "今日运势建议"
+    "baziChart": "八字排盘文本内容",
+    "tenGods": "今日喜忌文本内容", 
+    "dayMaster": "今日财运文本内容",
+    "favorableElements": "七杀能量文本内容",
+    "todayFortune": "今日运势文本内容"
 }`;
 
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${apiKey}`
-                    },
-                    body: JSON.stringify({
-                        model: "deepseek-chat",
-                        messages: [{ role: "user", content: prompt }],
-                        temperature: 0.3,
-                        response_format: { type: "json_object" }
-                    })
-                });
-                
-                if (!response.ok) throw new Error(`API请求失败: ${response.status}`);
-                const result = await response.json();
-                
                 try {
-                    const responseData = JSON.parse(result.choices[0].message.content);
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${apiKey}`
+                        },
+                        body: JSON.stringify({
+                            model: "deepseek-chat",
+                            messages: [{ role: "user", content: prompt }],
+                            temperature: 0.3,
+                            response_format: { type: "json_object" }
+                        })
+                    });
+                    
+                    if (!response.ok) throw new Error(`API请求失败: ${response.status}`);
+                    const result = await response.json();
+                    
+                    // 直接解析API返回的JSON内容
+                    let responseData;
+                    try {
+                        if (typeof result.choices[0].message.content === 'string') {
+                            responseData = JSON.parse(result.choices[0].message.content);
+                        } else {
+                            responseData = result.choices[0].message.content;
+                        }
+                    } catch (e) {
+                        console.error('解析API响应失败:', e);
+                        throw new Error('数据格式错误');
+                    }
+                    
                     // 验证必要字段
                     if (!responseData.baziChart || !responseData.todayFortune) {
                         throw new Error('API返回数据不完整');
                     }
+                    
                     return responseData;
-                } catch (e) {
-                    console.error('解析API响应失败:', e);
-                    throw new Error('数据格式错误');
+                } catch (error) {
+                    console.error('获取八字数据失败:', error);
+                    throw error;
                 }
             }
 
             // 显示真实八字数据
             async function displayRealBaziData(realData) {
+                // 确保realData是对象且包含所需字段
+                if (typeof realData !== 'object' || realData === null) {
+                    console.error('无效的数据格式:', realData);
+                    document.getElementById('bazi-analysis').innerHTML = '<p style="color:red">数据加载错误，请重试</p>';
+                    return;
+                }
+
                 // 创建详细的八字分析HTML
                 let baziHTML = `
-                    <div class="text-analysis-item">
-                        <div class="section-title">命主命盘</div>
-                        <p>${realData.baziChart}</p>
-                    </div>
+                    
                     <div class="text-analysis-item">
                         <div class="section-title">今日喜忌</div>
-                        <p>${realData.tenGods}</p>
+                        <p>${realData.tenGods || '暂无数据'}</p>
                     </div>
                     <div class="text-analysis-item">
                         <div class="section-title">今日财运</div>
-                        <p>${realData.dayMaster}</p>
+                        <p>${realData.dayMaster || '暂无数据'}</p>
                     </div>
                     <div class="text-analysis-item">
                         <div class="section-title">能量分析</div>
-                        <p>${realData.favorableElements}</p>
+                        <p>${realData.favorableElements || '暂无数据'}</p>
                     </div>
                     <div class="text-analysis-item">
                         <div class="section-title">今日运势</div>
-                        <p>${realData.todayFortune}</p>
+                        <p>${realData.todayFortune || '暂无数据'}</p>
                     </div>
                 `;
                 
@@ -1546,31 +1623,30 @@
                 
                 switch(section) {
                     case 'energy-core':
-                        prompt += `分析八字核心特征：
-1. 八字排盘
-2. 日主强弱
-3. 用神喜忌
+                        prompt += `分析八字核心问题：
+1. 八字五行，阴阳，燥湿平衡分析
+2. 八字问题分析
 返回格式：
-八字核心分析：
-[详细分析内容]`;
+八字五行，阴阳，燥湿平衡分析：[以表格展示，详细分析内容]
+八字核心问题分析：[详细分析内容]`;
                         break;
                     case 'energy-chakra':
                         prompt += `分析五行能量状态：
-1. 五行分布
-2. 相生相克关系
+1. 五行分析
+2. 本命局+大运+流年五行比例vs最佳五行比例
 3. 平衡建议
 返回格式：
-五行分析：
-[详细分析]`;
+平衡建议：[详细分析内容]
+五行分析：[以表格展示，按照五行的%详细分析]`;
                         break;
                     case 'energy-element':
-                        prompt += `分析十神关系：
-1. 十神分布
-2. 十神组合影响
-3. 命运走向
+                        prompt += `一生重大灾祸分析：
+1. 重大健康问题分析
+2. 重大灾祸
+3. 趋吉避凶建议
 返回格式：
-十神分析：
-[详细分析]`;
+重大健康问题分析：[以表格展示，具体年份详细分析]
+重大灾祸：[以表格展示，具体年份详细分析]`;
                         break;
                     case 'boost-daily':
                         prompt += `提供日常运势提升方法：
@@ -1578,8 +1654,7 @@
 2. 有利颜色
 3. 日常注意事项
 返回格式：
-日常提升：
-[详细建议]`;
+日常提升：[详细建议]`;
                         break;
                     case 'boost-crystal':
                         prompt += `根据八字推荐吉祥物：
@@ -1587,8 +1662,7 @@
 2. 佩戴方法
 3. 使用时机
 返回格式：
-吉祥物推荐：
-[详细建议]`;
+吉祥物推荐：[详细建议]`;
                         break;
                     case 'boost-food':
                         prompt += `推荐适合八字的饮食：
@@ -1596,8 +1670,7 @@
 2. 应避免食物
 3. 食疗建议
 返回格式：
-饮食调理：
-[详细建议]`;
+饮食调理：[详细建议]`;
                         break;
                     case 'prediction-week':
                         prompt += `预测本周运势：
@@ -1605,8 +1678,7 @@
 2. 最佳行动时机
 3. 注意事项
 返回格式：
-本周预测：
-[详细分析]`;
+本周预测：[以表格形式，详细分析]`;
                         break;
                     case 'prediction-month':
                         prompt += `预测本月运势：
@@ -1614,8 +1686,7 @@
 2. 重要时间节点
 3. 调整建议
 返回格式：
-本月预测：
-[详细分析]`;
+本月预测：[以表格形式，详细分析]`;
                         break;
                     case 'prediction-year':
                         prompt += `分析年度运势：
@@ -1623,8 +1694,7 @@
 2. 重大转折点
 3. 全年建议
 返回格式：
-年度预测：
-[详细分析]`;
+年度预测：[以表格形式，详细分析]`;
                         break;
                     case 'prediction-gamble':
                         prompt += `预测今日赢输概率：
@@ -1632,8 +1702,7 @@
 2. 赢输概率分析
 3. 最佳时机
 返回格式：
-赢输预测：
-[详细分析]`;
+赢输预测：[详细分析]`;
                         break;
                 }
                 
@@ -1674,8 +1743,11 @@
                 result = result.replace(/4星/g, '<i class="fas fa-star star-icon"></i>');
                 result = result.replace(/5星/g, '<i class="fas fa-thumbs-up thumb-icon"></i>');
                 
+                // 使用 marked.js 解析 Markdown 表格
+                result = marked.parse(result);
+                
                 // 处理标题和内容样式
-                result = result.replace(/([^\n]+：)/g, '<div class="section-title">$1</div>');
+                result = result.replace(/(<p>[^\n]+：<\/p>)/g, '<div class="section-title">$1</div>');
                 
                 // 创建卡片容器
                 const cardHtml = `<div class="fortune-card">${result}</div>`;
@@ -1688,6 +1760,11 @@
                 }).join('');
                 
                 contentElement.innerHTML = formattedResult;
+                
+                // 为表格添加样式类
+                contentElement.querySelectorAll('table').forEach(table => {
+                    table.classList.add('styled-table');
+                });
             }
         });
     </script>
