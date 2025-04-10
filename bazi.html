@@ -831,6 +831,40 @@
             height: 100%;
         }
         
+        /* Markdown 表格样式 */
+        .markdown-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-sm);
+            overflow: hidden;
+            background: rgba(26, 35, 126, 0.2);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .markdown-table th {
+            background-color: rgba(26, 35, 126, 0.5);
+            color: var(--title-color);
+            font-weight: bold;
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .markdown-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .markdown-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .markdown-table tr:hover {
+            background-color: rgba(121, 134, 203, 0.1);
+        }
+        
         /* 响应式设计 */
         @media (max-width: 768px) {
             .header-title {
@@ -893,6 +927,11 @@
             
             .element-chart-container, .fortune-chart-container {
                 height: 250px;
+            }
+            
+            .markdown-table {
+                display: block;
+                overflow-x: auto;
             }
         }
         
@@ -1331,6 +1370,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const calculateBtn = document.getElementById('calculate-btn');
@@ -1364,6 +1404,16 @@
             const currentDate = new Date(2025, 3, 3); // 月份是0-11，所以3表示4月
             let birthData = {};
             let loadedSections = {};
+            
+            // 配置 marked.js
+            marked.setOptions({
+                breaks: true,
+                gfm: true,
+                tables: true,
+                highlight: function(code, lang) {
+                    return code;
+                }
+            });
             
             // 重新测算按钮点击事件
             recalculateBtn.addEventListener('click', function() {
@@ -2035,16 +2085,19 @@
                     result = result.replace(/(☆+)/g, '<span style="color:#ddd">$1</span>');
                 }
                 
-                // 去除特殊符号
-                result = result.replace(/[#*\、]/g, '');
+                // 使用 marked.js 解析 Markdown
+                const html = marked.parse(result);
                 
-                // 处理换行
-                result = result.split('\n').map(line => {
-                    if (line.trim() === '') return '';
-                    return `<p>${line}</p>`;
-                }).join('');
+                // 处理表格样式
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = html;
                 
-                contentElement.innerHTML = result;
+                // 为所有表格添加样式类
+                tempDiv.querySelectorAll('table').forEach(table => {
+                    table.classList.add('markdown-table');
+                });
+                
+                contentElement.innerHTML = tempDiv.innerHTML;
             }
         });
     </script>
