@@ -1137,7 +1137,7 @@
             </div>
             
             <div class="menu-tabs">
-                <div class="menu-tab active" data-tab="fortune"><i class="fas fa-chart-line"></i> 命运分析</div>
+                <div class="menu-tab active" data-tab="fortune"><i class="fas fa-chart-line"></i> 命盘分析</div>
                 <div class="menu-tab" data-tab="character"><i class="fas fa-user-tie"></i> 性格事业</div>
                 <div class="menu-tab" data-tab="relationship"><i class="fas fa-heart"></i> 婚姻家庭</div>
                 <div class="menu-tab" data-tab="trend"><i class="fas fa-calendar-alt"></i> 运势分析</div>
@@ -1151,7 +1151,7 @@
                             <span><i class="fas fa-dumbbell"></i> 身强身弱分析</span>
                             <i class="fas fa-chevron-down toggle-icon"></i>
                         </button>
-                        <div class="load-btn-description">分析命主八字中日主的强弱程度，判断是身强、身弱还是中和</div>
+                        <div class="load-btn-description">分析命主八字中日主的强弱程度，判断是身强、身弱、均衡、从强还是从弱</div>
                     </div>
                     <div id="strength-content" class="section-content"></div>
                 </div>
@@ -1170,10 +1170,10 @@
                 <div class="detail-card">
                     <div class="load-btn-container">
                         <button class="load-btn" data-section="elements">
-                            <span><i class="fas fa-yin-yang"></i> 五行喜忌分析</span>
+                            <span><i class="fas fa-yin-yang"></i> 五行强弱分析</span>
                             <i class="fas fa-chevron-down toggle-icon"></i>
                         </button>
-                        <div class="load-btn-description">分析八字五行分布情况，判断喜用神和忌神</div>
+                        <div class="load-btn-description">分析八字五行分布情况，判断五行强弱和调候</div>
                     </div>
                     <div id="elements-content" class="section-content"></div>
                 </div>
@@ -1739,14 +1739,14 @@
                         const contentElement = document.getElementById(`${section}-content`);
                         const container = firstSection.closest('.load-btn-container');
                         
-                        firstSection.innerHTML = '<span><span class="loading"></span> 正在加载...</span>';
-                        container.classList.add('active');
+                        //firstSection.innerHTML = '<span><span class="loading"></span> 正在加载...</span>';
+                        //container.classList.add('active');
                         
-                        const result = await getBaziAnalysis(section, birthData);
-                        displaySectionContent(section, result, contentElement);
-                        contentElement.classList.add('active');
-                        loadedSections[section] = true;
-                        firstSection.innerHTML = `<span><i class="fas fa-check"></i> 身强身弱分析</span><i class="fas fa-chevron-down toggle-icon"></i>`;
+                        //const result = await getBaziAnalysis(section, birthData);
+                        //displaySectionContent(section, result, contentElement);
+                        //contentElement.classList.add('active');
+                        //loadedSections[section] = true;
+                        //firstSection.innerHTML = `<span><i class="fas fa-check"></i> 身强身弱分析</span><i class="fas fa-chevron-down toggle-icon"></i>`;
                     }
                     
                     // 5. 所有数据加载完成后再显示结果页面
@@ -1805,13 +1805,17 @@
                         break;
                     case 'strength':
                         prompt += `分析命主的身强身弱情况：
-1 日主得令、得地、得势的情况
-2 天干地支的生助情况
-3 综合分析结论
+1 简化八字
+2 日主得令、得地、得势的情况
+3 天干地支的生助情况
+4 天干地支的合化和刑冲情况
+5 是否有可能是从强或从弱
+6 如果从强或从弱喜忌会有不同
 
 返回格式：
-身强身弱：[强/弱/中和]
+身强身弱：[强/从强/弱/从弱/均衡]
 分析理由：[详细分析]
+喜用和忌凶：[详细分析]
 不要使用任何特殊符号`;
                         break;
                     case 'pattern':
@@ -1825,14 +1829,32 @@
 格局分析：[详细分析]`;
                         break;
                     case 'elements':
-                        prompt += `分析八字五行喜忌：
+                        prompt += `分析八字五行强弱：
 1 五行分布情况
-2 喜用神和忌神
-3 调候建议
+2 调候建议
 
 返回格式：
-五行喜忌：[喜用神/忌神]
+五行分布：[五行能量图]
 分析理由：[详细分析]`;
+                        break;
+                    case 'children':
+                        prompt += `分析子女情况：
+1 子女数量分析
+2 子女性格分析
+3 核心信息
+
+子女总结：[详细分析]`;
+                        break;
+                    case 'marriage':
+                        prompt += `分析婚姻情况：
+1 配偶性格
+2 适婚年份
+3 核心信息
+
+返回格式：
+配偶分析：[详细分析]
+适婚年份：[图表展示]
+婚姻总结：[详细分析]`;
                         break;
                     case 'decade-fortune':
                         prompt += `分析十年大运走势：
@@ -1841,8 +1863,17 @@
 3 各阶段运势特点
 
 返回格式：
-大运分析：[详细分析]
-运势走势：[阶段1:分数,阶段2:分数,...] (1-100分)`;
+大运分析：[以表格方式呈现，详细分析]
+运势走势：[用表格方式呈现，阶段1:分数,阶段2:分数,...] (1-100分)`;
+                        break;
+                    case 'monthly-fortune':
+                        prompt += `分析今年每月运势：
+1 每月运势
+2 吉凶分析
+
+返回格式：
+每月运势：[以表格方式详细分析]
+运势走势：[用表格方式表示，阶段1:分数,阶段2:分数,...] (1-100分)`;
                         break;
                     default:
                         prompt += `请分析${section}相关内容`;
@@ -1954,7 +1985,7 @@
                 const stemElements = {
                     '甲': 'wood', '乙': 'wood',
                     '丙': 'fire', '丁': 'fire',
-                                        '戊': 'earth', '己': 'earth',
+                    '戊': 'earth', '己': 'earth',
                     '庚': 'metal', '辛': 'metal',
                     '壬': 'water', '癸': 'water'
                 };
