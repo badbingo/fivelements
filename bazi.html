@@ -164,21 +164,47 @@
             text-decoration: none;
             font-size: 16px;
             transition: all 0.3s;
-            padding: 8px 16px;
-            border-radius: 20px;
-            background: rgba(255, 255, 255, 0.1);
+            padding: 12px 24px;
+            border-radius: 30px;
+            background: rgba(255, 255, 255, 0.15);
             border: 1px solid rgba(255, 255, 255, 0.3);
             display: inline-flex;
             align-items: center;
+            font-weight: 500;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header-btn::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(255, 255, 255, 0.2),
+                transparent
+            );
+            transition: 0.5s;
         }
         
         .header-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.25);
             transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        .header-btn:hover::before {
+            left: 100%;
         }
         
         .header-btn i {
             margin-right: 8px;
+            font-size: 18px;
         }
         
         .header-center-text {
@@ -1027,8 +1053,8 @@
             <h1 class="header-title">八字测算</h1>
             <div class="header-subtitle">传统智慧 · 现代解读</div>
             <div class="header-links">
-                <button class="calculate-btn"><a href="gaiming.html" style="color: white; text-decoration: none;">逆天改命</a></button>
-                <button class="calculate-btn"><a href="hehun.html" style="color: white; text-decoration: none;">八字合婚</a></button>
+                <a href="gaiming.html" class="header-btn"><i class="fas fa-magic"></i> 逆天改命</a>
+                <a href="hehun.html" class="header-btn"><i class="fas fa-heart"></i> 八字合婚</a>
             </div>
         </div>
         
@@ -1400,8 +1426,8 @@
             const elementChartCtx = document.getElementById('element-chart').getContext('2d');
             let elementChart;
             
-            // 定义当前日期为2025年4月3日
-            const currentDate = new Date(2025, 3, 3); // 月份是0-11，所以3表示4月
+            // 定义当前日期为2025年4月11日
+            const currentDate = new Date(2025, 3, 11); // 月份是0-11，所以3表示4月
             let birthData = {};
             let loadedSections = {};
             
@@ -1466,6 +1492,7 @@
                 
                 // 重置所有加载按钮
                 document.querySelectorAll('.load-btn').forEach(btn => {
+                    const sectionName = btn.querySelector('span').textContent.trim();
                     btn.innerHTML = `<span><i class="fas fa-${btn.getAttribute('data-section') === 'strength' ? 'dumbbell' : 
                                     btn.getAttribute('data-section') === 'pattern' ? 'chess-queen' : 
                                     btn.getAttribute('data-section') === 'elements' ? 'yin-yang' : 
@@ -1477,7 +1504,7 @@
                                     btn.getAttribute('data-section') === 'children' ? 'baby' : 
                                     btn.getAttribute('data-section') === 'decade-fortune' ? 'hourglass-half' : 
                                     btn.getAttribute('data-section') === 'milestones' ? 'map-marked-alt' : 
-                                    btn.getAttribute('data-section') === 'monthly-fortune' ? 'calendar-day' : 'scroll'}"></i> ${btn.textContent.trim()}</span><i class="fas fa-chevron-down toggle-icon"></i>`;
+                                    btn.getAttribute('data-section') === 'monthly-fortune' ? 'calendar-day' : 'scroll'}"></i> ${sectionName}</span><i class="fas fa-chevron-down toggle-icon"></i>`;
                     btn.classList.remove('active');
                     btn.disabled = false;
                 });
@@ -1529,7 +1556,8 @@
                         }
                         
                         this.disabled = true;
-                        this.innerHTML = '<span><span class="loading"></span> 正在搜索周易命理库...</span>';
+                        const sectionName = button.querySelector('span').textContent.trim();
+                        this.innerHTML = `<span><span class="loading"></span> ${sectionName}-数据搜索中...</span>`;
                         container.classList.add('active');
                         
                         const progressContainer = document.createElement('div');
@@ -1553,7 +1581,7 @@
                             clearInterval(progressInterval);
                             displaySectionContent(section, result, contentElement);
                             
-                            button.innerHTML = `<span><i class="fas fa-check"></i> 分析完成</span><i class="fas fa-chevron-down toggle-icon"></i>`;
+                            button.innerHTML = `<span><i class="fas fa-check"></i> ${sectionName}-分析完成</span><i class="fas fa-chevron-down toggle-icon"></i>`;
                             button.disabled = false;
                             contentElement.classList.add('active');
                             loadedSections[section] = true;
@@ -1831,7 +1859,7 @@
 3. 日柱按公历日期计算
 4. 时柱按出生时辰的地支划分
 
-当前日期：2025年4月3日
+当前日期：2025年4月11日
 根据以下八字信息进行分析：
 姓名：${data.name || '未提供'}
 出生日期：${data.date}
@@ -1925,7 +1953,7 @@
 
 返回格式：
 大运分析：[表格方式呈现，详细分析]
-运势走势：[表格方式呈现，阶段1:分数,阶段2:分数,...] (1-100分)`;
+运势走势：[表格方式呈现，阶段1:分数,阶段2:分数,...] (1-5星)`;
                         break;
                     case 'monthly-fortune':
                         prompt += `分析今年每月运势：
@@ -1934,7 +1962,7 @@
 
 返回格式：
 每月运势：[以表格方式详细分析]
-运势走势：[用表格方式表示，阶段1:分数,阶段2:分数,...] (1-100分)`;
+运势走势：[用表格方式表示，阶段1:分数,阶段2:分数,...] (1-5星)`;
                         break;
                     default:
                         prompt += `请分析${section}相关内容`;
