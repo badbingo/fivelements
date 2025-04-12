@@ -8,7 +8,7 @@
     <title>八字合婚 - 专业八字合婚测算</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.css">
     <style>
         @font-face {
@@ -79,7 +79,6 @@
             border: 1px solid var(--border-color);
         }
         
-        /* 精美的Header样式 */
         .header-container {
             background: var(--header-bg);
             padding: 30px 20px;
@@ -190,21 +189,6 @@
             bottom: 15px;
         }
         
-        .bagua-icon {
-            position: absolute;
-            left: 15px;
-            top: 15px;
-            font-size: 2rem;
-            color: white;
-            cursor: pointer;
-            z-index: 10;
-            transition: transform 0.3s ease;
-        }
-        
-        .bagua-icon:hover {
-            transform: rotate(180deg);
-        }
-        
         @keyframes titleGlow {
             0% {
                 text-shadow: 0 0 5px rgba(245, 215, 66, 0.3);
@@ -275,7 +259,6 @@
             color: var(--text-color);
         }
         
-        /* 修复日期和时间输入框的样式 */
         input[type="date"], input[type="time"] {
             -webkit-appearance: none;
             -moz-appearance: none;
@@ -283,7 +266,6 @@
             min-height: 56px;
         }
         
-        /* 为日期和时间输入框添加日历图标 */
         .date-wrapper, .time-wrapper {
             position: relative;
         }
@@ -452,7 +434,6 @@
             color: var(--content-color);
         }
         
-        /* 八字四柱表格样式 */
         .bazi-table {
             width: 100%;
             border-collapse: collapse;
@@ -510,7 +491,6 @@
             min-width: 80px;
         }
         
-        /* 十神列表样式 */
         .ten-gods-grid {
             display: flex;
             gap: 20px;
@@ -805,7 +785,6 @@
             transition: width 0.4s ease;
         }
         
-        /* 大运走势图 */
         .fortune-chart-container {
             width: 100%;
             height: 350px;
@@ -817,7 +796,6 @@
             height: 100%;
         }
         
-        /* 合婚特定样式 */
         .couple-info {
             display: flex;
             justify-content: space-between;
@@ -931,7 +909,57 @@
             color: #e57373;
         }
         
-        /* 响应式设计 */
+        .api-status {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: var(--border-radius-sm);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            transform: translateY(100px);
+            opacity: 0;
+        }
+
+        .api-status.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .api-status.success {
+            border-left: 4px solid var(--success-color);
+        }
+
+        .api-status.warning {
+            border-left: 4px solid var(--warning-color);
+        }
+
+        .api-status.error {
+            border-left: 4px solid var(--danger-color);
+        }
+
+        .api-status i {
+            margin-right: 10px;
+            font-size: 18px;
+        }
+
+        .cache-indicator {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 12px;
+            color: var(--text-light);
+        }
+        
         @media (max-width: 768px) {
             .header-title {
                 font-size: 2rem;
@@ -1070,7 +1098,6 @@
 </head>
 <body>
     <div class="container">
-        <!-- 精美的Header部分 -->
         <div class="header-container">
             <div class="header-content">
                 <i class="fas fa-yin-yang header-decoration left"></i>
@@ -1085,7 +1112,6 @@
         </div>
         
         <div class="input-section" id="input-section">
-            <!-- 男方信息 -->
             <div class="partner-card male-card" style="margin-bottom: 30px;">
                 <div class="partner-title male-title">
                     <i class="fas fa-mars"></i> 男方信息
@@ -1110,7 +1136,6 @@
                 </div>
             </div>
             
-            <!-- 女方信息 -->
             <div class="partner-card female-card">
                 <div class="partner-title female-title">
                     <i class="fas fa-venus"></i> 女方信息
@@ -1145,7 +1170,6 @@
         </div>
         
         <div class="result-section" id="result-section">
-            <!-- 基本信息展示 -->
             <div class="basic-info" id="basic-info">
                 <div class="couple-info">
                     <div class="partner-card male-card">
@@ -1207,7 +1231,6 @@
                     </div>
                 </div>
                 
-                <!-- 合婚评分 -->
                 <div class="compatibility-score">
                     <div>婚姻契合度评分</div>
                     <div class="score-value" id="compatibility-score">-</div>
@@ -1221,7 +1244,6 @@
                     </div>
                 </div>
 
-                <!-- 评分说明 -->
                 <div class="score-explanation">
                     <h4><i class="fas fa-info-circle"></i> 评分标准说明</h4>
                     <p>婚姻契合度评分综合考虑以下因素：</p>
@@ -1240,14 +1262,12 @@
                 </div>
             </div>
             
-            <!-- 分析选项卡 -->
             <div class="menu-tabs">
                 <div class="menu-tab active" data-tab="compatibility"><i class="fas fa-heart"></i> 八字合婚</div>
                 <div class="menu-tab" data-tab="fate"><i class="fas fa-star"></i> 命理分析</div>
                 <div class="menu-tab" data-tab="suggestion"><i class="fas fa-comments"></i> 婚姻建议</div>
             </div>
             
-            <!-- 八字合婚分析 -->
             <div class="tab-content active" id="compatibility-tab">
                 <div class="detail-card">
                     <div class="load-btn-container">
@@ -1283,7 +1303,6 @@
                 </div>
             </div>
             
-            <!-- 命理分析 -->
             <div class="tab-content" id="fate-tab">
                 <div class="detail-card">
                     <div class="load-btn-container">
@@ -1308,7 +1327,6 @@
                 </div>
             </div>
             
-            <!-- 婚姻建议 -->
             <div class="tab-content" id="suggestion-tab">
                 <div class="detail-card">
                     <div class="load-btn-container">
@@ -1354,6 +1372,8 @@
         </div>
     </div>
 
+    <div class="api-status" id="api-status"></div>
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -1361,6 +1381,7 @@
             const recalculateBtn = document.getElementById('recalculate-btn');
             const inputSection = document.getElementById('input-section');
             const resultSection = document.getElementById('result-section');
+            const apiStatus = document.getElementById('api-status');
             
             // 八字四柱元素
             const maleYearStem = document.getElementById('male-year-stem');
@@ -1386,15 +1407,22 @@
             const compatibilityMeter = document.getElementById('compatibility-meter');
             const recommendation = document.getElementById('recommendation');
             
-            // 定义当前日期为2025年4月3日
             const currentDate = new Date(2025, 3, 3);
             let maleData = {};
             let femaleData = {};
             let loadedSections = {};
+            let analysisCache = {};
             
-            // 重新测算按钮点击事件
+            function showApiStatus(message, type = 'success') {
+                apiStatus.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : type === 'warning' ? 'exclamation-triangle' : 'times-circle'}"></i> ${message}`;
+                apiStatus.className = `api-status ${type} show`;
+                
+                setTimeout(() => {
+                    apiStatus.classList.remove('show');
+                }, 3000);
+            }
+            
             recalculateBtn.addEventListener('click', function() {
-                // 清空输入框
                 document.getElementById('male-name').value = '';
                 document.getElementById('male-birth-date').value = '';
                 document.getElementById('male-birth-time').value = '';
@@ -1402,19 +1430,15 @@
                 document.getElementById('female-birth-date').value = '';
                 document.getElementById('female-birth-time').value = '';
                 
-                // 隐藏结果区域，显示输入区域
                 resultSection.style.display = 'none';
                 inputSection.style.display = 'block';
                 
-                // 重置所有内容
                 resetAllContent();
                 
-                // 滚动到顶部
                 window.scrollTo(0, 0);
             });
             
             function resetAllContent() {
-                // 重置八字四柱
                 maleYearStem.textContent = '';
                 maleYearBranch.textContent = '';
                 maleMonthStem.textContent = '';
@@ -1433,19 +1457,16 @@
                 femaleHourStem.textContent = '';
                 femaleHourBranch.textContent = '';
                 
-                // 重置合婚评分
                 compatibilityScore.textContent = '-';
                 compatibilityMeter.style.width = '0%';
                 recommendation.className = 'recommendation';
                 recommendation.innerHTML = '<i class="fas fa-heart"></i> 正在分析姻缘...';
                 
-                // 重置所有内容区域
                 document.querySelectorAll('.section-content').forEach(el => {
                     el.innerHTML = '';
                     el.classList.remove('active');
                 });
                 
-                // 重置所有加载按钮
                 document.querySelectorAll('.load-btn').forEach(btn => {
                     btn.innerHTML = `<span><i class="fas fa-${btn.getAttribute('data-section') === 'basic-analysis' ? 'heartbeat' : 
                                     btn.getAttribute('data-section') === 'element-analysis' ? 'yin-yang' : 
@@ -1458,22 +1479,19 @@
                     btn.disabled = false;
                 });
                 
-                // 重置描述显示
                 document.querySelectorAll('.load-btn-container').forEach(container => {
                     container.classList.remove('active');
                 });
                 
-                // 重置标签页
                 document.querySelectorAll('.menu-tab').forEach(tab => tab.classList.remove('active'));
                 document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
                 document.querySelector('.menu-tab[data-tab="compatibility"]').classList.add('active');
                 document.getElementById('compatibility-tab').classList.add('active');
                 
-                // 重置已加载的章节
                 loadedSections = {};
+                analysisCache = {};
             }
             
-            // 初始化标签页
             document.querySelectorAll('.menu-tab').forEach(tab => {
                 tab.addEventListener('click', function() {
                     document.querySelectorAll('.menu-tab').forEach(t => t.classList.remove('active'));
@@ -1485,7 +1503,6 @@
                 });
             });
             
-            // 初始化加载按钮和折叠功能
             function initLoadButtons() {
                 document.querySelectorAll('.load-btn').forEach(button => {
                     const section = button.getAttribute('data-section');
@@ -1494,6 +1511,17 @@
                     
                     button.addEventListener('click', async function(e) {
                         e.preventDefault();
+                        
+                        const cacheKey = `${maleData.date}-${maleData.time}-${femaleData.date}-${femaleData.time}-${section}`;
+                        
+                        if (analysisCache[cacheKey]) {
+                            contentElement.innerHTML = analysisCache[cacheKey];
+                            container.classList.toggle('active');
+                            contentElement.classList.toggle('active');
+                            button.innerHTML = `<span><i class="fas fa-check-circle"></i> 分析完成 (缓存)</span><i class="fas fa-chevron-down toggle-icon"></i>`;
+                            showApiStatus(`从缓存加载 ${section} 内容`, 'success');
+                            return;
+                        }
                         
                         if (loadedSections[section]) {
                             container.classList.toggle('active');
@@ -1522,14 +1550,22 @@
                         }, 300);
                         
                         try {
+                            const startTime = performance.now();
                             const result = await getMarriageAnalysis(section, maleData, femaleData);
+                            const endTime = performance.now();
+                            const duration = (endTime - startTime).toFixed(2);
+                            
                             clearInterval(progressInterval);
                             displaySectionContent(section, result, contentElement);
                             
-                            button.innerHTML = `<span><i class="fas fa-check"></i> 分析完成</span><i class="fas fa-chevron-down toggle-icon"></i>`;
+                            analysisCache[cacheKey] = contentElement.innerHTML;
+                            
+                            button.innerHTML = `<span><i class="fas fa-check"></i> 分析完成 (${duration}ms)</span><i class="fas fa-chevron-down toggle-icon"></i>`;
                             button.disabled = false;
                             contentElement.classList.add('active');
                             loadedSections[section] = true;
+                            
+                            showApiStatus(`${section} 分析完成 (${duration}ms)`, 'success');
                         } catch (error) {
                             console.error(`加载${section}失败:`, error);
                             clearInterval(progressInterval);
@@ -1537,6 +1573,8 @@
                             button.disabled = false;
                             button.innerHTML = `<span><i class="fas fa-redo"></i> 重新分析</span><i class="fas fa-chevron-down toggle-icon"></i>`;
                             container.classList.remove('active');
+                            
+                            showApiStatus(`${section} 分析失败: ${error.message}`, 'error');
                         }
                     });
                 });
@@ -1554,11 +1592,10 @@
                 const femaleBirthTime = document.getElementById('female-birth-time').value;
                 
                 if (!maleBirthDate || !maleBirthTime || !femaleBirthDate || !femaleBirthTime) {
-                    alert('请填写完整的出生信息');
+                    showApiStatus('请填写完整的出生信息', 'warning');
                     return;
                 }
                 
-                // 处理男方出生信息
                 const [maleYear, maleMonth, maleDay] = maleBirthDate.split('-');
                 const [maleHours, maleMinutes] = maleBirthTime.split(':');
                 const maleBirthDateTime = new Date(maleYear, maleMonth-1, maleDay, maleHours, maleMinutes);
@@ -1571,7 +1608,6 @@
                     timezoneOffset: maleTimezoneOffset
                 };
                 
-                // 处理女方出生信息
                 const [femaleYear, femaleMonth, femaleDay] = femaleBirthDate.split('-');
                 const [femaleHours, femaleMinutes] = femaleBirthTime.split(':');
                 const femaleBirthDateTime = new Date(femaleYear, femaleMonth-1, femaleDay, femaleHours, femaleMinutes);
@@ -1586,28 +1622,60 @@
                 
                 calculateBtn.disabled = true;
                 calculateBtn.innerHTML = '<span class="loading"></span> 测算中...';
+                showApiStatus('开始测算，请稍候...', 'success');
                 
-                try {
-                    // 获取基础信息
-                    const basicInfo = await getMarriageAnalysis('basic', maleData, femaleData);
-                    displayBasicInfo(basicInfo);
-                    
-                    // 获取合婚评分
-                    const scoreInfo = await getMarriageAnalysis('score', maleData, femaleData);
-                    updateCompatibilityScore(parseInt(scoreInfo.match(/合婚评分：(\d+)/)[1]));
-                    
-                    inputSection.style.display = 'none';
-                    resultSection.style.display = 'block';
-                    calculateBtn.disabled = false;
-                    calculateBtn.innerHTML = '<i class="fas fa-heart"></i> 查看姻缘';
-                    
-                    initLoadButtons();
-                    window.scrollTo(0, 0);
-                } catch (error) {
-                    console.error('测算失败:', error);
-                    alert('测算失败，请稍后重试');
-                    calculateBtn.disabled = false;
-                    calculateBtn.innerHTML = '<i class="fas fa-heart"></i> 查看姻缘';
+                let retries = 3;
+                while (retries > 0) {
+                    try {
+                        const startTime = performance.now();
+                        const basicInfo = await getMarriageAnalysis('basic', maleData, femaleData);
+                        const endTime = performance.now();
+                        displayBasicInfo(basicInfo);
+                        
+                        let score = 50;
+                        try {
+                            const scoreInfo = await getMarriageAnalysis('score', maleData, femaleData);
+                            
+                            // 改进的评分解析逻辑
+                            const scoreMatch = scoreInfo.match(/合婚评分[：:](\d+)/) || 
+                                             scoreInfo.match(/评分[：:](\d+)/) ||
+                                             scoreInfo.match(/\b(\d{1,3})\b/);
+                            
+                            if (scoreMatch) {
+                                score = parseInt(scoreMatch[1]);
+                                score = Math.max(0, Math.min(100, score));
+                            } else {
+                                showApiStatus('评分解析失败，使用默认评分', 'warning');
+                            }
+                        } catch (scoreError) {
+                            console.error('评分解析失败:', scoreError);
+                            showApiStatus('评分解析失败，使用默认评分', 'warning');
+                        }
+                        
+                        updateCompatibilityScore(score);
+                        
+                        inputSection.style.display = 'none';
+                        resultSection.style.display = 'block';
+                        calculateBtn.disabled = false;
+                        calculateBtn.innerHTML = '<i class="fas fa-heart"></i> 查看姻缘';
+                        
+                        initLoadButtons();
+                        window.scrollTo(0, 0);
+                        
+                        showApiStatus(`测算完成 (${(endTime - startTime).toFixed(2)}ms)`, 'success');
+                        break;
+                    } catch (error) {
+                        retries--;
+                        if (retries === 0) {
+                            console.error('测算失败:', error);
+                            showApiStatus(`测算失败: ${error.message}`, 'error');
+                            calculateBtn.disabled = false;
+                            calculateBtn.innerHTML = '<i class="fas fa-heart"></i> 查看姻缘';
+                        } else {
+                            showApiStatus(`尝试第${4-retries}次重试...`, 'warning');
+                            await new Promise(resolve => setTimeout(resolve, 1000));
+                        }
+                    }
                 }
             });
             
@@ -1615,10 +1683,17 @@
                 const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
                 const apiKey = 'sk-b2950087a9d5427392762814114b22a9';
                 
-                // 格式化当前日期为2025年4月3日
+                const cacheKey = `${maleData.date}-${maleData.time}-${femaleData.date}-${femaleData.time}-${section}`;
+                if (analysisCache[cacheKey]) {
+                    return analysisCache[cacheKey];
+                }
+                
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 15000);
+                
                 const currentDateStr = '2025年4月3日';
                 
-                let prompt = `当前日期：${currentDateStr}\n根据以下双方八字信息进行八字排盘，：
+                let prompt = `当前日期：${currentDateStr}\n根据以下双方八字信息进行八字排盘：
 1. 年柱以立春为分界，不是农历春节
 2. 月柱按节气划分（如正月从立春开始，二月从惊蛰开始）
 3. 日柱按公历日期计算
@@ -1638,7 +1713,6 @@
 
 `;
 
-                // 根据不同的分析部分设置不同的提示词
                 switch(section) {
                     case 'basic':
                         prompt += `请返回以下信息：
@@ -1656,13 +1730,9 @@
 4 大运同步率
 5 流年预警
 
-返回格式：
-四柱干支和谐度：[占15%]
-五行能量平衡：[占40%]
-十神配置：[占20%]
-大运同步率：[占15%]
-流年预警：[占10%]
-合婚评分：[分数]`;
+返回格式必须严格如下：
+合婚评分：[分数]
+评分说明：[简要说明]`;
                         break;
                     case 'basic-analysis':
                         prompt += `分析双方八字的基本匹配程度：
@@ -1771,28 +1841,42 @@
                         prompt += `请分析${section}相关内容`;
                 }
                 
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${apiKey}`
-                    },
-                    body: JSON.stringify({
-                        model: "deepseek-chat",
-                        messages: [{ role: "user", content: prompt }],
-                        temperature: 0.7
-                    })
-                });
-                
-                if (!response.ok) throw new Error(`API请求失败: ${response.status}`);
-                const result = await response.json();
-                return result.choices[0].message.content;
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${apiKey}`
+                        },
+                        body: JSON.stringify({
+                            model: "deepseek-chat",
+                            messages: [{ role: "user", content: prompt }],
+                            temperature: 0.7
+                        }),
+                        signal: controller.signal
+                    });
+                    
+                    clearTimeout(timeoutId);
+                    
+                    if (!response.ok) {
+                        throw new Error(`API请求失败: ${response.status}`);
+                    }
+                    
+                    const result = await response.json();
+                    const content = result.choices[0].message.content;
+                    
+                    analysisCache[cacheKey] = content;
+                    
+                    return content;
+                } catch (error) {
+                    clearTimeout(timeoutId);
+                    throw error;
+                }
             }
             
             function displayBasicInfo(info) {
                 const lines = info.split('\n').filter(line => line.trim());
                 
-                // 提取男方八字四柱
                 const malePillarsLine = lines.find(line => line.includes('男方八字'));
                 if (malePillarsLine) {
                     const pillars = malePillarsLine.match(/年柱\[(.*?)\] 月柱\[(.*?)\] 日柱\[(.*?)\] 时柱\[(.*?)\]/);
@@ -1808,7 +1892,6 @@
                     }
                 }
                 
-                // 提取女方八字四柱
                 const femalePillarsLine = lines.find(line => line.includes('女方八字'));
                 if (femalePillarsLine) {
                     const pillars = femalePillarsLine.match(/年柱\[(.*?)\] 月柱\[(.*?)\] 日柱\[(.*?)\] 时柱\[(.*?)\]/);
@@ -1826,6 +1909,12 @@
             }
             
             function updateCompatibilityScore(score) {
+                score = parseInt(score);
+                if (isNaN(score)) {
+                    score = 50;
+                }
+                score = Math.max(0, Math.min(100, score));
+                
                 compatibilityScore.textContent = score;
                 compatibilityMeter.style.width = `${score}%`;
                 
@@ -1839,19 +1928,32 @@
                     recommendation.className = 'recommendation bad-match';
                     recommendation.innerHTML = '<i class="fas fa-exclamation-triangle"></i> 需要谨慎 - 可能存在较多矛盾';
                 }
+                
+                animateScore(score);
+            }
+            
+            function animateScore(targetScore) {
+                let currentScore = 0;
+                const increment = Math.ceil(targetScore / 20);
+                const scoreInterval = setInterval(() => {
+                    currentScore += increment;
+                    if (currentScore >= targetScore) {
+                        currentScore = targetScore;
+                        clearInterval(scoreInterval);
+                    }
+                    compatibilityScore.textContent = currentScore;
+                    compatibilityMeter.style.width = `${currentScore}%`;
+                }, 50);
             }
             
             function displaySectionContent(section, result, contentElement) {
-                // 处理评分显示
                 if (result.includes('★')) {
                     result = result.replace(/(★+)/g, '<span class="rating">$1</span>');
                     result = result.replace(/(☆+)/g, '<span style="color:#ddd">$1</span>');
                 }
                 
-                // 去除特殊符号
                 result = result.replace(/[#*\、]/g, '');
                 
-                // 处理换行
                 result = result.split('\n').map(line => {
                     if (line.trim() === '') return '';
                     return `<p>${line}</p>`;
@@ -1860,67 +1962,15 @@
                 contentElement.innerHTML = result;
             }
             
-            // 页面加载时初始化
             window.addEventListener('load', function() {
-                // 设置默认日期为当前日期
                 const today = new Date();
                 const dateStr = today.toISOString().split('T')[0];
                 document.getElementById('male-birth-date').value = dateStr;
                 document.getElementById('female-birth-date').value = dateStr;
                 
-                // 设置默认时间为12:00
                 document.getElementById('male-birth-time').value = '12:00';
                 document.getElementById('female-birth-time').value = '12:00';
             });
-
-            // 初始化评分说明的折叠功能
-            const scoreExplanationTitle = document.querySelector('.score-explanation h4');
-            const scoreExplanationContent = document.querySelector('.score-explanation ul');
-            
-            scoreExplanationTitle.addEventListener('click', function() {
-                const icon = this.querySelector('i');
-                if (icon.classList.contains('fa-angle-up')) {
-                    icon.classList.remove('fa-angle-up');
-                    icon.classList.add('fa-angle-down');
-                    scoreExplanationContent.style.display = 'none';
-                } else {
-                    icon.classList.remove('fa-angle-down');
-                    icon.classList.add('fa-angle-up');
-                    scoreExplanationContent.style.display = 'block';
-                }
-            });
-
-            // 添加动画效果
-            function animateElements() {
-                // 合婚评分数字动画
-                const scoreElement = document.getElementById('compatibility-score');
-                const targetScore = parseInt(scoreElement.textContent);
-                if (!isNaN(targetScore)) {
-                    let currentScore = 0;
-                    const increment = Math.ceil(targetScore / 20);
-                    const scoreInterval = setInterval(() => {
-                        currentScore += increment;
-                        if (currentScore >= targetScore) {
-                            currentScore = targetScore;
-                            clearInterval(scoreInterval);
-                        }
-                        scoreElement.textContent = currentScore;
-                    }, 50);
-                }
-            }
-
-            // 重新计算时重置动画
-            recalculateBtn.addEventListener('click', function() {
-                compatibilityScore.textContent = '-';
-                compatibilityMeter.style.width = '0%';
-            });
-
-            // 首次加载时模拟计算
-            setTimeout(() => {
-                if (document.getElementById('compatibility-score').textContent !== '-') {
-                    animateElements();
-                }
-            }, 1000);
         });
     </script>
 </body>
