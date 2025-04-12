@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="赛博八字命理测算系统，融合未来科技与传统智慧">
     <meta name="keywords" content="赛博命理,八字,算命,未来科技,数字命盘">
-    <title>赛博八字预测 - 未来科技命理系统</title>
+    <title>赛博命理 - 未来科技命理系统</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
@@ -96,7 +96,7 @@
             100% { box-shadow: 0 0 20px rgba(255, 0, 230, 0.7); }
         }
         
-        /* 赛博风格Header */
+        /* 赛博风格Header部分 */
         .header-container {
             background: var(--header-bg);
             padding: 30px 20px;
@@ -1149,7 +1149,7 @@
         <div class="header-container">
             <i class="fas fa-atom header-decoration left"></i>
             <i class="fas fa-rocket header-decoration right"></i>
-            <h1 class="header-title">赛博八字预测</h1>
+            <h1 class="header-title">赛博命理系统</h1>
             <div class="header-subtitle">未来科技 · 传统智慧 · 数字命盘</div>
             <div class="header-links">
                 <a href="gaiming.html" class="header-btn"><i class="fas fa-microchip"></i> 命运改写</a>
@@ -1200,51 +1200,6 @@
                         <div class="time-period-option" data-hour="21" data-minute="0">亥时 (21-23)</div>
                     </div>
                     <input type="hidden" id="birth-time" required>
-                </div>
-            </div>
-            
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="birth-place"><i class="fas fa-map-marked-alt"></i> 出生地（计算真太阳时）</label>
-                    <select id="birth-place" required>
-                        <option value="">请选择出生地</option>
-                        <option value="1">北京 (+8:00)</option>
-                        <option value="2">上海 (+8:00)</option>
-                        <option value="3">广州 (+8:00)</option>
-                        <option value="4">成都 (+8:00)</option>
-                        <option value="5">乌鲁木齐 (+6:00)</option>
-                        <option value="6">拉萨 (+6:00)</option>
-                        <option value="7">香港 (+8:00)</option>
-                        <option value="8">澳门 (+8:00)</option>
-                        <option value="9">台北 (+8:00)</option>
-                        <option value="10">哈尔滨 (+8:00)</option>
-                        <option value="11">长春 (+8:00)</option>
-                        <option value="12">沈阳 (+8:00)</option>
-                        <option value="13">天津 (+8:00)</option>
-                        <option value="14">石家庄 (+8:00)</option>
-                        <option value="15">太原 (+8:00)</option>
-                        <option value="16">呼和浩特 (+8:00)</option>
-                        <option value="17">西安 (+8:00)</option>
-                        <option value="18">兰州 (+8:00)</option>
-                        <option value="19">西宁 (+6:00)</option>
-                        <option value="20">银川 (+8:00)</option>
-                        <option value="21">济南 (+8:00)</option>
-                        <option value="22">南京 (+8:00)</option>
-                        <option value="23">杭州 (+8:00)</option>
-                        <option value="24">合肥 (+8:00)</option>
-                        <option value="25">福州 (+8:00)</option>
-                        <option value="26">南昌 (+8:00)</option>
-                        <option value="27">郑州 (+8:00)</option>
-                        <option value="28">武汉 (+8:00)</option>
-                        <option value="29">长沙 (+8:00)</option>
-                        <option value="30">南宁 (+8:00)</option>
-                        <option value="31">海口 (+8:00)</option>
-                        <option value="32">重庆 (+8:00)</option>
-                        <option value="33">贵阳 (+8:00)</option>
-                        <option value="34">昆明 (+8:00)</option>
-                        <option value="35">拉萨 (+6:00)</option>
-                        <option value="36">其他地区 (+8:00)</option>
-                    </select>
                 </div>
             </div>
             
@@ -1619,7 +1574,6 @@
                 document.getElementById('birth-date').value = '';
                 document.getElementById('birth-time').value = '';
                 document.getElementById('gender').value = '';
-                document.getElementById('birth-place').value = '';
                 timePeriodOptions.forEach(opt => opt.classList.remove('selected'));
                 
                 // 隐藏结果区域，显示输入区域
@@ -1934,32 +1888,17 @@
                 const birthDate = document.getElementById('birth-date').value;
                 const birthTime = birthTimeInput.value;
                 const gender = document.getElementById('gender').value;
-                const birthPlace = document.getElementById('birth-place').value;
                 
-                if (!birthDate || !birthTime || !gender || !birthPlace) {
+                if (!birthDate || !birthTime || !gender) {
                     alert('请填写完整的出生信息');
                     return;
                 }
                 
-                // 获取出生地时区信息
-                const timezoneOffset = getTimezoneOffsetByPlace(birthPlace);
-                
-                // 处理时区问题
-                const [year, month, day] = birthDate.split('-');
-                const [hours, minutes] = birthTime.split(':');
-                const birthDateTime = new Date(year, month-1, day, hours, minutes);
-                
-                // 计算真太阳时
-                const trueSolarTime = calculateTrueSolarTime(birthDateTime, birthPlace);
-                
                 birthData = { 
                     name, 
-                    date: `${year}年${month}月${day}日`,
-                    time: `${hours}时${minutes}分`, 
-                    gender: gender,
-                    birthPlace: birthPlace,
-                    timezoneOffset: timezoneOffset,
-                    trueSolarTime: trueSolarTime
+                    date: birthDate,
+                    time: birthTime, 
+                    gender: gender
                 };
                 
                 calculateBtn.disabled = true;
@@ -2012,78 +1951,6 @@
                 }
             });
             
-            // 根据出生地获取时区偏移
-            function getTimezoneOffsetByPlace(placeId) {
-                // 默认北京时间 (UTC+8)
-                let offset = 8;
-                
-                // 乌鲁木齐和拉萨是UTC+6
-                if (placeId === '5' || placeId === '6' || placeId === '19' || placeId === '35') {
-                    offset = 6;
-                }
-                
-                return offset * 60; // 返回分钟数
-            }
-            
-            // 计算真太阳时
-            function calculateTrueSolarTime(date, placeId) {
-                // 这里简化处理，实际应根据出生地经度计算时差
-                // 北京经度116.4，标准东八区经度120，每度相差4分钟
-                
-                let longitude = 116.4; // 默认北京经度
-                
-                // 根据不同地区设置经度
-                switch(placeId) {
-                    case '1': longitude = 116.4; break; // 北京
-                    case '2': longitude = 121.47; break; // 上海
-                    case '3': longitude = 113.27; break; // 广州
-                    case '4': longitude = 104.06; break; // 成都
-                    case '5': longitude = 87.62; break; // 乌鲁木齐
-                    case '6': longitude = 91.11; break; // 拉萨
-                    case '7': longitude = 114.17; break; // 香港
-                    case '8': longitude = 113.54; break; // 澳门
-                    case '9': longitude = 121.56; break; // 台北
-                    case '10': longitude = 126.63; break; // 哈尔滨
-                    case '11': longitude = 125.35; break; // 长春
-                    case '12': longitude = 123.43; break; // 沈阳
-                    case '13': longitude = 117.20; break; // 天津
-                    case '14': longitude = 114.48; break; // 石家庄
-                    case '15': longitude = 112.55; break; // 太原
-                    case '16': longitude = 111.65; break; // 呼和浩特
-                    case '17': longitude = 108.93; break; // 西安
-                    case '18': longitude = 103.82; break; // 兰州
-                    case '19': longitude = 101.77; break; // 西宁
-                    case '20': longitude = 106.27; break; // 银川
-                    case '21': longitude = 117.00; break; // 济南
-                    case '22': longitude = 118.78; break; // 南京
-                    case '23': longitude = 120.15; break; // 杭州
-                    case '24': longitude = 117.27; break; // 合肥
-                    case '25': longitude = 119.30; break; // 福州
-                    case '26': longitude = 115.89; break; // 南昌
-                    case '27': longitude = 113.65; break; // 郑州
-                    case '28': longitude = 114.31; break; // 武汉
-                    case '29': longitude = 112.97; break; // 长沙
-                    case '30': longitude = 108.32; break; // 南宁
-                    case '31': longitude = 110.35; break; // 海口
-                    case '32': longitude = 106.55; break; // 重庆
-                    case '33': longitude = 106.63; break; // 贵阳
-                    case '34': longitude = 102.72; break; // 昆明
-                    case '35': longitude = 91.11; break; // 拉萨
-                    default: longitude = 116.4; // 默认北京
-                }
-                
-                // 计算时差 (分钟)
-                const timeDiff = (120 - longitude) * 4;
-                
-                // 计算真太阳时
-                const trueSolarTime = new Date(date.getTime() + timeDiff * 60 * 1000);
-                
-                return {
-                    time: trueSolarTime,
-                    timeDiff: timeDiff
-                };
-            }
-            
             async function getBaziAnalysis(section, data) {
                 const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
                 const apiKey = 'sk-b2950087a9d5427392762814114b22a9';
@@ -2096,15 +1963,14 @@
 4. 时柱按出生时辰的地支划分
 5. 从强格(印比力量占80%以上，全局无有力克泄耗）
 6. 从弱格(印比力量不足20%，全局无有力生扶）
-7. 排大运（阳年男性、阴年女性顺排；阴年男性、阳年女性逆排，大运起点计算：出生日到下一个节气(顺排)或上一个节气(逆排)的天数
+7. 排大运阳年男性、阴年女性顺排；阴年男性、阳年女性逆排，大运起点计算：出生日到下一个节气(顺排)或上一个节气(逆排)的天数
 
 当前日期：2025年4月11日
 根据以下八字信息进行分析：
 姓名：${data.name || '未提供'}
 出生日期：${data.date}
-出生时间：${data.time} (已根据出生地${getPlaceName(data.birthPlace)}计算真太阳时，时差${data.trueSolarTime.timeDiff}分钟)
+出生时间：${data.time} 
 性别：${data.gender === 'male' ? '男' : '女'}
-时区偏移：${data.timezoneOffset}分钟
 
 `;
 
@@ -2222,50 +2088,6 @@
                 if (!response.ok) throw new Error(`API请求失败: ${response.status}`);
                 const result = await response.json();
                 return result.choices[0].message.content;
-            }
-            
-            // 根据出生地ID获取地名
-            function getPlaceName(placeId) {
-                const places = {
-                    '1': '北京',
-                    '2': '上海',
-                    '3': '广州',
-                    '4': '成都',
-                    '5': '乌鲁木齐',
-                    '6': '拉萨',
-                    '7': '香港',
-                    '8': '澳门',
-                    '9': '台北',
-                    '10': '哈尔滨',
-                    '11': '长春',
-                    '12': '沈阳',
-                    '13': '天津',
-                    '14': '石家庄',
-                    '15': '太原',
-                    '16': '呼和浩特',
-                    '17': '西安',
-                    '18': '兰州',
-                    '19': '西宁',
-                    '20': '银川',
-                    '21': '济南',
-                    '22': '南京',
-                    '23': '杭州',
-                    '24': '合肥',
-                    '25': '福州',
-                    '26': '南昌',
-                    '27': '郑州',
-                    '28': '武汉',
-                    '29': '长沙',
-                    '30': '南宁',
-                    '31': '海口',
-                    '32': '重庆',
-                    '33': '贵阳',
-                    '34': '昆明',
-                    '35': '拉萨',
-                    '36': '其他地区'
-                };
-                
-                return places[placeId] || '未知地区';
             }
             
             function displayBasicInfo(info) {
