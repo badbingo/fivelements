@@ -1,0 +1,1909 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>赛博逆天改命 - 数字命运解析系统</title>
+    <style>
+        @font-face {
+            font-family: 'Digital';
+            src: url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&display=swap');
+        }
+        
+        :root {
+            --primary-color: #6a00f4;
+            --secondary-color: #4a00c0;
+            --light-color: #00f5d4;
+            --dark-color: #0a0a20;
+            --text-color: #e0e0ff;
+            --text-light: #a0a0ff;
+            --text-dark: #ffffff;
+            --border-color: #3a3a8a;
+            --success-color: #00ff88;
+            --warning-color: #ffcc00;
+            --danger-color: #ff0055;
+            --info-color: #00a2ff;
+            --card-shadow: 0 8px 24px rgba(106, 0, 244, 0.5);
+            --header-bg: linear-gradient(135deg, #0a0a20, #1a1a40);
+            --title-color: #00f5d4;
+            --content-color: #e0e0ff;
+            --tab-active-color: #6a00f4;
+            --border-radius: 12px;
+            --border-radius-sm: 8px;
+            --box-shadow: 0 4px 12px rgba(106, 0, 244, 0.5);
+            --glow: 0 0 10px rgba(106, 0, 244, 0.7);
+            --text-glow: 0 0 5px rgba(224, 224, 255, 0.8);
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Orbitron', 'Digital', sans-serif;
+        }
+        
+        body {
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--dark-color);
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(106, 0, 244, 0.1) 0%, rgba(10, 10, 32, 1) 90%),
+                linear-gradient(to bottom, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.5) 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: rgba(10, 10, 32, 0.8);
+            border-radius: var(--border-radius);
+            box-shadow: var(--card-shadow);
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            position: relative;
+        }
+        
+        .container::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                linear-gradient(135deg, rgba(106, 0, 244, 0.1) 0%, transparent 50%),
+                url('data:image/svg+xml;utf8,<svg xmlns="http://www3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><path d="M0,0 L100,100 M100,0 L0,100" stroke="rgba(106,0,244,0.05)" stroke-width="1"/></svg>');
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        .header-container {
+            background: var(--header-bg);
+            padding: 30px 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            margin: 0 auto;
+            border-radius: var(--border-radius) var(--border-radius) 0 0;
+            box-shadow: var(--card-shadow);
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .header-container::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><path d="M30,50 Q50,30 70,50 T90,50" fill="none" stroke="rgba(0,245,212,0.1)" stroke-width="1"/></svg>');
+            opacity: 0.3;
+        }
+        
+        .header-title {
+            font-size: 2.5rem;
+            color: white;
+            margin: 0;
+            padding: 0;
+            position: relative;
+            text-shadow: 0 0 10px var(--primary-color), 0 0 20px var(--primary-color);
+            font-weight: 700;
+            letter-spacing: 3px;
+            background: linear-gradient(to right, #00f5d4, #6a00f4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: titleGlow 2s ease-in-out infinite alternate;
+        }
+        
+        .header-subtitle {
+            font-size: 1.1rem;
+            color: var(--title-color);
+            margin-top: 8px;
+            position: relative;
+            font-weight: 300;
+            letter-spacing: 1.5px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-shadow: var(--text-glow);
+        }
+        
+        .header-subtitle::before,
+        .header-subtitle::after {
+            content: "";
+            display: inline-block;
+            width: 30px;
+            height: 1px;
+            background: var(--title-color);
+            margin: 0 12px;
+            opacity: 0.6;
+            box-shadow: var(--glow);
+        }
+        
+        .header-decoration {
+            position: absolute;
+            font-size: 4rem;
+            opacity: 0.1;
+            color: var(--light-color);
+            text-shadow: 0 0 10px var(--light-color);
+        }
+        
+        .header-decoration.left {
+            left: 15px;
+            top: 15px;
+        }
+        
+        .header-decoration.right {
+            right: 15px;
+            bottom: 15px;
+        }
+        
+        .header-links {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .header-link {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: 1px solid var(--border-color);
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: var(--border-radius-sm);
+            text-decoration: none;
+            transition: all 0.3s;
+            font-weight: 500;
+            box-shadow: var(--box-shadow);
+            position: relative;
+            overflow: hidden;
+            text-shadow: 0 0 5px rgba(255,255,255,0.5);
+        }
+        
+        .header-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(106, 0, 244, 0.6);
+            text-shadow: 0 0 10px white;
+        }
+        
+        .header-link::after {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                to bottom right,
+                rgba(255, 255, 255, 0) 0%,
+                rgba(255, 255, 255, 0) 30%,
+                rgba(0, 245, 212, 0.5) 45%,
+                rgba(255, 255, 255, 0) 60%,
+                rgba(255, 255, 255, 0) 100%
+            );
+            transform: translateX(-100%) rotate(30deg);
+            transition: transform 0.6s;
+        }
+        
+        .header-link:hover::after {
+            transform: translateX(100%) rotate(30deg);
+        }
+        
+        @keyframes titleGlow {
+            0% {
+                text-shadow: 0 0 5px rgba(106, 0, 244, 0.3), 0 0 10px rgba(106, 0, 244, 0.3);
+            }
+            100% {
+                text-shadow: 0 0 15px rgba(106, 0, 244, 0.6), 0 0 30px rgba(106, 0, 244, 0.6);
+            }
+        }
+        
+        .input-section {
+            padding: 40px;
+            position: relative;
+        }
+        
+        .input-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 1px dashed var(--border-color);
+        }
+        
+        .input-header i {
+            font-size: 28px;
+            color: var(--title-color);
+            margin-right: 15px;
+            text-shadow: var(--glow);
+        }
+        
+        .input-header h2 {
+            font-size: 24px;
+            color: var(--title-color);
+            font-weight: 500;
+            text-shadow: var(--text-glow);
+        }
+        
+        .form-row {
+            display: flex;
+            margin-bottom: 25px;
+            gap: 20px;
+        }
+        
+        .form-group {
+            flex: 1;
+            position: relative;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 12px;
+            font-size: 16px;
+            color: var(--text-light);
+            font-weight: 500;
+            text-shadow: var(--text-glow);
+        }
+        
+        label i {
+            margin-right: 10px;
+            font-size: 18px;
+            color: var(--title-color);
+            text-shadow: var(--glow);
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 16px 20px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-sm);
+            font-size: 16px;
+            transition: all 0.3s;
+            background-color: rgba(0,0,0,0.3);
+            color: var(--text-color);
+            -webkit-appearance: none;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+            text-shadow: var(--text-glow);
+        }
+        
+        input[type="date"]::-webkit-inner-spin-button,
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            display: none;
+            -webkit-appearance: none;
+        }
+        
+        .date-time-input {
+            position: relative;
+        }
+        
+        .date-time-input::after {
+            content: "\f073";
+            font-family: "Font Awesome 6 Free";
+            font-weight: 900;
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-light);
+            pointer-events: none;
+            text-shadow: var(--glow);
+        }
+        
+        .time-input::after {
+            content: "\f017";
+        }
+        
+        input:focus, select:focus {
+            border-color: var(--tab-active-color);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(106, 0, 244, 0.3), inset 0 0 10px rgba(106, 0, 244, 0.5);
+        }
+        
+        input::placeholder {
+            color: var(--text-light);
+            opacity: 0.7;
+        }
+        
+        select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2300f5d4' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+            background-size: 12px;
+        }
+        
+        .disclaimer {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: rgba(106, 0, 244, 0.2);
+            border-radius: var(--border-radius-sm);
+            font-size: 14px;
+            color: var(--text-light);
+            text-align: center;
+            border-left: 4px solid var(--tab-active-color);
+            box-shadow: var(--glow);
+            text-shadow: var(--text-glow);
+        }
+        
+        .copyright {
+            text-align: center;
+            padding: 20px;
+            font-size: 13px;
+            color: var(--text-light);
+            border-top: 1px solid var(--border-color);
+            background-color: rgba(106, 0, 244, 0.1);
+            text-shadow: var(--text-glow);
+        }
+        
+        .calculate-btn-container {
+            text-align: center;
+            margin-top: 40px;
+        }
+        
+        button {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: 1px solid var(--border-color);
+            padding: 18px 40px;
+            font-size: 18px;
+            border-radius: var(--border-radius-sm);
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--box-shadow);
+            position: relative;
+            overflow: hidden;
+            text-shadow: 0 0 5px rgba(255,255,255,0.5);
+        }
+        
+        button::after {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                to bottom right,
+                rgba(255, 255, 255, 0) 0%,
+                rgba(255, 255, 255, 0) 30%,
+                rgba(0, 245, 212, 0.5) 45%,
+                rgba(255, 255, 255, 0) 60%,
+                rgba(255, 255, 255, 0) 100%
+            );
+            transform: translateX(-100%) rotate(30deg);
+            transition: transform 0.6s;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(106, 0, 244, 0.6);
+            text-shadow: 0 0 10px white;
+        }
+        
+        button:hover::after {
+            transform: translateX(100%) rotate(30deg);
+        }
+        
+        button:disabled {
+            background: #424242;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+            text-shadow: none;
+        }
+        
+        button:disabled::after {
+            display: none;
+        }
+        
+        button i {
+            margin-right: 12px;
+            font-size: 20px;
+        }
+        
+        .result-section {
+            display: none;
+            padding: 0 40px 40px;
+        }
+        
+        .basic-info {
+            background: rgba(106, 0, 244, 0.2);
+            padding: 30px;
+            border-radius: var(--border-radius-sm);
+            margin-bottom: 30px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--box-shadow);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .basic-info::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+            background: linear-gradient(to bottom, var(--primary-color), var(--secondary-color));
+        }
+        
+        .info-section {
+            margin-bottom: 30px;
+        }
+        
+        .info-section h3 {
+            font-size: 20px;
+            margin-bottom: 20px;
+            color: var(--title-color);
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            text-shadow: var(--text-glow);
+        }
+        
+        .info-section h3 i {
+            margin-right: 15px;
+            font-size: 22px;
+            text-shadow: var(--glow);
+        }
+        
+        .info-content {
+            font-size: 16px;
+            line-height: 1.8;
+            color: var(--content-color);
+            text-shadow: var(--text-glow);
+        }
+        
+        /* 星星评分样式 */
+        .stars {
+            font-size: 18px;
+            margin-top: 5px;
+            display: flex;
+            justify-content: center;
+            gap: 3px;
+        }
+        
+        .star-filled {
+            color: #FFD700;
+            text-shadow: 0 0 5px #FFD700;
+        }
+        
+        .star-empty {
+            color: #777;
+        }
+        
+        /* 图标样式 */
+        .bomb-icon {
+            color: var(--danger-color);
+            text-shadow: 0 0 5px var(--danger-color);
+        }
+        
+        .warning-icon {
+            color: #FF6347;
+            text-shadow: 0 0 5px #FF6347;
+        }
+        
+        .balance-icon {
+            color: #FFD700;
+            text-shadow: 0 0 5px #FFD700;
+        }
+        
+        .star-icon {
+            color: #7CFC00;
+            text-shadow: 0 0 5px #7CFC00;
+        }
+        
+        .thumb-icon {
+            color: #00FF00;
+            text-shadow: 0 0 5px #00FF00;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        @keyframes shake {
+            0% { transform: translateX(-3px); }
+            100% { transform: translateX(3px); }
+        }
+        
+        @keyframes float {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+            100% { transform: translateY(0); }
+        }
+        
+        @keyframes glow {
+            0% { text-shadow: 0 0 5px rgba(0, 255, 0, 0.3); }
+            100% { text-shadow: 0 0 15px rgba(0, 255, 0, 0.6); }
+        }
+        
+        .menu-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 20px;
+            background: var(--dark-color);
+            border-radius: var(--border-radius-sm) var(--border-radius-sm) 0 0;
+            overflow: hidden;
+        }
+        
+        .menu-tab {
+            padding: 18px 20px;
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--text-light);
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+            display: flex;
+            align-items: center;
+            flex: 1;
+            justify-content: center;
+            position: relative;
+            text-shadow: var(--text-glow);
+        }
+        
+        .menu-tab::after {
+            content: "";
+            position: absolute;
+            right: 0;
+            top: 20%;
+            height: 60%;
+            width: 1px;
+            background-color: var(--border-color);
+        }
+        
+        .menu-tab:last-child::after {
+            display: none;
+        }
+        
+        .menu-tab i {
+            margin-right: 12px;
+            font-size: 20px;
+            text-shadow: var(--glow);
+        }
+        
+        .menu-tab:hover {
+            color: var(--tab-active-color);
+            background-color: rgba(106, 0, 244, 0.1);
+            text-shadow: 0 0 10px var(--primary-color);
+        }
+        
+        .menu-tab.active {
+            color: var(--tab-active-color);
+            border-bottom: 3px solid var(--tab-active-color);
+            font-weight: 600;
+            background-color: rgba(106, 0, 244, 0.2);
+            text-shadow: 0 0 10px var(--primary-color);
+        }
+        
+        .tab-content {
+            display: none;
+            background: var(--dark-color);
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .detail-card {
+            background: rgba(106, 0, 244, 0.2);
+            border-radius: var(--border-radius-sm);
+            padding: 25px;
+            margin-bottom: 25px;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+            box-shadow: var(--box-shadow);
+        }
+        
+        .detail-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(106, 0, 244, 0.7);
+        }
+        
+        .load-btn-container {
+            position: relative;
+        }
+        
+        .load-btn {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            padding: 16px 20px;
+            font-size: 17px;
+            border-radius: var(--border-radius-sm);
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            color: white;
+            border: 1px solid var(--border-color);
+            font-weight: bold;
+            box-shadow: 0 4px 8px rgba(106, 0, 244, 0.6);
+            transition: all 0.3s;
+            text-shadow: 0 0 5px rgba(255,255,255,0.5);
+        }
+        
+        .load-btn i {
+            margin-right: 15px;
+            font-size: 20px;
+        }
+        
+        .load-btn .toggle-icon {
+            transition: transform 0.3s ease;
+        }
+        
+        .load-btn.active .toggle-icon {
+            transform: rotate(180deg);
+        }
+        
+        .load-btn-description {
+            font-size: 14px;
+            color: var(--text-light);
+            margin-top: 15px;
+            padding: 0 15px;
+            transition: all 0.3s ease;
+            text-shadow: var(--text-glow);
+        }
+        
+        .load-btn-container.active .load-btn-description {
+            opacity: 0;
+            max-height: 0;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .section-content {
+            font-size: 16px;
+            line-height: 1.8;
+            color: var(--content-color);
+            margin-top: 20px;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease, opacity 0.3s ease;
+            opacity: 0;
+            text-shadow: var(--text-glow);
+        }
+        
+        .section-content.active {
+            max-height: 2000px;
+            opacity: 1;
+        }
+        
+        .section-content p {
+            margin-bottom: 15px;
+            position: relative;
+            padding-left: 20px;
+        }
+        
+        .section-content p::before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: var(--tab-active-color);
+            font-size: 20px;
+        }
+        
+        .section-title {
+            font-weight: bold;
+            color: var(--title-color);
+            margin-bottom: 15px;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            padding-bottom: 8px;
+            border-bottom: 1px dashed var(--border-color);
+            text-shadow: var(--text-glow);
+        }
+        
+        .section-title::before {
+            content: "";
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background-color: var(--tab-active-color);
+            border-radius: 50%;
+            margin-right: 10px;
+            box-shadow: var(--glow);
+        }
+        
+        .progress-container {
+            width: 100%;
+            height: 8px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 4px;
+            margin: 20px 0;
+            overflow: hidden;
+            display: none;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            width: 0;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            border-radius: 4px;
+            transition: width 0.4s ease;
+            box-shadow: var(--glow);
+        }
+        
+        /* 美化内容卡片 */
+        .fortune-card {
+            background: linear-gradient(135deg, rgba(106, 0, 244, 0.3), rgba(74, 0, 192, 0.3));
+            border-radius: var(--border-radius-sm);
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 15px rgba(106, 0, 244, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .fortune-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+            background: linear-gradient(to bottom, var(--primary-color), var(--secondary-color));
+        }
+        
+        .fortune-card h4 {
+            color: var(--title-color);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            text-shadow: var(--text-glow);
+        }
+        
+        .fortune-card h4 i {
+            margin-right: 10px;
+            font-size: 22px;
+            text-shadow: var(--glow);
+        }
+        
+        /* 纯文本分析结果样式 */
+        .text-analysis {
+            font-size: 16px;
+            line-height: 1.8;
+            color: var(--content-color);
+            margin-top: 20px;
+            text-shadow: var(--text-glow);
+        }
+        
+        .text-analysis-item {
+            margin-bottom: 15px;
+            padding-left: 20px;
+            position: relative;
+        }
+        
+        .text-analysis-item::before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: var(--tab-active-color);
+            font-size: 20px;
+        }
+        
+        .text-analysis-label {
+            font-weight: bold;
+            color: var(--title-color);
+            margin-right: 10px;
+            text-shadow: var(--text-glow);
+        }
+        
+        /* 新增的图表样式 */
+        .chart-container {
+            width: 100%;
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(106, 0, 244, 0.1);
+            border-radius: var(--border-radius-sm);
+            border: 1px solid var(--border-color);
+        }
+        
+        .chart-title {
+            text-align: center;
+            margin-bottom: 15px;
+            color: var(--title-color);
+            font-weight: bold;
+            text-shadow: var(--text-glow);
+        }
+        
+        .chart-bar {
+            height: 30px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            position: relative;
+        }
+        
+        .chart-label {
+            width: 100px;
+            font-size: 14px;
+            color: var(--text-color);
+            text-shadow: var(--text-glow);
+        }
+        
+        .chart-bar-inner {
+            flex-grow: 1;
+            height: 100%;
+            background: rgba(0,0,0,0.2);
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .chart-progress {
+            height: 100%;
+            border-radius: 4px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            transition: width 1s ease;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 10px;
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+            text-shadow: var(--text-glow);
+        }
+        
+        .chart-value {
+            margin-left: 10px;
+            font-size: 14px;
+            color: var(--text-color);
+            text-shadow: var(--text-glow);
+        }
+        
+        /* 五行图表样式 */
+        .wuxing-chart {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        
+        .wuxing-item {
+            width: 18%;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        
+        .wuxing-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 10px;
+            font-size: 24px;
+            color: white;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2), var(--glow);
+        }
+        
+        .wuxing-name {
+            font-size: 14px;
+            color: var(--text-color);
+            margin-bottom: 5px;
+            text-shadow: var(--text-glow);
+        }
+        
+        .wuxing-value {
+            font-size: 16px;
+            font-weight: bold;
+            color: var(--title-color);
+            text-shadow: var(--text-glow);
+        }
+        
+        /* 八字排盘样式 */
+        .bazi-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .bazi-cell {
+            background: rgba(106, 0, 244, 0.1);
+            border-radius: var(--border-radius-sm);
+            padding: 15px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s;
+        }
+        
+        .bazi-cell:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(106, 0, 244, 0.4);
+        }
+        
+        .bazi-title {
+            font-size: 14px;
+            color: var(--text-light);
+            margin-bottom: 10px;
+            text-shadow: var(--text-glow);
+        }
+        
+        .bazi-content {
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--title-color);
+            text-shadow: var(--text-glow);
+        }
+        
+        /* 运势评分卡片 */
+        .score-card {
+            display: flex;
+            background: rgba(106, 0, 244, 0.1);
+            border-radius: var(--border-radius-sm);
+            padding: 15px;
+            margin: 15px 0;
+            border: 1px solid var(--border-color);
+        }
+        
+        .score-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-size: 20px;
+            color: white;
+            flex-shrink: 0;
+            box-shadow: var(--glow);
+        }
+        
+        .score-details {
+            flex-grow: 1;
+        }
+        
+        .score-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: var(--title-color);
+            margin-bottom: 5px;
+            text-shadow: var(--text-glow);
+        }
+        
+        .score-description {
+            font-size: 14px;
+            color: var(--text-color);
+            text-shadow: var(--text-glow);
+        }
+        
+        /* 表格样式 - 新增 */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: rgba(106, 0, 244, 0.1);
+            border-radius: var(--border-radius-sm);
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border: 1px solid var(--border-color);
+        }
+        
+        th {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 14px;
+            letter-spacing: 0.5px;
+            text-shadow: 0 0 5px rgba(255,255,255,0.5);
+        }
+        
+        tr:nth-child(even) {
+            background-color: rgba(106, 0, 244, 0.1);
+        }
+        
+        tr:hover {
+            background-color: rgba(106, 0, 244, 0.3);
+        }
+        
+        /* 时辰选择器样式 */
+        .time-period-selector {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 8px;
+            margin-top: 10px;
+        }
+        
+        .time-period-btn {
+            padding: 10px;
+            text-align: center;
+            background: rgba(106, 0, 244, 0.2);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-sm);
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+        
+        .time-period-btn:hover {
+            background: rgba(106, 0, 244, 0.4);
+            transform: translateY(-2px);
+        }
+        
+        .time-period-btn.active {
+            background: var(--primary-color);
+            color: white;
+            box-shadow: var(--glow);
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .header-title {
+                font-size: 2rem;
+                letter-spacing: 2px;
+            }
+            
+            .header-subtitle {
+                font-size: 1rem;
+            }
+            
+            .header-subtitle::before,
+            .header-subtitle::after {
+                width: 20px;
+                margin: 0 10px;
+            }
+            
+            .form-row {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .menu-tabs {
+                flex-wrap: wrap;
+            }
+            
+            .menu-tab {
+                padding: 14px 15px;
+                font-size: 15px;
+                flex: 1 0 50%;
+            }
+            
+            .menu-tab::after {
+                display: none;
+            }
+            
+            .input-section, .result-section {
+                padding: 30px;
+            }
+            
+            .header-links {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .bazi-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .wuxing-item {
+                width: 30%;
+            }
+            
+            /* 响应式表格 */
+            table {
+                display: block;
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+            
+            /* 时辰选择器响应式 */
+            .time-period-selector {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .header-container {
+                padding: 20px 10px;
+            }
+            
+            .header-title {
+                font-size: 1.8rem;
+            }
+            
+            .header-subtitle {
+                font-size: 0.9rem;
+            }
+            
+            .header-subtitle::before,
+            .header-subtitle::after {
+                width: 15px;
+                margin: 0 5px;
+            }
+            
+            .header-decoration {
+                font-size: 3rem;
+            }
+            
+            body {
+                padding: 10px;
+            }
+            
+            .container {
+                margin: 0 auto;
+                border-radius: 0;
+            }
+            
+            .input-section, .result-section {
+                padding: 20px;
+            }
+            
+            .menu-tab {
+                flex: 1 0 100%;
+            }
+            
+            .bazi-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .wuxing-item {
+                width: 48%;
+            }
+            
+            /* 小屏幕表格调整 */
+            th, td {
+                padding: 8px 10px;
+                font-size: 14px;
+            }
+            
+            /* 时辰选择器响应式 */
+            .time-period-selector {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- 引入 marked.js 用于解析 Markdown -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- 精美的Header部分 -->
+        <div class="header-container">
+            <i class="fas fa-yin-yang header-decoration left"></i>
+            <i class="fas fa-star-and-crescent header-decoration right"></i>
+            <h1 class="header-title">赛博逆天改命</h1>
+            <div class="header-subtitle">数字命运解析 · 量子命理测算</div>
+            
+            <div class="header-links">
+                <a href="bazi.html" class="header-link">八字测算</a>
+                <a href="hehun.html" class="header-link">八字合婚</a>
+            </div>
+        </div>
+        
+        <div class="input-section" id="input-section">
+            <div class="input-header">
+                <i class="fas fa-user-edit"></i>
+                <h2>请输入您的信息</h2>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="name"><i class="fas fa-user"></i> 姓名</label>
+                    <input type="text" id="name" placeholder="请输入您的姓名">
+                </div>
+                <div class="form-group">
+                    <label for="gender"><i class="fas fa-venus-mars"></i> 性别</label>
+                    <select id="gender" required>
+                        <option value="">请选择</option>
+                        <option value="male">男</option>
+                        <option value="female">女</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group date-time-input">
+                    <label for="birth-date"><i class="fas fa-calendar-day"></i> 出生日期</label>
+                    <input type="date" id="birth-date" required>
+                </div>
+                <div class="form-group">
+                    <label for="birth-time"><i class="fas fa-clock"></i> 出生时辰</label>
+                    <div class="time-period-selector" id="time-period-selector">
+                        <div class="time-period-btn" data-time="23:00-01:00">子时 (23-1)</div>
+                        <div class="time-period-btn" data-time="01:00-03:00">丑时 (1-3)</div>
+                        <div class="time-period-btn" data-time="03:00-05:00">寅时 (3-5)</div>
+                        <div class="time-period-btn" data-time="05:00-07:00">卯时 (5-7)</div>
+                        <div class="time-period-btn" data-time="07:00-09:00">辰时 (7-9)</div>
+                        <div class="time-period-btn" data-time="09:00-11:00">巳时 (9-11)</div>
+                        <div class="time-period-btn" data-time="11:00-13:00">午时 (11-13)</div>
+                        <div class="time-period-btn" data-time="13:00-15:00">未时 (13-15)</div>
+                        <div class="time-period-btn" data-time="15:00-17:00">申时 (15-17)</div>
+                        <div class="time-period-btn" data-time="17:00-19:00">酉时 (17-19)</div>
+                        <div class="time-period-btn" data-time="19:00-21:00">戌时 (19-21)</div>
+                        <div class="time-period-btn" data-time="21:00-23:00">亥时 (21-23)</div>
+                    </div>
+                    <input type="hidden" id="birth-time" required>
+                </div>
+            </div>
+            
+            <div class="disclaimer">
+                本系统采用量子算法结合传统命理，为您提供精准的命运解析
+            </div>
+            
+            <div class="calculate-btn-container">
+                <button id="calculate-btn"><i class="fas fa-magic"></i> 命运解析</button>
+            </div>
+        </div>
+        
+        <div class="result-section" id="result-section">
+            <div class="basic-info" id="basic-info">
+                <div class="info-section">
+                    <h3><i class="fas fa-chart-network"></i> <span class="current-date-display"></span></h3>
+                    <div class="info-content">
+                        <!-- 今日八字分析 -->
+                        <div class="fortune-card">
+                            <h4><i class="fas fa-scroll"></i> 今日运势分析</h4>
+                            <div class="text-analysis" id="bazi-analysis">
+                                <!-- 这里将通过JavaScript动态填充内容 -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="menu-tabs">
+                <div class="menu-tab active" data-tab="energy-analysis"><i class="fas fa-atom"></i> 八字分析</div>
+                <div class="menu-tab" data-tab="energy-boost"><i class="fas fa-bolt"></i> 逆天改命</div>
+                <div class="menu-tab" data-tab="energy-prediction"><i class="fas fa-crystal-ball"></i> 运势预测</div>
+                <div class="menu-tab" data-tab="win-prediction"><i class="fas fa-dice"></i> 赢输预测</div>
+            </div>
+            
+            <!-- 八字分析 -->
+            <div class="tab-content active" id="energy-analysis-tab">
+                <div class="detail-card">
+                    <div class="load-btn-container">
+                        <button class="load-btn" data-section="energy-core">
+                            <span><i class="fas fa-atom"></i> 八字核心问题分析</span>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </button>
+                        <div class="load-btn-description">分析您的八字核心问题与命运走向</div>
+                    </div>
+                    <div id="energy-core-content" class="section-content"></div>
+                </div>
+                
+                <div class="detail-card">
+                    <div class="load-btn-container">
+                        <button class="load-btn" data-section="energy-chakra">
+                            <span><i class="fas fa-spa"></i> 五行能量分析</span>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </button>
+                        <div class="load-btn-description">分析五行能量状态与平衡度</div>
+                    </div>
+                    <div id="energy-chakra-content" class="section-content"></div>
+                </div>
+
+                <div class="detail-card">
+                    <div class="load-btn-container">
+                        <button class="load-btn" data-section="energy-element">
+                            <span><i class="fas fa-mountain"></i>重大灾祸分析</span>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </button>
+                        <div class="load-btn-description">分析一生重大灾祸与命运影响</div>
+                    </div>
+                    <div id="energy-element-content" class="section-content"></div>
+                </div>
+            </div>
+
+            <!-- 逆天改命 -->
+            <div class="tab-content" id="energy-boost-tab">
+                <div class="detail-card">
+                    <div class="load-btn-container">
+                        <button class="load-btn" data-section="boost-daily">
+                            <span><i class="fas fa-sun"></i> 日常运势提升</span>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </button>
+                        <div class="load-btn-description">提供每日运势提升的实用方法</div>
+                    </div>
+                    <div id="boost-daily-content" class="section-content"></div>
+                </div>
+                
+                <div class="detail-card">
+                    <div class="load-btn-container">
+                        <button class="load-btn" data-section="boost-crystal">
+                            <span><i class="fas fa-gem"></i> 水晶佩戴</span>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </button>
+                        <div class="load-btn-description">根据您的五行推荐适合佩戴的水晶</div>
+                    </div>
+                    <div id="boost-crystal-content" class="section-content"></div>
+                </div>
+                
+                <div class="detail-card">
+                    <div class="load-btn-container">
+                        <button class="load-btn" data-section="boost-food">
+                            <span><i class="fas fa-utensils"></i> 饮食调理</span>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </button>
+                        <div class="load-btn-description">推荐适合您八字特征的食物</div>
+                    </div>
+                    <div id="boost-food-content" class="section-content"></div>
+                </div>
+            </div>
+
+            <!-- 运势预测 -->
+            <div class="tab-content" id="energy-prediction-tab">
+                <div class="detail-card">
+                    <div class="load-btn-container">
+                        <button class="load-btn" data-section="prediction-week">
+                            <span><i class="fas fa-calendar-week"></i> 本周运势预测</span>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </button>
+                        <div class="load-btn-description">预测本周运势波动与最佳行动时机</div>
+                    </div>
+                    <div id="prediction-week-content" class="section-content"></div>
+                </div>
+                
+                <div class="detail-card">
+                    <div class="load-btn-container">
+                        <button class="load-btn" data-section="prediction-month">
+                            <span><i class="fas fa-calendar-alt"></i> 本月运势预测</span>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </button>
+                        <div class="load-btn-description">预测本月运势周期与重要时间节点</div>
+                    </div>
+                    <div id="prediction-month-content" class="section-content"></div>
+                </div>
+                
+                <div class="detail-card">
+                    <div class="load-btn-container">
+                        <button class="load-btn" data-section="prediction-year">
+                            <span><i class="fas fa-calendar-star"></i> 年度运势预测</span>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </button>
+                        <div class="load-btn-description">分析年度运势趋势与重大转折点</div>
+                    </div>
+                    <div id="prediction-year-content" class="section-content"></div>
+                </div>
+            </div>
+
+            <!-- 赢输预测 -->
+            <div class="tab-content" id="win-prediction-tab">
+                <div class="detail-card">
+                    <div class="load-btn-container">
+                        <button class="load-btn" data-section="prediction-gamble">
+                            <span><i class="fas fa-dice"></i> 今日赢输预测</span>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </button>
+                        <div class="load-btn-description">基于今日运势分析预测赢输概率</div>
+                    </div>
+                    <div id="prediction-gamble-content" class="section-content"></div>
+                </div>
+            </div>
+
+            <div class="calculate-btn-container" style="margin-top: 30px;">
+                <button id="recalculate-btn"><i class="fas fa-redo"></i> 重新解析</button>
+            </div>
+        </div>
+
+        <div class="copyright">
+            © 2025 赛博命理系统 量子计算实验室 版权所有
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 获取当前日期和时间
+            const now = new Date();
+            const currentYear = now.getFullYear();
+            const currentDateStr = `${currentYear}年${now.getMonth()+1}月${now.getDate()}日`;
+            
+            // 更新页面显示的日期
+            document.querySelector('.current-date-display').textContent = currentDateStr;
+            
+            const calculateBtn = document.getElementById('calculate-btn');
+            const recalculateBtn = document.getElementById('recalculate-btn');
+            const inputSection = document.getElementById('input-section');
+            const resultSection = document.getElementById('result-section');
+            
+            let birthData = {};
+            let loadedSections = {};
+            
+            // 时辰选择器逻辑
+            const timePeriodBtns = document.querySelectorAll('.time-period-btn');
+            timePeriodBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    timePeriodBtns.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    const timeRange = this.getAttribute('data-time');
+                    const startTime = timeRange.split('-')[0];
+                    document.getElementById('birth-time').value = startTime;
+                });
+            });
+            
+            // 重新测算按钮点击事件
+            recalculateBtn.addEventListener('click', function() {
+                document.getElementById('name').value = '';
+                document.getElementById('birth-date').value = '';
+                document.getElementById('birth-time').value = '';
+                document.getElementById('gender').value = '';
+                timePeriodBtns.forEach(btn => btn.classList.remove('active'));
+                
+                resultSection.style.display = 'none';
+                inputSection.style.display = 'block';
+                
+                resetAllContent();
+                window.scrollTo(0, 0);
+            });
+            
+            function resetAllContent() {
+                document.querySelectorAll('.section-content').forEach(el => {
+                    el.innerHTML = '';
+                    el.classList.remove('active');
+                });
+                
+                document.querySelectorAll('.load-btn').forEach(btn => {
+                    const section = btn.getAttribute('data-section');
+                    const icon = 
+                        section === 'energy-core' ? 'atom' : 
+                        section === 'energy-chakra' ? 'spa' : 
+                        section === 'energy-element' ? 'mountain' : 
+                        section === 'boost-daily' ? 'sun' : 
+                        section === 'boost-crystal' ? 'gem' : 
+                        section === 'boost-food' ? 'utensils' : 
+                        section === 'prediction-week' ? 'calendar-week' : 
+                        section === 'prediction-month' ? 'calendar-alt' : 
+                        section === 'prediction-year' ? 'calendar-star' : 'dice';
+                    
+                    btn.innerHTML = `<span><i class="fas fa-${icon}"></i> ${btn.textContent.trim().replace(/- (正在分析中|分析完成)/, '')}</span><i class="fas fa-chevron-down toggle-icon"></i>`;
+                    btn.classList.remove('active');
+                    btn.disabled = false;
+                });
+                
+                document.querySelectorAll('.load-btn-container').forEach(container => {
+                    container.classList.remove('active');
+                });
+                
+                document.querySelectorAll('.menu-tab').forEach(tab => tab.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+                document.querySelector('.menu-tab[data-tab="energy-analysis"]').classList.add('active');
+                document.getElementById('energy-analysis-tab').classList.add('active');
+                
+                loadedSections = {};
+                
+                // 重置分析文本
+                document.getElementById('bazi-analysis').innerHTML = '';
+            }
+            
+            // 初始化标签页
+            document.querySelectorAll('.menu-tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    document.querySelectorAll('.menu-tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                    
+                    this.classList.add('active');
+                    const tabId = this.getAttribute('data-tab') + '-tab';
+                    document.getElementById(tabId).classList.add('active');
+                });
+            });
+            
+            // 初始化加载按钮
+            function initLoadButtons() {
+                document.querySelectorAll('.load-btn').forEach(button => {
+                    const section = button.getAttribute('data-section');
+                    const contentElement = document.getElementById(`${section}-content`);
+                    const container = button.closest('.load-btn-container');
+                    
+                    button.addEventListener('click', async function(e) {
+                        e.preventDefault();
+                        
+                        if (loadedSections[section]) {
+                            container.classList.toggle('active');
+                            contentElement.classList.toggle('active');
+                            return;
+                        }
+                        
+                        const buttonText = button.textContent.trim().replace(/- (正在分析中|分析完成)/, '');
+                        this.disabled = true;
+                        this.innerHTML = `<span><span class="loading"></span> ${buttonText}-正在分析中</span><i class="fas fa-chevron-down toggle-icon"></i>`;
+                        container.classList.add('active');
+                        
+                        const progressContainer = document.createElement('div');
+                        progressContainer.className = 'progress-container';
+                        progressContainer.innerHTML = '<div class="progress-bar"></div>';
+                        progressContainer.style.display = 'block';
+                        
+                        contentElement.innerHTML = '';
+                        contentElement.appendChild(progressContainer);
+                        
+                        const progressBar = progressContainer.querySelector('.progress-bar');
+                        let progress = 0;
+                        const progressInterval = setInterval(() => {
+                            progress += Math.random() * 10;
+                            if (progress >= 100) progress = 100;
+                            progressBar.style.width = `${progress}%`;
+                        }, 300);
+                        
+                        try {
+                            const result = await getEnergyAnalysis(section, birthData);
+                            clearInterval(progressInterval);
+                            displaySectionContent(section, result, contentElement);
+                            
+                            button.innerHTML = `<span><i class="fas fa-check"></i> ${buttonText}-分析完成</span><i class="fas fa-chevron-down toggle-icon"></i>`;
+                            button.disabled = false;
+                            contentElement.classList.add('active');
+                            loadedSections[section] = true;
+                        } catch (error) {
+                            console.error(`加载${section}失败:`, error);
+                            clearInterval(progressInterval);
+                            contentElement.innerHTML = '<p style="color:var(--danger-color)">加载失败，请重试</p>';
+                            button.disabled = false;
+                            button.innerHTML = `<span><i class="fas fa-redo"></i> ${buttonText}</span><i class="fas fa-chevron-down toggle-icon"></i>`;
+                            container.classList.remove('active');
+                        }
+                    });
+                });
+            }
+            
+            calculateBtn.addEventListener('click', async function(e) {
+                e.preventDefault();
+                
+                const name = document.getElementById('name').value;
+                const birthDate = document.getElementById('birth-date').value;
+                const birthTime = document.getElementById('birth-time').value;
+                const gender = document.getElementById('gender').value;
+                
+                if (!birthDate || !birthTime || !gender) {
+                    alert('请填写完整的出生信息');
+                    return;
+                }
+                
+                birthData = { name, date: birthDate, time: birthTime, gender: gender };
+                
+                calculateBtn.disabled = true;
+                calculateBtn.innerHTML = '<span class="loading"></span> 解析中...';
+                
+                try {
+                    const realData = await getRealBaziData(birthData);
+                    displayRealBaziData(realData);
+                    
+                    inputSection.style.display = 'none';
+                    resultSection.style.display = 'block';
+                    calculateBtn.disabled = false;
+                    calculateBtn.innerHTML = '<i class="fas fa-magic"></i> 命运解析';
+                    
+                    initLoadButtons();
+                    window.scrollTo(0, 0);
+                } catch (error) {
+                    console.error('解析失败:', error);
+                    alert('解析失败，请稍后重试');
+                    calculateBtn.disabled = false;
+                    calculateBtn.innerHTML = '<i class="fas fa-magic"></i> 命运解析';
+                }
+            });
+
+            // 获取真实八字数据
+            async function getRealBaziData(data) {
+                const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
+                const apiKey = 'sk-b2950087a9d5427392762814114b22a9';
+                
+                // 明确指定八字排盘规则
+                const baziRules = `请严格按照以下规则进行八字排盘：
+1. 年柱以立春为分界，不是农历春节
+2. 月柱按节气划分（如正月从立春开始，二月从惊蛰开始）
+3. 日柱按公历日期计算
+4. 时柱按出生时辰的地支划分`;
+
+                const prompt = `根据以下用户信息进行专业的八字测算分析：
+姓名：${data.name || '未提供'}
+出生日期：${data.date}
+出生时间：${data.time}
+性别：${data.gender === 'male' ? '男' : '女'}
+
+${baziRules}
+
+请返回以下详细分析内容：
+1. 八字排盘
+2. 今日喜忌
+3. 今日财运分析（1-5星，图标表示，附带详细说明）
+4. 今日七杀能量分析（1-5闪电，图标表示，附带详细说明）
+5. 今日运势建议
+
+请确保返回纯文本内容，不要包含Markdown格式或代码块。
+
+请以严格的JSON格式返回，包含以下字段：
+{
+    "baziChart": "八字排盘文本内容",
+    "tenGods": "今日喜忌文本内容", 
+    "dayMaster": "今日财运文本内容",
+    "favorableElements": "七杀能量文本内容",
+    "todayFortune": "今日运势文本内容"
+}`;
+
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${apiKey}`
+                        },
+                        body: JSON.stringify({
+                            model: "deepseek-chat",
+                            messages: [{ role: "user", content: prompt }],
+                            temperature: 0.3,
+                            response_format: { type: "json_object" }
+                        })
+                    });
+                    
+                    if (!response.ok) throw new Error(`API请求失败: ${response.status}`);
+                    const result = await response.json();
+                    
+                    // 直接解析API返回的JSON内容
+                    let responseData;
+                    try {
+                        if (typeof result.choices[0].message.content === 'string') {
+                            responseData = JSON.parse(result.choices[0].message.content);
+                        } else {
+                            responseData = result.choices[0].message.content;
+                        }
+                    } catch (e) {
+                        console.error('解析API响应失败:', e);
+                        throw new Error('数据格式错误');
+                    }
+                    
+                    // 验证必要字段
+                    if (!responseData.baziChart || !responseData.todayFortune) {
+                        throw new Error('API返回数据不完整');
+                    }
+                    
+                    return responseData;
+                } catch (error) {
+                    console.error('获取八字数据失败:', error);
+                    throw error;
+                }
+            }
+
+            // 显示真实八字数据
+            async function displayRealBaziData(realData) {
+                // 确保realData是对象且包含所需字段
+                if (typeof realData !== 'object' || realData === null) {
+                    console.error('无效的数据格式:', realData);
+                    document.getElementById('bazi-analysis').innerHTML = '<p style="color:red">数据加载错误，请重试</p>';
+                    return;
+                }
+
+                // 创建详细的八字分析HTML
+                let baziHTML = `
+                    
+                    <div class="text-analysis-item">
+                        <div class="section-title">今日喜忌</div>
+                        <p>${realData.tenGods || '暂无数据'}</p>
+                    </div>
+                    <div class="text-analysis-item">
+                        <div class="section-title">今日财运</div>
+                        <p>${realData.dayMaster || '暂无数据'}</p>
+                    </div>
+                    <div class="text-analysis-item">
+                        <div class="section-title">能量分析</div>
+                        <p>${realData.favorableElements || '暂无数据'}</p>
+                    </div>
+                    <div class="text-analysis-item">
+                        <div class="section-title">今日运势</div>
+                        <p>${realData.todayFortune || '暂无数据'}</p>
+                    </div>
+                `;
+                
+                // 更新八字分析内容
+                document.getElementById('bazi-analysis').innerHTML = baziHTML;
+            }
+
+            // 获取能量分析数据
+            async function getEnergyAnalysis(section, data) {
+                const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
+                const apiKey = 'sk-b2950087a9d5427392762814114b22a9';
+                
+                let prompt = `当前日期：${currentDateStr}\n`;
+                prompt += `根据以下用户信息进行八字分析：
+姓名：${data.name || '未提供'}
+出生日期：${data.date}
+出生时间：${data.time}
+性别：${data.gender === 'male' ? '男' : '女'}
+
+`;
+                
+                switch(section) {
+                    case 'energy-core':
+                        prompt += `分析八字核心问题：
+1. 八字五行，阴阳，燥湿平衡分析
+2. 八字问题分析
+返回格式：
+八字五行，阴阳，燥湿平衡分析：[以表格展示，详细分析内容]
+八字核心问题分析：[详细分析内容]`;
+                        break;
+                    case 'energy-chakra':
+                        prompt += `分析五行能量状态：
+1. 五行分析
+2. 本命局+大运+流年五行比例vs最佳五行比例
+3. 平衡建议
+返回格式：
+平衡建议：[详细分析内容]
+五行分析：[以表格展示，按照五行的%详细分析]`;
+                        break;
+                    case 'energy-element':
+                        prompt += `一生重大灾祸分析：
+1. 重大健康问题分析
+2. 重大灾祸
+3. 趋吉避凶建议
+返回格式：
+重大健康问题分析：[以表格展示，具体年份详细分析]
+重大灾祸：[以表格展示，具体年份详细分析]`;
+                        break;
+                    case 'boost-daily':
+                        prompt += `提供日常运势提升方法：
+1. 有利方位
+2. 有利颜色
+3. 日常注意事项
+返回格式：
+日常提升：[详细建议]`;
+                        break;
+                    case 'boost-crystal':
+                        prompt += `根据八字推荐吉祥物：
+1. 适合的水晶玉石
+2. 佩戴方法
+3. 使用时机
+返回格式：
+吉祥物推荐：[详细建议]`;
+                        break;
+                    case 'boost-food':
+                        prompt += `推荐适合八字的饮食：
+1. 有利食物
+2. 应避免食物
+3. 食疗建议
+返回格式：
+饮食调理：[详细建议]`;
+                        break;
+                    case 'prediction-week':
+                        prompt += `预测本周运势：
+1. 每日运势
+2. 最佳行动时机
+3. 注意事项
+返回格式：
+本周预测：[以表格形式，详细分析]`;
+                        break;
+                    case 'prediction-month':
+                        prompt += `预测本月运势：
+1. 每周运势变化
+2. 重要时间节点
+3. 调整建议
+返回格式：
+本月预测：[以表格形式，详细分析]`;
+                        break;
+                    case 'prediction-year':
+                        prompt += `分析年度运势：
+1. 季度运势特点
+2. 重大转折点
+3. 全年建议
+返回格式：
+年度预测：[以表格形式，详细分析]`;
+                        break;
+                    case 'prediction-gamble':
+                        prompt += `预测今日赢输概率：
+1. 今日运势对决策的影响
+2. 赢输概率分析
+3. 最佳时机
+返回格式：
+赢输预测：[详细分析]`;
+                        break;
+                }
+                
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: "deepseek-chat",
+                        messages: [{ role: "user", content: prompt }],
+                        temperature: 0.7
+                    })
+                });
+                
+                if (!response.ok) throw new Error(`API请求失败: ${response.status}`);
+                const result = await response.json();
+                return result.choices[0].message.content;
+            }
+            
+            // 显示章节内容
+            function displaySectionContent(section, result, contentElement) {
+                // 移除敏感信息和特殊符号
+                result = result.replace(/[*#]/g, '')
+                              .replace(/姓名：.*?\n|出生时间：.*?\n|农历：.*?\n|八字：.*?\n|大运推算方法：.*?\n|当前大运：.*?\n|流年：.*?\n/g, '');
+                
+                // 处理评分显示
+                if (result.includes('★')) {
+                    result = result.replace(/(★+)/g, '<span style="color:#FFD700">$1</span>');
+                    result = result.replace(/(☆+)/g, '<span style="color:#ddd">$1</span>');
+                }
+                
+                // 处理1-5星评级为图标
+                result = result.replace(/1星/g, '<i class="fas fa-bomb bomb-icon"></i>');
+                result = result.replace(/2星/g, '<i class="fas fa-exclamation-triangle warning-icon"></i>');
+                result = result.replace(/3星/g, '<i class="fas fa-balance-scale balance-icon"></i>');
+                result = result.replace(/4星/g, '<i class="fas fa-star star-icon"></i>');
+                result = result.replace(/5星/g, '<i class="fas fa-thumbs-up thumb-icon"></i>');
+                
+                // 使用 marked.js 解析 Markdown 表格
+                result = marked.parse(result);
+                
+                // 处理标题和内容样式
+                result = result.replace(/(<p>[^\n]+：<\/p>)/g, '<div class="section-title">$1</div>');
+                
+                // 创建卡片容器
+                const cardHtml = `<div class="fortune-card">${result}</div>`;
+                
+                // 处理换行
+                const formattedResult = cardHtml.split('\n').map(line => {
+                    if (line.trim() === '') return '';
+                    if (line.startsWith('<div class="section-title">')) return line;
+                    return `<p>${line}</p>`;
+                }).join('');
+                
+                contentElement.innerHTML = formattedResult;
+                
+                // 为表格添加样式类
+                contentElement.querySelectorAll('table').forEach(table => {
+                    table.classList.add('styled-table');
+                });
+            }
+        });
+    </script>
+</body>
+</html>
