@@ -10,6 +10,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         @font-face {
             font-family: 'SimHei';
@@ -960,6 +961,36 @@
             color: var(--text-light);
         }
         
+        /* Markdown table styles */
+        .section-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            border: 1px solid var(--border-color);
+            background-color: rgba(26, 35, 126, 0.2);
+        }
+        
+        .section-content th, 
+        .section-content td {
+            padding: 12px 15px;
+            border: 1px solid var(--border-color);
+            text-align: left;
+        }
+        
+        .section-content th {
+            background-color: rgba(26, 35, 126, 0.5);
+            color: var(--title-color);
+            font-weight: bold;
+        }
+        
+        .section-content tr:nth-child(even) {
+            background-color: rgba(26, 35, 126, 0.1);
+        }
+        
+        .section-content tr:hover {
+            background-color: rgba(121, 134, 203, 0.2);
+        }
+        
         @media (max-width: 768px) {
             .header-title {
                 font-size: 2rem;
@@ -1034,6 +1065,12 @@
             .partner-card {
                 margin-bottom: 20px;
             }
+            
+            .section-content th, 
+            .section-content td {
+                padding: 8px 10px;
+                font-size: 14px;
+            }
         }
         
         @media (max-width: 480px) {
@@ -1092,6 +1129,12 @@
             
             .score-value {
                 font-size: 36px;
+            }
+            
+            .section-content table {
+                display: block;
+                overflow-x: auto;
+                white-space: nowrap;
             }
         }
     </style>
@@ -1413,6 +1456,13 @@
             let loadedSections = {};
             let analysisCache = {};
             
+            // 配置marked.js
+            marked.setOptions({
+                breaks: true,
+                gfm: true,
+                tables: true
+            });
+            
             function showApiStatus(message, type = 'success') {
                 apiStatus.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : type === 'warning' ? 'exclamation-triangle' : 'times-circle'}"></i> ${message}`;
                 apiStatus.className = `api-status ${type} show`;
@@ -1518,7 +1568,7 @@
                             contentElement.innerHTML = analysisCache[cacheKey];
                             container.classList.toggle('active');
                             contentElement.classList.toggle('active');
-                            button.innerHTML = `<span><i class="fas fa-check-circle"></i> 分析完成 (缓存)</span><i class="fas fa-chevron-down toggle-icon"></i>`;
+                            button.innerHTML = `<span><i class="fas fa-check-circle"></i> ${button.textContent.trim().replace('分析完成', '')}分析完成 (缓存)</span><i class="fas fa-chevron-down toggle-icon"></i>`;
                             showApiStatus(`从缓存加载 ${section} 内容`, 'success');
                             return;
                         }
@@ -1530,7 +1580,8 @@
                         }
                         
                         this.disabled = true;
-                        this.innerHTML = '<span><span class="loading"></span> 正在分析中...</span><i class="fas fa-chevron-down toggle-icon"></i>';
+                        const buttonText = button.textContent.trim().replace('分析完成', '').replace('正在分析中', '');
+                        button.innerHTML = `<span><span class="loading"></span> ${buttonText}-正在分析中...</span><i class="fas fa-chevron-down toggle-icon"></i>`;
                         container.classList.add('active');
                         
                         const progressContainer = document.createElement('div');
@@ -1560,7 +1611,7 @@
                             
                             analysisCache[cacheKey] = contentElement.innerHTML;
                             
-                            button.innerHTML = `<span><i class="fas fa-check"></i> 分析完成 (${duration}ms)</span><i class="fas fa-chevron-down toggle-icon"></i>`;
+                            button.innerHTML = `<span><i class="fas fa-check"></i> ${buttonText}-分析完成 (${duration}ms)</span><i class="fas fa-chevron-down toggle-icon"></i>`;
                             button.disabled = false;
                             contentElement.classList.add('active');
                             loadedSections[section] = true;
@@ -1571,7 +1622,7 @@
                             clearInterval(progressInterval);
                             contentElement.innerHTML = '<p style="color:var(--danger-color)">加载失败，请重试</p>';
                             button.disabled = false;
-                            button.innerHTML = `<span><i class="fas fa-redo"></i> 重新分析</span><i class="fas fa-chevron-down toggle-icon"></i>`;
+                            button.innerHTML = `<span><i class="fas fa-redo"></i> ${buttonText}-重新分析</span><i class="fas fa-chevron-down toggle-icon"></i>`;
                             container.classList.remove('active');
                             
                             showApiStatus(`${section} 分析失败: ${error.message}`, 'error');
@@ -1742,10 +1793,10 @@
 4 综合分析结论
 
 返回格式：
-天干关系：[详细分析]
-地支关系：[详细分析]
-日柱分析：[详细分析]
-综合结论：[详细分析]`;
+天干关系：[表格方式详细分析]
+地支关系：[表格方式详细分析]
+日柱分析：[表格方式详细分析]
+综合结论：[表格方式详细分析]`;
                         break;
                     case 'element-analysis':
                         prompt += `分析双方五行能量的互补情况：
@@ -1755,9 +1806,9 @@
 4 调候建议
 
 返回格式：
-五行对比：[详细分析]
-互补情况：[详细分析]
-调候建议：[详细建议]`;
+五行对比：[表格方式详细分析]
+互补情况：[表格方式详细分析]
+调候建议：[表格方式详细建议]`;
                         break;
                     case 'god-analysis':
                         prompt += `分析双方十神之间的相互关系：
@@ -1767,10 +1818,10 @@
 4 潜在矛盾点
 
 返回格式：
-十神配对：[详细分析]
-相生相克：[详细分析]
-互补分析：[详细分析]
-矛盾分析：[详细分析]`;
+十神配对：[表格方式详细分析]
+相生相克：[表格方式详细分析]
+互补分析：[表格方式详细分析]
+矛盾分析：[表格方式详细分析]`;
                         break;
                     case 'male-fate':
                         prompt += `分析男方八字命理特点：
@@ -1780,10 +1831,10 @@
 4 事业财运分析
 
 返回格式：
-命格分析：[详细分析]
-五行喜忌：[详细分析]
-性格特点：[详细分析]
-事业分析：[详细分析]`;
+命格分析：[表格方式详细分析]
+五行喜忌：[表格方式详细分析]
+性格特点：[表格方式详细分析]
+事业分析：[表格方式详细分析]`;
                         break;
                     case 'female-fate':
                         prompt += `分析女方八字命理特点：
@@ -1793,10 +1844,10 @@
 4 婚姻家庭分析
 
 返回格式：
-命格分析：[详细分析]
-五行喜忌：[详细分析]
-性格特点：[详细分析]
-婚姻分析：[详细分析]`;
+命格分析：[表格方式详细分析]
+五行喜忌：[表格方式详细分析]
+性格特点：[表格方式详细分析]
+婚姻分析：[表格方式详细分析]`;
                         break;
                     case 'strength-weakness':
                         prompt += `分析这段婚姻关系的优劣势：
@@ -1806,10 +1857,10 @@
 4 互补潜力
 
 返回格式：
-优势分析：[详细分析]
-劣势分析：[详细分析]
-危机年份：[年份列表]
-互补潜力：[详细分析]`;
+优势分析：[表格方式详细分析]
+劣势分析：[表格方式详细分析]
+危机年份：[表格方式年份列表]
+互补潜力：[表格方式详细分析]`;
                         break;
                     case 'improvement':
                         prompt += `提供婚姻关系改善建议：
@@ -1819,10 +1870,10 @@
 4 子女缘分分析
 
 返回格式：
-五行调和：[详细建议]
-相处建议：[详细建议]
-年份注意：[详细说明]
-子女缘分：[详细分析]`;
+五行调和：[表格方式详细建议]
+相处建议：[表格方式详细建议]
+年份注意：[表格方式详细说明]
+子女缘分：[表格方式详细分析]`;
                         break;
                     case 'timing':
                         prompt += `分析最适合结婚的时机：
@@ -1832,10 +1883,10 @@
 4 婚后运势走向
 
 返回格式：
-近期婚运：[详细分析]
-最佳年份：[年份列表]
-避开年份：[年份列表]
-婚后运势：[详细分析]`;
+近期婚运：[表格方式详细分析]
+最佳年份：[表格方式年份列表]
+避开年份：[表格方式年份列表]
+婚后运势：[表格方式详细分析]`;
                         break;
                     default:
                         prompt += `请分析${section}相关内容`;
@@ -1947,19 +1998,21 @@
             }
             
             function displaySectionContent(section, result, contentElement) {
-                if (result.includes('★')) {
-                    result = result.replace(/(★+)/g, '<span class="rating">$1</span>');
-                    result = result.replace(/(☆+)/g, '<span style="color:#ddd">$1</span>');
-                }
+                // 使用marked.js解析Markdown内容
+                const htmlContent = marked.parse(result);
                 
-                result = result.replace(/[#*\、]/g, '');
+                // 创建临时容器来放置解析后的HTML
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = htmlContent;
                 
-                result = result.split('\n').map(line => {
-                    if (line.trim() === '') return '';
-                    return `<p>${line}</p>`;
-                }).join('');
+                // 处理表格样式
+                const tables = tempDiv.querySelectorAll('table');
+                tables.forEach(table => {
+                    table.classList.add('markdown-table');
+                });
                 
-                contentElement.innerHTML = result;
+                // 将处理后的内容放入目标元素
+                contentElement.innerHTML = tempDiv.innerHTML;
             }
             
             window.addEventListener('load', function() {
