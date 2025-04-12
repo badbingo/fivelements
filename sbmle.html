@@ -1,0 +1,2412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Cyber Destiny Analysis System - Fusion of ancient wisdom and quantum technology">
+    <meta name="keywords" content="cyber destiny,bazi,fortune telling,quantum analysis,digital destiny">
+    <title>Cyber Destiny - Quantum Fate Analysis System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.css">
+    <style>
+        :root {
+            --primary-color: #00f0ff;
+            --secondary-color: #00a6ff;
+            --accent-color: #ff00e6;
+            --dark-color: #0a0a20;
+            --darker-color: #050510;
+            --light-color: #e0f8ff;
+            --text-color: #c0e0ff;
+            --text-light: #a0c0ff;
+            --text-dark: #ffffff;
+            --border-color: #1a3a8a;
+            --success-color: #00ff88;
+            --warning-color: #ffcc00;
+            --danger-color: #ff0066;
+            --info-color: #00a6ff;
+            --card-shadow: 0 0 20px rgba(0, 240, 255, 0.2);
+            --header-bg: linear-gradient(135deg, #0a0a20, #1a1a40);
+            --title-color: #00f0ff;
+            --content-color: #c0e0ff;
+            --tab-active-color: #ff00e6;
+            --border-radius: 8px;
+            --border-radius-sm: 4px;
+            --box-shadow: 0 0 15px rgba(0, 240, 255, 0.3);
+            --wood-color: #00ff88;
+            --fire-color: #ff3300;
+            --earth-color: #ffcc00;
+            --metal-color: #cccccc;
+            --water-color: #0099ff;
+            --stem-color: #ffcc00;
+            --branch-color: #00ccff;
+            --glow: 0 0 10px rgba(0, 240, 255, 0.7);
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Share Tech Mono', 'Orbitron', monospace;
+        }
+        
+        body {
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--darker-color);
+            background-image: 
+                radial-gradient(circle at 20% 30%, rgba(0, 240, 255, 0.05) 0%, transparent 20%),
+                radial-gradient(circle at 80% 70%, rgba(255, 0, 230, 0.05) 0%, transparent 20%),
+                linear-gradient(to bottom, rgba(10, 10, 32, 0.9), rgba(5, 5, 16, 0.9)),
+                url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100" opacity="0.03"><path d="M0,50 Q25,25 50,50 T100,50" fill="none" stroke="white" stroke-width="1"/></svg>');
+            background-size: cover, cover, cover, 120px;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: rgba(10, 10, 32, 0.8);
+            border-radius: var(--border-radius);
+            box-shadow: var(--card-shadow);
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            backdrop-filter: blur(5px);
+            position: relative;
+        }
+        
+        .container::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border: 1px solid rgba(0, 240, 255, 0.3);
+            border-radius: var(--border-radius);
+            pointer-events: none;
+            animation: pulse 4s infinite alternate;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: var(--glow); }
+            100% { box-shadow: 0 0 20px rgba(255, 0, 230, 0.7); }
+        }
+        
+        /* Cyberpunk Header */
+        .header-container {
+            background: var(--header-bg);
+            padding: 30px 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            margin: 0 auto;
+            border-radius: var(--border-radius) var(--border-radius) 0 0;
+            box-shadow: var(--card-shadow);
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .header-container::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                linear-gradient(45deg, transparent 65%, rgba(0, 240, 255, 0.1) 65%, rgba(0, 240, 255, 0.1) 70%, transparent 70%),
+                linear-gradient(-45deg, transparent 65%, rgba(255, 0, 230, 0.1) 65%, rgba(255, 0, 230, 0.1) 70%, transparent 70%);
+            opacity: 0.5;
+        }
+        
+        .header-title {
+            font-size: 2.5rem;
+            color: var(--title-color);
+            margin: 0;
+            padding: 0;
+            position: relative;
+            text-shadow: 0 0 10px var(--primary-color);
+            font-weight: 700;
+            letter-spacing: 3px;
+            font-family: 'Orbitron', sans-serif;
+            animation: textGlow 2s ease-in-out infinite alternate;
+        }
+        
+        .header-subtitle {
+            font-size: 1.1rem;
+            color: var(--text-light);
+            margin-top: 8px;
+            position: relative;
+            font-weight: 300;
+            letter-spacing: 1.5px;
+            text-shadow: 0 0 5px var(--primary-color);
+        }
+        
+        .header-subtitle::before,
+        .header-subtitle::after {
+            content: "//";
+            display: inline-block;
+            color: var(--accent-color);
+            margin: 0 12px;
+            opacity: 0.6;
+        }
+        
+        .header-decoration {
+            position: absolute;
+            font-size: 4rem;
+            opacity: 0.1;
+            color: var(--primary-color);
+        }
+        
+        .header-decoration.left {
+            left: 15px;
+            top: 15px;
+        }
+        
+        .header-decoration.right {
+            right: 15px;
+            bottom: 15px;
+        }
+        
+        .header-links {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .header-btn {
+            color: white;
+            text-decoration: none;
+            font-size: 16px;
+            transition: all 0.3s;
+            padding: 12px 24px;
+            border-radius: 30px;
+            background: rgba(0, 240, 255, 0.15);
+            border: 1px solid var(--primary-color);
+            display: inline-flex;
+            align-items: center;
+            font-weight: 500;
+            box-shadow: 0 0 10px rgba(0, 240, 255, 0.3);
+            position: relative;
+            overflow: hidden;
+            font-family: 'Orbitron', sans-serif;
+        }
+        
+        .header-btn::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(0, 240, 255, 0.3),
+                transparent
+            );
+            transition: 0.5s;
+        }
+        
+        .header-btn:hover {
+            background: rgba(0, 240, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 0 15px var(--primary-color);
+        }
+        
+        .header-btn:hover::before {
+            left: 100%;
+        }
+        
+        .header-btn i {
+            margin-right: 8px;
+            font-size: 18px;
+        }
+        
+        .header-center-text {
+            margin: 15px 0;
+            font-size: 1rem;
+            color: var(--text-light);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .header-center-text::before,
+        .header-center-text::after {
+            content: "+++";
+            display: inline-block;
+            color: var(--accent-color);
+            margin: 0 12px;
+            opacity: 0.6;
+        }
+        
+        @keyframes textGlow {
+            0% { text-shadow: 0 0 10px var(--primary-color); }
+            50% { text-shadow: 0 0 15px var(--accent-color); }
+            100% { text-shadow: 0 0 10px var(--primary-color); }
+        }
+        
+        .input-section {
+            padding: 40px;
+            position: relative;
+        }
+        
+        .input-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 1px dashed var(--border-color);
+        }
+        
+        .input-header i {
+            font-size: 28px;
+            color: var(--title-color);
+            margin-right: 15px;
+            text-shadow: 0 0 5px var(--primary-color);
+        }
+        
+        .input-header h2 {
+            font-size: 24px;
+            color: var(--title-color);
+            font-weight: 500;
+            font-family: 'Orbitron', sans-serif;
+            text-shadow: 0 0 5px var(--primary-color);
+        }
+        
+        .form-row {
+            display: flex;
+            margin-bottom: 25px;
+            gap: 20px;
+        }
+        
+        .form-group {
+            flex: 1;
+            position: relative;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 12px;
+            font-size: 16px;
+            color: var(--text-light);
+            font-weight: 500;
+        }
+        
+        label i {
+            margin-right: 10px;
+            font-size: 18px;
+            color: var(--title-color);
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 16px 20px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-sm);
+            font-size: 16px;
+            transition: all 0.3s;
+            background-color: rgba(0, 0, 0, 0.3);
+            color: var(--text-color);
+            font-family: 'Share Tech Mono', monospace;
+        }
+        
+        input:focus, select:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(0, 240, 255, 0.3);
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        
+        input::placeholder {
+            color: var(--text-light);
+            opacity: 0.7;
+        }
+        
+        /* Cyberpunk dropdown arrow */
+        select {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2300f0ff'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+            background-size: 12px;
+        }
+        
+        /* Time period selector styles */
+        .time-period-selector {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .time-period-option {
+            padding: 12px 5px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-sm);
+            cursor: pointer;
+            transition: all 0.3s;
+            background-color: rgba(0, 0, 0, 0.3);
+        }
+        
+        .time-period-option:hover {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 5px var(--primary-color);
+        }
+        
+        .time-period-option.selected {
+            background-color: var(--primary-color);
+            color: var(--dark-color);
+            font-weight: bold;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 10px var(--primary-color);
+        }
+        
+        .disclaimer {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: rgba(0, 166, 255, 0.1);
+            border-radius: var(--border-radius-sm);
+            font-size: 14px;
+            color: var(--text-light);
+            text-align: center;
+            border-left: 4px solid var(--primary-color);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .disclaimer::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
+        }
+        
+        .copyright {
+            text-align: center;
+            padding: 20px;
+            font-size: 13px;
+            color: var(--text-light);
+            border-top: 1px solid var(--border-color);
+            background-color: rgba(10, 10, 32, 0.5);
+        }
+        
+        .calculate-btn-container {
+            text-align: center;
+            margin-top: 40px;
+        }
+        
+        button {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: var(--dark-color);
+            border: none;
+            padding: 18px 40px;
+            font-size: 18px;
+            border-radius: var(--border-radius-sm);
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--box-shadow);
+            position: relative;
+            overflow: hidden;
+            font-family: 'Orbitron', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        button::after {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                to bottom right,
+                rgba(255, 255, 255, 0) 0%,
+                rgba(255, 255, 255, 0) 30%,
+                rgba(255, 255, 255, 0.5) 45%,
+                rgba(255, 255, 255, 0) 60%,
+                rgba(255, 255, 255, 0) 100%
+            );
+            transform: translateX(-100%) rotate(30deg);
+            transition: transform 0.6s;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 20px var(--primary-color);
+        }
+        
+        button:hover::after {
+            transform: translateX(100%) rotate(30deg);
+        }
+        
+        button:disabled {
+            background: #333;
+            color: #666;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+        
+        button:disabled::after {
+            display: none;
+        }
+        
+        button i {
+            margin-right: 12px;
+            font-size: 20px;
+        }
+        
+        .result-section {
+            display: none;
+            padding: 0 40px 40px;
+        }
+        
+        .basic-info {
+            background: rgba(10, 10, 32, 0.6);
+            padding: 30px;
+            border-radius: var(--border-radius-sm);
+            margin-bottom: 30px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--box-shadow);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .basic-info::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+            background: linear-gradient(to bottom, var(--primary-color), var(--secondary-color));
+        }
+        
+        .info-section {
+            margin-bottom: 30px;
+        }
+        
+        .info-section h3 {
+            font-size: 20px;
+            margin-bottom: 20px;
+            color: var(--title-color);
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            font-family: 'Orbitron', sans-serif;
+            text-shadow: 0 0 5px var(--primary-color);
+        }
+        
+        .info-section h3 i {
+            margin-right: 15px;
+            font-size: 22px;
+        }
+        
+        .info-content {
+            font-size: 16px;
+            line-height: 1.8;
+            color: var(--content-color);
+        }
+        
+        /* Bazi pillars table styles */
+        .bazi-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-sm);
+            overflow: hidden;
+            background: rgba(10, 10, 32, 0.4);
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.1);
+        }
+        
+        .bazi-row {
+            display: flex;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .bazi-row:last-child {
+            border-bottom: none;
+        }
+        
+        .bazi-cell {
+            flex: 1;
+            padding: 16px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: 500;
+            position: relative;
+        }
+        
+        .bazi-header .bazi-cell {
+            background-color: rgba(0, 166, 255, 0.3);
+            color: var(--title-color);
+            font-weight: bold;
+            font-size: 16px;
+            text-shadow: 0 0 5px var(--primary-color);
+        }
+        
+        /* Heavenly Stems colors (by element) */
+        .bazi-row:nth-child(2) .bazi-cell:not(:first-child) {
+            font-size: 22px;
+            font-weight: bold;
+            text-shadow: 0 0 10px var(--stem-color);
+        }
+        
+        /* Earthly Branches colors (by element) */
+        .bazi-row:nth-child(3) .bazi-cell:not(:first-child) {
+            font-size: 22px;
+            font-weight: bold;
+            text-shadow: 0 0 10px var(--branch-color);
+        }
+        
+        /* Element colors definition */
+        .wood { color: var(--wood-color); text-shadow: 0 0 5px var(--wood-color); }
+        .fire { color: var(--fire-color); text-shadow: 0 0 5px var(--fire-color); }
+        .earth { color: var(--earth-color); text-shadow: 0 0 5px var(--earth-color); }
+        .metal { color: var(--metal-color); text-shadow: 0 0 5px var(--metal-color); }
+        .water { color: var(--water-color); text-shadow: 0 0 5px var(--water-color); }
+        
+        .bazi-cell:first-child {
+            background-color: rgba(0, 166, 255, 0.2);
+            font-weight: bold;
+            min-width: 80px;
+        }
+        
+        /* Ten Gods list styles */
+        .ten-gods-grid {
+            display: flex;
+            gap: 20px;
+            margin-top: 15px;
+        }
+        
+        .ten-gods-column {
+            flex: 1;
+        }
+        
+        .ten-gods-column h4 {
+            margin-bottom: 15px;
+            color: var(--title-color);
+            font-size: 16px;
+            text-align: center;
+            font-weight: 600;
+            font-family: 'Orbitron', sans-serif;
+        }
+        
+        .ten-gods-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+        
+        .ten-gods-item {
+            background: rgba(0, 166, 255, 0.2);
+            padding: 10px 18px;
+            border-radius: 20px;
+            font-size: 15px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 0 5px rgba(0, 240, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .ten-gods-item:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 10px var(--primary-color);
+        }
+        
+        .rating-container {
+            display: flex;
+            align-items: center;
+            margin-top: 15px;
+        }
+        
+        .rating-container-inline {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+        }
+        
+        .rating-label {
+            margin-right: 20px;
+            font-weight: bold;
+            min-width: 100px;
+            color: var(--title-color);
+        }
+        
+        .rating-stars {
+            color: var(--earth-color);
+            font-size: 22px;
+            letter-spacing: 5px;
+            text-shadow: 0 0 5px var(--earth-color);
+        }
+        
+        .menu-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 20px;
+            background: var(--dark-color);
+            border-radius: var(--border-radius-sm) var(--border-radius-sm) 0 0;
+            overflow: hidden;
+        }
+        
+        .menu-tab {
+            padding: 18px 20px;
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--text-light);
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+            display: flex;
+            align-items: center;
+            flex: 1;
+            justify-content: center;
+            position: relative;
+            font-family: 'Orbitron', sans-serif;
+        }
+        
+        .menu-tab::after {
+            content: "";
+            position: absolute;
+            right: 0;
+            top: 20%;
+            height: 60%;
+            width: 1px;
+            background-color: var(--border-color);
+        }
+        
+        .menu-tab:last-child::after {
+            display: none;
+        }
+        
+        .menu-tab i {
+            margin-right: 12px;
+            font-size: 20px;
+        }
+        
+        .menu-tab:hover {
+            color: var(--primary-color);
+            background-color: rgba(0, 240, 255, 0.1);
+        }
+        
+        .menu-tab.active {
+            color: var(--primary-color);
+            border-bottom: 3px solid var(--primary-color);
+            font-weight: 600;
+            background-color: rgba(0, 240, 255, 0.2);
+        }
+        
+        .tab-content {
+            display: none;
+            background: var(--dark-color);
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .detail-card {
+            background: rgba(10, 10, 32, 0.6);
+            border-radius: var(--border-radius-sm);
+            padding: 25px;
+            margin-bottom: 25px;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+            box-shadow: var(--box-shadow);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .detail-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 20px var(--primary-color);
+        }
+        
+        .detail-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
+        }
+        
+        .load-btn-container {
+            position: relative;
+        }
+        
+        .load-btn {
+            background: var(--info-color);
+            padding: 16px 20px;
+            font-size: 17px;
+            border-radius: var(--border-radius-sm);
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            color: var(--dark-color);
+            border: none;
+            font-weight: bold;
+            box-shadow: 0 0 10px rgba(0, 166, 255, 0.3);
+            font-family: 'Orbitron', sans-serif;
+        }
+        
+        .load-btn i {
+            margin-right: 15px;
+            font-size: 20px;
+        }
+        
+        .load-btn .toggle-icon {
+            transition: transform 0.3s ease;
+        }
+        
+        .load-btn.active .toggle-icon {
+            transform: rotate(180deg);
+        }
+        
+        .load-btn-description {
+            font-size: 14px;
+            color: var(--text-light);
+            margin-top: 15px;
+            padding: 0 15px;
+            transition: all 0.3s ease;
+        }
+        
+        .load-btn-container.active .load-btn-description {
+            opacity: 0;
+            max-height: 0;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(0, 240, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--primary-color);
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .section-content {
+            font-size: 16px;
+            line-height: 1.8;
+            color: var(--content-color);
+            margin-top: 20px;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease, opacity 0.3s ease;
+            opacity: 0;
+        }
+        
+        .section-content.active {
+            max-height: 2000px;
+            opacity: 1;
+        }
+        
+        .section-content p {
+            margin-bottom: 15px;
+        }
+        
+        .section-title {
+            font-weight: bold;
+            color: var(--title-color);
+            margin-bottom: 15px;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            font-family: 'Orbitron', sans-serif;
+        }
+        
+        .section-title::before {
+            content: ">";
+            display: inline-block;
+            margin-right: 10px;
+            color: var(--primary-color);
+        }
+        
+        .progress-container {
+            width: 100%;
+            height: 8px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 4px;
+            margin: 20px 0;
+            overflow: hidden;
+            display: none;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            width: 0;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            border-radius: 4px;
+            transition: width 0.4s ease;
+        }
+        
+        /* Five Elements Energy Chart */
+        .element-chart-container {
+            width: 100%;
+            height: 300px;
+            margin: 20px 0;
+            position: relative;
+        }
+        
+        .element-chart {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .element-legend {
+            display: flex;
+            justify-content: center;
+            margin-top: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .element-legend-item {
+            display: flex;
+            align-items: center;
+            margin-right: 15px;
+            font-size: 14px;
+        }
+        
+        .element-legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 3px;
+            margin-right: 8px;
+            box-shadow: 0 0 5px currentColor;
+        }
+        
+        .wood-color { background-color: var(--wood-color); color: var(--wood-color); }
+        .fire-color { background-color: var(--fire-color); color: var(--fire-color); }
+        .earth-color { background-color: var(--earth-color); color: var(--earth-color); }
+        .metal-color { background-color: var(--metal-color); color: var(--metal-color); }
+        .water-color { background-color: var(--water-color); color: var(--water-color); }
+        
+        /* Fortune Trend Chart */
+        .fortune-chart-container {
+            width: 100%;
+            height: 350px;
+            margin: 20px 0;
+        }
+        
+        .fortune-chart {
+            width: 100%;
+            height: 100%;
+        }
+        
+        /* Markdown table styles */
+        .markdown-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-sm);
+            overflow: hidden;
+            background: rgba(10, 10, 32, 0.4);
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.1);
+        }
+        
+        .markdown-table th {
+            background-color: rgba(0, 166, 255, 0.3);
+            color: var(--title-color);
+            font-weight: bold;
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .markdown-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .markdown-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .markdown-table tr:hover {
+            background-color: rgba(0, 240, 255, 0.1);
+        }
+        
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .header-title {
+                font-size: 2rem;
+                letter-spacing: 2px;
+            }
+            
+            .header-subtitle {
+                font-size: 1rem;
+            }
+            
+            .header-subtitle::before,
+            .header-subtitle::after {
+                content: "//";
+                width: auto;
+                margin: 0 10px;
+            }
+            
+            .header-links {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .form-row {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .time-period-selector {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            
+            .ten-gods-grid {
+                flex-direction: column;
+            }
+            
+            .menu-tabs {
+                flex-wrap: wrap;
+            }
+            
+            .menu-tab {
+                padding: 14px 15px;
+                font-size: 15px;
+                flex: 1 0 50%;
+            }
+            
+            .menu-tab::after {
+                display: none;
+            }
+            
+            .input-section, .result-section {
+                padding: 30px;
+            }
+            
+            .bazi-cell {
+                padding: 12px;
+                font-size: 16px;
+            }
+            
+            .bazi-row:nth-child(2) .bazi-cell:not(:first-child),
+            .bazi-row:nth-child(3) .bazi-cell:not(:first-child) {
+                font-size: 18px;
+            }
+            
+            .element-chart-container, .fortune-chart-container {
+                height: 250px;
+            }
+            
+            .markdown-table {
+                display: block;
+                overflow-x: auto;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .header-container {
+                padding: 20px 10px;
+            }
+            
+            .header-title {
+                font-size: 1.8rem;
+            }
+            
+            .header-subtitle {
+                font-size: 0.9rem;
+            }
+            
+            .header-subtitle::before,
+            .header-subtitle::after {
+                content: "//";
+                width: auto;
+                margin: 0 5px;
+            }
+            
+            .header-decoration {
+                font-size: 3rem;
+            }
+            
+            body {
+                padding: 10px;
+            }
+            
+            .container {
+                margin: 0 auto;
+                border-radius: 0;
+            }
+            
+            .input-section, .result-section {
+                padding: 20px;
+            }
+            
+            .time-period-selector {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .menu-tab {
+                flex: 1 0 100%;
+            }
+            
+            .bazi-cell {
+                padding: 10px;
+                font-size: 14px;
+            }
+            
+            .bazi-row:nth-child(2) .bazi-cell:not(:first-child),
+            .bazi-row:nth-child(3) .bazi-cell:not(:first-child) {
+                font-size: 16px;
+            }
+            
+            .element-chart-container, .fortune-chart-container {
+                height: 200px;
+            }
+        }
+        
+        /* Fullscreen loading overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(5, 5, 16, 0.9);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .loading-overlay .loading {
+            width: 50px;
+            height: 50px;
+            border-width: 5px;
+        }
+        
+        .loading-overlay p {
+            color: var(--primary-color);
+            margin-top: 20px;
+            font-size: 18px;
+            text-shadow: 0 0 5px var(--primary-color);
+            font-family: 'Orbitron', sans-serif;
+        }
+        
+        /* Cyberpunk scanlines effect */
+        .scanlines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                rgba(0, 240, 255, 0.03) 50%,
+                rgba(0, 0, 0, 0.1) 50%
+            );
+            background-size: 100% 4px;
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0.3;
+            animation: scanline 8s linear infinite;
+        }
+        
+        @keyframes scanline {
+            0% { background-position: 0 0; }
+            100% { background-position: 0 100%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="scanlines"></div>
+    <div class="container">
+        <!-- Cyberpunk Header -->
+        <div class="header-container">
+            <i class="fas fa-atom header-decoration left"></i>
+            <i class="fas fa-rocket header-decoration right"></i>
+            <h1 class="header-title">CYBER DESTINY SYSTEM</h1>
+            <div class="header-subtitle">Future Tech · Ancient Wisdom · Digital Fate</div>
+            <div class="header-links">
+                <a href="destiny-change.html" class="header-btn"><i class="fas fa-microchip"></i> Destiny Rewrite</a>
+                <a href="compatibility.html" class="header-btn"><i class="fas fa-heartbeat"></i> Compatibility Scan</a>
+            </div>
+        </div>
+        
+        <div class="input-section" id="input-section">
+            <div class="input-header">
+                <i class="fas fa-id-card"></i>
+                <h2>ENTER YOUR INFORMATION</h2>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="name"><i class="fas fa-user-astronaut"></i> Name</label>
+                    <input type="text" id="name" placeholder="Enter your name">
+                </div>
+                <div class="form-group">
+                    <label for="gender"><i class="fas fa-venus-mars"></i> Gender</label>
+                    <select id="gender" required>
+                        <option value="">Select</option>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="birth-date"><i class="fas fa-calendar-alt"></i> Birth Date</label>
+                    <input type="date" id="birth-date" required>
+                </div>
+                <div class="form-group">
+                    <label for="birth-time"><i class="fas fa-clock"></i> Birth Time Period</label>
+                    <div class="time-period-selector" id="time-period-selector">
+                        <div class="time-period-option" data-hour="23" data-minute="0">Zi (23-1)</div>
+                        <div class="time-period-option" data-hour="1" data-minute="0">Chou (1-3)</div>
+                        <div class="time-period-option" data-hour="3" data-minute="0">Yin (3-5)</div>
+                        <div class="time-period-option" data-hour="5" data-minute="0">Mao (5-7)</div>
+                        <div class="time-period-option" data-hour="7" data-minute="0">Chen (7-9)</div>
+                        <div class="time-period-option" data-hour="9" data-minute="0">Si (9-11)</div>
+                        <div class="time-period-option" data-hour="11" data-minute="0">Wu (11-13)</div>
+                        <div class="time-period-option" data-hour="13" data-minute="0">Wei (13-15)</div>
+                        <div class="time-period-option" data-hour="15" data-minute="0">Shen (15-17)</div>
+                        <div class="time-period-option" data-hour="17" data-minute="0">You (17-19)</div>
+                        <div class="time-period-option" data-hour="19" data-minute="0">Xu (19-21)</div>
+                        <div class="time-period-option" data-hour="21" data-minute="0">Hai (21-23)</div>
+                    </div>
+                    <input type="hidden" id="birth-time" required>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="birth-place"><i class="fas fa-map-marked-alt"></i> Birth Place (for true solar time)</label>
+                    <select id="birth-place" required>
+                        <option value="">Select birth place</option>
+                        <option value="1">Beijing (+8:00)</option>
+                        <option value="2">Shanghai (+8:00)</option>
+                        <option value="3">Guangzhou (+8:00)</option>
+                        <option value="4">Chengdu (+8:00)</option>
+                        <option value="5">Urumqi (+6:00)</option>
+                        <option value="6">Lhasa (+6:00)</option>
+                        <option value="7">Hong Kong (+8:00)</option>
+                        <option value="8">Macau (+8:00)</option>
+                        <option value="9">Taipei (+8:00)</option>
+                        <option value="10">Harbin (+8:00)</option>
+                        <option value="11">Changchun (+8:00)</option>
+                        <option value="12">Shenyang (+8:00)</option>
+                        <option value="13">Tianjin (+8:00)</option>
+                        <option value="14">Shijiazhuang (+8:00)</option>
+                        <option value="15">Taiyuan (+8:00)</option>
+                        <option value="16">Hohhot (+8:00)</option>
+                        <option value="17">Xi'an (+8:00)</option>
+                        <option value="18">Lanzhou (+8:00)</option>
+                        <option value="19">Xining (+6:00)</option>
+                        <option value="20">Yinchuan (+8:00)</option>
+                        <option value="21">Jinan (+8:00)</option>
+                        <option value="22">Nanjing (+8:00)</option>
+                        <option value="23">Hangzhou (+8:00)</option>
+                        <option value="24">Hefei (+8:00)</option>
+                        <option value="25">Fuzhou (+8:00)</option>
+                        <option value="26">Nanchang (+8:00)</option>
+                        <option value="27">Zhengzhou (+8:00)</option>
+                        <option value="28">Wuhan (+8:00)</option>
+                        <option value="29">Changsha (+8:00)</option>
+                        <option value="30">Nanning (+8:00)</option>
+                        <option value="31">Haikou (+8:00)</option>
+                        <option value="32">Chongqing (+8:00)</option>
+                        <option value="33">Guiyang (+8:00)</option>
+                        <option value="34">Kunming (+8:00)</option>
+                        <option value="35">Lhasa (+6:00)</option>
+                        <option value="36">Other (+8:00)</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="disclaimer">
+                <i class="fas fa-exclamation-triangle"></i> This system uses quantum computing and AI algorithms, data from ancient texts including "Yuan Hai Zi Ping" and "San Ming Tong Hui"
+            </div>
+            
+            <div class="calculate-btn-container">
+                <button id="calculate-btn"><i class="fas fa-brain"></i> START QUANTUM ANALYSIS</button>
+            </div>
+        </div>
+        
+        <div class="result-section" id="result-section">
+            <div class="basic-info" id="basic-info">
+                <div class="info-section">
+                    <h3><i class="fas fa-chart-network"></i> Destiny Assessment</h3>
+                    <div class="info-content">
+                        <div class="rating-container">
+                            <span class="rating-label">Destiny Level:</span>
+                            <span class="rating-stars" id="fate-rating">-</span>
+                        </div>
+                        <div class="rating-container">
+                            <span class="rating-label">Wealth Level:</span>
+                            <span class="rating-stars" id="wealth-rating">-</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="info-section">
+                    <h3><i class="fas fa-dna"></i> Bazi Four Pillars</h3>
+                    <div class="info-content">
+                        <div class="bazi-table">
+                            <div class="bazi-row bazi-header">
+                                <div class="bazi-cell">Pillar</div>
+                                <div class="bazi-cell">Year</div>
+                                <div class="bazi-cell">Month</div>
+                                <div class="bazi-cell">Day</div>
+                                <div class="bazi-cell">Hour</div>
+                            </div>
+                            <div class="bazi-row">
+                                <div class="bazi-cell">Heavenly Stem</div>
+                                <div class="bazi-cell wood" id="year-stem">Jia</div>
+                                <div class="bazi-cell fire" id="month-stem">Bing</div>
+                                <div class="bazi-cell earth" id="day-stem">Wu</div>
+                                <div class="bazi-cell metal" id="hour-stem">Geng</div>
+                            </div>
+                            <div class="bazi-row">
+                                <div class="bazi-cell">Earthly Branch</div>
+                                <div class="bazi-cell wood" id="year-branch">Yin</div>
+                                <div class="bazi-cell fire" id="month-branch">Wu</div>
+                                <div class="bazi-cell earth" id="day-branch">Chen</div>
+                                <div class="bazi-cell metal" id="hour-branch">Shen</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="info-section">
+                    <h3><i class="fas fa-robot"></i> Ten Gods Analysis</h3>
+                    <div class="info-content">
+                        <div class="ten-gods-grid">
+                            <div class="ten-gods-column">
+                                <h4><i class="fas fa-sun"></i> Heavenly Stems</h4>
+                                <div class="ten-gods-list" id="stem-gods-list">
+                                    <div class="ten-gods-item">Year: Compare</div>
+                                    <div class="ten-gods-item">Month: Talent</div>
+                                    <div class="ten-gods-item">Day: Self</div>
+                                <div class="ten-gods-item">Hour: Wealth</div>
+                            </div>
+                        </div>
+                        <div class="ten-gods-column">
+                            <h4><i class="fas fa-moon"></i> Earthly Branches</h4>
+                            <div class="ten-gods-list" id="branch-gods-list">
+                                <div class="ten-gods-item">Year: Compare</div>
+                                <div class="ten-gods-item">Month: Officer</div>
+                                <div class="ten-gods-item">Day: Rob</div>
+                                <div class="ten-gods-item">Hour: Kill</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="info-section">
+                    <h3><i class="fas fa-atom"></i> Five Elements Energy</h3>
+                    <div class="info-content">
+                        <div class="element-chart-container">
+                            <canvas id="element-chart" class="element-chart"></canvas>
+                        </div>
+                        <div class="element-legend">
+                            <div class="element-legend-item">
+                                <div class="element-legend-color wood-color"></div>
+                                <span>Wood</span>
+                            </div>
+                            <div class="element-legend-item">
+                                <div class="element-legend-color fire-color"></div>
+                                <span>Fire</span>
+                            </div>
+                            <div class="element-legend-item">
+                                <div class="element-legend-color earth-color"></div>
+                                <span>Earth</span>
+                            </div>
+                            <div class="element-legend-item">
+                                <div class="element-legend-color metal-color"></div>
+                                <span>Metal</span>
+                            </div>
+                            <div class="element-legend-item">
+                                <div class="element-legend-color water-color"></div>
+                                <span>Water</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="menu-tabs">
+                <div class="menu-tab active" data-tab="fortune"><i class="fas fa-chart-line"></i> Destiny Analysis</div>
+                <div class="menu-tab" data-tab="character"><i class="fas fa-user-astronaut"></i> Personality & Career</div>
+                <div class="menu-tab" data-tab="relationship"><i class="fas fa-heartbeat"></i> Relationships</div>
+                <div class="menu-tab" data-tab="trend"><i class="fas fa-calendar-star"></i> Fortune Trends</div>
+            </div>
+            
+            <!-- Destiny Analysis -->
+            <div class="tab-content active" id="fortune-tab">
+                <div class="detail-card">
+                    <div class="load-btn-container">
+                        <button class="load-btn" data-section="strength">
+                            <span><i class="fas fa-dumbbell"></i> Body Strength Analysis</span>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </button>
+                        <div class="load-btn-description">Quantum analysis of Day Master strength (strong/weak/balanced)</div>
+                    </div>
+                    <div id="strength-content" class="section-content"></div>
+                </div>
+                
+                <div class="detail-card">
+                    <div class="load-btn-container">
+                        <button class="load-btn" data-section="pattern">
+                            <span><i class="fas fa-chess-queen"></i> Special Patterns</span>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </button>
+                        <div class="load-btn-description">Analyze special Bazi patterns (Follow, Transform, etc.)</div>
+                    </div>
+                    <div id="pattern-content" class="section-content"></div>
+                </div>
+                
+                <div class="detail-card">
+                    <div class="load-btn-container">
+                        <button class="load-btn" data-section="elements">
+                            <span><i class="fas fa-yin-yang"></i> Elements Balance</span>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </button>
+                        <div class="load-btn-description">Quantum calculation of Five Elements distribution</div>
+                    </div>
+                    <div id="elements-content" class="section-content"></div>
+                </div>
+                
+                <div class="detail-card">
+                    <div class="load-btn-container">
+                        <button class="load-btn" data-section="flow">
+                            <span><i class="fas fa-water"></i> Elements Flow</span>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </button>
+                        <div class="load-btn-description">Analyze generation/control relationships between elements</div>
+                    </div>
+                    <div id="flow-content" class="section-content"></div>
+                </div>
+                
+                <div class="detail-card">
+                    <div class="load-btn-container">
+                        <button class="load-btn" data-section="drywet">
+                            <span><i class="fas fa-fire"></i> Dry/Wet Analysis</span>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </button>
+                        <div class="load-btn-description">Analyze Fire/Water balance in the chart</div>
+                    </div>
+                    <div id="drywet-content" class="section-content"></div>
+                </div>
+            </div>
+            
+            <!-- Personality & Career -->
+            <div class="tab-content" id="character-tab">
+                <div class="detail-card">
+                    <div class="load-btn-container">
+                        <button class="load-btn" data-section="personality">
+                            <span><i class="fas fa-brain"></i> Personality Analysis</span>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </button>
+                        <div class="load-btn-description">Analyze personality traits based on Bazi structure</div>
+                    </div>
+                    <div id="personality-content" class="section-content"></div>
+                </div>
+                
+                <div class="detail-card">
+                    <div class="load-btn-container">
+                        <button class="load-btn" data-section="career">
+                            <span><i class="fas fa-briefcase"></i> Career Analysis</span>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </button>
+                        <div class="load-btn-description">Analyze suitable career paths based on elements and Ten Gods</div>
+                    </div>
+                    <div id="career-content" class="section-content"></div>
+                </div>
+                
+                <div class="detail-card">
+                    <div class="load-btn-container">
+                        <button class="load-btn" data-section="wealth">
+                            <span><i class="fas fa-coins"></i> Wealth Analysis</span>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </button>
+                        <div class="load-btn-description">Analyze wealth patterns and financial advice</div>
+                    </div>
+                    <div id="wealth-content" class="section-content"></div>
+                </div>
+            </div>
+            
+            <!-- Relationships -->
+            <div class="tab-content" id="relationship-tab">
+                <div class="detail-card">
+                    <div class="load-btn-container">
+                        <button class="load-btn" data-section="marriage">
+                            <span><i class="fas fa-ring"></i> Marriage Analysis</span>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </button>
+                        <div class="load-btn-description">Analyze marriage palace and spouse star</div>
+                    </div>
+                    <div id="marriage-content" class="section-content"></div>
+                </div>
+                
+                <div class="detail-card">
+                    <div class="load-btn-container">
+                        <button class="load-btn" data-section="children">
+                            <span><i class="fas fa-baby"></i> Children Analysis</span>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </button>
+                        <div class="load-btn-description">Analyze children palace and children star</div>
+                    </div>
+                    <div id="children-content" class="section-content"></div>
+                </div>
+                
+                <div class="detail-card">
+                    <div class="load-btn-container">
+                        <button class="load-btn" data-section="family">
+                            <span><i class="fas fa-home"></i> Family Analysis</span>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </button>
+                        <div class="load-btn-description">Analyze family relationships (parents, siblings)</div>
+                    </div>
+                    <div id="family-content" class="section-content"></div>
+                </div>
+            </div>
+            
+            <!-- Fortune Trends -->
+            <div class="tab-content" id="trend-tab">
+                <div class="detail-card">
+                    <div class="load-btn-container">
+                        <button class="load-btn" data-section="decade-fortune">
+                            <span><i class="fas fa-hourglass-half"></i> Decade Fortune</span>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </button>
+                        <div class="load-btn-description">Analyze major life cycles and important periods</div>
+                    </div>
+                    <div id="decade-fortune-content" class="section-content"></div>
+                </div>
+                
+                <div class="detail-card">
+                    <div class="load-btn-container">
+                        <button class="load-btn" data-section="milestones">
+                            <span><i class="fas fa-map-marked-alt"></i> Life Milestones</span>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </button>
+                        <div class="load-btn-description">Identify important years and potential major events</div>
+                    </div>
+                    <div id="milestones-content" class="section-content"></div>
+                </div>
+                
+                <div class="detail-card">
+                    <div class="load-btn-container">
+                        <button class="load-btn" data-section="monthly-fortune">
+                            <span><i class="fas fa-calendar-day"></i> Monthly Forecast</span>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </button>
+                        <div class="load-btn-description">Predict monthly fortune fluctuations for current year</div>
+                    </div>
+                    <div id="monthly-fortune-content" class="section-content"></div>
+                </div>
+                
+                <div class="detail-card">
+                    <div class="load-btn-container">
+                        <button class="load-btn" data-section="summary">
+                            <span><i class="fas fa-scroll"></i> Destiny Summary</span>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </button>
+                        <div class="load-btn-description">Comprehensive summary of all analysis results</div>
+                    </div>
+                    <div id="summary-content" class="section-content"></div>
+                </div>
+            </div>
+            
+            <div class="calculate-btn-container" style="margin-top: 30px;">
+                <button id="recalculate-btn"><i class="fas fa-redo"></i> REANALYZE</button>
+            </div>
+        </div>
+        
+        <div class="copyright">
+            © 2025 CYBER DESTINY SYSTEM | Quantum Engine v3.2.1 | Data from "Yuan Hai Zi Ping" and "San Ming Tong Hui"
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const calculateBtn = document.getElementById('calculate-btn');
+            const recalculateBtn = document.getElementById('recalculate-btn');
+            const inputSection = document.getElementById('input-section');
+            const resultSection = document.getElementById('result-section');
+            const timePeriodOptions = document.querySelectorAll('.time-period-option');
+            const birthTimeInput = document.getElementById('birth-time');
+            
+            // Bazi pillars elements
+            const yearStem = document.getElementById('year-stem');
+            const yearBranch = document.getElementById('year-branch');
+            const monthStem = document.getElementById('month-stem');
+            const monthBranch = document.getElementById('month-branch');
+            const dayStem = document.getElementById('day-stem');
+            const dayBranch = document.getElementById('day-branch');
+            const hourStem = document.getElementById('hour-stem');
+            const hourBranch = document.getElementById('hour-branch');
+            
+            // Ten Gods list elements
+            const stemGodsList = document.getElementById('stem-gods-list');
+            const branchGodsList = document.getElementById('branch-gods-list');
+            
+            // Destiny assessment elements
+            const fateRating = document.getElementById('fate-rating');
+            const wealthRating = document.getElementById('wealth-rating');
+            
+            // Elements chart element
+            const elementChartCtx = document.getElementById('element-chart').getContext('2d');
+            let elementChart;
+            
+            // Define current date as April 11, 2025
+            const currentDate = new Date(2025, 3, 11); // Month is 0-11, so 3 means April
+            let birthData = {};
+            let loadedSections = {};
+            
+            // Time period selector logic
+            timePeriodOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    timePeriodOptions.forEach(opt => opt.classList.remove('selected'));
+                    this.classList.add('selected');
+                    const hour = this.getAttribute('data-hour');
+                    const minute = this.getAttribute('data-minute');
+                    birthTimeInput.value = `${hour.padStart(2, '0')}:${minute.padStart(2, '0')}`;
+                });
+            });
+            
+            // Configure marked.js
+            marked.setOptions({
+                breaks: true,
+                gfm: true,
+                tables: true,
+                highlight: function(code, lang) {
+                    return code;
+                }
+            });
+            
+            // Recalculate button click event
+            recalculateBtn.addEventListener('click', function() {
+                // Clear input fields
+                document.getElementById('name').value = '';
+                document.getElementById('birth-date').value = '';
+                document.getElementById('birth-time').value = '';
+                document.getElementById('gender').value = '';
+                document.getElementById('birth-place').value = '';
+                timePeriodOptions.forEach(opt => opt.classList.remove('selected'));
+                
+                // Hide result section, show input section
+                resultSection.style.display = 'none';
+                inputSection.style.display = 'block';
+                
+                // Reset all content
+                resetAllContent();
+                
+                // Destroy chart instances
+                if (elementChart) {
+                    elementChart.destroy();
+                }
+                
+                // Scroll to top
+                window.scrollTo(0, 0);
+            });
+            
+            function resetAllContent() {
+                // Reset Bazi pillars
+                yearStem.textContent = '';
+                yearBranch.textContent = '';
+                monthStem.textContent = '';
+                monthBranch.textContent = '';
+                dayStem.textContent = '';
+                dayBranch.textContent = '';
+                hourStem.textContent = '';
+                hourBranch.textContent = '';
+                
+                // Reset Ten Gods lists
+                stemGodsList.innerHTML = '';
+                branchGodsList.innerHTML = '';
+                
+                // Reset destiny assessment
+                fateRating.textContent = '-';
+                wealthRating.textContent = '-';
+                
+                // Reset all content sections
+                document.querySelectorAll('.section-content').forEach(el => {
+                    el.innerHTML = '';
+                    el.classList.remove('active');
+                });
+                
+                // Reset all load buttons
+                document.querySelectorAll('.load-btn').forEach(btn => {
+                    const sectionName = btn.querySelector('span').textContent.trim();
+                    btn.innerHTML = `<span><i class="fas fa-${btn.getAttribute('data-section') === 'strength' ? 'dumbbell' : 
+                                    btn.getAttribute('data-section') === 'pattern' ? 'chess-queen' : 
+                                    btn.getAttribute('data-section') === 'elements' ? 'yin-yang' : 
+                                    btn.getAttribute('data-section') === 'flow' ? 'water' : 
+                                    btn.getAttribute('data-section') === 'drywet' ? 'fire' : 
+                                    btn.getAttribute('data-section') === 'personality' ? 'brain' : 
+                                    btn.getAttribute('data-section') === 'career' ? 'briefcase' : 
+                                    btn.getAttribute('data-section') === 'marriage' ? 'ring' : 
+                                    btn.getAttribute('data-section') === 'children' ? 'baby' : 
+                                    btn.getAttribute('data-section') === 'decade-fortune' ? 'hourglass-half' : 
+                                    btn.getAttribute('data-section') === 'milestones' ? 'map-marked-alt' : 
+                                    btn.getAttribute('data-section') === 'monthly-fortune' ? 'calendar-day' : 'scroll'}"></i> ${sectionName}</span><i class="fas fa-chevron-down toggle-icon"></i>`;
+                    btn.classList.remove('active');
+                    btn.disabled = false;
+                });
+                
+                // Reset description display
+                document.querySelectorAll('.load-btn-container').forEach(container => {
+                    container.classList.remove('active');
+                });
+                
+                // Reset tabs
+                document.querySelectorAll('.menu-tab').forEach(tab => tab.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+                document.querySelector('.menu-tab[data-tab="fortune"]').classList.add('active');
+                document.getElementById('fortune-tab').classList.add('active');
+                
+                // Reset loaded sections
+                loadedSections = {};
+            }
+            
+            // Initialize tabs
+            document.querySelectorAll('.menu-tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    document.querySelectorAll('.menu-tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                    
+                    this.classList.add('active');
+                    const tabId = this.getAttribute('data-tab') + '-tab';
+                    document.getElementById(tabId).classList.add('active');
+                });
+            });
+            
+            // Initialize load buttons and collapse functionality
+            function initLoadButtons() {
+                document.querySelectorAll('.load-btn').forEach(button => {
+                    const section = button.getAttribute('data-section');
+                    // Skip already loaded first section
+                    if (loadedSections[section]) return;
+                    
+                    const contentElement = document.getElementById(`${section}-content`);
+                    const container = button.closest('.load-btn-container');
+                    
+                    button.addEventListener('click', async function(e) {
+                        e.preventDefault();
+                        
+                        if (loadedSections[section]) {
+                            container.classList.toggle('active');
+                            contentElement.classList.toggle('active');
+                            return;
+                        }
+                        
+                        this.disabled = true;
+                        const sectionName = button.querySelector('span').textContent.trim();
+                        this.innerHTML = `<span><span class="loading"></span> ${sectionName}-QUANTUM ANALYSIS...</span>`;
+                        container.classList.add('active');
+                        
+                        const progressContainer = document.createElement('div');
+                        progressContainer.className = 'progress-container';
+                        progressContainer.innerHTML = '<div class="progress-bar"></div>';
+                        progressContainer.style.display = 'block';
+                        
+                        contentElement.innerHTML = '';
+                        contentElement.appendChild(progressContainer);
+                        
+                        const progressBar = progressContainer.querySelector('.progress-bar');
+                        let progress = 0;
+                        const progressInterval = setInterval(() => {
+                            progress += Math.random() * 10;
+                            if (progress >= 100) progress = 100;
+                            progressBar.style.width = `${progress}%`;
+                        }, 300);
+                        
+                        try {
+                            const result = await getBaziAnalysis(section, birthData);
+                            clearInterval(progressInterval);
+                            displaySectionContent(section, result, contentElement);
+                            
+                            button.innerHTML = `<span><i class="fas fa-check"></i> ${sectionName}-ANALYSIS COMPLETE</span><i class="fas fa-chevron-down toggle-icon"></i>`;
+                            button.disabled = false;
+                            contentElement.classList.add('active');
+                            loadedSections[section] = true;
+                            
+                            if (section === 'decade-fortune') {
+                                initFortuneChart(result);
+                            }
+                        } catch (error) {
+                            console.error(`Error loading ${section}:`, error);
+                            clearInterval(progressInterval);
+                            contentElement.innerHTML = '<p style="color:var(--danger-color)">Load failed, please retry</p>';
+                            button.disabled = false;
+                            button.innerHTML = `<span><i class="fas fa-redo"></i> RETRY ANALYSIS</span>`;
+                        }
+                    });
+                });
+            }
+            
+            // Initialize Five Elements Energy Chart
+            function initElementChart(data) {
+                // Calculate total energy value
+                const total = data.reduce((sum, value) => sum + value, 0);
+                // Calculate element percentages
+                const percentages = data.map(value => Math.round((value/total)*100));
+                
+                const elementData = {
+                    labels: ['Wood', 'Fire', 'Earth', 'Metal', 'Water'].map((label, i) => `${label} ${percentages[i]}%`),
+                    datasets: [{
+                        data: data,
+                        backgroundColor: [
+                            'rgba(0, 255, 136, 0.3)',
+                            'rgba(255, 51, 0, 0.3)',
+                            'rgba(255, 204, 0, 0.3)',
+                            'rgba(204, 204, 204, 0.3)',
+                            'rgba(0, 153, 255, 0.3)'
+                        ],
+                        borderColor: [
+                            'rgba(0, 255, 136, 1)',
+                            'rgba(255, 51, 0, 1)',
+                            'rgba(255, 204, 0, 1)',
+                            'rgba(204, 204, 204, 1)',
+                            'rgba(0, 153, 255, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                };
+                
+                elementChart = new Chart(elementChartCtx, {
+                    type: 'radar',
+                    data: elementData,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            r: {
+                                angleLines: {
+                                    display: true,
+                                    color: 'rgba(0, 240, 255, 0.2)'
+                                },
+                                suggestedMin: 0,
+                                suggestedMax: Math.max(...data) + 2,
+                                ticks: {
+                                    backdropColor: 'transparent',
+                                    color: 'rgba(0, 240, 255, 0.7)',
+                                    font: {
+                                        family: "'Orbitron', sans-serif"
+                                    },
+                                    stepSize: 1
+                                },
+                                pointLabels: {
+                                    color: 'rgba(0, 240, 255, 0.9)',
+                                    font: {
+                                        family: "'Orbitron', sans-serif",
+                                        size: 14
+                                    }
+                                },
+                                grid: {
+                                    color: 'rgba(0, 240, 255, 0.1)'
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const label = context.label || '';
+                                        const value = context.raw;
+                                        const percentage = percentages[context.dataIndex];
+                                        return `${label}: ${value} (${percentage}%)`;
+                                    }
+                                }
+                            }
+                        },
+                        elements: {
+                            line: {
+                                tension: 0.1
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // Initialize Fortune Trend Chart
+            function initFortuneChart(data) {
+                const fortuneContent = document.getElementById('decade-fortune-content');
+                const canvas = document.createElement('canvas');
+                canvas.className = 'fortune-chart';
+                fortuneContent.appendChild(canvas);
+                
+                const ctx = canvas.getContext('2d');
+                
+                // Sample data - should come from API
+                const fortuneData = {
+                    labels: ['10-20', '20-30', '30-40', '40-50', '50-60', '60-70'],
+                    datasets: [{
+                        label: 'Fortune Index',
+                        data: [65, 59, 80, 81, 56, 55],
+                        fill: true,
+                        backgroundColor: 'rgba(0, 240, 255, 0.2)',
+                        borderColor: 'rgba(0, 240, 255, 1)',
+                        tension: 0.4,
+                        pointBackgroundColor: 'rgba(0, 240, 255, 1)'
+                    }]
+                };
+                
+                new Chart(ctx, {
+                    type: 'line',
+                    data: fortuneData,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 100,
+                                ticks: {
+                                    color: 'rgba(0, 240, 255, 0.7)'
+                                },
+                                grid: {
+                                    color: 'rgba(0, 240, 255, 0.1)'
+                                }
+                            },
+                            x: {
+                                ticks: {
+                                    color: 'rgba(0, 240, 255, 0.7)'
+                                },
+                                grid: {
+                                    color: 'rgba(0, 240, 255, 0.1)'
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                labels: {
+                                    color: 'rgba(0, 240, 255, 0.9)'
+                                }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return `Fortune Index: ${context.raw}`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            
+            calculateBtn.addEventListener('click', async function(e) {
+                e.preventDefault();
+                
+                const name = document.getElementById('name').value;
+                const birthDate = document.getElementById('birth-date').value;
+                const birthTime = birthTimeInput.value;
+                const gender = document.getElementById('gender').value;
+                const birthPlace = document.getElementById('birth-place').value;
+                
+                if (!birthDate || !birthTime || !gender || !birthPlace) {
+                    alert('Please complete all birth information');
+                    return;
+                }
+                
+                // Get timezone offset by place
+                const timezoneOffset = getTimezoneOffsetByPlace(birthPlace);
+                
+                // Handle timezone issues
+                const [year, month, day] = birthDate.split('-');
+                const [hours, minutes] = birthTime.split(':');
+                const birthDateTime = new Date(year, month-1, day, hours, minutes);
+                
+                // Calculate true solar time
+                const trueSolarTime = calculateTrueSolarTime(birthDateTime, birthPlace);
+                
+                birthData = { 
+                    name, 
+                    date: `${year}-${month}-${day}`,
+                    time: `${hours}:${minutes}`, 
+                    gender: gender,
+                    birthPlace: birthPlace,
+                    timezoneOffset: timezoneOffset,
+                    trueSolarTime: trueSolarTime
+                };
+                
+                calculateBtn.disabled = true;
+                calculateBtn.innerHTML = '<span class="loading"></span> QUANTUM ANALYZING...';
+                
+                try {
+                    // Add loading animation
+                    const loadingOverlay = document.createElement('div');
+                    loadingOverlay.className = 'loading-overlay';
+                    loadingOverlay.innerHTML = `
+                        <div class="loading"></div>
+                        <p>INITIALIZING QUANTUM ENGINE...</p>
+                    `;
+                    document.body.appendChild(loadingOverlay);
+                    
+                    // 1. First get basic info
+                    const basicInfo = await getBaziAnalysis('basic', birthData);
+                    
+                    // 2. Display basic info
+                    displayBasicInfo(basicInfo);
+                    
+                    // 3. Initialize elements chart
+                    const elementsLine = basicInfo.split('\n').find(line => line.includes('Elements Energy'));
+                    if (elementsLine) {
+                        const elementsMatch = elementsLine.match(/Elements Energy: \[(.*?)\]/);
+                        if (elementsMatch && elementsMatch[1]) {
+                            const elements = elementsMatch[1].split(',').map(Number);
+                            initElementChart(elements);
+                        }
+                    }
+                    
+                    // 4. Show result page after all data loaded
+                    inputSection.style.display = 'none';
+                    resultSection.style.display = 'block';
+                    document.body.removeChild(loadingOverlay);
+                    
+                    // 5. Initialize load buttons for other sections
+                    initLoadButtons();
+                    window.scrollTo(0, 0);
+                    
+                } catch (error) {
+                    console.error('Analysis failed:', error);
+                    alert('Quantum analysis failed, please try again');
+                    if (document.querySelector('.loading-overlay')) {
+                        document.body.removeChild(document.querySelector('.loading-overlay'));
+                    }
+                } finally {
+                    calculateBtn.disabled = false;
+                    calculateBtn.innerHTML = '<i class="fas fa-brain"></i> START QUANTUM ANALYSIS';
+                }
+            });
+            
+            // Get timezone offset by place
+            function getTimezoneOffsetByPlace(placeId) {
+                // Default Beijing time (UTC+8)
+                let offset = 8;
+                
+                // Urumqi and Lhasa are UTC+6
+                if (placeId === '5' || placeId === '6' || placeId === '19' || placeId === '35') {
+                    offset = 6;
+                }
+                
+                return offset * 60; // Return minutes
+            }
+            
+            // Calculate true solar time
+            function calculateTrueSolarTime(date, placeId) {
+                // Simplified calculation - should use longitude of birth place
+                // Beijing longitude 116.4, standard UTC+8 longitude 120, 4 minutes per degree
+                
+                let longitude = 116.4; // Default Beijing longitude
+                
+                // Set longitude for different places
+                switch(placeId) {
+                    case '1': longitude = 116.4; break; // Beijing
+                    case '2': longitude = 121.47; break; // Shanghai
+                    case '3': longitude = 113.27; break; // Guangzhou
+                    case '4': longitude = 104.06; break; // Chengdu
+                    case '5': longitude = 87.62; break; // Urumqi
+                    case '6': longitude = 91.11; break; // Lhasa
+                    case '7': longitude = 114.17; break; // Hong Kong
+                    case '8': longitude = 113.54; break; // Macau
+                    case '9': longitude = 121.56; break; // Taipei
+                    case '10': longitude = 126.63; break; // Harbin
+                    case '11': longitude = 125.35; break; // Changchun
+                    case '12': longitude = 123.43; break; // Shenyang
+                    case '13': longitude = 117.20; break; // Tianjin
+                    case '14': longitude = 114.48; break; // Shijiazhuang
+                    case '15': longitude = 112.55; break; // Taiyuan
+                    case '16': longitude = 111.65; break; // Hohhot
+                    case '17': longitude = 108.93; break; // Xi'an
+                    case '18': longitude = 103.82; break; // Lanzhou
+                    case '19': longitude = 101.77; break; // Xining
+                    case '20': longitude = 106.27; break; // Yinchuan
+                    case '21': longitude = 117.00; break; // Jinan
+                    case '22': longitude = 118.78; break; // Nanjing
+                    case '23': longitude = 120.15; break; // Hangzhou
+                    case '24': longitude = 117.27; break; // Hefei
+                    case '25': longitude = 119.30; break; // Fuzhou
+                    case '26': longitude = 115.89; break; // Nanchang
+                    case '27': longitude = 113.65; break; // Zhengzhou
+                    case '28': longitude = 114.31; break; // Wuhan
+                    case '29': longitude = 112.97; break; // Changsha
+                    case '30': longitude = 108.32; break; // Nanning
+                    case '31': longitude = 110.35; break; // Haikou
+                    case '32': longitude = 106.55; break; // Chongqing
+                    case '33': longitude = 106.63; break; // Guiyang
+                    case '34': longitude = 102.72; break; // Kunming
+                    case '35': longitude = 91.11; break; // Lhasa
+                    default: longitude = 116.4; // Default Beijing
+                }
+                
+                // Calculate time difference (minutes)
+                const timeDiff = (120 - longitude) * 4;
+                
+                // Calculate true solar time
+                const trueSolarTime = new Date(date.getTime() + timeDiff * 60 * 1000);
+                
+                return {
+                    time: trueSolarTime,
+                    timeDiff: timeDiff
+                };
+            }
+            
+            async function getBaziAnalysis(section, data) {
+                const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
+                const apiKey = 'sk-b2950087a9d5427392762814114b22a9';
+                
+                // Strict Bazi calculation rules
+                let prompt = `Please strictly follow these rules for Bazi analysis:
+1. Year pillar starts at Li Chun (Spring Begins), not Chinese New Year
+2. Month pillars divided by solar terms (e.g. first month starts at Li Chun)
+3. Day pillar calculated by Gregorian date
+4. Hour pillar divided by earthly branches time periods
+
+Current Date: April 11, 2025
+Analyze based on:
+Name: ${data.name || 'Not provided'}
+Birth Date: ${data.date}
+Birth Time: ${data.time} (True solar time calculated for ${getPlaceName(data.birthPlace)}, time difference ${data.trueSolarTime.timeDiff} minutes)
+Gender: ${data.gender === 'male' ? 'Male' : 'Female'}
+Timezone Offset: ${data.timezoneOffset} minutes
+
+`;
+
+                // Different prompts for different analysis sections
+                switch(section) {
+                    case 'basic':
+                        prompt += `Return following info:
+1 Bazi Pillars: Year[content] Month[content] Day[content] Hour[content]
+2 Ten Gods: [stem1,stem2,stem3,stem4,branch1,branch2,branch3,branch4]
+3 Destiny Level: [1-5 stars]
+4 Wealth Level: [1-5 stars]
+5 Elements Energy: [wood,fire,earth,metal,water] (1-10 points based on elements relationships)
+
+Return in concise format without analysis or special symbols like #*.`;
+                        break;
+                    case 'strength':
+                        prompt += `Analyze Day Master strength:
+1 Simplified Bazi
+2 Day Master's season, root, support status
+3 Stems and branches support
+4 Combinations and clashes
+5 Possible Follow Strong/Weak patterns
+6 If Follow Strong/Weak, likes/dislikes differ
+
+Return format:
+Strength: [Strong/Follow Strong/Weak/Follow Weak/Balanced]
+Analysis: [detailed analysis]
+Favorable/Unfavorable: [detailed analysis]
+No special symbols`;
+                        break;
+                    case 'pattern':
+                        prompt += `Analyze special Bazi patterns:
+1 Existence of special patterns
+2 Pattern names and characteristics
+3 Impact on destiny
+
+Special Pattern: [pattern name]
+Pattern Analysis: [detailed analysis]`;
+                        break;
+                    case 'wealth':
+                        prompt += `Analyze wealth situation:
+1 Wealth pattern
+2 Decade analysis
+3 Yearly analysis
+
+Return format:
+Decade Analysis: [table format, period1:score,period2:score,...] (1-5 stars)
+Yearly Analysis: [table format, Jan:score,Feb:score,...] (1-5 stars)
+Overall Wealth: [detailed analysis]`;
+                        break;
+                    case 'elements':
+                        prompt += `Analyze Five Elements balance:
+1 Elements distribution
+2 Adjustment suggestions
+
+Return format:
+Elements Distribution: [table format]
+Analysis: [detailed analysis]`;
+                        break;
+                    case 'children':
+                        prompt += `Analyze children situation:
+1 Children count analysis
+2 Children personality
+3 Key info
+
+Children Summary: [detailed analysis]`;
+                        break;
+                    case 'marriage':
+                        prompt += `Analyze marriage situation:
+1 Spouse personality
+2 Favorable marriage years
+3 Key info
+
+Return format:
+Spouse Analysis: [detailed analysis]
+Favorable Years: [table format]
+Marriage Summary: [detailed analysis]`;
+                        break;
+                    case 'decade-fortune':
+                        prompt += `Analyze decade fortune trends:
+1 Major life cycles start/end
+2 Pillars and Ten Gods
+3 Characteristics of each period
+
+Return format:
+Decade Analysis: [table format, detailed analysis]
+Fortune Trend: [table format, period1:score,period2:score,...] (1-5 stars)`;
+                        break;
+                    case 'monthly-fortune':
+                        prompt += `Analyze current year monthly fortune:
+1 Monthly fortune
+2 Auspicious/inauspicious analysis
+
+Return format:
+Monthly Fortune: [detailed in table format]
+Fortune Trend: [table format, period1:score,period2:score,...] (1-5 stars)`;
+                        break;
+                    default:
+                        prompt += `Analyze ${section} related content`;
+                }
+                
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: "deepseek-chat",
+                        messages: [{ role: "user", content: prompt }],
+                        temperature: 0.7
+                    })
+                });
+                
+                if (!response.ok) throw new Error(`API request failed: ${response.status}`);
+                const result = await response.json();
+                return result.choices[0].message.content;
+            }
+            
+            // Get place name by ID
+            function getPlaceName(placeId) {
+                const places = {
+                    '1': 'Beijing',
+                    '2': 'Shanghai',
+                    '3': 'Guangzhou',
+                    '4': 'Chengdu',
+                    '5': 'Urumqi',
+                    '6': 'Lhasa',
+                    '7': 'Hong Kong',
+                    '8': 'Macau',
+                    '9': 'Taipei',
+                    '10': 'Harbin',
+                    '11': 'Changchun',
+                    '12': 'Shenyang',
+                    '13': 'Tianjin',
+                    '14': 'Shijiazhuang',
+                    '15': 'Taiyuan',
+                    '16': 'Hohhot',
+                    '17': 'Xi\'an',
+                    '18': 'Lanzhou',
+                    '19': 'Xining',
+                    '20': 'Yinchuan',
+                    '21': 'Jinan',
+                    '22': 'Nanjing',
+                    '23': 'Hangzhou',
+                    '24': 'Hefei',
+                    '25': 'Fuzhou',
+                    '26': 'Nanchang',
+                    '27': 'Zhengzhou',
+                    '28': 'Wuhan',
+                    '29': 'Changsha',
+                    '30': 'Nanning',
+                    '31': 'Haikou',
+                    '32': 'Chongqing',
+                    '33': 'Guiyang',
+                    '34': 'Kunming',
+                    '35': 'Lhasa',
+                    '36': 'Other'
+                };
+                
+                return places[placeId] || 'Unknown location';
+            }
+            
+            function displayBasicInfo(info) {
+                const lines = info.split('\n').filter(line => line.trim());
+                
+                // Extract Bazi pillars
+                const pillarsLine = lines.find(line => line.includes('Bazi Pillars'));
+                if (pillarsLine) {
+                    const pillars = pillarsLine.match(/Year\[(.*?)\] Month\[(.*?)\] Day\[(.*?)\] Hour\[(.*?)\]/);
+                    if (pillars && pillars.length === 5) {
+                        // Update Bazi table
+                        yearStem.textContent = pillars[1].charAt(0);
+                        yearBranch.textContent = pillars[1].charAt(1);
+                        monthStem.textContent = pillars[2].charAt(0);
+                        monthBranch.textContent = pillars[2].charAt(1);
+                        dayStem.textContent = pillars[3].charAt(0);
+                        dayBranch.textContent = pillars[3].charAt(1);
+                        hourStem.textContent = pillars[4].charAt(0);
+                        hourBranch.textContent = pillars[4].charAt(1);
+                        
+                        // Set element colors
+                        setElementColors(yearStem, pillars[1].charAt(0));
+                        setElementColors(yearBranch, pillars[1].charAt(1));
+                        setElementColors(monthStem, pillars[2].charAt(0));
+                        setElementColors(monthBranch, pillars[2].charAt(1));
+                        setElementColors(dayStem, pillars[3].charAt(0));
+                        setElementColors(dayBranch, pillars[3].charAt(1));
+                        setElementColors(hourStem, pillars[4].charAt(0));
+                        setElementColors(hourBranch, pillars[4].charAt(1));
+                    }
+                }
+                
+                // Extract Ten Gods
+                const tenGodsLine = lines.find(line => line.includes('Ten Gods'));
+                if (tenGodsLine) {
+                    const tenGodsMatch = tenGodsLine.match(/Ten Gods: \[(.*?)\]/);
+                    if (tenGodsMatch && tenGodsMatch[1]) {
+                        const allGods = tenGodsMatch[1].split(',');
+                        
+                        // Clear previous content
+                        stemGodsList.innerHTML = '';
+                        branchGodsList.innerHTML = '';
+                        
+                        // First 4 are stem gods
+                        allGods.slice(0, 4).forEach((god, index) => {
+                            if (god.trim()) {
+                                const item = document.createElement('div');
+                                item.className = 'ten-gods-item';
+                                item.textContent = `${['Year','Month','Day','Hour'][index]}: ${god.trim()}`;
+                                stemGodsList.appendChild(item);
+                            }
+                        });
+                        
+                        // Next 4 are branch gods
+                        allGods.slice(4, 8).forEach((god, index) => {
+                            if (god.trim()) {
+                                const item = document.createElement('div');
+                                item.className = 'ten-gods-item';
+                                item.textContent = `${['Year','Month','Day','Hour'][index]}: ${god.trim()}`;
+                                branchGodsList.appendChild(item);
+                            }
+                        });
+                    }
+                }
+                
+                // Extract destiny level
+                const fateLine = lines.find(line => line.includes('Destiny Level'));
+                if (fateLine) {
+                    const fateMatch = fateLine.match(/Destiny Level: \[(.*?)\]/);
+                    if (fateMatch && fateMatch[1]) {
+                        fateRating.textContent = getStarRating(fateMatch[1]);
+                    }
+                }
+                
+                // Extract wealth level
+                const wealthLine = lines.find(line => line.includes('Wealth Level'));
+                if (wealthLine) {
+                    const wealthMatch = wealthLine.match(/Wealth Level: \[(.*?)\]/);
+                    if (wealthMatch && wealthMatch[1]) {
+                        wealthRating.textContent = getStarRating(wealthMatch[1]);
+                    }
+                }
+            }
+            
+            // Set element colors by stem/branch
+            function setElementColors(element, text) {
+                // Heavenly Stems element correspondence
+                const stemElements = {
+                    '甲': 'wood', '乙': 'wood',
+                    '丙': 'fire', '丁': 'fire',
+                    '戊': 'earth', '己': 'earth',
+                    '庚': 'metal', '辛': 'metal',
+                    '壬': 'water', '癸': 'water'
+                };
+                
+                // Earthly Branches element correspondence
+                const branchElements = {
+                    '寅': 'wood', '卯': 'wood',
+                    '午': 'fire', '巳': 'fire',
+                    '辰': 'earth', '戌': 'earth', '丑': 'earth', '未': 'earth',
+                    '申': 'metal', '酉': 'metal',
+                    '子': 'water', '亥': 'water'
+                };
+                
+                // Add corresponding element class
+                if (stemElements[text]) {
+                    element.classList.add(stemElements[text]);
+                } else if (branchElements[text]) {
+                    element.classList.add(branchElements[text]);
+                }
+            }
+            
+            function getStarRating(ratingText) {
+                // Convert numeric rating to stars
+                const rating = parseInt(ratingText);
+                if (isNaN(rating)) return '-';
+                
+                const fullStars = '★'.repeat(rating);
+                const emptyStars = '☆'.repeat(5 - rating);
+                return fullStars + emptyStars;
+            }
+            
+            function displaySectionContent(section, result, contentElement) {
+                // Handle star ratings
+                if (result.includes('★')) {
+                    result = result.replace(/(★+)/g, '<span class="rating" style="color:var(--earth-color);text-shadow:0 0 5px var(--earth-color)">$1</span>');
+                    result = result.replace(/(☆+)/g, '<span style="color:#666">$1</span>');
+                }
+                
+                // Parse Markdown with marked.js
+                const html = marked.parse(result);
+                
+                // Handle table styles
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = html;
+                
+                // Add style class to all tables
+                tempDiv.querySelectorAll('table').forEach(table => {
+                    table.classList.add('markdown-table');
+                });
+                
+                contentElement.innerHTML = tempDiv.innerHTML;
+            }
+        });
+    </script>
+</body>
+</html>
