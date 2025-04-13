@@ -1241,17 +1241,17 @@
                             </div>
                             <div class="bazi-row">
                                 <div class="bazi-cell">天干</div>
-                                <div class="bazi-cell wood" id="year-stem">甲</div>
-                                <div class="bazi-cell fire" id="month-stem">丙</div>
-                                <div class="bazi-cell earth" id="day-stem">戊</div>
-                                <div class="bazi-cell metal" id="hour-stem">庚</div>
+                                <div class="bazi-cell wood" id="year-stem">壬</div>
+                                <div class="bazi-cell fire" id="month-stem">癸</div>
+                                <div class="bazi-cell earth" id="day-stem">己</div>
+                                <div class="bazi-cell metal" id="hour-stem">癸</div>
                             </div>
                             <div class="bazi-row">
                                 <div class="bazi-cell">地支</div>
-                                <div class="bazi-cell wood" id="year-branch">寅</div>
-                                <div class="bazi-cell fire" id="month-branch">午</div>
-                                <div class="bazi-cell earth" id="day-branch">辰</div>
-                                <div class="bazi-cell metal" id="hour-branch">申</div>
+                                <div class="bazi-cell wood" id="year-branch">子</div>
+                                <div class="bazi-cell fire" id="month-branch">丑</div>
+                                <div class="bazi-cell earth" id="day-branch">巳</div>
+                                <div class="bazi-cell metal" id="hour-branch">酉</div>
                             </div>
                         </div>
                     </div>
@@ -1264,19 +1264,20 @@
                             <div class="ten-gods-column">
                                 <h4><i class="fas fa-sun"></i> 天干十神</h4>
                                 <div class="ten-gods-list" id="stem-gods-list">
-                                    <div class="ten-gods-item">年干: 比肩</div>
-                                    <div class="ten-gods-item">月干: 食神</div>
+                                    <div class="ten-gods-item">年干: 正财</div>
+                                    <div class="ten-gods-item">月干: 偏财</div>
                                     <div class="ten-gods-item">日干: 日主</div>
-                                <div class="ten-gods-item">时干: 偏财</div>
+                                    <div class="ten-gods-item">时干: 偏财</div>
+                                </div>
                             </div>
-                        </div>
-                        <div class="ten-gods-column">
-                            <h4><i class="fas fa-moon"></i> 地支十神</h4>
-                            <div class="ten-gods-list" id="branch-gods-list">
-                                <div class="ten-gods-item">年支: 比肩</div>
-                                <div class="ten-gods-item">月支: 伤官</div>
-                                <div class="ten-gods-item">日支: 劫财</div>
-                                <div class="ten-gods-item">时支: 七杀</div>
+                            <div class="ten-gods-column">
+                                <h4><i class="fas fa-moon"></i> 地支十神</h4>
+                                <div class="ten-gods-list" id="branch-gods-list">
+                                    <div class="ten-gods-item">年支: 偏财</div>
+                                    <div class="ten-gods-item">月支: 比肩</div>
+                                    <div class="ten-gods-item">日支: 正印</div>
+                                    <div class="ten-gods-item">时支: 食神</div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1545,6 +1546,7 @@
             const currentDate = new Date(2025, 3, 11); // 月份是0-11，所以3表示4月
             let birthData = {};
             let loadedSections = {};
+            let currentPillars = {}; // 存储当前八字数据
             
             // 时辰选择器逻辑
             timePeriodOptions.forEach(option => {
@@ -1649,6 +1651,7 @@
                 
                 // 重置已加载的章节
                 loadedSections = {};
+                currentPillars = {};
             }
             
             // 初始化标签页
@@ -1665,67 +1668,73 @@
             
             // 初始化加载按钮和折叠功能
             function initLoadButtons() {
-                document.querySelectorAll('.load-btn').forEach(button => {
-                    const section = button.getAttribute('data-section');
-                    // 跳过已经加载的第一个部分
-                    if (loadedSections[section]) return;
-                    
-                    const contentElement = document.getElementById(`${section}-content`);
-                    const container = button.closest('.load-btn-container');
-                    
-                    button.addEventListener('click', async function(e) {
-                        e.preventDefault();
-                        
-                        if (loadedSections[section]) {
-                            container.classList.toggle('active');
-                            contentElement.classList.toggle('active');
-                            return;
-                        }
-                        
-                        this.disabled = true;
-                        const sectionName = button.querySelector('span').textContent.trim();
-                        this.innerHTML = `<span><span class="loading"></span> ${sectionName}-量子分析中...</span>`;
-                        container.classList.add('active');
-                        
-                        const progressContainer = document.createElement('div');
-                        progressContainer.className = 'progress-container';
-                        progressContainer.innerHTML = '<div class="progress-bar"></div>';
-                        progressContainer.style.display = 'block';
-                        
-                        contentElement.innerHTML = '';
-                        contentElement.appendChild(progressContainer);
-                        
-                        const progressBar = progressContainer.querySelector('.progress-bar');
-                        let progress = 0;
-                        const progressInterval = setInterval(() => {
-                            progress += Math.random() * 10;
-                            if (progress >= 100) progress = 100;
-                            progressBar.style.width = `${progress}%`;
-                        }, 300);
-                        
-                        try {
-                            const result = await getBaziAnalysis(section, birthData);
-                            clearInterval(progressInterval);
-                            displaySectionContent(section, result, contentElement);
-                            
-                            button.innerHTML = `<span><i class="fas fa-check"></i> ${sectionName}-分析完成</span><i class="fas fa-chevron-down toggle-icon"></i>`;
-                            button.disabled = false;
-                            contentElement.classList.add('active');
-                            loadedSections[section] = true;
-                            
-                            if (section === 'decade-fortune') {
-                                initFortuneChart(result);
-                            }
-                        } catch (error) {
-                            console.error(`加载${section}失败:`, error);
-                            clearInterval(progressInterval);
-                            contentElement.innerHTML = '<p style="color:var(--danger-color)">加载失败，请重试</p>';
-                            button.disabled = false;
-                            button.innerHTML = `<span><i class="fas fa-redo"></i> 重新分析</span>`;
-                        }
-                    });
-                });
+    document.querySelectorAll('.load-btn').forEach(button => {
+        const section = button.getAttribute('data-section');
+        // 跳过已经加载的部分
+        if (loadedSections[section]) return;
+        
+        const contentElement = document.getElementById(`${section}-content`);
+        const container = button.closest('.load-btn-container');
+        
+        button.addEventListener('click', async function(e) {
+            e.preventDefault();
+            
+            if (loadedSections[section]) {
+                container.classList.toggle('active');
+                contentElement.classList.toggle('active');
+                return;
             }
+            
+            // 保存原始按钮HTML，以便恢复
+            const originalBtnHtml = button.innerHTML;
+            
+            this.disabled = true;
+            const sectionName = button.querySelector('span').textContent.trim();
+            button.innerHTML = `<span><span class="loading"></span> 量子分析中...</span><i class="fas fa-chevron-down toggle-icon"></i>`;
+            container.classList.add('active');
+            
+            const progressContainer = document.createElement('div');
+            progressContainer.className = 'progress-container';
+            progressContainer.innerHTML = '<div class="progress-bar"></div>';
+            progressContainer.style.display = 'block';
+            
+            contentElement.innerHTML = '';
+            contentElement.appendChild(progressContainer);
+            
+            const progressBar = progressContainer.querySelector('.progress-bar');
+            let progress = 0;
+            const progressInterval = setInterval(() => {
+                progress += Math.random() * 10;
+                if (progress >= 100) progress = 100;
+                progressBar.style.width = `${progress}%`;
+            }, 300);
+            
+            try {
+                const result = await getBaziAnalysis(section, birthData);
+                clearInterval(progressInterval);
+                displaySectionContent(section, result, contentElement);
+                
+                // 恢复原始按钮HTML，只添加check图标
+                button.innerHTML = originalBtnHtml.replace('<i class="fas fa-chevron-down toggle-icon"></i>', 
+                    '<i class="fas fa-check"></i><i class="fas fa-chevron-down toggle-icon"></i>');
+                
+                button.disabled = false;
+                contentElement.classList.add('active');
+                loadedSections[section] = true;
+                
+                if (section === 'decade-fortune') {
+                    initFortuneChart(result);
+                }
+            } catch (error) {
+                console.error(`加载${section}失败:`, error);
+                clearInterval(progressInterval);
+                contentElement.innerHTML = '<p style="color:var(--danger-color)">加载失败，请重试</p>';
+                button.disabled = false;
+                button.innerHTML = originalBtnHtml;
+            }
+        });
+    });
+}
             
             // 初始化五行能量图
             function initElementChart(data) {
@@ -1974,6 +1983,11 @@
 
 `;
 
+                // 确保使用基础信息中的八字数据
+                if (Object.keys(currentPillars).length > 0) {
+                    prompt += `当前八字：${currentPillars.year} ${currentPillars.month} ${currentPillars.day} ${currentPillars.hour}\n\n`;
+                }
+
                 // 根据不同的分析部分设置不同的提示词
                 switch(section) {
                     case 'basic':
@@ -1996,6 +2010,7 @@
 6 如果从强或从弱喜忌会有不同
 
 返回格式：
+八字：${currentPillars.year} ${currentPillars.month} ${currentPillars.day} ${currentPillars.hour}
 身强身弱：[强/从强/弱/从弱/均衡]
 分析理由：[详细分析]
 喜用和忌凶：[详细分析]
@@ -2107,6 +2122,14 @@
                         dayBranch.textContent = pillars[3].charAt(1);
                         hourStem.textContent = pillars[4].charAt(0);
                         hourBranch.textContent = pillars[4].charAt(1);
+                        
+                        // 存储当前八字数据
+                        currentPillars = {
+                            year: pillars[1],
+                            month: pillars[2],
+                            day: pillars[3],
+                            hour: pillars[4]
+                        };
                         
                         // 根据五行属性设置颜色
                         setElementColors(yearStem, pillars[1].charAt(0));
