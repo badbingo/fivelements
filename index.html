@@ -651,9 +651,22 @@
         
         .rating-stars {
             color: var(--earth-color);
-            font-size: 22px;
+            font-size: 44px; /* 放大星星大小 */
             letter-spacing: 5px;
             text-shadow: 0 0 5px var(--earth-color);
+        }
+        
+        .rating-title {
+            font-size: 18px;
+            color: var(--title-color);
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        .rating-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
         
         .menu-tabs {
@@ -1027,6 +1040,10 @@
                 display: block;
                 overflow-x: auto;
             }
+            
+            .rating-stars {
+                font-size: 32px; /* 移动端适当减小星星大小 */
+            }
         }
         
         @media (max-width: 480px) {
@@ -1086,6 +1103,10 @@
             
             .element-chart-container, .fortune-chart-container {
                 height: 200px;
+            }
+            
+            .rating-stars {
+                font-size: 24px; /* 更小屏幕进一步减小星星大小 */
             }
         }
         
@@ -1214,18 +1235,22 @@
         <div class="result-section" id="result-section">
             <div class="basic-info" id="basic-info">
                 <div class="info-section">
-                    <h3><i class="fas fa-chart-network"></i> 命格评估</h3>
-                    <div class="info-content">
-                        <div class="rating-container">
-                            <span class="rating-label">命格等级:</span>
-                            <span class="rating-stars" id="fate-rating">-</span>
-                        </div>
-                        <div class="rating-container">
-                            <span class="rating-label">财富等级:</span>
-                            <span class="rating-stars" id="wealth-rating">-</span>
-                        </div>
-                    </div>
-                </div>
+    <h3 style="text-align: center; justify-content: center;">
+        <i class="fas fa-user-astronaut"></i> <span id="user-name-display"></span> · <span id="user-birth-display"></span>
+    </h3>
+    <div class="info-content">
+        <div style="display: flex; justify-content: space-between; width: 100%;">
+            <div class="rating-group">
+                <div class="rating-title"><i class="fas fa-star"></i> 命格等级</div>
+                <div class="rating-stars" id="fate-rating">-</div>
+            </div>
+            <div class="rating-group">
+                <div class="rating-title"><i class="fas fa-coins"></i> 财富等级</div>
+                <div class="rating-stars" id="wealth-rating">-</div>
+            </div>
+        </div>
+    </div>
+</div>
                 
                 <div class="info-section">
                     <h3><i class="fas fa-dna"></i> 八字四柱</h3>
@@ -1310,17 +1335,27 @@
                                 <span>水</span>
                             </div>
                         </div>
+                        <!-- 添加今日运势评分 -->
+                        <div style="display: flex; justify-content: space-between; width: 100%; margin-top: 20px;">
+                            <div class="rating-group">
+                                <div class="rating-title"><i class="fas fa-calendar-day"></i> 今日运势</div>
+                                <div class="rating-stars" id="today-fortune-rating">★★★☆☆</div>
+                            </div>
+                            <div class="rating-group">
+                                <div class="rating-title"><i class="fas fa-piggy-bank"></i> 今日财运</div>
+                                <div class="rating-stars" id="today-wealth-rating">★★☆☆☆</div>
+                            </div>
+                         </div>
                     </div>
                 </div>
             </div>
             
             <div class="menu-tabs">
-                <div class="menu-tab active" data-tab="fortune"><i class="fas fa-chart-line"></i> 命盘分析</div>
+                <div class="menu-tab active" data-tab="fortune"><i class="fas fa-network-wired"></i> 命盘分析</div>
                 <div class="menu-tab" data-tab="character"><i class="fas fa-user-astronaut"></i> 性格事业</div>
                 <div class="menu-tab" data-tab="relationship"><i class="fas fa-heartbeat"></i> 婚姻家庭</div>
-                <div class="menu-tab" data-tab="trend"><i class="fas fa-calendar-star"></i> 运势分析</div>
+                <div class="menu-tab" data-tab="trend"><i class="fas fa-chart-line"></i> 运势分析</div>
             </div>
-            
             <!-- 命运分析 -->
             <div class="tab-content active" id="fortune-tab">
                 <div class="detail-card">
@@ -1453,21 +1488,23 @@
             
             <!-- 运势分析 -->
             <div class="tab-content" id="trend-tab">
+                <!-- 今日输赢分析 (Today's Win/Loss Analysis) -->
                 <div class="detail-card">
                     <div class="load-btn-container">
-                        <button class="load-btn" data-section="today-fortune">
-                            <span><i class="fas fa-calendar-day"></i> 今日输赢分析</span>
+                        <button class="load-btn" data-section="today-winloss">
+                            <span><i class="fas fa-trophy"></i> 今日输赢分析</span>
                             <i class="fas fa-chevron-down toggle-icon"></i>
                         </button>
-                        <div class="load-btn-description">分析今日麻将赢输</div>
+                        <div class="load-btn-description">分析今日运势中的胜负概率，包括投资、博弈、竞争等方面的吉凶</div>
                     </div>
-                    <div id="today-fortune-content" class="section-content"></div>
+                    <div id="today-winloss-content" class="section-content"></div>
                 </div>
                 
+                <!-- 每月运势分析 (Monthly Fortune Analysis) -->
                 <div class="detail-card">
                     <div class="load-btn-container">
                         <button class="load-btn" data-section="monthly-fortune">
-                            <span><i class="fas fa-calendar-week"></i> 每月运势分析</span>
+                            <span><i class="fas fa-calendar-day"></i> 每月运势分析</span>
                             <i class="fas fa-chevron-down toggle-icon"></i>
                         </button>
                         <div class="load-btn-description">预测当前年份每月的运势起伏和注意事项</div>
@@ -1475,17 +1512,19 @@
                     <div id="monthly-fortune-content" class="section-content"></div>
                 </div>
                 
+                <!-- 流年运势分析 (Annual Fortune Analysis) -->
                 <div class="detail-card">
                     <div class="load-btn-container">
-                        <button class="load-btn" data-section="yearly-fortune">
+                        <button class="load-btn" data-section="annual-fortune">
                             <span><i class="fas fa-calendar-alt"></i> 流年运势分析</span>
                             <i class="fas fa-chevron-down toggle-icon"></i>
                         </button>
-                        <div class="load-btn-description">分析当前年份的整体运势和重要月份</div>
+                        <div class="load-btn-description">分析当前流年对命主的影响，包括事业、财运、健康等方面的运势</div>
                     </div>
-                    <div id="yearly-fortune-content" class="section-content"></div>
+                    <div id="annual-fortune-content" class="section-content"></div>
                 </div>
                 
+                <!-- 十年大运分析 (Decade Fortune Analysis) -->
                 <div class="detail-card">
                     <div class="load-btn-container">
                         <button class="load-btn" data-section="decade-fortune">
@@ -1497,6 +1536,7 @@
                     <div id="decade-fortune-content" class="section-content"></div>
                 </div>
                 
+                <!-- 重要节点分析 (Milestones Analysis) -->
                 <div class="detail-card">
                     <div class="load-btn-container">
                         <button class="load-btn" data-section="milestones">
@@ -1508,15 +1548,16 @@
                     <div id="milestones-content" class="section-content"></div>
                 </div>
                 
+                <!-- 重大灾祸分析 (Major Disasters Analysis) -->
                 <div class="detail-card">
                     <div class="load-btn-container">
-                        <button class="load-btn" data-section="disaster">
-                            <span><i class="fas fa-exclamation-triangle"></i> 重大灾祸分析</span>
+                        <button class="load-btn" data-section="disasters">
+                            <span><i class="fas fa-skull-crossbones"></i> 重大灾祸分析</span>
                             <i class="fas fa-chevron-down toggle-icon"></i>
                         </button>
-                        <div class="load-btn-description">分析命盘中潜在的灾祸信息及防范建议</div>
+                        <div class="load-btn-description">分析命主一生中可能遇到的重大灾祸和防范措施</div>
                     </div>
-                    <div id="disaster-content" class="section-content"></div>
+                    <div id="disasters-content" class="section-content"></div>
                 </div>
             </div>
             
@@ -1558,13 +1599,15 @@
             // 命格评估元素
             const fateRating = document.getElementById('fate-rating');
             const wealthRating = document.getElementById('wealth-rating');
+            const todayFortuneRating = document.getElementById('today-fortune-rating');
+            const todayWealthRating = document.getElementById('today-wealth-rating');
             
             // 五行图表元素
             const elementChartCtx = document.getElementById('element-chart').getContext('2d');
             let elementChart;
             
-            // 定义当前日期为2025年4月11日
-            const currentDate = new Date(2025, 3, 11); // 月份是0-11，所以3表示4月
+            // 使用当前真实日期
+            const currentDate = new Date();
             let birthData = {};
             let loadedSections = {};
             let currentPillars = {}; // 存储当前八字数据
@@ -1589,7 +1632,7 @@
                     return code;
                 }
             });
-            
+          
             // 重新测算按钮点击事件
             recalculateBtn.addEventListener('click', function() {
                 // 清空输入框
@@ -1633,6 +1676,8 @@
                 // 重置命格评估
                 fateRating.textContent = '-';
                 wealthRating.textContent = '-';
+                todayFortuneRating.textContent = '-';
+                todayWealthRating.textContent = '-';
                 
                 // 重置所有内容区域
                 document.querySelectorAll('.section-content').forEach(el => {
@@ -1900,6 +1945,27 @@
                 });
             }
             
+            // 验证日期合法性
+            function isValidDate(year, month, day) {
+                // 检查月份是否合法 (1-12)
+                if (month < 1 || month > 12) {
+                    return false;
+                }
+                
+                // 创建日期对象
+                const date = new Date(year, month - 1, day);
+                
+                // 检查日期是否有效
+                return date.getFullYear() === year && 
+                       date.getMonth() === month - 1 && 
+                       date.getDate() === day;
+            }
+            
+            // 检查闰年
+            function isLeapYear(year) {
+                return (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
+            }
+            
             calculateBtn.addEventListener('click', async function(e) {
                 e.preventDefault();
                 
@@ -1910,6 +1976,33 @@
                 
                 if (!birthDate || !birthTime || !gender) {
                     alert('请填写完整的出生信息');
+                    return;
+                }
+                
+                // 验证日期合法性
+                const dateParts = birthDate.split('-');
+                const year = parseInt(dateParts[0]);
+                const month = parseInt(dateParts[1]);
+                const day = parseInt(dateParts[2]);
+                
+                if (!isValidDate(year, month, day)) {
+                    alert('请输入有效的出生日期');
+                    return;
+                }
+                
+                // 检查闰年2月天数
+                if (month === 2) {
+                    const maxDays = isLeapYear(year) ? 29 : 28;
+                    if (day > maxDays) {
+                        alert(`${year}年2月只有${maxDays}天`);
+                        return;
+                    }
+                }
+                
+                // 检查其他月份的天数
+                const monthsWith30Days = [4, 6, 9, 11];
+                if (monthsWith30Days.includes(month) && day > 30) {
+                    alert(`${month}月只有30天`);
                     return;
                 }
                 
@@ -1938,7 +2031,7 @@
                     
                     // 2. 显示基础信息
                     displayBasicInfo(basicInfo);
-                    
+                  
                     // 3. 初始化五行图表
                     const elementsLine = basicInfo.split('\n').find(line => line.includes('五行能量'));
                     if (elementsLine) {
@@ -1974,6 +2067,11 @@
                 const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
                 const apiKey = 'sk-b2950087a9d5427392762814114b22a9';
                 
+                // 获取当前日期格式化为YYYY-MM-DD
+                const currentDateStr = currentDate.getFullYear() + '-' + 
+                                      (currentDate.getMonth() + 1).toString().padStart(2, '0') + '-' + 
+                                      currentDate.getDate().toString().padStart(2, '0');
+                
                 // 明确指定八字排盘规则
                 let prompt = `请严格按照以下规则进行八字排盘：
 1. 年柱以立春为分界，不是农历春节
@@ -1982,9 +2080,11 @@
 4. 时柱按出生时辰的地支划分
 5. 从强格(印比力量占80%以上，全局无有力克泄耗）
 6. 从弱格(印比力量不足20%，全局无有力生扶）
-7. 排大运阳年男性、阴年女性顺排；阴年男性、阳年女性逆排，大运起点计算：出生日到下一个节气(顺排)或上一个节气(逆排)的天数
+7. 排大运规则（年干为阳的男性、年干为阴的女性顺排；年干为阴年的男性、年干为阳的女性逆排）
+8. 顺排大运（计算从出生时刻到下一个换月节气的时间）
+9. 逆排大运（计算从出生时刻到上一个换月节气的时间）
 
-当前日期：2025年4月11日
+当前日期：${currentDateStr}
 根据以下八字信息进行分析：
 姓名：${data.name || '未提供'}
 出生日期：${data.date}
@@ -2006,7 +2106,9 @@
 2 本命局十神：[天干1,天干2,天干3,天干4,地支1,地支2,地支3,地支4]
 3 命格等级：[1-5星]
 4 财富等级：[1-5星]
-5 五行能量：[木,火,土,金,水] (1-10分，请根据八字五行生克关系计算具体数值)
+5 今日运势：[1-5星]
+6 今日财运：[1-5星]
+7 五行能量：[木,火,土,金,水] (1-10分，请根据八字五行生克关系计算具体数值)
 
 用简洁格式返回，不要分析内容，不要使用任何符号如#*、等。`;
                         break;
@@ -2074,6 +2176,37 @@
 适婚年份：[表格方式呈现]
 婚姻总结：[详细分析]`;
                         break;
+                    case 'today-winloss':
+                        prompt += `分析今日输赢情况：
+1 今日整体运势
+2 投资理财建议
+3 竞争博弈分析
+
+返回格式：
+今日运势：[1-5星]
+今日财运：[1-5星]
+输赢分析：[详细分析]`;
+                        break;
+                    case 'annual-fortune':
+                        prompt += `分析流年运势：
+1 流年干支与八字关系
+2 事业财运分析
+3 健康感情分析
+
+返回格式：
+流年分析：[详细分析]
+运势走势：[表格方式呈现]`;
+                        break;
+                    case 'disasters':
+                        prompt += `分析重大灾祸：
+1 潜在灾祸类型
+2 可能发生时间
+3 防范措施
+
+返回格式：
+灾祸分析：[详细分析]
+防范建议：[具体建议]`;
+                        break;
                     case 'decade-fortune':
                         prompt += `分析十年大运走势：
 1 各阶段大运起止时间
@@ -2092,39 +2225,6 @@
 返回格式：
 每月运势：[以表格方式详细分析]
 运势走势：[用表格方式表示，阶段1:分数,阶段2:分数,...] (1-5星)`;
-                        break;
-                    case 'today-fortune':
-                        prompt += `分析今日赌运：
-1 今日麻将运势
-2 输赢机会分析
-3 注意事项
-
-返回格式：
-今日麻将运势：[详细分析]
-输赢机会分析：[赢百分比]
-注意事项：[详细分析]`;
-                        break;
-                    case 'yearly-fortune':
-                        prompt += `分析流年运势：
-1 整体运势
-2 各月运势
-3 注意事项
-
-返回格式：
-流年运势：[详细分析]
-各月运势：[表格方式呈现]
-注意事项：[详细分析]`;
-                        break;
-                    case 'disaster':
-                        prompt += `分析重大灾祸：
-1 潜在灾祸
-2 发生时间
-3 防范建议
-
-返回格式：
-灾祸分析：[详细分析]
-时间预测：[表格方式呈现]
-防范建议：[详细分析]`;
                         break;
                     default:
                         prompt += `请分析${section}相关内容`;
@@ -2149,8 +2249,27 @@
             }
             
             function displayBasicInfo(info) {
+                // === 新增代码：显示姓名和时辰 ===
+                const nameDisplay = document.getElementById('user-name-display');
+                const birthDisplay = document.getElementById('user-birth-display');
+    
+                // 转换时间格式（例如：23:00 → 子时）
+                const hour = parseInt(birthData.time.split(':')[0]);
+                const timeMap = {
+                    23: '子时 (23-1)', 0: '子时 (23-1)',
+                    1: '丑时 (1-3)', 3: '寅时 (3-5)',
+                    5: '卯时 (5-7)', 7: '辰时 (7-9)',
+                    9: '巳时 (9-11)', 11: '午时 (11-13)',
+                    13: '未时 (13-15)', 15: '申时 (15-17)',
+                    17: '酉时 (17-19)', 19: '戌时 (19-21)',
+                    21: '亥时 (21-23)'
+               };
+    
+                nameDisplay.textContent = birthData.name || '匿名用户';
+                birthDisplay.textContent = birthData.date.replace(/-/g, '/') + ' ' + timeMap[hour];
+              
                 const lines = info.split('\n').filter(line => line.trim());
-                
+              
                 // 提取八字四柱
                 const pillarsLine = lines.find(line => line.includes('八字四柱'));
                 if (pillarsLine) {
@@ -2236,6 +2355,24 @@
                         wealthRating.textContent = getStarRating(wealthMatch[1]);
                     }
                 }
+                
+                // 提取今日运势
+                const todayFortuneLine = lines.find(line => line.includes('今日运势'));
+                if (todayFortuneLine) {
+                    const todayFortuneMatch = todayFortuneLine.match(/今日运势：\[(.*?)\]/);
+                    if (todayFortuneMatch && todayFortuneMatch[1]) {
+                        todayFortuneRating.textContent = getStarRating(todayFortuneMatch[1]);
+                    }
+                }
+                
+                // 提取今日财运
+                const todayWealthLine = lines.find(line => line.includes('今日财运'));
+                if (todayWealthLine) {
+                    const todayWealthMatch = todayWealthLine.match(/今日财运：\[(.*?)\]/);
+                    if (todayWealthMatch && todayWealthMatch[1]) {
+                        todayWealthRating.textContent = getStarRating(todayWealthMatch[1]);
+                    }
+                }
             }
             
             // 根据天干地支设置五行颜色
@@ -2282,7 +2419,7 @@
                     result = result.replace(/(★+)/g, '<span class="rating" style="color:var(--earth-color);text-shadow:0 0 5px var(--earth-color)">$1</span>');
                     result = result.replace(/(☆+)/g, '<span style="color:#666">$1</span>');
                 }
-                
+
                 // 使用 marked.js 解析 Markdown
                 const html = marked.parse(result);
                 
