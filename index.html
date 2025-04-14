@@ -1152,7 +1152,6 @@
             <h1 class="header-title">赛博命理系统</h1>
             <div class="header-subtitle">未来科技 · 传统智慧 · 数字命盘</div>
             <div class="header-links">
-                <a href="gaiming.html" class="header-btn"><i class="fas fa-microchip"></i> 命运改写</a>
                 <a href="hehun.html" class="header-btn"><i class="fas fa-heartbeat"></i> 数字合婚</a>
             </div>
         </div>
@@ -1456,6 +1455,39 @@
             <div class="tab-content" id="trend-tab">
                 <div class="detail-card">
                     <div class="load-btn-container">
+                        <button class="load-btn" data-section="today-fortune">
+                            <span><i class="fas fa-calendar-day"></i> 今日输赢分析</span>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </button>
+                        <div class="load-btn-description">分析今日麻将赢输</div>
+                    </div>
+                    <div id="today-fortune-content" class="section-content"></div>
+                </div>
+                
+                <div class="detail-card">
+                    <div class="load-btn-container">
+                        <button class="load-btn" data-section="monthly-fortune">
+                            <span><i class="fas fa-calendar-week"></i> 每月运势分析</span>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </button>
+                        <div class="load-btn-description">预测当前年份每月的运势起伏和注意事项</div>
+                    </div>
+                    <div id="monthly-fortune-content" class="section-content"></div>
+                </div>
+                
+                <div class="detail-card">
+                    <div class="load-btn-container">
+                        <button class="load-btn" data-section="yearly-fortune">
+                            <span><i class="fas fa-calendar-alt"></i> 流年运势分析</span>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </button>
+                        <div class="load-btn-description">分析当前年份的整体运势和重要月份</div>
+                    </div>
+                    <div id="yearly-fortune-content" class="section-content"></div>
+                </div>
+                
+                <div class="detail-card">
+                    <div class="load-btn-container">
                         <button class="load-btn" data-section="decade-fortune">
                             <span><i class="fas fa-hourglass-half"></i> 十年大运分析</span>
                             <i class="fas fa-chevron-down toggle-icon"></i>
@@ -1478,24 +1510,13 @@
                 
                 <div class="detail-card">
                     <div class="load-btn-container">
-                        <button class="load-btn" data-section="monthly-fortune">
-                            <span><i class="fas fa-calendar-day"></i> 每月运势分析</span>
+                        <button class="load-btn" data-section="disaster">
+                            <span><i class="fas fa-exclamation-triangle"></i> 重大灾祸分析</span>
                             <i class="fas fa-chevron-down toggle-icon"></i>
                         </button>
-                        <div class="load-btn-description">预测当前年份每月的运势起伏和注意事项</div>
+                        <div class="load-btn-description">分析命盘中潜在的灾祸信息及防范建议</div>
                     </div>
-                    <div id="monthly-fortune-content" class="section-content"></div>
-                </div>
-                
-                <div class="detail-card">
-                    <div class="load-btn-container">
-                        <button class="load-btn" data-section="summary">
-                            <span><i class="fas fa-scroll"></i> 命运总结分析</span>
-                            <i class="fas fa-chevron-down toggle-icon"></i>
-                        </button>
-                        <div class="load-btn-description">综合所有分析结果，提供完整的命运总结和建议</div>
-                    </div>
-                    <div id="summary-content" class="section-content"></div>
+                    <div id="disaster-content" class="section-content"></div>
                 </div>
             </div>
             
@@ -1621,11 +1642,11 @@
                 
                 // 重置所有加载按钮
                 document.querySelectorAll('.load-btn').forEach(btn => {
-        const originalContent = btn.querySelector('span').innerHTML;
-        btn.innerHTML = `<span>${originalContent}</span><i class="fas fa-chevron-down toggle-icon"></i>`;
-        btn.classList.remove('active');
-        btn.disabled = false;
-    });
+                    const originalContent = btn.querySelector('span').innerHTML;
+                    btn.innerHTML = `<span>${originalContent}</span><i class="fas fa-chevron-down toggle-icon"></i>`;
+                    btn.classList.remove('active');
+                    btn.disabled = false;
+                });
                 
                 // 重置描述显示
                 document.querySelectorAll('.load-btn-container').forEach(container => {
@@ -1657,73 +1678,73 @@
             
             // 初始化加载按钮和折叠功能
             function initLoadButtons() {
-    document.querySelectorAll('.load-btn').forEach(button => {
-        const section = button.getAttribute('data-section');
-        // 跳过已经加载的部分
-        if (loadedSections[section]) return;
-        
-        const contentElement = document.getElementById(`${section}-content`);
-        const container = button.closest('.load-btn-container');
-        
-        button.addEventListener('click', async function(e) {
-            e.preventDefault();
-            
-            if (loadedSections[section]) {
-                container.classList.toggle('active');
-                contentElement.classList.toggle('active');
-                return;
+                document.querySelectorAll('.load-btn').forEach(button => {
+                    const section = button.getAttribute('data-section');
+                    // 跳过已经加载的部分
+                    if (loadedSections[section]) return;
+                    
+                    const contentElement = document.getElementById(`${section}-content`);
+                    const container = button.closest('.load-btn-container');
+                    
+                    button.addEventListener('click', async function(e) {
+                        e.preventDefault();
+                        
+                        if (loadedSections[section]) {
+                            container.classList.toggle('active');
+                            contentElement.classList.toggle('active');
+                            return;
+                        }
+                        
+                        // 保存原始按钮HTML，以便恢复
+                        const originalBtnHtml = button.innerHTML;
+                        
+                        this.disabled = true;
+                        const sectionName = button.querySelector('span').textContent.trim();
+                        button.innerHTML = `<span><span class="loading"></span> 量子分析中...</span><i class="fas fa-chevron-down toggle-icon"></i>`;
+                        container.classList.add('active');
+                        
+                        const progressContainer = document.createElement('div');
+                        progressContainer.className = 'progress-container';
+                        progressContainer.innerHTML = '<div class="progress-bar"></div>';
+                        progressContainer.style.display = 'block';
+                        
+                        contentElement.innerHTML = '';
+                        contentElement.appendChild(progressContainer);
+                        
+                        const progressBar = progressContainer.querySelector('.progress-bar');
+                        let progress = 0;
+                        const progressInterval = setInterval(() => {
+                            progress += Math.random() * 10;
+                            if (progress >= 100) progress = 100;
+                            progressBar.style.width = `${progress}%`;
+                        }, 300);
+                        
+                        try {
+                            const result = await getBaziAnalysis(section, birthData);
+                            clearInterval(progressInterval);
+                            displaySectionContent(section, result, contentElement);
+                            
+                            // 恢复原始按钮HTML，只添加check图标
+                            button.innerHTML = originalBtnHtml.replace('<i class="fas fa-chevron-down toggle-icon"></i>', 
+                                '<i class="fas fa-check"></i><i class="fas fa-chevron-down toggle-icon"></i>');
+                            
+                            button.disabled = false;
+                            contentElement.classList.add('active');
+                            loadedSections[section] = true;
+                            
+                            if (section === 'decade-fortune') {
+                                initFortuneChart(result);
+                            }
+                        } catch (error) {
+                            console.error(`加载${section}失败:`, error);
+                            clearInterval(progressInterval);
+                            contentElement.innerHTML = '<p style="color:var(--danger-color)">加载失败，请重试</p>';
+                            button.disabled = false;
+                            button.innerHTML = originalBtnHtml;
+                        }
+                    });
+                });
             }
-            
-            // 保存原始按钮HTML，以便恢复
-            const originalBtnHtml = button.innerHTML;
-            
-            this.disabled = true;
-            const sectionName = button.querySelector('span').textContent.trim();
-            button.innerHTML = `<span><span class="loading"></span> 量子分析中...</span><i class="fas fa-chevron-down toggle-icon"></i>`;
-            container.classList.add('active');
-            
-            const progressContainer = document.createElement('div');
-            progressContainer.className = 'progress-container';
-            progressContainer.innerHTML = '<div class="progress-bar"></div>';
-            progressContainer.style.display = 'block';
-            
-            contentElement.innerHTML = '';
-            contentElement.appendChild(progressContainer);
-            
-            const progressBar = progressContainer.querySelector('.progress-bar');
-            let progress = 0;
-            const progressInterval = setInterval(() => {
-                progress += Math.random() * 10;
-                if (progress >= 100) progress = 100;
-                progressBar.style.width = `${progress}%`;
-            }, 300);
-            
-            try {
-                const result = await getBaziAnalysis(section, birthData);
-                clearInterval(progressInterval);
-                displaySectionContent(section, result, contentElement);
-                
-                // 恢复原始按钮HTML，只添加check图标
-                button.innerHTML = originalBtnHtml.replace('<i class="fas fa-chevron-down toggle-icon"></i>', 
-                    '<i class="fas fa-check"></i><i class="fas fa-chevron-down toggle-icon"></i>');
-                
-                button.disabled = false;
-                contentElement.classList.add('active');
-                loadedSections[section] = true;
-                
-                if (section === 'decade-fortune') {
-                    initFortuneChart(result);
-                }
-            } catch (error) {
-                console.error(`加载${section}失败:`, error);
-                clearInterval(progressInterval);
-                contentElement.innerHTML = '<p style="color:var(--danger-color)">加载失败，请重试</p>';
-                button.disabled = false;
-                button.innerHTML = originalBtnHtml;
-            }
-        });
-    });
-}
             
             // 初始化五行能量图
             function initElementChart(data) {
@@ -2071,6 +2092,39 @@
 返回格式：
 每月运势：[以表格方式详细分析]
 运势走势：[用表格方式表示，阶段1:分数,阶段2:分数,...] (1-5星)`;
+                        break;
+                    case 'today-fortune':
+                        prompt += `分析今日赌运：
+1 今日麻将运势
+2 输赢机会分析
+3 注意事项
+
+返回格式：
+今日麻将运势：[详细分析]
+输赢机会分析：[赢百分比]
+注意事项：[详细分析]`;
+                        break;
+                    case 'yearly-fortune':
+                        prompt += `分析流年运势：
+1 整体运势
+2 各月运势
+3 注意事项
+
+返回格式：
+流年运势：[详细分析]
+各月运势：[表格方式呈现]
+注意事项：[详细分析]`;
+                        break;
+                    case 'disaster':
+                        prompt += `分析重大灾祸：
+1 潜在灾祸
+2 发生时间
+3 防范建议
+
+返回格式：
+灾祸分析：[详细分析]
+时间预测：[表格方式呈现]
+防范建议：[详细分析]`;
                         break;
                     default:
                         prompt += `请分析${section}相关内容`;
