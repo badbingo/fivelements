@@ -575,14 +575,12 @@
         .bazi-row:nth-child(2) .bazi-cell:not(:first-child) {
             font-size: 22px;
             font-weight: bold;
-            text-shadow: 0 0 10px var(--stem-color);
         }
         
         /* 地支颜色（根据五行属性） */
         .bazi-row:nth-child(3) .bazi-cell:not(:first-child) {
             font-size: 22px;
             font-weight: bold;
-            text-shadow: 0 0 10px var(--branch-color);
         }
         
         /* 五行颜色定义 */
@@ -765,6 +763,32 @@
         .moderately-rich { color: var(--moderately-rich-color); }
         .somewhat-rich { color: var(--somewhat-rich-color); }
         .wealth-average { color: var(--wealth-average-color); }
+        
+        /* 今日运势评分样式 */
+        .today-rating-container {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin-top: 20px;
+        }
+        
+        .today-rating-group {
+            flex: 1;
+            max-width: 48%;
+            text-align: center;
+        }
+        
+        .today-rating-title {
+            font-size: 16px;
+            color: var(--text-light);
+            margin-bottom: 5px;
+        }
+        
+        .today-rating-stars {
+            font-size: 24px;
+            color: var(--earth-color);
+            text-shadow: 0 0 5px var(--earth-color);
+        }
         
         .menu-tabs {
             display: flex;
@@ -1047,6 +1071,39 @@
             background-color: rgba(0, 240, 255, 0.1);
         }
         
+        /* 语言切换按钮 */
+        .language-switcher {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 100;
+        }
+        
+        .language-btn {
+            background: rgba(0, 166, 255, 0.2);
+            border: 1px solid var(--border-color);
+            color: var(--text-light);
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 14px;
+        }
+        
+        .language-btn:hover {
+            background: rgba(0, 240, 255, 0.3);
+            color: var(--primary-color);
+        }
+        
+        .language-btn.active {
+            background: var(--primary-color);
+            color: var(--dark-color);
+            border-color: var(--primary-color);
+        }
+        
         /* 响应式设计 */
         @media (max-width: 768px) {
             .header-title {
@@ -1123,6 +1180,15 @@
             .rating-group {
                 min-width: 100%;
             }
+            
+            .today-rating-container {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .today-rating-group {
+                max-width: 100%;
+            }
         }
         
         @media (max-width: 480px) {
@@ -1182,6 +1248,11 @@
             
             .element-chart-container, .fortune-chart-container {
                 height: 200px;
+            }
+            
+            .language-switcher {
+                top: 10px;
+                right: 10px;
             }
         }
         
@@ -1243,6 +1314,11 @@
     <div class="container">
         <!-- 赛博风格Header部分 -->
         <div class="header-container">
+            <div class="language-switcher">
+                <button class="language-btn active" data-lang="zh">中</button>
+                <button class="language-btn" data-lang="en">En</button>
+            </div>
+            
             <i class="fas fa-atom header-decoration left"></i>
             <i class="fas fa-rocket header-decoration right"></i>
             <h1 class="header-title">赛博命理系统</h1>
@@ -1317,14 +1393,14 @@
                         <div class="rating-container">
                             <div class="rating-group">
                                 <div class="rating-title"><i class="fas fa-star"></i> 命格等级</div>
-                                <div class="rating-level" id="fate-level">-</div>
-                                <div class="rating-score" id="fate-score">-</div>
+                                <div class="rating-level" id="fate-level"></div>
+                                <div class="rating-score" id="fate-score"></div>
                                 <div class="score-details" id="fate-details"></div>
                             </div>
                             <div class="rating-group">
                                 <div class="rating-title"><i class="fas fa-coins"></i> 财富等级</div>
-                                <div class="rating-level" id="wealth-level">-</div>
-                                <div class="rating-score" id="wealth-score">-</div>
+                                <div class="rating-level" id="wealth-level"></div>
+                                <div class="rating-score" id="wealth-score"></div>
                                 <div class="score-details" id="wealth-details"></div>
                             </div>
                         </div>
@@ -1344,17 +1420,17 @@
                             </div>
                             <div class="bazi-row">
                                 <div class="bazi-cell">天干</div>
-                                <div class="bazi-cell wood" id="year-stem">壬</div>
-                                <div class="bazi-cell fire" id="month-stem">癸</div>
-                                <div class="bazi-cell earth" id="day-stem">己</div>
-                                <div class="bazi-cell metal" id="hour-stem">癸</div>
+                                <div class="bazi-cell" id="year-stem">壬</div>
+                                <div class="bazi-cell" id="month-stem">癸</div>
+                                <div class="bazi-cell" id="day-stem">己</div>
+                                <div class="bazi-cell" id="hour-stem">癸</div>
                             </div>
                             <div class="bazi-row">
                                 <div class="bazi-cell">地支</div>
-                                <div class="bazi-cell wood" id="year-branch">子</div>
-                                <div class="bazi-cell fire" id="month-branch">丑</div>
-                                <div class="bazi-cell earth" id="day-branch">巳</div>
-                                <div class="bazi-cell metal" id="hour-branch">酉</div>
+                                <div class="bazi-cell" id="year-branch">子</div>
+                                <div class="bazi-cell" id="month-branch">丑</div>
+                                <div class="bazi-cell" id="day-branch">巳</div>
+                                <div class="bazi-cell" id="hour-branch">酉</div>
                             </div>
                         </div>
                     </div>
@@ -1415,24 +1491,24 @@
                             </div>
                         </div>
                         <!-- 添加今日运势评分 -->
-                        <div style="display: flex; justify-content: space-between; width: 100%; margin-top: 20px;">
-                            <div class="rating-group">
-                                <div class="rating-title"><i class="fas fa-calendar-day"></i> 今日运势</div>
-                                <div class="rating-stars" id="today-fortune-rating">★★★☆☆</div>
+                        <div class="today-rating-container">
+                            <div class="today-rating-group">
+                                <div class="today-rating-title"><i class="fas fa-calendar-day"></i> 今日运势</div>
+                                <div class="today-rating-stars" id="today-fortune-rating">★★★☆☆</div>
                             </div>
-                            <div class="rating-group">
-                                <div class="rating-title"><i class="fas fa-piggy-bank"></i> 今日财运</div>
-                                <div class="rating-stars" id="today-wealth-rating">★★☆☆☆</div>
+                            <div class="today-rating-group">
+                                <div class="today-rating-title"><i class="fas fa-piggy-bank"></i> 今日财运</div>
+                                <div class="today-rating-stars" id="today-wealth-rating">★★☆☆☆</div>
                             </div>
-                         </div>
+                        </div>
                     </div>
                 </div>
             </div>
             
             <div class="menu-tabs">
                 <div class="menu-tab active" data-tab="fortune"><i class="fas fa-network-wired"></i> 命盘分析</div>
-                <div class="menu-tab" data-tab="character"><i class="fas fa-user-astronaut"></i> 性格事业</div>
-                <div class="menu-tab" data-tab="relationship"><i class="fas fa-heartbeat"></i> 婚姻家庭</div>
+                <div class="menu-tab" data-tab="character"><i class="fas fa-user-astronaut"></i> 性格财富</div>
+                <div class="menu-tab" data-tab="relationship"><i class="fas fa-heartbeat"></i> 婚姻健康</div>
                 <div class="menu-tab" data-tab="trend"><i class="fas fa-chart-line"></i> 运势分析</div>
             </div>
             <!-- 命运分析 -->
@@ -1661,6 +1737,9 @@
             const timePeriodOptions = document.querySelectorAll('.time-period-option');
             const birthTimeInput = document.getElementById('birth-time');
             
+            // 语言切换按钮
+            const languageBtns = document.querySelectorAll('.language-btn');
+            
             // 八字四柱元素
             const yearStem = document.getElementById('year-stem');
             const yearBranch = document.getElementById('year-branch');
@@ -1707,6 +1786,17 @@
                     const hour = this.getAttribute('data-hour');
                     const minute = this.getAttribute('data-minute');
                     birthTimeInput.value = `${hour.padStart(2, '0')}:${minute.padStart(2, '0')}`;
+                });
+            });
+            
+            // 语言切换逻辑
+            languageBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    languageBtns.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    const lang = this.getAttribute('data-lang');
+                    // 这里可以添加语言切换的实际逻辑
+                    console.log('切换到语言:', lang);
                 });
             });
             
@@ -1765,14 +1855,14 @@
                 branchGodsList.innerHTML = '';
                 
                 // 重置命格评估
-                fateLevel.textContent = '-';
-                fateScore.textContent = '-';
+                fateLevel.textContent = '';
+                fateScore.textContent = '';
                 fateDetails.innerHTML = '';
-                wealthLevel.textContent = '-';
-                wealthScore.textContent = '-';
+                wealthLevel.textContent = '';
+                wealthScore.textContent = '';
                 wealthDetails.innerHTML = '';
-                todayFortuneRating.textContent = '-';
-                todayWealthRating.textContent = '-';
+                todayFortuneRating.textContent = '★★★☆☆';
+                todayWealthRating.textContent = '★★☆☆☆';
                 
                 // 重置所有内容区域
                 document.querySelectorAll('.section-content').forEach(el => {
@@ -2809,7 +2899,7 @@
             function getStarRating(ratingText) {
                 // 将数字评分转换为星标
                 const rating = parseInt(ratingText);
-                if (isNaN(rating)) return '-';
+                if (isNaN(rating)) return '★★★☆☆';
                 
                 const fullStars = '★'.repeat(rating);
                 const emptyStars = '☆'.repeat(5 - rating);
@@ -3026,11 +3116,13 @@
                         prompt += `分析婚姻情况：
 1 配偶性格
 2 适婚年份
-3 核心信息
+3 桃花年份
+4 核心信息
 
 返回格式：
 配偶分析：[详细分析]
 适婚年份：[表格方式呈现]
+桃花年份：[表格方式呈现]
 婚姻总结：[详细分析]`;
                         break;
                     case 'today-winloss':
@@ -3231,6 +3323,9 @@
                     '申': 'metal', '酉': 'metal',
                     '子': 'water', '亥': 'water'
                 };
+                
+                // 清除之前的五行类
+                element.classList.remove('wood', 'fire', 'earth', 'metal', 'water');
                 
                 // 添加对应的五行类
                 if (stemElements[text]) {
