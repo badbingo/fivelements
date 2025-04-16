@@ -591,6 +591,11 @@
             line-height: 1.3;
         }
         
+        .hidden-stem-item {
+            display: inline-block;
+            margin: 0 2px;
+        }
+        
         /* 五行颜色定义 */
         .wood { color: var(--wood-color); text-shadow: 0 0 5px var(--wood-color); }
         .fire { color: var(--fire-color); text-shadow: 0 0 5px var(--fire-color); }
@@ -657,6 +662,36 @@
         .earth-color { background-color: var(--earth-color); color: var(--earth-color); }
         .metal-color { background-color: var(--metal-color); color: var(--metal-color); }
         .water-color { background-color: var(--water-color); color: var(--water-color); }
+        
+        /* 健康问题说明 */
+        .health-problems {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(0, 166, 255, 0.1);
+            border-radius: var(--border-radius-sm);
+            border: 1px solid var(--border-color);
+        }
+        
+        .health-problems h4 {
+            color: var(--title-color);
+            margin-bottom: 10px;
+            font-family: 'Orbitron', sans-serif;
+            display: flex;
+            align-items: center;
+        }
+        
+        .health-problems h4 i {
+            margin-right: 10px;
+        }
+        
+        .health-problems ul {
+            padding-left: 20px;
+        }
+        
+        .health-problems li {
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
         
         /* 评分系统样式 - 优化版 */
         .rating-container {
@@ -1466,6 +1501,18 @@
                                 <span>水 (肾、膀胱)</span>
                             </div>
                         </div>
+                        
+                        <!-- 新增健康问题说明 -->
+                        <div class="health-problems">
+                            <h4><i class="fas fa-exclamation-triangle"></i> 健康问题说明</h4>
+                            <ul id="health-problems-list">
+                                <li>木元素弱：可能影响肝胆功能，易疲劳、眼睛干涩</li>
+                                <li>火元素弱：可能影响心血管系统，易心悸、失眠</li>
+                                <li>土元素弱：可能影响消化系统，易胃胀、消化不良</li>
+                                <li>金元素弱：可能影响呼吸系统，易感冒、咳嗽</li>
+                                <li>水元素弱：可能影响泌尿系统，易腰酸、耳鸣</li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
                 
@@ -2174,6 +2221,46 @@
                             }
                         }
                     }
+                });
+                
+                // 更新健康问题说明
+                updateHealthProblems(elements);
+            }
+            
+            // 更新健康问题说明
+            function updateHealthProblems(elements) {
+                const healthProblemsList = document.getElementById('health-problems-list');
+                healthProblemsList.innerHTML = '';
+                
+                const elementNames = ['木', '火', '土', '金', '水'];
+                const elementProblems = {
+                    '木': '可能影响肝胆功能，易疲劳、眼睛干涩',
+                    '火': '可能影响心血管系统，易心悸、失眠',
+                    '土': '可能影响消化系统，易胃胀、消化不良',
+                    '金': '可能影响呼吸系统，易感冒、咳嗽',
+                    '水': '可能影响泌尿系统，易腰酸、耳鸣'
+                };
+                
+                // 找出最弱和最弱的五行
+                const minScore = Math.min(...elements);
+                const maxScore = Math.max(...elements);
+                
+                // 添加健康问题说明
+                elements.forEach((score, index) => {
+                    const element = elementNames[index];
+                    let problemText = elementProblems[element];
+                    
+                    if (score === minScore) {
+                        problemText = `<strong>${element}元素弱</strong>：${problemText}（需特别注意）`;
+                    } else if (score === maxScore) {
+                        problemText = `<strong>${element}元素强</strong>：可能相关器官功能较好`;
+                    } else {
+                        problemText = `${element}元素：${score >= 6 ? '正常' : '稍弱'} ${score < 6 ? problemText : ''}`;
+                    }
+                    
+                    const li = document.createElement('li');
+                    li.innerHTML = problemText;
+                    healthProblemsList.appendChild(li);
                 });
             }
             
@@ -3492,10 +3579,11 @@
                 if (hiddenStemsLine) {
                     const hiddenStems = hiddenStemsLine.match(/年支\[(.*?)\] 月支\[(.*?)\] 日支\[(.*?)\] 时支\[(.*?)\]/);
                     if (hiddenStems && hiddenStems.length === 5) {
-                        yearHiddenStems.textContent = hiddenStems[1];
-                        monthHiddenStems.textContent = hiddenStems[2];
-                        dayHiddenStems.textContent = hiddenStems[3];
-                        hourHiddenStems.textContent = hiddenStems[4];
+                        // 更新藏干显示，并为每个藏干添加五行颜色
+                        yearHiddenStems.innerHTML = formatHiddenStems(hiddenStems[1]);
+                        monthHiddenStems.innerHTML = formatHiddenStems(hiddenStems[2]);
+                        dayHiddenStems.innerHTML = formatHiddenStems(hiddenStems[3]);
+                        hourHiddenStems.innerHTML = formatHiddenStems(hiddenStems[4]);
                     }
                 }
                 
@@ -3516,6 +3604,25 @@
                         todayWealthRating.textContent = getStarRating(todayWealthMatch[1]);
                     }
                 }
+            }
+            
+            // 格式化藏干显示，为每个藏干添加五行颜色
+            function formatHiddenStems(stems) {
+                const stemElements = {
+                    '甲': 'wood', '乙': 'wood',
+                    '丙': 'fire', '丁': 'fire',
+                    '戊': 'earth', '己': 'earth',
+                    '庚': 'metal', '辛': 'metal',
+                    '壬': 'water', '癸': 'water'
+                };
+                
+                let result = '';
+                for (let i = 0; i < stems.length; i++) {
+                    const stem = stems[i];
+                    const elementClass = stemElements[stem] || '';
+                    result += `<span class="hidden-stem-item ${elementClass}">${stem}</span>`;
+                }
+                return result;
             }
             
             // 根据天干地支设置五行颜色
