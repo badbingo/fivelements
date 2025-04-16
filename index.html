@@ -583,6 +583,14 @@
             font-weight: bold;
         }
         
+        /* 藏干样式 */
+        .hidden-stems {
+            font-size: 14px;
+            color: var(--text-light);
+            margin-top: 5px;
+            line-height: 1.3;
+        }
+        
         /* 五行颜色定义 */
         .wood { color: var(--wood-color); text-shadow: 0 0 5px var(--wood-color); }
         .fire { color: var(--fire-color); text-shadow: 0 0 5px var(--fire-color); }
@@ -596,47 +604,59 @@
             min-width: 80px;
         }
         
-        /* 十神列表样式 */
-        .ten-gods-grid {
+        /* 五行健康图容器 */
+        .health-chart-container {
+            width: 100%;
+            height: 300px;
+            margin: 20px 0;
+            position: relative;
+        }
+        
+        .health-chart {
+            width: 100%;
+            height: 100%;
+        }
+        
+        /* 五行健康图动画 */
+        @keyframes healthPulse {
+            0% { opacity: 0.7; transform: scale(0.95); }
+            50% { opacity: 1; transform: scale(1.05); }
+            100% { opacity: 0.7; transform: scale(0.95); }
+        }
+        
+        .health-chart-animation {
+            animation: healthPulse 3s infinite ease-in-out;
+        }
+        
+        /* 五行健康图图例 */
+        .element-legend {
             display: flex;
-            gap: 20px;
+            justify-content: center;
             margin-top: 15px;
-        }
-        
-        .ten-gods-column {
-            flex: 1;
-        }
-        
-        .ten-gods-column h4 {
-            margin-bottom: 15px;
-            color: var(--title-color);
-            font-size: 16px;
-            text-align: center;
-            font-weight: 600;
-            font-family: 'Orbitron', sans-serif;
-        }
-        
-        .ten-gods-list {
-            display: flex;
             flex-wrap: wrap;
             gap: 10px;
-            justify-content: center;
         }
         
-        .ten-gods-item {
-            background: rgba(0, 166, 255, 0.2);
-            padding: 10px 18px;
-            border-radius: 20px;
-            font-size: 15px;
-            border: 1px solid var(--border-color);
-            box-shadow: 0 0 5px rgba(0, 240, 255, 0.2);
-            transition: all 0.3s ease;
+        .element-legend-item {
+            display: flex;
+            align-items: center;
+            margin-right: 15px;
+            font-size: 14px;
         }
         
-        .ten-gods-item:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 10px var(--primary-color);
+        .element-legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 3px;
+            margin-right: 8px;
+            box-shadow: 0 0 5px currentColor;
         }
+        
+        .wood-color { background-color: var(--wood-color); color: var(--wood-color); }
+        .fire-color { background-color: var(--fire-color); color: var(--fire-color); }
+        .earth-color { background-color: var(--earth-color); color: var(--earth-color); }
+        .metal-color { background-color: var(--metal-color); color: var(--metal-color); }
+        .water-color { background-color: var(--water-color); color: var(--water-color); }
         
         /* 评分系统样式 - 优化版 */
         .rating-container {
@@ -996,35 +1016,6 @@
             height: 100%;
         }
         
-        .element-legend {
-            display: flex;
-            justify-content: center;
-            margin-top: 15px;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        
-        .element-legend-item {
-            display: flex;
-            align-items: center;
-            margin-right: 15px;
-            font-size: 14px;
-        }
-        
-        .element-legend-color {
-            width: 16px;
-            height: 16px;
-            border-radius: 3px;
-            margin-right: 8px;
-            box-shadow: 0 0 5px currentColor;
-        }
-        
-        .wood-color { background-color: var(--wood-color); color: var(--wood-color); }
-        .fire-color { background-color: var(--fire-color); color: var(--fire-color); }
-        .earth-color { background-color: var(--earth-color); color: var(--earth-color); }
-        .metal-color { background-color: var(--metal-color); color: var(--metal-color); }
-        .water-color { background-color: var(--water-color); color: var(--water-color); }
-        
         /* 大运走势图 */
         .fortune-chart-container {
             width: 100%;
@@ -1134,10 +1125,6 @@
             
             .time-period-selector {
                 grid-template-columns: repeat(3, 1fr);
-            }
-            
-            .ten-gods-grid {
-                flex-direction: column;
             }
             
             .menu-tabs {
@@ -1432,31 +1419,51 @@
                                 <div class="bazi-cell" id="day-branch">巳</div>
                                 <div class="bazi-cell" id="hour-branch">酉</div>
                             </div>
+                            <div class="bazi-row">
+                                <div class="bazi-cell">藏干</div>
+                                <div class="bazi-cell">
+                                    <div class="hidden-stems" id="year-hidden-stems">癸</div>
+                                </div>
+                                <div class="bazi-cell">
+                                    <div class="hidden-stems" id="month-hidden-stems">己癸辛</div>
+                                </div>
+                                <div class="bazi-cell">
+                                    <div class="hidden-stems" id="day-hidden-stems">丙庚戊</div>
+                                </div>
+                                <div class="bazi-cell">
+                                    <div class="hidden-stems" id="hour-hidden-stems">辛</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
                 
                 <div class="info-section">
-                    <h3><i class="fas fa-robot"></i> 本命局十神</h3>
+                    <h3><i class="fas fa-heartbeat"></i> 五行健康分析</h3>
                     <div class="info-content">
-                        <div class="ten-gods-grid">
-                            <div class="ten-gods-column">
-                                <h4><i class="fas fa-sun"></i> 天干十神</h4>
-                                <div class="ten-gods-list" id="stem-gods-list">
-                                    <div class="ten-gods-item">年干: 正财</div>
-                                    <div class="ten-gods-item">月干: 偏财</div>
-                                    <div class="ten-gods-item">日干: 日主</div>
-                                    <div class="ten-gods-item">时干: 偏财</div>
-                                </div>
+                        <div class="health-chart-container">
+                            <canvas id="health-chart" class="health-chart health-chart-animation"></canvas>
+                        </div>
+                        <div class="element-legend">
+                            <div class="element-legend-item">
+                                <div class="element-legend-color wood-color"></div>
+                                <span>木 (肝胆、眼睛)</span>
                             </div>
-                            <div class="ten-gods-column">
-                                <h4><i class="fas fa-moon"></i> 地支十神</h4>
-                                <div class="ten-gods-list" id="branch-gods-list">
-                                    <div class="ten-gods-item">年支: 偏财</div>
-                                    <div class="ten-gods-item">月支: 比肩</div>
-                                    <div class="ten-gods-item">日支: 正印</div>
-                                    <div class="ten-gods-item">时支: 食神</div>
-                                </div>
+                            <div class="element-legend-item">
+                                <div class="element-legend-color fire-color"></div>
+                                <span>火 (心脏、小肠)</span>
+                            </div>
+                            <div class="element-legend-item">
+                                <div class="element-legend-color earth-color"></div>
+                                <span>土 (脾胃、肌肉)</span>
+                            </div>
+                            <div class="element-legend-item">
+                                <div class="element-legend-color metal-color"></div>
+                                <span>金 (肺、大肠)</span>
+                            </div>
+                            <div class="element-legend-item">
+                                <div class="element-legend-color water-color"></div>
+                                <span>水 (肾、膀胱)</span>
                             </div>
                         </div>
                     </div>
@@ -1639,6 +1646,17 @@
                     </div>
                     <div id="family-content" class="section-content"></div>
                 </div>
+                
+                <div class="detail-card">
+                    <div class="load-btn-container">
+                        <button class="load-btn" data-section="health">
+                            <span><i class="fas fa-heartbeat"></i> 健康情况分析</span>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </button>
+                        <div class="load-btn-description">根据五行平衡分析命主的健康状况和潜在健康问题</div>
+                    </div>
+                    <div id="health-content" class="section-content"></div>
+                </div>
             </div>
             
             <!-- 运势分析 -->
@@ -1743,16 +1761,16 @@
             // 八字四柱元素
             const yearStem = document.getElementById('year-stem');
             const yearBranch = document.getElementById('year-branch');
+            const yearHiddenStems = document.getElementById('year-hidden-stems');
             const monthStem = document.getElementById('month-stem');
             const monthBranch = document.getElementById('month-branch');
+            const monthHiddenStems = document.getElementById('month-hidden-stems');
             const dayStem = document.getElementById('day-stem');
             const dayBranch = document.getElementById('day-branch');
+            const dayHiddenStems = document.getElementById('day-hidden-stems');
             const hourStem = document.getElementById('hour-stem');
             const hourBranch = document.getElementById('hour-branch');
-            
-            // 十神列表元素
-            const stemGodsList = document.getElementById('stem-gods-list');
-            const branchGodsList = document.getElementById('branch-gods-list');
+            const hourHiddenStems = document.getElementById('hour-hidden-stems');
             
             // 评分元素
             const fateLevel = document.getElementById('fate-level');
@@ -1766,7 +1784,9 @@
             
             // 五行图表元素
             const elementChartCtx = document.getElementById('element-chart').getContext('2d');
+            const healthChartCtx = document.getElementById('health-chart').getContext('2d');
             let elementChart;
+            let healthChart;
             
             // 使用当前真实日期
             const currentDate = new Date();
@@ -1830,6 +1850,9 @@
                 if (elementChart) {
                     elementChart.destroy();
                 }
+                if (healthChart) {
+                    healthChart.destroy();
+                }
                 
                 // 滚动到顶部
                 window.scrollTo(0, 0);
@@ -1843,16 +1866,16 @@
                 // 重置八字四柱
                 yearStem.textContent = '';
                 yearBranch.textContent = '';
+                yearHiddenStems.textContent = '';
                 monthStem.textContent = '';
                 monthBranch.textContent = '';
+                monthHiddenStems.textContent = '';
                 dayStem.textContent = '';
                 dayBranch.textContent = '';
+                dayHiddenStems.textContent = '';
                 hourStem.textContent = '';
                 hourBranch.textContent = '';
-                
-                // 重置十神列表
-                stemGodsList.innerHTML = '';
-                branchGodsList.innerHTML = '';
+                hourHiddenStems.textContent = '';
                 
                 // 重置命格评估
                 fateLevel.textContent = '';
@@ -2063,6 +2086,201 @@
                         }
                     }
                 });
+            }
+            
+            // 初始化五行健康图 - 根据八字五行数据计算健康指数
+            function initHealthChart(pillars) {
+                if (!pillars || !pillars.year) return;
+                
+                // 计算五行能量分布
+                const elements = calculateElementEnergy(pillars);
+                
+                // 五行对应的健康器官评分 (1-10分)
+                const healthData = {
+                    labels: ['木 (肝胆)', '火 (心脏)', '土 (脾胃)', '金 (肺)', '水 (肾)'],
+                    datasets: [{
+                        data: [
+                            calculateHealthScore('木', elements), 
+                            calculateHealthScore('火', elements), 
+                            calculateHealthScore('土', elements), 
+                            calculateHealthScore('金', elements), 
+                            calculateHealthScore('水', elements)
+                        ],
+                        backgroundColor: [
+                            'rgba(0, 255, 136, 0.7)',
+                            'rgba(255, 51, 0, 0.7)',
+                            'rgba(255, 204, 0, 0.7)',
+                            'rgba(204, 204, 204, 0.7)',
+                            'rgba(0, 153, 255, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgba(0, 255, 136, 1)',
+                            'rgba(255, 51, 0, 1)',
+                            'rgba(255, 204, 0, 1)',
+                            'rgba(204, 204, 204, 1)',
+                            'rgba(0, 153, 255, 1)'
+                        ],
+                        borderWidth: 2
+                    }]
+                };
+                
+                healthChart = new Chart(healthChartCtx, {
+                    type: 'polarArea',
+                    data: healthData,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            r: {
+                                angleLines: {
+                                    display: true,
+                                    color: 'rgba(0, 240, 255, 0.2)'
+                                },
+                                suggestedMin: 0,
+                                suggestedMax: 10,
+                                ticks: {
+                                    backdropColor: 'transparent',
+                                    color: 'rgba(0, 240, 255, 0.7)',
+                                    font: {
+                                        family: "'Orbitron', sans-serif"
+                                    },
+                                    stepSize: 2
+                                },
+                                pointLabels: {
+                                    display: false
+                                },
+                                grid: {
+                                    color: 'rgba(0, 240, 255, 0.1)'
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const label = context.label || '';
+                                        const value = context.raw;
+                                        return `${label}: ${value}/10`;
+                                    }
+                                }
+                            }
+                        },
+                        elements: {
+                            arc: {
+                                borderWidth: 1
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // 计算五行能量分布
+            function calculateElementEnergy(pillars) {
+                const elements = {
+                    '木': 0,
+                    '火': 0,
+                    '土': 0,
+                    '金': 0,
+                    '水': 0
+                };
+                
+                // 天干五行
+                const stemElements = {
+                    '甲': '木', '乙': '木',
+                    '丙': '火', '丁': '火',
+                    '戊': '土', '己': '土',
+                    '庚': '金', '辛': '金',
+                    '壬': '水', '癸': '水'
+                };
+                
+                // 地支五行
+                const branchElements = {
+                    '寅': '木', '卯': '木',
+                    '午': '火', '巳': '火',
+                    '辰': '土', '戌': '土', '丑': '土', '未': '土',
+                    '申': '金', '酉': '金',
+                    '子': '水', '亥': '水'
+                };
+                
+                // 统计天干五行
+                elements[stemElements[pillars.year.charAt(0)]]++;
+                elements[stemElements[pillars.month.charAt(0)]]++;
+                elements[stemElements[pillars.day.charAt(0)]]++;
+                elements[stemElements[pillars.hour.charAt(0)]]++;
+                
+                // 统计地支五行
+                elements[branchElements[pillars.year.charAt(1)]]++;
+                elements[branchElements[pillars.month.charAt(1)]]++;
+                elements[branchElements[pillars.day.charAt(1)]]++;
+                elements[branchElements[pillars.hour.charAt(1)]]++;
+                
+                // 返回五行能量数组 [木, 火, 土, 金, 水]
+                return [
+                    elements['木'],
+                    elements['火'],
+                    elements['土'],
+                    elements['金'],
+                    elements['水']
+                ];
+            }
+            
+            // 计算五行健康评分 (1-10分)
+            function calculateHealthScore(element, elements) {
+                const elementIndex = ['木', '火', '土', '金', '水'].indexOf(element);
+                const elementValue = elements[elementIndex];
+                
+                // 计算该元素在五行中的相对强度 (0-10分)
+                const maxElementValue = Math.max(...elements);
+                const minElementValue = Math.min(...elements);
+                
+                // 基础分 (根据元素数量)
+                let score = elementValue * 2; // 每个元素2分
+                
+                // 考虑五行相生相克关系
+                const generatingElement = getGeneratingElement(element); // 生我的元素
+                const controllingElement = getControllingElement(element); // 克我的元素
+                
+                // 生我的元素强则加分
+                const genIndex = ['木', '火', '土', '金', '水'].indexOf(generatingElement);
+                if (elements[genIndex] >= 2) {
+                    score += 1;
+                }
+                
+                // 克我的元素强则减分
+                const ctrlIndex = ['木', '火', '土', '金', '水'].indexOf(controllingElement);
+                if (elements[ctrlIndex] >= 2) {
+                    score -= 1;
+                }
+                
+                // 确保分数在1-10之间
+                return Math.min(10, Math.max(1, score));
+            }
+            
+            // 获取生我的元素
+            function getGeneratingElement(element) {
+                const generateMap = {
+                    '木': '水',
+                    '火': '木',
+                    '土': '火',
+                    '金': '土',
+                    '水': '金'
+                };
+                return generateMap[element];
+            }
+            
+            // 获取克我的元素
+            function getControllingElement(element) {
+                const controlMap = {
+                    '木': '金',
+                    '火': '水',
+                    '土': '木',
+                    '金': '火',
+                    '水': '土'
+                };
+                return controlMap[element];
             }
             
             // 初始化大运走势图
@@ -2982,15 +3200,20 @@
                         }
                     }
                     
-                    // 4. 计算并显示评分
+                    // 4. 初始化五行健康图 - 基于八字数据
+                    if (currentPillars.year) {
+                        initHealthChart(currentPillars);
+                    }
+                    
+                    // 5. 计算并显示评分
                     displayScores();
                     
-                    // 5. 所有数据加载完成后再显示结果页面
+                    // 6. 所有数据加载完成后再显示结果页面
                     inputSection.style.display = 'none';
                     resultSection.style.display = 'block';
                     document.body.removeChild(loadingOverlay);
                     
-                    // 6. 初始化其他部分的加载按钮
+                    // 7. 初始化其他部分的加载按钮
                     initLoadButtons();
                     window.scrollTo(0, 0);
                     
@@ -3046,7 +3269,7 @@
                     case 'basic':
                         prompt += `请返回以下信息：
 1 八字四柱：年柱[内容] 月柱[内容] 日柱[内容] 时柱[内容]
-2 本命局十神：[天干1,天干2,天干3,天干4,地支1,地支2,地支3,地支4]
+2 地支藏干：年支[藏干] 月支[藏干] 日支[藏干] 时支[藏干]
 3 五行能量：[木,火,土,金,水] (1-10分，请根据八字五行生克关系计算具体数值)
 4 今日运势：[1-5]
 5 今日财运：[1-5]
@@ -3124,6 +3347,18 @@
 适婚年份：[表格方式呈现]
 桃花年份：[表格方式呈现]
 婚姻总结：[详细分析]`;
+                        break;
+                    case 'health':
+                        prompt += `分析健康状况：
+1 五行对应器官健康
+2 潜在健康问题
+3 养生建议
+4 流年健康分析
+
+返回格式：
+健康分析：[表格方式呈现]
+养生建议：[具体建议]
+流年健康分析：[表格方式呈现具体建议]`;
                         break;
                     case 'today-winloss':
                         prompt += `分析今日输赢情况：
@@ -3252,36 +3487,15 @@
                     }
                 }
                 
-                // 提取本命局十神
-                const tenGodsLine = lines.find(line => line.includes('本命局十神'));
-                if (tenGodsLine) {
-                    const tenGodsMatch = tenGodsLine.match(/本命局十神：\[(.*?)\]/);
-                    if (tenGodsMatch && tenGodsMatch[1]) {
-                        const allGods = tenGodsMatch[1].split(',');
-                        
-                        // Clear previous content
-                        stemGodsList.innerHTML = '';
-                        branchGodsList.innerHTML = '';
-                        
-                        // First 4 are stem gods (天干)
-                        allGods.slice(0, 4).forEach((god, index) => {
-                            if (god.trim()) {
-                                const item = document.createElement('div');
-                                item.className = 'ten-gods-item';
-                                item.textContent = `${['年干','月干','日干','时干'][index]}: ${god.trim()}`;
-                                stemGodsList.appendChild(item);
-                            }
-                        });
-                        
-                        // Next 4 are branch gods (地支)
-                        allGods.slice(4, 8).forEach((god, index) => {
-                            if (god.trim()) {
-                                const item = document.createElement('div');
-                                item.className = 'ten-gods-item';
-                                item.textContent = `${['年支','月支','日支','时支'][index]}: ${god.trim()}`;
-                                branchGodsList.appendChild(item);
-                            }
-                        });
+                // 提取地支藏干
+                const hiddenStemsLine = lines.find(line => line.includes('地支藏干'));
+                if (hiddenStemsLine) {
+                    const hiddenStems = hiddenStemsLine.match(/年支\[(.*?)\] 月支\[(.*?)\] 日支\[(.*?)\] 时支\[(.*?)\]/);
+                    if (hiddenStems && hiddenStems.length === 5) {
+                        yearHiddenStems.textContent = hiddenStems[1];
+                        monthHiddenStems.textContent = hiddenStems[2];
+                        dayHiddenStems.textContent = hiddenStems[3];
+                        hourHiddenStems.textContent = hiddenStems[4];
                     }
                 }
                 
