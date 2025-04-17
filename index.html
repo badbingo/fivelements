@@ -1095,8 +1095,8 @@
             border-color: var(--primary-color);
         }
         
-        /* 核心特质样式 */
-        .core-traits {
+        /* 性格特质样式 */
+        .personality-traits {
             margin-top: 20px;
             padding: 15px;
             background: rgba(0, 166, 255, 0.1);
@@ -1312,11 +1312,7 @@
     <div class="container">
         <!-- 赛博风格Header部分 -->
         <div class="header-container">
-            <div class="language-switcher">
-                <button class="language-btn active" data-lang="zh">中</button>
-                <button class="language-btn" data-lang="en">En</button>
-            </div>
-            
+
             <i class="fas fa-atom header-decoration left"></i>
             <i class="fas fa-rocket header-decoration right"></i>
             <h1 class="header-title">赛博命理系统</h1>
@@ -1446,8 +1442,8 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="core-traits" id="core-traits">
-                            命主核心特质：智慧深邃，意志坚定，具有领导才能和创造力
+                        <div class="personality-traits" id="personality-traits">
+                            命主性格：似静水流深，临危反生智，藏锋守拙却暗含凌云之志
                         </div>
                     </div>
                 </div>
@@ -1737,7 +1733,7 @@
             const resultSection = document.getElementById('result-section');
             const timePeriodOptions = document.querySelectorAll('.time-period-option');
             const birthTimeInput = document.getElementById('birth-time');
-            const coreTraits = document.getElementById('core-traits');
+            const personalityTraits = document.getElementById('personality-traits');
             
             // 语言切换按钮
             const languageBtns = document.querySelectorAll('.language-btn');
@@ -1865,7 +1861,7 @@
                 wealthDetails.innerHTML = '';
                 todayFortuneRating.textContent = '★★★☆☆';
                 todayWealthRating.textContent = '★★☆☆☆';
-                coreTraits.textContent = '命主核心特质：';
+                personalityTraits.textContent = '命主性格：';
                 
                 // 重置所有内容区域
                 document.querySelectorAll('.section-content').forEach(el => {
@@ -3070,6 +3066,7 @@
                 
                 // 明确指定八字排盘规则
                 let prompt = `八字排盘核心算法（强制精确模式）：
+                
 ## 一、基础计算规则
 1. 【年柱】= 公历日期 < 当年立春时间 ? 上年干支 : 当年干支
    - 示例：1973年立春=1973-02-04 07:04
@@ -3102,26 +3099,13 @@
 
 3. 大运顺逆验证：
    - 输出"年干=X（阳/阴），性别=男/女 → 顺/逆排"
+   
+4. 从强从弱验证：
+   - 从强格(印比力量占80%以上，全局无有力克泄耗）
+   - 从弱格(印比力量不足20%，全局无有力生扶）
 
 ## 三、容错机制
 1. 遇到临界时间（如立春当天23:30）：
-   - 必须查询精确到分钟的节气时间表
-   - 示例比对：
-     \`立春=02-04 07:04 vs 出生=02-04 06:30 → 立春前\`
-
-2. 自动纠错：
-   - 如果日柱与公历日期矛盾 → 重新计算干支基数
-   - 如果时柱跨日 → 校正日干变化
-
-## 四、输出模板
-\`\`\`
-【八字排盘】
-年柱：{干支}（{立春验证说明}）
-月柱：{干支}（{节气区间说明}）
-日柱：{干支}（公历{日期}计算值）
-时柱：{干支}（{早晚子时说明}）
-大运：{顺/逆排}（{年干阴阳验证}）
-\`\`\`
 
 当前日期：${currentDateStr}
 根据以下八字信息进行分析：
@@ -3146,7 +3130,7 @@
 3 五行能量：[木,火,土,金,水] (1-10分，请根据八字五行生克关系计算具体数值)
 4 今日运势：[1-5]
 5 今日财运：[1-5]
-6 核心特质：[用一句话描述命主的核心特质]
+6 命主性格：[用一句话描述命主的性格特质，如："似静水流深，临危反生智，藏锋守拙却暗含凌云之志"]
 
 用简洁格式返回，不要分析内容，不要使用任何符号如#*、等。`;
                         break;
@@ -3236,12 +3220,12 @@
                         break;
                     case 'today-winloss':
                         prompt += `分析今日输赢情况：
-1 今日财运
+1 今日整体运势
 2 麻将输赢
 
 返回格式：
-麻将输赢：[输赢几率详细分析]
-`;
+麻将输赢：[1-5星]
+输赢分析：[输赢机会详细分析]`;
                         break;
                     case 'annual-fortune':
                         prompt += `分析流年运势：
@@ -3295,7 +3279,7 @@
                     body: JSON.stringify({
                         model: "deepseek-chat",
                         messages: [{ role: "user", content: prompt }],
-                        temperature: 0.7
+                        temperature: 0.3
                     })
                 });
                 
@@ -3397,12 +3381,12 @@
                     }
                 }
                 
-                // 提取核心特质
-                const traitsLine = lines.find(line => line.includes('核心特质'));
+                // 提取性格特质
+                const traitsLine = lines.find(line => line.includes('命主性格'));
                 if (traitsLine) {
-                    const traitsMatch = traitsLine.match(/核心特质：\[(.*?)\]/);
+                    const traitsMatch = traitsLine.match(/命主性格：\[(.*?)\]/);
                     if (traitsMatch && traitsMatch[1]) {
-                        coreTraits.textContent = `命主核心特质：${traitsMatch[1]}`;
+                        personalityTraits.textContent = `命主性格：${traitsMatch[1]}`;
                     }
                 }
             }
