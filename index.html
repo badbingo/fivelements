@@ -591,11 +591,6 @@
             line-height: 1.3;
         }
         
-        .hidden-stem-item {
-            display: inline-block;
-            margin: 0 2px;
-        }
-        
         /* 五行颜色定义 */
         .wood { color: var(--wood-color); text-shadow: 0 0 5px var(--wood-color); }
         .fire { color: var(--fire-color); text-shadow: 0 0 5px var(--fire-color); }
@@ -662,36 +657,6 @@
         .earth-color { background-color: var(--earth-color); color: var(--earth-color); }
         .metal-color { background-color: var(--metal-color); color: var(--metal-color); }
         .water-color { background-color: var(--water-color); color: var(--water-color); }
-        
-        /* 健康问题说明 */
-        .health-problems {
-            margin-top: 20px;
-            padding: 15px;
-            background: rgba(0, 166, 255, 0.1);
-            border-radius: var(--border-radius-sm);
-            border: 1px solid var(--border-color);
-        }
-        
-        .health-problems h4 {
-            color: var(--title-color);
-            margin-bottom: 10px;
-            font-family: 'Orbitron', sans-serif;
-            display: flex;
-            align-items: center;
-        }
-        
-        .health-problems h4 i {
-            margin-right: 10px;
-        }
-        
-        .health-problems ul {
-            padding-left: 20px;
-        }
-        
-        .health-problems li {
-            margin-bottom: 8px;
-            line-height: 1.5;
-        }
         
         /* 评分系统样式 - 优化版 */
         .rating-container {
@@ -1130,6 +1095,17 @@
             border-color: var(--primary-color);
         }
         
+        /* 核心特质样式 */
+        .core-traits {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(0, 166, 255, 0.1);
+            border-radius: var(--border-radius-sm);
+            border-left: 3px solid var(--primary-color);
+            font-style: italic;
+            color: var(--text-light);
+        }
+        
         /* 响应式设计 */
         @media (max-width: 768px) {
             .header-title {
@@ -1336,7 +1312,11 @@
     <div class="container">
         <!-- 赛博风格Header部分 -->
         <div class="header-container">
-
+            <div class="language-switcher">
+                <button class="language-btn active" data-lang="zh">中</button>
+                <button class="language-btn" data-lang="en">En</button>
+            </div>
+            
             <i class="fas fa-atom header-decoration left"></i>
             <i class="fas fa-rocket header-decoration right"></i>
             <h1 class="header-title">赛博命理系统</h1>
@@ -1466,52 +1446,11 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="core-traits" id="core-traits">
+                            命主核心特质：智慧深邃，意志坚定，具有领导才能和创造力
+                        </div>
                     </div>
                 </div>
-                
-                <!-- 五行健康分析 -->
-<div class="info-section">
-    <h3><i class="fas fa-heartbeat"></i> 五行健康分析</h3>
-    <div class="info-content">
-        <div class="health-chart-container">
-            <canvas id="health-chart" class="health-chart health-chart-animation"></canvas>
-        </div>
-        <div class="element-legend">
-            <div class="element-legend-item">
-                <div class="element-legend-color wood-color"></div>
-                <span>木 (肝胆、眼睛)</span>
-            </div>
-            <div class="element-legend-item">
-                <div class="element-legend-color fire-color"></div>
-                <span>火 (心脏、小肠)</span>
-            </div>
-            <div class="element-legend-item">
-                <div class="element-legend-color earth-color"></div>
-                <span>土 (脾胃、肌肉)</span>
-            </div>
-            <div class="element-legend-item">
-                <div class="element-legend-color metal-color"></div>
-                <span>金 (肺、大肠)</span>
-            </div>
-            <div class="element-legend-item">
-                <div class="element-legend-color water-color"></div>
-                <span>水 (肾、膀胱)</span>
-            </div>
-        </div>
-        
-        <!-- 简化的健康分析 -->
-        <div class="health-problems">
-            <h4><i class="fas fa-chart-pie"></i> 五行健康平衡分析</h4>
-            <div id="health-summary">
-                <p>根据您的八字五行分布，您的健康平衡情况如下：</p>
-                <ul id="health-problems-list">
-                    <!-- 这里将通过JavaScript动态生成内容 -->
-                </ul>
-                <p>请注意保持均衡饮食和规律作息，以维持五行平衡。</p>
-            </div>
-        </div>
-    </div>
-</div>
                 
                 <div class="info-section">
                     <h3><i class="fas fa-atom"></i> 五行能量分布</h3>
@@ -1798,6 +1737,7 @@
             const resultSection = document.getElementById('result-section');
             const timePeriodOptions = document.querySelectorAll('.time-period-option');
             const birthTimeInput = document.getElementById('birth-time');
+            const coreTraits = document.getElementById('core-traits');
             
             // 语言切换按钮
             const languageBtns = document.querySelectorAll('.language-btn');
@@ -1828,9 +1768,7 @@
             
             // 五行图表元素
             const elementChartCtx = document.getElementById('element-chart').getContext('2d');
-            const healthChartCtx = document.getElementById('health-chart').getContext('2d');
             let elementChart;
-            let healthChart;
             
             // 使用当前真实日期
             const currentDate = new Date();
@@ -1894,9 +1832,6 @@
                 if (elementChart) {
                     elementChart.destroy();
                 }
-                if (healthChart) {
-                    healthChart.destroy();
-                }
                 
                 // 滚动到顶部
                 window.scrollTo(0, 0);
@@ -1930,6 +1865,7 @@
                 wealthDetails.innerHTML = '';
                 todayFortuneRating.textContent = '★★★☆☆';
                 todayWealthRating.textContent = '★★☆☆☆';
+                coreTraits.textContent = '命主核心特质：';
                 
                 // 重置所有内容区域
                 document.querySelectorAll('.section-content').forEach(el => {
@@ -2132,135 +2068,6 @@
                 });
             }
             
-            // 初始化五行健康图 - 根据八字五行数据计算健康指数
-            function initHealthChart(pillars) {
-                if (!pillars || !pillars.year) return;
-                
-                // 计算五行能量分布
-                const elements = calculateElementEnergy(pillars);
-                
-                // 五行对应的健康器官评分 (1-10分)
-                const healthData = {
-                    labels: ['木 (肝胆)', '火 (心脏)', '土 (脾胃)', '金 (肺)', '水 (肾)'],
-                    datasets: [{
-                        data: [
-                            calculateHealthScore('木', elements), 
-                            calculateHealthScore('火', elements), 
-                            calculateHealthScore('土', elements), 
-                            calculateHealthScore('金', elements), 
-                            calculateHealthScore('水', elements)
-                        ],
-                        backgroundColor: [
-                            'rgba(0, 255, 136, 0.7)',
-                            'rgba(255, 51, 0, 0.7)',
-                            'rgba(255, 204, 0, 0.7)',
-                            'rgba(204, 204, 204, 0.7)',
-                            'rgba(0, 153, 255, 0.7)'
-                        ],
-                        borderColor: [
-                            'rgba(0, 255, 136, 1)',
-                            'rgba(255, 51, 0, 1)',
-                            'rgba(255, 204, 0, 1)',
-                            'rgba(204, 204, 204, 1)',
-                            'rgba(0, 153, 255, 1)'
-                        ],
-                        borderWidth: 2
-                    }]
-                };
-                
-                healthChart = new Chart(healthChartCtx, {
-                    type: 'polarArea',
-                    data: healthData,
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: {
-                            r: {
-                                angleLines: {
-                                    display: true,
-                                    color: 'rgba(0, 240, 255, 0.2)'
-                                },
-                                suggestedMin: 0,
-                                suggestedMax: 10,
-                                ticks: {
-                                    backdropColor: 'transparent',
-                                    color: 'rgba(0, 240, 255, 0.7)',
-                                    font: {
-                                        family: "'Orbitron', sans-serif"
-                                    },
-                                    stepSize: 2
-                                },
-                                pointLabels: {
-                                    display: false
-                                },
-                                grid: {
-                                    color: 'rgba(0, 240, 255, 0.1)'
-                                }
-                            }
-                        },
-                        plugins: {
-                            legend: {
-                                display: false
-                            },
-                            tooltip: {
-                                callbacks: {
-                                    label: function(context) {
-                                        const label = context.label || '';
-                                        const value = context.raw;
-                                        return `${label}: ${value}/10`;
-                                    }
-                                }
-                            }
-                        },
-                        elements: {
-                            arc: {
-                                borderWidth: 1
-                            }
-                        }
-                    }
-                });
-                
-                // 更新健康问题说明
-                updateHealthProblems(elements);
-            }
-            
-            // 更新健康问题说明
-            function updateHealthProblems(elements) {
-                const healthProblemsList = document.getElementById('health-problems-list');
-                healthProblemsList.innerHTML = '';
-                
-                const elementNames = ['木', '火', '土', '金', '水'];
-                const elementProblems = {
-                    '木': '可能影响肝胆功能，易疲劳、眼睛干涩',
-                    '火': '可能影响心血管系统，易心悸、失眠',
-                    '土': '可能影响消化系统，易胃胀、消化不良',
-                    '金': '可能影响呼吸系统，易感冒、咳嗽',
-                    '水': '可能影响泌尿系统，易腰酸、耳鸣'
-                };
-                
-                // 找出最弱和最弱的五行
-                const minScore = Math.min(...elements);
-                const maxScore = Math.max(...elements);
-                
-                // 添加健康问题说明
-                elements.forEach((score, index) => {
-                    const element = elementNames[index];
-                    let problemText = elementProblems[element];
-                    
-                    if (score === minScore) {
-                        problemText = `<strong>${element}元素弱</strong>：${problemText}（需特别注意）`;
-                    } else if (score === maxScore) {
-                        problemText = `<strong>${element}元素强</strong>：可能相关器官功能较好`;
-                    } else {
-                        problemText = `${element}元素：${score >= 6 ? '正常' : '稍弱'} ${score < 6 ? problemText : ''}`;
-                    }
-                    
-                    const li = document.createElement('li');
-                    li.innerHTML = problemText;
-                    healthProblemsList.appendChild(li);
-                });
-            }
-            
             // 计算五行能量分布
             function calculateElementEnergy(pillars) {
                 const elements = {
@@ -2309,62 +2116,6 @@
                     elements['金'],
                     elements['水']
                 ];
-            }
-            
-            // 计算五行健康评分 (1-10分)
-            function calculateHealthScore(element, elements) {
-                const elementIndex = ['木', '火', '土', '金', '水'].indexOf(element);
-                const elementValue = elements[elementIndex];
-                
-                // 计算该元素在五行中的相对强度 (0-10分)
-                const maxElementValue = Math.max(...elements);
-                const minElementValue = Math.min(...elements);
-                
-                // 基础分 (根据元素数量)
-                let score = elementValue * 2; // 每个元素2分
-                
-                // 考虑五行相生相克关系
-                const generatingElement = getGeneratingElement(element); // 生我的元素
-                const controllingElement = getControllingElement(element); // 克我的元素
-                
-                // 生我的元素强则加分
-                const genIndex = ['木', '火', '土', '金', '水'].indexOf(generatingElement);
-                if (elements[genIndex] >= 2) {
-                    score += 1;
-                }
-                
-                // 克我的元素强则减分
-                const ctrlIndex = ['木', '火', '土', '金', '水'].indexOf(controllingElement);
-                if (elements[ctrlIndex] >= 2) {
-                    score -= 1;
-                }
-                
-                // 确保分数在1-10之间
-                return Math.min(10, Math.max(1, score));
-            }
-            
-            // 获取生我的元素
-            function getGeneratingElement(element) {
-                const generateMap = {
-                    '木': '水',
-                    '火': '木',
-                    '土': '火',
-                    '金': '土',
-                    '水': '金'
-                };
-                return generateMap[element];
-            }
-            
-            // 获取克我的元素
-            function getControllingElement(element) {
-                const controlMap = {
-                    '木': '金',
-                    '火': '水',
-                    '土': '木',
-                    '金': '火',
-                    '水': '土'
-                };
-                return controlMap[element];
             }
             
             // 初始化大运走势图
@@ -3284,20 +3035,15 @@
                         }
                     }
                     
-                    // 4. 初始化五行健康图 - 基于八字数据
-                    if (currentPillars.year) {
-                        initHealthChart(currentPillars);
-                    }
-                    
-                    // 5. 计算并显示评分
+                    // 4. 计算并显示评分
                     displayScores();
                     
-                    // 6. 所有数据加载完成后再显示结果页面
+                    // 5. 所有数据加载完成后再显示结果页面
                     inputSection.style.display = 'none';
                     resultSection.style.display = 'block';
                     document.body.removeChild(loadingOverlay);
                     
-                    // 7. 初始化其他部分的加载按钮
+                    // 6. 初始化其他部分的加载按钮
                     initLoadButtons();
                     window.scrollTo(0, 0);
                     
@@ -3323,16 +3069,59 @@
                                       currentDate.getDate().toString().padStart(2, '0');
                 
                 // 明确指定八字排盘规则
-                let prompt = `请严格按照以下规则进行八字排盘：
-1. 年柱以立春为分界，不是农历春节
-2. 月柱按节气划分（如正月从立春开始，二月从惊蛰开始）
-3. 日柱按公历日期计算
-4. 时柱按出生时辰的地支划分
-5. 从强格(印比力量占80%以上，全局无有力克泄耗）
-6. 从弱格(印比力量不足20%，全局无有力生扶）
-7. 排大运规则（年干为阳的男性、年干为阴的女性顺排；年干为阴年的男性、年干为阳的女性逆排）
-8. 顺排大运（计算从出生时刻到下一个换月节气的时间）
-9. 逆排大运（计算从出生时刻到上一个换月节气的时间）
+                let prompt = `八字排盘核心算法（强制精确模式）：
+## 一、基础计算规则
+1. 【年柱】= 公历日期 < 当年立春时间 ? 上年干支 : 当年干支
+   - 示例：1973年立春=1973-02-04 07:04
+     - 1973-02-02 → 壬子年（立春前）
+     - 1973-02-05 → 癸丑年（立春后）
+
+2. 【月柱】= 按节气精确划分（需计算太阳黄经）：
+   │ 月份 │ 节气       │ 黄经度 │
+   │─────│──────────│───────│
+   │ 寅月 │ 立春-惊蛰前 │ 315°  │
+   │ 卯月 │ 惊蛰-清明前 │ 345°  │
+   │ ...  │ ...        │ ...   │
+
+3. 【日柱】= 公式计算（无需农历转换）：
+   \`日干支基数 = (年尾二位数 + 3)*5 + 55 + (年尾二位数 - 1)/4\`
+   （结果取整mod60，再结合当年天数计算）
+
+4. 【时柱】= 严格按北京时间（东八区）：
+   - 23:00-00:59 → 次日日干的子时
+   - 早子时（23:00-24:00）与晚子时（00:00-01:00）区分
+
+## 二、强制验证步骤
+1. 年柱验证：
+   - 输出立春具体时间
+   - 明确声明"当前日期在立春[前/后]"
+
+2. 月柱验证：
+   - 输出当前节气区间（如"立春到惊蛰之间"）
+   - 声明"本月地支=寅，月干按五虎遁为X"
+
+3. 大运顺逆验证：
+   - 输出"年干=X（阳/阴），性别=男/女 → 顺/逆排"
+
+## 三、容错机制
+1. 遇到临界时间（如立春当天23:30）：
+   - 必须查询精确到分钟的节气时间表
+   - 示例比对：
+     \`立春=02-04 07:04 vs 出生=02-04 06:30 → 立春前\`
+
+2. 自动纠错：
+   - 如果日柱与公历日期矛盾 → 重新计算干支基数
+   - 如果时柱跨日 → 校正日干变化
+
+## 四、输出模板
+\`\`\`
+【八字排盘】
+年柱：{干支}（{立春验证说明}）
+月柱：{干支}（{节气区间说明}）
+日柱：{干支}（公历{日期}计算值）
+时柱：{干支}（{早晚子时说明}）
+大运：{顺/逆排}（{年干阴阳验证}）
+\`\`\`
 
 当前日期：${currentDateStr}
 根据以下八字信息进行分析：
@@ -3357,6 +3146,7 @@
 3 五行能量：[木,火,土,金,水] (1-10分，请根据八字五行生克关系计算具体数值)
 4 今日运势：[1-5]
 5 今日财运：[1-5]
+6 核心特质：[用一句话描述命主的核心特质]
 
 用简洁格式返回，不要分析内容，不要使用任何符号如#*、等。`;
                         break;
@@ -3446,12 +3236,12 @@
                         break;
                     case 'today-winloss':
                         prompt += `分析今日输赢情况：
-1 今日整体运势
+1 今日财运
 2 麻将输赢
 
 返回格式：
-麻将输赢：[1-5星]
-输赢分析：[输赢机会详细分析]`;
+麻将输赢：[输赢几率详细分析]
+`;
                         break;
                     case 'annual-fortune':
                         prompt += `分析流年运势：
@@ -3576,11 +3366,16 @@
                 if (hiddenStemsLine) {
                     const hiddenStems = hiddenStemsLine.match(/年支\[(.*?)\] 月支\[(.*?)\] 日支\[(.*?)\] 时支\[(.*?)\]/);
                     if (hiddenStems && hiddenStems.length === 5) {
-                        // 更新藏干显示，并为每个藏干添加五行颜色
-                        yearHiddenStems.innerHTML = formatHiddenStems(hiddenStems[1]);
-                        monthHiddenStems.innerHTML = formatHiddenStems(hiddenStems[2]);
-                        dayHiddenStems.innerHTML = formatHiddenStems(hiddenStems[3]);
-                        hourHiddenStems.innerHTML = formatHiddenStems(hiddenStems[4]);
+                        yearHiddenStems.textContent = hiddenStems[1];
+                        monthHiddenStems.textContent = hiddenStems[2];
+                        dayHiddenStems.textContent = hiddenStems[3];
+                        hourHiddenStems.textContent = hiddenStems[4];
+                        
+                        // 设置藏干的五行颜色
+                        setHiddenStemsColors(yearHiddenStems, hiddenStems[1]);
+                        setHiddenStemsColors(monthHiddenStems, hiddenStems[2]);
+                        setHiddenStemsColors(dayHiddenStems, hiddenStems[3]);
+                        setHiddenStemsColors(hourHiddenStems, hiddenStems[4]);
                     }
                 }
                 
@@ -3601,65 +3396,17 @@
                         todayWealthRating.textContent = getStarRating(todayWealthMatch[1]);
                     }
                 }
+                
+                // 提取核心特质
+                const traitsLine = lines.find(line => line.includes('核心特质'));
+                if (traitsLine) {
+                    const traitsMatch = traitsLine.match(/核心特质：\[(.*?)\]/);
+                    if (traitsMatch && traitsMatch[1]) {
+                        coreTraits.textContent = `命主核心特质：${traitsMatch[1]}`;
+                    }
+                }
             }
             
-            // 格式化藏干显示，为每个藏干添加五行颜色
-            function formatHiddenStems(stems) {
-                const stemElements = {
-                    '甲': 'wood', '乙': 'wood',
-                    '丙': 'fire', '丁': 'fire',
-                    '戊': 'earth', '己': 'earth',
-                    '庚': 'metal', '辛': 'metal',
-                    '壬': 'water', '癸': 'water'
-                };
-                
-                let result = '';
-                for (let i = 0; i < stems.length; i++) {
-                    const stem = stems[i];
-                    const elementClass = stemElements[stem] || '';
-                    result += `<span class="hidden-stem-item ${elementClass}">${stem}</span>`;
-                }
-                return result;
-            }
-          
-            // 更新健康分析说明 - 简化版
-function updateHealthProblems(elements) {
-    const healthProblemsList = document.getElementById('health-problems-list');
-    healthProblemsList.innerHTML = '';
-    
-    const elementNames = ['木', '火', '土', '金', '水'];
-    const elementOrgans = {
-        '木': '肝胆和眼睛',
-        '火': '心脏和小肠',
-        '土': '脾胃和肌肉',
-        '水': '肾和膀胱',
-        '金': '肺和大肠'
-    };
-    
-    // 找出最强和最弱的五行
-    const minScore = Math.min(...elements);
-    const maxScore = Math.max(...elements);
-    
-    // 添加健康分析说明
-    elements.forEach((score, index) => {
-        const element = elementNames[index];
-        const organs = elementOrgans[element];
-        
-        let statusText = '';
-        if (score === minScore) {
-            statusText = `<strong>${element}元素偏弱</strong> - 可能影响${organs}功能`;
-        } else if (score === maxScore) {
-            statusText = `<strong>${element}元素较强</strong> - ${organs}功能可能较好`;
-        } else {
-            statusText = `${element}元素平衡 - ${organs}功能正常`;
-        }
-        
-        const li = document.createElement('li');
-        li.innerHTML = statusText;
-        healthProblemsList.appendChild(li);
-    });
-}
-          
             // 根据天干地支设置五行颜色
             function setElementColors(element, text) {
                 // 天干五行对应关系
@@ -3689,6 +3436,32 @@ function updateHealthProblems(elements) {
                 } else if (branchElements[text]) {
                     element.classList.add(branchElements[text]);
                 }
+            }
+            
+            // 设置藏干的五行颜色
+            function setHiddenStemsColors(element, stems) {
+                // 清除所有五行类
+                element.classList.remove('wood', 'fire', 'earth', 'metal', 'water');
+                
+                // 天干五行对应关系
+                const stemElements = {
+                    '甲': 'wood', '乙': 'wood',
+                    '丙': 'fire', '丁': 'fire',
+                    '戊': 'earth', '己': 'earth',
+                    '庚': 'metal', '辛': 'metal',
+                    '壬': 'water', '癸': 'water'
+                };
+                
+                // 创建一个span元素数组来包裹每个藏干
+                const spans = [];
+                for (let i = 0; i < stems.length; i++) {
+                    const char = stems[i];
+                    const elementClass = stemElements[char] || '';
+                    spans.push(`<span class="${elementClass}">${char}</span>`);
+                }
+                
+                // 将span数组连接成字符串并设置到元素中
+                element.innerHTML = spans.join('');
             }
             
             function displaySectionContent(section, result, contentElement) {
