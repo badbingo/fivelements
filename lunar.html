@@ -179,11 +179,11 @@
             
             if (isLunar) {
                 // 农历输入
-                lunarDate = Lunar.fromYmd(year, month, day);
+                lunarDate = Lunar.Lunar.fromYmd(year, month, day);
                 solarDate = lunarDate.getSolar();
             } else {
                 // 公历输入
-                solarDate = Solar.fromYmd(year, month, day);
+                solarDate = Solar.Solar.fromYmd(year, month, day);
                 lunarDate = solarDate.getLunar();
             }
             
@@ -200,20 +200,53 @@
             document.getElementById('solarDate').textContent = solarDate.toYmdHms();
             document.getElementById('lunarDate').textContent = lunarDate.toString();
             document.getElementById('baziFull').textContent = `${bazi.getYear()} ${bazi.getMonth()} ${bazi.getDay()} ${bazi.getTime()}`;
-            document.getElementById('wuXing').textContent = lunarDate.getWuXing();
+            
+            // 计算五行（根据天干地支计算）
+            const wuXingMap = {
+                '甲': '木', '乙': '木', '丙': '火', '丁': '火', '戊': '土',
+                '己': '土', '庚': '金', '辛': '金', '壬': '水', '癸': '水',
+                '子': '水', '丑': '土', '寅': '木', '卯': '木', '辰': '土',
+                '巳': '火', '午': '火', '未': '土', '申': '金', '酉': '金',
+                '戌': '土', '亥': '水'
+            };
+            
+            const yearGanZhi = bazi.getYear();
+            const monthGanZhi = bazi.getMonth();
+            const dayGanZhi = bazi.getDay();
+            const hourGanZhi = bazi.getTime();
+            
+            const wuXing = [
+                wuXingMap[yearGanZhi[0]], wuXingMap[yearGanZhi[1]],
+                wuXingMap[monthGanZhi[0]], wuXingMap[monthGanZhi[1]],
+                wuXingMap[dayGanZhi[0]], wuXingMap[dayGanZhi[1]],
+                wuXingMap[hourGanZhi[0]], wuXingMap[hourGanZhi[1]]
+            ].join(' ');
+            
+            document.getElementById('wuXing').textContent = wuXing;
             document.getElementById('shengXiao').textContent = lunarDate.getYearShengXiao();
-            document.getElementById('mingGong').textContent = bazi.getMingGong();
-            document.getElementById('shenGong').textContent = bazi.getShenGong();
+            
+            // 命宫和身宫（根据lunar.js版本可能需要调整）
+            try {
+                document.getElementById('mingGong').textContent = bazi.getMingGong() || '未知';
+                document.getElementById('shenGong').textContent = bazi.getShenGong() || '未知';
+            } catch (e) {
+                document.getElementById('mingGong').textContent = '未知';
+                document.getElementById('shenGong').textContent = '未知';
+            }
             
             // 计算大运
-            const daYunList = bazi.getDaYun();
-            let daYunHtml = '<ul>';
-            for (let i = 0; i < daYunList.length; i++) {
-                const daYun = daYunList[i];
-                daYunHtml += `<li>${daYun.getStartYear()} - ${daYun.getEndYear()}: ${daYun.getGanZhi()} (${i+1}岁起运)</li>`;
+            try {
+                const daYunList = bazi.getDaYun();
+                let daYunHtml = '<ul>';
+                for (let i = 0; i < daYunList.length; i++) {
+                    const daYun = daYunList[i];
+                    daYunHtml += `<li>${daYun.getStartYear()} - ${daYun.getEndYear()}: ${daYun.getGanZhi()} (${i+1}岁起运)</li>`;
+                }
+                daYunHtml += '</ul>';
+                document.getElementById('daYunList').innerHTML = daYunHtml;
+            } catch (e) {
+                document.getElementById('daYunList').innerHTML = '<p>无法计算大运</p>';
             }
-            daYunHtml += '</ul>';
-            document.getElementById('daYunList').innerHTML = daYunHtml;
             
             // 显示结果区域
             document.getElementById('result').classList.remove('hidden');
