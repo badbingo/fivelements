@@ -1,319 +1,43 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>八字排盘系统 v1.7.2</title>
-    <script src="lunar.js"></script>
-    <style>
-        body {
-            font-family: 'Microsoft YaHei', sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f5f5f5;
-            color: #333;
-        }
-        h1 {
-            text-align: center;
-            color: #8B4513;
-            margin-bottom: 20px;
-        }
-        .container {
-            background-color: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        .input-group {
-            margin-bottom: 15px;
-        }
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-        input, select {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-        button {
-            background-color: #8B4513;
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-            width: 100%;
-            margin-top: 10px;
-            transition: background-color 0.3s;
-        }
-        button:hover {
-            background-color: #A0522D;
-        }
-        .result {
-            margin-top: 20px;
-            padding: 15px;
-            background-color: #f9f9f9;
-            border-radius: 4px;
-            border-left: 4px solid #8B4513;
-        }
-        .bazi-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-        .bazi-cell {
-            text-align: center;
-            padding: 10px;
-            background-color: #fff;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-        .bazi-title {
-            font-weight: bold;
-            margin-bottom: 5px;
-            color: #8B4513;
-        }
-        .bazi-content {
-            font-size: 18px;
-            font-weight: bold;
-        }
-        .hidden {
-            display: none;
-        }
-        .error {
-            color: #d9534f;
-            margin-top: 10px;
-            padding: 10px;
-            background-color: #f2dede;
-            border-radius: 4px;
-            border: 1px solid #ebccd1;
-        }
-        .info-section {
-            margin-top: 15px;
-            padding: 10px;
-            background-color: #f0f8ff;
-            border-radius: 4px;
-        }
-        .info-section h3 {
-            margin-top: 0;
-            color: #5b80b9;
-        }
-        ul {
-            padding-left: 20px;
-        }
-        li {
-            margin-bottom: 5px;
-        }
-        .footer {
-            text-align: center;
-            margin-top: 20px;
-            color: #777;
-            font-size: 12px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>八字排盘</title>
+  <script src="https://cdn.jsdelivr.net/npm/lunar-javascript@1.7.2/lunar.min.js"></script>
 </head>
 <body>
-    <div class="container">
-        <h1>八字排盘系统 (lunar.js v1.7.2owen)</h1>
-        
-        <div class="input-group">
-            <label for="birthDate">出生日期</label>
-            <input type="date" id="birthDate" required>
-        </div>
-        
-        <div class="input-group">
-            <label for="birthTime">出生时间</label>
-            <input type="time" id="birthTime" value="12:00" required>
-        </div>
-        
-        <div class="input-group">
-            <label for="isLunar">日历类型</label>
-            <select id="isLunar">
-                <option value="false">公历</option>
-                <option value="true">农历</option>
-            </select>
-        </div>
-        
-        <div class="input-group">
-            <label for="gender">性别</label>
-            <select id="gender">
-                <option value="1">男</option>
-                <option value="0">女</option>
-            </select>
-        </div>
-        
-        <button id="calculateBtn">排盘</button>
-        
-        <div id="errorMsg" class="error hidden"></div>
-        
-        <div id="result" class="result hidden">
-            <h2 style="text-align: center; color: #8B4513;">八字排盘结果</h2>
-            <div class="bazi-grid">
-                <div class="bazi-cell">
-                    <div class="bazi-title">年柱</div>
-                    <div class="bazi-content" id="yearPillar"></div>
-                </div>
-                <div class="bazi-cell">
-                    <div class="bazi-title">月柱</div>
-                    <div class="bazi-content" id="monthPillar"></div>
-                </div>
-                <div class="bazi-cell">
-                    <div class="bazi-title">日柱</div>
-                    <div class="bazi-content" id="dayPillar"></div>
-                </div>
-                <div class="bazi-cell">
-                    <div class="bazi-title">时柱</div>
-                    <div class="bazi-content" id="hourPillar"></div>
-                </div>
-            </div>
-            
-            <div class="info-section">
-                <h3>基本信息</h3>
-                <p><strong>出生公历:</strong> <span id="solarDate"></span></p>
-                <p><strong>出生农历:</strong> <span id="lunarDate"></span></p>
-                <p><strong>八字:</strong> <span id="baziFull"></span></p>
-                <p><strong>五行:</strong> <span id="wuXing"></span></p>
-                <p><strong>生肖:</strong> <span id="shengXiao"></span></p>
-                <p><strong>命宫:</strong> <span id="mingGong"></span></p>
-                <p><strong>身宫:</strong> <span id="shenGong"></span></p>
-            </div>
-            
-            <div class="info-section">
-                <h3>大运</h3>
-                <div id="daYunList"></div>
-            </div>
-            
-            <div class="info-section">
-                <h3>流年</h3>
-                <p>当前年龄: <span id="currentAge"></span>岁</p>
-                <p>2025年流年: <span id="liuNian2025"></span></p>
-            </div>
-        </div>
-        
-        <div class="footer">
-            <p>本排盘系统基于 lunar.js v1.7.2 | 仅供学习参考</p>
-        </div>
-    </div>
+  <h1>八字排盘</h1>
+  <label>公历生日（yyyy-mm-dd hh）:</label>
+  <input type="datetime-local" id="birth" />
+  <button onclick="generateBazi()">排盘</button>
 
-    <script>
-        document.getElementById('calculateBtn').addEventListener('click', function() {
-            // 清除之前的结果和错误
-            document.getElementById('result').classList.add('hidden');
-            document.getElementById('errorMsg').classList.add('hidden');
-            
-            // 获取输入值
-            const birthDate = document.getElementById('birthDate').value;
-            const birthTime = document.getElementById('birthTime').value;
-            const isLunar = document.getElementById('isLunar').value === 'true';
-            const gender = parseInt(document.getElementById('gender').value);
-            
-            if (!birthDate) {
-                showError('请输入出生日期');
-                return;
-            }
-            
-            try {
-                // 解析日期和时间
-                const [year, month, day] = birthDate.split('-').map(Number);
-                const [hour, minute] = birthTime.split(':').map(Number);
-                
-                // 使用lunar.js进行排盘
-                let lunar;
-                
-                if (isLunar) {
-                    // 农历输入
-                    lunar = Lunar.fromYmd(year, month, day);
-                } else {
-                    // 公历输入
-                    lunar = Lunar.fromSolar(year, month, day);
-                }
-                
-                // 设置时辰（23-0点是子时）
-                lunar = lunar.setTime(hour, minute, 0);
-                
-                // 八字信息
-                const bazi = lunar.getEightChar();
-                const solar = lunar.getSolar();
-                
-                // 显示八字四柱
-                document.getElementById('yearPillar').textContent = bazi.getYear();
-                document.getElementById('monthPillar').textContent = bazi.getMonth();
-                document.getElementById('dayPillar').textContent = bazi.getDay();
-                document.getElementById('hourPillar').textContent = bazi.getTime();
-                
-                // 显示基本信息
-                document.getElementById('solarDate').textContent = 
-                    `${solar.getYear()}年${solar.getMonth()}月${solar.getDay()}日 ${hour}:${minute.toString().padStart(2, '0')}`;
-                document.getElementById('lunarDate').textContent = lunar.toString();
-                document.getElementById('baziFull').textContent = 
-                    `${bazi.getYear()} ${bazi.getMonth()} ${bazi.getDay()} ${bazi.getTime()}`;
-                
-                // 计算五行
-                const wuXing = [
-                    bazi.getYearWuXing(),
-                    bazi.getMonthWuXing(),
-                    bazi.getDayWuXing(),
-                    bazi.getTimeWuXing()
-                ].join(' ');
-                document.getElementById('wuXing').textContent = wuXing;
-                
-                // 生肖
-                document.getElementById('shengXiao').textContent = lunar.getYearShengXiao();
-                
-                // 命宫和身宫
-                document.getElementById('mingGong').textContent = bazi.getMingGong() || '未知';
-                document.getElementById('shenGong').textContent = bazi.getShenGong() || '未知';
-                
-                // 计算大运
-                const daYunList = bazi.getDaYun(gender === 1);
-                let daYunHtml = '<ul>';
-                for (let i = 0; i < Math.min(daYunList.length, 10); i++) {
-                    const daYun = daYunList[i];
-                    daYunHtml += `<li><strong>${daYun.getStartYear()}年 - ${daYun.getEndYear()}年:</strong> ${daYun.getGanZhi()} (${daYun.getStartAge()}岁起运)</li>`;
-                }
-                daYunHtml += '</ul>';
-                document.getElementById('daYunList').innerHTML = daYunHtml;
-                
-                // 计算当前年龄和流年
-                const currentYear = new Date().getFullYear();
-                const age = currentYear - solar.getYear();
-                document.getElementById('currentAge').textContent = age;
-                
-                // 2025年流年
-                const liuNian2025 = bazi.getLiuNian(2025);
-                document.getElementById('liuNian2025').textContent = 
-                    `${liuNian2025.getGanZhi()} (${liuNian2025.getXingXiao()}年)`;
-                
-                // 显示结果区域
-                document.getElementById('result').classList.remove('hidden');
-            } catch (e) {
-                console.error('排盘错误:', e);
-                showError(`排盘过程中发生错误: ${e.message}`);
-            }
-        });
-        
-        function showError(message) {
-            const errorEl = document.getElementById('errorMsg');
-            errorEl.textContent = message;
-            errorEl.classList.remove('hidden');
-        }
-        
-        // 设置默认日期为当前日期
-        window.onload = function() {
-            const today = new Date();
-            const yyyy = today.getFullYear();
-            const mm = String(today.getMonth() + 1).padStart(2, '0');
-            const dd = String(today.getDate()).padStart(2, '0');
-            document.getElementById('birthDate').value = `${yyyy}-${mm}-${dd}`;
-        };
-    </script>
+  <div id="result"></div>
+
+  <script>
+    function generateBazi() {
+      const birth = document.getElementById('birth').value;
+      if (!birth) {
+        alert("请输入出生时间");
+        return;
+      }
+
+      const [datePart, timePart] = birth.split('T');
+      const [year, month, day] = datePart.split('-').map(Number);
+      const hour = Number(timePart.split(':')[0]);
+
+      const solar = Lunar.Solar.fromYmdHms(year, month, day, hour, 0, 0);
+      const lunar = solar.getLunar();
+
+      const resultDiv = document.getElementById('result');
+      resultDiv.innerHTML = `
+        <p><strong>农历：</strong> ${lunar.toFullString()}</p >
+        <p><strong>八字：</strong> ${lunar.getEightChar().toString()}</p >
+        <p><strong>年柱：</strong> ${lunar.getEightChar().getYear()}</p >
+        <p><strong>月柱：</strong> ${lunar.getEightChar().getMonth()}</p >
+        <p><strong>日柱：</strong> ${lunar.getEightChar().getDay()}</p >
+        <p><strong>时柱：</strong> ${lunar.getEightChar().getTime()}</p >
+      `;
+    }
+  </script>
 </body>
 </html>
