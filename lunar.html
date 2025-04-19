@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>八字排盘系统</title>
-    <script src="https://github.com/6tail/lunar-javascript/blob/master/lunar.js"></script>
+    <title>八字排盘系统 v1.7.2</title>
+    <script src="lunar.js"></script>
     <style>
         body {
             font-family: 'Microsoft YaHei', sans-serif;
@@ -84,11 +84,15 @@
         .hidden {
             display: none;
         }
+        .error {
+            color: red;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>八字排盘系统</h1>
+        <h1>八字排盘系统 (lunar.js v1.7.2)</h1>
         
         <div class="input-group">
             <label for="birthDate">出生日期</label>
@@ -117,6 +121,8 @@
         </div>
         
         <button id="calculateBtn">排盘</button>
+        
+        <div id="errorMsg" class="error hidden"></div>
         
         <div id="result" class="result hidden">
             <h2>八字排盘结果</h2>
@@ -159,6 +165,10 @@
 
     <script>
         document.getElementById('calculateBtn').addEventListener('click', function() {
+            // 清除之前的结果和错误
+            document.getElementById('result').classList.add('hidden');
+            document.getElementById('errorMsg').classList.add('hidden');
+            
             // 获取输入值
             const birthDate = document.getElementById('birthDate').value;
             const birthTime = document.getElementById('birthTime').value;
@@ -166,30 +176,34 @@
             const gender = parseInt(document.getElementById('gender').value);
             
             if (!birthDate) {
-                alert('请输入出生日期');
+                showError('请输入出生日期');
                 return;
             }
             
-            // 解析日期和时间
-            const [year, month, day] = birthDate.split('-').map(Number);
-            const [hour, minute] = birthTime.split(':').map(Number);
-            
-            // 使用lunar.js进行排盘
-            let solarDate, lunarDate;
-            
             try {
+                // 解析日期和时间
+                const [year, month, day] = birthDate.split('-').map(Number);
+                const [hour, minute] = birthTime.split(':').map(Number);
+                
+                // 使用lunar.js进行排盘
+                let solar, lunar;
+                
                 if (isLunar) {
                     // 农历输入
-                    lunarDate = Lunar.fromYmd(year, month, day);
-                    solarDate = lunarDate.getSolar();
+                    lunar = Lunar.Lunar.fromYmd(year, month, day);
+                    solar = lunar.getSolar();
                 } else {
                     // 公历输入
-                    solarDate = Solar.fromYmd(year, month, day);
-                    lunarDate = solarDate.getLunar();
+                    solar = Lunar.Solar.fromYmd(year, month, day);
+                    lunar = solar.getLunar();
                 }
                 
+                // 设置时辰（23-0点是子时）
+                const timeZhi = Lunar.LunarUtil.getTimeZhi((hour + 1) % 24);
+                lunar = lunar.setTime(hour, minute, 0);
+                
                 // 八字信息
-                const bazi = lunarDate.getEightChar();
+                const bazi = lunar.getEightChar();
                 
                 // 显示结果
                 document.getElementById('yearPillar').textContent = bazi.getYear();
@@ -198,65 +212,48 @@
                 document.getElementById('hourPillar').textContent = bazi.getTime();
                 
                 // 显示基本信息
-                document.getElementById('solarDate').textContent = solarDate.toYmdHms();
-                document.getElementById('lunarDate').textContent = lunarDate.toString();
+                document.getElementById('solarDate').textContent = solar.toYmdHms();
+                document.getElementById('lunarDate').textContent = lunar.toString();
                 document.getElementById('baziFull').textContent = `${bazi.getYear()} ${bazi.getMonth()} ${bazi.getDay()} ${bazi.getTime()}`;
                 
-                // 计算五行（根据天干地支计算）
-                const wuXingMap = {
-                    '甲': '木', '乙': '木', '丙': '火', '丁': '火', '戊': '土',
-                    '己': '土', '庚': '金', '辛': '金', '壬': '水', '癸': '水',
-                    '子': '水', '丑': '土', '寅': '木', '卯': '木', '辰': '土',
-                    '巳': '火', '午': '火', '未': '土', '申': '金', '酉': '金',
-                    '戌': '土', '亥': '水'
-                };
-                
-                const yearGanZhi = bazi.getYear();
-                const monthGanZhi = bazi.getMonth();
-                const dayGanZhi = bazi.getDay();
-                const hourGanZhi = bazi.getTime();
-                
+                // 计算五行
                 const wuXing = [
-                    wuXingMap[yearGanZhi[0]], wuXingMap[yearGanZhi[1]],
-                    wuXingMap[monthGanZhi[0]], wuXingMap[monthGanZhi[1]],
-                    wuXingMap[dayGanZhi[0]], wuXingMap[dayGanZhi[1]],
-                    wuXingMap[hourGanZhi[0]], wuXingMap[hourGanZhi[1]]
+                    bazi.getYearWuXing(),
+                    bazi.getMonthWuXing(),
+                    bazi.getDayWuXing(),
+                    bazi.getTimeWuXing()
                 ].join(' ');
-                
                 document.getElementById('wuXing').textContent = wuXing;
-                document.getElementById('shengXiao').textContent = lunarDate.getYearShengXiao();
+                
+                document.getElementById('shengXiao').textContent = lunar.getYearShengXiao();
                 
                 // 命宫和身宫
-                try {
-                    document.getElementById('mingGong').textContent = bazi.getMingGong() || '未知';
-                    document.getElementById('shenGong').textContent = bazi.getShenGong() || '未知';
-                } catch (e) {
-                    document.getElementById('mingGong').textContent = '未知';
-                    document.getElementById('shenGong').textContent = '未知';
-                }
+                document.getElementById('mingGong').textContent = bazi.getMingGong() || '未知';
+                document.getElementById('shenGong').textContent = bazi.getShenGong() || '未知';
                 
                 // 计算大运
-                try {
-                    const daYunList = bazi.getDaYun(gender === 1, 10);
-                    let daYunHtml = '<ul>';
-                    for (let i = 0; i < daYunList.length; i++) {
-                        const daYun = daYunList[i];
-                        daYunHtml += `<li>${daYun.getStartYear()} - ${daYun.getEndYear()}: ${daYun.getGanZhi()} (${daYun.getStartAge()}岁起运)</li>`;
-                    }
-                    daYunHtml += '</ul>';
-                    document.getElementById('daYunList').innerHTML = daYunHtml;
-                } catch (e) {
-                    console.error(e);
-                    document.getElementById('daYunList').innerHTML = '<p>无法计算大运</p>';
+                const daYunList = bazi.getDaYun(gender === 1);
+                let daYunHtml = '<ul>';
+                for (let i = 0; i < Math.min(daYunList.length, 10); i++) {
+                    const daYun = daYunList[i];
+                    daYunHtml += `<li>${daYun.getStartYear()}年 - ${daYun.getEndYear()}年: ${daYun.getGanZhi()} (${daYun.getStartAge()}岁起运)</li>`;
                 }
+                daYunHtml += '</ul>';
+                document.getElementById('daYunList').innerHTML = daYunHtml;
                 
                 // 显示结果区域
                 document.getElementById('result').classList.remove('hidden');
             } catch (e) {
                 console.error(e);
-                alert('排盘过程中发生错误，请检查输入数据');
+                showError('排盘过程中发生错误: ' + e.message);
             }
         });
+        
+        function showError(message) {
+            const errorEl = document.getElementById('errorMsg');
+            errorEl.textContent = message;
+            errorEl.classList.remove('hidden');
+        }
     </script>
 </body>
 </html>
