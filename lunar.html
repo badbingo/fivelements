@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>八字排盘计算器</title>
-    <script src="lunar.js"></script> <!-- 确保文件名和路径正确 -->
+    <script src="lunar.js"></script> <!-- 确保这个文件存在于同一目录下 -->
     <style>
         body { font-family: Arial, sans-serif; background-color: #f9f9f9; }
         .container { max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ccc; background-color: white; border-radius: 10px; }
@@ -43,18 +43,18 @@
 
             // 解析输入的日期和时间
             const dateTime = new Date(dateInput + 'T' + timeInput);
-            const lunar = Lunar.solarToLunar(dateTime);
+            const lunar = Lunar.Lunar.fromDate(dateTime);
 
             // 计算八字
             const gan = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
             const zhi = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
 
-            const yearGan = gan[(lunar.year - 4) % 10];
-            const yearZhi = zhi[(lunar.year - 4) % 12];
-            const monthGan = gan[(yearGan.charCodeAt(0) - 0x4e20 + lunar.month - 1 + 10) % 10];
-            const monthZhi = zhi[(lunar.month - 1) % 12]; // 注意：月份要减一
-            const dayGan = gan[(lunar.day + lunar.month + lunar.year + 10) % 10];
-            const dayZhi = zhi[(lunar.day - 1) % 12]; // 注意：天数要减一
+            const yearGan = gan[(lunar.LunarYear - 4) % 10];
+            const yearZhi = zhi[(lunar.LunarYear - 4) % 12];
+            const monthGan = gan[(yearGan.charCodeAt(0) - 0x4e20 + lunar.LunarMonth - 1) % 10];
+            const monthZhi = zhi[(lunar.LunarMonth - 1) % 12]; // 注意：月份要减一
+            const dayGan = gan[(lunar.LunarDay + lunar.LunarMonth + lunar.LunarYear) % 10];
+            const dayZhi = zhi[(lunar.LunarDay - 1) % 12]; // 注意：天数要减一
 
             // 获取八字
             const bazi = `${yearGan}${yearZhi} ${monthGan}${monthZhi} ${dayGan}${dayZhi}`;
