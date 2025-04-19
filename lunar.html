@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>八字排盘计算器</title>
+    <script src="lunar.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f9f9f9; }
+        .container { max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ccc; background-color: white; border-radius: 10px; }
+        input { width: calc(100% - 24px); padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; }
+        button { padding: 10px; background-color: #5cb85c; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background-color: #4cae4c; }
+        h3 { margin-top: 20px; }
+        pre { background-color: #f2f2f2; padding: 10px; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>八字排盘计算器</h2>
+        <label for="date">出生日期 (YYYY-MM-DD):</label>
+        <input type="date" id="date" required>
+        
+        <label for="time">出生时间 (HH:mm):</label>
+        <input type="time" id="time" required>
+        
+        <button id="calculate">计算八字</button>
+
+        <h3>八字结果:</h3>
+        <pre id="result"></pre>
+    </div>
+
+    <script>
+        document.getElementById('calculate').addEventListener('click', function() {
+            const dateInput = document.getElementById('date').value;
+            const timeInput = document.getElementById('time').value;
+
+            // 检查是否输入完整
+            if (!dateInput || !timeInput) {
+                alert('请填写完整的出生日期和时间。');
+                return;
+            }
+
+            // 解析输入的日期和时间
+            const dateTime = new Date(dateInput + 'T' + timeInput);
+            const lunar = Lunar.solarToLunar(dateTime);
+
+            // 计算八字
+            const gan = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
+            const zhi = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
+
+            const yearGan = gan[(lunar.year - 4) % 10];
+            const yearZhi = zhi[(lunar.year - 4) % 12];
+            const monthGan = gan[(yearGan.charCodeAt(0) - 0x4e20 + lunar.month) % 10];
+            const monthZhi = zhi[(lunar.month - 1) % 12]; // 注意：月份要减一
+            const dayGan = gan[(lunar.day + lunar.month + lunar.year) % 10];
+            const dayZhi = zhi[(lunar.day - 1) % 12]; // 注意：天数要减一
+
+            // 获取八字
+            const bazi = `${yearGan}${yearZhi} ${monthGan}${monthZhi} ${dayGan}${dayZhi}`;
+
+            // 显示结果
+            document.getElementById('result').textContent = bazi;
+        });
+    </script>
+</body>
+</html>
