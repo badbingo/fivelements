@@ -3,10 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>八字排盘系统 UP v1.7.2</title>
+    <title>八字排盘系统 v1.7.2</title>
     <script src="lunar.js"></script>
     <style>
-        /* 样式部分保持不变 */
         body {
             font-family: 'Microsoft YaHei', sans-serif;
             max-width: 800px;
@@ -18,6 +17,7 @@
         h1 {
             text-align: center;
             color: #8B4513;
+            margin-bottom: 20px;
         }
         .container {
             background-color: white;
@@ -50,6 +50,7 @@
             font-size: 16px;
             width: 100%;
             margin-top: 10px;
+            transition: background-color 0.3s;
         }
         button:hover {
             background-color: #A0522D;
@@ -73,6 +74,7 @@
             background-color: #fff;
             border: 1px solid #ddd;
             border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
         .bazi-title {
             font-weight: bold;
@@ -81,19 +83,46 @@
         }
         .bazi-content {
             font-size: 18px;
+            font-weight: bold;
         }
         .hidden {
             display: none;
         }
         .error {
-            color: red;
+            color: #d9534f;
             margin-top: 10px;
+            padding: 10px;
+            background-color: #f2dede;
+            border-radius: 4px;
+            border: 1px solid #ebccd1;
+        }
+        .info-section {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #f0f8ff;
+            border-radius: 4px;
+        }
+        .info-section h3 {
+            margin-top: 0;
+            color: #5b80b9;
+        }
+        ul {
+            padding-left: 20px;
+        }
+        li {
+            margin-bottom: 5px;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            color: #777;
+            font-size: 12px;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>八字排盘系统 (lunar.js v1.7.2up)</h1>
+        <h1>八字排盘系统 (lunar.js v1.7.2owen)</h1>
         
         <div class="input-group">
             <label for="birthDate">出生日期</label>
@@ -126,7 +155,7 @@
         <div id="errorMsg" class="error hidden"></div>
         
         <div id="result" class="result hidden">
-            <h2>八字排盘结果</h2>
+            <h2 style="text-align: center; color: #8B4513;">八字排盘结果</h2>
             <div class="bazi-grid">
                 <div class="bazi-cell">
                     <div class="bazi-title">年柱</div>
@@ -146,21 +175,31 @@
                 </div>
             </div>
             
-            <div>
+            <div class="info-section">
                 <h3>基本信息</h3>
-                <p>出生公历: <span id="solarDate"></span></p>
-                <p>出生农历: <span id="lunarDate"></span></p>
-                <p>八字: <span id="baziFull"></span></p>
-                <p>五行: <span id="wuXing"></span></p>
-                <p>生肖: <span id="shengXiao"></span></p>
-                <p>命宫: <span id="mingGong"></span></p>
-                <p>身宫: <span id="shenGong"></span></p>
+                <p><strong>出生公历:</strong> <span id="solarDate"></span></p>
+                <p><strong>出生农历:</strong> <span id="lunarDate"></span></p>
+                <p><strong>八字:</strong> <span id="baziFull"></span></p>
+                <p><strong>五行:</strong> <span id="wuXing"></span></p>
+                <p><strong>生肖:</strong> <span id="shengXiao"></span></p>
+                <p><strong>命宫:</strong> <span id="mingGong"></span></p>
+                <p><strong>身宫:</strong> <span id="shenGong"></span></p>
             </div>
             
-            <div>
+            <div class="info-section">
                 <h3>大运</h3>
                 <div id="daYunList"></div>
             </div>
+            
+            <div class="info-section">
+                <h3>流年</h3>
+                <p>当前年龄: <span id="currentAge"></span>岁</p>
+                <p>2025年流年: <span id="liuNian2025"></span></p>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>本排盘系统基于 lunar.js v1.7.2 | 仅供学习参考</p>
         </div>
     </div>
 
@@ -202,17 +241,20 @@
                 
                 // 八字信息
                 const bazi = lunar.getEightChar();
+                const solar = lunar.getSolar();
                 
-                // 显示结果
+                // 显示八字四柱
                 document.getElementById('yearPillar').textContent = bazi.getYear();
                 document.getElementById('monthPillar').textContent = bazi.getMonth();
                 document.getElementById('dayPillar').textContent = bazi.getDay();
                 document.getElementById('hourPillar').textContent = bazi.getTime();
                 
                 // 显示基本信息
-                document.getElementById('solarDate').textContent = lunar.getSolar().toYmdHms();
+                document.getElementById('solarDate').textContent = 
+                    `${solar.getYear()}年${solar.getMonth()}月${solar.getDay()}日 ${hour}:${minute.toString().padStart(2, '0')}`;
                 document.getElementById('lunarDate').textContent = lunar.toString();
-                document.getElementById('baziFull').textContent = `${bazi.getYear()} ${bazi.getMonth()} ${bazi.getDay()} ${bazi.getTime()}`;
+                document.getElementById('baziFull').textContent = 
+                    `${bazi.getYear()} ${bazi.getMonth()} ${bazi.getDay()} ${bazi.getTime()}`;
                 
                 // 计算五行
                 const wuXing = [
@@ -223,6 +265,7 @@
                 ].join(' ');
                 document.getElementById('wuXing').textContent = wuXing;
                 
+                // 生肖
                 document.getElementById('shengXiao').textContent = lunar.getYearShengXiao();
                 
                 // 命宫和身宫
@@ -234,16 +277,26 @@
                 let daYunHtml = '<ul>';
                 for (let i = 0; i < Math.min(daYunList.length, 10); i++) {
                     const daYun = daYunList[i];
-                    daYunHtml += `<li>${daYun.getStartYear()}年 - ${daYun.getEndYear()}年: ${daYun.getGanZhi()} (${daYun.getStartAge()}岁起运)</li>`;
+                    daYunHtml += `<li><strong>${daYun.getStartYear()}年 - ${daYun.getEndYear()}年:</strong> ${daYun.getGanZhi()} (${daYun.getStartAge()}岁起运)</li>`;
                 }
                 daYunHtml += '</ul>';
                 document.getElementById('daYunList').innerHTML = daYunHtml;
                 
+                // 计算当前年龄和流年
+                const currentYear = new Date().getFullYear();
+                const age = currentYear - solar.getYear();
+                document.getElementById('currentAge').textContent = age;
+                
+                // 2025年流年
+                const liuNian2025 = bazi.getLiuNian(2025);
+                document.getElementById('liuNian2025').textContent = 
+                    `${liuNian2025.getGanZhi()} (${liuNian2025.getXingXiao()}年)`;
+                
                 // 显示结果区域
                 document.getElementById('result').classList.remove('hidden');
             } catch (e) {
-                console.error(e);
-                showError('排盘过程中发生错误: ' + e.message);
+                console.error('排盘错误:', e);
+                showError(`排盘过程中发生错误: ${e.message}`);
             }
         });
         
@@ -252,6 +305,15 @@
             errorEl.textContent = message;
             errorEl.classList.remove('hidden');
         }
+        
+        // 设置默认日期为当前日期
+        window.onload = function() {
+            const today = new Date();
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const dd = String(today.getDate()).padStart(2, '0');
+            document.getElementById('birthDate').value = `${yyyy}-${mm}-${dd}`;
+        };
     </script>
 </body>
 </html>
