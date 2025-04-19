@@ -4,8 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>八字排盘计算器</title>
-    <link rel="icon" href="favicon.ico" type="image/x-icon"> <!-- 可以使用自己的favicon -->
-    <script src="lunar.js"></script> <!-- 确保这个文件存在于同一目录下 -->
+    <script src="https://cdn.jsdelivr.net/npm/lunar-calendar@1.0.2/dist/lunar.min.js"></script>
     <style>
         body { font-family: Arial, sans-serif; background-color: #f9f9f9; }
         .container { max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ccc; background-color: white; border-radius: 10px; }
@@ -44,18 +43,19 @@
 
             // 解析输入的日期和时间
             const dateTime = new Date(dateInput + 'T' + timeInput);
-            const lunar = Lunar.Lunar.fromDate(dateTime);
+            const lunar = Lunar.Lunar.fromDate(dateTime); // 使用 Lunar 库计算农历信息
 
-            // 计算八字
+            // 天干地支数组
             const gan = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
             const zhi = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
 
-            const yearGan = gan[(lunar.LunarYear - 4) % 10];
-            const yearZhi = zhi[(lunar.LunarYear - 4) % 12];
-            const monthGan = gan[(yearGan.charCodeAt(0) - 0x4e20 + lunar.LunarMonth - 1) % 10];
-            const monthZhi = zhi[(lunar.LunarMonth - 1) % 12]; // 注意：月份要减一
-            const dayGan = gan[(lunar.LunarDay + lunar.LunarMonth + lunar.LunarYear) % 10];
-            const dayZhi = zhi[(lunar.LunarDay - 1) % 12]; // 注意：天数要减一
+            // 计算年、月、日的天干和地支
+            const yearGan = gan[(lunar.getLunarYear() - 4) % 10];
+            const yearZhi = zhi[(lunar.getLunarYear() - 4) % 12];
+            const monthGan = gan[(yearGan.charCodeAt(0) - 0x4e20 + lunar.getLunarMonth() - 1) % 10];
+            const monthZhi = zhi[(lunar.getLunarMonth() - 1) % 12]; // 注意：月份要减一
+            const dayGan = gan[(lunar.getLunarDay() + lunar.getLunarMonth() + lunar.getLunarYear()) % 10];
+            const dayZhi = zhi[(lunar.getLunarDay() - 1) % 12]; // 注意：天数要减一
 
             // 获取八字
             const bazi = `${yearGan}${yearZhi} ${monthGan}${monthZhi} ${dayGan}${dayZhi}`;
