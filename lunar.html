@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>八字排盘系统 v1.7.2</title>
+    <title>八字排盘系统 UP v1.7.2</title>
     <script src="lunar.js"></script>
     <style>
+        /* 样式部分保持不变 */
         body {
             font-family: 'Microsoft YaHei', sans-serif;
             max-width: 800px;
@@ -186,20 +187,17 @@
                 const [hour, minute] = birthTime.split(':').map(Number);
                 
                 // 使用lunar.js进行排盘
-                let solar, lunar;
+                let lunar;
                 
                 if (isLunar) {
                     // 农历输入
-                    lunar = Lunar.Lunar.fromYmd(year, month, day);
-                    solar = lunar.getSolar();
+                    lunar = Lunar.fromYmd(year, month, day);
                 } else {
                     // 公历输入
-                    solar = Lunar.Solar.fromYmd(year, month, day);
-                    lunar = solar.getLunar();
+                    lunar = Lunar.fromSolar(year, month, day);
                 }
                 
                 // 设置时辰（23-0点是子时）
-                const timeZhi = Lunar.LunarUtil.getTimeZhi((hour + 1) % 24);
                 lunar = lunar.setTime(hour, minute, 0);
                 
                 // 八字信息
@@ -212,7 +210,7 @@
                 document.getElementById('hourPillar').textContent = bazi.getTime();
                 
                 // 显示基本信息
-                document.getElementById('solarDate').textContent = solar.toYmdHms();
+                document.getElementById('solarDate').textContent = lunar.getSolar().toYmdHms();
                 document.getElementById('lunarDate').textContent = lunar.toString();
                 document.getElementById('baziFull').textContent = `${bazi.getYear()} ${bazi.getMonth()} ${bazi.getDay()} ${bazi.getTime()}`;
                 
