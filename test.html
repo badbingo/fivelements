@@ -1476,17 +1476,6 @@
                                 <span>水</span>
                             </div>
                         </div>
-                        <!-- 添加今日运势评分 -->
-                        <div class="today-rating-container">
-                            <div class="today-rating-group">
-                                <div class="today-rating-title"><i class="fas fa-calendar-day"></i> 今日运势</div>
-                                <div class="today-rating-stars" id="today-fortune-rating">★★★☆☆</div>
-                            </div>
-                            <div class="today-rating-group">
-                                <div class="today-rating-title"><i class="fas fa-piggy-bank"></i> 今日财运</div>
-                                <div class="today-rating-stars" id="today-wealth-rating">★★☆☆☆</div>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -1640,16 +1629,16 @@
             
             <!-- 运势分析 -->
             <div class="tab-content" id="trend-tab">
-                <!-- 今日输赢分析 (Today's Win/Loss Analysis) -->
+                <!-- 流年分析 (Annual Fortune Analysis) -->
                 <div class="detail-card">
                     <div class="load-btn-container">
-                        <button class="load-btn" data-section="today-winloss">
-                            <span><i class="fas fa-trophy"></i> 今日输赢分析</span>
+                        <button class="load-btn" data-section="annual-fortune">
+                            <span><i class="fas fa-calendar-alt"></i> 流年分析</span>
                             <i class="fas fa-chevron-down toggle-icon"></i>
                         </button>
-                        <div class="load-btn-description">分析今日运势中的胜负概率，包括投资、博弈、竞争等方面的吉凶</div>
+                        <div class="load-btn-description">详细分析当前流年对命局的影响，包括五行强弱、神煞系统和地支关系</div>
                     </div>
-                    <div id="today-winloss-content" class="section-content"></div>
+                    <div id="annual-fortune-content" class="section-content"></div>
                 </div>
                 
                 <!-- 每月运势分析 (Monthly Fortune Analysis) -->
@@ -1662,18 +1651,6 @@
                         <div class="load-btn-description">预测当前年份每月的运势起伏和注意事项</div>
                     </div>
                     <div id="monthly-fortune-content" class="section-content"></div>
-                </div>
-                
-                <!-- 流年运势分析 (Annual Fortune Analysis) -->
-                <div class="detail-card">
-                    <div class="load-btn-container">
-                        <button class="load-btn" data-section="annual-fortune">
-                            <span><i class="fas fa-calendar-alt"></i> 流年运势分析</span>
-                            <i class="fas fa-chevron-down toggle-icon"></i>
-                        </button>
-                        <div class="load-btn-description">分析当前流年对命主的影响，包括事业、财运、健康等方面的运势</div>
-                    </div>
-                    <div id="annual-fortune-content" class="section-content"></div>
                 </div>
                 
                 <!-- 十年大运分析 (Decade Fortune Analysis) -->
@@ -1759,8 +1736,6 @@
             const wealthLevel = document.getElementById('wealth-level');
             const wealthScore = document.getElementById('wealth-score');
             const wealthDetails = document.getElementById('wealth-details');
-            const todayFortuneRating = document.getElementById('today-fortune-rating');
-            const todayWealthRating = document.getElementById('today-wealth-rating');
             
             // 五行图表元素
             const elementChartCtx = document.getElementById('element-chart').getContext('2d');
@@ -1859,8 +1834,6 @@
                 wealthLevel.textContent = '';
                 wealthScore.textContent = '';
                 wealthDetails.innerHTML = '';
-                todayFortuneRating.textContent = '★★★☆☆';
-                todayWealthRating.textContent = '★★☆☆☆';
                 personalityTraits.textContent = '命主性格：';
                 
                 // 重置所有内容区域
@@ -2944,99 +2917,84 @@
                 `;
             }
             
-            // 获取星级评分
-            function getStarRating(ratingText) {
-                // 将数字评分转换为星标
-                const rating = parseInt(ratingText);
-                if (isNaN(rating)) return '★★★☆☆';
-                
-                const fullStars = '★'.repeat(rating);
-                const emptyStars = '☆'.repeat(5 - rating);
-                return fullStars + emptyStars;
-            }
             // 获取地支藏干
-function getHiddenStems(branch) {
-    const hiddenStemsMap = {
-        '子': '癸',
-        '丑': '己癸辛',
-        '寅': '甲丙戊',
-        '卯': '乙',
-        '辰': '戊乙癸',
-        '巳': '丙庚戊',
-        '午': '丁己',
-        '未': '己丁乙',
-        '申': '庚壬戊',
-        '酉': '辛',
-        '戌': '戊辛丁',
-        '亥': '壬甲'
-    };
-    return hiddenStemsMap[branch] || '';
-}
+            function getHiddenStems(branch) {
+                const hiddenStemsMap = {
+                    '子': '癸',
+                    '丑': '己癸辛',
+                    '寅': '甲丙戊',
+                    '卯': '乙',
+                    '辰': '戊乙癸',
+                    '巳': '丙庚戊',
+                    '午': '丁己',
+                    '未': '己丁乙',
+                    '申': '庚壬戊',
+                    '酉': '辛',
+                    '戌': '戊辛丁',
+                    '亥': '壬甲'
+                };
+                return hiddenStemsMap[branch] || '';
+            }
+            
             // 八字排盘本地计算函数 - 使用lunar.js
             function calculateBaziLocally(birthData) {
-    const dateParts = birthData.date.split('-');
-    const year = parseInt(dateParts[0]);
-    const month = parseInt(dateParts[1]);
-    const day = parseInt(dateParts[2]);
-    const timeParts = birthData.time.split(':');
-    const hour = parseInt(timeParts[0]);
-    const minute = parseInt(timeParts[1] || 0);
-    
-    // 使用lunar.js计算八字
-    const solar = Solar.fromYmdHms(year, month, day, hour, minute, 0);
-    const lunar = solar.getLunar();
-    const bazi = lunar.getEightChar();
-    
-    // 获取八字四柱 - 1.7.2版本API
-    const yearGan = bazi.getYearGan(); // 年干
-    const yearZhi = bazi.getYearZhi(); // 年支
-    const monthGan = bazi.getMonthGan(); // 月干
-    const monthZhi = bazi.getMonthZhi(); // 月支
-    const dayGan = bazi.getDayGan(); // 日干
-    const dayZhi = bazi.getDayZhi(); // 日支
-    const hourGan = bazi.getTimeGan(); // 时干
-    const hourZhi = bazi.getTimeZhi(); // 时支
-    
-    // 获取地支藏干
-    const yearHiddenStems = getHiddenStems(yearZhi);
-    const monthHiddenStems = getHiddenStems(monthZhi);
-    const dayHiddenStems = getHiddenStems(dayZhi);
-    const hourHiddenStems = getHiddenStems(hourZhi);
-    
-    // 计算五行能量
-    const elements = calculateElementEnergy({
-        year: yearGan + yearZhi,
-        month: monthGan + monthZhi,
-        day: dayGan + dayZhi,
-        hour: hourGan + hourZhi
-    });
-    
-    // 今日运势评分 (随机生成)
-    const todayFortune = Math.floor(Math.random() * 5) + 1;
-    const todayWealth = Math.floor(Math.random() * 5) + 1;
-    
-    // 性格描述 (根据日干)
-    const personality = getPersonalityTraits(dayGan);
-    
-    return {
-        yearStem: yearGan,
-        yearBranch: yearZhi,
-        monthStem: monthGan,
-        monthBranch: monthZhi,
-        dayStem: dayGan,
-        dayBranch: dayZhi,
-        hourStem: hourGan,
-        hourBranch: hourZhi,
-        yearHiddenStems: yearHiddenStems,
-        monthHiddenStems: monthHiddenStems,
-        dayHiddenStems: dayHiddenStems,
-        hourHiddenStems: hourHiddenStems,
-        elements,
-        todayFortune,
-        todayWealth,
-        personality
-    };
-}
+                const dateParts = birthData.date.split('-');
+                const year = parseInt(dateParts[0]);
+                const month = parseInt(dateParts[1]);
+                const day = parseInt(dateParts[2]);
+                const timeParts = birthData.time.split(':');
+                const hour = parseInt(timeParts[0]);
+                const minute = parseInt(timeParts[1] || 0);
+                
+                // 使用lunar.js计算八字
+                const solar = Solar.fromYmdHms(year, month, day, hour, minute, 0);
+                const lunar = solar.getLunar();
+                const bazi = lunar.getEightChar();
+                
+                // 获取八字四柱 - 1.7.2版本API
+                const yearGan = bazi.getYearGan(); // 年干
+                const yearZhi = bazi.getYearZhi(); // 年支
+                const monthGan = bazi.getMonthGan(); // 月干
+                const monthZhi = bazi.getMonthZhi(); // 月支
+                const dayGan = bazi.getDayGan(); // 日干
+                const dayZhi = bazi.getDayZhi(); // 日支
+                const hourGan = bazi.getTimeGan(); // 时干
+                const hourZhi = bazi.getTimeZhi(); // 时支
+                
+                // 获取地支藏干
+                const yearHiddenStems = getHiddenStems(yearZhi);
+                const monthHiddenStems = getHiddenStems(monthZhi);
+                const dayHiddenStems = getHiddenStems(dayZhi);
+                const hourHiddenStems = getHiddenStems(hourZhi);
+                
+                // 计算五行能量
+                const elements = calculateElementEnergy({
+                    year: yearGan + yearZhi,
+                    month: monthGan + monthZhi,
+                    day: dayGan + dayZhi,
+                    hour: hourGan + hourZhi
+                });
+                
+                // 性格描述 (根据日干)
+                const personality = getPersonalityTraits(dayGan);
+                
+                return {
+                    yearStem: yearGan,
+                    yearBranch: yearZhi,
+                    monthStem: monthGan,
+                    monthBranch: monthZhi,
+                    dayStem: dayGan,
+                    dayBranch: dayZhi,
+                    hourStem: hourGan,
+                    hourBranch: hourZhi,
+                    yearHiddenStems: yearHiddenStems,
+                    monthHiddenStems: monthHiddenStems,
+                    dayHiddenStems: dayHiddenStems,
+                    hourHiddenStems: hourHiddenStems,
+                    elements,
+                    personality
+                };
+            }
             
             // 获取性格描述
             function getPersonalityTraits(dayStem) {
@@ -3200,9 +3158,7 @@ function getHiddenStems(branch) {
 1 八字四柱：年柱[内容] 月柱[内容] 日柱[内容] 时柱[内容]
 2 地支藏干：年支[藏干] 月支[藏干] 日支[藏干] 时支[藏干]
 3 五行能量：[木,火,土,金,水] (1-10分，请根据八字五行生克关系计算具体数值)
-4 今日运势：[1-5]
-5 今日财运：[1-5]
-6 命主性格：[用一句话描述命主的性格特质，如："似静水流深，临危反生智，藏锋守拙却暗含凌云之志"]
+4 命主性格：[用一句话描述命主的性格特质，如："似静水流深，临危反生智，藏锋守拙却暗含凌云之志"]
 
 用简洁格式返回，不要分析内容，不要使用任何符号如#*、等。`;
                         break;
@@ -3290,34 +3246,38 @@ function getHiddenStems(branch) {
 养生建议：[具体建议]
 流年健康分析：[表格方式呈现具体建议]`;
                         break;
-                    case 'today-winloss':
-                        prompt += `分析今日输赢情况：
-1 今日整体运势
-2 麻将输赢
-
-返回格式：
-麻将输赢：[1-5星]
-输赢分析：[输赢机会详细分析]`;
-                        break;
                     case 'annual-fortune':
-                        prompt += `分析流年运势：
-1 流年干支与八字关系
-2 事业财运分析
-3 健康感情分析
+                        prompt += `详细分析当前流年对命局的影响：
+1. 五行强弱分析：分析流年五行对命局的影响，包括：
+   - 流年天干地支的五行属性
+   - 与命局五行的生克关系
+   - 五行平衡情况
+   - 喜用神和忌神分析
+
+2. 神煞系统分析：分析流年中的神煞影响，包括：
+   - 桃花星：分析感情运势
+   - 驿马星：分析变动和出行
+   - 华盖星：分析学业和智慧
+   - 其他重要神煞的影响
+
+3. 刑冲破害分析：详细分析地支关系，包括：
+   - 流年与命局的地支相刑
+   - 流年与命局的地支相冲
+   - 流年与命局的地支相破
+   - 流年与命局的地支相害
+   - 流年与命局的地支三合六合
+
+4. 流年运势总结：
+   - 事业财运分析
+   - 感情婚姻分析
+   - 健康分析
+   - 每月运势提示
 
 返回格式：
-流年分析：[详细分析]
-运势走势：[表格方式呈现]`;
-                        break;
-                    case 'disasters':
-                        prompt += `分析重大灾祸：
-1 潜在灾祸类型
-2 可能发生时间
-3 防范措施
-
-返回格式：
-灾祸分析：[表格方式呈现，详细分析]
-防范建议：[具体建议]`;
+五行强弱分析：[详细分析]
+神煞系统分析：[详细分析]
+刑冲破害分析：[详细分析]
+流年运势总结：[详细分析]`;
                         break;
                     case 'decade-fortune':
                         prompt += `分析十年大运走势：
@@ -3409,10 +3369,6 @@ function getHiddenStems(branch) {
                 setHiddenStemsColors(monthHiddenStems, info.monthHiddenStems);
                 setHiddenStemsColors(dayHiddenStems, info.dayHiddenStems);
                 setHiddenStemsColors(hourHiddenStems, info.hourHiddenStems);
-                
-                // 更新今日运势评分
-                todayFortuneRating.textContent = getStarRating(info.todayFortune);
-                todayWealthRating.textContent = getStarRating(info.todayWealth);
                 
                 // 更新性格描述
                 personalityTraits.textContent = `命主性格：${info.personality}`;
