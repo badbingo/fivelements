@@ -533,8 +533,8 @@
             color: var(--content-color);
         }
         
-        /* 八字排盘图表样式 */
-        .bazi-chart {
+        /* 八字四柱表格样式 */
+        .bazi-table {
             width: 100%;
             border-collapse: collapse;
             margin: 20px 0;
@@ -545,27 +545,50 @@
             box-shadow: 0 0 15px rgba(0, 240, 255, 0.1);
         }
         
-        .bazi-chart th {
-            background-color: rgba(0, 166, 255, 0.3);
-            color: var(--title-color);
-            font-weight: bold;
-            padding: 12px 15px;
-            text-align: center;
+        .bazi-row {
+            display: flex;
             border-bottom: 1px solid var(--border-color);
         }
         
-        .bazi-chart td {
-            padding: 12px 15px;
-            border-bottom: 1px solid var(--border-color);
-            text-align: center;
-        }
-        
-        .bazi-chart tr:last-child td {
+        .bazi-row:last-child {
             border-bottom: none;
         }
         
-        .bazi-chart tr:hover {
-            background-color: rgba(0, 240, 255, 0.1);
+        .bazi-cell {
+            flex: 1;
+            padding: 16px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: 500;
+            position: relative;
+        }
+        
+        .bazi-header .bazi-cell {
+            background-color: rgba(0, 166, 255, 0.3);
+            color: var(--title-color);
+            font-weight: bold;
+            font-size: 16px;
+            text-shadow: 0 0 5px var(--primary-color);
+        }
+        
+        /* 天干颜色（根据五行属性） */
+        .bazi-row:nth-child(2) .bazi-cell:not(:first-child) {
+            font-size: 22px;
+            font-weight: bold;
+        }
+        
+        /* 地支颜色（根据五行属性） */
+        .bazi-row:nth-child(3) .bazi-cell:not(:first-child) {
+            font-size: 22px;
+            font-weight: bold;
+        }
+        
+        /* 藏干样式 */
+        .hidden-stems {
+            font-size: 14px;
+            color: var(--text-light);
+            margin-top: 5px;
+            line-height: 1.3;
         }
         
         /* 五行颜色定义 */
@@ -574,6 +597,12 @@
         .earth { color: var(--earth-color); text-shadow: 0 0 5px var(--earth-color); }
         .metal { color: var(--metal-color); text-shadow: 0 0 5px var(--metal-color); }
         .water { color: var(--water-color); text-shadow: 0 0 5px var(--water-color); }
+        
+        .bazi-cell:first-child {
+            background-color: rgba(0, 166, 255, 0.2);
+            font-weight: bold;
+            min-width: 80px;
+        }
         
         /* 五行健康图容器 */
         .health-chart-container {
@@ -1373,23 +1402,46 @@
                 </div>
                 
                 <div class="info-section">
-                    <h3><i class="fas fa-dna"></i> 八字排盘</h3>
+                    <h3><i class="fas fa-dna"></i> 八字四柱</h3>
                     <div class="info-content">
-                        <table class="bazi-chart">
-                            <thead>
-                                <tr>
-                                    <th>柱位</th>
-                                    <th>天干</th>
-                                    <th>地支</th>
-                                    <th>藏干</th>
-                                    <th>十神</th>
-                                    <th>纳音</th>
-                                </tr>
-                            </thead>
-                            <tbody id="bazi-details">
-                                <!-- 这里将通过JavaScript动态填充八字排盘数据 -->
-                            </tbody>
-                        </table>
+                        <div class="bazi-table">
+                            <div class="bazi-row bazi-header">
+                                <div class="bazi-cell">四柱</div>
+                                <div class="bazi-cell">年柱</div>
+                                <div class="bazi-cell">月柱</div>
+                                <div class="bazi-cell">日柱</div>
+                                <div class="bazi-cell">时柱</div>
+                            </div>
+                            <div class="bazi-row">
+                                <div class="bazi-cell">天干</div>
+                                <div class="bazi-cell" id="year-stem">壬</div>
+                                <div class="bazi-cell" id="month-stem">癸</div>
+                                <div class="bazi-cell" id="day-stem">己</div>
+                                <div class="bazi-cell" id="hour-stem">癸</div>
+                            </div>
+                            <div class="bazi-row">
+                                <div class="bazi-cell">地支</div>
+                                <div class="bazi-cell" id="year-branch">子</div>
+                                <div class="bazi-cell" id="month-branch">丑</div>
+                                <div class="bazi-cell" id="day-branch">巳</div>
+                                <div class="bazi-cell" id="hour-branch">酉</div>
+                            </div>
+                            <div class="bazi-row">
+                                <div class="bazi-cell">藏干</div>
+                                <div class="bazi-cell">
+                                    <div class="hidden-stems" id="year-hidden-stems">癸</div>
+                                </div>
+                                <div class="bazi-cell">
+                                    <div class="hidden-stems" id="month-hidden-stems">己癸辛</div>
+                                </div>
+                                <div class="bazi-cell">
+                                    <div class="hidden-stems" id="day-hidden-stems">丙庚戊</div>
+                                </div>
+                                <div class="bazi-cell">
+                                    <div class="hidden-stems" id="hour-hidden-stems">辛</div>
+                                </div>
+                            </div>
+                        </div>
                         <div class="personality-traits" id="personality-traits">
                             命主性格：似静水流深，临危反生智，藏锋守拙却暗含凌云之志
                         </div>
@@ -1644,7 +1696,7 @@
         </div>
         
         <div class="copyright">
-            © 2025 赛博命理系统 版权所有 | 量子计算引擎 v3.2.6 | 数据来自《渊海子平》《三命通会》等古籍
+            © 2025 赛博命理系统 版权所有 | 量子计算引擎 v3.2.7 | 数据来自《渊海子平》《三命通会》等古籍
         </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -1652,6 +1704,12 @@
     <script src="js/lunar.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            const fateLevel = document.getElementById('fate-level');
+            const fateScore = document.getElementById('fate-score');
+            const fateDetails = document.getElementById('fate-details');
+            const wealthLevel = document.getElementById('wealth-level');
+            const wealthScore = document.getElementById('wealth-score');
+            const wealthDetails = document.getElementById('wealth-details');
             const calculateBtn = document.getElementById('calculate-btn');
             const recalculateBtn = document.getElementById('recalculate-btn');
             const inputSection = document.getElementById('input-section');
@@ -1659,10 +1717,31 @@
             const timePeriodOptions = document.querySelectorAll('.time-period-option');
             const birthTimeInput = document.getElementById('birth-time');
             const personalityTraits = document.getElementById('personality-traits');
-            const baziDetails = document.getElementById('bazi-details');
             
             // 语言切换按钮
             const languageBtns = document.querySelectorAll('.language-btn');
+            
+            // 八字四柱元素
+            const yearStem = document.getElementById('year-stem');
+            const yearBranch = document.getElementById('year-branch');
+            const yearHiddenStems = document.getElementById('year-hidden-stems');
+            const monthStem = document.getElementById('month-stem');
+            const monthBranch = document.getElementById('month-branch');
+            const monthHiddenStems = document.getElementById('month-hidden-stems');
+            const dayStem = document.getElementById('day-stem');
+            const dayBranch = document.getElementById('day-branch');
+            const dayHiddenStems = document.getElementById('day-hidden-stems');
+            const hourStem = document.getElementById('hour-stem');
+            const hourBranch = document.getElementById('hour-branch');
+            const hourHiddenStems = document.getElementById('hour-hidden-stems');
+            
+            // 评分元素
+            const fateLevel = document.getElementById('fate-level');
+            const fateScore = document.getElementById('fate-score');
+            const fateDetails = document.getElementById('fate-details');
+            const wealthLevel = document.getElementById('wealth-level');
+            const wealthScore = document.getElementById('wealth-score');
+            const wealthDetails = document.getElementById('wealth-details');
             
             // 五行图表元素
             const elementChartCtx = document.getElementById('element-chart').getContext('2d');
@@ -1740,8 +1819,19 @@
                 fateScoreValue = 0;
                 wealthScoreValue = 0;
                 
-                // 重置八字排盘
-                baziDetails.innerHTML = '';
+                // 重置八字四柱
+                yearStem.textContent = '';
+                yearBranch.textContent = '';
+                yearHiddenStems.textContent = '';
+                monthStem.textContent = '';
+                monthBranch.textContent = '';
+                monthHiddenStems.textContent = '';
+                dayStem.textContent = '';
+                dayBranch.textContent = '';
+                dayHiddenStems.textContent = '';
+                hourStem.textContent = '';
+                hourBranch.textContent = '';
+                hourHiddenStems.textContent = '';
                 
                 // 重置命格评估
                 fateLevel.textContent = '';
@@ -2852,120 +2942,6 @@
                 return hiddenStemsMap[branch] || '';
             }
             
-            // 获取十神关系
-            function getTenGods(dayStem, stem) {
-                const tenGodsMap = {
-                    '甲': {
-                        '甲': '比肩', '乙': '劫财',
-                        '丙': '食神', '丁': '伤官',
-                        '戊': '偏财', '己': '正财',
-                        '庚': '七杀', '辛': '正官',
-                        '壬': '偏印', '癸': '正印'
-                    },
-                    '乙': {
-                        '甲': '劫财', '乙': '比肩',
-                        '丙': '伤官', '丁': '食神',
-                        '戊': '正财', '己': '偏财',
-                        '庚': '正官', '辛': '七杀',
-                        '壬': '正印', '癸': '偏印'
-                    },
-                    '丙': {
-                        '甲': '偏印', '乙': '正印',
-                        '丙': '比肩', '丁': '劫财',
-                        '戊': '食神', '己': '伤官',
-                        '庚': '偏财', '辛': '正财',
-                        '壬': '七杀', '癸': '正官'
-                    },
-                    '丁': {
-                        '甲': '正印', '乙': '偏印',
-                        '丙': '劫财', '丁': '比肩',
-                        '戊': '伤官', '己': '食神',
-                        '庚': '正财', '辛': '偏财',
-                        '壬': '正官', '癸': '七杀'
-                    },
-                    '戊': {
-                        '甲': '七杀', '乙': '正官',
-                        '丙': '偏印', '丁': '正印',
-                        '戊': '比肩', '己': '劫财',
-                        '庚': '食神', '辛': '伤官',
-                        '壬': '偏财', '癸': '正财'
-                    },
-                    '己': {
-                        '甲': '正官', '乙': '七杀',
-                        '丙': '正印', '丁': '偏印',
-                        '戊': '劫财', '己': '比肩',
-                        '庚': '伤官', '辛': '食神',
-                        '壬': '正财', '癸': '偏财'
-                    },
-                    '庚': {
-                        '甲': '偏财', '乙': '正财',
-                        '丙': '七杀', '丁': '正官',
-                        '戊': '偏印', '己': '正印',
-                        '庚': '比肩', '辛': '劫财',
-                        '壬': '食神', '癸': '伤官'
-                    },
-                    '辛': {
-                        '甲': '正财', '乙': '偏财',
-                        '丙': '正官', '丁': '七杀',
-                        '戊': '正印', '己': '偏印',
-                        '庚': '劫财', '辛': '比肩',
-                        '壬': '伤官', '癸': '食神'
-                    },
-                    '壬': {
-                        '甲': '食神', '乙': '伤官',
-                        '丙': '偏财', '丁': '正财',
-                        '戊': '七杀', '己': '正官',
-                        '庚': '偏印', '辛': '正印',
-                        '壬': '比肩', '癸': '劫财'
-                    },
-                    '癸': {
-                        '甲': '伤官', '乙': '食神',
-                        '丙': '正财', '丁': '偏财',
-                        '戊': '正官', '己': '七杀',
-                        '庚': '正印', '辛': '偏印',
-                        '壬': '劫财', '癸': '比肩'
-                    }
-                };
-                return tenGodsMap[dayStem][stem] || '';
-            }
-            
-            // 获取纳音五行
-            function getNayin(yearStem, yearBranch) {
-                const nayinMap = {
-                    '甲子': '海中金', '乙丑': '海中金',
-                    '丙寅': '炉中火', '丁卯': '炉中火',
-                    '戊辰': '大林木', '己巳': '大林木',
-                    '庚午': '路旁土', '辛未': '路旁土',
-                    '壬申': '剑锋金', '癸酉': '剑锋金',
-                    '甲戌': '山头火', '乙亥': '山头火',
-                    '丙子': '涧下水', '丁丑': '涧下水',
-                    '戊寅': '城头土', '己卯': '城头土',
-                    '庚辰': '白蜡金', '辛巳': '白蜡金',
-                    '壬午': '杨柳木', '癸未': '杨柳木',
-                    '甲申': '泉中水', '乙酉': '泉中水',
-                    '丙戌': '屋上土', '丁亥': '屋上土',
-                    '戊子': '霹雳火', '己丑': '霹雳火',
-                    '庚寅': '松柏木', '辛卯': '松柏木',
-                    '壬辰': '长流水', '癸巳': '长流水',
-                    '甲午': '砂中金', '乙未': '砂中金',
-                    '丙申': '山下火', '丁酉': '山下火',
-                    '戊戌': '平地木', '己亥': '平地木',
-                    '庚子': '壁上土', '辛丑': '壁上土',
-                    '壬寅': '金箔金', '癸卯': '金箔金',
-                    '甲辰': '覆灯火', '乙巳': '覆灯火',
-                    '丙午': '天河水', '丁未': '天河水',
-                    '戊申': '大驿土', '己酉': '大驿土',
-                    '庚戌': '钗钏金', '辛亥': '钗钏金',
-                    '壬子': '桑柘木', '癸丑': '桑柘木',
-                    '甲寅': '大溪水', '乙卯': '大溪水',
-                    '丙辰': '沙中土', '丁巳': '沙中土',
-                    '戊午': '天上火', '己未': '天上火',
-                    '庚申': '石榴木', '辛酉': '石榴木',
-                    '壬戌': '大海水', '癸亥': '大海水'
-                };
-                return nayinMap[yearStem + yearBranch] || '';
-            }
-            
             // 八字排盘本地计算函数 - 使用lunar.js
             function calculateBaziLocally(birthData) {
                 const dateParts = birthData.date.split('-');
@@ -2997,18 +2973,6 @@
                 const dayHiddenStems = getHiddenStems(dayZhi);
                 const hourHiddenStems = getHiddenStems(hourZhi);
                 
-                // 获取十神关系
-                const yearTenGods = getTenGods(dayGan, yearGan);
-                const monthTenGods = getTenGods(dayGan, monthGan);
-                const hourTenGods = getTenGods(dayGan, hourGan);
-                const dayTenGods = '日主';
-                
-                // 获取纳音五行
-                const yearNayin = getNayin(yearGan, yearZhi);
-                const monthNayin = getNayin(monthGan, monthZhi);
-                const dayNayin = getNayin(dayGan, dayZhi);
-                const hourNayin = getNayin(hourGan, hourZhi);
-                
                 // 计算五行能量
                 const elements = calculateElementEnergy({
                     year: yearGan + yearZhi,
@@ -3033,14 +2997,6 @@
                     monthHiddenStems: monthHiddenStems,
                     dayHiddenStems: dayHiddenStems,
                     hourHiddenStems: hourHiddenStems,
-                    yearTenGods: yearTenGods,
-                    monthTenGods: monthTenGods,
-                    dayTenGods: dayTenGods,
-                    hourTenGods: hourTenGods,
-                    yearNayin: yearNayin,
-                    monthNayin: monthNayin,
-                    dayNayin: dayNayin,
-                    hourNayin: hourNayin,
                     elements,
                     personality
                 };
@@ -3390,41 +3346,35 @@
                 nameDisplay.textContent = birthData.name || '匿名用户';
                 birthDisplay.textContent = birthData.date.replace(/-/g, '/') + ' ' + timeMap[hour];
               
-                // 更新八字排盘表格
-                baziDetails.innerHTML = `
-                    <tr>
-                        <td>年柱</td>
-                        <td class="${getElementClass(info.yearStem)}">${info.yearStem}</td>
-                        <td class="${getElementClass(info.yearBranch)}">${info.yearBranch}</td>
-                        <td>${info.yearHiddenStems.split('').map(s => `<span class="${getElementClass(s)}">${s}</span>`).join('')}</td>
-                        <td>${info.yearTenGods}</td>
-                        <td>${info.yearNayin}</td>
-                    </tr>
-                    <tr>
-                        <td>月柱</td>
-                        <td class="${getElementClass(info.monthStem)}">${info.monthStem}</td>
-                        <td class="${getElementClass(info.monthBranch)}">${info.monthBranch}</td>
-                        <td>${info.monthHiddenStems.split('').map(s => `<span class="${getElementClass(s)}">${s}</span>`).join('')}</td>
-                        <td>${info.monthTenGods}</td>
-                        <td>${info.monthNayin}</td>
-                    </tr>
-                    <tr>
-                        <td>日柱</td>
-                        <td class="${getElementClass(info.dayStem)}">${info.dayStem}</td>
-                        <td class="${getElementClass(info.dayBranch)}">${info.dayBranch}</td>
-                        <td>${info.dayHiddenStems.split('').map(s => `<span class="${getElementClass(s)}">${s}</span>`).join('')}</td>
-                        <td>${info.dayTenGods}</td>
-                        <td>${info.dayNayin}</td>
-                    </tr>
-                    <tr>
-                        <td>时柱</td>
-                        <td class="${getElementClass(info.hourStem)}">${info.hourStem}</td>
-                        <td class="${getElementClass(info.hourBranch)}">${info.hourBranch}</td>
-                        <td>${info.hourHiddenStems.split('').map(s => `<span class="${getElementClass(s)}">${s}</span>`).join('')}</td>
-                        <td>${info.hourTenGods}</td>
-                        <td>${info.hourNayin}</td>
-                    </tr>
-                `;
+                // 更新八字表格
+                yearStem.textContent = info.yearStem;
+                yearBranch.textContent = info.yearBranch;
+                yearHiddenStems.textContent = info.yearHiddenStems;
+                monthStem.textContent = info.monthStem;
+                monthBranch.textContent = info.monthBranch;
+                monthHiddenStems.textContent = info.monthHiddenStems;
+                dayStem.textContent = info.dayStem;
+                dayBranch.textContent = info.dayBranch;
+                dayHiddenStems.textContent = info.dayHiddenStems;
+                hourStem.textContent = info.hourStem;
+                hourBranch.textContent = info.hourBranch;
+                hourHiddenStems.textContent = info.hourHiddenStems;
+                
+                // 设置五行颜色
+                setElementColors(yearStem, info.yearStem);
+                setElementColors(yearBranch, info.yearBranch);
+                setElementColors(monthStem, info.monthStem);
+                setElementColors(monthBranch, info.monthBranch);
+                setElementColors(dayStem, info.dayStem);
+                setElementColors(dayBranch, info.dayBranch);
+                setElementColors(hourStem, info.hourStem);
+                setElementColors(hourBranch, info.hourBranch);
+                
+                // 设置藏干的五行颜色
+                setHiddenStemsColors(yearHiddenStems, info.yearHiddenStems);
+                setHiddenStemsColors(monthHiddenStems, info.monthHiddenStems);
+                setHiddenStemsColors(dayHiddenStems, info.dayHiddenStems);
+                setHiddenStemsColors(hourHiddenStems, info.hourHiddenStems);
                 
                 // 更新性格描述
                 personalityTraits.textContent = `命主性格：${info.personality}`;
@@ -3438,8 +3388,8 @@
                 };
             }
             
-            // 根据天干地支获取五行类名
-            function getElementClass(text) {
+            // 根据天干地支设置五行颜色
+            function setElementColors(element, text) {
                 // 天干五行对应关系
                 const stemElements = {
                     '甲': 'wood', '乙': 'wood',
@@ -3458,7 +3408,41 @@
                     '子': 'water', '亥': 'water'
                 };
                 
-                return stemElements[text] || branchElements[text] || '';
+                // 清除之前的五行类
+                element.classList.remove('wood', 'fire', 'earth', 'metal', 'water');
+                
+                // 添加对应的五行类
+                if (stemElements[text]) {
+                    element.classList.add(stemElements[text]);
+                } else if (branchElements[text]) {
+                    element.classList.add(branchElements[text]);
+                }
+            }
+            
+            // 设置藏干的五行颜色
+            function setHiddenStemsColors(element, stems) {
+                // 清除所有五行类
+                element.classList.remove('wood', 'fire', 'earth', 'metal', 'water');
+                
+                // 天干五行
+                const stemElements = {
+                    '甲': 'wood', '乙': 'wood',
+                    '丙': 'fire', '丁': 'fire',
+                    '戊': 'earth', '己': 'earth',
+                    '庚': 'metal', '辛': 'metal',
+                    '壬': 'water', '癸': 'water'
+                };
+                
+                // 创建一个span元素数组来包裹每个藏干
+                const spans = [];
+                for (let i = 0; i < stems.length; i++) {
+                    const char = stems[i];
+                    const elementClass = stemElements[char] || '';
+                    spans.push(`<span class="${elementClass}">${char}</span>`);
+                }
+                
+                // 将span数组连接成字符串并设置到元素中
+                element.innerHTML = spans.join('');
             }
             
             function displaySectionContent(section, result, contentElement) {
