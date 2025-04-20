@@ -1719,7 +1719,7 @@
         </div>
         
         <div class="copyright">
-            © 2025 赛博命理系统 版权所有 | 量子计算引擎 v3.2.2 | 数据来自《渊海子平》《三命通会》等古籍
+            © 2025 赛博命理系统 版权所有 | 量子计算引擎 v3.2.3 | 数据来自《渊海子平》《三命通会》等古籍
         </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -2956,85 +2956,75 @@
             
             // 八字排盘本地计算函数 - 使用lunar.js
             function calculateBaziLocally(birthData) {
-                const dateParts = birthData.date.split('-');
-                const year = parseInt(dateParts[0]);
-                const month = parseInt(dateParts[1]);
-                const day = parseInt(dateParts[2]);
-                const timeParts = birthData.time.split(':');
-                const hour = parseInt(timeParts[0]);
-                const minute = parseInt(timeParts[1] || 0);
-                
-                // 使用lunar.js计算八字
-                const solar = Solar.fromYmdHms(year, month, day, hour, minute, 0);
-                const lunar = solar.getLunar();
-                const bazi = lunar.getEightChar();
-                
-                // 获取八字四柱
-                const yearStemBranch = bazi.getYear();
-                const monthStemBranch = bazi.getMonth();
-                const dayStemBranch = bazi.getDay();
-                const hourStemBranch = bazi.getTime();
-                
-                // 获取地支藏干
-                const yearHiddenStems = getHiddenStems(yearStemBranch.getDiZhi());
-                const monthHiddenStems = getHiddenStems(monthStemBranch.getDiZhi());
-                const dayHiddenStems = getHiddenStems(dayStemBranch.getDiZhi());
-                const hourHiddenStems = getHiddenStems(hourStemBranch.getDiZhi());
-                
-                // 计算五行能量
-                const elements = calculateElementEnergy({
-                    year: yearStemBranch.toString(),
-                    month: monthStemBranch.toString(),
-                    day: dayStemBranch.toString(),
-                    hour: hourStemBranch.toString()
-                });
-                
-                // 今日运势评分 (随机生成)
-                const todayFortune = Math.floor(Math.random() * 5) + 1;
-                const todayWealth = Math.floor(Math.random() * 5) + 1;
-                
-                // 性格描述 (根据日干)
-                const dayStem = dayStemBranch.getGan();
-                const personality = getPersonalityTraits(dayStem);
-                
-                return {
-                    yearStem: yearStemBranch.getGan(),
-                    yearBranch: yearStemBranch.getDiZhi(),
-                    monthStem: monthStemBranch.getGan(),
-                    monthBranch: monthStemBranch.getDiZhi(),
-                    dayStem: dayStemBranch.getGan(),
-                    dayBranch: dayStemBranch.getDiZhi(),
-                    hourStem: hourStemBranch.getGan(),
-                    hourBranch: hourStemBranch.getDiZhi(),
-                    yearHiddenStems: yearHiddenStems,
-                    monthHiddenStems: monthHiddenStems,
-                    dayHiddenStems: dayHiddenStems,
-                    hourHiddenStems: hourHiddenStems,
-                    elements,
-                    todayFortune,
-                    todayWealth,
-                    personality
-                };
-            }
-            
-            // 获取地支藏干
-            function getHiddenStems(branch) {
-                const hiddenStemsMap = {
-                    '子': '癸',
-                    '丑': '己癸辛',
-                    '寅': '甲丙戊',
-                    '卯': '乙',
-                    '辰': '戊乙癸',
-                    '巳': '丙庚戊',
-                    '午': '丁己',
-                    '未': '己丁乙',
-                    '申': '庚壬戊',
-                    '酉': '辛',
-                    '戌': '戊辛丁',
-                    '亥': '壬甲'
-                };
-                return hiddenStemsMap[branch] || '';
-            }
+    const dateParts = birthData.date.split('-');
+    const year = parseInt(dateParts[0]);
+    const month = parseInt(dateParts[1]);
+    const day = parseInt(dateParts[2]);
+    const timeParts = birthData.time.split(':');
+    const hour = parseInt(timeParts[0]);
+    const minute = parseInt(timeParts[1] || 0);
+    
+    // 使用lunar.js计算八字
+    const solar = Solar.fromYmdHms(year, month, day, hour, minute, 0);
+    const lunar = solar.getLunar();
+    const bazi = lunar.getEightChar();
+    
+    // 获取八字四柱 - 修改这里
+    const yearStemBranch = bazi.getYear();
+    const monthStemBranch = bazi.getMonth();
+    const dayStemBranch = bazi.getDay();
+    const hourStemBranch = bazi.getTime();
+    
+    // 修改获取干支的方式
+    const yearGan = yearStemBranch.getGan(); // 年干
+    const yearZhi = yearStemBranch.getZhi(); // 年支
+    const monthGan = monthStemBranch.getGan(); // 月干
+    const monthZhi = monthStemBranch.getZhi(); // 月支
+    const dayGan = dayStemBranch.getGan(); // 日干
+    const dayZhi = dayStemBranch.getZhi(); // 日支
+    const hourGan = hourStemBranch.getGan(); // 时干
+    const hourZhi = hourStemBranch.getZhi(); // 时支
+    
+    // 获取地支藏干
+    const yearHiddenStems = getHiddenStems(yearZhi);
+    const monthHiddenStems = getHiddenStems(monthZhi);
+    const dayHiddenStems = getHiddenStems(dayZhi);
+    const hourHiddenStems = getHiddenStems(hourZhi);
+    
+    // 计算五行能量
+    const elements = calculateElementEnergy({
+        year: yearGan + yearZhi,
+        month: monthGan + monthZhi,
+        day: dayGan + dayZhi,
+        hour: hourGan + hourZhi
+    });
+    
+    // 今日运势评分 (随机生成)
+    const todayFortune = Math.floor(Math.random() * 5) + 1;
+    const todayWealth = Math.floor(Math.random() * 5) + 1;
+    
+    // 性格描述 (根据日干)
+    const personality = getPersonalityTraits(dayGan);
+    
+    return {
+        yearStem: yearGan,
+        yearBranch: yearZhi,
+        monthStem: monthGan,
+        monthBranch: monthZhi,
+        dayStem: dayGan,
+        dayBranch: dayZhi,
+        hourStem: hourGan,
+        hourBranch: hourZhi,
+        yearHiddenStems: yearHiddenStems,
+        monthHiddenStems: monthHiddenStems,
+        dayHiddenStems: dayHiddenStems,
+        hourHiddenStems: hourHiddenStems,
+        elements,
+        todayFortune,
+        todayWealth,
+        personality
+    };
+}
             
             // 获取性格描述
             function getPersonalityTraits(dayStem) {
