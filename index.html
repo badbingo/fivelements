@@ -706,6 +706,7 @@
         
         .rating-title i {
             margin-right: 10px;
+            font-size: 20px;
         }
         
         .rating-level {
@@ -1312,7 +1313,6 @@
     <div class="container">
         <!-- 赛博风格Header部分 -->
         <div class="header-container">
-
             <i class="fas fa-atom header-decoration left"></i>
             <i class="fas fa-rocket header-decoration right"></i>
             <h1 class="header-title">赛博命理系统</h1>
@@ -1719,12 +1719,12 @@
         </div>
         
         <div class="copyright">
-            © 2025 赛博命理系统 版权所有 | 量子计算引擎 v3.2.1 | 数据来自《渊海子平》《三命通会》等古籍
+            © 2025 赛博命理系统 版权所有 | 量子计算引擎 v3.2.6 | 数据来自《渊海子平》《三命通会》等古籍
         </div>
     </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+    <script src="js/lunar.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const calculateBtn = document.getElementById('calculate-btn');
@@ -2954,6 +2954,106 @@
                 const emptyStars = '☆'.repeat(5 - rating);
                 return fullStars + emptyStars;
             }
+            // 获取地支藏干
+function getHiddenStems(branch) {
+    const hiddenStemsMap = {
+        '子': '癸',
+        '丑': '己癸辛',
+        '寅': '甲丙戊',
+        '卯': '乙',
+        '辰': '戊乙癸',
+        '巳': '丙庚戊',
+        '午': '丁己',
+        '未': '己丁乙',
+        '申': '庚壬戊',
+        '酉': '辛',
+        '戌': '戊辛丁',
+        '亥': '壬甲'
+    };
+    return hiddenStemsMap[branch] || '';
+}
+            // 八字排盘本地计算函数 - 使用lunar.js
+            function calculateBaziLocally(birthData) {
+    const dateParts = birthData.date.split('-');
+    const year = parseInt(dateParts[0]);
+    const month = parseInt(dateParts[1]);
+    const day = parseInt(dateParts[2]);
+    const timeParts = birthData.time.split(':');
+    const hour = parseInt(timeParts[0]);
+    const minute = parseInt(timeParts[1] || 0);
+    
+    // 使用lunar.js计算八字
+    const solar = Solar.fromYmdHms(year, month, day, hour, minute, 0);
+    const lunar = solar.getLunar();
+    const bazi = lunar.getEightChar();
+    
+    // 获取八字四柱 - 1.7.2版本API
+    const yearGan = bazi.getYearGan(); // 年干
+    const yearZhi = bazi.getYearZhi(); // 年支
+    const monthGan = bazi.getMonthGan(); // 月干
+    const monthZhi = bazi.getMonthZhi(); // 月支
+    const dayGan = bazi.getDayGan(); // 日干
+    const dayZhi = bazi.getDayZhi(); // 日支
+    const hourGan = bazi.getTimeGan(); // 时干
+    const hourZhi = bazi.getTimeZhi(); // 时支
+    
+    // 获取地支藏干
+    const yearHiddenStems = getHiddenStems(yearZhi);
+    const monthHiddenStems = getHiddenStems(monthZhi);
+    const dayHiddenStems = getHiddenStems(dayZhi);
+    const hourHiddenStems = getHiddenStems(hourZhi);
+    
+    // 计算五行能量
+    const elements = calculateElementEnergy({
+        year: yearGan + yearZhi,
+        month: monthGan + monthZhi,
+        day: dayGan + dayZhi,
+        hour: hourGan + hourZhi
+    });
+    
+    // 今日运势评分 (随机生成)
+    const todayFortune = Math.floor(Math.random() * 5) + 1;
+    const todayWealth = Math.floor(Math.random() * 5) + 1;
+    
+    // 性格描述 (根据日干)
+    const personality = getPersonalityTraits(dayGan);
+    
+    return {
+        yearStem: yearGan,
+        yearBranch: yearZhi,
+        monthStem: monthGan,
+        monthBranch: monthZhi,
+        dayStem: dayGan,
+        dayBranch: dayZhi,
+        hourStem: hourGan,
+        hourBranch: hourZhi,
+        yearHiddenStems: yearHiddenStems,
+        monthHiddenStems: monthHiddenStems,
+        dayHiddenStems: dayHiddenStems,
+        hourHiddenStems: hourHiddenStems,
+        elements,
+        todayFortune,
+        todayWealth,
+        personality
+    };
+}
+            
+            // 获取性格描述
+            function getPersonalityTraits(dayStem) {
+                const traits = {
+                    '甲': '似参天大树，正直向上，有领导力但略显固执',
+                    '乙': '如藤蔓般柔韧，适应力强但有时优柔寡断',
+                    '丙': '如太阳般热情，开朗大方但易冲动急躁',
+                    '丁': '似烛火般温和，细心周到但易多愁善感',
+                    '戊': '如大地般稳重，踏实可靠但略显保守',
+                    '己': '似田园之土，包容性强但易随波逐流',
+                    '庚': '如金属般刚强，果断决绝但易锋芒太露',
+                    '辛': '似珠宝般精致，追求完美但易挑剔计较',
+                    '壬': '如江河奔流，聪明机智但易三心二意',
+                    '癸': '似雨露滋润，细腻敏感但易多疑忧郁'
+                };
+                return traits[dayStem] || '似静水流深，临危反生智，藏锋守拙却暗含凌云之志';
+            }
             
             calculateBtn.addEventListener('click', async function(e) {
                 e.preventDefault();
@@ -3018,23 +3118,23 @@
                     `;
                     document.body.appendChild(loadingOverlay);
                     
-                    // 1. 先获取基础信息
-                    const basicInfo = await getBaziAnalysis('basic', birthData);
+                    // 1. 使用lunar.js计算八字信息
+                    const baziInfo = calculateBaziLocally(birthData);
                     
                     // 2. 显示基础信息
-                    displayBasicInfo(basicInfo);
+                    displayBasicInfo(baziInfo);
                   
                     // 3. 初始化五行图表
-                    const elementsLine = basicInfo.split('\n').find(line => line.includes('五行能量'));
-                    if (elementsLine) {
-                        const elementsMatch = elementsLine.match(/五行能量：\[(.*?)\]/);
-                        if (elementsMatch && elementsMatch[1]) {
-                            const elements = elementsMatch[1].split(',').map(Number);
-                            initElementChart(elements);
-                        }
-                    }
+                    initElementChart(baziInfo.elements);
                     
                     // 4. 计算并显示评分
+                    currentPillars = {
+                        year: baziInfo.yearStem + baziInfo.yearBranch,
+                        month: baziInfo.monthStem + baziInfo.monthBranch,
+                        day: baziInfo.dayStem + baziInfo.dayBranch,
+                        hour: baziInfo.hourStem + baziInfo.hourBranch
+                    };
+                    
                     displayScores();
                     
                     // 5. 所有数据加载完成后再显示结果页面
@@ -3068,27 +3168,16 @@
                                       currentDate.getDate().toString().padStart(2, '0');
                 
                 // 明确指定八字排盘规则
-                let prompt = `请严格按照以上规则进行专业八字排盘：
-1. 【年柱】= 公历日期 < 当年立春时间 ? 上年干支 : 当年干支
-2. 【月柱】= 按节气精确划分（需计算太阳黄经）：
-   │ 月份 │ 节气       │ 黄经度 │
-   │─────│──────────│───────│
-   │ 寅月 │ 立春-惊蛰前 │ 315°  │
-   │ 卯月 │ 惊蛰-清明前 │ 345°  │
-   │ ...  │ ...        │ ...   │
-
-3. 【日柱】= 公式计算（无需农历转换）：
-   \`日干支基数 = (年尾二位数 + 3)*5 + 55 + (年尾二位数 - 1)/4\`
-   （结果取整mod60，再结合当年天数计算）
-
-4. 【时柱】= 严格按北京时间（东八区）：
-   - 23:00-00:59 → 次日日干的子时
-   - 早子时（23:00-24:00）与晚子时（00:00-01:00）区分
-   
-5. 起运时间计算=以出生日期前后最近的"节气交换日"为计算基准（非农历初一）
-   - 示例：1973年立春=1973-02-04 07:04
-    - 1973-02-02 → 壬子年（立春前）
-    - 1973-02-05 → 癸丑年（立春后）      
+                let prompt = `八字排盘核心算法（强制精确模式）：
+1. 年柱以立春为分界
+2. 月柱按节气划分（如正月从立春开始，二月从惊蛰开始）
+3. 日柱按公历日期计算
+4. 时柱按出生时辰的地支划分
+5. 从强格(印比力量占80%以上，全局无有力克泄耗）
+6. 从弱格(印比力量不足20%，全局无有力生扶）
+7. 排大运规则（年干为阳的男性、年干为阴的女性顺排；年干为阴年的男性、年干为阳的女性逆排）
+8. 顺排大运（计算从出生时刻到下一个换月节气的时间）
+9. 逆排大运（计算从出生时刻到上一个换月节气的时间）               
 
 当前日期：${currentDateStr}
 根据以下八字信息进行分析：
@@ -3113,7 +3202,7 @@
 3 五行能量：[木,火,土,金,水] (1-10分，请根据八字五行生克关系计算具体数值)
 4 今日运势：[1-5]
 5 今日财运：[1-5]
-6 命主性格：[用一句话描述命主的性格特质]
+6 命主性格：[用一句话描述命主的性格特质，如："似静水流深，临危反生智，藏锋守拙却暗含凌云之志"]
 
 用简洁格式返回，不要分析内容，不要使用任何符号如#*、等。`;
                         break;
@@ -3262,7 +3351,7 @@
                     body: JSON.stringify({
                         model: "deepseek-chat",
                         messages: [{ role: "user", content: prompt }],
-                        temperature: 0.3
+                        temperature: 0.7
                     })
                 });
                 
@@ -3291,87 +3380,50 @@
                 nameDisplay.textContent = birthData.name || '匿名用户';
                 birthDisplay.textContent = birthData.date.replace(/-/g, '/') + ' ' + timeMap[hour];
               
-                const lines = info.split('\n').filter(line => line.trim());
-              
-                // 提取八字四柱
-                const pillarsLine = lines.find(line => line.includes('八字四柱'));
-                if (pillarsLine) {
-                    const pillars = pillarsLine.match(/年柱\[(.*?)\] 月柱\[(.*?)\] 日柱\[(.*?)\] 时柱\[(.*?)\]/);
-                    if (pillars && pillars.length === 5) {
-                        // 更新八字表格
-                        yearStem.textContent = pillars[1].charAt(0);
-                        yearBranch.textContent = pillars[1].charAt(1);
-                        monthStem.textContent = pillars[2].charAt(0);
-                        monthBranch.textContent = pillars[2].charAt(1);
-                        dayStem.textContent = pillars[3].charAt(0);
-                        dayBranch.textContent = pillars[3].charAt(1);
-                        hourStem.textContent = pillars[4].charAt(0);
-                        hourBranch.textContent = pillars[4].charAt(1);
-                        
-                        // 存储当前八字数据
-                        currentPillars = {
-                            year: pillars[1],
-                            month: pillars[2],
-                            day: pillars[3],
-                            hour: pillars[4]
-                        };
-                        
-                        // 根据五行属性设置颜色
-                        setElementColors(yearStem, pillars[1].charAt(0));
-                        setElementColors(yearBranch, pillars[1].charAt(1));
-                        setElementColors(monthStem, pillars[2].charAt(0));
-                        setElementColors(monthBranch, pillars[2].charAt(1));
-                        setElementColors(dayStem, pillars[3].charAt(0));
-                        setElementColors(dayBranch, pillars[3].charAt(1));
-                        setElementColors(hourStem, pillars[4].charAt(0));
-                        setElementColors(hourBranch, pillars[4].charAt(1));
-                    }
-                }
+                // 更新八字表格
+                yearStem.textContent = info.yearStem;
+                yearBranch.textContent = info.yearBranch;
+                yearHiddenStems.textContent = info.yearHiddenStems;
+                monthStem.textContent = info.monthStem;
+                monthBranch.textContent = info.monthBranch;
+                monthHiddenStems.textContent = info.monthHiddenStems;
+                dayStem.textContent = info.dayStem;
+                dayBranch.textContent = info.dayBranch;
+                dayHiddenStems.textContent = info.dayHiddenStems;
+                hourStem.textContent = info.hourStem;
+                hourBranch.textContent = info.hourBranch;
+                hourHiddenStems.textContent = info.hourHiddenStems;
                 
-                // 提取地支藏干
-                const hiddenStemsLine = lines.find(line => line.includes('地支藏干'));
-                if (hiddenStemsLine) {
-                    const hiddenStems = hiddenStemsLine.match(/年支\[(.*?)\] 月支\[(.*?)\] 日支\[(.*?)\] 时支\[(.*?)\]/);
-                    if (hiddenStems && hiddenStems.length === 5) {
-                        yearHiddenStems.textContent = hiddenStems[1];
-                        monthHiddenStems.textContent = hiddenStems[2];
-                        dayHiddenStems.textContent = hiddenStems[3];
-                        hourHiddenStems.textContent = hiddenStems[4];
-                        
-                        // 设置藏干的五行颜色
-                        setHiddenStemsColors(yearHiddenStems, hiddenStems[1]);
-                        setHiddenStemsColors(monthHiddenStems, hiddenStems[2]);
-                        setHiddenStemsColors(dayHiddenStems, hiddenStems[3]);
-                        setHiddenStemsColors(hourHiddenStems, hiddenStems[4]);
-                    }
-                }
+                // 设置五行颜色
+                setElementColors(yearStem, info.yearStem);
+                setElementColors(yearBranch, info.yearBranch);
+                setElementColors(monthStem, info.monthStem);
+                setElementColors(monthBranch, info.monthBranch);
+                setElementColors(dayStem, info.dayStem);
+                setElementColors(dayBranch, info.dayBranch);
+                setElementColors(hourStem, info.hourStem);
+                setElementColors(hourBranch, info.hourBranch);
                 
-                // 提取今日运势
-                const todayFortuneLine = lines.find(line => line.includes('今日运势'));
-                if (todayFortuneLine) {
-                    const todayFortuneMatch = todayFortuneLine.match(/今日运势：\[(.*?)\]/);
-                    if (todayFortuneMatch && todayFortuneMatch[1]) {
-                        todayFortuneRating.textContent = getStarRating(todayFortuneMatch[1]);
-                    }
-                }
+                // 设置藏干的五行颜色
+                setHiddenStemsColors(yearHiddenStems, info.yearHiddenStems);
+                setHiddenStemsColors(monthHiddenStems, info.monthHiddenStems);
+                setHiddenStemsColors(dayHiddenStems, info.dayHiddenStems);
+                setHiddenStemsColors(hourHiddenStems, info.hourHiddenStems);
                 
-                // 提取今日财运
-                const todayWealthLine = lines.find(line => line.includes('今日财运'));
-                if (todayWealthLine) {
-                    const todayWealthMatch = todayWealthLine.match(/今日财运：\[(.*?)\]/);
-                    if (todayWealthMatch && todayWealthMatch[1]) {
-                        todayWealthRating.textContent = getStarRating(todayWealthMatch[1]);
-                    }
-                }
+                // 更新今日运势评分
+                todayFortuneRating.textContent = getStarRating(info.todayFortune);
+                todayWealthRating.textContent = getStarRating(info.todayWealth);
                 
-                // 提取性格特质
-                const traitsLine = lines.find(line => line.includes('命主性格'));
-                if (traitsLine) {
-                    const traitsMatch = traitsLine.match(/命主性格：\[(.*?)\]/);
-                    if (traitsMatch && traitsMatch[1]) {
-                        personalityTraits.textContent = `命主性格：${traitsMatch[1]}`;
-                    }
-                }
+                // 更新性格描述
+                personalityTraits.textContent = `命主性格：${info.personality}`;
+                
+                // 存储当前八字数据
+                currentPillars = {
+                    year: info.yearStem + info.yearBranch,
+                    month: info.monthStem + info.monthBranch,
+                    day: info.dayStem + info.dayBranch,
+                    hour: info.hourStem + info.hourBranch
+                };
             }
             
             // 根据天干地支设置五行颜色
@@ -3410,7 +3462,7 @@
                 // 清除所有五行类
                 element.classList.remove('wood', 'fire', 'earth', 'metal', 'water');
                 
-                // 天干五行对应关系
+                // 天干五行
                 const stemElements = {
                     '甲': 'wood', '乙': 'wood',
                     '丙': 'fire', '丁': 'fire',
