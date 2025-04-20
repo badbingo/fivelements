@@ -1312,6 +1312,7 @@
     <div class="container">
         <!-- 赛博风格Header部分 -->
         <div class="header-container">
+
             <i class="fas fa-atom header-decoration left"></i>
             <i class="fas fa-rocket header-decoration right"></i>
             <h1 class="header-title">赛博命理系统</h1>
@@ -1475,17 +1476,15 @@
                                 <span>水</span>
                             </div>
                         </div>
-                        <!-- 今日运势评分 -->
+                        <!-- 添加今日运势评分 -->
                         <div class="today-rating-container">
                             <div class="today-rating-group">
                                 <div class="today-rating-title"><i class="fas fa-calendar-day"></i> 今日运势</div>
                                 <div class="today-rating-stars" id="today-fortune-rating">★★★☆☆</div>
-                                <div class="today-rating-description" id="today-fortune-desc"></div>
                             </div>
                             <div class="today-rating-group">
                                 <div class="today-rating-title"><i class="fas fa-piggy-bank"></i> 今日财运</div>
                                 <div class="today-rating-stars" id="today-wealth-rating">★★☆☆☆</div>
-                                <div class="today-rating-description" id="today-wealth-desc"></div>
                             </div>
                         </div>
                     </div>
@@ -1736,6 +1735,9 @@
             const birthTimeInput = document.getElementById('birth-time');
             const personalityTraits = document.getElementById('personality-traits');
             
+            // 语言切换按钮
+            const languageBtns = document.querySelectorAll('.language-btn');
+            
             // 八字四柱元素
             const yearStem = document.getElementById('year-stem');
             const yearBranch = document.getElementById('year-branch');
@@ -1759,8 +1761,6 @@
             const wealthDetails = document.getElementById('wealth-details');
             const todayFortuneRating = document.getElementById('today-fortune-rating');
             const todayWealthRating = document.getElementById('today-wealth-rating');
-            const todayFortuneDesc = document.getElementById('today-fortune-desc');
-            const todayWealthDesc = document.getElementById('today-wealth-desc');
             
             // 五行图表元素
             const elementChartCtx = document.getElementById('element-chart').getContext('2d');
@@ -1784,6 +1784,17 @@
                     const hour = this.getAttribute('data-hour');
                     const minute = this.getAttribute('data-minute');
                     birthTimeInput.value = `${hour.padStart(2, '0')}:${minute.padStart(2, '0')}`;
+                });
+            });
+            
+            // 语言切换逻辑
+            languageBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    languageBtns.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    const lang = this.getAttribute('data-lang');
+                    // 这里可以添加语言切换的实际逻辑
+                    console.log('切换到语言:', lang);
                 });
             });
             
@@ -1850,8 +1861,6 @@
                 wealthDetails.innerHTML = '';
                 todayFortuneRating.textContent = '★★★☆☆';
                 todayWealthRating.textContent = '★★☆☆☆';
-                todayFortuneDesc.textContent = '';
-                todayWealthDesc.textContent = '';
                 personalityTraits.textContent = '命主性格：';
                 
                 // 重置所有内容区域
@@ -1957,11 +1966,6 @@
                             if (section === 'decade-fortune') {
                                 initFortuneChart(result);
                             }
-                            
-                            // 特殊处理身强身弱分析
-                            if (section === 'strength') {
-                                updateStrengthDisplay(result);
-                            }
                         } catch (error) {
                             console.error(`加载${section}失败:`, error);
                             clearInterval(progressInterval);
@@ -1971,44 +1975,6 @@
                         }
                     });
                 });
-            }
-            
-            // 更新身强身弱显示
-            function updateStrengthDisplay(result) {
-                const strengthMatch = result.match(/身强身弱：\[(.*?)\]/);
-                if (strengthMatch && strengthMatch[1]) {
-                    const strengthType = strengthMatch[1].trim();
-                    let displayText = '';
-                    
-                    switch(strengthType) {
-                        case '强':
-                            displayText = '身强';
-                            break;
-                        case '弱':
-                            displayText = '身弱';
-                            break;
-                        case '从强':
-                            displayText = '从强格';
-                            break;
-                        case '从弱':
-                            displayText = '从弱格';
-                            break;
-                        case '均衡':
-                            displayText = '身强身弱均衡';
-                            break;
-                        default:
-                            displayText = strengthType;
-                    }
-                    
-                    // 更新到内容中
-                    const contentElement = document.getElementById('strength-content');
-                    if (contentElement) {
-                        contentElement.innerHTML = contentElement.innerHTML.replace(
-                            /身强身弱：\[.*?\]/,
-                            `身强身弱：<strong style="color:var(--primary-color)">${displayText}</strong>`
-                        );
-                    }
-                }
             }
             
             // 初始化五行能量图
@@ -3068,34 +3034,15 @@
                         }
                     }
                     
-                    // 4. 获取今日运势和财运
-                    const todayFortuneLine = basicInfo.split('\n').find(line => line.includes('今日运势'));
-                    if (todayFortuneLine) {
-                        const todayFortuneMatch = todayFortuneLine.match(/今日运势：\[(.*?)\]/);
-                        if (todayFortuneMatch && todayFortuneMatch[1]) {
-                            todayFortuneRating.textContent = getStarRating(todayFortuneMatch[1]);
-                            todayFortuneDesc.textContent = getFortuneDescription(todayFortuneMatch[1]);
-                        }
-                    }
-                    
-                    const todayWealthLine = basicInfo.split('\n').find(line => line.includes('今日财运'));
-                    if (todayWealthLine) {
-                        const todayWealthMatch = todayWealthLine.match(/今日财运：\[(.*?)\]/);
-                        if (todayWealthMatch && todayWealthMatch[1]) {
-                            todayWealthRating.textContent = getStarRating(todayWealthMatch[1]);
-                            todayWealthDesc.textContent = getWealthDescription(todayWealthMatch[1]);
-                        }
-                    }
-                    
-                    // 5. 计算并显示评分
+                    // 4. 计算并显示评分
                     displayScores();
                     
-                    // 6. 所有数据加载完成后再显示结果页面
+                    // 5. 所有数据加载完成后再显示结果页面
                     inputSection.style.display = 'none';
                     resultSection.style.display = 'block';
                     document.body.removeChild(loadingOverlay);
                     
-                    // 7. 初始化其他部分的加载按钮
+                    // 6. 初始化其他部分的加载按钮
                     initLoadButtons();
                     window.scrollTo(0, 0);
                     
@@ -3110,38 +3057,6 @@
                     calculateBtn.innerHTML = '<i class="fas fa-brain"></i> 开始量子测算';
                 }
             });
-            
-            // 获取今日运势描述
-            function getFortuneDescription(rating) {
-                const ratingNum = parseInt(rating);
-                if (isNaN(ratingNum)) return '';
-                
-                const descriptions = [
-                    "今日运势较差，宜低调行事",
-                    "今日运势一般，需谨慎决策",
-                    "今日运势平稳，可正常安排",
-                    "今日运势良好，适合重要活动",
-                    "今日运势极佳，抓住机遇"
-                ];
-                
-                return descriptions[Math.min(ratingNum - 1, 4)];
-            }
-            
-            // 获取今日财运描述
-            function getWealthDescription(rating) {
-                const ratingNum = parseInt(rating);
-                if (isNaN(ratingNum)) return '';
-                
-                const descriptions = [
-                    "财运不佳，避免投资",
-                    "财运一般，谨慎理财",
-                    "财运平稳，正常收支",
-                    "财运良好，适合投资",
-                    "财运旺盛，把握机会"
-                ];
-                
-                return descriptions[Math.min(ratingNum - 1, 4)];
-            }
             
             async function getBaziAnalysis(section, data) {
                 const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
@@ -3258,7 +3173,7 @@
 2 子女性格分析
 3 核心信息
 
-子女数量：[男女，数量]
+子女数量：[男女]
 子女总结：[详细分析]`;
                         break;
                     case 'marriage':
@@ -3299,29 +3214,29 @@
                         prompt += `分析流年运势：
 1 流年干支与八字关系
 2 事业财运分析
-3 总体运势分析
+3 健康感情分析
 
 返回格式：
-流年干支与八字关系：[表格方式呈现具体建议]
-事业财运分析：[表格方式呈现具体建议]`;
+流年分析：[详细分析]
+运势走势：[表格方式呈现]`;
                         break;
                     case 'disasters':
                         prompt += `分析重大灾祸：
-1 一生重大灾祸年份
-2 防范措施
+1 潜在灾祸类型
+2 可能发生时间
+3 防范措施
 
 返回格式：
-一生重大灾祸年份分析：[表格方式呈现，详细分析]
+灾祸分析：[表格方式呈现，详细分析]
 防范建议：[具体建议]`;
                         break;
                     case 'decade-fortune':
                         prompt += `分析十年大运走势：
-1 何时起运
-2 各阶段大运起止时间
+1 各阶段大运起止时间
+2 大运干支和十神
 3 各阶段运势特点
 
 返回格式：
-何时起运：[顺排：计算从出生时刻到下一个换月节气的时间，逆排：计算从出生时刻到上一个换月节气的时间，三天折合一岁]
 大运分析：[表格方式呈现，详细分析]
 运势走势：[表格方式呈现，阶段1:分数,阶段2:分数,...] (1-5星)`;
                         break;
@@ -3347,7 +3262,7 @@
                     body: JSON.stringify({
                         model: "deepseek-chat",
                         messages: [{ role: "user", content: prompt }],
-                        temperature: 0
+                        temperature: 0.3
                     })
                 });
                 
@@ -3437,7 +3352,6 @@
                     const todayFortuneMatch = todayFortuneLine.match(/今日运势：\[(.*?)\]/);
                     if (todayFortuneMatch && todayFortuneMatch[1]) {
                         todayFortuneRating.textContent = getStarRating(todayFortuneMatch[1]);
-                        todayFortuneDesc.textContent = getFortuneDescription(todayFortuneMatch[1]);
                     }
                 }
                 
@@ -3447,7 +3361,6 @@
                     const todayWealthMatch = todayWealthLine.match(/今日财运：\[(.*?)\]/);
                     if (todayWealthMatch && todayWealthMatch[1]) {
                         todayWealthRating.textContent = getStarRating(todayWealthMatch[1]);
-                        todayWealthDesc.textContent = getWealthDescription(todayWealthMatch[1]);
                     }
                 }
                 
