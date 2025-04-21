@@ -1151,6 +1151,44 @@
                 opacity: 1;
             }
         }
+
+        /* 五行颜色样式 */
+        .wood {
+            color: var(--wood-color);
+            text-shadow: 0 0 10px var(--wood-color);
+        }
+        
+        .fire {
+            color: var(--fire-color);
+            text-shadow: 0 0 10px var(--fire-color);
+        }
+        
+        .earth {
+            color: var(--earth-color);
+            text-shadow: 0 0 10px var(--earth-color);
+        }
+        
+        .metal {
+            color: var(--metal-color);
+            text-shadow: 0 0 10px var(--metal-color);
+        }
+        
+        .water {
+            color: var(--water-color);
+            text-shadow: 0 0 10px var(--water-color);
+        }
+        
+        /* 五行雷达图容器 */
+        .element-radar-container {
+            width: 100%;
+            height: 300px;
+            margin: 20px 0;
+        }
+        
+        .element-radar-chart {
+            width: 100%;
+            height: 100%;
+        }
         
         @media (max-width: 768px) {
             .header-title {
@@ -1232,6 +1270,10 @@
                 padding: 8px 10px;
                 font-size: 14px;
             }
+
+            .element-radar-container {
+                height: 250px;
+            }
         }
         
         @media (max-width: 480px) {
@@ -1296,6 +1338,10 @@
                 display: block;
                 overflow-x: auto;
                 white-space: nowrap;
+            }
+
+            .element-radar-container {
+                height: 200px;
             }
         }
     </style>
@@ -1433,6 +1479,9 @@
                                 <div class="bazi-cell" id="male-hour-branch"></div>
                             </div>
                         </div>
+                        <div class="element-radar-container">
+                            <canvas id="male-element-radar" class="element-radar-chart"></canvas>
+                        </div>
                     </div>
                     
                     <div class="partner-card female-card">
@@ -1461,6 +1510,9 @@
                                 <div class="bazi-cell" id="female-day-branch"></div>
                                 <div class="bazi-cell" id="female-hour-branch"></div>
                             </div>
+                        </div>
+                        <div class="element-radar-container">
+                            <canvas id="female-element-radar" class="element-radar-chart"></canvas>
                         </div>
                     </div>
                 </div>
@@ -1667,6 +1719,10 @@
             const compatibilityMeter = document.getElementById('compatibility-meter');
             const recommendation = document.getElementById('recommendation');
             
+            // 五行雷达图
+            let maleElementRadarChart = null;
+            let femaleElementRadarChart = null;
+            
             const currentDate = new Date(2025, 3, 3);
             let maleData = {};
             let femaleData = {};
@@ -1754,6 +1810,16 @@
                 document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
                 document.querySelector('.menu-tab[data-tab="compatibility"]').classList.add('active');
                 document.getElementById('compatibility-tab').classList.add('active');
+                
+                if (maleElementRadarChart) {
+                    maleElementRadarChart.destroy();
+                    maleElementRadarChart = null;
+                }
+                
+                if (femaleElementRadarChart) {
+                    femaleElementRadarChart.destroy();
+                    femaleElementRadarChart = null;
+                }
                 
                 loadedSections = {};
                 analysisCache = {};
@@ -1861,6 +1927,137 @@
                 });
             }
             
+            // 获取天干地支对应的五行
+            function getElementForStem(stem) {
+                const stemElements = {
+                    '甲': 'wood', '乙': 'wood',
+                    '丙': 'fire', '丁': 'fire',
+                    '戊': 'earth', '己': 'earth',
+                    '庚': 'metal', '辛': 'metal',
+                    '壬': 'water', '癸': 'water'
+                };
+                return stemElements[stem] || '';
+            }
+            
+            function getElementForBranch(branch) {
+                const branchElements = {
+                    '寅': 'wood', '卯': 'wood',
+                    '巳': 'fire', '午': 'fire',
+                    '辰': 'earth', '戌': 'earth', '丑': 'earth', '未': 'earth',
+                    '申': 'metal', '酉': 'metal',
+                    '亥': 'water', '子': 'water'
+                };
+                return branchElements[branch] || '';
+            }
+            
+            // 创建五行雷达图
+            function createElementRadarChart(canvasId, baziData) {
+                const ctx = document.getElementById(canvasId).getContext('2d');
+                
+                // 计算五行能量
+                const elements = {
+                    wood: 0,
+                    fire: 0,
+                    earth: 0,
+                    metal: 0,
+                    water: 0
+                };
+                
+                // 统计天干五行
+                elements[getElementForStem(baziData.year.stem)] += 1;
+                elements[getElementForStem(baziData.month.stem)] += 1;
+                elements[getElementForStem(baziData.day.stem)] += 1;
+                elements[getElementForStem(baziData.hour.stem)] += 1;
+                
+                // 统计地支五行
+                elements[getElementForBranch(baziData.year.branch)] += 1;
+                elements[getElementForBranch(baziData.month.branch)] += 1;
+                elements[getElementForBranch(baziData.day.branch)] += 1;
+                elements[getElementForBranch(baziData.hour.branch)] += 1;
+                
+                // 计算百分比
+                const total = Object.values(elements).reduce((sum, val) => sum + val, 0);
+                const percentages = {
+                    wood: (elements.wood / total * 100).toFixed(0),
+                    fire: (elements.fire / total * 100).toFixed(0),
+                    earth: (elements.earth / total * 100).toFixed(0),
+                    metal: (elements.metal / total * 100).toFixed(0),
+                    water: (elements.water / total * 100).toFixed(0)
+                };
+                
+                return new Chart(ctx, {
+                    type: 'radar',
+                    data: {
+                        labels: ['木', '火', '土', '金', '水'],
+                        datasets: [{
+                            label: '五行能量分布',
+                            data: [
+                                percentages.wood,
+                                percentages.fire,
+                                percentages.earth,
+                                percentages.metal,
+                                percentages.water
+                            ],
+                            backgroundColor: 'rgba(0, 240, 255, 0.2)',
+                            borderColor: 'rgba(0, 240, 255, 0.8)',
+                            pointBackgroundColor: [
+                                'rgba(0, 255, 136, 0.8)',
+                                'rgba(255, 51, 0, 0.8)',
+                                'rgba(255, 204, 0, 0.8)',
+                                'rgba(204, 204, 204, 0.8)',
+                                'rgba(0, 160, 255, 0.8)'
+                            ],
+                            pointBorderColor: '#fff',
+                            pointHoverBackgroundColor: '#fff',
+                            pointHoverBorderColor: 'rgba(0, 240, 255, 0.8)'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            r: {
+                                angleLines: {
+                                    color: 'rgba(255, 255, 255, 0.1)'
+                                },
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.1)'
+                                },
+                                pointLabels: {
+                                    color: 'rgba(255, 255, 255, 0.8)',
+                                    font: {
+                                        family: "'Digital', monospace"
+                                    }
+                                },
+                                ticks: {
+                                    backdropColor: 'transparent',
+                                    color: 'rgba(255, 255, 255, 0.5)',
+                                    showLabelBackdrop: false,
+                                    stepSize: 20
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return `${context.dataset.label}: ${context.raw}%`;
+                                    }
+                                }
+                            }
+                        },
+                        elements: {
+                            line: {
+                                tension: 0.1
+                            }
+                        }
+                    }
+                });
+            }
+            
             // 使用lunar.js计算八字
             function calculateBazi(birthDate, birthTime) {
                 const [year, month, day] = birthDate.split('-').map(Number);
@@ -1943,24 +2140,57 @@
                     const maleBazi = calculateBazi(maleBirthDate, maleBirthTime);
                     const femaleBazi = calculateBazi(femaleBirthDate, femaleBirthTime);
                     
-                    // 更新八字显示
+                    // 更新八字显示，并添加五行颜色类
                     maleYearStem.textContent = maleBazi.year.stem;
+                    maleYearStem.className = getElementForStem(maleBazi.year.stem);
                     maleYearBranch.textContent = maleBazi.year.branch;
+                    maleYearBranch.className = getElementForBranch(maleBazi.year.branch);
+                    
                     maleMonthStem.textContent = maleBazi.month.stem;
+                    maleMonthStem.className = getElementForStem(maleBazi.month.stem);
                     maleMonthBranch.textContent = maleBazi.month.branch;
+                    maleMonthBranch.className = getElementForBranch(maleBazi.month.branch);
+                    
                     maleDayStem.textContent = maleBazi.day.stem;
+                    maleDayStem.className = getElementForStem(maleBazi.day.stem);
                     maleDayBranch.textContent = maleBazi.day.branch;
+                    maleDayBranch.className = getElementForBranch(maleBazi.day.branch);
+                    
                     maleHourStem.textContent = maleBazi.hour.stem;
+                    maleHourStem.className = getElementForStem(maleBazi.hour.stem);
                     maleHourBranch.textContent = maleBazi.hour.branch;
+                    maleHourBranch.className = getElementForBranch(maleBazi.hour.branch);
                     
                     femaleYearStem.textContent = femaleBazi.year.stem;
+                    femaleYearStem.className = getElementForStem(femaleBazi.year.stem);
                     femaleYearBranch.textContent = femaleBazi.year.branch;
+                    femaleYearBranch.className = getElementForBranch(femaleBazi.year.branch);
+                    
                     femaleMonthStem.textContent = femaleBazi.month.stem;
+                    femaleMonthStem.className = getElementForStem(femaleBazi.month.stem);
                     femaleMonthBranch.textContent = femaleBazi.month.branch;
+                    femaleMonthBranch.className = getElementForBranch(femaleBazi.month.branch);
+                    
                     femaleDayStem.textContent = femaleBazi.day.stem;
+                    femaleDayStem.className = getElementForStem(femaleBazi.day.stem);
                     femaleDayBranch.textContent = femaleBazi.day.branch;
+                    femaleDayBranch.className = getElementForBranch(femaleBazi.day.branch);
+                    
                     femaleHourStem.textContent = femaleBazi.hour.stem;
+                    femaleHourStem.className = getElementForStem(femaleBazi.hour.stem);
                     femaleHourBranch.textContent = femaleBazi.hour.branch;
+                    femaleHourBranch.className = getElementForBranch(femaleBazi.hour.branch);
+                    
+                    // 创建五行雷达图
+                    if (maleElementRadarChart) {
+                        maleElementRadarChart.destroy();
+                    }
+                    maleElementRadarChart = createElementRadarChart('male-element-radar', maleBazi);
+                    
+                    if (femaleElementRadarChart) {
+                        femaleElementRadarChart.destroy();
+                    }
+                    femaleElementRadarChart = createElementRadarChart('female-element-radar', femaleBazi);
                     
                     // 使用确定性算法计算合婚评分
                     const score = calculateCompatibilityScore(maleData, femaleData);
