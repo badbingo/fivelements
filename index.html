@@ -1107,6 +1107,103 @@
             color: var(--text-light);
         }
         
+        /* 黄历卡片样式 */
+        .lunar-calendar-card {
+            background: rgba(0, 166, 255, 0.1);
+            border-radius: var(--border-radius-sm);
+            padding: 20px;
+            margin: 20px auto;
+            border: 1px solid var(--border-color);
+            max-width: 500px;
+            text-align: center;
+            box-shadow: var(--box-shadow);
+        }
+        
+        .lunar-header {
+            font-size: 18px;
+            color: var(--title-color);
+            margin-bottom: 15px;
+            font-family: 'Orbitron', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .lunar-header i {
+            margin-right: 10px;
+            font-size: 20px;
+        }
+        
+        .lunar-date {
+            font-size: 16px;
+            color: var(--text-light);
+            margin-bottom: 15px;
+        }
+        
+        .lunar-ganzhi {
+            font-size: 18px;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+        
+        .lunar-yiji {
+            display: flex;
+            justify-content: space-around;
+            margin: 15px 0;
+        }
+        
+        .lunar-yiji-column {
+            flex: 1;
+            padding: 0 10px;
+        }
+        
+        .lunar-yiji-title {
+            color: var(--title-color);
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        
+        .lunar-yiji-content {
+            color: var(--text-light);
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        
+        /* 今日赌运分析样式 */
+        .gambling-analysis {
+            background: rgba(255, 0, 230, 0.1);
+            border-radius: var(--border-radius-sm);
+            padding: 15px;
+            margin-top: 15px;
+            border-left: 3px solid var(--accent-color);
+        }
+        
+        .gambling-title {
+            color: var(--accent-color);
+            font-weight: bold;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .gambling-title i {
+            margin-right: 10px;
+        }
+        
+        .gambling-rating {
+            font-size: 20px;
+            color: var(--earth-color);
+            text-shadow: 0 0 5px var(--earth-color);
+            margin: 10px 0;
+        }
+        
+        .gambling-details {
+            font-size: 14px;
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+        
         /* 响应式设计 */
         @media (max-width: 768px) {
             .header-title {
@@ -1187,6 +1284,14 @@
             
             .today-rating-group {
                 max-width: 100%;
+            }
+            
+            .lunar-yiji {
+                flex-direction: column;
+            }
+            
+            .lunar-yiji-column {
+                margin-bottom: 15px;
             }
         }
         
@@ -1478,6 +1583,28 @@
                         </div>
                     </div>
                 </div>
+                
+                <!-- 新增的黄历卡片 -->
+                <div class="info-section">
+                    <div class="lunar-calendar-card">
+                        <div class="lunar-header">
+                            <i class="fas fa-calendar-alt"></i>
+                            <span>今日黄历</span>
+                        </div>
+                        <div class="lunar-date" id="lunar-date"></div>
+                        <div class="lunar-ganzhi" id="lunar-ganzhi"></div>
+                        <div class="lunar-yiji">
+                            <div class="lunar-yiji-column">
+                                <div class="lunar-yiji-title">宜</div>
+                                <div class="lunar-yiji-content" id="lunar-yi"></div>
+                            </div>
+                            <div class="lunar-yiji-column">
+                                <div class="lunar-yiji-title">忌</div>
+                                <div class="lunar-yiji-content" id="lunar-ji"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
             
             <div class="menu-tabs">
@@ -1577,6 +1704,16 @@
                         <div class="load-btn-description">分析八字中的财富格局和理财建议</div>
                     </div>
                     <div id="wealth-content" class="section-content"></div>
+                    <!-- 新增今日赌运分析 -->
+                    <div class="gambling-analysis">
+                        <div class="gambling-title">
+                            <i class="fas fa-dice"></i> 今日赌运分析
+                        </div>
+                        <div class="gambling-rating">★★★☆☆</div>
+                        <div class="gambling-details">
+                            今日偏财运中等，适合小赌怡情但不宜大额投注。东南方位较为有利，下午3-5点时段运势最佳。注意见好就收，避免贪心导致损失。
+                        </div>
+                    </div>
                 </div>
             </div>
             
@@ -1641,11 +1778,11 @@
                     <div id="annual-fortune-content" class="section-content"></div>
                 </div>
                 
-                <!-- 每月运势分析 (Monthly Fortune Analysis) -->
+                <!-- 流月分析 (Monthly Fortune Analysis) -->
                 <div class="detail-card">
                     <div class="load-btn-container">
                         <button class="load-btn" data-section="monthly-fortune">
-                            <span><i class="fas fa-calendar-day"></i> 每月运势分析</span>
+                            <span><i class="fas fa-calendar-day"></i> 流月分析</span>
                             <i class="fas fa-chevron-down toggle-icon"></i>
                         </button>
                         <div class="load-btn-description">预测当前年份每月的运势起伏和注意事项</div>
@@ -1741,6 +1878,12 @@
             // 五行图表元素
             const elementChartCtx = document.getElementById('element-chart').getContext('2d');
             let elementChart;
+            
+            // 黄历元素
+            const lunarDate = document.getElementById('lunar-date');
+            const lunarGanzhi = document.getElementById('lunar-ganzhi');
+            const lunarYi = document.getElementById('lunar-yi');
+            const lunarJi = document.getElementById('lunar-ji');
             
             // 使用当前真实日期
             const currentDate = new Date();
@@ -2153,6 +2296,24 @@
                         }
                     }
                 });
+            }
+            
+            // 更新黄历信息
+            function updateLunarCalendar() {
+                const solar = Solar.fromDate(new Date());
+                const lunar = solar.getLunar();
+                
+                // 设置农历日期
+                lunarDate.textContent = `${lunar.getYearInChinese()}年 ${lunar.getMonthInChinese()}月 ${lunar.getDayInChinese()}`;
+                
+                // 设置干支
+                lunarGanzhi.textContent = `${lunar.getYearInGanZhi()}年 ${lunar.getMonthInGanZhi()}月 ${lunar.getDayInGanZhi()}日`;
+                
+                // 设置宜忌
+                const yi = lunar.getDayYi();
+                const ji = lunar.getDayJi();
+                lunarYi.textContent = yi.join('、') || '无';
+                lunarJi.textContent = ji.join('、') || '无';
             }
             
             // 验证日期合法性
@@ -3086,7 +3247,10 @@
                     // 3. 初始化五行图表
                     initElementChart(baziInfo.elements);
                     
-                    // 4. 计算并显示评分
+                    // 4. 更新黄历信息
+                    updateLunarCalendar();
+                    
+                    // 5. 计算并显示评分
                     currentPillars = {
                         year: baziInfo.yearStem + baziInfo.yearBranch,
                         month: baziInfo.monthStem + baziInfo.monthBranch,
@@ -3096,12 +3260,12 @@
                     
                     displayScores();
                     
-                    // 5. 所有数据加载完成后再显示结果页面
+                    // 6. 所有数据加载完成后再显示结果页面
                     inputSection.style.display = 'none';
                     resultSection.style.display = 'block';
                     document.body.removeChild(loadingOverlay);
                     
-                    // 6. 初始化其他部分的加载按钮
+                    // 7. 初始化其他部分的加载按钮
                     initLoadButtons();
                     window.scrollTo(0, 0);
                     
