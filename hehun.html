@@ -1609,6 +1609,7 @@
     <div class="api-status" id="api-status"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+    <script src="js/lunar.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // 创建数字雨效果
@@ -1771,93 +1772,124 @@
             
             function initLoadButtons() {
                 document.querySelectorAll('.load-btn').forEach(button => {
-    const section = button.getAttribute('data-section');
-    const contentElement = document.getElementById(`${section}-content`);
-    const container = button.closest('.load-btn-container');
-    
-    button.addEventListener('click', async function(e) {
-        e.preventDefault();
-        
-        const cacheKey = `${maleData.date}-${maleData.time}-${femaleData.date}-${femaleData.time}-${section}`;
-        
-        if (analysisCache[cacheKey]) {
-            contentElement.innerHTML = analysisCache[cacheKey];
-            container.classList.toggle('active');
-            contentElement.classList.toggle('active');
-            button.innerHTML = `<span><i class="fas fa-${button.getAttribute('data-section') === 'basic-analysis' ? 'heartbeat' : 
-                              button.getAttribute('data-section') === 'element-analysis' ? 'yin-yang' : 
-                              button.getAttribute('data-section') === 'god-analysis' ? 'star' : 
-                              button.getAttribute('data-section') === 'male-fate' ? 'mars' : 
-                              button.getAttribute('data-section') === 'female-fate' ? 'venus' : 
-                              button.getAttribute('data-section') === 'strength-weakness' ? 'balance-scale' : 
-                              button.getAttribute('data-section') === 'improvement' ? 'hands-helping' : 'calendar-check'}"></i> ${button.textContent.trim()}</span><i class="fas fa-chevron-down toggle-icon"></i>`;
-            return;
-        }
-        
-        if (loadedSections[section]) {
-            container.classList.toggle('active');
-            contentElement.classList.toggle('active');
-            return;
-        }
-        
-        this.disabled = true;
-        const buttonText = button.textContent.trim();
-        button.innerHTML = `<span><span class="loading"></span> ${buttonText}</span><i class="fas fa-chevron-down toggle-icon"></i>`;
-        container.classList.add('active');
-        
-        const progressContainer = document.createElement('div');
-        progressContainer.className = 'progress-container';
-        progressContainer.innerHTML = '<div class="progress-bar"></div>';
-        progressContainer.style.display = 'block';
-        
-        contentElement.innerHTML = '';
-        contentElement.appendChild(progressContainer);
-        
-        const progressBar = progressContainer.querySelector('.progress-bar');
-        let progress = 0;
-        const progressInterval = setInterval(() => {
-            progress += Math.random() * 10;
-            if (progress >= 100) progress = 100;
-            progressBar.style.width = `${progress}%`;
-        }, 300);
-        
-        try {
-            const startTime = performance.now();
-            const result = await getMarriageAnalysis(section, maleData, femaleData);
-            const endTime = performance.now();
+                    const section = button.getAttribute('data-section');
+                    const contentElement = document.getElementById(`${section}-content`);
+                    const container = button.closest('.load-btn-container');
+                    
+                    button.addEventListener('click', async function(e) {
+                        e.preventDefault();
+                        
+                        const cacheKey = `${maleData.date}-${maleData.time}-${femaleData.date}-${femaleData.time}-${section}`;
+                        
+                        if (analysisCache[cacheKey]) {
+                            contentElement.innerHTML = analysisCache[cacheKey];
+                            container.classList.toggle('active');
+                            contentElement.classList.toggle('active');
+                            button.innerHTML = `<span><i class="fas fa-${button.getAttribute('data-section') === 'basic-analysis' ? 'heartbeat' : 
+                                              button.getAttribute('data-section') === 'element-analysis' ? 'yin-yang' : 
+                                              button.getAttribute('data-section') === 'god-analysis' ? 'star' : 
+                                              button.getAttribute('data-section') === 'male-fate' ? 'mars' : 
+                                              button.getAttribute('data-section') === 'female-fate' ? 'venus' : 
+                                              button.getAttribute('data-section') === 'strength-weakness' ? 'balance-scale' : 
+                                              button.getAttribute('data-section') === 'improvement' ? 'hands-helping' : 'calendar-check'}"></i> ${button.textContent.trim()}</span><i class="fas fa-chevron-down toggle-icon"></i>`;
+                            return;
+                        }
+                        
+                        if (loadedSections[section]) {
+                            container.classList.toggle('active');
+                            contentElement.classList.toggle('active');
+                            return;
+                        }
+                        
+                        this.disabled = true;
+                        const buttonText = button.textContent.trim();
+                        button.innerHTML = `<span><span class="loading"></span> ${buttonText}</span><i class="fas fa-chevron-down toggle-icon"></i>`;
+                        container.classList.add('active');
+                        
+                        const progressContainer = document.createElement('div');
+                        progressContainer.className = 'progress-container';
+                        progressContainer.innerHTML = '<div class="progress-bar"></div>';
+                        progressContainer.style.display = 'block';
+                        
+                        contentElement.innerHTML = '';
+                        contentElement.appendChild(progressContainer);
+                        
+                        const progressBar = progressContainer.querySelector('.progress-bar');
+                        let progress = 0;
+                        const progressInterval = setInterval(() => {
+                            progress += Math.random() * 10;
+                            if (progress >= 100) progress = 100;
+                            progressBar.style.width = `${progress}%`;
+                        }, 300);
+                        
+                        try {
+                            const startTime = performance.now();
+                            const result = await getMarriageAnalysis(section, maleData, femaleData);
+                            const endTime = performance.now();
+                            
+                            clearInterval(progressInterval);
+                            displaySectionContent(section, result, contentElement);
+                            
+                            analysisCache[cacheKey] = contentElement.innerHTML;
+                            
+                            button.innerHTML = `<span><i class="fas fa-${button.getAttribute('data-section') === 'basic-analysis' ? 'heartbeat' : 
+                                          button.getAttribute('data-section') === 'element-analysis' ? 'yin-yang' : 
+                                          button.getAttribute('data-section') === 'god-analysis' ? 'star' : 
+                                          button.getAttribute('data-section') === 'male-fate' ? 'mars' : 
+                                          button.getAttribute('data-section') === 'female-fate' ? 'venus' : 
+                                          button.getAttribute('data-section') === 'strength-weakness' ? 'balance-scale' : 
+                                          button.getAttribute('data-section') === 'improvement' ? 'hands-helping' : 'calendar-check'}"></i> ${buttonText}</span><i class="fas fa-chevron-down toggle-icon"></i>`;
+                            button.disabled = false;
+                            contentElement.classList.add('active');
+                            loadedSections[section] = true;
+                            
+                        } catch (error) {
+                            console.error(`加载${section}失败:`, error);
+                            clearInterval(progressInterval);
+                            contentElement.innerHTML = '<p style="color:var(--danger-color)">加载失败，请重试</p>';
+                            button.disabled = false;
+                            button.innerHTML = `<span><i class="fas fa-${button.getAttribute('data-section') === 'basic-analysis' ? 'heartbeat' : 
+                                          button.getAttribute('data-section') === 'element-analysis' ? 'yin-yang' : 
+                                          button.getAttribute('data-section') === 'god-analysis' ? 'star' : 
+                                          button.getAttribute('data-section') === 'male-fate' ? 'mars' : 
+                                          button.getAttribute('data-section') === 'female-fate' ? 'venus' : 
+                                          button.getAttribute('data-section') === 'strength-weakness' ? 'balance-scale' : 
+                                          button.getAttribute('data-section') === 'improvement' ? 'hands-helping' : 'calendar-check'}"></i> ${buttonText}</span><i class="fas fa-chevron-down toggle-icon"></i>`;
+                            container.classList.remove('active');
+                        }
+                    });
+                });
+            }
             
-            clearInterval(progressInterval);
-            displaySectionContent(section, result, contentElement);
-            
-            analysisCache[cacheKey] = contentElement.innerHTML;
-            
-            button.innerHTML = `<span><i class="fas fa-${button.getAttribute('data-section') === 'basic-analysis' ? 'heartbeat' : 
-                              button.getAttribute('data-section') === 'element-analysis' ? 'yin-yang' : 
-                              button.getAttribute('data-section') === 'god-analysis' ? 'star' : 
-                              button.getAttribute('data-section') === 'male-fate' ? 'mars' : 
-                              button.getAttribute('data-section') === 'female-fate' ? 'venus' : 
-                              button.getAttribute('data-section') === 'strength-weakness' ? 'balance-scale' : 
-                              button.getAttribute('data-section') === 'improvement' ? 'hands-helping' : 'calendar-check'}"></i> ${buttonText}</span><i class="fas fa-chevron-down toggle-icon"></i>`;
-            button.disabled = false;
-            contentElement.classList.add('active');
-            loadedSections[section] = true;
-            
-        } catch (error) {
-            console.error(`加载${section}失败:`, error);
-            clearInterval(progressInterval);
-            contentElement.innerHTML = '<p style="color:var(--danger-color)">加载失败，请重试</p>';
-            button.disabled = false;
-            button.innerHTML = `<span><i class="fas fa-${button.getAttribute('data-section') === 'basic-analysis' ? 'heartbeat' : 
-                              button.getAttribute('data-section') === 'element-analysis' ? 'yin-yang' : 
-                              button.getAttribute('data-section') === 'god-analysis' ? 'star' : 
-                              button.getAttribute('data-section') === 'male-fate' ? 'mars' : 
-                              button.getAttribute('data-section') === 'female-fate' ? 'venus' : 
-                              button.getAttribute('data-section') === 'strength-weakness' ? 'balance-scale' : 
-                              button.getAttribute('data-section') === 'improvement' ? 'hands-helping' : 'calendar-check'}"></i> ${buttonText}</span><i class="fas fa-chevron-down toggle-icon"></i>`;
-            container.classList.remove('active');
-        }
-    });
-});
+            // 使用lunar.js计算八字
+            function calculateBazi(birthDate, birthTime) {
+                const [year, month, day] = birthDate.split('-').map(Number);
+                const [hour, minute] = birthTime.split(':').map(Number);
+                
+                // 创建农历日期对象
+                const lunar = Lunar.fromDate(new Date(year, month - 1, day, hour, minute));
+                
+                // 获取八字信息
+                const bazi = lunar.getEightChar();
+                
+                return {
+                    year: {
+                        stem: bazi.getYearGan(),
+                        branch: bazi.getYearZhi()
+                    },
+                    month: {
+                        stem: bazi.getMonthGan(),
+                        branch: bazi.getMonthZhi()
+                    },
+                    day: {
+                        stem: bazi.getDayGan(),
+                        branch: bazi.getDayZhi()
+                    },
+                    hour: {
+                        stem: bazi.getTimeGan(),
+                        branch: bazi.getTimeZhi()
+                    }
+                };
             }
             
             calculateBtn.addEventListener('click', async function(e) {
@@ -1906,40 +1938,48 @@
                 calculateBtn.innerHTML = '<span class="loading"></span> 量子测算中...';
                 showApiStatus('开始量子测算，请稍候...', 'success');
                 
-                let retries = 3;
-                while (retries > 0) {
-                    try {
-                        const startTime = performance.now();
-                        const basicInfo = await getMarriageAnalysis('basic', maleData, femaleData);
-                        const endTime = performance.now();
-                        displayBasicInfo(basicInfo);
-                        
-                        // 使用确定性算法计算合婚评分
-                        const score = calculateCompatibilityScore(maleData, femaleData);
-                        updateCompatibilityScore(score);
-                        
-                        inputSection.style.display = 'none';
-                        resultSection.style.display = 'block';
-                        calculateBtn.disabled = false;
-                        calculateBtn.innerHTML = '<i class="fas fa-heart"></i> 开始量子测算';
-                        
-                        initLoadButtons();
-                        window.scrollTo(0, 0);
-                        
-                        showApiStatus(`量子测算完成 (${(endTime - startTime).toFixed(2)}ms)`, 'success');
-                        break;
-                    } catch (error) {
-                        retries--;
-                        if (retries === 0) {
-                            console.error('测算失败:', error);
-                            showApiStatus(`量子测算失败: ${error.message}`, 'error');
-                            calculateBtn.disabled = false;
-                            calculateBtn.innerHTML = '<i class="fas fa-heart"></i> 开始量子测算';
-                        } else {
-                            showApiStatus(`尝试第${4-retries}次重试...`, 'warning');
-                            await new Promise(resolve => setTimeout(resolve, 1000));
-                        }
-                    }
+                try {
+                    // 使用lunar.js计算八字
+                    const maleBazi = calculateBazi(maleBirthDate, maleBirthTime);
+                    const femaleBazi = calculateBazi(femaleBirthDate, femaleBirthTime);
+                    
+                    // 更新八字显示
+                    maleYearStem.textContent = maleBazi.year.stem;
+                    maleYearBranch.textContent = maleBazi.year.branch;
+                    maleMonthStem.textContent = maleBazi.month.stem;
+                    maleMonthBranch.textContent = maleBazi.month.branch;
+                    maleDayStem.textContent = maleBazi.day.stem;
+                    maleDayBranch.textContent = maleBazi.day.branch;
+                    maleHourStem.textContent = maleBazi.hour.stem;
+                    maleHourBranch.textContent = maleBazi.hour.branch;
+                    
+                    femaleYearStem.textContent = femaleBazi.year.stem;
+                    femaleYearBranch.textContent = femaleBazi.year.branch;
+                    femaleMonthStem.textContent = femaleBazi.month.stem;
+                    femaleMonthBranch.textContent = femaleBazi.month.branch;
+                    femaleDayStem.textContent = femaleBazi.day.stem;
+                    femaleDayBranch.textContent = femaleBazi.day.branch;
+                    femaleHourStem.textContent = femaleBazi.hour.stem;
+                    femaleHourBranch.textContent = femaleBazi.hour.branch;
+                    
+                    // 使用确定性算法计算合婚评分
+                    const score = calculateCompatibilityScore(maleData, femaleData);
+                    updateCompatibilityScore(score);
+                    
+                    inputSection.style.display = 'none';
+                    resultSection.style.display = 'block';
+                    calculateBtn.disabled = false;
+                    calculateBtn.innerHTML = '<i class="fas fa-heart"></i> 开始量子测算';
+                    
+                    initLoadButtons();
+                    window.scrollTo(0, 0);
+                    
+                    showApiStatus('量子测算完成', 'success');
+                } catch (error) {
+                    console.error('测算失败:', error);
+                    showApiStatus(`量子测算失败: ${error.message}`, 'error');
+                    calculateBtn.disabled = false;
+                    calculateBtn.innerHTML = '<i class="fas fa-heart"></i> 开始量子测算';
                 }
             });
             
@@ -2144,42 +2184,6 @@
                 } catch (error) {
                     clearTimeout(timeoutId);
                     throw error;
-                }
-            }
-            
-            function displayBasicInfo(info) {
-                const lines = info.split('\n').filter(line => line.trim());
-                
-                // 解析男方八字
-                const malePillarsLine = lines.find(line => line.includes('男方八字'));
-                if (malePillarsLine) {
-                    const pillars = malePillarsLine.match(/年柱\[(.*?)\] 月柱\[(.*?)\] 日柱\[(.*?)\] 时柱\[(.*?)\]/);
-                    if (pillars && pillars.length === 5) {
-                        maleYearStem.textContent = pillars[1].charAt(0);
-                        maleYearBranch.textContent = pillars[1].charAt(1);
-                        maleMonthStem.textContent = pillars[2].charAt(0);
-                        maleMonthBranch.textContent = pillars[2].charAt(1);
-                        maleDayStem.textContent = pillars[3].charAt(0);
-                        maleDayBranch.textContent = pillars[3].charAt(1);
-                        maleHourStem.textContent = pillars[4].charAt(0);
-                        maleHourBranch.textContent = pillars[4].charAt(1);
-                    }
-                }
-                
-                // 解析女方八字
-                const femalePillarsLine = lines.find(line => line.includes('女方八字'));
-                if (femalePillarsLine) {
-                    const pillars = femalePillarsLine.match(/年柱\[(.*?)\] 月柱\[(.*?)\] 日柱\[(.*?)\] 时柱\[(.*?)\]/);
-                    if (pillars && pillars.length === 5) {
-                        femaleYearStem.textContent = pillars[1].charAt(0);
-                        femaleYearBranch.textContent = pillars[1].charAt(1);
-                        femaleMonthStem.textContent = pillars[2].charAt(0);
-                        femaleMonthBranch.textContent = pillars[2].charAt(1);
-                        femaleDayStem.textContent = pillars[3].charAt(0);
-                        femaleDayBranch.textContent = pillars[3].charAt(1);
-                        femaleHourStem.textContent = pillars[4].charAt(0);
-                        femaleHourBranch.textContent = pillars[4].charAt(1);
-                    }
                 }
             }
             
