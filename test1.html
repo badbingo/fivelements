@@ -1865,27 +1865,29 @@
             // 使用lunar.js计算八字
             function calculateBazi(birthDate, birthTime) {
     try {
-        // 1. 验证库是否加载
+        // 强化库存在检查
         if (!window.Lunar || typeof Lunar.Solar !== 'function') {
-            throw new Error("lunar.js库未正确加载");
+            console.log('当前Lunar对象:', window.Lunar);
+            throw new Error("八字计算库未正确初始化");
         }
 
-        // 2. 解析输入
-        const dateParts = birthDate.split('-');
-        const timeParts = birthTime.split(':');
+        // 日期解析（增强兼容性）
+        const cleanDate = birthDate.replace(/\s/g, '');
+        const cleanTime = birthTime.replace(/\s/g, '');
         
-        if (dateParts.length !== 3 || timeParts.length < 1) {
-            throw new Error("日期格式应为YYYY-MM-DD，时间格式为HH:MM");
-        }
+        const [year, month, day] = cleanDate.split('-').map(num => {
+            const n = parseInt(num);
+            if (isNaN(n)) throw new Error("日期包含非数字字符");
+            return n;
+        });
+        
+        const [hour, minute = 0] = cleanTime.split(':').map(num => {
+            const n = parseInt(num);
+            if (isNaN(n)) throw new Error("时间包含非数字字符");
+            return n;
+        });
 
-        // 3. 转换为数字
-        const year = parseInt(dateParts[0]);
-        const month = parseInt(dateParts[1]);
-        const day = parseInt(dateParts[2]);
-        const hour = parseInt(timeParts[0]);
-        const minute = timeParts[1] ? parseInt(timeParts[1]) : 0;
-
-        // 4. 验证日期有效性
+        // 日期有效性验证
         const testDate = new Date(year, month - 1, day);
         if (testDate.getFullYear() !== year || 
             testDate.getMonth() !== month - 1 || 
@@ -1893,7 +1895,7 @@
             throw new Error("无效的日期（可能是不存在的日期）");
         }
 
-        // 5. 1.7.2版本专用调用方式
+        // 1.7.2版本专用调用方式
         const solar = new Lunar.Solar();
         solar.setYear(year);
         solar.setMonth(month);
@@ -1901,26 +1903,38 @@
         solar.setHour(hour);
         solar.setMinute(minute);
         
-        // 6. 获取农历和八字
-        const lunar = solar.getLunar();
-        if (!lunar || !lunar.getEightChar) {
-            throw new Error("农历转换失败");
+        // 添加中间验证
+        if (!solar.getLunar) {
+            throw new Error("Solar对象方法不可用");
         }
         
+        const lunar = solar.getLunar();
         const bazi = lunar.getEightChar();
+
         return {
-            year: { stem: bazi.getYearGan(), branch: bazi.getYearZhi() },
-            month: { stem: bazi.getMonthGan(), branch: bazi.getMonthZhi() },
-            day: { stem: bazi.getDayGan(), branch: bazi.getDayZhi() },
-            hour: { stem: bazi.getTimeGan(), branch: bazi.getTimeZhi() }
+            year: { 
+                stem: bazi.getYearGan(), 
+                branch: bazi.getYearZhi() 
+            },
+            month: { 
+                stem: bazi.getMonthGan(), 
+                branch: bazi.getMonthZhi() 
+            },
+            day: { 
+                stem: bazi.getDayGan(), 
+                branch: bazi.getDayZhi() 
+            },
+            hour: { 
+                stem: bazi.getTimeGan(), 
+                branch: bazi.getTimeZhi() 
+            }
         };
         
     } catch (e) {
-        console.error('八字计算详细错误:', {
-            inputDate: birthDate,
-            inputTime: birthTime,
+        console.error('详细错误诊断:', {
+            input: { birthDate, birthTime },
             error: e.stack || e.message,
-            lunarVersion: window.Lunar?.VERSION
+            lunarObj: window.Lunar ? Object.keys(window.Lunar) : '未定义'
         });
         throw new Error(`八字计算失败: ${e.message}`);
     }
