@@ -12,6 +12,19 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.css">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="js/lunar.js"></script>
+    <script>
+document.addEventListener('DOMContentLoaded', function() {
+    // ===== 新增的兼容性检查 =====
+    if (!window.Lunar || !Lunar.Solar) {
+        console.error('Lunar.js 加载失败或版本不兼容');
+        alert('系统初始化失败，请刷新页面重试');
+        return;
+    }
+    // ===== 以下是原有代码 =====
+    var calculateBtn = document.getElementById('calculate-btn');
+    // ...原有其他代码...
+});
+</script>
     <style>
         @font-face {
             font-family: 'Digital';
@@ -1863,32 +1876,28 @@
             
             // 使用lunar.js计算八字
             function calculateBazi(birthDate, birthTime) {
-                const [year, month, day] = birthDate.split('-').map(Number);
-                const [hour, minute] = birthTime.split(':').map(Number);
-                
-                // 修正：使用 Lunar.Solar 而不是直接 Solar
-                const solar = Lunar.Solar.fromYmdHms(year, month, day, hour, minute, 0);
-                const lunar = solar.getLunar();
-                const bazi = lunar.getEightChar();
-                
-                return {
-                    year: {
-                        stem: bazi.getYearGan(),
-                        branch: bazi.getYearZhi()
-                    },
-                    month: {
-                        stem: bazi.getMonthGan(),
-                        branch: bazi.getMonthZhi()
-                    },
-                    day: {
-                        stem: bazi.getDayGan(),
-                        branch: bazi.getDayZhi()
-                    },
-                    hour: {
-                        stem: bazi.getTimeGan(),
-                        branch: bazi.getTimeZhi()
-                    }
-                };
+                try {
+                    const [year, month, day] = birthDate.split('-').map(Number);
+                    const [hour, minute] = birthTime.split(':').map(Number);
+                    
+                    // 兼容新版和旧版API
+                    const solar = Lunar.Solar.fromYmdHms ? 
+                        Lunar.Solar.fromYmdHms(year, month, day, hour, minute, 0) :
+                        new Lunar.Solar(year, month, day, hour, minute, 0);
+                    
+                    const lunar = solar.getLunar();
+                    const bazi = lunar.getEightChar();
+                    
+                    return {
+                        year: { stem: bazi.getYearGan(), branch: bazi.getYearZhi() },
+                        month: { stem: bazi.getMonthGan(), branch: bazi.getMonthZhi() },
+                        day: { stem: bazi.getDayGan(), branch: bazi.getDayZhi() },
+                        hour: { stem: bazi.getTimeGan(), branch: bazi.getTimeZhi() }
+                    };
+                } catch (e) {
+                    console.error('八字计算错误:', e);
+                    throw new Error('出生日期计算失败，请检查输入是否正确');
+                }
             }
             
             // 计算五行分数
