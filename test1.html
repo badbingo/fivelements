@@ -1865,45 +1865,51 @@
             // 使用lunar.js计算八字
             function calculateBazi(birthDate, birthTime) {
     try {
-        // 验证日期格式
+        // 验证日期和时间是否提供
         if (!birthDate || !birthTime) {
             throw new Error("出生日期和时间不能为空");
         }
-        
-        // 处理日期
+
+        // 检查 lunar.js 是否加载
+        if (typeof Lunar === 'undefined' || !Lunar.Solar) {
+            throw new Error("lunar.js 库未正确加载");
+        }
+
+        // 解析日期
         const dateParts = birthDate.split('-');
         if (dateParts.length !== 3) {
             throw new Error("日期格式应为YYYY-MM-DD");
         }
-        
+
         const year = parseInt(dateParts[0]);
         const month = parseInt(dateParts[1]);
         const day = parseInt(dateParts[2]);
-        
-        // 处理时间
+
+        // 解析时间
         const timeParts = birthTime.split(':');
         if (timeParts.length < 2) {
             throw new Error("时间格式应为HH:MM");
         }
-        
+
         const hour = parseInt(timeParts[0]);
         const minute = parseInt(timeParts[1]) || 0;
-        
+
         // 验证数值范围
         if (isNaN(year) || isNaN(month) || isNaN(day) || 
             isNaN(hour) || isNaN(minute)) {
             throw new Error("包含非数字字符");
         }
-        
-        // 计算八字
+
+        // 创建阳历日期对象
         const solar = Lunar.Solar.fromYmdHms(year, month, day, hour, minute, 0);
         if (!solar) {
             throw new Error("无效的日期(超出范围或不存在)");
         }
-        
+
+        // 转换为农历并计算八字
         const lunar = solar.getLunar();
         const bazi = lunar.getEightChar();
-        
+
         return {
             year: {
                 stem: bazi.getYearGan(),
