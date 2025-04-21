@@ -1865,74 +1865,45 @@
             // 使用lunar.js计算八字
             function calculateBazi(birthDate, birthTime) {
     try {
-        // 验证日期和时间是否提供
-        if (!birthDate || !birthTime) {
-            throw new Error("出生日期和时间不能为空");
+        // 验证库是否加载
+        if (!window.Lunar || !Lunar.Solar) {
+            throw new Error("lunar.js 库未正确初始化");
         }
 
-        // 检查 lunar.js 是否加载
-        if (typeof Lunar === 'undefined' || !Lunar.Solar) {
-            throw new Error("lunar.js 库未正确加载");
+        // 解析日期时间
+        const [year, month, day] = birthDate.split('-').map(Number);
+        let [hour, minute] = birthTime.split(':').map(Number);
+        minute = minute || 0; // 处理没有分钟的情况
+
+        // 验证日期有效性
+        const date = new Date(year, month - 1, day);
+        if (date.getFullYear() !== year || 
+            date.getMonth() !== month - 1 || 
+            date.getDate() !== day) {
+            throw new Error("无效的日期");
         }
 
-        // 解析日期
-        const dateParts = birthDate.split('-');
-        if (dateParts.length !== 3) {
-            throw new Error("日期格式应为YYYY-MM-DD");
-        }
-
-        const year = parseInt(dateParts[0]);
-        const month = parseInt(dateParts[1]);
-        const day = parseInt(dateParts[2]);
-
-        // 解析时间
-        const timeParts = birthTime.split(':');
-        if (timeParts.length < 2) {
-            throw new Error("时间格式应为HH:MM");
-        }
-
-        const hour = parseInt(timeParts[0]);
-        const minute = parseInt(timeParts[1]) || 0;
-
-        // 验证数值范围
-        if (isNaN(year) || isNaN(month) || isNaN(day) || 
-            isNaN(hour) || isNaN(minute)) {
-            throw new Error("包含非数字字符");
-        }
-
-        // 创建阳历日期对象
-        const solar = Lunar.Solar.fromYmdHms(year, month, day, hour, minute, 0);
-        if (!solar) {
-            throw new Error("无效的日期(超出范围或不存在)");
-        }
-
-        // 转换为农历并计算八字
+        // 1.7.2版本特定调用方式
+        const solar = new Lunar.Solar();
+        solar.setYear(year);
+        solar.setMonth(month);
+        solar.setDay(day);
+        solar.setHour(hour);
+        solar.setMinute(minute);
+        
         const lunar = solar.getLunar();
         const bazi = lunar.getEightChar();
 
         return {
-            year: {
-                stem: bazi.getYearGan(),
-                branch: bazi.getYearZhi()
-            },
-            month: {
-                stem: bazi.getMonthGan(),
-                branch: bazi.getMonthZhi()
-            },
-            day: {
-                stem: bazi.getDayGan(),
-                branch: bazi.getDayZhi()
-            },
-            hour: {
-                stem: bazi.getTimeGan(),
-                branch: bazi.getTimeZhi()
-            }
+            year: { stem: bazi.getYearGan(), branch: bazi.getYearZhi() },
+            month: { stem: bazi.getMonthGan(), branch: bazi.getMonthZhi() },
+            day: { stem: bazi.getDayGan(), branch: bazi.getDayZhi() },
+            hour: { stem: bazi.getTimeGan(), branch: bazi.getTimeZhi() }
         };
     } catch (e) {
-        console.error('八字计算错误:', e.message, {
-            birthDate,
-            birthTime,
-            error: e
+        console.error('八字计算错误:', {
+            input: { birthDate, birthTime },
+            error: e.stack || e.message
         });
         throw new Error(`出生日期计算失败: ${e.message}`);
     }
@@ -2052,42 +2023,43 @@
                 return Math.max(50, Math.min(95, totalScore));
             }
             
-            calculateBtn.addEventListener('click', async function(e) {
-    e.preventDefault();
+            document.getElementById('calculate-btn').addEventListener('click', function() {
+    const btn = this;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="loading"></span> 计算中...';
     
     try {
-        // 获取输入值
-        const maleBirthDate = document.getElementById('male-birth-date').value;
-        const maleBirthTime = document.getElementById('male-birth-time').value;
-        const femaleBirthDate = document.getElementById('female-birth-date').value;
-        const femaleBirthTime = document.getElementById('female-birth-time').value;
-        
-        // 验证输入
-        if (!maleBirthDate || !maleBirthTime || !femaleBirthDate || !femaleBirthTime) {
-            throw new Error("请填写完整的出生信息");
+        // 检查库是否可用
+        if (!window.Lunar) {
+            throw new Error("命理计算引擎未加载");
         }
         
+        // 获取输入
+        const maleDate = document.getElementById('male-birth-date').value;
+        const maleTime = document.getElementById('male-birth-time').value;
+        const femaleDate = document.getElementById('female-birth-date').value;
+        const femaleTime = document.getElementById('female-birth-time').value;
+        
         // 计算八字
-        const maleBazi = calculateBazi(maleBirthDate, maleBirthTime);
-        const femaleBazi = calculateBazi(femaleBirthDate, femaleBirthTime);
+        const maleBazi = calculateBazi(maleDate, maleTime);
+        const femaleBazi = calculateBazi(femaleDate, femaleTime);
         
         // 显示结果
         displayBazi(maleBazi, femaleBazi);
+        updateCompatibilityScore(
+            calculateCompatibilityScore(maleBazi, femaleBazi)
+        );
         
-        // 计算合婚分数
-        const score = calculateCompatibilityScore(maleBazi, femaleBazi);
-        updateCompatibilityScore(score);
-        
-        // 显示结果区域
-        inputSection.style.display = 'none';
-        resultSection.style.display = 'block';
+        // 切换界面
+        document.getElementById('input-section').style.display = 'none';
+        document.getElementById('result-section').style.display = 'block';
         
     } catch (error) {
-        console.error('测算失败:', error);
-        showApiStatus(`测算失败: ${error.message}`, 'error');
+        alert(error.message);
+        console.error("测算失败:", error);
     } finally {
-        calculateBtn.disabled = false;
-        calculateBtn.innerHTML = '<i class="fas fa-heart"></i> 开始量子测算';
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-heart"></i> 开始量子测算';
     }
 });
             
