@@ -2650,7 +2650,80 @@
                 return hiddenStemsMap[branch] || '';
             }
 
-            function calculateYun(lunar, gender) {
+            function calculateBaziLocally(birthData) {
+                const dateParts = birthData.date.split('-');
+                const year = parseInt(dateParts[0]);
+                const month = parseInt(dateParts[1]);
+                const day = parseInt(dateParts[2]);
+                const timeParts = birthData.time.split(':');
+                const hour = parseInt(timeParts[0]);
+                const minute = parseInt(timeParts[1] || 0);
+                const solar = Solar.fromYmdHms(year, month, day, hour, minute, 0);
+                const lunar = solar.getLunar();
+                const bazi = lunar.getEightChar();
+                const yearGan = bazi.getYearGan();
+                const yearZhi = bazi.getYearZhi();
+                const monthGan = bazi.getMonthGan();
+                const monthZhi = bazi.getMonthZhi();
+                const dayGan = bazi.getDayGan();
+                const dayZhi = bazi.getDayZhi();
+                const hourGan = bazi.getTimeGan();
+                const hourZhi = bazi.getTimeZhi();
+                const yearHiddenStems = getHiddenStems(yearZhi);
+                const monthHiddenStems = getHiddenStems(yearZhi);
+                const dayHiddenStems = getHiddenStems(dayZhi);
+                const hourHiddenStems = getHiddenStems(hourZhi);
+                const elements = calculateElementEnergy({
+                    year: yearGan + yearZhi,
+                    month: monthGan + monthZhi,
+                    day: dayGan + dayZhi,
+                    hour: hourGan + hourZhi
+                });
+                const personality = getPersonalityTraits(dayGan);
+                
+                // Calculate decade fortune locally
+                const decadeFortune = calculateYun(lunar, gender); // 使用自定义函数
+                
+                // Calculate gambling fortune
+                const gamblingFortune = calculateGamblingFortune(birthData, lunar);
+                
+                return {
+                    yearStem: yearGan,
+                    yearBranch: yearZhi,
+                    monthStem: monthGan,
+                    monthBranch: monthZhi,
+                    dayStem: dayGan,
+                    dayBranch: dayZhi,
+                    hourStem: hourGan,
+                    hourBranch: hourZhi,
+                    yearHiddenStems: yearHiddenStems,
+                    monthHiddenStems: monthHiddenStems,
+                    dayHiddenStems: dayHiddenStems,
+                    hourHiddenStems: hourHiddenStems,
+                    elements,
+                    personality,
+                    decadeFortune,
+                    gamblingFortune
+                };
+            }
+
+            function calculateDecadeFortune(birthData, lunar) {
+    const gender = birthData.gender;
+    const yearGan = lunar.getYearGan();
+    const isMale = gender === 'male';
+    const isYangYear = ['甲', '丙', '戊', '庚', '壬'].includes(yearGan);
+
+    // 使用自定义函数计算大运
+    const decadeFortune = calculateYun(lunar, gender);
+    
+    return {
+        isForward: decadeFortune.isForward,
+        startAge: decadeFortune.startAge,
+        fortunes: decadeFortune.fortunes
+    };
+}
+
+          function calculateYun(lunar, gender) {
     const yearGan = lunar.getYearGan(); // 年干
     const yearZhi = lunar.getYearZhi(); // 年支
     const isMale = gender === 'male';
@@ -2698,129 +2771,7 @@
 
     return { isForward, startAge, fortunes };
 }
-            function calculateBaziLocally(birthData) {
-                const dateParts = birthData.date.split('-');
-                const year = parseInt(dateParts[0]);
-                const month = parseInt(dateParts[1]);
-                const day = parseInt(dateParts[2]);
-                const timeParts = birthData.time.split(':');
-                const hour = parseInt(timeParts[0]);
-                const minute = parseInt(timeParts[1] || 0);
-                const solar = Solar.fromYmdHms(year, month, day, hour, minute, 0);
-                const lunar = solar.getLunar();
-                const bazi = lunar.getEightChar();
-                const yearGan = bazi.getYearGan();
-                const yearZhi = bazi.getYearZhi();
-                const monthGan = bazi.getMonthGan();
-                const monthZhi = bazi.getMonthZhi();
-                const dayGan = bazi.getDayGan();
-                const dayZhi = bazi.getDayZhi();
-                const hourGan = bazi.getTimeGan();
-                const hourZhi = bazi.getTimeZhi();
-                const yearHiddenStems = getHiddenStems(yearZhi);
-                const monthHiddenStems = getHiddenStems(yearZhi);
-                const dayHiddenStems = getHiddenStems(dayZhi);
-                const hourHiddenStems = getHiddenStems(hourZhi);
-                const elements = calculateElementEnergy({
-                    year: yearGan + yearZhi,
-                    month: monthGan + monthZhi,
-                    day: dayGan + dayZhi,
-                    hour: hourGan + hourZhi
-                });
-                const personality = getPersonalityTraits(dayGan);
-              const decadeFortune = calculateDecadeFortune(birthData, lunar); // 接收返回值
-  
-                
-function calculateDecadeFortune(birthData, lunar) {
-    const gender = birthData.gender;
-    const yearGan = lunar.getYearGan();
-    const isMale = gender === 'male';
-    const isYangYear = ['甲', '丙', '戊', '庚', '壬'].includes(yearGan);
-    const isForward = (isYangYear && isMale) || (!isYangYear && !isMale);
-
-    // 计算起运年龄（简化版：固定4岁起运）
-    const startAge = 4; 
-
-    // 生成模拟大运数据（12个十年大运）
-    const fortunes = [];
-    for (let i = 0; i < 12; i++) {
-        const start = startAge + i * 10;
-        const end = start + 10;
-        const ganZhi = "甲子"; // 这里可以用更复杂的逻辑生成实际干支
-        const score = 70 + Math.floor(Math.random() * 20); // 随机分数 (70-90)
-        fortunes.push({
-            ageRange: `${start}-${end}岁`,
-            ganZhi: ganZhi,
-            score: score
-        });
-    }
-
-    return { // 确保返回这个对象
-        isForward: isForward,
-        startAge: startAge,
-        fortunes: fortunes
-    };
-}
-
-
-// 调用示例
-const baziInfo = calculateBaziLocally(birthData);
-displayBasicInfo(baziInfo); // 确保传递了 decadeFortune
-                
-                // Calculate gambling fortune
-                const gamblingFortune = calculateGamblingFortune(birthData, lunar);
-                
-                return {
-                    yearStem: yearGan,
-                    yearBranch: yearZhi,
-                    monthStem: monthGan,
-                    monthBranch: monthZhi,
-                    dayStem: dayGan,
-                    dayBranch: dayZhi,
-                    hourStem: hourGan,
-                    hourBranch: hourZhi,
-                    yearHiddenStems: yearHiddenStems,
-                    monthHiddenStems: monthHiddenStems,
-                    dayHiddenStems: dayHiddenStems,
-                    hourHiddenStems: hourHiddenStems,
-                    elements,
-                    personality,
-                    decadeFortune,
-                    gamblingFortune
-                };
-            }
-
-            function calculateDecadeFortune(birthData, lunar) {
-    const gender = birthData.gender;
-    const yearGan = lunar.getYearGan();
-    const isMale = gender === 'male';
-    const isYangYear = ['甲', '丙', '戊', '庚', '壬'].includes(yearGan);
-    const isForward = (isYangYear && isMale) || (!isYangYear && !isMale);
-
-    // 计算起运年龄（简化版：固定4岁起运）
-    const startAge = 4; 
-
-    // 生成模拟大运数据（12个十年大运）
-    const fortunes = [];
-    for (let i = 0; i < 12; i++) {
-        const start = startAge + i * 10;
-        const end = start + 10;
-        const ganZhi = "甲子"; // 这里可以用更复杂的逻辑生成实际干支
-        const score = 70 + Math.floor(Math.random() * 20); // 随机分数 (70-90)
-        fortunes.push({
-            ageRange: `${start}-${end}岁`,
-            ganZhi: ganZhi,
-            score: score
-        });
-    }
-
-    return { // 确保返回这个对象
-        isForward: isForward,
-        startAge: startAge,
-        fortunes: fortunes
-    };
-}
-
+          
             function calculateGamblingFortune(birthData, lunar) {
                 const dayGan = lunar.getDayGan();
                 const dayZhi = lunar.getDayZhi();
