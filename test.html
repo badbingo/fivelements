@@ -2707,23 +2707,7 @@
                 };
             }
 
-            function calculateDecadeFortune(birthData, lunar) {
-    const gender = birthData.gender;
-    const yearGan = lunar.getYearGan();
-    const isMale = gender === 'male';
-    const isYangYear = ['甲', '丙', '戊', '庚', '壬'].includes(yearGan);
-
-    // 使用自定义函数计算大运
-    const decadeFortune = calculateYun(lunar, gender);
-    
-    return {
-        isForward: decadeFortune.isForward,
-        startAge: decadeFortune.startAge,
-        fortunes: decadeFortune.fortunes
-    };
-}
-
-          function calculateYun(lunar, gender) {
+            function calculateYun(lunar, gender) {
     const yearGan = lunar.getYearGan(); // 年干
     const yearZhi = lunar.getYearZhi(); // 年支
     const isMale = gender === 'male';
@@ -2734,8 +2718,32 @@
 
     // 计算起运时间（3天 = 1岁）
     const solar = lunar.getSolar();
-    const jieQi = isForward ? solar.getNextJieQi() : solar.getPrevJieQi();
-    const daysDiff = Math.abs(solar.getDiffDays(jieQi.getSolar()));
+    
+    // Get all JieQi for the year
+    const jieQiList = lunar.getJieQiTable();
+    
+    // Find current solar date in the list
+    let currentDate = solar.toYmd();
+    let nextJieQi = null;
+    let prevJieQi = null;
+    
+    // Find the next and previous JieQi
+    for (const [name, date] of Object.entries(jieQiList)) {  // <-- Remove extra parenthesis here
+        if (date >= currentDate) {
+            nextJieQi = date;
+            break;
+        }
+        prevJieQi = date;
+    }
+    
+    // Calculate days difference
+    const jieQiDate = isForward ? nextJieQi : prevJieQi;
+    const daysDiff = Math.abs(solar.getDiffDays(Solar.fromYmd(
+        jieQiDate.substring(0, 4), 
+        jieQiDate.substring(4, 6), 
+        jieQiDate.substring(6, 8)
+    )));
+    
     const startAge = Math.floor(daysDiff / 3); // 起运年龄
 
     // 地支顺序（用于顺排/逆排）
