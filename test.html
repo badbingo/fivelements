@@ -2719,30 +2719,38 @@
     // 计算起运时间（3天 = 1岁）
     const solar = lunar.getSolar();
     
-    // Get all JieQi for the year
-    const jieQiList = lunar.getJieQiList(); // Changed from getJieQiTable()
+    // Get all JieQi for the year - modified for your version
+    const jieQiList = [];
+    const jieQiNames = ['立春', '雨水', '惊蛰', '春分', '清明', '谷雨', 
+                       '立夏', '小满', '芒种', '夏至', '小暑', '大暑',
+                       '立秋', '处暑', '白露', '秋分', '寒露', '霜降',
+                       '立冬', '小雪', '大雪', '冬至', '小寒', '大寒'];
     
     // Find current solar date in the list
-    const currentDate = solar;
+    const currentDate = solar.toYmd();
     let nextJieQi = null;
     let prevJieQi = null;
     
     // Find the next and previous JieQi
-    for (const jieQi of jieQiList) {
-        if (jieQi.getSolar().toYmd() >= currentDate.toYmd()) {
-            nextJieQi = jieQi.getSolar();
+    for (const name of jieQiNames) {
+        const jieQi = lunar.getJieQi(name);
+        if (!jieQi) continue;
+        
+        const jieQiDate = jieQi.toYmd();
+        if (jieQiDate >= currentDate) {
+            nextJieQi = jieQi;
             break;
         }
-        prevJieQi = jieQi.getSolar();
+        prevJieQi = jieQi;
     }
     
     // Calculate days difference
-    const jieQiDate = isForward ? nextJieQi : prevJieQi;
-    if (!jieQiDate) {
+    const targetJieQi = isForward ? nextJieQi : prevJieQi;
+    if (!targetJieQi) {
         return { isForward, startAge: 0, fortunes: [] };
     }
     
-    const daysDiff = Math.abs(currentDate.getDiffDays(jieQiDate));
+    const daysDiff = Math.abs(solar.getDiffDays(targetJieQi));
     const startAge = Math.floor(daysDiff / 3); // 起运年龄
 
     // 地支顺序（用于顺排/逆排）
