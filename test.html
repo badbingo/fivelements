@@ -2720,30 +2720,29 @@
     const solar = lunar.getSolar();
     
     // Get all JieQi for the year
-    const jieQiList = lunar.getJieQiTable();
+    const jieQiList = lunar.getJieQiList(); // Changed from getJieQiTable()
     
     // Find current solar date in the list
-    let currentDate = solar.toYmd();
+    const currentDate = solar;
     let nextJieQi = null;
     let prevJieQi = null;
     
     // Find the next and previous JieQi
-    for (const [name, date] of Object.entries(jieQiList)) {  // <-- Remove extra parenthesis here
-        if (date >= currentDate) {
-            nextJieQi = date;
+    for (const jieQi of jieQiList) {
+        if (jieQi.getSolar().toYmd() >= currentDate.toYmd()) {
+            nextJieQi = jieQi.getSolar();
             break;
         }
-        prevJieQi = date;
+        prevJieQi = jieQi.getSolar();
     }
     
     // Calculate days difference
     const jieQiDate = isForward ? nextJieQi : prevJieQi;
-    const daysDiff = Math.abs(solar.getDiffDays(Solar.fromYmd(
-        jieQiDate.substring(0, 4), 
-        jieQiDate.substring(4, 6), 
-        jieQiDate.substring(6, 8)
-    )));
+    if (!jieQiDate) {
+        return { isForward, startAge: 0, fortunes: [] };
+    }
     
+    const daysDiff = Math.abs(currentDate.getDiffDays(jieQiDate));
     const startAge = Math.floor(daysDiff / 3); // 起运年龄
 
     // 地支顺序（用于顺排/逆排）
