@@ -1989,67 +1989,49 @@
                 ];
             }
 
-            function initFortuneChart(data) {
-                const fortuneContent = document.getElementById('decade-fortune-content');
-                const canvas = document.createElement('canvas');
-                canvas.className = 'fortune-chart';
-                fortuneContent.appendChild(canvas);
-                const ctx = canvas.getContext('2d');
-                const fortuneData = {
-                    labels: ['10-20岁', '20-30岁', '30-40岁', '40-50岁', '50-60岁', '60-70岁'],
-                    datasets: [{
-                        label: '运势指数',
-                        data: [65, 59, 80, 81, 56, 55],
-                        fill: true,
-                        backgroundColor: 'rgba(0, 240, 255, 0.2)',
-                        borderColor: 'rgba(0, 240, 255, 1)',
-                        tension: 0.4,
-                        pointBackgroundColor: 'rgba(0, 240, 255, 1)'
-                    }]
-                };
-                new Chart(ctx, {
-                    type: 'line',
-                    data: fortuneData,
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                max: 100,
-                                ticks: {
-                                    color: 'rgba(0, 240, 255, 0.7)'
-                                },
-                                grid: {
-                                    color: 'rgba(0, 240, 255, 0.1)'
-                                }
-                            },
-                            x: {
-                                ticks: {
-                                    color: 'rgba(0, 240, 255, 0.7)'
-                                },
-                                grid: {
-                                    color: 'rgba(0, 240, 255, 0.1)'
-                                }
-                            }
-                        },
-                        plugins: {
-                            legend: {
-                                labels: {
-                                    color: 'rgba(0, 240, 255, 0.9)'
-                                }
-                            },
-                            tooltip: {
-                                callbacks: {
-                                    label: function(context) {
-                                        return `运势指数: ${context.raw}`;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                });
+            function initFortuneChart(result) {
+    const fortuneContent = document.getElementById('decade-fortune-content');
+    const canvas = document.createElement('canvas');
+    canvas.className = 'fortune-chart';
+    fortuneContent.appendChild(canvas);
+    
+    // 提取运势数据
+    const fortunes = calculateDecadeFortune(
+        Solar.fromYmdHms(
+            parseInt(birthData.date.split('-')[0]),
+            parseInt(birthData.date.split('-')[1]),
+            parseInt(birthData.date.split('-')[2]),
+            parseInt(birthData.time.split(':')[0]),
+            parseInt(birthData.time.split(':')[1] || 0),
+            0
+        ).getLunar(), 
+        birthData.gender
+    ).fortunes;
+
+    // 准备图表数据
+    const chartData = {
+        labels: fortunes.map(f => f.ageRange),
+        datasets: [{
+            label: '运势指数',
+            data: fortunes.map(f => f.score),
+            fill: true,
+            backgroundColor: 'rgba(0, 240, 255, 0.2)',
+            borderColor: 'rgba(0, 240, 255, 1)',
+            tension: 0.4
+        }]
+    };
+
+    new Chart(canvas.getContext('2d'), {
+        type: 'line',
+        data: chartData,
+        options: {
+            responsive: true,
+            scales: {
+                y: { max: 100 }
             }
+        }
+    });
+}
 
             function updateLunarCalendar() {
                 const solar = Solar.fromDate(new Date());
@@ -2718,73 +2700,56 @@
 
     // 计算起运时间（3天 = 1岁）
     const solar = lunar.getSolar();
+    const jieQiName = isForward ? '立春' : '大寒'; // 顺排找下一个节气，逆排找上一个
+    const targetJieQi = lunar.getJieQi(jieQiName);
     
-    // Get all JieQi for the year - modified for your version
-    const jieQiList = [];
-    const jieQiNames = ['立春', '雨水', '惊蛰', '春分', '清明', '谷雨', 
-                       '立夏', '小满', '芒种', '夏至', '小暑', '大暑',
-                       '立秋', '处暑', '白露', '秋分', '寒露', '霜降',
-                       '立冬', '小雪', '大雪', '冬至', '小寒', '大寒'];
-    
-    // Find current solar date in the list
-    const currentDate = solar.toYmd();
-    let nextJieQi = null;
-    let prevJieQi = null;
-    
-    // Find the next and previous JieQi
-    for (const name of jieQiNames) {
-        const jieQi = lunar.getJieQi(name);
-        if (!jieQi) continue;
-        
-        const jieQiDate = jieQi.toYmd();
-        if (jieQiDate >= currentDate) {
-            nextJieQi = jieQi;
-            break;
-        }
-        prevJieQi = jieQi;
+    // 如果找不到节气（如1900年前数据），使用默认值
+    let daysDiff = 15; // 默认15天（5岁起运）
+    if (targetJieQi) {
+        daysDiff = Math.abs(solar.getDiffDays(targetJieQi));
     }
-    
-    // Calculate days difference
-    const targetJieQi = isForward ? nextJieQi : prevJieQi;
-    if (!targetJieQi) {
-        return { isForward, startAge: 0, fortunes: [] };
-    }
-    
-    const daysDiff = Math.abs(solar.getDiffDays(targetJieQi));
     const startAge = Math.floor(daysDiff / 3); // 起运年龄
 
     // 地支顺序（用于顺排/逆排）
     const zhiOrder = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
     let currentZhiIndex = zhiOrder.indexOf(yearZhi);
 
+    // 天干顺序
+    const ganOrder = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
+    let currentGanIndex = ganOrder.indexOf(yearGan);
+
     // 生成大运（每10年一运）
     const fortunes = [];
-    for (let i = 0; i < 12; i++) {
-        const ageStart = startAge + i * 10;
-        const ageEnd = ageStart + 10;
-
-        // 顺排：地支+1，逆排：地支-1
+    for (let i = 0; i < 8; i++) { // 生成8个大运（覆盖80年）
+        // 计算干支
         currentZhiIndex = isForward ? 
             (currentZhiIndex + 1) % 12 : 
             (currentZhiIndex - 1 + 12) % 12;
+        
+        currentGanIndex = isForward ?
+            (currentGanIndex + 1) % 10 :
+            (currentGanIndex - 1 + 10) % 10;
 
-        // 天干按规则顺推或逆推
-        const ganOrder = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
-        const startGanIndex = ganOrder.indexOf(yearGan);
-        const ganIndex = isForward ?
-            (startGanIndex + i) % 10 :
-            (startGanIndex - i + 10) % 10;
-        const gan = ganOrder[ganIndex];
+        const gan = ganOrder[currentGanIndex];
         const zhi = zhiOrder[currentZhiIndex];
 
+        // 运势评分（60-90分随机，但带趋势）
+        const baseScore = 60 + Math.floor(Math.random() * 20);
+        const trendBonus = isForward ? i * 2 : (7 - i) * 2; // 顺排越往后分越高，逆排反之
+        const score = Math.min(90, baseScore + trendBonus);
+
         fortunes.push({
-            ageRange: `${ageStart}-${ageEnd}岁`,
+            ageRange: `${startAge + i * 10}-${startAge + (i + 1) * 10}岁`,
             ganZhi: gan + zhi,
-            score: 70 + Math.floor(Math.random() * 20) // 随机运势分 (70-90)
+            score: score
         });
     }
 
-    return { isForward, startAge, fortunes };
+    return {
+        isForward: isForward,
+        startAge: startAge,
+        fortunes: fortunes
+    };
 }
           
             function calculateGamblingFortune(birthData, lunar) {
@@ -3180,26 +3145,41 @@
 流年运势总结：[详细分析]`;
                         break;
                     case 'decade-fortune':
-    // Use locally calculated data instead of API
-    const decadeFortune = calculateDecadeFortune(Solar.fromYmdHms(
+    // 使用 lunar.jr 计算大运
+    const solar = Solar.fromYmdHms(
         parseInt(birthData.date.split('-')[0]),
         parseInt(birthData.date.split('-')[1]),
         parseInt(birthData.date.split('-')[2]),
         parseInt(birthData.time.split(':')[0]),
         parseInt(birthData.time.split(':')[1] || 0),
         0
-    ).getLunar(), birthData.gender);
-    
-    let result = "大运走势分析：\n\n";
-    result += "大运方向：" + (decadeFortune.isForward ? "顺行" : "逆行") + "\n";
-    result += "起运年龄：" + decadeFortune.startAge + "岁\n\n";
-    result += "各阶段大运详情：\n";
-    
-    decadeFortune.fortunes.forEach(fortune => {
-        result += `${fortune.ageRange}: ${fortune.ganZhi} - 运势指数: ${fortune.score}/100\n`;
-    });
-    
-    return result;
+    );
+    const lunar = solar.getLunar();
+    const decadeFortune = calculateDecadeFortune(lunar, birthData.gender);
+
+    // 生成详细分析文本
+    let analysisText = `
+## 十年大运分析
+
+### 起运信息
+- **大运方向**: ${decadeFortune.isForward ? '顺行' : '逆行'}
+- **起运年龄**: ${decadeFortune.startAge}岁
+
+### 各阶段大运详情
+| 年龄段       | 大运干支 | 运势指数 |
+|--------------|----------|----------|
+${decadeFortune.fortunes.map(f => `| ${f.ageRange} | ${f.ganZhi} | ${f.score}/100 |`).join('\n')}
+
+### 关键分析
+1. **${decadeFortune.fortunes[0].ganZhi}运 (${decadeFortune.fortunes[0].ageRange})**: 
+   - 事业: ${f.score > 70 ? '顺利发展' : '需谨慎'}
+   - 财运: ${f.score > 60 ? '收入稳定' : '注意开支'}
+2. **${decadeFortune.fortunes[3].ganZhi}运 (${decadeFortune.fortunes[3].ageRange})**: 
+   - 家庭: 重要转折期
+   - 健康: 需特别注意
+    `;
+
+    return analysisText;
                     case 'monthly-fortune':
                         prompt += `分析今年每月运势：
 1 每月运势
