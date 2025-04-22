@@ -2707,7 +2707,7 @@
                 };
             }
 
-            function calculateYun(lunar, gender) {
+            function calculateDecadeFortune(lunar, gender) {
     const yearGan = lunar.getYearGan(); // 年干
     const yearZhi = lunar.getYearZhi(); // 年支
     const isMale = gender === 'male';
@@ -3180,26 +3180,26 @@
 流年运势总结：[详细分析]`;
                         break;
                     case 'decade-fortune':
-                        // Use locally calculated data instead of API
-                        const decadeFortune = calculateDecadeFortune(birthData, Solar.fromYmdHms(
-                            parseInt(birthData.date.split('-')[0]),
-                            parseInt(birthData.date.split('-')[1]),
-                            parseInt(birthData.date.split('-')[2]),
-                            parseInt(birthData.time.split(':')[0]),
-                            parseInt(birthData.time.split(':')[1] || 0),
-                            0
-                        ).getLunar());
-                        
-                        let result = "大运走势分析：\n\n";
-                        result += "大运方向：" + (decadeFortune.isForward ? "顺行" : "逆行") + "\n";
-                        result += "起运年龄：" + decadeFortune.startAge + "岁\n\n";
-                        result += "各阶段大运详情：\n";
-                        
-                        decadeFortune.fortunes.forEach(fortune => {
-                            result += `${fortune.ageRange}: ${fortune.ganZhi} - 运势指数: ${fortune.score}/100\n`;
-                        });
-                        
-                        return result;
+    // Use locally calculated data instead of API
+    const decadeFortune = calculateDecadeFortune(Solar.fromYmdHms(
+        parseInt(birthData.date.split('-')[0]),
+        parseInt(birthData.date.split('-')[1]),
+        parseInt(birthData.date.split('-')[2]),
+        parseInt(birthData.time.split(':')[0]),
+        parseInt(birthData.time.split(':')[1] || 0),
+        0
+    ).getLunar(), birthData.gender);
+    
+    let result = "大运走势分析：\n\n";
+    result += "大运方向：" + (decadeFortune.isForward ? "顺行" : "逆行") + "\n";
+    result += "起运年龄：" + decadeFortune.startAge + "岁\n\n";
+    result += "各阶段大运详情：\n";
+    
+    decadeFortune.fortunes.forEach(fortune => {
+        result += `${fortune.ageRange}: ${fortune.ganZhi} - 运势指数: ${fortune.score}/100\n`;
+    });
+    
+    return result;
                     case 'monthly-fortune':
                         prompt += `分析今年每月运势：
 1 每月运势
