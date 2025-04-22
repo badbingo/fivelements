@@ -3145,41 +3145,17 @@
 流年运势总结：[详细分析]`;
                         break;
                     case 'decade-fortune':
-    // 使用 lunar.jr 计算大运
-    const solar = Solar.fromYmdHms(
-        parseInt(birthData.date.split('-')[0]),
-        parseInt(birthData.date.split('-')[1]),
-        parseInt(birthData.date.split('-')[2]),
-        parseInt(birthData.time.split(':')[0]),
-        parseInt(birthData.time.split(':')[1] || 0),
-        0
-    );
-    const lunar = solar.getLunar();
-    const decadeFortune = calculateDecadeFortune(lunar, birthData.gender);
+            prompt += `分析十年大运走势：
+1 大运起始时间
+2 各阶段大运干支
+3 每步大运对命局的影响
+4 吉凶分析
 
-    // 生成详细分析文本
-    let analysisText = `
-## 十年大运分析
-
-### 起运信息
-- **大运方向**: ${decadeFortune.isForward ? '顺行' : '逆行'}
-- **起运年龄**: ${decadeFortune.startAge}岁
-
-### 各阶段大运详情
-| 年龄段       | 大运干支 | 运势指数 |
-|--------------|----------|----------|
-${decadeFortune.fortunes.map(f => `| ${f.ageRange} | ${f.ganZhi} | ${f.score}/100 |`).join('\n')}
-
-### 关键分析
-1. **${decadeFortune.fortunes[0].ganZhi}运 (${decadeFortune.fortunes[0].ageRange})**: 
-   - 事业: ${decadeFortune.fortunes[0].score > 70 ? '顺利发展' : '需谨慎'}
-   - 财运: ${decadeFortune.fortunes[0].score > 60 ? '收入稳定' : '注意开支'}
-2. **${decadeFortune.fortunes[3].ganZhi}运 (${decadeFortune.fortunes[3].ageRange})**: 
-   - 家庭: 重要转折期
-   - 健康: 需特别注意
-    `;
-
-    return analysisText;
+返回格式：
+大运走势：[以表格方式详细分析各阶段大运]
+关键年份：[指出重要转折年份]
+总体建议：[对大运走势的总结和建议]`;
+            break;
                     case 'monthly-fortune':
                         prompt += `分析今年每月运势：
 1 每月运势
@@ -3209,22 +3185,23 @@ ${decadeFortune.fortunes.map(f => `| ${f.ageRange} | ${f.ganZhi} | ${f.score}/10
                            "74-84岁: 辛酉 - 运势指数: 72/100";
                 }
                 
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${apiKey}`
-                    },
-                    body: JSON.stringify({
-                        model: "deepseek-chat",
-                        messages: [{ role: "user", content: prompt }],
-                        temperature: 0.7
-                    })
-                });
-                if (!response.ok) throw new Error(`API请求失败: ${response.status}`);
-                const result = await response.json();
-                return result.choices[0].message.content;
-            }
+                 const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+            model: "deepseek-chat",
+            messages: [{ role: "user", content: prompt }],
+            temperature: 0.7
+        })
+    });
+    
+    if (!response.ok) throw new Error(`API请求失败: ${response.status}`);
+    const result = await response.json();
+    return result.choices[0].message.content;
+}
 
             function displayBasicInfo(info) {
                 const nameDisplay = document.getElementById('user-name-display');
