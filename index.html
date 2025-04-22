@@ -1075,6 +1075,96 @@
             color: var(--dark-color);
             border-color: var(--primary-color);
         }
+
+        /* 新增的八字问答模块样式 */
+        .bazi-qa-container {
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(0, 166, 255, 0.1);
+            border-radius: var(--border-radius-sm);
+            border: 1px solid var(--border-color);
+        }
+        
+        .bazi-qa-title {
+            font-size: 18px;
+            color: var(--title-color);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            font-family: 'Orbitron', sans-serif;
+        }
+        
+        .bazi-qa-title i {
+            margin-right: 10px;
+            color: var(--primary-color);
+        }
+        
+        .bazi-qa-input-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .bazi-qa-input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-sm);
+            background: rgba(0, 0, 0, 0.3);
+            color: var(--text-color);
+            font-family: 'Share Tech Mono', monospace;
+        }
+        
+        .bazi-qa-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 5px var(--primary-color);
+        }
+        
+        .bazi-qa-submit {
+            padding: 12px 20px;
+            background: var(--primary-color);
+            color: var(--dark-color);
+            border: none;
+            border-radius: var(--border-radius-sm);
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        
+        .bazi-qa-submit:hover {
+            background: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+        
+        .bazi-qa-submit:disabled {
+            background: #555;
+            color: #888;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .bazi-qa-response {
+            margin-top: 15px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: var(--border-radius-sm);
+            border-left: 3px solid var(--primary-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+        
+        .bazi-qa-loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+        }
+        
+        .bazi-qa-loading .loading {
+            margin-right: 10px;
+        }
+
         @media (max-width: 768px) {
             .header-title {
                 font-size: 2rem;
@@ -1144,6 +1234,9 @@
             }
             .lunar-yiji-column {
                 margin-bottom: 15px;
+            }
+            .bazi-qa-input-container {
+                flex-direction: column;
             }
         }
         @media (max-width: 480px) {
@@ -1506,6 +1599,26 @@
                     </div>
                     <div id="drywet-content" class="section-content"></div>
                 </div>
+
+                <!-- 新增的八字问答模块 -->
+                <div class="detail-card">
+                    <div class="bazi-qa-container">
+                        <div class="bazi-qa-title">
+                            <i class="fas fa-question-circle"></i> 八字问答
+                        </div>
+                        <div class="bazi-qa-input-container">
+                            <input type="text" class="bazi-qa-input" id="bazi-question" placeholder="输入您想了解的八字相关问题...">
+                            <button class="bazi-qa-submit" id="bazi-qa-submit">提问</button>
+                        </div>
+                        <div id="bazi-qa-response" class="bazi-qa-response" style="display: none;">
+                            <!-- 回答内容将在这里显示 -->
+                        </div>
+                        <div id="bazi-qa-loading" class="bazi-qa-loading" style="display: none;">
+                            <div class="loading"></div>
+                            <span>量子AI分析中...</span>
+                        </div>
+                    </div>
+                </div>
             </div>
             
             <div class="tab-content" id="character-tab">
@@ -1724,6 +1837,12 @@
             let fateScoreValue = 0;
             let wealthScoreValue = 0;
 
+            // 新增的八字问答相关元素
+            const baziQuestionInput = document.getElementById('bazi-question');
+            const baziQaSubmit = document.getElementById('bazi-qa-submit');
+            const baziQaResponse = document.getElementById('bazi-qa-response');
+            const baziQaLoading = document.getElementById('bazi-qa-loading');
+
             // Load saved profiles from localStorage
             loadSavedProfiles();
 
@@ -1754,6 +1873,68 @@
                     return code;
                 }
             });
+
+            // 新增的八字问答提交处理
+            baziQaSubmit.addEventListener('click', async function() {
+                const question = baziQuestionInput.value.trim();
+                if (!question) {
+                    alert('请输入您的问题');
+                    return;
+                }
+                
+                baziQaSubmit.disabled = true;
+                baziQaResponse.style.display = 'none';
+                baziQaLoading.style.display = 'flex';
+                
+                try {
+                    const response = await getBaziAnswer(question);
+                    baziQaResponse.innerHTML = marked.parse(response);
+                    baziQaResponse.style.display = 'block';
+                } catch (error) {
+                    console.error('获取回答失败:', error);
+                    baziQaResponse.innerHTML = '<p style="color:var(--danger-color)">获取回答失败，请稍后重试</p>';
+                    baziQaResponse.style.display = 'block';
+                } finally {
+                    baziQaSubmit.disabled = false;
+                    baziQaLoading.style.display = 'none';
+                }
+            });
+
+            // 新增的获取八字问答答案函数
+            async function getBaziAnswer(question) {
+                const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
+                const apiKey = 'sk-b2950087a9d5427392762814114b22a9';
+                
+                const prompt = `【八字专业问答规范】请严格遵循以下规则回答：
+1. 回答必须基于传统八字命理学知识
+2. 回答应简洁明了，避免冗长
+3. 针对用户问题提供专业分析
+4. 如果问题与当前命盘相关，请结合以下八字信息：
+   姓名：${birthData.name || '未提供'}
+   出生日期：${birthData.date}
+   出生时间：${birthData.time}
+   性别：${birthData.gender === 'male' ? '男' : '女'}
+   八字：${currentPillars.year} ${currentPillars.month} ${currentPillars.day} ${currentPillars.hour}
+
+用户问题：${question}`;
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: "deepseek-chat",
+                        messages: [{ role: "user", content: prompt }],
+                        temperature: 0
+                    })
+                });
+                
+                if (!response.ok) throw new Error(`API请求失败: ${response.status}`);
+                const result = await response.json();
+                return result.choices[0].message.content;
+            }
 
             recalculateBtn.addEventListener('click', function() {
                 document.getElementById('name').value = '';
@@ -1813,6 +1994,11 @@
                 currentPillars = {};
                 fateScoreDetails = {};
                 wealthScoreDetails = {};
+                // 重置问答模块
+                baziQuestionInput.value = '';
+                baziQaResponse.innerHTML = '';
+                baziQaResponse.style.display = 'none';
+                baziQaLoading.style.display = 'none';
             }
 
             document.querySelectorAll('.menu-tab').forEach(tab => {
@@ -2071,8 +2257,6 @@
 
             function calculateFateScore(pillars) {
                 if (fateScoreValue === 0) {
-                    const dayStem = pillars.day.charAt(0);
-                    const monthBranch = pillars.month.charAt(1);
                     const seasonScore = calculateSeasonScore(dayStem, monthBranch);
                     const balanceScore = calculateBalanceScore(pillars);
                     const patternScore = calculatePatternScore(pillars);
@@ -3153,7 +3337,7 @@ function calculateGamblingFortune(birthData, lunar) {
 3 流月婚姻吉凶分析
 
 返回格式：
-适婚年份：[显示范围22岁-35岁之间，表格方式呈现]
+适婚年份：[表格方式呈现]
 桃花年份：[表格方式呈现]
 流月婚姻吉凶分析：[表格方式呈现具体建议](1-5星)`;
                         break;
@@ -3202,11 +3386,13 @@ function calculateGamblingFortune(birthData, lunar) {
             break;
                     case 'monthly-fortune':
                         prompt += `详细分析今年每月运势：
-1 事业婚姻吉凶分析
-2 重大事件吉凶分析
+1 事业吉凶分析
+2 婚姻吉凶分析
+3 重大事件吉凶分析
 
 返回格式：
-事业婚姻吉凶分析：[以表格方式详细分析](1-5星)
+事业吉凶分析：[以表格方式详细分析](1-5星)
+婚姻吉凶分析：[以表格方式详细分析](1-5星)
 重大事件吉凶分析：[以表格方式详细分析] (1-5星)`;
                         break;
                     default:
