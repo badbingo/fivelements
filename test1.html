@@ -496,11 +496,10 @@
             overflow: hidden;
             background: rgba(0, 240, 255, 0.1);
             box-shadow: 0 0 10px rgba(0, 240, 255, 0.2);
-            table-layout: fixed; /* Add this for consistent column widths */
         }
         
         .bazi-row {
-            display: table-row; /* Change from flex to table-row */
+            display: flex;
             border-bottom: 1px solid var(--border-color);
         }
         
@@ -509,14 +508,12 @@
         }
         
         .bazi-cell {
-            display: table-cell; /* Change from flex to table-cell */
+            flex: 1;
             padding: 16px;
             text-align: center;
             font-size: 18px;
             font-weight: 500;
             position: relative;
-            vertical-align: middle; /* Ensure vertical alignment */
-            width: 20%; /* Equal width for all columns */
         }
         
         .bazi-header .bazi-cell {
@@ -544,7 +541,7 @@
         .bazi-cell:first-child {
             background-color: rgba(0, 240, 255, 0.2);
             font-weight: bold;
-            width: 20%; /* Same width as other columns */
+            min-width: 80px;
             text-shadow: 0 0 5px var(--primary-color);
         }
         
@@ -1154,7 +1151,7 @@
                 opacity: 1;
             }
         }
-        
+
         /* 五行颜色样式 */
         .wood {
             color: var(--wood-color);
@@ -1180,12 +1177,21 @@
             color: var(--water-color);
             text-shadow: 0 0 10px var(--water-color);
         }
-        
+
         /* 五行雷达图容器 */
         .element-radar-container {
             width: 100%;
             height: 300px;
             margin: 20px 0;
+        }
+
+        /* 五行能量标签 */
+        .element-label {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            margin-right: 5px;
+            font-weight: bold;
         }
         
         @media (max-width: 768px) {
@@ -1268,7 +1274,7 @@
                 padding: 8px 10px;
                 font-size: 14px;
             }
-            
+
             .element-radar-container {
                 height: 250px;
             }
@@ -1337,7 +1343,7 @@
                 overflow-x: auto;
                 white-space: nowrap;
             }
-            
+
             .element-radar-container {
                 height: 200px;
             }
@@ -1451,66 +1457,64 @@
             <div class="basic-info" id="basic-info">
                 <div class="couple-info">
                     <div class="partner-card male-card">
-        <div class="partner-title male-title">
-            <i class="fas fa-mars"></i> 男方八字
-        </div>
-        <table class="bazi-table">
-            <tr class="bazi-row bazi-header">
-                <td class="bazi-cell">四柱</td>
-                <td class="bazi-cell">年柱</td>
-                <td class="bazi-cell">月柱</td>
-                <td class="bazi-cell">日柱</td>
-                <td class="bazi-cell">时柱</td>
-            </tr>
-            <tr class="bazi-row">
-                <td class="bazi-cell">天干</td>
-                <td class="bazi-cell" id="male-year-stem"></td>
-                <td class="bazi-cell" id="male-month-stem"></td>
-                <td class="bazi-cell" id="male-day-stem"></td>
-                <td class="bazi-cell" id="male-hour-stem"></td>
-            </tr>
-            <tr class="bazi-row">
-                <td class="bazi-cell">地支</td>
-                <td class="bazi-cell" id="male-year-branch"></td>
-                <td class="bazi-cell" id="male-month-branch"></td>
-                <td class="bazi-cell" id="male-day-branch"></td>
-                <td class="bazi-cell" id="male-hour-branch"></td>
-            </tr>
-        </table>
-    </div>
-    
-    <div class="partner-card female-card">
-        <div class="partner-title female-title">
-            <i class="fas fa-venus"></i> 女方八字
-        </div>
-        <table class="bazi-table">
-            <tr class="bazi-row bazi-header">
-                <td class="bazi-cell">四柱</td>
-                <td class="bazi-cell">年柱</td>
-                <td class="bazi-cell">月柱</td>
-                <td class="bazi-cell">日柱</td>
-                <td class="bazi-cell">时柱</td>
-            </tr>
-            <tr class="bazi-row">
-                <td class="bazi-cell">天干</td>
-                <td class="bazi-cell" id="female-year-stem"></td>
-                <td class="bazi-cell" id="female-month-stem"></td>
-                <td class="bazi-cell" id="female-day-stem"></td>
-                <td class="bazi-cell" id="female-hour-stem"></td>
-            </tr>
-            <tr class="bazi-row">
-                <td class="bazi-cell">地支</td>
-                <td class="bazi-cell" id="female-year-branch"></td>
-                <td class="bazi-cell" id="female-month-branch"></td>
-                <td class="bazi-cell" id="female-day-branch"></td>
-                <td class="bazi-cell" id="female-hour-branch"></td>
-            </tr>
-        </table>
-    </div>
-                
-                <!-- 五行能量雷达图 -->
-                <div class="element-radar-container">
-                    <canvas id="element-radar-chart"></canvas>
+                        <div class="partner-title male-title">
+                            <i class="fas fa-mars"></i> 男方八字
+                        </div>
+                        <div class="bazi-table">
+                            <div class="bazi-row bazi-header">
+                                <div class="bazi-cell">四柱</div>
+                                <div class="bazi-cell">年柱</div>
+                                <div class="bazi-cell">月柱</div>
+                                <div class="bazi-cell">日柱</div>
+                                <div class="bazi-cell">时柱</div>
+                            </div>
+                            <div class="bazi-row">
+                                <div class="bazi-cell">天干</div>
+                                <div class="bazi-cell" id="male-year-stem"></div>
+                                <div class="bazi-cell" id="male-month-stem"></div>
+                                <div class="bazi-cell" id="male-day-stem"></div>
+                                <div class="bazi-cell" id="male-hour-stem"></div>
+                            </div>
+                            <div class="bazi-row">
+                                <div class="bazi-cell">地支</div>
+                                <div class="bazi-cell" id="male-year-branch"></div>
+                                <div class="bazi-cell" id="male-month-branch"></div>
+                                <div class="bazi-cell" id="male-day-branch"></div>
+                                <div class="bazi-cell" id="male-hour-branch"></div>
+                            </div>
+                        </div>
+                        <div id="male-element-display" style="margin-top: 15px; text-align: center;"></div>
+                    </div>
+                    
+                    <div class="partner-card female-card">
+                        <div class="partner-title female-title">
+                            <i class="fas fa-venus"></i> 女方八字
+                        </div>
+                        <div class="bazi-table">
+                            <div class="bazi-row bazi-header">
+                                <div class="bazi-cell">四柱</div>
+                                <div class="bazi-cell">年柱</div>
+                                <div class="bazi-cell">月柱</div>
+                                <div class="bazi-cell">日柱</div>
+                                <div class="bazi-cell">时柱</div>
+                            </div>
+                            <div class="bazi-row">
+                                <div class="bazi-cell">天干</div>
+                                <div class="bazi-cell" id="female-year-stem"></div>
+                                <div class="bazi-cell" id="female-month-stem"></div>
+                                <div class="bazi-cell" id="female-day-stem"></div>
+                                <div class="bazi-cell" id="female-hour-stem"></div>
+                            </div>
+                            <div class="bazi-row">
+                                <div class="bazi-cell">地支</div>
+                                <div class="bazi-cell" id="female-year-branch"></div>
+                                <div class="bazi-cell" id="female-month-branch"></div>
+                                <div class="bazi-cell" id="female-day-branch"></div>
+                                <div class="bazi-cell" id="female-hour-branch"></div>
+                            </div>
+                        </div>
+                        <div id="female-element-display" style="margin-top: 15px; text-align: center;"></div>
+                    </div>
                 </div>
                 
                 <div class="compatibility-score">
@@ -1524,6 +1528,11 @@
                         <span>可调和</span>
                         <span>天作之合</span>
                     </div>
+                </div>
+
+                <!-- 五行能量雷达图 -->
+                <div class="element-radar-container">
+                    <canvas id="element-radar-chart"></canvas>
                 </div>
 
                 <div class="score-explanation">
@@ -1715,15 +1724,18 @@
             const compatibilityMeter = document.getElementById('compatibility-meter');
             const recommendation = document.getElementById('recommendation');
             
-            // 五行雷达图元素
-            const elementRadarChart = document.getElementById('element-radar-chart');
+            // 五行显示元素
+            const maleElementDisplay = document.getElementById('male-element-display');
+            const femaleElementDisplay = document.getElementById('female-element-display');
+            
+            // 五行雷达图
+            let elementRadarChart = null;
             
             const currentDate = new Date(2025, 3, 3);
             let maleData = {};
             let femaleData = {};
             let loadedSections = {};
             let analysisCache = {};
-            let elementRadar = null;
             
             // 配置marked.js
             marked.setOptions({
@@ -1731,6 +1743,36 @@
                 gfm: true,
                 tables: true
             });
+            
+            // 天干五行映射
+            const stemElements = {
+                '甲': { element: 'wood', name: '木' },
+                '乙': { element: 'wood', name: '木' },
+                '丙': { element: 'fire', name: '火' },
+                '丁': { element: 'fire', name: '火' },
+                '戊': { element: 'earth', name: '土' },
+                '己': { element: 'earth', name: '土' },
+                '庚': { element: 'metal', name: '金' },
+                '辛': { element: 'metal', name: '金' },
+                '壬': { element: 'water', name: '水' },
+                '癸': { element: 'water', name: '水' }
+            };
+            
+            // 地支五行映射
+            const branchElements = {
+                '子': { element: 'water', name: '水' },
+                '丑': { element: 'earth', name: '土' },
+                '寅': { element: 'wood', name: '木' },
+                '卯': { element: 'wood', name: '木' },
+                '辰': { element: 'earth', name: '土' },
+                '巳': { element: 'fire', name: '火' },
+                '午': { element: 'fire', name: '火' },
+                '未': { element: 'earth', name: '土' },
+                '申': { element: 'metal', name: '金' },
+                '酉': { element: 'metal', name: '金' },
+                '戌': { element: 'earth', name: '土' },
+                '亥': { element: 'water', name: '水' }
+            };
             
             function showApiStatus(message, type = 'success') {
                 apiStatus.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : type === 'warning' ? 'exclamation-triangle' : 'times-circle'}"></i> ${message}`;
@@ -1781,6 +1823,14 @@
                 recommendation.className = 'recommendation';
                 recommendation.innerHTML = '<i class="fas fa-heart"></i> 量子分析中...';
                 
+                maleElementDisplay.innerHTML = '';
+                femaleElementDisplay.innerHTML = '';
+                
+                if (elementRadarChart) {
+                    elementRadarChart.destroy();
+                    elementRadarChart = null;
+                }
+                
                 document.querySelectorAll('.section-content').forEach(el => {
                     el.innerHTML = '';
                     el.classList.remove('active');
@@ -1809,11 +1859,6 @@
                 
                 loadedSections = {};
                 analysisCache = {};
-                
-                if (elementRadar) {
-                    elementRadar.destroy();
-                    elementRadar = null;
-                }
             }
             
             document.querySelectorAll('.menu-tab').forEach(tab => {
@@ -1949,30 +1994,6 @@
                 };
             }
             
-            // 获取天干对应的五行
-            function getStemElement(stem) {
-                const elementMap = {
-                    '甲': 'wood', '乙': 'wood',
-                    '丙': 'fire', '丁': 'fire',
-                    '戊': 'earth', '己': 'earth',
-                    '庚': 'metal', '辛': 'metal',
-                    '壬': 'water', '癸': 'water'
-                };
-                return elementMap[stem] || '';
-            }
-            
-            // 获取地支对应的五行
-            function getBranchElement(branch) {
-                const elementMap = {
-                    '寅': 'wood', '卯': 'wood',
-                    '巳': 'fire', '午': 'fire',
-                    '辰': 'earth', '戌': 'earth', '丑': 'earth', '未': 'earth',
-                    '申': 'metal', '酉': 'metal',
-                    '亥': 'water', '子': 'water'
-                };
-                return elementMap[branch] || '';
-            }
-            
             // 计算五行能量
             function calculateElementEnergy(bazi) {
                 const elements = {
@@ -1984,28 +2005,29 @@
                 };
                 
                 // 计算天干五行
-                elements[getStemElement(bazi.year.stem)] += 1;
-                elements[getStemElement(bazi.month.stem)] += 1;
-                elements[getStemElement(bazi.day.stem)] += 1;
-                elements[getStemElement(bazi.hour.stem)] += 1;
+                elements[stemElements[bazi.year.stem].element] += 1;
+                elements[stemElements[bazi.month.stem].element] += 1;
+                elements[stemElements[bazi.day.stem].element] += 1;
+                elements[stemElements[bazi.hour.stem].element] += 1;
                 
                 // 计算地支五行
-                elements[getBranchElement(bazi.year.branch)] += 1;
-                elements[getBranchElement(bazi.month.branch)] += 1;
-                elements[getBranchElement(bazi.day.branch)] += 1;
-                elements[getBranchElement(bazi.hour.branch)] += 1;
+                elements[branchElements[bazi.year.branch].element] += 1;
+                elements[branchElements[bazi.month.branch].element] += 1;
+                elements[branchElements[bazi.day.branch].element] += 1;
+                elements[branchElements[bazi.hour.branch].element] += 1;
                 
                 return elements;
             }
             
-            // 创建五行能量雷达图
+            // 创建五行雷达图
             function createElementRadarChart(maleElements, femaleElements) {
-                if (elementRadar) {
-                    elementRadar.destroy();
+                const ctx = document.getElementById('element-radar-chart').getContext('2d');
+                
+                if (elementRadarChart) {
+                    elementRadarChart.destroy();
                 }
                 
-                const ctx = elementRadarChart.getContext('2d');
-                elementRadar = new Chart(ctx, {
+                elementRadarChart = new Chart(ctx, {
                     type: 'radar',
                     data: {
                         labels: ['木', '火', '土', '金', '水'],
@@ -2051,21 +2073,17 @@
                             r: {
                                 angleLines: {
                                     display: true,
-                                    color: 'rgba(255, 255, 255, 0.1)'
+                                    color: 'rgba(255, 255, 255, 0.2)'
                                 },
                                 suggestedMin: 0,
                                 suggestedMax: 4,
                                 ticks: {
-                                    backdropColor: 'transparent',
-                                    color: 'white',
-                                    font: {
-                                        family: "'Digital', monospace"
-                                    }
+                                    display: false,
+                                    stepSize: 1
                                 },
                                 pointLabels: {
                                     color: 'white',
                                     font: {
-                                        family: "'Digital', monospace",
                                         size: 14
                                     }
                                 },
@@ -2076,17 +2094,42 @@
                         },
                         plugins: {
                             legend: {
+                                position: 'top',
                                 labels: {
                                     color: 'white',
                                     font: {
-                                        family: "'Digital', monospace",
                                         size: 14
                                     }
                                 }
                             }
+                        },
+                        elements: {
+                            line: {
+                                tension: 0.1
+                            }
                         }
                     }
                 });
+            }
+            
+            // 显示五行信息
+            function displayElementInfo(bazi, elementDisplay) {
+                let html = '<div style="display: flex; justify-content: center; flex-wrap: wrap; gap: 8px;">';
+                
+                // 显示天干五行
+                html += `<span class="element-label ${stemElements[bazi.year.stem].element}">年干:${bazi.year.stem}(${stemElements[bazi.year.stem].name})</span>`;
+                html += `<span class="element-label ${stemElements[bazi.month.stem].element}">月干:${bazi.month.stem}(${stemElements[bazi.month.stem].name})</span>`;
+                html += `<span class="element-label ${stemElements[bazi.day.stem].element}">日干:${bazi.day.stem}(${stemElements[bazi.day.stem].name})</span>`;
+                html += `<span class="element-label ${stemElements[bazi.hour.stem].element}">时干:${bazi.hour.stem}(${stemElements[bazi.hour.stem].name})</span>`;
+                
+                // 显示地支五行
+                html += `<span class="element-label ${branchElements[bazi.year.branch].element}">年支:${bazi.year.branch}(${branchElements[bazi.year.branch].name})</span>`;
+                html += `<span class="element-label ${branchElements[bazi.month.branch].element}">月支:${bazi.month.branch}(${branchElements[bazi.month.branch].name})</span>`;
+                html += `<span class="element-label ${branchElements[bazi.day.branch].element}">日支:${bazi.day.branch}(${branchElements[bazi.day.branch].name})</span>`;
+                html += `<span class="element-label ${branchElements[bazi.hour.branch].element}">时支:${bazi.hour.branch}(${branchElements[bazi.hour.branch].name})</span>`;
+                
+                html += '</div>';
+                elementDisplay.innerHTML = html;
             }
             
             calculateBtn.addEventListener('click', async function(e) {
@@ -2140,53 +2183,56 @@
                     const maleBazi = calculateBazi(maleBirthDate, maleBirthTime);
                     const femaleBazi = calculateBazi(femaleBirthDate, femaleBirthTime);
                     
+                    // 更新八字显示
+                    maleYearStem.textContent = maleBazi.year.stem;
+                    maleYearBranch.textContent = maleBazi.year.branch;
+                    maleMonthStem.textContent = maleBazi.month.stem;
+                    maleMonthBranch.textContent = maleBazi.month.branch;
+                    maleDayStem.textContent = maleBazi.day.stem;
+                    maleDayBranch.textContent = maleBazi.day.branch;
+                    maleHourStem.textContent = maleBazi.hour.stem;
+                    maleHourBranch.textContent = maleBazi.hour.branch;
+                    
+                    femaleYearStem.textContent = femaleBazi.year.stem;
+                    femaleYearBranch.textContent = femaleBazi.year.branch;
+                    femaleMonthStem.textContent = femaleBazi.month.stem;
+                    femaleMonthBranch.textContent = femaleBazi.month.branch;
+                    femaleDayStem.textContent = femaleBazi.day.stem;
+                    femaleDayBranch.textContent = femaleBazi.day.branch;
+                    femaleHourStem.textContent = femaleBazi.hour.stem;
+                    femaleHourBranch.textContent = femaleBazi.hour.branch;
+                    
+                    // 添加五行颜色样式
+                    maleYearStem.className = stemElements[maleBazi.year.stem].element;
+                    maleMonthStem.className = stemElements[maleBazi.month.stem].element;
+                    maleDayStem.className = stemElements[maleBazi.day.stem].element;
+                    maleHourStem.className = stemElements[maleBazi.hour.stem].element;
+                    
+                    maleYearBranch.className = branchElements[maleBazi.year.branch].element;
+                    maleMonthBranch.className = branchElements[maleBazi.month.branch].element;
+                    maleDayBranch.className = branchElements[maleBazi.day.branch].element;
+                    maleHourBranch.className = branchElements[maleBazi.hour.branch].element;
+                    
+                    femaleYearStem.className = stemElements[femaleBazi.year.stem].element;
+                    femaleMonthStem.className = stemElements[femaleBazi.month.stem].element;
+                    femaleDayStem.className = stemElements[femaleBazi.day.stem].element;
+                    femaleHourStem.className = stemElements[femaleBazi.hour.stem].element;
+                    
+                    femaleYearBranch.className = branchElements[femaleBazi.year.branch].element;
+                    femaleMonthBranch.className = branchElements[femaleBazi.month.branch].element;
+                    femaleDayBranch.className = branchElements[femaleBazi.day.branch].element;
+                    femaleHourBranch.className = branchElements[femaleBazi.hour.branch].element;
+                    
+                    // 显示五行信息
+                    displayElementInfo(maleBazi, maleElementDisplay);
+                    displayElementInfo(femaleBazi, femaleElementDisplay);
+                    
                     // 计算五行能量
                     const maleElements = calculateElementEnergy(maleBazi);
                     const femaleElements = calculateElementEnergy(femaleBazi);
                     
-                    // 创建五行能量雷达图
+                    // 创建五行雷达图
                     createElementRadarChart(maleElements, femaleElements);
-                    
-                    // 更新八字显示，添加五行颜色类
-                    maleYearStem.textContent = maleBazi.year.stem;
-                    maleYearStem.className = getStemElement(maleBazi.year.stem);
-                    maleYearBranch.textContent = maleBazi.year.branch;
-                    maleYearBranch.className = getBranchElement(maleBazi.year.branch);
-                    
-                    maleMonthStem.textContent = maleBazi.month.stem;
-                    maleMonthStem.className = getStemElement(maleBazi.month.stem);
-                    maleMonthBranch.textContent = maleBazi.month.branch;
-                    maleMonthBranch.className = getBranchElement(maleBazi.month.branch);
-                    
-                    maleDayStem.textContent = maleBazi.day.stem;
-                    maleDayStem.className = getStemElement(maleBazi.day.stem);
-                    maleDayBranch.textContent = maleBazi.day.branch;
-                    maleDayBranch.className = getBranchElement(maleBazi.day.branch);
-                    
-                    maleHourStem.textContent = maleBazi.hour.stem;
-                    maleHourStem.className = getStemElement(maleBazi.hour.stem);
-                    maleHourBranch.textContent = maleBazi.hour.branch;
-                    maleHourBranch.className = getBranchElement(maleBazi.hour.branch);
-                    
-                    femaleYearStem.textContent = femaleBazi.year.stem;
-                    femaleYearStem.className = getStemElement(femaleBazi.year.stem);
-                    femaleYearBranch.textContent = femaleBazi.year.branch;
-                    femaleYearBranch.className = getBranchElement(femaleBazi.year.branch);
-                    
-                    femaleMonthStem.textContent = femaleBazi.month.stem;
-                    femaleMonthStem.className = getStemElement(femaleBazi.month.stem);
-                    femaleMonthBranch.textContent = femaleBazi.month.branch;
-                    femaleMonthBranch.className = getBranchElement(femaleBazi.month.branch);
-                    
-                    femaleDayStem.textContent = femaleBazi.day.stem;
-                    femaleDayStem.className = getStemElement(femaleBazi.day.stem);
-                    femaleDayBranch.textContent = femaleBazi.day.branch;
-                    femaleDayBranch.className = getBranchElement(femaleBazi.day.branch);
-                    
-                    femaleHourStem.textContent = femaleBazi.hour.stem;
-                    femaleHourStem.className = getStemElement(femaleBazi.hour.stem);
-                    femaleHourBranch.textContent = femaleBazi.hour.branch;
-                    femaleHourBranch.className = getBranchElement(femaleBazi.hour.branch);
                     
                     // 使用确定性算法计算合婚评分
                     const score = calculateCompatibilityScore(maleData, femaleData);
