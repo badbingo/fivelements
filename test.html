@@ -2650,6 +2650,54 @@
                 return hiddenStemsMap[branch] || '';
             }
 
+            function calculateYun(lunar, gender) {
+    const yearGan = lunar.getYearGan(); // 年干
+    const yearZhi = lunar.getYearZhi(); // 年支
+    const isMale = gender === 'male';
+    const isYangYear = ['甲', '丙', '戊', '庚', '壬'].includes(yearGan);
+
+    // 规则：阳年男顺排，阴年女顺排；阴年男逆排，阳年女逆排
+    const isForward = (isYangYear && isMale) || (!isYangYear && !isMale);
+
+    // 计算起运时间（3天 = 1岁）
+    const solar = lunar.getSolar();
+    const jieQi = isForward ? solar.getNextJieQi() : solar.getPrevJieQi();
+    const daysDiff = Math.abs(solar.getDiffDays(jieQi.getSolar()));
+    const startAge = Math.floor(daysDiff / 3); // 起运年龄
+
+    // 地支顺序（用于顺排/逆排）
+    const zhiOrder = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
+    let currentZhiIndex = zhiOrder.indexOf(yearZhi);
+
+    // 生成大运（每10年一运）
+    const fortunes = [];
+    for (let i = 0; i < 12; i++) {
+        const ageStart = startAge + i * 10;
+        const ageEnd = ageStart + 10;
+
+        // 顺排：地支+1，逆排：地支-1
+        currentZhiIndex = isForward ? 
+            (currentZhiIndex + 1) % 12 : 
+            (currentZhiIndex - 1 + 12) % 12;
+
+        // 天干按规则顺推或逆推
+        const ganOrder = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
+        const startGanIndex = ganOrder.indexOf(yearGan);
+        const ganIndex = isForward ?
+            (startGanIndex + i) % 10 :
+            (startGanIndex - i + 10) % 10;
+        const gan = ganOrder[ganIndex];
+        const zhi = zhiOrder[currentZhiIndex];
+
+        fortunes.push({
+            ageRange: `${ageStart}-${ageEnd}岁`,
+            ganZhi: gan + zhi,
+            score: 70 + Math.floor(Math.random() * 20) // 随机运势分 (70-90)
+        });
+    }
+
+    return { isForward, startAge, fortunes };
+}
             function calculateBaziLocally(birthData) {
                 const dateParts = birthData.date.split('-');
                 const year = parseInt(dateParts[0]);
@@ -2681,8 +2729,21 @@
                 });
                 const personality = getPersonalityTraits(dayGan);
                 
-                // Calculate decade fortune locally
-                const decadeFortune = calculateDecadeFortune(birthData, lunar);
+                function calculateDecadeFortune(birthData, lunar) {
+    const gender = birthData.gender;
+    const yearGan = lunar.getYearGan();
+    const isMale = gender === 'male';
+    const isYangYear = ['甲', '丙', '戊', '庚', '壬'].includes(yearGan);
+
+    // 使用自定义函数计算大运
+    const decadeFortune = calculateYun(lunar, gender);
+    
+    return {
+        isForward: decadeFortune.isForward,
+        startAge: decadeFortune.startAge,
+        fortunes: decadeFortune.fortunes
+    };
+}
                 
                 // Calculate gambling fortune
                 const gamblingFortune = calculateGamblingFortune(birthData, lunar);
@@ -2715,26 +2776,7 @@
                 
                 // Determine if the fortune should be forward or backward
                 const isForward = (isYangYear && isMale) || (!isYangYear && !isMale);
-                
-                // Get the start age and fortune pillars
-                const startAge = lunar.getYun(1).getStartYear();
-                const fortunes = [];
-                
-                // Calculate 10-year periods
-                for (let i = 0; i < 12; i++) {
-                    const fortune = lunar.getYun(i * 10 + 1);
-                    const start = startAge + i * 10;
-                    const end = start + 10;
-                    const ganZhi = fortune.getGanZhi();
-                    const score = Math.floor(Math.random() * 20) + 70; // Random score between 70-90
-                    
-                    fortunes.push({
-                        ageRange: `${start}-${end}岁`,
-                        ganZhi: ganZhi,
-                        score: score
-                    });
-                }
-                
+
                 return {
                     isForward: isForward,
                     startAge: startAge,
