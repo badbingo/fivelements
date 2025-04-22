@@ -2718,7 +2718,6 @@
                 const hourGan = bazi.getTimeGan();
                 const hourZhi = bazi.getTimeZhi();
               const decadeFortune = calculateDecadeFortune(birthData, lunar); // 确保接收返回值
-              console.log(decadeFortune); // 调试用，确认数据格式
                 const yearHiddenStems = getHiddenStems(yearZhi);
                 const monthHiddenStems = getHiddenStems(yearZhi);
                 const dayHiddenStems = getHiddenStems(dayZhi);
@@ -2736,18 +2735,36 @@
     const yearGan = lunar.getYearGan();
     const isMale = gender === 'male';
     const isYangYear = ['甲', '丙', '戊', '庚', '壬'].includes(yearGan);
+    const isForward = (isYangYear && isMale) || (!isYangYear && !isMale);
+// 固定4岁起运（实际应更复杂）
+    const startAge = 4; 
 
-    // 使用自定义函数计算大运
-    const decadeFortune = calculateYun(lunar, gender);
-    
+    // 模拟大运数据
+    const fortunes = [];
+    for (let i = 0; i < 12; i++) {
+        fortunes.push({
+            ageRange: `${startAge + i * 10}-${startAge + (i + 1) * 10}岁`,
+            ganZhi: "甲子", // 替换为实际干支逻辑
+            score: 70 + Math.floor(Math.random() * 20)
+        });
+    }
+
+    return { isForward, startAge, fortunes }; // 确保返回对象
+}
+
+function calculateBaziLocally(birthData) {
+    // ...其他代码...
+    const decadeFortune = calculateDecadeFortune(birthData, lunar); // 接收返回值
     return {
-        isForward: decadeFortune.isForward,
-        startAge: decadeFortune.startAge,
-        fortunes: decadeFortune.fortunes,
-        decadeFortune: decadeFortune, // 确保返回给外部使用
+        // ...其他字段...
+        decadeFortune: decadeFortune, // 返回给外部
         gamblingFortune: gamblingFortune
     };
 }
+
+// 调用示例
+const baziInfo = calculateBaziLocally(birthData);
+displayBasicInfo(baziInfo); // 确保传递了 decadeFortune
                 
                 // Calculate gambling fortune
                 const gamblingFortune = calculateGamblingFortune(birthData, lunar);
