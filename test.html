@@ -2717,7 +2717,6 @@
                 const dayZhi = bazi.getDayZhi();
                 const hourGan = bazi.getTimeGan();
                 const hourZhi = bazi.getTimeZhi();
-              const decadeFortune = calculateDecadeFortune(birthData, lunar); // 确保接收返回值
                 const yearHiddenStems = getHiddenStems(yearZhi);
                 const monthHiddenStems = getHiddenStems(yearZhi);
                 const dayHiddenStems = getHiddenStems(dayZhi);
@@ -2729,38 +2728,40 @@
                     hour: hourGan + hourZhi
                 });
                 const personality = getPersonalityTraits(dayGan);
+              const decadeFortune = calculateDecadeFortune(birthData, lunar); // 接收返回值
+  
                 
-                function calculateDecadeFortune(birthData, lunar) {
+function calculateDecadeFortune(birthData, lunar) {
     const gender = birthData.gender;
     const yearGan = lunar.getYearGan();
     const isMale = gender === 'male';
     const isYangYear = ['甲', '丙', '戊', '庚', '壬'].includes(yearGan);
     const isForward = (isYangYear && isMale) || (!isYangYear && !isMale);
-// 固定4岁起运（实际应更复杂）
+
+    // 计算起运年龄（简化版：固定4岁起运）
     const startAge = 4; 
 
-    // 模拟大运数据
+    // 生成模拟大运数据（12个十年大运）
     const fortunes = [];
     for (let i = 0; i < 12; i++) {
+        const start = startAge + i * 10;
+        const end = start + 10;
+        const ganZhi = "甲子"; // 这里可以用更复杂的逻辑生成实际干支
+        const score = 70 + Math.floor(Math.random() * 20); // 随机分数 (70-90)
         fortunes.push({
-            ageRange: `${startAge + i * 10}-${startAge + (i + 1) * 10}岁`,
-            ganZhi: "甲子", // 替换为实际干支逻辑
-            score: 70 + Math.floor(Math.random() * 20)
+            ageRange: `${start}-${end}岁`,
+            ganZhi: ganZhi,
+            score: score
         });
     }
 
-    return { isForward, startAge, fortunes }; // 确保返回对象
-}
-
-function calculateBaziLocally(birthData) {
-    // ...其他代码...
-    const decadeFortune = calculateDecadeFortune(birthData, lunar); // 接收返回值
-    return {
-        // ...其他字段...
-        decadeFortune: decadeFortune, // 返回给外部
-        gamblingFortune: gamblingFortune
+    return { // 确保返回这个对象
+        isForward: isForward,
+        startAge: startAge,
+        fortunes: fortunes
     };
 }
+
 
 // 调用示例
 const baziInfo = calculateBaziLocally(birthData);
