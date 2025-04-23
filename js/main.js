@@ -1,5 +1,6 @@
-// main.js
+// main.js - Complete Updated Version with Enhanced Scoring System
 document.addEventListener('DOMContentLoaded', function() {
+    // DOM elements and variables (same as before)
     const calculateBtn = document.getElementById('calculate-btn');
     const recalculateBtn = document.getElementById('recalculate-btn');
     const inputSection = document.getElementById('input-section');
@@ -44,509 +45,275 @@ document.addEventListener('DOMContentLoaded', function() {
     let fateScoreValue = 0;
     let wealthScoreValue = 0;
 
-    // 新增的八字问答相关元素
-    const baziQuestionInput = document.getElementById('bazi-question');
-    const baziQaSubmit = document.getElementById('bazi-qa-submit');
-    const baziQaResponse = document.getElementById('bazi-qa-response');
-    const baziQaLoading = document.getElementById('bazi-qa-loading');
-
-    // Load saved profiles from localStorage
-    loadSavedProfiles();
-
-    timePeriodOptions.forEach(option => {
-        option.addEventListener('click', function() {
-            timePeriodOptions.forEach(opt => opt.classList.remove('selected'));
-            this.classList.add('selected');
-            const hour = this.getAttribute('data-hour');
-            const minute = this.getAttribute('data-minute');
-            birthTimeInput.value = `${hour.padStart(2, '0')}:${minute.padStart(2, '0')}`;
-        });
-    });
-
-    languageBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
-            languageBtns.forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-            const lang = this.getAttribute('data-lang');
-            console.log('切换到语言:', lang);
-        });
-    });
-
-    marked.setOptions({
-        breaks: true,
-        gfm: true,
-        tables: true,
-        highlight: function(code, lang) {
-            return code;
-        }
-    });
-
-    // 新增的八字问答提交处理
-    baziQaSubmit.addEventListener('click', async function() {
-        const question = baziQuestionInput.value.trim();
-        if (!question) {
-            alert('请输入您的问题');
-            return;
-        }
-        
-        baziQaSubmit.disabled = true;
-        baziQaResponse.style.display = 'none';
-        baziQaLoading.style.display = 'flex';
-        
-        try {
-            const response = await getBaziAnswer(question);
-            baziQaResponse.innerHTML = marked.parse(response);
-            baziQaResponse.style.display = 'block';
-        } catch (error) {
-            console.error('获取回答失败:', error);
-            baziQaResponse.innerHTML = '<p style="color:var(--danger-color)">获取回答失败，请稍后重试</p>';
-            baziQaResponse.style.display = 'block';
-        } finally {
-            baziQaSubmit.disabled = false;
-            baziQaLoading.style.display = 'none';
-        }
-    });
-
-    // 新增的获取八字问答答案函数
-    async function getBaziAnswer(question) {
-        const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
-        const apiKey = 'sk-b2950087a9d5427392762814114b22a9';
-        
-        const prompt = `【八字专业问答规范】请严格遵循以下规则回答：
-1. 回答必须基于传统八字命理学知识
-2. 回答应简洁明了，避免冗长
-3. 针对用户问题提供专业分析
-4. 如果问题与当前命盘相关，请结合以下八字信息：
-   姓名：${birthData.name || '未提供'}
-   出生日期：${birthData.date}
-   出生时间：${birthData.time}
-   性别：${birthData.gender === 'male' ? '男' : '女'}
-   八字：${currentPillars.year} ${currentPillars.month} ${currentPillars.day} ${currentPillars.hour}
-
-用户问题：${question}`;
-
-        const response = await fetch(apiUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`
-            },
-            body: JSON.stringify({
-                model: "deepseek-chat",
-                messages: [{ role: "user", content: prompt }],
-                temperature: 0
-            })
-        });
-        
-        if (!response.ok) throw new Error(`API请求失败: ${response.status}`);
-        const result = await response.json();
-        return result.choices[0].message.content;
-    }
-
-    recalculateBtn.addEventListener('click', function() {
-        document.getElementById('name').value = '';
-        document.getElementById('birth-date').value = '';
-        document.getElementById('birth-time').value = '';
-        document.getElementById('gender').value = '';
-        timePeriodOptions.forEach(opt => opt.classList.remove('selected'));
-        resultSection.style.display = 'none';
-        inputSection.style.display = 'block';
-        resetAllContent();
-        if (elementChart) {
-            elementChart.destroy();
-        }
-        window.scrollTo(0, 0);
-    });
-
-    function resetAllContent() {
-        fateScoreValue = 0;
-        wealthScoreValue = 0;
-        yearStem.textContent = '';
-        yearBranch.textContent = '';
-        yearHiddenStems.textContent = '';
-        monthStem.textContent = '';
-        monthBranch.textContent = '';
-        monthHiddenStems.textContent = '';
-        dayStem.textContent = '';
-        dayBranch.textContent = '';
-        dayHiddenStems.textContent = '';
-        hourStem.textContent = '';
-        hourBranch.textContent = '';
-        hourHiddenStems.textContent = '';
-        fateLevel.textContent = '';
-        fateScore.textContent = '';
-        fateDetails.innerHTML = '';
-        wealthLevel.textContent = '';
-        wealthScore.textContent = '';
-        wealthDetails.innerHTML = '';
-        personalityTraits.textContent = '命主性格：';
-        document.querySelectorAll('.section-content').forEach(el => {
-            el.innerHTML = '';
-            el.classList.remove('active');
-        });
-        document.querySelectorAll('.load-btn').forEach(btn => {
-            const originalContent = btn.querySelector('span').innerHTML;
-            btn.innerHTML = `<span>${originalContent}</span><i class="fas fa-chevron-down toggle-icon"></i>`;
-            btn.classList.remove('active');
-            btn.disabled = false;
-        });
-        document.querySelectorAll('.load-btn-container').forEach(container => {
-            container.classList.remove('active');
-        });
-        document.querySelectorAll('.menu-tab').forEach(tab => tab.classList.remove('active'));
-        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-        document.querySelector('.menu-tab[data-tab="fortune"]').classList.add('active');
-        document.getElementById('fortune-tab').classList.add('active');
-        loadedSections = {};
-        currentPillars = {};
-        fateScoreDetails = {};
-        wealthScoreDetails = {};
-        // 重置问答模块
-        baziQuestionInput.value = '';
-        baziQaResponse.innerHTML = '';
-        baziQaResponse.style.display = 'none';
-        baziQaLoading.style.display = 'none';
-    }
-
-    document.querySelectorAll('.menu-tab').forEach(tab => {
-        tab.addEventListener('click', function() {
-            document.querySelectorAll('.menu-tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            this.classList.add('active');
-            const tabId = this.getAttribute('data-tab') + '-tab';
-            document.getElementById(tabId).classList.add('active');
-        });
-    });
-
-    function initLoadButtons() {
-        document.querySelectorAll('.load-btn').forEach(button => {
-            const section = button.getAttribute('data-section');
-            if (loadedSections[section]) return;
-            const contentElement = document.getElementById(`${section}-content`);
-            const container = button.closest('.load-btn-container');
-            button.addEventListener('click', async function(e) {
-                e.preventDefault();
-                if (loadedSections[section]) {
-                    container.classList.toggle('active');
-                    contentElement.classList.toggle('active');
-                    return;
-                }
-                const originalBtnHtml = button.innerHTML;
-                this.disabled = true;
-                const sectionName = button.querySelector('span').textContent.trim();
-                button.innerHTML = `<span><span class="loading"></span> 量子分析中...</span><i class="fas fa-chevron-down toggle-icon"></i>`;
-                container.classList.add('active');
-                const progressContainer = document.createElement('div');
-                progressContainer.className = 'progress-container';
-                progressContainer.innerHTML = '<div class="progress-bar"></div>';
-                progressContainer.style.display = 'block';
-                contentElement.innerHTML = '';
-                contentElement.appendChild(progressContainer);
-                const progressBar = progressContainer.querySelector('.progress-bar');
-                let progress = 0;
-                const progressInterval = setInterval(() => {
-                    progress += Math.random() * 10;
-                    if (progress >= 100) progress = 100;
-                    progressBar.style.width = `${progress}%`;
-                }, 300);
-                try {
-                    const result = await getBaziAnalysis(section, birthData);
-                    clearInterval(progressInterval);
-                    displaySectionContent(section, result, contentElement);
-                    button.innerHTML = originalBtnHtml.replace('<i class="fas fa-chevron-down toggle-icon"></i>', 
-                        '<i class="fas fa-check"></i><i class="fas fa-chevron-down toggle-icon"></i>');
-                    button.disabled = false;
-                    contentElement.classList.add('active');
-                    loadedSections[section] = true;
-                    if (section === 'decade-fortune') {
-                        initFortuneChart(result);
-                    }
-                } catch (error) {
-                    console.error(`加载${section}失败:`, error);
-                    clearInterval(progressInterval);
-                    contentElement.innerHTML = '<p style="color:var(--danger-color)">加载失败，请重试</p>';
-                    button.disabled = false;
-                    button.innerHTML = originalBtnHtml;
-                }
-            });
-        });
-    }
-
-    function initElementChart(data) {
-        const total = data.reduce((sum, value) => sum + value, 0);
-        const percentages = data.map(value => Math.round((value/total)*100));
-        const elementData = {
-            labels: ['木', '火', '土', '金', '水'].map((label, i) => `${label} ${percentages[i]}%`),
-            datasets: [{
-                data: data,
-                backgroundColor: [
-                    'rgba(0, 255, 136, 0.3)',
-                    'rgba(255, 51, 0, 0.3)',
-                    'rgba(255, 204, 0, 0.3)',
-                    'rgba(204, 204, 204, 0.3)',
-                    'rgba(0, 153, 255, 0.3)'
-                ],
-                borderColor: [
-                    'rgba(0, 255, 136, 1)',
-                    'rgba(255, 51, 0, 1)',
-                    'rgba(255, 204, 0, 1)',
-                    'rgba(204, 204, 204, 1)',
-                    'rgba(0, 153, 255, 1)'
-                ],
-                borderWidth: 1
-            }]
-        };
-        elementChart = new Chart(elementChartCtx, {
-            type: 'radar',
-            data: elementData,
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    r: {
-                        angleLines: {
-                            display: true,
-                            color: 'rgba(0, 240, 255, 0.2)'
-                        },
-                        suggestedMin: 0,
-                        suggestedMax: Math.max(...data) + 2,
-                        ticks: {
-                            backdropColor: 'transparent',
-                            color: 'rgba(0, 240, 255, 0.7)',
-                            font: {
-                                family: "'Orbitron', sans-serif"
-                            },
-                            stepSize: 1
-                        },
-                        pointLabels: {
-                            color: 'rgba(0, 240, 255, 0.9)',
-                            font: {
-                                family: "'Orbitron', sans-serif",
-                                size: 14
-                            }
-                        },
-                        grid: {
-                            color: 'rgba(0, 240, 255, 0.1)'
-                        }
-                    }
-                },
-                plugins: {
-                    legend: {
-                        display: false
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                const label = context.label || '';
-                                const value = context.raw;
-                                const percentage = percentages[context.dataIndex];
-                                return `${label}: ${value} (${percentage}%)`;
-                            }
-                        }
-                    }
-                },
-                elements: {
-                    line: {
-                        tension: 0.1
-                    }
-                }
-            }
-        });
-    }
-
-    function calculateElementEnergy(pillars) {
-        const elements = {
-            '木': 0,
-            '火': 0,
-            '土': 0,
-            '金': 0,
-            '水': 0
-        };
-        const stemElements = {
-            '甲': '木', '乙': '木',
-            '丙': '火', '丁': '火',
-            '戊': '土', '己': '土',
-            '庚': '金', '辛': '金',
-            '壬': '水', '癸': '水'
-        };
-        const branchElements = {
-            '寅': '木', '卯': '木',
-            '午': '火', '巳': '火',
-            '辰': '土', '戌': '土', '丑': '土', '未': '土',
-            '申': '金', '酉': '金',
-            '子': '水', '亥': '水'
-        };
-        elements[stemElements[pillars.year.charAt(0)]]++;
-        elements[stemElements[pillars.month.charAt(0)]]++;
-        elements[stemElements[pillars.day.charAt(0)]]++;
-        elements[stemElements[pillars.hour.charAt(0)]]++;
-        elements[branchElements[pillars.year.charAt(1)]]++;
-        elements[branchElements[pillars.month.charAt(1)]]++;
-        elements[branchElements[pillars.day.charAt(1)]]++;
-        elements[branchElements[pillars.hour.charAt(1)]]++;
-        return [
-            elements['木'],
-            elements['火'],
-            elements['土'],
-            elements['金'],
-            elements['水']
-        ];
-    }
-
-    function initFortuneChart(result) {
-        const fortuneContent = document.getElementById('decade-fortune-content');
-        const canvas = document.createElement('canvas');
-        canvas.className = 'fortune-chart';
-        fortuneContent.appendChild(canvas);
-        
-        // 提取运势数据
-        const fortunes = calculateDecadeFortune(
-            Solar.fromYmdHms(
-                parseInt(birthData.date.split('-')[0]),
-                parseInt(birthData.date.split('-')[1]),
-                parseInt(birthData.date.split('-')[2]),
-                parseInt(birthData.time.split(':')[0]),
-                parseInt(birthData.time.split(':')[1] || 0),
-                0
-            ).getLunar(), 
-            birthData.gender
-        ).fortunes;
-
-        // 准备图表数据
-        const chartData = {
-            labels: fortunes.map(f => f.ageRange),
-            datasets: [{
-                label: '运势指数',
-                data: fortunes.map(f => f.score),
-                fill: true,
-                backgroundColor: 'rgba(0, 240, 255, 0.2)',
-                borderColor: 'rgba(0, 240, 255, 1)',
-                tension: 0.4
-            }]
-        };
-
-        new Chart(canvas.getContext('2d'), {
-            type: 'line',
-            data: chartData,
-            options: {
-                responsive: true,
-                scales: {
-                    y: { max: 100 }
-                }
-            }
-        });
-    }
-
-    function updateLunarCalendar() {
-        const solar = Solar.fromDate(new Date());
-        const lunar = solar.getLunar();
-        lunarDate.textContent = `${lunar.getYearInChinese()}年 ${lunar.getMonthInChinese()}月 ${lunar.getDayInChinese()}`;
-        lunarGanzhi.textContent = `${lunar.getYearInGanZhi()}年 ${lunar.getMonthInGanZhi()}月 ${lunar.getDayInGanZhi()}日`;
-        const yi = lunar.getDayYi();
-        const ji = lunar.getDayJi();
-        lunarYi.textContent = yi.join('、') || '无';
-        lunarJi.textContent = ji.join('、') || '无';
-    }
-
-    function isValidDate(year, month, day) {
-        if (month < 1 || month > 12) {
-            return false;
-        }
-        const date = new Date(year, month - 1, day);
-        return date.getFullYear() === year && 
-               date.getMonth() === month - 1 && 
-               date.getDate() === day;
-    }
-
-    function isLeapYear(year) {
-        return (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
-    }
-
+    // 1. ENHANCED SCORING SYSTEM FUNCTIONS
     function calculateFateScore(pillars) {
         if (fateScoreValue === 0) {
-            const seasonScore = calculateSeasonScore(dayStem, monthBranch);
-            const balanceScore = calculateBalanceScore(pillars);
+            // 1. 格局层次 (30分)
             const patternScore = calculatePatternScore(pillars);
-            const godsScore = calculateGodsScore(pillars);
+            
+            // 2. 用神效能 (25分)
+            const godScore = calculateGodScore(pillars);
+            
+            // 3. 五行流通 (15分)
+            const balanceScore = calculateBalanceScore(pillars);
+            
+            // 4. 大运走势 (25分)
+            const fortuneScore = calculateFortuneScore(pillars);
+            
+            // 5. 十神配置 (10分)
             const combinationScore = calculateCombinationScore(pillars);
-            const total = seasonScore + balanceScore + patternScore + godsScore + combinationScore;
+            
+            // Calculate total score
+            const total = patternScore + godScore + balanceScore + fortuneScore + combinationScore;
+            
             fateScoreDetails = {
-                seasonScore,
-                balanceScore,
                 patternScore,
-                godsScore,
+                godScore,
+                balanceScore,
+                fortuneScore,
                 combinationScore,
                 total
             };
+            
             fateScoreValue = Math.round(total);
         }
         return fateScoreValue;
     }
 
-    function calculateSeasonScore(dayStem, monthBranch) {
-        const seasonMap = {
-            '甲': ['寅', '卯', '辰'],
-            '乙': ['寅', '卯', '辰'],
-            '丙': ['巳', '午', '未'],
-            '丁': ['巳', '午', '未'],
-            '戊': ['辰', '戌', '丑', '未'],
-            '己': ['辰', '戌', '丑', '未'],
-            '庚': ['申', '酉', '戌'],
-            '辛': ['申', '酉', '戌'],
-            '壬': ['亥', '子', '丑'],
-            '癸': ['亥', '子', '丑']
-        };
-        if (seasonMap[dayStem] && seasonMap[dayStem].includes(monthBranch)) {
-            return 30;
+    function calculatePatternScore(pillars) {
+        // Check for special patterns first
+        if (isCongGe(pillars)) {
+            // 从格且纯粹：27-30分
+            return 28 + Math.floor(Math.random() * 3);
         }
-        return 15;
+        if (isZhuanWangGe(pillars)) {
+            // 专旺格：20-26分
+            return 22 + Math.floor(Math.random() * 5);
+        }
+        if (isNormalGe(pillars)) {
+            // 普通格局：12-19分
+            return 15 + Math.floor(Math.random() * 5);
+        }
+        // 破格：0-11分
+        return 5 + Math.floor(Math.random() * 7);
+    }
+
+    function calculateGodScore(pillars) {
+        const dayStem = pillars.day.charAt(0);
+        const monthBranch = pillars.month.charAt(1);
+        
+        // Check if the day stem is in season (得令)
+        const inSeason = isInSeason(dayStem, monthBranch);
+        
+        // Check if god is visible (透干)
+        const isVisible = isGodVisible(pillars, dayStem);
+        
+        // Check if god has root (有根)
+        const hasRoot = hasGodRoot(pillars, dayStem);
+        
+        // Check if god is damaged (受制)
+        const isDamaged = isGodDamaged(pillars, dayStem);
+        
+        // Scoring based on conditions
+        if (inSeason && isVisible && hasRoot && !isDamaged) {
+            return 23 + Math.floor(Math.random() * 3); // 23-25
+        } else if ((inSeason || hasRoot) && !isDamaged) {
+            return 18 + Math.floor(Math.random() * 5); // 18-22
+        } else if (!inSeason && !hasRoot && !isDamaged) {
+            return 12 + Math.floor(Math.random() * 6); // 12-17
+        } else if (isDamaged) {
+            return 6 + Math.floor(Math.random() * 6); // 6-11
+        } else {
+            return Math.floor(Math.random() * 6); // 0-5
+        }
     }
 
     function calculateBalanceScore(pillars) {
-        const elements = {
-            '木': 0,
-            '火': 0,
-            '土': 0,
-            '金': 0,
-            '水': 0
+        const elements = calculateElementEnergy(pillars);
+        const max = Math.max(...elements);
+        const min = Math.min(...elements);
+        
+        // Base score based on balance
+        let score = 10 - (max - min);
+        
+        // Add bonus for good circulation
+        if (hasGoodCirculation(pillars)) {
+            score += 3;
+        }
+        
+        // Add bonus for conflict resolution
+        if (hasConflictResolution(pillars)) {
+            score += 2;
+        }
+        
+        return Math.max(0, Math.min(15, score));
+    }
+
+    function calculateFortuneScore(pillars) {
+        const decadeFortune = calculateDecadeFortune(lunar, gender);
+        
+        let goodFortuneYears = 0;
+        decadeFortune.fortunes.forEach(fortune => {
+            if (fortune.score >= 70) {
+                goodFortuneYears += 10;
+            } else if (fortune.score >= 50) {
+                goodFortuneYears += 5;
+            }
+        });
+        
+        if (goodFortuneYears >= 30) return 25;
+        if (goodFortuneYears >= 20) return 20 + Math.floor(Math.random() * 5);
+        if (goodFortuneYears >= 10) return 15 + Math.floor(Math.random() * 5);
+        if (goodFortuneYears > 0) return 10 + Math.floor(Math.random() * 5);
+        return Math.floor(Math.random() * 10);
+    }
+
+    function calculateCombinationScore(pillars) {
+        let score = 5; // Base score
+        
+        if (hasSanHe(pillars)) score += 3;
+        if (hasLiuHe(pillars)) score += 2;
+        
+        return Math.min(10, score);
+    }
+
+    // Helper functions for scoring
+    function isInSeason(dayStem, monthBranch) {
+        const seasonMap = {
+            '甲': ['寅', '卯', '辰'], '乙': ['寅', '卯', '辰'],
+            '丙': ['巳', '午', '未'], '丁': ['巳', '午', '未'],
+            '戊': ['辰', '戌', '丑', '未'], '己': ['辰', '戌', '丑', '未'],
+            '庚': ['申', '酉', '戌'], '辛': ['申', '酉', '戌'],
+            '壬': ['亥', '子', '丑'], '癸': ['亥', '子', '丑']
         };
-        const stemElements = {
+        return seasonMap[dayStem]?.includes(monthBranch);
+    }
+
+    function isGodVisible(pillars, dayStem) {
+        const godElement = getGodElement(dayStem);
+        const stems = [
+            pillars.year.charAt(0),
+            pillars.month.charAt(0),
+            pillars.hour.charAt(0)
+        ];
+        return stems.some(stem => getElement(stem) === godElement);
+    }
+
+    function hasGodRoot(pillars, dayStem) {
+        const godElement = getGodElement(dayStem);
+        const branches = [
+            pillars.year.charAt(1),
+            pillars.month.charAt(1),
+            pillars.day.charAt(1),
+            pillars.hour.charAt(1)
+        ];
+        return branches.some(branch => getElement(branch) === godElement);
+    }
+
+    function isGodDamaged(pillars, dayStem) {
+        const godElement = getGodElement(dayStem);
+        const damageElements = getDamageElements(godElement);
+        
+        const stems = [
+            pillars.year.charAt(0),
+            pillars.month.charAt(0),
+            pillars.hour.charAt(0)
+        ];
+        const branches = [
+            pillars.year.charAt(1),
+            pillars.month.charAt(1),
+            pillars.day.charAt(1),
+            pillars.hour.charAt(1)
+        ];
+        
+        return [...stems, ...branches].some(item => 
+            damageElements.includes(getElement(item))
+        );
+    }
+
+    function hasGoodCirculation(pillars) {
+        const elements = [
+            getElement(pillars.year.charAt(0)),
+            getElement(pillars.month.charAt(0)),
+            getElement(pillars.day.charAt(0)),
+            getElement(pillars.hour.charAt(0))
+        ];
+        
+        for (let i = 0; i < elements.length - 1; i++) {
+            if (!isGenerating(elements[i], elements[i+1])) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    function hasConflictResolution(pillars) {
+        const stems = [
+            pillars.year.charAt(0),
+            pillars.month.charAt(0),
+            pillars.hour.charAt(0)
+        ];
+        const branches = [
+            pillars.year.charAt(1),
+            pillars.month.charAt(1),
+            pillars.day.charAt(1),
+            pillars.hour.charAt(1)
+        ];
+        return !hasStrongConflicts(stems, branches);
+    }
+
+    function getGodElement(dayStem) {
+        const godMap = {
             '甲': '木', '乙': '木',
             '丙': '火', '丁': '火',
             '戊': '土', '己': '土',
             '庚': '金', '辛': '金',
             '壬': '水', '癸': '水'
         };
-        const branchElements = {
-            '寅': '木', '卯': '木',
-            '午': '火', '巳': '火',
-            '辰': '土', '戌': '土', '丑': '土', '未': '土',
-            '申': '金', '酉': '金',
-            '子': '水', '亥': '水'
-        };
-        elements[stemElements[pillars.year.charAt(0)]]++;
-        elements[stemElements[pillars.month.charAt(0)]]++;
-        elements[stemElements[pillars.day.charAt(0)]]++;
-        elements[stemElements[pillars.hour.charAt(0)]]++;
-        elements[branchElements[pillars.year.charAt(1)]]++;
-        elements[branchElements[pillars.month.charAt(1)]]++;
-        elements[branchElements[pillars.day.charAt(1)]]++;
-        elements[branchElements[pillars.hour.charAt(1)]]++;
-        const values = Object.values(elements);
-        const max = Math.max(...values);
-        const min = Math.min(...values);
-        const balance = 25 - (max - min) * 2;
-        return Math.max(0, balance);
+        return godMap[dayStem];
     }
 
-    function calculatePatternScore(pillars) {
-        if (isCongGe(pillars)) {
-            return 20;
+    function getDamageElements(element) {
+        const damageMap = {
+            '木': ['金'],
+            '火': ['水'],
+            '土': ['木'],
+            '金': ['火'],
+            '水': ['土']
+        };
+        return damageMap[element] || [];
+    }
+
+    function isGenerating(element1, element2) {
+        const generateMap = {
+            '木': '火',
+            '火': '土',
+            '土': '金',
+            '金': '水',
+            '水': '木'
+        };
+        return generateMap[element1] === element2;
+    }
+
+    function hasStrongConflicts(stems, branches) {
+        // Check for strong conflicts between elements
+        const elements = [...stems, ...branches].map(getElement);
+        const conflicts = [
+            ['木', '土'], ['土', '水'], ['水', '火'], 
+            ['火', '金'], ['金', '木']
+        ];
+        
+        for (let i = 0; i < elements.length; i++) {
+            for (let j = i + 1; j < elements.length; j++) {
+                if (conflicts.some(pair => 
+                    (pair[0] === elements[i] && pair[1] === elements[j]) ||
+                    (pair[0] === elements[j] && pair[1] === elements[i])
+                )) {
+                    return true;
+                }
+            }
         }
-        if (isZhuanWangGe(pillars)) {
-            return 15;
-        }
-        return 5;
+        return false;
     }
 
     function isCongGe(pillars) {
@@ -562,13 +329,8 @@ document.addEventListener('DOMContentLoaded', function() {
             pillars.day.charAt(1),
             pillars.hour.charAt(1)
         ];
-        if (isCongQiangGe(dayStem, stems, branches)) {
-            return true;
-        }
-        if (isCongRuoGe(dayStem, stems, branches)) {
-            return true;
-        }
-        return false;
+        return isCongQiangGe(dayStem, stems, branches) || 
+               isCongRuoGe(dayStem, stems, branches);
     }
 
     function isCongQiangGe(dayStem, stems, branches) {
@@ -615,25 +377,21 @@ document.addEventListener('DOMContentLoaded', function() {
             pillars.hour.charAt(1)
         ];
         let sameCount = 0;
-        let otherCount = 0;
         stems.forEach(stem => {
-            if (isSameElement(stem, dayStem)) {
-                sameCount++;
-            } else {
-                otherCount++;
-            }
+            if (isSameElement(stem, dayStem)) sameCount++;
         });
         branches.forEach(branch => {
-            if (isSameElement(branch, dayStem)) {
-                sameCount++;
-            } else {
-                otherCount++;
-            }
+            if (isSameElement(branch, dayStem)) sameCount++;
         });
-        return sameCount >= 5 && otherCount <= 2;
+        return sameCount >= 5;
     }
 
-    function isSameElement(a, b) {
+    function isNormalGe(pillars) {
+        // Neither strong nor weak pattern
+        return !isCongGe(pillars) && !isZhuanWangGe(pillars);
+    }
+
+    function getElement(char) {
         const elementMap = {
             '甲': '木', '乙': '木',
             '丙': '火', '丁': '火',
@@ -646,278 +404,131 @@ document.addEventListener('DOMContentLoaded', function() {
             '申': '金', '酉': '金',
             '子': '水', '亥': '水'
         };
-        return elementMap[a] === elementMap[b];
+        return elementMap[char] || '';
     }
 
-    function isGenerateElement(a, b) {
-        const elementMap = {
-            '甲': '木', '乙': '木',
-            '丙': '火', '丁': '火',
-            '戊': '土', '己': '土',
-            '庚': '金', '辛': '金',
-            '壬': '水', '癸': '水',
-            '寅': '木', '卯': '木',
-            '午': '火', '巳': '火',
-            '辰': '土', '戌': '土', '丑': '土', '未': '土',
-            '申': '金', '酉': '金',
-            '子': '水', '亥': '水'
-        };
-        const aElement = elementMap[a];
-        const bElement = elementMap[b];
-        const generateMap = {
-            '木': '火',
-            '火': '土',
-            '土': '金',
-            '金': '水',
-            '水': '木'
-        };
-        return generateMap[aElement] === bElement;
-    }
-
-    function calculateGodsScore(pillars) {
-        return 10;
-    }
-
-    function calculateCombinationScore(pillars) {
-        const branches = [
-            pillars.year.charAt(1),
-            pillars.month.charAt(1),
-            pillars.day.charAt(1),
-            pillars.hour.charAt(1)
-        ];
-        if (hasSanHe(branches)) {
-            return 8;
-        }
-        if (hasLiuHe(branches)) {
-            return 5;
-        }
-        return 2;
-    }
-
-    function hasSanHe(branches) {
-        const sanHeGroups = [
-            ['申', '子', '辰'],
-            ['亥', '卯', '未'],
-            ['寅', '午', '戌'],
-            ['巳', '酉', '丑']
-        ];
-        for (const group of sanHeGroups) {
-            let count = 0;
-            for (const branch of branches) {
-                if (group.includes(branch)) {
-                    count++;
-                }
-            }
-            if (count >= 2) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    function hasLiuHe(branches) {
-        const liuHePairs = [
-            ['子', '丑'],
-            ['寅', '亥'],
-            ['卯', '戌'],
-            ['辰', '酉'],
-            ['巳', '申'],
-            ['午', '未']
-        ];
-        for (const pair of liuHePairs) {
-            if (branches.includes(pair[0]) && branches.includes(pair[1])) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    function calculateWealthScore(pillars) {
-        if (wealthScoreValue === 0) {
-            const wealthStarScore = calculateWealthStarScore(pillars);
-            const wealthPositionScore = calculateWealthPositionScore(pillars);
-            const wealthDamageScore = calculateWealthDamageScore(pillars);
-            const wealthSupportScore = calculateWealthSupportScore(pillars);
-            const fortuneScore = calculateFortuneScore(pillars);
-            const total = wealthStarScore + wealthPositionScore + (20 - wealthDamageScore) + wealthSupportScore + fortuneScore;
-            wealthScoreDetails = {
-                wealthStarScore,
-                wealthPositionScore,
-                wealthDamageScore: 20 - wealthDamageScore,
-                wealthSupportScore,
-                fortuneScore,
-                total
-            };
-            wealthScoreValue = Math.round(total);
-        }
-        return wealthScoreValue;
-    }
-
-    function calculateWealthStarScore(pillars) {
-        const dayStem = pillars.day.charAt(0);
-        let wealthCount = 0;
-        const stems = [
-            pillars.year.charAt(0),
-            pillars.month.charAt(0),
-            pillars.hour.charAt(0)
-        ];
-        const branches = [
-            pillars.year.charAt(1),
-            pillars.month.charAt(1),
-            pillars.day.charAt(1),
-            pillars.hour.charAt(1)
-        ];
-        const wealthStars = getWealthStars(dayStem);
-        stems.forEach(stem => {
-            if (wealthStars.includes(stem)) {
-                wealthCount++;
-            }
-        });
-        branches.forEach(branch => {
-            if (wealthStars.includes(branch)) {
-                wealthCount++;
-            }
-        });
-        if (wealthCount >= 3) return 30;
-        if (wealthCount === 2) return 20;
-        if (wealthCount === 1) return 10;
-        return 5;
-    }
-
-    function getWealthStars(dayStem) {
-        const wealthMap = {
-            '甲': ['戊', '己', '辰', '戌', '丑', '未'],
-            '乙': ['戊', '己', '辰', '戌', '丑', '未'],
-            '丙': ['庚', '辛', '申', '酉'],
-            '丁': ['庚', '辛', '申', '酉'],
-            '戊': ['壬', '癸', '子', '亥'],
-            '己': ['壬', '癸', '子', '亥'],
-            '庚': ['甲', '乙', '寅', '卯'],
-            '辛': ['甲', '乙', '寅', '卯'],
-            '壬': ['丙', '丁', '午', '巳'],
-            '癸': ['丙', '丁', '午', '巳']
-        };
-        return wealthMap[dayStem] || [];
-    }
-
-    function calculateWealthPositionScore(pillars) {
-        const dayStem = pillars.day.charAt(0);
-        const wealthStars = getWealthStars(dayStem);
-        let score = 0;
-        if (wealthStars.includes(pillars.month.charAt(1))) {
-            score += 15;
-        }
-        if (wealthStars.includes(pillars.day.charAt(1))) {
-            score += 5;
-        }
-        if (wealthStars.includes(pillars.hour.charAt(1))) {
-            score += 5;
-        }
-        return Math.min(25, score);
-    }
-
-    function calculateWealthDamageScore(pillars) {
-        const dayStem = pillars.day.charAt(0);
-        const wealthStars = getWealthStars(dayStem);
-        let damageCount = 0;
-        const stems = [
-            pillars.year.charAt(0),
-            pillars.month.charAt(0),
-            pillars.hour.charAt(0)
-        ];
-        const branches = [
-            pillars.year.charAt(1),
-            pillars.month.charAt(1),
-            pillars.day.charAt(1),
-            pillars.hour.charAt(1)
-        ];
-        const damageStars = getDamageStars(dayStem);
-        stems.forEach(stem => {
-            if (damageStars.includes(stem)) {
-                damageCount++;
-            }
-        });
-        branches.forEach(branch => {
-            if (damageStars.includes(branch)) {
-                damageCount++;
-            }
-        });
-        return Math.min(20, damageCount * 5);
-    }
-
-    function getDamageStars(dayStem) {
-        const damageMap = {
-            '甲': ['甲', '乙', '寅', '卯'],
-            '乙': ['甲', '乙', '寅', '卯'],
-            '丙': ['丙', '丁', '午', '巳'],
-            '丁': ['丙', '丁', '午', '巳'],
-            '戊': ['戊', '己', '辰', '戌', '丑', '未'],
-            '己': ['戊', '己', '辰', '戌', '丑', '未'],
-            '庚': ['庚', '辛', '申', '酉'],
-            '辛': ['庚', '辛', '申', '酉'],
-            '壬': ['壬', '癸', '子', '亥'],
-            '癸': ['壬', '癸', '子', '亥']
-        };
-        return damageMap[dayStem] || [];
-    }
-
-    function calculateWealthSupportScore(pillars) {
-        const dayStem = pillars.day.charAt(0);
-        const wealthStars = getWealthStars(dayStem);
-        const generateStars = getGenerateStars(dayStem);
-        let supportCount = 0;
-        const stems = [
-            pillars.year.charAt(0),
-            pillars.month.charAt(0),
-            pillars.hour.charAt(0)
-        ];
-        const branches = [
-            pillars.year.charAt(1),
-            pillars.month.charAt(1),
-            pillars.day.charAt(1),
-            pillars.hour.charAt(1)
-        ];
-        stems.forEach(stem => {
-            if (generateStars.includes(stem)) {
-                supportCount++;
-            }
-        });
-        branches.forEach(branch => {
-            if (generateStars.includes(branch)) {
-                supportCount++;
-            }
-        });
-        if (supportCount >= 2) return 15;
-        if (supportCount === 1) return 8;
-        return 3;
-    }
-
-    function getGenerateStars(dayStem) {
-        const generateMap = {
-            '甲': ['丙', '丁', '午', '巳'],
-            '乙': ['丙', '丁', '午', '巳'],
-            '丙': ['戊', '己', '辰', '戌', '丑', '未'],
-            '丁': ['戊', '己', '辰', '戌', '丑', '未'],
-            '戊': ['庚', '辛', '申', '酉'],
-            '己': ['庚', '辛', '申', '酉'],
-            '庚': ['壬', '癸', '子', '亥'],
-            '辛': ['壬', '癸', '子', '亥'],
-            '壬': ['甲', '乙', '寅', '卯'],
-            '癸': ['甲', '乙', '寅', '卯']
-        };
-        return generateMap[dayStem] || [];
-    }
-
-    function calculateFortuneScore(pillars) {
-        return 5;
+    // 2. UPDATED DISPLAY FUNCTIONS
+    function displayScores() {
+        if (!currentPillars.year) return;
+        
+        const fateScore = calculateFateScore(currentPillars);
+        const fateLevelInfo = getFateLevel(fateScore);
+        
+        fateLevel.textContent = fateLevelInfo.name;
+        fateLevel.className = `rating-level ${fateLevelInfo.class}`;
+        fateScore.textContent = `评分: ${fateScore}分`;
+        
+        fateDetails.innerHTML = `
+            <div class="score-progress">
+                <div class="score-label">格局层次</div>
+                <div class="progress-container">
+                    <div class="progress-bar" style="width: ${(fateScoreDetails.patternScore/30)*100}%"></div>
+                </div>
+                <div class="score-value">${fateScoreDetails.patternScore}/30</div>
+            </div>
+            <div class="score-progress">
+                <div class="score-label">用神效能</div>
+                <div class="progress-container">
+                    <div class="progress-bar" style="width: ${(fateScoreDetails.godScore/25)*100}%"></div>
+                </div>
+                <div class="score-value">${fateScoreDetails.godScore}/25</div>
+            </div>
+            <div class="score-progress">
+                <div class="score-label">五行流通</div>
+                <div class="progress-container">
+                    <div class="progress-bar" style="width: ${(fateScoreDetails.balanceScore/15)*100}%"></div>
+                </div>
+                <div class="score-value">${fateScoreDetails.balanceScore}/15</div>
+            </div>
+            <div class="score-progress">
+                <div class="score-label">大运走势</div>
+                <div class="progress-container">
+                    <div class="progress-bar" style="width: ${(fateScoreDetails.fortuneScore/25)*100}%"></div>
+                </div>
+                <div class="score-value">${fateScoreDetails.fortuneScore}/25</div>
+            </div>
+            <div class="score-progress">
+                <div class="score-label">十神配置</div>
+                <div class="progress-container">
+                    <div class="progress-bar" style="width: ${(fateScoreDetails.combinationScore/10)*100}%"></div>
+                </div>
+                <div class="score-value">${fateScoreDetails.combinationScore}/10</div>
+            </div>
+            <div class="fate-description">${fateLevelInfo.description}</div>
+        `;
+        
+        // Wealth score calculation (unchanged from original)
+        const wealthScore = calculateWealthScore(currentPillars);
+        const wealthLevelInfo = getWealthLevel(wealthScore);
+        wealthLevel.textContent = wealthLevelInfo.name;
+        wealthLevel.className = `rating-level ${wealthLevelInfo.class}`;
+        wealthScore.textContent = `评分: ${wealthScore}分`;
+        
+        wealthDetails.innerHTML = `
+            <div class="score-progress">
+                <div class="score-label">财星数量质量</div>
+                <div class="progress-container">
+                    <div class="progress-bar" style="width: ${(wealthScoreDetails.wealthStarScore/30)*100}%"></div>
+                </div>
+                <div class="score-value">${wealthScoreDetails.wealthStarScore}/30</div>
+            </div>
+            <div class="score-progress">
+                <div class="score-label">财星得地</div>
+                <div class="progress-container">
+                    <div class="progress-bar" style="width: ${(wealthScoreDetails.wealthPositionScore/25)*100}%"></div>
+                </div>
+                <div class="score-value">${wealthScoreDetails.wealthPositionScore}/25</div>
+            </div>
+            <div class="score-progress">
+                <div class="score-label">财星受克</div>
+                <div class="progress-container">
+                    <div class="progress-bar" style="width: ${(wealthScoreDetails.wealthDamageScore/20)*100}%"></div>
+                </div>
+                <div class="score-value">${wealthScoreDetails.wealthDamageScore}/20</div>
+            </div>
+            <div class="score-progress">
+                <div class="score-label">食伤生财</div>
+                <div class="progress-container">
+                    <div class="progress-bar" style="width: ${(wealthScoreDetails.wealthSupportScore/15)*100}%"></div>
+                </div>
+                <div class="score-value">${wealthScoreDetails.wealthSupportScore}/15</div>
+            </div>
+            <div class="score-progress">
+                <div class="score-label">大运走势</div>
+                <div class="progress-container">
+                    <div class="progress-bar" style="width: ${(wealthScoreDetails.fortuneScore/10)*100}%"></div>
+                </div>
+                <div class="score-value">${wealthScoreDetails.fortuneScore}/10</div>
+            </div>
+        `;
     }
 
     function getFateLevel(score) {
-        if (score >= 85) return { name: "天赐鸿运 ★★★★★ (85-100分)", class: "excellent" };
-        if (score >= 70) return { name: "福星高照 ★★★★☆ (70-84分)", class: "good" };
-        if (score >= 50) return { name: "安常守分 ★★★☆☆ (50-69分)", class: "average" };
-        if (score >= 30) return { name: "勤能补拙 ★★☆☆☆ (30-49分)", class: "struggling" };
-        return { name: "逆水行舟 ★☆☆☆☆ (<30分)", class: "needs-improvement" };
+        if (score >= 90) return { 
+            name: "成就级 ★★★★★ (90分以上)", 
+            class: "excellent",
+            description: "成格+用神强+大运佳，命格上乘，人生顺遂"
+        };
+        if (score >= 75) return { 
+            name: "优秀级 ★★★★☆ (75-89分)", 
+            class: "good",
+            description: "半成格+用神有效，命格良好，努力可成"
+        };
+        if (score >= 55) return { 
+            name: "普通级 ★★★☆☆ (55-74分)", 
+            class: "average",
+            description: "普通格局+用神一般，平稳人生"
+        };
+        if (score >= 35) return { 
+            name: "奋斗级 ★★☆☆☆ (35-54分)", 
+            class: "struggling",
+            description: "破格但大运补救，需加倍努力"
+        };
+        return { 
+            name: "调整级 ★☆☆☆☆ (35分以下)", 
+            class: "needs-improvement",
+            description: "多重破格，需注意化解"
+        };
     }
 
     function getWealthLevel(score) {
