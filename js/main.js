@@ -1743,21 +1743,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         element.innerHTML = spans.join('');
     }
-
-    function displaySectionContent(section, result, contentElement) {
-        if (result.includes('★')) {
-            result = result.replace(/(★+)/g, '<span class="rating" style="color:var(--earth-color);text-shadow:0 0 5px var(--earth-color)">$1</span>');
-            result = result.replace(/(☆+)/g, '<span style="color:#666">$1</span>');
-        }
-        const html = marked.parse(result);
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = html;
-        tempDiv.querySelectorAll('table').forEach(table => {
-            table.classList.add('markdown-table');
-        });
-        contentElement.innerHTML = tempDiv.innerHTML;
-    }
-});
 // 新评分系统的辅助函数
 function calculatePatternScore(pillars) {
     // 实现格局层次评分逻辑（示例：根据格局类型返回25-30分）
@@ -1777,3 +1762,17 @@ function calculateElementFlowScore(pillars) {
 }
 
 // 其他辅助函数（calculateFortuneScore等）根据实际需求实现
+    function displaySectionContent(section, result, contentElement) {
+        if (result.includes('★')) {
+            result = result.replace(/(★+)/g, '<span class="rating" style="color:var(--earth-color);text-shadow:0 0 5px var(--earth-color)">$1</span>');
+            result = result.replace(/(☆+)/g, '<span style="color:#666">$1</span>');
+        }
+        const html = marked.parse(result);
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = html;
+        tempDiv.querySelectorAll('table').forEach(table => {
+            table.classList.add('markdown-table');
+        });
+        contentElement.innerHTML = tempDiv.innerHTML;
+    }
+});
