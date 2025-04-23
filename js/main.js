@@ -1155,59 +1155,64 @@ document.addEventListener('DOMContentLoaded', function() {
     }
           
     
-    function calculateGamblingFortune(birthData, lunar) {
-        const dayGan = lunar.getDayGan();
-        const dayZhi = lunar.getDayZhi();
-        const currentDayGan = lunar.getDayGan();
-        const currentDayZhi = lunar.getDayZhi();
-        
-        // Calculate gambling score (1-5)
-        const ganScore = {
-            '甲': 3, '乙': 2, '丙': 4, '丁': 3, '戊': 2,
-            '己': 1, '庚': 3, '辛': 2, '壬': 4, '癸': 3
-        };
-        
-        const zhiScore = {
-            '子': 3, '丑': 2, '寅': 4, '卯': 3, '辰': 2,
-            '巳': 4, '午': 3, '未': 2, '申': 3, '酉': 2,
-            '戌': 1, '亥': 3
-        };
-        
-        const ganMatch = dayGan === currentDayGan ? 1 : 0;
-        const zhiMatch = dayZhi === currentDayZhi ? 1 : 0;
-        
-        const baseScore = ganScore[dayGan] + zhiScore[dayZhi];
-        const currentScore = ganScore[currentDayGan] + zhiScore[currentDayZhi];
-        const matchBonus = (ganMatch + zhiMatch) * 2;
-        
-        const totalScore = Math.min(5, Math.max(1, Math.round((baseScore + currentScore + matchBonus) / 4)));
-        
-        // Generate rating stars based on score
-        const rating = '★'.repeat(totalScore) + '☆'.repeat(5 - totalScore);
-        
-        // Generate corresponding analysis text based on score
-        const analysisText = [
-            "今日偏财运欠佳，建议远离赌博活动，专注正财为佳。",
-            "今日偏财运平平，小赌可能小输，建议控制投注金额。",
-            "今日偏财运中等，适合小赌怡情但不宜大额投注。",
-            "今日偏财运不错，可适度参与但需保持理性。",
-            "今日偏财运旺盛，但切勿贪心，见好就收为妙。"
-        ][totalScore - 1];
-        
-        const directions = ['东', '南', '西', '北', '东南', '西南', '东北', '西北'];
-        const bestDirection = directions[Math.floor(Math.random() * directions.length)];
-        
-        const hours = ['1-3', '3-5', '5-7', '7-9', '9-11', '11-13', '13-15', '15-17', '17-19', '19-21', '21-23', '23-1'];
-        const bestHour = hours[Math.floor(Math.random() * hours.length)];
-        
-        return {
-            rating: rating,
-            analysis: analysisText,
-            direction: bestDirection,
-            hour: bestHour,
-            score: totalScore
-        };
-    }
+async function calculateGamblingFortune(birthData, lunar) {
+    // 获取当前日期
+    const today = new Date();
+    const currentSolar = Solar.fromDate(today);
+    const currentLunar = currentSolar.getLunar();
+    
+    const dayGan = lunar.getDayGan();
+    const dayZhi = lunar.getDayZhi();
+    const currentDayGan = currentLunar.getDayGan();
+    const currentDayZhi = currentLunar.getDayZhi();
+    
+    // 计算赌运分数 (1-5)
+    const ganScore = {
+        '甲': 3, '乙': 2, '丙': 4, '丁': 3, '戊': 2,
+        '己': 1, '庚': 3, '辛': 2, '壬': 4, '癸': 3
+    };
+    
+    const zhiScore = {
+        '子': 3, '丑': 2, '寅': 4, '卯': 3, '辰': 2,
+        '巳': 4, '午': 3, '未': 2, '申': 3, '酉': 2,
+        '戌': 1, '亥': 3
+    };
+    
+    const ganMatch = dayGan === currentDayGan ? 1 : 0;
+    const zhiMatch = dayZhi === currentDayZhi ? 1 : 0;
+    
+    const baseScore = ganScore[dayGan] + zhiScore[dayZhi];
+    const currentScore = ganScore[currentDayGan] + zhiScore[currentDayZhi];
+    const matchBonus = (ganMatch + zhiMatch) * 2;
+    
+    const totalScore = Math.min(5, Math.max(1, Math.round((baseScore + currentScore + matchBonus) / 4)));
+    
+    // 生成评分星星
+    const rating = '★'.repeat(totalScore) + '☆'.repeat(5 - totalScore);
+    
+    // 根据分数生成分析文本
+    const analysisText = [
+        "今日偏财运欠佳，建议远离赌博活动，专注正财为佳。",
+        "今日偏财运平平，小赌可能小输，建议控制投注金额。",
+        "今日偏财运中等，适合小赌怡情但不宜大额投注。",
+        "今日偏财运不错，可适度参与但需保持理性。",
+        "今日偏财运旺盛，但切勿贪心，见好就收为妙。"
+    ][totalScore - 1];
+    
+    // 使用原有API获取每日数据（假设原有API返回{ direction, hour }）
+    const dailyData = await getBaziAnalysis('daily-fortune', birthData);
+    const bestDirection = dailyData.direction || '东';
+    const bestHour = dailyData.hour || '13-15';
+    
+    return {
+        rating: rating,
+        analysis: analysisText,
+        direction: bestDirection,
+        hour: bestHour,
+        score: totalScore,
+        date: today.toISOString().split('T')[0] // 添加日期标记
+    };
+}
 
     function getPersonalityTraits(dayStem) {
         const traits = {
@@ -1368,13 +1373,20 @@ document.addEventListener('DOMContentLoaded', function() {
             };
             displayScores();
             
-            // Update gambling analysis
-            gamblingRating.textContent = baziInfo.gamblingFortune.rating;
-            gamblingDetails.innerHTML = `
-            ${baziInfo.gamblingFortune.analysis}<br>
-            最佳方位: ${baziInfo.gamblingFortune.direction}<br>
-            最佳时段: ${baziInfo.gamblingFortune.hour}
-            `;
+            // 检查赌运分析是否是当天的
+const today = new Date().toISOString().split('T')[0];
+if (!baziInfo.gamblingFortune || baziInfo.gamblingFortune.date !== today) {
+    // 如果不是当天数据，重新获取
+    baziInfo.gamblingFortune = await calculateGamblingFortune(birthData, lunar);
+}
+
+// 更新赌运分析显示
+gamblingRating.textContent = baziInfo.gamblingFortune.rating;
+gamblingDetails.innerHTML = `
+${baziInfo.gamblingFortune.analysis}<br>
+最佳方位: ${baziInfo.gamblingFortune.direction}<br>
+最佳时段: ${baziInfo.gamblingFortune.hour}
+`;
             
             inputSection.style.display = 'none';
             resultSection.style.display = 'block';
