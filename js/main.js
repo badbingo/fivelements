@@ -463,46 +463,25 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function calculateFateScore(pillars) {
-    if (fateScoreValue === 0) {
-        // 1. 格局层次 (30分)
-        const patternScore = calculatePatternScore(pillars);
-        
-        // 2. 用神效能 (25分)
-        const godScore = calculateGodScore(pillars);
-        
-        // 3. 五行流通 (15分)
-        const elementFlowScore = calculateElementFlowScore(pillars);
-        
-        // 4. 大运走势 (25分)
-        const fortuneScore = calculateFortuneScore(pillars);
-        
-        // 5. 十神配置 (10分)
-        const godsConfigScore = calculateGodsConfigScore(pillars);
-        
-        // 特殊组合加分项 (最高5分)
-        const specialCombinationBonus = calculateSpecialCombinationBonus(pillars);
-        
-        // 调候用神加分项 (最高5分)
-        const seasonAdjustmentBonus = calculateSeasonAdjustmentBonus(pillars);
-        
-        const total = patternScore + godScore + elementFlowScore + 
-                     fortuneScore + godsConfigScore + 
-                     specialCombinationBonus + seasonAdjustmentBonus;
-        
-        fateScoreDetails = {
-            patternScore,
-            godScore,
-            elementFlowScore,
-            fortuneScore,
-            godsConfigScore,
-            specialCombinationBonus,
-            seasonAdjustmentBonus,
-            total
-        };
-        fateScoreValue = Math.min(100, Math.round(total)); // 最高100分
+        if (fateScoreValue === 0) {
+            const seasonScore = calculateSeasonScore(dayStem, monthBranch);
+            const balanceScore = calculateBalanceScore(pillars);
+            const patternScore = calculatePatternScore(pillars);
+            const godsScore = calculateGodsScore(pillars);
+            const combinationScore = calculateCombinationScore(pillars);
+            const total = seasonScore + balanceScore + patternScore + godsScore + combinationScore;
+            fateScoreDetails = {
+                seasonScore,
+                balanceScore,
+                patternScore,
+                godsScore,
+                combinationScore,
+                total
+            };
+            fateScoreValue = Math.round(total);
+        }
+        return fateScoreValue;
     }
-    return fateScoreValue;
-}
 
     function calculateSeasonScore(dayStem, monthBranch) {
         const seasonMap = {
@@ -934,32 +913,12 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function getFateLevel(score) {
-    if (score >= 90) return { 
-        name: "成就级 ★★★★★ (90分以上)", 
-        class: "excellent",
-        description: "命格上乘，格局纯粹，用神有力，大运配合良好，人生成就显著"
-    };
-    if (score >= 75) return { 
-        name: "优秀级 ★★★★☆ (75-89分)", 
-        class: "good",
-        description: "命格良好，格局半成，用神有效，大运有助，人生发展顺利"
-    };
-    if (score >= 55) return { 
-        name: "普通级 ★★★☆☆ (55-74分)", 
-        class: "average",
-        description: "普通格局，用神一般，大运平平，需努力奋斗方可有所成就"
-    };
-    if (score >= 35) return { 
-        name: "奋斗级 ★★☆☆☆ (35-54分)", 
-        class: "struggling",
-        description: "格局有破，但大运有所补救，需加倍努力克服先天不足"
-    };
-    return { 
-        name: "调整级 ★☆☆☆☆ (35分以下)", 
-        class: "needs-improvement",
-        description: "多重破格，大运不佳，需特别注意调整和化解"
-    };
-}
+        if (score >= 85) return { name: "天赐鸿运 ★★★★★ (85-100分)", class: "excellent" };
+        if (score >= 70) return { name: "福星高照 ★★★★☆ (70-84分)", class: "good" };
+        if (score >= 50) return { name: "安常守分 ★★★☆☆ (50-69分)", class: "average" };
+        if (score >= 30) return { name: "勤能补拙 ★★☆☆☆ (30-49分)", class: "struggling" };
+        return { name: "逆水行舟 ★☆☆☆☆ (<30分)", class: "needs-improvement" };
+    }
 
     function getWealthLevel(score) {
         if (score >= 90) return { name: "天禄盈门 ★★★★★ (90分以上)", class: "ultra-rich" };
@@ -970,74 +929,92 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function displayScores() {
-    if (!currentPillars.year) return;
-    const fateScore = calculateFateScore(currentPillars);
-    const fateLevelInfo = getFateLevel(fateScore);
-    
-    fateLevel.textContent = fateLevelInfo.name;
-    fateLevel.className = `rating-level ${fateLevelInfo.class}`;
-    fateScore.textContent = `综合评分: ${fateScore}分`;
-    
-    // 详细评分显示
-    fateDetails.innerHTML = `
-        <div class="score-details">
-            <div class="score-category">
-                <span class="score-label">格局层次</span>
-                <span class="score-value">${fateScoreDetails.patternScore}/30</span>
+        if (!currentPillars.year) return;
+        const fateScore = calculateFateScore(currentPillars);
+        const fateLevelInfo = getFateLevel(fateScore);
+        fateLevel.textContent = fateLevelInfo.name;
+        fateLevel.className = `rating-level ${fateLevelInfo.class}`;
+        fateScore.textContent = `评分: ${fateScore}分 (${Math.round(fateScore)}%)`;
+        const wealthScore = calculateWealthScore(currentPillars);
+        const wealthLevelInfo = getWealthLevel(wealthScore);
+        wealthLevel.textContent = wealthLevelInfo.name;
+        wealthLevel.className = `rating-level ${wealthLevelInfo.class}`;
+        wealthScore.textContent = `评分: ${wealthScore}分 (${Math.round(wealthScore)}%)`;
+        fateDetails.innerHTML = `
+            <div class="score-progress">
+                <div class="score-label">日主得令</div>
                 <div class="progress-container">
-                    <div class="progress-bar" style="width: ${(fateScoreDetails.patternScore/30)*100}%"></div>
+                    <div class="progress-bar" style="width: ${(fateScoreDetails.seasonScore/30)*100}%"></div>
                 </div>
+                <div class="score-value">${fateScoreDetails.seasonScore}/30</div>
             </div>
-            <div class="score-category">
-                <span class="score-label">用神效能</span>
-                <span class="score-value">${fateScoreDetails.godScore}/25</span>
+            <div class="score-progress">
+                <div class="score-label">五行平衡</div>
                 <div class="progress-container">
-                    <div class="progress-bar" style="width: ${(fateScoreDetails.godScore/25)*100}%"></div>
+                    <div class="progress-bar" style="width: ${(fateScoreDetails.balanceScore/25)*100}%"></div>
                 </div>
+                <div class="score-value">${fateScoreDetails.balanceScore}/25</div>
             </div>
-            <div class="score-category">
-                <span class="score-label">五行流通</span>
-                <span class="score-value">${fateScoreDetails.elementFlowScore}/15</span>
+            <div class="score-progress">
+                <div class="score-label">特殊格局</div>
                 <div class="progress-container">
-                    <div class="progress-bar" style="width: ${(fateScoreDetails.elementFlowScore/15)*100}%"></div>
+                    <div class="progress-bar" style="width: ${(fateScoreDetails.patternScore/20)*100}%"></div>
                 </div>
+                <div class="score-value">${fateScoreDetails.patternScore}/20</div>
             </div>
-            <div class="score-category">
-                <span class="score-label">大运走势</span>
-                <span class="score-value">${fateScoreDetails.fortuneScore}/25</span>
+            <div class="score-progress">
+                <div class="score-label">十神配置</div>
                 <div class="progress-container">
-                    <div class="progress-bar" style="width: ${(fateScoreDetails.fortuneScore/25)*100}%"></div>
+                    <div class="progress-bar" style="width: ${(fateScoreDetails.godsScore/15)*100}%"></div>
                 </div>
+                <div class="score-value">${fateScoreDetails.godsScore}/15</div>
             </div>
-            <div class="score-category">
-                <span class="score-label">十神配置</span>
-                <span class="score-value">${fateScoreDetails.godsConfigScore}/10</span>
+            <div class="score-progress">
+                <div class="score-label">天干地支组合</div>
                 <div class="progress-container">
-                    <div class="progress-bar" style="width: ${(fateScoreDetails.godsConfigScore/10)*100}%"></div>
+                    <div class="progress-bar" style="width: ${(fateScoreDetails.combinationScore/10)*100}%"></div>
                 </div>
+                <div class="score-value">${fateScoreDetails.combinationScore}/10</div>
             </div>
-            ${fateScoreDetails.specialCombinationBonus > 0 ? `
-            <div class="score-category bonus">
-                <span class="score-label">特殊组合加分</span>
-                <span class="score-value">+${fateScoreDetails.specialCombinationBonus}</span>
-            </div>` : ''}
-            ${fateScoreDetails.seasonAdjustmentBonus > 0 ? `
-            <div class="score-category bonus">
-                <span class="score-label">调候用神加分</span>
-                <span class="score-value">+${fateScoreDetails.seasonAdjustmentBonus}</span>
-            </div>` : ''}
-            <div class="level-description">${fateLevelInfo.description}</div>
-        </div>
-    `;
-    
-    // 财富评分部分保持不变（如需修改可同理更新）
-    const wealthScore = calculateWealthScore(currentPillars);
-    const wealthLevelInfo = getWealthLevel(wealthScore);
-    wealthLevel.textContent = wealthLevelInfo.name;
-    wealthLevel.className = `rating-level ${wealthLevelInfo.class}`;
-    wealthScore.textContent = `财富评分: ${wealthScore}分`;
-    wealthDetails.innerHTML = `...`; // 原财富评分显示逻辑
-}
+        `;
+        wealthDetails.innerHTML = `
+            <div class="score-progress">
+                <div class="score-label">财星数量质量</div>
+                <div class="progress-container">
+                    <div class="progress-bar" style="width: ${(wealthScoreDetails.wealthStarScore/30)*100}%"></div>
+                </div>
+                <div class="score-value">${wealthScoreDetails.wealthStarScore}/30</div>
+            </div>
+            <div class="score-progress">
+                <div class="score-label">财星得地</div>
+                <div class="progress-container">
+                    <div class="progress-bar" style="width: ${(wealthScoreDetails.wealthPositionScore/25)*100}%"></div>
+                </div>
+                <div class="score-value">${wealthScoreDetails.wealthPositionScore}/25</div>
+            </div>
+            <div class="score-progress">
+                <div class="score-label">财星受克</div>
+                <div class="progress-container">
+                    <div class="progress-bar" style="width: ${(wealthScoreDetails.wealthDamageScore/20)*100}%"></div>
+                </div>
+                <div class="score-value">${wealthScoreDetails.wealthDamageScore}/20</div>
+            </div>
+            <div class="score-progress">
+                <div class="score-label">食伤生财</div>
+                <div class="progress-container">
+                    <div class="progress-bar" style="width: ${(wealthScoreDetails.wealthSupportScore/15)*100}%"></div>
+                </div>
+                <div class="score-value">${wealthScoreDetails.wealthSupportScore}/15</div>
+            </div>
+            <div class="score-progress">
+                <div class="score-label">大运走势</div>
+                <div class="progress-container">
+                    <div class="progress-bar" style="width: ${(wealthScoreDetails.fortuneScore/10)*100}%"></div>
+                </div>
+                <div class="score-value">${wealthScoreDetails.fortuneScore}/10</div>
+            </div>
+        `;
+    }
 
     function getHiddenStems(branch) {
         const hiddenStemsMap = {
@@ -1743,25 +1720,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         element.innerHTML = spans.join('');
     }
-// 新评分系统的辅助函数
-function calculatePatternScore(pillars) {
-    // 实现格局层次评分逻辑（示例：根据格局类型返回25-30分）
-    if (isCongGe(pillars)) return 28;
-    if (isZhuanWangGe(pillars)) return 25;
-    return 15; // 普通格局
-}
 
-function calculateGodScore(pillars) {
-    // 实现用神效能评分逻辑（示例：根据用神强弱返回15-25分）
-    return 20; 
-}
-
-function calculateElementFlowScore(pillars) {
-    // 实现五行流通评分逻辑（示例：根据流通性返回10-15分）
-    return 12;
-}
-
-// 其他辅助函数（calculateFortuneScore等）根据实际需求实现
     function displaySectionContent(section, result, contentElement) {
         if (result.includes('★')) {
             result = result.replace(/(★+)/g, '<span class="rating" style="color:var(--earth-color);text-shadow:0 0 5px var(--earth-color)">$1</span>');
