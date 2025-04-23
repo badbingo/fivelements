@@ -3045,48 +3045,15 @@
         fortunes: fortunes
     };
 }
-// 新增API获取函数
-async function getDailyLuckyInfoFromAPI() {
-    try {
-        const response = await fetch('https://your-api-endpoint.com/daily-lucky-info', {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer your-api-key'
-            }
-        });
-        
-        if (!response.ok) {
-            throw new Error('API请求失败');
-        }
-        
-        const data = await response.json();
-        return {
-            bestDirection: data.direction || '东',
-            bestHour: data.hour || '13-15'
-        };
-    } catch (error) {
-        console.error('获取每日幸运信息失败:', error);
-        // 默认值
-        return {
-            bestDirection: '东',
-            bestHour: '13-15'
-        };
-    }
-}          
+          
             
-async function calculateGamblingFortune(birthData, lunar) {
-    // 获取当前日期
-    const today = new Date();
-    const currentSolar = Solar.fromDate(today);
-    const currentLunar = currentSolar.getLunar();
-    
+function calculateGamblingFortune(birthData, lunar) {
     const dayGan = lunar.getDayGan();
     const dayZhi = lunar.getDayZhi();
-    const currentDayGan = currentLunar.getDayGan();
-    const currentDayZhi = currentLunar.getDayZhi();
+    const currentDayGan = lunar.getDayGan();
+    const currentDayZhi = lunar.getDayZhi();
     
-    // 计算赌运分数 (1-5)
+    // Calculate gambling score (1-5)
     const ganScore = {
         '甲': 3, '乙': 2, '丙': 4, '丁': 3, '戊': 2,
         '己': 1, '庚': 3, '辛': 2, '壬': 4, '癸': 3
@@ -3107,10 +3074,10 @@ async function calculateGamblingFortune(birthData, lunar) {
     
     const totalScore = Math.min(5, Math.max(1, Math.round((baseScore + currentScore + matchBonus) / 4)));
     
-    // 生成评分星星
+    // Generate rating stars based on score
     const rating = '★'.repeat(totalScore) + '☆'.repeat(5 - totalScore);
     
-    // 根据分数生成分析文本
+    // Generate corresponding analysis text based on score
     const analysisText = [
         "今日偏财运欠佳，建议远离赌博活动，专注正财为佳。",
         "今日偏财运平平，小赌可能小输，建议控制投注金额。",
@@ -3119,16 +3086,18 @@ async function calculateGamblingFortune(birthData, lunar) {
         "今日偏财运旺盛，但切勿贪心，见好就收为妙。"
     ][totalScore - 1];
     
-    // 从API获取当天的幸运方位和时辰
-    const { bestDirection, bestHour } = await getDailyLuckyInfoFromAPI();
+    const directions = ['东', '南', '西', '北', '东南', '西南', '东北', '西北'];
+    const bestDirection = directions[Math.floor(Math.random() * directions.length)];
+    
+    const hours = ['1-3', '3-5', '5-7', '7-9', '9-11', '11-13', '13-15', '15-17', '17-19', '19-21', '21-23', '23-1'];
+    const bestHour = hours[Math.floor(Math.random() * hours.length)];
     
     return {
         rating: rating,
         analysis: analysisText,
         direction: bestDirection,
         hour: bestHour,
-        score: totalScore,
-        date: today.toISOString().split('T')[0] // 添加日期标记
+        score: totalScore
     };
 }
 
@@ -3291,20 +3260,13 @@ async function calculateGamblingFortune(birthData, lunar) {
                     };
                     displayScores();
                     
-                    // 检查赌运分析是否是当天的
-const today = new Date().toISOString().split('T')[0];
-if (!baziInfo.gamblingFortune || baziInfo.gamblingFortune.date !== today) {
-    // 如果不是当天数据，重新获取
-    baziInfo.gamblingFortune = await calculateGamblingFortune(birthData, lunar);
-}
-
-// 更新赌运分析显示
-gamblingRating.textContent = baziInfo.gamblingFortune.rating;
-gamblingDetails.innerHTML = `
-${baziInfo.gamblingFortune.analysis}<br>
-最佳方位: ${baziInfo.gamblingFortune.direction}<br>
-最佳时段: ${baziInfo.gamblingFortune.hour}
-`;
+                    // Update gambling analysis
+                    gamblingRating.textContent = baziInfo.gamblingFortune.rating;
+                    gamblingDetails.innerHTML = `
+                    ${baziInfo.gamblingFortune.analysis}<br>
+                    最佳方位: ${baziInfo.gamblingFortune.direction}<br>
+                    最佳时段: ${baziInfo.gamblingFortune.hour}
+                    `;
                     
                     inputSection.style.display = 'none';
                     resultSection.style.display = 'block';
