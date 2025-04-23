@@ -53,6 +53,8 @@
             --moderately-rich-color: #00a6ff;
             --somewhat-rich-color: #00ff88;
             --wealth-average-color: #ffcc00;
+            --highlight-bg: rgba(0, 240, 255, 0.1);
+            --quote-border: 2px solid var(--primary-color);
         }
         * {
             box-sizing: border-box;
@@ -1165,6 +1167,148 @@
             margin-right: 10px;
         }
 
+        /* 新增的API返回内容美化样式 */
+        .api-response {
+            line-height: 1.8;
+        }
+        
+        .api-response h2, 
+        .api-response h3, 
+        .api-response h4 {
+            color: var(--title-color);
+            margin: 20px 0 15px;
+            font-family: 'Orbitron', sans-serif;
+            display: flex;
+            align-items: center;
+        }
+        
+        .api-response h2 {
+            font-size: 20px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+        
+        .api-response h2::before,
+        .api-response h3::before {
+            content: ">";
+            margin-right: 10px;
+            color: var(--primary-color);
+        }
+        
+        .api-response h3 {
+            font-size: 18px;
+        }
+        
+        .api-response h4 {
+            font-size: 16px;
+        }
+        
+        .api-response p {
+            margin-bottom: 15px;
+        }
+        
+        .api-response ul,
+        .api-response ol {
+            margin: 15px 0;
+            padding-left: 25px;
+        }
+        
+        .api-response li {
+            margin-bottom: 8px;
+        }
+        
+        .api-response blockquote {
+            border-left: 3px solid var(--primary-color);
+            padding: 10px 15px;
+            margin: 15px 0;
+            background: rgba(0, 240, 255, 0.05);
+            font-style: italic;
+        }
+        
+        .api-response .highlight {
+            background-color: var(--highlight-bg);
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+        
+        .api-response .rating {
+            color: var(--earth-color);
+            text-shadow: 0 0 5px var(--earth-color);
+        }
+        
+        .api-response .warning {
+            color: var(--warning-color);
+            font-weight: bold;
+        }
+        
+        .api-response .success {
+            color: var(--success-color);
+            font-weight: bold;
+        }
+        
+        .api-response .danger {
+            color: var(--danger-color);
+            font-weight: bold;
+        }
+        
+        .api-response .info-box {
+            background: rgba(0, 166, 255, 0.1);
+            border-radius: var(--border-radius-sm);
+            padding: 15px;
+            margin: 15px 0;
+            border-left: 3px solid var(--primary-color);
+        }
+        
+        .api-response .tip-box {
+            background: rgba(0, 255, 136, 0.1);
+            border-radius: var(--border-radius-sm);
+            padding: 15px;
+            margin: 15px 0;
+            border-left: 3px solid var(--success-color);
+        }
+        
+        .api-response .warning-box {
+            background: rgba(255, 204, 0, 0.1);
+            border-radius: var(--border-radius-sm);
+            padding: 15px;
+            margin: 15px 0;
+            border-left: 3px solid var(--warning-color);
+        }
+        
+        .api-response .danger-box {
+            background: rgba(255, 0, 102, 0.1);
+            border-radius: var(--border-radius-sm);
+            padding: 15px;
+            margin: 15px 0;
+            border-left: 3px solid var(--danger-color);
+        }
+        
+        .api-response .element-wood {
+            color: var(--wood-color);
+            text-shadow: 0 0 3px var(--wood-color);
+        }
+        
+        .api-response .element-fire {
+            color: var(--fire-color);
+            text-shadow: 0 0 3px var(--fire-color);
+        }
+        
+        .api-response .element-earth {
+            color: var(--earth-color);
+            text-shadow: 0 0 3px var(--earth-color);
+        }
+        
+        .api-response .element-metal {
+            color: var(--metal-color);
+            text-shadow: 0 0 3px var(--metal-color);
+        }
+        
+        .api-response .element-water {
+            color: var(--water-color);
+            text-shadow: 0 0 3px var(--water-color);
+        }
+
         @media (max-width: 768px) {
             .header-title {
                 font-size: 2rem;
@@ -2142,48 +2286,48 @@
             }
 
             function initFortuneChart(result) {
-    const fortuneContent = document.getElementById('decade-fortune-content');
-    const canvas = document.createElement('canvas');
-    canvas.className = 'fortune-chart';
-    fortuneContent.appendChild(canvas);
-    
-    // 提取运势数据
-    const fortunes = calculateDecadeFortune(
-        Solar.fromYmdHms(
-            parseInt(birthData.date.split('-')[0]),
-            parseInt(birthData.date.split('-')[1]),
-            parseInt(birthData.date.split('-')[2]),
-            parseInt(birthData.time.split(':')[0]),
-            parseInt(birthData.time.split(':')[1] || 0),
-            0
-        ).getLunar(), 
-        birthData.gender
-    ).fortunes;
+                const fortuneContent = document.getElementById('decade-fortune-content');
+                const canvas = document.createElement('canvas');
+                canvas.className = 'fortune-chart';
+                fortuneContent.appendChild(canvas);
+                
+                // 提取运势数据
+                const fortunes = calculateDecadeFortune(
+                    Solar.fromYmdHms(
+                        parseInt(birthData.date.split('-')[0]),
+                        parseInt(birthData.date.split('-')[1]),
+                        parseInt(birthData.date.split('-')[2]),
+                        parseInt(birthData.time.split(':')[0]),
+                        parseInt(birthData.time.split(':')[1] || 0),
+                        0
+                    ).getLunar(), 
+                    birthData.gender
+                ).fortunes;
 
-    // 准备图表数据
-    const chartData = {
-        labels: fortunes.map(f => f.ageRange),
-        datasets: [{
-            label: '运势指数',
-            data: fortunes.map(f => f.score),
-            fill: true,
-            backgroundColor: 'rgba(0, 240, 255, 0.2)',
-            borderColor: 'rgba(0, 240, 255, 1)',
-            tension: 0.4
-        }]
-    };
+                // 准备图表数据
+                const chartData = {
+                    labels: fortunes.map(f => f.ageRange),
+                    datasets: [{
+                        label: '运势指数',
+                        data: fortunes.map(f => f.score),
+                        fill: true,
+                        backgroundColor: 'rgba(0, 240, 255, 0.2)',
+                        borderColor: 'rgba(0, 240, 255, 1)',
+                        tension: 0.4
+                    }]
+                };
 
-    new Chart(canvas.getContext('2d'), {
-        type: 'line',
-        data: chartData,
-        options: {
-            responsive: true,
-            scales: {
-                y: { max: 100 }
+                new Chart(canvas.getContext('2d'), {
+                    type: 'line',
+                    data: chartData,
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: { max: 100 }
+                        }
+                    }
+                });
             }
-        }
-    });
-}
 
             function updateLunarCalendar() {
                 const solar = Solar.fromDate(new Date());
@@ -3019,7 +3163,7 @@ function calculateGamblingFortune(birthData, lunar) {
                         13: '未时', 15: '申时',
                         17: '酉时', 19: '戌时',
                         21: '亥时'
-                    };
+                   };
                     
                     const profileElement = document.createElement('div');
                     profileElement.className = 'saved-profile';
