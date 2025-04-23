@@ -53,6 +53,8 @@
             --moderately-rich-color: #00a6ff;
             --somewhat-rich-color: #00ff88;
             --wealth-average-color: #ffcc00;
+            --highlight-bg: rgba(0, 240, 255, 0.1);
+            --quote-border: 2px solid var(--primary-color);
         }
         * {
             box-sizing: border-box;
@@ -1165,6 +1167,148 @@
             margin-right: 10px;
         }
 
+        /* 新增的API返回内容美化样式 */
+        .api-response {
+            line-height: 1.8;
+        }
+        
+        .api-response h2, 
+        .api-response h3, 
+        .api-response h4 {
+            color: var(--title-color);
+            margin: 20px 0 15px;
+            font-family: 'Orbitron', sans-serif;
+            display: flex;
+            align-items: center;
+        }
+        
+        .api-response h2 {
+            font-size: 20px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+        
+        .api-response h2::before,
+        .api-response h3::before {
+            content: ">";
+            margin-right: 10px;
+            color: var(--primary-color);
+        }
+        
+        .api-response h3 {
+            font-size: 18px;
+        }
+        
+        .api-response h4 {
+            font-size: 16px;
+        }
+        
+        .api-response p {
+            margin-bottom: 15px;
+        }
+        
+        .api-response ul,
+        .api-response ol {
+            margin: 15px 0;
+            padding-left: 25px;
+        }
+        
+        .api-response li {
+            margin-bottom: 8px;
+        }
+        
+        .api-response blockquote {
+            border-left: 3px solid var(--primary-color);
+            padding: 10px 15px;
+            margin: 15px 0;
+            background: rgba(0, 240, 255, 0.05);
+            font-style: italic;
+        }
+        
+        .api-response .highlight {
+            background-color: var(--highlight-bg);
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+        
+        .api-response .rating {
+            color: var(--earth-color);
+            text-shadow: 0 0 5px var(--earth-color);
+        }
+        
+        .api-response .warning {
+            color: var(--warning-color);
+            font-weight: bold;
+        }
+        
+        .api-response .success {
+            color: var(--success-color);
+            font-weight: bold;
+        }
+        
+        .api-response .danger {
+            color: var(--danger-color);
+            font-weight: bold;
+        }
+        
+        .api-response .info-box {
+            background: rgba(0, 166, 255, 0.1);
+            border-radius: var(--border-radius-sm);
+            padding: 15px;
+            margin: 15px 0;
+            border-left: 3px solid var(--primary-color);
+        }
+        
+        .api-response .tip-box {
+            background: rgba(0, 255, 136, 0.1);
+            border-radius: var(--border-radius-sm);
+            padding: 15px;
+            margin: 15px 0;
+            border-left: 3px solid var(--success-color);
+        }
+        
+        .api-response .warning-box {
+            background: rgba(255, 204, 0, 0.1);
+            border-radius: var(--border-radius-sm);
+            padding: 15px;
+            margin: 15px 0;
+            border-left: 3px solid var(--warning-color);
+        }
+        
+        .api-response .danger-box {
+            background: rgba(255, 0, 102, 0.1);
+            border-radius: var(--border-radius-sm);
+            padding: 15px;
+            margin: 15px 0;
+            border-left: 3px solid var(--danger-color);
+        }
+        
+        .api-response .element-wood {
+            color: var(--wood-color);
+            text-shadow: 0 0 3px var(--wood-color);
+        }
+        
+        .api-response .element-fire {
+            color: var(--fire-color);
+            text-shadow: 0 0 3px var(--fire-color);
+        }
+        
+        .api-response .element-earth {
+            color: var(--earth-color);
+            text-shadow: 0 0 3px var(--earth-color);
+        }
+        
+        .api-response .element-metal {
+            color: var(--metal-color);
+            text-shadow: 0 0 3px var(--metal-color);
+        }
+        
+        .api-response .element-water {
+            color: var(--water-color);
+            text-shadow: 0 0 3px var(--water-color);
+        }
+
         @media (max-width: 768px) {
             .header-title {
                 font-size: 2rem;
@@ -1548,56 +1692,23 @@
                 <div class="detail-card">
                     <div class="load-btn-container">
                         <button class="load-btn" data-section="strength">
-                            <span><i class="fas fa-dumbbell"></i> 身强身弱分析</span>
+                            <span><i class="fas fa-dumbbell"></i> 身强，身弱，格局分析</span>
                             <i class="fas fa-chevron-down toggle-icon"></i>
                         </button>
-                        <div class="load-btn-description">量子分析命主八字中日主的强弱程度，判断是身强、身弱、均衡、从强还是从弱</div>
+                        <div class="load-btn-description">量子分析命主八字中日主的强弱程度和格局，判断是身强、身弱、均衡、从强还是从弱</div>
                     </div>
                     <div id="strength-content" class="section-content"></div>
                 </div>
-                
-                <div class="detail-card">
-                    <div class="load-btn-container">
-                        <button class="load-btn" data-section="pattern">
-                            <span><i class="fas fa-chess-queen"></i> 特殊格局分析</span>
-                            <i class="fas fa-chevron-down toggle-icon"></i>
-                        </button>
-                        <div class="load-btn-description">分析八字中是否存在特殊格局，如从格、化格、专旺格等</div>
-                    </div>
-                    <div id="pattern-content" class="section-content"></div>
-                </div>
-                
+
                 <div class="detail-card">
                     <div class="load-btn-container">
                         <button class="load-btn" data-section="elements">
-                            <span><i class="fas fa-yin-yang"></i> 五行强弱分析</span>
+                            <span><i class="fas fa-yin-yang"></i> 五行强弱，燥湿，流通分析</span>
                             <i class="fas fa-chevron-down toggle-icon"></i>
                         </button>
-                        <div class="load-btn-description">量子计算八字五行分布情况，判断五行强弱和调候</div>
+                        <div class="load-btn-description">量子计算八字五行分布情况，判断五行强弱，燥湿，流通和调候</div>
                     </div>
                     <div id="elements-content" class="section-content"></div>
-                </div>
-                
-                <div class="detail-card">
-                    <div class="load-btn-container">
-                        <button class="load-btn" data-section="flow">
-                            <span><i class="fas fa-water"></i> 五行流通分析</span>
-                            <i class="fas fa-chevron-down toggle-icon"></i>
-                        </button>
-                        <div class="load-btn-description">分析八字中五行相生相克路径，判断流通是否顺畅</div>
-                    </div>
-                    <div id="flow-content" class="section-content"></div>
-                </div>
-                
-                <div class="detail-card">
-                    <div class="load-btn-container">
-                        <button class="load-btn" data-section="drywet">
-                            <span><i class="fas fa-fire"></i> 五行燥湿分析</span>
-                            <i class="fas fa-chevron-down toggle-icon"></i>
-                        </button>
-                        <div class="load-btn-description">分析八字中水火比例，判断命局偏燥、偏湿还是中和</div>
-                    </div>
-                    <div id="drywet-content" class="section-content"></div>
                 </div>
 
                 <!-- 新增的八字问答模块 -->
@@ -1759,26 +1870,14 @@
                 <div class="detail-card">
                     <div class="load-btn-container">
                         <button class="load-btn" data-section="milestones">
-                            <span><i class="fas fa-map-marked-alt"></i> 重要节点分析</span>
+                            <span><i class="fas fa-map-marked-alt"></i> 重要节点和重大灾祸分析</span>
                             <i class="fas fa-chevron-down toggle-icon"></i>
                         </button>
-                        <div class="load-btn-description">指出人生中重要的年份和可能发生的重大事件</div>
+                        <div class="load-btn-description">指出人生中重要的年份和可能发生的重大事件和重大灾祸</div>
                     </div>
                     <div id="milestones-content" class="section-content"></div>
                 </div>
                 
-                <div class="detail-card">
-                    <div class="load-btn-container">
-                        <button class="load-btn" data-section="disasters">
-                            <span><i class="fas fa-skull-crossbones"></i> 重大灾祸分析</span>
-                            <i class="fas fa-chevron-down toggle-icon"></i>
-                        </button>
-                        <div class="load-btn-description">分析命主一生中可能遇到的重大灾祸和防范措施</div>
-                    </div>
-                    <div id="disasters-content" class="section-content"></div>
-                </div>
-            </div>
-            
             <div class="calculate-btn-container" style="margin-top: 30px;">
                 <button id="recalculate-btn"><i class="fas fa-redo"></i> 重新测算</button>
             </div>
@@ -2187,48 +2286,48 @@
             }
 
             function initFortuneChart(result) {
-    const fortuneContent = document.getElementById('decade-fortune-content');
-    const canvas = document.createElement('canvas');
-    canvas.className = 'fortune-chart';
-    fortuneContent.appendChild(canvas);
-    
-    // 提取运势数据
-    const fortunes = calculateDecadeFortune(
-        Solar.fromYmdHms(
-            parseInt(birthData.date.split('-')[0]),
-            parseInt(birthData.date.split('-')[1]),
-            parseInt(birthData.date.split('-')[2]),
-            parseInt(birthData.time.split(':')[0]),
-            parseInt(birthData.time.split(':')[1] || 0),
-            0
-        ).getLunar(), 
-        birthData.gender
-    ).fortunes;
+                const fortuneContent = document.getElementById('decade-fortune-content');
+                const canvas = document.createElement('canvas');
+                canvas.className = 'fortune-chart';
+                fortuneContent.appendChild(canvas);
+                
+                // 提取运势数据
+                const fortunes = calculateDecadeFortune(
+                    Solar.fromYmdHms(
+                        parseInt(birthData.date.split('-')[0]),
+                        parseInt(birthData.date.split('-')[1]),
+                        parseInt(birthData.date.split('-')[2]),
+                        parseInt(birthData.time.split(':')[0]),
+                        parseInt(birthData.time.split(':')[1] || 0),
+                        0
+                    ).getLunar(), 
+                    birthData.gender
+                ).fortunes;
 
-    // 准备图表数据
-    const chartData = {
-        labels: fortunes.map(f => f.ageRange),
-        datasets: [{
-            label: '运势指数',
-            data: fortunes.map(f => f.score),
-            fill: true,
-            backgroundColor: 'rgba(0, 240, 255, 0.2)',
-            borderColor: 'rgba(0, 240, 255, 1)',
-            tension: 0.4
-        }]
-    };
+                // 准备图表数据
+                const chartData = {
+                    labels: fortunes.map(f => f.ageRange),
+                    datasets: [{
+                        label: '运势指数',
+                        data: fortunes.map(f => f.score),
+                        fill: true,
+                        backgroundColor: 'rgba(0, 240, 255, 0.2)',
+                        borderColor: 'rgba(0, 240, 255, 1)',
+                        tension: 0.4
+                    }]
+                };
 
-    new Chart(canvas.getContext('2d'), {
-        type: 'line',
-        data: chartData,
-        options: {
-            responsive: true,
-            scales: {
-                y: { max: 100 }
+                new Chart(canvas.getContext('2d'), {
+                    type: 'line',
+                    data: chartData,
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: { max: 100 }
+                        }
+                    }
+                });
             }
-        }
-    });
-}
 
             function updateLunarCalendar() {
                 const solar = Solar.fromDate(new Date());
@@ -3064,7 +3163,7 @@ function calculateGamblingFortune(birthData, lunar) {
                         13: '未时', 15: '申时',
                         17: '酉时', 19: '戌时',
                         21: '亥时'
-                    };
+                   };
                     
                     const profileElement = document.createElement('div');
                     profileElement.className = 'saved-profile';
@@ -3266,23 +3365,16 @@ function calculateGamblingFortune(birthData, lunar) {
                     case 'strength':
                         prompt += `分析命主的身强身弱情况：
 1 日主得令、得地、得势的情况
-2 天干地支的生助情况
-3 天干地支的合化和刑冲情况
+2 天干地支的合化和刑冲情况
+3 特殊格局判断
+4 喜用和忌凶
 
 返回格式：
-身强身弱：[强/从强/弱/从弱/均衡]
-分析理由：[详细分析]
+日主得令、得地、得势的情况：[详细分析]
+天干地支的合化和刑冲情况：[详细分析]
+特殊格局判断：[专旺格，从格，化气格，两神成象格，杂奇格，日贵格，三奇贵人格，禄元互换格，天元一气格，身杀两停格，伤官配印格，伤官见官格，伤官生财格，伤官泄秀格]
 喜用和忌凶：[详细分析]
 不要使用任何特殊符号`;
-                        break;
-                    case 'pattern':
-                        prompt += `分析八字中的特殊格局：
-1 格局判断
-2 格局名称和特点
-3 对命运的影响
-
-特殊格局：[专旺格，从格，化气格，两神成象格，杂奇格，日贵格，三奇贵人格，禄元互换格，天元一气格，身杀两停格，伤官配印格，伤官见官格，伤官生财格，伤官泄秀格]
-格局分析：[详细分析]`;
                         break;
                     case 'career':
                         prompt += `详细分析适合行业情况：
@@ -3304,13 +3396,17 @@ function calculateGamblingFortune(birthData, lunar) {
 大运财运分析：[以表格方式详细分析](1-5星)`;
                         break;
                     case 'elements':
-                        prompt += `分析八字五行强弱：
-1 五行分布情况
-2 调候建议
+                        prompt += `分析八字五行强弱，燥湿和流通情况：
+1 五行强弱分析
+2 五行燥湿分析
+3 五行流通分析
+4 调候建议
 
 返回格式：
-五行分布：[表格方式呈现]
-分析理由：[详细分析]`;
+五行强弱分析[详细分析]
+五行燥湿分析[详细分析]
+五行流通分析[详细分析]
+调候建议：[详细分析]`;
                         break;
                     case 'personality':
                         prompt += `详细性格分析：
@@ -3373,6 +3469,17 @@ function calculateGamblingFortune(birthData, lunar) {
 每日宜忌事项：[表格方式详细分析]
 每日冲煞方位：[表格方式详细分析]`;
                   break;
+                    case 'milestones':
+            prompt += `分析一生重要节点和重大灾祸：
+1 一生重要事件分析
+2 一生重大灾祸分析
+3 如何趋吉避凶
+
+返回格式：
+一生重要事件分析：[以表格方式详细分析]
+一生重大灾祸分析：[以表格方式详细分析]
+如何趋吉避凶：[详细分析] `;
+            break;
                     case 'decade-fortune':
             prompt += `分析十年大运走势：
 1 大运事业吉凶分析
