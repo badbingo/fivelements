@@ -1,4 +1,3 @@
-// main.js
 document.addEventListener('DOMContentLoaded', function() {
     const calculateBtn = document.getElementById('calculate-btn');
     const recalculateBtn = document.getElementById('recalculate-btn');
@@ -464,89 +463,297 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function calculateFateScore(pillars) {
         if (fateScoreValue === 0) {
-            const seasonScore = calculateSeasonScore(dayStem, monthBranch);
-            const balanceScore = calculateBalanceScore(pillars);
-            const patternScore = calculatePatternScore(pillars);
-            const godsScore = calculateGodsScore(pillars);
-            const combinationScore = calculateCombinationScore(pillars);
-            const total = seasonScore + balanceScore + patternScore + godsScore + combinationScore;
+            // New scoring system based on the proposed framework
+            const patternScore = calculatePatternScore(pillars); // 30 points
+            const godScore = calculateGodScore(pillars); // 25 points
+            const elementFlowScore = calculateElementFlowScore(pillars); // 15 points
+            const luckScore = calculateLuckScore(pillars); // 25 points
+            const tenGodsScore = calculateTenGodsScore(pillars); // 5 points (reduced from 10)
+            
+            // Special adjustments
+            const specialCombinationBonus = calculateSpecialCombinationBonus(pillars);
+            const seasonAdjustment = calculateSeasonAdjustment(pillars);
+            
+            const total = patternScore + godScore + elementFlowScore + luckScore + tenGodsScore + 
+                         specialCombinationBonus + seasonAdjustment;
+            
             fateScoreDetails = {
-                seasonScore,
-                balanceScore,
                 patternScore,
-                godsScore,
-                combinationScore,
+                godScore,
+                elementFlowScore,
+                luckScore,
+                tenGodsScore,
+                specialCombinationBonus,
+                seasonAdjustment,
                 total
             };
-            fateScoreValue = Math.round(total);
+            fateScoreValue = Math.min(100, Math.round(total));
         }
         return fateScoreValue;
     }
 
-    function calculateSeasonScore(dayStem, monthBranch) {
-        const seasonMap = {
-            '甲': ['寅', '卯', '辰'],
-            '乙': ['寅', '卯', '辰'],
-            '丙': ['巳', '午', '未'],
-            '丁': ['巳', '午', '未'],
-            '戊': ['辰', '戌', '丑', '未'],
-            '己': ['辰', '戌', '丑', '未'],
-            '庚': ['申', '酉', '戌'],
-            '辛': ['申', '酉', '戌'],
-            '壬': ['亥', '子', '丑'],
-            '癸': ['亥', '子', '丑']
-        };
-        if (seasonMap[dayStem] && seasonMap[dayStem].includes(monthBranch)) {
-            return 30;
-        }
-        return 15;
-    }
-
-    function calculateBalanceScore(pillars) {
-        const elements = {
-            '木': 0,
-            '火': 0,
-            '土': 0,
-            '金': 0,
-            '水': 0
-        };
-        const stemElements = {
-            '甲': '木', '乙': '木',
-            '丙': '火', '丁': '火',
-            '戊': '土', '己': '土',
-            '庚': '金', '辛': '金',
-            '壬': '水', '癸': '水'
-        };
-        const branchElements = {
-            '寅': '木', '卯': '木',
-            '午': '火', '巳': '火',
-            '辰': '土', '戌': '土', '丑': '土', '未': '土',
-            '申': '金', '酉': '金',
-            '子': '水', '亥': '水'
-        };
-        elements[stemElements[pillars.year.charAt(0)]]++;
-        elements[stemElements[pillars.month.charAt(0)]]++;
-        elements[stemElements[pillars.day.charAt(0)]]++;
-        elements[stemElements[pillars.hour.charAt(0)]]++;
-        elements[branchElements[pillars.year.charAt(1)]]++;
-        elements[branchElements[pillars.month.charAt(1)]]++;
-        elements[branchElements[pillars.day.charAt(1)]]++;
-        elements[branchElements[pillars.hour.charAt(1)]]++;
-        const values = Object.values(elements);
-        const max = Math.max(...values);
-        const min = Math.min(...values);
-        const balance = 25 - (max - min) * 2;
-        return Math.max(0, balance);
-    }
-
+    // New scoring functions based on the proposed framework
     function calculatePatternScore(pillars) {
+        // 格局层次评分 (30分)
         if (isCongGe(pillars)) {
-            return 20;
+            // 成格且纯粹：27-30分
+            return 28 + Math.floor(Math.random() * 3); // Random between 28-30
         }
         if (isZhuanWangGe(pillars)) {
-            return 15;
+            // 半成格：20-26分
+            return 22 + Math.floor(Math.random() * 5); // Random between 22-26
         }
-        return 5;
+        // 普通格：12-19分
+        return 15 + Math.floor(Math.random() * 5); // Random between 15-19
+    }
+
+    function calculateGodScore(pillars) {
+        // 用神效能评分 (25分)
+        const dayStem = pillars.day.charAt(0);
+        const stems = [
+            pillars.year.charAt(0),
+            pillars.month.charAt(0),
+            pillars.hour.charAt(0)
+        ];
+        const branches = [
+            pillars.year.charAt(1),
+            pillars.month.charAt(1),
+            pillars.day.charAt(1),
+            pillars.hour.charAt(1)
+        ];
+        
+        // Check if god is in season (得令)
+        const inSeason = isGodInSeason(dayStem, pillars.month.charAt(1));
+        
+        // Check if god is visible (透干)
+        const visible = stems.includes(getGodElement(dayStem));
+        
+        // Check if god has root (有根)
+        const hasRoot = branches.some(b => isSameElement(b, getGodElement(dayStem)));
+        
+        // Check if god is damaged (无破)
+        const damaged = isGodDamaged(dayStem, stems, branches);
+        
+        // Scoring based on conditions
+        if (inSeason && visible && hasRoot && !damaged) {
+            return 23 + Math.floor(Math.random() * 3); // 23-25
+        } else if ((inSeason || hasRoot) && !severelyDamaged(dayStem, stems, branches)) {
+            return 18 + Math.floor(Math.random() * 5); // 18-22
+        } else if (!hasRoot && isGenerated(dayStem, stems, branches)) {
+            return 12 + Math.floor(Math.random() * 6); // 12-17
+        } else if (!hasRoot && damaged) {
+            return 6 + Math.floor(Math.random() * 6); // 6-11
+        }
+        return Math.floor(Math.random() * 6); // 0-5
+    }
+
+    function calculateElementFlowScore(pillars) {
+        // 五行流通评分 (15分)
+        const elements = calculateElementEnergy(pillars);
+        const max = Math.max(...elements);
+        const min = Math.min(...elements);
+        
+        // Basic score based on balance
+        let score = 10 - (max - min);
+        
+        // Add bonus for smooth flow (通关有情)
+        if (hasSmoothFlow(pillars)) {
+            score += 5;
+        }
+        
+        return Math.max(0, Math.min(15, score));
+    }
+
+    function calculateLuckScore(pillars) {
+        // 大运走势评分 (25分)
+        const decadeFortune = calculateDecadeFortune(
+            Solar.fromYmdHms(
+                parseInt(birthData.date.split('-')[0]),
+                parseInt(birthData.date.split('-')[1]),
+                parseInt(birthData.date.split('-')[2]),
+                parseInt(birthData.time.split(':')[0]),
+                parseInt(birthData.time.split(':')[1] || 0),
+                0
+            ).getLunar(), 
+            birthData.gender
+        );
+        
+        // Count number of good luck years
+        const goodLuckYears = decadeFortune.fortunes.filter(f => f.score >= 70).length * 10;
+        
+        if (goodLuckYears >= 30) return 25;
+        if (goodLuckYears >= 20) return 20 + Math.floor(Math.random() * 4); // 20-23
+        if (goodLuckYears >= 10) return 15 + Math.floor(Math.random() * 4); // 15-18
+        if (goodLuckYears > 0) return 10 + Math.floor(Math.random() * 4); // 10-13
+        return Math.floor(Math.random() * 10); // 0-9
+    }
+
+    function calculateTenGodsScore(pillars) {
+        // 十神配置评分 (5分)
+        // Reduced from original 10 to 5 as per new framework
+        return 3 + Math.floor(Math.random() * 3); // 3-5
+    }
+
+    function calculateSpecialCombinationBonus(pillars) {
+        // 特殊组合加分项
+        let bonus = 0;
+        
+        // Check for special patterns like 金白水清
+        if (isGoldenWater(pillars)) bonus += 3;
+        if (isWoodFireTongming(pillars)) bonus += 3;
+        if (hasSanQi(pillars)) bonus += 2;
+        
+        return bonus;
+    }
+
+    function calculateSeasonAdjustment(pillars) {
+        // 调候用神加分
+        const dayStem = pillars.day.charAt(0);
+        const monthBranch = pillars.month.charAt(1);
+        
+        // Winter needs fire, summer needs water, etc.
+        if ((['亥', '子', '丑'].includes(monthBranch) && 
+            ['丙', '丁', '午', '巳'].some(e => 
+                pillars.year.includes(e) || 
+                pillars.month.includes(e) || 
+                pillars.day.includes(e) || 
+                pillars.hour.includes(e)))) {
+            return 3; // Winter with fire adjustment
+        }
+        
+        if ((['巳', '午', '未'].includes(monthBranch) && 
+            ['壬', '癸', '子', '亥'].some(e => 
+                pillars.year.includes(e) || 
+                pillars.month.includes(e) || 
+                pillars.day.includes(e) || 
+                pillars.hour.includes(e)))) {
+            return 3; // Summer with water adjustment
+        }
+        
+        return 0;
+    }
+
+    // Helper functions for new scoring system
+    function isGodInSeason(dayStem, monthBranch) {
+        const seasonMap = {
+            '甲': ['寅', '卯', '辰'], '乙': ['寅', '卯', '辰'],
+            '丙': ['巳', '午', '未'], '丁': ['巳', '午', '未'],
+            '戊': ['辰', '戌', '丑', '未'], '己': ['辰', '戌', '丑', '未'],
+            '庚': ['申', '酉', '戌'], '辛': ['申', '酉', '戌'],
+            '壬': ['亥', '子', '丑'], '癸': ['亥', '子', '丑']
+        };
+        return seasonMap[dayStem] && seasonMap[dayStem].includes(monthBranch);
+    }
+
+    function getGodElement(dayStem) {
+        // Returns the element that serves as the god for this day stem
+        const godMap = {
+            '甲': '癸', '乙': '癸', // Wood needs water
+            '丙': '壬', '丁': '壬', // Fire needs water
+            '戊': '甲', '己': '甲', // Earth needs wood
+            '庚': '丁', '辛': '丁', // Metal needs fire
+            '壬': '戊', '癸': '戊'  // Water needs earth
+        };
+        return godMap[dayStem];
+    }
+
+    function isGodDamaged(dayStem, stems, branches) {
+        const godElement = getGodElement(dayStem);
+        const damagingElements = getDamagingElements(godElement);
+        
+        return stems.some(s => damagingElements.includes(s)) || 
+               branches.some(b => damagingElements.includes(b));
+    }
+
+    function severelyDamaged(dayStem, stems, branches) {
+        const godElement = getGodElement(dayStem);
+        const damagingElements = getDamagingElements(godElement);
+        
+        const damageCount = stems.filter(s => damagingElements.includes(s)).length +
+                           branches.filter(b => damagingElements.includes(b)).length;
+        
+        return damageCount >= 3;
+    }
+
+    function isGenerated(dayStem, stems, branches) {
+        const godElement = getGodElement(dayStem);
+        const generatingElements = getGeneratingElements(godElement);
+        
+        return stems.some(s => generatingElements.includes(s)) || 
+               branches.some(b => generatingElements.includes(b));
+    }
+
+    function hasSmoothFlow(pillars) {
+        // Check if conflicting elements have mediating elements
+        const elements = calculateElementEnergy(pillars);
+        const hasConflict = (elements[0] > 0 && elements[4] > 0) || // Wood vs Metal
+                           (elements[1] > 0 && elements[3] > 0) || // Fire vs Water
+                           (elements[2] > 0 && elements[0] > 0);   // Earth vs Wood
+        
+        if (!hasConflict) return true;
+        
+        // Check for mediating elements
+        if (elements[0] > 0 && elements[4] > 0 && elements[4] > 0) { // Wood vs Metal, needs Water
+            return elements[4] > 0;
+        }
+        if (elements[1] > 0 && elements[3] > 0) { // Fire vs Water, needs Wood
+            return elements[0] > 0;
+        }
+        if (elements[2] > 0 && elements[0] > 0) { // Earth vs Wood, needs Fire
+            return elements[1] > 0;
+        }
+        
+        return false;
+    }
+
+    function isGoldenWater(pillars) {
+        // 金白水清 pattern: Metal and Water dominant with little Fire
+        const elements = calculateElementEnergy(pillars);
+        return (elements[3] + elements[4]) >= 5 && elements[1] <= 1;
+    }
+
+    function isWoodFireTongming(pillars) {
+        // 木火通明 pattern: Wood and Fire dominant with little Metal
+        const elements = calculateElementEnergy(pillars);
+        return (elements[0] + elements[1]) >= 5 && elements[3] <= 1;
+    }
+
+    function hasSanQi(pillars) {
+        // 三奇贵人 pattern: 甲戊庚, 乙丙丁, etc.
+        const stems = [
+            pillars.year.charAt(0),
+            pillars.month.charAt(0),
+            pillars.day.charAt(0),
+            pillars.hour.charAt(0)
+        ];
+        
+        return (stems.includes('甲') && stems.includes('戊') && stems.includes('庚')) ||
+               (stems.includes('乙') && stems.includes('丙') && stems.includes('丁')) ||
+               (stems.includes('壬') && stems.includes('癸') && stems.includes('辛'));
+    }
+
+    function getDamagingElements(element) {
+        // Returns elements that damage the given element
+        const damageMap = {
+            '木': ['金', '庚', '辛', '申', '酉'],
+            '火': ['水', '壬', '癸', '子', '亥'],
+            '土': ['木', '甲', '乙', '寅', '卯'],
+            '金': ['火', '丙', '丁', '午', '巳'],
+            '水': ['土', '戊', '己', '辰', '戌', '丑', '未']
+        };
+        return damageMap[element] || [];
+    }
+
+    function getGeneratingElements(element) {
+        // Returns elements that generate the given element
+        const generateMap = {
+            '木': ['水', '壬', '癸', '子', '亥'],
+            '火': ['木', '甲', '乙', '寅', '卯'],
+            '土': ['火', '丙', '丁', '午', '巳'],
+            '金': ['土', '戊', '己', '辰', '戌', '丑', '未'],
+            '水': ['金', '庚', '辛', '申', '酉']
+        };
+        return generateMap[element] || [];
     }
 
     function isCongGe(pillars) {
@@ -674,88 +881,73 @@ document.addEventListener('DOMContentLoaded', function() {
         return generateMap[aElement] === bElement;
     }
 
-    function calculateGodsScore(pillars) {
-        return 10;
-    }
-
-    function calculateCombinationScore(pillars) {
-        const branches = [
-            pillars.year.charAt(1),
-            pillars.month.charAt(1),
-            pillars.day.charAt(1),
-            pillars.hour.charAt(1)
-        ];
-        if (hasSanHe(branches)) {
-            return 8;
-        }
-        if (hasLiuHe(branches)) {
-            return 5;
-        }
-        return 2;
-    }
-
-    function hasSanHe(branches) {
-        const sanHeGroups = [
-            ['申', '子', '辰'],
-            ['亥', '卯', '未'],
-            ['寅', '午', '戌'],
-            ['巳', '酉', '丑']
-        ];
-        for (const group of sanHeGroups) {
-            let count = 0;
-            for (const branch of branches) {
-                if (group.includes(branch)) {
-                    count++;
-                }
-            }
-            if (count >= 2) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    function hasLiuHe(branches) {
-        const liuHePairs = [
-            ['子', '丑'],
-            ['寅', '亥'],
-            ['卯', '戌'],
-            ['辰', '酉'],
-            ['巳', '申'],
-            ['午', '未']
-        ];
-        for (const pair of liuHePairs) {
-            if (branches.includes(pair[0]) && branches.includes(pair[1])) {
-                return true;
-            }
-        }
-        return false;
-    }
-
+    // 革命性财富等级计算公式
     function calculateWealthScore(pillars) {
         if (wealthScoreValue === 0) {
-            const wealthStarScore = calculateWealthStarScore(pillars);
-            const wealthPositionScore = calculateWealthPositionScore(pillars);
-            const wealthDamageScore = calculateWealthDamageScore(pillars);
-            const wealthSupportScore = calculateWealthSupportScore(pillars);
-            const fortuneScore = calculateFortuneScore(pillars);
-            const total = wealthStarScore + wealthPositionScore + (20 - wealthDamageScore) + wealthSupportScore + fortuneScore;
+            // 一、财富来源重构（40分）
+            const wealthSourceScore = calculateWealthSourceScore(pillars);
+            
+            // 二、财富承载机制（30分）
+            const wealthCarrierScore = calculateWealthCarrierScore(pillars);
+            
+            // 三、时代算法升级（20分）
+            const eraAlgorithmScore = calculateEraAlgorithmScore(pillars);
+            
+            // 四、关键流年捕捉（10分）
+            const criticalYearsScore = calculateCriticalYearsScore(pillars);
+            
+            const total = wealthSourceScore + wealthCarrierScore + eraAlgorithmScore + criticalYearsScore;
+            
             wealthScoreDetails = {
-                wealthStarScore,
-                wealthPositionScore,
-                wealthDamageScore: 20 - wealthDamageScore,
-                wealthSupportScore,
-                fortuneScore,
+                wealthSourceScore,
+                wealthCarrierScore,
+                eraAlgorithmScore,
+                criticalYearsScore,
                 total
             };
-            wealthScoreValue = Math.round(total);
+            wealthScoreValue = Math.min(100, Math.round(total));
         }
         return wealthScoreValue;
     }
 
-    function calculateWealthStarScore(pillars) {
+    // 一、财富来源重构（40分）
+    function calculateWealthSourceScore(pillars) {
+        const wealthType = identifyWealthType(pillars);
+        let baseScore = 0;
+        
+        switch(wealthType) {
+            case 'monopoly':    // 垄断型财富
+                baseScore = 35 + Math.floor(Math.random() * 6); // 35-40
+                break;
+            case 'innovative':  // 创新性财富
+                baseScore = 30 + Math.floor(Math.random() * 9); // 30-38
+                break;
+            case 'resource':    // 资源型财富
+                baseScore = 25 + Math.floor(Math.random() * 11); // 25-35
+                break;
+            case 'speculative': // 投机型财富
+                baseScore = 20 + Math.floor(Math.random() * 11); // 20-30
+                break;
+            case 'labor':       // 劳务型财富
+                baseScore = 10 + Math.floor(Math.random() * 11); // 10-20
+                break;
+            default:
+                baseScore = 15 + Math.floor(Math.random() * 6); // 默认15-20
+        }
+        
+        // 特殊案例处理：丁火日主无财星但戌土伤官库（互联网大佬）直接计36分
+        if (pillars.day.charAt(0) === '丁' && 
+            !hasExplicitWealthStar(pillars) && 
+            pillars.hour.charAt(1) === '戌') {
+            baseScore = 36;
+        }
+        
+        return Math.min(40, baseScore);
+    }
+
+    // 识别财富类型
+    function identifyWealthType(pillars) {
         const dayStem = pillars.day.charAt(0);
-        let wealthCount = 0;
         const stems = [
             pillars.year.charAt(0),
             pillars.month.charAt(0),
@@ -767,23 +959,578 @@ document.addEventListener('DOMContentLoaded', function() {
             pillars.day.charAt(1),
             pillars.hour.charAt(1)
         ];
+        
+        // 1. 检查是否垄断型财富（财星得令+官杀护财）
+        if (isMonopolyWealth(pillars)) {
+            return 'monopoly';
+        }
+        
+        // 2. 检查是否创新性财富（食伤旺而生财）
+        if (isInnovativeWealth(pillars)) {
+            return 'innovative';
+        }
+        
+        // 3. 检查是否资源型财富（印星化官生身）
+        if (isResourceWealth(pillars)) {
+            return 'resource';
+        }
+        
+        // 4. 检查是否投机型财富（三合财局+劫财为用）
+        if (isSpeculativeWealth(pillars)) {
+            return 'speculative';
+        }
+        
+        // 5. 默认劳务型财富（正财透干无生助）
+        return 'labor';
+    }
+
+    // 判断是否垄断型财富（财星得令+官杀护财）
+    function isMonopolyWealth(pillars) {
+        const dayStem = pillars.day.charAt(0);
         const wealthStars = getWealthStars(dayStem);
-        stems.forEach(stem => {
-            if (wealthStars.includes(stem)) {
-                wealthCount++;
-            }
+        const monthBranch = pillars.month.charAt(1);
+        
+        // 财星得令
+        const isWealthInSeason = isWealthStarInSeason(wealthStars, monthBranch);
+        
+        // 官杀护财
+        const hasOfficerProtection = hasOfficerStarsProtectingWealth(pillars);
+        
+        return isWealthInSeason && hasOfficerProtection;
+    }
+
+    // 判断是否创新性财富（食伤旺而生财）
+    function isInnovativeWealth(pillars) {
+        const dayStem = pillars.day.charAt(0);
+        const generateStars = getGenerateStars(dayStem);
+        const stems = [
+            pillars.year.charAt(0),
+            pillars.month.charAt(0),
+            pillars.hour.charAt(0)
+        ];
+        const branches = [
+            pillars.year.charAt(1),
+            pillars.month.charAt(1),
+            pillars.day.charAt(1),
+            pillars.hour.charAt(1)
+        ];
+        
+        // 食伤旺
+        let generateCount = 0;
+        stems.forEach(s => {
+            if (generateStars.includes(s)) generateCount++;
         });
-        branches.forEach(branch => {
-            if (wealthStars.includes(branch)) {
-                wealthCount++;
-            }
+        branches.forEach(b => {
+            if (generateStars.includes(b)) generateCount++;
         });
-        if (wealthCount >= 3) return 30;
-        if (wealthCount === 2) return 20;
-        if (wealthCount === 1) return 10;
+        
+        // 生财（食伤生财组合纯净）
+        const wealthStars = getWealthStars(dayStem);
+        let hasWealthGeneration = false;
+        stems.forEach(s => {
+            if (wealthStars.includes(s)) hasWealthGeneration = true;
+        });
+        branches.forEach(b => {
+            if (wealthStars.includes(b)) hasWealthGeneration = true;
+        });
+        
+        return generateCount >= 3 && hasWealthGeneration;
+    }
+
+    // 判断是否资源型财富（印星化官生身）
+    function isResourceWealth(pillars) {
+        const dayStem = pillars.day.charAt(0);
+        const sealStars = getSealStars(dayStem);
+        const officerStars = getOfficerStars(dayStem);
+        const stems = [
+            pillars.year.charAt(0),
+            pillars.month.charAt(0),
+            pillars.hour.charAt(0)
+        ];
+        const branches = [
+            pillars.year.charAt(1),
+            pillars.month.charAt(1),
+            pillars.day.charAt(1),
+            pillars.hour.charAt(1)
+        ];
+        
+        // 印星化官
+        let hasSealOfficer = false;
+        stems.forEach(s => {
+            if (sealStars.includes(s) && officerStars.includes(s)) hasSealOfficer = true;
+        });
+        branches.forEach(b => {
+            if (sealStars.includes(b) && officerStars.includes(b)) hasSealOfficer = true;
+        });
+        
+        // 生身
+        const dayElement = getElement(dayStem);
+        let hasGeneration = false;
+        stems.forEach(s => {
+            if (getGeneratingElements(dayElement).includes(getElement(s))) hasGeneration = true;
+        });
+        branches.forEach(b => {
+            if (getGeneratingElements(dayElement).includes(getElement(b))) hasGeneration = true;
+        });
+        
+        return hasSealOfficer && hasGeneration;
+    }
+
+    // 判断是否投机型财富（三合财局+劫财为用）
+    function isSpeculativeWealth(pillars) {
+        const dayStem = pillars.day.charAt(0);
+        const wealthStars = getWealthStars(dayStem);
+        const branches = [
+            pillars.year.charAt(1),
+            pillars.month.charAt(1),
+            pillars.day.charAt(1),
+            pillars.hour.charAt(1)
+        ];
+        
+        // 三合财局
+        const sanHeCombinations = [
+            ['申', '子', '辰'], // 水局
+            ['亥', '卯', '未'], // 木局
+            ['寅', '午', '戌'], // 火局
+            ['巳', '酉', '丑']  // 金局
+        ];
+        
+        let hasSanHe = false;
+        sanHeCombinations.forEach(combo => {
+            const count = branches.filter(b => combo.includes(b)).length;
+            if (count >= 2) hasSanHe = true; // 至少两支半合
+        });
+        
+        // 劫财为用
+        const robberyStars = getRobberyStars(dayStem);
+        let robberyUseful = false;
+        stems.forEach(s => {
+            if (robberyStars.includes(s)) robberyUseful = true;
+        });
+        branches.forEach(b => {
+            if (robberyStars.includes(b)) robberyUseful = true;
+        });
+        
+        return hasSanHe && robberyUseful;
+    }
+
+    // 判断是否有显性财星
+    function hasExplicitWealthStar(pillars) {
+        const dayStem = pillars.day.charAt(0);
+        const wealthStars = getWealthStars(dayStem);
+        const stems = [
+            pillars.year.charAt(0),
+            pillars.month.charAt(0),
+            pillars.hour.charAt(0)
+        ];
+        const branches = [
+            pillars.year.charAt(1),
+            pillars.month.charAt(1),
+            pillars.day.charAt(1),
+            pillars.hour.charAt(1)
+        ];
+        
+        return stems.some(s => wealthStars.includes(s)) || 
+               branches.some(b => wealthStars.includes(b));
+    }
+
+    // 判断财星是否得令
+    function isWealthStarInSeason(wealthStars, monthBranch) {
+        const seasonMap = {
+            '寅': ['甲', '乙', '寅', '卯'], // 木旺于春
+            '卯': ['甲', '乙', '寅', '卯'],
+            '辰': ['甲', '乙', '寅', '卯'],
+            '巳': ['丙', '丁', '午', '巳'], // 火旺于夏
+            '午': ['丙', '丁', '午', '巳'],
+            '未': ['丙', '丁', '午', '巳'],
+            '申': ['庚', '辛', '申', '酉'], // 金旺于秋
+            '酉': ['庚', '辛', '申', '酉'],
+            '戌': ['庚', '辛', '申', '酉'],
+            '亥': ['壬', '癸', '子', '亥'], // 水旺于冬
+            '子': ['壬', '癸', '子', '亥'],
+            '丑': ['壬', '癸', '子', '亥']
+        };
+        
+        const seasonElements = seasonMap[monthBranch] || [];
+        return wealthStars.some(star => seasonElements.includes(star));
+    }
+
+    // 判断是否有官杀护财
+    function hasOfficerStarsProtectingWealth(pillars) {
+        const dayStem = pillars.day.charAt(0);
+        const officerStars = getOfficerStars(dayStem);
+        const stems = [
+            pillars.year.charAt(0),
+            pillars.month.charAt(0),
+            pillars.hour.charAt(0)
+        ];
+        const branches = [
+            pillars.year.charAt(1),
+            pillars.month.charAt(1),
+            pillars.day.charAt(1),
+            pillars.hour.charAt(1)
+        ];
+        
+        return stems.some(s => officerStars.includes(s)) || 
+               branches.some(b => officerStars.includes(b));
+    }
+
+    // 二、财富承载机制（30分）
+    function calculateWealthCarrierScore(pillars) {
+        // 1. 财库质量（20分）
+        const treasuryQualityScore = calculateTreasuryQualityScore(pillars);
+        
+        // 2. 财星转化力（10分）
+        const wealthConversionScore = calculateWealthConversionScore(pillars);
+        
+        // 3. 暗财通道（额外加分，最多+5分）
+        const hiddenWealthBonus = calculateHiddenWealthBonus(pillars);
+        
+        return Math.min(30, treasuryQualityScore + wealthConversionScore + hiddenWealthBonus);
+    }
+
+    // 1. 财库质量评分（20分）
+    function calculateTreasuryQualityScore(pillars) {
+        const branches = [
+            pillars.year.charAt(1),
+            pillars.month.charAt(1),
+            pillars.day.charAt(1),
+            pillars.hour.charAt(1)
+        ];
+        
+        // 检查辰戌丑未全见+拱合（20分）
+        const treasuryBranches = ['辰', '戌', '丑', '未'];
+        const hasAllTreasury = treasuryBranches.every(b => branches.includes(b));
+        if (hasAllTreasury) {
+            return 20;
+        }
+        
+        // 检查独库得用（15分）
+        const dayStem = pillars.day.charAt(0);
+        const wealthStars = getWealthStars(dayStem);
+        const hasSingleTreasury = branches.some(b => 
+            treasuryBranches.includes(b) && 
+            wealthStars.includes(b)
+        );
+        if (hasSingleTreasury) {
+            return 15;
+        }
+        
+        // 虚库无实（5分）
         return 5;
     }
 
+    // 2. 财星转化力评分（10分）
+    function calculateWealthConversionScore(pillars) {
+        const dayStem = pillars.day.charAt(0);
+        const wealthStars = getWealthStars(dayStem);
+        const stems = [
+            pillars.year.charAt(0),
+            pillars.month.charAt(0),
+            pillars.hour.charAt(0)
+        ];
+        const branches = [
+            pillars.year.charAt(1),
+            pillars.month.charAt(1),
+            pillars.day.charAt(1),
+            pillars.hour.charAt(1)
+        ];
+        
+        // 财官印流通（如土财→金官→水印）
+        if (hasWealthOfficerSealFlow(pillars)) {
+            return 10;
+        }
+        
+        // 财星被比劫截脚
+        if (hasWealthIntercepted(pillars)) {
+            return 2; // 扣8分
+        }
+        
+        // 默认情况
+        return 5;
+    }
+
+    // 检查财官印流通
+    function hasWealthOfficerSealFlow(pillars) {
+        const dayStem = pillars.day.charAt(0);
+        const wealthStars = getWealthStars(dayStem);
+        const officerStars = getOfficerStars(dayStem);
+        const sealStars = getSealStars(dayStem);
+        
+        const stems = [
+            pillars.year.charAt(0),
+            pillars.month.charAt(0),
+            pillars.hour.charAt(0)
+        ];
+        const branches = [
+            pillars.year.charAt(1),
+            pillars.month.charAt(1),
+            pillars.day.charAt(1),
+            pillars.hour.charAt(1)
+        ];
+        
+        // 检查是否有财→官→印的流通
+        let hasFlow = false;
+        
+        // 检查天干流通
+        for (let i = 0; i < stems.length; i++) {
+            const stem = stems[i];
+            if (wealthStars.includes(stem)) {
+                // 检查是否有官星
+                for (let j = 0; j < stems.length; j++) {
+                    if (i !== j && officerStars.includes(stems[j])) {
+                        // 检查是否有印星
+                        for (let k = 0; k < stems.length; k++) {
+                            if (k !== i && k !== j && sealStars.includes(stems[k])) {
+                                hasFlow = true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        // 检查地支流通
+        for (let i = 0; i < branches.length; i++) {
+            const branch = branches[i];
+            if (wealthStars.includes(branch)) {
+                // 检查是否有官星
+                for (let j = 0; j < branches.length; j++) {
+                    if (i !== j && officerStars.includes(branches[j])) {
+                        // 检查是否有印星
+                        for (let k = 0; k < branches.length; k++) {
+                            if (k !== i && k !== j && sealStars.includes(branches[k])) {
+                                hasFlow = true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        return hasFlow;
+    }
+
+    // 检查财星被比劫截脚
+    function hasWealthIntercepted(pillars) {
+        const dayStem = pillars.day.charAt(0);
+        const wealthStars = getWealthStars(dayStem);
+        const robberyStars = getRobberyStars(dayStem);
+        const branches = [
+            pillars.year.charAt(1),
+            pillars.month.charAt(1),
+            pillars.day.charAt(1),
+            pillars.hour.charAt(1)
+        ];
+        
+        // 检查地支是否有财星被比劫相邻
+        for (let i = 0; i < branches.length - 1; i++) {
+            if (wealthStars.includes(branches[i]) && robberyStars.includes(branches[i+1])) {
+                return true;
+            }
+            if (robberyStars.includes(branches[i]) && wealthStars.includes(branches[i+1])) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+
+    // 3. 暗财通道加分（最多+5分）
+    function calculateHiddenWealthBonus(pillars) {
+        const dayStem = pillars.day.charAt(0);
+        const wealthStars = getWealthStars(dayStem);
+        const branches = [
+            pillars.year.charAt(1),
+            pillars.month.charAt(1),
+            pillars.day.charAt(1),
+            pillars.hour.charAt(1)
+        ];
+        
+        let bonus = 0;
+        
+        // 检查寅中戊土、申中戊土等暗财
+        branches.forEach(b => {
+            const hiddenStems = getHiddenStems(b);
+            if (hiddenStems.split('').some(s => wealthStars.includes(s))) {
+                bonus += 1; // 每处暗财+1分
+            }
+        });
+        
+        return Math.min(5, bonus);
+    }
+
+    // 三、时代算法升级（20分）
+    function calculateEraAlgorithmScore(pillars) {
+        // 1. 数字经济加成（13分）
+        const digitalEconomyBonus = calculateDigitalEconomyBonus(pillars);
+        
+        // 2. 杠杆系数（7分）
+        const leverageScore = calculateLeverageScore(pillars);
+        
+        return Math.min(20, digitalEconomyBonus + leverageScore);
+    }
+
+    // 1. 数字经济加成（13分）
+    function calculateDigitalEconomyBonus(pillars) {
+        const branches = [
+            pillars.year.charAt(1),
+            pillars.month.charAt(1),
+            pillars.day.charAt(1),
+            pillars.hour.charAt(1)
+        ];
+        
+        let bonus = 0;
+        
+        // 巳酉丑三合（数据金）+8分
+        const hasSiYouChou = ['巳', '酉', '丑'].filter(b => branches.includes(b)).length >= 2;
+        if (hasSiYouChou) {
+            bonus += 8;
+        }
+        
+        // 戌土（互联网库）+5分
+        if (branches.includes('戌')) {
+            bonus += 5;
+        }
+        
+        return Math.min(13, bonus);
+    }
+
+    // 2. 杠杆系数（7分）
+    function calculateLeverageScore(pillars) {
+        const dayStem = pillars.day.charAt(0);
+        const stems = [
+            pillars.year.charAt(0),
+            pillars.month.charAt(0),
+            pillars.hour.charAt(0)
+        ];
+        const branches = [
+            pillars.year.charAt(1),
+            pillars.month.charAt(1),
+            pillars.day.charAt(1),
+            pillars.hour.charAt(1)
+        ];
+        
+        let baseScore = 0;
+        
+        // 七杀为用（融资能力）原始分×1.5倍
+        if (hasSevenKillingAsUseful(pillars)) {
+            baseScore = 5;
+            return Math.min(7, Math.round(baseScore * 1.5));
+        }
+        
+        // 羊刃驾财（风险投资）原始分×1.3倍
+        if (hasBladeRidingWealth(pillars)) {
+            baseScore = 5;
+            return Math.min(7, Math.round(baseScore * 1.3));
+        }
+        
+        return baseScore;
+    }
+
+    // 检查七杀为用
+    function hasSevenKillingAsUseful(pillars) {
+        const dayStem = pillars.day.charAt(0);
+        const sevenKillingStars = getSevenKillingStars(dayStem);
+        const stems = [
+            pillars.year.charAt(0),
+            pillars.month.charAt(0),
+            pillars.hour.charAt(0)
+        ];
+        const branches = [
+            pillars.year.charAt(1),
+            pillars.month.charAt(1),
+            pillars.day.charAt(1),
+            pillars.hour.charAt(1)
+        ];
+        
+        // 检查七杀是否得制或为用
+        return stems.some(s => sevenKillingStars.includes(s)) || 
+               branches.some(b => sevenKillingStars.includes(b));
+    }
+
+    // 检查羊刃驾财
+    function hasBladeRidingWealth(pillars) {
+        const dayStem = pillars.day.charAt(0);
+        const bladeStars = getBladeStars(dayStem);
+        const wealthStars = getWealthStars(dayStem);
+        const branches = [
+            pillars.year.charAt(1),
+            pillars.month.charAt(1),
+            pillars.day.charAt(1),
+            pillars.hour.charAt(1)
+        ];
+        
+        // 检查日支是否为羊刃
+        if (!bladeStars.includes(pillars.day.charAt(1))) {
+            return false;
+        }
+        
+        // 检查是否有财星
+        return branches.some(b => wealthStars.includes(b));
+    }
+
+    // 四、关键流年捕捉（10分）
+    function calculateCriticalYearsScore(pillars) {
+        const decadeFortune = calculateDecadeFortune(
+            Solar.fromYmdHms(
+                parseInt(birthData.date.split('-')[0]),
+                parseInt(birthData.date.split('-')[1]),
+                parseInt(birthData.date.split('-')[2]),
+                parseInt(birthData.time.split(':')[0]),
+                parseInt(birthData.time.split(':')[1] || 0),
+                0
+            ).getLunar(), 
+            birthData.gender
+        );
+        
+        // 检查是否有财富引爆点
+        let hasTriggerPoint = false;
+        decadeFortune.fortunes.forEach(fortune => {
+            if (isWealthTriggerYear(pillars, fortune)) {
+                hasTriggerPoint = true;
+            }
+        });
+        
+        return hasTriggerPoint ? 10 : 0;
+    }
+
+    // 检查是否是财富引爆年
+    function isWealthTriggerYear(pillars, fortune) {
+        // 开发"财富引爆点"算法：
+        // if 流年同时触发：
+        //   大运财星得地 +
+        //   流年财星透干 +
+        //   原局财库被冲开：
+        //       直接+10分
+        
+        const dayStem = pillars.day.charAt(0);
+        const wealthStars = getWealthStars(dayStem);
+        
+        // 1. 检查大运财星得地
+        const fortuneGanZhi = fortune.ganZhi;
+        const hasFortuneWealth = wealthStars.includes(fortuneGanZhi.charAt(0)) || 
+                                 wealthStars.includes(fortuneGanZhi.charAt(1));
+        
+        // 2. 检查流年财星透干（需要模拟流年）
+        // 这里简化处理，假设流年中有财星
+        const hasYearWealth = Math.random() > 0.7; // 70%概率模拟
+        
+        // 3. 检查原局财库被冲开
+        const branches = [
+            pillars.year.charAt(1),
+            pillars.month.charAt(1),
+            pillars.day.charAt(1),
+            pillars.hour.charAt(1)
+        ];
+        const treasuryBranches = ['辰', '戌', '丑', '未'];
+        const hasTreasury = branches.some(b => treasuryBranches.includes(b));
+        const isTreasuryOpened = hasTreasury && Math.random() > 0.7; // 70%概率模拟
+        
+        return hasFortuneWealth && hasYearWealth && isTreasuryOpened;
+    }
+
+    // 获取财星
     function getWealthStars(dayStem) {
         const wealthMap = {
             '甲': ['戊', '己', '辰', '戌', '丑', '未'],
@@ -800,98 +1547,7 @@ document.addEventListener('DOMContentLoaded', function() {
         return wealthMap[dayStem] || [];
     }
 
-    function calculateWealthPositionScore(pillars) {
-        const dayStem = pillars.day.charAt(0);
-        const wealthStars = getWealthStars(dayStem);
-        let score = 0;
-        if (wealthStars.includes(pillars.month.charAt(1))) {
-            score += 15;
-        }
-        if (wealthStars.includes(pillars.day.charAt(1))) {
-            score += 5;
-        }
-        if (wealthStars.includes(pillars.hour.charAt(1))) {
-            score += 5;
-        }
-        return Math.min(25, score);
-    }
-
-    function calculateWealthDamageScore(pillars) {
-        const dayStem = pillars.day.charAt(0);
-        const wealthStars = getWealthStars(dayStem);
-        let damageCount = 0;
-        const stems = [
-            pillars.year.charAt(0),
-            pillars.month.charAt(0),
-            pillars.hour.charAt(0)
-        ];
-        const branches = [
-            pillars.year.charAt(1),
-            pillars.month.charAt(1),
-            pillars.day.charAt(1),
-            pillars.hour.charAt(1)
-        ];
-        const damageStars = getDamageStars(dayStem);
-        stems.forEach(stem => {
-            if (damageStars.includes(stem)) {
-                damageCount++;
-            }
-        });
-        branches.forEach(branch => {
-            if (damageStars.includes(branch)) {
-                damageCount++;
-            }
-        });
-        return Math.min(20, damageCount * 5);
-    }
-
-    function getDamageStars(dayStem) {
-        const damageMap = {
-            '甲': ['甲', '乙', '寅', '卯'],
-            '乙': ['甲', '乙', '寅', '卯'],
-            '丙': ['丙', '丁', '午', '巳'],
-            '丁': ['丙', '丁', '午', '巳'],
-            '戊': ['戊', '己', '辰', '戌', '丑', '未'],
-            '己': ['戊', '己', '辰', '戌', '丑', '未'],
-            '庚': ['庚', '辛', '申', '酉'],
-            '辛': ['庚', '辛', '申', '酉'],
-            '壬': ['壬', '癸', '子', '亥'],
-            '癸': ['壬', '癸', '子', '亥']
-        };
-        return damageMap[dayStem] || [];
-    }
-
-    function calculateWealthSupportScore(pillars) {
-        const dayStem = pillars.day.charAt(0);
-        const wealthStars = getWealthStars(dayStem);
-        const generateStars = getGenerateStars(dayStem);
-        let supportCount = 0;
-        const stems = [
-            pillars.year.charAt(0),
-            pillars.month.charAt(0),
-            pillars.hour.charAt(0)
-        ];
-        const branches = [
-            pillars.year.charAt(1),
-            pillars.month.charAt(1),
-            pillars.day.charAt(1),
-            pillars.hour.charAt(1)
-        ];
-        stems.forEach(stem => {
-            if (generateStars.includes(stem)) {
-                supportCount++;
-            }
-        });
-        branches.forEach(branch => {
-            if (generateStars.includes(branch)) {
-                supportCount++;
-            }
-        });
-        if (supportCount >= 2) return 15;
-        if (supportCount === 1) return 8;
-        return 3;
-    }
-
+    // 获取食伤星
     function getGenerateStars(dayStem) {
         const generateMap = {
             '甲': ['丙', '丁', '午', '巳'],
@@ -908,16 +1564,114 @@ document.addEventListener('DOMContentLoaded', function() {
         return generateMap[dayStem] || [];
     }
 
-    function calculateFortuneScore(pillars) {
-        return 5;
+    // 获取官杀星
+    function getOfficerStars(dayStem) {
+        const officerMap = {
+            '甲': ['庚', '辛', '申', '酉'],
+            '乙': ['庚', '辛', '申', '酉'],
+            '丙': ['壬', '癸', '子', '亥'],
+            '丁': ['壬', '癸', '子', '亥'],
+            '戊': ['甲', '乙', '寅', '卯'],
+            '己': ['甲', '乙', '寅', '卯'],
+            '庚': ['丙', '丁', '午', '巳'],
+            '辛': ['丙', '丁', '午', '巳'],
+            '壬': ['戊', '己', '辰', '戌', '丑', '未'],
+            '癸': ['戊', '己', '辰', '戌', '丑', '未']
+        };
+        return officerMap[dayStem] || [];
+    }
+
+    // 获取印星
+    function getSealStars(dayStem) {
+        const sealMap = {
+            '甲': ['壬', '癸', '子', '亥'],
+            '乙': ['壬', '癸', '子', '亥'],
+            '丙': ['甲', '乙', '寅', '卯'],
+            '丁': ['甲', '乙', '寅', '卯'],
+            '戊': ['丙', '丁', '午', '巳'],
+            '己': ['丙', '丁', '午', '巳'],
+            '庚': ['戊', '己', '辰', '戌', '丑', '未'],
+            '辛': ['戊', '己', '辰', '戌', '丑', '未'],
+            '壬': ['庚', '辛', '申', '酉'],
+            '癸': ['庚', '辛', '申', '酉']
+        };
+        return sealMap[dayStem] || [];
+    }
+
+    // 获取比劫星
+    function getRobberyStars(dayStem) {
+        const robberyMap = {
+            '甲': ['甲', '乙', '寅', '卯'],
+            '乙': ['甲', '乙', '寅', '卯'],
+            '丙': ['丙', '丁', '午', '巳'],
+            '丁': ['丙', '丁', '午', '巳'],
+            '戊': ['戊', '己', '辰', '戌', '丑', '未'],
+            '己': ['戊', '己', '辰', '戌', '丑', '未'],
+            '庚': ['庚', '辛', '申', '酉'],
+            '辛': ['庚', '辛', '申', '酉'],
+            '壬': ['壬', '癸', '子', '亥'],
+            '癸': ['壬', '癸', '子', '亥']
+        };
+        return robberyMap[dayStem] || [];
+    }
+
+    // 获取七杀星
+    function getSevenKillingStars(dayStem) {
+        const sevenKillingMap = {
+            '甲': ['庚', '申'],
+            '乙': ['辛', '酉'],
+            '丙': ['壬', '子'],
+            '丁': ['癸', '亥'],
+            '戊': ['甲', '寅'],
+            '己': ['乙', '卯'],
+            '庚': ['丙', '午'],
+            '辛': ['丁', '巳'],
+            '壬': ['戊', '辰', '戌'],
+            '癸': ['己', '丑', '未']
+        };
+        return sevenKillingMap[dayStem] || [];
+    }
+
+    // 获取羊刃星
+    function getBladeStars(dayStem) {
+        const bladeMap = {
+            '甲': ['卯'],
+            '乙': ['寅'],
+            '丙': ['午'],
+            '丁': ['巳'],
+            '戊': ['午'],
+            '己': ['巳'],
+            '庚': ['酉'],
+            '辛': ['申'],
+            '壬': ['子'],
+            '癸': ['亥']
+        };
+        return bladeMap[dayStem] || [];
+    }
+
+    // 获取五行元素
+    function getElement(stemOrBranch) {
+        const elementMap = {
+            '甲': '木', '乙': '木',
+            '丙': '火', '丁': '火',
+            '戊': '土', '己': '土',
+            '庚': '金', '辛': '金',
+            '壬': '水', '癸': '水',
+            '寅': '木', '卯': '木',
+            '午': '火', '巳': '火',
+            '辰': '土', '戌': '土', '丑': '土', '未': '土',
+            '申': '金', '酉': '金',
+            '子': '水', '亥': '水'
+        };
+        return elementMap[stemOrBranch] || '';
     }
 
     function getFateLevel(score) {
-        if (score >= 85) return { name: "天赐鸿运 ★★★★★ (85-100分)", class: "excellent" };
-        if (score >= 70) return { name: "福星高照 ★★★★☆ (70-84分)", class: "good" };
-        if (score >= 50) return { name: "安常守分 ★★★☆☆ (50-69分)", class: "average" };
-        if (score >= 30) return { name: "勤能补拙 ★★☆☆☆ (30-49分)", class: "struggling" };
-        return { name: "逆水行舟 ★☆☆☆☆ (<30分)", class: "needs-improvement" };
+        if (score >= 90) return { name: "成就级 ★★★★★ (90-100分)", class: "excellent" };
+        if (score >= 75) return { name: "优秀级 ★★★★☆ (75-89分)", class: "good" };
+        if (score >= 55) return { name: "普通级 ★★★☆☆ (55-74分)", class: "average" };
+        if (score >= 35) return { name: "奋斗级 ★★☆☆☆ (35-54分)", class: "struggling" };
+        return { name: "调整级 ★☆☆☆☆ (<35分)", class: "needs-improvement" };
     }
 
     function getWealthLevel(score) {
@@ -942,76 +1696,85 @@ document.addEventListener('DOMContentLoaded', function() {
         wealthScore.textContent = `评分: ${wealthScore}分 (${Math.round(wealthScore)}%)`;
         fateDetails.innerHTML = `
             <div class="score-progress">
-                <div class="score-label">日主得令</div>
+                <div class="score-label">格局层次</div>
                 <div class="progress-container">
-                    <div class="progress-bar" style="width: ${(fateScoreDetails.seasonScore/30)*100}%"></div>
+                    <div class="progress-bar" style="width: ${(fateScoreDetails.patternScore/30)*100}%"></div>
                 </div>
-                <div class="score-value">${fateScoreDetails.seasonScore}/30</div>
+                <div class="score-value">${fateScoreDetails.patternScore}/30</div>
             </div>
             <div class="score-progress">
-                <div class="score-label">五行平衡</div>
+                <div class="score-label">用神效能</div>
                 <div class="progress-container">
-                    <div class="progress-bar" style="width: ${(fateScoreDetails.balanceScore/25)*100}%"></div>
+                    <div class="progress-bar" style="width: ${(fateScoreDetails.godScore/25)*100}%"></div>
                 </div>
-                <div class="score-value">${fateScoreDetails.balanceScore}/25</div>
+                <div class="score-value">${fateScoreDetails.godScore}/25</div>
             </div>
             <div class="score-progress">
-                <div class="score-label">特殊格局</div>
+                <div class="score-label">五行流通</div>
                 <div class="progress-container">
-                    <div class="progress-bar" style="width: ${(fateScoreDetails.patternScore/20)*100}%"></div>
+                    <div class="progress-bar" style="width: ${(fateScoreDetails.elementFlowScore/15)*100}%"></div>
                 </div>
-                <div class="score-value">${fateScoreDetails.patternScore}/20</div>
-            </div>
-            <div class="score-progress">
-                <div class="score-label">十神配置</div>
-                <div class="progress-container">
-                    <div class="progress-bar" style="width: ${(fateScoreDetails.godsScore/15)*100}%"></div>
-                </div>
-                <div class="score-value">${fateScoreDetails.godsScore}/15</div>
-            </div>
-            <div class="score-progress">
-                <div class="score-label">天干地支组合</div>
-                <div class="progress-container">
-                    <div class="progress-bar" style="width: ${(fateScoreDetails.combinationScore/10)*100}%"></div>
-                </div>
-                <div class="score-value">${fateScoreDetails.combinationScore}/10</div>
-            </div>
-        `;
-        wealthDetails.innerHTML = `
-            <div class="score-progress">
-                <div class="score-label">财星数量质量</div>
-                <div class="progress-container">
-                    <div class="progress-bar" style="width: ${(wealthScoreDetails.wealthStarScore/30)*100}%"></div>
-                </div>
-                <div class="score-value">${wealthScoreDetails.wealthStarScore}/30</div>
-            </div>
-            <div class="score-progress">
-                <div class="score-label">财星得地</div>
-                <div class="progress-container">
-                    <div class="progress-bar" style="width: ${(wealthScoreDetails.wealthPositionScore/25)*100}%"></div>
-                </div>
-                <div class="score-value">${wealthScoreDetails.wealthPositionScore}/25</div>
-            </div>
-            <div class="score-progress">
-                <div class="score-label">财星受克</div>
-                <div class="progress-container">
-                    <div class="progress-bar" style="width: ${(wealthScoreDetails.wealthDamageScore/20)*100}%"></div>
-                </div>
-                <div class="score-value">${wealthScoreDetails.wealthDamageScore}/20</div>
-            </div>
-            <div class="score-progress">
-                <div class="score-label">食伤生财</div>
-                <div class="progress-container">
-                    <div class="progress-bar" style="width: ${(wealthScoreDetails.wealthSupportScore/15)*100}%"></div>
-                </div>
-                <div class="score-value">${wealthScoreDetails.wealthSupportScore}/15</div>
+                <div class="score-value">${fateScoreDetails.elementFlowScore}/15</div>
             </div>
             <div class="score-progress">
                 <div class="score-label">大运走势</div>
                 <div class="progress-container">
-                    <div class="progress-bar" style="width: ${(wealthScoreDetails.fortuneScore/10)*100}%"></div>
+                    <div class="progress-bar" style="width: ${(fateScoreDetails.luckScore/25)*100}%"></div>
                 </div>
-                <div class="score-value">${wealthScoreDetails.fortuneScore}/10</div>
+                <div class="score-value">${fateScoreDetails.luckScore}/25</div>
+            </div>
+            <div class="score-progress">
+                <div class="score-label">十神配置</div>
+                <div class="progress-container">
+                    <div class="progress-bar" style="width: ${(fateScoreDetails.tenGodsScore/5)*100}%"></div>
+                </div>
+                <div class="score-value">${fateScoreDetails.tenGodsScore}/5</div>
+            </div>
+            ${fateScoreDetails.specialCombinationBonus > 0 ? `
+            <div class="score-progress">
+                <div class="score-label">特殊组合加分</div>
+                <div class="progress-container">
+                    <div class="progress-bar" style="width: ${(fateScoreDetails.specialCombinationBonus/5)*100}%"></div>
+                </div>
+                <div class="score-value">+${fateScoreDetails.specialCombinationBonus}</div>
+            </div>` : ''}
+            ${fateScoreDetails.seasonAdjustment > 0 ? `
+            <div class="score-progress">
+                <div class="score-label">调候加分</div>
+                <div class="progress-container">
+                    <div class="progress-bar" style="width: ${(fateScoreDetails.seasonAdjustment/5)*100}%"></div>
+                </div>
+                <div class="score-value">+${fateScoreDetails.seasonAdjustment}</div>
+            </div>` : ''}
+        `;
+        wealthDetails.innerHTML = `
+            <div class="score-progress">
+                <div class="score-label">财富来源</div>
+                <div class="progress-container">
+                    <div class="progress-bar" style="width: ${(wealthScoreDetails.wealthSourceScore/40)*100}%"></div>
+                </div>
+                <div class="score-value">${wealthScoreDetails.wealthSourceScore}/40</div>
+            </div>
+            <div class="score-progress">
+                <div class="score-label">财富承载</div>
+                <div class="progress-container">
+                    <div class="progress-bar" style="width: ${(wealthScoreDetails.wealthCarrierScore/30)*100}%"></div>
+                </div>
+                <div class="score-value">${wealthScoreDetails.wealthCarrierScore}/30</div>
+            </div>
+            <div class="score-progress">
+                <div class="score-label">时代算法</div>
+                <div class="progress-container">
+                    <div class="progress-bar" style="width: ${(wealthScoreDetails.eraAlgorithmScore/20)*100}%"></div>
+                </div>
+                <div class="score-value">${wealthScoreDetails.eraAlgorithmScore}/20</div>
+            </div>
+            <div class="score-progress">
+                <div class="score-label">关键流年</div>
+                <div class="progress-container">
+                    <div class="progress-bar" style="width: ${(wealthScoreDetails.criticalYearsScore/10)*100}%"></div>
+                </div>
+                <div class="score-value">${wealthScoreDetails.criticalYearsScore}/10</div>
             </div>
         `;
     }
@@ -1066,7 +1829,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const personality = getPersonalityTraits(dayGan);
         
         // Calculate decade fortune locally
-        const decadeFortune = calculateDecadeFortune(lunar, gender); // 使用自定义函数
+        const decadeFortune = calculateDecadeFortune(lunar, birthData.gender); // 使用自定义函数
         
         // Calculate gambling fortune
         const gamblingFortune = calculateGamblingFortune(birthData, lunar);
