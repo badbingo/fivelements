@@ -17,39 +17,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     };
-    // 严格从弱格验证函数
-    function strictCongRuoCheck(pillars) {
-        const dayStem = pillars.day.charAt(0);
-        
-        // 1. 检查天干是否有生扶（印比）
-        const stems = [
-            pillars.year.charAt(0),
-            pillars.month.charAt(0),
-            pillars.hour.charAt(0)
-        ];
-        const hasSupport = stems.some(gan => {
-            return isSameElement(gan, dayStem) || isGenerateElement(gan, dayStem);
-        });
-
-        // 2. 检查地支是否有根
-        const branches = [
-            pillars.year.charAt(1),
-            pillars.month.charAt(1),
-            pillars.day.charAt(1),
-            pillars.hour.charAt(1)
-        ];
-        const hasRoot = branches.some(zhi => {
-            const hiddenStems = getHiddenStems(zhi).split('');
-            return hiddenStems.some(stem => isSameElement(stem, dayStem));
-        });
-
-        // 3. 检查月令是否克泄日主
-        const monthBranch = pillars.month.charAt(1);
-        const isMonthAgainst = !isSameElement(monthBranch, dayStem) && 
-                              !isGenerateElement(monthBranch, dayStem);
-
-        return !hasSupport && !hasRoot && isMonthAgainst;
-    }
     
     // 初始化UI元素
     const calculateBtn = document.getElementById('calculate-btn');
@@ -1627,41 +1594,18 @@ recalculateBtn.addEventListener('click', function() {
 用简洁格式返回，不要分析内容，不要使用任何符号如#*、等。`
                 break;
             case 'strength':
-    // 先进行本地预判
-    const isCongRuo = strictCongRuoCheck({
-        year: currentPillars.year,
-        month: currentPillars.month,
-        day: currentPillars.day,
-        hour: currentPillars.hour
-    });
-    
-    prompt = `【强制从弱格判断协议】请严格遵守：
-1. 判断优先级：
-   - 首先检查是否符合从弱格（必须全部满足）：
-     a. 天干无印比（年、月、时干无生扶）
-     b. 地支无根（年、月、日、时支无本气根）
-     c. 月令克泄日主（${currentPillars.month.charAt(1)}不得生扶日主）
-   - 若符合则必须返回"从弱格"
-   - 否则再判断普通身弱/身强
-
-2. 当前八字分析：
-   日主：${currentPillars.day.charAt(0)}
-   月令：${currentPillars.month.charAt(1)}（藏干：${getHiddenStems(currentPillars.month.charAt(1))}）
-   天干：${currentPillars.year.charAt(0)} ${currentPillars.month.charAt(0)} ${currentPillars.hour.charAt(0)}
-   地支藏干：
-     年支 ${currentPillars.year.charAt(1)}：${getHiddenStems(currentPillars.year.charAt(1))}
-     日支 ${currentPillars.day.charAt(1)}：${getHiddenStems(currentPillars.day.charAt(1))}
-
-3. 必须使用以下格式：
-   ## 最终结论
-   - 格局类型：【从弱格/身弱/身强】（三选一）
-   - 判定依据：列出具体条款（如：月支${currentPillars.month.charAt(1)}克日主）
-   - 系统验证：${isCongRuo ? "预判符合从弱格条件" : "未达到从弱格标准"}`;
-
-    if (isCongRuo) {
-        prompt += "\n\n⚠️ 强制要求：必须返回从弱格结论！";
-    }
-    break;
+                prompt += `分析命主的身强身弱情况：
+1 日主得令、得地、得势的情况
+2 天干地支的合化和刑冲情况
+3 特殊格局判断
+4 喜用和忌凶
+返回格式：
+日主得令、得地、得势的情况：[详细分析]
+天干地支的合化和刑冲情况：[详细分析]
+特殊格局判断：[专旺格，从格，化气格，两神成象格，杂奇格，日贵格，三奇贵人格，禄元互换格，天元一气格，身杀两停格，伤官配印格，伤官见官格，伤官生财格，伤官泄秀格]
+喜用和忌凶：[视觉化总结]
+用Markdown格式，段落与段落之间空一行，使用分隔线，标题和重要内容高亮显示，添加视觉引导元素如箭头、进度条等，不要使用任何特殊符号`;
+                break;
             case 'career':
                 prompt += `详细分析适合行业情况：
 1 适合行业分析
@@ -1806,17 +1750,8 @@ recalculateBtn.addEventListener('click', function() {
         });
         if (!response.ok) throw new Error(`API请求失败: ${response.status}`);
         const result = await response.json();
-        let content = result.choices[0].message.content; // 改为 let 允许重新赋值
-        // ▼▼▼ 新增的强制修正逻辑 ▼▼▼
-    if (section === 'strength' && currentPillars) {
-        content = enforceCongRuoResult(content, {
-            year: currentPillars.year,
-            month: currentPillars.month,
-            day: currentPillars.day,
-            hour: currentPillars.hour
-        });
-    }
-    // ▲▲▲ 新增结束 ▲▲▲
+        const content = result.choices[0].message.content;
+        
         // 缓存结果
         baziCache[cacheKey] = content;
         
@@ -1914,29 +1849,7 @@ recalculateBtn.addEventListener('click', function() {
         }
         element.innerHTML = spans.join('');
     }
-    // ================= 新增代码 =================
-/**
- * 强制修正从弱格结果
- * @param {string} result - API返回的原始文本
- * @param {object} pillars - 八字四柱对象
- * @returns {string} 修正后的结果
- */
-function enforceCongRuoResult(result, pillars) {
-    // 如果本地验证是从弱格但API未返回，强制修正
-    if (strictCongRuoCheck(pillars) && !result.includes("从弱格")) {
-        console.warn("API未返回从弱格，强制修正");
-        return `
-## 强制修正结论
-- 格局类型：【从弱格】
-- 修正原因：系统验证符合以下从弱格条件：
-  1. 天干无印比（${pillars.year.charAt(0)} ${pillars.month.charAt(0)} ${pillars.hour.charAt(0)}）
-  2. 地支无根（${getHiddenStems(pillars.day.charAt(1))}等）
-  3. 月令${pillars.month.charAt(1)}克泄日主
-- 原始API分析：${result.substring(0, 100)}...`;
-    }
-    return result;
-}
-// ================= 新增结束 =================
+
     // 显示部分内容
     function displaySectionContent(section, result, contentElement) {
         if (result.includes('★')) {
