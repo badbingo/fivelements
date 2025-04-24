@@ -46,7 +46,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const baziQaSubmit = document.getElementById('bazi-qa-submit');
     const baziQaResponse = document.getElementById('bazi-qa-response');
     const baziQaLoading = document.getElementById('bazi-qa-loading');
+
     loadSavedProfiles();
+
     timePeriodOptions.forEach(option => {
         option.addEventListener('click', function() {
             timePeriodOptions.forEach(opt => opt.classList.remove('selected'));
@@ -56,6 +58,7 @@ document.addEventListener('DOMContentLoaded', function() {
             birthTimeInput.value = `${hour.padStart(2, '0')}:${minute.padStart(2, '0')}`;
         });
     });
+
     languageBtns.forEach(btn => {
         btn.addEventListener('click', function() {
             languageBtns.forEach(b => b.classList.remove('active'));
@@ -64,6 +67,7 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('切换到语言:', lang);
         });
     });
+
     marked.setOptions({
         breaks: true,
         gfm: true,
@@ -72,15 +76,18 @@ document.addEventListener('DOMContentLoaded', function() {
             return code;
         }
     });
+
     baziQaSubmit.addEventListener('click', async function() {
         const question = baziQuestionInput.value.trim();
         if (!question) {
             alert('请输入您的问题');
             return;
         }
+        
         baziQaSubmit.disabled = true;
         baziQaResponse.style.display = 'none';
         baziQaLoading.style.display = 'flex';
+        
         try {
             const response = await getBaziAnswer(question);
             baziQaResponse.innerHTML = marked.parse(response);
@@ -94,9 +101,11 @@ document.addEventListener('DOMContentLoaded', function() {
             baziQaLoading.style.display = 'none';
         }
     });
+
     async function getBaziAnswer(question) {
         const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
         const apiKey = 'sk-b2950087a9d5427392762814114b22a9';
+        
         const prompt = `【八字专业问答规范】请严格遵循以下规则回答：
 1. 回答必须基于传统八字命理学知识
 2. 回答应简洁明了，避免冗长
@@ -107,7 +116,9 @@ document.addEventListener('DOMContentLoaded', function() {
    出生时间：${birthData.time}
    性别：${birthData.gender === 'male' ? '男' : '女'}
    八字：${currentPillars.year} ${currentPillars.month} ${currentPillars.day} ${currentPillars.hour}
+
 用户问题：${question}`;
+
         const response = await fetch(apiUrl, {
             method: 'POST',
             headers: {
@@ -120,10 +131,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 temperature: 0
             })
         });
+        
         if (!response.ok) throw new Error(`API请求失败: ${response.status}`);
         const result = await response.json();
         return result.choices[0].message.content;
     }
+
     recalculateBtn.addEventListener('click', function() {
         document.getElementById('name').value = '';
         document.getElementById('birth-date').value = '';
@@ -138,6 +151,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         window.scrollTo(0, 0);
     });
+
     function resetAllContent() {
         fateScoreValue = 0;
         wealthScoreValue = 0;
@@ -186,6 +200,7 @@ document.addEventListener('DOMContentLoaded', function() {
         baziQaResponse.style.display = 'none';
         baziQaLoading.style.display = 'none';
     }
+
     document.querySelectorAll('.menu-tab').forEach(tab => {
         tab.addEventListener('click', function() {
             document.querySelectorAll('.menu-tab').forEach(t => t.classList.remove('active'));
@@ -195,6 +210,7 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById(tabId).classList.add('active');
         });
     });
+
     function initLoadButtons() {
         document.querySelectorAll('.load-btn').forEach(button => {
             const section = button.getAttribute('data-section');
@@ -248,6 +264,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     }
+
     function initElementChart(data) {
         const total = data.reduce((sum, value) => sum + value, 0);
         const percentages = data.map(value => Math.round((value/total)*100));
@@ -329,6 +346,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
     function calculateElementEnergy(pillars) {
         const elements = {
             '木': 0,
@@ -367,11 +385,13 @@ document.addEventListener('DOMContentLoaded', function() {
             elements['水']
         ];
     }
+
     function initFortuneChart(result) {
         const fortuneContent = document.getElementById('decade-fortune-content');
         const canvas = document.createElement('canvas');
         canvas.className = 'fortune-chart';
         fortuneContent.appendChild(canvas);
+        
         const fortunes = calculateDecadeFortune(
             Solar.fromYmdHms(
                 parseInt(birthData.date.split('-')[0]),
@@ -383,6 +403,7 @@ document.addEventListener('DOMContentLoaded', function() {
             ).getLunar(), 
             birthData.gender
         ).fortunes;
+
         const chartData = {
             labels: fortunes.map(f => f.ageRange),
             datasets: [{
@@ -394,6 +415,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 tension: 0.4
             }]
         };
+
         new Chart(canvas.getContext('2d'), {
             type: 'line',
             data: chartData,
@@ -405,6 +427,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
     function updateLunarCalendar() {
         const solar = Solar.fromDate(new Date());
         const lunar = solar.getLunar();
@@ -415,6 +438,7 @@ document.addEventListener('DOMContentLoaded', function() {
         lunarYi.textContent = yi.join('、') || '无';
         lunarJi.textContent = ji.join('、') || '无';
     }
+
     function isValidDate(year, month, day) {
         if (month < 1 || month > 12) {
             return false;
@@ -424,9 +448,11 @@ document.addEventListener('DOMContentLoaded', function() {
                date.getMonth() === month - 1 && 
                date.getDate() === day;
     }
+
     function isLeapYear(year) {
         return (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
     }
+
     function calculateFateScore(pillars) {
         if (fateScoreValue === 0) {
             const seasonScore = calculateSeasonScore(dayStem, monthBranch);
@@ -447,6 +473,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         return fateScoreValue;
     }
+
     function calculateSeasonScore(dayStem, monthBranch) {
         const seasonMap = {
             '甲': ['寅', '卯', '辰'],
@@ -465,6 +492,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         return 15;
     }
+
     function calculateBalanceScore(pillars) {
         const elements = {
             '木': 0,
@@ -501,6 +529,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const balance = 25 - (max - min) * 2;
         return Math.max(0, balance);
     }
+
     function calculatePatternScore(pillars) {
         if (isCongGe(pillars)) {
             return 20;
@@ -510,6 +539,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         return 5;
     }
+
     function isCongGe(pillars) {
         const dayStem = pillars.day.charAt(0);
         const stems = [
@@ -531,6 +561,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         return false;
     }
+
     function isCongQiangGe(dayStem, stems, branches) {
         let count = 0;
         stems.forEach(stem => {
@@ -545,6 +576,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         return count >= 6;
     }
+
     function isCongRuoGe(dayStem, stems, branches) {
         let count = 0;
         stems.forEach(stem => {
@@ -559,6 +591,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         return count <= 1;
     }
+
     function isZhuanWangGe(pillars) {
         const dayStem = pillars.day.charAt(0);
         const stems = [
@@ -590,6 +623,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         return sameCount >= 5 && otherCount <= 2;
     }
+
     function isSameElement(a, b) {
         const elementMap = {
             '甲': '木', '乙': '木',
@@ -605,6 +639,7 @@ document.addEventListener('DOMContentLoaded', function() {
         };
         return elementMap[a] === elementMap[b];
     }
+
     function isGenerateElement(a, b) {
         const elementMap = {
             '甲': '木', '乙': '木',
@@ -629,9 +664,11 @@ document.addEventListener('DOMContentLoaded', function() {
         };
         return generateMap[aElement] === bElement;
     }
+
     function calculateGodsScore(pillars) {
         return 10;
     }
+
     function calculateCombinationScore(pillars) {
         const branches = [
             pillars.year.charAt(1),
@@ -647,6 +684,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         return 2;
     }
+
     function hasSanHe(branches) {
         const sanHeGroups = [
             ['申', '子', '辰'],
@@ -667,6 +705,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         return false;
     }
+
     function hasLiuHe(branches) {
         const liuHePairs = [
             ['子', '丑'],
@@ -683,6 +722,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         return false;
     }
+
     function calculateWealthScore(pillars) {
         if (wealthScoreValue === 0) {
             const wealthStarScore = calculateWealthStarScore(pillars);
@@ -703,6 +743,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         return wealthScoreValue;
     }
+
     function calculateWealthStarScore(pillars) {
         const dayStem = pillars.day.charAt(0);
         let wealthCount = 0;
@@ -733,6 +774,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (wealthCount === 1) return 10;
         return 5;
     }
+
     function getWealthStars(dayStem) {
         const wealthMap = {
             '甲': ['戊', '己', '辰', '戌', '丑', '未'],
@@ -748,6 +790,7 @@ document.addEventListener('DOMContentLoaded', function() {
         };
         return wealthMap[dayStem] || [];
     }
+
     function calculateWealthPositionScore(pillars) {
         const dayStem = pillars.day.charAt(0);
         const wealthStars = getWealthStars(dayStem);
@@ -763,6 +806,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         return Math.min(25, score);
     }
+
     function calculateWealthDamageScore(pillars) {
         const dayStem = pillars.day.charAt(0);
         const wealthStars = getWealthStars(dayStem);
@@ -791,6 +835,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         return Math.min(20, damageCount * 5);
     }
+
     function getDamageStars(dayStem) {
         const damageMap = {
             '甲': ['甲', '乙', '寅', '卯'],
@@ -806,6 +851,7 @@ document.addEventListener('DOMContentLoaded', function() {
         };
         return damageMap[dayStem] || [];
     }
+
     function calculateWealthSupportScore(pillars) {
         const dayStem = pillars.day.charAt(0);
         const wealthStars = getWealthStars(dayStem);
@@ -836,6 +882,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (supportCount === 1) return 8;
         return 3;
     }
+
     function getGenerateStars(dayStem) {
         const generateMap = {
             '甲': ['丙', '丁', '午', '巳'],
@@ -851,9 +898,11 @@ document.addEventListener('DOMContentLoaded', function() {
         };
         return generateMap[dayStem] || [];
     }
+
     function calculateFortuneScore(pillars) {
         return 5;
     }
+
     function getFateLevel(score) {
         if (score >= 85) return { name: "天赐鸿运 ★★★★★ (85-100分)", class: "excellent" };
         if (score >= 70) return { name: "福星高照 ★★★★☆ (70-84分)", class: "good" };
@@ -861,6 +910,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (score >= 30) return { name: "勤能补拙 ★★☆☆☆ (30-49分)", class: "struggling" };
         return { name: "逆水行舟 ★☆☆☆☆ (<30分)", class: "needs-improvement" };
     }
+
     function getWealthLevel(score) {
         if (score >= 90) return { name: "天禄盈门 ★★★★★ (90分以上)", class: "ultra-rich" };
         if (score >= 80) return { name: "朱紫满箱 ★★★★☆ (80-89分)", class: "very-rich" };
@@ -868,6 +918,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (score >= 40) return { name: "岁稔年丰 ★★☆☆☆ (40-59分)", class: "somewhat-rich" };
         return { name: "营营逐逐 ★☆☆☆☆ (<40分)", class: "wealth-average" };
     }
+
     function displayScores() {
         if (!currentPillars.year) return;
         const fateScore = calculateFateScore(currentPillars);
@@ -955,6 +1006,7 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
         `;
     }
+
     function getHiddenStems(branch) {
         const hiddenStemsMap = {
             '子': '癸',
@@ -972,6 +1024,7 @@ document.addEventListener('DOMContentLoaded', function() {
         };
         return hiddenStemsMap[branch] || '';
     }
+
     function calculateBaziLocally(birthData) {
         const dateParts = birthData.date.split('-');
         const year = parseInt(dateParts[0]);
@@ -1002,14 +1055,9 @@ document.addEventListener('DOMContentLoaded', function() {
             hour: hourGan + hourZhi
         });
         const personality = getPersonalityTraits(dayGan);
-        const decadeFortune = calculateDecadeFortune(lunar, gender);
-        const gamblingFortune = {
-            rating: "★★★☆☆",
-            analysis: "今日偏财运中等，适合小赌怡情但不宜大额投注。",
-            direction: "东南",
-            hour: "13-15",
-            score: 3
-        };
+        const decadeFortune = calculateDecadeFortune(lunar, birthData.gender);
+        const gamblingFortune = calculateGamblingFortune(birthData, lunar);
+        
         return {
             yearStem: yearGan,
             yearBranch: yearZhi,
@@ -1029,6 +1077,7 @@ document.addEventListener('DOMContentLoaded', function() {
             gamblingFortune
         };
     }
+
     function calculateDecadeFortune(lunar, gender) {
         const yearGan = lunar.getYearGan();
         const yearZhi = lunar.getYearZhi();
@@ -1072,6 +1121,68 @@ document.addEventListener('DOMContentLoaded', function() {
             fortunes: fortunes
         };
     }
+          
+    function calculateGamblingFortune(birthData, birthLunar) {
+        const currentSolar = Solar.fromDate(new Date());
+        const currentLunar = currentSolar.getLunar();
+        const dayGan = birthLunar.getDayGan();
+        const dayZhi = birthLunar.getDayZhi();
+        const currentDayGan = currentLunar.getDayGan();
+        const currentDayZhi = currentLunar.getDayZhi();
+        
+        const ganScore = {
+            '甲': 3, '乙': 2, '丙': 4, '丁': 3, '戊': 2,
+            '己': 1, '庚': 3, '辛': 2, '壬': 4, '癸': 3
+        };
+        
+        const zhiScore = {
+            '子': 3, '丑': 2, '寅': 4, '卯': 3, '辰': 2,
+            '巳': 4, '午': 3, '未': 2, '申': 3, '酉': 2,
+            '戌': 1, '亥': 3
+        };
+        
+        const ganMatch = dayGan === currentDayGan ? 1 : 0;
+        const zhiMatch = dayZhi === currentDayZhi ? 1 : 0;
+        
+        const baseScore = ganScore[dayGan] + zhiScore[dayZhi];
+        const currentScore = ganScore[currentDayGan] + zhiScore[currentDayZhi];
+        const matchBonus = (ganMatch + zhiMatch) * 2;
+        
+        const dayOfMonth = currentLunar.getDay();
+        const month = currentLunar.getMonth();
+        const dayModifier = (dayOfMonth % 10) / 10;
+        const monthModifier = (month % 12) / 12;
+        
+        const totalScore = Math.min(5, Math.max(1, Math.round(
+            (baseScore + currentScore + matchBonus) / 4 + 
+            dayModifier + monthModifier
+        )));
+        
+        const rating = '★'.repeat(totalScore) + '☆'.repeat(5 - totalScore);
+        
+        const analysisTexts = [
+            "今日偏财运欠佳，建议远离赌博活动，专注正财为佳。",
+            "今日偏财运平平，小赌可能小输，建议控制投注金额。",
+            "今日偏财运中等，适合小赌怡情但不宜大额投注。",
+            "今日偏财运不错，可适度参与但需保持理性。",
+            "今日偏财运旺盛，但切勿贪心，见好就收为妙。"
+        ];
+        
+        const directions = ['东', '南', '西', '北', '东南', '西南', '东北', '西北'];
+        const bestDirection = directions[(dayOfMonth + month) % directions.length];
+        
+        const hours = ['1-3', '3-5', '5-7', '7-9', '9-11', '11-13', '13-15', '15-17', '17-19', '19-21', '21-23', '23-1'];
+        const bestHour = hours[(dayOfMonth * month) % hours.length];
+        
+        return {
+            rating: rating,
+            analysis: analysisTexts[totalScore - 1],
+            direction: bestDirection,
+            hour: bestHour,
+            score: totalScore
+        };
+    }
+
     function getPersonalityTraits(dayStem) {
         const traits = {
             '甲': '似参天大树，正直向上，有领导力但略显固执',
@@ -1087,6 +1198,7 @@ document.addEventListener('DOMContentLoaded', function() {
         };
         return traits[dayStem] || '似静水流深，临危反生智，藏锋守拙却暗含凌云之志';
     }
+
     function saveProfile(birthData) {
         const profiles = JSON.parse(localStorage.getItem('baziProfiles') || '[]');
         const existingIndex = profiles.findIndex(p => 
@@ -1105,6 +1217,7 @@ document.addEventListener('DOMContentLoaded', function() {
         localStorage.setItem('baziProfiles', JSON.stringify(profiles));
         loadSavedProfiles();
     }
+
     function loadSavedProfiles() {
         const profiles = JSON.parse(localStorage.getItem('baziProfiles') || '[]');
         savedProfilesList.innerHTML = '';
@@ -1137,6 +1250,7 @@ document.addEventListener('DOMContentLoaded', function() {
             savedProfilesList.appendChild(profileElement);
         });
     }
+
     function loadProfile(profile) {
         document.getElementById('name').value = profile.name || '';
         document.getElementById('birth-date').value = profile.date;
@@ -1149,6 +1263,7 @@ document.addEventListener('DOMContentLoaded', function() {
             birthTimeInput.value = profile.time;
         }
     }
+
     calculateBtn.addEventListener('click', async function(e) {
         e.preventDefault();
         resetAllContent();
@@ -1230,12 +1345,14 @@ document.addEventListener('DOMContentLoaded', function() {
             calculateBtn.innerHTML = '<i class="fas fa-brain"></i> 开始量子测算';
         }
     });
+
     async function getBaziAnalysis(section, data) {
         const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
         const apiKey = 'sk-b2950087a9d5427392762814114b22a9';
         const currentDateStr = currentDate.getFullYear() + '-' + 
                               (currentDate.getMonth() + 1).toString().padStart(2, '0') + '-' + 
                               currentDate.getDate().toString().padStart(2, '0');
+                  
         let prompt = `【八字排盘专业算法规范】请严格遵循以下计算规则：
 一、年柱计算规则
 以立春为界，不以农历春节为分界。
@@ -1282,12 +1399,14 @@ document.addEventListener('DOMContentLoaded', function() {
 起运时间计算：
 顺排：计算出生时间到下一个换月节气的时间差，3天 = 1岁。
 逆排：计算出生时间到上一个换月节气的时间差，3天 = 1岁。      
+
 当前日期：${currentDateStr}
 根据以下八字信息进行分析：
 姓名：${data.name || '未提供'}
 出生日期：${data.date}
 出生时间：${data.time} 
 性别：${data.gender === 'male' ? '男' : '女'}
+
 `;
         if (Object.keys(currentPillars).length > 0) {
             prompt += `当前八字：${currentPillars.year} ${currentPillars.month} ${currentPillars.day} ${currentPillars.hour}\n\n`;
@@ -1447,6 +1566,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const result = await response.json();
         return result.choices[0].message.content;
     }
+
     function displayBasicInfo(info) {
         const nameDisplay = document.getElementById('user-name-display');
         const birthDisplay = document.getElementById('user-birth-display');
@@ -1494,6 +1614,7 @@ document.addEventListener('DOMContentLoaded', function() {
             hour: info.hourStem + info.hourBranch
         };
     }
+
     function setElementColors(element, text) {
         const stemElements = {
             '甲': 'wood', '乙': 'wood',
@@ -1516,6 +1637,7 @@ document.addEventListener('DOMContentLoaded', function() {
             element.classList.add(branchElements[text]);
         }
     }
+
     function setHiddenStemsColors(element, stems) {
         element.classList.remove('wood', 'fire', 'earth', 'metal', 'water');
         const stemElements = {
@@ -1533,6 +1655,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         element.innerHTML = spans.join('');
     }
+
     function displaySectionContent(section, result, contentElement) {
         if (result.includes('★')) {
             result = result.replace(/(★+)/g, '<span class="rating" style="color:var(--earth-color);text-shadow:0 0 5px var(--earth-color)">$1</span>');
