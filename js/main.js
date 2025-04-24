@@ -1431,7 +1431,7 @@ document.addEventListener('DOMContentLoaded', function() {
 天干地支的合化和刑冲情况：[详细分析]
 特殊格局判断：[专旺格，从格，化气格，两神成象格，杂奇格，日贵格，三奇贵人格，禄元互换格，天元一气格，身杀两停格，伤官配印格，伤官见官格，伤官生财格，伤官泄秀格]
 喜用和忌凶：[详细分析]
-不要使用任何特殊符号`;
+段落与段落之间空一行`;
                 break;
             case 'career':
                 prompt += `详细分析适合行业情况：
@@ -1463,13 +1463,14 @@ document.addEventListener('DOMContentLoaded', function() {
 调候建议：[详细分析]`;
                 break;
             case 'personality':
-                prompt += `详细性格分析：
+                prompt += `分析命主脾气性格：
 1 外在性格分析
 2 内在性格分析
 3 特殊性格分析
-外在性格分析[详细分析]
-内在性格分析[详细分析]
-特殊性格分析[详细分析]`;
+外在性格分析[标题蓝色，内容简洁明了]
+内在性格分析[标题绿色，内容简洁明了]
+特殊性格分析[标题红色，内容简洁明了]
+段落与段落之间空一行`;
                 break;
             case 'children':
                 prompt += `分析子女情况：
