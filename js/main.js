@@ -177,7 +177,61 @@ document.addEventListener('DOMContentLoaded', function() {
         
         return answer;
     }
+    // ▼ 添加这个函数定义（放在 recalculateBtn 事件监听器之前）▼
+function resetAllContent() {
+    // 1. 重置分数和状态变量
+    fateScoreValue = 0;
+    wealthScoreValue = 0;
+    loadedSections = {};
+    currentPillars = {};
+    fateScoreDetails = {};
+    wealthScoreDetails = {};
 
+    // 2. 清除八字四柱显示
+    yearStem.textContent = '';
+    yearBranch.textContent = '';
+    yearHiddenStems.textContent = '';
+    monthStem.textContent = '';
+    monthBranch.textContent = '';
+    monthHiddenStems.textContent = '';
+    dayStem.textContent = '';
+    dayBranch.textContent = '';
+    dayHiddenStems.textContent = '';
+    hourStem.textContent = '';
+    hourBranch.textContent = '';
+    hourHiddenStems.textContent = '';
+
+    // 3. 重置分数显示区域
+    fateLevel.textContent = '';
+    fateScore.textContent = '';
+    fateDetails.innerHTML = '';
+    wealthLevel.textContent = '';
+    wealthScore.textContent = '';
+    wealthDetails.innerHTML = '';
+    personalityTraits.textContent = '命主性格：';
+
+    // 4. 重置所有内容区域
+    document.querySelectorAll('.section-content').forEach(el => {
+        el.innerHTML = '';
+        el.classList.remove('active');
+    });
+
+    // 5. 重置所有加载按钮
+    document.querySelectorAll('.load-btn').forEach(btn => {
+        const originalText = btn.getAttribute('data-original-text') || btn.querySelector('span').textContent;
+        btn.innerHTML = `<span>${originalText}</span><i class="fas fa-chevron-down toggle-icon"></i>`;
+        btn.classList.remove('active');
+        btn.disabled = false;
+    });
+
+    console.log("所有内容已重置完成"); // 调试用
+}
+
+// ▼ 确保 recalculateBtn 事件监听器在这之后 ▼
+recalculateBtn.addEventListener('click', function() {
+    // ...原有代码...
+    resetAllContent(); // 现在可以正确调用
+});
     // 重新计算按钮事件
     recalculateBtn.addEventListener('click', function() {
     // 1. 清空输入表单
