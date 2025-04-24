@@ -1513,7 +1513,7 @@ document.addEventListener('DOMContentLoaded', function() {
 流年事业吉凶分析：[以表格方式详细分析](1-5星)
 流年婚姻吉凶分析：[以表格方式详细分析](1-5星)
 流年重大事件吉凶分析：[以表格方式详细分析](1-5星)
-段落与段落之间空一行，标题显示黄色（#FFD700），重要字显示红色`;
+段落与段落之间空一行，设计美化排版格式`;
                 break;
             case 'daily-fortune':
                 prompt += `详细分析每日运势：
