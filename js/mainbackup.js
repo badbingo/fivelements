@@ -1,4 +1,3 @@
-// main.js
 document.addEventListener('DOMContentLoaded', function() {
     const calculateBtn = document.getElementById('calculate-btn');
     const recalculateBtn = document.getElementById('recalculate-btn');
@@ -43,14 +42,11 @@ document.addEventListener('DOMContentLoaded', function() {
     let wealthScoreDetails = {};
     let fateScoreValue = 0;
     let wealthScoreValue = 0;
-
-    // 新增的八字问答相关元素
     const baziQuestionInput = document.getElementById('bazi-question');
     const baziQaSubmit = document.getElementById('bazi-qa-submit');
     const baziQaResponse = document.getElementById('bazi-qa-response');
     const baziQaLoading = document.getElementById('bazi-qa-loading');
 
-    // Load saved profiles from localStorage
     loadSavedProfiles();
 
     timePeriodOptions.forEach(option => {
@@ -81,7 +77,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // 新增的八字问答提交处理
     baziQaSubmit.addEventListener('click', async function() {
         const question = baziQuestionInput.value.trim();
         if (!question) {
@@ -107,7 +102,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // 新增的获取八字问答答案函数
     async function getBaziAnswer(question) {
         const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
         const apiKey = 'sk-b2950087a9d5427392762814114b22a9';
@@ -201,7 +195,6 @@ document.addEventListener('DOMContentLoaded', function() {
         currentPillars = {};
         fateScoreDetails = {};
         wealthScoreDetails = {};
-        // 重置问答模块
         baziQuestionInput.value = '';
         baziQaResponse.innerHTML = '';
         baziQaResponse.style.display = 'none';
@@ -399,7 +392,6 @@ document.addEventListener('DOMContentLoaded', function() {
         canvas.className = 'fortune-chart';
         fortuneContent.appendChild(canvas);
         
-        // 提取运势数据
         const fortunes = calculateDecadeFortune(
             Solar.fromYmdHms(
                 parseInt(birthData.date.split('-')[0]),
@@ -412,7 +404,6 @@ document.addEventListener('DOMContentLoaded', function() {
             birthData.gender
         ).fortunes;
 
-        // 准备图表数据
         const chartData = {
             labels: fortunes.map(f => f.ageRange),
             datasets: [{
@@ -1064,11 +1055,7 @@ document.addEventListener('DOMContentLoaded', function() {
             hour: hourGan + hourZhi
         });
         const personality = getPersonalityTraits(dayGan);
-        
-        // Calculate decade fortune locally
-        const decadeFortune = calculateDecadeFortune(lunar, gender); // 使用自定义函数
-        
-        // Calculate gambling fortune
+        const decadeFortune = calculateDecadeFortune(lunar, birthData.gender);
         const gamblingFortune = calculateGamblingFortune(birthData, lunar);
         
         return {
@@ -1092,61 +1079,42 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function calculateDecadeFortune(lunar, gender) {
-        const yearGan = lunar.getYearGan(); // 年干
-        const yearZhi = lunar.getYearZhi(); // 年支
+        const yearGan = lunar.getYearGan();
+        const yearZhi = lunar.getYearZhi();
         const isMale = gender === 'male';
         const isYangYear = ['甲', '丙', '戊', '庚', '壬'].includes(yearGan);
-
-        // 规则：阳年男顺排，阴年女顺排；阴年男逆排，阳年女逆排
         const isForward = (isYangYear && isMale) || (!isYangYear && !isMale);
-
-        // 计算起运时间（3天 = 1岁）
         const solar = lunar.getSolar();
-        const jieQiName = isForward ? '立春' : '大寒'; // 顺排找下一个节气，逆排找上一个
+        const jieQiName = isForward ? '立春' : '大寒';
         const targetJieQi = lunar.getJieQi(jieQiName);
-        
-        // 如果找不到节气（如1900年前数据），使用默认值
-        let daysDiff = 15; // 默认15天（5岁起运）
+        let daysDiff = 15;
         if (targetJieQi) {
             daysDiff = Math.abs(solar.getDiffDays(targetJieQi));
         }
-        const startAge = Math.floor(daysDiff / 3); // 起运年龄
-
-        // 地支顺序（用于顺排/逆排）
+        const startAge = Math.floor(daysDiff / 3);
         const zhiOrder = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
         let currentZhiIndex = zhiOrder.indexOf(yearZhi);
-
-        // 天干顺序
         const ganOrder = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
         let currentGanIndex = ganOrder.indexOf(yearGan);
-
-        // 生成大运（每10年一运）
         const fortunes = [];
-        for (let i = 0; i < 8; i++) { // 生成8个大运（覆盖80年）
-            // 计算干支
+        for (let i = 0; i < 8; i++) {
             currentZhiIndex = isForward ? 
                 (currentZhiIndex + 1) % 12 : 
                 (currentZhiIndex - 1 + 12) % 12;
-            
             currentGanIndex = isForward ?
                 (currentGanIndex + 1) % 10 :
                 (currentGanIndex - 1 + 10) % 10;
-
             const gan = ganOrder[currentGanIndex];
             const zhi = zhiOrder[currentZhiIndex];
-
-            // 运势评分（60-90分随机，但带趋势）
             const baseScore = 60 + Math.floor(Math.random() * 20);
-            const trendBonus = isForward ? i * 2 : (7 - i) * 2; // 顺排越往后分越高，逆排反之
+            const trendBonus = isForward ? i * 2 : (7 - i) * 2;
             const score = Math.min(90, baseScore + trendBonus);
-
             fortunes.push({
                 ageRange: `${startAge + i * 10}-${startAge + (i + 1) * 10}岁`,
                 ganZhi: gan + zhi,
                 score: score
             });
         }
-
         return {
             isForward: isForward,
             startAge: startAge,
@@ -1154,14 +1122,14 @@ document.addEventListener('DOMContentLoaded', function() {
         };
     }
           
-    
-    function calculateGamblingFortune(birthData, lunar) {
-        const dayGan = lunar.getDayGan();
-        const dayZhi = lunar.getDayZhi();
-        const currentDayGan = lunar.getDayGan();
-        const currentDayZhi = lunar.getDayZhi();
+    function calculateGamblingFortune(birthData, birthLunar) {
+        const currentSolar = Solar.fromDate(new Date());
+        const currentLunar = currentSolar.getLunar();
+        const dayGan = birthLunar.getDayGan();
+        const dayZhi = birthLunar.getDayZhi();
+        const currentDayGan = currentLunar.getDayGan();
+        const currentDayZhi = currentLunar.getDayZhi();
         
-        // Calculate gambling score (1-5)
         const ganScore = {
             '甲': 3, '乙': 2, '丙': 4, '丁': 3, '戊': 2,
             '己': 1, '庚': 3, '辛': 2, '壬': 4, '癸': 3
@@ -1180,29 +1148,35 @@ document.addEventListener('DOMContentLoaded', function() {
         const currentScore = ganScore[currentDayGan] + zhiScore[currentDayZhi];
         const matchBonus = (ganMatch + zhiMatch) * 2;
         
-        const totalScore = Math.min(5, Math.max(1, Math.round((baseScore + currentScore + matchBonus) / 4)));
+        const dayOfMonth = currentLunar.getDay();
+        const month = currentLunar.getMonth();
+        const dayModifier = (dayOfMonth % 10) / 10;
+        const monthModifier = (month % 12) / 12;
         
-        // Generate rating stars based on score
+        const totalScore = Math.min(5, Math.max(1, Math.round(
+            (baseScore + currentScore + matchBonus) / 4 + 
+            dayModifier + monthModifier
+        )));
+        
         const rating = '★'.repeat(totalScore) + '☆'.repeat(5 - totalScore);
         
-        // Generate corresponding analysis text based on score
-        const analysisText = [
+        const analysisTexts = [
             "今日偏财运欠佳，建议远离赌博活动，专注正财为佳。",
             "今日偏财运平平，小赌可能小输，建议控制投注金额。",
             "今日偏财运中等，适合小赌怡情但不宜大额投注。",
             "今日偏财运不错，可适度参与但需保持理性。",
             "今日偏财运旺盛，但切勿贪心，见好就收为妙。"
-        ][totalScore - 1];
+        ];
         
         const directions = ['东', '南', '西', '北', '东南', '西南', '东北', '西北'];
-        const bestDirection = directions[Math.floor(Math.random() * directions.length)];
+        const bestDirection = directions[(dayOfMonth + month) % directions.length];
         
         const hours = ['1-3', '3-5', '5-7', '7-9', '9-11', '11-13', '13-15', '15-17', '17-19', '19-21', '21-23', '23-1'];
-        const bestHour = hours[Math.floor(Math.random() * hours.length)];
+        const bestHour = hours[(dayOfMonth * month) % hours.length];
         
         return {
             rating: rating,
-            analysis: analysisText,
+            analysis: analysisTexts[totalScore - 1],
             direction: bestDirection,
             hour: bestHour,
             score: totalScore
@@ -1227,27 +1201,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function saveProfile(birthData) {
         const profiles = JSON.parse(localStorage.getItem('baziProfiles') || '[]');
-        
-        // Check if profile already exists
         const existingIndex = profiles.findIndex(p => 
             p.date === birthData.date && 
             p.time === birthData.time && 
             p.gender === birthData.gender
         );
-        
         if (existingIndex >= 0) {
-            // Update existing profile
             profiles[existingIndex] = birthData;
         } else {
-            // Add new profile
             profiles.push(birthData);
         }
-        
-        // Limit to 5 profiles
         if (profiles.length > 5) {
             profiles.shift();
         }
-        
         localStorage.setItem('baziProfiles', JSON.stringify(profiles));
         loadSavedProfiles();
     }
@@ -1255,12 +1221,10 @@ document.addEventListener('DOMContentLoaded', function() {
     function loadSavedProfiles() {
         const profiles = JSON.parse(localStorage.getItem('baziProfiles') || '[]');
         savedProfilesList.innerHTML = '';
-        
         if (profiles.length === 0) {
             savedProfilesList.innerHTML = '<div style="color:var(--text-light);font-size:14px;">暂无历史记录</div>';
             return;
         }
-        
         profiles.forEach((profile, index) => {
             const hour = parseInt(profile.time.split(':')[0]);
             const timeMap = {
@@ -1272,7 +1236,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 17: '酉时', 19: '戌时',
                 21: '亥时'
            };
-            
             const profileElement = document.createElement('div');
             profileElement.className = 'saved-profile';
             profileElement.innerHTML = `
@@ -1281,11 +1244,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 ${timeMap[hour]} · 
                 ${profile.gender === 'male' ? '男' : '女'}
             `;
-            
             profileElement.addEventListener('click', () => {
                 loadProfile(profile);
             });
-            
             savedProfilesList.appendChild(profileElement);
         });
     }
@@ -1294,8 +1255,6 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('name').value = profile.name || '';
         document.getElementById('birth-date').value = profile.date;
         document.getElementById('gender').value = profile.gender;
-        
-        // Set time period
         const hour = parseInt(profile.time.split(':')[0]);
         timePeriodOptions.forEach(opt => opt.classList.remove('selected'));
         const selectedOption = document.querySelector(`.time-period-option[data-hour="${hour}"]`);
@@ -1342,10 +1301,7 @@ document.addEventListener('DOMContentLoaded', function() {
             time: birthTime, 
             gender: gender
         };
-        
-        // Save profile to localStorage
         saveProfile(birthData);
-        
         calculateBtn.disabled = true;
         calculateBtn.innerHTML = '<span class="loading"></span> 量子测算中...';
         try {
@@ -1367,15 +1323,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 hour: baziInfo.hourStem + baziInfo.hourBranch
             };
             displayScores();
-            
-            // Update gambling analysis
             gamblingRating.textContent = baziInfo.gamblingFortune.rating;
             gamblingDetails.innerHTML = `
             ${baziInfo.gamblingFortune.analysis}<br>
             最佳方位: ${baziInfo.gamblingFortune.direction}<br>
             最佳时段: ${baziInfo.gamblingFortune.hour}
             `;
-            
             inputSection.style.display = 'none';
             resultSection.style.display = 'block';
             document.body.removeChild(loadingOverlay);
@@ -1455,11 +1408,9 @@ document.addEventListener('DOMContentLoaded', function() {
 性别：${data.gender === 'male' ? '男' : '女'}
 
 `;
-
         if (Object.keys(currentPillars).length > 0) {
             prompt += `当前八字：${currentPillars.year} ${currentPillars.month} ${currentPillars.day} ${currentPillars.hour}\n\n`;
         }
-
         switch(section) {
             case 'basic':
                 prompt += `请返回以下信息：
@@ -1467,8 +1418,7 @@ document.addEventListener('DOMContentLoaded', function() {
 2 地支藏干：年支[藏干] 月支[藏干] 日支[藏干] 时支[藏干]
 3 五行能量：[木,火,土,金,水] (1-10分，请根据八字五行生克关系计算具体数值)
 4 命主性格：[用一句话描述命主的性格特质，如："似静水流深，临危反生智，藏锋守拙却暗含凌云之志"]
-
-用简洁格式返回，不要分析内容，不要使用任何符号如#*、等。`;
+用简洁格式返回，不要分析内容，不要使用任何符号如#*、等。`
                 break;
             case 'strength':
                 prompt += `分析命主的身强身弱情况：
@@ -1476,32 +1426,31 @@ document.addEventListener('DOMContentLoaded', function() {
 2 天干地支的合化和刑冲情况
 3 特殊格局判断
 4 喜用和忌凶
-
 返回格式：
 日主得令、得地、得势的情况：[详细分析]
 天干地支的合化和刑冲情况：[详细分析]
 特殊格局判断：[专旺格，从格，化气格，两神成象格，杂奇格，日贵格，三奇贵人格，禄元互换格，天元一气格，身杀两停格，伤官配印格，伤官见官格，伤官生财格，伤官泄秀格]
-喜用和忌凶：[详细分析]
-不要使用任何特殊符号`;
+喜用和忌凶：[视觉化总结]
+用Markdown格式，段落与段落之间空一行，使用分隔线，标题和重要内容高亮显示，添加视觉引导元素如箭头、进度条等，不要使用任何特殊符号`;
                 break;
             case 'career':
                 prompt += `详细分析适合行业情况：
 1 适合行业分析
 2 最佳行业推荐
 3 流年事业运分析
-
 返回格式：
-流年事业运分析：[以表格方式详细分析](1-5星)`;
+流年事业运分析：[以表格方式详细分析](1-5星)
+用Markdown格式，段落与段落之间空一行，使用分隔线，标题和重要内容高亮显示，添加视觉引导元素如箭头、进度条等，不要使用任何特殊符号`;
                 break;
             case 'wealth':
                 prompt += `详细分析财富情况：
 1 财富格局
 2 流年财运分析
 3 大运财运分析
-
 返回格式：
 流年财运分析：[以表格方式详细分析](1-5星)
-大运财运分析：[以表格方式详细分析](1-5星)`;
+大运财运分析：[以表格方式详细分析](1-5星)
+用Markdown格式，段落与段落之间空一行，使用分隔线，标题和重要内容高亮显示，添加视觉引导元素如箭头、进度条等，不要使用任何特殊符号`;
                 break;
             case 'elements':
                 prompt += `分析八字五行强弱，燥湿和流通情况：
@@ -1509,41 +1458,41 @@ document.addEventListener('DOMContentLoaded', function() {
 2 五行燥湿分析
 3 五行流通分析
 4 调候建议
-
 返回格式：
 五行强弱分析[详细分析]
 五行燥湿分析[详细分析]
 五行流通分析[详细分析]
-调候建议：[详细分析]`;
+调候建议：[详细分析]
+用Markdown格式，段落与段落之间空一行，使用分隔线，标题和重要内容高亮显示，添加视觉引导元素如箭头、进度条等，不要使用任何特殊符号`;
                 break;
             case 'personality':
-                prompt += `详细性格分析：
+                prompt += `分析命主脾气性格：
 1 外在性格分析
 2 内在性格分析
 3 特殊性格分析
-
-外在性格分析[详细分析]
-内在性格分析[详细分析]
-特殊性格分析[详细分析]`;
+外在性格分析[内容简洁]
+内在性格分析[内容简洁]
+特殊性格分析[内容简洁]
+用Markdown格式，段落与段落之间空一行，使用分隔线，标题和重要内容高亮显示，添加视觉引导元素如箭头、进度条等，不要使用任何特殊符号`;
                 break;
             case 'children':
                 prompt += `分析子女情况：
 1 子女数量分析
 2 子女缘分分析
-
 子女数量：[男女]
-子女缘分分析：[详细分析]`;
+子女缘分分析：[详细分析]
+用Markdown格式，段落与段落之间空一行，使用分隔线，标题和重要内容高亮显示，添加视觉引导元素如箭头、进度条等，不要使用任何特殊符号`;
                 break;
             case 'marriage':
                 prompt += `分析婚姻情况：
 1 适婚年份
 2 桃花年份
 3 流月婚姻吉凶分析
-
 返回格式：
 适婚年份：[表格方式呈现]
 桃花年份：[表格方式呈现]
-流月婚姻吉凶分析：[表格方式呈现具体建议](1-5星)`;
+流月婚姻吉凶分析：[表格方式呈现具体建议](1-5星)
+用Markdown格式，段落与段落之间空一行，使用分隔线，标题和重要内容高亮显示，添加视觉引导元素如箭头、进度条等，不要使用任何特殊符号`;
                 break;
             case 'health':
                 prompt += `详细分析健康状况：
@@ -1551,69 +1500,68 @@ document.addEventListener('DOMContentLoaded', function() {
 2 潜在健康问题
 3 养生建议
 4 流年健康分析
-
 返回格式：
-流年健康分析：[表格方式呈现具体建议]`;
+流年健康分析：[表格方式呈现具体建议]
+用Markdown格式，段落与段落之间空一行，使用分隔线，标题和重要内容高亮显示，添加视觉引导元素如箭头、进度条等，不要使用任何特殊符号`;
                 break;
             case 'annual-fortune':
                 prompt += `详细分析当前流年运势：
 1 流年事业吉凶分析
 2 流年婚姻吉凶分析
 3 流年重大事件吉凶分析
-
 返回格式：
 流年事业吉凶分析：[以表格方式详细分析](1-5星)
 流年婚姻吉凶分析：[以表格方式详细分析](1-5星)
-流年重大事件吉凶分析：[以表格方式详细分析](1-5星)`;
+流年重大事件吉凶分析：[以表格方式详细分析](1-5星)
+用Markdown格式，段落与段落之间空一行，使用分隔线，标题和重要内容高亮显示，添加视觉引导元素如箭头、进度条等，不要使用任何特殊符号`;
                 break;
             case 'daily-fortune':
                 prompt += `详细分析每日运势：
 1 每日吉凶时辰
 2 每日宜忌事项
 3 每日冲煞方位
-
 返回格式：
 每日吉凶时辰：[表格方式详细分析]
 每日宜忌事项：[表格方式详细分析]
-每日冲煞方位：[表格方式详细分析]`;
+每日冲煞方位：[表格方式详细分析]
+用Markdown格式，段落与段落之间空一行，使用分隔线，标题和重要内容高亮显示，添加视觉引导元素如箭头、进度条等，不要使用任何特殊符号`;
                 break;
             case 'milestones':
                 prompt += `分析一生重要节点和重大灾祸：
 1 一生重要事件分析
 2 一生重大灾祸分析
 3 如何趋吉避凶
-
 返回格式：
 一生重要事件分析：[以表格方式详细分析]
 一生重大灾祸分析：[以表格方式详细分析]
-如何趋吉避凶：[详细分析] `;
+如何趋吉避凶：[详细分析]
+用Markdown格式，段落与段落之间空一行，使用分隔线，标题和重要内容高亮显示，添加视觉引导元素如箭头、进度条等，不要使用任何特殊符号`;
                 break;
             case 'decade-fortune':
                 prompt += `分析十年大运走势：
 1 大运事业吉凶分析
 2 大运婚姻吉凶分析
 3 大运重大事件吉凶分析
-
 返回格式：
 大运事业吉凶分析：[以表格方式详细分析](1-5星)
 大运婚姻吉凶分析：[以表格方式详细分析](1-5星)
-大运重大事件吉凶分析：[以表格方式详细分析] (1-5星)`;
+大运重大事件吉凶分析：[以表格方式详细分析] (1-5星)
+用Markdown格式，段落与段落之间空一行，使用分隔线，标题和重要内容高亮显示，添加视觉引导元素如箭头、进度条等，不要使用任何特殊符号`;
                 break;
             case 'monthly-fortune':
                 prompt += `详细分析今年每月运势：
 1 事业吉凶分析
 2 婚姻吉凶分析
 3 重大事件吉凶分析
-
 返回格式：
 事业吉凶分析：[以表格方式详细分析](1-5星)
 婚姻吉凶分析：[以表格方式详细分析](1-5星)
-重大事件吉凶分析：[以表格方式详细分析] (1-5星)`;
+重大事件吉凶分析：[以表格方式详细分析] (1-5星)
+用Markdown格式，段落与段落之间空一行，使用分隔线，标题和重要内容高亮显示，添加视觉引导元素如箭头、进度条等，不要使用任何特殊符号`;
                 break;
             default:
                 prompt += `请分析${section}相关内容`;
         }
-
         const response = await fetch(apiUrl, {
             method: 'POST',
             headers: {
@@ -1623,10 +1571,10 @@ document.addEventListener('DOMContentLoaded', function() {
             body: JSON.stringify({
                 model: "deepseek-chat",
                 messages: [{ role: "user", content: prompt }],
-                temperature: 0
+                temperature: 0,
+                seed: 12345
             })
         });
-        
         if (!response.ok) throw new Error(`API请求失败: ${response.status}`);
         const result = await response.json();
         return result.choices[0].message.content;
