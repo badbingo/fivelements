@@ -154,6 +154,11 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     function resetAllContent() {
+        // +++ 新增代码 +++
+    if (elementChart) {
+        elementChart.destroy(); // 销毁旧图表
+        elementChart = null;    // 清空引用
+    }
         fateScoreValue = 0;
         wealthScoreValue = 0;
         yearStem.textContent = '';
@@ -267,6 +272,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function initElementChart(baziInfo) {
+        if (elementChart) {
+        elementChart.destroy();
+        elementChart = null;
+    }
         // Calculate original birth chart elements
         const birthElements = calculateElementEnergy({
             year: baziInfo.yearStem + baziInfo.yearBranch,
