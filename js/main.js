@@ -180,135 +180,103 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 重新计算按钮事件
     recalculateBtn.addEventListener('click', function() {
-        document.getElementById('name').value = '';
-        document.getElementById('birth-date').value = '';
-        document.getElementById('birth-time').value = '';
-        document.getElementById('gender').value = '';
-        timePeriodOptions.forEach(opt => opt.classList.remove('selected'));
-        resultSection.style.display = 'none';
-        inputSection.style.display = 'block';
-        resetAllContent();
-        if (elementChart) {
-            elementChart.destroy();
-        }
-        window.scrollTo(0, 0);
-    });
+    // 1. 清空输入表单
+    document.getElementById('name').value = '';
+    document.getElementById('birth-date').value = '';
+    document.getElementById('birth-time').value = '';
+    document.getElementById('gender').value = '';
+    timePeriodOptions.forEach(opt => opt.classList.remove('selected'));
 
-    // 重置所有内容
-    function resetAllContent() {
-        fateScoreValue = 0;
-        wealthScoreValue = 0;
-        yearStem.textContent = '';
-        yearBranch.textContent = '';
-        yearHiddenStems.textContent = '';
-        monthStem.textContent = '';
-        monthBranch.textContent = '';
-        monthHiddenStems.textContent = '';
-        dayStem.textContent = '';
-        dayBranch.textContent = '';
-        dayHiddenStems.textContent = '';
-        hourStem.textContent = '';
-        hourBranch.textContent = '';
-        hourHiddenStems.textContent = '';
-        fateLevel.textContent = '';
-        fateScore.textContent = '';
-        fateDetails.innerHTML = '';
-        wealthLevel.textContent = '';
-        wealthScore.textContent = '';
-        wealthDetails.innerHTML = '';
-        personalityTraits.textContent = '命主性格：';
-        document.querySelectorAll('.section-content').forEach(el => {
-            el.innerHTML = '';
-            el.classList.remove('active');
-        });
-        document.querySelectorAll('.load-btn').forEach(btn => {
-            const originalContent = btn.querySelector('span').innerHTML;
-            btn.innerHTML = `<span>${originalContent}</span><i class="fas fa-chevron-down toggle-icon"></i>`;
-            btn.classList.remove('active');
-            btn.disabled = false;
-        });
-        document.querySelectorAll('.load-btn-container').forEach(container => {
-            container.classList.remove('active');
-        });
-        document.querySelectorAll('.menu-tab').forEach(tab => tab.classList.remove('active'));
-        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-        document.querySelector('.menu-tab[data-tab="fortune"]').classList.add('active');
-        document.getElementById('fortune-tab').classList.add('active');
-        loadedSections = {};
-        currentPillars = {};
-        fateScoreDetails = {};
-        wealthScoreDetails = {};
-        baziQuestionInput.value = '';
-        baziQaResponse.innerHTML = '';
-        baziQaResponse.style.display = 'none';
-        baziQaLoading.style.display = 'none';
+    // 2. 切换界面显示（隐藏结果，显示输入）
+    resultSection.style.display = 'none';
+    inputSection.style.display = 'block';
+
+    // 3. 重置所有内容和状态
+    resetAllContent(); // 调用我们修改后的重置函数
+
+    // 4. 销毁五行能量雷达图（避免内存泄漏）
+    if (elementChart) {
+        elementChart.destroy();
+        elementChart = null; // 清除图表引用
     }
 
-    // 菜单标签切换事件
-    document.querySelectorAll('.menu-tab').forEach(tab => {
-        tab.addEventListener('click', function() {
-            document.querySelectorAll('.menu-tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            this.classList.add('active');
-            const tabId = this.getAttribute('data-tab') + '-tab';
-            document.getElementById(tabId).classList.add('active');
-        });
-    });
+    // 5. 重新初始化所有加载按钮（关键修复！）
+    initLoadButtons();
+
+    // 6. 滚动到页面顶部
+    window.scrollTo(0, 0);
+});
 
     // 初始化加载按钮
     function initLoadButtons() {
-        document.querySelectorAll('.load-btn').forEach(button => {
-            const section = button.getAttribute('data-section');
-            if (loadedSections[section]) return;
-            const contentElement = document.getElementById(`${section}-content`);
-            const container = button.closest('.load-btn-container');
-            button.addEventListener('click', async function(e) {
-                e.preventDefault();
-                if (loadedSections[section]) {
-                    container.classList.toggle('active');
-                    contentElement.classList.toggle('active');
-                    return;
+    document.querySelectorAll('.load-btn').forEach(button => {
+        // 保存按钮原始文本
+        const originalText = button.querySelector('span').textContent;
+        button.setAttribute('data-original-text', originalText);
+
+        const section = button.getAttribute('data-section');
+        const contentElement = document.getElementById(`${section}-content`);
+        const container = button.closest('.load-btn-container');
+
+        // 移除旧的点击事件（避免重复绑定）
+        const newButton = button.cloneNode(true);
+        button.parentNode.replaceChild(newButton, button);
+
+        newButton.addEventListener('click', async function(e) {
+            e.preventDefault();
+
+            // 如果内容已加载，只切换显示/隐藏
+            if (loadedSections[section]) {
+                container.classList.toggle('active');
+                contentElement.classList.toggle('active');
+                return;
+            }
+
+            // 开始加载内容
+            newButton.disabled = true;
+            newButton.innerHTML = `<span><span class="loading"></span> 量子分析中...</span><i class="fas fa-chevron-down toggle-icon"></i>`;
+            container.classList.add('active');
+
+            // 添加进度条
+            const progressContainer = document.createElement('div');
+            progressContainer.className = 'progress-container';
+            progressContainer.innerHTML = '<div class="progress-bar"></div>';
+            contentElement.innerHTML = '';
+            contentElement.appendChild(progressContainer);
+            const progressBar = progressContainer.querySelector('.progress-bar');
+
+            // 模拟进度
+            let progress = 0;
+            const progressInterval = setInterval(() => {
+                progress += Math.random() * 10;
+                if (progress >= 100) progress = 100;
+                progressBar.style.width = `${progress}%`;
+            }, 300);
+
+            try {
+                const result = await getBaziAnalysis(section, birthData);
+                clearInterval(progressInterval);
+                displaySectionContent(section, result, contentElement);
+                
+                // 更新按钮状态
+                newButton.innerHTML = `<span>${originalText}</span><i class="fas fa-check"></i><i class="fas fa-chevron-down toggle-icon"></i>`;
+                newButton.disabled = false;
+                contentElement.classList.add('active');
+                loadedSections[section] = true;
+
+                if (section === 'decade-fortune') {
+                    initFortuneChart(result);
                 }
-                const originalBtnHtml = button.innerHTML;
-                this.disabled = true;
-                const sectionName = button.querySelector('span').textContent.trim();
-                button.innerHTML = `<span><span class="loading"></span> 量子分析中...</span><i class="fas fa-chevron-down toggle-icon"></i>`;
-                container.classList.add('active');
-                const progressContainer = document.createElement('div');
-                progressContainer.className = 'progress-container';
-                progressContainer.innerHTML = '<div class="progress-bar"></div>';
-                progressContainer.style.display = 'block';
-                contentElement.innerHTML = '';
-                contentElement.appendChild(progressContainer);
-                const progressBar = progressContainer.querySelector('.progress-bar');
-                let progress = 0;
-                const progressInterval = setInterval(() => {
-                    progress += Math.random() * 10;
-                    if (progress >= 100) progress = 100;
-                    progressBar.style.width = `${progress}%`;
-                }, 300);
-                try {
-                    const result = await getBaziAnalysis(section, birthData);
-                    clearInterval(progressInterval);
-                    displaySectionContent(section, result, contentElement);
-                    button.innerHTML = originalBtnHtml.replace('<i class="fas fa-chevron-down toggle-icon"></i>', 
-                        '<i class="fas fa-check"></i><i class="fas fa-chevron-down toggle-icon"></i>');
-                    button.disabled = false;
-                    contentElement.classList.add('active');
-                    loadedSections[section] = true;
-                    if (section === 'decade-fortune') {
-                        initFortuneChart(result);
-                    }
-                } catch (error) {
-                    console.error(`加载${section}失败:`, error);
-                    clearInterval(progressInterval);
-                    contentElement.innerHTML = '<p style="color:var(--danger-color)">加载失败，请重试</p>';
-                    button.disabled = false;
-                    button.innerHTML = originalBtnHtml;
-                }
-            });
+            } catch (error) {
+                console.error(`加载${section}失败:`, error);
+                clearInterval(progressInterval);
+                contentElement.innerHTML = '<p style="color:var(--danger-color)">加载失败，请重试</p>';
+                newButton.innerHTML = `<span>${originalText}</span><i class="fas fa-chevron-down toggle-icon"></i>`;
+                newButton.disabled = false;
+            }
         });
-    }
+    });
+}
 
     // 初始化五行元素图表
     function initElementChart(data) {
