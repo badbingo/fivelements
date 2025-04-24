@@ -1450,7 +1450,7 @@ document.addEventListener('DOMContentLoaded', function() {
 返回格式：
 流年财运分析：[以表格方式详细分析](1-5星)
 大运财运分析：[以表格方式详细分析](1-5星)
-用Markdown格式，段落与段落之间空一行，使用分隔线，重要内容高亮显示，添加视觉引导元素如箭头、进度条等`;
+用Markdown格式，段落与段落之间空一行，使用分隔线，标题和重要内容高亮显示，添加视觉引导元素如箭头、进度条等`;
                 break;
             case 'elements':
                 prompt += `分析八字五行强弱，燥湿和流通情况：
@@ -1463,7 +1463,7 @@ document.addEventListener('DOMContentLoaded', function() {
 五行燥湿分析[详细分析]
 五行流通分析[详细分析]
 调候建议：[详细分析]
-用Markdown格式，段落与段落之间空一行，使用分隔线，重要内容高亮显示，添加视觉引导元素如箭头、进度条等`;
+用Markdown格式，段落与段落之间空一行，使用分隔线，标题和重要内容高亮显示，添加视觉引导元素如箭头、进度条等`;
                 break;
             case 'personality':
                 prompt += `分析命主脾气性格：
@@ -1473,7 +1473,7 @@ document.addEventListener('DOMContentLoaded', function() {
 外在性格分析[内容简洁]
 内在性格分析[内容简洁]
 特殊性格分析[内容简洁]
-段落与段落之间空一行，标题（黄色），重要字（红色）`;
+用Markdown格式，段落与段落之间空一行，使用分隔线，标题和重要内容高亮显示，添加视觉引导元素如箭头、进度条等`;
                 break;
             case 'children':
                 prompt += `分析子女情况：
@@ -1481,7 +1481,7 @@ document.addEventListener('DOMContentLoaded', function() {
 2 子女缘分分析
 子女数量：[男女]
 子女缘分分析：[详细分析]
-段落与段落之间空一行，标题（黄色），重要字（红色）`;
+用Markdown格式，段落与段落之间空一行，使用分隔线，标题和重要内容高亮显示，添加视觉引导元素如箭头、进度条等`;
                 break;
             case 'marriage':
                 prompt += `分析婚姻情况：
@@ -1492,7 +1492,7 @@ document.addEventListener('DOMContentLoaded', function() {
 适婚年份：[表格方式呈现]
 桃花年份：[表格方式呈现]
 流月婚姻吉凶分析：[表格方式呈现具体建议](1-5星)
-段落与段落之间空一行，标题（黄色），重要字（红色）`;
+用Markdown格式，段落与段落之间空一行，使用分隔线，标题和重要内容高亮显示，添加视觉引导元素如箭头、进度条等`;
                 break;
             case 'health':
                 prompt += `详细分析健康状况：
@@ -1502,7 +1502,7 @@ document.addEventListener('DOMContentLoaded', function() {
 4 流年健康分析
 返回格式：
 流年健康分析：[表格方式呈现具体建议]
-段落与段落之间空一行，标题（黄色），重要字（红色）`;
+用Markdown格式，段落与段落之间空一行，使用分隔线，标题和重要内容高亮显示，添加视觉引导元素如箭头、进度条等`;
                 break;
             case 'annual-fortune':
                 prompt += `详细分析当前流年运势：
@@ -1513,7 +1513,7 @@ document.addEventListener('DOMContentLoaded', function() {
 流年事业吉凶分析：[以表格方式详细分析](1-5星)
 流年婚姻吉凶分析：[以表格方式详细分析](1-5星)
 流年重大事件吉凶分析：[以表格方式详细分析](1-5星)
-段落与段落之间空一行，使用特定符号（如分隔线、emoji图标），要求重要内容高亮显示，添加视觉引导元素（如箭头、进度条等）`;
+用Markdown格式，段落与段落之间空一行，使用分隔线，标题和重要内容高亮显示，添加视觉引导元素如箭头、进度条等`;
                 break;
             case 'daily-fortune':
                 prompt += `详细分析每日运势：
@@ -1524,7 +1524,7 @@ document.addEventListener('DOMContentLoaded', function() {
 每日吉凶时辰：[表格方式详细分析]
 每日宜忌事项：[表格方式详细分析]
 每日冲煞方位：[表格方式详细分析]
-段落与段落之间空一行，标题（黄色），重要字（红色）`;
+用Markdown格式，段落与段落之间空一行，使用分隔线，标题和重要内容高亮显示，添加视觉引导元素如箭头、进度条等`;
                 break;
             case 'milestones':
                 prompt += `分析一生重要节点和重大灾祸：
@@ -1535,7 +1535,7 @@ document.addEventListener('DOMContentLoaded', function() {
 一生重要事件分析：[以表格方式详细分析]
 一生重大灾祸分析：[以表格方式详细分析]
 如何趋吉避凶：[详细分析]
-段落与段落之间空一行，标题（黄色），重要字（红色）`;
+用Markdown格式，段落与段落之间空一行，使用分隔线，标题和重要内容高亮显示，添加视觉引导元素如箭头、进度条等`;
                 break;
             case 'decade-fortune':
                 prompt += `分析十年大运走势：
@@ -1546,7 +1546,7 @@ document.addEventListener('DOMContentLoaded', function() {
 大运事业吉凶分析：[以表格方式详细分析](1-5星)
 大运婚姻吉凶分析：[以表格方式详细分析](1-5星)
 大运重大事件吉凶分析：[以表格方式详细分析] (1-5星)
-段落与段落之间空一行，标题（黄色），重要字（红色）`;
+用Markdown格式，段落与段落之间空一行，使用分隔线，标题和重要内容高亮显示，添加视觉引导元素如箭头、进度条等`;
                 break;
             case 'monthly-fortune':
                 prompt += `详细分析今年每月运势：
@@ -1557,7 +1557,7 @@ document.addEventListener('DOMContentLoaded', function() {
 事业吉凶分析：[以表格方式详细分析](1-5星)
 婚姻吉凶分析：[以表格方式详细分析](1-5星)
 重大事件吉凶分析：[以表格方式详细分析] (1-5星)
-段落与段落之间空一行，标题（黄色），重要字（红色）`;
+用Markdown格式，段落与段落之间空一行，使用分隔线，标题和重要内容高亮显示，添加视觉引导元素如箭头、进度条等`;
                 break;
             default:
                 prompt += `请分析${section}相关内容`;
