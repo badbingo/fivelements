@@ -1450,7 +1450,7 @@ document.addEventListener('DOMContentLoaded', function() {
 返回格式：
 流年财运分析：[以表格方式详细分析](1-5星)
 大运财运分析：[以表格方式详细分析](1-5星)
-段落与段落之间空一行，标题（黄色），重要字（红色）`;
+用Markdown格式，段落与段落之间空一行，使用分隔线，重要内容高亮显示，添加视觉引导元素如箭头、进度条等`;
                 break;
             case 'elements':
                 prompt += `分析八字五行强弱，燥湿和流通情况：
@@ -1463,7 +1463,7 @@ document.addEventListener('DOMContentLoaded', function() {
 五行燥湿分析[详细分析]
 五行流通分析[详细分析]
 调候建议：[详细分析]
-段落与段落之间空一行，使用特定符号（如分隔线、emoji图标），要求重要内容高亮显示，添加视觉引导元素（如箭头、进度条等）`;
+用Markdown格式，段落与段落之间空一行，使用分隔线，重要内容高亮显示，添加视觉引导元素如箭头、进度条等`;
                 break;
             case 'personality':
                 prompt += `分析命主脾气性格：
