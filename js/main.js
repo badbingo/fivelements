@@ -395,43 +395,61 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 计算五行能量
     function calculateElementEnergy(pillars) {
-        const elements = {
-            '木': 0,
-            '火': 0,
-            '土': 0,
-            '金': 0,
-            '水': 0
-        };
-        const stemElements = {
-            '甲': '木', '乙': '木',
-            '丙': '火', '丁': '火',
-            '戊': '土', '己': '土',
-            '庚': '金', '辛': '金',
-            '壬': '水', '癸': '水'
-        };
-        const branchElements = {
-            '寅': '木', '卯': '木',
-            '午': '火', '巳': '火',
-            '辰': '土', '戌': '土', '丑': '土', '未': '土',
-            '申': '金', '酉': '金',
-            '子': '水', '亥': '水'
-        };
-        elements[stemElements[pillars.year.charAt(0)]]++;
-        elements[stemElements[pillars.month.charAt(0)]]++;
-        elements[stemElements[pillars.day.charAt(0)]]++;
-        elements[stemElements[pillars.hour.charAt(0)]]++;
-        elements[branchElements[pillars.year.charAt(1)]]]++;
-        elements[branchElements[pillars.month.charAt(1)]]]++;
-        elements[branchElements[pillars.day.charAt(1)]]]++;
-        elements[branchElements[pillars.hour.charAt(1)]]]++;
-        return [
-            elements['木'],
-            elements['火'],
-            elements['土'],
-            elements['金'],
-            elements['水']
-        ];
-    }
+    const elements = {
+        '木': 0,
+        '火': 0,
+        '土': 0,
+        '金': 0,
+        '水': 0
+    };
+    const stemElements = {
+        '甲': '木', '乙': '木',
+        '丙': '火', '丁': '火',
+        '戊': '土', '己': '土',
+        '庚': '金', '辛': '金',
+        '壬': '水', '癸': '水'
+    };
+    const branchElements = {
+        '寅': '木', '卯': '木',
+        '午': '火', '巳': '火',
+        '辰': '土', '戌': '土', '丑': '土', '未': '土',
+        '申': '金', '酉': '金',
+        '子': '水', '亥': '水'
+    };
+
+    // 处理天干（年、月、日、时的第一个字）
+    const stems = [
+        pillars.year.charAt(0),
+        pillars.month.charAt(0),
+        pillars.day.charAt(0),
+        pillars.hour.charAt(0)
+    ];
+    stems.forEach(stem => {
+        const element = stemElements[stem];
+        if (element) elements[element]++;
+    });
+
+    // 处理地支（年、月、日、时的第二个字）
+    const branches = [
+        pillars.year.charAt(1),
+        pillars.month.charAt(1),
+        pillars.day.charAt(1),
+        pillars.hour.charAt(1)
+    ];
+    branches.forEach(branch => {
+        const element = branchElements[branch];
+        if (element) elements[element]++;
+    });
+
+    // 返回五行能量数组
+    return [
+        elements['木'],
+        elements['火'],
+        elements['土'],
+        elements['金'],
+        elements['水']
+    ];
+}
 
     // 初始化大运图表
     function initFortuneChart(result) {
