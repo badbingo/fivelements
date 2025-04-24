@@ -1571,7 +1571,8 @@ document.addEventListener('DOMContentLoaded', function() {
             body: JSON.stringify({
                 model: "deepseek-chat",
                 messages: [{ role: "user", content: prompt }],
-                temperature: 0
+                temperature: 0,
+                seed: 12345
             })
         });
         if (!response.ok) throw new Error(`API请求失败: ${response.status}`);
