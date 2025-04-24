@@ -265,88 +265,30 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    function initElementChart(originalData) {
-        // Calculate current year's element energy
-        const currentSolar = Solar.fromDate(new Date());
-        const currentLunar = currentSolar.getLunar();
-        const currentBazi = currentLunar.getEightChar();
-        const currentYearPillars = {
-            year: currentBazi.getYearGan() + currentBazi.getYearZhi(),
-            month: currentBazi.getMonthGan() + currentBazi.getMonthZhi(),
-            day: currentBazi.getDayGan() + currentBazi.getDayZhi(),
-            hour: currentBazi.getTimeGan() + currentBazi.getTimeZhi()
-        };
-        const currentYearData = calculateElementEnergy(currentYearPillars);
-
-        // Calculate decade fortune's element energy (average of all decades)
-        const decadeFortune = calculateDecadeFortune(
-            Solar.fromYmdHms(
-                parseInt(birthData.date.split('-')[0]),
-                parseInt(birthData.date.split('-')[1]),
-                parseInt(birthData.date.split('-')[2]),
-                parseInt(birthData.time.split(':')[0]),
-                parseInt(birthData.time.split(':')[1] || 0),
-                0
-            ).getLunar(), 
-            birthData.gender
-        );
-        
-        let decadeData = [0, 0, 0, 0, 0];
-        decadeFortune.fortunes.forEach(fortune => {
-            const gan = fortune.ganZhi.charAt(0);
-            const zhi = fortune.ganZhi.charAt(1);
-            const tempData = calculateElementEnergy({
-                year: gan + zhi,
-                month: gan + zhi,
-                day: gan + zhi,
-                hour: gan + zhi
-            });
-            decadeData = decadeData.map((val, i) => val + tempData[i]);
-        });
-        decadeData = decadeData.map(val => Math.round(val / decadeFortune.fortunes.length));
-
-        const totalOriginal = originalData.reduce((sum, value) => sum + value, 0);
-        const percentagesOriginal = originalData.map(value => Math.round((value/totalOriginal)*100));
-        
-        const totalCurrentYear = currentYearData.reduce((sum, value) => sum + value, 0);
-        const percentagesCurrentYear = currentYearData.map(value => Math.round((value/totalCurrentYear)*100));
-        
-        const totalDecade = decadeData.reduce((sum, value) => sum + value, 0);
-        const percentagesDecade = decadeData.map(value => Math.round((value/totalDecade)*100));
-
+    function initElementChart(data) {
+        const total = data.reduce((sum, value) => sum + value, 0);
+        const percentages = data.map(value => Math.round((value/total)*100));
         const elementData = {
-            labels: ['木', '火', '土', '金', '水'].map((label, i) => `${label}`),
-            datasets: [
-                {
-                    label: '本命局',
-                    data: originalData,
-                    backgroundColor: 'rgba(0, 255, 136, 0.1)',
-                    borderColor: 'rgba(0, 255, 136, 1)',
-                    borderWidth: 2,
-                    pointBackgroundColor: 'rgba(0, 255, 136, 1)',
-                    pointHoverRadius: 5
-                },
-                {
-                    label: '流年',
-                    data: currentYearData,
-                    backgroundColor: 'rgba(255, 51, 0, 0.1)',
-                    borderColor: 'rgba(255, 51, 0, 1)',
-                    borderWidth: 2,
-                    pointBackgroundColor: 'rgba(255, 51, 0, 1)',
-                    pointHoverRadius: 5
-                },
-                {
-                    label: '大运',
-                    data: decadeData,
-                    backgroundColor: 'rgba(0, 153, 255, 0.1)',
-                    borderColor: 'rgba(0, 153, 255, 1)',
-                    borderWidth: 2,
-                    pointBackgroundColor: 'rgba(0, 153, 255, 1)',
-                    pointHoverRadius: 5
-                }
-            ]
+            labels: ['木', '火', '土', '金', '水'].map((label, i) => `${label} ${percentages[i]}%`),
+            datasets: [{
+                data: data,
+                backgroundColor: [
+                    'rgba(0, 255, 136, 0.3)',
+                    'rgba(255, 51, 0, 0.3)',
+                    'rgba(255, 204, 0, 0.3)',
+                    'rgba(204, 204, 204, 0.3)',
+                    'rgba(0, 153, 255, 0.3)'
+                ],
+                borderColor: [
+                    'rgba(0, 255, 136, 1)',
+                    'rgba(255, 51, 0, 1)',
+                    'rgba(255, 204, 0, 1)',
+                    'rgba(204, 204, 204, 1)',
+                    'rgba(0, 153, 255, 1)'
+                ],
+                borderWidth: 1
+            }]
         };
-
         elementChart = new Chart(elementChartCtx, {
             type: 'radar',
             data: elementData,
@@ -360,7 +302,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             color: 'rgba(0, 240, 255, 0.2)'
                         },
                         suggestedMin: 0,
-                        suggestedMax: Math.max(...originalData, ...currentYearData, ...decadeData) + 2,
+                        suggestedMax: Math.max(...data) + 2,
                         ticks: {
                             backdropColor: 'transparent',
                             color: 'rgba(0, 240, 255, 0.7)',
@@ -383,29 +325,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 },
                 plugins: {
                     legend: {
-                        position: 'bottom',
-                        labels: {
-                            color: 'rgba(0, 240, 255, 0.9)',
-                            font: {
-                                family: "'Orbitron', sans-serif",
-                                size: 12
-                            },
-                            padding: 20
-                        }
+                        display: false
                     },
                     tooltip: {
                         callbacks: {
                             label: function(context) {
-                                const label = context.dataset.label || '';
+                                const label = context.label || '';
                                 const value = context.raw;
-                                let percentage;
-                                if (context.datasetIndex === 0) {
-                                    percentage = percentagesOriginal[context.dataIndex];
-                                } else if (context.datasetIndex === 1) {
-                                    percentage = percentagesCurrentYear[context.dataIndex];
-                                } else {
-                                    percentage = percentagesDecade[context.dataIndex];
-                                }
+                                const percentage = percentages[context.dataIndex];
                                 return `${label}: ${value} (${percentage}%)`;
                             }
                         }
@@ -418,27 +345,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         });
-
-        // Add explanation below the chart
-        const chartContainer = document.getElementById('element-chart-container');
-        const explanation = document.createElement('div');
-        explanation.className = 'chart-explanation';
-        explanation.innerHTML = `
-            <h4>五行能量分布说明：</h4>
-            <p><span style="color:rgba(0, 255, 136, 1)">■ 本命局</span>：显示命主出生时的原始五行能量分布，代表先天禀赋。</p>
-            <p><span style="color:rgba(255, 51, 0, 1)">■ 流年</span>：显示当前年份的五行能量影响，代表短期运势变化。</p>
-            <p><span style="color:rgba(0, 153, 255, 1)">■ 大运</span>：显示十年大运的平均五行能量，代表长期趋势。</p>
-            <p>五行平衡说明：</p>
-            <ul>
-                <li><strong>木</strong>：主仁，代表生长、发展</li>
-                <li><strong>火</strong>：主礼，代表热情、行动力</li>
-                <li><strong>土</strong>：主信，代表稳定、包容</li>
-                <li><strong>金</strong>：主义，代表决断、收敛</li>
-                <li><strong>水</strong>：主智，代表智慧、流动</li>
-            </ul>
-            <p>当某元素显著高于其他元素时，表示该特质在命局中占主导地位；过低则可能表示该方面需要加强。</p>
-        `;
-        chartContainer.appendChild(explanation);
     }
 
     function calculateElementEnergy(pillars) {
