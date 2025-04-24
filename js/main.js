@@ -1806,7 +1806,7 @@ recalculateBtn.addEventListener('click', function() {
         });
         if (!response.ok) throw new Error(`API请求失败: ${response.status}`);
         const result = await response.json();
-        const content = result.choices[0].message.content;
+        let content = result.choices[0].message.content; // 改为 let 允许重新赋值
         // ▼▼▼ 新增的强制修正逻辑 ▼▼▼
     if (section === 'strength' && currentPillars) {
         content = enforceCongRuoResult(content, {
