@@ -26,6 +26,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const wealthScore = document.getElementById('wealth-score');
     const wealthDetails = document.getElementById('wealth-details');
     const elementChartCtx = document.getElementById('element-chart').getContext('2d');
+    const elementChartDescription = document.getElementById('element-chart-description');
     const gamblingRating = document.getElementById('gambling-rating');
     const gamblingDetails = document.getElementById('gambling-details');
     const savedProfilesList = document.getElementById('saved-profiles-list');
@@ -153,11 +154,10 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     function resetAllContent() {
-        // +++ 新增代码 +++
-    if (elementChart) {
+        if (elementChart) {
         elementChart.destroy(); // 销毁旧图表
         elementChart = null;    // 清空引用
-    }
+        }
         fateScoreValue = 0;
         wealthScoreValue = 0;
         yearStem.textContent = '';
@@ -270,34 +270,82 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    function initElementChart(data) {
+    function initElementChart(baziInfo) {
         if (elementChart) {
         elementChart.destroy();
         elementChart = null;
-    }
-        const total = data.reduce((sum, value) => sum + value, 0);
-        const percentages = data.map(value => Math.round((value/total)*100));
+        }
+        // Calculate original birth chart elements
+        const birthElements = calculateElementEnergy({
+            year: baziInfo.yearStem + baziInfo.yearBranch,
+            month: baziInfo.monthStem + baziInfo.monthBranch,
+            day: baziInfo.dayStem + baziInfo.dayBranch,
+            hour: baziInfo.hourStem + baziInfo.hourBranch
+        });
+        
+        // Calculate current year elements
+        const currentSolar = Solar.fromDate(new Date());
+        const currentLunar = currentSolar.getLunar();
+        const currentYearGan = currentLunar.getYearGan();
+        const currentYearZhi = currentLunar.getYearZhi();
+        const currentYearElements = calculateElementEnergy({
+            year: currentYearGan + currentYearZhi,
+            month: '', day: '', hour: '' // Only year affects current year energy
+        });
+        
+        // Calculate current decade elements (using the first fortune pillar)
+        let decadeElements = [0, 0, 0, 0, 0];
+        if (baziInfo.decadeFortune && baziInfo.decadeFortune.fortunes.length > 0) {
+            const currentFortune = baziInfo.decadeFortune.fortunes[0];
+            decadeElements = calculateElementEnergy({
+                year: currentFortune.ganZhi,
+                month: '', day: '', hour: ''
+            });
+        }
+        
+        // Calculate totals for percentages
+        const birthTotal = birthElements.reduce((sum, val) => sum + val, 0);
+        const yearTotal = currentYearElements.reduce((sum, val) => sum + val, 0);
+        const decadeTotal = decadeElements.reduce((sum, val) => sum + val, 0);
+        
+        // Calculate percentages
+        const birthPercentages = birthElements.map(val => Math.round((val / birthTotal) * 100));
+        const yearPercentages = currentYearElements.map(val => Math.round((val / yearTotal) * 100));
+        const decadePercentages = decadeElements.map(val => Math.round((val / decadeTotal) * 100));
+        
         const elementData = {
-            labels: ['木', '火', '土', '金', '水'].map((label, i) => `${label} ${percentages[i]}%`),
-            datasets: [{
-                data: data,
-                backgroundColor: [
-                    'rgba(0, 255, 136, 0.3)',
-                    'rgba(255, 51, 0, 0.3)',
-                    'rgba(255, 204, 0, 0.3)',
-                    'rgba(204, 204, 204, 0.3)',
-                    'rgba(0, 153, 255, 0.3)'
-                ],
-                borderColor: [
-                    'rgba(0, 255, 136, 1)',
-                    'rgba(255, 51, 0, 1)',
-                    'rgba(255, 204, 0, 1)',
-                    'rgba(204, 204, 204, 1)',
-                    'rgba(0, 153, 255, 1)'
-                ],
-                borderWidth: 1
-            }]
+            labels: ['木', '火', '土', '金', '水'].map((label, i) => `${label}`),
+            datasets: [
+                {
+                    label: '本命局',
+                    data: birthElements,
+                    backgroundColor: 'rgba(0, 255, 136, 0.1)',
+                    borderColor: 'rgba(0, 255, 136, 1)',
+                    borderWidth: 2,
+                    pointBackgroundColor: 'rgba(0, 255, 136, 1)',
+                    pointRadius: 4
+                },
+                {
+                    label: '流年',
+                    data: currentYearElements,
+                    backgroundColor: 'rgba(255, 51, 0, 0.1)',
+                    borderColor: 'rgba(255, 51, 0, 1)',
+                    borderWidth: 2,
+                    pointBackgroundColor: 'rgba(255, 51, 0, 1)',
+                    pointRadius: 4
+                },
+                {
+                    label: '大运',
+                    data: decadeElements,
+                    backgroundColor: 'rgba(0, 153, 255, 0.1)',
+                    borderColor: 'rgba(0, 153, 255, 1)',
+                    borderWidth: 2,
+                    pointBackgroundColor: 'rgba(0, 153, 255, 1)',
+                    pointRadius: 4
+                }
+            ]
         };
+        
         elementChart = new Chart(elementChartCtx, {
             type: 'radar',
             data: elementData,
@@ -311,7 +359,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             color: 'rgba(0, 240, 255, 0.2)'
                         },
                         suggestedMin: 0,
-                        suggestedMax: Math.max(...data) + 2,
+                        suggestedMax: Math.max(...birthElements, ...currentYearElements, ...decadeElements) + 2,
                         ticks: {
                             backdropColor: 'transparent',
                             color: 'rgba(0, 240, 255, 0.7)',
@@ -334,14 +382,29 @@ document.addEventListener('DOMContentLoaded', function() {
                 },
                 plugins: {
                     legend: {
-                        display: false
+                        position: 'bottom',
+                        labels: {
+                            color: 'rgba(0, 240, 255, 0.9)',
+                            font: {
+                                family: "'Orbitron', sans-serif",
+                                size: 12
+                            },
+                            padding: 20
+                        }
                     },
                     tooltip: {
                         callbacks: {
                             label: function(context) {
-                                const label = context.label || '';
+                                const label = context.dataset.label || '';
                                 const value = context.raw;
-                                const percentage = percentages[context.dataIndex];
+                                let percentage;
+                                if (context.datasetIndex === 0) {
+                                    percentage = birthPercentages[context.dataIndex];
+                                } else if (context.datasetIndex === 1) {
+                                    percentage = yearPercentages[context.dataIndex];
+                                } else {
+                                    percentage = decadePercentages[context.dataIndex];
+                                }
                                 return `${label}: ${value} (${percentage}%)`;
                             }
                         }
@@ -354,6 +417,27 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         });
+        
+        // Add description below the chart
+        elementChartDescription.innerHTML = `
+            <p><strong>五行能量分布说明：</strong></p>
+            <p>本命局：代表命主出生时的先天五行能量分布，影响一生的基本命格。</p>
+            <p>流年：代表当前年份的五行能量影响，显示流年对命局的短期作用。</p>
+            <p>大运：代表当前十年大运的五行能量趋势，影响命主中长期运势走向。</p>
+            <p>五行平衡度：${calculateBalanceScoreText(birthElements)}</p>
+        `;
+    }
+    
+    function calculateBalanceScoreText(elements) {
+        const max = Math.max(...elements);
+        const min = Math.min(...elements);
+        const diff = max - min;
+        
+        if (diff <= 1) return "五行非常平衡，命局和谐";
+        if (diff <= 2) return "五行较为平衡，命局稳定";
+        if (diff <= 3) return "五行基本平衡，略有偏颇";
+        if (diff <= 4) return "五行不平衡，有明显偏重";
+        return "五行严重失衡，需要调和";
     }
 
     function calculateElementEnergy(pillars) {
@@ -378,14 +462,19 @@ document.addEventListener('DOMContentLoaded', function() {
             '申': '金', '酉': '金',
             '子': '水', '亥': '水'
         };
-        elements[stemElements[pillars.year.charAt(0)]]++;
-        elements[stemElements[pillars.month.charAt(0)]]++;
-        elements[stemElements[pillars.day.charAt(0)]]++;
-        elements[stemElements[pillars.hour.charAt(0)]]++;
-        elements[branchElements[pillars.year.charAt(1)]]++;
-        elements[branchElements[pillars.month.charAt(1)]]++;
-        elements[branchElements[pillars.day.charAt(1)]]++;
-        elements[branchElements[pillars.hour.charAt(1)]]++;
+        
+        // Add stem elements
+        if (pillars.year && pillars.year.length > 0) elements[stemElements[pillars.year.charAt(0)]]++;
+        if (pillars.month && pillars.month.length > 0) elements[stemElements[pillars.month.charAt(0)]]++;
+        if (pillars.day && pillars.day.length > 0) elements[stemElements[pillars.day.charAt(0)]]++;
+        if (pillars.hour && pillars.hour.length > 0) elements[stemElements[pillars.hour.charAt(0)]]++;
+        
+        // Add branch elements
+        if (pillars.year && pillars.year.length > 1) elements[branchElements[pillars.year.charAt(1)]]++;
+        if (pillars.month && pillars.month.length > 1) elements[branchElements[pillars.month.charAt(1)]]++;
+        if (pillars.day && pillars.day.length > 1) elements[branchElements[pillars.day.charAt(1)]]++;
+        if (pillars.hour && pillars.hour.length > 1) elements[branchElements[pillars.hour.charAt(1)]]++;
+        
         return [
             elements['木'],
             elements['火'],
@@ -1314,7 +1403,8 @@ document.addEventListener('DOMContentLoaded', function() {
         calculateBtn.disabled = true;
         calculateBtn.innerHTML = '<span class="loading"></span> 量子测算中...';
         try {
-            if (elementChart) {
+            // +++ 新增代码 +++
+        if (elementChart) {
             elementChart.destroy();
             elementChart = null;
         }
@@ -1327,7 +1417,7 @@ document.addEventListener('DOMContentLoaded', function() {
             document.body.appendChild(loadingOverlay);
             const baziInfo = calculateBaziLocally(birthData);
             displayBasicInfo(baziInfo);
-            initElementChart(baziInfo.elements);
+            initElementChart(baziInfo);
             updateLunarCalendar();
             currentPillars = {
                 year: baziInfo.yearStem + baziInfo.yearBranch,
