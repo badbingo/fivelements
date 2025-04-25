@@ -1033,8 +1033,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const timeParts = birthData.time.split(':');
         const hour = parseInt(timeParts[0]);
         const minute = parseInt(timeParts[1] || 0);
-        const solar = Solar.fromYmdHms(year, month, day, hour, minute, 0);
-        const lunar = solar.getLunar();
+        const solar = Solar.fromYmdHms(2023, 10, 5, 12, 0, 0); // 公历转农历
+        const lunar = solar.getLunar(); // 获取农历日期
         const bazi = lunar.getEightChar();
         const yearGan = bazi.getYearGan();
         const yearZhi = bazi.getYearZhi();
