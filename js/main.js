@@ -1,17 +1,4 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 缓存系统
-    const baziCache = {};
-    
-    // 兜底规则库
-    const fallbackRules = {
-        // 示例规则，可根据需要扩展
-        "甲子-甲戌-甲子-甲子": {
-            elements: [3, 1, 2, 1, 3],
-            personality: "木气旺盛，性格刚直，有领导才能"
-        }
-    };
-    
-    // 原有变量声明
     const calculateBtn = document.getElementById('calculate-btn');
     const recalculateBtn = document.getElementById('recalculate-btn');
     const inputSection = document.getElementById('input-section');
@@ -60,10 +47,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const baziQaResponse = document.getElementById('bazi-qa-response');
     const baziQaLoading = document.getElementById('bazi-qa-loading');
 
-    // 初始化加载历史记录
     loadSavedProfiles();
 
-    // 时间选择器事件
     timePeriodOptions.forEach(option => {
         option.addEventListener('click', function() {
             timePeriodOptions.forEach(opt => opt.classList.remove('selected'));
@@ -74,7 +59,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // 语言切换事件
     languageBtns.forEach(btn => {
         btn.addEventListener('click', function() {
             languageBtns.forEach(b => b.classList.remove('active'));
@@ -84,7 +68,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // 配置marked.js
     marked.setOptions({
         breaks: true,
         gfm: true,
@@ -94,64 +77,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // 生成八字哈希值
-    function generateBaziHash(birthData) {
-        const hashInput = `${birthData.date}-${birthData.time}-${birthData.gender}`;
-        return CryptoJS.SHA256(hashInput).toString();
-    }
-
-    // 本地排盘校验
-    function validateBaziWithLocal(apiBazi, localBazi) {
-        const keyFields = ['yearStem', 'yearBranch', 'monthStem', 'monthBranch', 
-                         'dayStem', 'dayBranch', 'hourStem', 'hourBranch'];
-        
-        for (const field of keyFields) {
-            if (apiBazi[field] !== localBazi[field]) {
-                console.warn(`排盘不一致: ${field} 本地=${localBazi[field]}, API=${apiBazi[field]}`);
-                return false;
-            }
-        }
-        return true;
-    }
-
-    // 从API响应中提取关键字段
-    function extractKeyFieldsFromAPIResponse(response) {
-        // 使用正则提取关键信息
-        const yearMatch = response.match(/年柱\[([^\]]+)\]/);
-        const monthMatch = response.match(/月柱\[([^\]]+)\]/);
-        const dayMatch = response.match(/日柱\[([^\]]+)\]/);
-        const hourMatch = response.match(/时柱\[([^\]]+)\]/);
-        
-        // 提取五行能量
-        const elementsMatch = response.match(/五行能量\[([^\]]+)\]/);
-        let elements = [1, 1, 1, 1, 1]; // 默认值
-        if (elementsMatch) {
-            try {
-                elements = JSON.parse(elementsMatch[1].replace(/'/g, '"'));
-            } catch (e) {
-                console.error("五行能量解析失败:", e);
-            }
-        }
-        
-        // 提取性格描述
-        const personalityMatch = response.match(/命主性格\[([^\]]+)\]/);
-        const personality = personalityMatch ? personalityMatch[1] : "性格分析获取失败";
-        
-        return {
-            yearStem: yearMatch ? yearMatch[1].charAt(0) : '',
-            yearBranch: yearMatch ? yearMatch[1].charAt(1) : '',
-            monthStem: monthMatch ? monthMatch[1].charAt(0) : '',
-            monthBranch: monthMatch ? monthMatch[1].charAt(1) : '',
-            dayStem: dayMatch ? dayMatch[1].charAt(0) : '',
-            dayBranch: dayMatch ? dayMatch[1].charAt(1) : '',
-            hourStem: hourMatch ? hourMatch[1].charAt(0) : '',
-            hourBranch: hourMatch ? hourMatch[1].charAt(1) : '',
-            elements,
-            personality
-        };
-    }
-
-    // 问答提交事件
     baziQaSubmit.addEventListener('click', async function() {
         const question = baziQuestionInput.value.trim();
         if (!question) {
@@ -177,13 +102,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // 获取八字答案
     async function getBaziAnswer(question) {
-        const cacheKey = `qa-${generateBaziHash(birthData)}-${question}`;
-        if (baziCache[cacheKey]) {
-            return baziCache[cacheKey];
-        }
-        
         const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
         const apiKey = 'sk-b2950087a9d5427392762814114b22a9';
         
@@ -200,36 +119,24 @@ document.addEventListener('DOMContentLoaded', function() {
 
 用户问题：${question}`;
 
-        try {
-            const response = await fetch(apiUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${apiKey}`
-                },
-                body: JSON.stringify({
-                    model: "deepseek-chat",
-                    messages: [{ role: "user", content: prompt }],
-                    temperature: 0,
-                    seed: 12345
-                })
-            });
-            
-            if (!response.ok) throw new Error(`API请求失败: ${response.status}`);
-            const result = await response.json();
-            const answer = result.choices[0].message.content;
-            
-            // 缓存答案
-            baziCache[cacheKey] = answer;
-            return answer;
-            
-        } catch (error) {
-            console.error("API调用失败:", error);
-            return "无法获取答案，请稍后再试";
-        }
+        const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`
+            },
+            body: JSON.stringify({
+                model: "deepseek-chat",
+                messages: [{ role: "user", content: prompt }],
+                temperature: 0
+            })
+        });
+        
+        if (!response.ok) throw new Error(`API请求失败: ${response.status}`);
+        const result = await response.json();
+        return result.choices[0].message.content;
     }
 
-    // 重新计算按钮事件
     recalculateBtn.addEventListener('click', function() {
         document.getElementById('name').value = '';
         document.getElementById('birth-date').value = '';
@@ -245,7 +152,6 @@ document.addEventListener('DOMContentLoaded', function() {
         window.scrollTo(0, 0);
     });
 
-    // 重置所有内容
     function resetAllContent() {
         fateScoreValue = 0;
         wealthScoreValue = 0;
@@ -295,7 +201,6 @@ document.addEventListener('DOMContentLoaded', function() {
         baziQaLoading.style.display = 'none';
     }
 
-    // 菜单标签切换事件
     document.querySelectorAll('.menu-tab').forEach(tab => {
         tab.addEventListener('click', function() {
             document.querySelectorAll('.menu-tab').forEach(t => t.classList.remove('active'));
@@ -306,7 +211,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // 初始化加载按钮
     function initLoadButtons() {
         document.querySelectorAll('.load-btn').forEach(button => {
             const section = button.getAttribute('data-section');
@@ -361,7 +265,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // 初始化五行能量图表
     function initElementChart(data) {
         const total = data.reduce((sum, value) => sum + value, 0);
         const percentages = data.map(value => Math.round((value/total)*100));
@@ -444,7 +347,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // 计算五行能量
     function calculateElementEnergy(pillars) {
         const elements = {
             '木': 0,
@@ -484,7 +386,6 @@ document.addEventListener('DOMContentLoaded', function() {
         ];
     }
 
-    // 初始化大运图表
     function initFortuneChart(result) {
         const fortuneContent = document.getElementById('decade-fortune-content');
         const canvas = document.createElement('canvas');
@@ -527,7 +428,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // 更新农历日历
     function updateLunarCalendar() {
         const solar = Solar.fromDate(new Date());
         const lunar = solar.getLunar();
@@ -539,7 +439,6 @@ document.addEventListener('DOMContentLoaded', function() {
         lunarJi.textContent = ji.join('、') || '无';
     }
 
-    // 验证日期有效性
     function isValidDate(year, month, day) {
         if (month < 1 || month > 12) {
             return false;
@@ -550,12 +449,10 @@ document.addEventListener('DOMContentLoaded', function() {
                date.getDate() === day;
     }
 
-    // 判断闰年
     function isLeapYear(year) {
         return (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
     }
 
-    // 计算命运分数
     function calculateFateScore(pillars) {
         if (fateScoreValue === 0) {
             const seasonScore = calculateSeasonScore(dayStem, monthBranch);
@@ -577,7 +474,6 @@ document.addEventListener('DOMContentLoaded', function() {
         return fateScoreValue;
     }
 
-    // 计算季节分数
     function calculateSeasonScore(dayStem, monthBranch) {
         const seasonMap = {
             '甲': ['寅', '卯', '辰'],
@@ -597,7 +493,6 @@ document.addEventListener('DOMContentLoaded', function() {
         return 15;
     }
 
-    // 计算平衡分数
     function calculateBalanceScore(pillars) {
         const elements = {
             '木': 0,
@@ -635,7 +530,6 @@ document.addEventListener('DOMContentLoaded', function() {
         return Math.max(0, balance);
     }
 
-    // 计算格局分数
     function calculatePatternScore(pillars) {
         if (isCongGe(pillars)) {
             return 20;
@@ -646,7 +540,6 @@ document.addEventListener('DOMContentLoaded', function() {
         return 5;
     }
 
-    // 判断从格
     function isCongGe(pillars) {
         const dayStem = pillars.day.charAt(0);
         const stems = [
@@ -669,7 +562,6 @@ document.addEventListener('DOMContentLoaded', function() {
         return false;
     }
 
-    // 判断从强格
     function isCongQiangGe(dayStem, stems, branches) {
         let count = 0;
         stems.forEach(stem => {
@@ -685,7 +577,6 @@ document.addEventListener('DOMContentLoaded', function() {
         return count >= 6;
     }
 
-    // 判断从弱格
     function isCongRuoGe(dayStem, stems, branches) {
         let count = 0;
         stems.forEach(stem => {
@@ -701,7 +592,6 @@ document.addEventListener('DOMContentLoaded', function() {
         return count <= 1;
     }
 
-    // 判断专旺格
     function isZhuanWangGe(pillars) {
         const dayStem = pillars.day.charAt(0);
         const stems = [
@@ -734,7 +624,6 @@ document.addEventListener('DOMContentLoaded', function() {
         return sameCount >= 5 && otherCount <= 2;
     }
 
-    // 判断相同五行元素
     function isSameElement(a, b) {
         const elementMap = {
             '甲': '木', '乙': '木',
@@ -751,7 +640,6 @@ document.addEventListener('DOMContentLoaded', function() {
         return elementMap[a] === elementMap[b];
     }
 
-    // 判断相生五行元素
     function isGenerateElement(a, b) {
         const elementMap = {
             '甲': '木', '乙': '木',
@@ -777,12 +665,10 @@ document.addEventListener('DOMContentLoaded', function() {
         return generateMap[aElement] === bElement;
     }
 
-    // 计算十神分数
     function calculateGodsScore(pillars) {
         return 10;
     }
 
-    // 计算组合分数
     function calculateCombinationScore(pillars) {
         const branches = [
             pillars.year.charAt(1),
@@ -799,7 +685,6 @@ document.addEventListener('DOMContentLoaded', function() {
         return 2;
     }
 
-    // 判断三合
     function hasSanHe(branches) {
         const sanHeGroups = [
             ['申', '子', '辰'],
@@ -821,7 +706,6 @@ document.addEventListener('DOMContentLoaded', function() {
         return false;
     }
 
-    // 判断六合
     function hasLiuHe(branches) {
         const liuHePairs = [
             ['子', '丑'],
@@ -839,7 +723,6 @@ document.addEventListener('DOMContentLoaded', function() {
         return false;
     }
 
-    // 计算财富分数
     function calculateWealthScore(pillars) {
         if (wealthScoreValue === 0) {
             const wealthStarScore = calculateWealthStarScore(pillars);
@@ -861,7 +744,6 @@ document.addEventListener('DOMContentLoaded', function() {
         return wealthScoreValue;
     }
 
-    // 计算财星分数
     function calculateWealthStarScore(pillars) {
         const dayStem = pillars.day.charAt(0);
         let wealthCount = 0;
@@ -893,7 +775,6 @@ document.addEventListener('DOMContentLoaded', function() {
         return 5;
     }
 
-    // 获取财星
     function getWealthStars(dayStem) {
         const wealthMap = {
             '甲': ['戊', '己', '辰', '戌', '丑', '未'],
@@ -910,7 +791,6 @@ document.addEventListener('DOMContentLoaded', function() {
         return wealthMap[dayStem] || [];
     }
 
-    // 计算财位分数
     function calculateWealthPositionScore(pillars) {
         const dayStem = pillars.day.charAt(0);
         const wealthStars = getWealthStars(dayStem);
@@ -927,7 +807,6 @@ document.addEventListener('DOMContentLoaded', function() {
         return Math.min(25, score);
     }
 
-    // 计算财损分数
     function calculateWealthDamageScore(pillars) {
         const dayStem = pillars.day.charAt(0);
         const wealthStars = getWealthStars(dayStem);
@@ -957,7 +836,6 @@ document.addEventListener('DOMContentLoaded', function() {
         return Math.min(20, damageCount * 5);
     }
 
-    // 获取损财星
     function getDamageStars(dayStem) {
         const damageMap = {
             '甲': ['甲', '乙', '寅', '卯'],
@@ -974,7 +852,6 @@ document.addEventListener('DOMContentLoaded', function() {
         return damageMap[dayStem] || [];
     }
 
-    // 计算财助分数
     function calculateWealthSupportScore(pillars) {
         const dayStem = pillars.day.charAt(0);
         const wealthStars = getWealthStars(dayStem);
@@ -1006,7 +883,6 @@ document.addEventListener('DOMContentLoaded', function() {
         return 3;
     }
 
-    // 获取生财星
     function getGenerateStars(dayStem) {
         const generateMap = {
             '甲': ['丙', '丁', '午', '巳'],
@@ -1023,12 +899,10 @@ document.addEventListener('DOMContentLoaded', function() {
         return generateMap[dayStem] || [];
     }
 
-    // 计算运势分数
     function calculateFortuneScore(pillars) {
         return 5;
     }
 
-    // 获取命运等级
     function getFateLevel(score) {
         if (score >= 85) return { name: "天赐鸿运 ★★★★★ (85-100分)", class: "excellent" };
         if (score >= 70) return { name: "福星高照 ★★★★☆ (70-84分)", class: "good" };
@@ -1037,7 +911,6 @@ document.addEventListener('DOMContentLoaded', function() {
         return { name: "逆水行舟 ★☆☆☆☆ (<30分)", class: "needs-improvement" };
     }
 
-    // 获取财富等级
     function getWealthLevel(score) {
         if (score >= 90) return { name: "天禄盈门 ★★★★★ (90分以上)", class: "ultra-rich" };
         if (score >= 80) return { name: "朱紫满箱 ★★★★☆ (80-89分)", class: "very-rich" };
@@ -1046,7 +919,6 @@ document.addEventListener('DOMContentLoaded', function() {
         return { name: "营营逐逐 ★☆☆☆☆ (<40分)", class: "wealth-average" };
     }
 
-    // 显示分数
     function displayScores() {
         if (!currentPillars.year) return;
         const fateScore = calculateFateScore(currentPillars);
@@ -1135,7 +1007,6 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
     }
 
-    // 获取地支藏干
     function getHiddenStems(branch) {
         const hiddenStemsMap = {
             '子': '癸',
@@ -1154,7 +1025,6 @@ document.addEventListener('DOMContentLoaded', function() {
         return hiddenStemsMap[branch] || '';
     }
 
-    // 本地计算八字
     function calculateBaziLocally(birthData) {
         const dateParts = birthData.date.split('-');
         const year = parseInt(dateParts[0]);
@@ -1175,7 +1045,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const hourGan = bazi.getTimeGan();
         const hourZhi = bazi.getTimeZhi();
         const yearHiddenStems = getHiddenStems(yearZhi);
-        const monthHiddenStems = getHiddenStems(monthZhi);
+        const monthHiddenStems = getHiddenStems(monthZhi);  // 修正：使用月支而不是年支
         const dayHiddenStems = getHiddenStems(dayZhi);
         const hourHiddenStems = getHiddenStems(hourZhi);
         const elements = calculateElementEnergy({
@@ -1208,7 +1078,6 @@ document.addEventListener('DOMContentLoaded', function() {
         };
     }
 
-    // 计算十年大运
     function calculateDecadeFortune(lunar, gender) {
         const yearGan = lunar.getYearGan();
         const yearZhi = lunar.getYearZhi();
@@ -1253,7 +1122,6 @@ document.addEventListener('DOMContentLoaded', function() {
         };
     }
           
-    // 计算赌博运势
     function calculateGamblingFortune(birthData, birthLunar) {
         const currentSolar = Solar.fromDate(new Date());
         const currentLunar = currentSolar.getLunar();
@@ -1315,7 +1183,6 @@ document.addEventListener('DOMContentLoaded', function() {
         };
     }
 
-    // 获取性格特征
     function getPersonalityTraits(dayStem) {
         const traits = {
             '甲': '似参天大树，正直向上，有领导力但略显固执',
@@ -1332,7 +1199,6 @@ document.addEventListener('DOMContentLoaded', function() {
         return traits[dayStem] || '似静水流深，临危反生智，藏锋守拙却暗含凌云之志';
     }
 
-    // 保存个人资料
     function saveProfile(birthData) {
         const profiles = JSON.parse(localStorage.getItem('baziProfiles') || '[]');
         const existingIndex = profiles.findIndex(p => 
@@ -1352,7 +1218,6 @@ document.addEventListener('DOMContentLoaded', function() {
         loadSavedProfiles();
     }
 
-    // 加载保存的个人资料
     function loadSavedProfiles() {
         const profiles = JSON.parse(localStorage.getItem('baziProfiles') || '[]');
         savedProfilesList.innerHTML = '';
@@ -1386,7 +1251,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // 加载个人资料
     function loadProfile(profile) {
         document.getElementById('name').value = profile.name || '';
         document.getElementById('birth-date').value = profile.date;
@@ -1400,13 +1264,89 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // 获取八字分析
-    async function getBaziAnalysis(section, data) {
-        const cacheKey = `analysis-${generateBaziHash(data)}-${section}`;
-        if (baziCache[cacheKey]) {
-            return baziCache[cacheKey];
+    calculateBtn.addEventListener('click', async function(e) {
+        e.preventDefault();
+        resetAllContent();
+        const name = document.getElementById('name').value;
+        const birthDate = document.getElementById('birth-date').value;
+        const birthTime = birthTimeInput.value;
+        const gender = document.getElementById('gender').value;
+        if (!birthDate || !birthTime || !gender) {
+            alert('请填写完整的出生信息');
+            return;
         }
-        
+        const dateParts = birthDate.split('-');
+        const year = parseInt(dateParts[0]);
+        const month = parseInt(dateParts[1]);
+        const day = parseInt(dateParts[2]);
+        if (!isValidDate(year, month, day)) {
+            alert('请输入有效的出生日期');
+            return;
+        }
+        if (month === 2) {
+            const maxDays = isLeapYear(year) ? 29 : 28;
+            if (day > maxDays) {
+                alert(`${year}年2月只有${maxDays}天`);
+                return;
+            }
+        }
+        const monthsWith30Days = [4, 6, 9, 11];
+        if (monthsWith30Days.includes(month) && day > 30) {
+            alert(`${month}月只有30天`);
+            return;
+        }
+        birthData = { 
+            name, 
+            date: birthDate,
+            time: birthTime, 
+            gender: gender
+        };
+        saveProfile(birthData);
+        calculateBtn.disabled = true;
+        calculateBtn.innerHTML = '<span class="loading"></span> 量子测算中...';
+        try {
+            const loadingOverlay = document.createElement('div');
+            loadingOverlay.className = 'loading-overlay';
+            loadingOverlay.innerHTML = `
+                <div class="loading"></div>
+                <p>量子计算引擎启动中...</p>
+            `;
+            document.body.appendChild(loadingOverlay);
+            const baziInfo = calculateBaziLocally(birthData);
+            displayBasicInfo(baziInfo);
+            initElementChart(baziInfo.elements);
+            updateLunarCalendar();
+            currentPillars = {
+                year: baziInfo.yearStem + baziInfo.yearBranch,
+                month: baziInfo.monthStem + baziInfo.monthBranch,
+                day: baziInfo.dayStem + baziInfo.dayBranch,
+                hour: baziInfo.hourStem + baziInfo.hourBranch
+            };
+            displayScores();
+            gamblingRating.textContent = baziInfo.gamblingFortune.rating;
+            gamblingDetails.innerHTML = `
+            ${baziInfo.gamblingFortune.analysis}<br>
+            最佳方位: ${baziInfo.gamblingFortune.direction}<br>
+            最佳时段: ${baziInfo.gamblingFortune.hour}
+            `;
+            inputSection.style.display = 'none';
+            resultSection.style.display = 'block';
+            document.body.removeChild(loadingOverlay);
+            initLoadButtons();
+            window.scrollTo(0, 0);
+        } catch (error) {
+            console.error('测算失败:', error);
+            alert('量子测算失败，请稍后重试');
+            if (document.querySelector('.loading-overlay')) {
+                document.body.removeChild(document.querySelector('.loading-overlay'));
+            }
+        } finally {
+            calculateBtn.disabled = false;
+            calculateBtn.innerHTML = '<i class="fas fa-brain"></i> 开始量子测算';
+        }
+    });
+
+    async function getBaziAnalysis(section, data) {
         const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
         const apiKey = 'sk-b2950087a9d5427392762814114b22a9';
         const currentDateStr = currentDate.getFullYear() + '-' + 
@@ -1622,37 +1562,24 @@ document.addEventListener('DOMContentLoaded', function() {
             default:
                 prompt += `请分析${section}相关内容`;
         }
-        
-        try {
-            const response = await fetch(apiUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${apiKey}`
-                },
-                body: JSON.stringify({
-                    model: "deepseek-chat",
-                    messages: [{ role: "user", content: prompt }],
-                    temperature: 0,
-                    seed: 12345
-                })
-            });
-            
-            if (!response.ok) throw new Error(`API请求失败: ${response.status}`);
-            const result = await response.json();
-            const analysis = result.choices[0].message.content;
-            
-            // 缓存分析结果
-            baziCache[cacheKey] = analysis;
-            return analysis;
-            
-        } catch (error) {
-            console.error("API调用失败:", error);
-            return `无法获取${section}分析，请稍后再试`;
-        }
+        const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`
+            },
+            body: JSON.stringify({
+                model: "deepseek-chat",
+                messages: [{ role: "user", content: prompt }],
+                temperature: 0,
+                seed: 12345
+            })
+        });
+        if (!response.ok) throw new Error(`API请求失败: ${response.status}`);
+        const result = await response.json();
+        return result.choices[0].message.content;
     }
 
-    // 显示基础信息
     function displayBasicInfo(info) {
         const nameDisplay = document.getElementById('user-name-display');
         const birthDisplay = document.getElementById('user-birth-display');
@@ -1701,7 +1628,6 @@ document.addEventListener('DOMContentLoaded', function() {
         };
     }
 
-    // 设置元素颜色
     function setElementColors(element, text) {
         const stemElements = {
             '甲': 'wood', '乙': 'wood',
@@ -1725,7 +1651,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // 设置藏干颜色
     function setHiddenStemsColors(element, stems) {
         element.classList.remove('wood', 'fire', 'earth', 'metal', 'water');
         const stemElements = {
@@ -1744,7 +1669,6 @@ document.addEventListener('DOMContentLoaded', function() {
         element.innerHTML = spans.join('');
     }
 
-    // 显示章节内容
     function displaySectionContent(section, result, contentElement) {
         if (result.includes('★')) {
             result = result.replace(/(★+)/g, '<span class="rating" style="color:var(--earth-color);text-shadow:0 0 5px var(--earth-color)">$1</span>');
