@@ -375,7 +375,9 @@ function deleteProfile(index) {
         }
     }
 }
-
+// 初始化
+loadSavedProfiles();
+updateLunarCalendar();
     // 事件监听器
     timePeriodOptions.forEach(option => {
         option.addEventListener('click', function() {
@@ -485,19 +487,14 @@ function deleteProfile(index) {
 
     // 重新计算按钮
     recalculateBtn.addEventListener('click', function() {
-        document.getElementById('name').value = '';
-        document.getElementById('birth-date').value = '';
-        document.getElementById('birth-time').value = '';
-        document.getElementById('gender').value = '';
-        timePeriodOptions.forEach(opt => opt.classList.remove('selected'));
-        resultSection.style.display = 'none';
-        inputSection.style.display = 'block';
-        resetAllContent();
-        if (elementChart) {
-            elementChart.destroy();
-        }
-        window.scrollTo(0, 0);
-    });
+        birthData = { 
+    name, 
+    date: birthDate,
+    time: birthTime, 
+    gender: gender
+};
+
+saveProfile(birthData);  // 使用新定义的saveProfile函数
 
     // 重置所有内容
     function resetAllContent() {
