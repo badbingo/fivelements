@@ -279,6 +279,12 @@ recalculateBtn.addEventListener('click', function() {
         newButton.addEventListener('click', async function(e) {
             e.preventDefault();
 
+            // 滚动到对应区域
+            const targetSection = document.getElementById(`${section}-section`);
+            if (targetSection) {
+                targetSection.scrollIntoView({ behavior: 'smooth' });
+            }
+
             // 如果内容已加载，只切换显示/隐藏
             if (loadedSections[section]) {
                 container.classList.toggle('active');
