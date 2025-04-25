@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const baziCache = {};
     // 兜底规则库
     const fallbackRules = {
+        // 示例规则，可根据实际情况扩展
         "庚子戊寅壬午丙午": {
             "year": "庚子",
             "month": "戊寅",
@@ -176,158 +177,160 @@ document.addEventListener('DOMContentLoaded', function() {
         
         return answer;
     }
+    // ▼ 添加这个函数定义（放在 recalculateBtn 事件监听器之前）▼
+function resetAllContent() {
+    // 1. 重置分数和状态变量
+    fateScoreValue = 0;
+    wealthScoreValue = 0;
+    loadedSections = {};
+    currentPillars = {};
+    fateScoreDetails = {};
+    wealthScoreDetails = {};
 
-    // 重置所有内容
-    function resetAllContent() {
-        // 1. 重置分数和状态变量
-        fateScoreValue = 0;
-        wealthScoreValue = 0;
-        loadedSections = {};
-        currentPillars = {};
-        fateScoreDetails = {};
-        wealthScoreDetails = {};
+    // 2. 清除八字四柱显示
+    yearStem.textContent = '';
+    yearBranch.textContent = '';
+    yearHiddenStems.textContent = '';
+    monthStem.textContent = '';
+    monthBranch.textContent = '';
+    monthHiddenStems.textContent = '';
+    dayStem.textContent = '';
+    dayBranch.textContent = '';
+    dayHiddenStems.textContent = '';
+    hourStem.textContent = '';
+    hourBranch.textContent = '';
+    hourHiddenStems.textContent = '';
 
-        // 2. 清除八字四柱显示
-        yearStem.textContent = '';
-        yearBranch.textContent = '';
-        yearHiddenStems.textContent = '';
-        monthStem.textContent = '';
-        monthBranch.textContent = '';
-        monthHiddenStems.textContent = '';
-        dayStem.textContent = '';
-        dayBranch.textContent = '';
-        dayHiddenStems.textContent = '';
-        hourStem.textContent = '';
-        hourBranch.textContent = '';
-        hourHiddenStems.textContent = '';
+    // 3. 重置分数显示区域
+    fateLevel.textContent = '';
+    fateScore.textContent = '';
+    fateDetails.innerHTML = '';
+    wealthLevel.textContent = '';
+    wealthScore.textContent = '';
+    wealthDetails.innerHTML = '';
+    personalityTraits.textContent = '命主性格：';
 
-        // 3. 重置分数显示区域
-        fateLevel.textContent = '';
-        fateScore.textContent = '';
-        fateDetails.innerHTML = '';
-        wealthLevel.textContent = '';
-        wealthScore.textContent = '';
-        wealthDetails.innerHTML = '';
-        personalityTraits.textContent = '命主性格：';
-
-        // 4. 重置所有内容区域
-        document.querySelectorAll('.section-content').forEach(el => {
-            el.innerHTML = '';
-            el.classList.remove('active');
-        });
-
-        // 5. 重置所有加载按钮
-        document.querySelectorAll('.load-btn').forEach(btn => {
-            const originalText = btn.getAttribute('data-original-text') || btn.querySelector('span').textContent;
-            btn.innerHTML = `<span>${originalText}</span><i class="fas fa-chevron-down toggle-icon"></i>`;
-            btn.classList.remove('active');
-            btn.disabled = false;
-        });
-
-        console.log("所有内容已重置完成");
-    }
-
-    // 重新计算按钮事件
-    recalculateBtn.addEventListener('click', function() {
-        // 1. 清空输入表单
-        document.getElementById('name').value = '';
-        document.getElementById('birth-date').value = '';
-        document.getElementById('birth-time').value = '';
-        document.getElementById('gender').value = '';
-        timePeriodOptions.forEach(opt => opt.classList.remove('selected'));
-
-        // 2. 切换界面显示（隐藏结果，显示输入）
-        resultSection.style.display = 'none';
-        inputSection.style.display = 'block';
-
-        // 3. 重置所有内容和状态
-        resetAllContent();
-
-        // 4. 销毁五行能量雷达图（避免内存泄漏）
-        if (elementChart) {
-            elementChart.destroy();
-            elementChart = null;
-        }
-
-        // 5. 重新初始化所有加载按钮
-        initLoadButtons();
-
-        // 6. 滚动到页面顶部
-        window.scrollTo(0, 0);
+    // 4. 重置所有内容区域
+    document.querySelectorAll('.section-content').forEach(el => {
+        el.innerHTML = '';
+        el.classList.remove('active');
     });
 
-    // 修复后的加载按钮初始化函数
+    // 5. 重置所有加载按钮
+    document.querySelectorAll('.load-btn').forEach(btn => {
+        const originalText = btn.getAttribute('data-original-text') || btn.querySelector('span').textContent;
+        btn.innerHTML = `<span>${originalText}</span><i class="fas fa-chevron-down toggle-icon"></i>`;
+        btn.classList.remove('active');
+        btn.disabled = false;
+    });
+
+    console.log("所有内容已重置完成"); // 调试用
+}
+
+// ▼ 确保 recalculateBtn 事件监听器在这之后 ▼
+recalculateBtn.addEventListener('click', function() {
+    // ...原有代码...
+    resetAllContent(); // 现在可以正确调用
+});
+    // 重新计算按钮事件
+    recalculateBtn.addEventListener('click', function() {
+    // 1. 清空输入表单
+    document.getElementById('name').value = '';
+    document.getElementById('birth-date').value = '';
+    document.getElementById('birth-time').value = '';
+    document.getElementById('gender').value = '';
+    timePeriodOptions.forEach(opt => opt.classList.remove('selected'));
+
+    // 2. 切换界面显示（隐藏结果，显示输入）
+    resultSection.style.display = 'none';
+    inputSection.style.display = 'block';
+
+    // 3. 重置所有内容和状态
+    resetAllContent(); // 调用我们修改后的重置函数
+
+    // 4. 销毁五行能量雷达图（避免内存泄漏）
+    if (elementChart) {
+        elementChart.destroy();
+        elementChart = null; // 清除图表引用
+    }
+
+    // 5. 重新初始化所有加载按钮（关键修复！）
+    initLoadButtons();
+
+    // 6. 滚动到页面顶部
+    window.scrollTo(0, 0);
+});
+
+    // 初始化加载按钮
     function initLoadButtons() {
-        document.querySelectorAll('.load-btn').forEach(button => {
-            // 保存按钮原始文本
-            const originalText = button.querySelector('span').textContent;
-            button.setAttribute('data-original-text', originalText);
+    document.querySelectorAll('.load-btn').forEach(button => {
+        // 保存按钮原始文本
+        const originalText = button.querySelector('span').textContent;
+        button.setAttribute('data-original-text', originalText);
 
-            const section = button.getAttribute('data-section');
-            const contentElement = document.getElementById(`${section}-content`);
-            const container = button.closest('.load-btn-container');
+        const section = button.getAttribute('data-section');
+        const contentElement = document.getElementById(`${section}-content`);
+        const container = button.closest('.load-btn-container');
 
-            // 移除旧的点击事件（避免重复绑定）
-            button.removeEventListener('click', loadSectionHandler);
-            
-            // 添加新的点击事件
-            button.addEventListener('click', loadSectionHandler);
+        // 移除旧的点击事件（避免重复绑定）
+        const newButton = button.cloneNode(true);
+        button.parentNode.replaceChild(newButton, button);
 
-            async function loadSectionHandler(e) {
-                e.preventDefault();
+        newButton.addEventListener('click', async function(e) {
+            e.preventDefault();
 
-                // 如果内容已加载，只切换显示/隐藏
-                if (loadedSections[section]) {
-                    container.classList.toggle('active');
-                    contentElement.classList.toggle('active');
-                    return;
+            // 如果内容已加载，只切换显示/隐藏
+            if (loadedSections[section]) {
+                container.classList.toggle('active');
+                contentElement.classList.toggle('active');
+                return;
+            }
+
+            // 开始加载内容
+            newButton.disabled = true;
+            newButton.innerHTML = `<span><span class="loading"></span> 量子分析中...</span><i class="fas fa-chevron-down toggle-icon"></i>`;
+            container.classList.add('active');
+
+            // 添加进度条
+            const progressContainer = document.createElement('div');
+            progressContainer.className = 'progress-container';
+            progressContainer.innerHTML = '<div class="progress-bar"></div>';
+            contentElement.innerHTML = '';
+            contentElement.appendChild(progressContainer);
+            const progressBar = progressContainer.querySelector('.progress-bar');
+
+            // 模拟进度
+            let progress = 0;
+            const progressInterval = setInterval(() => {
+                progress += Math.random() * 10;
+                if (progress >= 100) progress = 100;
+                progressBar.style.width = `${progress}%`;
+            }, 300);
+
+            try {
+                const result = await getBaziAnalysis(section, birthData);
+                clearInterval(progressInterval);
+                displaySectionContent(section, result, contentElement);
+                
+                // 更新按钮状态
+                newButton.innerHTML = `<span>${originalText}</span><i class="fas fa-check"></i><i class="fas fa-chevron-down toggle-icon"></i>`;
+                newButton.disabled = false;
+                contentElement.classList.add('active');
+                loadedSections[section] = true;
+
+                if (section === 'decade-fortune') {
+                    initFortuneChart(result);
                 }
-
-                // 开始加载内容
-                button.disabled = true;
-                button.innerHTML = `<span><span class="loading"></span> 量子分析中...</span><i class="fas fa-chevron-down toggle-icon"></i>`;
-                container.classList.add('active');
-
-                // 添加进度条
-                const progressContainer = document.createElement('div');
-                progressContainer.className = 'progress-container';
-                progressContainer.innerHTML = '<div class="progress-bar"></div>';
-                contentElement.innerHTML = '';
-                contentElement.appendChild(progressContainer);
-                const progressBar = progressContainer.querySelector('.progress-bar');
-
-                // 模拟进度
-                let progress = 0;
-                const progressInterval = setInterval(() => {
-                    progress += Math.random() * 10;
-                    if (progress >= 100) progress = 100;
-                    progressBar.style.width = `${progress}%`;
-                }, 300);
-
-                try {
-                    const result = await getBaziAnalysis(section, birthData);
-                    clearInterval(progressInterval);
-                    displaySectionContent(section, result, contentElement);
-                    
-                    // 更新按钮状态
-                    button.innerHTML = `<span>${originalText}</span><i class="fas fa-check"></i><i class="fas fa-chevron-down toggle-icon"></i>`;
-                    button.disabled = false;
-                    contentElement.classList.add('active');
-                    loadedSections[section] = true;
-
-                    if (section === 'decade-fortune') {
-                        initFortuneChart(result);
-                    }
-                } catch (error) {
-                    console.error(`加载${section}失败:`, error);
-                    clearInterval(progressInterval);
-                    contentElement.innerHTML = '<p style="color:var(--danger-color)">加载失败，请重试</p>';
-                    button.innerHTML = `<span>${originalText}</span><i class="fas fa-chevron-down toggle-icon"></i>`;
-                    button.disabled = false;
-                }
+            } catch (error) {
+                console.error(`加载${section}失败:`, error);
+                clearInterval(progressInterval);
+                contentElement.innerHTML = '<p style="color:var(--danger-color)">加载失败，请重试</p>';
+                newButton.innerHTML = `<span>${originalText}</span><i class="fas fa-chevron-down toggle-icon"></i>`;
+                newButton.disabled = false;
             }
         });
-    }
+    });
+}
 
     // 初始化五行元素图表
     function initElementChart(data) {
@@ -414,61 +417,61 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 计算五行能量
     function calculateElementEnergy(pillars) {
-        const elements = {
-            '木': 0,
-            '火': 0,
-            '土': 0,
-            '金': 0,
-            '水': 0
-        };
-        const stemElements = {
-            '甲': '木', '乙': '木',
-            '丙': '火', '丁': '火',
-            '戊': '土', '己': '土',
-            '庚': '金', '辛': '金',
-            '壬': '水', '癸': '水'
-        };
-        const branchElements = {
-            '寅': '木', '卯': '木',
-            '午': '火', '巳': '火',
-            '辰': '土', '戌': '土', '丑': '土', '未': '土',
-            '申': '金', '酉': '金',
-            '子': '水', '亥': '水'
-        };
+    const elements = {
+        '木': 0,
+        '火': 0,
+        '土': 0,
+        '金': 0,
+        '水': 0
+    };
+    const stemElements = {
+        '甲': '木', '乙': '木',
+        '丙': '火', '丁': '火',
+        '戊': '土', '己': '土',
+        '庚': '金', '辛': '金',
+        '壬': '水', '癸': '水'
+    };
+    const branchElements = {
+        '寅': '木', '卯': '木',
+        '午': '火', '巳': '火',
+        '辰': '土', '戌': '土', '丑': '土', '未': '土',
+        '申': '金', '酉': '金',
+        '子': '水', '亥': '水'
+    };
 
-        // 处理天干（年、月、日、时的第一个字）
-        const stems = [
-            pillars.year.charAt(0),
-            pillars.month.charAt(0),
-            pillars.day.charAt(0),
-            pillars.hour.charAt(0)
-        ];
-        stems.forEach(stem => {
-            const element = stemElements[stem];
-            if (element) elements[element]++;
-        });
+    // 处理天干（年、月、日、时的第一个字）
+    const stems = [
+        pillars.year.charAt(0),
+        pillars.month.charAt(0),
+        pillars.day.charAt(0),
+        pillars.hour.charAt(0)
+    ];
+    stems.forEach(stem => {
+        const element = stemElements[stem];
+        if (element) elements[element]++;
+    });
 
-        // 处理地支（年、月、日、时的第二个字）
-        const branches = [
-            pillars.year.charAt(1),
-            pillars.month.charAt(1),
-            pillars.day.charAt(1),
-            pillars.hour.charAt(1)
-        ];
-        branches.forEach(branch => {
-            const element = branchElements[branch];
-            if (element) elements[element]++;
-        });
+    // 处理地支（年、月、日、时的第二个字）
+    const branches = [
+        pillars.year.charAt(1),
+        pillars.month.charAt(1),
+        pillars.day.charAt(1),
+        pillars.hour.charAt(1)
+    ];
+    branches.forEach(branch => {
+        const element = branchElements[branch];
+        if (element) elements[element]++;
+    });
 
-        // 返回五行能量数组
-        return [
-            elements['木'],
-            elements['火'],
-            elements['土'],
-            elements['金'],
-            elements['水']
-        ];
-    }
+    // 返回五行能量数组
+    return [
+        elements['木'],
+        elements['火'],
+        elements['土'],
+        elements['金'],
+        elements['水']
+    ];
+}
 
     // 初始化大运图表
     function initFortuneChart(result) {
@@ -521,8 +524,8 @@ document.addEventListener('DOMContentLoaded', function() {
         lunarGanzhi.textContent = `${lunar.getYearInGanZhi()}年 ${lunar.getMonthInGanZhi()}月 ${lunar.getDayInGanZhi()}日`;
         const yi = lunar.getDayYi();
         const ji = lunar.getDayJi();
-        lunarYi.textContent = yi.join(' ') || '无';
-        lunarJi.textContent = ji.join(' ') || '无';
+        lunarYi.textContent = yi.join('、') || '无';
+        lunarJi.textContent = ji.join('、') || '无';
     }
 
     // 验证日期有效性
@@ -1121,7 +1124,7 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
     }
 
-    // 获取地支藏干（修复顿号问题）
+    // 获取地支藏干
     function getHiddenStems(branch) {
         const hiddenStemsMap = {
             '子': '癸',
@@ -1176,7 +1179,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const hourGan = bazi.getTimeGan();
         const hourZhi = bazi.getTimeZhi();
         const yearHiddenStems = getHiddenStems(yearZhi);
-        const monthHiddenStems = getHiddenStems(monthZhi);
+        const monthHiddenStems = getHiddenStems(yearZhi);
         const dayHiddenStems = getHiddenStems(dayZhi);
         const hourHiddenStems = getHiddenStems(hourZhi);
         const elements = calculateElementEnergy({
@@ -1828,17 +1831,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // 设置藏干颜色（修复顿号问题）
+    // 设置藏干颜色
     function setHiddenStemsColors(element, stems) {
-        // 清空原有内容
-        element.innerHTML = '';
-        
-        // 如果不是字符串（如undefined），直接返回
-        if (typeof stems !== 'string') return;
-        
-        // 移除所有非天干字符（包括顿号）
-        const stemsClean = stems.replace(/[^甲乙丙丁戊己庚辛壬癸]/g, '');
-        
+        element.classList.remove('wood', 'fire', 'earth', 'metal', 'water');
         const stemElements = {
             '甲': 'wood', '乙': 'wood',
             '丙': 'fire', '丁': 'fire',
@@ -1846,25 +1841,13 @@ document.addEventListener('DOMContentLoaded', function() {
             '庚': 'metal', '辛': 'metal',
             '壬': 'water', '癸': 'water'
         };
-        
-        // 逐个字符处理
-        for (let i = 0; i < stemsClean.length; i++) {
-            const char = stemsClean[i];
-            const span = document.createElement('span');
-            span.textContent = char;
-            
-            // 添加对应的五行class
-            if (stemElements[char]) {
-                span.classList.add(stemElements[char]);
-            }
-            
-            element.appendChild(span);
-            
-            // 如果不是最后一个字符，添加空格
-            if (i < stemsClean.length - 1) {
-                element.appendChild(document.createTextNode(' '));
-            }
+        const spans = [];
+        for (let i = 0; i < stems.length; i++) {
+            const char = stems[i];
+            const elementClass = stemElements[char] || '';
+            spans.push(`<span class="${elementClass}">${char}</span>`);
         }
+        element.innerHTML = spans.join('');
     }
 
     // 显示部分内容
@@ -1894,7 +1877,4 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         return Math.abs(hash).toString(16);
     }
-
-    // 初始化加载按钮
-    initLoadButtons();
 });
