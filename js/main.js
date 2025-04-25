@@ -1,230 +1,4 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 缓存系统
-    const cache = {
-        set: async function(key, value, ttl = 3600) {
-            if (typeof window !== 'undefined' && window.localStorage) {
-                const item = {
-                    value: value,
-                    expiry: Date.now() + ttl * 1000
-                };
-                localStorage.setItem(`bazi_cache_${key}`, JSON.stringify(item));
-            }
-        },
-        get: async function(key) {
-            if (typeof window !== 'undefined' && window.localStorage) {
-                const itemStr = localStorage.getItem(`bazi_cache_${key}`);
-                if (!itemStr) return null;
-                const item = JSON.parse(itemStr);
-                if (Date.now() > item.expiry) {
-                    localStorage.removeItem(`bazi_cache_${key}`);
-                    return null;
-                }
-                return item.value;
-            }
-            return null;
-        }
-    };
-
-    // 本地排盘校验系统
-    const baziValidator = {
-        // 本地排盘计算
-        calculateLocally: function(birthData) {
-            const dateParts = birthData.date.split('-');
-            const year = parseInt(dateParts[0]);
-            const month = parseInt(dateParts[1]);
-            const day = parseInt(dateParts[2]);
-            const timeParts = birthData.time.split(':');
-            const hour = parseInt(timeParts[0]);
-            const minute = parseInt(timeParts[1] || 0);
-            
-            const solar = Solar.fromYmdHms(year, month, day, hour, minute, 0);
-            const lunar = solar.getLunar();
-            const bazi = lunar.getEightChar();
-            
-            return {
-                year: bazi.getYearGan() + bazi.getYearZhi(),
-                month: bazi.getMonthGan() + bazi.getMonthZhi(),
-                day: bazi.getDayGan() + bazi.getDayZhi(),
-                hour: bazi.getTimeGan() + bazi.getTimeZhi(),
-                hiddenStems: {
-                    year: this.getHiddenStems(bazi.getYearZhi()),
-                    month: this.getHiddenStems(bazi.getMonthZhi()),
-                    day: this.getHiddenStems(bazi.getDayZhi()),
-                    hour: this.getHiddenStems(bazi.getTimeZhi())
-                }
-            };
-        },
-        
-        // 获取地支藏干
-        getHiddenStems: function(branch) {
-            const hiddenStemsMap = {
-                '子': '癸',
-                '丑': '己癸辛',
-                '寅': '甲丙戊',
-                '卯': '乙',
-                '辰': '戊乙癸',
-                '巳': '丙庚戊',
-                '午': '丁己',
-                '未': '己丁乙',
-                '申': '庚壬戊',
-                '酉': '辛',
-                '戌': '戊辛丁',
-                '亥': '壬甲'
-            };
-            return hiddenStemsMap[branch] || '';
-        },
-        
-        // 校验API返回结果
-        validateApiResult: function(localResult, apiResult) {
-            // 提取API结果中的四柱
-            const apiPillars = this.extractPillarsFromApi(apiResult);
-            if (!apiPillars) return false;
-            
-            // 关键字段对比
-            const errors = [];
-            if (localResult.year !== apiPillars.year) errors.push(`年柱不一致: 本地=${localResult.year}, API=${apiPillars.year}`);
-            if (localResult.month !== apiPillars.month) errors.push(`月柱不一致: 本地=${localResult.month}, API=${apiPillars.month}`);
-            if (localResult.day !== apiPillars.day) errors.push(`日柱不一致: 本地=${localResult.day}, API=${apiPillars.day}`);
-            if (localResult.hour !== apiPillars.hour) errors.push(`时柱不一致: 本地=${localResult.hour}, API=${apiPillars.hour}`);
-            
-            if (errors.length > 0) {
-                console.error('排盘校验失败:', errors.join('; '));
-                return false;
-            }
-            return true;
-        },
-        
-        // 从API结果中提取四柱
-        extractPillarsFromApi: function(apiResult) {
-            // 尝试多种方式提取四柱
-            const patterns = [
-                /年柱\[([^\]]+)\]月柱\[([^\]]+)\]日柱\[([^\]]+)\]时柱\[([^\]]+)\]/,
-                /年柱([^\s]+)月柱([^\s]+)日柱([^\s]+)时柱([^\s]+)/,
-                /年柱：([^\s]+)月柱：([^\s]+)日柱：([^\s]+)时柱：([^\s]+)/,
-                /年柱\s*([^\s]+)\s*月柱\s*([^\s]+)\s*日柱\s*([^\s]+)\s*时柱\s*([^\s]+)/
-            ];
-            
-            for (const pattern of patterns) {
-                const match = apiResult.match(pattern);
-                if (match && match.length === 5) {
-                    return {
-                        year: match[1].trim(),
-                        month: match[2].trim(),
-                        day: match[3].trim(),
-                        hour: match[4].trim()
-                    };
-                }
-            }
-            
-            // 如果正则匹配失败，尝试更宽松的匹配
-            const ganzhiPattern = /([甲乙丙丁戊己庚辛壬癸][子丑寅卯辰巳午未申酉戌亥])/g;
-            const matches = apiResult.match(ganzhiPattern);
-            if (matches && matches.length >= 4) {
-                return {
-                    year: matches[0],
-                    month: matches[1],
-                    day: matches[2],
-                    hour: matches[3]
-                };
-            }
-            
-            return null;
-        },
-        
-        // 修正API结果
-        correctApiResult: function(localResult, apiResult) {
-            const corrected = apiResult;
-            const apiPillars = this.extractPillarsFromApi(apiResult);
-            
-            if (apiPillars) {
-                // 替换错误的四柱
-                return corrected
-                    .replace(apiPillars.year, localResult.year)
-                    .replace(apiPillars.month, localResult.month)
-                    .replace(apiPillars.day, localResult.day)
-                    .replace(apiPillars.hour, localResult.hour);
-            }
-            
-            return corrected;
-        }
-    };
-
-    // 兜底规则库
-    const fallbackRules = {
-        getBasicAnalysis: function(birthData, pillars) {
-            const elements = this.calculateElementEnergy(pillars);
-            const personality = this.getPersonalityTraits(pillars.day.charAt(0));
-            
-            return `1 八字四柱：年柱[${pillars.year}] 月柱[${pillars.month}] 日柱[${pillars.day}] 时柱[${pillars.hour}]
-2 地支藏干：年支[${pillars.hiddenStems.year}] 月支[${pillars.hiddenStems.month}] 日支[${pillars.hiddenStems.day}] 时支[${pillars.hiddenStems.hour}]
-3 五行能量：[${elements.join(',')}]
-4 命主性格：[${personality}]`;
-        },
-        
-        calculateElementEnergy: function(pillars) {
-            const elements = { '木': 0, '火': 0, '土': 0, '金': 0, '水': 0 };
-            const stemElements = {
-                '甲': '木', '乙': '木', '丙': '火', '丁': '火',
-                '戊': '土', '己': '土', '庚': '金', '辛': '金',
-                '壬': '水', '癸': '水'
-            };
-            const branchElements = {
-                '寅': '木', '卯': '木', '午': '火', '巳': '火',
-                '辰': '土', '戌': '土', '丑': '土', '未': '土',
-                '申': '金', '酉': '金', '子': '水', '亥': '水'
-            };
-            
-            // 计算天干五行
-            elements[stemElements[pillars.year.charAt(0)]]++;
-            elements[stemElements[pillars.month.charAt(0)]]++;
-            elements[stemElements[pillars.day.charAt(0)]]++;
-            elements[stemElements[pillars.hour.charAt(0)]]++;
-            
-            // 计算地支五行
-            elements[branchElements[pillars.year.charAt(1)]]++;
-            elements[branchElements[pillars.month.charAt(1)]]++;
-            elements[branchElements[pillars.day.charAt(1)]]++;
-            elements[branchElements[pillars.hour.charAt(1)]]++;
-            
-            return [
-                elements['木'],
-                elements['火'],
-                elements['土'],
-                elements['金'],
-                elements['水']
-            ];
-        },
-        
-        getPersonalityTraits: function(dayStem) {
-            const traits = {
-                '甲': '似参天大树，正直向上，有领导力但略显固执',
-                '乙': '如藤蔓般柔韧，适应力强但有时优柔寡断',
-                '丙': '如太阳般热情，开朗大方但易冲动急躁',
-                '丁': '似烛火般温和，细心周到但易多愁善感',
-                '戊': '如大地般稳重，踏实可靠但略显保守',
-                '己': '似田园之土，包容性强但易随波逐流',
-                '庚': '如金属般刚强，果断决绝但易锋芒太露',
-                '辛': '似珠宝般精致，追求完美但易挑剔计较',
-                '壬': '如江河奔流，聪明机智但易三心二意',
-                '癸': '似雨露滋润，细腻敏感但易多疑忧郁'
-            };
-            return traits[dayStem] || '似静水流深，临危反生智，藏锋守拙却暗含凌云之志';
-        }
-    };
-
-    // 生成唯一哈希值
-    function generateHash(birthData) {
-        const str = `${birthData.date}_${birthData.time}_${birthData.gender}`;
-        let hash = 0;
-        for (let i = 0; i < str.length; i++) {
-            const char = str.charCodeAt(i);
-            hash = ((hash << 5) - hash) + char;
-            hash = hash & hash; // Convert to 32bit integer
-        }
-        return hash.toString(16);
-    }
-
-    // UI元素初始化
     const calculateBtn = document.getElementById('calculate-btn');
     const recalculateBtn = document.getElementById('recalculate-btn');
     const inputSection = document.getElementById('input-section');
@@ -255,17 +29,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const gamblingRating = document.getElementById('gambling-rating');
     const gamblingDetails = document.getElementById('gambling-details');
     const savedProfilesList = document.getElementById('saved-profiles-list');
+    let elementChart;
     const lunarDate = document.getElementById('lunar-date');
     const lunarGanzhi = document.getElementById('lunar-ganzhi');
     const lunarYi = document.getElementById('lunar-yi');
     const lunarJi = document.getElementById('lunar-ji');
-    const baziQuestionInput = document.getElementById('bazi-question');
-    const baziQaSubmit = document.getElementById('bazi-qa-submit');
-    const baziQaResponse = document.getElementById('bazi-qa-response');
-    const baziQaLoading = document.getElementById('bazi-qa-loading');
-    
-    let elementChart;
-    let currentDate = new Date();
+    const currentDate = new Date();
     let birthData = {};
     let loadedSections = {};
     let currentPillars = {};
@@ -273,112 +42,13 @@ document.addEventListener('DOMContentLoaded', function() {
     let wealthScoreDetails = {};
     let fateScoreValue = 0;
     let wealthScoreValue = 0;
+    const baziQuestionInput = document.getElementById('bazi-question');
+    const baziQaSubmit = document.getElementById('bazi-qa-submit');
+    const baziQaResponse = document.getElementById('bazi-qa-response');
+    const baziQaLoading = document.getElementById('bazi-qa-loading');
 
-    // 加载已保存的命盘列表
-function loadSavedProfiles() {
-    if (typeof window !== 'undefined' && window.localStorage) {
-        const savedProfiles = JSON.parse(localStorage.getItem('bazi_profiles') || '[]');
-        savedProfilesList.innerHTML = '';
-        
-        if (savedProfiles.length === 0) {
-            savedProfilesList.innerHTML = '<li>暂无保存的命盘</li>';
-            return;
-        }
-        
-        savedProfiles.forEach((profile, index) => {
-            const li = document.createElement('li');
-            li.innerHTML = `
-                <span>${profile.name || '匿名用户'} - ${profile.date} ${profile.time}</span>
-                <button class="load-profile-btn" data-index="${index}">加载</button>
-                <button class="delete-profile-btn" data-index="${index}">删除</button>
-            `;
-            savedProfilesList.appendChild(li);
-        });
-        
-        // 为按钮添加事件监听
-        document.querySelectorAll('.load-profile-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const index = parseInt(this.getAttribute('data-index'));
-                loadProfile(index);
-            });
-        });
-        
-        document.querySelectorAll('.delete-profile-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const index = parseInt(this.getAttribute('data-index'));
-                deleteProfile(index);
-            });
-        });
-    }
-}
+    loadSavedProfiles();
 
-// 保存命盘到本地存储
-function saveProfile(profileData) {
-    if (typeof window !== 'undefined' && window.localStorage) {
-        let savedProfiles = JSON.parse(localStorage.getItem('bazi_profiles') || '[]');
-        
-        // 检查是否已存在相同命盘
-        const existingIndex = savedProfiles.findIndex(p => 
-            p.date === profileData.date && 
-            p.time === profileData.time && 
-            p.gender === profileData.gender
-        );
-        
-        if (existingIndex >= 0) {
-            // 更新现有命盘
-            savedProfiles[existingIndex] = profileData;
-        } else {
-            // 添加新命盘（最多保存10个）
-            savedProfiles.unshift(profileData);
-            if (savedProfiles.length > 10) {
-                savedProfiles = savedProfiles.slice(0, 10);
-            }
-        }
-        
-        localStorage.setItem('bazi_profiles', JSON.stringify(savedProfiles));
-        loadSavedProfiles(); // 刷新列表
-    }
-}
-
-// 加载指定命盘
-function loadProfile(index) {
-    if (typeof window !== 'undefined' && window.localStorage) {
-        const savedProfiles = JSON.parse(localStorage.getItem('bazi_profiles') || '[]');
-        if (index >= 0 && index < savedProfiles.length) {
-            const profile = savedProfiles[index];
-            document.getElementById('name').value = profile.name || '';
-            document.getElementById('birth-date').value = profile.date;
-            document.getElementById('birth-time').value = profile.time;
-            document.getElementById('gender').value = profile.gender;
-            
-            // 更新时段选择
-            timePeriodOptions.forEach(opt => opt.classList.remove('selected'));
-            const hour = parseInt(profile.time.split(':')[0]);
-            const matchingOption = Array.from(timePeriodOptions).find(opt => 
-                parseInt(opt.getAttribute('data-hour')) === hour
-            );
-            if (matchingOption) {
-                matchingOption.classList.add('selected');
-            }
-        }
-    }
-}
-
-// 删除指定命盘
-function deleteProfile(index) {
-    if (typeof window !== 'undefined' && window.localStorage) {
-        let savedProfiles = JSON.parse(localStorage.getItem('bazi_profiles') || '[]');
-        if (index >= 0 && index < savedProfiles.length) {
-            savedProfiles.splice(index, 1);
-            localStorage.setItem('bazi_profiles', JSON.stringify(savedProfiles));
-            loadSavedProfiles(); // 刷新列表
-        }
-    }
-}
-// 初始化
-loadSavedProfiles();
-updateLunarCalendar();
-    // 事件监听器
     timePeriodOptions.forEach(option => {
         option.addEventListener('click', function() {
             timePeriodOptions.forEach(opt => opt.classList.remove('selected'));
@@ -407,7 +77,6 @@ updateLunarCalendar();
         }
     });
 
-    // 八字问答系统
     baziQaSubmit.addEventListener('click', async function() {
         const question = baziQuestionInput.value.trim();
         if (!question) {
@@ -420,23 +89,7 @@ updateLunarCalendar();
         baziQaLoading.style.display = 'flex';
         
         try {
-            // 生成缓存键
-            const cacheKey = `qa_${generateHash(birthData)}_${question.substring(0, 20)}`;
-            
-            // 检查缓存
-            const cachedResponse = await cache.get(cacheKey);
-            if (cachedResponse) {
-                baziQaResponse.innerHTML = marked.parse(cachedResponse);
-                baziQaResponse.style.display = 'block';
-                return;
-            }
-            
-            // 调用API
             const response = await getBaziAnswer(question);
-            
-            // 缓存结果
-            await cache.set(cacheKey, response);
-            
             baziQaResponse.innerHTML = marked.parse(response);
             baziQaResponse.style.display = 'block';
         } catch (error) {
@@ -475,8 +128,7 @@ updateLunarCalendar();
             body: JSON.stringify({
                 model: "deepseek-chat",
                 messages: [{ role: "user", content: prompt }],
-                temperature: 0,
-                seed: 12345  // 固定seed值确保相同输入得到相同输出
+                temperature: 0
             })
         });
         
@@ -485,18 +137,21 @@ updateLunarCalendar();
         return result.choices[0].message.content;
     }
 
-    // 重新计算按钮
     recalculateBtn.addEventListener('click', function() {
-        birthData = { 
-    name, 
-    date: birthDate,
-    time: birthTime, 
-    gender: gender
-};
+        document.getElementById('name').value = '';
+        document.getElementById('birth-date').value = '';
+        document.getElementById('birth-time').value = '';
+        document.getElementById('gender').value = '';
+        timePeriodOptions.forEach(opt => opt.classList.remove('selected'));
+        resultSection.style.display = 'none';
+        inputSection.style.display = 'block';
+        resetAllContent();
+        if (elementChart) {
+            elementChart.destroy();
+        }
+        window.scrollTo(0, 0);
+    });
 
-saveProfile(birthData);  // 使用新定义的saveProfile函数
-
-    // 重置所有内容
     function resetAllContent() {
         fateScoreValue = 0;
         wealthScoreValue = 0;
@@ -546,7 +201,16 @@ saveProfile(birthData);  // 使用新定义的saveProfile函数
         baziQaLoading.style.display = 'none';
     }
 
-    // 初始化加载按钮
+    document.querySelectorAll('.menu-tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+            document.querySelectorAll('.menu-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            this.classList.add('active');
+            const tabId = this.getAttribute('data-tab') + '-tab';
+            document.getElementById(tabId).classList.add('active');
+        });
+    });
+
     function initLoadButtons() {
         document.querySelectorAll('.load-btn').forEach(button => {
             const section = button.getAttribute('data-section');
@@ -601,233 +265,1005 @@ saveProfile(birthData);  // 使用新定义的saveProfile函数
         });
     }
 
-    // 获取八字分析
-    async function getBaziAnalysis(section, data) {
-        // 生成缓存键
-        const cacheKey = `analysis_${generateHash(data)}_${section}`;
-        
-        // 检查缓存
-        const cachedResult = await cache.get(cacheKey);
-        if (cachedResult) {
-            return cachedResult;
-        }
-        
-        // 本地计算基础排盘
-        const localResult = baziValidator.calculateLocally(data);
-        
-        // 对于基础信息，使用本地计算结果
-        if (section === 'basic') {
-            const result = fallbackRules.getBasicAnalysis(data, localResult);
-            await cache.set(cacheKey, result);
-            return result;
-        }
-        
-        // 其他部分调用API
-        const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
-        const apiKey = 'sk-b2950087a9d5427392762814114b22a9';
-        const currentDateStr = currentDate.getFullYear() + '-' + 
-                              (currentDate.getMonth() + 1).toString().padStart(2, '0') + '-' + 
-                              currentDate.getDate().toString().padStart(2, '0');
-                  
-        let prompt = `【八字排盘专业算法规范】请严格遵循以下计算规则：
-当前日期：${currentDateStr}
-根据以下八字信息进行分析：
-姓名：${data.name || '未提供'}
-出生日期：${data.date}
-出生时间：${data.time} 
-性别：${data.gender === 'male' ? '男' : '女'}
-八字：${localResult.year} ${localResult.month} ${localResult.day} ${localResult.hour}
-
-`;
-
-        switch(section) {
-            case 'strength':
-                prompt += `分析命主的身强身弱情况：
-1 日主得令、得地、得势的情况
-2 天干地支的合化和刑冲情况
-3 特殊格局判断
-4 喜用和忌凶
-返回格式：
-日主得令、得地、得势的情况：[详细分析]
-天干地支的合化和刑冲情况：[详细分析]
-特殊格局判断：[专旺格，从格，化气格，两神成象格，杂奇格，日贵格，三奇贵人格，禄元互换格，天元一气格，身杀两停格，伤官配印格，伤官见官格，伤官生财格，伤官泄秀格]
-喜用和忌凶：[视觉化总结]
-用Markdown格式，段落与段落之间空一行，使用分隔线，标题和重要内容高亮显示，添加视觉引导元素如箭头、进度条等，不要使用任何特殊符号`;
-                break;
-            case 'career':
-                prompt += `详细分析适合行业情况：
-1 适合行业分析
-2 最佳行业推荐
-3 流年事业运分析
-返回格式：
-流年事业运分析：[以表格方式详细分析](1-5星)
-用Markdown格式，段落与段落之间空一行，使用分隔线，标题和重要内容高亮显示，添加视觉引导元素如箭头、进度条等，不要使用任何特殊符号`;
-                break;
-            case 'wealth':
-                prompt += `详细分析财富情况：
-1 财富格局
-2 流年财运分析
-3 大运财运分析
-返回格式：
-流年财运分析：[以表格方式详细分析](1-5星)
-大运财运分析：[以表格方式详细分析](1-5星)
-用Markdown格式，段落与段落之间空一行，使用分隔线，标题和重要内容高亮显示，添加视觉引导元素如箭头、进度条等，不要使用任何特殊符号`;
-                break;
-            case 'elements':
-                prompt += `分析八字五行强弱，燥湿和流通情况：
-1 五行强弱分析
-2 五行燥湿分析
-3 五行流通分析
-4 调候建议
-返回格式：
-五行强弱分析[详细分析]
-五行燥湿分析[详细分析]
-五行流通分析[详细分析]
-调候建议：[详细分析]
-用Markdown格式，段落与段落之间空一行，使用分隔线，标题和重要内容高亮显示，添加视觉引导元素如箭头、进度条等，不要使用任何特殊符号`;
-                break;
-            case 'personality':
-                prompt += `分析命主脾气性格：
-1 外在性格分析
-2 内在性格分析
-3 特殊性格分析
-外在性格分析[内容简洁]
-内在性格分析[内容简洁]
-特殊性格分析[内容简洁]
-用Markdown格式，段落与段落之间空一行，使用分隔线，标题和重要内容高亮显示，添加视觉引导元素如箭头、进度条等，不要使用任何特殊符号`;
-                break;
-            case 'children':
-                prompt += `分析子女情况：
-1 子女数量分析
-2 子女缘分分析
-子女数量：[男女]
-子女缘分分析：[详细分析]
-用Markdown格式，段落与段落之间空一行，使用分隔线，标题和重要内容高亮显示，添加视觉引导元素如箭头、进度条等，不要使用任何特殊符号`;
-                break;
-            case 'marriage':
-                prompt += `分析婚姻情况：
-1 适婚年份
-2 桃花年份
-3 流月婚姻吉凶分析
-返回格式：
-适婚年份：[表格方式呈现]
-桃花年份：[表格方式呈现]
-流月婚姻吉凶分析：[表格方式呈现具体建议](1-5星)
-用Markdown格式，段落与段落之间空一行，使用分隔线，标题和重要内容高亮显示，添加视觉引导元素如箭头、进度条等，不要使用任何特殊符号`;
-                break;
-            case 'health':
-                prompt += `详细分析健康状况：
-1 五行对应器官健康
-2 潜在健康问题
-3 养生建议
-4 流年健康分析
-返回格式：
-流年健康分析：[表格方式呈现具体建议]
-用Markdown格式，段落与段落之间空一行，使用分隔线，标题和重要内容高亮显示，添加视觉引导元素如箭头、进度条等，不要使用任何特殊符号`;
-                break;
-            case 'annual-fortune':
-                prompt += `详细分析当前流年运势：
-1 流年事业吉凶分析
-2 流年婚姻吉凶分析
-3 流年重大事件吉凶分析
-返回格式：
-流年事业吉凶分析：[以表格方式详细分析](1-5星)
-流年婚姻吉凶分析：[以表格方式详细分析](1-5星)
-流年重大事件吉凶分析：[以表格方式详细分析](1-5星)
-用Markdown格式，段落与段落之间空一行，使用分隔线，标题和重要内容高亮显示，添加视觉引导元素如箭头、进度条等，不要使用任何特殊符号`;
-                break;
-            case 'daily-fortune':
-                prompt += `详细分析每日运势：
-1 每日吉凶时辰
-2 每日宜忌事项
-3 每日冲煞方位
-返回格式：
-每日吉凶时辰：[表格方式详细分析]
-每日宜忌事项：[表格方式详细分析]
-每日冲煞方位：[表格方式详细分析]
-用Markdown格式，段落与段落之间空一行，使用分隔线，标题和重要内容高亮显示，添加视觉引导元素如箭头、进度条等，不要使用任何特殊符号`;
-                break;
-            case 'milestones':
-                prompt += `分析一生重要节点和重大灾祸：
-1 一生重要事件分析
-2 一生重大灾祸分析
-3 如何趋吉避凶
-返回格式：
-一生重要事件分析：[以表格方式详细分析]
-一生重大灾祸分析：[以表格方式详细分析]
-如何趋吉避凶：[详细分析]
-用Markdown格式，段落与段落之间空一行，使用分隔线，标题和重要内容高亮显示，添加视觉引导元素如箭头、进度条等，不要使用任何特殊符号`;
-                break;
-            case 'decade-fortune':
-                prompt += `分析十年大运走势：
-1 大运事业吉凶分析
-2 大运婚姻吉凶分析
-3 大运重大事件吉凶分析
-返回格式：
-大运事业吉凶分析：[以表格方式详细分析](1-5星)
-大运婚姻吉凶分析：[以表格方式详细分析](1-5星)
-大运重大事件吉凶分析：[以表格方式详细分析] (1-5星)
-用Markdown格式，段落与段落之间空一行，使用分隔线，标题和重要内容高亮显示，添加视觉引导元素如箭头、进度条等，不要使用任何特殊符号`;
-                break;
-            case 'monthly-fortune':
-                prompt += `详细分析今年每月运势：
-1 事业吉凶分析
-2 婚姻吉凶分析
-3 重大事件吉凶分析
-返回格式：
-事业吉凶分析：[以表格方式详细分析](1-5星)
-婚姻吉凶分析：[以表格方式详细分析](1-5星)
-重大事件吉凶分析：[以表格方式详细分析] (1-5星)
-用Markdown格式，段落与段落之间空一行，使用分隔线，标题和重要内容高亮显示，添加视觉引导元素如箭头、进度条等，不要使用任何特殊符号`;
-                break;
-            default:
-                prompt += `请分析${section}相关内容`;
-        }
-        
-        try {
-            const response = await fetch(apiUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${apiKey}`
+    function initElementChart(data) {
+        const total = data.reduce((sum, value) => sum + value, 0);
+        const percentages = data.map(value => Math.round((value/total)*100));
+        const elementData = {
+            labels: ['木', '火', '土', '金', '水'].map((label, i) => `${label} ${percentages[i]}%`),
+            datasets: [{
+                data: data,
+                backgroundColor: [
+                    'rgba(0, 255, 136, 0.3)',
+                    'rgba(255, 51, 0, 0.3)',
+                    'rgba(255, 204, 0, 0.3)',
+                    'rgba(204, 204, 204, 0.3)',
+                    'rgba(0, 153, 255, 0.3)'
+                ],
+                borderColor: [
+                    'rgba(0, 255, 136, 1)',
+                    'rgba(255, 51, 0, 1)',
+                    'rgba(255, 204, 0, 1)',
+                    'rgba(204, 204, 204, 1)',
+                    'rgba(0, 153, 255, 1)'
+                ],
+                borderWidth: 1
+            }]
+        };
+        elementChart = new Chart(elementChartCtx, {
+            type: 'radar',
+            data: elementData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    r: {
+                        angleLines: {
+                            display: true,
+                            color: 'rgba(0, 240, 255, 0.2)'
+                        },
+                        suggestedMin: 0,
+                        suggestedMax: Math.max(...data) + 2,
+                        ticks: {
+                            backdropColor: 'transparent',
+                            color: 'rgba(0, 240, 255, 0.7)',
+                            font: {
+                                family: "'Orbitron', sans-serif"
+                            },
+                            stepSize: 1
+                        },
+                        pointLabels: {
+                            color: 'rgba(0, 240, 255, 0.9)',
+                            font: {
+                                family: "'Orbitron', sans-serif",
+                                size: 14
+                            }
+                        },
+                        grid: {
+                            color: 'rgba(0, 240, 255, 0.1)'
+                        }
+                    }
                 },
-                body: JSON.stringify({
-                    model: "deepseek-chat",
-                    messages: [{ role: "user", content: prompt }],
-                    temperature: 0,
-                    seed: 12345  // 固定seed值确保相同输入得到相同输出
-                })
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.raw;
+                                const percentage = percentages[context.dataIndex];
+                                return `${label}: ${value} (${percentage}%)`;
+                            }
+                        }
+                    }
+                },
+                elements: {
+                    line: {
+                        tension: 0.1
+                    }
+                }
+            }
+        });
+    }
+
+    function calculateElementEnergy(pillars) {
+        const elements = {
+            '木': 0,
+            '火': 0,
+            '土': 0,
+            '金': 0,
+            '水': 0
+        };
+        const stemElements = {
+            '甲': '木', '乙': '木',
+            '丙': '火', '丁': '火',
+            '戊': '土', '己': '土',
+            '庚': '金', '辛': '金',
+            '壬': '水', '癸': '水'
+        };
+        const branchElements = {
+            '寅': '木', '卯': '木',
+            '午': '火', '巳': '火',
+            '辰': '土', '戌': '土', '丑': '土', '未': '土',
+            '申': '金', '酉': '金',
+            '子': '水', '亥': '水'
+        };
+        elements[stemElements[pillars.year.charAt(0)]]++;
+        elements[stemElements[pillars.month.charAt(0)]]++;
+        elements[stemElements[pillars.day.charAt(0)]]++;
+        elements[stemElements[pillars.hour.charAt(0)]]++;
+        elements[branchElements[pillars.year.charAt(1)]]++;
+        elements[branchElements[pillars.month.charAt(1)]]++;
+        elements[branchElements[pillars.day.charAt(1)]]++;
+        elements[branchElements[pillars.hour.charAt(1)]]++;
+        return [
+            elements['木'],
+            elements['火'],
+            elements['土'],
+            elements['金'],
+            elements['水']
+        ];
+    }
+
+    function initFortuneChart(result) {
+        const fortuneContent = document.getElementById('decade-fortune-content');
+        const canvas = document.createElement('canvas');
+        canvas.className = 'fortune-chart';
+        fortuneContent.appendChild(canvas);
+        
+        const fortunes = calculateDecadeFortune(
+            Solar.fromYmdHms(
+                parseInt(birthData.date.split('-')[0]),
+                parseInt(birthData.date.split('-')[1]),
+                parseInt(birthData.date.split('-')[2]),
+                parseInt(birthData.time.split(':')[0]),
+                parseInt(birthData.time.split(':')[1] || 0),
+                0
+            ).getLunar(), 
+            birthData.gender
+        ).fortunes;
+
+        const chartData = {
+            labels: fortunes.map(f => f.ageRange),
+            datasets: [{
+                label: '运势指数',
+                data: fortunes.map(f => f.score),
+                fill: true,
+                backgroundColor: 'rgba(0, 240, 255, 0.2)',
+                borderColor: 'rgba(0, 240, 255, 1)',
+                tension: 0.4
+            }]
+        };
+
+        new Chart(canvas.getContext('2d'), {
+            type: 'line',
+            data: chartData,
+            options: {
+                responsive: true,
+                scales: {
+                    y: { max: 100 }
+                }
+            }
+        });
+    }
+
+    function updateLunarCalendar() {
+        const solar = Solar.fromDate(new Date());
+        const lunar = solar.getLunar();
+        lunarDate.textContent = `${lunar.getYearInChinese()}年 ${lunar.getMonthInChinese()}月 ${lunar.getDayInChinese()}`;
+        lunarGanzhi.textContent = `${lunar.getYearInGanZhi()}年 ${lunar.getMonthInGanZhi()}月 ${lunar.getDayInGanZhi()}日`;
+        const yi = lunar.getDayYi();
+        const ji = lunar.getDayJi();
+        lunarYi.textContent = yi.join('、') || '无';
+        lunarJi.textContent = ji.join('、') || '无';
+    }
+
+    function isValidDate(year, month, day) {
+        if (month < 1 || month > 12) {
+            return false;
+        }
+        const date = new Date(year, month - 1, day);
+        return date.getFullYear() === year && 
+               date.getMonth() === month - 1 && 
+               date.getDate() === day;
+    }
+
+    function isLeapYear(year) {
+        return (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
+    }
+
+    function calculateFateScore(pillars) {
+        if (fateScoreValue === 0) {
+            const seasonScore = calculateSeasonScore(dayStem, monthBranch);
+            const balanceScore = calculateBalanceScore(pillars);
+            const patternScore = calculatePatternScore(pillars);
+            const godsScore = calculateGodsScore(pillars);
+            const combinationScore = calculateCombinationScore(pillars);
+            const total = seasonScore + balanceScore + patternScore + godsScore + combinationScore;
+            fateScoreDetails = {
+                seasonScore,
+                balanceScore,
+                patternScore,
+                godsScore,
+                combinationScore,
+                total
+            };
+            fateScoreValue = Math.round(total);
+        }
+        return fateScoreValue;
+    }
+
+    function calculateSeasonScore(dayStem, monthBranch) {
+        const seasonMap = {
+            '甲': ['寅', '卯', '辰'],
+            '乙': ['寅', '卯', '辰'],
+            '丙': ['巳', '午', '未'],
+            '丁': ['巳', '午', '未'],
+            '戊': ['辰', '戌', '丑', '未'],
+            '己': ['辰', '戌', '丑', '未'],
+            '庚': ['申', '酉', '戌'],
+            '辛': ['申', '酉', '戌'],
+            '壬': ['亥', '子', '丑'],
+            '癸': ['亥', '子', '丑']
+        };
+        if (seasonMap[dayStem] && seasonMap[dayStem].includes(monthBranch)) {
+            return 30;
+        }
+        return 15;
+    }
+
+    function calculateBalanceScore(pillars) {
+        const elements = {
+            '木': 0,
+            '火': 0,
+            '土': 0,
+            '金': 0,
+            '水': 0
+        };
+        const stemElements = {
+            '甲': '木', '乙': '木',
+            '丙': '火', '丁': '火',
+            '戊': '土', '己': '土',
+            '庚': '金', '辛': '金',
+            '壬': '水', '癸': '水'
+        };
+        const branchElements = {
+            '寅': '木', '卯': '木',
+            '午': '火', '巳': '火',
+            '辰': '土', '戌': '土', '丑': '土', '未': '土',
+            '申': '金', '酉': '金',
+            '子': '水', '亥': '水'
+        };
+        elements[stemElements[pillars.year.charAt(0)]]++;
+        elements[stemElements[pillars.month.charAt(0)]]++;
+        elements[stemElements[pillars.day.charAt(0)]]++;
+        elements[stemElements[pillars.hour.charAt(0)]]++;
+        elements[branchElements[pillars.year.charAt(1)]]++;
+        elements[branchElements[pillars.month.charAt(1)]]++;
+        elements[branchElements[pillars.day.charAt(1)]]++;
+        elements[branchElements[pillars.hour.charAt(1)]]++;
+        const values = Object.values(elements);
+        const max = Math.max(...values);
+        const min = Math.min(...values);
+        const balance = 25 - (max - min) * 2;
+        return Math.max(0, balance);
+    }
+
+    function calculatePatternScore(pillars) {
+        if (isCongGe(pillars)) {
+            return 20;
+        }
+        if (isZhuanWangGe(pillars)) {
+            return 15;
+        }
+        return 5;
+    }
+
+    function isCongGe(pillars) {
+        const dayStem = pillars.day.charAt(0);
+        const stems = [
+            pillars.year.charAt(0),
+            pillars.month.charAt(0),
+            pillars.hour.charAt(0)
+        ];
+        const branches = [
+            pillars.year.charAt(1),
+            pillars.month.charAt(1),
+            pillars.day.charAt(1),
+            pillars.hour.charAt(1)
+        ];
+        if (isCongQiangGe(dayStem, stems, branches)) {
+            return true;
+        }
+        if (isCongRuoGe(dayStem, stems, branches)) {
+            return true;
+        }
+        return false;
+    }
+
+    function isCongQiangGe(dayStem, stems, branches) {
+        let count = 0;
+        stems.forEach(stem => {
+            if (isSameElement(stem, dayStem) || isGenerateElement(stem, dayStem)) {
+                count++;
+            }
+        });
+        branches.forEach(branch => {
+            if (isSameElement(branch, dayStem) || isGenerateElement(branch, dayStem)) {
+                count++;
+            }
+        });
+        return count >= 6;
+    }
+
+    function isCongRuoGe(dayStem, stems, branches) {
+        let count = 0;
+        stems.forEach(stem => {
+            if (isSameElement(stem, dayStem) || isGenerateElement(stem, dayStem)) {
+                count++;
+            }
+        });
+        branches.forEach(branch => {
+            if (isSameElement(branch, dayStem) || isGenerateElement(branch, dayStem)) {
+                count++;
+            }
+        });
+        return count <= 1;
+    }
+
+    function isZhuanWangGe(pillars) {
+        const dayStem = pillars.day.charAt(0);
+        const stems = [
+            pillars.year.charAt(0),
+            pillars.month.charAt(0),
+            pillars.hour.charAt(0)
+        ];
+        const branches = [
+            pillars.year.charAt(1),
+            pillars.month.charAt(1),
+            pillars.day.charAt(1),
+            pillars.hour.charAt(1)
+        ];
+        let sameCount = 0;
+        let otherCount = 0;
+        stems.forEach(stem => {
+            if (isSameElement(stem, dayStem)) {
+                sameCount++;
+            } else {
+                otherCount++;
+            }
+        });
+        branches.forEach(branch => {
+            if (isSameElement(branch, dayStem)) {
+                sameCount++;
+            } else {
+                otherCount++;
+            }
+        });
+        return sameCount >= 5 && otherCount <= 2;
+    }
+
+    function isSameElement(a, b) {
+        const elementMap = {
+            '甲': '木', '乙': '木',
+            '丙': '火', '丁': '火',
+            '戊': '土', '己': '土',
+            '庚': '金', '辛': '金',
+            '壬': '水', '癸': '水',
+            '寅': '木', '卯': '木',
+            '午': '火', '巳': '火',
+            '辰': '土', '戌': '土', '丑': '土', '未': '土',
+            '申': '金', '酉': '金',
+            '子': '水', '亥': '水'
+        };
+        return elementMap[a] === elementMap[b];
+    }
+
+    function isGenerateElement(a, b) {
+        const elementMap = {
+            '甲': '木', '乙': '木',
+            '丙': '火', '丁': '火',
+            '戊': '土', '己': '土',
+            '庚': '金', '辛': '金',
+            '壬': '水', '癸': '水',
+            '寅': '木', '卯': '木',
+            '午': '火', '巳': '火',
+            '辰': '土', '戌': '土', '丑': '土', '未': '土',
+            '申': '金', '酉': '金',
+            '子': '水', '亥': '水'
+        };
+        const aElement = elementMap[a];
+        const bElement = elementMap[b];
+        const generateMap = {
+            '木': '火',
+            '火': '土',
+            '土': '金',
+            '金': '水',
+            '水': '木'
+        };
+        return generateMap[aElement] === bElement;
+    }
+
+    function calculateGodsScore(pillars) {
+        return 10;
+    }
+
+    function calculateCombinationScore(pillars) {
+        const branches = [
+            pillars.year.charAt(1),
+            pillars.month.charAt(1),
+            pillars.day.charAt(1),
+            pillars.hour.charAt(1)
+        ];
+        if (hasSanHe(branches)) {
+            return 8;
+        }
+        if (hasLiuHe(branches)) {
+            return 5;
+        }
+        return 2;
+    }
+
+    function hasSanHe(branches) {
+        const sanHeGroups = [
+            ['申', '子', '辰'],
+            ['亥', '卯', '未'],
+            ['寅', '午', '戌'],
+            ['巳', '酉', '丑']
+        ];
+        for (const group of sanHeGroups) {
+            let count = 0;
+            for (const branch of branches) {
+                if (group.includes(branch)) {
+                    count++;
+                }
+            }
+            if (count >= 2) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function hasLiuHe(branches) {
+        const liuHePairs = [
+            ['子', '丑'],
+            ['寅', '亥'],
+            ['卯', '戌'],
+            ['辰', '酉'],
+            ['巳', '申'],
+            ['午', '未']
+        ];
+        for (const pair of liuHePairs) {
+            if (branches.includes(pair[0]) && branches.includes(pair[1])) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function calculateWealthScore(pillars) {
+        if (wealthScoreValue === 0) {
+            const wealthStarScore = calculateWealthStarScore(pillars);
+            const wealthPositionScore = calculateWealthPositionScore(pillars);
+            const wealthDamageScore = calculateWealthDamageScore(pillars);
+            const wealthSupportScore = calculateWealthSupportScore(pillars);
+            const fortuneScore = calculateFortuneScore(pillars);
+            const total = wealthStarScore + wealthPositionScore + (20 - wealthDamageScore) + wealthSupportScore + fortuneScore;
+            wealthScoreDetails = {
+                wealthStarScore,
+                wealthPositionScore,
+                wealthDamageScore: 20 - wealthDamageScore,
+                wealthSupportScore,
+                fortuneScore,
+                total
+            };
+            wealthScoreValue = Math.round(total);
+        }
+        return wealthScoreValue;
+    }
+
+    function calculateWealthStarScore(pillars) {
+        const dayStem = pillars.day.charAt(0);
+        let wealthCount = 0;
+        const stems = [
+            pillars.year.charAt(0),
+            pillars.month.charAt(0),
+            pillars.hour.charAt(0)
+        ];
+        const branches = [
+            pillars.year.charAt(1),
+            pillars.month.charAt(1),
+            pillars.day.charAt(1),
+            pillars.hour.charAt(1)
+        ];
+        const wealthStars = getWealthStars(dayStem);
+        stems.forEach(stem => {
+            if (wealthStars.includes(stem)) {
+                wealthCount++;
+            }
+        });
+        branches.forEach(branch => {
+            if (wealthStars.includes(branch)) {
+                wealthCount++;
+            }
+        });
+        if (wealthCount >= 3) return 30;
+        if (wealthCount === 2) return 20;
+        if (wealthCount === 1) return 10;
+        return 5;
+    }
+
+    function getWealthStars(dayStem) {
+        const wealthMap = {
+            '甲': ['戊', '己', '辰', '戌', '丑', '未'],
+            '乙': ['戊', '己', '辰', '戌', '丑', '未'],
+            '丙': ['庚', '辛', '申', '酉'],
+            '丁': ['庚', '辛', '申', '酉'],
+            '戊': ['壬', '癸', '子', '亥'],
+            '己': ['壬', '癸', '子', '亥'],
+            '庚': ['甲', '乙', '寅', '卯'],
+            '辛': ['甲', '乙', '寅', '卯'],
+            '壬': ['丙', '丁', '午', '巳'],
+            '癸': ['丙', '丁', '午', '巳']
+        };
+        return wealthMap[dayStem] || [];
+    }
+
+    function calculateWealthPositionScore(pillars) {
+        const dayStem = pillars.day.charAt(0);
+        const wealthStars = getWealthStars(dayStem);
+        let score = 0;
+        if (wealthStars.includes(pillars.month.charAt(1))) {
+            score += 15;
+        }
+        if (wealthStars.includes(pillars.day.charAt(1))) {
+            score += 5;
+        }
+        if (wealthStars.includes(pillars.hour.charAt(1))) {
+            score += 5;
+        }
+        return Math.min(25, score);
+    }
+
+    function calculateWealthDamageScore(pillars) {
+        const dayStem = pillars.day.charAt(0);
+        const wealthStars = getWealthStars(dayStem);
+        let damageCount = 0;
+        const stems = [
+            pillars.year.charAt(0),
+            pillars.month.charAt(0),
+            pillars.hour.charAt(0)
+        ];
+        const branches = [
+            pillars.year.charAt(1),
+            pillars.month.charAt(1),
+            pillars.day.charAt(1),
+            pillars.hour.charAt(1)
+        ];
+        const damageStars = getDamageStars(dayStem);
+        stems.forEach(stem => {
+            if (damageStars.includes(stem)) {
+                damageCount++;
+            }
+        });
+        branches.forEach(branch => {
+            if (damageStars.includes(branch)) {
+                damageCount++;
+            }
+        });
+        return Math.min(20, damageCount * 5);
+    }
+
+    function getDamageStars(dayStem) {
+        const damageMap = {
+            '甲': ['甲', '乙', '寅', '卯'],
+            '乙': ['甲', '乙', '寅', '卯'],
+            '丙': ['丙', '丁', '午', '巳'],
+            '丁': ['丙', '丁', '午', '巳'],
+            '戊': ['戊', '己', '辰', '戌', '丑', '未'],
+            '己': ['戊', '己', '辰', '戌', '丑', '未'],
+            '庚': ['庚', '辛', '申', '酉'],
+            '辛': ['庚', '辛', '申', '酉'],
+            '壬': ['壬', '癸', '子', '亥'],
+            '癸': ['壬', '癸', '子', '亥']
+        };
+        return damageMap[dayStem] || [];
+    }
+
+    function calculateWealthSupportScore(pillars) {
+        const dayStem = pillars.day.charAt(0);
+        const wealthStars = getWealthStars(dayStem);
+        const generateStars = getGenerateStars(dayStem);
+        let supportCount = 0;
+        const stems = [
+            pillars.year.charAt(0),
+            pillars.month.charAt(0),
+            pillars.hour.charAt(0)
+        ];
+        const branches = [
+            pillars.year.charAt(1),
+            pillars.month.charAt(1),
+            pillars.day.charAt(1),
+            pillars.hour.charAt(1)
+        ];
+        stems.forEach(stem => {
+            if (generateStars.includes(stem)) {
+                supportCount++;
+            }
+        });
+        branches.forEach(branch => {
+            if (generateStars.includes(branch)) {
+                supportCount++;
+            }
+        });
+        if (supportCount >= 2) return 15;
+        if (supportCount === 1) return 8;
+        return 3;
+    }
+
+    function getGenerateStars(dayStem) {
+        const generateMap = {
+            '甲': ['丙', '丁', '午', '巳'],
+            '乙': ['丙', '丁', '午', '巳'],
+            '丙': ['戊', '己', '辰', '戌', '丑', '未'],
+            '丁': ['戊', '己', '辰', '戌', '丑', '未'],
+            '戊': ['庚', '辛', '申', '酉'],
+            '己': ['庚', '辛', '申', '酉'],
+            '庚': ['壬', '癸', '子', '亥'],
+            '辛': ['壬', '癸', '子', '亥'],
+            '壬': ['甲', '乙', '寅', '卯'],
+            '癸': ['甲', '乙', '寅', '卯']
+        };
+        return generateMap[dayStem] || [];
+    }
+
+    function calculateFortuneScore(pillars) {
+        return 5;
+    }
+
+    function getFateLevel(score) {
+        if (score >= 85) return { name: "天赐鸿运 ★★★★★ (85-100分)", class: "excellent" };
+        if (score >= 70) return { name: "福星高照 ★★★★☆ (70-84分)", class: "good" };
+        if (score >= 50) return { name: "安常守分 ★★★☆☆ (50-69分)", class: "average" };
+        if (score >= 30) return { name: "勤能补拙 ★★☆☆☆ (30-49分)", class: "struggling" };
+        return { name: "逆水行舟 ★☆☆☆☆ (<30分)", class: "needs-improvement" };
+    }
+
+    function getWealthLevel(score) {
+        if (score >= 90) return { name: "天禄盈门 ★★★★★ (90分以上)", class: "ultra-rich" };
+        if (score >= 80) return { name: "朱紫满箱 ★★★★☆ (80-89分)", class: "very-rich" };
+        if (score >= 60) return { name: "粟陈贯朽 ★★★☆☆ (60-79分)", class: "moderately-rich" };
+        if (score >= 40) return { name: "岁稔年丰 ★★☆☆☆ (40-59分)", class: "somewhat-rich" };
+        return { name: "营营逐逐 ★☆☆☆☆ (<40分)", class: "wealth-average" };
+    }
+
+    function displayScores() {
+        if (!currentPillars.year) return;
+        const fateScore = calculateFateScore(currentPillars);
+        const fateLevelInfo = getFateLevel(fateScore);
+        fateLevel.textContent = fateLevelInfo.name;
+        fateLevel.className = `rating-level ${fateLevelInfo.class}`;
+        fateScore.textContent = `评分: ${fateScore}分 (${Math.round(fateScore)}%)`;
+        const wealthScore = calculateWealthScore(currentPillars);
+        const wealthLevelInfo = getWealthLevel(wealthScore);
+        wealthLevel.textContent = wealthLevelInfo.name;
+        wealthLevel.className = `rating-level ${wealthLevelInfo.class}`;
+        wealthScore.textContent = `评分: ${wealthScore}分 (${Math.round(wealthScore)}%)`;
+        fateDetails.innerHTML = `
+            <div class="score-progress">
+                <div class="score-label">日主得令</div>
+                <div class="progress-container">
+                    <div class="progress-bar" style="width: ${(fateScoreDetails.seasonScore/30)*100}%"></div>
+                </div>
+                <div class="score-value">${fateScoreDetails.seasonScore}/30</div>
+            </div>
+            <div class="score-progress">
+                <div class="score-label">五行平衡</div>
+                <div class="progress-container">
+                    <div class="progress-bar" style="width: ${(fateScoreDetails.balanceScore/25)*100}%"></div>
+                </div>
+                <div class="score-value">${fateScoreDetails.balanceScore}/25</div>
+            </div>
+            <div class="score-progress">
+                <div class="score-label">特殊格局</div>
+                <div class="progress-container">
+                    <div class="progress-bar" style="width: ${(fateScoreDetails.patternScore/20)*100}%"></div>
+                </div>
+                <div class="score-value">${fateScoreDetails.patternScore}/20</div>
+            </div>
+            <div class="score-progress">
+                <div class="score-label">十神配置</div>
+                <div class="progress-container">
+                    <div class="progress-bar" style="width: ${(fateScoreDetails.godsScore/15)*100}%"></div>
+                </div>
+                <div class="score-value">${fateScoreDetails.godsScore}/15</div>
+            </div>
+            <div class="score-progress">
+                <div class="score-label">天干地支组合</div>
+                <div class="progress-container">
+                    <div class="progress-bar" style="width: ${(fateScoreDetails.combinationScore/10)*100}%"></div>
+                </div>
+                <div class="score-value">${fateScoreDetails.combinationScore}/10</div>
+            </div>
+        `;
+        wealthDetails.innerHTML = `
+            <div class="score-progress">
+                <div class="score-label">财星数量质量</div>
+                <div class="progress-container">
+                    <div class="progress-bar" style="width: ${(wealthScoreDetails.wealthStarScore/30)*100}%"></div>
+                </div>
+                <div class="score-value">${wealthScoreDetails.wealthStarScore}/30</div>
+            </div>
+            <div class="score-progress">
+                <div class="score-label">财星得地</div>
+                <div class="progress-container">
+                    <div class="progress-bar" style="width: ${(wealthScoreDetails.wealthPositionScore/25)*100}%"></div>
+                </div>
+                <div class="score-value">${wealthScoreDetails.wealthPositionScore}/25</div>
+            </div>
+            <div class="score-progress">
+                <div class="score-label">财星受克</div>
+                <div class="progress-container">
+                    <div class="progress-bar" style="width: ${(wealthScoreDetails.wealthDamageScore/20)*100}%"></div>
+                </div>
+                <div class="score-value">${wealthScoreDetails.wealthDamageScore}/20</div>
+            </div>
+            <div class="score-progress">
+                <div class="score-label">食伤生财</div>
+                <div class="progress-container">
+                    <div class="progress-bar" style="width: ${(wealthScoreDetails.wealthSupportScore/15)*100}%"></div>
+                </div>
+                <div class="score-value">${wealthScoreDetails.wealthSupportScore}/15</div>
+            </div>
+            <div class="score-progress">
+                <div class="score-label">大运走势</div>
+                <div class="progress-container">
+                    <div class="progress-bar" style="width: ${(wealthScoreDetails.fortuneScore/10)*100}%"></div>
+                </div>
+                <div class="score-value">${wealthScoreDetails.fortuneScore}/10</div>
+            </div>
+        `;
+    }
+
+    function getHiddenStems(branch) {
+        const hiddenStemsMap = {
+            '子': '癸',
+            '丑': '己癸辛',
+            '寅': '甲丙戊',
+            '卯': '乙',
+            '辰': '戊乙癸',
+            '巳': '丙庚戊',
+            '午': '丁己',
+            '未': '己丁乙',
+            '申': '庚壬戊',
+            '酉': '辛',
+            '戌': '戊辛丁',
+            '亥': '壬甲'
+        };
+        return hiddenStemsMap[branch] || '';
+    }
+
+    function calculateBaziLocally(birthData) {
+        const dateParts = birthData.date.split('-');
+        const year = parseInt(dateParts[0]);
+        const month = parseInt(dateParts[1]);
+        const day = parseInt(dateParts[2]);
+        const timeParts = birthData.time.split(':');
+        const hour = parseInt(timeParts[0]);
+        const minute = parseInt(timeParts[1] || 0);
+        const solar = Solar.fromYmdHms(year, month, day, hour, minute, 0);
+        const lunar = solar.getLunar();
+        const bazi = lunar.getEightChar();
+        const yearGan = bazi.getYearGan();
+        const yearZhi = bazi.getYearZhi();
+        const monthGan = bazi.getMonthGan();
+        const monthZhi = bazi.getMonthZhi();
+        const dayGan = bazi.getDayGan();
+        const dayZhi = bazi.getDayZhi();
+        const hourGan = bazi.getTimeGan();
+        const hourZhi = bazi.getTimeZhi();
+        const yearHiddenStems = getHiddenStems(yearZhi);
+        const monthHiddenStems = getHiddenStems(monthZhi);  // 修正：使用月支而不是年支
+        const dayHiddenStems = getHiddenStems(dayZhi);
+        const hourHiddenStems = getHiddenStems(hourZhi);
+        const elements = calculateElementEnergy({
+            year: yearGan + yearZhi,
+            month: monthGan + monthZhi,
+            day: dayGan + dayZhi,
+            hour: hourGan + hourZhi
+        });
+        const personality = getPersonalityTraits(dayGan);
+        const decadeFortune = calculateDecadeFortune(lunar, birthData.gender);
+        const gamblingFortune = calculateGamblingFortune(birthData, lunar);
+        
+        return {
+            yearStem: yearGan,
+            yearBranch: yearZhi,
+            monthStem: monthGan,
+            monthBranch: monthZhi,
+            dayStem: dayGan,
+            dayBranch: dayZhi,
+            hourStem: hourGan,
+            hourBranch: hourZhi,
+            yearHiddenStems: yearHiddenStems,
+            monthHiddenStems: monthHiddenStems,
+            dayHiddenStems: dayHiddenStems,
+            hourHiddenStems: hourHiddenStems,
+            elements,
+            personality,
+            decadeFortune,
+            gamblingFortune
+        };
+    }
+
+    function calculateDecadeFortune(lunar, gender) {
+        const yearGan = lunar.getYearGan();
+        const yearZhi = lunar.getYearZhi();
+        const isMale = gender === 'male';
+        const isYangYear = ['甲', '丙', '戊', '庚', '壬'].includes(yearGan);
+        const isForward = (isYangYear && isMale) || (!isYangYear && !isMale);
+        const solar = lunar.getSolar();
+        const jieQiName = isForward ? '立春' : '大寒';
+        const targetJieQi = lunar.getJieQi(jieQiName);
+        let daysDiff = 15;
+        if (targetJieQi) {
+            daysDiff = Math.abs(solar.getDiffDays(targetJieQi));
+        }
+        const startAge = Math.floor(daysDiff / 3);
+        const zhiOrder = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
+        let currentZhiIndex = zhiOrder.indexOf(yearZhi);
+        const ganOrder = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
+        let currentGanIndex = ganOrder.indexOf(yearGan);
+        const fortunes = [];
+        for (let i = 0; i < 8; i++) {
+            currentZhiIndex = isForward ? 
+                (currentZhiIndex + 1) % 12 : 
+                (currentZhiIndex - 1 + 12) % 12;
+            currentGanIndex = isForward ?
+                (currentGanIndex + 1) % 10 :
+                (currentGanIndex - 1 + 10) % 10;
+            const gan = ganOrder[currentGanIndex];
+            const zhi = zhiOrder[currentZhiIndex];
+            const baseScore = 60 + Math.floor(Math.random() * 20);
+            const trendBonus = isForward ? i * 2 : (7 - i) * 2;
+            const score = Math.min(90, baseScore + trendBonus);
+            fortunes.push({
+                ageRange: `${startAge + i * 10}-${startAge + (i + 1) * 10}岁`,
+                ganZhi: gan + zhi,
+                score: score
             });
-            
-            if (!response.ok) throw new Error(`API请求失败: ${response.status}`);
-            const result = await response.json();
-            const apiResult = result.choices[0].message.content;
-            
-            // 校验API结果
-            if (!baziValidator.validateApiResult(localResult, apiResult)) {
-                console.warn('API返回结果与本地排盘不一致，使用本地排盘修正');
-                const correctedResult = baziValidator.correctApiResult(localResult, apiResult);
-                await cache.set(cacheKey, correctedResult);
-                return correctedResult;
-            }
-            
-            await cache.set(cacheKey, apiResult);
-            return apiResult;
-        } catch (error) {
-            console.error(`API请求失败: ${error}`);
-            // API失败时使用兜底规则
-            if (section === 'basic') {
-                return fallbackRules.getBasicAnalysis(data, localResult);
-            }
-            throw error;
+        }
+        return {
+            isForward: isForward,
+            startAge: startAge,
+            fortunes: fortunes
+        };
+    }
+          
+    function calculateGamblingFortune(birthData, birthLunar) {
+        const currentSolar = Solar.fromDate(new Date());
+        const currentLunar = currentSolar.getLunar();
+        const dayGan = birthLunar.getDayGan();
+        const dayZhi = birthLunar.getDayZhi();
+        const currentDayGan = currentLunar.getDayGan();
+        const currentDayZhi = currentLunar.getDayZhi();
+        
+        const ganScore = {
+            '甲': 3, '乙': 2, '丙': 4, '丁': 3, '戊': 2,
+            '己': 1, '庚': 3, '辛': 2, '壬': 4, '癸': 3
+        };
+        
+        const zhiScore = {
+            '子': 3, '丑': 2, '寅': 4, '卯': 3, '辰': 2,
+            '巳': 4, '午': 3, '未': 2, '申': 3, '酉': 2,
+            '戌': 1, '亥': 3
+        };
+        
+        const ganMatch = dayGan === currentDayGan ? 1 : 0;
+        const zhiMatch = dayZhi === currentDayZhi ? 1 : 0;
+        
+        const baseScore = ganScore[dayGan] + zhiScore[dayZhi];
+        const currentScore = ganScore[currentDayGan] + zhiScore[currentDayZhi];
+        const matchBonus = (ganMatch + zhiMatch) * 2;
+        
+        const dayOfMonth = currentLunar.getDay();
+        const month = currentLunar.getMonth();
+        const dayModifier = (dayOfMonth % 10) / 10;
+        const monthModifier = (month % 12) / 12;
+        
+        const totalScore = Math.min(5, Math.max(1, Math.round(
+            (baseScore + currentScore + matchBonus) / 4 + 
+            dayModifier + monthModifier
+        )));
+        
+        const rating = '★'.repeat(totalScore) + '☆'.repeat(5 - totalScore);
+        
+        const analysisTexts = [
+            "今日偏财运欠佳，建议远离赌博活动，专注正财为佳。",
+            "今日偏财运平平，小赌可能小输，建议控制投注金额。",
+            "今日偏财运中等，适合小赌怡情但不宜大额投注。",
+            "今日偏财运不错，可适度参与但需保持理性。",
+            "今日偏财运旺盛，但切勿贪心，见好就收为妙。"
+        ];
+        
+        const directions = ['东', '南', '西', '北', '东南', '西南', '东北', '西北'];
+        const bestDirection = directions[(dayOfMonth + month) % directions.length];
+        
+        const hours = ['1-3', '3-5', '5-7', '7-9', '9-11', '11-13', '13-15', '15-17', '17-19', '19-21', '21-23', '23-1'];
+        const bestHour = hours[(dayOfMonth * month) % hours.length];
+        
+        return {
+            rating: rating,
+            analysis: analysisTexts[totalScore - 1],
+            direction: bestDirection,
+            hour: bestHour,
+            score: totalScore
+        };
+    }
+
+    function getPersonalityTraits(dayStem) {
+        const traits = {
+            '甲': '似参天大树，正直向上，有领导力但略显固执',
+            '乙': '如藤蔓般柔韧，适应力强但有时优柔寡断',
+            '丙': '如太阳般热情，开朗大方但易冲动急躁',
+            '丁': '似烛火般温和，细心周到但易多愁善感',
+            '戊': '如大地般稳重，踏实可靠但略显保守',
+            '己': '似田园之土，包容性强但易随波逐流',
+            '庚': '如金属般刚强，果断决绝但易锋芒太露',
+            '辛': '似珠宝般精致，追求完美但易挑剔计较',
+            '壬': '如江河奔流，聪明机智但易三心二意',
+            '癸': '似雨露滋润，细腻敏感但易多疑忧郁'
+        };
+        return traits[dayStem] || '似静水流深，临危反生智，藏锋守拙却暗含凌云之志';
+    }
+
+    function saveProfile(birthData) {
+        const profiles = JSON.parse(localStorage.getItem('baziProfiles') || '[]');
+        const existingIndex = profiles.findIndex(p => 
+            p.date === birthData.date && 
+            p.time === birthData.time && 
+            p.gender === birthData.gender
+        );
+        if (existingIndex >= 0) {
+            profiles[existingIndex] = birthData;
+        } else {
+            profiles.push(birthData);
+        }
+        if (profiles.length > 5) {
+            profiles.shift();
+        }
+        localStorage.setItem('baziProfiles', JSON.stringify(profiles));
+        loadSavedProfiles();
+    }
+
+    function loadSavedProfiles() {
+        const profiles = JSON.parse(localStorage.getItem('baziProfiles') || '[]');
+        savedProfilesList.innerHTML = '';
+        if (profiles.length === 0) {
+            savedProfilesList.innerHTML = '<div style="color:var(--text-light);font-size:14px;">暂无历史记录</div>';
+            return;
+        }
+        profiles.forEach((profile, index) => {
+            const hour = parseInt(profile.time.split(':')[0]);
+            const timeMap = {
+                23: '子时', 0: '子时',
+                1: '丑时', 3: '寅时',
+                5: '卯时', 7: '辰时',
+                9: '巳时', 11: '午时',
+                13: '未时', 15: '申时',
+                17: '酉时', 19: '戌时',
+                21: '亥时'
+           };
+            const profileElement = document.createElement('div');
+            profileElement.className = 'saved-profile';
+            profileElement.innerHTML = `
+                ${profile.name || '匿名'} · 
+                ${profile.date.replace(/-/g, '/')} · 
+                ${timeMap[hour]} · 
+                ${profile.gender === 'male' ? '男' : '女'}
+            `;
+            profileElement.addEventListener('click', () => {
+                loadProfile(profile);
+            });
+            savedProfilesList.appendChild(profileElement);
+        });
+    }
+
+    function loadProfile(profile) {
+        document.getElementById('name').value = profile.name || '';
+        document.getElementById('birth-date').value = profile.date;
+        document.getElementById('gender').value = profile.gender;
+        const hour = parseInt(profile.time.split(':')[0]);
+        timePeriodOptions.forEach(opt => opt.classList.remove('selected'));
+        const selectedOption = document.querySelector(`.time-period-option[data-hour="${hour}"]`);
+        if (selectedOption) {
+            selectedOption.classList.add('selected');
+            birthTimeInput.value = profile.time;
         }
     }
 
-    // 其他辅助函数保持不变...
-    // (包括calculateElementEnergy, initElementChart, calculateFateScore, calculateWealthScore等)
-    // 这些函数可以保持原样，或者根据需要进行优化
-
-    // 计算按钮事件
     calculateBtn.addEventListener('click', async function(e) {
         e.preventDefault();
         resetAllContent();
@@ -835,22 +1271,18 @@ saveProfile(birthData);  // 使用新定义的saveProfile函数
         const birthDate = document.getElementById('birth-date').value;
         const birthTime = birthTimeInput.value;
         const gender = document.getElementById('gender').value;
-        
         if (!birthDate || !birthTime || !gender) {
             alert('请填写完整的出生信息');
             return;
         }
-        
         const dateParts = birthDate.split('-');
         const year = parseInt(dateParts[0]);
         const month = parseInt(dateParts[1]);
         const day = parseInt(dateParts[2]);
-        
         if (!isValidDate(year, month, day)) {
             alert('请输入有效的出生日期');
             return;
         }
-        
         if (month === 2) {
             const maxDays = isLeapYear(year) ? 29 : 28;
             if (day > maxDays) {
@@ -858,24 +1290,20 @@ saveProfile(birthData);  // 使用新定义的saveProfile函数
                 return;
             }
         }
-        
         const monthsWith30Days = [4, 6, 9, 11];
         if (monthsWith30Days.includes(month) && day > 30) {
             alert(`${month}月只有30天`);
             return;
         }
-        
         birthData = { 
             name, 
             date: birthDate,
             time: birthTime, 
             gender: gender
         };
-        
         saveProfile(birthData);
         calculateBtn.disabled = true;
         calculateBtn.innerHTML = '<span class="loading"></span> 量子测算中...';
-        
         try {
             const loadingOverlay = document.createElement('div');
             loadingOverlay.className = 'loading-overlay';
@@ -884,58 +1312,23 @@ saveProfile(birthData);  // 使用新定义的saveProfile函数
                 <p>量子计算引擎启动中...</p>
             `;
             document.body.appendChild(loadingOverlay);
-            
-            // 使用本地计算获取八字信息
-            const baziInfo = baziValidator.calculateLocally(birthData);
-            const elements = fallbackRules.calculateElementEnergy(baziInfo);
-            const personality = fallbackRules.getPersonalityTraits(baziInfo.day.charAt(0));
-            
-            displayBasicInfo({
-                yearStem: baziInfo.year.charAt(0),
-                yearBranch: baziInfo.year.charAt(1),
-                monthStem: baziInfo.month.charAt(0),
-                monthBranch: baziInfo.month.charAt(1),
-                dayStem: baziInfo.day.charAt(0),
-                dayBranch: baziInfo.day.charAt(1),
-                hourStem: baziInfo.hour.charAt(0),
-                hourBranch: baziInfo.hour.charAt(1),
-                yearHiddenStems: baziInfo.hiddenStems.year,
-                monthHiddenStems: baziInfo.hiddenStems.month,
-                dayHiddenStems: baziInfo.hiddenStems.day,
-                hourHiddenStems: baziInfo.hiddenStems.hour,
-                elements,
-                personality
-            });
-            
-            initElementChart(elements);
+            const baziInfo = calculateBaziLocally(birthData);
+            displayBasicInfo(baziInfo);
+            initElementChart(baziInfo.elements);
             updateLunarCalendar();
-            
             currentPillars = {
-                year: baziInfo.year,
-                month: baziInfo.month,
-                day: baziInfo.day,
-                hour: baziInfo.hour
+                year: baziInfo.yearStem + baziInfo.yearBranch,
+                month: baziInfo.monthStem + baziInfo.monthBranch,
+                day: baziInfo.dayStem + baziInfo.dayBranch,
+                hour: baziInfo.hourStem + baziInfo.hourBranch
             };
-            
             displayScores();
-            
-            // 计算赌博运势
-            const gamblingFortune = calculateGamblingFortune(birthData, Solar.fromYmdHms(
-                parseInt(birthData.date.split('-')[0]),
-                parseInt(birthData.date.split('-')[1]),
-                parseInt(birthData.date.split('-')[2]),
-                parseInt(birthData.time.split(':')[0]),
-                parseInt(birthData.time.split(':')[1] || 0),
-                0
-            ).getLunar());
-            
-            gamblingRating.textContent = gamblingFortune.rating;
+            gamblingRating.textContent = baziInfo.gamblingFortune.rating;
             gamblingDetails.innerHTML = `
-                ${gamblingFortune.analysis}<br>
-                最佳方位: ${gamblingFortune.direction}<br>
-                最佳时段: ${gamblingFortune.hour}
+            ${baziInfo.gamblingFortune.analysis}<br>
+            最佳方位: ${baziInfo.gamblingFortune.direction}<br>
+            最佳时段: ${baziInfo.gamblingFortune.hour}
             `;
-            
             inputSection.style.display = 'none';
             resultSection.style.display = 'block';
             document.body.removeChild(loadingOverlay);
