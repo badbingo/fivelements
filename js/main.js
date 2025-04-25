@@ -1332,7 +1332,20 @@ document.addEventListener('DOMContentLoaded', function() {
             birthTimeInput.value = profile.time;
         }
     }
+    function isLeapYear(year) {
+        return (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
+    }
 
+    function isValidDate(year, month, day) {
+        if (month < 1 || month > 12) {
+            return false;
+        }
+        const date = new Date(year, month - 1, day);
+        return date.getFullYear() === year && 
+               date.getMonth() === month - 1 && 
+               date.getDate() === day;
+    }
+  
     calculateBtn.addEventListener('click', async function(e) {
         e.preventDefault();
         resetAllContent();
