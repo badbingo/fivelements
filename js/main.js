@@ -1487,9 +1487,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const timeParts = birthData.time.split(':');
         const hour = parseInt(timeParts[0]);
         const minute = parseInt(timeParts[1] || 0);
-        const solar = Solar.fromYmdHms(2023, 10, 5, 12, 0, 0); // 公历转农历
-        const lunar = solar.getLunar(); // 获取农历日期
-        const bazi = lunar.getEightChar();
+        const lunar = Lunar.fromYmdHms(year, month, day, hour, minute, 0); // 直接获取农历
+        const solar = lunar.getSolar(); // 如果需要公历
+        const bazi = lunar.getEightChar(); // 获取八字
         const yearGan = bazi.getYearGan();
         const yearZhi = bazi.getYearZhi();
         const monthGan = bazi.getMonthGan();
@@ -1539,7 +1539,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const isMale = gender === 'male';
         const isYangYear = ['甲', '丙', '戊', '庚', '壬'].includes(yearGan);
         const isForward = (isYangYear && isMale) || (!isYangYear && !isMale);
-        const solar = lunar.getSolar();
+        const lunar = Lunar.fromDate(new Date()); // 直接获取当前农历
+        const solar = lunar.getSolar(); // 如果需要公历
         const jieQiName = isForward ? '立春' : '大寒';
         const targetJieQi = lunar.getJieQi(jieQiName);
         let daysDiff = 15;
