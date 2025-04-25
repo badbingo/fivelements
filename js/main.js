@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 缓存对象a
+    // 缓存对象b
     const baziCache = {};
     // 兜底规则库
     const fallbackRules = {
