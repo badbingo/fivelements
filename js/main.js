@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 缓存对象b
+    // 缓存对象c
     const baziCache = {};
     // 兜底规则库
     const fallbackRules = {
@@ -46,6 +46,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const wealthScore = document.getElementById('wealth-score');
     const wealthDetails = document.getElementById('wealth-details');
     const elementChartCtx = document.getElementById('element-chart').getContext('2d');
+    const elementChartDescription = document.getElementById('element-chart-description');
     const gamblingRating = document.getElementById('gambling-rating');
     const gamblingDetails = document.getElementById('gambling-details');
     const savedProfilesList = document.getElementById('saved-profiles-list');
