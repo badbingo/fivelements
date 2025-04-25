@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 缓存对象测试
+    // 缓存对象a
     const baziCache = {};
     // 兜底规则库
     const fallbackRules = {
@@ -257,77 +257,77 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // 初始化加载按钮（修复按钮点击问题）
-    function initLoadButtons() {
-        document.querySelectorAll('.load-btn').forEach(button => {
-            // 保存按钮原始文本
-            const originalText = button.querySelector('span').textContent;
-            button.setAttribute('data-original-text', originalText);
+function initLoadButtons() {
+    document.querySelectorAll('.load-btn').forEach(button => {
+        // 保存按钮原始文本
+        const originalText = button.querySelector('span').textContent;
+        button.setAttribute('data-original-text', originalText);
 
-            const section = button.getAttribute('data-section');
-            const contentElement = document.getElementById(`${section}-content`);
-            const container = button.closest('.load-btn-container');
+        const section = button.getAttribute('data-section');
+        const contentElement = document.getElementById(`${section}-content`);
+        const container = button.closest('.load-btn-container');
 
-            // 移除旧的点击事件（避免重复绑定）
-            button.removeEventListener('click', loadSectionHandler);
-            
-            // 添加新的点击事件
-            button.addEventListener('click', loadSectionHandler);
+        // 先移除所有可能的旧监听器
+        const newButton = button.cloneNode(true);
+        button.parentNode.replaceChild(newButton, button);
+        button = newButton;
 
-            function loadSectionHandler(e) {
-                e.preventDefault();
+        // 添加新的点击事件
+        button.addEventListener('click', async function(e) {
+            e.preventDefault();
 
-                // 如果内容已加载，只切换显示/隐藏
-                if (loadedSections[section]) {
-                    container.classList.toggle('active');
-                    contentElement.classList.toggle('active');
-                    return;
+            // 如果内容已加载，只切换显示/隐藏
+            if (loadedSections[section]) {
+                container.classList.toggle('active');
+                contentElement.classList.toggle('active');
+                return;
+            }
+
+            // 开始加载内容
+            button.disabled = true;
+            button.innerHTML = `<span><span class="loading"></span> 量子分析中...</span><i class="fas fa-chevron-down toggle-icon"></i>`;
+            container.classList.add('active');
+
+            // 添加进度条
+            const progressContainer = document.createElement('div');
+            progressContainer.className = 'progress-container';
+            progressContainer.innerHTML = '<div class="progress-bar"></div>';
+            contentElement.innerHTML = '';
+            contentElement.appendChild(progressContainer);
+            const progressBar = progressContainer.querySelector('.progress-bar');
+
+            // 模拟进度
+            let progress = 0;
+            const progressInterval = setInterval(() => {
+                progress += Math.random() * 10;
+                if (progress >= 100) progress = 100;
+                progressBar.style.width = `${progress}%`;
+            }, 300);
+
+            try {
+                const result = await getBaziAnalysis(section, birthData);
+                clearInterval(progressInterval);
+                displaySectionContent(section, result, contentElement);
+                
+                // 更新按钮状态
+                button.innerHTML = `<span>${originalText}</span><i class="fas fa-check"></i><i class="fas fa-chevron-down toggle-icon"></i>`;
+                button.disabled = false;
+                contentElement.classList.add('active');
+                loadedSections[section] = true;
+
+                if (section === 'decade-fortune') {
+                    initFortuneChart(result);
                 }
-
-                // 开始加载内容
-                button.disabled = true;
-                button.innerHTML = `<span><span class="loading"></span> 量子分析中...</span><i class="fas fa-chevron-down toggle-icon"></i>`;
-                container.classList.add('active');
-
-                // 添加进度条
-                const progressContainer = document.createElement('div');
-                progressContainer.className = 'progress-container';
-                progressContainer.innerHTML = '<div class="progress-bar"></div>';
-                contentElement.innerHTML = '';
-                contentElement.appendChild(progressContainer);
-                const progressBar = progressContainer.querySelector('.progress-bar');
-
-                // 模拟进度
-                let progress = 0;
-                const progressInterval = setInterval(() => {
-                    progress += Math.random() * 10;
-                    if (progress >= 100) progress = 100;
-                    progressBar.style.width = `${progress}%`;
-                }, 300);
-
-                try {
-                    const result = await getBaziAnalysis(section, birthData);
-                    clearInterval(progressInterval);
-                    displaySectionContent(section, result, contentElement);
-                    
-                    // 更新按钮状态
-                    button.innerHTML = `<span>${originalText}</span><i class="fas fa-check"></i><i class="fas fa-chevron-down toggle-icon"></i>`;
-                    button.disabled = false;
-                    contentElement.classList.add('active');
-                    loadedSections[section] = true;
-
-                    if (section === 'decade-fortune') {
-                        initFortuneChart(result);
-                    }
-                } catch (error) {
-                    console.error(`加载${section}失败:`, error);
-                    clearInterval(progressInterval);
-                    contentElement.innerHTML = '<p style="color:var(--danger-color)">加载失败，请重试</p>';
-                    button.innerHTML = `<span>${originalText}</span><i class="fas fa-chevron-down toggle-icon"></i>`;
-                    button.disabled = false;
-                }
+            } catch (error) {
+                console.error(`加载${section}失败:`, error);
+                clearInterval(progressInterval);
+                contentElement.innerHTML = '<p style="color:var(--danger-color)">加载失败，请重试</p>';
+                button.innerHTML = `<span>${originalText}</span><i class="fas fa-chevron-down toggle-icon"></i>`;
+                button.disabled = false;
             }
         });
-    }
+    });
+}
 
     // 初始化五行元素图表
     function initElementChart(data) {
