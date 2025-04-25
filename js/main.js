@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 缓存对象a
+    // 缓存对象c
     const baziCache = {};
     
     // 兜底规则库
@@ -288,7 +288,7 @@ document.addEventListener('DOMContentLoaded', function() {
         e.preventDefault();
         const button = this;
         const section = button.getAttribute('data-section');
-        const contentElement = document.getElementById(`${section}-content`);
+        const contentElement = document.getElementById(`${section}-content');
         const container = button.closest('.load-btn-container');
         
         // 如果已经加载过，只切换显示/隐藏
@@ -529,37 +529,91 @@ document.addEventListener('DOMContentLoaded', function() {
         };
     }
 
-    // 初始化元素图表
-    function initElementChart(data) {
-        const total = data.reduce(function(sum, value) {
-            return sum + value;
-        }, 0);
-        const percentages = data.map(function(value) {
-            return Math.round((value/total)*100);
-        });
+    // 初始化元素图表 - 修改为显示本命局+大运+流年
+    function initElementChart(natalElements) {
+        // 获取当前大运和流年的五行能量
+        const currentFortune = calculateCurrentFortune(birthData);
+        const yearlyFortune = calculateYearlyFortune(birthData);
+        
+        const totalNatal = natalElements.reduce((sum, value) => sum + value, 0);
+        const totalFortune = currentFortune.elements.reduce((sum, value) => sum + value, 0);
+        const totalYearly = yearlyFortune.elements.reduce((sum, value) => sum + value, 0);
+        
+        const percentagesNatal = natalElements.map(value => Math.round((value/totalNatal)*100));
+        const percentagesFortune = currentFortune.elements.map(value => Math.round((value/totalFortune)*100));
+        const percentagesYearly = yearlyFortune.elements.map(value => Math.round((value/totalYearly)*100));
+        
         const elementData = {
-            labels: ['木', '火', '土', '金', '水'].map(function(label, i) {
-                return `${label} ${percentages[i]}%`;
-            }),
-            datasets: [{
-                data: data,
-                backgroundColor: [
-                    'rgba(0, 255, 136, 0.3)',
-                    'rgba(255, 51, 0, 0.3)',
-                    'rgba(255, 204, 0, 0.3)',
-                    'rgba(204, 204, 204, 0.3)',
-                    'rgba(0, 153, 255, 0.3)'
-                ],
-                borderColor: [
-                    'rgba(0, 255, 136, 1)',
-                    'rgba(255, 51, 0, 1)',
-                    'rgba(255, 204, 0, 1)',
-                    'rgba(204, 204, 204, 1)',
-                    'rgba(0, 153, 255, 1)'
-                ],
-                borderWidth: 1
-            }]
+            labels: ['木', '火', '土', '金', '水'].map((label, i) => 
+                `${label} 本命${percentagesNatal[i]}% 大运${percentagesFortune[i]}% 流年${percentagesYearly[i]}%`
+            ),
+            datasets: [
+                {
+                    label: '本命局五行能量',
+                    data: natalElements,
+                    backgroundColor: 'rgba(0, 255, 136, 0.2)',
+                    borderColor: 'rgba(0, 255, 136, 1)',
+                    borderWidth: 2,
+                    pointBackgroundColor: 'rgba(0, 255, 136, 1)',
+                    pointHoverRadius: 5
+                },
+                {
+                    label: '大运五行能量',
+                    data: currentFortune.elements,
+                    backgroundColor: 'rgba(255, 51, 0, 0.2)',
+                    borderColor: 'rgba(255, 51, 0, 1)',
+                    borderWidth: 2,
+                    pointBackgroundColor: 'rgba(255, 51, 0, 1)',
+                    pointHoverRadius: 5
+                },
+                {
+                    label: '流年五行能量',
+                    data: yearlyFortune.elements,
+                    backgroundColor: 'rgba(0, 153, 255, 0.2)',
+                    borderColor: 'rgba(0, 153, 255, 1)',
+                    borderWidth: 2,
+                    pointBackgroundColor: 'rgba(0, 153, 255, 1)',
+                    pointHoverRadius: 5
+                }
+            ]
         };
+        
+        // 创建图表下方的说明元素
+        const chartContainer = document.getElementById('element-chart-container');
+        const existingDescription = document.getElementById('chart-description');
+        if (existingDescription) {
+            chartContainer.removeChild(existingDescription);
+        }
+        
+        const description = document.createElement('div');
+        description.id = 'chart-description';
+        description.className = 'chart-description';
+        description.innerHTML = `
+            <div class="legend-item">
+                <span class="legend-color" style="background-color: rgba(0, 255, 136, 1)"></span>
+                <span>本命局五行能量 - 代表命主先天五行格局</span>
+            </div>
+            <div class="legend-item">
+                <span class="legend-color" style="background-color: rgba(255, 51, 0, 1)"></span>
+                <span>大运五行能量 - 代表当前十年大运五行影响</span>
+            </div>
+            <div class="legend-item">
+                <span class="legend-color" style="background-color: rgba(0, 153, 255, 1)"></span>
+                <span>流年五行能量 - 代表今年流年五行影响</span>
+            </div>
+            <div class="analysis-text">
+                <p><strong>五行能量解读：</strong>本图表直观展示命主本命局、当前大运和流年的五行能量分布对比。五行平衡则运势平稳，某行过强或过弱可能带来相应方面的吉凶变化。</p>
+                <p>当前大运：${currentFortune.period} (${currentFortune.ganzhi})</p>
+                <p>当前流年：${yearlyFortune.year}年 (${yearlyFortune.ganzhi})</p>
+            </div>
+        `;
+        chartContainer.appendChild(description);
+        
+        // 如果已有图表则销毁
+        if (elementChart) {
+            elementChart.destroy();
+        }
+        
         elementChart = new Chart(elementChartCtx, {
             type: 'radar',
             data: elementData,
@@ -573,7 +627,11 @@ document.addEventListener('DOMContentLoaded', function() {
                             color: 'rgba(0, 240, 255, 0.2)'
                         },
                         suggestedMin: 0,
-                        suggestedMax: Math.max(...data) + 2,
+                        suggestedMax: Math.max(
+                            ...natalElements, 
+                            ...currentFortune.elements, 
+                            ...yearlyFortune.elements
+                        ) + 2,
                         ticks: {
                             backdropColor: 'transparent',
                             color: 'rgba(0, 240, 255, 0.7)',
@@ -596,15 +654,32 @@ document.addEventListener('DOMContentLoaded', function() {
                 },
                 plugins: {
                     legend: {
-                        display: false
+                        position: 'top',
+                        labels: {
+                            font: {
+                                family: "'Orbitron', sans-serif",
+                                size: 12
+                            },
+                            color: 'rgba(0, 240, 255, 0.9)'
+                        }
                     },
                     tooltip: {
                         callbacks: {
                             label: function(context) {
-                                const label = context.label || '';
+                                const datasetLabel = context.dataset.label || '';
+                                const label = context.label.split(' ')[0];
                                 const value = context.raw;
-                                const percentage = percentages[context.dataIndex];
-                                return `${label}: ${value} (${percentage}%)`;
+                                let percentage = 0;
+                                
+                                if (context.datasetIndex === 0) {
+                                    percentage = percentagesNatal[context.dataIndex];
+                                } else if (context.datasetIndex === 1) {
+                                    percentage = percentagesFortune[context.dataIndex];
+                                } else {
+                                    percentage = percentagesYearly[context.dataIndex];
+                                }
+                                
+                                return `${datasetLabel}: ${label} ${value} (${percentage}%)`;
                             }
                         }
                     }
@@ -616,6 +691,79 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         });
+    }
+
+    // 计算当前大运五行能量
+    function calculateCurrentFortune(birthData) {
+        const dateParts = birthData.date.split('-');
+        const year = parseInt(dateParts[0]);
+        const month = parseInt(dateParts[1]);
+        const day = parseInt(dateParts[2]);
+        const timeParts = birthData.time.split(':');
+        const hour = parseInt(timeParts[0]);
+        const minute = parseInt(timeParts[1] || 0);
+        
+        const solar = Solar.fromYmdHms(year, month, day, hour, minute, 0);
+        const lunar = solar.getLunar();
+        const decadeFortune = calculateDecadeFortune(lunar, birthData.gender);
+        
+        // 找到当前年龄对应的大运
+        const currentAge = calculateCurrentAge(birthData.date);
+        let currentFortune = decadeFortune.fortunes[0];
+        
+        for (const fortune of decadeFortune.fortunes) {
+            const ageRange = fortune.ageRange.split('-');
+            const startAge = parseInt(ageRange[0]);
+            const endAge = parseInt(ageRange[1].replace('岁', ''));
+            
+            if (currentAge >= startAge && currentAge < endAge) {
+                currentFortune = fortune;
+                break;
+            }
+        }
+        
+        // 计算大运的五行能量
+        const elements = calculateElementEnergy({
+            year: currentFortune.ganZhi[0] + currentFortune.ganZhi[1],
+            month: currentFortune.ganZhi[0] + currentFortune.ganZhi[1],
+            day: currentFortune.ganZhi[0] + currentFortune.ganZhi[1],
+            hour: currentFortune.ganZhi[0] + currentFortune.ganZhi[1]
+        });
+        
+        return {
+            period: currentFortune.ageRange,
+            ganzhi: currentFortune.ganZhi,
+            elements: elements
+        };
+    }
+
+    // 计算当前流年五行能量
+    function calculateYearlyFortune(birthData) {
+        const currentSolar = Solar.fromDate(new Date());
+        const currentLunar = currentSolar.getLunar();
+        const yearGan = currentLunar.getYearGan();
+        const yearZhi = currentLunar.getYearZhi();
+        
+        // 计算流年的五行能量
+        const elements = calculateElementEnergy({
+            year: yearGan + yearZhi,
+            month: yearGan + yearZhi,
+            day: yearGan + yearZhi,
+            hour: yearGan + yearZhi
+        });
+        
+        return {
+            year: currentLunar.getYearInChinese(),
+            ganzhi: yearGan + yearZhi,
+            elements: elements
+        };
+    }
+
+    // 计算当前年龄
+    function calculateCurrentAge(birthDate) {
+        const birthYear = parseInt(birthDate.split('-')[0]);
+        const currentYear = new Date().getFullYear();
+        return currentYear - birthYear;
     }
 
     // 计算元素能量
