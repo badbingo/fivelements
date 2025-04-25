@@ -1126,22 +1126,22 @@ recalculateBtn.addEventListener('click', function() {
 
     // 获取地支藏干
     function getHiddenStems(branch) {
-        const hiddenStemsMap = {
-            '子': '癸',
-            '丑': '己癸辛',
-            '寅': '甲丙戊',
-            '卯': '乙',
-            '辰': '戊乙癸',
-            '巳': '丙庚戊',
-            '午': '丁己',
-            '未': '己丁乙',
-            '申': '庚壬戊',
-            '酉': '辛',
-            '戌': '戊辛丁',
-            '亥': '壬甲'
-        };
-        return hiddenStemsMap[branch] || '';
-    }
+    const hiddenStemsMap = {
+        '子': '癸',
+        '丑': '己、癸、辛',
+        '寅': '甲、丙、戊',
+        '卯': '乙',
+        '辰': '戊、乙、癸',
+        '巳': '丙、庚、戊',
+        '午': '丁、己',
+        '未': '己、丁、乙',
+        '申': '庚、壬、戊',
+        '酉': '辛',
+        '戌': '戊、辛、丁',
+        '亥': '壬、甲'
+    };
+    return hiddenStemsMap[branch] || '';
+}
 
     // 本地计算八字
     function calculateBaziLocally(birthData) {
@@ -1179,7 +1179,7 @@ recalculateBtn.addEventListener('click', function() {
         const hourGan = bazi.getTimeGan();
         const hourZhi = bazi.getTimeZhi();
         const yearHiddenStems = getHiddenStems(yearZhi);
-        const monthHiddenStems = getHiddenStems(yearZhi);
+        const monthHiddenStems = getHiddenStems(monthZhi); // 修正为monthZhi
         const dayHiddenStems = getHiddenStems(dayZhi);
         const hourHiddenStems = getHiddenStems(hourZhi);
         const elements = calculateElementEnergy({
@@ -1833,22 +1833,43 @@ recalculateBtn.addEventListener('click', function() {
 
     // 设置藏干颜色
     function setHiddenStemsColors(element, stems) {
-        element.classList.remove('wood', 'fire', 'earth', 'metal', 'water');
-        const stemElements = {
-            '甲': 'wood', '乙': 'wood',
-            '丙': 'fire', '丁': 'fire',
-            '戊': 'earth', '己': 'earth',
-            '庚': 'metal', '辛': 'metal',
-            '壬': 'water', '癸': 'water'
-        };
-        const spans = [];
-        for (let i = 0; i < stems.length; i++) {
-            const char = stems[i];
-            const elementClass = stemElements[char] || '';
-            spans.push(`<span class="${elementClass}">${char}</span>`);
+    // 清空原有内容
+    element.innerHTML = '';
+    
+    // 如果不是字符串（如undefined），直接返回
+    if (typeof stems !== 'string') return;
+    
+    // 移除顿号，只保留天干字符
+    const stemsClean = stems.replace(/、/g, '');
+    
+    const stemElements = {
+        '甲': 'wood', '乙': 'wood',
+        '丙': 'fire', '丁': 'fire',
+        '戊': 'earth', '己': 'earth',
+        '庚': 'metal', '辛': 'metal',
+        '壬': 'water', '癸': 'water'
+    };
+    
+    // 逐个字符处理
+    for (let i = 0; i < stemsClean.length; i++) {
+        const char = stemsClean[i];
+        const span = document.createElement('span');
+        span.textContent = char;
+        
+        // 添加对应的五行class
+        if (stemElements[char]) {
+            span.classList.add(stemElements[char]);
         }
-        element.innerHTML = spans.join('');
+        
+        // 如果不是最后一个字符，添加顿号
+        if (i < stemsClean.length - 1) {
+            const separator = document.createTextNode('、');
+            element.appendChild(separator);
+        }
+        
+        element.appendChild(span);
     }
+}
 
     // 显示部分内容
     function displaySectionContent(section, result, contentElement) {
