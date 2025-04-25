@@ -1045,7 +1045,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const hourGan = bazi.getTimeGan();
         const hourZhi = bazi.getTimeZhi();
         const yearHiddenStems = getHiddenStems(yearZhi);
-        const monthHiddenStems = getHiddenStems(yearZhi);
+        const monthHiddenStems = getHiddenStems(monthZhi);  // 修正：使用月支而不是年支
         const dayHiddenStems = getHiddenStems(dayZhi);
         const hourHiddenStems = getHiddenStems(hourZhi);
         const elements = calculateElementEnergy({
