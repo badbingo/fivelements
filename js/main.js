@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 缓存对象
+    // 缓存对象a
     const baziCache = {};
     
     // 兜底规则库
@@ -185,6 +185,268 @@ document.addEventListener('DOMContentLoaded', function() {
         calculateBtn.addEventListener('click', calculateBazi);
     }
 
+    // 重置所有内容
+    function resetAllContent() {
+        fateScoreValue = 0;
+        wealthScoreValue = 0;
+        
+        // 重置八字显示
+        yearStem.textContent = '';
+        yearBranch.textContent = '';
+        yearHiddenStems.textContent = '';
+        monthStem.textContent = '';
+        monthBranch.textContent = '';
+        monthHiddenStems.textContent = '';
+        dayStem.textContent = '';
+        dayBranch.textContent = '';
+        dayHiddenStems.textContent = '';
+        hourStem.textContent = '';
+        hourBranch.textContent = '';
+        hourHiddenStems.textContent = '';
+        
+        // 重置分数显示
+        fateLevel.textContent = '';
+        fateScore.textContent = '';
+        fateDetails.innerHTML = '';
+        wealthLevel.textContent = '';
+        wealthScore.textContent = '';
+        wealthDetails.innerHTML = '';
+        personalityTraits.textContent = '命主性格：';
+        
+        // 重置内容区域
+        document.querySelectorAll('.section-content').forEach(function(el) {
+            el.innerHTML = '';
+            el.classList.remove('active');
+        });
+        
+        // 重置按钮状态
+        document.querySelectorAll('.load-btn').forEach(function(btn) {
+            const originalText = btn.getAttribute('data-original-text') || btn.textContent.trim();
+            btn.innerHTML = `<span>${originalText}</span><i class="fas fa-chevron-down toggle-icon"></i>`;
+            btn.classList.remove('active');
+            btn.disabled = false;
+        });
+        
+        // 重置按钮容器
+        document.querySelectorAll('.load-btn-container').forEach(function(container) {
+            container.classList.remove('active');
+        });
+        
+        // 重置菜单标签
+        document.querySelectorAll('.menu-tab').forEach(function(tab) {
+            tab.classList.remove('active');
+        });
+        document.querySelectorAll('.tab-content').forEach(function(content) {
+            content.classList.remove('active');
+        });
+        document.querySelector('.menu-tab[data-tab="fortune"]').classList.add('active');
+        document.getElementById('fortune-tab').classList.add('active');
+        
+        // 重置全局变量
+        loadedSections = {};
+        currentPillars = {};
+        fateScoreDetails = {};
+        wealthScoreDetails = {};
+        
+        // 重置问答区域
+        baziQuestionInput.value = '';
+        baziQaResponse.innerHTML = '';
+        baziQaResponse.style.display = 'none';
+        baziQaLoading.style.display = 'none';
+    }
+
+    // 初始化加载按钮
+    function initLoadButtons() {
+        // 先移除所有现有的事件监听器
+        document.querySelectorAll('.load-btn').forEach(function(button) {
+            const newButton = button.cloneNode(true);
+            button.parentNode.replaceChild(newButton, button);
+        });
+
+        // 为每个按钮添加新的事件监听器
+        document.querySelectorAll('.load-btn').forEach(function(button) {
+            // 保存原始文本
+            if (!button.getAttribute('data-original-text')) {
+                const originalText = button.textContent.trim();
+                button.setAttribute('data-original-text', originalText);
+            }
+            
+            button.addEventListener('click', loadButtonClickHandler);
+        });
+    }
+
+    // 加载按钮点击处理函数
+    async function loadButtonClickHandler(e) {
+        e.preventDefault();
+        const button = this;
+        const section = button.getAttribute('data-section');
+        const contentElement = document.getElementById(`${section}-content`);
+        const container = button.closest('.load-btn-container');
+        
+        // 如果已经加载过，只切换显示/隐藏
+        if (loadedSections[section]) {
+            container.classList.toggle('active');
+            contentElement.classList.toggle('active');
+            return;
+        }
+        
+        const originalBtnHtml = button.innerHTML;
+        button.disabled = true;
+        button.innerHTML = `<span><span class="loading"></span> 量子分析中...</span><i class="fas fa-chevron-down toggle-icon"></i>`;
+        container.classList.add('active');
+        
+        const progressContainer = document.createElement('div');
+        progressContainer.className = 'progress-container';
+        progressContainer.innerHTML = '<div class="progress-bar"></div>';
+        contentElement.innerHTML = '';
+        contentElement.appendChild(progressContainer);
+        
+        const progressBar = progressContainer.querySelector('.progress-bar');
+        let progress = 0;
+        const progressInterval = setInterval(function() {
+            progress += Math.random() * 10;
+            if (progress >= 100) progress = 100;
+            progressBar.style.width = `${progress}%`;
+        }, 300);
+        
+        try {
+            const result = await getBaziAnalysis(section, birthData);
+            clearInterval(progressInterval);
+            displaySectionContent(section, result, contentElement);
+            
+            // 恢复按钮状态，添加完成标记
+            const originalText = button.getAttribute('data-original-text');
+            button.innerHTML = `<span>${originalText}</span><i class="fas fa-check"></i><i class="fas fa-chevron-down toggle-icon"></i>`;
+            button.disabled = false;
+            
+            contentElement.classList.add('active');
+            loadedSections[section] = true;
+            
+            if (section === 'decade-fortune') {
+                initFortuneChart(result);
+            }
+        } catch (error) {
+            console.error(`加载${section}失败:`, error);
+            clearInterval(progressInterval);
+            contentElement.innerHTML = '<p style="color:var(--danger-color)">加载失败，请重试</p>';
+            button.disabled = false;
+            button.innerHTML = `<span>${button.getAttribute('data-original-text')}</span><i class="fas fa-chevron-down toggle-icon"></i>`;
+        }
+    }
+
+    // 显示部分内容
+    function displaySectionContent(section, result, contentElement) {
+        if (result.includes('★')) {
+            result = result.replace(/(★+)/g, '<span class="rating" style="color:var(--earth-color);text-shadow:0 0 5px var(--earth-color)">$1</span>');
+            result = result.replace(/(☆+)/g, '<span style="color:#666">$1</span>');
+        }
+        const html = marked.parse(result);
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = html;
+        tempDiv.querySelectorAll('table').forEach(function(table) {
+            table.classList.add('markdown-table');
+        });
+        contentElement.innerHTML = tempDiv.innerHTML;
+    }
+
+    // 计算八字
+    async function calculateBazi(e) {
+        e.preventDefault();
+        resetAllContent();
+        
+        const name = document.getElementById('name').value;
+        const birthDate = document.getElementById('birth-date').value;
+        const birthTime = birthTimeInput.value;
+        const gender = document.getElementById('gender').value;
+        
+        if (!birthDate || !birthTime || !gender) {
+            alert('请填写完整的出生信息');
+            return;
+        }
+        
+        const dateParts = birthDate.split('-');
+        const year = parseInt(dateParts[0]);
+        const month = parseInt(dateParts[1]);
+        const day = parseInt(dateParts[2]);
+        
+        if (!isValidDate(year, month, day)) {
+            alert('请输入有效的出生日期');
+            return;
+        }
+        
+        if (month === 2) {
+            const maxDays = isLeapYear(year) ? 29 : 28;
+            if (day > maxDays) {
+                alert(`${year}年2月只有${maxDays}天`);
+                return;
+            }
+        }
+        
+        const monthsWith30Days = [4, 6, 9, 11];
+        if (monthsWith30Days.includes(month) && day > 30) {
+            alert(`${month}月只有30天`);
+            return;
+        }
+        
+        birthData = { 
+            name, 
+            date: birthDate,
+            time: birthTime, 
+            gender: gender
+        };
+        
+        saveProfile(birthData);
+        calculateBtn.disabled = true;
+        calculateBtn.innerHTML = '<span class="loading"></span> 量子测算中...';
+        
+        try {
+            const loadingOverlay = document.createElement('div');
+            loadingOverlay.className = 'loading-overlay';
+            loadingOverlay.innerHTML = `
+                <div class="loading"></div>
+                <p>量子计算引擎启动中...</p>
+            `;
+            document.body.appendChild(loadingOverlay);
+            
+            // 使用混合模式获取结果
+            const baziInfo = await getBaziAnalysis('basic', birthData);
+            
+            displayBasicInfo(baziInfo);
+            initElementChart(baziInfo.elements);
+            updateLunarCalendar();
+            
+            currentPillars = {
+                year: baziInfo.yearStem + baziInfo.yearBranch,
+                month: baziInfo.monthStem + baziInfo.monthBranch,
+                day: baziInfo.dayStem + baziInfo.dayBranch,
+                hour: baziInfo.hourStem + baziInfo.hourBranch
+            };
+            
+            displayScores();
+            gamblingRating.textContent = baziInfo.gamblingFortune.rating;
+            gamblingDetails.innerHTML = `
+                ${baziInfo.gamblingFortune.analysis}<br>
+                最佳方位: ${baziInfo.gamblingFortune.direction}<br>
+                最佳时段: ${baziInfo.gamblingFortune.hour}
+            `;
+            
+            inputSection.style.display = 'none';
+            resultSection.style.display = 'block';
+            document.body.removeChild(loadingOverlay);
+            initLoadButtons();
+            window.scrollTo(0, 0);
+        } catch (error) {
+            console.error('测算失败:', error);
+            alert('量子测算失败，请稍后重试');
+            if (document.querySelector('.loading-overlay')) {
+                document.body.removeChild(document.querySelector('.loading-overlay'));
+            }
+        } finally {
+            calculateBtn.disabled = false;
+            calculateBtn.innerHTML = '<i class="fas fa-brain"></i> 开始量子测算';
+        }
+    }
+
     // 生成八字哈希键
     function generateBaziHashKey(birthData) {
         const dateParts = birthData.date.split('-');
@@ -257,115 +519,6 @@ document.addEventListener('DOMContentLoaded', function() {
             elements: elementsMatch ? JSON.parse(elementsMatch[1]) : [0, 0, 0, 0, 0],
             personality: personalityMatch ? personalityMatch[1] : ''
         };
-    }
-
-    // 重置所有内容
-    function resetAllContent() {
-        fateScoreValue = 0;
-        wealthScoreValue = 0;
-        yearStem.textContent = '';
-        yearBranch.textContent = '';
-        yearHiddenStems.textContent = '';
-        monthStem.textContent = '';
-        monthBranch.textContent = '';
-        monthHiddenStems.textContent = '';
-        dayStem.textContent = '';
-        dayBranch.textContent = '';
-        dayHiddenStems.textContent = '';
-        hourStem.textContent = '';
-        hourBranch.textContent = '';
-        hourHiddenStems.textContent = '';
-        fateLevel.textContent = '';
-        fateScore.textContent = '';
-        fateDetails.innerHTML = '';
-        wealthLevel.textContent = '';
-        wealthScore.textContent = '';
-        wealthDetails.innerHTML = '';
-        personalityTraits.textContent = '命主性格：';
-        document.querySelectorAll('.section-content').forEach(function(el) {
-            el.innerHTML = '';
-            el.classList.remove('active');
-        });
-        document.querySelectorAll('.load-btn').forEach(function(btn) {
-            const originalContent = btn.querySelector('span').innerHTML;
-            btn.innerHTML = `<span>${originalContent}</span><i class="fas fa-chevron-down toggle-icon"></i>`;
-            btn.classList.remove('active');
-            btn.disabled = false;
-        });
-        document.querySelectorAll('.load-btn-container').forEach(function(container) {
-            container.classList.remove('active');
-        });
-        document.querySelectorAll('.menu-tab').forEach(function(tab) {
-            tab.classList.remove('active');
-        });
-        document.querySelectorAll('.tab-content').forEach(function(content) {
-            content.classList.remove('active');
-        });
-        document.querySelector('.menu-tab[data-tab="fortune"]').classList.add('active');
-        document.getElementById('fortune-tab').classList.add('active');
-        loadedSections = {};
-        currentPillars = {};
-        fateScoreDetails = {};
-        wealthScoreDetails = {};
-        baziQuestionInput.value = '';
-        baziQaResponse.innerHTML = '';
-        baziQaResponse.style.display = 'none';
-        baziQaLoading.style.display = 'none';
-    }
-
-    // 加载按钮初始化
-    function initLoadButtons() {
-        document.querySelectorAll('.load-btn').forEach(function(button) {
-            const section = button.getAttribute('data-section');
-            if (loadedSections[section]) return;
-            const contentElement = document.getElementById(`${section}-content`);
-            const container = button.closest('.load-btn-container');
-            button.addEventListener('click', async function(e) {
-                e.preventDefault();
-                if (loadedSections[section]) {
-                    container.classList.toggle('active');
-                    contentElement.classList.toggle('active');
-                    return;
-                }
-                const originalBtnHtml = button.innerHTML;
-                this.disabled = true;
-                const sectionName = button.querySelector('span').textContent.trim();
-                button.innerHTML = `<span><span class="loading"></span> 量子分析中...</span><i class="fas fa-chevron-down toggle-icon"></i>`;
-                container.classList.add('active');
-                const progressContainer = document.createElement('div');
-                progressContainer.className = 'progress-container';
-                progressContainer.innerHTML = '<div class="progress-bar"></div>';
-                progressContainer.style.display = 'block';
-                contentElement.innerHTML = '';
-                contentElement.appendChild(progressContainer);
-                const progressBar = progressContainer.querySelector('.progress-bar');
-                let progress = 0;
-                const progressInterval = setInterval(function() {
-                    progress += Math.random() * 10;
-                    if (progress >= 100) progress = 100;
-                    progressBar.style.width = `${progress}%`;
-                }, 300);
-                try {
-                    const result = await getBaziAnalysis(section, birthData);
-                    clearInterval(progressInterval);
-                    displaySectionContent(section, result, contentElement);
-                    button.innerHTML = originalBtnHtml.replace('<i class="fas fa-chevron-down toggle-icon"></i>', 
-                        '<i class="fas fa-check"></i><i class="fas fa-chevron-down toggle-icon"></i>');
-                    button.disabled = false;
-                    contentElement.classList.add('active');
-                    loadedSections[section] = true;
-                    if (section === 'decade-fortune') {
-                        initFortuneChart(result);
-                    }
-                } catch (error) {
-                    console.error(`加载${section}失败:`, error);
-                    clearInterval(progressInterval);
-                    contentElement.innerHTML = '<p style="color:var(--danger-color)">加载失败，请重试</p>';
-                    button.disabled = false;
-                    button.innerHTML = originalBtnHtml;
-                }
-            });
-        });
     }
 
     // 初始化元素图表
@@ -1319,9 +1472,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const monthModifier = (month % 12) / 12;
         
         const totalScore = Math.min(5, Math.max(1, Math.round(
-    (baseScore + currentScore + matchBonus) / 4 + 
-    dayModifier + monthModifier
-)));
+            (baseScore + currentScore + matchBonus) / 4 + 
+            dayModifier + monthModifier
+        ));
         
         const rating = '★'.repeat(totalScore) + '☆'.repeat(5 - totalScore);
         
@@ -1423,6 +1576,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function loadProfile(profile) {
         document.getElementById('name').value = profile.name || '';
         document.getElementById('birth-date').value = profile.date;
+        document.getElementById('birth-time').value = profile.time;
         document.getElementById('gender').value = profile.gender;
         const hour = parseInt(profile.time.split(':')[0]);
         timePeriodOptions.forEach(function(opt) {
@@ -1530,21 +1684,6 @@ document.addEventListener('DOMContentLoaded', function() {
             spans.push(`<span class="${elementClass}">${char}</span>`);
         }
         element.innerHTML = spans.join('');
-    }
-
-    // 显示部分内容
-    function displaySectionContent(section, result, contentElement) {
-        if (result.includes('★')) {
-            result = result.replace(/(★+)/g, '<span class="rating" style="color:var(--earth-color);text-shadow:0 0 5px var(--earth-color)">$1</span>');
-            result = result.replace(/(☆+)/g, '<span style="color:#666">$1</span>');
-        }
-        const html = marked.parse(result);
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = html;
-        tempDiv.querySelectorAll('table').forEach(function(table) {
-            table.classList.add('markdown-table');
-        });
-        contentElement.innerHTML = tempDiv.innerHTML;
     }
 
     // 获取八字分析
@@ -1759,101 +1898,39 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // 计算八字
-    async function calculateBazi(e) {
-        e.preventDefault();
-        resetAllContent();
-        
-        const name = document.getElementById('name').value;
-        const birthDate = document.getElementById('birth-date').value;
-        const birthTime = birthTimeInput.value;
-        const gender = document.getElementById('gender').value;
-        
-        if (!birthDate || !birthTime || !gender) {
-            alert('请填写完整的出生信息');
-            return;
-        }
-        
-        const dateParts = birthDate.split('-');
-        const year = parseInt(dateParts[0]);
-        const month = parseInt(dateParts[1]);
-        const day = parseInt(dateParts[2]);
-        
-        if (!isValidDate(year, month, day)) {
-            alert('请输入有效的出生日期');
-            return;
-        }
-        
-        if (month === 2) {
-            const maxDays = isLeapYear(year) ? 29 : 28;
-            if (day > maxDays) {
-                alert(`${year}年2月只有${maxDays}天`);
-                return;
-            }
-        }
-        
-        const monthsWith30Days = [4, 6, 9, 11];
-        if (monthsWith30Days.includes(month) && day > 30) {
-            alert(`${month}月只有30天`);
-            return;
-        }
-        
-        birthData = { 
-            name, 
-            date: birthDate,
-            time: birthTime, 
-            gender: gender
-        };
-        
-        saveProfile(birthData);
-        calculateBtn.disabled = true;
-        calculateBtn.innerHTML = '<span class="loading"></span> 量子测算中...';
+    // 获取八字问答答案
+    async function getBaziAnswer(question) {
+        const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
+        const apiKey = 'sk-b2950087a9d5427392762814114b22a9';
         
         try {
-            const loadingOverlay = document.createElement('div');
-            loadingOverlay.className = 'loading-overlay';
-            loadingOverlay.innerHTML = `
-                <div class="loading"></div>
-                <p>量子计算引擎启动中...</p>
-            `;
-            document.body.appendChild(loadingOverlay);
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`
+                },
+                body: JSON.stringify({
+                    model: "deepseek-chat",
+                    messages: [{
+                        role: "system",
+                        content: "你是一位资深的八字命理大师，精通子平八字、紫微斗数等传统命理学。请用专业但易懂的语言回答用户问题。"
+                    }, {
+                        role: "user",
+                        content: question
+                    }],
+                    temperature: 0.7
+                })
+            });
             
-            // 使用混合模式获取结果
-            const baziInfo = await getBaziAnalysis('basic', birthData);
+            if (!response.ok) throw new Error(`API请求失败: ${response.status}`);
             
-            displayBasicInfo(baziInfo);
-            initElementChart(baziInfo.elements);
-            updateLunarCalendar();
+            const result = await response.json();
+            return result.choices[0].message.content;
             
-            currentPillars = {
-                year: baziInfo.yearStem + baziInfo.yearBranch,
-                month: baziInfo.monthStem + baziInfo.monthBranch,
-                day: baziInfo.dayStem + baziInfo.dayBranch,
-                hour: baziInfo.hourStem + baziInfo.hourBranch
-            };
-            
-            displayScores();
-            gamblingRating.textContent = baziInfo.gamblingFortune.rating;
-            gamblingDetails.innerHTML = `
-                ${baziInfo.gamblingFortune.analysis}<br>
-                最佳方位: ${baziInfo.gamblingFortune.direction}<br>
-                最佳时段: ${baziInfo.gamblingFortune.hour}
-            `;
-            
-            inputSection.style.display = 'none';
-            resultSection.style.display = 'block';
-            document.body.removeChild(loadingOverlay);
-            initLoadButtons();
-            window.scrollTo(0, 0);
         } catch (error) {
-            console.error('测算失败:', error);
-            alert('量子测算失败，请稍后重试');
-            if (document.querySelector('.loading-overlay')) {
-                document.body.removeChild(document.querySelector('.loading-overlay'));
-            }
-        } finally {
-            calculateBtn.disabled = false;
-            calculateBtn.innerHTML = '<i class="fas fa-brain"></i> 开始量子测算';
+            console.error('获取问答答案失败:', error);
+            return '获取答案失败，请稍后重试';
         }
     }
 });
