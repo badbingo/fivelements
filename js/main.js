@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 缓存对象c
+    // 缓存对象
     const baziCache = {};
     // 兜底规则库
     const fallbackRules = {
@@ -46,7 +46,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const wealthScore = document.getElementById('wealth-score');
     const wealthDetails = document.getElementById('wealth-details');
     const elementChartCtx = document.getElementById('element-chart').getContext('2d');
-    const elementChartDescription = document.getElementById('element-chart-description');
     const gamblingRating = document.getElementById('gambling-rating');
     const gamblingDetails = document.getElementById('gambling-details');
     const savedProfilesList = document.getElementById('saved-profiles-list');
@@ -280,12 +279,6 @@ recalculateBtn.addEventListener('click', function() {
         newButton.addEventListener('click', async function(e) {
             e.preventDefault();
 
-            // 滚动到对应区域
-            const targetSection = document.getElementById(`${section}-section`);
-            if (targetSection) {
-                targetSection.scrollIntoView({ behavior: 'smooth' });
-            }
-
             // 如果内容已加载，只切换显示/隐藏
             if (loadedSections[section]) {
                 container.classList.toggle('active');
@@ -341,11 +334,6 @@ recalculateBtn.addEventListener('click', function() {
 
     // 初始化五行元素图表
     function initElementChart(data) {
-        // 添加空值检查
-    if (!elementChartDescription) {
-        console.error('elementChartDescription element not found');
-        return;
-    }
         const total = data.reduce((sum, value) => sum + value, 0);
         const percentages = data.map(value => Math.round((value/total)*100));
         const elementData = {
