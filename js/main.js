@@ -256,7 +256,7 @@ document.addEventListener('DOMContentLoaded', function() {
         window.scrollTo(0, 0);
     });
 
-    // 初始化加载按钮（修复按钮点击问题）
+    // 修复后的加载按钮初始化函数
     function initLoadButtons() {
         document.querySelectorAll('.load-btn').forEach(button => {
             // 保存按钮原始文本
@@ -268,7 +268,12 @@ document.addEventListener('DOMContentLoaded', function() {
             const container = button.closest('.load-btn-container');
 
             // 移除旧的点击事件（避免重复绑定）
-            button.addEventListener('click', async function(e) {
+            button.removeEventListener('click', loadSectionHandler);
+            
+            // 添加新的点击事件
+            button.addEventListener('click', loadSectionHandler);
+
+            async function loadSectionHandler(e) {
                 e.preventDefault();
 
                 // 如果内容已加载，只切换显示/隐藏
@@ -320,7 +325,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     button.innerHTML = `<span>${originalText}</span><i class="fas fa-chevron-down toggle-icon"></i>`;
                     button.disabled = false;
                 }
-            });
+            }
         });
     }
 
