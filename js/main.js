@@ -340,6 +340,11 @@ recalculateBtn.addEventListener('click', function() {
 
     // 初始化五行元素图表
     function initElementChart(data) {
+        // 添加空值检查
+    if (!elementChartDescription) {
+        console.error('elementChartDescription element not found');
+        return;
+    }
         const total = data.reduce((sum, value) => sum + value, 0);
         const percentages = data.map(value => Math.round((value/total)*100));
         const elementData = {
