@@ -26,6 +26,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const wealthScore = document.getElementById('wealth-score');
     const wealthDetails = document.getElementById('wealth-details');
     const elementChartCtx = document.getElementById('element-chart').getContext('2d');
+    const elementChartDescription = document.getElementById('element-chart-description');
     const gamblingRating = document.getElementById('gambling-rating');
     const gamblingDetails = document.getElementById('gambling-details');
     const savedProfilesList = document.getElementById('saved-profiles-list');
@@ -153,68 +154,53 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     function resetAllContent() {
-    // 重置分数和状态变量
-    fateScoreValue = 0;
-    wealthScoreValue = 0;
-    loadedSections = {};
-    currentPillars = {};
-    fateScoreDetails = {};
-    wealthScoreDetails = {};
-
-    // 清除八字四柱显示
-    yearStem.textContent = '';
-    yearBranch.textContent = '';
-    yearHiddenStems.textContent = '';
-    monthStem.textContent = '';
-    monthBranch.textContent = '';
-    monthHiddenStems.textContent = '';
-    dayStem.textContent = '';
-    dayBranch.textContent = '';
-    dayHiddenStems.textContent = '';
-    hourStem.textContent = '';
-    hourBranch.textContent = '';
-    hourHiddenStems.textContent = '';
-
-    // 重置分数显示
-    fateLevel.textContent = '';
-    fateScore.textContent = '';
-    fateDetails.innerHTML = '';
-    wealthLevel.textContent = '';
-    wealthScore.textContent = '';
-    wealthDetails.innerHTML = '';
-    personalityTraits.textContent = '命主性格：';
-
-    // 重置所有内容区域
-    document.querySelectorAll('.section-content').forEach(el => {
-        el.innerHTML = '';
-        el.classList.remove('active');
-    });
-
-    // 重置所有加载按钮
-    document.querySelectorAll('.load-btn').forEach(btn => {
-        const originalText = btn.getAttribute('data-original-text') || btn.querySelector('span').textContent;
-        btn.innerHTML = `<span>${originalText}</span><i class="fas fa-chevron-down toggle-icon"></i>`;
-        btn.classList.remove('active');
-        btn.disabled = false;
-    });
-
-    // 重置按钮容器
-    document.querySelectorAll('.load-btn-container').forEach(container => {
-        container.classList.remove('active');
-    });
-
-    // 重置标签页
-    document.querySelectorAll('.menu-tab').forEach(tab => tab.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-    document.querySelector('.menu-tab[data-tab="fortune"]').classList.add('active');
-    document.getElementById('fortune-tab').classList.add('active');
-
-    // 重置问答区域
-    baziQuestionInput.value = '';
-    baziQaResponse.innerHTML = '';
-    baziQaResponse.style.display = 'none';
-    baziQaLoading.style.display = 'none';
-}
+        fateScoreValue = 0;
+        wealthScoreValue = 0;
+        yearStem.textContent = '';
+        yearBranch.textContent = '';
+        yearHiddenStems.textContent = '';
+        monthStem.textContent = '';
+        monthBranch.textContent = '';
+        monthHiddenStems.textContent = '';
+        dayStem.textContent = '';
+        dayBranch.textContent = '';
+        dayHiddenStems.textContent = '';
+        hourStem.textContent = '';
+        hourBranch.textContent = '';
+        hourHiddenStems.textContent = '';
+        fateLevel.textContent = '';
+        fateScore.textContent = '';
+        fateDetails.innerHTML = '';
+        wealthLevel.textContent = '';
+        wealthScore.textContent = '';
+        wealthDetails.innerHTML = '';
+        personalityTraits.textContent = '命主性格：';
+        document.querySelectorAll('.section-content').forEach(el => {
+            el.innerHTML = '';
+            el.classList.remove('active');
+        });
+        document.querySelectorAll('.load-btn').forEach(btn => {
+            const originalContent = btn.querySelector('span').innerHTML;
+            btn.innerHTML = `<span>${originalContent}</span><i class="fas fa-chevron-down toggle-icon"></i>`;
+            btn.classList.remove('active');
+            btn.disabled = false;
+        });
+        document.querySelectorAll('.load-btn-container').forEach(container => {
+            container.classList.remove('active');
+        });
+        document.querySelectorAll('.menu-tab').forEach(tab => tab.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+        document.querySelector('.menu-tab[data-tab="fortune"]').classList.add('active');
+        document.getElementById('fortune-tab').classList.add('active');
+        loadedSections = {};
+        currentPillars = {};
+        fateScoreDetails = {};
+        wealthScoreDetails = {};
+        baziQuestionInput.value = '';
+        baziQaResponse.innerHTML = '';
+        baziQaResponse.style.display = 'none';
+        baziQaLoading.style.display = 'none';
+    }
 
     document.querySelectorAll('.menu-tab').forEach(tab => {
         tab.addEventListener('click', function() {
@@ -227,99 +213,131 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     function initLoadButtons() {
-    document.querySelectorAll('.load-btn').forEach(button => {
-        // 保存按钮原始文本
-        const originalText = button.querySelector('span').textContent;
-        button.setAttribute('data-original-text', originalText);
-
-        const section = button.getAttribute('data-section');
-        const contentElement = document.getElementById(`${section}-content`);
-        const container = button.closest('.load-btn-container');
-
-        // 移除旧的点击事件（避免重复绑定）
-        const newButton = button.cloneNode(true);
-        button.parentNode.replaceChild(newButton, button);
-
-        newButton.addEventListener('click', async function(e) {
-            e.preventDefault();
-
-            // 如果内容已加载，只切换显示/隐藏
-            if (loadedSections[section]) {
-                container.classList.toggle('active');
-                contentElement.classList.toggle('active');
-                return;
-            }
-
-            // 开始加载内容
-            newButton.disabled = true;
-            newButton.innerHTML = `<span><span class="loading"></span> 量子分析中...</span><i class="fas fa-chevron-down toggle-icon"></i>`;
-            container.classList.add('active');
-
-            // 添加进度条
-            const progressContainer = document.createElement('div');
-            progressContainer.className = 'progress-container';
-            progressContainer.innerHTML = '<div class="progress-bar"></div>';
-            contentElement.innerHTML = '';
-            contentElement.appendChild(progressContainer);
-            const progressBar = progressContainer.querySelector('.progress-bar');
-
-            // 模拟进度
-            let progress = 0;
-            const progressInterval = setInterval(() => {
-                progress += Math.random() * 10;
-                if (progress >= 100) progress = 100;
-                progressBar.style.width = `${progress}%`;
-            }, 300);
-
-            try {
-                const result = await getBaziAnalysis(section, birthData);
-                clearInterval(progressInterval);
-                displaySectionContent(section, result, contentElement);
-                
-                // 更新按钮状态
-                newButton.innerHTML = `<span>${originalText}</span><i class="fas fa-check"></i><i class="fas fa-chevron-down toggle-icon"></i>`;
-                newButton.disabled = false;
-                contentElement.classList.add('active');
-                loadedSections[section] = true;
-
-                if (section === 'decade-fortune') {
-                    initFortuneChart(result);
+        document.querySelectorAll('.load-btn').forEach(button => {
+            const section = button.getAttribute('data-section');
+            if (loadedSections[section]) return;
+            const contentElement = document.getElementById(`${section}-content`);
+            const container = button.closest('.load-btn-container');
+            button.addEventListener('click', async function(e) {
+                e.preventDefault();
+                if (loadedSections[section]) {
+                    container.classList.toggle('active');
+                    contentElement.classList.toggle('active');
+                    return;
                 }
-            } catch (error) {
-                console.error(`加载${section}失败:`, error);
-                clearInterval(progressInterval);
-                contentElement.innerHTML = '<p style="color:var(--danger-color)">加载失败，请重试</p>';
-                newButton.innerHTML = `<span>${originalText}</span><i class="fas fa-chevron-down toggle-icon"></i>`;
-                newButton.disabled = false;
-            }
+                const originalBtnHtml = button.innerHTML;
+                this.disabled = true;
+                const sectionName = button.querySelector('span').textContent.trim();
+                button.innerHTML = `<span><span class="loading"></span> 量子分析中...</span><i class="fas fa-chevron-down toggle-icon"></i>`;
+                container.classList.add('active');
+                const progressContainer = document.createElement('div');
+                progressContainer.className = 'progress-container';
+                progressContainer.innerHTML = '<div class="progress-bar"></div>';
+                progressContainer.style.display = 'block';
+                contentElement.innerHTML = '';
+                contentElement.appendChild(progressContainer);
+                const progressBar = progressContainer.querySelector('.progress-bar');
+                let progress = 0;
+                const progressInterval = setInterval(() => {
+                    progress += Math.random() * 10;
+                    if (progress >= 100) progress = 100;
+                    progressBar.style.width = `${progress}%`;
+                }, 300);
+                try {
+                    const result = await getBaziAnalysis(section, birthData);
+                    clearInterval(progressInterval);
+                    displaySectionContent(section, result, contentElement);
+                    button.innerHTML = originalBtnHtml.replace('<i class="fas fa-chevron-down toggle-icon"></i>', 
+                        '<i class="fas fa-check"></i><i class="fas fa-chevron-down toggle-icon"></i>');
+                    button.disabled = false;
+                    contentElement.classList.add('active');
+                    loadedSections[section] = true;
+                    if (section === 'decade-fortune') {
+                        initFortuneChart(result);
+                    }
+                } catch (error) {
+                    console.error(`加载${section}失败:`, error);
+                    clearInterval(progressInterval);
+                    contentElement.innerHTML = '<p style="color:var(--danger-color)">加载失败，请重试</p>';
+                    button.disabled = false;
+                    button.innerHTML = originalBtnHtml;
+                }
+            });
         });
-    });
-}
+    }
 
-    function initElementChart(data) {
-        const total = data.reduce((sum, value) => sum + value, 0);
-        const percentages = data.map(value => Math.round((value/total)*100));
+    function initElementChart(baziInfo) {
+        // Calculate original birth chart elements
+        const birthElements = calculateElementEnergy({
+            year: baziInfo.yearStem + baziInfo.yearBranch,
+            month: baziInfo.monthStem + baziInfo.monthBranch,
+            day: baziInfo.dayStem + baziInfo.dayBranch,
+            hour: baziInfo.hourStem + baziInfo.hourBranch
+        });
+        
+        // Calculate current year elements
+        const currentSolar = Solar.fromDate(new Date());
+        const currentLunar = currentSolar.getLunar();
+        const currentYearGan = currentLunar.getYearGan();
+        const currentYearZhi = currentLunar.getYearZhi();
+        const currentYearElements = calculateElementEnergy({
+            year: currentYearGan + currentYearZhi,
+            month: '', day: '', hour: '' // Only year affects current year energy
+        });
+        
+        // Calculate current decade elements (using the first fortune pillar)
+        let decadeElements = [0, 0, 0, 0, 0];
+        if (baziInfo.decadeFortune && baziInfo.decadeFortune.fortunes.length > 0) {
+            const currentFortune = baziInfo.decadeFortune.fortunes[0];
+            decadeElements = calculateElementEnergy({
+                year: currentFortune.ganZhi,
+                month: '', day: '', hour: ''
+            });
+        }
+        
+        // Calculate totals for percentages
+        const birthTotal = birthElements.reduce((sum, val) => sum + val, 0);
+        const yearTotal = currentYearElements.reduce((sum, val) => sum + val, 0);
+        const decadeTotal = decadeElements.reduce((sum, val) => sum + val, 0);
+        
+        // Calculate percentages
+        const birthPercentages = birthElements.map(val => Math.round((val / birthTotal) * 100));
+        const yearPercentages = currentYearElements.map(val => Math.round((val / yearTotal) * 100));
+        const decadePercentages = decadeElements.map(val => Math.round((val / decadeTotal) * 100));
+        
         const elementData = {
-            labels: ['木', '火', '土', '金', '水'].map((label, i) => `${label} ${percentages[i]}%`),
-            datasets: [{
-                data: data,
-                backgroundColor: [
-                    'rgba(0, 255, 136, 0.3)',
-                    'rgba(255, 51, 0, 0.3)',
-                    'rgba(255, 204, 0, 0.3)',
-                    'rgba(204, 204, 204, 0.3)',
-                    'rgba(0, 153, 255, 0.3)'
-                ],
-                borderColor: [
-                    'rgba(0, 255, 136, 1)',
-                    'rgba(255, 51, 0, 1)',
-                    'rgba(255, 204, 0, 1)',
-                    'rgba(204, 204, 204, 1)',
-                    'rgba(0, 153, 255, 1)'
-                ],
-                borderWidth: 1
-            }]
+            labels: ['木', '火', '土', '金', '水'].map((label, i) => `${label}`),
+            datasets: [
+                {
+                    label: '本命局',
+                    data: birthElements,
+                    backgroundColor: 'rgba(0, 255, 136, 0.1)',
+                    borderColor: 'rgba(0, 255, 136, 1)',
+                    borderWidth: 2,
+                    pointBackgroundColor: 'rgba(0, 255, 136, 1)',
+                    pointRadius: 4
+                },
+                {
+                    label: '流年',
+                    data: currentYearElements,
+                    backgroundColor: 'rgba(255, 51, 0, 0.1)',
+                    borderColor: 'rgba(255, 51, 0, 1)',
+                    borderWidth: 2,
+                    pointBackgroundColor: 'rgba(255, 51, 0, 1)',
+                    pointRadius: 4
+                },
+                {
+                    label: '大运',
+                    data: decadeElements,
+                    backgroundColor: 'rgba(0, 153, 255, 0.1)',
+                    borderColor: 'rgba(0, 153, 255, 1)',
+                    borderWidth: 2,
+                    pointBackgroundColor: 'rgba(0, 153, 255, 1)',
+                    pointRadius: 4
+                }
+            ]
         };
+        
         elementChart = new Chart(elementChartCtx, {
             type: 'radar',
             data: elementData,
@@ -333,7 +351,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             color: 'rgba(0, 240, 255, 0.2)'
                         },
                         suggestedMin: 0,
-                        suggestedMax: Math.max(...data) + 2,
+                        suggestedMax: Math.max(...birthElements, ...currentYearElements, ...decadeElements) + 2,
                         ticks: {
                             backdropColor: 'transparent',
                             color: 'rgba(0, 240, 255, 0.7)',
@@ -356,14 +374,29 @@ document.addEventListener('DOMContentLoaded', function() {
                 },
                 plugins: {
                     legend: {
-                        display: false
+                        position: 'bottom',
+                        labels: {
+                            color: 'rgba(0, 240, 255, 0.9)',
+                            font: {
+                                family: "'Orbitron', sans-serif",
+                                size: 12
+                            },
+                            padding: 20
+                        }
                     },
                     tooltip: {
                         callbacks: {
                             label: function(context) {
-                                const label = context.label || '';
+                                const label = context.dataset.label || '';
                                 const value = context.raw;
-                                const percentage = percentages[context.dataIndex];
+                                let percentage;
+                                if (context.datasetIndex === 0) {
+                                    percentage = birthPercentages[context.dataIndex];
+                                } else if (context.datasetIndex === 1) {
+                                    percentage = yearPercentages[context.dataIndex];
+                                } else {
+                                    percentage = decadePercentages[context.dataIndex];
+                                }
                                 return `${label}: ${value} (${percentage}%)`;
                             }
                         }
@@ -376,6 +409,27 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         });
+        
+        // Add description below the chart
+        elementChartDescription.innerHTML = `
+            <p><strong>五行能量分布说明：</strong></p>
+            <p>本命局：代表命主出生时的先天五行能量分布，影响一生的基本命格。</p>
+            <p>流年：代表当前年份的五行能量影响，显示流年对命局的短期作用。</p>
+            <p>大运：代表当前十年大运的五行能量趋势，影响命主中长期运势走向。</p>
+            <p>五行平衡度：${calculateBalanceScoreText(birthElements)}</p>
+        `;
+    }
+    
+    function calculateBalanceScoreText(elements) {
+        const max = Math.max(...elements);
+        const min = Math.min(...elements);
+        const diff = max - min;
+        
+        if (diff <= 1) return "五行非常平衡，命局和谐";
+        if (diff <= 2) return "五行较为平衡，命局稳定";
+        if (diff <= 3) return "五行基本平衡，略有偏颇";
+        if (diff <= 4) return "五行不平衡，有明显偏重";
+        return "五行严重失衡，需要调和";
     }
 
     function calculateElementEnergy(pillars) {
@@ -400,14 +454,19 @@ document.addEventListener('DOMContentLoaded', function() {
             '申': '金', '酉': '金',
             '子': '水', '亥': '水'
         };
-        elements[stemElements[pillars.year.charAt(0)]]++;
-        elements[stemElements[pillars.month.charAt(0)]]++;
-        elements[stemElements[pillars.day.charAt(0)]]++;
-        elements[stemElements[pillars.hour.charAt(0)]]++;
-        elements[branchElements[pillars.year.charAt(1)]]++;
-        elements[branchElements[pillars.month.charAt(1)]]++;
-        elements[branchElements[pillars.day.charAt(1)]]++;
-        elements[branchElements[pillars.hour.charAt(1)]]++;
+        
+        // Add stem elements
+        if (pillars.year && pillars.year.length > 0) elements[stemElements[pillars.year.charAt(0)]]++;
+        if (pillars.month && pillars.month.length > 0) elements[stemElements[pillars.month.charAt(0)]]++;
+        if (pillars.day && pillars.day.length > 0) elements[stemElements[pillars.day.charAt(0)]]++;
+        if (pillars.hour && pillars.hour.length > 0) elements[stemElements[pillars.hour.charAt(0)]]++;
+        
+        // Add branch elements
+        if (pillars.year && pillars.year.length > 1) elements[branchElements[pillars.year.charAt(1)]]++;
+        if (pillars.month && pillars.month.length > 1) elements[branchElements[pillars.month.charAt(1)]]++;
+        if (pillars.day && pillars.day.length > 1) elements[branchElements[pillars.day.charAt(1)]]++;
+        if (pillars.hour && pillars.hour.length > 1) elements[branchElements[pillars.hour.charAt(1)]]++;
+        
         return [
             elements['木'],
             elements['火'],
@@ -1295,33 +1354,87 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    recalculateBtn.addEventListener('click', function() {
-    // 1. 清空输入表单
-    document.getElementById('name').value = '';
-    document.getElementById('birth-date').value = '';
-    document.getElementById('birth-time').value = '';
-    document.getElementById('gender').value = '';
-    timePeriodOptions.forEach(opt => opt.classList.remove('selected'));
-
-    // 2. 切换界面显示（隐藏结果，显示输入）
-    resultSection.style.display = 'none';
-    inputSection.style.display = 'block';
-
-    // 3. 重置所有内容和状态
-    resetAllContent(); // 调用我们修改后的重置函数
-
-    // 4. 销毁五行能量雷达图（避免内存泄漏）
-    if (elementChart) {
-        elementChart.destroy();
-        elementChart = null; // 清除图表引用
-    }
-
-    // 5. 重新初始化所有加载按钮（关键修复！）
-    initLoadButtons();
-
-    // 6. 滚动到页面顶部
-    window.scrollTo(0, 0);
-});
+    calculateBtn.addEventListener('click', async function(e) {
+        e.preventDefault();
+        resetAllContent();
+        const name = document.getElementById('name').value;
+        const birthDate = document.getElementById('birth-date').value;
+        const birthTime = birthTimeInput.value;
+        const gender = document.getElementById('gender').value;
+        if (!birthDate || !birthTime || !gender) {
+            alert('请填写完整的出生信息');
+            return;
+        }
+        const dateParts = birthDate.split('-');
+        const year = parseInt(dateParts[0]);
+        const month = parseInt(dateParts[1]);
+        const day = parseInt(dateParts[2]);
+        if (!isValidDate(year, month, day)) {
+            alert('请输入有效的出生日期');
+            return;
+        }
+        if (month === 2) {
+            const maxDays = isLeapYear(year) ? 29 : 28;
+            if (day > maxDays) {
+                alert(`${year}年2月只有${maxDays}天`);
+                return;
+            }
+        }
+        const monthsWith30Days = [4, 6, 9, 11];
+        if (monthsWith30Days.includes(month) && day > 30) {
+            alert(`${month}月只有30天`);
+            return;
+        }
+        birthData = { 
+            name, 
+            date: birthDate,
+            time: birthTime, 
+            gender: gender
+        };
+        saveProfile(birthData);
+        calculateBtn.disabled = true;
+        calculateBtn.innerHTML = '<span class="loading"></span> 量子测算中...';
+        try {
+            const loadingOverlay = document.createElement('div');
+            loadingOverlay.className = 'loading-overlay';
+            loadingOverlay.innerHTML = `
+                <div class="loading"></div>
+                <p>量子计算引擎启动中...</p>
+            `;
+            document.body.appendChild(loadingOverlay);
+            const baziInfo = calculateBaziLocally(birthData);
+            displayBasicInfo(baziInfo);
+            initElementChart(baziInfo);
+            updateLunarCalendar();
+            currentPillars = {
+                year: baziInfo.yearStem + baziInfo.yearBranch,
+                month: baziInfo.monthStem + baziInfo.monthBranch,
+                day: baziInfo.dayStem + baziInfo.dayBranch,
+                hour: baziInfo.hourStem + baziInfo.hourBranch
+            };
+            displayScores();
+            gamblingRating.textContent = baziInfo.gamblingFortune.rating;
+            gamblingDetails.innerHTML = `
+            ${baziInfo.gamblingFortune.analysis}<br>
+            最佳方位: ${baziInfo.gamblingFortune.direction}<br>
+            最佳时段: ${baziInfo.gamblingFortune.hour}
+            `;
+            inputSection.style.display = 'none';
+            resultSection.style.display = 'block';
+            document.body.removeChild(loadingOverlay);
+            initLoadButtons();
+            window.scrollTo(0, 0);
+        } catch (error) {
+            console.error('测算失败:', error);
+            alert('量子测算失败，请稍后重试');
+            if (document.querySelector('.loading-overlay')) {
+                document.body.removeChild(document.querySelector('.loading-overlay'));
+            }
+        } finally {
+            calculateBtn.disabled = false;
+            calculateBtn.innerHTML = '<i class="fas fa-brain"></i> 开始量子测算';
+        }
+    });
 
     async function getBaziAnalysis(section, data) {
         const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
