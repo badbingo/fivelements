@@ -1045,7 +1045,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const hourGan = bazi.getTimeGan();
         const hourZhi = bazi.getTimeZhi();
         const yearHiddenStems = getHiddenStems(yearZhi);
-        const monthHiddenStems = getHiddenStems(yearZhi);
+        const monthHiddenStems = getHiddenStems(monthZhi);  // 修正：使用月支而不是年支
         const dayHiddenStems = getHiddenStems(dayZhi);
         const hourHiddenStems = getHiddenStems(hourZhi);
         const elements = calculateElementEnergy({
@@ -1629,30 +1629,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function setElementColors(element, text) {
-        const stemElements = {
-            '甲': 'wood', '乙': 'wood',
-            '丙': 'fire', '丁': 'fire',
-            '戊': 'earth', '己': 'earth',
-            '庚': 'metal', '辛': 'metal',
-            '壬': 'water', '癸': 'water'
-        };
-        const branchElements = {
-            '寅': 'wood', '卯': 'wood',
-            '午': 'fire', '巳': 'fire',
-            '辰': 'earth', '戌': 'earth', '丑': 'earth', '未': 'earth',
-            '申': 'metal', '酉': 'metal',
-            '子': 'water', '亥': 'water'
-        };
-        element.classList.remove('wood', 'fire', 'earth', 'metal', 'water');
-        if (stemElements[text]) {
-            element.classList.add(stemElements[text]);
-        } else if (branchElements[text]) {
-            element.classList.add(branchElements[text]);
-        }
-    }
-
-    function setHiddenStemsColors(element, stems) {
-        element.classList.remove('wood', 'fire', 'earth', 'metal', 'water');
         const stemElements = {
             '甲': 'wood', '乙': 'wood',
             '丙': 'fire', '丁': 'fire',
