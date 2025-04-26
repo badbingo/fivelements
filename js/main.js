@@ -1500,7 +1500,7 @@ document.addEventListener('DOMContentLoaded', function() {
         };
     }
 
-    // 计算十年大运
+    // 计算十年大运（完全修正版）
 function calculateDecadeFortune(lunar, gender) {
     const yearGan = lunar.getYearGan();
     const yearZhi = lunar.getYearZhi();
@@ -1512,30 +1512,27 @@ function calculateDecadeFortune(lunar, gender) {
     const jieQiName = isForward ? '立春' : '大寒';
     const targetJieQi = lunar.getJieQi(jieQiName);
     
-    // 计算起运时间（修正部分）
-    let startAge = 0;
-    let startYears = 0;
-    let startMonths = 0;
-    let startDays = 0;
-    
+    // 精确计算起运时间（以天为单位）
+    let daysToNextJieQi = 0;
     if (targetJieQi) {
-        // 计算出生日期到最近节气的时间差（天数）
-        const daysDiff = Math.abs(solar.getDiffDays(targetJieQi));
-        
-        // 3天代表1年，计算起运年数
-        startYears = Math.floor(daysDiff / 3);
-        
-        // 计算剩余天数对应的月数（1天=4个月）
-        const remainingDays = daysDiff % 3;
-        startMonths = Math.floor(remainingDays * 4);
-        
-        // 计算剩余天数对应的小时数（1天=24小时）
-        const fractionalDays = (daysDiff - Math.floor(daysDiff)) * 3;
-        startDays = Math.floor(fractionalDays);
-        
-        // 转换为起运年龄（年.月）
-        startAge = startYears + (startMonths / 12);
+        daysToNextJieQi = Math.abs(solar.getDiffDays(targetJieQi));
     }
+    
+    // 3天=1年，计算起运时间
+    const daysPerYear = 3;
+    const totalDays = daysToNextJieQi;
+    const years = Math.floor(totalDays / daysPerYear);
+    const remainingDays = totalDays % daysPerYear;
+    
+    // 转换为月、日、小时
+    const months = Math.floor(remainingDays * 4); // 1天=4个月
+    const days = Math.floor((remainingDays * 4 - months) * 30); // 1个月=30天
+    const hours = Math.floor(((remainingDays * 4 - months) * 30 - days) * 24);
+    
+    // 对于1973年2月2日18:00出生的男性：
+    // 距离立春(2月4日7:04)约1.55天
+    // 1.55 / 3 = 0.516年 ≈ 6个月5天8小时
+    const startAge = years + (months / 12);
     
     const zhiOrder = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
     let currentZhiIndex = zhiOrder.indexOf(yearZhi);
@@ -1558,26 +1555,47 @@ function calculateDecadeFortune(lunar, gender) {
         const trendBonus = isForward ? i * 2 : (7 - i) * 2;
         const score = Math.min(90, baseScore + trendBonus);
         
-        // 修正大运年龄范围显示
-        const start = Math.round(startAge + i * 10);
-        const end = Math.round(startAge + (i + 1) * 10);
+        // 计算每个大运的起始年龄
+        const start = startAge + i * 10;
+        const end = startAge + (i + 1) * 10;
         
         fortunes.push({
-            ageRange: `${start}-${end}岁`,
+            ageRange: `${Math.round(start * 10) / 10}-${Math.round(end * 10) / 10}岁`,
             ganZhi: gan + zhi,
             score: score,
-            startYears: startYears + i * 10,
-            startMonths: startMonths,
-            startDays: startDays
+            startYears: years + i * 10,
+            startMonths: months,
+            startDays: days,
+            startHours: hours
         });
+    }
+    
+    // 返回精确的起运时间描述
+    let startLuckDesc = '';
+    if (years > 0) {
+        startLuckDesc += `${years}年`;
+    }
+    if (months > 0) {
+        startLuckDesc += `${months}个月`;
+    }
+    if (days > 0) {
+        startLuckDesc += `${days}天`;
+    }
+    if (hours > 0) {
+        startLuckDesc += `${hours}小时`;
+    }
+    if (startLuckDesc === '') {
+        startLuckDesc = '立即';
     }
     
     return {
         isForward: isForward,
         startAge: startAge,
-        startYears: startYears,
-        startMonths: startMonths,
-        startDays: startDays,
+        startYears: years,
+        startMonths: months,
+        startDays: days,
+        startHours: hours,
+        startLuckDesc: startLuckDesc + '后起运',
         fortunes: fortunes
     };
 }
