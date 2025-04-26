@@ -494,79 +494,64 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 修复后的八字排盘核心函数
     function calculateBaziPillars(year, month, day, hour) {
-        // 天干地支表
-        const heavenlyStems = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
-        const earthlyBranches = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
-        
-        // 1. 年柱计算 - 修复年柱计算错误
-        // 年柱以立春为分界，1900-1999年立春在2月4日左右
-        const isBeforeSpring = (month < 2 || (month === 2 && day < 4));
-        const yearForStemBranch = isBeforeSpring ? year - 1 : year;
-        
-        // 年干 = (年份 - 4) % 10
-        const yearStemIndex = (yearForStemBranch - 4) % 10;
-        const yearStem = heavenlyStems[yearStemIndex < 0 ? yearStemIndex + 10 : yearStemIndex];
-        
-        // 年支 = (年份 - 4) % 12
-        const yearBranchIndex = (yearForStemBranch - 4) % 12;
-        const yearBranch = earthlyBranches[yearBranchIndex < 0 ? yearBranchIndex + 12 : yearBranchIndex];
-        
-        // 2. 月柱计算 - 修复月柱计算错误
-        // 月柱以节气为分界，简化处理：每月第一个节气
-        const solarTerms = [
-            '立春', '惊蛰', '清明', '立夏', '芒种', '小暑',
-            '立秋', '白露', '寒露', '立冬', '大雪', '小寒'
-        ];
-        
-        // 月支 = 月份 - 1（正月为寅月）
-        const monthBranchIndex = (month + (day < getSolarTermDay(year, month) ? -1 : 0) + 1) % 12;
-        const monthBranch = earthlyBranches[monthBranchIndex < 0 ? monthBranchIndex + 12 : monthBranchIndex];
-        
-        // 月干根据年干和月支计算，使用五虎遁口诀
-        const monthStemIndex = (yearStemIndex * 2 + (monthBranchIndex + 2)) % 10;
-        const monthStem = heavenlyStems[monthStemIndex < 0 ? monthStemIndex + 10 : monthStemIndex];
-        
-        // 3. 日柱计算 - 使用精确公式计算日干支
-        // 日干支基数 = (年尾二位数 + 3)*5 + 55 + (年尾二位数 - 1)/4
-        const yearLastTwoDigits = year % 100;
-        let dayBase = (yearLastTwoDigits + 3) * 5 + 55 + Math.floor((yearLastTwoDigits - 1) / 4);
-        dayBase %= 60; // 取模60
-        
-        // 计算当年天数
-        const isLeap = isLeapYear(year);
-        const monthDays = [31, isLeap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-        let dayOfYear = 0;
-        for (let i = 0; i < month - 1; i++) {
-            dayOfYear += monthDays[i];
-        }
-        dayOfYear += day;
-        
-        // 日干支 = (日干支基数 + 当年天数 - 1) % 60
-        const dayIndex = (dayBase + dayOfYear - 1) % 60;
-        const dayStem = heavenlyStems[dayIndex % 10];
-        const dayBranch = earthlyBranches[dayIndex % 12];
-        
-        // 4. 时柱计算 - 修复时柱计算错误
-        // 时支 = 时辰（23-0点为子时，1-2点为丑时...）
-        const hourBranchIndex = Math.floor(((hour + 1) % 24) / 2);
-        const hourBranch = earthlyBranches[hourBranchIndex];
-        
-        // 时干根据日干和时支计算，使用五鼠遁口诀
-        const dayStemIndex = heavenlyStems.indexOf(dayStem);
-        const hourStemIndex = (dayStemIndex * 2 + hourBranchIndex) % 10;
-        const hourStem = heavenlyStems[hourStemIndex];
-        
-        return {
-            yearStem,
-            yearBranch,
-            monthStem,
-            monthBranch,
-            dayStem,
-            dayBranch,
-            hourStem,
-            hourBranch
-        };
-    }
+    // 天干地支表
+    const heavenlyStems = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
+    const earthlyBranches = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
+    
+    // 1. 年柱计算（以立春为界）
+    const springDate = getSolarTermDate(year, 2); // 获取立春日期
+    const isBeforeSpring = new Date(year, month-1, day) < springDate;
+    const yearForCalc = isBeforeSpring ? year - 1 : year;
+    
+    const yearStemIndex = (yearForCalc - 4) % 10;
+    const yearStem = heavenlyStems[yearStemIndex < 0 ? yearStemIndex + 10 : yearStemIndex];
+    const yearBranchIndex = (yearForCalc - 4) % 12;
+    const yearBranch = earthlyBranches[yearBranchIndex < 0 ? yearBranchIndex + 12 : yearBranchIndex];
+    
+    // 2. 修复的月柱计算（直接在此计算，不拆分子函数）
+    // 获取当月节气日期（如正月以立春为界）
+    const currentTermDate = getSolarTermDate(year, month);
+    const isBeforeTerm = new Date(year, month-1, day, hour) < currentTermDate;
+    
+    // 调整月份（如果在节气前则属于上个月）
+    let adjustedMonth = isBeforeTerm ? month - 1 : month;
+    // 处理跨年（如1月调整为12月）
+    if (adjustedMonth < 1) adjustedMonth = 12;
+    
+    // 月支 = 调整后的月份（正月为寅，二月为卯...）
+    const monthBranchIndex = (adjustedMonth + 1) % 12;
+    const monthBranch = earthlyBranches[monthBranchIndex < 0 ? monthBranchIndex + 12 : monthBranchIndex];
+    
+    // 月干 = 根据年干和月支计算（五虎遁口诀）
+    const monthStemIndex = (yearStemIndex * 2 + monthBranchIndex + 2) % 10;
+    const monthStem = heavenlyStems[monthStemIndex < 0 ? monthStemIndex + 10 : monthStemIndex];
+    
+    // 3. 日柱计算（保持不变）
+    const a = Math.floor((yearForCalc - 1900) / 4);
+    const b = (yearForCalc - 1900) % 4;
+    const c = Math.floor((yearForCalc - 1900) * 5 + a + b + day + (month > 2 ? 0 : -1));
+    const dayIndex = c % 60;
+    const dayStem = heavenlyStems[dayIndex % 10];
+    const dayBranch = earthlyBranches[dayIndex % 12];
+    
+    // 4. 时柱计算（保持不变）
+    const hourBranchIndex = Math.floor(((hour + 1) % 24) / 2);
+    const hourBranch = earthlyBranches[hourBranchIndex];
+    const hourStemIndex = (dayIndex % 10 * 2 + hourBranchIndex) % 10;
+    const hourStem = heavenlyStems[hourStemIndex];
+    
+    return {
+        yearStem,
+        yearBranch,
+        monthStem,
+        monthBranch,
+        dayStem,
+        dayBranch,
+        hourStem,
+        hourBranch
+    };
+}
+
 
     // 辅助函数：获取节气日期（简化版）
     function getSolarTermDay(year, month) {
