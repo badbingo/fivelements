@@ -2050,8 +2050,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     'Authorization': `Bearer ${apiKey}`
                 },
                 body: JSON.stringify({
-                    model: "deepseek-reasoner",
-                    messages: [{ role: "user", content: prompt }],
+                    model: "deepseek-chat",
+                    messages: [{ role: "system", content: "你是一位资深的八字命理大师，精通子平八字、紫微斗数等传统命理学。请用专业但易懂的语言回答用户问题。"}],
                     temperature: 0,
                     seed: 12345 // 固定seed值确保相同输入得到相同输出
                 })
@@ -2085,7 +2085,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     'Authorization': `Bearer ${apiKey}`
                 },
                 body: JSON.stringify({
-                    model: "deepseek-reasoner",
+                    model: "deepseek-chat",
                     messages: [{
                         role: "system",
                         content: "你是一位资深的八字命理大师，精通子平八字、紫微斗数等传统命理学。请用专业但易懂的语言回答用户问题。"
