@@ -1501,57 +1501,86 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // 计算十年大运
-    function calculateDecadeFortune(lunar, gender) {
-        const yearGan = lunar.getYearGan();
-        const yearZhi = lunar.getYearZhi();
-        const isMale = gender === 'male';
-        const isYangYear = ['甲', '丙', '戊', '庚', '壬'].includes(yearGan);
-        const isForward = (isYangYear && isMale) || (!isYangYear && !isMale);
+function calculateDecadeFortune(lunar, gender) {
+    const yearGan = lunar.getYearGan();
+    const yearZhi = lunar.getYearZhi();
+    const isMale = gender === 'male';
+    const isYangYear = ['甲', '丙', '戊', '庚', '壬'].includes(yearGan);
+    const isForward = (isYangYear && isMale) || (!isYangYear && !isMale);
+    
+    const solar = lunar.getSolar();
+    const jieQiName = isForward ? '立春' : '大寒';
+    const targetJieQi = lunar.getJieQi(jieQiName);
+    
+    // 计算起运时间（修正部分）
+    let startAge = 0;
+    let startYears = 0;
+    let startMonths = 0;
+    let startDays = 0;
+    
+    if (targetJieQi) {
+        // 计算出生日期到最近节气的时间差（天数）
+        const daysDiff = Math.abs(solar.getDiffDays(targetJieQi));
         
-        const solar = lunar.getSolar();
-        const jieQiName = isForward ? '立春' : '大寒';
-        const targetJieQi = lunar.getJieQi(jieQiName);
+        // 3天代表1年，计算起运年数
+        startYears = Math.floor(daysDiff / 3);
         
-        let daysDiff = 15;
-        if (targetJieQi) {
-            daysDiff = Math.abs(solar.getDiffDays(targetJieQi));
-        }
+        // 计算剩余天数对应的月数（1天=4个月）
+        const remainingDays = daysDiff % 3;
+        startMonths = Math.floor(remainingDays * 4);
         
-        const startAge = Math.floor(daysDiff / 3);
-        const zhiOrder = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
-        let currentZhiIndex = zhiOrder.indexOf(yearZhi);
+        // 计算剩余天数对应的小时数（1天=24小时）
+        const fractionalDays = (daysDiff - Math.floor(daysDiff)) * 3;
+        startDays = Math.floor(fractionalDays);
         
-        const ganOrder = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
-        let currentGanIndex = ganOrder.indexOf(yearGan);
-        
-        const fortunes = [];
-        for (let i = 0; i < 8; i++) {
-            currentZhiIndex = isForward ? 
-                (currentZhiIndex + 1) % 12 : 
-                (currentZhiIndex - 1 + 12) % 12;
-            currentGanIndex = isForward ?
-                (currentGanIndex + 1) % 10 :
-                (currentGanIndex - 1 + 10) % 10;
-            
-            const gan = ganOrder[currentGanIndex];
-            const zhi = zhiOrder[currentZhiIndex];
-            const baseScore = 60 + Math.floor(Math.random() * 20);
-            const trendBonus = isForward ? i * 2 : (7 - i) * 2;
-            const score = Math.min(90, baseScore + trendBonus);
-            
-            fortunes.push({
-                ageRange: `${startAge + i * 10}-${startAge + (i + 1) * 10}岁`,
-                ganZhi: gan + zhi,
-                score: score
-            });
-        }
-        
-        return {
-            isForward: isForward,
-            startAge: startAge,
-            fortunes: fortunes
-        };
+        // 转换为起运年龄（年.月）
+        startAge = startYears + (startMonths / 12);
     }
+    
+    const zhiOrder = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
+    let currentZhiIndex = zhiOrder.indexOf(yearZhi);
+    
+    const ganOrder = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
+    let currentGanIndex = ganOrder.indexOf(yearGan);
+    
+    const fortunes = [];
+    for (let i = 0; i < 8; i++) {
+        currentZhiIndex = isForward ? 
+            (currentZhiIndex + 1) % 12 : 
+            (currentZhiIndex - 1 + 12) % 12;
+        currentGanIndex = isForward ?
+            (currentGanIndex + 1) % 10 :
+            (currentGanIndex - 1 + 10) % 10;
+        
+        const gan = ganOrder[currentGanIndex];
+        const zhi = zhiOrder[currentZhiIndex];
+        const baseScore = 60 + Math.floor(Math.random() * 20);
+        const trendBonus = isForward ? i * 2 : (7 - i) * 2;
+        const score = Math.min(90, baseScore + trendBonus);
+        
+        // 修正大运年龄范围显示
+        const start = Math.round(startAge + i * 10);
+        const end = Math.round(startAge + (i + 1) * 10);
+        
+        fortunes.push({
+            ageRange: `${start}-${end}岁`,
+            ganZhi: gan + zhi,
+            score: score,
+            startYears: startYears + i * 10,
+            startMonths: startMonths,
+            startDays: startDays
+        });
+    }
+    
+    return {
+        isForward: isForward,
+        startAge: startAge,
+        startYears: startYears,
+        startMonths: startMonths,
+        startDays: startDays,
+        fortunes: fortunes
+    };
+}
 
     // 计算赌博运势
     function calculateGamblingFortune(birthData, birthLunar) {
