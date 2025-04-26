@@ -863,43 +863,51 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 计算元素能量
     function calculateElementEnergy(pillars) {
-        const elements = {
-            '木': 0,
-            '火': 0,
-            '土': 0,
-            '金': 0,
-            '水': 0
-        };
-        const stemElements = {
-            '甲': '木', '乙': '木',
-            '丙': '火', '丁': '火',
-            '戊': '土', '己': '土',
-            '庚': '金', '辛': '金',
-            '壬': '水', '癸': '水'
-        };
-        const branchElements = {
-            '寅': '木', '卯': '木',
-            '午': '火', '巳': '火',
-            '辰': '土', '戌': '土', '丑': '土', '未': '土',
-            '申': '金', '酉': '金',
-            '子': '水', '亥': '水'
-        };
-        elements[stemElements[pillars.year.charAt(0)]]++;
-        elements[stemElements[pillars.month.charAt(0)]]++;
-        elements[stemElements[pillars.day.charAt(0)]]++;
-        elements[stemElements[pillars.hour.charAt(0)]]++;
-        elements[branchElements[pillars.year.charAt(1)]]++;
-        elements[branchElements[pillars.month.charAt(1)]]++;
-        elements[branchElements[pillars.day.charAt(1)]]++;
-        elements[branchElements[pillars.hour.charAt(1)]]++;
-        return [
-            elements['木'],
-            elements['火'],
-            elements['土'],
-            elements['金'],
-            elements['水']
-        ];
-    }
+    // 添加类型检查和安全处理
+    const elements = {
+        '木': 0,
+        '火': 0,
+        '土': 0,
+        '金': 0,
+        '水': 0
+    };
+    
+    const stemElements = {
+        '甲': '木', '乙': '木',
+        '丙': '火', '丁': '火',
+        '戊': '土', '己': '土',
+        '庚': '金', '辛': '金',
+        '壬': '水', '癸': '水'
+    };
+    
+    const branchElements = {
+        '寅': '木', '卯': '木',
+        '午': '火', '巳': '火',
+        '辰': '土', '戌': '土', '丑': '土', '未': '土',
+        '申': '金', '酉': '金',
+        '子': '水', '亥': '水'
+    };
+
+    // 安全处理每个支柱
+    ['year', 'month', 'day', 'hour'].forEach(key => {
+        const pillar = pillars[key];
+        if (!pillar || typeof pillar !== 'string' || pillar.length < 2) return;
+        
+        const stem = pillar.charAt(0);
+        const branch = pillar.charAt(1);
+        
+        if (stemElements[stem]) elements[stemElements[stem]]++;
+        if (branchElements[branch]) elements[branchElements[branch]]++;
+    });
+
+    return [
+        elements['木'],
+        elements['火'],
+        elements['土'],
+        elements['金'],
+        elements['水']
+    ];
+}
 
     // 初始化运势图表
     function initFortuneChart(result) {
