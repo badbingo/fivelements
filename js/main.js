@@ -2051,7 +2051,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 },
                 body: JSON.stringify({
                     model: "deepseek-chat",
-                    messages: [{ role: "system", content:}],
+                    messages: [{ role: "system", content: }],
                     temperature: 0,
                     seed: 12345 // 固定seed值确保相同输入得到相同输出
                 })
