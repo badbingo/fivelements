@@ -1526,59 +1526,63 @@ document.addEventListener('DOMContentLoaded', function() {
         return traits[dayStem] || '似静水流深，临危反生智，藏锋守拙却暗含凌云之志';
     }
 
-    // 保存个人资料
-    function saveProfile(birthData) {
-        const profiles = JSON.parse(localStorage.getItem('baziProfiles') || '[]');
-        const existingIndex = profiles.findIndex(function(p) {
-            return p.date === birthData.date && 
-                   p.time === birthData.time && 
-                   p.gender === birthData.gender;
-        });
-        if (existingIndex >= 0) {
-            profiles[existingIndex] = birthData;
-        } else {
-            profiles.push(birthData);
-        }
-        if (profiles.length > 5) {
-            profiles.shift();
-        }
-        localStorage.setItem('baziProfiles', JSON.stringify(profiles));
-        loadSavedProfiles();
+    // 在 loadSavedProfiles 函数中添加移除按钮功能
+function loadSavedProfiles() {
+    const profiles = JSON.parse(localStorage.getItem('baziProfiles') || '[]');
+    savedProfilesList.innerHTML = '';
+    if (profiles.length === 0) {
+        savedProfilesList.innerHTML = '<div style="color:var(--text-light);font-size:14px;">暂无历史记录</div>';
+        return;
     }
-
-    // 加载保存的个人资料
-    function loadSavedProfiles() {
-        const profiles = JSON.parse(localStorage.getItem('baziProfiles') || '[]');
-        savedProfilesList.innerHTML = '';
-        if (profiles.length === 0) {
-            savedProfilesList.innerHTML = '<div style="color:var(--text-light);font-size:14px;">暂无历史记录</div>';
-            return;
-        }
-        profiles.forEach(function(profile, index) {
-            const hour = parseInt(profile.time.split(':')[0]);
-            const timeMap = {
-                23: '子时', 0: '子时',
-                1: '丑时', 3: '寅时',
-                5: '卯时', 7: '辰时',
-                9: '巳时', 11: '午时',
-                13: '未时', 15: '申时',
-                17: '酉时', 19: '戌时',
-                21: '亥时'
-           };
-            const profileElement = document.createElement('div');
-            profileElement.className = 'saved-profile';
-            profileElement.innerHTML = `
+    profiles.forEach(function(profile, index) {
+        const hour = parseInt(profile.time.split(':')[0]);
+        const timeMap = {
+            23: '子时', 0: '子时',
+            1: '丑时', 3: '寅时',
+            5: '卯时', 7: '辰时',
+            9: '巳时', 11: '午时',
+            13: '未时', 15: '申时',
+            17: '酉时', 19: '戌时',
+            21: '亥时'
+       };
+        const profileElement = document.createElement('div');
+        profileElement.className = 'saved-profile';
+        profileElement.innerHTML = `
+            <div class="profile-content">
                 ${profile.name || '匿名'} · 
                 ${profile.date.replace(/-/g, '/')} · 
                 ${timeMap[hour]} · 
                 ${profile.gender === 'male' ? '男' : '女'}
-            `;
-            profileElement.addEventListener('click', function() {
-                loadProfile(profile);
-            });
-            savedProfilesList.appendChild(profileElement);
+            </div>
+            <div class="remove-profile-btn" data-index="${index}">
+                <i class="fas fa-times"></i>
+            </div>
+        `;
+        
+        // 加载个人资料
+        profileElement.querySelector('.profile-content').addEventListener('click', function() {
+            loadProfile(profile);
         });
+        
+        // 移除个人资料
+        profileElement.querySelector('.remove-profile-btn').addEventListener('click', function(e) {
+            e.stopPropagation(); // 阻止事件冒泡
+            removeProfile(index);
+        });
+        
+        savedProfilesList.appendChild(profileElement);
+    });
+}
+
+// 添加移除个人资料函数
+function removeProfile(index) {
+    const profiles = JSON.parse(localStorage.getItem('baziProfiles') || '[]');
+    if (index >= 0 && index < profiles.length) {
+        profiles.splice(index, 1);
+        localStorage.setItem('baziProfiles', JSON.stringify(profiles));
+        loadSavedProfiles();
     }
+}
 
     // 加载个人资料
     function loadProfile(profile) {
