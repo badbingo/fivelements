@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 缓存对象c
+    // 缓存对象a
     const baziCache = {};
     
     // 兜底规则库
@@ -1500,102 +1500,58 @@ document.addEventListener('DOMContentLoaded', function() {
         };
     }
 
-    // 完全修正的大运起运时间计算
-function calculateDecadeFortune(lunar, gender) {
-    const yearGan = lunar.getYearGan();
-    const yearZhi = lunar.getYearZhi();
-    const isMale = gender === 'male';
-    const isYangYear = ['甲', '丙', '戊', '庚', '壬'].includes(yearGan);
-    const isForward = (isYangYear && isMale) || (!isYangYear && !isMale);
-    
-    const birthSolar = lunar.getSolar();
-    const jieQiName = isForward ? '立春' : '大寒';
-    const nextJieQi = lunar.getJieQi(jieQiName);
-    
-    // 1. 精确计算到下一个节气的时间差（单位：天）
-    let daysDiff = 0;
-    if (nextJieQi) {
-        daysDiff = Math.abs(birthSolar.getDiffDays(nextJieQi));
-    }
-    
-    // 2. 特殊处理：1973年2月2日18:00的精确计算
-    if (birthSolar.toYmd() === '1973-02-02' && 
-        birthSolar.getHour() === 18 && 
-        isMale) {
-        // 人工修正为精确值：1.547天（37.13小时）
-        daysDiff = 1.547; // 2月2日18:00到2月4日7:04的实际差值
-    }
-    
-    // 3. 按传统规则计算起运时间（3天=1年）
-    const daysPerYear = 3;
-    const years = Math.floor(daysDiff / daysPerYear);
-    const remainingDays = daysDiff % daysPerYear;
-    
-    // 4. 精确转换剩余天数为月、日、小时
-    const months = Math.floor(remainingDays * 4); // 1天=4个月
-    const days = Math.floor((remainingDays * 4 - months) * 7.5); // 1个月≈7.5天（简化计算）
-    const hours = Math.round(((remainingDays * 4 - months) * 7.5 - days) * 24);
-    
-    // 5. 计算起运年龄（年）
-    const startAge = years + (months / 12) + (days / 365);
-    
-    // 6. 大运排盘计算
-    const zhiOrder = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
-    let currentZhiIndex = zhiOrder.indexOf(yearZhi);
-    const ganOrder = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
-    let currentGanIndex = ganOrder.indexOf(yearGan);
-    
-    const fortunes = [];
-    for (let i = 0; i < 8; i++) {
-        currentZhiIndex = isForward ? 
-            (currentZhiIndex + 1) % 12 : 
-            (currentZhiIndex - 1 + 12) % 12;
-        currentGanIndex = isForward ?
-            (currentGanIndex + 1) % 10 :
-            (currentGanIndex - 1 + 10) % 10;
+    // 计算十年大运
+    function calculateDecadeFortune(lunar, gender) {
+        const yearGan = lunar.getYearGan();
+        const yearZhi = lunar.getYearZhi();
+        const isMale = gender === 'male';
+        const isYangYear = ['甲', '丙', '戊', '庚', '壬'].includes(yearGan);
+        const isForward = (isYangYear && isMale) || (!isYangYear && !isMale);
         
-        // 7. 每个大运的精确时间范围
-        const start = i === 0 ? startAge : startAge + i * 10;
-        const end = startAge + (i + 1) * 10;
+        const solar = lunar.getSolar();
+        const jieQiName = isForward ? '立春' : '大寒';
+        const targetJieQi = lunar.getJieQi(jieQiName);
         
-        fortunes.push({
-            ageRange: `${formatAge(start)}-${formatAge(end)}岁`,
-            ganZhi: ganOrder[currentGanIndex] + zhiOrder[currentZhiIndex],
-            startYears: years + i * 10,
-            startMonths: months,
-            startDays: days,
-            startHours: hours
-        });
+        let daysDiff = 15;
+        if (targetJieQi) {
+            daysDiff = Math.abs(solar.getDiffDays(targetJieQi));
+        }
+        
+        const startAge = Math.floor(daysDiff / 3);
+        const zhiOrder = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
+        let currentZhiIndex = zhiOrder.indexOf(yearZhi);
+        
+        const ganOrder = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
+        let currentGanIndex = ganOrder.indexOf(yearGan);
+        
+        const fortunes = [];
+        for (let i = 0; i < 8; i++) {
+            currentZhiIndex = isForward ? 
+                (currentZhiIndex + 1) % 12 : 
+                (currentZhiIndex - 1 + 12) % 12;
+            currentGanIndex = isForward ?
+                (currentGanIndex + 1) % 10 :
+                (currentGanIndex - 1 + 10) % 10;
+            
+            const gan = ganOrder[currentGanIndex];
+            const zhi = zhiOrder[currentZhiIndex];
+            const baseScore = 60 + Math.floor(Math.random() * 20);
+            const trendBonus = isForward ? i * 2 : (7 - i) * 2;
+            const score = Math.min(90, baseScore + trendBonus);
+            
+            fortunes.push({
+                ageRange: `${startAge + i * 10}-${startAge + (i + 1) * 10}岁`,
+                ganZhi: gan + zhi,
+                score: score
+            });
+        }
+        
+        return {
+            isForward: isForward,
+            startAge: startAge,
+            fortunes: fortunes
+        };
     }
-    
-    // 8. 返回精确的起运描述
-    return {
-        startLuckDesc: getDurationDesc(years, months, days, hours),
-        startAge: startAge,
-        fortunes: fortunes,
-        isForward: isForward
-    };
-}
-
-// 辅助函数：格式化年龄显示
-function formatAge(age) {
-    if (age < 1) {
-        const months = Math.floor(age * 12);
-        const days = Math.floor((age * 12 - months) * 30);
-        return `${months}个月${days}天`;
-    }
-    return age.toFixed(1);
-}
-
-// 辅助函数：生成持续时间描述
-function getDurationDesc(y, m, d, h) {
-    const parts = [];
-    if (y > 0) parts.push(`${y}年`);
-    if (m > 0) parts.push(`${m}个月`);
-    if (d > 0) parts.push(`${d}天`);
-    if (h > 0) parts.push(`${h}小时`);
-    return parts.length > 0 ? parts.join('') + '后起运' : '立即起运';
-}
 
     // 计算赌博运势
     function calculateGamblingFortune(birthData, birthLunar) {
@@ -1873,6 +1829,52 @@ function getDurationDesc(y, m, d, h) {
                               currentDate.getDate().toString().padStart(2, '0');
         
         let prompt = `【八字排盘专业算法规范】请严格遵循以下计算规则：
+## 一、基础计算规则
+1. 【年柱】= 公历日期 < 当年立春时间 ? 上年干支 : 当年干支
+   - 示例：1973年立春=1973-02-04 07:04
+     - 1973-02-02 → 壬子年（立春前）
+     - 1973-02-05 → 癸丑年（立春后）
+
+2. 【月柱】= 按节气精确划分（需计算太阳黄经）：
+   │ 月份 │ 节气       │ 黄经度 │
+   │─────│──────────│───────│
+   │ 寅月 │ 立春-惊蛰前 │ 315°  │
+   │ 卯月 │ 惊蛰-清明前 │ 345°  │
+   │ ...  │ ...        │ ...   │
+
+3. 【日柱】= 公式计算（无需农历转换）：
+   \`日干支基数 = (年尾二位数 + 3)*5 + 55 + (年尾二位数 - 1)/4\`
+   （结果取整mod60，再结合当年天数计算）
+
+4. 【时柱】= 严格按北京时间（东八区）：
+   - 23:00-00:59 → 次日日干的子时
+   - 早子时（23:00-24:00）与晚子时（00:00-01:00）区分
+
+## 二、强制验证步骤
+1. 年柱验证：
+   - 输出立春具体时间
+   - 明确声明"当前日期在立春[前/后]"
+
+2. 月柱验证：
+   - 输出当前节气区间（如"立春到惊蛰之间"）
+   - 声明"本月地支=寅，月干按五虎遁为X"
+
+3. 大运顺逆验证：
+   - 输出"年干=X（阳/阴），性别=男/女 → 顺/逆排"
+   
+4. 从强从弱验证：
+   - 从强格(印比力量占80%以上，全局无有力克泄耗）
+   - 从弱格(印比力量不足20%，全局无有力生扶）
+
+## 三、容错机制
+1. 遇到临界时间（如立春当天23:30）：
+   - 必须查询精确到分钟的节气时间表
+   - 示例比对：
+     \`立春=02-04 07:04 vs 出生=02-04 06:30 → 立春前\`
+
+2. 自动纠错：
+   - 如果日柱与公历日期矛盾 → 重新计算干支基数
+   - 如果时柱跨日 → 校正日干变化
 
 当前日期：${currentDateStr}
 根据以下八字信息进行分析：
