@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 缓存对象b
+    // 缓存对象c
     const baziCache = {};
     
     // 兜底规则库
