@@ -1664,46 +1664,47 @@ button i {
 .big-dipper {
     position: absolute;
     top: 10px;
-    right: 20px;
-    width: 90px;
-    height: 30px;
+    right: 30px;
+    width: 60px;
+    height: 40px;
     z-index: 1;
 }
 
 /* 星星基础样式 */
 .star {
     position: absolute;
-    width: 6px;
-    height: 6px;
-    background: white;
+    width: 5px;
+    height: 5px;
+    background: #fff;
     border-radius: 50%;
-    box-shadow: 0 0 8px #00ffff;
-    animation: twinkle 3s infinite alternate;
+    box-shadow: 0 0 5px #00ffff;
+    animation: pulse 2s infinite alternate;
 }
 
-/* 主星（天枢、天璇、玉衡）更亮 */
-.star:nth-child(1), 
+/* 三颗主星更亮 */
+.star:nth-child(1),
 .star:nth-child(2),
 .star:nth-child(5) {
-    width: 7px;
-    height: 7px;
-    box-shadow: 0 0 12px #00ffff;
+    width: 6px;
+    height: 6px;
+    box-shadow: 0 0 8px #00ffff, 0 0 12px #00ffff;
 }
 
-/* 闪烁动画（不同星星不同步） */
-@keyframes twinkle {
+/* 脉冲动画 */
+@keyframes pulse {
     0% { opacity: 0.7; transform: scale(0.9); }
     100% { opacity: 1; transform: scale(1.1); }
 }
 
 /* 设置不同的动画延迟 */
-.star:nth-child(1) { animation-delay: 0s; }
-.star:nth-child(2) { animation-delay: 0.5s; }
-.star:nth-child(3) { animation-delay: 1s; }
-.star:nth-child(4) { animation-delay: 0.3s; }
-.star:nth-child(5) { animation-delay: 0.8s; }
-.star:nth-child(6) { animation-delay: 0.2s; }
-.star:nth-child(7) { animation-delay: 0.7s; }
+.star { animation-delay: calc(var(--i) * 0.3s); }
+.star:nth-child(1) { --i: 0; }
+.star:nth-child(2) { --i: 1; }
+.star:nth-child(3) { --i: 2; }
+.star:nth-child(4) { --i: 3; }
+.star:nth-child(5) { --i: 4; }
+.star:nth-child(6) { --i: 5; }
+.star:nth-child(7) { --i: 6; }
 
 @keyframes scanline {
     0% { background-position: 0 0; }
