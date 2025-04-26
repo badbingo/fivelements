@@ -555,6 +555,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 初始化元素图表 - 修改为显示本命局+大运+流年
     function initElementChart(baziInfo) {
+         if (!elementChartDescription) {
+        console.warn('elementChartDescription 元素未找到，图表描述将不会显示');
+        elementChartDescription = document.createElement('div'); // 创建回退元素
+    }
         // 计算本命局五行能量
         const natalElements = baziInfo.elements;
         
