@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 缓存对象c
+    // 缓存对象a
     const baziCache = {};
     
     // 兜底规则库
@@ -1865,8 +1865,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 【输出要求】
 8. 必须包含：
-   - 四柱干支（含藏干）[以表格方式显示]
-   - 十神关系[以表格方式显示]
+   - 四柱干支（含藏干，十神关系）[以表格方式显示]
    - 起运时间（精确到岁）
    - 空亡地支标记
 
