@@ -1884,7 +1884,7 @@ document.addEventListener('DOMContentLoaded', function() {
 【输出要求】
 1. 必须包含：
    - 四柱干支（含藏干，十神关系）[以表格方式显示]
-   - 起运时间（精确到岁）
+   - 起运时间（注意节气误判：混淆了“换月节气”和“年柱切换节气”，月柱切换的节气是立春（正月）、惊蛰（二月）等，但顺排大运时需用出生月之后的第一个节气（此处是立春），时间差计算：原计算忽略了出生时间与立春的精确小时差。）
    - 空亡地支标记
 
 当前日期：${currentDateStr}
@@ -2017,7 +2017,7 @@ document.addEventListener('DOMContentLoaded', function() {
 用Markdown格式，段落与段落之间空一行，使用分隔线，标题和重要内容高亮显示，添加视觉引导元素如箭头、进度条等，不要使用任何特殊符号`;
                 break;
             case 'decade-fortune':
-                prompt += `分析十年大运走势：
+                prompt += `分析十年大运走势：        
 1 大运事业吉凶分析
 2 大运婚姻吉凶分析
 3 大运重大事件吉凶分析
