@@ -1527,6 +1527,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // 在 loadSavedProfiles 函数中添加移除按钮功能
+// loadSavedProfiles 函数保持不变
 function loadSavedProfiles() {
     const profiles = JSON.parse(localStorage.getItem('baziProfiles') || '[]');
     savedProfilesList.innerHTML = '';
@@ -1548,25 +1549,23 @@ function loadSavedProfiles() {
         const profileElement = document.createElement('div');
         profileElement.className = 'saved-profile';
         profileElement.innerHTML = `
-            <div class="profile-content">
+            <span class="profile-content">
                 ${profile.name || '匿名'} · 
                 ${profile.date.replace(/-/g, '/')} · 
                 ${timeMap[hour]} · 
                 ${profile.gender === 'male' ? '男' : '女'}
-            </div>
-            <div class="remove-profile-btn" data-index="${index}">
+            </span>
+            <span class="remove-profile-btn" data-index="${index}">
                 <i class="fas fa-times"></i>
-            </div>
+            </span>
         `;
         
-        // 加载个人资料
         profileElement.querySelector('.profile-content').addEventListener('click', function() {
             loadProfile(profile);
         });
         
-        // 移除个人资料
         profileElement.querySelector('.remove-profile-btn').addEventListener('click', function(e) {
-            e.stopPropagation(); // 阻止事件冒泡
+            e.stopPropagation();
             removeProfile(index);
         });
         
