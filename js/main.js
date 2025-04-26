@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 缓存对象a
+    // 缓存对象b
     const baziCache = {};
     
     // 兜底规则库
@@ -185,7 +185,27 @@ document.addEventListener('DOMContentLoaded', function() {
         // 计算按钮
         calculateBtn.addEventListener('click', calculateBazi);
     }
-
+function saveProfile(birthData) {
+    const profiles = JSON.parse(localStorage.getItem('baziProfiles') || '[]');
+    const existingIndex = profiles.findIndex(function(p) {
+        return p.date === birthData.date && 
+               p.time === birthData.time && 
+               p.gender === birthData.gender;
+    });
+    
+    if (existingIndex >= 0) {
+        profiles[existingIndex] = birthData;
+    } else {
+        profiles.push(birthData);
+    }
+    
+    if (profiles.length > 5) {
+        profiles.shift();
+    }
+    
+    localStorage.setItem('baziProfiles', JSON.stringify(profiles));
+    loadSavedProfiles();
+}
     // 重置所有内容
     function resetAllContent() {
         fateScoreValue = 0;
@@ -1527,7 +1547,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // 在 loadSavedProfiles 函数中添加移除按钮功能
-// loadSavedProfiles 函数保持不变
 function loadSavedProfiles() {
     const profiles = JSON.parse(localStorage.getItem('baziProfiles') || '[]');
     savedProfilesList.innerHTML = '';
