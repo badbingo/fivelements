@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 缓存对象b
+    // 缓存对象c
     const baziCache = {};
     
     // 兜底规则库
@@ -57,6 +57,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const wealthScore = document.getElementById('wealth-score');
     const wealthDetails = document.getElementById('wealth-details');
     const elementChartCtx = document.getElementById('element-chart').getContext('2d');
+    const elementChartDescription = document.getElementById('element-chart-description');
     const gamblingRating = document.getElementById('gambling-rating');
     const gamblingDetails = document.getElementById('gambling-details');
     const savedProfilesList = document.getElementById('saved-profiles-list');
@@ -185,27 +186,30 @@ document.addEventListener('DOMContentLoaded', function() {
         // 计算按钮
         calculateBtn.addEventListener('click', calculateBazi);
     }
-function saveProfile(birthData) {
-    const profiles = JSON.parse(localStorage.getItem('baziProfiles') || '[]');
-    const existingIndex = profiles.findIndex(function(p) {
-        return p.date === birthData.date && 
-               p.time === birthData.time && 
-               p.gender === birthData.gender;
-    });
-    
-    if (existingIndex >= 0) {
-        profiles[existingIndex] = birthData;
-    } else {
-        profiles.push(birthData);
+
+    // 保存个人资料
+    function saveProfile(birthData) {
+        const profiles = JSON.parse(localStorage.getItem('baziProfiles') || '[]');
+        const existingIndex = profiles.findIndex(function(p) {
+            return p.date === birthData.date && 
+                   p.time === birthData.time && 
+                   p.gender === birthData.gender;
+        });
+        
+        if (existingIndex >= 0) {
+            profiles[existingIndex] = birthData;
+        } else {
+            profiles.push(birthData);
+        }
+        
+        if (profiles.length > 5) {
+            profiles.shift();
+        }
+        
+        localStorage.setItem('baziProfiles', JSON.stringify(profiles));
+        loadSavedProfiles();
     }
-    
-    if (profiles.length > 5) {
-        profiles.shift();
-    }
-    
-    localStorage.setItem('baziProfiles', JSON.stringify(profiles));
-    loadSavedProfiles();
-}
+
     // 重置所有内容
     function resetAllContent() {
         fateScoreValue = 0;
@@ -440,7 +444,7 @@ function saveProfile(birthData) {
             const baziInfo = await getBaziAnalysis('basic', birthData);
             
             displayBasicInfo(baziInfo);
-            initElementChart(baziInfo.elements);
+            initElementChart(baziInfo);
             updateLunarCalendar();
             
             currentPillars = {
@@ -549,37 +553,67 @@ function saveProfile(birthData) {
         };
     }
 
-    // 初始化元素图表
-    function initElementChart(data) {
-        const total = data.reduce(function(sum, value) {
-            return sum + value;
-        }, 0);
-        const percentages = data.map(function(value) {
-            return Math.round((value/total)*100);
-        });
-        const elementData = {
-            labels: ['木', '火', '土', '金', '水'].map(function(label, i) {
-                return `${label} ${percentages[i]}%`;
-            }),
-            datasets: [{
-                data: data,
-                backgroundColor: [
-                    'rgba(0, 255, 136, 0.3)',
-                    'rgba(255, 51, 0, 0.3)',
-                    'rgba(255, 204, 0, 0.3)',
-                    'rgba(204, 204, 204, 0.3)',
-                    'rgba(0, 153, 255, 0.3)'
-                ],
-                borderColor: [
-                    'rgba(0, 255, 136, 1)',
-                    'rgba(255, 51, 0, 1)',
-                    'rgba(255, 204, 0, 1)',
-                    'rgba(204, 204, 204, 1)',
-                    'rgba(0, 153, 255, 1)'
-                ],
-                borderWidth: 1
-            }]
+    // 初始化元素图表 - 修改为显示本命局+大运+流年
+    function initElementChart(baziInfo) {
+        // 计算本命局五行能量
+        const natalElements = baziInfo.elements;
+        
+        // 计算大运五行能量 (模拟数据)
+        const luckElements = calculateLuckElements(baziInfo);
+        
+        // 计算流年五行能量 (模拟数据)
+        const yearElements = calculateYearElements(baziInfo);
+        
+        const elementLabels = ['木', '火', '土', '金', '水'];
+        
+        // 计算百分比
+        const calculatePercentages = (data) => {
+            const total = data.reduce((sum, value) => sum + value, 0);
+            return data.map(value => Math.round((value/total)*100));
         };
+        
+        const natalPercentages = calculatePercentages(natalElements);
+        const luckPercentages = calculatePercentages(luckElements);
+        const yearPercentages = calculatePercentages(yearElements);
+        
+        const elementData = {
+            labels: elementLabels.map((label, i) => `${label}`),
+            datasets: [
+                {
+                    label: '本命局',
+                    data: natalElements,
+                    backgroundColor: 'rgba(0, 255, 136, 0.2)',
+                    borderColor: 'rgba(0, 255, 136, 1)',
+                    borderWidth: 2,
+                    pointBackgroundColor: 'rgba(0, 255, 136, 1)',
+                    pointHoverRadius: 5
+                },
+                {
+                    label: '大运',
+                    data: luckElements,
+                    backgroundColor: 'rgba(255, 204, 0, 0.2)',
+                    borderColor: 'rgba(255, 204, 0, 1)',
+                    borderWidth: 2,
+                    pointBackgroundColor: 'rgba(255, 204, 0, 1)',
+                    pointHoverRadius: 5
+                },
+                {
+                    label: '流年',
+                    data: yearElements,
+                    backgroundColor: 'rgba(0, 153, 255, 0.2)',
+                    borderColor: 'rgba(0, 153, 255, 1)',
+                    borderWidth: 2,
+                    pointBackgroundColor: 'rgba(0, 153, 255, 1)',
+                    pointHoverRadius: 5
+                }
+            ]
+        };
+        
+        // 销毁旧图表
+        if (elementChart) {
+            elementChart.destroy();
+        }
+        
         elementChart = new Chart(elementChartCtx, {
             type: 'radar',
             data: elementData,
@@ -593,7 +627,7 @@ function saveProfile(birthData) {
                             color: 'rgba(0, 240, 255, 0.2)'
                         },
                         suggestedMin: 0,
-                        suggestedMax: Math.max(...data) + 2,
+                        suggestedMax: Math.max(...natalElements, ...luckElements, ...yearElements) + 2,
                         ticks: {
                             backdropColor: 'transparent',
                             color: 'rgba(0, 240, 255, 0.7)',
@@ -616,15 +650,32 @@ function saveProfile(birthData) {
                 },
                 plugins: {
                     legend: {
-                        display: false
+                        position: 'bottom',
+                        labels: {
+                            font: {
+                                family: "'Orbitron', sans-serif",
+                                size: 12
+                            },
+                            color: 'rgba(0, 240, 255, 0.9)'
+                        }
                     },
                     tooltip: {
                         callbacks: {
                             label: function(context) {
+                                const datasetLabel = context.dataset.label || '';
                                 const label = context.label || '';
                                 const value = context.raw;
-                                const percentage = percentages[context.dataIndex];
-                                return `${label}: ${value} (${percentage}%)`;
+                                let percentage;
+                                
+                                if (datasetLabel === '本命局') {
+                                    percentage = natalPercentages[context.dataIndex];
+                                } else if (datasetLabel === '大运') {
+                                    percentage = luckPercentages[context.dataIndex];
+                                } else {
+                                    percentage = yearPercentages[context.dataIndex];
+                                }
+                                
+                                return `${datasetLabel} ${label}: ${value} (${percentage}%)`;
                             }
                         }
                     }
@@ -635,6 +686,37 @@ function saveProfile(birthData) {
                     }
                 }
             }
+        });
+        
+        // 添加图表说明
+        elementChartDescription.innerHTML = `
+            <div class="chart-explanation">
+                <h4>五行能量分布说明</h4>
+                <ul>
+                    <li><span class="color-indicator" style="background-color: rgba(0, 255, 136, 0.5)"></span> <strong>本命局</strong>: 代表命主先天五行能量分布</li>
+                    <li><span class="color-indicator" style="background-color: rgba(255, 204, 0, 0.5)"></span> <strong>大运</strong>: 代表当前大运阶段的五行能量变化</li>
+                    <li><span class="color-indicator" style="background-color: rgba(0, 153, 255, 0.5)"></span> <strong>流年</strong>: 代表今年流年的五行能量影响</li>
+                </ul>
+                <p>五行平衡是理想状态，过旺或过弱都可能带来相应问题。图表可直观显示命主在不同时期的五行能量变化。</p>
+            </div>
+        `;
+    }
+
+    // 计算大运五行能量 (模拟)
+    function calculateLuckElements(baziInfo) {
+        // 基于本命局五行进行一定程度的随机变化
+        return baziInfo.elements.map(value => {
+            const variation = Math.floor(Math.random() * 3) - 1; // -1, 0, 1
+            return Math.max(0, value + variation);
+        });
+    }
+
+    // 计算流年五行能量 (模拟)
+    function calculateYearElements(baziInfo) {
+        // 基于本命局五行进行更大程度的随机变化
+        return baziInfo.elements.map(value => {
+            const variation = Math.floor(Math.random() * 5) - 2; // -2到2
+            return Math.max(0, value + variation);
         });
     }
 
@@ -1546,61 +1628,61 @@ function saveProfile(birthData) {
         return traits[dayStem] || '似静水流深，临危反生智，藏锋守拙却暗含凌云之志';
     }
 
-    // 在 loadSavedProfiles 函数中添加移除按钮功能
-function loadSavedProfiles() {
-    const profiles = JSON.parse(localStorage.getItem('baziProfiles') || '[]');
-    savedProfilesList.innerHTML = '';
-    if (profiles.length === 0) {
-        savedProfilesList.innerHTML = '<div style="color:var(--text-light);font-size:14px;">暂无历史记录</div>';
-        return;
+    // 加载保存的个人资料
+    function loadSavedProfiles() {
+        const profiles = JSON.parse(localStorage.getItem('baziProfiles') || '[]');
+        savedProfilesList.innerHTML = '';
+        if (profiles.length === 0) {
+            savedProfilesList.innerHTML = '<div style="color:var(--text-light);font-size:14px;">暂无历史记录</div>';
+            return;
+        }
+        profiles.forEach(function(profile, index) {
+            const hour = parseInt(profile.time.split(':')[0]);
+            const timeMap = {
+                23: '子时', 0: '子时',
+                1: '丑时', 3: '寅时',
+                5: '卯时', 7: '辰时',
+                9: '巳时', 11: '午时',
+                13: '未时', 15: '申时',
+                17: '酉时', 19: '戌时',
+                21: '亥时'
+           };
+            const profileElement = document.createElement('div');
+            profileElement.className = 'saved-profile';
+            profileElement.innerHTML = `
+                <span class="profile-content">
+                    ${profile.name || '匿名'} · 
+                    ${profile.date.replace(/-/g, '/')} · 
+                    ${timeMap[hour]} · 
+                    ${profile.gender === 'male' ? '男' : '女'}
+                </span>
+                <span class="remove-profile-btn" data-index="${index}">
+                    <i class="fas fa-times"></i>
+                </span>
+            `;
+            
+            profileElement.querySelector('.profile-content').addEventListener('click', function() {
+                loadProfile(profile);
+            });
+            
+            profileElement.querySelector('.remove-profile-btn').addEventListener('click', function(e) {
+                e.stopPropagation();
+                removeProfile(index);
+            });
+            
+            savedProfilesList.appendChild(profileElement);
+        });
     }
-    profiles.forEach(function(profile, index) {
-        const hour = parseInt(profile.time.split(':')[0]);
-        const timeMap = {
-            23: '子时', 0: '子时',
-            1: '丑时', 3: '寅时',
-            5: '卯时', 7: '辰时',
-            9: '巳时', 11: '午时',
-            13: '未时', 15: '申时',
-            17: '酉时', 19: '戌时',
-            21: '亥时'
-       };
-        const profileElement = document.createElement('div');
-        profileElement.className = 'saved-profile';
-        profileElement.innerHTML = `
-            <span class="profile-content">
-                ${profile.name || '匿名'} · 
-                ${profile.date.replace(/-/g, '/')} · 
-                ${timeMap[hour]} · 
-                ${profile.gender === 'male' ? '男' : '女'}
-            </span>
-            <span class="remove-profile-btn" data-index="${index}">
-                <i class="fas fa-times"></i>
-            </span>
-        `;
-        
-        profileElement.querySelector('.profile-content').addEventListener('click', function() {
-            loadProfile(profile);
-        });
-        
-        profileElement.querySelector('.remove-profile-btn').addEventListener('click', function(e) {
-            e.stopPropagation();
-            removeProfile(index);
-        });
-        
-        savedProfilesList.appendChild(profileElement);
-    });
-}
 
-// 添加移除个人资料函数
-function removeProfile(index) {
-    const profiles = JSON.parse(localStorage.getItem('baziProfiles') || '[]');
-    if (index >= 0 && index < profiles.length) {
-        profiles.splice(index, 1);
-        localStorage.setItem('baziProfiles', JSON.stringify(profiles));
-        loadSavedProfiles();
+    // 移除个人资料
+    function removeProfile(index) {
+        const profiles = JSON.parse(localStorage.getItem('baziProfiles') || '[]');
+        if (index >= 0 && index < profiles.length) {
+            profiles.splice(index, 1);
+            localStorage.setItem('baziProfiles', JSON.stringify(profiles));
+            loadSavedProfiles();
+        }
     }
-}
 
     // 加载个人资料
     function loadProfile(profile) {
