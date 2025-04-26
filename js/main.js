@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 缓存对象b
+    // 缓存对象a
     const baziCache = {};
     
     // 兜底规则库
@@ -34,8 +34,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const recalculateBtn = document.getElementById('recalculate-btn');
     const inputSection = document.getElementById('input-section');
     const resultSection = document.getElementById('result-section');
-    const timePeriodOptions = document.querySelectorAll('.time-period-option');
     const birthTimeInput = document.getElementById('birth-time');
+    const birthPlaceInput = document.getElementById('birth-place');
     const personalityTraits = document.getElementById('personality-traits');
     const languageBtns = document.querySelectorAll('.language-btn');
     const yearStem = document.getElementById('year-stem');
@@ -89,19 +89,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 事件监听器初始化
     function initEventListeners() {
-        // 时间选择
-        timePeriodOptions.forEach(function(option) {
-            option.addEventListener('click', function() {
-                timePeriodOptions.forEach(function(opt) {
-                    opt.classList.remove('selected');
-                });
-                this.classList.add('selected');
-                const hour = this.getAttribute('data-hour');
-                const minute = this.getAttribute('data-minute');
-                birthTimeInput.value = `${hour.padStart(2, '0')}:${minute.padStart(2, '0')}`;
-            });
-        });
-
         // 语言切换
         languageBtns.forEach(function(btn) {
             btn.addEventListener('click', function() {
@@ -156,9 +143,7 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('birth-date').value = '';
             document.getElementById('birth-time').value = '';
             document.getElementById('gender').value = '';
-            timePeriodOptions.forEach(function(opt) {
-                opt.classList.remove('selected');
-            });
+            document.getElementById('birth-place').value = '';
             resultSection.style.display = 'none';
             inputSection.style.display = 'block';
             resetAllContent();
@@ -390,6 +375,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const birthDate = document.getElementById('birth-date').value;
         const birthTime = birthTimeInput.value;
         const gender = document.getElementById('gender').value;
+        const birthPlace = birthPlaceInput.value;
         
         if (!birthDate || !birthTime || !gender) {
             alert('请填写完整的出生信息');
@@ -424,7 +410,8 @@ document.addEventListener('DOMContentLoaded', function() {
             name, 
             date: birthDate,
             time: birthTime, 
-            gender: gender
+            gender: gender,
+            place: birthPlace
         };
         
         saveProfile(birthData);
@@ -1694,15 +1681,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('birth-date').value = profile.date;
         document.getElementById('birth-time').value = profile.time;
         document.getElementById('gender').value = profile.gender;
-        const hour = parseInt(profile.time.split(':')[0]);
-        timePeriodOptions.forEach(function(opt) {
-            opt.classList.remove('selected');
-        });
-        const selectedOption = document.querySelector(`.time-period-option[data-hour="${hour}"]`);
-        if (selectedOption) {
-            selectedOption.classList.add('selected');
-            birthTimeInput.value = profile.time;
-        }
+        document.getElementById('birth-place').value = profile.place || '';
     }
 
     // 显示基础信息
@@ -1859,6 +1838,7 @@ document.addEventListener('DOMContentLoaded', function() {
 姓名：${data.name || '未提供'}
 出生日期：${data.date}
 出生时间：${data.time} 
+出生地：${data.place || '未提供'}
 性别：${data.gender === 'male' ? '男' : '女'}
 八字：${localResult.yearStem}${localResult.yearBranch} ${localResult.monthStem}${localResult.monthBranch} ${localResult.dayStem}${localResult.dayBranch} ${localResult.hourStem}${localResult.hourBranch}
 
