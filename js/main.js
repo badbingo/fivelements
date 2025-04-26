@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 缓存对象c
+    // 缓存对象a
     const baziCache = {};
     
     // 兜底规则库
@@ -552,13 +552,27 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 }
 
-
-    // 辅助函数：获取节气日期（简化版）
-    function getSolarTermDay(year, month) {
-        // 简化处理，实际节气日期需要精确计算
-        const termDays = [4, 19, 6, 21, 6, 22, 8, 23, 6, 22, 8, 23];
-        return termDays[month - 1];
-    }
+// 节气计算函数（需保留）
+function getSolarTermDate(year, month) {
+    // 24节气简化表（实际应用应使用精确算法）
+    const solarTerms = [
+        {month: 2, day: 4},   // 立春
+        {month: 3, day: 6},   // 惊蛰
+        {month: 4, day: 5},   // 清明
+        {month: 5, day: 6},   // 立夏
+        {month: 6, day: 6},   // 芒种
+        {month: 7, day: 7},   // 小暑
+        {month: 8, day: 8},   // 立秋
+        {month: 9, day: 8},   // 白露
+        {month: 10, day: 8},  // 寒露
+        {month: 11, day: 7},  // 立冬
+        {month: 12, day: 7},  // 大雪
+        {month: 1, day: 6}    // 小寒
+    ];
+    
+    const term = solarTerms.find(t => t.month === month) || {month, day: 1};
+    return new Date(year, month-1, term.day, 12, 0, 0); // 默认中午12点
+}
 
     // 辅助函数：判断闰年
     function isLeapYear(year) {
