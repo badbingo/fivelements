@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 缓存对象v1.36b
+    // 缓存对象v1.36c
     const baziCache = {};
     
     // 兜底规则库
@@ -619,36 +619,35 @@ document.addEventListener('DOMContentLoaded', function() {
         elementChart.destroy();
     }
     
-    // 获取图表容器
-    const chartContainer = document.getElementById('element-chart-container');
+    // 获取图表容器并调整大小和定位
+    const chartContainer = document.getElementById('element-chart').parentElement;
+    chartContainer.style.position = 'relative'; // 添加相对定位
+    chartContainer.style.width = '100%'; // 容器保持100%宽度
+    chartContainer.style.height = 'auto'; // 高度自适应
+    chartContainer.style.margin = '0 auto'; // 水平居中
+    chartContainer.style.overflow = 'visible'; // 允许内容溢出
     
-    // 设置容器样式使其居中
-    chartContainer.style.display = 'flex';
-    chartContainer.style.justifyContent = 'center';
-    chartContainer.style.alignItems = 'center';
-    chartContainer.style.width = '100%';
-    chartContainer.style.height = '100%';
-    
-    // 调整canvas元素大小
+    // 调整canvas元素大小和定位
     const canvas = document.getElementById('element-chart');
-    canvas.style.width = '100%';
-    canvas.style.maxWidth = '500px'; // 限制最大宽度
-    canvas.style.height = 'auto';
-    canvas.style.aspectRatio = '1/1'; // 保持正方形
+    canvas.style.position = 'relative';
+    canvas.style.width = '150%';
+    canvas.style.height = '150%';
+    canvas.style.left = '-25%'; // 向左移动25%以居中
+    canvas.style.top = '-25%'; // 向上移动25%以居中
     
-    // 创建图表
+    // 创建新的图表实例
     elementChart = new Chart(elementChartCtx, {
         type: 'radar',
         data: elementData,
         options: {
             responsive: true,
-            maintainAspectRatio: false,
+            maintainAspectRatio: false, // 不保持宽高比
             layout: {
                 padding: {
-                    left: 0,
-                    right: 0,
-                    top: 0,
-                    bottom: 0
+                    left: 30,  // 增加左边距
+                    right: 30, // 增加右边距
+                    top: 30,   // 增加上边距
+                    bottom: 30 // 增加下边距
                 }
             },
             scales: {
@@ -664,7 +663,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         color: 'rgba(0, 240, 255, 0.7)',
                         font: {
                             family: "'Orbitron', sans-serif",
-                            size: 12
+                            size: 14
                         },
                         stepSize: 1
                     },
@@ -672,8 +671,9 @@ document.addEventListener('DOMContentLoaded', function() {
                         color: 'rgba(0, 240, 255, 0.9)',
                         font: {
                             family: "'Orbitron', sans-serif",
-                            size: 14
-                        }
+                            size: 18
+                        },
+                        padding: 15 // 增加标签与雷达图的间距
                     },
                     grid: {
                         color: 'rgba(0, 240, 255, 0.1)'
@@ -683,20 +683,20 @@ document.addEventListener('DOMContentLoaded', function() {
             plugins: {
                 legend: {
                     position: 'bottom',
-                    align: 'center',
+                    align: 'center', // 确保图例居中
                     labels: {
                         font: {
                             family: "'Orbitron', sans-serif",
-                            size: 12
+                            size: 14
                         },
                         color: 'rgba(0, 240, 255, 0.9)',
                         padding: 20,
-                        boxWidth: 12
+                        boxWidth: 15 // 调整图例方块宽度
                     }
                 },
                 tooltip: {
                     bodyFont: {
-                        size: 12
+                        size: 14
                     },
                     callbacks: {
                         label: function(context) {
@@ -720,10 +720,12 @@ document.addEventListener('DOMContentLoaded', function() {
             },
             elements: {
                 line: {
-                    tension: 0.1
+                    tension: 0.1,
+                    borderWidth: 2 // 增加线条宽度
                 },
                 point: {
-                    radius: 4
+                    radius: 5,
+                    hoverRadius: 7 // 增加悬停时的半径
                 }
             }
         }
