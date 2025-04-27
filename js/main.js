@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 缓存对象v1.35a
+    // 缓存对象v1.35b
     const baziCache = {};
     
     // 兜底规则库
@@ -1980,7 +1980,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 break;
             case 'decade-fortune':
                 prompt += `分析十年大运走势：
-1 全部大运事业，婚姻吉凶分析
+1 全部大运财运吉凶分析
 2 大运重大事件吉凶分析
 返回格式：
 大运事业吉凶分析：[以表格方式详细分析](1-5星)
