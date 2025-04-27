@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 缓存对象v1.36a
+    // 缓存对象v1.36b
     const baziCache = {};
     
     // 兜底规则库
@@ -619,16 +619,24 @@ document.addEventListener('DOMContentLoaded', function() {
         elementChart.destroy();
     }
     
-    // 获取图表容器并调整大小
-    const chartContainer = document.getElementById('element-chart').parentElement;
-    chartContainer.style.width = '150%';  // 增大50%
-    chartContainer.style.height = '150%'; // 增大50%
+    // 获取图表容器
+    const chartContainer = document.getElementById('element-chart-container');
+    
+    // 设置容器样式使其居中
+    chartContainer.style.display = 'flex';
+    chartContainer.style.justifyContent = 'center';
+    chartContainer.style.alignItems = 'center';
+    chartContainer.style.width = '100%';
+    chartContainer.style.height = '100%';
     
     // 调整canvas元素大小
     const canvas = document.getElementById('element-chart');
-    canvas.style.width = '150%';
-    canvas.style.height = '150%';
+    canvas.style.width = '100%';
+    canvas.style.maxWidth = '500px'; // 限制最大宽度
+    canvas.style.height = 'auto';
+    canvas.style.aspectRatio = '1/1'; // 保持正方形
     
+    // 创建图表
     elementChart = new Chart(elementChartCtx, {
         type: 'radar',
         data: elementData,
@@ -637,10 +645,10 @@ document.addEventListener('DOMContentLoaded', function() {
             maintainAspectRatio: false,
             layout: {
                 padding: {
-                    left: 20,
-                    right: 20,
-                    top: 20,
-                    bottom: 20
+                    left: 0,
+                    right: 0,
+                    top: 0,
+                    bottom: 0
                 }
             },
             scales: {
@@ -656,7 +664,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         color: 'rgba(0, 240, 255, 0.7)',
                         font: {
                             family: "'Orbitron', sans-serif",
-                            size: 14  // 增大字体
+                            size: 12
                         },
                         stepSize: 1
                     },
@@ -664,7 +672,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         color: 'rgba(0, 240, 255, 0.9)',
                         font: {
                             family: "'Orbitron', sans-serif",
-                            size: 18  // 增大标签字体
+                            size: 14
                         }
                     },
                     grid: {
@@ -675,18 +683,20 @@ document.addEventListener('DOMContentLoaded', function() {
             plugins: {
                 legend: {
                     position: 'bottom',
+                    align: 'center',
                     labels: {
                         font: {
                             family: "'Orbitron', sans-serif",
-                            size: 14  // 增大图例字体
+                            size: 12
                         },
                         color: 'rgba(0, 240, 255, 0.9)',
-                        padding: 20  // 增加图例间距
+                        padding: 20,
+                        boxWidth: 12
                     }
                 },
                 tooltip: {
                     bodyFont: {
-                        size: 14  // 增大工具提示字体
+                        size: 12
                     },
                     callbacks: {
                         label: function(context) {
@@ -713,7 +723,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     tension: 0.1
                 },
                 point: {
-                    radius: 5  // 增大数据点
+                    radius: 4
                 }
             }
         }
