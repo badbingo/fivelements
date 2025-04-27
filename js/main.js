@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 缓存对象v1.35v
+    // 缓存对象v1.35a
     const baziCache = {};
     
     // 兜底规则库
@@ -2091,37 +2091,51 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 获取八字问答答案
     async function getBaziAnswer(question) {
-        const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
-        const apiKey = 'sk-b2950087a9d5427392762814114b22a9';
+    const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
+    const apiKey = 'sk-b2950087a9d5427392762814114b22a9';
+    
+    // 构建专业问答提示词
+    const prompt = `【八字专业问答规范】请严格遵循以下规则回答：
+1. 回答必须基于传统八字命理学知识
+2. 回答应简洁明了，避免冗长
+3. 针对用户问题提供专业分析
+4. 如果问题与当前命盘相关，请结合以下八字信息：
+   姓名：${birthData.name || '未提供'}
+   出生日期：${birthData.date}
+   出生时间：${birthData.time}
+   性别：${birthData.gender === 'male' ? '男' : '女'}
+   八字：${currentPillars.year} ${currentPillars.month} ${currentPillars.day} ${currentPillars.hour}
+
+用户问题：${question}`;
+    
+    try {
+        const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`
+            },
+            body: JSON.stringify({
+                model: "deepseek-chat",
+                messages: [{
+                    role: "system",
+                    content: "你是一位资深的八字命理大师，精通子平八字、紫微斗数等传统命理学。请严格按照专业规范回答用户问题。"
+                }, {
+                    role: "user",
+                    content: prompt
+                }],
+                temperature: 0.7
+            })
+        });
         
-        try {
-            const response = await fetch(apiUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${apiKey}`
-                },
-                body: JSON.stringify({
-                    model: "deepseek-chat",
-                    messages: [{
-                        role: "system",
-                        content: "你是一位资深的八字命理大师，精通子平八字、紫微斗数等传统命理学。请用专业但易懂的语言回答用户问题。"
-                    }, {
-                        role: "user",
-                        content: question
-                    }],
-                    temperature: 0.7
-                })
-            });
-            
-            if (!response.ok) throw new Error(`API请求失败: ${response.status}`);
-            
-            const result = await response.json();
-            return result.choices[0].message.content;
-            
-        } catch (error) {
-            console.error('获取问答答案失败:', error);
-            return '获取答案失败，请稍后重试';
-        }
+        if (!response.ok) throw new Error(`API请求失败: ${response.status}`);
+        
+        const result = await response.json();
+        return result.choices[0].message.content;
+        
+    } catch (error) {
+        console.error('获取问答答案失败:', error);
+        return '获取答案失败，请稍后重试';
     }
+}
 });
