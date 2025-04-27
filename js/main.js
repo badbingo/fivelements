@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const birthTimeInput = document.getElementById('birth-time');
     const personalityTraits = document.getElementById('personality-traits');
     const languageBtns = document.querySelectorAll('.language-btn');
-    const yearStemCurrent = document.getElementById('year-stem-current');
+    let yearStemCurrent = document.getElementById('year-stem-current');
     const yearBranchCurrent = document.getElementById('year-branch-current');
     const yearHiddenStemsCurrent = document.getElementById('year-hidden-stems-current');
     const monthStem = document.getElementById('month-stem');
