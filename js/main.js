@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 缓存对象v1.35
+    // 缓存对象v1.35s
     const baziCache = {};
     
     // 兜底规则库
@@ -1986,13 +1986,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 break;
             case 'decade-fortune':
                 prompt += `分析十年大运走势：
-1 大运事业吉凶分析
-2 大运婚姻吉凶分析
-3 大运重大事件吉凶分析
+1 全部大运事业，婚姻吉凶分析
+2 大运重大事件吉凶分析
 返回格式：
 大运事业吉凶分析：[以表格方式详细分析](1-5星)
 大运婚姻吉凶分析：[以表格方式详细分析](1-5星)
-大运重大事件吉凶分析：[以表格方式详细分析] (1-5星)
+大运重大事件吉凶分析：[以表格方式详细分析](1-5星)
 用Markdown格式，段落与段落之间空一行，使用分隔线，标题和重要内容高亮显示，添加视觉引导元素如箭头、进度条等，不要使用任何特殊符号`;
                 break;
             case 'monthly-fortune':
