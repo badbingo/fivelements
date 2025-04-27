@@ -555,156 +555,183 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 初始化元素图表 - 修改为显示本命局+大运+流年
     function initElementChart(baziInfo) {
-         if (!elementChartDescription) {
+    if (!elementChartDescription) {
         console.warn('elementChartDescription 元素未找到，图表描述将不会显示');
         elementChartDescription = document.createElement('div'); // 创建回退元素
     }
-        // 计算本命局五行能量
-        const natalElements = baziInfo.elements;
-        
-        // 计算大运五行能量 (模拟数据)
-        const luckElements = calculateLuckElements(baziInfo);
-        
-        // 计算流年五行能量 (模拟数据)
-        const yearElements = calculateYearElements(baziInfo);
-        
-        const elementLabels = ['木', '火', '土', '金', '水'];
-        
-        // 计算百分比
-        const calculatePercentages = (data) => {
-            const total = data.reduce((sum, value) => sum + value, 0);
-            return data.map(value => Math.round((value/total)*100));
-        };
-        
-        const natalPercentages = calculatePercentages(natalElements);
-        const luckPercentages = calculatePercentages(luckElements);
-        const yearPercentages = calculatePercentages(yearElements);
-        
-        const elementData = {
-            labels: elementLabels.map((label, i) => `${label}`),
-            datasets: [
-                {
-                    label: '本命局',
-                    data: natalElements,
-                    backgroundColor: 'rgba(0, 255, 136, 0.2)',
-                    borderColor: 'rgba(0, 255, 136, 1)',
-                    borderWidth: 2,
-                    pointBackgroundColor: 'rgba(0, 255, 136, 1)',
-                    pointHoverRadius: 5
-                },
-                {
-                    label: '大运',
-                    data: luckElements,
-                    backgroundColor: 'rgba(255, 204, 0, 0.2)',
-                    borderColor: 'rgba(255, 204, 0, 1)',
-                    borderWidth: 2,
-                    pointBackgroundColor: 'rgba(255, 204, 0, 1)',
-                    pointHoverRadius: 5
-                },
-                {
-                    label: '流年',
-                    data: yearElements,
-                    backgroundColor: 'rgba(0, 153, 255, 0.2)',
-                    borderColor: 'rgba(0, 153, 255, 1)',
-                    borderWidth: 2,
-                    pointBackgroundColor: 'rgba(0, 153, 255, 1)',
-                    pointHoverRadius: 5
+    
+    // 计算本命局五行能量
+    const natalElements = baziInfo.elements;
+    
+    // 计算大运五行能量 (模拟数据)
+    const luckElements = calculateLuckElements(baziInfo);
+    
+    // 计算流年五行能量 (模拟数据)
+    const yearElements = calculateYearElements(baziInfo);
+    
+    const elementLabels = ['木', '火', '土', '金', '水'];
+    
+    // 计算百分比
+    const calculatePercentages = (data) => {
+        const total = data.reduce((sum, value) => sum + value, 0);
+        return data.map(value => Math.round((value/total)*100));
+    };
+    
+    const natalPercentages = calculatePercentages(natalElements);
+    const luckPercentages = calculatePercentages(luckElements);
+    const yearPercentages = calculatePercentages(yearElements);
+    
+    const elementData = {
+        labels: elementLabels.map((label, i) => `${label}`),
+        datasets: [
+            {
+                label: '本命局',
+                data: natalElements,
+                backgroundColor: 'rgba(0, 255, 136, 0.2)',
+                borderColor: 'rgba(0, 255, 136, 1)',
+                borderWidth: 2,
+                pointBackgroundColor: 'rgba(0, 255, 136, 1)',
+                pointHoverRadius: 5
+            },
+            {
+                label: '大运',
+                data: luckElements,
+                backgroundColor: 'rgba(255, 204, 0, 0.2)',
+                borderColor: 'rgba(255, 204, 0, 1)',
+                borderWidth: 2,
+                pointBackgroundColor: 'rgba(255, 204, 0, 1)',
+                pointHoverRadius: 5
+            },
+            {
+                label: '流年',
+                data: yearElements,
+                backgroundColor: 'rgba(0, 153, 255, 0.2)',
+                borderColor: 'rgba(0, 153, 255, 1)',
+                borderWidth: 2,
+                pointBackgroundColor: 'rgba(0, 153, 255, 1)',
+                pointHoverRadius: 5
+            }
+        ]
+    };
+    
+    // 销毁旧图表
+    if (elementChart) {
+        elementChart.destroy();
+    }
+    
+    // 获取图表容器并调整大小
+    const chartContainer = document.getElementById('element-chart').parentElement;
+    chartContainer.style.width = '150%';  // 增大50%
+    chartContainer.style.height = '150%'; // 增大50%
+    
+    // 调整canvas元素大小
+    const canvas = document.getElementById('element-chart');
+    canvas.style.width = '150%';
+    canvas.style.height = '150%';
+    
+    elementChart = new Chart(elementChartCtx, {
+        type: 'radar',
+        data: elementData,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            layout: {
+                padding: {
+                    left: 20,
+                    right: 20,
+                    top: 20,
+                    bottom: 20
                 }
-            ]
-        };
-        
-        // 销毁旧图表
-        if (elementChart) {
-            elementChart.destroy();
-        }
-        
-        elementChart = new Chart(elementChartCtx, {
-            type: 'radar',
-            data: elementData,
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    r: {
-                        angleLines: {
-                            display: true,
-                            color: 'rgba(0, 240, 255, 0.2)'
+            },
+            scales: {
+                r: {
+                    angleLines: {
+                        display: true,
+                        color: 'rgba(0, 240, 255, 0.2)'
+                    },
+                    suggestedMin: 0,
+                    suggestedMax: Math.max(...natalElements, ...luckElements, ...yearElements) + 2,
+                    ticks: {
+                        backdropColor: 'transparent',
+                        color: 'rgba(0, 240, 255, 0.7)',
+                        font: {
+                            family: "'Orbitron', sans-serif",
+                            size: 14  // 增大字体
                         },
-                        suggestedMin: 0,
-                        suggestedMax: Math.max(...natalElements, ...luckElements, ...yearElements) + 2,
-                        ticks: {
-                            backdropColor: 'transparent',
-                            color: 'rgba(0, 240, 255, 0.7)',
-                            font: {
-                                family: "'Orbitron', sans-serif"
-                            },
-                            stepSize: 1
-                        },
-                        pointLabels: {
-                            color: 'rgba(0, 240, 255, 0.9)',
-                            font: {
-                                family: "'Orbitron', sans-serif",
-                                size: 14
-                            }
-                        },
-                        grid: {
-                            color: 'rgba(0, 240, 255, 0.1)'
-                        }
-                    }
-                },
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            font: {
-                                family: "'Orbitron', sans-serif",
-                                size: 12
-                            },
-                            color: 'rgba(0, 240, 255, 0.9)'
+                        stepSize: 1
+                    },
+                    pointLabels: {
+                        color: 'rgba(0, 240, 255, 0.9)',
+                        font: {
+                            family: "'Orbitron', sans-serif",
+                            size: 18  // 增大标签字体
                         }
                     },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                const datasetLabel = context.dataset.label || '';
-                                const label = context.label || '';
-                                const value = context.raw;
-                                let percentage;
-                                
-                                if (datasetLabel === '本命局') {
-                                    percentage = natalPercentages[context.dataIndex];
-                                } else if (datasetLabel === '大运') {
-                                    percentage = luckPercentages[context.dataIndex];
-                                } else {
-                                    percentage = yearPercentages[context.dataIndex];
-                                }
-                                
-                                return `${datasetLabel} ${label}: ${value} (${percentage}%)`;
-                            }
-                        }
-                    }
-                },
-                elements: {
-                    line: {
-                        tension: 0.1
+                    grid: {
+                        color: 'rgba(0, 240, 255, 0.1)'
                     }
                 }
+            },
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        font: {
+                            family: "'Orbitron', sans-serif",
+                            size: 14  // 增大图例字体
+                        },
+                        color: 'rgba(0, 240, 255, 0.9)',
+                        padding: 20  // 增加图例间距
+                    }
+                },
+                tooltip: {
+                    bodyFont: {
+                        size: 14  // 增大工具提示字体
+                    },
+                    callbacks: {
+                        label: function(context) {
+                            const datasetLabel = context.dataset.label || '';
+                            const label = context.label || '';
+                            const value = context.raw;
+                            let percentage;
+                            
+                            if (datasetLabel === '本命局') {
+                                percentage = natalPercentages[context.dataIndex];
+                            } else if (datasetLabel === '大运') {
+                                percentage = luckPercentages[context.dataIndex];
+                            } else {
+                                percentage = yearPercentages[context.dataIndex];
+                            }
+                            
+                            return `${datasetLabel} ${label}: ${value} (${percentage}%)`;
+                        }
+                    }
+                }
+            },
+            elements: {
+                line: {
+                    tension: 0.1
+                },
+                point: {
+                    radius: 5  // 增大数据点
+                }
             }
-        });
-        
-        // 添加图表说明
-        elementChartDescription.innerHTML = `
-            <div class="chart-explanation">
-                <h4>五行能量分布说明</h4>
-                <ul>
-                    <li><span class="color-indicator" style="background-color: rgba(0, 255, 136, 0.5)"></span> <strong>本命局</strong>: 代表命主先天五行能量分布</li>
-                    <li><span class="color-indicator" style="background-color: rgba(255, 204, 0, 0.5)"></span> <strong>大运</strong>: 代表当前大运阶段的五行能量变化</li>
-                    <li><span class="color-indicator" style="background-color: rgba(0, 153, 255, 0.5)"></span> <strong>流年</strong>: 代表今年流年的五行能量影响</li>
-                </ul>
-                <p>五行平衡是理想状态，过旺或过弱都可能带来相应问题。图表可直观显示命主在不同时期的五行能量变化。</p>
-            </div>
-        `;
-    }
+        }
+    });
+    
+    // 添加图表说明
+    elementChartDescription.innerHTML = `
+        <div class="chart-explanation">
+            <h4>五行能量分布说明</h4>
+            <ul>
+                <li><span class="color-indicator" style="background-color: rgba(0, 255, 136, 0.5)"></span> <strong>本命局</strong>: 代表命主先天五行能量分布</li>
+                <li><span class="color-indicator" style="background-color: rgba(255, 204, 0, 0.5)"></span> <strong>大运</strong>: 代表当前大运阶段的五行能量变化</li>
+                <li><span class="color-indicator" style="background-color: rgba(0, 153, 255, 0.5)"></span> <strong>流年</strong>: 代表今年流年的五行能量影响</li>
+            </ul>
+            <p>五行平衡是理想状态，过旺或过弱都可能带来相应问题。图表可直观显示命主在不同时期的五行能量变化。</p>
+        </div>
+    `;
+}
 
     // 计算大运五行能量 (模拟)
     function calculateLuckElements(baziInfo) {
