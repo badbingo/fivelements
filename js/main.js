@@ -2093,18 +2093,7 @@ document.addEventListener('DOMContentLoaded', function() {
     async function getBaziAnswer(question) {
         const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
         const apiKey = 'sk-b2950087a9d5427392762814114b22a9';
-        const prompt = `【八字专业问答规范】请严格遵循以下规则回答：
-1. 回答必须基于传统八字命理学知识
-2. 回答应简洁明了，避免冗长
-3. 针对用户问题提供专业分析
-4. 如果问题与当前命盘相关，请结合以下八字信息：
-   姓名：${birthData.name || '未提供'}
-   出生日期：${birthData.date}
-   出生时间：${birthData.time}
-   性别：${birthData.gender === 'male' ? '男' : '女'}
-   八字：${currentPillars.year} ${currentPillars.month} ${currentPillars.day} ${currentPillars.hour}
-
-用户问题：${question}`;
+        
         try {
             const response = await fetch(apiUrl, {
                 method: 'POST',
