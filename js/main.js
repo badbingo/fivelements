@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 缓存对象v1.35
+    // 缓存对象v1.35d
     const baziCache = {};
     
     // 兜底规则库
@@ -69,6 +69,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const baziQaSubmit = document.getElementById('bazi-qa-submit');
     const baziQaResponse = document.getElementById('bazi-qa-response');
     const baziQaLoading = document.getElementById('bazi-qa-loading');
+    const luckStem = document.getElementById('luck-stem');
+    const luckBranch = document.getElementById('luck-branch');
+    const luckHiddenStems = document.getElementById('luck-hidden-stems');
+    const yearStemCurrent = document.getElementById('year-stem-current');
+    const yearBranchCurrent = document.getElementById('year-branch-current');
+    const yearHiddenStemsCurrent = document.getElementById('year-hidden-stems-current');
 
     // 全局变量
     let elementChart;
@@ -228,6 +234,12 @@ document.addEventListener('DOMContentLoaded', function() {
         hourStem.textContent = '';
         hourBranch.textContent = '';
         hourHiddenStems.textContent = '';
+        luckStem.textContent = '';
+        luckBranch.textContent = '';
+        luckHiddenStems.textContent = '';
+        yearStemCurrent.textContent = '';
+        yearBranchCurrent.textContent = '';
+        yearHiddenStemsCurrent.textContent = '';
         
         // 重置分数显示
         fateLevel.textContent = '';
@@ -555,10 +567,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 初始化元素图表 - 修改为显示本命局+大运+流年
     function initElementChart(baziInfo) {
-         if (!elementChartDescription) {
-        console.warn('elementChartDescription 元素未找到，图表描述将不会显示');
-        elementChartDescription = document.createElement('div'); // 创建回退元素
-    }
+        if (!elementChartDescription) {
+            console.warn('elementChartDescription 元素未找到，图表描述将不会显示');
+            elementChartDescription = document.createElement('div'); // 创建回退元素
+        }
+        
         // 计算本命局五行能量
         const natalElements = baziInfo.elements;
         
@@ -617,6 +630,12 @@ document.addEventListener('DOMContentLoaded', function() {
         if (elementChart) {
             elementChart.destroy();
         }
+        
+        // 放大雷达图50%
+        const chartContainer = document.getElementById('element-chart-container');
+        chartContainer.style.transform = 'scale(1.5)';
+        chartContainer.style.transformOrigin = 'center';
+        chartContainer.style.margin = '30px auto';
         
         elementChart = new Chart(elementChartCtx, {
             type: 'radar',
@@ -1469,6 +1488,11 @@ document.addEventListener('DOMContentLoaded', function() {
         const dayHiddenStems = getHiddenStems(dayZhi);
         const hourHiddenStems = getHiddenStems(hourZhi);
         
+        // 计算大运和流年
+        const decadeFortune = calculateDecadeFortune(lunar, birthData.gender);
+        const currentLuck = decadeFortune.fortunes[0] || { ganZhi: "未知" };
+        const currentYear = Solar.fromDate(new Date()).getLunar().getYearInGanZhi();
+        
         const elements = calculateElementEnergy({
             year: yearGan + yearZhi,
             month: monthGan + monthZhi,
@@ -1477,7 +1501,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         
         const personality = getPersonalityTraits(dayGan);
-        const decadeFortune = calculateDecadeFortune(lunar, birthData.gender);
         const gamblingFortune = calculateGamblingFortune(birthData, lunar);
         
         return {
@@ -1493,6 +1516,12 @@ document.addEventListener('DOMContentLoaded', function() {
             monthHiddenStems: monthHiddenStems,
             dayHiddenStems: dayHiddenStems,
             hourHiddenStems: hourHiddenStems,
+            luckStem: currentLuck.ganZhi.charAt(0),
+            luckBranch: currentLuck.ganZhi.charAt(1),
+            luckHiddenStems: getHiddenStems(currentLuck.ganZhi.charAt(1)),
+            yearStemCurrent: currentYear.charAt(0),
+            yearBranchCurrent: currentYear.charAt(1),
+            yearHiddenStemsCurrent: getHiddenStems(currentYear.charAt(1)),
             elements,
             personality,
             decadeFortune,
@@ -1734,6 +1763,12 @@ document.addEventListener('DOMContentLoaded', function() {
         hourStem.textContent = info.hourStem;
         hourBranch.textContent = info.hourBranch;
         hourHiddenStems.textContent = info.hourHiddenStems;
+        luckStem.textContent = info.luckStem;
+        luckBranch.textContent = info.luckBranch;
+        luckHiddenStems.textContent = info.luckHiddenStems;
+        yearStemCurrent.textContent = info.yearStemCurrent;
+        yearBranchCurrent.textContent = info.yearBranchCurrent;
+        yearHiddenStemsCurrent.textContent = info.yearHiddenStemsCurrent;
         
         setElementColors(yearStem, info.yearStem);
         setElementColors(yearBranch, info.yearBranch);
@@ -1743,11 +1778,17 @@ document.addEventListener('DOMContentLoaded', function() {
         setElementColors(dayBranch, info.dayBranch);
         setElementColors(hourStem, info.hourStem);
         setElementColors(hourBranch, info.hourBranch);
+        setElementColors(luckStem, info.luckStem);
+        setElementColors(luckBranch, info.luckBranch);
+        setElementColors(yearStemCurrent, info.yearStemCurrent);
+        setElementColors(yearBranchCurrent, info.yearBranchCurrent);
         
         setHiddenStemsColors(yearHiddenStems, info.yearHiddenStems);
         setHiddenStemsColors(monthHiddenStems, info.monthHiddenStems);
         setHiddenStemsColors(dayHiddenStems, info.dayHiddenStems);
         setHiddenStemsColors(hourHiddenStems, info.hourHiddenStems);
+        setHiddenStemsColors(luckHiddenStems, info.luckHiddenStems);
+        setHiddenStemsColors(yearHiddenStemsCurrent, info.yearHiddenStemsCurrent);
         
         personalityTraits.textContent = `命主性格：${info.personality}`;
         
@@ -1755,7 +1796,9 @@ document.addEventListener('DOMContentLoaded', function() {
             year: info.yearStem + info.yearBranch,
             month: info.monthStem + info.monthBranch,
             day: info.dayStem + info.dayBranch,
-            hour: info.hourStem + info.hourBranch
+            hour: info.hourStem + info.hourBranch,
+            luck: info.luckStem + info.luckBranch,
+            currentYear: info.yearStemCurrent + info.yearBranchCurrent
         };
     }
 
