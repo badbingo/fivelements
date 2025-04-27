@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 缓存对象v1.36c
+    // 缓存对象v1.35v
     const baziCache = {};
     
     // 兜底规则库
@@ -555,195 +555,156 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 初始化元素图表 - 修改为显示本命局+大运+流年
     function initElementChart(baziInfo) {
-    if (!elementChartDescription) {
+         if (!elementChartDescription) {
         console.warn('elementChartDescription 元素未找到，图表描述将不会显示');
         elementChartDescription = document.createElement('div'); // 创建回退元素
     }
-    
-    // 计算本命局五行能量
-    const natalElements = baziInfo.elements;
-    
-    // 计算大运五行能量 (模拟数据)
-    const luckElements = calculateLuckElements(baziInfo);
-    
-    // 计算流年五行能量 (模拟数据)
-    const yearElements = calculateYearElements(baziInfo);
-    
-    const elementLabels = ['木', '火', '土', '金', '水'];
-    
-    // 计算百分比
-    const calculatePercentages = (data) => {
-        const total = data.reduce((sum, value) => sum + value, 0);
-        return data.map(value => Math.round((value/total)*100));
-    };
-    
-    const natalPercentages = calculatePercentages(natalElements);
-    const luckPercentages = calculatePercentages(luckElements);
-    const yearPercentages = calculatePercentages(yearElements);
-    
-    const elementData = {
-        labels: elementLabels.map((label, i) => `${label}`),
-        datasets: [
-            {
-                label: '本命局',
-                data: natalElements,
-                backgroundColor: 'rgba(0, 255, 136, 0.2)',
-                borderColor: 'rgba(0, 255, 136, 1)',
-                borderWidth: 2,
-                pointBackgroundColor: 'rgba(0, 255, 136, 1)',
-                pointHoverRadius: 5
-            },
-            {
-                label: '大运',
-                data: luckElements,
-                backgroundColor: 'rgba(255, 204, 0, 0.2)',
-                borderColor: 'rgba(255, 204, 0, 1)',
-                borderWidth: 2,
-                pointBackgroundColor: 'rgba(255, 204, 0, 1)',
-                pointHoverRadius: 5
-            },
-            {
-                label: '流年',
-                data: yearElements,
-                backgroundColor: 'rgba(0, 153, 255, 0.2)',
-                borderColor: 'rgba(0, 153, 255, 1)',
-                borderWidth: 2,
-                pointBackgroundColor: 'rgba(0, 153, 255, 1)',
-                pointHoverRadius: 5
-            }
-        ]
-    };
-    
-    // 销毁旧图表
-    if (elementChart) {
-        elementChart.destroy();
-    }
-    
-    // 获取图表容器并调整大小和定位
-    const chartContainer = document.getElementById('element-chart').parentElement;
-    chartContainer.style.position = 'relative'; // 添加相对定位
-    chartContainer.style.width = '100%'; // 容器保持100%宽度
-    chartContainer.style.height = 'auto'; // 高度自适应
-    chartContainer.style.margin = '0 auto'; // 水平居中
-    chartContainer.style.overflow = 'visible'; // 允许内容溢出
-    
-    // 调整canvas元素大小和定位
-    const canvas = document.getElementById('element-chart');
-    canvas.style.position = 'relative';
-    canvas.style.width = '150%';
-    canvas.style.height = '150%';
-    canvas.style.left = '-25%'; // 向左移动25%以居中
-    canvas.style.top = '-25%'; // 向上移动25%以居中
-    
-    // 创建新的图表实例
-    elementChart = new Chart(elementChartCtx, {
-        type: 'radar',
-        data: elementData,
-        options: {
-            responsive: true,
-            maintainAspectRatio: false, // 不保持宽高比
-            layout: {
-                padding: {
-                    left: 30,  // 增加左边距
-                    right: 30, // 增加右边距
-                    top: 30,   // 增加上边距
-                    bottom: 30 // 增加下边距
-                }
-            },
-            scales: {
-                r: {
-                    angleLines: {
-                        display: true,
-                        color: 'rgba(0, 240, 255, 0.2)'
-                    },
-                    suggestedMin: 0,
-                    suggestedMax: Math.max(...natalElements, ...luckElements, ...yearElements) + 2,
-                    ticks: {
-                        backdropColor: 'transparent',
-                        color: 'rgba(0, 240, 255, 0.7)',
-                        font: {
-                            family: "'Orbitron', sans-serif",
-                            size: 14
-                        },
-                        stepSize: 1
-                    },
-                    pointLabels: {
-                        color: 'rgba(0, 240, 255, 0.9)',
-                        font: {
-                            family: "'Orbitron', sans-serif",
-                            size: 18
-                        },
-                        padding: 15 // 增加标签与雷达图的间距
-                    },
-                    grid: {
-                        color: 'rgba(0, 240, 255, 0.1)'
-                    }
-                }
-            },
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    align: 'center', // 确保图例居中
-                    labels: {
-                        font: {
-                            family: "'Orbitron', sans-serif",
-                            size: 14
-                        },
-                        color: 'rgba(0, 240, 255, 0.9)',
-                        padding: 20,
-                        boxWidth: 15 // 调整图例方块宽度
-                    }
+        // 计算本命局五行能量
+        const natalElements = baziInfo.elements;
+        
+        // 计算大运五行能量 (模拟数据)
+        const luckElements = calculateLuckElements(baziInfo);
+        
+        // 计算流年五行能量 (模拟数据)
+        const yearElements = calculateYearElements(baziInfo);
+        
+        const elementLabels = ['木', '火', '土', '金', '水'];
+        
+        // 计算百分比
+        const calculatePercentages = (data) => {
+            const total = data.reduce((sum, value) => sum + value, 0);
+            return data.map(value => Math.round((value/total)*100));
+        };
+        
+        const natalPercentages = calculatePercentages(natalElements);
+        const luckPercentages = calculatePercentages(luckElements);
+        const yearPercentages = calculatePercentages(yearElements);
+        
+        const elementData = {
+            labels: elementLabels.map((label, i) => `${label}`),
+            datasets: [
+                {
+                    label: '本命局',
+                    data: natalElements,
+                    backgroundColor: 'rgba(0, 255, 136, 0.2)',
+                    borderColor: 'rgba(0, 255, 136, 1)',
+                    borderWidth: 2,
+                    pointBackgroundColor: 'rgba(0, 255, 136, 1)',
+                    pointHoverRadius: 5
                 },
-                tooltip: {
-                    bodyFont: {
-                        size: 14
-                    },
-                    callbacks: {
-                        label: function(context) {
-                            const datasetLabel = context.dataset.label || '';
-                            const label = context.label || '';
-                            const value = context.raw;
-                            let percentage;
-                            
-                            if (datasetLabel === '本命局') {
-                                percentage = natalPercentages[context.dataIndex];
-                            } else if (datasetLabel === '大运') {
-                                percentage = luckPercentages[context.dataIndex];
-                            } else {
-                                percentage = yearPercentages[context.dataIndex];
+                {
+                    label: '大运',
+                    data: luckElements,
+                    backgroundColor: 'rgba(255, 204, 0, 0.2)',
+                    borderColor: 'rgba(255, 204, 0, 1)',
+                    borderWidth: 2,
+                    pointBackgroundColor: 'rgba(255, 204, 0, 1)',
+                    pointHoverRadius: 5
+                },
+                {
+                    label: '流年',
+                    data: yearElements,
+                    backgroundColor: 'rgba(0, 153, 255, 0.2)',
+                    borderColor: 'rgba(0, 153, 255, 1)',
+                    borderWidth: 2,
+                    pointBackgroundColor: 'rgba(0, 153, 255, 1)',
+                    pointHoverRadius: 5
+                }
+            ]
+        };
+        
+        // 销毁旧图表
+        if (elementChart) {
+            elementChart.destroy();
+        }
+        
+        elementChart = new Chart(elementChartCtx, {
+            type: 'radar',
+            data: elementData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    r: {
+                        angleLines: {
+                            display: true,
+                            color: 'rgba(0, 240, 255, 0.2)'
+                        },
+                        suggestedMin: 0,
+                        suggestedMax: Math.max(...natalElements, ...luckElements, ...yearElements) + 2,
+                        ticks: {
+                            backdropColor: 'transparent',
+                            color: 'rgba(0, 240, 255, 0.7)',
+                            font: {
+                                family: "'Orbitron', sans-serif"
+                            },
+                            stepSize: 1
+                        },
+                        pointLabels: {
+                            color: 'rgba(0, 240, 255, 0.9)',
+                            font: {
+                                family: "'Orbitron', sans-serif",
+                                size: 14
                             }
-                            
-                            return `${datasetLabel} ${label}: ${value} (${percentage}%)`;
+                        },
+                        grid: {
+                            color: 'rgba(0, 240, 255, 0.1)'
                         }
                     }
-                }
-            },
-            elements: {
-                line: {
-                    tension: 0.1,
-                    borderWidth: 2 // 增加线条宽度
                 },
-                point: {
-                    radius: 5,
-                    hoverRadius: 7 // 增加悬停时的半径
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            font: {
+                                family: "'Orbitron', sans-serif",
+                                size: 12
+                            },
+                            color: 'rgba(0, 240, 255, 0.9)'
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const datasetLabel = context.dataset.label || '';
+                                const label = context.label || '';
+                                const value = context.raw;
+                                let percentage;
+                                
+                                if (datasetLabel === '本命局') {
+                                    percentage = natalPercentages[context.dataIndex];
+                                } else if (datasetLabel === '大运') {
+                                    percentage = luckPercentages[context.dataIndex];
+                                } else {
+                                    percentage = yearPercentages[context.dataIndex];
+                                }
+                                
+                                return `${datasetLabel} ${label}: ${value} (${percentage}%)`;
+                            }
+                        }
+                    }
+                },
+                elements: {
+                    line: {
+                        tension: 0.1
+                    }
                 }
             }
-        }
-    });
-    
-    // 添加图表说明
-    elementChartDescription.innerHTML = `
-        <div class="chart-explanation">
-            <h4>五行能量分布说明</h4>
-            <ul>
-                <li><span class="color-indicator" style="background-color: rgba(0, 255, 136, 0.5)"></span> <strong>本命局</strong>: 代表命主先天五行能量分布</li>
-                <li><span class="color-indicator" style="background-color: rgba(255, 204, 0, 0.5)"></span> <strong>大运</strong>: 代表当前大运阶段的五行能量变化</li>
-                <li><span class="color-indicator" style="background-color: rgba(0, 153, 255, 0.5)"></span> <strong>流年</strong>: 代表今年流年的五行能量影响</li>
-            </ul>
-            <p>五行平衡是理想状态，过旺或过弱都可能带来相应问题。图表可直观显示命主在不同时期的五行能量变化。</p>
-        </div>
-    `;
-}
+        });
+        
+        // 添加图表说明
+        elementChartDescription.innerHTML = `
+            <div class="chart-explanation">
+                <h4>五行能量分布说明</h4>
+                <ul>
+                    <li><span class="color-indicator" style="background-color: rgba(0, 255, 136, 0.5)"></span> <strong>本命局</strong>: 代表命主先天五行能量分布</li>
+                    <li><span class="color-indicator" style="background-color: rgba(255, 204, 0, 0.5)"></span> <strong>大运</strong>: 代表当前大运阶段的五行能量变化</li>
+                    <li><span class="color-indicator" style="background-color: rgba(0, 153, 255, 0.5)"></span> <strong>流年</strong>: 代表今年流年的五行能量影响</li>
+                </ul>
+                <p>五行平衡是理想状态，过旺或过弱都可能带来相应问题。图表可直观显示命主在不同时期的五行能量变化。</p>
+            </div>
+        `;
+    }
 
     // 计算大运五行能量 (模拟)
     function calculateLuckElements(baziInfo) {
@@ -2130,51 +2091,37 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 获取八字问答答案
     async function getBaziAnswer(question) {
-    const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
-    const apiKey = 'sk-b2950087a9d5427392762814114b22a9';
-    
-    // 构建专业问答提示词
-    const prompt = `【八字专业问答规范】请严格遵循以下规则回答：
-1. 回答必须基于传统八字命理学知识
-2. 回答应简洁明了，避免冗长
-3. 针对用户问题提供专业分析
-4. 如果问题与当前命盘相关，请结合以下八字信息：
-   姓名：${birthData.name || '未提供'}
-   出生日期：${birthData.date}
-   出生时间：${birthData.time}
-   性别：${birthData.gender === 'male' ? '男' : '女'}
-   八字：${currentPillars.year} ${currentPillars.month} ${currentPillars.day} ${currentPillars.hour}
-
-用户问题：${question}`;
-    
-    try {
-        const response = await fetch(apiUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`
-            },
-            body: JSON.stringify({
-                model: "deepseek-chat",
-                messages: [{
-                    role: "system",
-                    content: "你是一位资深的八字命理大师，精通子平八字、紫微斗数等传统命理学。请严格按照专业规范回答用户问题。"
-                }, {
-                    role: "user",
-                    content: prompt
-                }],
-                temperature: 0.7
-            })
-        });
+        const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
+        const apiKey = 'sk-b2950087a9d5427392762814114b22a9';
         
-        if (!response.ok) throw new Error(`API请求失败: ${response.status}`);
-        
-        const result = await response.json();
-        return result.choices[0].message.content;
-        
-    } catch (error) {
-        console.error('获取问答答案失败:', error);
-        return '获取答案失败，请稍后重试';
+        try {
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`
+                },
+                body: JSON.stringify({
+                    model: "deepseek-chat",
+                    messages: [{
+                        role: "system",
+                        content: "你是一位资深的八字命理大师，精通子平八字、紫微斗数等传统命理学。请用专业但易懂的语言回答用户问题。"
+                    }, {
+                        role: "user",
+                        content: question
+                    }],
+                    temperature: 0.7
+                })
+            });
+            
+            if (!response.ok) throw new Error(`API请求失败: ${response.status}`);
+            
+            const result = await response.json();
+            return result.choices[0].message.content;
+            
+        } catch (error) {
+            console.error('获取问答答案失败:', error);
+            return '获取答案失败，请稍后重试';
+        }
     }
-}
 });
