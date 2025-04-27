@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 缓存对象v1.35c
+    // 缓存对象v1.35a
     const baziCache = {};
     
     // 兜底规则库
@@ -2093,7 +2093,6 @@ document.addEventListener('DOMContentLoaded', function() {
     async function getBaziAnswer(question) {
         const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
         const apiKey = 'sk-b2950087a9d5427392762814114b22a9';
-        
         const prompt = `【八字专业问答规范】请严格遵循以下规则回答：
 1. 回答必须基于传统八字命理学知识
 2. 回答应简洁明了，避免冗长
@@ -2106,23 +2105,30 @@ document.addEventListener('DOMContentLoaded', function() {
    八字：${currentPillars.year} ${currentPillars.month} ${currentPillars.day} ${currentPillars.hour}
 
 用户问题：${question}`;
-
-        const response = await fetch(apiUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`
-            },
-            body: JSON.stringify({
-                model: "deepseek-chat",
-                messages: [{ role: "user", content: prompt }],
-                temperature: 0
-            })
-        });
-        
-        if (!response.ok) throw new Error(`API请求失败: ${response.status}`);
-        const result = await response.json();
-        return result.choices[0].message.content;
+        try {
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`
+                },
+                body: JSON.stringify({
+                    model: "deepseek-chat",
+                    messages: [{
+                        role: "system",
+                        content: "你是一位资深的八字命理大师，精通子平八字、紫微斗数等传统命理学。请用专业但易懂的语言回答用户问题。"
+                    }, {
+                        role: "user",
+                        content: question
+                    }],
+                    temperature: 0.7
+                })
+            });
+            
+            if (!response.ok) throw new Error(`API请求失败: ${response.status}`);
+            
+            const result = await response.json();
+            return result.choices[0].message.content;
             
         } catch (error) {
             console.error('获取问答答案失败:', error);
