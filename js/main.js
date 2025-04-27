@@ -1514,7 +1514,8 @@ document.addEventListener('DOMContentLoaded', function() {
         
         let daysDiff = 15;
         if (targetJieQi) {
-            daysDiff = Math.abs(solar.getDiffDays(targetJieQi));
+            const targetSolar = targetJieQi.getSolar();
+            daysDiff = Math.abs(solar.diffDays(targetSolar)); // 假设库中有 diffDays 方法
         }
         
         const startAge = Math.floor(daysDiff / 3);
