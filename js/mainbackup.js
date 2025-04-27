@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 缓存对象v1.35
+    // 缓存对象v1.35a
     const baziCache = {};
     
     // 兜底规则库
@@ -1502,56 +1502,66 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 计算十年大运
     function calculateDecadeFortune(lunar, gender) {
-        const yearGan = lunar.getYearGan();
-        const yearZhi = lunar.getYearZhi();
-        const isMale = gender === 'male';
-        const isYangYear = ['甲', '丙', '戊', '庚', '壬'].includes(yearGan);
-        const isForward = (isYangYear && isMale) || (!isYangYear && !isMale);
-        
-        const solar = lunar.getSolar();
-        const jieQiName = isForward ? '立春' : '大寒';
-        const targetJieQi = lunar.getJieQi(jieQiName);
-        
-        let daysDiff = 15;
-        if (targetJieQi) {
-            daysDiff = Math.abs(solar.getDiffDays(targetJieQi));
+    const yearGan = lunar.getYearGan();
+    const yearZhi = lunar.getYearZhi();
+    const isMale = gender === 'male';
+    const isYangYear = ['甲', '丙', '戊', '庚', '壬'].includes(yearGan);
+    const isForward = (isYangYear && isMale) || (!isYangYear && !isMale);
+    
+    const solar = lunar.getSolar();
+    const jieQiName = isForward ? '立春' : '大寒';
+    const targetJieQi = lunar.getJieQi(jieQiName);
+    
+    let daysDiff = 15; // 默认值
+    
+    try {
+        // 尝试获取节气日期
+        if (targetJieQi && typeof targetJieQi.getSolar === 'function') {
+            const targetSolar = targetJieQi.getSolar();
+            daysDiff = Math.abs(solar.diffDays(targetSolar));
+        } else if (targetJieQi && targetJieQi.solar) {
+            // 备选方案：如果节气对象有solar属性
+            daysDiff = Math.abs(solar.diffDays(targetJieQi.solar));
         }
-        
-        const startAge = Math.floor(daysDiff / 3);
-        const zhiOrder = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
-        let currentZhiIndex = zhiOrder.indexOf(yearZhi);
-        
-        const ganOrder = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
-        let currentGanIndex = ganOrder.indexOf(yearGan);
-        
-        const fortunes = [];
-        for (let i = 0; i < 8; i++) {
-            currentZhiIndex = isForward ? 
-                (currentZhiIndex + 1) % 12 : 
-                (currentZhiIndex - 1 + 12) % 12;
-            currentGanIndex = isForward ?
-                (currentGanIndex + 1) % 10 :
-                (currentGanIndex - 1 + 10) % 10;
-            
-            const gan = ganOrder[currentGanIndex];
-            const zhi = zhiOrder[currentZhiIndex];
-            const baseScore = 60 + Math.floor(Math.random() * 20);
-            const trendBonus = isForward ? i * 2 : (7 - i) * 2;
-            const score = Math.min(90, baseScore + trendBonus);
-            
-            fortunes.push({
-                ageRange: `${startAge + i * 10}-${startAge + (i + 1) * 10}岁`,
-                ganZhi: gan + zhi,
-                score: score
-            });
-        }
-        
-        return {
-            isForward: isForward,
-            startAge: startAge,
-            fortunes: fortunes
-        };
+    } catch (e) {
+        console.warn('计算节气间隔失败，使用默认值:', e);
     }
+    
+    const startAge = Math.floor(daysDiff / 3);
+    const zhiOrder = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
+    let currentZhiIndex = zhiOrder.indexOf(yearZhi);
+    
+    const ganOrder = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
+    let currentGanIndex = ganOrder.indexOf(yearGan);
+    
+    const fortunes = [];
+    for (let i = 0; i < 8; i++) {
+        currentZhiIndex = isForward ? 
+            (currentZhiIndex + 1) % 12 : 
+            (currentZhiIndex - 1 + 12) % 12;
+        currentGanIndex = isForward ?
+            (currentGanIndex + 1) % 10 :
+            (currentGanIndex - 1 + 10) % 10;
+        
+        const gan = ganOrder[currentGanIndex];
+        const zhi = zhiOrder[currentZhiIndex];
+        const baseScore = 60 + Math.floor(Math.random() * 20);
+        const trendBonus = isForward ? i * 2 : (7 - i) * 2;
+        const score = Math.min(90, baseScore + trendBonus);
+        
+        fortunes.push({
+            ageRange: `${startAge + i * 10}-${startAge + (i + 1) * 10}岁`,
+            ganZhi: gan + zhi,
+            score: score
+        });
+    }
+    
+    return {
+        isForward: isForward,
+        startAge: startAge,
+        fortunes: fortunes
+    };
+}
 
     // 计算赌博运势
     function calculateGamblingFortune(birthData, birthLunar) {
@@ -1848,12 +1858,6 @@ document.addEventListener('DOMContentLoaded', function() {
     * 节气交接日出生者需先判断是否已过节气时刻
     * 跨年逆排时（如小寒前出生）需找上年大雪
     * 节气临界点：出生在立春前X天，年柱是XX（如壬子），因未过立春，顺排的下一个节气应该是立春
-    
-【输出要求】
-1. 必须包含：
-   - 四柱干支（含藏干，十神关系）[以表格方式显示]
-   - 起运时间（精确到岁）
-   - 空亡地支标记
 
 当前日期：${currentDateStr}
 根据以下八字信息进行分析：
@@ -1873,31 +1877,42 @@ document.addEventListener('DOMContentLoaded', function() {
 2 天干地支的合化和刑冲情况
 3 特殊格局判断
 4 喜用和忌凶
-返回格式：
-日主得令、得地、得势的情况：[详细分析]
-天干地支的合化和刑冲情况：[详细分析]
-特殊格局判断：[专旺格，从格，化气格，两神成象格，杂奇格，日贵格，三奇贵人格，禄元互换格，天元一气格，身杀两停格，伤官配印格，伤官见官格，伤官生财格，伤官泄秀格]
-喜用和忌凶：[视觉化总结]
-用Markdown格式，段落与段落之间空一行，使用分隔线，标题和重要内容高亮显示，添加视觉引导元素如箭头、进度条等，不要使用任何特殊符号`;
+格式说明：
+1.用简洁语言清晰的表达
+2.使用标准Markdown语法
+3.进度条用下划线模拟可视化效果
+4.箭头符号仅使用常规字符→
+5.重点突出加粗显示关键信息
+6.每个分析模块之间保留空行
+7.实现专业排版效果`;
                 break;
             case 'career':
                 prompt += `详细分析适合行业情况：
 1 适合行业分析
 2 最佳行业推荐
 3 流年事业运分析
-返回格式：
-流年事业运分析：[以表格方式详细分析](1-5星)
-用Markdown格式，段落与段落之间空一行，使用分隔线，标题和重要内容高亮显示，添加视觉引导元素如箭头、进度条等，不要使用任何特殊符号`;
+格式说明：
+1.用简洁语言清晰的表达
+2.使用标准Markdown语法
+3.进度条用下划线模拟可视化效果
+4.箭头符号仅使用常规字符→
+5.重点突出加粗显示关键信息
+6.每个分析模块之间保留空行
+7.实现专业排版效果`;
                 break;
             case 'wealth':
                 prompt += `详细分析财富情况：
 1 财富格局
-2 流年财运分析
-3 大运财运分析
-返回格式：
-流年财运分析：[以表格方式详细分析](1-5星)
-大运财运分析：[以表格方式详细分析](1-5星)
-用Markdown格式，段落与段落之间空一行，使用分隔线，标题和重要内容高亮显示，添加视觉引导元素如箭头、进度条等，不要使用任何特殊符号`;
+2 流年财运分析(1-5星)
+3 大运财运分析(1-5星)
+格式说明：
+1.用简洁语言清晰的表达
+2.使用标准Markdown语法
+3.进度条用下划线模拟可视化效果
+4.箭头符号仅使用常规字符→
+5.重点突出加粗显示关键信息
+6.每个分析模块之间保留空行
+7.实现专业排版效果`;
                 break;
             case 'elements':
                 prompt += `分析八字五行强弱，燥湿和流通情况：
@@ -1905,30 +1920,41 @@ document.addEventListener('DOMContentLoaded', function() {
 2 五行燥湿分析
 3 五行流通分析
 4 调候建议
-返回格式：
-五行强弱分析[详细分析]
-五行燥湿分析[详细分析]
-五行流通分析[详细分析]
-调候建议：[详细分析]
-用Markdown格式，段落与段落之间空一行，使用分隔线，标题和重要内容高亮显示，添加视觉引导元素如箭头、进度条等，不要使用任何特殊符号`;
+格式说明：
+1.用简洁语言清晰的表达
+2.使用标准Markdown语法
+3.进度条用下划线模拟可视化效果
+4.箭头符号仅使用常规字符→
+5.重点突出加粗显示关键信息
+6.每个分析模块之间保留空行
+7.实现专业排版效果`;
                 break;
             case 'personality':
                 prompt += `分析命主脾气性格：
 1 外在性格分析
 2 内在性格分析
 3 特殊性格分析
-外在性格分析[内容简洁]
-内在性格分析[内容简洁]
-特殊性格分析[内容简洁]
-用Markdown格式，段落与段落之间空一行，使用分隔线，标题和重要内容高亮显示，添加视觉引导元素如箭头、进度条等，不要使用任何特殊符号`;
+格式说明：
+1.用简洁语言清晰的表达
+2.使用标准Markdown语法
+3.进度条用下划线模拟可视化效果
+4.箭头符号仅使用常规字符→
+5.重点突出加粗显示关键信息
+6.每个分析模块之间保留空行
+7.实现专业排版效果`;
                 break;
             case 'children':
                 prompt += `分析子女情况：
-1 子女数量分析
+1 子女数量分析（男女，数量）
 2 子女缘分分析
-子女数量：[男女]
-子女缘分分析：[详细分析]
-用Markdown格式，段落与段落之间空一行，使用分隔线，标题和重要内容高亮显示，添加视觉引导元素如箭头、进度条等，不要使用任何特殊符号`;
+格式说明：
+1.用简洁语言清晰的表达
+2.使用标准Markdown语法
+3.进度条用下划线模拟可视化效果
+4.箭头符号仅使用常规字符→
+5.重点突出加粗显示关键信息
+6.每个分析模块之间保留空行
+7.实现专业排版效果`;
                 break;
             case 'marriage':
                 prompt += `分析婚姻情况：
@@ -1936,10 +1962,14 @@ document.addEventListener('DOMContentLoaded', function() {
 2 桃花年份
 3 流月婚姻吉凶分析
 返回格式：
-适婚年份：[表格方式呈现]
-桃花年份：[表格方式呈现]
-流月婚姻吉凶分析：[表格方式呈现具体建议](1-5星)
-用Markdown格式，段落与段落之间空一行，使用分隔线，标题和重要内容高亮显示，添加视觉引导元素如箭头、进度条等，不要使用任何特殊符号`;
+格式说明：
+1.用简洁语言清晰的表达
+2.使用标准Markdown语法
+3.进度条用下划线模拟可视化效果
+4.箭头符号仅使用常规字符→
+5.重点突出加粗显示关键信息
+6.每个分析模块之间保留空行
+7.实现专业排版效果`;
                 break;
             case 'health':
                 prompt += `详细分析健康状况：
@@ -1947,64 +1977,83 @@ document.addEventListener('DOMContentLoaded', function() {
 2 潜在健康问题
 3 养生建议
 4 流年健康分析
-返回格式：
-流年健康分析：[表格方式呈现具体建议]
-用Markdown格式，段落与段落之间空一行，使用分隔线，标题和重要内容高亮显示，添加视觉引导元素如箭头、进度条等，不要使用任何特殊符号`;
+格式说明：
+1.用简洁语言清晰的表达
+2.使用标准Markdown语法
+3.进度条用下划线模拟可视化效果
+4.箭头符号仅使用常规字符→
+5.重点突出加粗显示关键信息
+6.每个分析模块之间保留空行
+7.实现专业排版效果`;
                 break;
             case 'annual-fortune':
                 prompt += `详细分析当前流年运势：
-1 流年事业吉凶分析
-2 流年婚姻吉凶分析
-3 流年重大事件吉凶分析
-返回格式：
-流年事业吉凶分析：[以表格方式详细分析](1-5星)
-流年婚姻吉凶分析：[以表格方式详细分析](1-5星)
-流年重大事件吉凶分析：[以表格方式详细分析](1-5星)
-用Markdown格式，段落与段落之间空一行，使用分隔线，标题和重要内容高亮显示，添加视觉引导元素如箭头、进度条等，不要使用任何特殊符号`;
+1 流年事业吉凶分析(1-5星)
+2 流年婚姻吉凶分析(1-5星)
+3 流年重大事件吉凶分析(1-5星)
+格式说明：
+1.用简洁语言清晰的表达
+2.使用标准Markdown语法
+3.进度条用下划线模拟可视化效果
+4.箭头符号仅使用常规字符→
+5.重点突出加粗显示关键信息
+6.每个分析模块之间保留空行
+7.实现专业排版效果`;
                 break;
             case 'daily-fortune':
                 prompt += `详细分析每日运势：
 1 每日吉凶时辰
 2 每日宜忌事项
 3 每日冲煞方位
-返回格式：
-每日吉凶时辰：[表格方式详细分析]
-每日宜忌事项：[表格方式详细分析]
-每日冲煞方位：[表格方式详细分析]
-用Markdown格式，段落与段落之间空一行，使用分隔线，标题和重要内容高亮显示，添加视觉引导元素如箭头、进度条等，不要使用任何特殊符号`;
+格式说明：
+1.用简洁语言清晰的表达
+2.使用标准Markdown语法
+3.进度条用下划线模拟可视化效果
+4.箭头符号仅使用常规字符→
+5.重点突出加粗显示关键信息
+6.每个分析模块之间保留空行
+7.实现专业排版效果`;
                 break;
             case 'milestones':
                 prompt += `分析一生重要节点和重大灾祸：
 1 一生重要事件分析
 2 一生重大灾祸分析
 3 如何趋吉避凶
-返回格式：
-一生重要事件分析：[以表格方式详细分析]
-一生重大灾祸分析：[以表格方式详细分析]
-如何趋吉避凶：[详细分析]
-用Markdown格式，段落与段落之间空一行，使用分隔线，标题和重要内容高亮显示，添加视觉引导元素如箭头、进度条等，不要使用任何特殊符号`;
+格式说明：
+1.用简洁语言清晰的表达
+2.使用标准Markdown语法
+3.进度条用下划线模拟可视化效果
+4.箭头符号仅使用常规字符→
+5.重点突出加粗显示关键信息
+6.每个分析模块之间保留空行
+7.实现专业排版效果`;
                 break;
             case 'decade-fortune':
                 prompt += `分析十年大运走势：
-1 大运事业吉凶分析
-2 大运婚姻吉凶分析
-3 大运重大事件吉凶分析
-返回格式：
-大运事业吉凶分析：[以表格方式详细分析](1-5星)
-大运婚姻吉凶分析：[以表格方式详细分析](1-5星)
-大运重大事件吉凶分析：[以表格方式详细分析] (1-5星)
-用Markdown格式，段落与段落之间空一行，使用分隔线，标题和重要内容高亮显示，添加视觉引导元素如箭头、进度条等，不要使用任何特殊符号`;
+1 全部大运财运吉凶分析(1-5星)
+2 大运重大事件吉凶分析(1-5星)
+格式说明：
+1.用简洁语言清晰的表达
+2.使用标准Markdown语法
+3.进度条用下划线模拟可视化效果
+4.箭头符号仅使用常规字符→
+5.重点突出加粗显示关键信息
+6.每个分析模块之间保留空行
+7.实现专业排版效果`;
                 break;
             case 'monthly-fortune':
                 prompt += `详细分析今年每月运势：
-1 事业吉凶分析
-2 婚姻吉凶分析
-3 重大事件吉凶分析
-返回格式：
-事业吉凶分析：[以表格方式详细分析](1-5星)
-婚姻吉凶分析：[以表格方式详细分析](1-5星)
-重大事件吉凶分析：[以表格方式详细分析] (1-5星)
-用Markdown格式，段落与段落之间空一行，使用分隔线，标题和重要内容高亮显示，添加视觉引导元素如箭头、进度条等，不要使用任何特殊符号`;
+1 事业吉凶分析(1-5星)
+2 婚姻吉凶分析(1-5星)
+3 重大事件吉凶分析(1-5星)
+格式说明：
+1.用简洁语言清晰的表达
+2.使用标准Markdown语法
+3.进度条用下划线模拟可视化效果
+4.箭头符号仅使用常规字符→
+5.重点突出加粗显示关键信息
+6.每个分析模块之间保留空行
+7.实现专业排版效果`;
                 break;
             default:
                 prompt += `请分析${section}相关内容`;
