@@ -38,9 +38,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const birthTimeInput = document.getElementById('birth-time');
     const personalityTraits = document.getElementById('personality-traits');
     const languageBtns = document.querySelectorAll('.language-btn');
-    const yearStem = document.getElementById('year-stem');
-    const yearBranch = document.getElementById('year-branch');
-    const yearHiddenStems = document.getElementById('year-hidden-stems');
+    const yearStemCurrent = document.getElementById('year-stem-current');
+    const yearBranchCurrent = document.getElementById('year-branch-current');
+    const yearHiddenStemsCurrent = document.getElementById('year-hidden-stems-current');
     const monthStem = document.getElementById('month-stem');
     const monthBranch = document.getElementById('month-branch');
     const monthHiddenStems = document.getElementById('month-hidden-stems');
@@ -290,6 +290,11 @@ document.addEventListener('DOMContentLoaded', function() {
         baziQaResponse.innerHTML = '';
         baziQaResponse.style.display = 'none';
         baziQaLoading.style.display = 'none';
+
+        // 添加这3行 ↓↓↓
+        if (yearStemCurrent) yearStemCurrent.textContent = '';
+        if (yearBranchCurrent) yearBranchCurrent.textContent = '';
+        if (yearHiddenStemsCurrent) yearHiddenStemsCurrent.textContent = '';
     }
 
     // 初始化加载按钮
@@ -1799,6 +1804,11 @@ document.addEventListener('DOMContentLoaded', function() {
             hour: info.hourStem + info.hourBranch,
             luck: info.luckStem + info.luckBranch,
             currentYear: info.yearStemCurrent + info.yearBranchCurrent
+        // 添加这3行 ↓↓↓
+        if (yearStemCurrent) yearStemCurrent.textContent = info.yearStemCurrent || '';
+        if (yearBranchCurrent) yearBranchCurrent.textContent = info.yearBranchCurrent || '';
+        if (yearHiddenStemsCurrent) yearHiddenStemsCurrent.textContent = info.yearHiddenStemsCurrent || '';
+            
         };
     }
 
