@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 缓存对象v1.35a
+    // 缓存对象v1.35
     const baziCache = {};
     
     // 兜底规则库
@@ -25,9 +25,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 "direction": "东南",
                 "hour": "15-17",
                 "score": 3
-            },
-            "luckPillars": ["癸卯", "甲辰", "乙巳", "丙午", "丁未", "戊申", "己酉", "庚戌"],
-            "currentYearPillar": "壬寅"
+            }
         }
     };
 
@@ -71,10 +69,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const baziQaSubmit = document.getElementById('bazi-qa-submit');
     const baziQaResponse = document.getElementById('bazi-qa-response');
     const baziQaLoading = document.getElementById('bazi-qa-loading');
-    
-    // 新增的大运和流年元素
-    const luckPillarsContainer = document.getElementById('luck-pillars-container');
-    const currentYearPillarContainer = document.getElementById('current-year-pillar-container');
 
     // 全局变量
     let elementChart;
@@ -234,10 +228,6 @@ document.addEventListener('DOMContentLoaded', function() {
         hourStem.textContent = '';
         hourBranch.textContent = '';
         hourHiddenStems.textContent = '';
-        
-        // 重置大运和流年显示
-        luckPillarsContainer.innerHTML = '';
-        currentYearPillarContainer.innerHTML = '';
         
         // 重置分数显示
         fateLevel.textContent = '';
@@ -559,19 +549,16 @@ document.addEventListener('DOMContentLoaded', function() {
             dayHiddenStems: dayHiddenMatch ? dayHiddenMatch[1] : '',
             hourHiddenStems: hourHiddenMatch ? hourHiddenMatch[1] : '',
             elements: elementsMatch ? JSON.parse(elementsMatch[1]) : [0, 0, 0, 0, 0],
-            personality: personalityMatch ? personalityMatch[1] : '',
-            luckPillars: ["癸卯", "甲辰", "乙巳", "丙午", "丁未", "戊申", "己酉", "庚戌"], // 默认大运
-            currentYearPillar: "壬寅" // 默认流年
+            personality: personalityMatch ? personalityMatch[1] : ''
         };
     }
 
     // 初始化元素图表 - 修改为显示本命局+大运+流年
     function initElementChart(baziInfo) {
-        if (!elementChartDescription) {
-            console.warn('elementChartDescription 元素未找到，图表描述将不会显示');
-            elementChartDescription = document.createElement('div'); // 创建回退元素
-        }
-        
+         if (!elementChartDescription) {
+        console.warn('elementChartDescription 元素未找到，图表描述将不会显示');
+        elementChartDescription = document.createElement('div'); // 创建回退元素
+    }
         // 计算本命局五行能量
         const natalElements = baziInfo.elements;
         
@@ -1493,10 +1480,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const decadeFortune = calculateDecadeFortune(lunar, birthData.gender);
         const gamblingFortune = calculateGamblingFortune(birthData, lunar);
         
-        // 计算大运和流年
-        const luckPillars = calculateLuckPillars(lunar, birthData.gender);
-        const currentYearPillar = calculateCurrentYearPillar(lunar);
-        
         return {
             yearStem: yearGan,
             yearBranch: yearZhi,
@@ -1513,48 +1496,8 @@ document.addEventListener('DOMContentLoaded', function() {
             elements,
             personality,
             decadeFortune,
-            gamblingFortune,
-            luckPillars,
-            currentYearPillar
+            gamblingFortune
         };
-    }
-
-    // 计算大运
-    function calculateLuckPillars(lunar, gender) {
-        const yearGan = lunar.getYearGan();
-        const yearZhi = lunar.getYearZhi();
-        const isMale = gender === 'male';
-        const isYangYear = ['甲', '丙', '戊', '庚', '壬'].includes(yearGan);
-        const isForward = (isYangYear && isMale) || (!isYangYear && !isMale);
-        
-        const ganOrder = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
-        const zhiOrder = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
-        
-        let currentGanIndex = ganOrder.indexOf(yearGan);
-        let currentZhiIndex = zhiOrder.indexOf(yearZhi);
-        
-        const luckPillars = [];
-        for (let i = 0; i < 8; i++) {
-            currentGanIndex = isForward ? 
-                (currentGanIndex + 1) % 10 : 
-                (currentGanIndex - 1 + 10) % 10;
-            currentZhiIndex = isForward ? 
-                (currentZhiIndex + 1) % 12 : 
-                (currentZhiIndex - 1 + 12) % 12;
-            
-            const gan = ganOrder[currentGanIndex];
-            const zhi = zhiOrder[currentZhiIndex];
-            luckPillars.push(gan + zhi);
-        }
-        
-        return luckPillars;
-    }
-
-    // 计算流年
-    function calculateCurrentYearPillar(lunar) {
-        const currentSolar = Solar.fromDate(new Date());
-        const currentLunar = currentSolar.getLunar();
-        return currentLunar.getYearInGanZhi();
     }
 
     // 计算十年大运
@@ -1814,73 +1757,6 @@ document.addEventListener('DOMContentLoaded', function() {
             day: info.dayStem + info.dayBranch,
             hour: info.hourStem + info.hourBranch
         };
-        
-        // 显示大运
-        displayLuckPillars(info.luckPillars);
-        
-        // 显示流年
-        displayCurrentYearPillar(info.currentYearPillar);
-    }
-
-    // 显示大运
-    function displayLuckPillars(luckPillars) {
-        luckPillarsContainer.innerHTML = '';
-        
-        const title = document.createElement('div');
-        title.className = 'pillar-title';
-        title.textContent = '大运';
-        luckPillarsContainer.appendChild(title);
-        
-        const pillarsContainer = document.createElement('div');
-        pillarsContainer.className = 'pillars-container';
-        
-        luckPillars.forEach((pillar, index) => {
-            const pillarElement = document.createElement('div');
-            pillarElement.className = 'pillar';
-            
-            const stem = document.createElement('span');
-            stem.className = 'pillar-stem';
-            stem.textContent = pillar.charAt(0);
-            setElementColors(stem, pillar.charAt(0));
-            
-            const branch = document.createElement('span');
-            branch.className = 'pillar-branch';
-            branch.textContent = pillar.charAt(1);
-            setElementColors(branch, pillar.charAt(1));
-            
-            pillarElement.appendChild(stem);
-            pillarElement.appendChild(branch);
-            pillarsContainer.appendChild(pillarElement);
-        });
-        
-        luckPillarsContainer.appendChild(pillarsContainer);
-    }
-
-    // 显示流年
-    function displayCurrentYearPillar(currentYearPillar) {
-        currentYearPillarContainer.innerHTML = '';
-        
-        const title = document.createElement('div');
-        title.className = 'pillar-title';
-        title.textContent = '流年';
-        currentYearPillarContainer.appendChild(title);
-        
-        const pillarElement = document.createElement('div');
-        pillarElement.className = 'pillar';
-        
-        const stem = document.createElement('span');
-        stem.className = 'pillar-stem';
-        stem.textContent = currentYearPillar.charAt(0);
-        setElementColors(stem, currentYearPillar.charAt(0));
-        
-        const branch = document.createElement('span');
-        branch.className = 'pillar-branch';
-        branch.textContent = currentYearPillar.charAt(1);
-        setElementColors(branch, currentYearPillar.charAt(1));
-        
-        pillarElement.appendChild(stem);
-        pillarElement.appendChild(branch);
-        currentYearPillarContainer.appendChild(pillarElement);
     }
 
     // 设置元素颜色
