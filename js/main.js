@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 缓存对象v1.35a
+    // 缓存对象v1.35b
     const baziCache = {};
     
     // 兜底规则库
@@ -2221,7 +2221,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     'Authorization': `Bearer ${apiKey}`
                 },
                 body: JSON.stringify({
-                    model: "deepseek-reasoner",
+                    model: "deepseek-chat",
                     messages: [{ role: "user", content: prompt }],
                     temperature: 0,
                     seed: 12345 // 固定seed值确保相同输入得到相同输出
@@ -2288,7 +2288,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 'Authorization': `Bearer ${apiKey}`
             },
             body: JSON.stringify({
-                model: "deepseek-reasoner",
+                model: "deepseek-chat",
                 messages: [{
                     role: "system",
                     content: "你是一位资深的八字命理大师，精通子平八字、紫微斗数等传统命理学。请严格按照八字专业问答规范回答用户问题。"
