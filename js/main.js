@@ -1946,34 +1946,34 @@ document.addEventListener('DOMContentLoaded', function() {
             hour: info.hourStem + info.hourBranch
         };
         function setupTenGodsClickHandlers() {
-    // 获取所有天干地支元素 - 确保这些元素有正确的class
-    const stemsAndBranches = document.querySelectorAll('.bazi-pillar span, .hidden-stems span');
+    // 获取所有可点击的天干地支元素
+    const clickableElements = document.querySelectorAll('.bazi-clickable');
     
-    stemsAndBranches.forEach(element => {
-        // 移除已有的事件监听器，避免重复绑定
+    clickableElements.forEach(element => {
+        // 移除旧的事件监听器避免重复绑定
         element.removeEventListener('click', handleTenGodClick);
         // 添加新的事件监听器
         element.addEventListener('click', handleTenGodClick);
     });
-    
-    function handleTenGodClick() {
-        const char = this.textContent;
-        const dayStem = document.getElementById('day-stem').textContent; // 获取日干
+
+    function handleTenGodClick(event) {
+        const clickedElement = event.currentTarget;
+        const char = clickedElement.textContent.trim();
+        const dayStem = document.getElementById('day-stem').textContent.trim();
         
         // 从十神映射表中查找对应的十神
         let tenGod = '';
         if (tenGodsMap[dayStem] && tenGodsMap[dayStem][char]) {
             tenGod = tenGodsMap[dayStem][char];
+        } else {
+            tenGod = '未知十神';
         }
         
-        // 显示十神信息
-        if (tenGod) {
-            showTenGodTooltip(this, tenGod);
-        }
+        showTenGodTooltip(clickedElement, tenGod);
     }
 }
 
-function showTenGodTooltip(element, tenGod) {
+function showTenGodTooltip(element, content) {
     // 移除现有的tooltip
     const existingTooltip = document.querySelector('.ten-god-tooltip');
     if (existingTooltip) {
@@ -1983,19 +1983,12 @@ function showTenGodTooltip(element, tenGod) {
     // 创建新的tooltip
     const tooltip = document.createElement('div');
     tooltip.className = 'ten-god-tooltip';
-    tooltip.textContent = tenGod;
+    tooltip.textContent = content;
     
     // 定位tooltip
     const rect = element.getBoundingClientRect();
-    tooltip.style.position = 'absolute';
     tooltip.style.left = `${rect.left + window.scrollX}px`;
-    tooltip.style.top = `${rect.top + window.scrollY - 30}px`;
-    tooltip.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
-    tooltip.style.color = 'white';
-    tooltip.style.padding = '5px 10px';
-    tooltip.style.borderRadius = '4px';
-    tooltip.style.zIndex = '1000';
-    tooltip.style.fontSize = '14px';
+    tooltip.style.top = `${rect.top + window.scrollY - 35}px`;
     
     // 添加到文档中
     document.body.appendChild(tooltip);
