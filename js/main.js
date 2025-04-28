@@ -1594,303 +1594,62 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 本地计算八字
     function calculateBaziLocally(birthData) {
-    const dateParts = birthData.date.split('-');
-    const year = parseInt(dateParts[0]);
-    const month = parseInt(dateParts[1]);
-    const day = parseInt(dateParts[2]);
-    const timeParts = birthData.time.split(':');
-    const hour = parseInt(timeParts[0]);
-    const minute = parseInt(timeParts[1] || 0);
-    
-    const solar = Solar.fromYmdHms(year, month, day, hour, minute, 0);
-    const lunar = solar.getLunar();
-    const bazi = lunar.getEightChar();
-    
-    const yearGan = bazi.getYearGan();
-    const yearZhi = bazi.getYearZhi();
-    const monthGan = bazi.getMonthGan();
-    const monthZhi = bazi.getMonthZhi();
-    const dayGan = bazi.getDayGan();
-    const dayZhi = bazi.getDayZhi();
-    const hourGan = bazi.getTimeGan();
-    const hourZhi = bazi.getTimeZhi();
-    
-    const yearHiddenStems = getHiddenStems(yearZhi);
-    const monthHiddenStems = getHiddenStems(monthZhi);
-    const dayHiddenStems = getHiddenStems(dayZhi);
-    const hourHiddenStems = getHiddenStems(hourZhi);
-    
-    const elements = calculateElementEnergy({
-        year: yearGan + yearZhi,
-        month: monthGan + monthZhi,
-        day: dayGan + dayZhi,
-        hour: hourGan + hourZhi
-    });
-    
-    // 获取格局、用神和忌神
-    const patternInfo = getPatternInfo(dayGan, {
-        year: yearGan + yearZhi,
-        month: monthGan + monthZhi,
-        day: dayGan + dayZhi,
-        hour: hourGan + hourZhi
-    });
-    
-    const decadeFortune = calculateDecadeFortune(lunar, birthData.gender);
-    const gamblingFortune = calculateGamblingFortune(birthData, lunar);
-    
-    return {
-        yearStem: yearGan,
-        yearBranch: yearZhi,
-        monthStem: monthGan,
-        monthBranch: monthZhi,
-        dayStem: dayGan,
-        dayBranch: dayZhi,
-        hourStem: hourGan,
-        hourBranch: hourZhi,
-        yearHiddenStems: yearHiddenStems,
-        monthHiddenStems: monthHiddenStems,
-        dayHiddenStems: dayHiddenStems,
-        hourHiddenStems: hourHiddenStems,
-        elements,
-        pattern: patternInfo.pattern,  // 格局
-        usefulGods: patternInfo.usefulGods,  // 用神
-        harmfulGods: patternInfo.harmfulGods,  // 忌神
-        decadeFortune,
-        gamblingFortune
-    };
-}
-
-// 新增函数：获取格局、用神和忌神信息
-function getPatternInfo(dayStem, pillars) {
-    // 判断格局类型
-    const patternType = determinePatternType(dayStem, pillars);
-    
-    // 根据格局类型确定用神和忌神
-    let usefulGods = [];
-    let harmfulGods = [];
-    
-    if (patternType === '身强') {
-        usefulGods = getUsefulGodsForStrong(dayStem);
-        harmfulGods = getHarmfulGodsForStrong(dayStem);
-    } else if (patternType === '身弱') {
-        usefulGods = getUsefulGodsForWeak(dayStem);
-        harmfulGods = getHarmfulGodsForWeak(dayStem);
-    } else if (patternType === '从强') {
-        usefulGods = getUsefulGodsForCongStrong(dayStem);
-        harmfulGods = getHarmfulGodsForCongStrong(dayStem);
-    } else if (patternType === '从弱') {
-        usefulGods = getUsefulGodsForCongWeak(dayStem);
-        harmfulGods = getHarmfulGodsForCongWeak(dayStem);
+        const dateParts = birthData.date.split('-');
+        const year = parseInt(dateParts[0]);
+        const month = parseInt(dateParts[1]);
+        const day = parseInt(dateParts[2]);
+        const timeParts = birthData.time.split(':');
+        const hour = parseInt(timeParts[0]);
+        const minute = parseInt(timeParts[1] || 0);
+        
+        const solar = Solar.fromYmdHms(year, month, day, hour, minute, 0);
+        const lunar = solar.getLunar();
+        const bazi = lunar.getEightChar();
+        
+        const yearGan = bazi.getYearGan();
+        const yearZhi = bazi.getYearZhi();
+        const monthGan = bazi.getMonthGan();
+        const monthZhi = bazi.getMonthZhi();
+        const dayGan = bazi.getDayGan();
+        const dayZhi = bazi.getDayZhi();
+        const hourGan = bazi.getTimeGan();
+        const hourZhi = bazi.getTimeZhi();
+        
+        const yearHiddenStems = getHiddenStems(yearZhi);
+        const monthHiddenStems = getHiddenStems(monthZhi);
+        const dayHiddenStems = getHiddenStems(dayZhi);
+        const hourHiddenStems = getHiddenStems(hourZhi);
+        
+        const elements = calculateElementEnergy({
+            year: yearGan + yearZhi,
+            month: monthGan + monthZhi,
+            day: dayGan + dayZhi,
+            hour: hourGan + hourZhi
+        });
+        
+        const personality = getPersonalityTraits(dayGan);
+        const decadeFortune = calculateDecadeFortune(lunar, birthData.gender);
+        const gamblingFortune = calculateGamblingFortune(birthData, lunar);
+        
+        return {
+            yearStem: yearGan,
+            yearBranch: yearZhi,
+            monthStem: monthGan,
+            monthBranch: monthZhi,
+            dayStem: dayGan,
+            dayBranch: dayZhi,
+            hourStem: hourGan,
+            hourBranch: hourZhi,
+            yearHiddenStems: yearHiddenStems,
+            monthHiddenStems: monthHiddenStems,
+            dayHiddenStems: dayHiddenStems,
+            hourHiddenStems: hourHiddenStems,
+            elements,
+            personality,
+            decadeFortune,
+            gamblingFortune
+        };
     }
-    
-    return {
-        pattern: patternType,
-        usefulGods: usefulGods.join('、'),
-        harmfulGods: harmfulGods.join('、')
-    };
-}
-
-// 判断格局类型
-function determinePatternType(dayStem, pillars) {
-    const stems = [
-        pillars.year.charAt(0),
-        pillars.month.charAt(0),
-        pillars.hour.charAt(0)
-    ];
-    const branches = [
-        pillars.year.charAt(1),
-        pillars.month.charAt(1),
-        pillars.day.charAt(1),
-        pillars.hour.charAt(1)
-    ];
-    
-    // 计算日主得令、得地、得势情况
-    let score = 0;
-    
-    // 得令判断（月支是否生助日主）
-    const monthBranch = pillars.month.charAt(1);
-    if (isSameElement(monthBranch, dayStem) || isGenerateElement(monthBranch, dayStem)) {
-        score += 2;
-    }
-    
-    // 得地判断（地支是否有日主的根）
-    branches.forEach(branch => {
-        if (isSameElement(branch, dayStem)) {
-            score += 1;
-        }
-    });
-    
-    // 得势判断（天干是否有比劫）
-    stems.forEach(stem => {
-        if (isSameElement(stem, dayStem)) {
-            score += 1;
-        }
-    });
-    
-    // 判断格局类型
-    if (score >= 5) return '身强';
-    if (score <= 2) return '身弱';
-    
-    // 检查是否从格
-    if (isCongQiangGe(dayStem, stems, branches)) {
-        return '从强';
-    }
-    if (isCongRuoGe(dayStem, stems, branches)) {
-        return '从弱';
-    }
-    
-    return '中和';
-}
-
-// 身强格局的用神
-function getUsefulGodsForStrong(dayStem) {
-    const elementMap = {
-        '甲': ['金', '火', '土'],
-        '乙': ['金', '火', '土'],
-        '丙': ['水', '金'],
-        '丁': ['水', '金'],
-        '戊': ['木', '金', '水'],
-        '己': ['木', '金', '水'],
-        '庚': ['火', '木'],
-        '辛': ['火', '木'],
-        '壬': ['土', '火', '木'],
-        '癸': ['土', '火', '木']
-    };
-    return elementMap[dayStem] || [];
-}
-
-// 身强格局的忌神
-function getHarmfulGodsForStrong(dayStem) {
-    const elementMap = {
-        '甲': ['水', '木'],
-        '乙': ['水', '木'],
-        '丙': ['木', '火'],
-        '丁': ['木', '火'],
-        '戊': ['火', '土'],
-        '己': ['火', '土'],
-        '庚': ['土', '金'],
-        '辛': ['土', '金'],
-        '壬': ['金', '水'],
-        '癸': ['金', '水']
-    };
-    return elementMap[dayStem] || [];
-}
-
-// 身弱格局的用神
-function getUsefulGodsForWeak(dayStem) {
-    const elementMap = {
-        '甲': ['水', '木'],
-        '乙': ['水', '木'],
-        '丙': ['木', '火'],
-        '丁': ['木', '火'],
-        '戊': ['火', '土'],
-        '己': ['火', '土'],
-        '庚': ['土', '金'],
-        '辛': ['土', '金'],
-        '壬': ['金', '水'],
-        '癸': ['金', '水']
-    };
-    return elementMap[dayStem] || [];
-}
-
-// 身弱格局的忌神
-function getHarmfulGodsForWeak(dayStem) {
-    const elementMap = {
-        '甲': ['金', '火', '土'],
-        '乙': ['金', '火', '土'],
-        '丙': ['水', '金'],
-        '丁': ['水', '金'],
-        '戊': ['木', '金', '水'],
-        '己': ['木', '金', '水'],
-        '庚': ['火', '木'],
-        '辛': ['火', '木'],
-        '壬': ['土', '火', '木'],
-        '癸': ['土', '火', '木']
-    };
-    return elementMap[dayStem] || [];
-}
-
-// 从强格局的用神
-function getUsefulGodsForCongStrong(dayStem) {
-    return getUsefulGodsForStrong(dayStem);
-}
-
-// 从强格局的忌神
-function getHarmfulGodsForCongStrong(dayStem) {
-    return getHarmfulGodsForStrong(dayStem);
-}
-
-// 从弱格局的用神
-function getUsefulGodsForCongWeak(dayStem) {
-    return getUsefulGodsForWeak(dayStem);
-}
-
-// 从弱格局的忌神
-function getHarmfulGodsForCongWeak(dayStem) {
-    return getHarmfulGodsForWeak(dayStem);
-}
-
-// 在displayBasicInfo函数中，修改显示格局、用神和忌神
-function displayBasicInfo(info) {
-    const nameDisplay = document.getElementById('user-name-display');
-    const birthDisplay = document.getElementById('user-birth-display');
-    const hour = parseInt(birthData.time.split(':')[0]);
-    const timeMap = {
-        23: '子时 (23-1)', 0: '子时 (23-1)',
-        1: '丑时 (1-3)', 3: '寅时 (3-5)',
-        5: '卯时 (5-7)', 7: '辰时 (7-9)',
-        9: '巳时 (9-11)', 11: '午时 (11-13)',
-        13: '未时 (13-15)', 15: '申时 (15-17)',
-        17: '酉时 (17-19)', 19: '戌时 (19-21)',
-        21: '亥时 (21-23)'
-   };
-    nameDisplay.textContent = birthData.name || '匿名用户';
-    birthDisplay.textContent = birthData.date.replace(/-/g, '/') + ' ' + timeMap[hour];
-    
-    yearStem.textContent = info.yearStem;
-    yearBranch.textContent = info.yearBranch;
-    yearHiddenStems.textContent = info.yearHiddenStems;
-    monthStem.textContent = info.monthStem;
-    monthBranch.textContent = info.monthBranch;
-    monthHiddenStems.textContent = info.monthHiddenStems;
-    dayStem.textContent = info.dayStem;
-    dayBranch.textContent = info.dayBranch;
-    dayHiddenStems.textContent = info.dayHiddenStems;
-    hourStem.textContent = info.hourStem;
-    hourBranch.textContent = info.hourBranch;
-    hourHiddenStems.textContent = info.hourHiddenStems;
-    
-    setElementColors(yearStem, info.yearStem);
-    setElementColors(yearBranch, info.yearBranch);
-    setElementColors(monthStem, info.monthStem);
-    setElementColors(monthBranch, info.monthBranch);
-    setElementColors(dayStem, info.dayStem);
-    setElementColors(dayBranch, info.dayBranch);
-    setElementColors(hourStem, info.hourStem);
-    setElementColors(hourBranch, info.hourBranch);
-    
-    setHiddenStemsColors(yearHiddenStems, info.yearHiddenStems);
-    setHiddenStemsColors(monthHiddenStems, info.monthHiddenStems);
-    setHiddenStemsColors(dayHiddenStems, info.dayHiddenStems);
-    setHiddenStemsColors(hourHiddenStems, info.hourHiddenStems);
-    
-    // 修改这里：将"命主性格"替换为格局、用神和忌神
-    personalityTraits.innerHTML = `
-        <div><strong>格局：</strong><span class="pattern-type">${info.pattern}</span></div>
-        <div><strong>用神：</strong><span class="useful-gods">${info.usefulGods}</span></div>
-        <div><strong>忌神：</strong><span class="harmful-gods">${info.harmfulGods}</span></div>
-    `;
-    
-    currentPillars = {
-        year: info.yearStem + info.yearBranch,
-        month: info.monthStem + info.monthBranch,
-        day: info.dayStem + info.dayBranch,
-        hour: info.hourStem + info.hourBranch
-    };
-
-    // 设置十神点击事件
-    setupTenGodsClickHandlers();
-}
 
     // 计算十年大运
     function calculateDecadeFortune(lunar, gender) {
@@ -2151,14 +1910,7 @@ function displayBasicInfo(info) {
         setHiddenStemsColors(dayHiddenStems, info.dayHiddenStems);
         setHiddenStemsColors(hourHiddenStems, info.hourHiddenStems);
         
-        const personalityTraits = document.getElementById('personality-traits');
-        if (personalityTraits) {
-            personalityTraits.innerHTML = `
-        <div><strong>格局：</strong><span class="pattern-type">${info.pattern || '分析中...'}</span></div>
-        <div><strong>用神：</strong><span class="useful-gods">${info.usefulGods || '分析中...'}</span></div>
-        <div><strong>忌神：</strong><span class="harmful-gods">${info.harmfulGods || '分析中...'}</span></div>
-            `;
-        }
+        personalityTraits.textContent = `命主性格：${info.personality}`;
         
         currentPillars = {
             year: info.yearStem + info.yearBranch,
