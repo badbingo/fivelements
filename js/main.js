@@ -1,6 +1,31 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 缓存对象v1.35b
-    const baziCache = {};
+    // 增强版缓存对象v2.0
+    const baziCache = {
+        data: {},
+        get: function(key) {
+            const item = this.data[key];
+            if (item && item.expiry > Date.now()) {
+                return item.value;
+            }
+            return null;
+        },
+        set: function(key, value, ttl = 3600000) { // 默认1小时缓存
+            this.data[key] = {
+                value: value,
+                expiry: Date.now() + ttl
+            };
+        },
+        clearExpired: function() {
+            for (const key in this.data) {
+                if (this.data[key].expiry <= Date.now()) {
+                    delete this.data[key];
+                }
+            }
+        }
+    };
+    
+    // 每10分钟清理一次过期缓存
+    setInterval(() => baziCache.clearExpired(), 600000);
     
     // 兜底规则库
     const fallbackRules = {
@@ -26,6 +51,87 @@ document.addEventListener('DOMContentLoaded', function() {
                 "hour": "15-17",
                 "score": 3
             }
+        }
+    };
+
+    // API请求队列和批处理系统
+    const apiRequestQueue = {
+        queue: [],
+        batchSize: 3,
+        processing: false,
+        addRequest: function(request) {
+            return new Promise((resolve, reject) => {
+                this.queue.push({ request, resolve, reject });
+                if (!this.processing) {
+                    this.processQueue();
+                }
+            });
+        },
+        processQueue: async function() {
+            this.processing = true;
+            while (this.queue.length > 0) {
+                const batch = this.queue.splice(0, this.batchSize);
+                try {
+                    const results = await Promise.all(
+                        batch.map(item => this.executeRequest(item.request))
+                    );
+                    results.forEach((result, index) => {
+                        batch[index].resolve(result);
+                    });
+                } catch (error) {
+                    batch.forEach(item => {
+                        item.reject(error);
+                    });
+                }
+                // 批处理间隔，避免速率限制
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+            this.processing = false;
+        },
+        executeRequest: async function(request) {
+            const { url, options, cacheKey } = request;
+            
+            // 检查缓存
+            const cachedResponse = baziCache.get(cacheKey);
+            if (cachedResponse) {
+                return cachedResponse;
+            }
+            
+            // 重试机制
+            let retries = 3;
+            let lastError = null;
+            
+            while (retries > 0) {
+                try {
+                    const response = await fetch(url, options);
+                    
+                    if (!response.ok) {
+                        throw new Error(`API请求失败: ${response.status}`);
+                    }
+                    
+                    const result = await response.json();
+                    const apiResponse = result.choices[0].message.content;
+                    
+                    // 缓存结果
+                    baziCache.set(cacheKey, apiResponse);
+                    
+                    return apiResponse;
+                } catch (error) {
+                    lastError = error;
+                    retries--;
+                    if (retries > 0) {
+                        await new Promise(resolve => setTimeout(resolve, 1000 * (4 - retries)));
+                    }
+                }
+            }
+            
+            // 所有重试都失败，检查是否有兜底规则
+            const baziKey = cacheKey.split(':')[0];
+            if (fallbackRules[baziKey] && request.section === 'basic') {
+                return fallbackRules[baziKey];
+            }
+            
+            throw lastError || new Error('API请求失败');
         }
     };
 
@@ -1972,8 +2078,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const cacheKey = `${generateBaziHashKey(data)}:${section}`;
         
         // 检查缓存
-        if (baziCache[cacheKey]) {
-            return baziCache[cacheKey];
+        const cachedResponse = baziCache.get(cacheKey);
+        if (cachedResponse) {
+            return cachedResponse;
         }
         
         // 先计算本地结果
@@ -1981,7 +2088,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // 对于基础信息部分，直接返回本地计算结果
         if (section === 'basic') {
-            baziCache[cacheKey] = localResult;
+            baziCache.set(cacheKey, localResult);
             return localResult;
         }
         
@@ -2214,28 +2321,26 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         try {
-            const response = await fetch(apiUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${apiKey}`
+            const response = await apiRequestQueue.addRequest({
+                url: apiUrl,
+                options: {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: "deepseek-chat",
+                        messages: [{ role: "user", content: prompt }],
+                        temperature: 0,
+                        seed: 12345 // 固定seed值确保相同输入得到相同输出
+                    })
                 },
-                body: JSON.stringify({
-                    model: "deepseek-chat",
-                    messages: [{ role: "user", content: prompt }],
-                    temperature: 0,
-                    seed: 12345 // 固定seed值确保相同输入得到相同输出
-                })
+                section: section,
+                cacheKey: cacheKey
             });
             
-            if (!response.ok) throw new Error(`API请求失败: ${response.status}`);
-            
-            const result = await response.json();
-            const apiResponse = result.choices[0].message.content;
-            
-            // 缓存结果
-            baziCache[cacheKey] = apiResponse;
-            return apiResponse;
+            return response;
             
         } catch (error) {
             console.error(`获取${section}分析失败:`, error);
@@ -2247,6 +2352,13 @@ document.addEventListener('DOMContentLoaded', function() {
     async function getBaziAnswer(question) {
     const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
     const apiKey = 'sk-b2950087a9d5427392762814114b22a9';
+    const cacheKey = `qa:${generateBaziHashKey(birthData)}:${question}`;
+    
+    // 检查缓存
+    const cachedResponse = baziCache.get(cacheKey);
+    if (cachedResponse) {
+        return cachedResponse;
+    }
     
     const prompt = `【八字专业问答规范】请严格遵循以下规则回答：
 1. 回答必须基于传统八字命理学知识
@@ -2262,29 +2374,30 @@ document.addEventListener('DOMContentLoaded', function() {
 用户问题：${question}`;
     
     try {
-        const response = await fetch(apiUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`
+        const response = await apiRequestQueue.addRequest({
+            url: apiUrl,
+            options: {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`
+                },
+                body: JSON.stringify({
+                    model: "deepseek-chat",
+                    messages: [{
+                        role: "system",
+                        content: "你是一位资深的八字命理大师，精通子平八字、紫微斗数等传统命理学。请严格按照八字专业问答规范回答用户问题。"
+                    }, {
+                        role: "user",
+                        content: prompt
+                    }],
+                    temperature: 0.7
+                })
             },
-            body: JSON.stringify({
-                model: "deepseek-chat",
-                messages: [{
-                    role: "system",
-                    content: "你是一位资深的八字命理大师，精通子平八字、紫微斗数等传统命理学。请严格按照八字专业问答规范回答用户问题。"
-                }, {
-                    role: "user",
-                    content: prompt
-                }],
-                temperature: 0.7
-            })
+            cacheKey: cacheKey
         });
         
-        if (!response.ok) throw new Error(`API请求失败: ${response.status}`);
-        
-        const result = await response.json();
-        return result.choices[0].message.content;
+        return response;
         
     } catch (error) {
         console.error('获取问答答案失败:', error);
