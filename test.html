@@ -3,31 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>量子八字测算系统</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/lunar-javascript@1.2.50/dist/lunar.min.js"></script>
+    <meta name="description" content="赛博八字命理测算系统，融合未来科技与传统智慧">
+    <meta name="keywords" content="赛博命理,八字,算命,未来科技,数字命盘">
+    <title>赛博命理 - 未来科技命理系统</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.css">
     <style>
         :root {
-            --primary-color: #00f0ff;
-            --secondary-color: #ff6b00;
-            --background-color: #0a0e17;
-            --card-bg: #121a2a;
-            --text-color: #e0e0e0;
-            --text-light: #a0a0a0;
-            --text-dark: #333;
-            --success-color: #00ff88;
-            --warning-color: #ffcc00;
-            --danger-color: #ff3d3d;
-            --wood-color: #00ff88;
-            --fire-color: #ff3300;
-            --earth-color: #ffcc00;
-            --metal-color: #cccccc;
-            --water-color: #0099ff;
-            --border-color: #1e2a4a;
-            --shadow-color: rgba(0, 240, 255, 0.1);
+            --primary-color: #6e00ff;
+            --primary-glow: rgba(110, 0, 255, 0.3);
+            --secondary-color: #00f7ff;
+            --secondary-glow: rgba(0, 247, 255, 0.3);
+            --accent-color: #ff00aa;
+            --accent-glow: rgba(255, 0, 170, 0.3);
+            --dark-bg: #0a0a14;
+            --darker-bg: #05050a;
+            --card-bg: rgba(15, 15, 25, 0.7);
+            --text-color: #e0e0ff;
+            --text-muted: #a0a0c0;
+            --border-color: rgba(110, 0, 255, 0.2);
+            --success-color: #00ffaa;
+            --warning-color: #ffaa00;
+            --danger-color: #ff0066;
         }
 
         * {
@@ -37,559 +37,640 @@
         }
 
         body {
-            font-family: 'Noto Sans SC', sans-serif;
-            background-color: var(--background-color);
+            font-family: 'Share Tech Mono', monospace;
+            background-color: var(--dark-bg);
             color: var(--text-color);
             line-height: 1.6;
-            padding: 0;
-            margin: 0;
             overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 20% 30%, var(--primary-glow) 0%, transparent 20%),
+                radial-gradient(circle at 80% 70%, var(--secondary-glow) 0%, transparent 20%),
+                linear-gradient(to bottom, var(--darker-bg), var(--dark-bg));
+            position: relative;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                linear-gradient(rgba(0, 0, 0, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 0, 0, 0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+            pointer-events: none;
+            z-index: -1;
         }
 
         .container {
             max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
-        }
-
-        header {
-            text-align: center;
-            padding: 20px 0;
-            border-bottom: 1px solid var(--border-color);
-            margin-bottom: 30px;
             position: relative;
         }
 
-        h1 {
-            font-family: 'Orbitron', sans-serif;
-            color: var(--primary-color);
-            text-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
-            margin-bottom: 10px;
-            font-size: 2.5rem;
-        }
-
-        .subtitle {
-            color: var(--text-light);
-            font-size: 1rem;
-            margin-bottom: 20px;
-        }
-
-        .card {
-            background-color: var(--card-bg);
-            border-radius: 10px;
-            padding: 25px;
-            margin-bottom: 30px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-            border: 1px solid var(--border-color);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .card::before {
-            content: '';
-            position: absolute;
+        /* 星空背景 */
+        .stars {
+            position: fixed;
             top: 0;
             left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -2;
         }
 
-        .card-title {
+        .star {
+            position: absolute;
+            background-color: white;
+            border-radius: 50%;
+            animation: twinkle var(--duration) infinite ease-in-out;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.2; }
+            50% { opacity: 1; }
+        }
+
+        /* 扫描线效果 */
+        .scanlines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                to bottom,
+                rgba(255, 255, 255, 0.03) 0%,
+                rgba(255, 255, 255, 0.05) 50%,
+                rgba(255, 255, 255, 0.03) 100%
+            );
+            background-size: 100% 4px;
+            pointer-events: none;
+            z-index: 9999;
+            animation: scanline 8s linear infinite;
+        }
+
+        @keyframes scanline {
+            0% { background-position: 0 0; }
+            100% { background-position: 0 100%; }
+        }
+
+        /* 头部样式 */
+        .header-container {
+            text-align: center;
+            margin-bottom: 40px;
+            position: relative;
+            padding: 30px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .header-title {
             font-family: 'Orbitron', sans-serif;
-            color: var(--primary-color);
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--text-color);
+            text-shadow: 0 0 10px var(--primary-color), 0 0 20px var(--primary-glow);
+            letter-spacing: 2px;
+            position: relative;
+            display: inline-block;
+        }
+
+        .header-title::after {
+            content: "";
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
+            border-radius: 3px;
+        }
+
+        .header-subtitle {
+            font-size: 1.2rem;
+            color: var(--text-muted);
             margin-bottom: 20px;
-            font-size: 1.5rem;
+            letter-spacing: 1px;
+        }
+
+        /* 北斗七星样式 */
+        .big-dipper {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 150px;
+        }
+
+        .big-dipper .star {
+            width: 6px;
+            height: 6px;
+            background-color: var(--secondary-color);
+            box-shadow: 0 0 5px 2px var(--secondary-glow);
+            border-radius: 50%;
+        }
+
+        /* 输入区域样式 */
+        .input-section, .result-section {
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-color);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .input-section:hover, .result-section:hover {
+            box-shadow: 0 10px 40px rgba(110, 0, 255, 0.4);
+        }
+
+        .input-header {
             display: flex;
             align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
         }
 
-        .card-title i {
-            margin-right: 10px;
-            font-size: 1.2rem;
+        .input-header i {
+            font-size: 1.5rem;
+            margin-right: 15px;
+            color: var(--primary-color);
+        }
+
+        .input-header h2 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.8rem;
+            color: var(--text-color);
+        }
+
+        /* 表单样式 */
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 20px;
         }
 
         .form-group {
-            margin-bottom: 20px;
+            flex: 1;
+            min-width: 250px;
         }
 
-        label {
+        .form-group label {
             display: block;
             margin-bottom: 8px;
-            color: var(--text-light);
+            color: var(--text-muted);
             font-size: 0.9rem;
         }
 
-        input, select {
-            width: 100%;
-            padding: 12px 15px;
-            background-color: rgba(0, 0, 0, 0.3);
-            border: 1px solid var(--border-color);
-            border-radius: 5px;
-            color: var(--text-color);
-            font-size: 1rem;
-            transition: all 0.3s;
-        }
-
-        input:focus, select:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 2px rgba(0, 240, 255, 0.2);
-        }
-
-        .btn {
-            display: inline-block;
-            padding: 12px 25px;
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: var(--text-dark);
-            border: none;
-            border-radius: 5px;
-            font-family: 'Orbitron', sans-serif;
-            font-weight: bold;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.3s;
-            text-align: center;
-            text-decoration: none;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
-        }
-
-        .btn:active {
-            transform: translateY(0);
-        }
-
-        .btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-
-        .btn-outline {
-            background: transparent;
-            border: 2px solid var(--primary-color);
+        .form-group label i {
+            margin-right: 8px;
             color: var(--primary-color);
         }
 
-        .btn-outline:hover {
-            background: rgba(0, 240, 255, 0.1);
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px 15px;
+            background-color: rgba(20, 20, 40, 0.7);
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            color: var(--text-color);
+            font-family: 'Share Tech Mono', monospace;
+            transition: all 0.3s ease;
         }
 
-        .time-period-options {
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 10px var(--primary-glow);
+        }
+
+        /* 时辰选择器 */
+        .time-period-selector {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 10px;
-            margin-bottom: 20px;
+            margin-top: 10px;
         }
 
         .time-period-option {
             padding: 10px;
-            text-align: center;
-            background-color: rgba(0, 0, 0, 0.3);
+            background-color: rgba(20, 20, 40, 0.7);
             border: 1px solid var(--border-color);
             border-radius: 5px;
+            text-align: center;
             cursor: pointer;
-            transition: all 0.3s;
-            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            font-size: 0.8rem;
         }
 
         .time-period-option:hover {
+            background-color: rgba(110, 0, 255, 0.2);
             border-color: var(--primary-color);
         }
 
-        .time-period-option.selected {
-            background-color: rgba(0, 240, 255, 0.1);
+        .time-period-option.active {
+            background-color: var(--primary-color);
             border-color: var(--primary-color);
-            color: var(--primary-color);
+            color: white;
         }
 
-        .language-switcher {
+        /* 历史记录 */
+        .saved-profiles {
+            margin-top: 30px;
+            border-top: 1px solid var(--border-color);
+            padding-top: 20px;
+        }
+
+        .saved-profiles-title {
             display: flex;
-            justify-content: center;
-            margin-bottom: 20px;
+            align-items: center;
+            margin-bottom: 15px;
+            color: var(--text-muted);
         }
 
-        .language-btn {
-            padding: 8px 15px;
-            background-color: transparent;
-            border: 1px solid var(--border-color);
-            color: var(--text-light);
-            cursor: pointer;
-            transition: all 0.3s;
-            font-size: 0.9rem;
-        }
-
-        .language-btn:first-child {
-            border-radius: 5px 0 0 5px;
-        }
-
-        .language-btn:last-child {
-            border-radius: 0 5px 5px 0;
-        }
-
-        .language-btn.active {
-            background-color: rgba(0, 240, 255, 0.1);
-            border-color: var(--primary-color);
-            color: var(--primary-color);
-        }
-
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(0, 240, 255, 0.3);
-            border-radius: 50%;
-            border-top-color: var(--primary-color);
-            animation: spin 1s ease-in-out infinite;
-            vertical-align: middle;
+        .saved-profiles-title i {
             margin-right: 10px;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(0, 0, 0, 0.8);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-
-        .loading-overlay p {
-            margin-top: 20px;
             color: var(--primary-color);
-            font-family: 'Orbitron', sans-serif;
         }
 
-        .result-section {
-            display: none;
-        }
-
-        .user-info {
+        .saved-profiles-list {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .user-name {
-            font-size: 1.5rem;
-            font-weight: bold;
-        }
-
-        .user-birth {
-            color: var(--text-light);
-            font-size: 0.9rem;
-        }
-
-        .bazi-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 15px;
-            margin-bottom: 30px;
-        }
-
-        .bazi-pillar {
-            background-color: rgba(0, 0, 0, 0.3);
-            border-radius: 8px;
-            padding: 15px;
-            text-align: center;
-            border: 1px solid var(--border-color);
-        }
-
-        .bazi-pillar-title {
-            font-size: 0.9rem;
-            color: var(--text-light);
-            margin-bottom: 10px;
-        }
-
-        .bazi-stem-branch {
-            font-size: 2rem;
-            font-family: 'Orbitron', sans-serif;
-            margin-bottom: 5px;
-            display: flex;
-            justify-content: center;
+            flex-wrap: wrap;
             gap: 10px;
         }
 
-        .bazi-hidden-stems {
-            font-size: 0.9rem;
-            color: var(--text-light);
-            min-height: 20px;
-        }
-
-        .bazi-professional-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 15px;
-            margin-bottom: 30px;
-        }
-
-        .bazi-professional-pillar {
-            background-color: rgba(0, 0, 0, 0.3);
-            border-radius: 8px;
-            padding: 20px;
+        .saved-profile {
+            padding: 8px 15px;
+            background-color: rgba(20, 20, 40, 0.7);
             border: 1px solid var(--border-color);
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.8rem;
+        }
+
+        .saved-profile:hover {
+            background-color: rgba(110, 0, 255, 0.2);
+            border-color: var(--primary-color);
+        }
+
+        /* 免责声明 */
+        .disclaimer {
+            margin-top: 30px;
+            padding: 15px;
+            background-color: rgba(110, 0, 255, 0.1);
+            border-left: 3px solid var(--primary-color);
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+        }
+
+        .disclaimer i {
+            margin-right: 10px;
+            color: var(--warning-color);
+        }
+
+        /* 按钮样式 */
+        .calculate-btn-container {
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        button {
+            background: linear-gradient(135deg, var(--primary-color), #8a2be2);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(110, 0, 255, 0.3);
             position: relative;
             overflow: hidden;
         }
 
-        .bazi-professional-pillar::before {
-            content: '';
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(110, 0, 255, 0.4);
+        }
+
+        button:active {
+            transform: translateY(1px);
+        }
+
+        button i {
+            margin-right: 10px;
+        }
+
+        button::before {
+            content: "";
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                to bottom right,
+                rgba(255, 255, 255, 0) 0%,
+                rgba(255, 255, 255, 0) 30%,
+                rgba(255, 255, 255, 0.1) 45%,
+                rgba(255, 255, 255, 0) 60%
+            );
+            transform: rotate(30deg);
+            transition: all 0.3s ease;
         }
 
-        .bazi-professional-title {
+        button:hover::before {
+            left: 100%;
+        }
+
+        #recalculate-btn {
+            background: linear-gradient(135deg, var(--secondary-color), #00b7ff);
+            box-shadow: 0 5px 15px rgba(0, 247, 255, 0.3);
+        }
+
+        #recalculate-btn:hover {
+            box-shadow: 0 8px 20px rgba(0, 247, 255, 0.4);
+        }
+
+        /* 结果区域样式 */
+        .basic-info {
+            margin-bottom: 30px;
+        }
+
+        .info-section {
+            margin-bottom: 30px;
+            background-color: rgba(20, 20, 40, 0.3);
+            border-radius: 8px;
+            padding: 20px;
+            border: 1px solid var(--border-color);
+        }
+
+        .info-section h3 {
             font-family: 'Orbitron', sans-serif;
+            margin-bottom: 20px;
+            color: var(--text-color);
+            display: flex;
+            align-items: center;
+        }
+
+        .info-section h3 i {
+            margin-right: 10px;
             color: var(--primary-color);
-            margin-bottom: 15px;
-            font-size: 1.2rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
         }
 
-        .bazi-professional-content {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
+        .info-content {
+            padding: 0 10px;
         }
 
-        .bazi-professional-item {
-            text-align: center;
-        }
-
-        .bazi-professional-item-title {
-            font-size: 0.8rem;
-            color: var(--text-light);
-            margin-bottom: 5px;
-        }
-
-        .bazi-professional-item-value {
-            font-size: 1.2rem;
-            font-family: 'Orbitron', sans-serif;
-            min-height: 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .bazi-professional-hidden-stems {
-            font-size: 0.9rem;
-            color: var(--text-light);
-            margin-top: 5px;
-        }
-
-        .wood { color: var(--wood-color); text-shadow: 0 0 5px rgba(0, 255, 136, 0.3); }
-        .fire { color: var(--fire-color); text-shadow: 0 0 5px rgba(255, 51, 0, 0.3); }
-        .earth { color: var(--earth-color); text-shadow: 0 0 5px rgba(255, 204, 0, 0.3); }
-        .metal { color: var(--metal-color); text-shadow: 0 0 5px rgba(204, 204, 204, 0.3); }
-        .water { color: var(--water-color); text-shadow: 0 0 5px rgba(0, 153, 255, 0.3); }
-
+        /* 评分系统 */
         .rating-container {
             display: flex;
             flex-wrap: wrap;
             gap: 20px;
-            margin-bottom: 30px;
+            justify-content: center;
         }
 
-        .rating-card {
+        .rating-group {
             flex: 1;
-            min-width: 250px;
-            background-color: rgba(0, 0, 0, 0.3);
-            border-radius: 8px;
+            min-width: 200px;
+            text-align: center;
             padding: 20px;
+            background-color: rgba(20, 20, 40, 0.5);
+            border-radius: 8px;
             border: 1px solid var(--border-color);
         }
 
         .rating-title {
-            font-size: 1.1rem;
+            font-family: 'Orbitron', sans-serif;
             margin-bottom: 15px;
-            color: var(--text-light);
+            color: var(--text-color);
             display: flex;
             align-items: center;
+            justify-content: center;
         }
 
         .rating-title i {
             margin-right: 10px;
+            color: var(--accent-color);
         }
 
         .rating-level {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 1.2rem;
+            font-size: 2rem;
+            font-weight: bold;
             margin-bottom: 10px;
-            padding: 5px 0;
-            border-bottom: 1px solid var(--border-color);
+            color: var(--primary-color);
+            text-shadow: 0 0 10px var(--primary-glow);
         }
-
-        .rating-level.excellent { color: var(--success-color); }
-        .rating-level.good { color: var(--wood-color); }
-        .rating-level.average { color: var(--earth-color); }
-        .rating-level.struggling { color: var(--warning-color); }
-        .rating-level.needs-improvement { color: var(--danger-color); }
-        .rating-level.ultra-rich { color: #ffcc00; }
-        .rating-level.very-rich { color: #ff9900; }
-        .rating-level.moderately-rich { color: #ff6600; }
-        .rating-level.somewhat-rich { color: #ff3300; }
-        .rating-level.wealth-average { color: #ff0000; }
 
         .rating-score {
-            font-size: 1rem;
-            color: var(--text-light);
-            margin-bottom: 15px;
-        }
-
-        .score-progress {
-            display: flex;
-            align-items: center;
+            font-size: 1.2rem;
+            color: var(--secondary-color);
             margin-bottom: 10px;
         }
 
-        .score-label {
-            width: 120px;
+        .score-details {
             font-size: 0.9rem;
-            color: var(--text-light);
+            color: var(--text-muted);
         }
 
-        .progress-container {
+        /* 八字表格 */
+        .bazi-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-bottom: 20px;
+        }
+
+        .bazi-row {
+            display: flex;
+        }
+
+        .bazi-cell {
             flex: 1;
-            height: 10px;
-            background-color: rgba(0, 0, 0, 0.3);
-            border-radius: 5px;
-            overflow: hidden;
-            margin: 0 10px;
+            padding: 12px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+            background-color: rgba(20, 20, 40, 0.5);
         }
 
-        .progress-bar {
-            height: 100%;
-            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
-            border-radius: 5px;
-            transition: width 0.5s;
+        .bazi-header .bazi-cell {
+            background-color: rgba(110, 0, 255, 0.2);
+            font-weight: bold;
+            color: var(--primary-color);
         }
 
-        .score-value {
-            width: 60px;
-            text-align: right;
-            font-size: 0.9rem;
-            color: var(--text-light);
+        .bazi-row:first-child .bazi-cell:first-child {
+            border-top-left-radius: 8px;
         }
 
-        .chart-container {
-            height: 300px;
-            margin-bottom: 30px;
+        .bazi-row:first-child .bazi-cell:last-child {
+            border-top-right-radius: 8px;
+        }
+
+        .bazi-row:last-child .bazi-cell:first-child {
+            border-bottom-left-radius: 8px;
+        }
+
+        .bazi-row:last-child .bazi-cell:last-child {
+            border-bottom-right-radius: 8px;
+        }
+
+        .hidden-stems {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        /* 性格特点 */
+        .personality-traits {
+            padding: 15px;
+            background-color: rgba(20, 20, 40, 0.5);
+            border-left: 3px solid var(--accent-color);
+            font-style: italic;
+            color: var(--text-color);
+            margin-top: 20px;
+        }
+
+        /* 五行图表 */
+        .element-chart-container {
             position: relative;
+            height: 300px;
+            margin-bottom: 20px;
+        }
+
+        .element-chart {
+            width: 100%;
+            height: 100%;
         }
 
         .chart-description {
             font-size: 0.9rem;
-            color: var(--text-light);
-            margin-top: 10px;
-            padding: 10px;
-            background-color: rgba(0, 0, 0, 0.3);
-            border-radius: 5px;
-            border-left: 3px solid var(--primary-color);
+            color: var(--text-muted);
+            margin-bottom: 15px;
         }
 
-        .personality-traits {
-            font-size: 1rem;
-            margin-bottom: 30px;
-            padding: 15px;
-            background-color: rgba(0, 0, 0, 0.3);
-            border-radius: 8px;
-            border-left: 3px solid var(--primary-color);
-        }
-
-        .gambling-fortune {
+        .element-legend {
             display: flex;
-            flex-wrap: wrap;
+            justify-content: center;
             gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .gambling-rating {
-            flex: 1;
-            min-width: 100px;
-            font-size: 1.5rem;
-            color: var(--earth-color);
-            text-align: center;
-            padding: 15px;
-            background-color: rgba(0, 0, 0, 0.3);
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-        }
-
-        .gambling-details {
-            flex: 3;
-            min-width: 250px;
-            padding: 15px;
-            background-color: rgba(0, 0, 0, 0.3);
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-        }
-
-        .lunar-calendar {
-            display: flex;
             flex-wrap: wrap;
-            gap: 15px;
-            margin-bottom: 30px;
         }
 
-        .lunar-item {
-            flex: 1;
-            min-width: 200px;
-            padding: 15px;
-            background-color: rgba(0, 0, 0, 0.3);
+        .element-legend-item {
+            display: flex;
+            align-items: center;
+            font-size: 0.9rem;
+        }
+
+        .element-legend-color {
+            width: 15px;
+            height: 15px;
+            border-radius: 3px;
+            margin-right: 8px;
+        }
+
+        .wood-color { background-color: #4CAF50; }
+        .fire-color { background-color: #F44336; }
+        .earth-color { background-color: #FFC107; }
+        .metal-color { background-color: #9E9E9E; }
+        .water-color { background-color: #2196F3; }
+
+        /* 黄历卡片 */
+        .lunar-calendar-card {
+            background-color: rgba(20, 20, 40, 0.5);
             border-radius: 8px;
             border: 1px solid var(--border-color);
+            padding: 20px;
         }
 
-        .lunar-title {
-            font-size: 0.9rem;
-            color: var(--text-light);
+        .lunar-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            color: var(--primary-color);
+        }
+
+        .lunar-header i {
+            margin-right: 10px;
+        }
+
+        .lunar-date {
+            font-size: 1.2rem;
             margin-bottom: 10px;
+            color: var(--text-color);
         }
 
-        .lunar-content {
+        .lunar-ganzhi {
             font-size: 1rem;
+            color: var(--secondary-color);
+            margin-bottom: 15px;
         }
 
+        .lunar-yiji {
+            display: flex;
+            gap: 20px;
+        }
+
+        .lunar-yiji-column {
+            flex: 1;
+        }
+
+        .lunar-yiji-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: var(--text-color);
+        }
+
+        .lunar-yiji-content {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        /* 标签页 */
         .menu-tabs {
             display: flex;
-            border-bottom: 1px solid var(--border-color);
+            flex-wrap: wrap;
+            gap: 10px;
             margin-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
         }
 
         .menu-tab {
             padding: 10px 20px;
+            background-color: rgba(20, 20, 40, 0.5);
+            border-radius: 5px;
             cursor: pointer;
-            font-family: 'Orbitron', sans-serif;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
             font-size: 0.9rem;
-            color: var(--text-light);
-            border-bottom: 3px solid transparent;
-            transition: all 0.3s;
+        }
+
+        .menu-tab i {
+            margin-right: 8px;
+        }
+
+        .menu-tab:hover {
+            background-color: rgba(110, 0, 255, 0.2);
         }
 
         .menu-tab.active {
-            color: var(--primary-color);
-            border-bottom-color: var(--primary-color);
+            background-color: var(--primary-color);
+            color: white;
         }
 
         .tab-content {
@@ -600,225 +681,334 @@
             display: block;
         }
 
-        .section-title {
-            font-family: 'Orbitron', sans-serif;
-            color: var(--primary-color);
-            margin-bottom: 15px;
-            font-size: 1.2rem;
-            display: flex;
-            align-items: center;
-        }
-
-        .section-title i {
-            margin-right: 10px;
+        /* 详情卡片 */
+        .detail-card {
+            margin-bottom: 20px;
+            background-color: rgba(20, 20, 40, 0.3);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
         }
 
         .load-btn-container {
-            margin-bottom: 20px;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            overflow: hidden;
-            transition: all 0.3s;
+            padding: 15px 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
         }
 
-        .load-btn-container.active {
-            border-color: var(--primary-color);
+        .load-btn-container:hover {
+            background-color: rgba(110, 0, 255, 0.1);
         }
 
         .load-btn {
-            width: 100%;
-            padding: 15px 20px;
-            background-color: rgba(0, 0, 0, 0.3);
+            background: none;
             border: none;
             color: var(--text-color);
             font-family: 'Orbitron', sans-serif;
             font-size: 1rem;
+            width: 100%;
             text-align: left;
-            cursor: pointer;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            transition: all 0.3s;
+            padding: 0;
+            cursor: pointer;
         }
 
-        .load-btn:hover {
-            background-color: rgba(0, 240, 255, 0.1);
-        }
-
-        .load-btn.active {
-            background-color: rgba(0, 240, 255, 0.1);
-            color: var(--primary-color);
+        .load-btn i {
+            margin-left: 10px;
+            transition: transform 0.3s ease;
         }
 
         .load-btn.active .toggle-icon {
             transform: rotate(180deg);
         }
 
-        .toggle-icon {
-            transition: transform 0.3s;
+        .load-btn-description {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 5px;
         }
 
         .section-content {
             padding: 0 20px;
             max-height: 0;
             overflow: hidden;
-            transition: all 0.3s;
+            transition: max-height 0.5s ease;
         }
 
         .section-content.active {
-            padding: 20px;
+            padding: 0 20px 20px;
             max-height: 1000px;
-            overflow: auto;
         }
 
-        .markdown-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 15px 0;
-            font-size: 0.9rem;
-        }
-
-        .markdown-table th, .markdown-table td {
-            padding: 10px;
-            border: 1px solid var(--border-color);
-            text-align: left;
-        }
-
-        .markdown-table th {
-            background-color: rgba(0, 240, 255, 0.1);
-            color: var(--primary-color);
-            font-family: 'Orbitron', sans-serif;
-        }
-
-        .markdown-table tr:nth-child(even) {
-            background-color: rgba(0, 0, 0, 0.2);
-        }
-
-        .saved-profiles {
-            margin-bottom: 30px;
-        }
-
-        .saved-profiles-title {
-            font-size: 1rem;
-            color: var(--text-light);
-            margin-bottom: 10px;
-        }
-
-        .saved-profiles-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .saved-profile {
-            padding: 10px 15px;
-            background-color: rgba(0, 0, 0, 0.3);
-            border-radius: 5px;
-            border: 1px solid var(--border-color);
-            cursor: pointer;
-            transition: all 0.3s;
-            font-size: 0.9rem;
-        }
-
-        .saved-profile:hover {
-            border-color: var(--primary-color);
-            color: var(--primary-color);
-        }
-
+        /* 八字问答 */
         .bazi-qa-container {
-            margin-bottom: 30px;
+            padding: 20px;
         }
 
-        .bazi-question-input {
-            width: 100%;
+        .bazi-qa-title {
+            font-family: 'Orbitron', sans-serif;
+            margin-bottom: 15px;
+            color: var(--text-color);
+            display: flex;
+            align-items: center;
+        }
+
+        .bazi-qa-title i {
+            margin-right: 10px;
+            color: var(--primary-color);
+        }
+
+        .bazi-qa-input-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .bazi-qa-input {
+            flex: 1;
             padding: 12px 15px;
-            background-color: rgba(0, 0, 0, 0.3);
+            background-color: rgba(20, 20, 40, 0.7);
             border: 1px solid var(--border-color);
             border-radius: 5px;
             color: var(--text-color);
-            font-size: 1rem;
-            margin-bottom: 10px;
-            transition: all 0.3s;
+            font-family: 'Share Tech Mono', monospace;
         }
 
-        .bazi-question-input:focus {
+        .bazi-qa-input:focus {
             outline: none;
             border-color: var(--primary-color);
-            box-shadow: 0 0 0 2px rgba(0, 240, 255, 0.2);
+            box-shadow: 0 0 10px var(--primary-glow);
+        }
+
+        .bazi-qa-submit {
+            padding: 12px 20px;
+            background: linear-gradient(135deg, var(--primary-color), #8a2be2);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .bazi-qa-submit:hover {
+            background: linear-gradient(135deg, #8a2be2, var(--primary-color));
         }
 
         .bazi-qa-response {
             padding: 15px;
-            background-color: rgba(0, 0, 0, 0.3);
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
+            background-color: rgba(20, 20, 40, 0.5);
+            border-radius: 5px;
+            border-left: 3px solid var(--secondary-color);
             margin-top: 15px;
-            display: none;
         }
 
         .bazi-qa-loading {
-            display: none;
-            justify-content: center;
+            display: flex;
             align-items: center;
-            padding: 20px;
-            margin-top: 15px;
+            justify-content: center;
+            padding: 15px;
+            color: var(--secondary-color);
         }
 
+        .loading {
+            border: 3px solid rgba(0, 247, 255, 0.2);
+            border-top: 3px solid var(--secondary-color);
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* 赌运分析 */
+        .gambling-analysis {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: rgba(20, 20, 40, 0.5);
+            border-radius: 5px;
+            border-left: 3px solid var(--accent-color);
+        }
+
+        .gambling-title {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            color: var(--text-color);
+        }
+
+        .gambling-title i {
+            margin-right: 10px;
+            color: var(--accent-color);
+        }
+
+        .gambling-rating {
+            font-size: 1.5rem;
+            color: var(--accent-color);
+            margin-bottom: 10px;
+            letter-spacing: 3px;
+        }
+
+        .gambling-details {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        /* 版权信息 */
+        .copyright {
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        /* 响应式设计 */
         @media (max-width: 768px) {
-            .bazi-grid {
-                grid-template-columns: repeat(2, 1fr);
+            .header-title {
+                font-size: 2.5rem;
             }
             
-            .bazi-professional-content {
-                grid-template-columns: repeat(2, 1fr);
+            .header-subtitle {
+                font-size: 1rem;
             }
             
-            .time-period-options {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        @media (max-width: 480px) {
-            .bazi-grid {
-                grid-template-columns: 1fr;
+            .form-row {
+                flex-direction: column;
             }
             
-            .bazi-professional-content {
-                grid-template-columns: 1fr;
-            }
-            
-            .time-period-options {
-                grid-template-columns: 1fr;
+            .time-period-selector {
+                grid-template-columns: repeat(3, 1fr);
             }
             
             .rating-container {
                 flex-direction: column;
             }
+            
+            .lunar-yiji {
+                flex-direction: column;
+            }
+            
+            .menu-tabs {
+                flex-direction: column;
+            }
+        }
+
+        /* 粒子背景 */
+        #particles-js {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: -3;
+            pointer-events: none;
+        }
+
+        /* 霓虹灯效果 */
+        .neon-text {
+            text-shadow: 0 0 5px currentColor, 0 0 10px currentColor, 0 0 15px currentColor;
+            animation: neon-flicker 1.5s infinite alternate;
+        }
+
+        @keyframes neon-flicker {
+            0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% {
+                text-shadow: 
+                    0 0 5px currentColor,
+                    0 0 10px currentColor,
+                    0 0 15px currentColor;
+            }
+            20%, 24%, 55% {        
+                text-shadow: none;
+            }
+        }
+
+        /* 3D卡片效果 */
+        .card-3d {
+            transform-style: preserve-3d;
+            transition: transform 0.5s ease;
+        }
+
+        .card-3d:hover {
+            transform: translateY(-5px) rotateX(5deg);
+        }
+
+        /* 脉冲动画 */
+        @keyframes pulse {
+            0% { opacity: 0.5; }
+            50% { opacity: 1; }
+            100% { opacity: 0.5; }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite ease-in-out;
         }
     </style>
 </head>
 <body>
+    <div class="scanlines"></div>
+    <div id="particles-js"></div>
+    
+    <!-- 星空背景 -->
+    <div class="stars" id="stars"></div>
+    
     <div class="container">
-        <header>
-            <h1>量子八字测算系统</h1>
-            <p class="subtitle">基于传统命理学与量子计算技术的专业八字分析平台</p>
-        </header>
+        <div class="header-container" style="position: relative;">
+            <!-- 精确版北斗七星（标准勺子形状） -->
+            <div class="big-dipper">
+                <!-- 斗身四星（形成稍长的矩形） -->
+                <div class="star" style="top:45px; left:-60px;"></div> <!-- 天枢 -->
+                <div class="star" style="top:50px; left:-40px;"></div> <!-- 天璇 -->
+                <div class="star" style="top:60px; left:-20px;"></div> <!-- 天玑 -->
+                <div class="star" style="top:75px; left:0px;"></div> <!-- 天权 -->
 
-        <section id="input-section" class="card">
-            <h2 class="card-title"><i class="fas fa-user-astronaut"></i> 个人信息</h2>
-            <form id="bazi-form">
+                <!-- 斗柄三星（自然向下弯曲） -->
+                <div class="star" style="top:95px; left:15px;"></div> <!-- 玉衡 -->
+                <div class="star" style="top:100px; left:45px;"></div> <!-- 开阳 -->
+                <div class="star" style="top:80px; left:60px;"></div> <!-- 摇光 -->
+            </div>
+            <h1 class="header-title neon-text">赛博命理系统</h1>
+            <div class="header-subtitle">未来科技 · 传统智慧 · 数字命盘</div>
+            <div class="header-links">
+            </div>
+        </div>
+        
+        <div class="input-section card-3d" id="input-section">
+            <div class="input-header">
+                <i class="fas fa-id-card"></i>
+                <h2>请输入您的信息</h2>
+            </div>
+            
+            <div class="form-row">
                 <div class="form-group">
-                    <label for="name">姓名（可选）</label>
-                    <input type="text" id="name" placeholder="输入姓名（可选）">
+                    <label for="name"><i class="fas fa-user-astronaut"></i> 姓名</label>
+                    <input type="text" id="name" placeholder="请输入您的姓名">
                 </div>
                 <div class="form-group">
-                    <label for="birth-date">出生日期</label>
+                    <label for="gender"><i class="fas fa-venus-mars"></i> 性别</label>
+                    <select id="gender" required>
+                        <option value="">请选择</option>
+                        <option value="male">男</option>
+                        <option value="female">女</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="birth-date"><i class="fas fa-calendar-alt"></i> 出生日期</label>
                     <input type="date" id="birth-date" required>
                 </div>
                 <div class="form-group">
-                    <label for="birth-time">出生时间</label>
-                    <input type="time" id="birth-time" required>
-                    <div class="time-period-options">
+                    <label for="birth-time"><i class="fas fa-clock"></i> 出生时辰</label>
+                    <div class="time-period-selector" id="time-period-selector">
                         <div class="time-period-option" data-hour="23" data-minute="0">子时 (23-1)</div>
                         <div class="time-period-option" data-hour="1" data-minute="0">丑时 (1-3)</div>
                         <div class="time-period-option" data-hour="3" data-minute="0">寅时 (3-5)</div>
@@ -832,1981 +1022,679 @@
                         <div class="time-period-option" data-hour="19" data-minute="0">戌时 (19-21)</div>
                         <div class="time-period-option" data-hour="21" data-minute="0">亥时 (21-23)</div>
                     </div>
+                    <input type="hidden" id="birth-time" required>
                 </div>
-                <div class="form-group">
-                    <label for="gender">性别</label>
-                    <select id="gender" required>
-                        <option value="">选择性别</option>
-                        <option value="male">男</option>
-                        <option value="female">女</option>
-                    </select>
-                </div>
-                <div class="saved-profiles">
-                    <div class="saved-profiles-title">历史记录</div>
-                    <div id="saved-profiles-list" class="saved-profiles-list">暂无历史记录</div>
-                </div>
-                <button type="button" id="calculate-btn" class="btn"><i class="fas fa-brain"></i> 开始量子测算</button>
-            </form>
-        </section>
+            </div>
 
-        <section id="result-section" class="result-section">
-            <div class="card">
-                <div class="user-info">
-                    <div>
-                        <div id="user-name-display" class="user-name"></div>
-                        <div id="user-birth-display" class="user-birth"></div>
-                    </div>
-                    <button id="recalculate-btn" class="btn btn-outline"><i class="fas fa-redo"></i> 重新测算</button>
+            <div class="saved-profiles" id="saved-profiles">
+                <div class="saved-profiles-title">
+                    <i class="fas fa-history"></i> 历史记录
                 </div>
-
-                <div class="bazi-professional-grid">
-                    <div class="bazi-professional-pillar">
-                        <div class="bazi-professional-title">专业八字排盘</div>
-                        <div class="bazi-professional-content">
-                            <div class="bazi-professional-item">
-                                <div class="bazi-professional-item-title">年柱</div>
-                                <div class="bazi-professional-item-value">
-                                    <span id="year-stem" class="wood"></span>
-                                    <span id="year-branch" class="wood"></span>
-                                </div>
-                                <div id="year-hidden-stems" class="bazi-professional-hidden-stems"></div>
+                <div class="saved-profiles-list" id="saved-profiles-list">
+                    <!-- Saved profiles will be added here dynamically -->
+                </div>
+            </div>
+            
+            <div class="disclaimer">
+                <i class="fas fa-exclamation-triangle"></i> 本系统采用量子计算与AI算法分析，数据来自《渊海子平》《三命通会》等古籍数据库
+            </div>
+            
+            <div class="calculate-btn-container">
+                <button id="calculate-btn"><i class="fas fa-brain"></i> 开始量子测算</button>
+            </div>
+        </div>
+        
+        <div class="result-section card-3d" id="result-section">
+            <div class="basic-info" id="basic-info">
+                <div class="info-section">
+                    <h3 style="text-align: center; justify-content: center;">
+                        <i class="fas fa-user-astronaut"></i> <span id="user-name-display"></span> · <span id="user-birth-display"></span>
+                    </h3>
+                    <div class="info-content">
+                        <div class="rating-container">
+                            <div class="rating-group">
+                                <div class="rating-title"><i class="fas fa-star"></i> 命格等级</div>
+                                <div class="rating-level" id="fate-level">上等</div>
+                                <div class="rating-score" id="fate-score">88/100</div>
+                                <div class="score-details" id="fate-details">格局清奇，五行流通，富贵可期</div>
                             </div>
-                            <div class="bazi-professional-item">
-                                <div class="bazi-professional-item-title">月柱</div>
-                                <div class="bazi-professional-item-value">
-                                    <span id="month-stem" class="wood"></span>
-                                    <span id="month-branch" class="wood"></span>
-                                </div>
-                                <div id="month-hidden-stems" class="bazi-professional-hidden-stems"></div>
-                            </div>
-                            <div class="bazi-professional-item">
-                                <div class="bazi-professional-item-title">日柱</div>
-                                <div class="bazi-professional-item-value">
-                                    <span id="day-stem" class="wood"></span>
-                                    <span id="day-branch" class="wood"></span>
-                                </div>
-                                <div id="day-hidden-stems" class="bazi-professional-hidden-stems"></div>
-                            </div>
-                            <div class="bazi-professional-item">
-                                <div class="bazi-professional-item-title">时柱</div>
-                                <div class="bazi-professional-item-value">
-                                    <span id="hour-stem" class="wood"></span>
-                                    <span id="hour-branch" class="wood"></span>
-                                </div>
-                                <div id="hour-hidden-stems" class="bazi-professional-hidden-stems"></div>
+                            <div class="rating-group">
+                                <div class="rating-title"><i class="fas fa-coins"></i> 财富等级</div>
+                                <div class="rating-level" id="wealth-level">中上</div>
+                                <div class="rating-score" id="wealth-score">76/100</div>
+                                <div class="score-details" id="wealth-details">正财稳固，偏财有度，中年后财富积累加速</div>
                             </div>
                         </div>
                     </div>
                 </div>
-
-                <div id="personality-traits" class="personality-traits">命主性格：</div>
-
-                <div class="rating-container">
-                    <div class="rating-card">
-                        <div class="rating-title"><i class="fas fa-star"></i> 命局评分</div>
-                        <div id="fate-level" class="rating-level"></div>
-                        <div id="fate-score" class="rating-score"></div>
-                        <div id="fate-details"></div>
-                    </div>
-                    <div class="rating-card">
-                        <div class="rating-title"><i class="fas fa-coins"></i> 财富评分</div>
-                        <div id="wealth-level" class="rating-level"></div>
-                        <div id="wealth-score" class="rating-score"></div>
-                        <div id="wealth-details"></div>
-                    </div>
-                </div>
-
-                <div class="chart-container">
-                    <canvas id="element-chart"></canvas>
-                    <div class="chart-description">
-                        五行能量分布雷达图显示本命局、当前流年和大运的综合五行能量分布情况。五行平衡有助于命局稳定，过旺或过弱都可能带来相应领域的挑战。
-                    </div>
-                </div>
-
-                <div class="gambling-fortune">
-                    <div class="gambling-rating">
-                        <div id="gambling-rating"></div>
-                    </div>
-                    <div class="gambling-details">
-                        <div id="gambling-details"></div>
-                    </div>
-                </div>
-
-                <div class="lunar-calendar">
-                    <div class="lunar-item">
-                        <div class="lunar-title">今日农历</div>
-                        <div id="lunar-date" class="lunar-content"></div>
-                    </div>
-                    <div class="lunar-item">
-                        <div class="lunar-title">今日干支</div>
-                        <div id="lunar-ganzhi" class="lunar-content"></div>
-                    </div>
-                    <div class="lunar-item">
-                        <div class="lunar-title">今日宜</div>
-                        <div id="lunar-yi" class="lunar-content"></div>
-                    </div>
-                    <div class="lunar-item">
-                        <div class="lunar-title">今日忌</div>
-                        <div id="lunar-ji" class="lunar-content"></div>
+                
+                <div class="info-section">
+                    <h3><i class="fas fa-dna"></i> 八字四柱</h3>
+                    <div class="info-content">
+                        <div class="bazi-table">
+                            <div class="bazi-row bazi-header">
+                                <div class="bazi-cell">四柱</div>
+                                <div class="bazi-cell">年柱</div>
+                                <div class="bazi-cell">月柱</div>
+                                <div class="bazi-cell">日柱</div>
+                                <div class="bazi-cell">时柱</div>
+                            </div>
+                            <div class="bazi-row">
+                                <div class="bazi-cell">天干</div>
+                                <div class="bazi-cell" id="year-stem">壬</div>
+                                <div class="bazi-cell" id="month-stem">癸</div>
+                                <div class="bazi-cell" id="day-stem">己</div>
+                                <div class="bazi-cell" id="hour-stem">癸</div>
+                            </div>
+                            <div class="bazi-row">
+                                <div class="bazi-cell">地支</div>
+                                <div class="bazi-cell" id="year-branch">子</div>
+                                <div class="bazi-cell" id="month-branch">丑</div>
+                                <div class="bazi-cell" id="day-branch">巳</div>
+                                <div class="bazi-cell" id="hour-branch">酉</div>
+                            </div>
+                            <div class="bazi-row">
+                                <div class="bazi-cell">藏干</div>
+                                <div class="bazi-cell">
+                                    <div class="hidden-stems" id="year-hidden-stems">癸</div>
+                                </div>
+                                <div class="bazi-cell">
+                                    <div class="hidden-stems" id="month-hidden-stems">己癸辛</div>
+                                </div>
+                                <div class="bazi-cell">
+                                    <div class="hidden-stems" id="day-hidden-stems">丙庚戊</div>
+                                </div>
+                                <div class="bazi-cell">
+                                    <div class="hidden-stems" id="hour-hidden-stems">辛</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="personality-traits" id="personality-traits">
+                            命主性格：似静水流深，临危反生智，藏锋守拙却暗含凌云之志
+                        </div>
                     </div>
                 </div>
-
-                <div class="bazi-qa-container">
-                    <h2 class="card-title"><i class="fas fa-question-circle"></i> 八字问答</h2>
-                    <input type="text" id="bazi-question" class="bazi-question-input" placeholder="输入您关于八字命理的问题...">
-                    <button id="bazi-qa-submit" class="btn"><i class="fas fa-paper-plane"></i> 提交问题</button>
-                    <div id="bazi-qa-loading" class="bazi-qa-loading">
-                        <div class="loading"></div>
-                        <span>量子计算中...</span>
-                    </div>
-                    <div id="bazi-qa-response" class="bazi-qa-response"></div>
-                </div>
+                
+                <div class="info-section">
+    <h3><i class="fas fa-atom"></i> 五行能量分布</h3>
+    <div class="info-content">
+        <div class="element-chart-container">
+            <canvas id="element-chart" class="element-chart"></canvas>
+        </div>
+        <div id="element-chart-description" class="chart-description">
+            五行分析：水旺木相，火土金休囚，需注意五行平衡，补火土之气以调和命局
+        </div>
+        <div class="element-legend">
+            <div class="element-legend-item">
+                <div class="element-legend-color wood-color"></div>
+                <span>木</span>
             </div>
-
-            <div class="card">
-                <div class="menu-tabs">
-                    <div class="menu-tab active" data-tab="fortune">运势分析</div>
-                    <div class="menu-tab" data-tab="career">事业分析</div>
-                    <div class="menu-tab" data-tab="wealth">财富分析</div>
-                    <div class="menu-tab" data-tab="health">健康分析</div>
-                    <div class="menu-tab" data-tab="relationship">人际关系</div>
-                </div>
-
-                <div id="fortune-tab" class="tab-content active">
-                    <div class="load-btn-container">
-                        <button class="load-btn" data-section="basic">
-                            <span>基础命局分析</span><i class="fas fa-chevron-down toggle-icon"></i>
-                        </button>
-                        <div id="basic-content" class="section-content"></div>
-                    </div>
-                    <div class="load-btn-container">
-                        <button class="load-btn" data-section="strength">
-                            <span>身强身弱分析</span><i class="fas fa-chevron-down toggle-icon"></i>
-                        </button>
-                        <div id="strength-content" class="section-content"></div>
-                    </div>
-                    <div class="load-btn-container">
-                        <button class="load-btn" data-section="elements">
-                            <span>五行能量分析</span><i class="fas fa-chevron-down toggle-icon"></i>
-                        </button>
-                        <div id="elements-content" class="section-content"></div>
-                    </div>
-                    <div class="load-btn-container">
-                        <button class="load-btn" data-section="annual-fortune">
-                            <span>流年运势分析</span><i class="fas fa-chevron-down toggle-icon"></i>
-                        </button>
-                        <div id="annual-fortune-content" class="section-content"></div>
-                    </div>
-                    <div class="load-btn-container">
-                        <button class="load-btn" data-section="decade-fortune">
-                            <span>十年大运分析</span><i class="fas fa-chevron-down toggle-icon"></i>
-                        </button>
-                        <div id="decade-fortune-content" class="section-content"></div>
-                    </div>
-                    <div class="load-btn-container">
-                        <button class="load-btn" data-section="monthly-fortune">
-                            <span>每月运势分析</span><i class="fas fa-chevron-down toggle-icon"></i>
-                        </button>
-                        <div id="monthly-fortune-content" class="section-content"></div>
-                    </div>
-                    <div class="load-btn-container">
-                        <button class="load-btn" data-section="milestones">
-                            <span>人生重要节点</span><i class="fas fa-chevron-down toggle-icon"></i>
-                        </button>
-                        <div id="milestones-content" class="section-content"></div>
-                    </div>
-                </div>
-
-                <div id="career-tab" class="tab-content">
-                    <div class="load-btn-container">
-                        <button class="load-btn" data-section="career">
-                            <span>事业格局分析</span><i class="fas fa-chevron-down toggle-icon"></i>
-                        </button>
-                        <div id="career-content" class="section-content"></div>
-                    </div>
-                </div>
-
-                <div id="wealth-tab" class="tab-content">
-                    <div class="load-btn-container">
-                        <button class="load-btn" data-section="wealth">
-                            <span>财富格局分析</span><i class="fas fa-chevron-down toggle-icon"></i>
-                        </button>
-                        <div id="wealth-content" class="section-content"></div>
-                    </div>
-                </div>
-
-                <div id="health-tab" class="tab-content">
-                    <div class="load-btn-container">
-                        <button class="load-btn" data-section="health">
-                            <span>健康状况分析</span><i class="fas fa-chevron-down toggle-icon"></i>
-                        </button>
-                        <div id="health-content" class="section-content"></div>
-                    </div>
-                </div>
-
-                <div id="relationship-tab" class="tab-content">
-                    <div class="load-btn-container">
-                        <button class="load-btn" data-section="personality">
-                            <span>性格特质分析</span><i class="fas fa-chevron-down toggle-icon"></i>
-                        </button>
-                        <div id="personality-content" class="section-content"></div>
-                    </div>
-                    <div class="load-btn-container">
-                        <button class="load-btn" data-section="marriage">
-                            <span>婚姻感情分析</span><i class="fas fa-chevron-down toggle-icon"></i>
-                        </button>
-                        <div id="marriage-content" class="section-content"></div>
-                    </div>
-                    <div class="load-btn-container">
-                        <button class="load-btn" data-section="children">
-                            <span>子女缘分分析</span><i class="fas fa-chevron-down toggle-icon"></i>
-                        </button>
-                        <div id="children-content" class="section-content"></div>
+            <div class="element-legend-item">
+                <div class="element-legend-color fire-color"></div>
+                <span>火</span>
+            </div>
+            <div class="element-legend-item">
+                <div class="element-legend-color earth-color"></div>
+                <span>土</span>
+            </div>
+            <div class="element-legend-item">
+                <div class="element-legend-color metal-color"></div>
+                <span>金</span>
+            </div>
+            <div class="element-legend-item">
+                <div class="element-legend-color water-color"></div>
+                <span>水</span>
+            </div>
+        </div>
+    </div>
+</div>
+                
+                <div class="info-section">
+                    <div class="lunar-calendar-card">
+                        <div class="lunar-header">
+                            <i class="fas fa-calendar-alt"></i>
+                            <span>今日黄历</span>
+                        </div>
+                        <div class="lunar-date" id="lunar-date">2025年4月29日 农历四月初二</div>
+                        <div class="lunar-ganzhi" id="lunar-ganzhi">乙巳年 庚辰月 戊辰日</div>
+                        <div class="lunar-yiji">
+                            <div class="lunar-yiji-column">
+                                <div class="lunar-yiji-title">宜</div>
+                                <div class="lunar-yiji-content" id="lunar-yi">祭祀, 祈福, 求嗣, 开光, 出行</div>
+                            </div>
+                            <div class="lunar-yiji-column">
+                                <div class="lunar-yiji-title">忌</div>
+                                <div class="lunar-yiji-content" id="lunar-ji">嫁娶, 安葬, 掘井, 破土</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-        </section>
+            
+            <div class="menu-tabs">
+                <div class="menu-tab active" data-tab="fortune"><i class="fas fa-network-wired"></i> 命盘分析</div>
+                <div class="menu-tab" data-tab="character"><i class="fas fa-user-astronaut"></i> 性格财富</div>
+                <div class="menu-tab" data-tab="relationship"><i class="fas fa-heartbeat"></i> 婚姻健康</div>
+                <div class="menu-tab" data-tab="trend"><i class="fas fa-chart-line"></i> 运势分析</div>
+            </div>
+            <div class="tab-content active" id="fortune-tab">
+    <!-- 移动后的八字问答模块 -->
+    <div class="detail-card">
+        <div class="bazi-qa-container">
+            <div class="bazi-qa-title">
+                <i class="fas fa-question-circle"></i> 八字问答
+            </div>
+            <div class="bazi-qa-input-container">
+                <input type="text" class="bazi-qa-input" id="bazi-question" placeholder="输入您想了解的八字相关问题...">
+                <button class="bazi-qa-submit" id="bazi-qa-submit">提问</button>
+            </div>
+            <div id="bazi-qa-response" class="bazi-qa-response" style="display: none;">
+                <!-- 回答内容将在这里显示 -->
+            </div>
+            <div id="bazi-qa-loading" class="bazi-qa-loading" style="display: none;">
+                <div class="loading"></div>
+                <span>量子AI分析中...</span>
+            </div>
+        </div>
     </div>
 
+    <!-- 原来的身强身弱分析模块 -->
+    <div class="detail-card">
+        <div class="load-btn-container">
+            <button class="load-btn" data-section="strength">
+                <span><i class="fas fa-dumbbell"></i> 身强，身弱，格局分析</span>
+                <i class="fas fa-chevron-down toggle-icon"></i>
+            </button>
+            <div class="load-btn-description">量子分析命主八字中日主的强弱程度和格局，判断是身强、身弱、均衡、从强还是从弱</div>
+        </div>
+        <div id="strength-content" class="section-content"></div>
+    </div>
+
+    <div class="detail-card">
+        <div class="load-btn-container">
+            <button class="load-btn" data-section="elements">
+                <span><i class="fas fa-yin-yang"></i> 五行强弱，燥湿，流通分析</span>
+                <i class="fas fa-chevron-down toggle-icon"></i>
+            </button>
+            <div class="load-btn-description">量子计算八字五行分布情况，判断五行强弱，燥湿，流通和调候</div>
+        </div>
+        <div id="elements-content" class="section-content"></div>
+    </div>
+</div>
+            
+            <div class="tab-content" id="character-tab">
+                <div class="detail-card">
+                    <div class="load-btn-container">
+                        <button class="load-btn" data-section="personality">
+                            <span><i class="fas fa-brain"></i> 性格分析</span>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </button>
+                        <div class="load-btn-description">根据八字分析命主的主要性格特征和优缺点</div>
+                    </div>
+                    <div id="personality-content" class="section-content"></div>
+                </div>
+                
+                <div class="detail-card">
+                    <div class="load-btn-container">
+                        <button class="load-btn" data-section="career">
+                            <span><i class="fas fa-briefcase"></i> 适合行业分析</span>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </button>
+                        <div class="load-btn-description">根据八字五行和十神分析适合从事的职业方向</div>
+                    </div>
+                    <div id="career-content" class="section-content"></div>
+                </div>
+                
+                <div class="detail-card">
+                    <div class="load-btn-container">
+                        <button class="load-btn" data-section="wealth">
+                            <span><i class="fas fa-coins"></i> 财富格局分析</span>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </button>
+                        <div class="load-btn-description">分析八字中的财富格局和理财建议</div>
+                    </div>
+                    <div id="wealth-content" class="section-content"></div>
+                    <div class="gambling-analysis">
+                        <div class="gambling-title">
+                            <i class="fas fa-dice"></i> 今日赌运分析
+                        </div>
+                        <div class="gambling-rating" id="gambling-rating">★★★☆☆</div>
+                        <div class="gambling-details" id="gambling-details">
+                            今日偏财运中等，适合小赌怡情但不宜大额投注。东南方位较为有利，下午3-5点时段运势最佳。注意见好就收，避免贪心导致损失。
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="relationship-tab">
+                <div class="detail-card">
+                    <div class="load-btn-container">
+                        <button class="load-btn" data-section="marriage">
+                            <span><i class="fas fa-ring"></i> 婚姻情况分析</span>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </button>
+                        <div class="load-btn-description">分析八字中婚姻宫和配偶星情况，预测婚姻状况</div>
+                    </div>
+                    <div id="marriage-content" class="section-content"></div>
+                </div>
+                
+                <div class="detail-card">
+                    <div class="load-btn-container">
+                        <button class="load-btn" data-section="children">
+                            <span><i class="fas fa-baby"></i> 子女情况分析</span>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </button>
+                        <div class="load-btn-description">分析八字中子女宫和子女星情况，预测子女缘分</div>
+                    </div>
+                    <div id="children-content" class="section-content"></div>
+                </div>
+                
+                <div class="detail-card">
+                    <div class="load-btn-container">
+                        <button class="load-btn" data-section="family">
+                            <span><i class="fas fa-home"></i> 家庭关系分析</span>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </button>
+                        <div class="load-btn-description">分析八字中父母、兄弟姐妹等家庭关系</div>
+                    </div>
+                    <div id="family-content" class="section-content"></div>
+                </div>
+                
+                <div class="detail-card">
+                    <div class="load-btn-container">
+                        <button class="load-btn" data-section="health">
+                            <span><i class="fas fa-heartbeat"></i> 健康情况分析</span>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </button>
+                        <div class="load-btn-description">根据五行平衡分析命主的健康状况和潜在健康问题</div>
+                    </div>
+                    <div id="health-content" class="section-content"></div>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="trend-tab">
+                <div class="detail-card">
+                    <div class="load-btn-container">
+                        <button class="load-btn" data-section="annual-fortune">
+                            <span><i class="fas fa-calendar-alt"></i> 流年分析</span>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </button>
+                        <div class="load-btn-description">详细分析当前流年对命局的影响，包括五行强弱、神煞系统和地支关系</div>
+                    </div>
+                    <div id="annual-fortune-content" class="section-content"></div>
+                </div>
+                
+                <div class="detail-card">
+                    <div class="load-btn-container">
+                        <button class="load-btn" data-section="monthly-fortune">
+                            <span><i class="fas fa-calendar-day"></i> 流月分析</span>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </button>
+                        <div class="load-btn-description">预测当前年份每月的运势起伏和注意事项</div>
+                    </div>
+                    <div id="monthly-fortune-content" class="section-content"></div>
+                </div>
+                <div class="detail-card">
+                    <div class="load-btn-container">
+                        <button class="load-btn" data-section="daily-fortune">
+                            <span><i class="fas fa-calendar-day"></i> 流日分析</span>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </button>
+                        <div class="load-btn-description">分析每日运势变化和吉凶时辰</div>
+                    </div>
+                    <div id="daily-fortune-content" class="section-content"></div>
+                </div>
+              
+                <div class="detail-card">
+                    <div class="load-btn-container">
+                        <button class="load-btn" data-section="decade-fortune">
+                            <span><i class="fas fa-hourglass-half"></i> 十年大运分析</span>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </button>
+                        <div class="load-btn-description">分析一生中各阶段大运走势，预测重要时期吉凶</div>
+                    </div>
+                    <div id="decade-fortune-content" class="section-content"></div>
+                </div>
+                
+                <div class="detail-card">
+                    <div class="load-btn-container">
+                        <button class="load-btn" data-section="milestones">
+                            <span><i class="fas fa-map-marked-alt"></i> 重要节点和重大灾祸分析</span>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </button>
+                        <div class="load-btn-description">指出人生中重要的年份和可能发生的重大事件和重大灾祸</div>
+                    </div>
+                    <div id="milestones-content" class="section-content"></div>
+                </div>
+            </div>
+            
+            <div class="calculate-btn-container" style="margin-top: 30px;">
+                <button id="recalculate-btn"><i class="fas fa-redo"></i> 重新测算</button>
+            </div>
+        </div>
+        
+        <div class="copyright">
+            © 2025 赛博命理系统 版权所有 | 量子计算引擎 v3.2.6 | 数据来自《渊海子平》《三命通会》等古籍
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lunar-javascript@latest/dist/lunar.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const calculateBtn = document.getElementById('calculate-btn');
-            const recalculateBtn = document.getElementById('recalculate-btn');
-            const inputSection = document.getElementById('input-section');
-            const resultSection = document.getElementById('result-section');
-            const timePeriodOptions = document.querySelectorAll('.time-period-option');
-            const birthTimeInput = document.getElementById('birth-time');
-            const personalityTraits = document.getElementById('personality-traits');
-            const languageBtns = document.querySelectorAll('.language-btn');
-            const yearStem = document.getElementById('year-stem');
-            const yearBranch = document.getElementById('year-branch');
-            const yearHiddenStems = document.getElementById('year-hidden-stems');
-            const monthStem = document.getElementById('month-stem');
-            const monthBranch = document.getElementById('month-branch');
-            const monthHiddenStems = document.getElementById('month-hidden-stems');
-            const dayStem = document.getElementById('day-stem');
-            const dayBranch = document.getElementById('day-branch');
-            const dayHiddenStems = document.getElementById('day-hidden-stems');
-            const hourStem = document.getElementById('hour-stem');
-            const hourBranch = document.getElementById('hour-branch');
-            const hourHiddenStems = document.getElementById('hour-hidden-stems');
-            const fateLevel = document.getElementById('fate-level');
-            const fateScore = document.getElementById('fate-score');
-            const fateDetails = document.getElementById('fate-details');
-            const wealthLevel = document.getElementById('wealth-level');
-            const wealthScore = document.getElementById('wealth-score');
-            const wealthDetails = document.getElementById('wealth-details');
-            const elementChartCtx = document.getElementById('element-chart').getContext('2d');
-            const gamblingRating = document.getElementById('gambling-rating');
-            const gamblingDetails = document.getElementById('gambling-details');
-            const savedProfilesList = document.getElementById('saved-profiles-list');
-            let elementChart;
-            const lunarDate = document.getElementById('lunar-date');
-            const lunarGanzhi = document.getElementById('lunar-ganzhi');
-            const lunarYi = document.getElementById('lunar-yi');
-            const lunarJi = document.getElementById('lunar-ji');
-            const currentDate = new Date();
-            let birthData = {};
-            let loadedSections = {};
-            let currentPillars = {};
-            let fateScoreDetails = {};
-            let wealthScoreDetails = {};
-            let fateScoreValue = 0;
-            let wealthScoreValue = 0;
-            const baziQuestionInput = document.getElementById('bazi-question');
-            const baziQaSubmit = document.getElementById('bazi-qa-submit');
-            const baziQaResponse = document.getElementById('bazi-qa-response');
-            const baziQaLoading = document.getElementById('bazi-qa-loading');
-
-            loadSavedProfiles();
-
-            timePeriodOptions.forEach(option => {
-                option.addEventListener('click', function() {
-                    timePeriodOptions.forEach(opt => opt.classList.remove('selected'));
-                    this.classList.add('selected');
-                    const hour = this.getAttribute('data-hour');
-                    const minute = this.getAttribute('data-minute');
-                    birthTimeInput.value = `${hour.padStart(2, '0')}:${minute.padStart(2, '0')}`;
-                });
-            });
-
-            languageBtns.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    languageBtns.forEach(b => b.classList.remove('active'));
-                    this.classList.add('active');
-                    const lang = this.getAttribute('data-lang');
-                    console.log('切换到语言:', lang);
-                });
-            });
-
-            marked.setOptions({
-                breaks: true,
-                gfm: true,
-                tables: true,
-                highlight: function(code, lang) {
-                    return code;
-                }
-            });
-
-            baziQaSubmit.addEventListener('click', async function() {
-                const question = baziQuestionInput.value.trim();
-                if (!question) {
-                    alert('请输入您的问题');
-                    return;
-                }
+        // 初始化星空背景
+        function initStars() {
+            const starsContainer = document.getElementById('stars');
+            const starsCount = 200;
+            
+            for (let i = 0; i < starsCount; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
                 
-                baziQaSubmit.disabled = true;
-                baziQaResponse.style.display = 'none';
-                baziQaLoading.style.display = 'flex';
+                // 随机位置
+                const x = Math.random() * 100;
+                const y = Math.random() * 100;
                 
-                try {
-                    const response = await getBaziAnswer(question);
-                    baziQaResponse.innerHTML = marked.parse(response);
-                    baziQaResponse.style.display = 'block';
-                } catch (error) {
-                    console.error('获取回答失败:', error);
-                    baziQaResponse.innerHTML = '<p style="color:var(--danger-color)">获取回答失败，请稍后重试</p>';
-                    baziQaResponse.style.display = 'block';
-                } finally {
-                    baziQaSubmit.disabled = false;
-                    baziQaLoading.style.display = 'none';
-                }
-            });
-
-            async function getBaziAnswer(question) {
-                const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
-                const apiKey = 'sk-b2950087a9d5427392762814114b22a9';
+                // 随机大小
+                const size = Math.random() * 3;
                 
-                const prompt = `【八字专业问答规范】请严格遵循以下规则回答：
-1. 回答必须基于传统八字命理学知识
-2. 回答应简洁明了，避免冗长
-3. 针对用户问题提供专业分析
-4. 如果问题与当前命盘相关，请结合以下八字信息：
-   姓名：${birthData.name || '未提供'}
-   出生日期：${birthData.date}
-   出生时间：${birthData.time}
-   性别：${birthData.gender === 'male' ? '男' : '女'}
-   八字：${currentPillars.year} ${currentPillars.month} ${currentPillars.day} ${currentPillars.hour}
-
-用户问题：${question}`;
-
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${apiKey}`
+                // 随机闪烁时间
+                const duration = 3 + Math.random() * 5 + 's';
+                
+                star.style.left = `${x}%`;
+                star.style.top = `${y}%`;
+                star.style.width = `${size}px`;
+                star.style.height = `${size}px`;
+                star.style.setProperty('--duration', duration);
+                
+                starsContainer.appendChild(star);
+            }
+        }
+        
+        // 初始化粒子背景
+        function initParticles() {
+            particlesJS('particles-js', {
+                "particles": {
+                    "number": {
+                        "value": 80,
+                        "density": {
+                            "enable": true,
+                            "value_area": 800
+                        }
                     },
-                    body: JSON.stringify({
-                        model: "deepseek-chat",
-                        messages: [{ role: "user", content: prompt }],
-                        temperature: 0
-                    })
-                });
-                
-                if (!response.ok) throw new Error(`API请求失败: ${response.status}`);
-                const result = await response.json();
-                return result.choices[0].message.content;
-            }
-
-            recalculateBtn.addEventListener('click', function() {
-                document.getElementById('name').value = '';
-                document.getElementById('birth-date').value = '';
-                document.getElementById('birth-time').value = '';
-                document.getElementById('gender').value = '';
-                timePeriodOptions.forEach(opt => opt.classList.remove('selected'));
-                resultSection.style.display = 'none';
-                inputSection.style.display = 'block';
-                resetAllContent();
-                if (elementChart) {
-                    elementChart.destroy();
-                }
-                window.scrollTo(0, 0);
-            });
-
-            function resetAllContent() {
-                fateScoreValue = 0;
-                wealthScoreValue = 0;
-                yearStem.textContent = '';
-                yearBranch.textContent = '';
-                yearHiddenStems.textContent = '';
-                monthStem.textContent = '';
-                monthBranch.textContent = '';
-                monthHiddenStems.textContent = '';
-                dayStem.textContent = '';
-                dayBranch.textContent = '';
-                dayHiddenStems.textContent = '';
-                hourStem.textContent = '';
-                hourBranch.textContent = '';
-                hourHiddenStems.textContent = '';
-                fateLevel.textContent = '';
-                fateScore.textContent = '';
-                fateDetails.innerHTML = '';
-                wealthLevel.textContent = '';
-                wealthScore.textContent = '';
-                wealthDetails.innerHTML = '';
-                personalityTraits.textContent = '命主性格：';
-                document.querySelectorAll('.section-content').forEach(el => {
-                    el.innerHTML = '';
-                    el.classList.remove('active');
-                });
-                document.querySelectorAll('.load-btn').forEach(btn => {
-                    const originalContent = btn.querySelector('span').innerHTML;
-                    btn.innerHTML = `<span>${originalContent}</span><i class="fas fa-chevron-down toggle-icon"></i>`;
-                    btn.classList.remove('active');
-                    btn.disabled = false;
-                });
-                document.querySelectorAll('.load-btn-container').forEach(container => {
-                    container.classList.remove('active');
-                });
-                document.querySelectorAll('.menu-tab').forEach(tab => tab.classList.remove('active'));
-                document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-                document.querySelector('.menu-tab[data-tab="fortune"]').classList.add('active');
-                document.getElementById('fortune-tab').classList.add('active');
-                loadedSections = {};
-                currentPillars = {};
-                fateScoreDetails = {};
-                wealthScoreDetails = {};
-                baziQuestionInput.value = '';
-                baziQaResponse.innerHTML = '';
-                baziQaResponse.style.display = 'none';
-                baziQaLoading.style.display = 'none';
-            }
-
-            document.querySelectorAll('.menu-tab').forEach(tab => {
-                tab.addEventListener('click', function() {
-                    document.querySelectorAll('.menu-tab').forEach(t => t.classList.remove('active'));
-                    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-                    this.classList.add('active');
-                    const tabId = this.getAttribute('data-tab') + '-tab';
-                    document.getElementById(tabId).classList.add('active');
-                });
-            });
-
-            function initLoadButtons() {
-                document.querySelectorAll('.load-btn').forEach(button => {
-                    const section = button.getAttribute('data-section');
-                    if (loadedSections[section]) return;
-                    const contentElement = document.getElementById(`${section}-content`);
-                    const container = button.closest('.load-btn-container');
-                    button.addEventListener('click', async function(e) {
-                        e.preventDefault();
-                        if (loadedSections[section]) {
-                            container.classList.toggle('active');
-                            contentElement.classList.toggle('active');
-                            return;
+                    "color": {
+                        "value": "#6e00ff"
+                    },
+                    "shape": {
+                        "type": "circle",
+                        "stroke": {
+                            "width": 0,
+                            "color": "#000000"
+                        },
+                        "polygon": {
+                            "nb_sides": 5
                         }
-                        const originalBtnHtml = button.innerHTML;
-                        this.disabled = true;
-                        const sectionName = button.querySelector('span').textContent.trim();
-                        button.innerHTML = `<span><span class="loading"></span> 量子分析中...</span><i class="fas fa-chevron-down toggle-icon"></i>`;
-                        container.classList.add('active');
-                        const progressContainer = document.createElement('div');
-                        progressContainer.className = 'progress-container';
-                        progressContainer.innerHTML = '<div class="progress-bar"></div>';
-                        progressContainer.style.display = 'block';
-                        contentElement.innerHTML = '';
-                        contentElement.appendChild(progressContainer);
-                        const progressBar = progressContainer.querySelector('.progress-bar');
-                        let progress = 0;
-                        const progressInterval = setInterval(() => {
-                            progress += Math.random() * 10;
-                            if (progress >= 100) progress = 100;
-                            progressBar.style.width = `${progress}%`;
-                        }, 300);
-                        try {
-                            const result = await getBaziAnalysis(section, birthData);
-                            clearInterval(progressInterval);
-                            displaySectionContent(section, result, contentElement);
-                            button.innerHTML = originalBtnHtml.replace('<i class="fas fa-chevron-down toggle-icon"></i>', 
-                                '<i class="fas fa-check"></i><i class="fas fa-chevron-down toggle-icon"></i>');
-                            button.disabled = false;
-                            contentElement.classList.add('active');
-                            loadedSections[section] = true;
-                            if (section === 'decade-fortune') {
-                                initFortuneChart(result);
+                    },
+                    "opacity": {
+                        "value": 0.5,
+                        "random": false,
+                        "anim": {
+                            "enable": false,
+                            "speed": 1,
+                            "opacity_min": 0.1,
+                            "sync": false
+                        }
+                    },
+                    "size": {
+                        "value": 3,
+                        "random": true,
+                        "anim": {
+                            "enable": false,
+                            "speed": 40,
+                            "size_min": 0.1,
+                            "sync": false
+                        }
+                    },
+                    "line_linked": {
+                        "enable": true,
+                        "distance": 150,
+                        "color": "#6e00ff",
+                        "opacity": 0.4,
+                        "width": 1
+                    },
+                    "move": {
+                        "enable": true,
+                        "speed": 2,
+                        "direction": "none",
+                        "random": false,
+                        "straight": false,
+                        "out_mode": "out",
+                        "bounce": false,
+                        "attract": {
+                            "enable": false,
+                            "rotateX": 600,
+                            "rotateY": 1200
+                        }
+                    }
+                },
+                "interactivity": {
+                    "detect_on": "canvas",
+                    "events": {
+                        "onhover": {
+                            "enable": true,
+                            "mode": "grab"
+                        },
+                        "onclick": {
+                            "enable": true,
+                            "mode": "push"
+                        },
+                        "resize": true
+                    },
+                    "modes": {
+                        "grab": {
+                            "distance": 140,
+                            "line_linked": {
+                                "opacity": 1
                             }
-                        } catch (error) {
-                            console.error(`加载${section}失败:`, error);
-                            clearInterval(progressInterval);
-                            contentElement.innerHTML = '<p style="color:var(--danger-color)">加载失败，请重试</p>';
-                            button.disabled = false;
-                            button.innerHTML = originalBtnHtml;
+                        },
+                        "bubble": {
+                            "distance": 400,
+                            "size": 40,
+                            "duration": 2,
+                            "opacity": 8,
+                            "speed": 3
+                        },
+                        "repulse": {
+                            "distance": 200,
+                            "duration": 0.4
+                        },
+                        "push": {
+                            "particles_nb": 4
+                        },
+                        "remove": {
+                            "particles_nb": 2
                         }
-                    });
-                });
-            }
-
-            function initElementChart(data) {
-                // 计算本命局五行能量
-                const natalElements = calculateElementEnergy({
-                    year: currentPillars.year,
-                    month: currentPillars.month,
-                    day: currentPillars.day,
-                    hour: currentPillars.hour
-                });
-                
-                // 计算当前流年五行能量
-                const currentSolar = Solar.fromDate(new Date());
-                const currentLunar = currentSolar.getLunar();
-                const currentYearGZ = currentLunar.getYearInGanZhi();
-                const currentYearElements = calculateElementEnergy({
-                    year: currentYearGZ,
-                    month: "",
-                    day: "",
-                    hour: ""
-                });
-                
-                // 计算大运五行能量（取第一个大运）
-                const decadeFortune = calculateDecadeFortune(Solar.fromYmdHms(
-                    parseInt(birthData.date.split('-')[0]),
-                    parseInt(birthData.date.split('-')[1]),
-                    parseInt(birthData.date.split('-')[2]),
-                    parseInt(birthData.time.split(':')[0]),
-                    parseInt(birthData.time.split(':')[1] || 0),
-                    0
-                ).getLunar(), birthData.gender);
-                
-                const firstFortune = decadeFortune.fortunes[0].ganZhi;
-                const fortuneElements = calculateElementEnergy({
-                    year: firstFortune,
-                    month: "",
-                    day: "",
-                    hour: ""
-                });
-                
-                // 综合计算五行能量（本命局+流年+大运）
-                const combinedElements = [
-                    natalElements[0] + currentYearElements[0] + fortuneElements[0],
-                    natalElements[1] + currentYearElements[1] + fortuneElements[1],
-                    natalElements[2] + currentYearElements[2] + fortuneElements[2],
-                    natalElements[3] + currentYearElements[3] + fortuneElements[3],
-                    natalElements[4] + currentYearElements[4] + fortuneElements[4]
-                ];
-                
-                const total = combinedElements.reduce((sum, value) => sum + value, 0);
-                const percentages = combinedElements.map(value => Math.round((value/total)*100));
-                
-                const elementData = {
-                    labels: ['木', '火', '土', '金', '水'].map((label, i) => `${label} ${percentages[i]}%`),
+                    }
+                },
+                "retina_detect": true
+            });
+        }
+        
+        // 初始化五行图表
+        function initElementChart() {
+            const ctx = document.getElementById('element-chart').getContext('2d');
+            const chart = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['木', '火', '土', '金', '水'],
                     datasets: [{
-                        label: '综合五行能量',
-                        data: combinedElements,
-                        backgroundColor: [
-                            'rgba(0, 255, 136, 0.3)',
-                            'rgba(255, 51, 0, 0.3)',
-                            'rgba(255, 204, 0, 0.3)',
-                            'rgba(204, 204, 204, 0.3)',
-                            'rgba(0, 153, 255, 0.3)'
-                        ],
-                        borderColor: [
-                            'rgba(0, 255, 136, 1)',
-                            'rgba(255, 51, 0, 1)',
-                            'rgba(255, 204, 0, 1)',
-                            'rgba(204, 204, 204, 1)',
-                            'rgba(0, 153, 255, 1)'
-                        ],
+                        label: '五行能量',
+                        data: [65, 30, 40, 35, 80],
+                        backgroundColor: 'rgba(110, 0, 255, 0.2)',
+                        borderColor: 'rgba(110, 0, 255, 1)',
+                        pointBackgroundColor: 'rgba(110, 0, 255, 1)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgba(110, 0, 255, 1)',
                         borderWidth: 2
                     }]
-                };
-                
-                elementChart = new Chart(elementChartCtx, {
-                    type: 'radar',
-                    data: elementData,
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: {
-                            r: {
-                                angleLines: {
-                                    display: true,
-                                    color: 'rgba(0, 240, 255, 0.2)'
-                                },
-                                suggestedMin: 0,
-                                suggestedMax: Math.max(...combinedElements) + 2,
-                                ticks: {
-                                    backdropColor: 'transparent',
-                                    color: 'rgba(0, 240, 255, 0.7)',
-                                    font: {
-                                        family: "'Orbitron', sans-serif"
-                                    },
-                                    stepSize: 1
-                                },
-                                pointLabels: {
-                                    color: 'rgba(0, 240, 255, 0.9)',
-                                    font: {
-                                        family: "'Orbitron', sans-serif",
-                                        size: 14
-                                    }
-                                },
-                                grid: {
-                                    color: 'rgba(0, 240, 255, 0.1)'
-                                }
-                            }
-                        },
-                        plugins: {
-                            legend: {
-                                display: false
+                },
+                options: {
+                    scales: {
+                        r: {
+                            angleLines: {
+                                color: 'rgba(255, 255, 255, 0.1)'
                             },
-                            tooltip: {
-                                callbacks: {
-                                    label: function(context) {
-                                        const label = context.label || '';
-                                        const value = context.raw;
-                                        const percentage = percentages[context.dataIndex];
-                                        return `${label}: ${value} (${percentage}%)`;
-                                    }
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            pointLabels: {
+                                color: '#e0e0ff',
+                                font: {
+                                    family: "'Share Tech Mono', monospace"
                                 }
+                            },
+                            ticks: {
+                                backdropColor: 'transparent',
+                                color: 'rgba(255, 255, 255, 0.5)',
+                                showLabelBackdrop: false
                             }
-                        },
-                        elements: {
-                            line: {
-                                tension: 0.1
-                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    elements: {
+                        line: {
+                            tension: 0.1
                         }
                     }
-                });
-            }
-
-            function calculateElementEnergy(pillars) {
-                const elements = {
-                    '木': 0,
-                    '火': 0,
-                    '土': 0,
-                    '金': 0,
-                    '水': 0
-                };
-                const stemElements = {
-                    '甲': '木', '乙': '木',
-                    '丙': '火', '丁': '火',
-                    '戊': '土', '己': '土',
-                    '庚': '金', '辛': '金',
-                    '壬': '水', '癸': '水'
-                };
-                const branchElements = {
-                    '寅': '木', '卯': '木',
-                    '午': '火', '巳': '火',
-                    '辰': '土', '戌': '土', '丑': '土', '未': '土',
-                    '申': '金', '酉': '金',
-                    '子': '水', '亥': '水'
-                };
-                
-                // 处理年柱
-                if (pillars.year) {
-                    elements[stemElements[pillars.year.charAt(0)]]++;
-                    elements[branchElements[pillars.year.charAt(1)]]++;
-                }
-                
-                // 处理月柱
-                if (pillars.month) {
-                    elements[stemElements[pillars.month.charAt(0)]]++;
-                    elements[branchElements[pillars.month.charAt(1)]]++;
-                }
-                
-                // 处理日柱
-                if (pillars.day) {
-                    elements[stemElements[pillars.day.charAt(0)]]++;
-                    elements[branchElements[pillars.day.charAt(1)]]++;
-                }
-                
-                // 处理时柱
-                if (pillars.hour) {
-                    elements[stemElements[pillars.hour.charAt(0)]]++;
-                    elements[branchElements[pillars.hour.charAt(1)]]++;
-                }
-                
-                return [
-                    elements['木'],
-                    elements['火'],
-                    elements['土'],
-                    elements['金'],
-                    elements['水']
-                ];
-            }
-
-            function initFortuneChart(result) {
-                const fortuneContent = document.getElementById('decade-fortune-content');
-                const canvas = document.createElement('canvas');
-                canvas.className = 'fortune-chart';
-                fortuneContent.appendChild(canvas);
-                
-                const fortunes = calculateDecadeFortune(
-                    Solar.fromYmdHms(
-                        parseInt(birthData.date.split('-')[0]),
-                        parseInt(birthData.date.split('-')[1]),
-                        parseInt(birthData.date.split('-')[2]),
-                        parseInt(birthData.time.split(':')[0]),
-                        parseInt(birthData.time.split(':')[1] || 0),
-                        0
-                    ).getLunar(), 
-                    birthData.gender
-                ).fortunes;
-
-                const chartData = {
-                    labels: fortunes.map(f => f.ageRange),
-                    datasets: [{
-                        label: '运势指数',
-                        data: fortunes.map(f => f.score),
-                        fill: true,
-                        backgroundColor: 'rgba(0, 240, 255, 0.2)',
-                        borderColor: 'rgba(0, 240, 255, 1)',
-                        tension: 0.4
-                    }]
-                };
-
-                new Chart(canvas.getContext('2d'), {
-                    type: 'line',
-                    data: chartData,
-                    options: {
-                        responsive: true,
-                        scales: {
-                            y: { max: 100 }
-                        }
-                    }
-                });
-            }
-
-            function updateLunarCalendar() {
-                const solar = Solar.fromDate(new Date());
-                const lunar = solar.getLunar();
-                lunarDate.textContent = `${lunar.getYearInChinese()}年 ${lunar.getMonthInChinese()}月 ${lunar.getDayInChinese()}`;
-                lunarGanzhi.textContent = `${lunar.getYearInGanZhi()}年 ${lunar.getMonthInGanZhi()}月 ${lunar.getDayInGanZhi()}日`;
-                const yi = lunar.getDayYi();
-                const ji = lunar.getDayJi();
-                lunarYi.textContent = yi.join('、') || '无';
-                lunarJi.textContent = ji.join('、') || '无';
-            }
-
-            function isValidDate(year, month, day) {
-                if (month < 1 || month > 12) {
-                    return false;
-                }
-                const date = new Date(year, month - 1, day);
-                return date.getFullYear() === year && 
-                       date.getMonth() === month - 1 && 
-                       date.getDate() === day;
-            }
-
-            function isLeapYear(year) {
-                return (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
-            }
-
-            function calculateFateScore(pillars) {
-                if (fateScoreValue === 0) {
-                    const seasonScore = calculateSeasonScore(dayStem.textContent, monthBranch.textContent);
-                    const balanceScore = calculateBalanceScore(pillars);
-                    const patternScore = calculatePatternScore(pillars);
-                    const godsScore = calculateGodsScore(pillars);
-                    const combinationScore = calculateCombinationScore(pillars);
-                    const total = seasonScore + balanceScore + patternScore + godsScore + combinationScore;
-                    fateScoreDetails = {
-                        seasonScore,
-                        balanceScore,
-                        patternScore,
-                        godsScore,
-                        combinationScore,
-                        total
-                    };
-                    fateScoreValue = Math.round(total);
-                }
-                return fateScoreValue;
-            }
-
-            function calculateSeasonScore(dayStem, monthBranch) {
-                const seasonMap = {
-                    '甲': ['寅', '卯', '辰'],
-                    '乙': ['寅', '卯', '辰'],
-                    '丙': ['巳', '午', '未'],
-                    '丁': ['巳', '午', '未'],
-                    '戊': ['辰', '戌', '丑', '未'],
-                    '己': ['辰', '戌', '丑', '未'],
-                    '庚': ['申', '酉', '戌'],
-                    '辛': ['申', '酉', '戌'],
-                    '壬': ['亥', '子', '丑'],
-                    '癸': ['亥', '子', '丑']
-                };
-                if (seasonMap[dayStem] && seasonMap[dayStem].includes(monthBranch)) {
-                    return 30;
-                }
-                return 15;
-            }
-
-            function calculateBalanceScore(pillars) {
-                const elements = {
-                    '木': 0,
-                    '火': 0,
-                    '土': 0,
-                    '金': 0,
-                    '水': 0
-                };
-                const stemElements = {
-                    '甲': '木', '乙': '木',
-                    '丙': '火', '丁': '火',
-                    '戊': '土', '己': '土',
-                    '庚': '金', '辛': '金',
-                    '壬': '水', '癸': '水'
-                };
-                const branchElements = {
-                    '寅': '木', '卯': '木',
-                    '午': '火', '巳': '火',
-                    '辰': '土', '戌': '土', '丑': '土', '未': '土',
-                    '申': '金', '酉': '金',
-                    '子': '水', '亥': '水'
-                };
-                elements[stemElements[pillars.year.charAt(0)]]++;
-                elements[stemElements[pillars.month.charAt(0)]]++;
-                elements[stemElements[pillars.day.charAt(0)]]++;
-                elements[stemElements[pillars.hour.charAt(0)]]++;
-                elements[branchElements[pillars.year.charAt(1)]]++;
-                elements[branchElements[pillars.month.charAt(1)]]++;
-                elements[branchElements[pillars.day.charAt(1)]]++;
-                elements[branchElements[pillars.hour.charAt(1)]]++;
-                const values = Object.values(elements);
-                const max = Math.max(...values);
-                const min = Math.min(...values);
-                const balance = 25 - (max - min) * 2;
-                return Math.max(0, balance);
-            }
-
-            function calculatePatternScore(pillars) {
-                if (isCongGe(pillars)) {
-                    return 20;
-                }
-                if (isZhuanWangGe(pillars)) {
-                    return 15;
-                }
-                return 5;
-            }
-
-            function isCongGe(pillars) {
-                const dayStem = pillars.day.charAt(0);
-                const stems = [
-                    pillars.year.charAt(0),
-                    pillars.month.charAt(0),
-                    pillars.hour.charAt(0)
-                ];
-                const branches = [
-                    pillars.year.charAt(1),
-                    pillars.month.charAt(1),
-                    pillars.day.charAt(1),
-                    pillars.hour.charAt(1)
-                ];
-                if (isCongQiangGe(dayStem, stems, branches)) {
-                    return true;
-                }
-                if (isCongRuoGe(dayStem, stems, branches)) {
-                    return true;
-                }
-                return false;
-            }
-
-            function isCongQiangGe(dayStem, stems, branches) {
-                let count = 0;
-                stems.forEach(stem => {
-                    if (isSameElement(stem, dayStem) || isGenerateElement(stem, dayStem)) {
-                        count++;
-                    }
-                });
-                branches.forEach(branch => {
-                    if (isSameElement(branch, dayStem) || isGenerateElement(branch, dayStem)) {
-                        count++;
-                    }
-                });
-                return count >= 6;
-            }
-
-            function isCongRuoGe(dayStem, stems, branches) {
-                let count = 0;
-                stems.forEach(stem => {
-                    if (isSameElement(stem, dayStem) || isGenerateElement(stem, dayStem)) {
-                        count++;
-                    }
-                });
-                branches.forEach(branch => {
-                    if (isSameElement(branch, dayStem) || isGenerateElement(branch, dayStem)) {
-                        count++;
-                    }
-                });
-                return count <= 1;
-            }
-
-            function isZhuanWangGe(pillars) {
-                const dayStem = pillars.day.charAt(0);
-                const stems = [
-                    pillars.year.charAt(0),
-                    pillars.month.charAt(0),
-                    pillars.hour.charAt(0)
-                ];
-                const branches = [
-                    pillars.year.charAt(1),
-                    pillars.month.charAt(1),
-                    pillars.day.charAt(1),
-                    pillars.hour.charAt(1)
-                ];
-                let sameCount = 0;
-                let otherCount = 0;
-                stems.forEach(stem => {
-                    if (isSameElement(stem, dayStem)) {
-                        sameCount++;
-                    } else {
-                        otherCount++;
-                    }
-                });
-                branches.forEach(branch => {
-                    if (isSameElement(branch, dayStem)) {
-                        sameCount++;
-                    } else {
-                        otherCount++;
-                    }
-                });
-                return sameCount >= 5 && otherCount <= 2;
-            }
-
-            function isSameElement(a, b) {
-                const elementMap = {
-                    '甲': '木', '乙': '木',
-                    '丙': '火', '丁': '火',
-                    '戊': '土', '己': '土',
-                    '庚': '金', '辛': '金',
-                    '壬': '水', '癸': '水',
-                    '寅': '木', '卯': '木',
-                    '午': '火', '巳': '火',
-                    '辰': '土', '戌': '土', '丑': '土', '未': '土',
-                    '申': '金', '酉': '金',
-                    '子': '水', '亥': '水'
-                };
-                return elementMap[a] === elementMap[b];
-            }
-
-            function isGenerateElement(a, b) {
-                const elementMap = {
-                    '甲': '木', '乙': '木',
-                    '丙': '火', '丁': '火',
-                    '戊': '土', '己': '土',
-                    '庚': '金', '辛': '金',
-                    '壬': '水', '癸': '水',
-                    '寅': '木', '卯': '木',
-                    '午': '火', '巳': '火',
-                    '辰': '土', '戌': '土', '丑': '土', '未': '土',
-                    '申': '金', '酉': '金',
-                    '子': '水', '亥': '水'
-                };
-                const aElement = elementMap[a];
-                const bElement = elementMap[b];
-                const generateMap = {
-                    '木': '火',
-                    '火': '土',
-                    '土': '金',
-                    '金': '水',
-                    '水': '木'
-                };
-                return generateMap[aElement] === bElement;
-            }
-
-            function calculateGodsScore(pillars) {
-                return 10;
-            }
-
-            function calculateCombinationScore(pillars) {
-                const branches = [
-                    pillars.year.charAt(1),
-                    pillars.month.charAt(1),
-                    pillars.day.charAt(1),
-                    pillars.hour.charAt(1)
-                ];
-                if (hasSanHe(branches)) {
-                    return 8;
-                }
-                if (hasLiuHe(branches)) {
-                    return 5;
-                }
-                return 2;
-            }
-
-            function hasSanHe(branches) {
-                const sanHeGroups = [
-                    ['申', '子', '辰'],
-                    ['亥', '卯', '未'],
-                    ['寅', '午', '戌'],
-                    ['巳', '酉', '丑']
-                ];
-                for (const group of sanHeGroups) {
-                    let count = 0;
-                    for (const branch of branches) {
-                        if (group.includes(branch)) {
-                            count++;
-                        }
-                    }
-                    if (count >= 2) {
-                        return true;
-                    }
-                }
-                return false;
-            }
-
-            function hasLiuHe(branches) {
-                const liuHePairs = [
-                    ['子', '丑'],
-                    ['寅', '亥'],
-                    ['卯', '戌'],
-                    ['辰', '酉'],
-                    ['巳', '申'],
-                    ['午', '未']
-                ];
-                for (const pair of liuHePairs) {
-                    if (branches.includes(pair[0]) && branches.includes(pair[1])) {
-                        return true;
-                    }
-                }
-                return false;
-            }
-
-            function calculateWealthScore(pillars) {
-                if (wealthScoreValue === 0) {
-                    const wealthStarScore = calculateWealthStarScore(pillars);
-                    const wealthPositionScore = calculateWealthPositionScore(pillars);
-                    const wealthDamageScore = calculateWealthDamageScore(pillars);
-                    const wealthSupportScore = calculateWealthSupportScore(pillars);
-                    const fortuneScore = calculateFortuneScore(pillars);
-                    const total = wealthStarScore + wealthPositionScore + (20 - wealthDamageScore) + wealthSupportScore + fortuneScore;
-                    wealthScoreDetails = {
-                        wealthStarScore,
-                        wealthPositionScore,
-                        wealthDamageScore: 20 - wealthDamageScore,
-                        wealthSupportScore,
-                        fortuneScore,
-                        total
-                    };
-                    wealthScoreValue = Math.round(total);
-                }
-                return wealthScoreValue;
-            }
-
-            function calculateWealthStarScore(pillars) {
-                const dayStem = pillars.day.charAt(0);
-                let wealthCount = 0;
-                const stems = [
-                    pillars.year.charAt(0),
-                    pillars.month.charAt(0),
-                    pillars.hour.charAt(0)
-                ];
-                const branches = [
-                    pillars.year.charAt(1),
-                    pillars.month.charAt(1),
-                    pillars.day.charAt(1),
-                    pillars.hour.charAt(1)
-                ];
-                const wealthStars = getWealthStars(dayStem);
-                stems.forEach(stem => {
-                    if (wealthStars.includes(stem)) {
-                        wealthCount++;
-                    }
-                });
-                branches.forEach(branch => {
-                    if (wealthStars.includes(branch)) {
-                        wealthCount++;
-                    }
-                });
-                if (wealthCount >= 3) return 30;
-                if (wealthCount === 2) return 20;
-                if (wealthCount === 1) return 10;
-                return 5;
-            }
-
-            function getWealthStars(dayStem) {
-                const wealthMap = {
-                    '甲': ['戊', '己', '辰', '戌', '丑', '未'],
-                    '乙': ['戊', '己', '辰', '戌', '丑', '未'],
-                    '丙': ['庚', '辛', '申', '酉'],
-                    '丁': ['庚', '辛', '申', '酉'],
-                    '戊': ['壬', '癸', '子', '亥'],
-                    '己': ['壬', '癸', '子', '亥'],
-                    '庚': ['甲', '乙', '寅', '卯'],
-                    '辛': ['甲', '乙', '寅', '卯'],
-                    '壬': ['丙', '丁', '午', '巳'],
-                    '癸': ['丙', '丁', '午', '巳']
-                };
-                return wealthMap[dayStem] || [];
-            }
-
-            function calculateWealthPositionScore(pillars) {
-                const dayStem = pillars.day.charAt(0);
-                const wealthStars = getWealthStars(dayStem);
-                let score = 0;
-                if (wealthStars.includes(pillars.month.charAt(1))) {
-                    score += 15;
-                }
-                if (wealthStars.includes(pillars.day.charAt(1))) {
-                    score += 5;
-                }
-                if (wealthStars.includes(pillars.hour.charAt(1))) {
-                    score += 5;
-                }
-                return Math.min(25, score);
-            }
-
-            function calculateWealthDamageScore(pillars) {
-                const dayStem = pillars.day.charAt(0);
-                const wealthStars = getWealthStars(dayStem);
-                let damageCount = 0;
-                const stems = [
-                    pillars.year.charAt(0),
-                    pillars.month.charAt(0),
-                    pillars.hour.charAt(0)
-                ];
-                const branches = [
-                    pillars.year.charAt(1),
-                    pillars.month.charAt(1),
-                    pillars.day.charAt(1),
-                    pillars.hour.charAt(1)
-                ];
-                const damageStars = getDamageStars(dayStem);
-                stems.forEach(stem => {
-                    if (damageStars.includes(stem)) {
-                        damageCount++;
-                    }
-                });
-                branches.forEach(branch => {
-                    if (damageStars.includes(branch)) {
-                        damageCount++;
-                    }
-                });
-                return Math.min(20, damageCount * 5);
-            }
-
-            function getDamageStars(dayStem) {
-                const damageMap = {
-                    '甲': ['甲', '乙', '寅', '卯'],
-                    '乙': ['甲', '乙', '寅', '卯'],
-                    '丙': ['丙', '丁', '午', '巳'],
-                    '丁': ['丙', '丁', '午', '巳'],
-                    '戊': ['戊', '己', '辰', '戌', '丑', '未'],
-                    '己': ['戊', '己', '辰', '戌', '丑', '未'],
-                    '庚': ['庚', '辛', '申', '酉'],
-                    '辛': ['庚', '辛', '申', '酉'],
-                    '壬': ['壬', '癸', '子', '亥'],
-                    '癸': ['壬', '癸', '子', '亥']
-                };
-                return damageMap[dayStem] || [];
-            }
-
-            function calculateWealthSupportScore(pillars) {
-                const dayStem = pillars.day.charAt(0);
-                const wealthStars = getWealthStars(dayStem);
-                const generateStars = getGenerateStars(dayStem);
-                let supportCount = 0;
-                const stems = [
-                    pillars.year.charAt(0),
-                    pillars.month.charAt(0),
-                    pillars.hour.charAt(0)
-                ];
-                const branches = [
-                    pillars.year.charAt(1),
-                    pillars.month.charAt(1),
-                    pillars.day.charAt(1),
-                    pillars.hour.charAt(1)
-                ];
-                stems.forEach(stem => {
-                    if (generateStars.includes(stem)) {
-                        supportCount++;
-                    }
-                });
-                branches.forEach(branch => {
-                    if (generateStars.includes(branch)) {
-                        supportCount++;
-                    }
-                });
-                if (supportCount >= 2) return 15;
-                if (supportCount === 1) return 8;
-                return 3;
-            }
-
-            function getGenerateStars(dayStem) {
-                const generateMap = {
-                    '甲': ['丙', '丁', '午', '巳'],
-                    '乙': ['丙', '丁', '午', '巳'],
-                    '丙': ['戊', '己', '辰', '戌', '丑', '未'],
-                    '丁': ['戊', '己', '辰', '戌', '丑', '未'],
-                    '戊': ['庚', '辛', '申', '酉'],
-                    '己': ['庚', '辛', '申', '酉'],
-                    '庚': ['壬', '癸', '子', '亥'],
-                    '辛': ['壬', '癸', '子', '亥'],
-                    '壬': ['甲', '乙', '寅', '卯'],
-                    '癸': ['甲', '乙', '寅', '卯']
-                };
-                return generateMap[dayStem] || [];
-            }
-
-            function calculateFortuneScore(pillars) {
-                return 5;
-            }
-
-            function getFateLevel(score) {
-                if (score >= 85) return { name: "天赐鸿运 ★★★★★ (85-100分)", class: "excellent" };
-                if (score >= 70) return { name: "福星高照 ★★★★☆ (70-84分)", class: "good" };
-                if (score >= 50) return { name: "安常守分 ★★★☆☆ (50-69分)", class: "average" };
-                if (score >= 30) return { name: "勤能补拙 ★★☆☆☆ (30-49分)", class: "struggling" };
-                return { name: "逆水行舟 ★☆☆☆☆ (<30分)", class: "needs-improvement" };
-            }
-
-            function getWealthLevel(score) {
-                if (score >= 90) return { name: "天禄盈门 ★★★★★ (90分以上)", class: "ultra-rich" };
-                if (score >= 80) return { name: "朱紫满箱 ★★★★☆ (80-89分)", class: "very-rich" };
-                if (score >= 60) return { name: "粟陈贯朽 ★★★☆☆ (60-79分)", class: "moderately-rich" };
-                if (score >= 40) return { name: "岁稔年丰 ★★☆☆☆ (40-59分)", class: "somewhat-rich" };
-                return { name: "营营逐逐 ★☆☆☆☆ (<40分)", class: "wealth-average" };
-            }
-
-            function displayScores() {
-                if (!currentPillars.year) return;
-                const fateScoreValue = calculateFateScore(currentPillars);
-                const fateLevelInfo = getFateLevel(fateScoreValue);
-                fateLevel.textContent = fateLevelInfo.name;
-                fateLevel.className = `rating-level ${fateLevelInfo.class}`;
-                fateScore.textContent = `评分: ${fateScoreValue}分 (${Math.round(fateScoreValue)}%)`;
-                const wealthScoreValue = calculateWealthScore(currentPillars);
-                const wealthLevelInfo = getWealthLevel(wealthScoreValue);
-                wealthLevel.textContent = wealthLevelInfo.name;
-                wealthLevel.className = `rating-level ${wealthLevelInfo.class}`;
-                wealthScore.textContent = `评分: ${wealthScoreValue}分 (${Math.round(wealthScoreValue)}%)`;
-                fateDetails.innerHTML = `
-                    <div class="score-progress">
-                        <div class="score-label">日主得令</div>
-                        <div class="progress-container">
-                            <div class="progress-bar" style="width: ${(fateScoreDetails.seasonScore/30)*100}%"></div>
-                        </div>
-                        <div class="score-value">${fateScoreDetails.seasonScore}/30</div>
-                    </div>
-                    <div class="score-progress">
-                        <div class="score-label">五行平衡</div>
-                        <div class="progress-container">
-                            <div class="progress-bar" style="width: ${(fateScoreDetails.balanceScore/25)*100}%"></div>
-                        </div>
-                        <div class="score-value">${fateScoreDetails.balanceScore}/25</div>
-                    </div>
-                    <div class="score-progress">
-                        <div class="score-label">特殊格局</div>
-                        <div class="progress-container">
-                            <div class="progress-bar" style="width: ${(fateScoreDetails.patternScore/20)*100}%"></div>
-                        </div>
-                        <div class="score-value">${fateScoreDetails.patternScore}/20</div>
-                    </div>
-                    <div class="score-progress">
-                        <div class="score-label">十神配置</div>
-                        <div class="progress-container">
-                            <div class="progress-bar" style="width: ${(fateScoreDetails.godsScore/15)*100}%"></div>
-                        </div>
-                        <div class="score-value">${fateScoreDetails.godsScore}/15</div>
-                    </div>
-                    <div class="score-progress">
-                        <div class="score-label">天干地支组合</div>
-                        <div class="progress-container">
-                            <div class="progress-bar" style="width: ${(fateScoreDetails.combinationScore/10)*100}%"></div>
-                        </div>
-                        <div class="score-value">${fateScoreDetails.combinationScore}/10</div>
-                    </div>
-                `;
-                wealthDetails.innerHTML = `
-                    <div class="score-progress">
-                        <div class="score-label">财星数量质量</div>
-                        <div class="progress-container">
-                            <div class="progress-bar" style="width: ${(wealthScoreDetails.wealthStarScore/30)*100}%"></div>
-                        </div>
-                        <div class="score-value">${wealthScoreDetails.wealthStarScore}/30</div>
-                    </div>
-                    <div class="score-progress">
-                        <div class="score-label">财星得地</div>
-                        <div class="progress-container">
-                            <div class="progress-bar" style="width: ${(wealthScoreDetails.wealthPositionScore/25)*100}%"></div>
-                        </div>
-                        <div class="score-value">${wealthScoreDetails.wealthPositionScore}/25</div>
-                    </div>
-                    <div class="score-progress">
-                        <div class="score-label">财星受克</div>
-                        <div class="progress-container">
-                            <div class="progress-bar" style="width: ${(wealthScoreDetails.wealthDamageScore/20)*100}%"></div>
-                        </div>
-                        <div class="score-value">${wealthScoreDetails.wealthDamageScore}/20</div>
-                    </div>
-                    <div class="score-progress">
-                        <div class="score-label">食伤生财</div>
-                        <div class="progress-container">
-                            <div class="progress-bar" style="width: ${(wealthScoreDetails.wealthSupportScore/15)*100}%"></div>
-                        </div>
-                        <div class="score-value">${wealthScoreDetails.wealthSupportScore}/15</div>
-                    </div>
-                    <div class="score-progress">
-                        <div class="score-label">大运走势</div>
-                        <div class="progress-container">
-                            <div class="progress-bar" style="width: ${(wealthScoreDetails.fortuneScore/10)*100}%"></div>
-                        </div>
-                        <div class="score-value">${wealthScoreDetails.fortuneScore}/10</div>
-                    </div>
-                `;
-            }
-
-            function getHiddenStems(branch) {
-                const hiddenStemsMap = {
-                    '子': '癸',
-                    '丑': '己癸辛',
-                    '寅': '甲丙戊',
-                    '卯': '乙',
-                    '辰': '戊乙癸',
-                    '巳': '丙庚戊',
-                    '午': '丁己',
-                    '未': '己丁乙',
-                    '申': '庚壬戊',
-                    '酉': '辛',
-                    '戌': '戊辛丁',
-                    '亥': '壬甲'
-                };
-                return hiddenStemsMap[branch] || '';
-            }
-
-            function calculateBaziLocally(birthData) {
-                const dateParts = birthData.date.split('-');
-                const year = parseInt(dateParts[0]);
-                const month = parseInt(dateParts[1]);
-                const day = parseInt(dateParts[2]);
-                const timeParts = birthData.time.split(':');
-                const hour = parseInt(timeParts[0]);
-                const minute = parseInt(timeParts[1] || 0);
-                const solar = Solar.fromYmdHms(year, month, day, hour, minute, 0);
-                const lunar = solar.getLunar();
-                const bazi = lunar.getEightChar();
-                const yearGan = bazi.getYearGan();
-                const yearZhi = bazi.getYearZhi();
-                const monthGan = bazi.getMonthGan();
-                const monthZhi = bazi.getMonthZhi();
-                const dayGan = bazi.getDayGan();
-                const dayZhi = bazi.getDayZhi();
-                const hourGan = bazi.getTimeGan();
-                const hourZhi = bazi.getTimeZhi();
-                const yearHiddenStems = getHiddenStems(yearZhi);
-                const monthHiddenStems = getHiddenStems(monthZhi);
-                const dayHiddenStems = getHiddenStems(dayZhi);
-                const hourHiddenStems = getHiddenStems(hourZhi);
-                const elements = calculateElementEnergy({
-                    year: yearGan + yearZhi,
-                    month: monthGan + monthZhi,
-                    day: dayGan + dayZhi,
-                    hour: hourGan + hourZhi
-                });
-                const personality = getPersonalityTraits(dayGan);
-                const decadeFortune = calculateDecadeFortune(lunar, birthData.gender);
-                const gamblingFortune = calculateGamblingFortune(birthData, lunar);
-                
-                return {
-                    yearStem: yearGan,
-                    yearBranch: yearZhi,
-                    monthStem: monthGan,
-                    monthBranch: monthZhi,
-                    dayStem: dayGan,
-                    dayBranch: dayZhi,
-                    hourStem: hourGan,
-                    hourBranch: hourZhi,
-                    yearHiddenStems: yearHiddenStems,
-                    monthHiddenStems: monthHiddenStems,
-                    dayHiddenStems: dayHiddenStems,
-                    hourHiddenStems: hourHiddenStems,
-                    elements,
-                    personality,
-                    decadeFortune,
-                    gamblingFortune
-                };
-            }
-
-            function calculateDecadeFortune(lunar, gender) {
-                const yearGan = lunar.getYearGan();
-                const yearZhi = lunar.getYearZhi();
-                const isMale = gender === 'male';
-                const isYangYear = ['甲', '丙', '戊', '庚', '壬'].includes(yearGan);
-                const isForward = (isYangYear && isMale) || (!isYangYear && !isMale);
-                const solar = lunar.getSolar();
-                const jieQiName = isForward ? '立春' : '大寒';
-                const targetJieQi = lunar.getJieQi(jieQiName);
-                let daysDiff = 15;
-                if (targetJieQi) {
-                    daysDiff = Math.abs(solar.getDiffDays(targetJieQi));
-                }
-                const startAge = Math.floor(daysDiff / 3);
-                const zhiOrder = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
-                let currentZhiIndex = zhiOrder.indexOf(yearZhi);
-                const ganOrder = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
-                let currentGanIndex = ganOrder.indexOf(yearGan);
-                const fortunes = [];
-                for (let i = 0; i < 8; i++) {
-                    currentZhiIndex = isForward ? 
-                        (currentZhiIndex + 1) % 12 : 
-                        (currentZhiIndex - 1 + 12) % 12;
-                    currentGanIndex = isForward ?
-                        (currentGanIndex + 1) % 10 :
-                        (currentGanIndex - 1 + 10) % 10;
-                    const gan = ganOrder[currentGanIndex];
-                    const zhi = zhiOrder[currentZhiIndex];
-                    const baseScore = 60 + Math.floor(Math.random() * 20);
-                    const trendBonus = isForward ? i * 2 : (7 - i) * 2;
-                    const score = Math.min(90, baseScore + trendBonus);
-                    fortunes.push({
-                        ageRange: `${startAge + i * 10}-${startAge + (i + 1) * 10}岁`,
-                        ganZhi: gan + zhi,
-                        score: score
-                    });
-                }
-                return {
-                    isForward: isForward,
-                    startAge: startAge,
-                    fortunes: fortunes
-                };
-            }
-                  
-            function calculateGamblingFortune(birthData, birthLunar) {
-                const currentSolar = Solar.fromDate(new Date());
-                const currentLunar = currentSolar.getLunar();
-                const dayGan = birthLunar.getDayGan();
-                const dayZhi = birthLunar.getDayZhi();
-                const currentDayGan = currentLunar.getDayGan();
-                const currentDayZhi = currentLunar.getDayZhi();
-                
-                const ganScore = {
-                    '甲': 3, '乙': 2, '丙': 4, '丁': 3, '戊': 2,
-                    '己': 1, '庚': 3, '辛': 2, '壬': 4, '癸': 3
-                };
-                
-                const zhiScore = {
-                    '子': 3, '丑': 2, '寅': 4, '卯': 3, '辰': 2,
-                    '巳': 4, '午': 3, '未': 2, '申': 3, '酉': 2,
-                    '戌': 1, '亥': 3
-                };
-                
-                const ganMatch = dayGan === currentDayGan ? 1 : 0;
-                const zhiMatch = dayZhi === currentDayZhi ? 1 : 0;
-                
-                const baseScore = ganScore[dayGan] + zhiScore[dayZhi];
-                const currentScore = ganScore[currentDayGan] + zhiScore[currentDayZhi];
-                const matchBonus = (ganMatch + zhiMatch) * 2;
-                
-                const dayOfMonth = currentLunar.getDay();
-                const month = currentLunar.getMonth();
-                const dayModifier = (dayOfMonth % 10) / 10;
-                const monthModifier = (month % 12) / 12;
-                
-                const totalScore = Math.min(5, Math.max(1, Math.round(
-                    (baseScore + currentScore + matchBonus) / 4 + 
-                    dayModifier + monthModifier
-                )));
-                
-                const rating = '★'.repeat(totalScore) + '☆'.repeat(5 - totalScore);
-                
-                const analysisTexts = [
-                    "今日偏财运欠佳，建议远离赌博活动，专注正财为佳。",
-                    "今日偏财运平平，小赌可能小输，建议控制投注金额。",
-                    "今日偏财运中等，适合小赌怡情但不宜大额投注。",
-                    "今日偏财运不错，可适度参与但需保持理性。",
-                    "今日偏财运旺盛，但切勿贪心，见好就收为妙。"
-                ];
-                
-                const directions = ['东', '南', '西', '北', '东南', '西南', '东北', '西北'];
-                const bestDirection = directions[(dayOfMonth + month) % directions.length];
-                
-                const hours = ['1-3', '3-5', '5-7', '7-9', '9-11', '11-13', '13-15', '15-17', '17-19', '19-21', '21-23', '23-1'];
-                const bestHour = hours[(dayOfMonth * month) % hours.length];
-                
-                return {
-                    rating: rating,
-                    analysis: analysisTexts[totalScore - 1],
-                    direction: bestDirection,
-                    hour: bestHour,
-                    score: totalScore
-                };
-            }
-
-            function getPersonalityTraits(dayStem) {
-                const traits = {
-                    '甲': '似参天大树，正直向上，有领导力但略显固执',
-                    '乙': '如藤蔓般柔韧，适应力强但有时优柔寡断',
-                    '丙': '如太阳般热情，开朗大方但易冲动急躁',
-                    '丁': '似烛火般温和，细心周到但易多愁善感',
-                    '戊': '如大地般稳重，踏实可靠但略显保守',
-                    '己': '似田园之土，包容性强但易随波逐流',
-                    '庚': '如金属般刚强，果断决绝但易锋芒太露',
-                    '辛': '似珠宝般精致，追求完美但易挑剔计较',
-                    '壬': '如江河奔流，聪明机智但易三心二意',
-                    '癸': '似雨露滋润，细腻敏感但易多疑忧郁'
-                };
-                return traits[dayStem] || '似静水流深，临危反生智，藏锋守拙却暗含凌云之志';
-            }
-
-            function saveProfile(birthData) {
-                const profiles = JSON.parse(localStorage.getItem('baziProfiles') || '[]');
-                const existingIndex = profiles.findIndex(p => 
-                    p.date === birthData.date && 
-                    p.time === birthData.time && 
-                    p.gender === birthData.gender
-                );
-                if (existingIndex >= 0) {
-                    profiles[existingIndex] = birthData;
-                } else {
-                    profiles.push(birthData);
-                }
-                if (profiles.length > 5) {
-                    profiles.shift();
-                }
-                localStorage.setItem('baziProfiles', JSON.stringify(profiles));
-                loadSavedProfiles();
-            }
-
-            function loadSavedProfiles() {
-                const profiles = JSON.parse(localStorage.getItem('baziProfiles') || '[]');
-                savedProfilesList.innerHTML = '';
-                if (profiles.length === 0) {
-                    savedProfilesList.innerHTML = '<div style="color:var(--text-light);font-size:14px;">暂无历史记录</div>';
-                    return;
-                }
-                profiles.forEach((profile, index) => {
-                    const hour = parseInt(profile.time.split(':')[0]);
-                    const timeMap = {
-                        23: '子时', 0: '子时',
-                        1: '丑时', 3: '寅时',
-                        5: '卯时', 7: '辰时',
-                        9: '巳时', 11: '午时',
-                        13: '未时', 15: '申时',
-                        17: '酉时', 19: '戌时',
-                        21: '亥时'
-                   };
-                    const profileElement = document.createElement('div');
-                    profileElement.className = 'saved-profile';
-                    profileElement.innerHTML = `
-                        ${profile.name || '匿名'} · 
-                        ${profile.date.replace(/-/g, '/')} · 
-                        ${timeMap[hour]} · 
-                        ${profile.gender === 'male' ? '男' : '女'}
-                    `;
-                    profileElement.addEventListener('click', () => {
-                        loadProfile(profile);
-                    });
-                    savedProfilesList.appendChild(profileElement);
-                });
-            }
-
-            function loadProfile(profile) {
-                document.getElementById('name').value = profile.name || '';
-                document.getElementById('birth-date').value = profile.date;
-                document.getElementById('gender').value = profile.gender;
-                const hour = parseInt(profile.time.split(':')[0]);
-                timePeriodOptions.forEach(opt => opt.classList.remove('selected'));
-                const selectedOption = document.querySelector(`.time-period-option[data-hour="${hour}"]`);
-                if (selectedOption) {
-                    selectedOption.classList.add('selected');
-                    birthTimeInput.value = profile.time;
-                }
-            }
-
-            calculateBtn.addEventListener('click', async function(e) {
-                e.preventDefault();
-                resetAllContent();
-                const name = document.getElementById('name').value;
-                const birthDate = document.getElementById('birth-date').value;
-                const birthTime = birthTimeInput.value;
-                const gender = document.getElementById('gender').value;
-                if (!birthDate || !birthTime || !gender) {
-                    alert('请填写完整的出生信息');
-                    return;
-                }
-                const dateParts = birthDate.split('-');
-                const year = parseInt(dateParts[0]);
-                const month = parseInt(dateParts[1]);
-                const day = parseInt(dateParts[2]);
-                if (!isValidDate(year, month, day)) {
-                    alert('请输入有效的出生日期');
-                    return;
-                }
-                if (month === 2) {
-                    const maxDays = isLeapYear(year) ? 29 : 28;
-                    if (day > maxDays) {
-                        alert(`${year}年2月只有${maxDays}天`);
-                        return;
-                    }
-                }
-                const monthsWith30Days = [4, 6, 9, 11];
-                if (monthsWith30Days.includes(month) && day > 30) {
-                    alert(`${month}月只有30天`);
-                    return;
-                }
-                birthData = { 
-                    name, 
-                    date: birthDate,
-                    time: birthTime, 
-                    gender: gender
-                };
-                saveProfile(birthData);
-                calculateBtn.disabled = true;
-                calculateBtn.innerHTML = '<span class="loading"></span> 量子测算中...';
-                try {
-                    const loadingOverlay = document.createElement('div');
-                    loadingOverlay.className = 'loading-overlay';
-                    loadingOverlay.innerHTML = `
-                        <div class="loading"></div>
-                        <p>量子计算引擎启动中...</p>
-                    `;
-                    document.body.appendChild(loadingOverlay);
-                    const baziInfo = calculateBaziLocally(birthData);
-                    displayBasicInfo(baziInfo);
-                    initElementChart(baziInfo.elements);
-                    updateLunarCalendar();
-                    currentPillars = {
-                        year: baziInfo.yearStem + baziInfo.yearBranch,
-                        month: baziInfo.monthStem + baziInfo.monthBranch,
-                        day: baziInfo.dayStem + baziInfo.dayBranch,
-                        hour: baziInfo.hourStem + baziInfo.hourBranch
-                    };
-                    displayScores();
-                    gamblingRating.textContent = baziInfo.gamblingFortune.rating;
-                    gamblingDetails.innerHTML = `
-                    ${baziInfo.gamblingFortune.analysis}<br>
-                    最佳方位: ${baziInfo.gamblingFortune.direction}<br>
-                    最佳时段: ${baziInfo.gamblingFortune.hour}
-                    `;
-                    inputSection.style.display = 'none';
-                    resultSection.style.display = 'block';
-                    document.body.removeChild(loadingOverlay);
-                    initLoadButtons();
-                    window.scrollTo(0, 0);
-                } catch (error) {
-                    console.error('测算失败:', error);
-                    alert('量子测算失败，请稍后重试');
-                    if (document.querySelector('.loading-overlay')) {
-                        document.body.removeChild(document.querySelector('.loading-overlay'));
-                    }
-                } finally {
-                    calculateBtn.disabled = false;
-                    calculateBtn.innerHTML = '<i class="fas fa-brain"></i> 开始量子测算';
                 }
             });
-
-            async function getBaziAnalysis(section, data) {
-                const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
-                const apiKey = 'sk-b2950087a9d5427392762814114b22a9';
-                const currentDateStr = currentDate.getFullYear() + '-' + 
-                                      (currentDate.getMonth() + 1).toString().padStart(2, '0') + '-' + 
-                                      currentDate.getDate().toString().padStart(2, '0');
-                          
-                let prompt = `【八字排盘专业算法规范】请严格遵循以下计算规则：
-一、年柱计算规则
-以立春为界，不以农历春节为分界。
-若出生日期在当年立春之后，年柱为当前年份对应的干支。
-若出生日期在当年立春之前，年柱为上一年对应的干支。
-例：2023年立春是2月4日，若出生在2月3日，年柱仍用2022年（壬寅年）；若出生在2月4日及之后，则用2023年（癸卯年）。
-二、月柱计算规则
-严格按节气划分月份（非农历月份）：
-正月（寅月）：从立春开始
-二月（卯月）：从惊蛰开始
-三月（辰月）：从清明开始
-以此类推，每个月的分界点均为节气（如立夏进入四月，芒种进入五月等）。
-月干由年干决定（五虎遁法）：
-甲己年：正月丙寅、二月丁卯……
-乙庚年：正月戊寅、二月己卯……
-丙辛年：正月庚寅、二月辛卯……
-丁壬年：正月壬寅、二月癸卯……
-戊癸年：正月甲寅、二月乙卯……
-三、日柱计算规则
-按公历日期计算，不依赖农历。
-计算方法（简化版）：
-1900 - 1999年：（年份后两位 + 3）*5 + 55 +（年份后两位 - 1)/4
-2000 - 2099年：（年份后两位 + 7）*5 + 15 +（年份后两位 + 19)/4
-再加上当年到出生日的天数，取60的余数对应干支表。
-四、时柱计算规则
-时辰按当地时间（真太阳时），不是北京时间。
-时支固定（23 - 1点为子时，1 - 3点为丑时，以此类推）。
-时干由日干决定（五鼠遁法）：
-甲己日：子时甲子、丑时乙丑……
-乙庚日：子时丙子、丑时丁丑……
-丙辛日：子时戊子、丑时己丑……
-丁壬日：子时庚子、丑时辛丑……
-戊癸日：子时壬子、丑时癸丑……
-五、格局判断规则
-从强格：
-印星（正印、偏印）和比劫（比肩、劫财）力量占比80%以上，且全局无强力的克、泄、耗（如官杀、食伤、财星）。
-从弱格：
-印比力量不足20%，且全局无有力的生扶（如印星、比劫极弱）。
-普通格局：不符合从强或从弱的条件。
-六、大运排法规则
-顺排或逆排：
-顺排（阳年男、阴年女）：从月柱开始，按60甲子顺序往后排。
-逆排（阴年男、阳年女）：从月柱开始，按60甲子逆序往前排。
-起运时间计算：
-顺排：计算出生时间到下一个换月节气的时间差，3天 = 1岁。
-逆排：计算出生时间到上一个换月节气的时间差，3天 = 1岁。      
-
-当前日期：${currentDateStr}
-根据以下八字信息进行分析：
-姓名：${data.name || '未提供'}
-出生日期：${data.date}
-出生时间：${data.time} 
-性别：${data.gender === 'male' ? '男' : '女'}
-
-`;
-                if (Object.keys(currentPillars).length > 0) {
-                    prompt += `当前八字：${currentPillars.year} ${currentPillars.month} ${currentPillars.day} ${currentPillars.hour}\n\n`;
-                }
-                switch(section) {
-                    case 'basic':
-                        prompt += `请返回以下信息：
-1 八字四柱：年柱[内容] 月柱[内容] 日柱[内容] 时柱[内容]
-2 地支藏干：年支[藏干] 月支[藏干] 日支[藏干] 时支[藏干]
-3 五行能量：[木,火,土,金,水] (1-10分，请根据八字五行生克关系计算具体数值)
-4 命主性格：[用一句话描述命主的性格特质，如："似静水流深，临危反生智，藏锋守拙却暗含凌云之志"]
-用简洁格式返回，不要分析内容，不要使用任何符号如#*、等。`;
-                        break;
-                    case 'strength':
-                        prompt += `分析命主的身强身弱情况：
-1 日主得令、得地、得势的情况
-2 天干地支的合化和刑冲情况
-3 特殊格局判断
-4 喜用和忌凶
-返回格式：
-日主得令、得地、得势的情况：[详细分析]
-天干地支的合化和刑冲情况：[详细分析]
-特殊格局判断：[专旺格，从格，化气格，两神成象格，杂奇格，日贵格，三奇贵人格，禄元互换格，天元一气格，身杀两停格，伤官配印格，伤官见官格，伤官生财格，伤官泄秀格]
-喜用和忌凶：[详细分析]
-不要使用任何特殊符号`;
-                        break;
-                    case 'career':
-                        prompt += `详细分析适合行业情况：
-1 适合行业分析
-2 最佳行业推荐
-3 流年事业运分析
-返回格式：
-流年事业运分析：[以表格方式详细分析](1-5星)`;
-                        break;
-                    case 'wealth':
-                        prompt += `详细分析财富情况：
-1 财富格局
-2 流年财运分析
-3 大运财运分析
-返回格式：
-流年财运分析：[以表格方式详细分析](1-5星)
-大运财运分析：[以表格方式详细分析](1-5星)`;
-                        break;
-                    case 'elements':
-                        prompt += `分析八字五行强弱，燥湿和流通情况：
-1 五行强弱分析
-2 五行燥湿分析
-3 五行流通分析
-4 调候建议
-返回格式：
-五行强弱分析[详细分析]
-五行燥湿分析[详细分析]
-五行流通分析[详细分析]
-调候建议：[详细分析]`;
-                        break;
-                    case 'personality':
-                        prompt += `详细性格分析：
-1 外在性格分析
-2 内在性格分析
-3 特殊性格分析
-外在性格分析[详细分析]
-内在性格分析[详细分析]
-特殊性格分析[详细分析]`;
-                        break;
-                    case 'children':
-                        prompt += `分析子女情况：
-1 子女数量分析
-2 子女缘分分析
-子女数量：[男女]
-子女缘分分析：[详细分析]`;
-                        break;
-                    case 'marriage':
-                        prompt += `分析婚姻情况：
-1 适婚年份
-2 桃花年份
-3 流月婚姻吉凶分析
-返回格式：
-适婚年份：[表格方式呈现]
-桃花年份：[表格方式呈现]
-流月婚姻吉凶分析：[表格方式呈现具体建议](1-5星)`;
-                        break;
-                    case 'health':
-                        prompt += `详细分析健康状况：
-1 五行对应器官健康
-2 潜在健康问题
-3 养生建议
-4 流年健康分析
-返回格式：
-流年健康分析：[表格方式呈现具体建议]`;
-                        break;
-                    case 'annual-fortune':
-                        prompt += `详细分析当前流年运势：
-1 流年事业吉凶分析
-2 流年婚姻吉凶分析
-3 流年重大事件吉凶分析
-返回格式：
-流年事业吉凶分析：[以表格方式详细分析](1-5星)
-流年婚姻吉凶分析：[以表格方式详细分析](1-5星)
-流年重大事件吉凶分析：[以表格方式详细分析](1-5星)`;
-                        break;
-                    case 'daily-fortune':
-                        prompt += `详细分析每日运势：
-1 每日吉凶时辰
-2 每日宜忌事项
-3 每日冲煞方位
-返回格式：
-每日吉凶时辰：[表格方式详细分析]
-每日宜忌事项：[表格方式详细分析]
-每日冲煞方位：[表格方式详细分析]`;
-                        break;
-                    case 'milestones':
-                        prompt += `分析一生重要节点和重大灾祸：
-1 一生重要事件分析
-2 一生重大灾祸分析
-3 如何趋吉避凶
-返回格式：
-一生重要事件分析：[以表格方式详细分析]
-一生重大灾祸分析：[以表格方式详细分析]
-如何趋吉避凶：[详细分析] `;
-                        break;
-                    case 'decade-fortune':
-                        prompt += `分析十年大运走势：
-1 大运事业吉凶分析
-2 大运婚姻吉凶分析
-3 大运重大事件吉凶分析
-返回格式：
-大运事业吉凶分析：[以表格方式详细分析](1-5星)
-大运婚姻吉凶分析：[以表格方式详细分析](1-5星)
-大运重大事件吉凶分析：[以表格方式详细分析] (1-5星)`;
-                        break;
-                    case 'monthly-fortune':
-                        prompt += `详细分析今年每月运势：
-1 事业吉凶分析
-2 婚姻吉凶分析
-3 重大事件吉凶分析
-返回格式：
-事业吉凶分析：[以表格方式详细分析](1-5星)
-婚姻吉凶分析：[以表格方式详细分析](1-5星)
-重大事件吉凶分析：[以表格方式详细分析] (1-5星)`;
-                        break;
-                    default:
-                        prompt += `请分析${section}相关内容`;
-                }
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${apiKey}`
-                    },
-                    body: JSON.stringify({
-                        model: "deepseek-chat",
-                        messages: [{ role: "user", content: prompt }],
-                        temperature: 0
-                    })
+        }
+        
+        // 时辰选择器交互
+        function setupTimePeriodSelector() {
+            const options = document.querySelectorAll('.time-period-option');
+            const hiddenInput = document.getElementById('birth-time');
+            
+            options.forEach(option => {
+                option.addEventListener('click', () => {
+                    options.forEach(opt => opt.classList.remove('active'));
+                    option.classList.add('active');
+                    
+                    const hour = option.getAttribute('data-hour');
+                    const minute = option.getAttribute('data-minute');
+                    hiddenInput.value = `${hour.padStart(2, '0')}:${minute.padStart(2, '0')}`;
                 });
-                if (!response.ok) throw new Error(`API请求失败: ${response.status}`);
-                const result = await response.json();
-                return result.choices[0].message.content;
-            }
-
-            function displayBasicInfo(info) {
-                const nameDisplay = document.getElementById('user-name-display');
-                const birthDisplay = document.getElementById('user-birth-display');
-                const hour = parseInt(birthData.time.split(':')[0]);
-                const timeMap = {
-                    23: '子时 (23-1)', 0: '子时 (23-1)',
-                    1: '丑时 (1-3)', 3: '寅时 (3-5)',
-                    5: '卯时 (5-7)', 7: '辰时 (7-9)',
-                    9: '巳时 (9-11)', 11: '午时 (11-13)',
-                    13: '未时 (13-15)', 15: '申时 (15-17)',
-                    17: '酉时 (17-19)', 19: '戌时 (19-21)',
-                    21: '亥时 (21-23)'
-               };
-                nameDisplay.textContent = birthData.name || '匿名用户';
-                birthDisplay.textContent = birthData.date.replace(/-/g, '/') + ' ' + timeMap[hour];
-                yearStem.textContent = info.yearStem;
-                yearBranch.textContent = info.yearBranch;
-                yearHiddenStems.textContent = info.yearHiddenStems;
-                monthStem.textContent = info.monthStem;
-                monthBranch.textContent = info.monthBranch;
-                monthHiddenStems.textContent = info.monthHiddenStems;
-                dayStem.textContent = info.dayStem;
-                dayBranch.textContent = info.dayBranch;
-                dayHiddenStems.textContent = info.dayHiddenStems;
-                hourStem.textContent = info.hourStem;
-                hourBranch.textContent = info.hourBranch;
-                hourHiddenStems.textContent = info.hourHiddenStems;
-                setElementColors(yearStem, info.yearStem);
-                setElementColors(yearBranch, info.yearBranch);
-                setElementColors(monthStem, info.monthStem);
-                setElementColors(monthBranch, info.monthBranch);
-                setElementColors(dayStem, info.dayStem);
-                setElementColors(dayBranch, info.dayBranch);
-                setElementColors(hourStem, info.hourStem);
-                setElementColors(hourBranch, info.hourBranch);
-                setHiddenStemsColors(yearHiddenStems, info.yearHiddenStems);
-                setHiddenStemsColors(monthHiddenStems, info.monthHiddenStems);
-                setHiddenStemsColors(dayHiddenStems, info.dayHiddenStems);
-                setHiddenStemsColors(hourHiddenStems, info.hourHiddenStems);
-                personalityTraits.textContent = `命主性格：${info.personality}`;
-                currentPillars = {
-                    year: info.yearStem + info.yearBranch,
-                    month: info.monthStem + info.monthBranch,
-                    day: info.dayStem + info.dayBranch,
-                    hour: info.hourStem + info.hourBranch
-                };
-            }
-
-            function setElementColors(element, text) {
-                const stemElements = {
-                    '甲': 'wood', '乙': 'wood',
-                    '丙': 'fire', '丁': 'fire',
-                    '戊': 'earth', '己': 'earth',
-                    '庚': 'metal', '辛': 'metal',
-                    '壬': 'water', '癸': 'water'
-                };
-                const branchElements = {
-                    '寅': 'wood', '卯': 'wood',
-                    '午': 'fire', '巳': 'fire',
-                    '辰': 'earth', '戌': 'earth', '丑': 'earth', '未': 'earth',
-                    '申': 'metal', '酉': 'metal',
-                    '子': 'water', '亥': 'water'
-                };
-                element.classList.remove('wood', 'fire', 'earth', 'metal', 'water');
-                if (stemElements[text]) {
-                    element.classList.add(stemElements[text]);
-                } else if (branchElements[text]) {
-                    element.classList.add(branchElements[text]);
-                }
-            }
-
-            function setHiddenStemsColors(element, stems) {
-                element.classList.remove('wood', 'fire', 'earth', 'metal', 'water');
-                const stemElements = {
-                    '甲': 'wood', '乙': 'wood',
-                    '丙': 'fire', '丁': 'fire',
-                    '戊': 'earth', '己': 'earth',
-                    '庚': 'metal', '辛': 'metal',
-                    '壬': 'water', '癸': 'water'
-                };
-                const spans = [];
-                for (let i = 0; i < stems.length; i++) {
-                    const char = stems[i];
-                    const elementClass = stemElements[char] || '';
-                    spans.push(`<span class="${elementClass}">${char}</span>`);
-                }
-                element.innerHTML = spans.join('');
-            }
-
-            function displaySectionContent(section, result, contentElement) {
-                if (result.includes('★')) {
-                    result = result.replace(/(★+)/g, '<span class="rating" style="color:var(--earth-color);text-shadow:0 0 5px var(--earth-color)">$1</span>');
-                    result = result.replace(/(☆+)/g, '<span style="color:#666">$1</span>');
-                }
-                const html = marked.parse(result);
-                const tempDiv = document.createElement('div');
-                tempDiv.innerHTML = html;
-                tempDiv.querySelectorAll('table').forEach(table => {
-                    table.classList.add('markdown-table');
+            });
+        }
+        
+        // 折叠内容交互
+        function setupCollapsibleSections() {
+            const buttons = document.querySelectorAll('.load-btn');
+            
+            buttons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const section = button.getAttribute('data-section');
+                    const content = document.getElementById(`${section}-content`);
+                    const icon = button.querySelector('.toggle-icon');
+                    
+                    button.classList.toggle('active');
+                    content.classList.toggle('active');
+                    
+                    if (content.classList.contains('active')) {
+                        // 模拟加载内容
+                        if (content.innerHTML === '') {
+                            content.innerHTML = `<p>量子AI正在分析${button.textContent.trim()}...</p>`;
+                            setTimeout(() => {
+                                content.innerHTML = `
+                                    <p>${button.textContent.trim()}分析完成：</p>
+                                    <p>这是一个示例分析结果，实际系统将根据用户输入的生辰八字进行详细计算。</p>
+                                    <p>量子AI已对命局进行了深度解析，揭示了潜在的命理特征和发展趋势。</p>
+                                `;
+                            }, 1500);
+                        }
+                    }
                 });
-                contentElement.innerHTML = tempDiv.innerHTML;
-            }
-        });
+            });
+        }
+        
+        // 标签页切换
+        function setupTabSwitching() {
+            const tabs = document.querySelectorAll('.menu-tab');
+            
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const tabId = tab.getAttribute('data-tab');
+                    
+                    // 更新活动标签
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    
+                    // 更新活动内容
+                    document.querySelectorAll('.tab-content').forEach(content => {
+                        content.classList.remove('active');
+                    });
+                    document.getElementById(`${tabId}-tab`).classList.add('active');
+                });
+            });
+        }
+        
+        // 八字问答交互
+        function setupBaziQA() {
+            const submitBtn = document.getElementById('bazi-qa-submit');
+            const questionInput = document.getElementById('bazi-question');
+            const responseDiv = document.getElementById('bazi-qa-response');
+            const loadingDiv = document.getElementById('bazi-qa-loading');
+            
+            submitBtn.addEventListener('click', () => {
+                const question = questionInput.value.trim();
+                
+                if (question) {
+                    responseDiv.style.display = 'none';
+                    loadingDiv.style.display = 'flex';
+                    
+                    // 模拟AI回答
+                    setTimeout(() => {
+                        loadingDiv.style.display = 'none';
+                        responseDiv.style.display = 'block';
+                        responseDiv.innerHTML = `
+                            <p><strong>问题：</strong>${question}</p>
+                            <p><strong>量子AI回答：</strong></p>
+                            <p>根据您的八字分析，${question.replace('?', '')}的情况如下：</p>
+                            <p>这是一个示例回答，实际系统将基于您的具体八字信息进行详细分析。</p>
+                            <p>量子计算结果显示，命局中相关因素呈现出特定的组合模式，表明${question.replace('?', '')}有独特的发展轨迹。</p>
+                        `;
+                    }, 2000);
+                }
+            });
+        }
+        
+        // 初始化函数
+        function init() {
+            initStars();
+            initParticles();
+            initElementChart();
+            setupTimePeriodSelector();
+            setupCollapsibleSections();
+            setupTabSwitching();
+            setupBaziQA();
+            
+            // 设置当前日期为默认值
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('birth-date').value = today;
+            
+            // 设置默认时辰为子时
+            document.querySelector('.time-period-option[data-hour="23"]').classList.add('active');
+            document.getElementById('birth-time').value = '23:00';
+        }
+        
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', init);
     </script>
 </body>
 </html>
