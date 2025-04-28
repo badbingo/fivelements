@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // ==================== 缓存系统2 ====================
+    // ==================== 缓存系统3 ====================
     const baziCache = {
         data: {},
         maxSize: 100,
@@ -286,34 +286,51 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
-        // 八字问答提交 - 修复部分
-        baziQaSubmit.addEventListener('click', async function() {
-            const question = baziQuestionInput.value.trim();
-            if (!question) {
-                alert('请输入您的问题');
-                return;
-            }
-            
-            // 重置问答区域
-            baziQaSubmit.disabled = true;
-            baziQaResponse.innerHTML = ''; // 清空之前的内容
-            baziQaResponse.style.display = 'none';
-            baziQaLoading.style.display = 'flex';
-            
-            try {
-                const response = await getBaziAnswer(question);
-                baziQaResponse.innerHTML = marked.parse(response);
-                baziQaResponse.style.display = 'block';
-            } catch (error) {
-                console.error('获取回答失败:', error);
-                baziQaResponse.innerHTML = '<p style="color:var(--danger-color)">获取回答失败，请稍后重试</p>';
-                baziQaResponse.style.display = 'block';
-            } finally {
-                baziQaSubmit.disabled = false;
-                baziQaLoading.style.display = 'none';
-                baziQuestionInput.value = ''; // 清空输入框
-            }
-        });
+        // 初始化八字问答功能
+function initBaziQA() {
+    // 确保只绑定一次事件
+    baziQaSubmit.removeEventListener('click', handleBaziQASubmit);
+    baziQaSubmit.addEventListener('click', handleBaziQASubmit);
+    
+    // 输入框回车键支持
+    baziQuestionInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            handleBaziQASubmit();
+        }
+    });
+}
+
+// 处理问答提交
+async function handleBaziQASubmit() {
+    const question = baziQuestionInput.value.trim();
+    if (!question) {
+        alert('请输入您的问题');
+        return;
+    }
+    
+    // 重置问答区域
+    baziQaSubmit.disabled = true;
+    baziQaResponse.innerHTML = '';
+    baziQaResponse.style.display = 'none';
+    baziQaLoading.style.display = 'flex';
+    
+    try {
+        const response = await getBaziAnswer(question);
+        baziQaResponse.innerHTML = marked.parse(response);
+        baziQaResponse.style.display = 'block';
+    } catch (error) {
+        console.error('获取回答失败:', error);
+        baziQaResponse.innerHTML = '<p style="color:var(--danger-color)">获取回答失败，请稍后重试</p>';
+        baziQaResponse.style.display = 'block';
+    } finally {
+        baziQaSubmit.disabled = false;
+        baziQaLoading.style.display = 'none';
+        // 不再自动清空输入框
+    }
+}
+
+// 在初始化事件监听器时调用
+initBaziQA();
 
         // 重新计算
         recalculateBtn.addEventListener('click', function() {
