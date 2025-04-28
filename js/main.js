@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 缓存对象v1.35a
+    // 缓存对象v1.35b
     const baziCache = {};
     
     // 兜底规则库
@@ -2151,7 +2151,14 @@ function displayBasicInfo(info) {
         setHiddenStemsColors(dayHiddenStems, info.dayHiddenStems);
         setHiddenStemsColors(hourHiddenStems, info.hourHiddenStems);
         
-        personalityTraits.textContent = `命主性格：${info.personality}`;
+        const personalityTraits = document.getElementById('personality-traits');
+        if (personalityTraits) {
+            personalityTraits.innerHTML = `
+        <div><strong>格局：</strong><span class="pattern-type">${info.pattern || '分析中...'}</span></div>
+        <div><strong>用神：</strong><span class="useful-gods">${info.usefulGods || '分析中...'}</span></div>
+        <div><strong>忌神：</strong><span class="harmful-gods">${info.harmfulGods || '分析中...'}</span></div>
+            `;
+        }
         
         currentPillars = {
             year: info.yearStem + info.yearBranch,
