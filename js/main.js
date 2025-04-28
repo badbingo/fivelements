@@ -2221,7 +2221,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     'Authorization': `Bearer ${apiKey}`
                 },
                 body: JSON.stringify({
-                    model: "deepseek-chat",
+                    model: "deepseek-reasoner",
                     messages: [{ role: "user", content: prompt }],
                     temperature: 0,
                     seed: 12345 // 固定seed值确保相同输入得到相同输出
