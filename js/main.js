@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // ==================== 缓存系统1 ====================
+    // ==================== 缓存系统2 ====================
     const baziCache = {
         data: {},
         maxSize: 100,
@@ -286,7 +286,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
-        // 八字问答提交
+        // 八字问答提交 - 修复部分
         baziQaSubmit.addEventListener('click', async function() {
             const question = baziQuestionInput.value.trim();
             if (!question) {
@@ -294,7 +294,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             
+            // 重置问答区域
             baziQaSubmit.disabled = true;
+            baziQaResponse.innerHTML = ''; // 清空之前的内容
             baziQaResponse.style.display = 'none';
             baziQaLoading.style.display = 'flex';
             
@@ -309,6 +311,7 @@ document.addEventListener('DOMContentLoaded', function() {
             } finally {
                 baziQaSubmit.disabled = false;
                 baziQaLoading.style.display = 'none';
+                baziQuestionInput.value = ''; // 清空输入框
             }
         });
 
@@ -560,7 +563,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         let prompt = `请严格按照以上规则进行专业八字排盘，确保所有计算准确无误：
         
-1. 从强格判定
+1. 从强格判定
     * 量化标准：印比总分数 ≥ 80分（天干1分，地支主气2分，中气1分）
     * 克泄耗十神（财官食伤）均无根或受制
 2. 从弱格判定
@@ -568,7 +571,7 @@ document.addEventListener('DOMContentLoaded', function() {
     * 若日主无强根（仅靠被合化的微弱印比），且全局某一五行极旺（如财、官、食伤成势），则直接判定为「从格」。
     * 若印星被合化（如巳火被巳酉丑合化为金），则不计入生扶力量。
     * 优先检查「三合局」「六合」对用神的影响。
-3. 排大运规则
+3. 排大运规则
     * 阳年男性顺排 / 阴年女性顺排 → 应取出生后第一个遇到的节气，而非下一个换月节气
     * 阴年男性逆排 / 阳年女性逆排 → 找上一个换月节气
 4. 起运时间计算方法
@@ -1100,50 +1103,50 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==================== 十神交互处理 ====================
-function setupTenGodsClickHandlers() {
-    // 获取所有天干地支元素（确保HTML中有pillar-stem和pillar-branch类名）
-    const stemsAndBranches = document.querySelectorAll(
-        '#year-stem, #year-branch, ' +
-        '#month-stem, #month-branch, ' +
-        '#day-stem, #day-branch, ' +
-        '#hour-stem, #hour-branch'
-    );
+    function setupTenGodsClickHandlers() {
+        // 获取所有天干地支元素（确保HTML中有pillar-stem和pillar-branch类名）
+        const stemsAndBranches = document.querySelectorAll(
+            '#year-stem, #year-branch, ' +
+            '#month-stem, #month-branch, ' +
+            '#day-stem, #day-branch, ' +
+            '#hour-stem, #hour-branch'
+        );
 
-    stemsAndBranches.forEach(element => {
-        // 移除旧监听器避免重复绑定
-        element.removeEventListener('mouseenter', showTenGodsTooltip);
-        element.removeEventListener('mouseleave', hideTenGodsTooltip);
+        stemsAndBranches.forEach(element => {
+            // 移除旧监听器避免重复绑定
+            element.removeEventListener('mouseenter', showTenGodsTooltip);
+            element.removeEventListener('mouseleave', hideTenGodsTooltip);
+            
+            // 添加新监听器
+            element.addEventListener('mouseenter', showTenGodsTooltip);
+            element.addEventListener('mouseleave', hideTenGodsTooltip);
+        });
+    }
+
+    // 显示十神工具提示
+    function showTenGodsTooltip(event) {
+        const element = event.target;
+        const dayStem = document.getElementById('day-stem').textContent;
+        const elementText = element.textContent;
         
-        // 添加新监听器
-        element.addEventListener('mouseenter', showTenGodsTooltip);
-        element.addEventListener('mouseleave', hideTenGodsTooltip);
-    });
-}
+        // 从十神映射表中获取关系
+        const relation = tenGodsMap[dayStem]?.[elementText] || '未知关系';
+        
+        // 更新工具提示
+        tenGodsTooltip.textContent = `${elementText} → ${relation}`;
+        tenGodsTooltip.style.display = 'block';
+        
+        // 定位工具提示（跟随鼠标）
+        const x = event.clientX + window.scrollX;
+        const y = event.clientY + window.scrollY - 30;
+        tenGodsTooltip.style.left = `${x}px`;
+        tenGodsTooltip.style.top = `${y}px`;
+    }
 
-// 显示十神工具提示
-function showTenGodsTooltip(event) {
-    const element = event.target;
-    const dayStem = document.getElementById('day-stem').textContent;
-    const elementText = element.textContent;
-    
-    // 从十神映射表中获取关系
-    const relation = tenGodsMap[dayStem]?.[elementText] || '未知关系';
-    
-    // 更新工具提示
-    tenGodsTooltip.textContent = `${elementText} → ${relation}`;
-    tenGodsTooltip.style.display = 'block';
-    
-    // 定位工具提示（跟随鼠标）
-    const x = event.clientX + window.scrollX;
-    const y = event.clientY + window.scrollY - 30;
-    tenGodsTooltip.style.left = `${x}px`;
-    tenGodsTooltip.style.top = `${y}px`;
-}
-
-// 隐藏十神工具提示
-function hideTenGodsTooltip() {
-    tenGodsTooltip.style.display = 'none';
-}
+    // 隐藏十神工具提示
+    function hideTenGodsTooltip() {
+        tenGodsTooltip.style.display = 'none';
+    }
     
     // ==================== 显示函数 ====================
     function displayBasicInfo(info) {
