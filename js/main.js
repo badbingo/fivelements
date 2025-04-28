@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // ==================== 缓存系统3 ====================
+    // ==================== 缓存系统1 ====================
     const baziCache = {
         data: {},
         maxSize: 100,
@@ -287,14 +287,20 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         // 初始化八字问答功能
+// 替换原来的 initBaziQA() 函数
 function initBaziQA() {
-    // 确保只绑定一次事件
-    baziQaSubmit.removeEventListener('click', handleBaziQASubmit);
-    baziQaSubmit.addEventListener('click', handleBaziQASubmit);
+    // 使用事件委托确保点击事件能触发
+    document.body.addEventListener('click', function(e) {
+        if (e.target === baziQaSubmit || e.target.closest('#bazi-qa-submit')) {
+            e.preventDefault();
+            handleBaziQASubmit();
+        }
+    });
     
-    // 输入框回车键支持
+    // 保留回车键支持
     baziQuestionInput.addEventListener('keypress', function(e) {
         if (e.key === 'Enter') {
+            e.preventDefault();
             handleBaziQASubmit();
         }
     });
@@ -303,29 +309,42 @@ function initBaziQA() {
 // 处理问答提交
 async function handleBaziQASubmit() {
     const question = baziQuestionInput.value.trim();
+    console.log('提交问题:', question); // 调试日志
+    
     if (!question) {
         alert('请输入您的问题');
         return;
     }
     
-    // 重置问答区域
-    baziQaSubmit.disabled = true;
-    baziQaResponse.innerHTML = '';
-    baziQaResponse.style.display = 'none';
-    baziQaLoading.style.display = 'flex';
-    
     try {
+        console.log('开始获取回答...'); // 调试日志
+        baziQaSubmit.disabled = true;
+        baziQaResponse.innerHTML = '';
+        baziQaResponse.style.display = 'none';
+        baziQaLoading.style.display = 'flex';
+        
         const response = await getBaziAnswer(question);
+        console.log('收到回答:', response); // 调试日志
+        
+        if (!response) {
+            throw new Error('空响应');
+        }
+        
         baziQaResponse.innerHTML = marked.parse(response);
         baziQaResponse.style.display = 'block';
     } catch (error) {
         console.error('获取回答失败:', error);
-        baziQaResponse.innerHTML = '<p style="color:var(--danger-color)">获取回答失败，请稍后重试</p>';
+        baziQaResponse.innerHTML = `
+            <p style="color:var(--danger-color)">
+                获取回答失败: ${error.message}<br>
+                请稍后重试或检查控制台
+            </p>
+        `;
         baziQaResponse.style.display = 'block';
     } finally {
-        baziQaSubmit.disabled = false;
         baziQaLoading.style.display = 'none';
-        // 不再自动清空输入框
+        baziQaSubmit.disabled = false;
+        console.log('请求处理完成'); // 调试日志
     }
 }
 
