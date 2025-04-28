@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // ==================== 缓存系统 ====================
+    // ==================== 缓存系统1 ====================
     const baziCache = {
         data: {},
         maxSize: 100,
