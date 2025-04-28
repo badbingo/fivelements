@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 增强版缓存对象v2.1
+    // 增强版缓存对象v2.1a
     const baziCache = {
         data: {},
         get: function(key) {
@@ -2140,7 +2140,7 @@ document.addEventListener('DOMContentLoaded', function() {
 4 喜用和忌凶
 格式说明：
 1.用简洁语言清晰的表达
-2.使用标准Markdown语法
+2.使用标准Markdown语法，可用表格方式呈现
 3.进度条用下划线模拟可视化效果
 4.箭头符号仅使用常规字符→
 5.重点突出加粗显示关键信息
@@ -2154,7 +2154,7 @@ document.addEventListener('DOMContentLoaded', function() {
 3 流年事业运分析
 格式说明：
 1.用简洁语言清晰的表达
-2.使用标准Markdown语法
+2.使用标准Markdown语法，可用表格方式呈现
 3.进度条用下划线模拟可视化效果
 4.箭头符号仅使用常规字符→
 5.重点突出加粗显示关键信息
@@ -2168,7 +2168,7 @@ document.addEventListener('DOMContentLoaded', function() {
 3 大运财运分析(1-5星)
 格式说明：
 1.用简洁语言清晰的表达
-2.使用标准Markdown语法
+2.使用标准Markdown语法，可用表格方式呈现
 3.进度条用下划线模拟可视化效果
 4.箭头符号仅使用常规字符→
 5.重点突出加粗显示关键信息
@@ -2183,7 +2183,7 @@ document.addEventListener('DOMContentLoaded', function() {
 4 调候建议
 格式说明：
 1.用简洁语言清晰的表达
-2.使用标准Markdown语法
+2.使用标准Markdown语法，可用表格方式呈现
 3.进度条用下划线模拟可视化效果
 4.箭头符号仅使用常规字符→
 5.重点突出加粗显示关键信息
@@ -2197,7 +2197,7 @@ document.addEventListener('DOMContentLoaded', function() {
 3 特殊性格分析
 格式说明：
 1.用简洁语言清晰的表达
-2.使用标准Markdown语法
+2.使用标准Markdown语法，可用表格方式呈现
 3.进度条用下划线模拟可视化效果
 4.箭头符号仅使用常规字符→
 5.重点突出加粗显示关键信息
@@ -2210,7 +2210,7 @@ document.addEventListener('DOMContentLoaded', function() {
 2 子女缘分分析
 格式说明：
 1.用简洁语言清晰的表达
-2.使用标准Markdown语法
+2.使用标准Markdown语法，可用表格方式呈现
 3.进度条用下划线模拟可视化效果
 4.箭头符号仅使用常规字符→
 5.重点突出加粗显示关键信息
@@ -2225,7 +2225,7 @@ document.addEventListener('DOMContentLoaded', function() {
 返回格式：
 格式说明：
 1.用简洁语言清晰的表达
-2.使用标准Markdown语法
+2.使用标准Markdown语法，可用表格方式呈现
 3.进度条用下划线模拟可视化效果
 4.箭头符号仅使用常规字符→
 5.重点突出加粗显示关键信息
@@ -2240,7 +2240,7 @@ document.addEventListener('DOMContentLoaded', function() {
 4 流年健康分析
 格式说明：
 1.用简洁语言清晰的表达
-2.使用标准Markdown语法
+2.使用标准Markdown语法，可用表格方式呈现
 3.进度条用下划线模拟可视化效果
 4.箭头符号仅使用常规字符→
 5.重点突出加粗显示关键信息
@@ -2254,7 +2254,7 @@ document.addEventListener('DOMContentLoaded', function() {
 3 流年重大事件吉凶分析(1-5星)
 格式说明：
 1.用简洁语言清晰的表达
-2.使用标准Markdown语法
+2.使用标准Markdown语法，可用表格方式呈现
 3.进度条用下划线模拟可视化效果
 4.箭头符号仅使用常规字符→
 5.重点突出加粗显示关键信息
@@ -2268,7 +2268,7 @@ document.addEventListener('DOMContentLoaded', function() {
 3 每日冲煞方位
 格式说明：
 1.用简洁语言清晰的表达
-2.使用标准Markdown语法
+2.使用标准Markdown语法，可用表格方式呈现
 3.进度条用下划线模拟可视化效果
 4.箭头符号仅使用常规字符→
 5.重点突出加粗显示关键信息
@@ -2282,7 +2282,7 @@ document.addEventListener('DOMContentLoaded', function() {
 3 如何趋吉避凶
 格式说明：
 1.用简洁语言清晰的表达
-2.使用标准Markdown语法
+2.使用标准Markdown语法，可用表格方式呈现
 3.进度条用下划线模拟可视化效果
 4.箭头符号仅使用常规字符→
 5.重点突出加粗显示关键信息
@@ -2295,7 +2295,7 @@ document.addEventListener('DOMContentLoaded', function() {
 2 大运重大事件吉凶分析(1-5星)
 格式说明：
 1.用简洁语言清晰的表达
-2.使用标准Markdown语法
+2.使用标准Markdown语法，可用表格方式呈现
 3.进度条用下划线模拟可视化效果
 4.箭头符号仅使用常规字符→
 5.重点突出加粗显示关键信息
@@ -2309,7 +2309,7 @@ document.addEventListener('DOMContentLoaded', function() {
 3 重大事件吉凶分析(1-5星)
 格式说明：
 1.用简洁语言清晰的表达
-2.使用标准Markdown语法
+2.使用标准Markdown语法，可用表格方式呈现
 3.进度条用下划线模拟可视化效果
 4.箭头符号仅使用常规字符→
 5.重点突出加粗显示关键信息
