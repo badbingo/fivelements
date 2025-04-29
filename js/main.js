@@ -268,6 +268,24 @@ document.addEventListener('DOMContentLoaded', function() {
         document.addEventListener('click', hideTenGodsTooltip);
     }
 
+    // 添加CSS样式
+    const style = document.createElement('style');
+    style.textContent = `
+    .ten-gods-tooltip {
+        position: absolute;
+        background-color: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 5px 10px;
+        border-radius: 4px;
+        font-size: 14px;
+        z-index: 1000;
+        display: none;
+        pointer-events: none;
+        white-space: nowrap;
+    }
+    `;
+    document.head.appendChild(style);
+
     // DOM元素
     const calculateBtn = document.getElementById('calculate-btn');
     const recalculateBtn = document.getElementById('recalculate-btn');
@@ -794,142 +812,60 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 初始化元素图表 - 修改为显示本命局+大运+流年
     function initElementChart(baziInfo) {
-         if (!elementChartDescription) {
-        console.warn('elementChartDescription 元素未找到，图表描述将不会显示');
-        elementChartDescription = document.createElement('div'); // 创建回退元素
-    }
-        // 计算本命局五行能量
-        const natalElements = baziInfo.elements;
-        
-        // 计算大运五行能量 (模拟数据)
-        const luckElements = calculateLuckElements(baziInfo);
-        
-        // 计算流年五行能量 (模拟数据)
-        const yearElements = calculateYearElements(baziInfo);
-        
-        const elementLabels = ['木', '火', '土', '金', '水'];
-        
-        // 计算百分比
-        const calculatePercentages = (data) => {
-            const total = data.reduce((sum, value) => sum + value, 0);
-            return data.map(value => Math.round((value/total)*100));
-        };
-        
-        const natalPercentages = calculatePercentages(natalElements);
-        const luckPercentages = calculatePercentages(luckElements);
-        const yearPercentages = calculatePercentages(yearElements);
-        
         const elementData = {
-            labels: elementLabels.map((label, i) => `${label}`),
-            datasets: [
-                {
-                    label: '本命局',
-                    data: natalElements,
-                    backgroundColor: 'rgba(0, 255, 136, 0.2)',
-                    borderColor: 'rgba(0, 255, 136, 1)',
-                    borderWidth: 2,
-                    pointBackgroundColor: 'rgba(0, 255, 136, 1)',
-                    pointHoverRadius: 5
-                },
-                {
-                    label: '大运',
-                    data: luckElements,
-                    backgroundColor: 'rgba(255, 204, 0, 0.2)',
-                    borderColor: 'rgba(255, 204, 0, 1)',
-                    borderWidth: 2,
-                    pointBackgroundColor: 'rgba(255, 204, 0, 1)',
-                    pointHoverRadius: 5
-                },
-                {
-                    label: '流年',
-                    data: yearElements,
-                    backgroundColor: 'rgba(0, 153, 255, 0.2)',
-                    borderColor: 'rgba(0, 153, 255, 1)',
-                    borderWidth: 2,
-                    pointBackgroundColor: 'rgba(0, 153, 255, 1)',
-                    pointHoverRadius: 5
-                }
-            ]
+            labels: ['木', '火', '土', '金', '水'],
+            datasets: [{
+                label: '五行能量',
+                data: baziInfo.elements,
+                backgroundColor: [
+                    'rgba(76, 175, 80, 0.2)',
+                    'rgba(255, 87, 34, 0.2)',
+                    'rgba(121, 85, 72, 0.2)',
+                    'rgba(96, 125, 139, 0.2)',
+                    'rgba(33, 150, 243, 0.2)'
+                ],
+                borderColor: [
+                    'rgba(76, 175, 80, 1)',
+                    'rgba(255, 87, 34, 1)',
+                    'rgba(121, 85, 72, 1)',
+                    'rgba(96, 125, 139, 1)',
+                    'rgba(33, 150, 243, 1)'
+                ],
+                borderWidth: 2
+            }]
         };
-        
-        // 销毁旧图表
+
         if (elementChart) {
             elementChart.destroy();
         }
-        
+
         elementChart = new Chart(elementChartCtx, {
-            type: 'radar',
+            type: 'bar',
             data: elementData,
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
                 scales: {
-                    r: {
-                        angleLines: {
-                            display: true,
-                            color: 'rgba(0, 240, 255, 0.2)'
-                        },
-                        suggestedMin: 0,
-                        suggestedMax: Math.max(...natalElements, ...luckElements, ...yearElements) + 2,
-                        ticks: {
-                            backdropColor: 'transparent',
-                            color: 'rgba(0, 240, 255, 0.7)',
-                            font: {
-                                family: "'Orbitron', sans-serif"
-                            },
-                            stepSize: 1
-                        },
-                        pointLabels: {
-                            color: 'rgba(0, 240, 255, 0.9)',
-                            font: {
-                                family: "'Orbitron', sans-serif",
-                                size: 14
-                            }
-                        },
+                    y: {
+                        beginAtZero: true,
                         grid: {
-                            color: 'rgba(0, 240, 255, 0.1)'
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
                         }
                     }
                 },
                 plugins: {
                     legend: {
-                        position: 'bottom',
-                        labels: {
-                            font: {
-                                family: "'Orbitron', sans-serif",
-                                size: 12
-                            },
-                            color: 'rgba(0, 240, 255, 0.9)'
-                        }
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                const datasetLabel = context.dataset.label || '';
-                                const label = context.label || '';
-                                const value = context.raw;
-                                let percentage;
-                                
-                                if (datasetLabel === '本命局') {
-                                    percentage = natalPercentages[context.dataIndex];
-                                } else if (datasetLabel === '大运') {
-                                    percentage = luckPercentages[context.dataIndex];
-                                } else {
-                                    percentage = yearPercentages[context.dataIndex];
-                                }
-                                
-                                return `${datasetLabel} ${label}: ${value} (${percentage}%)`;
-                            }
-                        }
-                    }
-                },
-                elements: {
-                    line: {
-                        tension: 0.1
+                        display: false
                     }
                 }
             }
         });
+    
         
         // 添加图表说明
         elementChartDescription.innerHTML = `
@@ -2027,7 +1963,11 @@ document.addEventListener('DOMContentLoaded', function() {
             '申': 'metal', '酉': 'metal',
             '子': 'water', '亥': 'water'
         };
+        
+        // 移除所有可能的颜色类
         element.classList.remove('wood', 'fire', 'earth', 'metal', 'water');
+        
+        // 添加新的颜色类
         if (stemElements[text]) {
             element.classList.add(stemElements[text]);
         } else if (branchElements[text]) {
@@ -2035,7 +1975,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // 设置藏干颜色
+    // 更新藏干颜色设置函数
     function setHiddenStemsColors(element, stems) {
         element.classList.remove('wood', 'fire', 'earth', 'metal', 'water');
         const stemElements = {
