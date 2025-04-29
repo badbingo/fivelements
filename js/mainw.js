@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 增强版缓存对象v2.1a
+    // 增强版缓存对象v2.1b
     const baziCache = {
         data: {},
         get: function(key) {
@@ -810,29 +810,37 @@ document.addEventListener('DOMContentLoaded', function() {
         };
     }
 
-    // 初始化元素图表 - 修改为显示本命局+大运+流年
+    // 初始化元素图表 - 显示本命局+大运+流年
     function initElementChart(baziInfo) {
+        // 计算大运和流年的五行能量
+        const luckElements = calculateLuckElements(baziInfo);
+        const yearElements = calculateYearElements(baziInfo);
+
         const elementData = {
             labels: ['木', '火', '土', '金', '水'],
-            datasets: [{
-                label: '五行能量',
-                data: baziInfo.elements,
-                backgroundColor: [
-                    'rgba(76, 175, 80, 0.2)',
-                    'rgba(255, 87, 34, 0.2)',
-                    'rgba(121, 85, 72, 0.2)',
-                    'rgba(96, 125, 139, 0.2)',
-                    'rgba(33, 150, 243, 0.2)'
-                ],
-                borderColor: [
-                    'rgba(76, 175, 80, 1)',
-                    'rgba(255, 87, 34, 1)',
-                    'rgba(121, 85, 72, 1)',
-                    'rgba(96, 125, 139, 1)',
-                    'rgba(33, 150, 243, 1)'
-                ],
-                borderWidth: 2
-            }]
+            datasets: [
+                {
+                    label: '本命局',
+                    data: baziInfo.elements,
+                    backgroundColor: 'rgba(0, 255, 136, 0.5)',
+                    borderColor: 'rgba(0, 255, 136, 1)',
+                    borderWidth: 2
+                },
+                {
+                    label: '大运',
+                    data: luckElements,
+                    backgroundColor: 'rgba(255, 204, 0, 0.5)',
+                    borderColor: 'rgba(255, 204, 0, 1)',
+                    borderWidth: 2
+                },
+                {
+                    label: '流年',
+                    data: yearElements,
+                    backgroundColor: 'rgba(0, 153, 255, 0.5)',
+                    borderColor: 'rgba(0, 153, 255, 1)',
+                    borderWidth: 2
+                }
+            ]
         };
 
         if (elementChart) {
@@ -860,12 +868,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 },
                 plugins: {
                     legend: {
-                        display: false
+                        display: true,
+                        position: 'top',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 20
+                        }
                     }
                 }
             }
         });
-    
         
         // 添加图表说明
         elementChartDescription.innerHTML = `
@@ -881,7 +893,7 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
     }
 
-    // 计算大运五行能量 (模拟)
+    // 计算大运五行能量
     function calculateLuckElements(baziInfo) {
         // 基于本命局五行进行一定程度的随机变化
         return baziInfo.elements.map(value => {
@@ -890,7 +902,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // 计算流年五行能量 (模拟)
+    // 计算流年五行能量
     function calculateYearElements(baziInfo) {
         // 基于本命局五行进行更大程度的随机变化
         return baziInfo.elements.map(value => {
@@ -1677,66 +1689,66 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 计算十年大运
     function calculateDecadeFortune(lunar, gender) {
-    const yearGan = lunar.getYearGan();
-    const yearZhi = lunar.getYearZhi();
-    const isMale = gender === 'male';
-    const isYangYear = ['甲', '丙', '戊', '庚', '壬'].includes(yearGan);
-    const isForward = (isYangYear && isMale) || (!isYangYear && !isMale);
-    
-    const solar = lunar.getSolar();
-    const jieQiName = isForward ? '立春' : '大寒';
-    const targetJieQi = lunar.getJieQi(jieQiName);
-    
-    let daysDiff = 15; // 默认值
-    
-    try {
-        // 尝试获取节气日期
-        if (targetJieQi && typeof targetJieQi.getSolar === 'function') {
-            const targetSolar = targetJieQi.getSolar();
-            daysDiff = Math.abs(solar.diffDays(targetSolar));
-        } else if (targetJieQi && targetJieQi.solar) {
-            // 备选方案：如果节气对象有solar属性
-            daysDiff = Math.abs(solar.diffDays(targetJieQi.solar));
+        const yearGan = lunar.getYearGan();
+        const yearZhi = lunar.getYearZhi();
+        const isMale = gender === 'male';
+        const isYangYear = ['甲', '丙', '戊', '庚', '壬'].includes(yearGan);
+        const isForward = (isYangYear && isMale) || (!isYangYear && !isMale);
+        
+        const solar = lunar.getSolar();
+        const jieQiName = isForward ? '立春' : '大寒';
+        const targetJieQi = lunar.getJieQi(jieQiName);
+        
+        let daysDiff = 15; // 默认值
+        
+        try {
+            // 尝试获取节气日期
+            if (targetJieQi && typeof targetJieQi.getSolar === 'function') {
+                const targetSolar = targetJieQi.getSolar();
+                daysDiff = Math.abs(solar.diffDays(targetSolar));
+            } else if (targetJieQi && targetJieQi.solar) {
+                // 备选方案：如果节气对象有solar属性
+                daysDiff = Math.abs(solar.diffDays(targetJieQi.solar));
+            }
+        } catch (e) {
+            console.warn('计算节气间隔失败，使用默认值:', e);
         }
-    } catch (e) {
-        console.warn('计算节气间隔失败，使用默认值:', e);
-    }
-    
-    const startAge = Math.floor(daysDiff / 3);
-    const zhiOrder = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
-    let currentZhiIndex = zhiOrder.indexOf(yearZhi);
-    
-    const ganOrder = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
-    let currentGanIndex = ganOrder.indexOf(yearGan);
-    
-    const fortunes = [];
-    for (let i = 0; i < 8; i++) {
-        currentZhiIndex = isForward ? 
-            (currentZhiIndex + 1) % 12 : 
-            (currentZhiIndex - 1 + 12) % 12;
-        currentGanIndex = isForward ?
-            (currentGanIndex + 1) % 10 :
-            (currentGanIndex - 1 + 10) % 10;
         
-        const gan = ganOrder[currentGanIndex];
-        const zhi = zhiOrder[currentZhiIndex];
-        const baseScore = 60 + Math.floor(Math.random() * 20);
-        const trendBonus = isForward ? i * 2 : (7 - i) * 2;
-        const score = Math.min(90, baseScore + trendBonus);
+        const startAge = Math.floor(daysDiff / 3);
+        const zhiOrder = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
+        let currentZhiIndex = zhiOrder.indexOf(yearZhi);
         
-        fortunes.push({
-            ageRange: `${startAge + i * 10}-${startAge + (i + 1) * 10}岁`,
-            ganZhi: gan + zhi,
-            score: score
-        });
+        const ganOrder = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
+        let currentGanIndex = ganOrder.indexOf(yearGan);
+        
+        const fortunes = [];
+        for (let i = 0; i < 8; i++) {
+            currentZhiIndex = isForward ? 
+                (currentZhiIndex + 1) % 12 : 
+                (currentZhiIndex - 1 + 12) % 12;
+            currentGanIndex = isForward ?
+                (currentGanIndex + 1) % 10 :
+                (currentGanIndex - 1 + 10) % 10;
+            
+            const gan = ganOrder[currentGanIndex];
+            const zhi = zhiOrder[currentZhiIndex];
+            const baseScore = 60 + Math.floor(Math.random() * 20);
+            const trendBonus = isForward ? i * 2 : (7 - i) * 2;
+            const score = Math.min(90, baseScore + trendBonus);
+            
+            fortunes.push({
+                ageRange: `${startAge + i * 10}-${startAge + (i + 1) * 10}岁`,
+                ganZhi: gan + zhi,
+                score: score
+            });
+        }
+        
+        return {
+            isForward: isForward,
+            startAge: startAge,
+            fortunes: fortunes
+        };
     }
-    
-    return {
-        isForward: isForward,
-        startAge: startAge,
-        fortunes: fortunes
-    };
-}
 
     // 计算赌博运势
     function calculateGamblingFortune(birthData, birthLunar) {
@@ -2272,17 +2284,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 获取八字问答答案
     async function getBaziAnswer(question) {
-    const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
-    const apiKey = 'sk-b2950087a9d5427392762814114b22a9';
-    const cacheKey = `qa:${generateBaziHashKey(birthData)}:${question}`;
-    
-    // 检查缓存
-    const cachedResponse = baziCache.get(cacheKey);
-    if (cachedResponse) {
-        return cachedResponse;
-    }
-    
-    const prompt = `【八字专业问答规范】请严格遵循以下规则回答：
+        const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
+        const apiKey = 'sk-b2950087a9d5427392762814114b22a9';
+        const cacheKey = `qa:${generateBaziHashKey(birthData)}:${question}`;
+        
+        // 检查缓存
+        const cachedResponse = baziCache.get(cacheKey);
+        if (cachedResponse) {
+            return cachedResponse;
+        }
+        
+        const prompt = `【八字专业问答规范】请严格遵循以下规则回答：
 1. 回答必须基于传统八字命理学知识
 2. 回答应简洁明了，避免冗长
 3. 针对用户问题提供专业分析
@@ -2312,36 +2324,36 @@ document.addEventListener('DOMContentLoaded', function() {
    八字：${currentPillars.year} ${currentPillars.month} ${currentPillars.day} ${currentPillars.hour}
 
 用户问题：${question}`;
-    
-    try {
-        const response = await apiRequestQueue.addRequest({
-            url: apiUrl,
-            options: {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${apiKey}`
+        
+        try {
+            const response = await apiRequestQueue.addRequest({
+                url: apiUrl,
+                options: {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: "deepseek-chat",
+                        messages: [{
+                            role: "system",
+                            content: "你是一位资深的八字命理大师，精通子平八字、紫微斗数等传统命理学。请严格按照八字专业问答规范回答用户问题。"
+                        }, {
+                            role: "user",
+                            content: prompt
+                        }],
+                        temperature: 0
+                    })
                 },
-                body: JSON.stringify({
-                    model: "deepseek-chat",
-                    messages: [{
-                        role: "system",
-                        content: "你是一位资深的八字命理大师，精通子平八字、紫微斗数等传统命理学。请严格按照八字专业问答规范回答用户问题。"
-                    }, {
-                        role: "user",
-                        content: prompt
-                    }],
-                    temperature: 0
-                })
-            },
-            cacheKey: cacheKey
-        });
-        
-        return response;
-        
-    } catch (error) {
-        console.error('获取问答答案失败:', error);
-        return '获取答案失败，请稍后重试';
+                cacheKey: cacheKey
+            });
+            
+            return response;
+            
+        } catch (error) {
+            console.error('获取问答答案失败:', error);
+            return '获取答案失败，请稍后重试';
+        }
     }
-}
 });
