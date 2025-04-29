@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 增强版缓存对象v2.1c
+    // 增强版缓存对象v2.1a
     const baziCache = {
         data: {},
         get: function(key) {
@@ -810,109 +810,88 @@ document.addEventListener('DOMContentLoaded', function() {
         };
     }
 
-    // 初始化元素图表 - 按照五行颜色显示
-function initElementChart(baziInfo) {
-    // 计算大运和流年的五行能量
-    const luckElements = calculateLuckElements(baziInfo);
-    const yearElements = calculateYearElements(baziInfo);
+    // 初始化元素图表 - 显示本命局+大运+流年
+    function initElementChart(baziInfo) {
+        // 计算大运和流年的五行能量
+        const luckElements = calculateLuckElements(baziInfo);
+        const yearElements = calculateYearElements(baziInfo);
 
-    // 五行对应的颜色
-    const elementColors = [
-        'rgba(0, 200, 83, 0.7)',   // 木 - 绿色
-        'rgba(244, 67, 54, 0.7)',  // 火 - 红色
-        'rgba(255, 152, 0, 0.7)',  // 土 - 黄色
-        'rgba(158, 158, 158, 0.7)', // 金 - 灰色
-        'rgba(33, 150, 243, 0.7)'   // 水 - 蓝色
-    ];
-
-    const elementData = {
-        labels: ['木', '火', '土', '金', '水'],
-        datasets: [
-            {
-                label: '本命局',
-                data: baziInfo.elements,
-                backgroundColor: elementColors,
-                borderColor: elementColors.map(color => color.replace('0.7', '1')),
-                borderWidth: 1
-            },
-            {
-                label: '大运',
-                data: luckElements,
-                backgroundColor: elementColors,
-                borderColor: elementColors.map(color => color.replace('0.7', '1')),
-                borderWidth: 1
-            },
-            {
-                label: '流年',
-                data: yearElements,
-                backgroundColor: elementColors,
-                borderColor: elementColors.map(color => color.replace('0.7', '1')),
-                borderWidth: 1
-            }
-        ]
-    };
-
-    if (elementChart) {
-        elementChart.destroy();
-    }
-
-    elementChart = new Chart(elementChartCtx, {
-        type: 'bar',
-        data: elementData,
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    grid: {
-                        color: 'rgba(0, 0, 0, 0.05)'
-                    }
+        const elementData = {
+            labels: ['木', '火', '土', '金', '水'],
+            datasets: [
+                {
+                    label: '本命局',
+                    data: baziInfo.elements,
+                    backgroundColor: 'rgba(0, 255, 136, 0.5)',
+                    borderColor: 'rgba(0, 255, 136, 1)',
+                    borderWidth: 2
                 },
-                x: {
-                    grid: {
-                        display: false
-                    }
+                {
+                    label: '大运',
+                    data: luckElements,
+                    backgroundColor: 'rgba(255, 204, 0, 0.5)',
+                    borderColor: 'rgba(255, 204, 0, 1)',
+                    borderWidth: 2
+                },
+                {
+                    label: '流年',
+                    data: yearElements,
+                    backgroundColor: 'rgba(0, 153, 255, 0.5)',
+                    borderColor: 'rgba(0, 153, 255, 1)',
+                    borderWidth: 2
                 }
-            },
-            plugins: {
-                legend: {
-                    display: true,
-                    position: 'top',
-                    labels: {
-                        usePointStyle: true,
-                        padding: 20
+            ]
+        };
+
+        if (elementChart) {
+            elementChart.destroy();
+        }
+
+        elementChart = new Chart(elementChartCtx, {
+            type: 'bar',
+            data: elementData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
                     }
                 },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            const label = context.dataset.label || '';
-                            return `${label}: ${context.raw}`;
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 20
                         }
                     }
                 }
             }
-        }
-    });
-    
-    // 在每个数据条上方添加标签
-    elementChartCtx.canvas.parentNode.querySelector('.chart-js-wrapper').style.position = 'relative';
-    elementChartCtx.canvas.parentNode.querySelector('.chart-js-wrapper').style.height = '400px';
-    
-    // 添加图表说明
-    elementChartDescription.innerHTML = `
-        <div class="chart-explanation">
-            <h4>五行能量分布说明</h4>
-            <ul>
-                <li><strong>本命局</strong>: 代表命主先天五行能量分布</li>
-                <li><strong>大运</strong>: 代表当前大运阶段的五行能量变化</li>
-                <li><strong>流年</strong>: 代表今年流年的五行能量影响</li>
-            </ul>
-            <p>五行平衡是理想状态，过旺或过弱都可能带来相应问题。图表可直观显示命主在不同时期的五行能量变化。</p>
-        </div>
-    `;
-}
+        });
+        
+        // 添加图表说明
+        elementChartDescription.innerHTML = `
+            <div class="chart-explanation">
+                <h4>五行能量分布说明</h4>
+                <ul>
+                    <li><span class="color-indicator" style="background-color: rgba(0, 255, 136, 0.5)"></span> <strong>本命局</strong>: 代表命主先天五行能量分布</li>
+                    <li><span class="color-indicator" style="background-color: rgba(255, 204, 0, 0.5)"></span> <strong>大运</strong>: 代表当前大运阶段的五行能量变化</li>
+                    <li><span class="color-indicator" style="background-color: rgba(0, 153, 255, 0.5)"></span> <strong>流年</strong>: 代表今年流年的五行能量影响</li>
+                </ul>
+                <p>五行平衡是理想状态，过旺或过弱都可能带来相应问题。图表可直观显示命主在不同时期的五行能量变化。</p>
+            </div>
+        `;
+    }
 
     // 计算大运五行能量
     function calculateLuckElements(baziInfo) {
