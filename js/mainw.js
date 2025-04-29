@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 增强版缓存对象v2.1v
+    // 增强版缓存对象v2.1a
     const baziCache = {
         data: {},
         get: function(key) {
@@ -564,39 +564,40 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // 加载按钮点击处理函数
-    async function loadButtonClickHandler(e) {
-        e.preventDefault();
-        const button = this;
-        const section = button.getAttribute('data-section');
-        const contentElement = document.getElementById(`${section}-content`);
-        const container = button.closest('.load-btn-container');
-        
-        // 如果已经加载过，只切换显示/隐藏
-        if (loadedSections[section]) {
-            container.classList.toggle('active');
-            contentElement.classList.toggle('active');
-            return;
-        }
-        
-        const originalBtnHtml = button.innerHTML;
-        button.disabled = true;
-        button.innerHTML = `<span><span class="loading"></span> 量子分析中...</span><i class="fas fa-chevron-down toggle-icon"></i>`;
-        container.classList.add('active');
-        
-        const progressContainer = document.createElement('div');
-        progressContainer.className = 'progress-container';
-        progressContainer.innerHTML = '<div class="progress-bar"></div>';
-        contentElement.innerHTML = '';
-        contentElement.appendChild(progressContainer);
-        
-        const progressBar = progressContainer.querySelector('.progress-bar');
-        let progress = 0;
-        const progressInterval = setInterval(function() {
-            progress += Math.random() * 10;
-            if (progress >= 100) progress = 100;
-            progressBar.style.width = `${progress}%`;
-        }, 300);
+    // 在loadButtonClickHandler函数中修改加载动画部分
+async function loadButtonClickHandler(e) {
+    e.preventDefault();
+    const button = this;
+    const section = button.getAttribute('data-section');
+    const contentElement = document.getElementById(`${section}-content`);
+    const container = button.closest('.load-btn-container');
+    
+    // 如果已经加载过，只切换显示/隐藏
+    if (loadedSections[section]) {
+        container.classList.toggle('active');
+        contentElement.classList.toggle('active');
+        return;
+    }
+    
+    const originalBtnHtml = button.innerHTML;
+    button.disabled = true;
+    // 修改为更明显的加载动画
+    button.innerHTML = `<span class="loading-animation"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span> 量子分析中...<i class="fas fa-chevron-down toggle-icon"></i>`;
+    container.classList.add('active');
+    
+    const progressContainer = document.createElement('div');
+    progressContainer.className = 'progress-container';
+    progressContainer.innerHTML = '<div class="progress-bar"><div class="progress-animation"></div></div>';
+    contentElement.innerHTML = '';
+    contentElement.appendChild(progressContainer);
+    
+    const progressBar = progressContainer.querySelector('.progress-animation');
+    let progress = 0;
+    const progressInterval = setInterval(function() {
+        progress += Math.random() * 10;
+        if (progress >= 100) progress = 100;
+        progressBar.style.width = `${progress}%`;
+    }, 300);
         
         try {
             const result = await getBaziAnalysis(section, birthData);
