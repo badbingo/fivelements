@@ -1,4 +1,3 @@
-// JS区
 document.addEventListener('DOMContentLoaded', function() {
     // 增强版缓存对象v2.1a
     const baziCache = {
