@@ -1,4 +1,4 @@
-/* 极简主义现代艺术风格1 */
+/* 极简主义现代艺术风格2 */
 :root {
     --primary-bg: #ffffff;
     --secondary-bg: #f5f5f5;
@@ -32,37 +32,60 @@
     padding: 0;
 }
 
+/* 修正背景显示问题 */
 body {
     font-family: 'Inter', sans-serif;
     line-height: 1.6;
     color: var(--text-color);
-    background-color: var(--primary-bg);
-    padding: 0;
-    margin: 0;
-    /* 增强背景图显示效果 */
+    /* 移除白色背景覆盖 */
+    background-color: transparent;
+    /* 增强背景图设置 */
     background-image: url('../image/cbg.jpg');
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
     background-repeat: no-repeat;
-    /* 调整背景覆盖层透明度 */
-    background-color: rgba(255, 255, 255, 0.4);
-    background-blend-mode: overlay;
-    /* 确保背景图在Firefox中正确显示 */
     min-height: 100vh;
+    /* 确保内容可读性 */
+    position: relative;
 }
 
+/* 添加半透明覆盖层确保内容可读 */
+body::after {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(255, 255, 255, 0.3);
+    z-index: -1;
+}
+
+/* 调整容器透明度 */
 .minimal-container {
     max-width: 1200px;
     margin: 0 auto;
     padding: var(--spacing-lg);
-    /* 调整容器背景透明度 */
-    background-color: rgba(255, 255, 255, 0.85);
+    background-color: rgba(255, 255, 255, 0.8); /* 调整为更透明 */
     border-radius: var(--border-radius);
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-    /* 确保容器在Firefox中正确显示 */
     position: relative;
     z-index: 1;
+}
+
+/* 其他内容区域也调整透明度 */
+.basic-info,
+.detail-card,
+.rating-group {
+    background-color: rgba(255, 255, 255, 0.85); /* 半透明白色 */
+}
+
+/* 确保Firefox兼容性 */
+@-moz-document url-prefix() {
+    body {
+        background-color: rgba(255, 255, 255, 0.01); /* Firefox需要微小透明度才能显示背景图 */
+    }
 }
 
 .minimal-header {
