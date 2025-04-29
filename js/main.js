@@ -1,3 +1,4 @@
+// JS区
 document.addEventListener('DOMContentLoaded', function() {
     // 增强版缓存对象v2.1a
     const baziCache = {
@@ -267,24 +268,6 @@ document.addEventListener('DOMContentLoaded', function() {
         // 点击其他地方隐藏提示框
         document.addEventListener('click', hideTenGodsTooltip);
     }
-
-    // 添加CSS样式
-    const style = document.createElement('style');
-    style.textContent = `
-    .ten-gods-tooltip {
-        position: absolute;
-        background-color: rgba(0, 0, 0, 0.8);
-        color: white;
-        padding: 5px 10px;
-        border-radius: 4px;
-        font-size: 14px;
-        z-index: 1000;
-        display: none;
-        pointer-events: none;
-        white-space: nowrap;
-    }
-    `;
-    document.head.appendChild(style);
 
     // DOM元素
     const calculateBtn = document.getElementById('calculate-btn');
