@@ -1,6 +1,31 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 缓存对象v1.35b
-    const baziCache = {};
+    // 增强版缓存对象v2.1a
+    const baziCache = {
+        data: {},
+        get: function(key) {
+            const item = this.data[key];
+            if (item && item.expiry > Date.now()) {
+                return item.value;
+            }
+            return null;
+        },
+        set: function(key, value, ttl = 3600000) { // 默认1小时缓存
+            this.data[key] = {
+                value: value,
+                expiry: Date.now() + ttl
+            };
+        },
+        clearExpired: function() {
+            for (const key in this.data) {
+                if (this.data[key].expiry <= Date.now()) {
+                    delete this.data[key];
+                }
+            }
+        }
+    };
+    
+    // 每10分钟清理一次过期缓存
+    setInterval(() => baziCache.clearExpired(), 600000);
     
     // 兜底规则库
     const fallbackRules = {
@@ -26,6 +51,87 @@ document.addEventListener('DOMContentLoaded', function() {
                 "hour": "15-17",
                 "score": 3
             }
+        }
+    };
+
+    // API请求队列和批处理系统
+    const apiRequestQueue = {
+        queue: [],
+        batchSize: 3,
+        processing: false,
+        addRequest: function(request) {
+            return new Promise((resolve, reject) => {
+                this.queue.push({ request, resolve, reject });
+                if (!this.processing) {
+                    this.processQueue();
+                }
+            });
+        },
+        processQueue: async function() {
+            this.processing = true;
+            while (this.queue.length > 0) {
+                const batch = this.queue.splice(0, this.batchSize);
+                try {
+                    const results = await Promise.all(
+                        batch.map(item => this.executeRequest(item.request))
+                    );
+                    results.forEach((result, index) => {
+                        batch[index].resolve(result);
+                    });
+                } catch (error) {
+                    batch.forEach(item => {
+                        item.reject(error);
+                    });
+                }
+                // 批处理间隔，避免速率限制
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+            this.processing = false;
+        },
+        executeRequest: async function(request) {
+            const { url, options, cacheKey } = request;
+            
+            // 检查缓存
+            const cachedResponse = baziCache.get(cacheKey);
+            if (cachedResponse) {
+                return cachedResponse;
+            }
+            
+            // 重试机制
+            let retries = 3;
+            let lastError = null;
+            
+            while (retries > 0) {
+                try {
+                    const response = await fetch(url, options);
+                    
+                    if (!response.ok) {
+                        throw new Error(`API请求失败: ${response.status}`);
+                    }
+                    
+                    const result = await response.json();
+                    const apiResponse = result.choices[0].message.content;
+                    
+                    // 缓存结果
+                    baziCache.set(cacheKey, apiResponse);
+                    
+                    return apiResponse;
+                } catch (error) {
+                    lastError = error;
+                    retries--;
+                    if (retries > 0) {
+                        await new Promise(resolve => setTimeout(resolve, 1000 * (4 - retries)));
+                    }
+                }
+            }
+            
+            // 所有重试都失败，检查是否有兜底规则
+            const baziKey = cacheKey.split(':')[0];
+            if (fallbackRules[baziKey] && request.section === 'basic') {
+                return fallbackRules[baziKey];
+            }
+            
+            throw lastError || new Error('API请求失败');
         }
     };
 
@@ -1972,8 +2078,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const cacheKey = `${generateBaziHashKey(data)}:${section}`;
         
         // 检查缓存
-        if (baziCache[cacheKey]) {
-            return baziCache[cacheKey];
+        const cachedResponse = baziCache.get(cacheKey);
+        if (cachedResponse) {
+            return cachedResponse;
         }
         
         // 先计算本地结果
@@ -1981,7 +2088,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // 对于基础信息部分，直接返回本地计算结果
         if (section === 'basic') {
-            baziCache[cacheKey] = localResult;
+            baziCache.set(cacheKey, localResult);
             return localResult;
         }
         
@@ -1994,7 +2101,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         let prompt = `请严格按照以上规则进行专业八字排盘，确保所有计算准确无误：
         
-1. 从强格判定
+1. 从强格判定
     * 量化标准：印比总分数 ≥ 80分（天干1分，地支主气2分，中气1分）
     * 克泄耗十神（财官食伤）均无根或受制
 2. 从弱格判定
@@ -2002,7 +2109,7 @@ document.addEventListener('DOMContentLoaded', function() {
     * 若日主无强根（仅靠被合化的微弱印比），且全局某一五行极旺（如财、官、食伤成势），则直接判定为「从格」。
     * 若印星被合化（如巳火被巳酉丑合化为金），则不计入生扶力量。
     * 优先检查「三合局」「六合」对用神的影响。
-3. 排大运规则
+3. 排大运规则
     * 阳年男性顺排 / 阴年女性顺排 → 应取出生后第一个遇到的节气，而非下一个换月节气
     * 阴年男性逆排 / 阳年女性逆排 → 找上一个换月节气
 4. 起运时间计算方法
@@ -2033,7 +2140,7 @@ document.addEventListener('DOMContentLoaded', function() {
 4 喜用和忌凶
 格式说明：
 1.用简洁语言清晰的表达
-2.使用标准Markdown语法
+2.使用标准Markdown语法，可用表格方式呈现
 3.进度条用下划线模拟可视化效果
 4.箭头符号仅使用常规字符→
 5.重点突出加粗显示关键信息
@@ -2047,7 +2154,7 @@ document.addEventListener('DOMContentLoaded', function() {
 3 流年事业运分析
 格式说明：
 1.用简洁语言清晰的表达
-2.使用标准Markdown语法
+2.使用标准Markdown语法，可用表格方式呈现
 3.进度条用下划线模拟可视化效果
 4.箭头符号仅使用常规字符→
 5.重点突出加粗显示关键信息
@@ -2061,7 +2168,7 @@ document.addEventListener('DOMContentLoaded', function() {
 3 大运财运分析(1-5星)
 格式说明：
 1.用简洁语言清晰的表达
-2.使用标准Markdown语法
+2.使用标准Markdown语法，可用表格方式呈现
 3.进度条用下划线模拟可视化效果
 4.箭头符号仅使用常规字符→
 5.重点突出加粗显示关键信息
@@ -2076,7 +2183,7 @@ document.addEventListener('DOMContentLoaded', function() {
 4 调候建议
 格式说明：
 1.用简洁语言清晰的表达
-2.使用标准Markdown语法
+2.使用标准Markdown语法，可用表格方式呈现
 3.进度条用下划线模拟可视化效果
 4.箭头符号仅使用常规字符→
 5.重点突出加粗显示关键信息
@@ -2090,7 +2197,7 @@ document.addEventListener('DOMContentLoaded', function() {
 3 特殊性格分析
 格式说明：
 1.用简洁语言清晰的表达
-2.使用标准Markdown语法
+2.使用标准Markdown语法，可用表格方式呈现
 3.进度条用下划线模拟可视化效果
 4.箭头符号仅使用常规字符→
 5.重点突出加粗显示关键信息
@@ -2103,7 +2210,7 @@ document.addEventListener('DOMContentLoaded', function() {
 2 子女缘分分析
 格式说明：
 1.用简洁语言清晰的表达
-2.使用标准Markdown语法
+2.使用标准Markdown语法，可用表格方式呈现
 3.进度条用下划线模拟可视化效果
 4.箭头符号仅使用常规字符→
 5.重点突出加粗显示关键信息
@@ -2118,7 +2225,7 @@ document.addEventListener('DOMContentLoaded', function() {
 返回格式：
 格式说明：
 1.用简洁语言清晰的表达
-2.使用标准Markdown语法
+2.使用标准Markdown语法，可用表格方式呈现
 3.进度条用下划线模拟可视化效果
 4.箭头符号仅使用常规字符→
 5.重点突出加粗显示关键信息
@@ -2133,7 +2240,7 @@ document.addEventListener('DOMContentLoaded', function() {
 4 流年健康分析
 格式说明：
 1.用简洁语言清晰的表达
-2.使用标准Markdown语法
+2.使用标准Markdown语法，可用表格方式呈现
 3.进度条用下划线模拟可视化效果
 4.箭头符号仅使用常规字符→
 5.重点突出加粗显示关键信息
@@ -2147,7 +2254,7 @@ document.addEventListener('DOMContentLoaded', function() {
 3 流年重大事件吉凶分析(1-5星)
 格式说明：
 1.用简洁语言清晰的表达
-2.使用标准Markdown语法
+2.使用标准Markdown语法，可用表格方式呈现
 3.进度条用下划线模拟可视化效果
 4.箭头符号仅使用常规字符→
 5.重点突出加粗显示关键信息
@@ -2161,7 +2268,7 @@ document.addEventListener('DOMContentLoaded', function() {
 3 每日冲煞方位
 格式说明：
 1.用简洁语言清晰的表达
-2.使用标准Markdown语法
+2.使用标准Markdown语法，可用表格方式呈现
 3.进度条用下划线模拟可视化效果
 4.箭头符号仅使用常规字符→
 5.重点突出加粗显示关键信息
@@ -2175,7 +2282,7 @@ document.addEventListener('DOMContentLoaded', function() {
 3 如何趋吉避凶
 格式说明：
 1.用简洁语言清晰的表达
-2.使用标准Markdown语法
+2.使用标准Markdown语法，可用表格方式呈现
 3.进度条用下划线模拟可视化效果
 4.箭头符号仅使用常规字符→
 5.重点突出加粗显示关键信息
@@ -2188,7 +2295,7 @@ document.addEventListener('DOMContentLoaded', function() {
 2 大运重大事件吉凶分析(1-5星)
 格式说明：
 1.用简洁语言清晰的表达
-2.使用标准Markdown语法
+2.使用标准Markdown语法，可用表格方式呈现
 3.进度条用下划线模拟可视化效果
 4.箭头符号仅使用常规字符→
 5.重点突出加粗显示关键信息
@@ -2202,7 +2309,7 @@ document.addEventListener('DOMContentLoaded', function() {
 3 重大事件吉凶分析(1-5星)
 格式说明：
 1.用简洁语言清晰的表达
-2.使用标准Markdown语法
+2.使用标准Markdown语法，可用表格方式呈现
 3.进度条用下划线模拟可视化效果
 4.箭头符号仅使用常规字符→
 5.重点突出加粗显示关键信息
@@ -2214,28 +2321,26 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         try {
-            const response = await fetch(apiUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${apiKey}`
+            const response = await apiRequestQueue.addRequest({
+                url: apiUrl,
+                options: {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: "deepseek-chat",
+                        messages: [{ role: "user", content: prompt }],
+                        temperature: 0,
+                        seed: 12345 // 固定seed值确保相同输入得到相同输出
+                    })
                 },
-                body: JSON.stringify({
-                    model: "deepseek-chat",
-                    messages: [{ role: "user", content: prompt }],
-                    temperature: 0,
-                    seed: 12345 // 固定seed值确保相同输入得到相同输出
-                })
+                section: section,
+                cacheKey: cacheKey
             });
             
-            if (!response.ok) throw new Error(`API请求失败: ${response.status}`);
-            
-            const result = await response.json();
-            const apiResponse = result.choices[0].message.content;
-            
-            // 缓存结果
-            baziCache[cacheKey] = apiResponse;
-            return apiResponse;
+            return response;
             
         } catch (error) {
             console.error(`获取${section}分析失败:`, error);
@@ -2247,12 +2352,37 @@ document.addEventListener('DOMContentLoaded', function() {
     async function getBaziAnswer(question) {
     const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
     const apiKey = 'sk-b2950087a9d5427392762814114b22a9';
+    const cacheKey = `qa:${generateBaziHashKey(birthData)}:${question}`;
+    
+    // 检查缓存
+    const cachedResponse = baziCache.get(cacheKey);
+    if (cachedResponse) {
+        return cachedResponse;
+    }
     
     const prompt = `【八字专业问答规范】请严格遵循以下规则回答：
 1. 回答必须基于传统八字命理学知识
 2. 回答应简洁明了，避免冗长
 3. 针对用户问题提供专业分析
-4. 如果问题与当前命盘相关，请结合以下八字信息：
+4. 从强格判定
+    * 量化标准：印比总分数 ≥ 80分（天干1分，地支主气2分，中气1分）
+    * 克泄耗十神（财官食伤）均无根或受制
+5. 从弱格判定
+    * 若日主唯一根气被合化（如卯戌合火），按从弱处理
+    * 若日主无强根（仅靠被合化的微弱印比），且全局某一五行极旺（如财、官、食伤成势），则直接判定为「从格」。
+    * 若印星被合化（如巳火被巳酉丑合化为金），则不计入生扶力量。
+    * 优先检查「三合局」「六合」对用神的影响。
+6. 排大运规则
+    * 阳年男性顺排 / 阴年女性顺排 → 应取出生后第一个遇到的节气，而非下一个换月节气
+    * 阴年男性逆排 / 阳年女性逆排 → 找上一个换月节气
+7. 起运时间计算方法
+    * 起运岁数 =（出生到下一个节气或上一个节气的天数）÷ 3（注意：阳男1973年2月2日17:00出生（未过立春），下一个节气是顺排到立春（1973年2月4日7:04）而非惊蛰，间隔天数 = 1天14小时4分 → 折合6个月10天起运）
+    * 顺排≠换月节气：阳男顺排是找出生后第一个节气（可能与本月节气相同，如本例立春=丑月结束）
+    * 逆排陷阱： 阴男1995年8月8日4:00出生（立秋8月8日8:12未到），逆排需找小暑7月7日18:01（非上一个立夏）
+    * 节气交接日出生者需先判断是否已过节气时刻
+    * 跨年逆排时（如小寒前出生）需找上年大雪
+    * 节气临界点：出生在立春前X天，年柱是XX（如壬子），因未过立春，顺排的下一个节气应该是立春
+8. 如果问题与当前命盘相关，请结合以下八字信息：
    姓名：${birthData.name || '未提供'}
    出生日期：${birthData.date}
    出生时间：${birthData.time}
@@ -2262,29 +2392,30 @@ document.addEventListener('DOMContentLoaded', function() {
 用户问题：${question}`;
     
     try {
-        const response = await fetch(apiUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`
+        const response = await apiRequestQueue.addRequest({
+            url: apiUrl,
+            options: {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`
+                },
+                body: JSON.stringify({
+                    model: "deepseek-chat",
+                    messages: [{
+                        role: "system",
+                        content: "你是一位资深的八字命理大师，精通子平八字、紫微斗数等传统命理学。请严格按照八字专业问答规范回答用户问题。"
+                    }, {
+                        role: "user",
+                        content: prompt
+                    }],
+                    temperature: 0
+                })
             },
-            body: JSON.stringify({
-                model: "deepseek-chat",
-                messages: [{
-                    role: "system",
-                    content: "你是一位资深的八字命理大师，精通子平八字、紫微斗数等传统命理学。请严格按照八字专业问答规范回答用户问题。"
-                }, {
-                    role: "user",
-                    content: prompt
-                }],
-                temperature: 0.7
-            })
+            cacheKey: cacheKey
         });
         
-        if (!response.ok) throw new Error(`API请求失败: ${response.status}`);
-        
-        const result = await response.json();
-        return result.choices[0].message.content;
+        return response;
         
     } catch (error) {
         console.error('获取问答答案失败:', error);
