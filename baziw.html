@@ -11,7 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.css">
-    <link rel="stylesheet" href="css/stylew.css">
+    <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
     <div class="minimal-container">
@@ -71,16 +71,23 @@
                         <i class="fas fa-history"></i> 历史记录
                     </div>
                     <div class="saved-profiles-list" id="saved-profiles-list">
-                        <!-- Saved profiles will be added here dynamically -->
+                        <!-- 历史记录将动态加载 -->
                     </div>
                 </div>
                 
                 <div class="calculate-btn-container">
-                    <button id="calculate-btn"><i class="fas fa-brain"></i> 开始量子测算</button>
+                    <button id="calculate-btn">
+                        <span class="loading-animation" style="display:none;">
+                            <span class="dot"></span>
+                            <span class="dot"></span>
+                            <span class="dot"></span>
+                        </span>
+                        <span class="btn-text"><i class="fas fa-brain"></i> 开始量子测算</span>
+                    </button>
                 </div>
             </section>
             
-            <section class="result-section" id="result-section">
+            <section class="result-section" id="result-section" style="display: none;">
                 <div class="basic-info" id="basic-info">
                     <div class="info-section">
                         <h3>
@@ -117,36 +124,36 @@
                                 </div>
                                 <div class="bazi-row">
                                     <div class="bazi-cell">天干</div>
-                                    <div class="bazi-cell" id="year-stem">壬</div>
-                                    <div class="bazi-cell" id="month-stem">癸</div>
-                                    <div class="bazi-cell" id="day-stem">己</div>
-                                    <div class="bazi-cell" id="hour-stem">癸</div>
+                                    <div class="bazi-cell" id="year-stem"></div>
+                                    <div class="bazi-cell" id="month-stem"></div>
+                                    <div class="bazi-cell" id="day-stem"></div>
+                                    <div class="bazi-cell" id="hour-stem"></div>
                                 </div>
                                 <div class="bazi-row">
                                     <div class="bazi-cell">地支</div>
-                                    <div class="bazi-cell" id="year-branch">子</div>
-                                    <div class="bazi-cell" id="month-branch">丑</div>
-                                    <div class="bazi-cell" id="day-branch">巳</div>
-                                    <div class="bazi-cell" id="hour-branch">酉</div>
+                                    <div class="bazi-cell" id="year-branch"></div>
+                                    <div class="bazi-cell" id="month-branch"></div>
+                                    <div class="bazi-cell" id="day-branch"></div>
+                                    <div class="bazi-cell" id="hour-branch"></div>
                                 </div>
                                 <div class="bazi-row">
                                     <div class="bazi-cell">藏干</div>
                                     <div class="bazi-cell">
-                                        <div class="hidden-stems" id="year-hidden-stems">癸</div>
+                                        <div class="hidden-stems" id="year-hidden-stems"></div>
                                     </div>
                                     <div class="bazi-cell">
-                                        <div class="hidden-stems" id="month-hidden-stems">己癸辛</div>
+                                        <div class="hidden-stems" id="month-hidden-stems"></div>
                                     </div>
                                     <div class="bazi-cell">
-                                        <div class="hidden-stems" id="day-hidden-stems">丙庚戊</div>
+                                        <div class="hidden-stems" id="day-hidden-stems"></div>
                                     </div>
                                     <div class="bazi-cell">
-                                        <div class="hidden-stems" id="hour-hidden-stems">辛</div>
+                                        <div class="hidden-stems" id="hour-hidden-stems"></div>
                                     </div>
                                 </div>
                             </div>
                             <div class="personality-traits" id="personality-traits">
-                                命主性格：似静水流深，临危反生智，藏锋守拙却暗含凌云之志
+                                命主性格：量子分析中...
                             </div>
                         </div>
                     </div>
@@ -211,6 +218,7 @@
                     <div class="menu-tab" data-tab="relationship"><i class="fas fa-heartbeat"></i> 婚姻健康</div>
                     <div class="menu-tab" data-tab="trend"><i class="fas fa-chart-line"></i> 运势分析</div>
                 </div>
+                
                 <div class="tab-content active" id="fortune-tab">
                     <div class="detail-card">
                         <div class="bazi-qa-container">
@@ -219,13 +227,17 @@
                             </div>
                             <div class="bazi-qa-input-container">
                                 <input type="text" class="bazi-qa-input" id="bazi-question" placeholder="输入您想了解的八字相关问题...">
-                                <button class="bazi-qa-submit" id="bazi-qa-submit">提问</button>
+                                <button class="bazi-qa-submit" id="bazi-qa-submit">
+                                    <span class="btn-text">提问</span>
+                                </button>
                             </div>
-                            <div id="bazi-qa-response" class="bazi-qa-response" style="display: none;">
-                                <!-- 回答内容将在这里显示 -->
-                            </div>
+                            <div id="bazi-qa-response" class="bazi-qa-response" style="display: none;"></div>
                             <div id="bazi-qa-loading" class="bazi-qa-loading" style="display: none;">
-                                <div class="loading"></div>
+                                <div class="loading-animation">
+                                    <span class="dot"></span>
+                                    <span class="dot"></span>
+                                    <span class="dot"></span>
+                                </div>
                                 <span>量子AI分析中...</span>
                             </div>
                         </div>
@@ -234,7 +246,12 @@
                     <div class="detail-card">
                         <div class="load-btn-container">
                             <button class="load-btn" data-section="strength">
-                                <span><i class="fas fa-dumbbell"></i> 身强，身弱，格局分析</span>
+                                <span class="loading-animation" style="display:none;">
+                                    <span class="dot"></span>
+                                    <span class="dot"></span>
+                                    <span class="dot"></span>
+                                </span>
+                                <span class="btn-text"><i class="fas fa-dumbbell"></i> 身强，身弱，格局分析</span>
                                 <i class="fas fa-chevron-down toggle-icon"></i>
                             </button>
                             <div class="load-btn-description">量子分析命主八字中日主的强弱程度和格局，判断是身强、身弱、均衡、从强还是从弱</div>
@@ -245,7 +262,12 @@
                     <div class="detail-card">
                         <div class="load-btn-container">
                             <button class="load-btn" data-section="elements">
-                                <span><i class="fas fa-yin-yang"></i> 五行强弱，燥湿，流通分析</span>
+                                <span class="loading-animation" style="display:none;">
+                                    <span class="dot"></span>
+                                    <span class="dot"></span>
+                                    <span class="dot"></span>
+                                </span>
+                                <span class="btn-text"><i class="fas fa-yin-yang"></i> 五行强弱，燥湿，流通分析</span>
                                 <i class="fas fa-chevron-down toggle-icon"></i>
                             </button>
                             <div class="load-btn-description">量子计算八字五行分布情况，判断五行强弱，燥湿，流通和调候</div>
@@ -254,154 +276,12 @@
                     </div>
                 </div>
                 
-                <div class="tab-content" id="character-tab">
-                    <div class="detail-card">
-                        <div class="load-btn-container">
-                            <button class="load-btn" data-section="personality">
-                                <span><i class="fas fa-brain"></i> 性格分析</span>
-                                <i class="fas fa-chevron-down toggle-icon"></i>
-                            </button>
-                            <div class="load-btn-description">根据八字分析命主的主要性格特征和优缺点</div>
-                        </div>
-                        <div id="personality-content" class="section-content"></div>
-                    </div>
-                    
-                    <div class="detail-card">
-                        <div class="load-btn-container">
-                            <button class="load-btn" data-section="career">
-                                <span><i class="fas fa-briefcase"></i> 适合行业分析</span>
-                                <i class="fas fa-chevron-down toggle-icon"></i>
-                            </button>
-                            <div class="load-btn-description">根据八字五行和十神分析适合从事的职业方向</div>
-                        </div>
-                        <div id="career-content" class="section-content"></div>
-                    </div>
-                    
-                    <div class="detail-card">
-                        <div class="load-btn-container">
-                            <button class="load-btn" data-section="wealth">
-                                <span><i class="fas fa-coins"></i> 财富格局分析</span>
-                                <i class="fas fa-chevron-down toggle-icon"></i>
-                            </button>
-                            <div class="load-btn-description">分析八字中的财富格局和理财建议</div>
-                        </div>
-                        <div id="wealth-content" class="section-content"></div>
-                        <div class="gambling-analysis">
-                            <div class="gambling-title">
-                                <i class="fas fa-dice"></i> 今日赌运分析
-                            </div>
-                            <div class="gambling-rating" id="gambling-rating">★★★☆☆</div>
-                            <div class="gambling-details" id="gambling-details">
-                                今日偏财运中等，适合小赌怡情但不宜大额投注。东南方位较为有利，下午3-5点时段运势最佳。注意见好就收，避免贪心导致损失。
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="tab-content" id="relationship-tab">
-                    <div class="detail-card">
-                        <div class="load-btn-container">
-                            <button class="load-btn" data-section="marriage">
-                                <span><i class="fas fa-ring"></i> 婚姻情况分析</span>
-                                <i class="fas fa-chevron-down toggle-icon"></i>
-                            </button>
-                            <div class="load-btn-description">分析八字中婚姻宫和配偶星情况，预测婚姻状况</div>
-                        </div>
-                        <div id="marriage-content" class="section-content"></div>
-                    </div>
-                    
-                    <div class="detail-card">
-                        <div class="load-btn-container">
-                            <button class="load-btn" data-section="children">
-                                <span><i class="fas fa-baby"></i> 子女情况分析</span>
-                                <i class="fas fa-chevron-down toggle-icon"></i>
-                            </button>
-                            <div class="load-btn-description">分析八字中子女宫和子女星情况，预测子女缘分</div>
-                        </div>
-                        <div id="children-content" class="section-content"></div>
-                    </div>
-                    
-                    <div class="detail-card">
-                        <div class="load-btn-container">
-                            <button class="load-btn" data-section="family">
-                                <span><i class="fas fa-home"></i> 家庭关系分析</span>
-                                <i class="fas fa-chevron-down toggle-icon"></i>
-                            </button>
-                            <div class="load-btn-description">分析八字中父母、兄弟姐妹等家庭关系</div>
-                        </div>
-                        <div id="family-content" class="section-content"></div>
-                    </div>
-                    
-                    <div class="detail-card">
-                        <div class="load-btn-container">
-                            <button class="load-btn" data-section="health">
-                                <span><i class="fas fa-heartbeat"></i> 健康情况分析</span>
-                                <i class="fas fa-chevron-down toggle-icon"></i>
-                            </button>
-                            <div class="load-btn-description">根据五行平衡分析命主的健康状况和潜在健康问题</div>
-                        </div>
-                        <div id="health-content" class="section-content"></div>
-                    </div>
-                </div>
-                
-                <div class="tab-content" id="trend-tab">
-                    <div class="detail-card">
-                        <div class="load-btn-container">
-                            <button class="load-btn" data-section="annual-fortune">
-                                <span><i class="fas fa-calendar-alt"></i> 流年分析</span>
-                                <i class="fas fa-chevron-down toggle-icon"></i>
-                            </button>
-                            <div class="load-btn-description">详细分析当前流年对命局的影响，包括五行强弱、神煞系统和地支关系</div>
-                        </div>
-                        <div id="annual-fortune-content" class="section-content"></div>
-                    </div>
-                    
-                    <div class="detail-card">
-                        <div class="load-btn-container">
-                            <button class="load-btn" data-section="monthly-fortune">
-                                <span><i class="fas fa-calendar-day"></i> 流月分析</span>
-                                <i class="fas fa-chevron-down toggle-icon"></i>
-                            </button>
-                            <div class="load-btn-description">预测当前年份每月的运势起伏和注意事项</div>
-                        </div>
-                        <div id="monthly-fortune-content" class="section-content"></div>
-                    </div>
-                    <div class="detail-card">
-                        <div class="load-btn-container">
-                            <button class="load-btn" data-section="daily-fortune">
-                                <span><i class="fas fa-calendar-day"></i> 流日分析</span>
-                                <i class="fas fa-chevron-down toggle-icon"></i>
-                            </button>
-                            <div class="load-btn-description">分析每日运势变化和吉凶时辰</div>
-                        </div>
-                        <div id="daily-fortune-content" class="section-content"></div>
-                    </div>
-                  
-                    <div class="detail-card">
-                        <div class="load-btn-container">
-                            <button class="load-btn" data-section="decade-fortune">
-                                <span><i class="fas fa-hourglass-half"></i> 十年大运分析</span>
-                                <i class="fas fa-chevron-down toggle-icon"></i>
-                            </button>
-                            <div class="load-btn-description">分析一生中各阶段大运走势，预测重要时期吉凶</div>
-                        </div>
-                        <div id="decade-fortune-content" class="section-content"></div>
-                    </div>
-                    
-                    <div class="detail-card">
-                        <div class="load-btn-container">
-                            <button class="load-btn" data-section="milestones">
-                                <span><i class="fas fa-map-marked-alt"></i> 重要节点和重大灾祸分析</span>
-                                <i class="fas fa-chevron-down toggle-icon"></i>
-                            </button>
-                            <div class="load-btn-description">指出人生中重要的年份和可能发生的重大事件和重大灾祸</div>
-                        </div>
-                        <div id="milestones-content" class="section-content"></div>
-                    </div>
-                </div>
+                <!-- 其他标签页内容 -->
                 
                 <div class="calculate-btn-container" style="margin-top: 30px;">
-                    <button id="recalculate-btn"><i class="fas fa-redo"></i> 重新测算</button>
+                    <button id="recalculate-btn">
+                        <span class="btn-text"><i class="fas fa-redo"></i> 重新测算</span>
+                    </button>
                 </div>
             </section>
         </main>
@@ -410,11 +290,20 @@
             © 2025 赛博命理系统 版权所有 | 量子计算引擎 v3.2.6 | 数据来自《渊海子平》《三命通会》等古籍
         </footer>
     </div>
+
+    <!-- 加载动画模板 -->
+    <template id="loading-template">
+        <span class="loading-animation">
+            <span class="dot"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+        </span>
+    </template>
+
+    <!-- JavaScript 文件 -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/lunar-javascript@latest/dist/lunar.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-    <script src="js/lunar.js"></script>
-    <script src="js/mainw.js"></script>
+    <script src="js/main.js"></script>
 </body>
 </html>
