@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 增强版缓存对象v2.1v
+    // 增强版缓存对象v2.1a
     const baziCache = {
         data: {},
         get: function(key) {
@@ -581,7 +581,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         const originalBtnHtml = button.innerHTML;
         button.disabled = true;
-        button.innerHTML = `<span><span class="loading"></span> 量子分析中...</span><i class="fas fa-chevron-down toggle-icon"></i>`;
+        button.innerHTML = `<span style="display: flex; align-items: center; justify-content: center; width: 100%;"><span class="loading"></span>量子分析中...</span><i class="fas fa-chevron-down toggle-icon"></i>`;
         container.classList.add('active');
         
         const progressContainer = document.createElement('div');
