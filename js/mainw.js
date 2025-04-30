@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 增强版缓存对象v2.1v
+    // 增强版缓存对象v2.1a
     const baziCache = {
         data: {},
         get: function(key) {
@@ -326,6 +326,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const baziQaSubmit = document.getElementById('bazi-qa-submit');
     const baziQaResponse = document.getElementById('bazi-qa-response');
     const baziQaLoading = document.getElementById('bazi-qa-loading');
+    const fateAnalysisBtn = document.getElementById('fate-analysis-btn');
+    const wealthAnalysisBtn = document.getElementById('wealth-analysis-btn');
+    const analysisModal = document.getElementById('analysis-modal');
+    const analysisTitle = document.getElementById('analysis-title');
+    const analysisContent = document.getElementById('analysis-content');
+    const closeModal = document.getElementById('close-modal');
 
     // 全局变量
     let elementChart;
@@ -346,643 +352,239 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 事件监听器初始化
     function initEventListeners() {
-    // 时间选择
-    timePeriodOptions.forEach(function(option) {
-        option.addEventListener('click', function() {
+        // 时间选择
+        timePeriodOptions.forEach(function(option) {
+            option.addEventListener('click', function() {
+                timePeriodOptions.forEach(function(opt) {
+                    opt.classList.remove('selected');
+                });
+                this.classList.add('selected');
+                const hour = this.getAttribute('data-hour');
+                const minute = this.getAttribute('data-minute');
+                birthTimeInput.value = `${hour.padStart(2, '0')}:${minute.padStart(2, '0')}`;
+            });
+        });
+
+        // 语言切换
+        languageBtns.forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                languageBtns.forEach(function(b) {
+                    b.classList.remove('active');
+                });
+                this.classList.add('active');
+                const lang = this.getAttribute('data-lang');
+                console.log('切换到语言:', lang);
+            });
+        });
+
+        // Markdown解析设置
+        marked.setOptions({
+            breaks: true,
+            gfm: true,
+            tables: true,
+            highlight: function(code, lang) {
+                return code;
+            }
+        });
+
+        // 八字问答提交
+        baziQaSubmit.addEventListener('click', async function() {
+            const question = baziQuestionInput.value.trim();
+            if (!question) {
+                alert('请输入您的问题');
+                return;
+            }
+            
+            baziQaSubmit.disabled = true;
+            baziQaResponse.style.display = 'none';
+            baziQaLoading.style.display = 'flex';
+            
+            try {
+                const response = await getBaziAnswer(question);
+                baziQaResponse.innerHTML = marked.parse(response);
+                baziQaResponse.style.display = 'block';
+            } catch (error) {
+                console.error('获取回答失败:', error);
+                baziQaResponse.innerHTML = '<p style="color:var(--danger-color)">获取回答失败，请稍后重试</p>';
+                baziQaResponse.style.display = 'block';
+            } finally {
+                baziQaSubmit.disabled = false;
+                baziQaLoading.style.display = 'none';
+            }
+        });
+
+        // 重新计算
+        recalculateBtn.addEventListener('click', function() {
+            document.getElementById('name').value = '';
+            document.getElementById('birth-date').value = '';
+            document.getElementById('birth-time').value = '';
+            document.getElementById('gender').value = '';
             timePeriodOptions.forEach(function(opt) {
                 opt.classList.remove('selected');
             });
-            this.classList.add('selected');
-            const hour = this.getAttribute('data-hour');
-            const minute = this.getAttribute('data-minute');
-            birthTimeInput.value = `${hour.padStart(2, '0')}:${minute.padStart(2, '0')}`;
+            resultSection.style.display = 'none';
+            inputSection.style.display = 'block';
+            resetAllContent();
+            if (elementChart) {
+                elementChart.destroy();
+            }
+            window.scrollTo(0, 0);
         });
-    });
 
-    // 语言切换
-    languageBtns.forEach(function(btn) {
-        btn.addEventListener('click', function() {
-            languageBtns.forEach(function(b) {
-                b.classList.remove('active');
+        // 菜单标签切换
+        document.querySelectorAll('.menu-tab').forEach(function(tab) {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.menu-tab').forEach(function(t) {
+                    t.classList.remove('active');
+                });
+                document.querySelectorAll('.tab-content').forEach(function(c) {
+                    c.classList.remove('active');
+                });
+                this.classList.add('active');
+                const tabId = this.getAttribute('data-tab') + '-tab';
+                document.getElementById(tabId).classList.add('active');
             });
-            this.classList.add('active');
-            const lang = this.getAttribute('data-lang');
-            console.log('切换到语言:', lang);
-        });
-    });
-
-    // Markdown解析设置
-    marked.setOptions({
-        breaks: true,
-        gfm: true,
-        tables: true,
-        highlight: function(code, lang) {
-            return code;
-        }
-    });
-
-    // 八字问答提交
-    baziQaSubmit.addEventListener('click', async function() {
-        const question = baziQuestionInput.value.trim();
-        if (!question) {
-            alert('请输入您的问题');
-            return;
-        }
-        
-        baziQaSubmit.disabled = true;
-        baziQaResponse.style.display = 'none';
-        baziQaLoading.style.display = 'flex';
-        
-        try {
-            const response = await getBaziAnswer(question);
-            baziQaResponse.innerHTML = marked.parse(response);
-            baziQaResponse.style.display = 'block';
-        } catch (error) {
-            console.error('获取回答失败:', error);
-            baziQaResponse.innerHTML = '<p style="color:var(--danger-color)">获取回答失败，请稍后重试</p>';
-            baziQaResponse.style.display = 'block';
-        } finally {
-            baziQaSubmit.disabled = false;
-            baziQaLoading.style.display = 'none';
-        }
-    });
-
-    // 重新计算
-    recalculateBtn.addEventListener('click', function() {
-        document.getElementById('name').value = '';
-        document.getElementById('birth-date').value = '';
-        document.getElementById('birth-time').value = '';
-        document.getElementById('gender').value = '';
-        timePeriodOptions.forEach(function(opt) {
-            opt.classList.remove('selected');
-        });
-        resultSection.style.display = 'none';
-        inputSection.style.display = 'block';
-        resetAllContent();
-        if (elementChart) {
-            elementChart.destroy();
-        }
-        window.scrollTo(0, 0);
-    });
-
-    // 菜单标签切换
-    document.querySelectorAll('.menu-tab').forEach(function(tab) {
-        tab.addEventListener('click', function() {
-            document.querySelectorAll('.menu-tab').forEach(function(t) {
-                t.classList.remove('active');
-            });
-            document.querySelectorAll('.tab-content').forEach(function(c) {
-                c.classList.remove('active');
-            });
-            this.classList.add('active');
-            const tabId = this.getAttribute('data-tab') + '-tab';
-            document.getElementById(tabId).classList.add('active');
-        });
-    });
-
-    // 计算按钮
-    calculateBtn.addEventListener('click', calculateBazi);
-
-    // 命格等级和财富等级点击事件 - 新增部分
-    // 方式1：直接绑定到容器元素（推荐）
-    const fateLevelContainer = document.getElementById('fate-level-container');
-    const wealthLevelContainer = document.getElementById('wealth-level-container');
-    
-    if (fateLevelContainer) {
-        fateLevelContainer.addEventListener('click', function() {
-            showAnalysisPopup('fate');
-        });
-    } else {
-        console.warn('未找到命格等级容器元素');
-    }
-    
-    if (wealthLevelContainer) {
-        wealthLevelContainer.addEventListener('click', function() {
-            showAnalysisPopup('wealth');
-        });
-    } else {
-        console.warn('未找到财富等级容器元素');
-    }
-
-        // 命格等级和财富等级点击事件
-        document.getElementById('fate-level-container').addEventListener('click', function() {
-            showAnalysisPopup('fate');
         });
 
-        document.getElementById('wealth-level-container').addEventListener('click', function() {
-            showAnalysisPopup('wealth');
-        });
-    }
+        // 计算按钮
+        calculateBtn.addEventListener('click', calculateBazi);
 
-    // 显示分析弹窗
-    function showAnalysisPopup(type) {
-        const score = type === 'fate' ? fateScoreValue : wealthScoreValue;
-        const analysis = getDetailedAnalysis(type, score);
-        
-        const popup = document.createElement('div');
-        popup.className = 'analysis-popup';
-        popup.innerHTML = `
-            <div class="popup-content">
-                <div class="popup-header">
-                    <h3>${type === 'fate' ? '命格等级分析' : '财富等级分析'}</h3>
-                    <span class="close-btn">&times;</span>
-                </div>
-                <div class="popup-body">
-                    ${analysis}
-                </div>
-            </div>
-        `;
-        
-        document.body.appendChild(popup);
-        
-        // 关闭按钮事件
-        popup.querySelector('.close-btn').addEventListener('click', function() {
-            document.body.removeChild(popup);
+        // 命格等级分析按钮
+        fateAnalysisBtn.addEventListener('click', function() {
+            showAnalysisModal('命格等级分析', getFateAnalysisContent());
         });
-        
-        // 点击外部关闭
-        popup.addEventListener('click', function(e) {
-            if (e.target === popup) {
-                document.body.removeChild(popup);
+
+        // 财富等级分析按钮
+        wealthAnalysisBtn.addEventListener('click', function() {
+            showAnalysisModal('财富等级分析', getWealthAnalysisContent());
+        });
+
+        // 关闭模态框
+        closeModal.addEventListener('click', function() {
+            analysisModal.style.display = 'none';
+        });
+
+        // 点击模态框外部关闭
+        window.addEventListener('click', function(event) {
+            if (event.target === analysisModal) {
+                analysisModal.style.display = 'none';
             }
         });
     }
 
-    // 获取详细分析
-    function getDetailedAnalysis(type, score) {
-        if (type === 'fate') {
-            return getFateAnalysis(score);
-        } else {
-            return getWealthAnalysis(score);
-        }
+    // 显示分析模态框
+    function showAnalysisModal(title, content) {
+        analysisTitle.textContent = title;
+        analysisContent.innerHTML = marked.parse(content);
+        analysisModal.style.display = 'block';
     }
 
-    // 获取命格详细分析
-    function getFateAnalysis(score) {
-        let analysis = '';
+    // 获取命格等级分析内容
+    function getFateAnalysisContent() {
+        const score = calculateFateScore(currentPillars);
+        const levelInfo = getFateLevel(score);
         
-        if (score >= 85) {
-            analysis = `
-                <div class="analysis-section">
-                    <h4>1. 等级定位：天赐鸿运 ★★★★★ (85-100分)</h4>
-                    <p>您的命格属于顶级格局，具有非凡的人生际遇和成就潜力。</p>
-                </div>
-                <div class="analysis-section">
-                    <h4>2. 命格特征</h4>
-                    <ul>
-                        <li>五行流通顺畅，格局清纯</li>
-                        <li>日主得令得地得势，能量充沛</li>
-                        <li>用神有力，忌神受制</li>
-                        <li>大运走势与命局配合得天衣无缝</li>
-                    </ul>
-                </div>
-                <div class="analysis-section">
-                    <h4>3. 优势分析</h4>
-                    <ul>
-                        <li>天生贵人运强，关键时刻总有助力</li>
-                        <li>事业容易取得突破性成就</li>
-                        <li>抗风险能力强，能化险为夷</li>
-                        <li>人生重大选择往往能把握正确方向</li>
-                    </ul>
-                </div>
-                <div class="analysis-section">
-                    <h4>4. 发展建议</h4>
-                    <ul>
-                        <li>适合从事具有开创性、领导性的工作</li>
-                        <li>可大胆追求高远目标，不必过于保守</li>
-                        <li>注意保持谦逊，避免刚愎自用</li>
-                        <li>适当回馈社会，可进一步提升运势</li>
-                    </ul>
-                </div>
-                <div class="analysis-section">
-                    <h4>5. 评分细节参考</h4>
-                    <p>您的命格评分构成：</p>
-                    <ul>
-                        <li>日主得令：${fateScoreDetails.seasonScore}/30</li>
-                        <li>五行平衡：${fateScoreDetails.balanceScore}/25</li>
-                        <li>特殊格局：${fateScoreDetails.patternScore}/20</li>
-                        <li>十神配置：${fateScoreDetails.godsScore}/15</li>
-                        <li>天干地支组合：${fateScoreDetails.combinationScore}/10</li>
-                    </ul>
-                </div>
-            `;
-        } else if (score >= 70) {
-            analysis = `
-                <div class="analysis-section">
-                    <h4>1. 等级定位：福星高照 ★★★★☆ (70-84分)</h4>
-                    <p>您的命格属于上等格局，人生多贵人相助，机遇较多。</p>
-                </div>
-                <div class="analysis-section">
-                    <h4>2. 命格特征</h4>
-                    <ul>
-                        <li>五行配置较为合理</li>
-                        <li>日主能量充足，能担财官</li>
-                        <li>用神较为明显，但可能有轻微瑕疵</li>
-                        <li>大运走势总体有利</li>
-                    </ul>
-                </div>
-                <div class="analysis-section">
-                    <h4>3. 优势分析</h4>
-                    <ul>
-                        <li>人缘好，容易得到他人帮助</li>
-                        <li>事业稳定发展，有上升空间</li>
-                        <li>财运稳定，衣食无忧</li>
-                        <li>抗压能力较强</li>
-                    </ul>
-                </div>
-                <div class="analysis-section">
-                    <h4>4. 发展建议</h4>
-                    <ul>
-                        <li>适合从事需要人际交往的工作</li>
-                        <li>可设定中等偏高目标，循序渐进</li>
-                        <li>注意把握贵人运，多结交良师益友</li>
-                        <li>避免过于安逸，保持进取心</li>
-                    </ul>
-                </div>
-                <div class="analysis-section">
-                    <h4>5. 评分细节参考</h4>
-                    <p>您的命格评分构成：</p>
-                    <ul>
-                        <li>日主得令：${fateScoreDetails.seasonScore}/30</li>
-                        <li>五行平衡：${fateScoreDetails.balanceScore}/25</li>
-                        <li>特殊格局：${fateScoreDetails.patternScore}/20</li>
-                        <li>十神配置：${fateScoreDetails.godsScore}/15</li>
-                        <li>天干地支组合：${fateScoreDetails.combinationScore}/10</li>
-                    </ul>
-                </div>
-            `;
-        } else if (score >= 50) {
-            analysis = `
-                <div class="analysis-section">
-                    <h4>1. 等级定位：安常守分 ★★★☆☆ (50-69分)</h4>
-                    <p>您的命格属于中等格局，适合稳扎稳打的发展路线。</p>
-                </div>
-                <div class="analysis-section">
-                    <h4>2. 命格特征</h4>
-                    <ul>
-                        <li>五行配置基本平衡但不够突出</li>
-                        <li>日主能量中等，需大运配合</li>
-                        <li>用神力量一般，可能有忌神干扰</li>
-                        <li>大运走势起伏不定</li>
-                    </ul>
-                </div>
-                <div class="analysis-section">
-                    <h4>3. 优势分析</h4>
-                    <ul>
-                        <li>适应力强，能在不同环境中生存</li>
-                        <li>通过努力可获得稳定回报</li>
-                        <li>大运好时能抓住机遇</li>
-                        <li>生活相对平稳</li>
-                    </ul>
-                </div>
-                <div class="analysis-section">
-                    <h4>4. 发展建议</h4>
-                    <ul>
-                        <li>适合从事技术性或稳定性工作</li>
-                        <li>设定切实可行的目标</li>
-                        <li>注意储蓄理财，以备不时之需</li>
-                        <li>大运好时积极进取，运差时保守为宜</li>
-                    </ul>
-                </div>
-                <div class="analysis-section">
-                    <h4>5. 评分细节参考</h4>
-                    <p>您的命格评分构成：</p>
-                    <ul>
-                        <li>日主得令：${fateScoreDetails.seasonScore}/30</li>
-                        <li>五行平衡：${fateScoreDetails.balanceScore}/25</li>
-                        <li>特殊格局：${fateScoreDetails.patternScore}/20</li>
-                        <li>十神配置：${fateScoreDetails.godsScore}/15</li>
-                        <li>天干地支组合：${fateScoreDetails.combinationScore}/10</li>
-                    </ul>
-                </div>
-            `;
-        } else if (score >= 30) {
-            analysis = `
-                <div class="analysis-section">
-                    <h4>1. 等级定位：勤能补拙 ★★☆☆☆ (30-49分)</h4>
-                    <p>您的命格属于中下格局，需付出更多努力才能获得成功。</p>
-                </div>
-                <div class="analysis-section">
-                    <h4>2. 命格特征</h4>
-                    <ul>
-                        <li>五行配置不够平衡</li>
-                        <li>日主能量偏弱，易受外界影响</li>
-                        <li>用神力量不足，忌神可能较旺</li>
-                        <li>大运走势多波折</li>
-                    </ul>
-                </div>
-                <div class="analysis-section">
-                    <h4>3. 优势分析</h4>
-                    <ul>
-                        <li>逆境中成长，抗挫折能力强</li>
-                        <li>通过后天努力可改善运势</li>
-                        <li>大运好时能有不错发展</li>
-                        <li>往往能培养出坚韧品格</li>
-                    </ul>
-                </div>
-                <div class="analysis-section">
-                    <h4>4. 发展建议</h4>
-                    <ul>
-                        <li>适合从事需要毅力和耐力的工作</li>
-                        <li>设定阶段性小目标，逐步实现</li>
-                        <li>注意选择适合自己的发展方向</li>
-                        <li>多学习提升，弥补先天不足</li>
-                    </ul>
-                </div>
-                <div class="analysis-section">
-                    <h4>5. 评分细节参考</h4>
-                    <p>您的命格评分构成：</p>
-                    <ul>
-                        <li>日主得令：${fateScoreDetails.seasonScore}/30</li>
-                        <li>五行平衡：${fateScoreDetails.balanceScore}/25</li>
-                        <li>特殊格局：${fateScoreDetails.patternScore}/20</li>
-                        <li>十神配置：${fateScoreDetails.godsScore}/15</li>
-                        <li>天干地支组合：${fateScoreDetails.combinationScore}/10</li>
-                    </ul>
-                </div>
-            `;
-        } else {
-            analysis = `
-                <div class="analysis-section">
-                    <h4>1. 等级定位：逆水行舟 ★☆☆☆☆ (<30分)</h4>
-                    <p>您的命格格局较低，人生道路较为艰辛。</p>
-                </div>
-                <div class="analysis-section">
-                    <h4>2. 命格特征</h4>
-                    <ul>
-                        <li>五行严重失衡</li>
-                        <li>日主能量极弱或极旺而无制</li>
-                        <li>用神无力，忌神猖狂</li>
-                        <li>大运走势多不利</li>
-                    </ul>
-                </div>
-                <div class="analysis-section">
-                    <h4>3. 优势分析</h4>
-                    <ul>
-                        <li>经历丰富，能积累宝贵人生经验</li>
-                        <li>若能突破困境，往往能成大器</li>
-                        <li>大运好时能有转机</li>
-                        <li>培养出超乎常人的意志力</li>
-                    </ul>
-                </div>
-                <div class="analysis-section">
-                    <h4>4. 发展建议</h4>
-                    <ul>
-                        <li>适合从事辅助性或服务性工作</li>
-                        <li>设定现实可行的小目标</li>
-                        <li>注意选择适合自己的生存策略</li>
-                        <li>多寻求他人帮助，不要孤军奋战</li>
-                    </ul>
-                </div>
-                <div class="analysis-section">
-                    <h4>5. 评分细节参考</h4>
-                    <p>您的命格评分构成：</p>
-                    <ul>
-                        <li>日主得令：${fateScoreDetails.seasonScore}/30</li>
-                        <li>五行平衡：${fateScoreDetails.balanceScore}/25</li>
-                        <li>特殊格局：${fateScoreDetails.patternScore}/20</li>
-                        <li>十神配置：${fateScoreDetails.godsScore}/15</li>
-                        <li>天干地支组合：${fateScoreDetails.combinationScore}/10</li>
-                    </ul>
-                </div>
-            `;
-        }
-        
-        return analysis;
+        return `
+## 1. 等级定位
+${levelInfo.name}
+
+## 2. 命格特征
+${getFateCharacteristics(score)}
+
+## 3. 优势分析
+${getFateStrengths(score)}
+
+## 4. 发展建议
+${getFateSuggestions(score)}
+
+## 5. 评分细节参考
+- 日主得令: ${fateScoreDetails.seasonScore}/30
+- 五行平衡: ${fateScoreDetails.balanceScore}/25
+- 特殊格局: ${fateScoreDetails.patternScore}/20
+- 十神配置: ${fateScoreDetails.godsScore}/15
+- 天干地支组合: ${fateScoreDetails.combinationScore}/10
+`;
     }
 
-    // 获取财富详细分析
-    function getWealthAnalysis(score) {
-        let analysis = '';
+    // 获取命格特征
+    function getFateCharacteristics(score) {
+        if (score >= 85) return "天赐鸿运命格，一生多贵人相助，机遇不断，事业顺遂，健康长寿，家庭和睦。";
+        if (score >= 70) return "福星高照命格，事业有成，财运亨通，虽有波折但终能逢凶化吉。";
+        if (score >= 50) return "安常守分命格，平稳安定，需靠自身努力获得成就，无大起大落。";
+        if (score >= 30) return "勤能补拙命格，需付出更多努力才能获得成功，但终有回报。";
+        return "逆水行舟命格，人生多波折，需特别努力并注意规避风险。";
+    }
+
+    // 获取命格优势
+    function getFateStrengths(score) {
+        if (score >= 85) return "天生福气深厚，贵人运强，机遇多，抗风险能力强，事业容易成功。";
+        if (score >= 70) return "聪明才智出众，适应能力强，人际关系好，事业发展顺利。";
+        if (score >= 50) return "性格稳重，脚踏实地，能通过努力获得稳定发展。";
+        if (score >= 30) return "意志坚定，吃苦耐劳，逆境中成长，终能有所成就。";
+        return "磨练意志，经历丰富，若能克服困难，可获独特人生体验。";
+    }
+
+    // 获取命格发展建议
+    function getFateSuggestions(score) {
+        if (score >= 85) return "善用优势资源，避免骄傲自满，多帮助他人以积累福报。";
+        if (score >= 70) return "把握机遇，稳扎稳打，可尝试多元化发展。";
+        if (score >= 50) return "专注专业技能提升，建立稳定基础，避免冒险。";
+        if (score >= 30) return "制定明确目标，坚持不懈，寻求贵人指点。";
+        return "修身养性，学习专业技能，谨慎决策，避免高风险行为。";
+    }
+
+    // 获取财富等级分析内容
+    function getWealthAnalysisContent() {
+        const score = calculateWealthScore(currentPillars);
+        const levelInfo = getWealthLevel(score);
         
-        if (score >= 90) {
-            analysis = `
-                <div class="analysis-section">
-                    <h4>1. 等级定位：天禄盈门 ★★★★★ (90分以上)</h4>
-                    <p>您的财富格局属于顶级，具有非凡的财富积累能力。</p>
-                </div>
-                <div class="analysis-section">
-                    <h4>2. 财富特征</h4>
-                    <ul>
-                        <li>财星得令得地，财源广进</li>
-                        <li>食伤生财，财有源头</li>
-                        <li>财库充盈，能守得住财富</li>
-                        <li>大运走势有利财富积累</li>
-                    </ul>
-                </div>
-                <div class="analysis-section">
-                    <h4>3. 优势分析</h4>
-                    <ul>
-                        <li>天生财运亨通，容易获得财富</li>
-                        <li>投资理财眼光独到</li>
-                        <li>能把握重大财富机遇</li>
-                        <li>财富增长速度快</li>
-                    </ul>
-                </div>
-                <div class="analysis-section">
-                    <h4>4. 发展建议</h4>
-                    <ul>
-                        <li>适合从事金融、投资等与财富相关行业</li>
-                        <li>可大胆进行合理的投资</li>
-                        <li>注意财富的合理分配和传承</li>
-                        <li>适当回馈社会，可进一步提升财运</li>
-                    </ul>
-                </div>
-                <div class="analysis-section">
-                    <h4>5. 评分细节参考</h4>
-                    <p>您的财富评分构成：</p>
-                    <ul>
-                        <li>财星数量质量：${wealthScoreDetails.wealthStarScore}/30</li>
-                        <li>财星得地：${wealthScoreDetails.wealthPositionScore}/25</li>
-                        <li>财星受克：${wealthScoreDetails.wealthDamageScore}/20</li>
-                        <li>食伤生财：${wealthScoreDetails.wealthSupportScore}/15</li>
-                        <li>大运走势：${wealthScoreDetails.fortuneScore}/10</li>
-                    </ul>
-                </div>
-            `;
-        } else if (score >= 80) {
-            analysis = `
-                <div class="analysis-section">
-                    <h4>1. 等级定位：朱紫满箱 ★★★★☆ (80-89分)</h4>
-                    <p>您的财富格局属于上等，财富积累能力强。</p>
-                </div>
-                <div class="analysis-section">
-                    <h4>2. 财富特征</h4>
-                    <ul>
-                        <li>财星有力，财源稳定</li>
-                        <li>有食伤生财或官星护财</li>
-                        <li>财库较为充实</li>
-                        <li>大运走势总体有利财富</li>
-                    </ul>
-                </div>
-                <div class="analysis-section">
-                    <h4>3. 优势分析</h4>
-                    <ul>
-                        <li>正财偏财都不错，收入来源多</li>
-                        <li>理财能力较强</li>
-                        <li>能把握较好的财富机会</li>
-                        <li>财富增长稳定</li>
-                    </ul>
-                </div>
-                <div class="analysis-section">
-                    <h4>4. 发展建议</h4>
-                    <ul>
-                        <li>适合从事商业、贸易等与财富相关行业</li>
-                        <li>可适度进行投资</li>
-                        <li>注意财富的多元化配置</li>
-                        <li>保持稳健的理财策略</li>
-                    </ul>
-                </div>
-                <div class="analysis-section">
-                    <h4>5. 评分细节参考</h4>
-                    <p>您的财富评分构成：</p>
-                    <ul>
-                        <li>财星数量质量：${wealthScoreDetails.wealthStarScore}/30</li>
-                        <li>财星得地：${wealthScoreDetails.wealthPositionScore}/25</li>
-                        <li>财星受克：${wealthScoreDetails.wealthDamageScore}/20</li>
-                        <li>食伤生财：${wealthScoreDetails.wealthSupportScore}/15</li>
-                        <li>大运走势：${wealthScoreDetails.fortuneScore}/10</li>
-                    </ul>
-                </div>
-            `;
-        } else if (score >= 60) {
-            analysis = `
-                <div class="analysis-section">
-                    <h4>1. 等级定位：粟陈贯朽 ★★★☆☆ (60-79分)</h4>
-                    <p>您的财富格局属于中等，通过努力可获得不错的财富。</p>
-                </div>
-                <div class="analysis-section">
-                    <h4>2. 财富特征</h4>
-                    <ul>
-                        <li>财星有一定力量但不够突出</li>
-                        <li>财源主要依靠正财</li>
-                        <li>财库普通，需注意守财</li>
-                        <li>大运走势对财富影响较大</li>
-                    </ul>
-                </div>
-                <div class="analysis-section">
-                    <h4>3. 优势分析</h4>
-                    <ul>
-                        <li>通过勤奋工作可获得稳定收入</li>
-                        <li>理财观念较为务实</li>
-                        <li>大运好时财富增长明显</li>
-                        <li>生活基本无忧</li>
-                    </ul>
-                </div>
-                <div class="analysis-section">
-                    <h4>4. 发展建议</h4>
-                    <ul>
-                        <li>适合从事稳定的职业</li>
-                        <li>可进行低风险投资</li>
-                        <li>注意储蓄和保险规划</li>
-                        <li>大运好时把握机会，运差时保守为宜</li>
-                    </ul>
-                </div>
-                <div class="analysis-section">
-                    <h4>5. 评分细节参考</h4>
-                    <p>您的财富评分构成：</p>
-                    <ul>
-                        <li>财星数量质量：${wealthScoreDetails.wealthStarScore}/30</li>
-                        <li>财星得地：${wealthScoreDetails.wealthPositionScore}/25</li>
-                        <li>财星受克：${wealthScoreDetails.wealthDamageScore}/20</li>
-                        <li>食伤生财：${wealthScoreDetails.wealthSupportScore}/15</li>
-                        <li>大运走势：${wealthScoreDetails.fortuneScore}/10</li>
-                    </ul>
-                </div>
-            `;
-        } else if (score >= 40) {
-            analysis = `
-                <div class="analysis-section">
-                    <h4>1. 等级定位：岁稔年丰 ★★☆☆☆ (40-59分)</h4>
-                    <p>您的财富格局属于中下，需努力才能维持基本生活水平。</p>
-                </div>
-                <div class="analysis-section">
-                    <h4>2. 财富特征</h4>
-                    <ul>
-                        <li>财星力量较弱</li>
-                        <li>财源主要依靠工资收入</li>
-                        <li>财库不实，容易破财</li>
-                        <li>大运走势多不利于财富积累</li>
-                    </ul>
-                </div>
-                <div class="analysis-section">
-                    <h4>3. 优势分析</h4>
-                    <ul>
-                        <li>通过辛勤劳动可获得基本收入</li>
-                        <li>培养出节约的习惯</li>
-                        <li>大运好时能有小财运</li>
-                        <li>对物质需求可能较为淡泊</li>
-                    </ul>
-                </div>
-                <div class="analysis-section">
-                    <h4>4. 发展建议</h4>
-                    <ul>
-                        <li>适合从事技术性或稳定性工作</li>
-                        <li>避免高风险投资</li>
-                        <li>注意开源节流</li>
-                        <li>学习理财知识，改善财务状况</li>
-                    </ul>
-                </div>
-                <div class="analysis-section">
-                    <h4>5. 评分细节参考</h4>
-                    <p>您的财富评分构成：</p>
-                    <ul>
-                        <li>财星数量质量：${wealthScoreDetails.wealthStarScore}/30</li>
-                        <li>财星得地：${wealthScoreDetails.wealthPositionScore}/25</li>
-                        <li>财星受克：${wealthScoreDetails.wealthDamageScore}/20</li>
-                        <li>食伤生财：${wealthScoreDetails.wealthSupportScore}/15</li>
-                        <li>大运走势：${wealthScoreDetails.fortuneScore}/10</li>
-                    </ul>
-                </div>
-            `;
-        } else {
-            analysis = `
-                <div class="analysis-section">
-                    <h4>1. 等级定位：营营逐逐 ★☆☆☆☆ (<40分)</h4>
-                    <p>您的财富格局较低，财务压力较大。</p>
-                </div>
-                <div class="analysis-section">
-                    <h4>2. 财富特征</h4>
-                    <ul>
-                        <li>财星非常弱或受克严重</li>
-                        <li>财源有限，收入不稳定</li>
-                        <li>财库空虚，容易破财</li>
-                        <li>大运走势多不利于财富</li>
-                    </ul>
-                </div>
-                <div class="analysis-section">
-                    <h4>3. 优势分析</h4>
-                    <ul>
-                        <li>培养出极强的生存能力</li>
-                        <li>对金钱有深刻认识</li>
-                        <li>大运好时能有转机</li>
-                        <li>可能发展出独特的谋生技能</li>
-                    </ul>
-                </div>
-                <div class="analysis-section">
-                    <h4>4. 发展建议</h4>
-                    <ul>
-                        <li>适合从事稳定的基础性工作</li>
-                        <li>避免任何形式的投机</li>
-                        <li>注意基本生活保障</li>
-                        <li>寻求专业财务建议</li>
-                    </ul>
-                </div>
-                <div class="analysis-section">
-                    <h4>5. 评分细节参考</h4>
-                    <p>您的财富评分构成：</p>
-                    <ul>
-                        <li>财星数量质量：${wealthScoreDetails.wealthStarScore}/30</li>
-                        <li>财星得地：${wealthScoreDetails.wealthPositionScore}/25</li>
-                        <li>财星受克：${wealthScoreDetails.wealthDamageScore}/20</li>
-                        <li>食伤生财：${wealthScoreDetails.wealthSupportScore}/15</li>
-                        <li>大运走势：${wealthScoreDetails.fortuneScore}/10</li>
-                    </ul>
-                </div>
-            `;
-        }
-        
-        return analysis;
+        return `
+## 1. 等级定位
+${levelInfo.name}
+
+## 2. 财富特征
+${getWealthCharacteristics(score)}
+
+## 3. 优势分析
+${getWealthStrengths(score)}
+
+## 4. 发展建议
+${getWealthSuggestions(score)}
+
+## 5. 评分细节参考
+- 财星数量质量: ${wealthScoreDetails.wealthStarScore}/30
+- 财星得地: ${wealthScoreDetails.wealthPositionScore}/25
+- 财星受克: ${wealthScoreDetails.wealthDamageScore}/20
+- 食伤生财: ${wealthScoreDetails.wealthSupportScore}/15
+- 大运走势: ${wealthScoreDetails.fortuneScore}/10
+`;
+    }
+
+    // 获取财富特征
+    function getWealthCharacteristics(score) {
+        if (score >= 90) return "天生财运亨通，正偏财俱佳，投资眼光独到，财富积累迅速。";
+        if (score >= 80) return "财运旺盛，正财稳定，偏财机会多，能通过努力获得丰厚回报。";
+        if (score >= 60) return "财运平稳，正财为主，需合理规划才能积累财富。";
+        if (score >= 40) return "财运起伏，需靠专业技能获取财富，投资需谨慎。";
+        return "财运较弱，需特别努力才能获得财富，宜稳扎稳打。";
+    }
+
+    // 获取财富优势
+    function getWealthStrengths(score) {
+        if (score >= 90) return "财源广进，投资眼光精准，能把握大机遇，财富增长快。";
+        if (score >= 80) return "赚钱能力强，理财有道，能通过多种渠道积累财富。";
+        if (score >= 60) return "稳定收入来源，能通过专业技能获得合理报酬。";
+        if (score >= 40) return "节俭务实，能通过长期积累获得财富增长。";
+        return "吃苦耐劳，能在逆境中找到生存之道。";
+    }
+
+    // 获取财富建议
+    function getWealthSuggestions(score) {
+        if (score >= 90) return "多元化投资，善用财富回馈社会，避免过度投机。";
+        if (score >= 80) return "把握投资机会，建立稳健理财规划，避免冲动消费。";
+        if (score >= 60) return "专注主业发展，适当进行保守投资，建立应急基金。";
+        if (score >= 40) return "提升专业技能，控制开支，避免高风险投资。";
+        return "专注稳定收入，学习理财知识，避免负债，量入为出。";
     }
 
     // 保存个人资料
