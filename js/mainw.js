@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 增强版缓存对象v2.1a
+    // 增强版缓存对象v2.1v
     const baziCache = {
         data: {},
         get: function(key) {
@@ -2315,11 +2315,7 @@ function initElementChart(baziInfo) {
         if (cachedResponse) {
             return cachedResponse;
         }
-        // 显示加载状态
-    baziQaSubmit.disabled = true;
-    baziQaResponse.style.display = 'none';
-    baziQaLoading.style.display = 'flex'; // 修改为flex以启用新布局
-
+        
         const prompt = `【八字专业问答规范】请严格遵循以下规则回答：
 1. 回答必须基于传统八字命理学知识
 2. 回答应简洁明了，避免冗长
@@ -2353,43 +2349,33 @@ function initElementChart(baziInfo) {
         
         try {
             const response = await apiRequestQueue.addRequest({
-            url: apiUrl,
-            options: {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${apiKey}`
+                url: apiUrl,
+                options: {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: "deepseek-chat",
+                        messages: [{
+                            role: "system",
+                            content: "你是一位资深的八字命理大师，精通子平八字、紫微斗数等传统命理学。请严格按照八字专业问答规范回答用户问题。"
+                        }, {
+                            role: "user",
+                            content: prompt
+                        }],
+                        temperature: 0
+                    })
                 },
-                body: JSON.stringify({
-                    model: "deepseek-chat",
-                    messages: [{
-                        role: "system",
-                        content: "你是一位资深的八字命理大师，精通子平八字、紫微斗数等传统命理学。请严格按照八字专业问答规范回答用户问题。"
-                    }, {
-                        role: "user",
-                        content: prompt
-                    }],
-                    temperature: 0
-                })
-            },
-            cacheKey: cacheKey
-        });
-        
-        // 缓存并返回结果
-        baziCache.set(cacheKey, response);
-        baziQaResponse.innerHTML = marked.parse(response);
-        baziQaResponse.style.display = 'block';
-        return response;
-        
-    } catch (error) {
-        console.error('获取问答答案失败:', error);
-        baziQaResponse.innerHTML = '<p style="color:var(--danger-color)">获取答案失败，请稍后重试</p>';
-        baziQaResponse.style.display = 'block';
-        return '获取答案失败，请稍后重试';
-    } finally {
-        // 无论成功失败，最后都要恢复按钮状态和隐藏加载动画
-        baziQaSubmit.disabled = false;
-        baziQaLoading.style.display = 'none';
+                cacheKey: cacheKey
+            });
+            
+            return response;
+            
+        } catch (error) {
+            console.error('获取问答答案失败:', error);
+            return '获取答案失败，请稍后重试';
+        }
     }
-}
 });
