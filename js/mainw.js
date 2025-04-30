@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 增强版缓存对象v2.1a
+    // 增强版缓存对象v2.1b
     const baziCache = {
         data: {},
         get: function(key) {
@@ -1714,7 +1714,51 @@ function showAnalysisPopup(type) {
             return Math.max(0, value + variation);
         });
     }
+// 1. 初始化评分条
+function initRatingBars() {
+    // 绑定点击事件
+    document.querySelectorAll('.rating-level').forEach(bar => {
+        bar.addEventListener('click', function() {
+            this.classList.toggle('active');
+        });
+    });
+}
 
+// 2. 动态设置评分条
+function setRatingBar(id, percent, levelText, detailsText) {
+    const bar = document.getElementById(id);
+    const scoreElement = document.getElementById(id.replace('level', 'score'));
+    const detailsElement = document.getElementById(id.replace('level', 'details'));
+
+    bar.style.setProperty('--progress', `${percent}%`);
+    scoreElement.textContent = levelText;
+    detailsElement.textContent = detailsText;
+}
+
+// 3. 页面加载时初始化
+document.addEventListener('DOMContentLoaded', function() {
+    initRatingBars();
+    // 可以设置默认值
+    setRatingBar('fate-level', 50, "中等命格", "50分 - 待测算");
+    setRatingBar('wealth-level', 50, "中等财富", "50分 - 待测算");
+});
+
+// 4. 在计算结果时调用（示例）
+document.getElementById('calculate-btn').addEventListener('click', function() {
+    // 模拟计算结果
+    const fateScore = Math.floor(Math.random() * 100);
+    const wealthScore = Math.floor(Math.random() * 100);
+    
+    setRatingBar('fate-level', fateScore, getLevelText(fateScore), `${fateScore}分 - 详细分析...`);
+    setRatingBar('wealth-level', wealthScore, getLevelText(wealthScore), `${wealthScore}分 - 详细分析...`);
+});
+
+// 辅助函数：根据分数返回等级文本
+function getLevelText(score) {
+    if (score >= 80) return "上等";
+    if (score >= 60) return "中等";
+    return "普通";
+}
     // 初始化运势图表
     function initFortuneChart(result) {
         const fortuneContent = document.getElementById('decade-fortune-content');
