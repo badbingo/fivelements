@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 增强版缓存对象v2.1s
+    // 增强版缓存对象v2.1a
     const baziCache = {
         data: {},
         get: function(key) {
@@ -454,38 +454,49 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // 显示分析弹窗
-    function showAnalysisPopup(type) {
-        const score = type === 'fate' ? fateScoreValue : wealthScoreValue;
-        const analysis = getDetailedAnalysis(type, score);
-        
-        const popup = document.createElement('div');
-        popup.className = 'analysis-popup';
-        popup.innerHTML = `
-            <div class="popup-content">
-                <div class="popup-header">
-                    <h3>${type === 'fate' ? '命格等级分析' : '财富等级分析'}</h3>
-                    <span class="close-btn">&times;</span>
-                </div>
-                <div class="popup-body">
-                    ${analysis}
-                </div>
+function showAnalysisPopup(type) {
+    const score = type === 'fate' ? fateScoreValue : wealthScoreValue;
+    const analysis = getDetailedAnalysis(type, score);
+    
+    const popup = document.createElement('div');
+    popup.className = 'analysis-popup';
+    popup.innerHTML = `
+        <div class="popup-content">
+            <div class="popup-header">
+                <h3>${type === 'fate' ? '命格等级分析' : '财富等级分析'}</h3>
+                <button class="close-btn">&times;</button>
             </div>
-        `;
-        
-        document.body.appendChild(popup);
-        
-        // 关闭按钮事件
-        popup.querySelector('.close-btn').addEventListener('click', function() {
+            <div class="popup-body">
+                ${analysis}
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(popup);
+    
+    // 添加active类以显示弹窗
+    setTimeout(() => {
+        popup.classList.add('active');
+    }, 10);
+    
+    // 关闭按钮事件
+    popup.querySelector('.close-btn').addEventListener('click', function() {
+        popup.classList.remove('active');
+        setTimeout(() => {
             document.body.removeChild(popup);
-        });
-        
-        // 点击外部关闭
-        popup.addEventListener('click', function(e) {
-            if (e.target === popup) {
+        }, 300);
+    });
+    
+    // 点击外部关闭
+    popup.addEventListener('click', function(e) {
+        if (e.target === popup) {
+            popup.classList.remove('active');
+            setTimeout(() => {
                 document.body.removeChild(popup);
-            }
-        });
-    }
+            }, 300);
+        }
+    });
+}
 
     // 获取详细分析
     function getDetailedAnalysis(type, score) {
