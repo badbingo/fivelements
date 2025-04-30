@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 增强版缓存对象v2.1b
+    // 增强版缓存对象v2.1v
     const baziCache = {
         data: {},
         get: function(key) {
@@ -947,107 +947,88 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 计算本命局五行能量（包含藏干和合化刑冲）
     function calculateNatalElements(baziInfo) {
-        const elements = {
-            '木': 0,
-            '火': 0,
-            '土': 0,
-            '金': 0,
-            '水': 0
-        };
+    const elements = {
+        '木': 0,
+        '火': 0,
+        '土': 0,
+        '金': 0,
+        '水': 0
+    };
 
-        // 天干五行映射
-        const stemElements = {
-            '甲': '木', '乙': '木',
-            '丙': '火', '丁': '火',
-            '戊': '土', '己': '土',
-            '庚': '金', '辛': '金',
-            '壬': '水', '癸': '水'
-        };
+    // 天干五行映射
+    const stemElements = {
+        '甲': '木', '乙': '木',
+        '丙': '火', '丁': '火',
+        '戊': '土', '己': '土',
+        '庚': '金', '辛': '金',
+        '壬': '水', '癸': '水'
+    };
 
-        // 地支五行映射
-        const branchElements = {
-            '寅': '木', '卯': '木',
-            '午': '火', '巳': '火',
-            '辰': '土', '戌': '土', '丑': '土', '未': '土',
-            '申': '金', '酉': '金',
-            '子': '水', '亥': '水'
-        };
+    // 地支五行映射
+    const branchElements = {
+        '寅': '木', '卯': '木',
+        '午': '火', '巳': '火',
+        '辰': '土', '戌': '土', '丑': '土', '未': '土',
+        '申': '金', '酉': '金',
+        '子': '水', '亥': '水'
+    };
 
-        // 藏干权重 (主气:1, 中气:0.7, 余气:0.5)
-        const hiddenStemWeights = {
-            '子': {'癸': 1},
-            '丑': {'己': 1, '癸': 0.7, '辛': 0.5},
-            '寅': {'甲': 1, '丙': 0.7, '戊': 0.5},
-            '卯': {'乙': 1},
-            '辰': {'戊': 1, '乙': 0.7, '癸': 0.5},
-            '巳': {'丙': 1, '庚': 0.7, '戊': 0.5},
-            '午': {'丁': 1, '己': 0.7},
-            '未': {'己': 1, '丁': 0.7, '乙': 0.5},
-            '申': {'庚': 1, '壬': 0.7, '戊': 0.5},
-            '酉': {'辛': 1},
-            '戌': {'戊': 1, '辛': 0.7, '丁': 0.5},
-            '亥': {'壬': 1, '甲': 0.7}
-        };
+    // 1. 计算天干五行
+    const stems = [
+        baziInfo.yearStem,
+        baziInfo.monthStem,
+        baziInfo.dayStem,
+        baziInfo.hourStem
+    ];
+    
+    stems.forEach(stem => {
+        elements[stemElements[stem]] += 1;
+    });
 
-        // 1. 计算天干五行
-        const stems = [
-            baziInfo.yearStem,
-            baziInfo.monthStem,
-            baziInfo.dayStem,
-            baziInfo.hourStem
-        ];
-        
-        stems.forEach(stem => {
-            elements[stemElements[stem]] += 1;
-        });
+    // 2. 计算地支五行
+    const branches = [
+        baziInfo.yearBranch,
+        baziInfo.monthBranch,
+        baziInfo.dayBranch,
+        baziInfo.hourBranch
+    ];
+    
+    branches.forEach(branch => {
+        elements[branchElements[branch]] += 1;
+    });
 
-        // 2. 计算地支五行
-        const branches = [
-            baziInfo.yearBranch,
-            baziInfo.monthBranch,
-            baziInfo.dayBranch,
-            baziInfo.hourBranch
-        ];
-        
-        branches.forEach(branch => {
-            elements[branchElements[branch]] += 1;
-        });
+    // 3. 计算藏干五行
+    const hiddenStemWeights = {
+        '子': {'癸': 1},
+        '丑': {'己': 1, '癸': 0.7, '辛': 0.5},
+        '寅': {'甲': 1, '丙': 0.7, '戊': 0.5},
+        '卯': {'乙': 1},
+        '辰': {'戊': 1, '乙': 0.7, '癸': 0.5},
+        '巳': {'丙': 1, '庚': 0.7, '戊': 0.5},
+        '午': {'丁': 1, '己': 0.7},
+        '未': {'己': 1, '丁': 0.7, '乙': 0.5},
+        '申': {'庚': 1, '壬': 0.7, '戊': 0.5},
+        '酉': {'辛': 1},
+        '戌': {'戊': 1, '辛': 0.7, '丁': 0.5},
+        '亥': {'壬': 1, '甲': 0.7}
+    };
 
-        // 3. 计算藏干五行
-        branches.forEach(branch => {
-            const hiddenStems = hiddenStemWeights[branch];
-            for (const [stem, weight] of Object.entries(hiddenStems)) {
-                elements[stemElements[stem]] += weight;
-            }
-        });
+    branches.forEach(branch => {
+        const hiddenStems = hiddenStemWeights[branch];
+        for (const [stem, weight] of Object.entries(hiddenStems)) {
+            elements[stemElements[stem]] += weight;
+        }
+    });
 
-        // 4. 考虑合化关系
-        const combinedEffects = checkCombinationEffects(baziInfo);
-        combinedEffects.forEach(effect => {
-            elements[effect.from] -= effect.amount;
-            elements[effect.to] += effect.amount;
-        });
-
-        // 5. 考虑刑冲关系
-        const clashEffects = checkClashEffects(baziInfo);
-        clashEffects.forEach(effect => {
-            elements[effect.element] -= effect.amount;
-        });
-
-        // 确保最小值为0
-        Object.keys(elements).forEach(key => {
-            elements[key] = Math.max(0, elements[key]);
-        });
-
-        // 转换为数组 [木, 火, 土, 金, 水]
-        return [
-            Math.round(elements['木'] * 10) / 10,
-            Math.round(elements['火'] * 10) / 10,
-            Math.round(elements['土'] * 10) / 10,
-            Math.round(elements['金'] * 10) / 10,
-            Math.round(elements['水'] * 10) / 10
-        ];
-    }
+    // 转换为数组 [木, 火, 土, 金, 水]
+    return [
+        Math.round(elements['木'] * 10) / 10,
+        Math.round(elements['火'] * 10) / 10,
+        Math.round(elements['土'] * 10) / 10,
+        Math.round(elements['金'] * 10) / 10,
+        Math.round(elements['水'] * 10) / 10
+    ];
+}
 
     // 检查合化关系
     function checkCombinationEffects(baziInfo) {
@@ -2060,63 +2041,105 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // 本地计算八字
-    function calculateBaziLocally(birthData) {
-        const dateParts = birthData.date.split('-');
-        const year = parseInt(dateParts[0]);
-        const month = parseInt(dateParts[1]);
-        const day = parseInt(dateParts[2]);
-        const timeParts = birthData.time.split(':');
-        const hour = parseInt(timeParts[0]);
-        const minute = parseInt(timeParts[1] || 0);
-        
-        const solar = Solar.fromYmdHms(year, month, day, hour, minute, 0);
-        const lunar = solar.getLunar();
-        const bazi = lunar.getEightChar();
-        
-        const yearGan = bazi.getYearGan();
-        const yearZhi = bazi.getYearZhi();
-        const monthGan = bazi.getMonthGan();
-        const monthZhi = bazi.getMonthZhi();
-        const dayGan = bazi.getDayGan();
-        const dayZhi = bazi.getDayZhi();
-        const hourGan = bazi.getTimeGan();
-        const hourZhi = bazi.getTimeZhi();
-        
-        const yearHiddenStems = getHiddenStems(yearZhi);
-        const monthHiddenStems = getHiddenStems(monthZhi);
-        const dayHiddenStems = getHiddenStems(dayZhi);
-        const hourHiddenStems = getHiddenStems(hourZhi);
-        
-        const elements = calculateElementEnergy({
-            year: yearGan + yearZhi,
-            month: monthGan + monthZhi,
-            day: dayGan + dayZhi,
-            hour: hourGan + hourZhi
-        });
-        
-        const personality = getPersonalityTraits(dayGan);
-        const decadeFortune = calculateDecadeFortune(lunar, birthData.gender);
-        const gamblingFortune = calculateGamblingFortune(birthData, lunar);
-        
-        return {
-            yearStem: yearGan,
-            yearBranch: yearZhi,
-            monthStem: monthGan,
-            monthBranch: monthZhi,
-            dayStem: dayGan,
-            dayBranch: dayZhi,
-            hourStem: hourGan,
-            hourBranch: hourZhi,
-            yearHiddenStems: yearHiddenStems,
-            monthHiddenStems: monthHiddenStems,
-            dayHiddenStems: dayHiddenStems,
-            hourHiddenStems: hourHiddenStems,
-            elements,
-            personality,
-            decadeFortune,
-            gamblingFortune
-        };
-    }
+    // 修改 calculateBaziLocally 函数，替换 calculateElementEnergy 为 calculateNatalElements
+function calculateBaziLocally(birthData) {
+    const dateParts = birthData.date.split('-');
+    const year = parseInt(dateParts[0]);
+    const month = parseInt(dateParts[1]);
+    const day = parseInt(dateParts[2]);
+    const timeParts = birthData.time.split(':');
+    const hour = parseInt(timeParts[0]);
+    const minute = parseInt(timeParts[1] || 0);
+    
+    const solar = Solar.fromYmdHms(year, month, day, hour, minute, 0);
+    const lunar = solar.getLunar();
+    const bazi = lunar.getEightChar();
+    
+    const yearGan = bazi.getYearGan();
+    const yearZhi = bazi.getYearZhi();
+    const monthGan = bazi.getMonthGan();
+    const monthZhi = bazi.getMonthZhi();
+    const dayGan = bazi.getDayGan();
+    const dayZhi = bazi.getDayZhi();
+    const hourGan = bazi.getTimeGan();
+    const hourZhi = bazi.getTimeZhi();
+    
+    const yearHiddenStems = getHiddenStems(yearZhi);
+    const monthHiddenStems = getHiddenStems(monthZhi);
+    const dayHiddenStems = getHiddenStems(dayZhi);
+    const hourHiddenStems = getHiddenStems(hourZhi);
+    
+    // 使用新的 calculateNatalElements 函数替换 calculateElementEnergy
+    const elements = calculateNatalElements({
+        yearStem: yearGan,
+        yearBranch: yearZhi,
+        monthStem: monthGan,
+        monthBranch: monthZhi,
+        dayStem: dayGan,
+        dayBranch: dayZhi,
+        hourStem: hourGan,
+        hourBranch: hourZhi
+    });
+    
+    const personality = getPersonalityTraits(dayGan);
+    const decadeFortune = calculateDecadeFortune(lunar, birthData.gender);
+    const gamblingFortune = calculateGamblingFortune(birthData, lunar);
+    
+    return {
+        yearStem: yearGan,
+        yearBranch: yearZhi,
+        monthStem: monthGan,
+        monthBranch: monthZhi,
+        dayStem: dayGan,
+        dayBranch: dayZhi,
+        hourStem: hourGan,
+        hourBranch: hourZhi,
+        yearHiddenStems: yearHiddenStems,
+        monthHiddenStems: monthHiddenStems,
+        dayHiddenStems: dayHiddenStems,
+        hourHiddenStems: hourHiddenStems,
+        elements,
+        personality,
+        decadeFortune,
+        gamblingFortune
+    };
+}
+
+// 确保 getHiddenStems 函数存在
+function getHiddenStems(branch) {
+    const hiddenStemsMap = {
+        '子': '癸',
+        '丑': '己癸辛',
+        '寅': '甲丙戊',
+        '卯': '乙',
+        '辰': '戊乙癸',
+        '巳': '丙庚戊',
+        '午': '丁己',
+        '未': '己丁乙',
+        '申': '庚壬戊',
+        '酉': '辛',
+        '戌': '戊辛丁',
+        '亥': '壬甲'
+    };
+    return hiddenStemsMap[branch] || '';
+}
+
+// 确保 getPersonalityTraits 函数存在
+function getPersonalityTraits(dayStem) {
+    const traits = {
+        '甲': '似参天大树，正直向上，有领导力但略显固执',
+        '乙': '如藤蔓般柔韧，适应力强但有时优柔寡断',
+        '丙': '如太阳般热情，开朗大方但易冲动急躁',
+        '丁': '似烛火般温和，细心周到但易多愁善感',
+        '戊': '如大地般稳重，踏实可靠但略显保守',
+        '己': '似田园之土，包容性强但易随波逐流',
+        '庚': '如金属般刚强，果断决绝但易锋芒太露',
+        '辛': '似珠宝般精致，追求完美但易挑剔计较',
+        '壬': '如江河奔流，聪明机智但易三心二意',
+        '癸': '似雨露滋润，细腻敏感但易多疑忧郁'
+    };
+    return traits[dayStem] || '似静水流深，临危反生智，藏锋守拙却暗含凌云之志';
+}
 
     // 计算十年大运
     function calculateDecadeFortune(lunar, gender) {
