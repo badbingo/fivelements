@@ -11,6 +11,74 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.css">
+    <style>
+        /* 模态框样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.6);
+        }
+
+        .modal-content {
+            background-color: #1e1e2e;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #444;
+            width: 80%;
+            max-width: 800px;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            color: #e0e0e0;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #ff6b6b;
+        }
+
+        .modal-body {
+            padding: 20px 0;
+            line-height: 1.6;
+        }
+
+        /* 评分容器添加指针样式 */
+        .rating-group {
+            cursor: pointer;
+            transition: all 0.2s ease;
+            padding: 10px;
+            border-radius: 6px;
+        }
+
+        .rating-group:hover {
+            transform: translateY(-2px);
+            background-color: rgba(255,255,255,0.05);
+        }
+        
+        /* 其他原有样式保持不变 */
+        .rating-level.excellent { color: #4caf50; }
+        .rating-level.good { color: #8bc34a; }
+        .rating-level.average { color: #ffc107; }
+        .rating-level.struggling { color: #ff9800; }
+        .rating-level.needs-improvement { color: #f44336; }
+        .rating-level.ultra-rich { color: #9c27b0; }
+        .rating-level.very-rich { color: #673ab7; }
+        .rating-level.moderately-rich { color: #3f51b5; }
+        .rating-level.somewhat-rich { color: #2196f3; }
+        .rating-level.wealth-average { color: #00bcd4; }
+    </style>
     <link rel="stylesheet" href="css/stylew.css">
 </head>
 <body>
@@ -88,13 +156,13 @@
                         </h3>
                         <div class="info-content">
                             <div class="rating-container">
-                                <div class="rating-group">
+                                <div class="rating-group" id="fate-analysis-btn">
                                     <div class="rating-title"><i class="fas fa-star"></i> 命格等级</div>
                                     <div class="rating-level" id="fate-level"></div>
                                     <div class="rating-score" id="fate-score"></div>
                                     <div class="score-details" id="fate-details"></div>
                                 </div>
-                                <div class="rating-group">
+                                <div class="rating-group" id="wealth-analysis-btn">
                                     <div class="rating-title"><i class="fas fa-coins"></i> 财富等级</div>
                                     <div class="rating-level" id="wealth-level"></div>
                                     <div class="rating-score" id="wealth-score"></div>
@@ -405,6 +473,15 @@
                 </div>
             </section>
         </main>
+        
+        <!-- 添加分析模态框 -->
+        <div id="analysis-modal" class="modal">
+            <div class="modal-content">
+                <span id="close-modal" class="close">&times;</span>
+                <h2 id="analysis-title"></h2>
+                <div id="analysis-content" class="modal-body"></div>
+            </div>
+        </div>
         
         <footer class="minimal-footer">
             © 2025 赛博命理系统 版权所有 | 量子计算引擎 v3.2.6 | 数据来自《渊海子平》《三命通会》等古籍
