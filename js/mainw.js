@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 增强版缓存对象v2.1v
+    // 增强版缓存对象v2.1c
     const baziCache = {
         data: {},
         get: function(key) {
@@ -326,6 +326,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const baziQaSubmit = document.getElementById('bazi-qa-submit');
     const baziQaResponse = document.getElementById('bazi-qa-response');
     const baziQaLoading = document.getElementById('bazi-qa-loading');
+    const fateAnalysisBtn = document.getElementById('fate-analysis-btn');
+    const wealthAnalysisBtn = document.getElementById('wealth-analysis-btn');
+    const analysisModal = document.getElementById('analysis-modal');
+    const analysisTitle = document.getElementById('analysis-title');
+    const analysisContent = document.getElementById('analysis-content');
+    const closeModal = document.getElementById('close-modal');
 
     // 全局变量
     let elementChart;
@@ -442,6 +448,143 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // 计算按钮
         calculateBtn.addEventListener('click', calculateBazi);
+
+        // 命格等级分析按钮
+        fateAnalysisBtn.addEventListener('click', function() {
+            showAnalysisModal('命格等级分析', getFateAnalysisContent());
+        });
+
+        // 财富等级分析按钮
+        wealthAnalysisBtn.addEventListener('click', function() {
+            showAnalysisModal('财富等级分析', getWealthAnalysisContent());
+        });
+
+        // 关闭模态框
+        closeModal.addEventListener('click', function() {
+            analysisModal.style.display = 'none';
+        });
+
+        // 点击模态框外部关闭
+        window.addEventListener('click', function(event) {
+            if (event.target === analysisModal) {
+                analysisModal.style.display = 'none';
+            }
+        });
+    }
+
+    // 显示分析模态框
+    function showAnalysisModal(title, content) {
+        analysisTitle.textContent = title;
+        analysisContent.innerHTML = marked.parse(content);
+        analysisModal.style.display = 'block';
+    }
+
+    // 获取命格等级分析内容
+    function getFateAnalysisContent() {
+        const score = calculateFateScore(currentPillars);
+        const levelInfo = getFateLevel(score);
+        
+        return `
+## 1. 等级定位
+${levelInfo.name}
+
+## 2. 命格特征
+${getFateCharacteristics(score)}
+
+## 3. 优势分析
+${getFateStrengths(score)}
+
+## 4. 发展建议
+${getFateSuggestions(score)}
+
+## 5. 评分细节参考
+- 日主得令: ${fateScoreDetails.seasonScore}/30
+- 五行平衡: ${fateScoreDetails.balanceScore}/25
+- 特殊格局: ${fateScoreDetails.patternScore}/20
+- 十神配置: ${fateScoreDetails.godsScore}/15
+- 天干地支组合: ${fateScoreDetails.combinationScore}/10
+`;
+    }
+
+    // 获取命格特征
+    function getFateCharacteristics(score) {
+        if (score >= 85) return "天赐鸿运命格，一生多贵人相助，机遇不断，事业顺遂，健康长寿，家庭和睦。";
+        if (score >= 70) return "福星高照命格，事业有成，财运亨通，虽有波折但终能逢凶化吉。";
+        if (score >= 50) return "安常守分命格，平稳安定，需靠自身努力获得成就，无大起大落。";
+        if (score >= 30) return "勤能补拙命格，需付出更多努力才能获得成功，但终有回报。";
+        return "逆水行舟命格，人生多波折，需特别努力并注意规避风险。";
+    }
+
+    // 获取命格优势
+    function getFateStrengths(score) {
+        if (score >= 85) return "天生福气深厚，贵人运强，机遇多，抗风险能力强，事业容易成功。";
+        if (score >= 70) return "聪明才智出众，适应能力强，人际关系好，事业发展顺利。";
+        if (score >= 50) return "性格稳重，脚踏实地，能通过努力获得稳定发展。";
+        if (score >= 30) return "意志坚定，吃苦耐劳，逆境中成长，终能有所成就。";
+        return "磨练意志，经历丰富，若能克服困难，可获独特人生体验。";
+    }
+
+    // 获取命格发展建议
+    function getFateSuggestions(score) {
+        if (score >= 85) return "善用优势资源，避免骄傲自满，多帮助他人以积累福报。";
+        if (score >= 70) return "把握机遇，稳扎稳打，可尝试多元化发展。";
+        if (score >= 50) return "专注专业技能提升，建立稳定基础，避免冒险。";
+        if (score >= 30) return "制定明确目标，坚持不懈，寻求贵人指点。";
+        return "修身养性，学习专业技能，谨慎决策，避免高风险行为。";
+    }
+
+    // 获取财富等级分析内容
+    function getWealthAnalysisContent() {
+        const score = calculateWealthScore(currentPillars);
+        const levelInfo = getWealthLevel(score);
+        
+        return `
+## 1. 等级定位
+${levelInfo.name}
+
+## 2. 财富特征
+${getWealthCharacteristics(score)}
+
+## 3. 优势分析
+${getWealthStrengths(score)}
+
+## 4. 发展建议
+${getWealthSuggestions(score)}
+
+## 5. 评分细节参考
+- 财星数量质量: ${wealthScoreDetails.wealthStarScore}/30
+- 财星得地: ${wealthScoreDetails.wealthPositionScore}/25
+- 财星受克: ${wealthScoreDetails.wealthDamageScore}/20
+- 食伤生财: ${wealthScoreDetails.wealthSupportScore}/15
+- 大运走势: ${wealthScoreDetails.fortuneScore}/10
+`;
+    }
+
+    // 获取财富特征
+    function getWealthCharacteristics(score) {
+        if (score >= 90) return "天生财运亨通，正偏财俱佳，投资眼光独到，财富积累迅速。";
+        if (score >= 80) return "财运旺盛，正财稳定，偏财机会多，能通过努力获得丰厚回报。";
+        if (score >= 60) return "财运平稳，正财为主，需合理规划才能积累财富。";
+        if (score >= 40) return "财运起伏，需靠专业技能获取财富，投资需谨慎。";
+        return "财运较弱，需特别努力才能获得财富，宜稳扎稳打。";
+    }
+
+    // 获取财富优势
+    function getWealthStrengths(score) {
+        if (score >= 90) return "财源广进，投资眼光精准，能把握大机遇，财富增长快。";
+        if (score >= 80) return "赚钱能力强，理财有道，能通过多种渠道积累财富。";
+        if (score >= 60) return "稳定收入来源，能通过专业技能获得合理报酬。";
+        if (score >= 40) return "节俭务实，能通过长期积累获得财富增长。";
+        return "吃苦耐劳，能在逆境中找到生存之道。";
+    }
+
+    // 获取财富建议
+    function getWealthSuggestions(score) {
+        if (score >= 90) return "多元化投资，善用财富回馈社会，避免过度投机。";
+        if (score >= 80) return "把握投资机会，建立稳健理财规划，避免冲动消费。";
+        if (score >= 60) return "专注主业发展，适当进行保守投资，建立应急基金。";
+        if (score >= 40) return "提升专业技能，控制开支，避免高风险投资。";
+        return "专注稳定收入，学习理财知识，避免负债，量入为出。";
     }
 
     // 保存个人资料
