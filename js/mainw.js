@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 增强版缓存对象v2.1a
+    // 增强版缓存对象v2.1b
     const baziCache = {
         data: {},
         get: function(key) {
@@ -2334,34 +2334,40 @@ function initElementChart(baziInfo) {
 用户问题：${question}`;
         
         try {
-            const response = await apiRequestQueue.addRequest({
-                url: apiUrl,
-                options: {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${apiKey}`
-                    },
-                    body: JSON.stringify({
-                        model: "deepseek-chat",
-                        messages: [{
-                            role: "system",
-                            content: "你是一位资深的八字命理大师，精通子平八字、紫微斗数等传统命理学。请严格按照八字专业问答规范回答用户问题。"
-                        }, {
-                            role: "user",
-                            content: prompt
-                        }],
-                        temperature: 0
-                    })
-                },
-                cacheKey: cacheKey
-            });
-            
-            return response;
-            
-        } catch (error) {
-            console.error('获取问答答案失败:', error);
-            return '获取答案失败，请稍后重试';
+        // 显示加载状态
+        const loadingContainer = document.getElementById(`${section}-content`).nextElementSibling;
+        if (loadingContainer && loadingContainer.classList.contains('quantum-loading-container')) {
+            loadingContainer.style.display = 'block';
         }
+        
+        const response = await apiRequestQueue.addRequest({
+            url: apiUrl,
+            options: {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`
+                },
+                body: JSON.stringify({
+                    model: "deepseek-chat",
+                    messages: [{ role: "user", content: prompt }],
+                    temperature: 0,
+                    seed: 12345
+                })
+            },
+            section: section,
+            cacheKey: cacheKey
+        });
+        
+        // 隐藏加载状态
+        if (loadingContainer) {
+            loadingContainer.style.display = 'none';
+        }
+        
+        return response;
+        
+    } catch (error) {
+        console.error(`获取${section}分析失败:`, error);
+        throw error;
     }
-});
+}
