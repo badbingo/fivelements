@@ -581,48 +581,58 @@ async function loadButtonClickHandler(e) {
     
     const originalBtnHtml = button.innerHTML;
     button.disabled = true;
-    // 修改为更明显的加载动画
     button.innerHTML = `<span class="loading-animation"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span> 量子分析中...<i class="fas fa-chevron-down toggle-icon"></i>`;
     container.classList.add('active');
     
-    const progressContainer = document.createElement('div');
-    progressContainer.className = 'progress-container';
-    progressContainer.innerHTML = '<div class="progress-bar"><div class="progress-animation"></div></div>';
+    // 创建量子动画容器
+    const quantumContainer = document.createElement('div');
+    quantumContainer.className = 'quantum-animation-container';
+    quantumContainer.innerHTML = `
+        <div class="quantum-particle"></div>
+        <div class="quantum-particle"></div>
+        <div class="quantum-particle"></div>
+        <div class="quantum-particle"></div>
+        <div class="quantum-particle"></div>
+        <div class="quantum-analysis-result">
+            <div class="quantum-result-content"></div>
+        </div>
+    `;
     contentElement.innerHTML = '';
-    contentElement.appendChild(progressContainer);
+    contentElement.appendChild(quantumContainer);
     
-    const progressBar = progressContainer.querySelector('.progress-animation');
-    let progress = 0;
-    const progressInterval = setInterval(function() {
-        progress += Math.random() * 10;
-        if (progress >= 100) progress = 100;
-        progressBar.style.width = `${progress}%`;
-    }, 300);
+    // 显示加载状态
+    const resultContent = quantumContainer.querySelector('.quantum-result-content');
+    resultContent.textContent = '量子分析中...';
+    
+    try {
+        // 模拟3秒量子计算过程
+        await new Promise(resolve => setTimeout(resolve, 3000));
         
-        try {
-            const result = await getBaziAnalysis(section, birthData);
-            clearInterval(progressInterval);
-            displaySectionContent(section, result, contentElement);
-            
-            // 恢复按钮状态，添加完成标记
-            const originalText = button.getAttribute('data-original-text');
-            button.innerHTML = `<span>${originalText}</span><i class="fas fa-check"></i><i class="fas fa-chevron-down toggle-icon"></i>`;
-            button.disabled = false;
-            
-            contentElement.classList.add('active');
-            loadedSections[section] = true;
-            
-            if (section === 'decade-fortune') {
-                initFortuneChart(result);
-            }
-        } catch (error) {
-            console.error(`加载${section}失败:`, error);
-            clearInterval(progressInterval);
-            contentElement.innerHTML = '<p style="color:var(--danger-color)">加载失败，请重试</p>';
-            button.disabled = false;
-            button.innerHTML = `<span>${button.getAttribute('data-original-text')}</span><i class="fas fa-chevron-down toggle-icon"></i>`;
+        // 获取分析结果
+        const result = await getBaziAnalysis(section, birthData);
+        
+        // 显示结果
+        resultContent.innerHTML = generateAnalysisResult(section, result);
+        quantumContainer.querySelector('.quantum-analysis-result').style.opacity = '1';
+        
+        // 恢复按钮状态，添加完成标记
+        const originalText = button.getAttribute('data-original-text');
+        button.innerHTML = `<span>${originalText}</span><i class="fas fa-check"></i><i class="fas fa-chevron-down toggle-icon"></i>`;
+        button.disabled = false;
+        
+        contentElement.classList.add('active');
+        loadedSections[section] = true;
+        
+        if (section === 'decade-fortune') {
+            initFortuneChart(result);
         }
+    } catch (error) {
+        console.error(`加载${section}失败:`, error);
+        contentElement.innerHTML = '<p style="color:var(--danger-color)">加载失败，请重试</p>';
+        button.disabled = false;
+        button.innerHTML = `<span>${button.getAttribute('data-original-text')}</span><i class="fas fa-chevron-down toggle-icon"></i>`;
     }
+}
 
     // 显示部分内容
     function displaySectionContent(section, result, contentElement) {
