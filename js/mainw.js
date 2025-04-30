@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 增强版缓存对象v2.1v
+    // 增强版缓存对象v2.1a
     const baziCache = {
         data: {},
         get: function(key) {
@@ -346,111 +346,122 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 事件监听器初始化
     function initEventListeners() {
-        // 时间选择
-        timePeriodOptions.forEach(function(option) {
-            option.addEventListener('click', function() {
-                timePeriodOptions.forEach(function(opt) {
-                    opt.classList.remove('selected');
-                });
-                this.classList.add('selected');
-                const hour = this.getAttribute('data-hour');
-                const minute = this.getAttribute('data-minute');
-                birthTimeInput.value = `${hour.padStart(2, '0')}:${minute.padStart(2, '0')}`;
-            });
-        });
-
-        // 语言切换
-        languageBtns.forEach(function(btn) {
-            btn.addEventListener('click', function() {
-                languageBtns.forEach(function(b) {
-                    b.classList.remove('active');
-                });
-                this.classList.add('active');
-                const lang = this.getAttribute('data-lang');
-                console.log('切换到语言:', lang);
-            });
-        });
-
-        // Markdown解析设置
-        marked.setOptions({
-            breaks: true,
-            gfm: true,
-            tables: true,
-            highlight: function(code, lang) {
-                return code;
-            }
-        });
-
-        // 八字问答提交
-        baziQaSubmit.addEventListener('click', async function() {
-            const question = baziQuestionInput.value.trim();
-            if (!question) {
-                alert('请输入您的问题');
-                return;
-            }
-            
-            baziQaSubmit.disabled = true;
-            baziQaResponse.style.display = 'none';
-            baziQaLoading.style.display = 'flex';
-            
-            try {
-                const response = await getBaziAnswer(question);
-                baziQaResponse.innerHTML = marked.parse(response);
-                baziQaResponse.style.display = 'block';
-            } catch (error) {
-                console.error('获取回答失败:', error);
-                baziQaResponse.innerHTML = '<p style="color:var(--danger-color)">获取回答失败，请稍后重试</p>';
-                baziQaResponse.style.display = 'block';
-            } finally {
-                baziQaSubmit.disabled = false;
-                baziQaLoading.style.display = 'none';
-            }
-        });
-
-        // 重新计算
-        recalculateBtn.addEventListener('click', function() {
-            document.getElementById('name').value = '';
-            document.getElementById('birth-date').value = '';
-            document.getElementById('birth-time').value = '';
-            document.getElementById('gender').value = '';
+    // 时间选择
+    timePeriodOptions.forEach(function(option) {
+        option.addEventListener('click', function() {
             timePeriodOptions.forEach(function(opt) {
                 opt.classList.remove('selected');
             });
-            resultSection.style.display = 'none';
-            inputSection.style.display = 'block';
-            resetAllContent();
-            if (elementChart) {
-                elementChart.destroy();
-            }
-            window.scrollTo(0, 0);
+            this.classList.add('selected');
+            const hour = this.getAttribute('data-hour');
+            const minute = this.getAttribute('data-minute');
+            birthTimeInput.value = `${hour.padStart(2, '0')}:${minute.padStart(2, '0')}`;
         });
+    });
 
-        // 菜单标签切换
-        document.querySelectorAll('.menu-tab').forEach(function(tab) {
-            tab.addEventListener('click', function() {
-                document.querySelectorAll('.menu-tab').forEach(function(t) {
-                    t.classList.remove('active');
-                });
-                document.querySelectorAll('.tab-content').forEach(function(c) {
-                    c.classList.remove('active');
-                });
-                this.classList.add('active');
-                const tabId = this.getAttribute('data-tab') + '-tab';
-                document.getElementById(tabId).classList.add('active');
+    // 语言切换
+    languageBtns.forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            languageBtns.forEach(function(b) {
+                b.classList.remove('active');
             });
+            this.classList.add('active');
+            const lang = this.getAttribute('data-lang');
+            console.log('切换到语言:', lang);
         });
+    });
 
-        // 计算按钮
-        calculateBtn.addEventListener('click', calculateBazi);
+    // Markdown解析设置
+    marked.setOptions({
+        breaks: true,
+        gfm: true,
+        tables: true,
+        highlight: function(code, lang) {
+            return code;
+        }
+    });
 
-        // 命格等级和财富等级点击事件
-        document.getElementById('fate-level-container').addEventListener('click', function() {
+    // 八字问答提交
+    baziQaSubmit.addEventListener('click', async function() {
+        const question = baziQuestionInput.value.trim();
+        if (!question) {
+            alert('请输入您的问题');
+            return;
+        }
+        
+        baziQaSubmit.disabled = true;
+        baziQaResponse.style.display = 'none';
+        baziQaLoading.style.display = 'flex';
+        
+        try {
+            const response = await getBaziAnswer(question);
+            baziQaResponse.innerHTML = marked.parse(response);
+            baziQaResponse.style.display = 'block';
+        } catch (error) {
+            console.error('获取回答失败:', error);
+            baziQaResponse.innerHTML = '<p style="color:var(--danger-color)">获取回答失败，请稍后重试</p>';
+            baziQaResponse.style.display = 'block';
+        } finally {
+            baziQaSubmit.disabled = false;
+            baziQaLoading.style.display = 'none';
+        }
+    });
+
+    // 重新计算
+    recalculateBtn.addEventListener('click', function() {
+        document.getElementById('name').value = '';
+        document.getElementById('birth-date').value = '';
+        document.getElementById('birth-time').value = '';
+        document.getElementById('gender').value = '';
+        timePeriodOptions.forEach(function(opt) {
+            opt.classList.remove('selected');
+        });
+        resultSection.style.display = 'none';
+        inputSection.style.display = 'block';
+        resetAllContent();
+        if (elementChart) {
+            elementChart.destroy();
+        }
+        window.scrollTo(0, 0);
+    });
+
+    // 菜单标签切换
+    document.querySelectorAll('.menu-tab').forEach(function(tab) {
+        tab.addEventListener('click', function() {
+            document.querySelectorAll('.menu-tab').forEach(function(t) {
+                t.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-content').forEach(function(c) {
+                c.classList.remove('active');
+            });
+            this.classList.add('active');
+            const tabId = this.getAttribute('data-tab') + '-tab';
+            document.getElementById(tabId).classList.add('active');
+        });
+    });
+
+    // 计算按钮
+    calculateBtn.addEventListener('click', calculateBazi);
+
+    // 命格等级和财富等级点击事件 - 新增部分
+    // 方式1：直接绑定到容器元素（推荐）
+    const fateLevelContainer = document.getElementById('fate-level-container');
+    const wealthLevelContainer = document.getElementById('wealth-level-container');
+    
+    if (fateLevelContainer) {
+        fateLevelContainer.addEventListener('click', function() {
             showAnalysisPopup('fate');
         });
-
-        document.getElementById('wealth-level-container').addEventListener('click', function() {
+    } else {
+        console.warn('未找到命格等级容器元素');
+    }
+    
+    if (wealthLevelContainer) {
+        wealthLevelContainer.addEventListener('click', function() {
             showAnalysisPopup('wealth');
         });
+    } else {
+        console.warn('未找到财富等级容器元素');
     }
 
     // 显示分析弹窗
