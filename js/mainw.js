@@ -581,7 +581,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         const originalBtnHtml = button.innerHTML;
         button.disabled = true;
-        button.innerHTML = `<span style="display: flex; align-items: center; justify-content: center; width: 100%;"><span class="loading"></span>量子分析中...</span><i class="fas fa-chevron-down toggle-icon"></i>`;
+        button.innerHTML = `<span><span class="loading"></span> 量子分析中...</span><i class="fas fa-chevron-down toggle-icon"></i>`;
         container.classList.add('active');
         
         const progressContainer = document.createElement('div');
@@ -809,380 +809,146 @@ document.addEventListener('DOMContentLoaded', function() {
             personality: personalityMatch ? personalityMatch[1] : ''
         };
     }
- // 初始化元素图表 - 增强版五行能量计算
-    function initElementChart(baziInfo) {
-        // 计算本命局五行能量（包含藏干和合化刑冲）
-        const natalElements = calculateNatalElements(baziInfo);
-        
-        // 计算大运五行能量（考虑大运对原局的影响）
-        const luckElements = calculateLuckElements(baziInfo, natalElements);
-        
-        // 计算流年五行能量（考虑流年对原局和大运的影响）
-        const yearElements = calculateYearElements(baziInfo, natalElements, luckElements);
+// 初始化元素图表 - 按照五行颜色显示
+function initElementChart(baziInfo) {
+    // 计算大运和流年的五行能量
+    const luckElements = calculateLuckElements(baziInfo);
+    const yearElements = calculateYearElements(baziInfo);
 
-        // 五行对应的颜色
-        const elementColors = [
-            'rgba(0, 200, 83, 0.7)',   // 木 - 绿色
-            'rgba(244, 67, 54, 0.7)',  // 火 - 红色
-            'rgba(255, 152, 0, 0.7)',  // 土 - 黄色
-            'rgba(158, 158, 158, 0.7)', // 金 - 灰色
-            'rgba(33, 150, 243, 0.7)'   // 水 - 蓝色
-        ];
+    // 五行对应的颜色
+    const elementColors = [
+        'rgba(0, 200, 83, 0.7)',   // 木 - 绿色
+        'rgba(244, 67, 54, 0.7)',  // 火 - 红色
+        'rgba(255, 152, 0, 0.7)',  // 土 - 黄色
+        'rgba(158, 158, 158, 0.7)', // 金 - 灰色
+        'rgba(33, 150, 243, 0.7)'   // 水 - 蓝色
+    ];
 
-        const elementData = {
-            labels: ['木', '火', '土', '金', '水'],
-            datasets: [
-                {
-                    label: '本命局',
-                    data: natalElements,
-                    backgroundColor: elementColors,
-                    borderColor: elementColors.map(color => color.replace('0.7', '1')),
-                    borderWidth: 1
-                },
-                {
-                    label: '大运',
-                    data: luckElements,
-                    backgroundColor: elementColors,
-                    borderColor: elementColors.map(color => color.replace('0.7', '1')),
-                    borderWidth: 1
-                },
-                {
-                    label: '流年',
-                    data: yearElements,
-                    backgroundColor: elementColors,
-                    borderColor: elementColors.map(color => color.replace('0.7', '1')),
-                    borderWidth: 1
-                }
-            ]
-        };
+    const elementData = {
+        labels: ['木', '火', '土', '金', '水'],
+        datasets: [
+            {
+                label: '本命局',
+                data: baziInfo.elements,
+                backgroundColor: elementColors,
+                borderColor: elementColors.map(color => color.replace('0.7', '1')),
+                borderWidth: 1
+            },
+            {
+                label: '大运',
+                data: luckElements,
+                backgroundColor: elementColors,
+                borderColor: elementColors.map(color => color.replace('0.7', '1')),
+                borderWidth: 1
+            },
+            {
+                label: '流年',
+                data: yearElements,
+                backgroundColor: elementColors,
+                borderColor: elementColors.map(color => color.replace('0.7', '1')),
+                borderWidth: 1
+            }
+        ]
+    };
 
-        if (elementChart) {
-            elementChart.destroy();
-        }
+    if (elementChart) {
+        elementChart.destroy();
+    }
 
-        elementChart = new Chart(elementChartCtx, {
-            type: 'bar',
-            data: elementData,
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        max: Math.max(...natalElements, ...luckElements, ...yearElements) + 2,
-                        grid: {
-                            color: 'rgba(0, 0, 0, 0.05)'
-                        }
-                    },
-                    x: {
-                        grid: {
-                            display: false
-                        }
+    // Ensure the chart container has proper styling
+    const chartContainer = document.getElementById('element-chart').parentNode;
+    chartContainer.style.position = 'relative';
+    chartContainer.style.height = '400px';
+
+    elementChart = new Chart(elementChartCtx, {
+        type: 'bar',
+        data: elementData,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)'
                     }
                 },
-                plugins: {
-                    legend: {
-                        display: true,
-                        position: 'top',
-                        labels: {
-                            usePointStyle: true,
-                            padding: 20
-                        }
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                const label = context.dataset.label || '';
-                                return `${label}: ${context.raw}`;
-                            },
-                            afterLabel: function(context) {
-                                const element = context.label;
-                                const value = context.raw;
-                                let analysis = '';
-                                
-                                // 根据五行和数值提供分析
-                                switch(element) {
-                                    case '木':
-                                        analysis = value > 3 ? '木气过旺' : (value < 1 ? '木气不足' : '木气平衡');
-                                        break;
-                                    case '火':
-                                        analysis = value > 3 ? '火气过旺' : (value < 1 ? '火气不足' : '火气平衡');
-                                        break;
-                                    case '土':
-                                        analysis = value > 3 ? '土气过旺' : (value < 1 ? '土气不足' : '土气平衡');
-                                        break;
-                                    case '金':
-                                        analysis = value > 3 ? '金气过旺' : (value < 1 ? '金气不足' : '金气平衡');
-                                        break;
-                                    case '水':
-                                        analysis = value > 3 ? '水气过旺' : (value < 1 ? '水气不足' : '水气平衡');
-                                        break;
-                                }
-                                
-                                return `能量状态: ${analysis}`;
-                            }
+                x: {
+                    grid: {
+                        display: false
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top',
+                    labels: {
+                        usePointStyle: true,
+                        padding: 20
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.dataset.label || '';
+                            return `${label}: ${context.raw}`;
                         }
                     }
                 }
             }
-        });
-        
-        // 更新图表说明
-        elementChartDescription.innerHTML = `
-            <div class="chart-explanation">
-                <h4>五行能量分布说明</h4>
-                <ul>
-                    <li><strong>本命局</strong>: 包含天干、地支和藏干的五行能量总和，已考虑合化刑冲关系</li>
-                    <li><strong>大运</strong>: 当前大运阶段对五行能量的影响和变化</li>
-                    <li><strong>流年</strong>: 今年流年对五行能量的短期影响</li>
-                </ul>
-                <p>五行平衡是理想状态，过旺或过弱都可能带来相应问题。图表可直观显示命主在不同时期的五行能量变化。</p>
-                <div class="element-tips">
-                    <h5>五行平衡建议:</h5>
-                    ${generateElementTips(natalElements)}
-                </div>
-            </div>
-        `;
-    }
-
-    // 计算本命局五行能量（包含藏干和合化刑冲）
-    function calculateNatalElements(baziInfo) {
-    const elements = {
-        '木': 0,
-        '火': 0,
-        '土': 0,
-        '金': 0,
-        '水': 0
-    };
-
-    // 天干五行映射
-    const stemElements = {
-        '甲': '木', '乙': '木',
-        '丙': '火', '丁': '火',
-        '戊': '土', '己': '土',
-        '庚': '金', '辛': '金',
-        '壬': '水', '癸': '水'
-    };
-
-    // 地支五行映射
-    const branchElements = {
-        '寅': '木', '卯': '木',
-        '午': '火', '巳': '火',
-        '辰': '土', '戌': '土', '丑': '土', '未': '土',
-        '申': '金', '酉': '金',
-        '子': '水', '亥': '水'
-    };
-
-    // 1. 计算天干五行
-    const stems = [
-        baziInfo.yearStem,
-        baziInfo.monthStem,
-        baziInfo.dayStem,
-        baziInfo.hourStem
-    ];
-    
-    stems.forEach(stem => {
-        elements[stemElements[stem]] += 1;
-    });
-
-    // 2. 计算地支五行
-    const branches = [
-        baziInfo.yearBranch,
-        baziInfo.monthBranch,
-        baziInfo.dayBranch,
-        baziInfo.hourBranch
-    ];
-    
-    branches.forEach(branch => {
-        elements[branchElements[branch]] += 1;
-    });
-
-    // 3. 计算藏干五行
-    const hiddenStemWeights = {
-        '子': {'癸': 1},
-        '丑': {'己': 1, '癸': 0.7, '辛': 0.5},
-        '寅': {'甲': 1, '丙': 0.7, '戊': 0.5},
-        '卯': {'乙': 1},
-        '辰': {'戊': 1, '乙': 0.7, '癸': 0.5},
-        '巳': {'丙': 1, '庚': 0.7, '戊': 0.5},
-        '午': {'丁': 1, '己': 0.7},
-        '未': {'己': 1, '丁': 0.7, '乙': 0.5},
-        '申': {'庚': 1, '壬': 0.7, '戊': 0.5},
-        '酉': {'辛': 1},
-        '戌': {'戊': 1, '辛': 0.7, '丁': 0.5},
-        '亥': {'壬': 1, '甲': 0.7}
-    };
-
-    branches.forEach(branch => {
-        const hiddenStems = hiddenStemWeights[branch];
-        for (const [stem, weight] of Object.entries(hiddenStems)) {
-            elements[stemElements[stem]] += weight;
         }
     });
-
-    // 转换为数组 [木, 火, 土, 金, 水]
-    return [
-        Math.round(elements['木'] * 10) / 10,
-        Math.round(elements['火'] * 10) / 10,
-        Math.round(elements['土'] * 10) / 10,
-        Math.round(elements['金'] * 10) / 10,
-        Math.round(elements['水'] * 10) / 10
-    ];
+    
+    // 添加图表说明
+    elementChartDescription.innerHTML = `
+        <div class="chart-explanation">
+            <h4>五行能量分布说明</h4>
+            <ul>
+                <li><strong>本命局</strong>: 代表命主先天五行能量分布</li>
+                <li><strong>大运</strong>: 代表当前大运阶段的五行能量变化</li>
+                <li><strong>流年</strong>: 代表今年流年的五行能量影响</li>
+            </ul>
+            <p>五行平衡是理想状态，过旺或过弱都可能带来相应问题。图表可直观显示命主在不同时期的五行能量变化。</p>
+        </div>
+    `;
 }
+    
 
-    // 检查合化关系
-    function checkCombinationEffects(baziInfo) {
-        const effects = [];
-        const pillars = [
-            baziInfo.yearStem + baziInfo.yearBranch,
-            baziInfo.monthStem + baziInfo.monthBranch,
-            baziInfo.dayStem + baziInfo.dayBranch,
-            baziInfo.hourStem + baziInfo.hourBranch
-        ];
-
-        // 常见合化规则
-        const combinationRules = [
-            // 天干五合
-            { condition: (s1, s2) => 
-                (s1 === '甲' && s2 === '己') || (s1 === '己' && s2 === '甲'),
-              effect: { from: ['木','土'], to: '土', amount: 0.5 }
-            },
-            { condition: (s1, s2) => 
-                (s1 === '乙' && s2 === '庚') || (s1 === '庚' && s2 === '乙'),
-              effect: { from: ['木','金'], to: '金', amount: 0.5 }
-            },
-            // 地支六合
-            { condition: (b1, b2) => 
-                (b1 === '子' && b2 === '丑') || (b1 === '丑' && b2 === '子'),
-              effect: { from: ['水','土'], to: '土', amount: 0.3 }
-            },
-            // 地支三合
-            { condition: (b1, b2, b3) => 
-                (['申','子','辰'].includes(b1) && ['申','子','辰'].includes(b2) && ['申','子','辰'].includes(b3)) &&
-                new Set([b1, b2, b3]).size === 3,
-              effect: { from: ['金','水','土'], to: '水', amount: 0.8 }
-            }
-        ];
-
-        // 检查所有可能的组合
-        for (let i = 0; i < pillars.length; i++) {
-            for (let j = i + 1; j < pillars.length; j++) {
-                const pillar1 = pillars[i];
-                const pillar2 = pillars[j];
-                
-                // 检查天干五合
-                for (const rule of combinationRules) {
-                    if (rule.condition(pillar1[0], pillar2[0])) {
-                        rule.effect.from.forEach(fromEl => {
-                            effects.push({
-                                from: fromEl,
-                                to: rule.effect.to,
-                                amount: rule.effect.amount
-                            });
-                        });
-                    }
-                }
-                
-                // 检查地支六合
-                for (const rule of combinationRules) {
-                    if (rule.condition(pillar1[1], pillar2[1])) {
-                        rule.effect.from.forEach(fromEl => {
-                            effects.push({
-                                from: fromEl,
-                                to: rule.effect.to,
-                                amount: rule.effect.amount
-                            });
-                        });
-                    }
-                }
-            }
-        }
-
-        // 检查地支三合 (需要三个不同的地支)
-        const branches = pillars.map(p => p[1]);
-        for (const rule of combinationRules) {
-            if (rule.condition.length === 3) {
-                const uniqueBranches = [...new Set(branches)];
-                if (uniqueBranches.length >= 3) {
-                    // 简化处理，如果有三合局中的任意三个就认为有合化
-                    const count = uniqueBranches.filter(b => 
-                        ['申','子','辰','亥','卯','未','寅','午','戌','巳','酉','丑'].includes(b)).length;
-                    if (count >= 3) {
-                        rule.effect.from.forEach(fromEl => {
-                            effects.push({
-                                from: fromEl,
-                                to: rule.effect.to,
-                                amount: rule.effect.amount
-                            });
-                        });
-                    }
-                }
-            }
-        }
-
-        return effects;
+    // 计算大运五行能量
+    function calculateLuckElements(baziInfo) {
+        // 基于本命局五行进行一定程度的随机变化
+        return baziInfo.elements.map(value => {
+            const variation = Math.floor(Math.random() * 3) - 1; // -1, 0, 1
+            return Math.max(0, value + variation);
+        });
     }
 
-    // 检查刑冲关系
-    function checkClashEffects(baziInfo) {
-        const effects = [];
-        const branches = [
-            baziInfo.yearBranch,
-            baziInfo.monthBranch,
-            baziInfo.dayBranch,
-            baziInfo.hourBranch
-        ];
-
-        // 地支相冲
-        const clashPairs = [
-            ['子', '午'], ['丑', '未'], ['寅', '申'],
-            ['卯', '酉'], ['辰', '戌'], ['巳', '亥']
-        ];
-
-        // 地支相刑
-        const punishmentGroups = [
-            ['寅', '巳', '申'], // 无恩之刑
-            ['丑', '戌', '未'], // 持势之刑
-            ['子', '卯'],       // 无礼之刑
-            ['辰', '午', '酉', '亥'] // 自刑
-        ];
-
-        // 检查相冲
-        for (let i = 0; i < branches.length; i++) {
-            for (let j = i + 1; j < branches.length; j++) {
-                const b1 = branches[i];
-                const b2 = branches[j];
-                
-                for (const pair of clashPairs) {
-                    if ((pair[0] === b1 && pair[1] === b2) || 
-                        (pair[0] === b2 && pair[1] === b1)) {
-                        // 相冲会削弱两个地支的五行能量
-                        const element1 = getBranchElement(b1);
-                        const element2 = getBranchElement(b2);
-                        
-                        effects.push({ element: element1, amount: 0.3 });
-                        effects.push({ element: element2, amount: 0.3 });
-                    }
-                }
-            }
-        }
-
-        // 检查相刑
-        for (const group of punishmentGroups) {
-            const presentBranches = branches.filter(b => group.includes(b));
-            if (presentBranches.length >= 2) {
-                presentBranches.forEach(b => {
-                    const element = getBranchElement(b);
-                    effects.push({ element, amount: 0.2 });
-                });
-            }
-        }
-
-        return effects;
+    // 计算流年五行能量
+    function calculateYearElements(baziInfo) {
+        // 基于本命局五行进行更大程度的随机变化
+        return baziInfo.elements.map(value => {
+            const variation = Math.floor(Math.random() * 5) - 2; // -2到2
+            return Math.max(0, value + variation);
+        });
     }
 
-    // 获取地支对应的五行
-    function getBranchElement(branch) {
+    // 计算元素能量
+    function calculateElementEnergy(pillars) {
+        const elements = {
+            '木': 0,
+            '火': 0,
+            '土': 0,
+            '金': 0,
+            '水': 0
+        };
+        const stemElements = {
+            '甲': '木', '乙': '木',
+            '丙': '火', '丁': '火',
+            '戊': '土', '己': '土',
+            '庚': '金', '辛': '金',
+            '壬': '水', '癸': '水'
+        };
         const branchElements = {
             '寅': '木', '卯': '木',
             '午': '火', '巳': '火',
@@ -1190,177 +956,21 @@ document.addEventListener('DOMContentLoaded', function() {
             '申': '金', '酉': '金',
             '子': '水', '亥': '水'
         };
-        return branchElements[branch];
-    }
-
-    // 计算大运五行能量
-    function calculateLuckElements(baziInfo, natalElements) {
-        // 1. 获取当前大运
-        const currentLuck = getCurrentLuckPillar(baziInfo);
-        
-        // 2. 计算大运对原局的影响
-        const elements = [...natalElements];
-        
-        // 大运天干影响
-        const stemElement = getStemElement(currentLuck.stem);
-        elements[stemElement.index] += 0.8;
-        
-        // 大运地支影响
-        const branchElement = getBranchElement(currentLuck.branch);
-        elements[branchElement.index] += 1.2;
-        
-        // 大运藏干影响
-        const hiddenStems = getHiddenStems(currentLuck.branch).split('');
-        hiddenStems.forEach(stem => {
-            const stemEl = getStemElement(stem);
-            elements[stemEl.index] += 0.5;
-        });
-        
-        // 确保数值合理
-        return elements.map(el => Math.max(0, Math.round(el * 10) / 10));
-    }
-
-    // 获取当前大运柱
-    function getCurrentLuckPillar(baziInfo) {
-        // 简化处理 - 实际应根据起运时间计算当前大运
-        // 这里取月柱作为示例
-        return {
-            stem: baziInfo.monthStem,
-            branch: baziInfo.monthBranch
-        };
-    }
-
-    // 计算流年五行能量
-    function calculateYearElements(baziInfo, natalElements, luckElements) {
-        // 1. 获取当前流年
-        const currentYear = getCurrentYearPillar();
-        
-        // 2. 计算流年对原局和大运的影响
-        const elements = [...luckElements];
-        
-        // 流年天干影响
-        const stemElement = getStemElement(currentYear.stem);
-        elements[stemElement.index] += 0.5;
-        
-        // 流年地支影响
-        const branchElement = getBranchElement(currentYear.branch);
-        elements[branchElement.index] += 0.8;
-        
-        // 流年藏干影响
-        const hiddenStems = getHiddenStems(currentYear.branch).split('');
-        hiddenStems.forEach(stem => {
-            const stemEl = getStemElement(stem);
-            elements[stemEl.index] += 0.3;
-        });
-        
-        // 确保数值合理
-        return elements.map(el => Math.max(0, Math.round(el * 10) / 10));
-    }
-
-    // 获取当前流年柱
-    function getCurrentYearPillar() {
-        const currentYear = new Date().getFullYear();
-        const lunar = Solar.fromYmdHms(currentYear, 1, 1).getLunar();
-        return {
-            stem: lunar.getYearGan(),
-            branch: lunar.getYearZhi()
-        };
-    }
-
-    // 获取天干对应的五行和索引
-    function getStemElement(stem) {
-        const stemElements = {
-            '甲': { element: '木', index: 0 },
-            '乙': { element: '木', index: 0 },
-            '丙': { element: '火', index: 1 },
-            '丁': { element: '火', index: 1 },
-            '戊': { element: '土', index: 2 },
-            '己': { element: '土', index: 2 },
-            '庚': { element: '金', index: 3 },
-            '辛': { element: '金', index: 3 },
-            '壬': { element: '水', index: 4 },
-            '癸': { element: '水', index: 4 }
-        };
-        return stemElements[stem];
-    }
-
-    // 生成五行平衡建议
-    function generateElementTips(elements) {
-        const tips = [];
-        const elementNames = ['木', '火', '土', '金', '水'];
-        const maxElement = Math.max(...elements);
-        const minElement = Math.min(...elements);
-        
-        // 找出过旺和过弱的五行
-        const strongElements = [];
-        const weakElements = [];
-        
-        elements.forEach((value, index) => {
-            if (value >= maxElement - 0.5) {
-                strongElements.push(elementNames[index]);
-            }
-            if (value <= minElement + 0.5) {
-                weakElements.push(elementNames[index]);
-            }
-        });
-        
-        // 生成建议
-        if (strongElements.length > 0) {
-            tips.push(`<strong>${strongElements.join('、')}</strong> 能量较强，建议适当抑制。`);
-        }
-        
-        if (weakElements.length > 0) {
-            tips.push(`<strong>${weakElements.join('、')}</strong> 能量较弱，建议加强补益。`);
-        }
-        
-        if (tips.length === 0) {
-            tips.push("五行能量相对平衡，保持现状即可。");
-        }
-        
-        // 添加具体建议
-        tips.push("<ul>");
-        
-        weakElements.forEach(el => {
-            const suggestion = getElementSuggestion(el, 'weak');
-            if (suggestion) tips.push(`<li>${suggestion}</li>`);
-        });
-        
-        strongElements.forEach(el => {
-            const suggestion = getElementSuggestion(el, 'strong');
-            if (suggestion) tips.push(`<li>${suggestion}</li>`);
-        });
-        
-        tips.push("</ul>");
-        
-        return tips.join('');
-    }
-
-    // 获取具体五行建议
-    function getElementSuggestion(element, type) {
-        const suggestions = {
-            '木': {
-                weak: '可多接触绿色植物，佩戴木质饰品，东方位活动',
-                strong: '减少绿色使用，避免过多木属性活动'
-            },
-            '火': {
-                weak: '多接触红色物品，南方位活动，适当晒太阳',
-                strong: '避免过热环境，减少红色使用，多接触水元素'
-            },
-            '土': {
-                weak: '多接触黄色物品，中央方位活动，陶土类活动',
-                strong: '减少黄色使用，避免过多土属性活动'
-            },
-            '金': {
-                weak: '佩戴金属饰品，西方位活动，白色系装饰',
-                strong: '减少金属使用，避免过多金属物品'
-            },
-            '水': {
-                weak: '多接触水元素，北方位活动，黑色蓝色系装饰',
-                strong: '避免潮湿环境，减少黑色使用'
-            }
-        };
-        
-        return suggestions[element]?.[type] || '';
+        elements[stemElements[pillars.year.charAt(0)]]++;
+        elements[stemElements[pillars.month.charAt(0)]]++;
+        elements[stemElements[pillars.day.charAt(0)]]++;
+        elements[stemElements[pillars.hour.charAt(0)]]++;
+        elements[branchElements[pillars.year.charAt(1)]]++;
+        elements[branchElements[pillars.month.charAt(1)]]++;
+        elements[branchElements[pillars.day.charAt(1)]]++;
+        elements[branchElements[pillars.hour.charAt(1)]]++;
+        return [
+            elements['木'],
+            elements['火'],
+            elements['土'],
+            elements['金'],
+            elements['水']
+        ];
     }
 
     // 初始化运势图表
@@ -2041,105 +1651,63 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // 本地计算八字
-    // 修改 calculateBaziLocally 函数，替换 calculateElementEnergy 为 calculateNatalElements
-function calculateBaziLocally(birthData) {
-    const dateParts = birthData.date.split('-');
-    const year = parseInt(dateParts[0]);
-    const month = parseInt(dateParts[1]);
-    const day = parseInt(dateParts[2]);
-    const timeParts = birthData.time.split(':');
-    const hour = parseInt(timeParts[0]);
-    const minute = parseInt(timeParts[1] || 0);
-    
-    const solar = Solar.fromYmdHms(year, month, day, hour, minute, 0);
-    const lunar = solar.getLunar();
-    const bazi = lunar.getEightChar();
-    
-    const yearGan = bazi.getYearGan();
-    const yearZhi = bazi.getYearZhi();
-    const monthGan = bazi.getMonthGan();
-    const monthZhi = bazi.getMonthZhi();
-    const dayGan = bazi.getDayGan();
-    const dayZhi = bazi.getDayZhi();
-    const hourGan = bazi.getTimeGan();
-    const hourZhi = bazi.getTimeZhi();
-    
-    const yearHiddenStems = getHiddenStems(yearZhi);
-    const monthHiddenStems = getHiddenStems(monthZhi);
-    const dayHiddenStems = getHiddenStems(dayZhi);
-    const hourHiddenStems = getHiddenStems(hourZhi);
-    
-    // 使用新的 calculateNatalElements 函数替换 calculateElementEnergy
-    const elements = calculateNatalElements({
-        yearStem: yearGan,
-        yearBranch: yearZhi,
-        monthStem: monthGan,
-        monthBranch: monthZhi,
-        dayStem: dayGan,
-        dayBranch: dayZhi,
-        hourStem: hourGan,
-        hourBranch: hourZhi
-    });
-    
-    const personality = getPersonalityTraits(dayGan);
-    const decadeFortune = calculateDecadeFortune(lunar, birthData.gender);
-    const gamblingFortune = calculateGamblingFortune(birthData, lunar);
-    
-    return {
-        yearStem: yearGan,
-        yearBranch: yearZhi,
-        monthStem: monthGan,
-        monthBranch: monthZhi,
-        dayStem: dayGan,
-        dayBranch: dayZhi,
-        hourStem: hourGan,
-        hourBranch: hourZhi,
-        yearHiddenStems: yearHiddenStems,
-        monthHiddenStems: monthHiddenStems,
-        dayHiddenStems: dayHiddenStems,
-        hourHiddenStems: hourHiddenStems,
-        elements,
-        personality,
-        decadeFortune,
-        gamblingFortune
-    };
-}
-
-// 确保 getHiddenStems 函数存在
-function getHiddenStems(branch) {
-    const hiddenStemsMap = {
-        '子': '癸',
-        '丑': '己癸辛',
-        '寅': '甲丙戊',
-        '卯': '乙',
-        '辰': '戊乙癸',
-        '巳': '丙庚戊',
-        '午': '丁己',
-        '未': '己丁乙',
-        '申': '庚壬戊',
-        '酉': '辛',
-        '戌': '戊辛丁',
-        '亥': '壬甲'
-    };
-    return hiddenStemsMap[branch] || '';
-}
-
-// 确保 getPersonalityTraits 函数存在
-function getPersonalityTraits(dayStem) {
-    const traits = {
-        '甲': '似参天大树，正直向上，有领导力但略显固执',
-        '乙': '如藤蔓般柔韧，适应力强但有时优柔寡断',
-        '丙': '如太阳般热情，开朗大方但易冲动急躁',
-        '丁': '似烛火般温和，细心周到但易多愁善感',
-        '戊': '如大地般稳重，踏实可靠但略显保守',
-        '己': '似田园之土，包容性强但易随波逐流',
-        '庚': '如金属般刚强，果断决绝但易锋芒太露',
-        '辛': '似珠宝般精致，追求完美但易挑剔计较',
-        '壬': '如江河奔流，聪明机智但易三心二意',
-        '癸': '似雨露滋润，细腻敏感但易多疑忧郁'
-    };
-    return traits[dayStem] || '似静水流深，临危反生智，藏锋守拙却暗含凌云之志';
-}
+    function calculateBaziLocally(birthData) {
+        const dateParts = birthData.date.split('-');
+        const year = parseInt(dateParts[0]);
+        const month = parseInt(dateParts[1]);
+        const day = parseInt(dateParts[2]);
+        const timeParts = birthData.time.split(':');
+        const hour = parseInt(timeParts[0]);
+        const minute = parseInt(timeParts[1] || 0);
+        
+        const solar = Solar.fromYmdHms(year, month, day, hour, minute, 0);
+        const lunar = solar.getLunar();
+        const bazi = lunar.getEightChar();
+        
+        const yearGan = bazi.getYearGan();
+        const yearZhi = bazi.getYearZhi();
+        const monthGan = bazi.getMonthGan();
+        const monthZhi = bazi.getMonthZhi();
+        const dayGan = bazi.getDayGan();
+        const dayZhi = bazi.getDayZhi();
+        const hourGan = bazi.getTimeGan();
+        const hourZhi = bazi.getTimeZhi();
+        
+        const yearHiddenStems = getHiddenStems(yearZhi);
+        const monthHiddenStems = getHiddenStems(monthZhi);
+        const dayHiddenStems = getHiddenStems(dayZhi);
+        const hourHiddenStems = getHiddenStems(hourZhi);
+        
+        const elements = calculateElementEnergy({
+            year: yearGan + yearZhi,
+            month: monthGan + monthZhi,
+            day: dayGan + dayZhi,
+            hour: hourGan + hourZhi
+        });
+        
+        const personality = getPersonalityTraits(dayGan);
+        const decadeFortune = calculateDecadeFortune(lunar, birthData.gender);
+        const gamblingFortune = calculateGamblingFortune(birthData, lunar);
+        
+        return {
+            yearStem: yearGan,
+            yearBranch: yearZhi,
+            monthStem: monthGan,
+            monthBranch: monthZhi,
+            dayStem: dayGan,
+            dayBranch: dayZhi,
+            hourStem: hourGan,
+            hourBranch: hourZhi,
+            yearHiddenStems: yearHiddenStems,
+            monthHiddenStems: monthHiddenStems,
+            dayHiddenStems: dayHiddenStems,
+            hourHiddenStems: hourHiddenStems,
+            elements,
+            personality,
+            decadeFortune,
+            gamblingFortune
+        };
+    }
 
     // 计算十年大运
     function calculateDecadeFortune(lunar, gender) {
