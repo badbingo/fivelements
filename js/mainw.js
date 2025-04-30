@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 增强版缓存对象v2.1b
+    // 增强版缓存对象v2.1v
     const baziCache = {
         data: {},
         get: function(key) {
@@ -469,145 +469,159 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 重置所有内容
     function resetAllContent() {
-    fateScoreValue = 0;
-    wealthScoreValue = 0;
-    
-    // 重置八字显示
-    yearStem.textContent = '';
-    yearBranch.textContent = '';
-    yearHiddenStems.textContent = '';
-    monthStem.textContent = '';
-    monthBranch.textContent = '';
-    monthHiddenStems.textContent = '';
-    dayStem.textContent = '';
-    dayBranch.textContent = '';
-    dayHiddenStems.textContent = '';
-    hourStem.textContent = '';
-    hourBranch.textContent = '';
-    hourHiddenStems.textContent = '';
-    
-    // 重置分数显示
-    fateLevel.textContent = '';
-    fateScore.textContent = '';
-    fateDetails.innerHTML = '';
-    wealthLevel.textContent = '';
-    wealthScore.textContent = '';
-    wealthDetails.innerHTML = '';
-    personalityTraits.textContent = '命主性格：';
-    
-    // 重置内容区域和加载动画
-    document.querySelectorAll('.section-content').forEach(function(el) {
-        el.innerHTML = '';
-        el.classList.remove('active');
-        const loadingContainer = el.nextElementSibling;
-        if (loadingContainer && loadingContainer.classList.contains('quantum-loading-container')) {
-            loadingContainer.style.display = 'none';
-        }
-    });
-    
-    // 重置按钮状态
-    document.querySelectorAll('.load-btn').forEach(function(btn) {
-        const originalText = btn.getAttribute('data-original-text') || btn.textContent.trim();
-        btn.innerHTML = `<span>${originalText}</span><i class="fas fa-chevron-down toggle-icon"></i>`;
-        btn.classList.remove('active');
-        btn.disabled = false;
-    });
-    
-    // 重置全局变量
-    loadedSections = {};
-    currentPillars = {};
-    fateScoreDetails = {};
-    wealthScoreDetails = {};
-}
+        fateScoreValue = 0;
+        wealthScoreValue = 0;
+        
+        // 重置八字显示
+        yearStem.textContent = '';
+        yearBranch.textContent = '';
+        yearHiddenStems.textContent = '';
+        monthStem.textContent = '';
+        monthBranch.textContent = '';
+        monthHiddenStems.textContent = '';
+        dayStem.textContent = '';
+        dayBranch.textContent = '';
+        dayHiddenStems.textContent = '';
+        hourStem.textContent = '';
+        hourBranch.textContent = '';
+        hourHiddenStems.textContent = '';
+        
+        // 重置分数显示
+        fateLevel.textContent = '';
+        fateScore.textContent = '';
+        fateDetails.innerHTML = '';
+        wealthLevel.textContent = '';
+        wealthScore.textContent = '';
+        wealthDetails.innerHTML = '';
+        personalityTraits.textContent = '命主性格：';
+        
+        // 重置内容区域
+        document.querySelectorAll('.section-content').forEach(function(el) {
+            el.innerHTML = '';
+            el.classList.remove('active');
+        });
+        
+        // 重置按钮状态
+        document.querySelectorAll('.load-btn').forEach(function(btn) {
+            const originalText = btn.getAttribute('data-original-text') || btn.textContent.trim();
+            btn.innerHTML = `<span>${originalText}</span><i class="fas fa-chevron-down toggle-icon"></i>`;
+            btn.classList.remove('active');
+            btn.disabled = false;
+        });
+        
+        // 重置按钮容器
+        document.querySelectorAll('.load-btn-container').forEach(function(container) {
+            container.classList.remove('active');
+        });
+        
+        // 重置菜单标签
+        document.querySelectorAll('.menu-tab').forEach(function(tab) {
+            tab.classList.remove('active');
+        });
+        document.querySelectorAll('.tab-content').forEach(function(content) {
+            content.classList.remove('active');
+        });
+        document.querySelector('.menu-tab[data-tab="fortune"]').classList.add('active');
+        document.getElementById('fortune-tab').classList.add('active');
+        
+        // 重置全局变量
+        loadedSections = {};
+        currentPillars = {};
+        fateScoreDetails = {};
+        wealthScoreDetails = {};
+        
+        // 重置问答区域
+        baziQuestionInput.value = '';
+        baziQaResponse.innerHTML = '';
+        baziQaResponse.style.display = 'none';
+        baziQaLoading.style.display = 'none';
+    }
 
     // 初始化加载按钮
     function initLoadButtons() {
-    // 先移除所有现有的事件监听器
-    document.querySelectorAll('.load-btn').forEach(function(button) {
-        const section = button.getAttribute('data-section');
-        if (loadButtonHandlers[section]) {
-            button.removeEventListener('click', loadButtonHandlers[section]);
-        }
-    });
-    
-    loadButtonHandlers = {}; // 清空处理器引用
+        // 先移除所有现有的事件监听器
+        document.querySelectorAll('.load-btn').forEach(function(button) {
+            const section = button.getAttribute('data-section');
+            if (loadButtonHandlers[section]) {
+                button.removeEventListener('click', loadButtonHandlers[section]);
+            }
+        });
+        
+        loadButtonHandlers = {}; // 清空处理器引用
 
-    // 为每个按钮添加新的事件监听器
-    document.querySelectorAll('.load-btn').forEach(function(button) {
-        // 保存原始文本
-        if (!button.getAttribute('data-original-text')) {
-            const originalText = button.textContent.trim();
-            button.setAttribute('data-original-text', originalText);
-        }
-        
-        const section = button.getAttribute('data-section');
-        const handler = function(e) { loadButtonClickHandler.call(button, e); };
-        loadButtonHandlers[section] = handler;
-        button.addEventListener('click', handler);
-        
-        // 确保每个内容区域后面都有加载容器
-        const contentElement = document.getElementById(`${section}-content`);
-        if (contentElement && !contentElement.nextElementSibling.classList.contains('quantum-loading-container')) {
-            const loadingContainer = document.createElement('div');
-            loadingContainer.className = 'quantum-loading-container';
-            loadingContainer.style.display = 'none';
-            loadingContainer.innerHTML = `
-                <div class="quantum-loading"></div>
-                <div class="quantum-loading-text">量子计算引擎分析中...</div>
-            `;
-            contentElement.parentNode.insertBefore(loadingContainer, contentElement.nextSibling);
-        }
-    });
-}
+        // 为每个按钮添加新的事件监听器
+        document.querySelectorAll('.load-btn').forEach(function(button) {
+            // 保存原始文本
+            if (!button.getAttribute('data-original-text')) {
+                const originalText = button.textContent.trim();
+                button.setAttribute('data-original-text', originalText);
+            }
+            
+            const section = button.getAttribute('data-section');
+            const handler = function(e) { loadButtonClickHandler.call(button, e); };
+            loadButtonHandlers[section] = handler;
+            button.addEventListener('click', handler);
+        });
+    }
 
     // 加载按钮点击处理函数
     async function loadButtonClickHandler(e) {
-    e.preventDefault();
-    const button = this;
-    const section = button.getAttribute('data-section');
-    const contentElement = document.getElementById(`${section}-content`);
-    const loadingContainer = contentElement.nextElementSibling;
-    
-    // 如果已经加载过，只切换显示/隐藏
-    if (loadedSections[section]) {
-        contentElement.classList.toggle('active');
-        return;
-    }
-    
-    const originalBtnHtml = button.innerHTML;
-    button.disabled = true;
-    button.innerHTML = `<span>量子分析中...</span><i class="fas fa-chevron-down toggle-icon"></i>`;
-    
-    // 显示量子加载动画
-    loadingContainer.style.display = 'block';
-    contentElement.innerHTML = '';
-    contentElement.classList.add('active');
-    
-    try {
-        const result = await getBaziAnalysis(section, birthData);
+        e.preventDefault();
+        const button = this;
+        const section = button.getAttribute('data-section');
+        const contentElement = document.getElementById(`${section}-content`);
+        const container = button.closest('.load-btn-container');
         
-        // 隐藏加载动画，显示内容
-        loadingContainer.style.display = 'none';
-        displaySectionContent(section, result, contentElement);
-        
-        // 恢复按钮状态，添加完成标记
-        const originalText = button.getAttribute('data-original-text');
-        button.innerHTML = `<span>${originalText}</span><i class="fas fa-check"></i><i class="fas fa-chevron-down toggle-icon"></i>`;
-        button.disabled = false;
-        
-        loadedSections[section] = true;
-        
-        if (section === 'decade-fortune') {
-            initFortuneChart(result);
+        // 如果已经加载过，只切换显示/隐藏
+        if (loadedSections[section]) {
+            container.classList.toggle('active');
+            contentElement.classList.toggle('active');
+            return;
         }
-    } catch (error) {
-        console.error(`加载${section}失败:`, error);
-        loadingContainer.style.display = 'none';
-        contentElement.innerHTML = '<p style="color:var(--danger-color)">加载失败，请重试</p>';
-        button.disabled = false;
-        button.innerHTML = `<span>${button.getAttribute('data-original-text')}</span><i class="fas fa-chevron-down toggle-icon"></i>`;
+        
+        const originalBtnHtml = button.innerHTML;
+        button.disabled = true;
+        button.innerHTML = `<span><span class="loading"></span> 量子分析中...</span><i class="fas fa-chevron-down toggle-icon"></i>`;
+        container.classList.add('active');
+        
+        const progressContainer = document.createElement('div');
+        progressContainer.className = 'progress-container';
+        progressContainer.innerHTML = '<div class="progress-bar"></div>';
+        contentElement.innerHTML = '';
+        contentElement.appendChild(progressContainer);
+        
+        const progressBar = progressContainer.querySelector('.progress-bar');
+        let progress = 0;
+        const progressInterval = setInterval(function() {
+            progress += Math.random() * 10;
+            if (progress >= 100) progress = 100;
+            progressBar.style.width = `${progress}%`;
+        }, 300);
+        
+        try {
+            const result = await getBaziAnalysis(section, birthData);
+            clearInterval(progressInterval);
+            displaySectionContent(section, result, contentElement);
+            
+            // 恢复按钮状态，添加完成标记
+            const originalText = button.getAttribute('data-original-text');
+            button.innerHTML = `<span>${originalText}</span><i class="fas fa-check"></i><i class="fas fa-chevron-down toggle-icon"></i>`;
+            button.disabled = false;
+            
+            contentElement.classList.add('active');
+            loadedSections[section] = true;
+            
+            if (section === 'decade-fortune') {
+                initFortuneChart(result);
+            }
+        } catch (error) {
+            console.error(`加载${section}失败:`, error);
+            clearInterval(progressInterval);
+            contentElement.innerHTML = '<p style="color:var(--danger-color)">加载失败，请重试</p>';
+            button.disabled = false;
+            button.innerHTML = `<span>${button.getAttribute('data-original-text')}</span><i class="fas fa-chevron-down toggle-icon"></i>`;
+        }
     }
-}
 
     // 显示部分内容
     function displaySectionContent(section, result, contentElement) {
@@ -672,55 +686,55 @@ document.addEventListener('DOMContentLoaded', function() {
         
         saveProfile(birthData);
         calculateBtn.disabled = true;
-    calculateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 量子测算中...';
+        calculateBtn.innerHTML = '<span class="loading"></span> 量子测算中...';
         
         try {
             const loadingOverlay = document.createElement('div');
-    loadingOverlay.className = 'quantum-loading-overlay';
-    loadingOverlay.innerHTML = `
-        <div class="quantum-loading"></div>
-        <p>量子计算引擎启动中...</p>
-    `;
-    document.body.appendChild(loadingOverlay);
-    
-    try {
-        const baziInfo = await getBaziAnalysis('basic', birthData);
-        
-        displayBasicInfo(baziInfo);
-        initElementChart(baziInfo);
-        updateLunarCalendar();
-        
-        currentPillars = {
-            year: baziInfo.yearStem + baziInfo.yearBranch,
-            month: baziInfo.monthStem + baziInfo.monthBranch,
-            day: baziInfo.dayStem + baziInfo.dayBranch,
-            hour: baziInfo.hourStem + baziInfo.hourBranch
-        };
-        
-        displayScores();
-        gamblingRating.textContent = baziInfo.gamblingFortune.rating;
-        gamblingDetails.innerHTML = `
-            ${baziInfo.gamblingFortune.analysis}<br>
-            最佳方位: ${baziInfo.gamblingFortune.direction}<br>
-            最佳时段: ${baziInfo.gamblingFortune.hour}
-        `;
-        
-        inputSection.style.display = 'none';
-        resultSection.style.display = 'block';
-        document.body.removeChild(loadingOverlay);
-        initLoadButtons();
-        window.scrollTo(0, 0);
-    } catch (error) {
-        console.error('测算失败:', error);
-        alert('量子测算失败，请稍后重试');
-        if (document.querySelector('.quantum-loading-overlay')) {
-            document.body.removeChild(document.querySelector('.quantum-loading-overlay'));
+            loadingOverlay.className = 'loading-overlay';
+            loadingOverlay.innerHTML = `
+                <div class="loading"></div>
+                <p>量子计算引擎启动中...</p>
+            `;
+            document.body.appendChild(loadingOverlay);
+            
+            // 使用混合模式获取结果
+            const baziInfo = await getBaziAnalysis('basic', birthData);
+            
+            displayBasicInfo(baziInfo);
+            initElementChart(baziInfo);
+            updateLunarCalendar();
+            
+            currentPillars = {
+                year: baziInfo.yearStem + baziInfo.yearBranch,
+                month: baziInfo.monthStem + baziInfo.monthBranch,
+                day: baziInfo.dayStem + baziInfo.dayBranch,
+                hour: baziInfo.hourStem + baziInfo.hourBranch
+            };
+            
+            displayScores();
+            gamblingRating.textContent = baziInfo.gamblingFortune.rating;
+            gamblingDetails.innerHTML = `
+                ${baziInfo.gamblingFortune.analysis}<br>
+                最佳方位: ${baziInfo.gamblingFortune.direction}<br>
+                最佳时段: ${baziInfo.gamblingFortune.hour}
+            `;
+            
+            inputSection.style.display = 'none';
+            resultSection.style.display = 'block';
+            document.body.removeChild(loadingOverlay);
+            initLoadButtons();
+            window.scrollTo(0, 0);
+        } catch (error) {
+            console.error('测算失败:', error);
+            alert('量子测算失败，请稍后重试');
+            if (document.querySelector('.loading-overlay')) {
+                document.body.removeChild(document.querySelector('.loading-overlay'));
+            }
+        } finally {
+            calculateBtn.disabled = false;
+            calculateBtn.innerHTML = '<i class="fas fa-brain"></i> 开始量子测算';
         }
-    } finally {
-        calculateBtn.disabled = false;
-        calculateBtn.innerHTML = '<i class="fas fa-brain"></i> 开始量子测算';
     }
-}
 
     // 生成八字哈希键
     function generateBaziHashKey(birthData) {
@@ -2334,40 +2348,34 @@ function initElementChart(baziInfo) {
 用户问题：${question}`;
         
         try {
-        // 显示加载状态
-        const loadingContainer = document.getElementById(`${section}-content`).nextElementSibling;
-        if (loadingContainer && loadingContainer.classList.contains('quantum-loading-container')) {
-            loadingContainer.style.display = 'block';
-        }
-        
-        const response = await apiRequestQueue.addRequest({
-            url: apiUrl,
-            options: {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${apiKey}`
+            const response = await apiRequestQueue.addRequest({
+                url: apiUrl,
+                options: {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: "deepseek-chat",
+                        messages: [{
+                            role: "system",
+                            content: "你是一位资深的八字命理大师，精通子平八字、紫微斗数等传统命理学。请严格按照八字专业问答规范回答用户问题。"
+                        }, {
+                            role: "user",
+                            content: prompt
+                        }],
+                        temperature: 0
+                    })
                 },
-                body: JSON.stringify({
-                    model: "deepseek-chat",
-                    messages: [{ role: "user", content: prompt }],
-                    temperature: 0,
-                    seed: 12345
-                })
-            },
-            section: section,
-            cacheKey: cacheKey
-        });
-        
-        // 隐藏加载状态
-        if (loadingContainer) {
-            loadingContainer.style.display = 'none';
+                cacheKey: cacheKey
+            });
+            
+            return response;
+            
+        } catch (error) {
+            console.error('获取问答答案失败:', error);
+            return '获取答案失败，请稍后重试';
         }
-        
-        return response;
-        
-    } catch (error) {
-        console.error(`获取${section}分析失败:`, error);
-        throw error;
     }
-}
+});
