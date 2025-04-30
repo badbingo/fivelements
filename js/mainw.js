@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 增强版缓存对象v2.1b
+    // 增强版缓存对象v2.1v
     const baziCache = {
         data: {},
         get: function(key) {
@@ -454,49 +454,38 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // 显示分析弹窗
-function showAnalysisPopup(type) {
-    const score = type === 'fate' ? fateScoreValue : wealthScoreValue;
-    const analysis = getDetailedAnalysis(type, score);
-    
-    const popup = document.createElement('div');
-    popup.className = 'analysis-popup';
-    popup.innerHTML = `
-        <div class="popup-content">
-            <div class="popup-header">
-                <h3>${type === 'fate' ? '命格等级分析' : '财富等级分析'}</h3>
-                <button class="close-btn">&times;</button>
+    function showAnalysisPopup(type) {
+        const score = type === 'fate' ? fateScoreValue : wealthScoreValue;
+        const analysis = getDetailedAnalysis(type, score);
+        
+        const popup = document.createElement('div');
+        popup.className = 'analysis-popup';
+        popup.innerHTML = `
+            <div class="popup-content">
+                <div class="popup-header">
+                    <h3>${type === 'fate' ? '命格等级分析' : '财富等级分析'}</h3>
+                    <span class="close-btn">&times;</span>
+                </div>
+                <div class="popup-body">
+                    ${analysis}
+                </div>
             </div>
-            <div class="popup-body">
-                ${analysis}
-            </div>
-        </div>
-    `;
-    
-    document.body.appendChild(popup);
-    
-    // 添加active类以显示弹窗
-    setTimeout(() => {
-        popup.classList.add('active');
-    }, 10);
-    
-    // 关闭按钮事件
-    popup.querySelector('.close-btn').addEventListener('click', function() {
-        popup.classList.remove('active');
-        setTimeout(() => {
+        `;
+        
+        document.body.appendChild(popup);
+        
+        // 关闭按钮事件
+        popup.querySelector('.close-btn').addEventListener('click', function() {
             document.body.removeChild(popup);
-        }, 300);
-    });
-    
-    // 点击外部关闭
-    popup.addEventListener('click', function(e) {
-        if (e.target === popup) {
-            popup.classList.remove('active');
-            setTimeout(() => {
+        });
+        
+        // 点击外部关闭
+        popup.addEventListener('click', function(e) {
+            if (e.target === popup) {
                 document.body.removeChild(popup);
-            }, 300);
-        }
-    });
-}
+            }
+        });
+    }
 
     // 获取详细分析
     function getDetailedAnalysis(type, score) {
@@ -1714,51 +1703,7 @@ function showAnalysisPopup(type) {
             return Math.max(0, value + variation);
         });
     }
-// 1. 初始化评分条
-function initRatingBars() {
-    // 绑定点击事件
-    document.querySelectorAll('.rating-level').forEach(bar => {
-        bar.addEventListener('click', function() {
-            this.classList.toggle('active');
-        });
-    });
-}
 
-// 2. 动态设置评分条
-function setRatingBar(id, percent, levelText, detailsText) {
-    const bar = document.getElementById(id);
-    const scoreElement = document.getElementById(id.replace('level', 'score'));
-    const detailsElement = document.getElementById(id.replace('level', 'details'));
-
-    bar.style.setProperty('--progress', `${percent}%`);
-    scoreElement.textContent = levelText;
-    detailsElement.textContent = detailsText;
-}
-
-// 3. 页面加载时初始化
-document.addEventListener('DOMContentLoaded', function() {
-    initRatingBars();
-    // 可以设置默认值
-    setRatingBar('fate-level', 50, "中等命格", "50分 - 待测算");
-    setRatingBar('wealth-level', 50, "中等财富", "50分 - 待测算");
-});
-
-// 4. 在计算结果时调用（示例）
-document.getElementById('calculate-btn').addEventListener('click', function() {
-    // 模拟计算结果
-    const fateScore = Math.floor(Math.random() * 100);
-    const wealthScore = Math.floor(Math.random() * 100);
-    
-    setRatingBar('fate-level', fateScore, getLevelText(fateScore), `${fateScore}分 - 详细分析...`);
-    setRatingBar('wealth-level', wealthScore, getLevelText(wealthScore), `${wealthScore}分 - 详细分析...`);
-});
-
-// 辅助函数：根据分数返回等级文本
-function getLevelText(score) {
-    if (score >= 80) return "上等";
-    if (score >= 60) return "中等";
-    return "普通";
-}
     // 初始化运势图表
     function initFortuneChart(result) {
         const fortuneContent = document.getElementById('decade-fortune-content');
