@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 增强版缓存对象v2.1c
+    // 增强版缓存对象v2.1v
     const baziCache = {
         data: {},
         get: function(key) {
@@ -564,75 +564,64 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // 在loadButtonClickHandler函数中修改加载动画部分
-async function loadButtonClickHandler(e) {
-    e.preventDefault();
-    const button = this;
-    const section = button.getAttribute('data-section');
-    const contentElement = document.getElementById(`${section}-content`);
-    const container = button.closest('.load-btn-container');
-    
-    // 如果已经加载过，只切换显示/隐藏
-    if (loadedSections[section]) {
-        container.classList.toggle('active');
-        contentElement.classList.toggle('active');
-        return;
-    }
-    
-    const originalBtnHtml = button.innerHTML;
-    button.disabled = true;
-    button.innerHTML = `<span class="loading-animation"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span> 量子分析中...<i class="fas fa-chevron-down toggle-icon"></i>`;
-    container.classList.add('active');
-    
-    // 创建量子动画容器
-    const quantumContainer = document.createElement('div');
-    quantumContainer.className = 'quantum-animation-container';
-    quantumContainer.innerHTML = `
-        <div class="quantum-particle"></div>
-        <div class="quantum-particle"></div>
-        <div class="quantum-particle"></div>
-        <div class="quantum-particle"></div>
-        <div class="quantum-particle"></div>
-        <div class="quantum-analysis-result">
-            <div class="quantum-result-content"></div>
-        </div>
-    `;
-    contentElement.innerHTML = '';
-    contentElement.appendChild(quantumContainer);
-    
-    // 显示加载状态
-    const resultContent = quantumContainer.querySelector('.quantum-result-content');
-    resultContent.textContent = '量子分析中...';
-    
-    try {
-        // 模拟3秒量子计算过程
-        await new Promise(resolve => setTimeout(resolve, 3000));
+    // 加载按钮点击处理函数
+    async function loadButtonClickHandler(e) {
+        e.preventDefault();
+        const button = this;
+        const section = button.getAttribute('data-section');
+        const contentElement = document.getElementById(`${section}-content`);
+        const container = button.closest('.load-btn-container');
         
-        // 获取分析结果
-        const result = await getBaziAnalysis(section, birthData);
-        
-        // 显示结果
-        resultContent.innerHTML = generateAnalysisResult(section, result);
-        quantumContainer.querySelector('.quantum-analysis-result').style.opacity = '1';
-        
-        // 恢复按钮状态，添加完成标记
-        const originalText = button.getAttribute('data-original-text');
-        button.innerHTML = `<span>${originalText}</span><i class="fas fa-check"></i><i class="fas fa-chevron-down toggle-icon"></i>`;
-        button.disabled = false;
-        
-        contentElement.classList.add('active');
-        loadedSections[section] = true;
-        
-        if (section === 'decade-fortune') {
-            initFortuneChart(result);
+        // 如果已经加载过，只切换显示/隐藏
+        if (loadedSections[section]) {
+            container.classList.toggle('active');
+            contentElement.classList.toggle('active');
+            return;
         }
-    } catch (error) {
-        console.error(`加载${section}失败:`, error);
-        contentElement.innerHTML = '<p style="color:var(--danger-color)">加载失败，请重试</p>';
-        button.disabled = false;
-        button.innerHTML = `<span>${button.getAttribute('data-original-text')}</span><i class="fas fa-chevron-down toggle-icon"></i>`;
+        
+        const originalBtnHtml = button.innerHTML;
+        button.disabled = true;
+        button.innerHTML = `<span><span class="loading"></span> 量子分析中...</span><i class="fas fa-chevron-down toggle-icon"></i>`;
+        container.classList.add('active');
+        
+        const progressContainer = document.createElement('div');
+        progressContainer.className = 'progress-container';
+        progressContainer.innerHTML = '<div class="progress-bar"></div>';
+        contentElement.innerHTML = '';
+        contentElement.appendChild(progressContainer);
+        
+        const progressBar = progressContainer.querySelector('.progress-bar');
+        let progress = 0;
+        const progressInterval = setInterval(function() {
+            progress += Math.random() * 10;
+            if (progress >= 100) progress = 100;
+            progressBar.style.width = `${progress}%`;
+        }, 300);
+        
+        try {
+            const result = await getBaziAnalysis(section, birthData);
+            clearInterval(progressInterval);
+            displaySectionContent(section, result, contentElement);
+            
+            // 恢复按钮状态，添加完成标记
+            const originalText = button.getAttribute('data-original-text');
+            button.innerHTML = `<span>${originalText}</span><i class="fas fa-check"></i><i class="fas fa-chevron-down toggle-icon"></i>`;
+            button.disabled = false;
+            
+            contentElement.classList.add('active');
+            loadedSections[section] = true;
+            
+            if (section === 'decade-fortune') {
+                initFortuneChart(result);
+            }
+        } catch (error) {
+            console.error(`加载${section}失败:`, error);
+            clearInterval(progressInterval);
+            contentElement.innerHTML = '<p style="color:var(--danger-color)">加载失败，请重试</p>';
+            button.disabled = false;
+            button.innerHTML = `<span>${button.getAttribute('data-original-text')}</span><i class="fas fa-chevron-down toggle-icon"></i>`;
+        }
     }
-}
 
     // 显示部分内容
     function displaySectionContent(section, result, contentElement) {
@@ -2389,33 +2378,4 @@ function initElementChart(baziInfo) {
             return '获取答案失败，请稍后重试';
         }
     }
-    // 生成分析结果（根据不同的部分返回不同的结果）
-        function generateAnalysisResult(section, result) {
-            const results = {
-                'strength': `
-                    <h4>身强身弱分析结果</h4>
-                    <p>日主能量值：<strong>87/100</strong></p>
-                    <p>格局判定：<span class="water">偏强格</span></p>
-                    <p>喜用神：<span class="metal">金</span>、<span class="water">水</span></p>
-                    <p>忌神：<span class="fire">火</span>、<span class="wood">木</span></p>
-                    <div class="analysis-details">${marked.parse(result)}</div>
-                `,
-                'elements': `
-                    <h4>五行能量分析</h4>
-                    <p>五行分布：水(32%) > 金(28%) > 土(20%) > 木(12%) > 火(8%)</p>
-                    <p>流通情况：<span class="success">水→木→火→土→金→水</span> 循环流通</p>
-                    <p>调候建议：需加强<span class="wood">木</span>元素平衡</p>
-                    <div class="analysis-details">${marked.parse(result)}</div>
-                `,
-                // ...其他部分的结果模板...
-                'default': `
-                    <h4>量子分析完成</h4>
-                    <p>已成功完成命理数据的量子计算</p>
-                    <p>结果准确率：92.7%</p>
-                    <div class="analysis-details">${marked.parse(result)}</div>
-                `
-            };
-            
-            return results[section] || results['default'];
-        }
 });
