@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 增强版缓存对象v2.1v
+    // 增强版缓存对象v2.2
     const baziCache = {
         data: {},
         get: function(key) {
@@ -450,13 +450,13 @@ document.addEventListener('DOMContentLoaded', function() {
         calculateBtn.addEventListener('click', calculateBazi);
 
         // 命格等级分析按钮
-        fateAnalysisBtn.addEventListener('click', function() {
-            showAnalysisModal('命格等级分析', getFateAnalysisContent());
+        fateAnalysisBtn.addEventListener('click', async function() {
+            showAnalysisModal('命格等级分析', await getFateAnalysisContent());
         });
 
         // 财富等级分析按钮
-        wealthAnalysisBtn.addEventListener('click', function() {
-            showAnalysisModal('财富等级分析', getWealthAnalysisContent());
+        wealthAnalysisBtn.addEventListener('click', async function() {
+            showAnalysisModal('财富等级分析', await getWealthAnalysisContent());
         });
 
         // 关闭模态框
@@ -480,11 +480,31 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // 获取命格等级分析内容
-    function getFateAnalysisContent() {
+    async function getFateAnalysisContent() {
         const score = calculateFateScore(currentPillars);
         const levelInfo = getFateLevel(score);
         
-        return `
+        try {
+            // 获取API详细分析
+            const analysis = await getBaziAnalysis('fate-level', birthData);
+            
+            return `
+## 1. 等级定位
+${levelInfo.name}
+
+## 2. 命格分析
+${analysis || "专业命理分析加载中..."}
+
+## 3. 评分细节参考
+- 日主得令: ${fateScoreDetails.seasonScore}/30
+- 五行平衡: ${fateScoreDetails.balanceScore}/25
+- 特殊格局: ${fateScoreDetails.patternScore}/20
+- 十神配置: ${fateScoreDetails.godsScore}/15
+- 天干地支组合: ${fateScoreDetails.combinationScore}/10
+`;
+        } catch (error) {
+            console.error('获取命格分析失败:', error);
+            return `
 ## 1. 等级定位
 ${levelInfo.name}
 
@@ -504,6 +524,7 @@ ${getFateSuggestions(score)}
 - 十神配置: ${fateScoreDetails.godsScore}/15
 - 天干地支组合: ${fateScoreDetails.combinationScore}/10
 `;
+        }
     }
 
     // 获取命格特征
@@ -534,11 +555,31 @@ ${getFateSuggestions(score)}
     }
 
     // 获取财富等级分析内容
-    function getWealthAnalysisContent() {
+    async function getWealthAnalysisContent() {
         const score = calculateWealthScore(currentPillars);
         const levelInfo = getWealthLevel(score);
         
-        return `
+        try {
+            // 获取API详细分析
+            const analysis = await getBaziAnalysis('wealth-level', birthData);
+            
+            return `
+## 1. 等级定位
+${levelInfo.name}
+
+## 2. 财富分析
+${analysis || "专业财富分析加载中..."}
+
+## 3. 评分细节参考
+- 财星数量质量: ${wealthScoreDetails.wealthStarScore}/30
+- 财星得地: ${wealthScoreDetails.wealthPositionScore}/25
+- 财星受克: ${wealthScoreDetails.wealthDamageScore}/20
+- 食伤生财: ${wealthScoreDetails.wealthSupportScore}/15
+- 大运走势: ${wealthScoreDetails.fortuneScore}/10
+`;
+        } catch (error) {
+            console.error('获取财富分析失败:', error);
+            return `
 ## 1. 等级定位
 ${levelInfo.name}
 
@@ -558,6 +599,7 @@ ${getWealthSuggestions(score)}
 - 食伤生财: ${wealthScoreDetails.wealthSupportScore}/15
 - 大运走势: ${wealthScoreDetails.fortuneScore}/10
 `;
+        }
     }
 
     // 获取财富特征
@@ -2450,6 +2492,34 @@ ${getWealthSuggestions(score)}
 
         // 根据不同部分设置不同的提示词
         switch(section) {
+            case 'fate-level':
+                prompt += `详细分析命格等级：
+1 命格类型分析（从强、从弱、专旺等）
+2 命格优势与不足
+3 发展建议
+格式说明：
+1.用简洁语言清晰的表达
+2.使用标准Markdown语法，可用表格方式呈现
+3.进度条用下划线模拟可视化效果
+4.箭头符号仅使用常规字符→
+5.重点突出加粗显示关键信息
+6.每个分析模块之间保留空行
+7.实现专业排版效果`;
+                break;
+            case 'wealth-level':
+                prompt += `详细分析财富等级：
+1 财富格局类型分析
+2 财富获取方式分析
+3 财富积累建议
+格式说明：
+1.用简洁语言清晰的表达
+2.使用标准Markdown语法，可用表格方式呈现
+3.进度条用下划线模拟可视化效果
+4.箭头符号仅使用常规字符→
+5.重点突出加粗显示关键信息
+6.每个分析模块之间保留空行
+7.实现专业排版效果`;
+                break;
             case 'strength':
                 prompt += `分析命主的身强身弱情况：
 1 日主得令、得地、得势的情况
