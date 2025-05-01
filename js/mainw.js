@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 增强版缓存对象v2.2b
+    // 增强版缓存对象v2.2v
     const baziCache = {
         data: {},
         get: function(key) {
@@ -2965,8 +2965,7 @@ ${getWealthSuggestions(score)}
 进度条：用下划线模拟：<br>进度50% → _____-----
 箭头符号：仅使用→表示层级或流程
 重点强调：加粗显示关键参数/注意事项
-模块间隔：每个分析模块之间空一行
-代码块：用`包裹代码片段或参数名`;
+模块间隔：每个分析模块之间空一行`;
                 break;
             case 'daily-fortune':
                 prompt += `详细分析每日运势：
