@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 增强版缓存对象v2.2a
+    // 增强版缓存对象v2.2b
     const baziCache = {
         data: {},
         get: function(key) {
@@ -305,7 +305,7 @@ document.addEventListener('DOMContentLoaded', function() {
         width: 20px;
         height: 20px;
         animation: spin 1s linear infinite;
-        margin-bottom: 6px;
+        margin-bottom: 5px;
     }
     @keyframes spin {
         0% { transform: rotate(0deg); }
@@ -1084,7 +1084,7 @@ ${getWealthSuggestions(score)}
         
         const originalBtnHtml = button.innerHTML;
         button.disabled = true;
-        button.innerHTML = `<span style="display: flex; align-items: center; justify-content: center; width: 100%;"><span class="loading"></span>量子分析中...</span><i class="fas fa-chevron-down toggle-icon"></i>`;
+        button.innerHTML = `<span style="display: flex; align-items: center; justify-content: center; width: 100%;"><span class="loading"></span>  量子分析中...</span><i class="fas fa-chevron-down toggle-icon"></i>`;
         container.classList.add('active');
         
         const progressContainer = document.createElement('div');
