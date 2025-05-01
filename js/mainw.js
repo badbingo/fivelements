@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 增强版缓存对象v2.2
+    // 增强版缓存对象v2.2w
     const baziCache = {
         data: {},
         get: function(key) {
@@ -283,6 +283,34 @@ document.addEventListener('DOMContentLoaded', function() {
         pointer-events: none;
         white-space: nowrap;
     }
+    .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.7);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+        color: white;
+        font-size: 18px;
+    }
+    .loading {
+        border: 5px solid #f3f3f3;
+        border-top: 5px solid #3498db;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        animation: spin 1s linear infinite;
+        margin-bottom: 20px;
+    }
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
     `;
     document.head.appendChild(style);
 
@@ -479,7 +507,7 @@ document.addEventListener('DOMContentLoaded', function() {
         analysisModal.style.display = 'block';
     }
 
-    // 获取命格等级分析内容
+    // 获取命格等级分析内容 - 改进版
     async function getFateAnalysisContent() {
         const score = calculateFateScore(currentPillars);
         const levelInfo = getFateLevel(score);
@@ -489,72 +517,183 @@ document.addEventListener('DOMContentLoaded', function() {
             const analysis = await getBaziAnalysis('fate-level', birthData);
             
             return `
-## 1. 等级定位
-${levelInfo.name}
+## 1. 命格等级评估
+**${levelInfo.name}**
 
-## 2. 命格分析
-${analysis || "专业命理分析加载中..."}
+您的命格综合评分为 ${score} 分（满分100分），属于${levelInfo.class.replace('-', ' ')}级别。
 
-## 3. 评分细节参考
-- 日主得令: ${fateScoreDetails.seasonScore}/30
-- 五行平衡: ${fateScoreDetails.balanceScore}/25
-- 特殊格局: ${fateScoreDetails.patternScore}/20
-- 十神配置: ${fateScoreDetails.godsScore}/15
-- 天干地支组合: ${fateScoreDetails.combinationScore}/10
+## 2. 命格核心特征
+${analysis || getDefaultFateAnalysis(score)}
+
+## 3. 实用建议
+${getPracticalFateSuggestions(score)}
+
+## 4. 评分细节
+<div class="score-details">
+    <div class="score-item">
+        <span class="score-label">日主得令:</span>
+        <div class="progress-container">
+            <div class="progress-bar" style="width: ${(fateScoreDetails.seasonScore/30)*100}%"></div>
+        </div>
+        <span class="score-value">${fateScoreDetails.seasonScore}/30</span>
+    </div>
+    <div class="score-item">
+        <span class="score-label">五行平衡:</span>
+        <div class="progress-container">
+            <div class="progress-bar" style="width: ${(fateScoreDetails.balanceScore/25)*100}%"></div>
+        </div>
+        <span class="score-value">${fateScoreDetails.balanceScore}/25</span>
+    </div>
+    <div class="score-item">
+        <span class="score-label">特殊格局:</span>
+        <div class="progress-container">
+            <div class="progress-bar" style="width: ${(fateScoreDetails.patternScore/20)*100}%"></div>
+        </div>
+        <span class="score-value">${fateScoreDetails.patternScore}/20</span>
+    </div>
+    <div class="score-item">
+        <span class="score-label">十神配置:</span>
+        <div class="progress-container">
+            <div class="progress-bar" style="width: ${(fateScoreDetails.godsScore/15)*100}%"></div>
+        </div>
+        <span class="score-value">${fateScoreDetails.godsScore}/15</span>
+    </div>
+    <div class="score-item">
+        <span class="score-label">天干地支组合:</span>
+        <div class="progress-container">
+            <div class="progress-bar" style="width: ${(fateScoreDetails.combinationScore/10)*100}%"></div>
+        </div>
+        <span class="score-value">${fateScoreDetails.combinationScore}/10</span>
+    </div>
+</div>
 `;
         } catch (error) {
             console.error('获取命格分析失败:', error);
-            return `
-## 1. 等级定位
-${levelInfo.name}
-
-## 2. 命格特征
-${getFateCharacteristics(score)}
-
-## 3. 优势分析
-${getFateStrengths(score)}
-
-## 4. 发展建议
-${getFateSuggestions(score)}
-
-## 5. 评分细节参考
-- 日主得令: ${fateScoreDetails.seasonScore}/30
-- 五行平衡: ${fateScoreDetails.balanceScore}/25
-- 特殊格局: ${fateScoreDetails.patternScore}/20
-- 十神配置: ${fateScoreDetails.godsScore}/15
-- 天干地支组合: ${fateScoreDetails.combinationScore}/10
-`;
+            return getDefaultFateAnalysis(score);
         }
     }
 
-    // 获取命格特征
+    // 默认命格分析内容
+    function getDefaultFateAnalysis(score) {
+        return `
+### 命格特征
+${getFateCharacteristics(score)}
+
+### 优势分析
+${getFateStrengths(score)}
+
+### 发展建议
+${getFateSuggestions(score)}
+`;
+    }
+
+    // 获取命格特征 - 改进版
     function getFateCharacteristics(score) {
-        if (score >= 85) return "天赐鸿运命格，一生多贵人相助，机遇不断，事业顺遂，健康长寿，家庭和睦。";
-        if (score >= 70) return "福星高照命格，事业有成，财运亨通，虽有波折但终能逢凶化吉。";
-        if (score >= 50) return "安常守分命格，平稳安定，需靠自身努力获得成就，无大起大落。";
-        if (score >= 30) return "勤能补拙命格，需付出更多努力才能获得成功，但终有回报。";
-        return "逆水行舟命格，人生多波折，需特别努力并注意规避风险。";
+        if (score >= 85) return `
+- <strong>天生福气深厚</strong>：您天生具备良好的运势基础，人生道路相对顺畅
+- <strong>贵人运强</strong>：容易得到长辈、上司或贵人的提携和帮助
+- <strong>机遇多</strong>：人生关键节点常有好的机会出现
+- <strong>抗风险能力强</strong>：即使遇到困难也能较快化解
+`;
+
+        if (score >= 70) return `
+- <strong>聪明才智出众</strong>：您具备较强的能力和智慧
+- <strong>适应能力强</strong>：能快速适应环境变化
+- <strong>人际关系好</strong>：与人相处融洽，容易获得支持
+- <strong>事业发展顺利</strong>：职业发展道路较为平坦
+`;
+
+        if (score >= 50) return `
+- <strong>性格稳重</strong>：您做事踏实可靠
+- <strong>脚踏实地</strong>：能够通过努力获得稳定发展
+- <strong>中等运势</strong>：需要适当努力才能获得成功
+`;
+
+        if (score >= 30) return `
+- <strong>意志坚定</strong>：您有较强的毅力和决心
+- <strong>吃苦耐劳</strong>：能够承受较大压力
+- <strong>需要更多努力</strong>：成功需要付出比常人更多的努力
+`;
+
+        return `
+- <strong>人生挑战多</strong>：您的人生道路可能较为坎坷
+- <strong>需要特别努力</strong>：必须付出极大努力才能获得成功
+- <strong>磨练意志</strong>：这些经历会让您变得更强
+`;
     }
 
-    // 获取命格优势
+    // 获取命格优势 - 改进版
     function getFateStrengths(score) {
-        if (score >= 85) return "天生福气深厚，贵人运强，机遇多，抗风险能力强，事业容易成功。";
-        if (score >= 70) return "聪明才智出众，适应能力强，人际关系好，事业发展顺利。";
-        if (score >= 50) return "性格稳重，脚踏实地，能通过努力获得稳定发展。";
-        if (score >= 30) return "意志坚定，吃苦耐劳，逆境中成长，终能有所成就。";
-        return "磨练意志，经历丰富，若能克服困难，可获独特人生体验。";
+        if (score >= 85) return `
+- <strong>先天优势明显</strong>：您天生具备很多有利条件
+- <strong>事半功倍</strong>：同样的努力能获得更大回报
+- <strong>危机化解能力强</strong>：遇到困难容易找到解决办法
+`;
+
+        if (score >= 70) return `
+- <strong>学习能力强</strong>：您掌握新知识新技能的速度较快
+- <strong>应变能力好</strong>：面对变化能快速调整适应
+- <strong>人脉资源丰富</strong>：容易获得他人的支持和帮助
+`;
+
+        if (score >= 50) return `
+- <strong>稳定性强</strong>：您的生活和工作较为稳定
+- <strong>持续发展能力</strong>：能够通过积累获得长期进步
+- <strong>抗压能力中等</strong>：能够承受一定程度的压力
+`;
+
+        if (score >= 30) return `
+- <strong>逆境成长型</strong>：困难环境反而能激发您的潜力
+- <strong>坚韧不拔</strong>：具备坚持到底的毅力
+- <strong>经验丰富</strong>：各种经历都是宝贵财富
+`;
+
+        return `
+- <strong>磨练意志</strong>：困难环境能锻炼您的意志力
+- <strong>独特视角</strong>：特殊经历让您看问题更深刻
+- <strong>成长空间大</strong>：每一点进步都是实实在在的
+`;
     }
 
-    // 获取命格发展建议
-    function getFateSuggestions(score) {
-        if (score >= 85) return "善用优势资源，避免骄傲自满，多帮助他人以积累福报。";
-        if (score >= 70) return "把握机遇，稳扎稳打，可尝试多元化发展。";
-        if (score >= 50) return "专注专业技能提升，建立稳定基础，避免冒险。";
-        if (score >= 30) return "制定明确目标，坚持不懈，寻求贵人指点。";
-        return "修身养性，学习专业技能，谨慎决策，避免高风险行为。";
+    // 获取命格发展建议 - 实用版
+    function getPracticalFateSuggestions(score) {
+        if (score >= 85) return `
+1. <strong>善用优势</strong>：充分发挥您的先天优势，但不要骄傲自满
+2. <strong>帮助他人</strong>：多帮助他人可以积累更多福报
+3. <strong>长远规划</strong>：制定10年以上的长期发展规划
+4. <strong>风险管理</strong>：虽然运势好，但仍需做好风险防范
+`;
+
+        if (score >= 70) return `
+1. <strong>把握机遇</strong>：遇到好机会要果断抓住
+2. <strong>提升专业</strong>：在某个领域深耕成为专家
+3. <strong>建立人脉</strong>：维护好重要人际关系
+4. <strong>适度冒险</strong>：可以尝试一些有把握的创新
+`;
+
+        if (score >= 50) return `
+1. <strong>专注领域</strong>：选择一个领域专注发展
+2. <strong>稳扎稳打</strong>：采取稳健的发展策略
+3. <strong>持续学习</strong>：不断提升自身能力
+4. <strong>避免冒险</strong>：不要参与高风险活动
+`;
+
+        if (score >= 30) return `
+1. <strong>明确目标</strong>：设定清晰可行的目标
+2. <strong>分步实施</strong>：将大目标分解为小步骤
+3. <strong>寻求指导</strong>：向有经验的人请教
+4. <strong>保持耐心</strong>：成功需要更长时间
+`;
+
+        return `
+1. <strong>提升技能</strong>：掌握一门实用专业技能
+2. <strong>谨慎决策</strong>：重大决定前多方咨询
+3. <strong>健康第一</strong>：特别注意身体健康
+4. <strong>量力而行</strong>：不要勉强做超出能力的事
+`;
     }
 
-    // 获取财富等级分析内容
+    // 获取财富等级分析内容 - 改进版
     async function getWealthAnalysisContent() {
         const score = calculateWealthScore(currentPillars);
         const levelInfo = getWealthLevel(score);
@@ -564,69 +703,188 @@ ${getFateSuggestions(score)}
             const analysis = await getBaziAnalysis('wealth-level', birthData);
             
             return `
-## 1. 等级定位
-${levelInfo.name}
+## 1. 财富等级评估
+**${levelInfo.name}**
 
-## 2. 财富分析
-${analysis || "专业财富分析加载中..."}
+您的财富综合评分为 ${score} 分（满分100分），属于${levelInfo.class.replace('-', ' ')}级别。
 
-## 3. 评分细节参考
-- 财星数量质量: ${wealthScoreDetails.wealthStarScore}/30
-- 财星得地: ${wealthScoreDetails.wealthPositionScore}/25
-- 财星受克: ${wealthScoreDetails.wealthDamageScore}/20
-- 食伤生财: ${wealthScoreDetails.wealthSupportScore}/15
-- 大运走势: ${wealthScoreDetails.fortuneScore}/10
+## 2. 财富特征分析
+${analysis || getDefaultWealthAnalysis(score)}
+
+## 3. 实用建议
+${getPracticalWealthSuggestions(score)}
+
+## 4. 评分细节
+<div class="score-details">
+    <div class="score-item">
+        <span class="score-label">财星数量质量:</span>
+        <div class="progress-container">
+            <div class="progress-bar" style="width: ${(wealthScoreDetails.wealthStarScore/30)*100}%"></div>
+        </div>
+        <span class="score-value">${wealthScoreDetails.wealthStarScore}/30</span>
+    </div>
+    <div class="score-item">
+        <span class="score-label">财星得地:</span>
+        <div class="progress-container">
+            <div class="progress-bar" style="width: ${(wealthScoreDetails.wealthPositionScore/25)*100}%"></div>
+        </div>
+        <span class="score-value">${wealthScoreDetails.wealthPositionScore}/25</span>
+    </div>
+    <div class="score-item">
+        <span class="score-label">财星受克:</span>
+        <div class="progress-container">
+            <div class="progress-bar" style="width: ${(wealthScoreDetails.wealthDamageScore/20)*100}%"></div>
+        </div>
+        <span class="score-value">${wealthScoreDetails.wealthDamageScore}/20</span>
+    </div>
+    <div class="score-item">
+        <span class="score-label">食伤生财:</span>
+        <div class="progress-container">
+            <div class="progress-bar" style="width: ${(wealthScoreDetails.wealthSupportScore/15)*100}%"></div>
+        </div>
+        <span class="score-value">${wealthScoreDetails.wealthSupportScore}/15</span>
+    </div>
+    <div class="score-item">
+        <span class="score-label">大运走势:</span>
+        <div class="progress-container">
+            <div class="progress-bar" style="width: ${(wealthScoreDetails.fortuneScore/10)*100}%"></div>
+        </div>
+        <span class="score-value">${wealthScoreDetails.fortuneScore}/10</span>
+    </div>
+</div>
 `;
         } catch (error) {
             console.error('获取财富分析失败:', error);
-            return `
-## 1. 等级定位
-${levelInfo.name}
-
-## 2. 财富特征
-${getWealthCharacteristics(score)}
-
-## 3. 优势分析
-${getWealthStrengths(score)}
-
-## 4. 发展建议
-${getWealthSuggestions(score)}
-
-## 5. 评分细节参考
-- 财星数量质量: ${wealthScoreDetails.wealthStarScore}/30
-- 财星得地: ${wealthScoreDetails.wealthPositionScore}/25
-- 财星受克: ${wealthScoreDetails.wealthDamageScore}/20
-- 食伤生财: ${wealthScoreDetails.wealthSupportScore}/15
-- 大运走势: ${wealthScoreDetails.fortuneScore}/10
-`;
+            return getDefaultWealthAnalysis(score);
         }
     }
 
-    // 获取财富特征
+    // 默认财富分析内容
+    function getDefaultWealthAnalysis(score) {
+        return `
+### 财富特征
+${getWealthCharacteristics(score)}
+
+### 优势分析
+${getWealthStrengths(score)}
+
+### 发展建议
+${getWealthSuggestions(score)}
+`;
+    }
+
+    // 获取财富特征 - 改进版
     function getWealthCharacteristics(score) {
-        if (score >= 90) return "天生财运亨通，正偏财俱佳，投资眼光独到，财富积累迅速。";
-        if (score >= 80) return "财运旺盛，正财稳定，偏财机会多，能通过努力获得丰厚回报。";
-        if (score >= 60) return "财运平稳，正财为主，需合理规划才能积累财富。";
-        if (score >= 40) return "财运起伏，需靠专业技能获取财富，投资需谨慎。";
-        return "财运较弱，需特别努力才能获得财富，宜稳扎稳打。";
+        if (score >= 90) return `
+- <strong>天生财运亨通</strong>：您天生具备良好的财富运势
+- <strong>正偏财俱佳</strong>：正规收入和投资理财都能获得不错收益
+- <strong>投资眼光独到</strong>：您对投资机会有敏锐的嗅觉
+- <strong>财富积累迅速</strong>：资产增长速度比一般人快
+`;
+
+        if (score >= 80) return `
+- <strong>财运旺盛</strong>：您的财富运势整体很好
+- <strong>正财稳定</strong>：工作收入来源稳固
+- <strong>偏财机会多</strong>：常有额外的收入机会
+- <strong>丰厚回报</strong>：努力能获得相应回报
+`;
+
+        if (score >= 60) return `
+- <strong>财运平稳</strong>：您的财富运势较为稳定
+- <strong>正财为主</strong>：主要依靠工作收入
+- <strong>合理规划</strong>：需要妥善管理才能积累财富
+- <strong>适度投资</strong>：可以尝试一些稳健投资
+`;
+
+        if (score >= 40) return `
+- <strong>财运起伏</strong>：您的财富运势有一定波动
+- <strong>专业技能</strong>：需要依靠专业能力获取财富
+- <strong>谨慎投资</strong>：投资前需要充分评估
+- <strong>储蓄重要</strong>：平时要注意积蓄
+`;
+
+        return `
+- <strong>财运较弱</strong>：您需要特别努力才能获得财富
+- <strong>稳扎稳打</strong>：适合采取稳健的财富策略
+- <strong>节俭为本</strong>：控制开支非常重要
+- <strong>长期积累</strong>：财富需要慢慢积累
+`;
     }
 
-    // 获取财富优势
+    // 获取财富优势 - 改进版
     function getWealthStrengths(score) {
-        if (score >= 90) return "财源广进，投资眼光精准，能把握大机遇，财富增长快。";
-        if (score >= 80) return "赚钱能力强，理财有道，能通过多种渠道积累财富。";
-        if (score >= 60) return "稳定收入来源，能通过专业技能获得合理报酬。";
-        if (score >= 40) return "节俭务实，能通过长期积累获得财富增长。";
-        return "吃苦耐劳，能在逆境中找到生存之道。";
+        if (score >= 90) return `
+- <strong>财源广进</strong>：您有多种收入渠道
+- <strong>投资精准</strong>：您的投资决策通常很准确
+- <strong>把握机遇</strong>：能抓住重要的财富机会
+- <strong>增长快速</strong>：财富增长速度较快
+`;
+
+        if (score >= 80) return `
+- <strong>赚钱能力强</strong>：您有较强的创收能力
+- <strong>理财有道</strong>：懂得如何管理财富
+- <strong>多元收入</strong>：收入来源较为多样化
+- <strong>稳健增长</strong>：财富能够持续增长
+`;
+
+        if (score >= 60) return `
+- <strong>稳定收入</strong>：您有可靠的收入来源
+- <strong>专业价值</strong>：可以通过专业技能获得报酬
+- <strong>理性消费</strong>：通常能够合理控制开支
+- <strong>逐步积累</strong>：财富能够稳步增加
+`;
+
+        if (score >= 40) return `
+- <strong>节俭务实</strong>：您懂得量入为出
+- <strong>长期视角</strong>：能够为长远打算
+- <strong>抗风险</strong>：面对经济波动有一定抵抗力
+- <strong>经验积累</strong>：理财经验会越来越丰富
+`;
+
+        return `
+- <strong>吃苦耐劳</strong>：您能够承受较大的工作压力
+- <strong>逆境生存</strong>：在困难条件下也能找到出路
+- <strong>珍惜资源</strong>：懂得合理利用有限资源
+- <strong>成长空间</strong>：财富管理能力提升空间大
+`;
     }
 
-    // 获取财富建议
-    function getWealthSuggestions(score) {
-        if (score >= 90) return "多元化投资，善用财富回馈社会，避免过度投机。";
-        if (score >= 80) return "把握投资机会，建立稳健理财规划，避免冲动消费。";
-        if (score >= 60) return "专注主业发展，适当进行保守投资，建立应急基金。";
-        if (score >= 40) return "提升专业技能，控制开支，避免高风险投资。";
-        return "专注稳定收入，学习理财知识，避免负债，量入为出。";
+    // 获取财富建议 - 实用版
+    function getPracticalWealthSuggestions(score) {
+        if (score >= 90) return `
+1. <strong>多元化投资</strong>：将资金分散到不同领域
+2. <strong>善用财富</strong>：用财富创造更多价值
+3. <strong>回馈社会</strong>：适当参与慈善事业
+4. <strong>避免投机</strong>：不要参与高风险投机
+`;
+
+        if (score >= 80) return `
+1. <strong>把握机会</strong>：遇到好项目要敢于投入
+2. <strong>理财规划</strong>：制定3-5年的理财计划
+3. <strong>控制消费</strong>：避免不必要的奢侈消费
+4. <strong>稳健扩张</strong>：在可控范围内扩大投资
+`;
+
+        if (score >= 60) return `
+1. <strong>专注主业</strong>：在专业领域深耕发展
+2. <strong>适度投资</strong>：选择低风险投资方式
+3. <strong>应急基金</strong>：储备6-12个月生活费
+4. <strong>提升技能</strong>：不断增值自身能力
+`;
+
+        if (score >= 40) return `
+1. <strong>专业技能</strong>：掌握一门高收入技能
+2. <strong>控制开支</strong>：记账并分析消费习惯
+3. <strong>保守投资</strong>：只参与保本型理财
+4. <strong>兼职增收</strong>：考虑发展副业收入
+`;
+
+        return `
+1. <strong>稳定收入</strong>：优先寻找稳定工作
+2. <strong>学习理财</strong>：掌握基本理财知识
+3. <strong>避免负债</strong>：尽量不要借贷消费
+4. <strong>节俭生活</strong>：根据收入规划支出
+`;
     }
 
     // 保存个人资料
