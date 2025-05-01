@@ -1,4 +1,4 @@
-/* 极简主义现代艺术风格2 */
+/* 极简主义现代艺术风格2 - 完整版 */
 :root {
     --primary-bg: #ffffff;
     --secondary-bg: #f5f5f5;
@@ -32,25 +32,20 @@
     padding: 0;
 }
 
-/* 修正背景显示问题 */
+/* 背景设置 */
 body {
     font-family: 'Inter', sans-serif;
     line-height: 1.6;
     color: var(--text-color);
-    /* 移除白色背景覆盖 */
-    background-color: transparent;
-    /* 增强背景图设置 */
     background-image: url('../image/cbg.jpg');
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
     background-repeat: no-repeat;
     min-height: 100vh;
-    /* 确保内容可读性 */
     position: relative;
 }
 
-/* 添加半透明覆盖层确保内容可读 */
 body::after {
     content: "";
     position: fixed;
@@ -62,32 +57,54 @@ body::after {
     z-index: -1;
 }
 
-/* 调整容器透明度 */
+/* 主容器样式 - 新增装饰边框 */
 .minimal-container {
     max-width: 1200px;
     margin: 0 auto;
     padding: var(--spacing-lg);
-    background-color: rgba(255, 255, 255, 0.8); /* 调整为更透明 */
+    background-color: rgba(255, 255, 255, 0.8);
     border-radius: var(--border-radius);
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
     position: relative;
-    z-index: 1;
+    overflow: hidden;
+    border: 1px solid var(--border-color);
 }
 
-/* 其他内容区域也调整透明度 */
-.basic-info,
-.detail-card,
-.rating-group {
-    background-color: rgba(255, 255, 255, 0.85); /* 半透明白色 */
+.minimal-container::before,
+.minimal-container::after {
+    content: "";
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    border: 2px solid var(--accent-color);
+    z-index: 2;
 }
 
-/* 确保Firefox兼容性 */
-@-moz-document url-prefix() {
-    body {
-        background-color: rgba(255, 255, 255, 0.01); /* Firefox需要微小透明度才能显示背景图 */
-    }
+.minimal-container::before {
+    top: 15px;
+    left: 15px;
+    border-right: none;
+    border-bottom: none;
 }
 
+.minimal-container::after {
+    top: 15px;
+    right: 15px;
+    border-left: none;
+    border-bottom: none;
+}
+
+.minimal-container::after {
+    content: "";
+    position: absolute;
+    bottom: 15px;
+    left: 15px;
+    width: calc(100% - 30px);
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent-color), transparent);
+}
+
+/* 页眉样式 */
 .minimal-header {
     position: relative;
     padding: var(--spacing-xl) 0;
@@ -97,7 +114,21 @@ body::after {
 }
 
 .header-content {
+    position: relative;
+    padding-bottom: var(--spacing-md);
     margin-bottom: var(--spacing-md);
+}
+
+.header-content::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100px;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent-color), var(--accent-secondary));
+    border-radius: 3px;
 }
 
 .header-title {
@@ -108,10 +139,9 @@ body::after {
     letter-spacing: -0.05rem;
 }
 
-/* 修改命字样式 */
 .header-title span.ming-character {
     color: #ff0000;
-    font-size: 120%; /* 增大20% */
+    font-size: 120%;
 }
 
 .header-subtitle {
@@ -120,6 +150,7 @@ body::after {
     font-weight: 400;
 }
 
+/* 主内容区 */
 .minimal-main {
     margin-bottom: var(--spacing-xl);
 }
@@ -130,19 +161,20 @@ body::after {
     margin-bottom: var(--spacing-md);
     padding-bottom: var(--spacing-sm);
     border-bottom: 1px solid var(--border-color);
+    position: relative;
+    padding-left: var(--spacing-md);
 }
 
-/* 修改所有小图标为红色 */
-.section-header i,
-label i,
-.info-section h3 i,
-.menu-tab i,
-.bazi-qa-title i,
-.lunar-header i,
-.gambling-title i,
-.saved-profiles-title i,
-.rating-title i {
-    color: #ff0000;
+.section-header::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 4px;
+    height: 60%;
+    background: linear-gradient(to bottom, var(--accent-color), var(--accent-secondary));
+    border-radius: 2px;
 }
 
 .section-header h2 {
@@ -150,6 +182,7 @@ label i,
     font-weight: 600;
 }
 
+/* 表单样式 */
 .form-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -159,6 +192,20 @@ label i,
 
 .form-group {
     margin-bottom: var(--spacing-md);
+    position: relative;
+    padding: var(--spacing-sm);
+    border-radius: var(--border-radius);
+}
+
+.form-group::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 3px;
+    height: 100%;
+    background: linear-gradient(to bottom, var(--accent-color), var(--accent-secondary));
+    border-radius: 3px 0 0 3px;
 }
 
 label {
@@ -171,6 +218,7 @@ label {
 
 label i {
     margin-right: var(--spacing-xs);
+    color: #ff0000;
 }
 
 input, select {
@@ -228,6 +276,7 @@ input:focus, select:focus {
     border-left: 3px solid var(--accent-secondary);
 }
 
+/* 按钮样式 */
 button {
     background-color: var(--accent-color);
     color: white;
@@ -242,6 +291,21 @@ button {
     align-items: center;
     justify-content: center;
     box-shadow: 0 2px 4px var(--shadow-color);
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+}
+
+button::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: 0.5s;
+    z-index: -1;
 }
 
 button:hover {
@@ -250,20 +314,24 @@ button:hover {
     box-shadow: 0 4px 8px var(--shadow-color);
 }
 
+button:hover::before {
+    left: 100%;
+}
+
 button i {
     margin-right: var(--spacing-xs);
 }
-/* 新增：开始量子测算按钮容器 */
+
+/* 特殊按钮样式 */
 .calculate-btn-container {
     display: flex;
     justify-content: center;
     margin: 20px 0;
 }
 
-/* 针对该按钮的独立样式 */
 #calculate-btn {
     padding: 12px 24px;
-    background-color: #ff0000; /* 修改为红色 */
+    background-color: #ff0000;
     color: white;
     border: none;
     border-radius: 50px;
@@ -277,12 +345,14 @@ button i {
 #calculate-btn:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-    background-color: #e60000; /* 深红色悬停状态 */
+    background-color: #e60000;
 }
 
 #calculate-btn i {
     margin-right: 8px;
 }
+
+/* 结果区域 */
 .result-section {
     display: none;
     margin-top: var(--spacing-xl);
@@ -311,13 +381,16 @@ button i {
 
 .info-section h3 i {
     margin-right: var(--spacing-sm);
+    color: #ff0000;
 }
 
+/* 八字表格样式 */
 .bazi-table {
     width: 100%;
     border-collapse: collapse;
     margin: var(--spacing-md) 0;
-    border: 1px solid var(--border-color);
+    border: none;
+    box-shadow: 0 0 0 1px var(--border-color);
     border-radius: var(--border-radius);
     overflow: hidden;
 }
@@ -339,12 +412,24 @@ button i {
     position: relative;
 }
 
+.bazi-cell:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 1px;
+    height: 60%;
+    background: var(--border-color);
+}
+
 .bazi-header .bazi-cell {
     background-color: rgba(0, 153, 255, 0.1);
     color: var(--text-color);
     font-weight: 600;
 }
 
+/* 个性特征 */
 .personality-traits {
     margin-top: var(--spacing-md);
     padding: var(--spacing-sm);
@@ -354,6 +439,7 @@ button i {
     font-style: italic;
 }
 
+/* 元素图表 */
 .element-chart-container {
     width: 100%;
     height: 300px;
@@ -391,6 +477,7 @@ button i {
 .metal-color { background-color: var(--metal-color); }
 .water-color { background-color: var(--water-color); }
 
+/* 评分系统 */
 .rating-container {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -399,10 +486,28 @@ button i {
 
 .rating-group {
     padding: var(--spacing-md);
-    background-color: white;
+    background: linear-gradient(145deg, #ffffff, #f8f8f8);
     border-radius: var(--border-radius);
-    border: 1px solid var(--border-color);
+    border: none;
     box-shadow: 0 2px 4px var(--shadow-color);
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+}
+
+.rating-group:hover {
+    transform: translateY(-2px);
+}
+
+.rating-group::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: linear-gradient(90deg, var(--accent-color), var(--accent-secondary));
 }
 
 .rating-title {
@@ -415,6 +520,7 @@ button i {
 
 .rating-title i {
     margin-right: var(--spacing-xs);
+    color: #ff0000;
 }
 
 .rating-level {
@@ -455,6 +561,7 @@ button i {
     border-radius: 3px;
 }
 
+/* 选项卡样式 */
 .menu-tabs {
     display: flex;
     border-bottom: 1px solid var(--border-color);
@@ -473,6 +580,7 @@ button i {
 
 .menu-tab i {
     margin-right: var(--spacing-xs);
+    color: #ff0000;
 }
 
 .menu-tab:hover {
@@ -484,6 +592,18 @@ button i {
     border-bottom-color: var(--accent-color);
 }
 
+.menu-tab.active::after {
+    content: "";
+    position: absolute;
+    bottom: -1px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60%;
+    height: 3px;
+    background: var(--accent-color);
+    border-radius: 3px 3px 0 0;
+}
+
 .tab-content {
     display: none;
 }
@@ -492,14 +612,27 @@ button i {
     display: block;
 }
 
+/* 详情卡片 */
 .detail-card {
-    background-color: white;
+    background: linear-gradient(145deg, #ffffff, #f8f8f8);
     border-radius: var(--border-radius);
     padding: var(--spacing-md);
     margin-bottom: var(--spacing-md);
-    border: 1px solid var(--border-color);
+    border: none;
     box-shadow: 0 2px 4px var(--shadow-color);
     transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+}
+
+.detail-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--accent-color), var(--accent-secondary));
 }
 
 .detail-card:hover {
@@ -556,12 +689,13 @@ button i {
     padding-top: var(--spacing-sm);
 }
 
+/* 农历卡片 */
 .lunar-calendar-card {
-    background-color: white;
+    background: linear-gradient(145deg, #ffffff, #f8f8f8);
     border-radius: var(--border-radius);
     padding: var(--spacing-md);
     margin: var(--spacing-md) auto;
-    border: 1px solid var(--border-color);
+    border: none;
     box-shadow: 0 2px 4px var(--shadow-color);
     max-width: 500px;
     text-align: center;
@@ -579,6 +713,7 @@ button i {
 
 .lunar-header i {
     margin-right: var(--spacing-sm);
+    color: #ff0000;
 }
 
 .lunar-date {
@@ -617,6 +752,7 @@ button i {
     line-height: 1.6;
 }
 
+/* 赌博分析 */
 .gambling-analysis {
     background-color: rgba(255, 51, 102, 0.05);
     border-radius: var(--border-radius);
@@ -635,6 +771,7 @@ button i {
 
 .gambling-title i {
     margin-right: var(--spacing-xs);
+    color: #ff0000;
 }
 
 .gambling-rating {
@@ -649,6 +786,7 @@ button i {
     line-height: 1.6;
 }
 
+/* 保存的配置 */
 .saved-profiles {
     margin-top: var(--spacing-md);
     padding: var(--spacing-sm);
@@ -668,6 +806,7 @@ button i {
 
 .saved-profiles-title i {
     margin-right: var(--spacing-xs);
+    color: #ff0000;
 }
 
 .saved-profiles-list {
@@ -703,6 +842,7 @@ button i {
     color: var(--danger-color);
 }
 
+/* 八字问答 */
 .bazi-qa-container {
     margin-top: var(--spacing-md);
     padding: var(--spacing-md);
@@ -773,7 +913,7 @@ button i {
     gap: var(--spacing-sm);
 }
 
-/* 合并后的loading样式 */
+/* 加载动画 */
 .loading {
     display: inline-block;
     border: 3px solid rgba(0, 153, 255, 0.3);
@@ -801,6 +941,7 @@ button i {
     to { transform: rotate(360deg); }
 }
 
+/* 页脚 */
 .minimal-footer {
     text-align: center;
     padding: var(--spacing-md);
@@ -809,7 +950,7 @@ button i {
     border-top: 1px solid var(--border-color);
 }
 
-/* 分析模态框样式 */
+/* 模态框 */
 .analysis-modal {
     display: none;
     position: fixed;
@@ -824,7 +965,7 @@ button i {
 }
 
 .modal-content {
-    background-color: var(--bg-color);
+    background-color: var(--primary-bg);
     margin: 5% auto;
     padding: 25px;
     border-radius: 10px;
@@ -834,8 +975,18 @@ button i {
     max-height: 80vh;
     overflow-y: auto;
     position: relative;
-    border: 1px solid var(--border-color);
+    border: none;
     animation: modalFadeIn 0.3s ease-out;
+}
+
+.modal-content::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 6px;
+    background: linear-gradient(90deg, var(--accent-color), var(--accent-secondary), var(--wood-color), var(--water-color), var(--metal-color));
 }
 
 @keyframes modalFadeIn {
@@ -865,7 +1016,7 @@ button i {
 }
 
 #analysis-title {
-    color: var(--primary-color);
+    color: var(--accent-color);
     margin-bottom: 20px;
     padding-bottom: 10px;
     border-bottom: 1px solid var(--border-color);
@@ -875,119 +1026,19 @@ button i {
     line-height: 1.6;
 }
 
-/* 命格等级特定样式 */
-.rating-level {
-    padding: 3px 8px;
-    border-radius: 4px;
-    font-weight: bold;
-}
-
-.rating-level.excellent {
-    background-color: rgba(0, 200, 83, 0.15);
-    color: #00c853;
-}
-
-.rating-level.good {
-    background-color: rgba(76, 175, 80, 0.15);
-    color: #4caf50;
-}
-
-.rating-level.average {
-    background-color: rgba(255, 193, 7, 0.15);
-    color: #ffc107;
-}
-
-.rating-level.struggling {
-    background-color: rgba(255, 152, 0, 0.15);
-    color: #ff9800;
-}
-
-.rating-level.needs-improvement {
-    background-color: rgba(244, 67, 54, 0.15);
-    color: #f44336;
-}
-
-/* 财富等级特定样式 */
-.rating-level.ultra-rich {
-    background-color: rgba(233, 30, 99, 0.15);
-    color: #e91e63;
-}
-
-.rating-level.very-rich {
-    background-color: rgba(156, 39, 176, 0.15);
-    color: #9c27b0;
-}
-
-.rating-level.moderately-rich {
-    background-color: rgba(103, 58, 183, 0.15);
-    color: #673ab7;
-}
-
-.rating-level.somewhat-rich {
-    background-color: rgba(63, 81, 181, 0.15);
-    color: #3f51b5;
-}
-
-.rating-level.wealth-average {
-    background-color: rgba(33, 150, 243, 0.15);
-    color: #2196f3;
-}
-
-/* Markdown内容样式 */
-.markdown-content h2 {
-    font-size: 1.5em;
-    margin: 1.2em 0 0.8em;
-    color: var(--primary-color);
-    border-bottom: 1px solid var(--border-color);
-    padding-bottom: 5px;
-}
-
-.markdown-content h3 {
-    font-size: 1.3em;
-    margin: 1em 0 0.6em;
-    color: var(--text-color);
-}
-
-.markdown-content p {
-    margin: 0.8em 0;
-    color: var(--text-color);
-}
-
-.markdown-content ul {
-    margin: 0.8em 0;
-    padding-left: 20px;
-}
-
-.markdown-content li {
-    margin-bottom: 0.5em;
-}
-
-/* 分析按钮样式 */
-.analysis-btn {
-    display: inline-block;
-    margin: 10px 5px;
-    padding: 8px 15px;
-    background-color: var(--primary-color);
-    color: white;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: all 0.3s;
-    font-size: 14px;
-    border: none;
-}
-
-.analysis-btn:hover {
-    background-color: var(--primary-dark);
-    transform: translateY(-2px);
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
-}
-
-/* 五行元素颜色 */
+/* 五行元素颜色类 */
 .wood { color: var(--wood-color); }
 .fire { color: var(--fire-color); }
 .earth { color: var(--earth-color); }
 .metal { color: var(--metal-color); }
 .water { color: var(--water-color); }
+
+/* 五行元素边框类 */
+.wood-border { border-left: 4px solid var(--wood-color); }
+.fire-border { border-left: 4px solid var(--fire-color); }
+.earth-border { border-left: 4px solid var(--earth-color); }
+.metal-border { border-left: 4px solid var(--metal-color); }
+.water-border { border-left: 4px solid var(--water-color); }
 
 /* 响应式设计 */
 @media (max-width: 768px) {
@@ -1011,105 +1062,18 @@ button i {
         flex: 1 0 50%;
         text-align: center;
     }
+    
+    .minimal-container::before,
+    .minimal-container::after {
+        width: 20px;
+        height: 20px;
+    }
+    
+    .form-group::before {
+        width: 2px;
+    }
 }
 
-/* 模态框样式 */
-.modal {
-    display: none;
-    position: fixed;
-    z-index: 1000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background-color: rgba(0,0,0,0.6);
-}
-
-.modal-content {
-    background-color: var(--bg-color);
-    margin: 5% auto;
-    padding: 20px;
-    border: 1px solid var(--border-color);
-    width: 80%;
-    max-width: 800px;
-    border-radius: 8px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-}
-
-.close {
-    color: var(--text-light);
-    float: right;
-    font-size: 28px;
-    font-weight: bold;
-    cursor: pointer;
-}
-
-.close:hover {
-    color: var(--danger-color);
-}
-
-.modal-body {
-    padding: 20px 0;
-    line-height: 1.6;
-}
-
-/* 评分容器添加指针样式 */
-.rating-group {
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.rating-group:hover {
-    transform: translateY(-2px);
-}
-
-/* 分析按钮加载状态 */
-.analysis-btn.loading {
-    position: relative;
-    padding-left: 40px;
-}
-
-.analysis-btn.loading:after {
-    content: "";
-    position: absolute;
-    left: 15px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 30px;
-    height: 30px;
-    border: 3px solid rgba(255,255,255,0.3);
-    border-radius: 50%;
-    border-top-color: #fff;
-    animation: spin 1s ease-in-out infinite;
-}
-/* 通用表格样式 */
-.markdown-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin: 1em 0;
-  font-family: inherit;
-}
-
-.markdown-table th,
-.markdown-table td {
-  padding: 0.75em;
-  border: 1px solid #ddd;
-  text-align: left;
-}
-
-.markdown-table th {
-  background-color: #f8f8f8;
-  font-weight: 600;
-}
-
-.markdown-table tr:nth-child(even) {
-  background-color: #f9f9f9;
-}
-
-.markdown-table tr:hover {
-  background-color: #f1f1f1;
-}
 @media (max-width: 480px) {
     .minimal-container {
         padding: var(--spacing-md);
