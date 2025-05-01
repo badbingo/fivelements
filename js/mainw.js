@@ -479,13 +479,41 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // 命格等级分析按钮
         fateAnalysisBtn.addEventListener('click', async function() {
-            showAnalysisModal('命格等级分析', await getFateAnalysisContent());
-        });
+        // 显示loading状态
+        this.classList.add('loading');
+        this.disabled = true;
+        
+        try {
+            const content = await getFateAnalysisContent();
+            showAnalysisModal('命格等级分析', content);
+        } catch (error) {
+            console.error('获取命格分析失败:', error);
+            showAnalysisModal('命格等级分析', '获取分析内容失败，请稍后重试');
+        } finally {
+            // 移除loading状态
+            this.classList.remove('loading');
+            this.disabled = false;
+        }
+    });
 
         // 财富等级分析按钮
         wealthAnalysisBtn.addEventListener('click', async function() {
-            showAnalysisModal('财富等级分析', await getWealthAnalysisContent());
-        });
+    // 显示loading状态
+    this.classList.add('loading');
+    this.disabled = true;
+    
+    try {
+        const content = await getWealthAnalysisContent();
+        showAnalysisModal('财富等级分析', content);
+    } catch (error) {
+        console.error('获取财富分析失败:', error);
+        showAnalysisModal('财富等级分析', '获取分析内容失败，请稍后重试');
+    } finally {
+        // 移除loading状态
+        this.classList.remove('loading');
+        this.disabled = false;
+    }
+});
 
         // 关闭模态框
         closeModal.addEventListener('click', function() {
