@@ -2633,12 +2633,4 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 });
-// Initialize Marked.js
-marked.setOptions({
-    breaks: true,
-    gfm: true,
-    tables: true,
-    highlight: function(code, lang) {
-        return code;
-    }
-});
+
