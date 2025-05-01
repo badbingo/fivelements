@@ -85,12 +85,19 @@
         }
         
         .header-title {
-    font-size: 2.5rem;
-    font-weight: 700;
-    color: var(--text-color);
-    margin-bottom: var(--spacing-xs);
-    letter-spacing: -0.05rem;
-}
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--text-color);
+            margin-bottom: var(--spacing-xs);
+            letter-spacing: -0.05rem;
+        }
+        
+        .header-title .he-character {
+            font-size: 120%;  /* 增大20% */
+            color: #e74c3c;   /* 红色 */
+            position: relative;
+            top: 2px;
+        }
         
         .header-title::after {
             content: "";
@@ -249,6 +256,10 @@
             overflow: hidden;
         }
         
+        #calculate-btn {
+            background: linear-gradient(45deg, #e74c3c, #ff6b6b); /* 红色渐变 */
+        }
+        
         button:hover {
             transform: translateY(-3px);
             box-shadow: 0 8px 25px rgba(106, 48, 147, 0.3);
@@ -360,6 +371,9 @@
             line-height: 1.8;
             color: var(--text-color);
             box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
         }
         
         .score-explanation h4 {
@@ -368,6 +382,7 @@
             font-size: 18px;
             display: flex;
             align-items: center;
+            width: 100%;
         }
         
         .score-explanation h4 i {
@@ -376,6 +391,8 @@
         
         .score-explanation ul {
             padding-left: 25px;
+            flex: 1;
+            min-width: 300px;
         }
         
         .score-explanation li {
@@ -388,6 +405,27 @@
             position: absolute;
             left: -15px;
             color: var(--accent-color);
+        }
+        
+        .score-explanation .score-ranges {
+            flex: 1;
+            min-width: 300px;
+            background: rgba(0,0,0,0.02);
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid var(--accent-color);
+        }
+        
+        .score-explanation .score-ranges p {
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px dashed rgba(0,0,0,0.1);
+        }
+        
+        .score-explanation .score-ranges p:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
         }
         
         .recommendation {
@@ -720,6 +758,11 @@
             .partner-cards-container {
                 flex-direction: column;
             }
+            
+            .score-explanation ul,
+            .score-explanation .score-ranges {
+                min-width: 100%;
+            }
         }
         
         @media (max-width: 480px) {
@@ -777,7 +820,7 @@
 <body>
     <div class="container">
         <div class="header-container">
-            <h1 class="header-title">五行八字合婚</h1>
+            <h1 class="header-title">五行八字<span class="he-character">合</span>婚</h1>
             <div class="header-subtitle">传统命理 · 姻缘配对</div>
         </div>
         
@@ -865,7 +908,7 @@
             </div>
             
             <div class="calculate-btn-container">
-                <button id="calculate-btn"><i class="fas fa-heart"></i> 开始合婚测算</button>
+                <button id="calculate-btn"><i class="fas fa-heart"></i> 开始结婚测算</button>
             </div>
         </div>
         
@@ -946,15 +989,22 @@
 
                 <div class="score-explanation">
                     <h4><i class="fas fa-info-circle"></i> 姻缘算法说明</h4>
-                    <p>姻缘匹配度综合考虑以下因素：</p>
                     <ul>
-                        <li><strong>90-100分</strong>：八字高度匹配，婚后和谐幸福</li>
-                        <li><strong>80-89分</strong>：八字匹配良好，需要少量调和即可</li>
-                        <li><strong>70-79分</strong>：八字基本匹配，需注意沟通方式和相处之道</li>
-                        <li><strong>60-69分</strong>：八字匹配度一般，需要双方共同努力维系</li>
-                        <li><strong>50-59分</strong>：八字匹配度较低，需要谨慎考虑，可能存在较多矛盾</li>
-                        <li><strong>50分以下</strong>：八字冲克较多，婚姻可能不稳固</li>
+                        <li><strong>日柱相合</strong>：分析双方日柱天干地支的相生相克关系</li>
+                        <li><strong>五行互补</strong>：评估双方八字五行能量的平衡与互补</li>
+                        <li><strong>十神关系</strong>：分析双方十神组合对婚姻的影响</li>
+                        <li><strong>大运走势</strong>：考察双方大运走势的同步性</li>
+                        <li><strong>流年影响</strong>：预测关键年份对婚姻的影响</li>
                     </ul>
+                    
+                    <div class="score-ranges">
+                        <p><strong>90-100分</strong>：八字高度匹配，婚后和谐幸福</p>
+                        <p><strong>80-89分</strong>：八字匹配良好，需要少量调和即可</p>
+                        <p><strong>70-79分</strong>：八字基本匹配，需注意沟通方式</p>
+                        <p><strong>60-69分</strong>：八字匹配度一般，需共同努力维系</p>
+                        <p><strong>50-59分</strong>：八字匹配度较低，需谨慎考虑</p>
+                        <p><strong>50分以下</strong>：八字冲克较多，婚姻可能不稳固</p>
+                    </div>
                 </div>
                 
                 <div class="recommendation" id="recommendation">
@@ -1371,7 +1421,7 @@
                     inputSection.style.display = 'none';
                     resultSection.style.display = 'block';
                     calculateBtn.disabled = false;
-                    calculateBtn.innerHTML = '<i class="fas fa-heart"></i> 开始合婚测算';
+                    calculateBtn.innerHTML = '<i class="fas fa-heart"></i> 开始结婚测算';
                     
                     initLoadButtons();
                     window.scrollTo(0, 0);
@@ -1381,7 +1431,7 @@
                     console.error('测算失败:', error);
                     showApiStatus(`测算失败: ${error.message}`, 'error');
                     calculateBtn.disabled = false;
-                    calculateBtn.innerHTML = '<i class="fas fa-heart"></i> 开始合婚测算';
+                    calculateBtn.innerHTML = '<i class="fas fa-heart"></i> 开始结婚测算';
                 }
             });
             
