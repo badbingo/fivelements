@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 增强版缓存对象v2.2b
+    // 增强版缓存对象v2.2
     const baziCache = {
         data: {},
         get: function(key) {
@@ -332,7 +332,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const analysisTitle = document.getElementById('analysis-title');
     const analysisContent = document.getElementById('analysis-content');
     const closeModal = document.getElementById('close-modal');
-    const loadingOverlay = document.getElementById('loading-overlay');
 
     // 全局变量
     let elementChart;
@@ -452,30 +451,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // 命格等级分析按钮
         fateAnalysisBtn.addEventListener('click', async function() {
-            showLoading(true);
-            try {
-                const content = await getFateAnalysisContent();
-                showAnalysisModal('命格等级分析', content);
-            } catch (error) {
-                console.error('获取命格分析失败:', error);
-                showAnalysisModal('命格等级分析', getFallbackFateAnalysis());
-            } finally {
-                showLoading(false);
-            }
+            showAnalysisModal('命格等级分析', await getFateAnalysisContent());
         });
 
         // 财富等级分析按钮
         wealthAnalysisBtn.addEventListener('click', async function() {
-            showLoading(true);
-            try {
-                const content = await getWealthAnalysisContent();
-                showAnalysisModal('财富等级分析', content);
-            } catch (error) {
-                console.error('获取财富分析失败:', error);
-                showAnalysisModal('财富等级分析', getFallbackWealthAnalysis());
-            } finally {
-                showLoading(false);
-            }
+            showAnalysisModal('财富等级分析', await getWealthAnalysisContent());
         });
 
         // 关闭模态框
@@ -491,15 +472,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // 显示加载状态
-    function showLoading(show) {
-        if (show) {
-            loadingOverlay.style.display = 'flex';
-        } else {
-            loadingOverlay.style.display = 'none';
-        }
-    }
-
     // 显示分析模态框
     function showAnalysisModal(title, content) {
         analysisTitle.textContent = title;
@@ -512,10 +484,11 @@ document.addEventListener('DOMContentLoaded', function() {
         const score = calculateFateScore(currentPillars);
         const levelInfo = getFateLevel(score);
         
-        // 获取API详细分析
-        const analysis = await getBaziAnalysis('fate-level', birthData);
-        
-        return `
+        try {
+            // 获取API详细分析
+            const analysis = await getBaziAnalysis('fate-level', birthData);
+            
+            return `
 ## 1. 等级定位
 ${levelInfo.name}
 
@@ -529,6 +502,29 @@ ${analysis || "专业命理分析加载中..."}
 - 十神配置: ${fateScoreDetails.godsScore}/15
 - 天干地支组合: ${fateScoreDetails.combinationScore}/10
 `;
+        } catch (error) {
+            console.error('获取命格分析失败:', error);
+            return `
+## 1. 等级定位
+${levelInfo.name}
+
+## 2. 命格特征
+${getFateCharacteristics(score)}
+
+## 3. 优势分析
+${getFateStrengths(score)}
+
+## 4. 发展建议
+${getFateSuggestions(score)}
+
+## 5. 评分细节参考
+- 日主得令: ${fateScoreDetails.seasonScore}/30
+- 五行平衡: ${fateScoreDetails.balanceScore}/25
+- 特殊格局: ${fateScoreDetails.patternScore}/20
+- 十神配置: ${fateScoreDetails.godsScore}/15
+- 天干地支组合: ${fateScoreDetails.combinationScore}/10
+`;
+        }
     }
 
     // 获取命格特征
@@ -558,41 +554,16 @@ ${analysis || "专业命理分析加载中..."}
         return "修身养性，学习专业技能，谨慎决策，避免高风险行为。";
     }
 
-    // 获取备用命格分析内容
-    function getFallbackFateAnalysis() {
-        const score = calculateFateScore(currentPillars);
-        
-        return `
-## 1. 等级定位
-${getFateLevel(score).name}
-
-## 2. 命格特征
-${getFateCharacteristics(score)}
-
-## 3. 优势分析
-${getFateStrengths(score)}
-
-## 4. 发展建议
-${getFateSuggestions(score)}
-
-## 5. 评分细节参考
-- 日主得令: ${fateScoreDetails.seasonScore}/30
-- 五行平衡: ${fateScoreDetails.balanceScore}/25
-- 特殊格局: ${fateScoreDetails.patternScore}/20
-- 十神配置: ${fateScoreDetails.godsScore}/15
-- 天干地支组合: ${fateScoreDetails.combinationScore}/10
-`;
-    }
-
     // 获取财富等级分析内容
     async function getWealthAnalysisContent() {
         const score = calculateWealthScore(currentPillars);
         const levelInfo = getWealthLevel(score);
         
-        // 获取API详细分析
-        const analysis = await getBaziAnalysis('wealth-level', birthData);
-        
-        return `
+        try {
+            // 获取API详细分析
+            const analysis = await getBaziAnalysis('wealth-level', birthData);
+            
+            return `
 ## 1. 等级定位
 ${levelInfo.name}
 
@@ -606,6 +577,29 @@ ${analysis || "专业财富分析加载中..."}
 - 食伤生财: ${wealthScoreDetails.wealthSupportScore}/15
 - 大运走势: ${wealthScoreDetails.fortuneScore}/10
 `;
+        } catch (error) {
+            console.error('获取财富分析失败:', error);
+            return `
+## 1. 等级定位
+${levelInfo.name}
+
+## 2. 财富特征
+${getWealthCharacteristics(score)}
+
+## 3. 优势分析
+${getWealthStrengths(score)}
+
+## 4. 发展建议
+${getWealthSuggestions(score)}
+
+## 5. 评分细节参考
+- 财星数量质量: ${wealthScoreDetails.wealthStarScore}/30
+- 财星得地: ${wealthScoreDetails.wealthPositionScore}/25
+- 财星受克: ${wealthScoreDetails.wealthDamageScore}/20
+- 食伤生财: ${wealthScoreDetails.wealthSupportScore}/15
+- 大运走势: ${wealthScoreDetails.fortuneScore}/10
+`;
+        }
     }
 
     // 获取财富特征
@@ -633,32 +627,6 @@ ${analysis || "专业财富分析加载中..."}
         if (score >= 60) return "专注主业发展，适当进行保守投资，建立应急基金。";
         if (score >= 40) return "提升专业技能，控制开支，避免高风险投资。";
         return "专注稳定收入，学习理财知识，避免负债，量入为出。";
-    }
-
-    // 获取备用财富分析内容
-    function getFallbackWealthAnalysis() {
-        const score = calculateWealthScore(currentPillars);
-        
-        return `
-## 1. 等级定位
-${getWealthLevel(score).name}
-
-## 2. 财富特征
-${getWealthCharacteristics(score)}
-
-## 3. 优势分析
-${getWealthStrengths(score)}
-
-## 4. 发展建议
-${getWealthSuggestions(score)}
-
-## 5. 评分细节参考
-- 财星数量质量: ${wealthScoreDetails.wealthStarScore}/30
-- 财星得地: ${wealthScoreDetails.wealthPositionScore}/25
-- 财星受克: ${wealthScoreDetails.wealthDamageScore}/20
-- 食伤生财: ${wealthScoreDetails.wealthSupportScore}/15
-- 大运走势: ${wealthScoreDetails.fortuneScore}/10
-`;
     }
 
     // 保存个人资料
@@ -904,9 +872,16 @@ ${getWealthSuggestions(score)}
         saveProfile(birthData);
         calculateBtn.disabled = true;
         calculateBtn.innerHTML = '<span class="loading"></span> 量子测算中...';
-        showLoading(true);
         
         try {
+            const loadingOverlay = document.createElement('div');
+            loadingOverlay.className = 'loading-overlay';
+            loadingOverlay.innerHTML = `
+                <div class="loading"></div>
+                <p>量子计算引擎启动中...</p>
+            `;
+            document.body.appendChild(loadingOverlay);
+            
             // 使用混合模式获取结果
             const baziInfo = await getBaziAnalysis('basic', birthData);
             
@@ -931,15 +906,18 @@ ${getWealthSuggestions(score)}
             
             inputSection.style.display = 'none';
             resultSection.style.display = 'block';
+            document.body.removeChild(loadingOverlay);
             initLoadButtons();
             window.scrollTo(0, 0);
         } catch (error) {
             console.error('测算失败:', error);
             alert('量子测算失败，请稍后重试');
+            if (document.querySelector('.loading-overlay')) {
+                document.body.removeChild(document.querySelector('.loading-overlay'));
+            }
         } finally {
             calculateBtn.disabled = false;
             calculateBtn.innerHTML = '<i class="fas fa-brain"></i> 开始量子测算';
-            showLoading(false);
         }
     }
 
