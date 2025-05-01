@@ -1,11 +1,11 @@
-/* 极简主义现代艺术风格 - 最终完整版 */
+/* 极简主义现代艺术风格2c - 优化版 */
 :root {
     --primary-bg: #ffffff;
     --secondary-bg: #f5f5f5;
     --text-color: #333333;
     --text-light: #666666;
-    --accent-color: #ff3366;
-    --accent-secondary: #0066ff;
+    --accent-color: #ff3366; /* 高饱和亮色 - 荧光粉 */
+    --accent-secondary: #0066ff; /* 电光蓝 */
     --border-color: #e0e0e0;
     --shadow-color: rgba(0, 0, 0, 0.1);
     --success-color: #00cc88;
@@ -32,20 +32,25 @@
     padding: 0;
 }
 
+/* 修正背景显示问题 */
 body {
     font-family: 'Inter', sans-serif;
     line-height: 1.6;
     color: var(--text-color);
+    /* 移除白色背景覆盖 */
     background-color: transparent;
+    /* 增强背景图设置 */
     background-image: url('../image/cbg.jpg');
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
     background-repeat: no-repeat;
     min-height: 100vh;
+    /* 确保内容可读性 */
     position: relative;
 }
 
+/* 添加半透明覆盖层确保内容可读 */
 body::after {
     content: "";
     position: fixed;
@@ -57,6 +62,7 @@ body::after {
     z-index: -1;
 }
 
+/* 调整容器透明度 */
 .minimal-container {
     max-width: 1200px;
     margin: 0 auto;
@@ -69,6 +75,20 @@ body::after {
     border: 1px solid rgba(255, 255, 255, 0.5);
     backdrop-filter: blur(5px);
     border-image: linear-gradient(to right, rgba(255,255,255,0.8), rgba(255,255,255,0.2), rgba(255,255,255,0.8)) 1;
+}
+
+/* 其他内容区域也调整透明度 */
+.basic-info,
+.detail-card,
+.rating-group {
+    background-color: rgba(255, 255, 255, 0.85);
+}
+
+/* 确保Firefox兼容性 */
+@-moz-document url-prefix() {
+    body {
+        background-color: rgba(255, 255, 255, 0.01);
+    }
 }
 
 .minimal-header {
@@ -92,6 +112,7 @@ body::after {
     text-shadow: 0 1px 2px rgba(0,0,0,0.1);
 }
 
+/* 修改命字样式 */
 .header-title span.ming-character {
     color: #ff0000;
     font-size: 120%;
@@ -129,6 +150,7 @@ body::after {
     border-radius: 2px;
 }
 
+/* 修改所有小图标为红色 */
 .section-header i,
 label i,
 .info-section h3 i,
@@ -280,12 +302,14 @@ button i {
     z-index: 1;
 }
 
+/* 新增：开始量子测算按钮容器 */
 .calculate-btn-container {
     display: flex;
     justify-content: center;
     margin: 20px 0;
 }
 
+/* 针对该按钮的独立样式 */
 #calculate-btn {
     padding: 12px 24px;
     background-color: #ff0000;
@@ -490,7 +514,6 @@ button i {
     transition: all 0.3s ease;
     position: relative;
     overflow: hidden;
-    cursor: pointer;
 }
 
 .rating-group:hover {
@@ -1021,6 +1044,7 @@ button i {
     gap: var(--spacing-sm);
 }
 
+/* 合并后的loading样式 */
 .loading {
     display: inline-block;
     border: 3px solid rgba(0, 153, 255, 0.3);
@@ -1058,7 +1082,7 @@ button i {
     border-radius: 0 0 var(--border-radius) var(--border-radius);
 }
 
-/* ================ 透明模态框样式 ================ */
+/* 分析模态框样式 */
 .analysis-modal {
     display: none;
     position: fixed;
@@ -1067,13 +1091,13 @@ button i {
     top: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.7);
+    background-color: rgba(0, 0, 0, 0.3);
     overflow: auto;
     backdrop-filter: blur(5px);
 }
 
 .modal-content {
-    background-color: rgba(255, 255, 255, 0.7) !important;
+    background-color: rgba(255, 255, 255, 0.3); /* 30%透明背景 */
     margin: 5% auto;
     padding: 25px;
     border-radius: 10px;
@@ -1087,8 +1111,15 @@ button i {
     animation: modalFadeIn 0.3s ease-out;
 }
 
-.modal-body {
-    background-color: transparent !important;
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .close-btn {
@@ -1113,7 +1144,17 @@ button i {
     border-bottom: 1px solid rgba(0, 0, 0, 0.1);
 }
 
+.modal-body {
+    line-height: 1.6;
+}
+
 /* 命格等级特定样式 */
+.rating-level {
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
 .rating-level.excellent {
     background-color: rgba(0, 200, 83, 0.15);
     color: #00c853;
@@ -1194,15 +1235,43 @@ button i {
     margin-bottom: 0.5em;
 }
 
+/* 分析按钮样式 */
+.analysis-btn {
+    display: inline-block;
+    margin: 10px 5px;
+    padding: 8px 15px;
+    background-color: var(--accent-color);
+    color: white;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 14px;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.analysis-btn:hover {
+    background-color: #e62e5c;
+    transform: translateY(-2px);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* 五行元素颜色 */
+.wood { color: var(--wood-color); }
+.fire { color: var(--fire-color); }
+.earth { color: var(--earth-color); }
+.metal { color: var(--metal-color); }
+.water { color: var(--water-color); }
+
 /* 通用表格样式 */
 .markdown-table {
   width: 100%;
   border-collapse: collapse;
   margin: 1em 0;
+  font-family: inherit;
   border-radius: var(--border-radius);
   overflow: hidden;
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-  background-color: rgba(255, 255, 255, 0.5) !important;
 }
 
 .markdown-table th,
@@ -1210,20 +1279,20 @@ button i {
   padding: 0.75em;
   border: 1px solid rgba(0, 0, 0, 0.08);
   text-align: left;
-  background-color: rgba(255, 255, 255, 0.3) !important;
+  transition: background-color 0.2s ease;
 }
 
 .markdown-table th {
-  background-color: rgba(0, 0, 0, 0.03) !important;
+  background-color: rgba(0, 0, 0, 0.03);
   font-weight: 600;
 }
 
 .markdown-table tr:nth-child(even) {
-  background-color: rgba(0, 0, 0, 0.02) !important;
+  background-color: rgba(0, 0, 0, 0.02);
 }
 
 .markdown-table tr:hover {
-  background-color: rgba(0, 0, 0, 0.05) !important;
+  background-color: rgba(0, 0, 0, 0.05);
 }
 
 /* 响应式设计 */
@@ -1232,14 +1301,99 @@ button i {
         grid-template-columns: 1fr;
     }
     
+    .time-period-selector {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
     .rating-container {
         grid-template-columns: 1fr;
+    }
+    
+    .menu-tabs {
+        flex-wrap: wrap;
+    }
+    
+    .menu-tab {
+        flex: 1 0 50%;
+        text-align: center;
     }
     
     .modal-content {
         width: 90%;
         padding: 15px;
     }
+}
+
+/* 模态框样式 */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.6);
+}
+
+.modal-content {
+    background-color: var(--primary-bg);
+    margin: 5% auto;
+    padding: 20px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    width: 80%;
+    max-width: 800px;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+
+.close {
+    color: var(--text-light);
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.close:hover {
+    color: var(--danger-color);
+}
+
+.modal-body {
+    padding: 20px 0;
+    line-height: 1.6;
+}
+
+/* 评分容器添加指针样式 */
+.rating-group {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.rating-group:hover {
+    transform: translateY(-2px);
+}
+
+/* 分析按钮加载状态 */
+.analysis-btn.loading {
+    position: relative;
+    padding-left: 40px;
+}
+
+.analysis-btn.loading:after {
+    content: "";
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 30px;
+    height: 30px;
+    border: 3px solid rgba(255,255,255,0.3);
+    border-radius: 50%;
+    border-top-color: #fff;
+    animation: spin 1s ease-in-out infinite;
 }
 
 @media (max-width: 480px) {
@@ -1251,12 +1405,25 @@ button i {
         font-size: 2rem;
     }
     
-    .modal-content {
-        width: 95%;
-        padding: 10px;
+    .header-subtitle {
+        font-size: 1rem;
     }
     
     .time-period-selector {
         grid-template-columns: 1fr;
+    }
+    
+    .menu-tab {
+        flex: 1 0 100%;
+    }
+    
+    .lunar-yiji {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+    }
+    
+    .modal-content {
+        width: 95%;
+        padding: 10px;
     }
 }
