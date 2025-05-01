@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 增强版缓存对象v2.2a
+    // 增强版缓存对象v2.2b
     const baziCache = {
         data: {},
         get: function(key) {
@@ -2962,7 +2962,6 @@ ${getWealthSuggestions(score)}
 格式说明：
 语言风格：简洁清晰，避免冗余描述
 表格格式：使用标准Markdown语法，带框线表格，示例：<br>| 标题 | 内容 |
-进度条：用下划线模拟：<br>进度50% → _____-----
 箭头符号：仅使用→表示层级或流程
 重点强调：加粗显示关键参数/注意事项
 模块间隔：每个分析模块之间空一行`;
