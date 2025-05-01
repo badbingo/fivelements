@@ -479,27 +479,54 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // 命格等级分析按钮
         fateAnalysisBtn.addEventListener('click', async function() {
-        // 显示loading状态
-        this.classList.add('loading');
-        this.disabled = true;
-        
-        try {
-            const content = await getFateAnalysisContent();
-            showAnalysisModal('命格等级分析', content);
-        } catch (error) {
-            console.error('获取命格分析失败:', error);
-            showAnalysisModal('命格等级分析', '获取分析内容失败，请稍后重试');
-        } finally {
-            // 移除loading状态
-            this.classList.remove('loading');
-            this.disabled = false;
+    // 添加btn-loading类到按钮本身
+    this.classList.add('btn-loading');
+    
+    // 创建并显示全屏loading遮罩
+    const loadingOverlay = document.createElement('div');
+    loadingOverlay.className = 'loading-overlay';
+    loadingOverlay.innerHTML = `
+        <div class="loading"></div>
+        <p>正在分析命格等级...</p>
+    `;
+    document.body.appendChild(loadingOverlay);
+    
+    // 禁用按钮防止重复点击
+    this.disabled = true;
+    
+    try {
+        const content = await getFateAnalysisContent();
+        showAnalysisModal('命格等级分析', content);
+    } catch (error) {
+        console.error('获取命格分析失败:', error);
+        showAnalysisModal('命格等级分析', '获取分析内容失败，请稍后重试');
+    } finally {
+        // 移除全屏loading遮罩
+        if (document.body.contains(loadingOverlay)) {
+            document.body.removeChild(loadingOverlay);
         }
-    });
+        // 移除btn-loading类
+        this.classList.remove('btn-loading');
+        // 重新启用按钮
+        this.disabled = false;
+    }
+});
 
-        // 财富等级分析按钮
-        wealthAnalysisBtn.addEventListener('click', async function() {
-    // 显示loading状态
-    this.classList.add('loading');
+// 财富等级分析按钮
+wealthAnalysisBtn.addEventListener('click', async function() {
+    // 添加btn-loading类到按钮本身
+    this.classList.add('btn-loading');
+    
+    // 创建并显示全屏loading遮罩
+    const loadingOverlay = document.createElement('div');
+    loadingOverlay.className = 'loading-overlay';
+    loadingOverlay.innerHTML = `
+        <div class="loading"></div>
+        <p>正在分析财富等级...</p>
+    `;
+    document.body.appendChild(loadingOverlay);
+    
+    // 禁用按钮防止重复点击
     this.disabled = true;
     
     try {
@@ -509,8 +536,13 @@ document.addEventListener('DOMContentLoaded', function() {
         console.error('获取财富分析失败:', error);
         showAnalysisModal('财富等级分析', '获取分析内容失败，请稍后重试');
     } finally {
-        // 移除loading状态
-        this.classList.remove('loading');
+        // 移除全屏loading遮罩
+        if (document.body.contains(loadingOverlay)) {
+            document.body.removeChild(loadingOverlay);
+        }
+        // 移除btn-loading类
+        this.classList.remove('btn-loading');
+        // 重新启用按钮
         this.disabled = false;
     }
 });
