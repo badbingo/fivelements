@@ -305,7 +305,7 @@ document.addEventListener('DOMContentLoaded', function() {
         width: 20px;
         height: 20px;
         animation: spin 1s linear infinite;
-        margin-bottom: 7px;
+        margin-bottom: 6px;
     }
     @keyframes spin {
         0% { transform: rotate(0deg); }
