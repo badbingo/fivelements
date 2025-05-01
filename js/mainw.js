@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 增强版缓存对象v2.2v
+    // 增强版缓存对象v2.2w
     const baziCache = {
         data: {},
         get: function(key) {
@@ -283,6 +283,208 @@ document.addEventListener('DOMContentLoaded', function() {
         pointer-events: none;
         white-space: nowrap;
     }
+    
+    .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.7);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+        color: white;
+        font-size: 18px;
+    }
+    
+    .loading {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 3px solid rgba(255,255,255,.3);
+        border-radius: 50%;
+        border-top-color: #fff;
+        animation: spin 1s ease-in-out infinite;
+        margin-right: 10px;
+    }
+    
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+    
+    .progress-container {
+        width: 100%;
+        background-color: #f3f3f3;
+        border-radius: 4px;
+        margin: 5px 0;
+    }
+    
+    .progress-bar {
+        height: 20px;
+        background-color: var(--primary-color);
+        border-radius: 4px;
+        width: 0%;
+        transition: width 0.3s ease;
+    }
+    
+    .score-progress {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+    
+    .score-label {
+        width: 120px;
+        font-size: 14px;
+    }
+    
+    .score-value {
+        width: 60px;
+        text-align: right;
+        font-size: 14px;
+    }
+    
+    .rating-level {
+        font-weight: bold;
+        padding: 5px 10px;
+        border-radius: 4px;
+        display: inline-block;
+    }
+    
+    .rating-level.excellent {
+        background-color: rgba(0, 200, 83, 0.2);
+        color: #00c853;
+    }
+    
+    .rating-level.good {
+        background-color: rgba(33, 150, 243, 0.2);
+        color: #2196f3;
+    }
+    
+    .rating-level.average {
+        background-color: rgba(255, 152, 0, 0.2);
+        color: #ff9800;
+    }
+    
+    .rating-level.struggling {
+        background-color: rgba(244, 67, 54, 0.2);
+        color: #f44336;
+    }
+    
+    .rating-level.needs-improvement {
+        background-color: rgba(158, 158, 158, 0.2);
+        color: #9e9e9e;
+    }
+    
+    .rating-level.ultra-rich {
+        background-color: rgba(156, 39, 176, 0.2);
+        color: #9c27b0;
+    }
+    
+    .rating-level.very-rich {
+        background-color: rgba(103, 58, 183, 0.2);
+        color: #673ab7;
+    }
+    
+    .rating-level.moderately-rich {
+        background-color: rgba(63, 81, 181, 0.2);
+        color: #3f51b5;
+    }
+    
+    .rating-level.somewhat-rich {
+        background-color: rgba(33, 150, 243, 0.2);
+        color: #2196f3;
+    }
+    
+    .rating-level.wealth-average {
+        background-color: rgba(0, 188, 212, 0.2);
+        color: #00bcd4;
+    }
+    
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0,0,0,0.4);
+    }
+    
+    .modal-content {
+        background-color: #fefefe;
+        margin: 5% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%;
+        max-width: 800px;
+        border-radius: 8px;
+        max-height: 80vh;
+        overflow-y: auto;
+    }
+    
+    .close-modal {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+    
+    .close-modal:hover {
+        color: black;
+    }
+    
+    .markdown-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 10px 0;
+    }
+    
+    .markdown-table th, .markdown-table td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+    }
+    
+    .markdown-table th {
+        background-color: #f2f2f2;
+    }
+    
+    .markdown-table tr:nth-child(even) {
+        background-color: #f9f9f9;
+    }
+    
+    .rating {
+        color: var(--earth-color);
+        text-shadow: 0 0 5px var(--earth-color);
+    }
+    
+    .chart-explanation {
+        background-color: #f8f9fa;
+        padding: 15px;
+        border-radius: 5px;
+        margin-top: 15px;
+        font-size: 14px;
+    }
+    
+    .chart-explanation h4 {
+        margin-top: 0;
+        color: var(--primary-color);
+    }
+    
+    .chart-explanation ul {
+        padding-left: 20px;
+    }
+    
+    .chart-explanation p {
+        margin-bottom: 0;
+    }
     `;
     document.head.appendChild(style);
 
@@ -332,7 +534,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const analysisTitle = document.getElementById('analysis-title');
     const analysisContent = document.getElementById('analysis-content');
     const closeModal = document.getElementById('close-modal');
-    const loadingOverlay = document.getElementById('loading-overlay');
 
     // 全局变量
     let elementChart;
@@ -452,13 +653,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // 命格等级分析按钮
         fateAnalysisBtn.addEventListener('click', async function() {
-            showLoading();
+            showLoading('正在分析命格等级...');
             try {
-                const content = await getFateAnalysisContent();
-                showAnalysisModal('命格等级分析', content);
+                showAnalysisModal('命格等级分析', await getFateAnalysisContent());
             } catch (error) {
-                console.error('获取命格分析失败:', error);
-                showAnalysisModal('命格等级分析', getFallbackFateAnalysis());
+                console.error('命格分析失败:', error);
+                showAnalysisModal('命格等级分析', getFateAnalysisFallbackContent());
             } finally {
                 hideLoading();
             }
@@ -466,13 +666,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // 财富等级分析按钮
         wealthAnalysisBtn.addEventListener('click', async function() {
-            showLoading();
+            showLoading('正在分析财富等级...');
             try {
-                const content = await getWealthAnalysisContent();
-                showAnalysisModal('财富等级分析', content);
+                showAnalysisModal('财富等级分析', await getWealthAnalysisContent());
             } catch (error) {
-                console.error('获取财富分析失败:', error);
-                showAnalysisModal('财富等级分析', getFallbackWealthAnalysis());
+                console.error('财富分析失败:', error);
+                showAnalysisModal('财富等级分析', getWealthAnalysisFallbackContent());
             } finally {
                 hideLoading();
             }
@@ -492,24 +691,22 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // 显示加载动画
-    function showLoading() {
-        if (!loadingOverlay) {
-            const overlay = document.createElement('div');
-            overlay.id = 'loading-overlay';
-            overlay.innerHTML = `
-                <div class="loading-spinner"></div>
-                <div class="loading-text">分析中...</div>
-            `;
-            document.body.appendChild(overlay);
-        } else {
-            loadingOverlay.style.display = 'flex';
-        }
+    function showLoading(message = '加载中...') {
+        const loadingOverlay = document.createElement('div');
+        loadingOverlay.className = 'loading-overlay';
+        loadingOverlay.innerHTML = `
+            <div class="loading"></div>
+            <p>${message}</p>
+        `;
+        loadingOverlay.id = 'loading-overlay';
+        document.body.appendChild(loadingOverlay);
     }
 
     // 隐藏加载动画
     function hideLoading() {
+        const loadingOverlay = document.getElementById('loading-overlay');
         if (loadingOverlay) {
-            loadingOverlay.style.display = 'none';
+            document.body.removeChild(loadingOverlay);
         }
     }
 
@@ -517,7 +714,6 @@ document.addEventListener('DOMContentLoaded', function() {
     function showAnalysisModal(title, content) {
         analysisTitle.textContent = title;
         analysisContent.innerHTML = marked.parse(content);
-        analysisContent.style.color = '#000'; // 设置字体颜色为黑色
         analysisModal.style.display = 'block';
     }
 
@@ -533,49 +729,100 @@ document.addEventListener('DOMContentLoaded', function() {
 ## 1. 等级定位
 ${levelInfo.name}
 
-## 2. 命格特征
+## 2. 评分说明
+您的命格评分为 ${score} 分（满分100分），属于${levelInfo.name.split(' ')[0]}级别。这个评分基于以下五个维度的综合评估：
+
+## 3. 命格分析
+${analysis || "专业命理分析加载中..."}
+
+## 4. 评分细节
+- **日主得令**: ${fateScoreDetails.seasonScore}/30 - 表示您的日主是否得到月令的支持
+- **五行平衡**: ${fateScoreDetails.balanceScore}/25 - 衡量八字中五行能量的均衡程度
+- **特殊格局**: ${fateScoreDetails.patternScore}/20 - 评估是否存在特殊命理格局
+- **十神配置**: ${fateScoreDetails.godsScore}/15 - 分析十神组合的优劣
+- **天干地支组合**: ${fateScoreDetails.combinationScore}/10 - 评估干支组合的和谐程度
+
+## 5. 命格特征
 ${getFateCharacteristics(score)}
 
-## 3. 优势分析
+## 6. 优势分析
 ${getFateStrengths(score)}
 
-## 4. 发展建议
+## 7. 发展建议
 ${getFateSuggestions(score)}
 
-## 5. 评分细节
-- 日主得令: ${fateScoreDetails.seasonScore}/30
-- 五行平衡: ${fateScoreDetails.balanceScore}/25
-- 特殊格局: ${fateScoreDetails.patternScore}/20
-- 十神配置: ${fateScoreDetails.godsScore}/15
-- 天干地支组合: ${fateScoreDetails.combinationScore}/10
+## 8. 注意事项
+${getFateWarnings(score)}
+`;
+    }
+
+    // 命格分析兜底内容
+    function getFateAnalysisFallbackContent() {
+        const score = calculateFateScore(currentPillars);
+        const levelInfo = getFateLevel(score);
+        
+        return `
+## 1. 等级定位
+${levelInfo.name}
+
+## 2. 评分说明
+您的命格评分为 ${score} 分（满分100分），属于${levelInfo.name.split(' ')[0]}级别。这个评分基于以下五个维度的综合评估：
+
+## 3. 评分细节
+- **日主得令**: ${fateScoreDetails.seasonScore}/30 - 表示您的日主是否得到月令的支持
+- **五行平衡**: ${fateScoreDetails.balanceScore}/25 - 衡量八字中五行能量的均衡程度
+- **特殊格局**: ${fateScoreDetails.patternScore}/20 - 评估是否存在特殊命理格局
+- **十神配置**: ${fateScoreDetails.godsScore}/15 - 分析十神组合的优劣
+- **天干地支组合**: ${fateScoreDetails.combinationScore}/10 - 评估干支组合的和谐程度
+
+## 4. 命格特征
+${getFateCharacteristics(score)}
+
+## 5. 优势分析
+${getFateStrengths(score)}
+
+## 6. 发展建议
+${getFateSuggestions(score)}
+
+## 7. 注意事项
+${getFateWarnings(score)}
 `;
     }
 
     // 获取命格特征
     function getFateCharacteristics(score) {
-        if (score >= 85) return "天赐鸿运命格，一生多贵人相助，机遇不断，事业顺遂，健康长寿，家庭和睦。";
-        if (score >= 70) return "福星高照命格，事业有成，财运亨通，虽有波折但终能逢凶化吉。";
-        if (score >= 50) return "安常守分命格，平稳安定，需靠自身努力获得成就，无大起大落。";
-        if (score >= 30) return "勤能补拙命格，需付出更多努力才能获得成功，但终有回报。";
-        return "逆水行舟命格，人生多波折，需特别努力并注意规避风险。";
+        if (score >= 85) return "天赐鸿运命格，一生多贵人相助，机遇不断，事业顺遂，健康长寿，家庭和睦。具有以下特征：\n- 八字格局清奇，五行流通有情\n- 用神有力，忌神受制\n- 大运走势与命局配合得天衣无缝\n- 具备非凡的领导才能和人格魅力";
+        if (score >= 70) return "福星高照命格，事业有成，财运亨通，虽有波折但终能逢凶化吉。具有以下特征：\n- 八字格局优良，五行配置合理\n- 用神得地，忌神有制\n- 大运走势总体有利\n- 具备较强的适应能力和创造力";
+        if (score >= 50) return "安常守分命格，平稳安定，需靠自身努力获得成就，无大起大落。具有以下特征：\n- 八字格局中等，五行基本平衡\n- 用神力量一般，忌神影响有限\n- 大运走势平缓\n- 需要依靠勤奋和坚持才能获得成功";
+        if (score >= 30) return "勤能补拙命格，需付出更多努力才能获得成功，但终有回报。具有以下特征：\n- 八字格局存在一定缺陷\n- 用神力量不足，忌神影响明显\n- 大运走势起伏较大\n- 需要通过后天努力弥补先天不足";
+        return "逆水行舟命格，人生多波折，需特别努力并注意规避风险。具有以下特征：\n- 八字格局存在严重缺陷\n- 用神无力，忌神猖狂\n- 大运走势多不利\n- 需要特别谨慎和努力才能克服困难";
     }
 
     // 获取命格优势
     function getFateStrengths(score) {
-        if (score >= 85) return "天生福气深厚，贵人运强，机遇多，抗风险能力强，事业容易成功。";
-        if (score >= 70) return "聪明才智出众，适应能力强，人际关系好，事业发展顺利。";
-        if (score >= 50) return "性格稳重，脚踏实地，能通过努力获得稳定发展。";
-        if (score >= 30) return "意志坚定，吃苦耐劳，逆境中成长，终能有所成就。";
-        return "磨练意志，经历丰富，若能克服困难，可获独特人生体验。";
+        if (score >= 85) return "- 天生福气深厚，贵人运强\n- 机遇多，容易抓住发展机会\n- 抗风险能力强，能化险为夷\n- 事业容易成功，成就非凡\n- 健康状况良好，寿命较长";
+        if (score >= 70) return "- 聪明才智出众，学习能力强\n- 适应能力强，能应对各种环境\n- 人际关系好，容易得到帮助\n- 事业发展顺利，能取得一定成就\n- 财运较好，生活富足";
+        if (score >= 50) return "- 性格稳重，脚踏实地\n- 能通过努力获得稳定发展\n- 生活平稳，无大起大落\n- 能建立稳定的家庭和事业\n- 健康状况一般但无大碍";
+        if (score >= 30) return "- 意志坚定，吃苦耐劳\n- 逆境中成长，抗压能力强\n- 通过长期努力终能有所成就\n- 珍惜来之不易的成功\n- 具有独特的人生智慧";
+        return "- 磨练意志，经历丰富\n- 若能克服困难，可获独特人生体验\n- 对人生有深刻理解\n- 成功后更能珍惜成果\n- 具有非凡的韧性";
     }
 
     // 获取命格发展建议
     function getFateSuggestions(score) {
-        if (score >= 85) return "善用优势资源，避免骄傲自满，多帮助他人以积累福报。";
-        if (score >= 70) return "把握机遇，稳扎稳打，可尝试多元化发展。";
-        if (score >= 50) return "专注专业技能提升，建立稳定基础，避免冒险。";
-        if (score >= 30) return "制定明确目标，坚持不懈，寻求贵人指点。";
-        return "修身养性，学习专业技能，谨慎决策，避免高风险行为。";
+        if (score >= 85) return "- 善用优势资源，避免骄傲自满\n- 多帮助他人以积累福报\n- 可以尝试高风险高回报的事业\n- 注意保持谦虚谨慎的态度\n- 适当回馈社会，保持福泽绵长";
+        if (score >= 70) return "- 把握机遇，稳扎稳打\n- 可尝试多元化发展\n- 建立广泛的人脉关系\n- 注意平衡工作与生活\n- 保持学习，不断提升自己";
+        if (score >= 50) return "- 专注专业技能提升\n- 建立稳定基础，避免冒险\n- 选择适合自己能力的领域\n- 保持耐心，循序渐进\n- 注意储蓄和理财规划";
+        if (score >= 30) return "- 制定明确目标，坚持不懈\n- 寻求贵人指点和支持\n- 选择稳健的发展道路\n- 注意规避风险\n- 保持积极乐观的心态";
+        return "- 修身养性，提升内在修养\n- 学习专业技能，增强竞争力\n- 谨慎决策，避免高风险行为\n- 寻求专业人士指导\n- 保持耐心，等待时机";
+    }
+
+    // 获取命格注意事项
+    function getFateWarnings(score) {
+        if (score >= 85) return "- 避免骄傲自满，保持谦虚\n- 注意防范小人嫉妒\n- 重大决策仍需谨慎\n- 避免过度消耗自身福报\n- 注意身体健康，不要过度劳累";
+        if (score >= 70) return "- 避免过度自信导致失误\n- 注意理财，避免不必要的开支\n- 防范意外变故\n- 注意维护人际关系\n- 避免过度追求物质享受";
+        if (score >= 50) return "- 避免安于现状，不思进取\n- 注意把握发展机会\n- 防范突发变故\n- 注意理财规划\n- 避免过度保守错失良机";
+        if (score >= 30) return "- 避免消极悲观情绪\n- 注意选择正确的发展方向\n- 防范财务风险\n- 注意维护人际关系\n- 避免急于求成导致失败";
+        return "- 避免冒险和投机行为\n- 注意身体健康\n- 防范财务危机\n- 注意选择可靠合作伙伴\n- 避免负面情绪影响判断";
     }
 
     // 获取财富等级分析内容
@@ -590,80 +837,35 @@ ${getFateSuggestions(score)}
 ## 1. 等级定位
 ${levelInfo.name}
 
-## 2. 财富特征
+## 2. 评分说明
+您的财富评分为 ${score} 分（满分100分），属于${levelInfo.name.split(' ')[0]}级别。这个评分基于以下五个维度的综合评估：
+
+## 3. 财富分析
+${analysis || "专业财富分析加载中..."}
+
+## 4. 评分细节
+- **财星数量质量**: ${wealthScoreDetails.wealthStarScore}/30 - 评估八字中财星的数量和质量
+- **财星得地**: ${wealthScoreDetails.wealthPositionScore}/25 - 衡量财星是否处于有利位置
+- **财星受克**: ${wealthScoreDetails.wealthDamageScore}/20 - 分析财星是否受到克制
+- **食伤生财**: ${wealthScoreDetails.wealthSupportScore}/15 - 评估是否有生财之源
+- **大运走势**: ${wealthScoreDetails.fortuneScore}/10 - 分析大运对财富的影响
+
+## 5. 财富特征
 ${getWealthCharacteristics(score)}
 
-## 3. 优势分析
+## 6. 优势分析
 ${getWealthStrengths(score)}
 
-## 4. 发展建议
+## 7. 发展建议
 ${getWealthSuggestions(score)}
 
-## 5. 评分细节
-- 财星数量质量: ${wealthScoreDetails.wealthStarScore}/30
-- 财星得地: ${wealthScoreDetails.wealthPositionScore}/25
-- 财星受克: ${wealthScoreDetails.wealthDamageScore}/20
-- 食伤生财: ${wealthScoreDetails.wealthSupportScore}/15
-- 大运走势: ${wealthScoreDetails.fortuneScore}/10
+## 8. 注意事项
+${getWealthWarnings(score)}
 `;
     }
 
-    // 获取财富特征
-    function getWealthCharacteristics(score) {
-        if (score >= 90) return "天生财运亨通，正偏财俱佳，投资眼光独到，财富积累迅速。";
-        if (score >= 80) return "财运旺盛，正财稳定，偏财机会多，能通过努力获得丰厚回报。";
-        if (score >= 60) return "财运平稳，正财为主，需合理规划才能积累财富。";
-        if (score >= 40) return "财运起伏，需靠专业技能获取财富，投资需谨慎。";
-        return "财运较弱，需特别努力才能获得财富，宜稳扎稳打。";
-    }
-
-    // 获取财富优势
-    function getWealthStrengths(score) {
-        if (score >= 90) return "财源广进，投资眼光精准，能把握大机遇，财富增长快。";
-        if (score >= 80) return "赚钱能力强，理财有道，能通过多种渠道积累财富。";
-        if (score >= 60) return "稳定收入来源，能通过专业技能获得合理报酬。";
-        if (score >= 40) return "节俭务实，能通过长期积累获得财富增长。";
-        return "吃苦耐劳，能在逆境中找到生存之道。";
-    }
-
-    // 获取财富建议
-    function getWealthSuggestions(score) {
-        if (score >= 90) return "多元化投资，善用财富回馈社会，避免过度投机。";
-        if (score >= 80) return "把握投资机会，建立稳健理财规划，避免冲动消费。";
-        if (score >= 60) return "专注主业发展，适当进行保守投资，建立应急基金。";
-        if (score >= 40) return "提升专业技能，控制开支，避免高风险投资。";
-        return "专注稳定收入，学习理财知识，避免负债，量入为出。";
-    }
-
-    // 获取备用命格分析内容
-    function getFallbackFateAnalysis() {
-        const score = calculateFateScore(currentPillars);
-        const levelInfo = getFateLevel(score);
-        
-        return `
-## 1. 等级定位
-${levelInfo.name}
-
-## 2. 命格特征
-${getFateCharacteristics(score)}
-
-## 3. 优势分析
-${getFateStrengths(score)}
-
-## 4. 发展建议
-${getFateSuggestions(score)}
-
-## 5. 评分细节
-- 日主得令: ${fateScoreDetails.seasonScore}/30
-- 五行平衡: ${fateScoreDetails.balanceScore}/25
-- 特殊格局: ${fateScoreDetails.patternScore}/20
-- 十神配置: ${fateScoreDetails.godsScore}/15
-- 天干地支组合: ${fateScoreDetails.combinationScore}/10
-`;
-    }
-
-    // 获取备用财富分析内容
-    function getFallbackWealthAnalysis() {
+    // 财富分析兜底内容
+    function getWealthAnalysisFallbackContent() {
         const score = calculateWealthScore(currentPillars);
         const levelInfo = getWealthLevel(score);
         
@@ -671,25 +873,158 @@ ${getFateSuggestions(score)}
 ## 1. 等级定位
 ${levelInfo.name}
 
-## 2. 财富特征
+## 2. 评分说明
+您的财富评分为 ${score} 分（满分100分），属于${levelInfo.name.split(' ')[0]}级别。这个评分基于以下五个维度的综合评估：
+
+## 3. 评分细节
+- **财星数量质量**: ${wealthScoreDetails.wealthStarScore}/30 - 评估八字中财星的数量和质量
+- **财星得地**: ${wealthScoreDetails.wealthPositionScore}/25 - 衡量财星是否处于有利位置
+- **财星受克**: ${wealthScoreDetails.wealthDamageScore}/20 - 分析财星是否受到克制
+- **食伤生财**: ${wealthScoreDetails.wealthSupportScore}/15 - 评估是否有生财之源
+- **大运走势**: ${wealthScoreDetails.fortuneScore}/10 - 分析大运对财富的影响
+
+## 4. 财富特征
 ${getWealthCharacteristics(score)}
 
-## 3. 优势分析
+## 5. 优势分析
 ${getWealthStrengths(score)}
 
-## 4. 发展建议
+## 6. 发展建议
 ${getWealthSuggestions(score)}
 
-## 5. 评分细节
-- 财星数量质量: ${wealthScoreDetails.wealthStarScore}/30
-- 财星得地: ${wealthScoreDetails.wealthPositionScore}/25
-- 财星受克: ${wealthScoreDetails.wealthDamageScore}/20
-- 食伤生财: ${wealthScoreDetails.wealthSupportScore}/15
-- 大运走势: ${wealthScoreDetails.fortuneScore}/10
+## 7. 注意事项
+${getWealthWarnings(score)}
 `;
     }
 
-    // ... [保留其余所有函数代码不变，包括calculateBazi, displayBasicInfo等所有其他函数]
+    // 获取财富特征
+    function getWealthCharacteristics(score) {
+        if (score >= 90) return "天生财运亨通，正偏财俱佳，投资眼光独到，财富积累迅速。具有以下特征：\n- 财星旺而得地，无破损\n- 食伤生财，财源不断\n- 财库充盈，能守得住财富\n- 大运走势有利财运发展";
+        if (score >= 80) return "财运旺盛，正财稳定，偏财机会多，能通过努力获得丰厚回报。具有以下特征：\n- 财星有力，位置得当\n- 有生财之源，财路通畅\n- 财库稳固，能积累财富\n- 大运总体有利财运";
+        if (score >= 60) return "财运平稳，正财为主，需合理规划才能积累财富。具有以下特征：\n- 财星数量适中，质量一般\n- 生财能力有限，需靠努力\n- 财库普通，需注意理财\n- 大运对财运影响中等";
+        if (score >= 40) return "财运起伏，需靠专业技能获取财富，投资需谨慎。具有以下特征：\n- 财星较弱或受损\n- 生财能力有限\n- 财库不稳固，易有破财\n- 大运对财运帮助不大";
+        return "财运较弱，需特别努力才能获得财富，宜稳扎稳打。具有以下特征：\n- 财星稀少或严重受损\n- 缺乏生财之源\n- 财库空虚，难积累财富\n- 大运多不利财运";
+    }
+
+    // 获取财富优势
+    function getWealthStrengths(score) {
+        if (score >= 90) return "- 财源广进，多渠道收入\n- 投资眼光精准，能把握大机遇\n- 财富增长快，积累迅速\n- 能守住财富，不易破财\n- 有贵人相助，财运亨通";
+        if (score >= 80) return "- 赚钱能力强，收入稳定\n- 理财有道，能合理规划\n- 能通过多种渠道积累财富\n- 投资运气较好\n- 能抓住赚钱机会";
+        if (score >= 60) return "- 有稳定收入来源\n- 能通过专业技能获得合理报酬\n- 节俭务实，能积累财富\n- 投资需谨慎但有机会\n- 通过努力可获得财富增长";
+        if (score >= 40) return "- 节俭务实，能控制开支\n- 能通过长期积累获得财富增长\n- 适合稳定收入的工作\n- 投资需特别谨慎\n- 通过专业技能可获得收入";
+        return "- 吃苦耐劳，能在逆境中找到生存之道\n- 对财富有深刻理解\n- 适合稳定低收入工作\n- 节俭度日，量入为出\n- 通过长期坚持可获得微薄积累";
+    }
+
+    // 获取财富建议
+    function getWealthSuggestions(score) {
+        if (score >= 90) return "- 多元化投资，分散风险\n- 善用财富回馈社会\n- 避免过度投机\n- 建立长期财富规划\n- 培养接班人，延续财富";
+        if (score >= 80) return "- 把握投资机会，适度冒险\n- 建立稳健理财规划\n- 避免冲动消费\n- 学习高级理财知识\n- 寻找可靠的投资伙伴";
+        if (score >= 60) return "- 专注主业发展，稳步前进\n- 适当进行保守投资\n- 建立应急基金\n- 学习基础理财知识\n- 避免高风险投资";
+        if (score >= 40) return "- 提升专业技能，增加收入\n- 严格控制开支\n- 避免高风险投资\n- 学习基本理财知识\n- 寻找稳定收入来源";
+        return "- 专注稳定收入，避免冒险\n- 学习理财知识，合理规划\n- 避免负债，量入为出\n- 寻找额外收入来源\n- 保持耐心，慢慢积累";
+    }
+
+    // 获取财富注意事项
+    function getWealthWarnings(score) {
+        if (score >= 90) return "- 避免过度自信导致投资失误\n- 注意防范财务诈骗\n- 避免奢侈浪费\n- 注意税务规划\n- 防范合作伙伴不可靠";
+        if (score >= 80) return "- 避免冲动投资\n- 注意控制风险\n- 避免过度消费\n- 注意理财规划\n- 防范意外破财";
+        if (score >= 60) return "- 避免安于现状\n- 注意把握投资机会\n- 避免不必要的开支\n- 注意储蓄\n- 防范财务风险";
+        if (score >= 40) return "- 避免高风险投资\n- 注意控制开支\n- 避免负债\n- 注意储蓄\n- 防范财务危机";
+        return "- 避免任何形式的高风险投资\n- 严格控制开支\n- 避免借贷\n- 注意基本生活保障\n- 防范任何财务风险";
+    }
+
+    // 保存个人资料
+    function saveProfile(birthData) {
+        const profiles = JSON.parse(localStorage.getItem('baziProfiles') || '[]');
+        const existingIndex = profiles.findIndex(function(p) {
+            return p.date === birthData.date && 
+                   p.time === birthData.time && 
+                   p.gender === birthData.gender;
+        });
+        
+        if (existingIndex >= 0) {
+            profiles[existingIndex] = birthData;
+        } else {
+            profiles.push(birthData);
+        }
+        
+        if (profiles.length > 5) {
+            profiles.shift();
+        }
+        
+        localStorage.setItem('baziProfiles', JSON.stringify(profiles));
+        loadSavedProfiles();
+    }
+
+    // 重置所有内容
+    function resetAllContent() {
+        fateScoreValue = 0;
+        wealthScoreValue = 0;
+        
+        // 重置八字显示
+        yearStem.textContent = '';
+        yearBranch.textContent = '';
+        yearHiddenStems.textContent = '';
+        monthStem.textContent = '';
+        monthBranch.textContent = '';
+        monthHiddenStems.textContent = '';
+        dayStem.textContent = '';
+        dayBranch.textContent = '';
+        dayHiddenStems.textContent = '';
+        hourStem.textContent = '';
+        hourBranch.textContent = '';
+        hourHiddenStems.textContent = '';
+        
+        // 重置分数显示
+        fateLevel.textContent = '';
+        fateScore.textContent = '';
+        fateDetails.innerHTML = '';
+        wealthLevel.textContent = '';
+        wealthScore.textContent = '';
+        wealthDetails.innerHTML = '';
+        personalityTraits.textContent = '命主性格：';
+        
+        // 重置内容区域
+        document.querySelectorAll('.section-content').forEach(function(el) {
+            el.innerHTML = '';
+            el.classList.remove('active');
+        });
+        
+        // 重置按钮状态
+        document.querySelectorAll('.load-btn').forEach(function(btn) {
+            const originalText = btn.getAttribute('data-original-text') || btn.textContent.trim();
+            btn.innerHTML = `<span>${originalText}</span><i class="fas fa-chevron-down toggle-icon"></i>`;
+            btn.classList.remove('active');
+            btn.disabled = false;
+        });
+        
+        // 重置按钮容器
+        document.querySelectorAll('.load-btn-container').forEach(function(container) {
+            container.classList.remove('active');
+        });
+        
+        // 重置菜单标签
+        document.querySelectorAll('.menu-tab').forEach(function(tab) {
+            tab.classList.remove('active');
+        });
+        document.querySelectorAll('.tab-content').forEach(function(content) {
+            content.classList.remove('active');
+        });
+        document.querySelector('.menu-tab[data-tab="fortune"]').classList.add('active');
+        document.getElementById('fortune-tab').classList.add('active');
+        
+        // 重置全局变量
+        loadedSections = {};
+        currentPillars = {};
+        fateScoreDetails = {};
+        wealthScoreDetails = {};
+        
+        // 重置问答区域
+        baziQuestionInput.value = '';
+        baziQaResponse.innerHTML = '';
+        baziQaResponse.style.display = 'none';
+        baziQaLoading.style.display = 'none';
+    }
 
     // 初始化加载按钮
     function initLoadButtons() {
@@ -843,7 +1178,7 @@ ${getWealthSuggestions(score)}
         calculateBtn.innerHTML = '<span class="loading"></span> 量子测算中...';
         
         try {
-            showLoading();
+            showLoading('正在计算八字信息...');
             
             // 使用混合模式获取结果
             const baziInfo = await getBaziAnalysis('basic', birthData);
@@ -881,7 +1216,1001 @@ ${getWealthSuggestions(score)}
         }
     }
 
-    // ... [保留其余所有函数代码不变]
+    // 生成八字哈希键
+    function generateBaziHashKey(birthData) {
+        const dateParts = birthData.date.split('-');
+        const year = parseInt(dateParts[0]);
+        const month = parseInt(dateParts[1]);
+        const day = parseInt(dateParts[2]);
+        const timeParts = birthData.time.split(':');
+        const hour = parseInt(timeParts[0]);
+        const minute = parseInt(timeParts[1] || 0);
+        
+        const solar = Solar.fromYmdHms(year, month, day, hour, minute, 0);
+        const lunar = solar.getLunar();
+        const bazi = lunar.getEightChar();
+        
+        return `${bazi.getYearGan()}${bazi.getYearZhi()}年` +
+               `${bazi.getMonthGan()}${bazi.getMonthZhi()}月` +
+               `${bazi.getDayGan()}${bazi.getDayZhi()}日` +
+               `${bazi.getTimeGan()}${bazi.getTimeZhi()}时` +
+               `:${birthData.gender === 'male' ? '男' : '女'}`;
+    }
+
+    // 校验排盘结果
+    function validateBaziResult(localResult, apiResult) {
+        const keyFields = ['yearStem', 'yearBranch', 'monthStem', 'monthBranch', 
+                         'dayStem', 'dayBranch', 'hourStem', 'hourBranch'];
+        
+        for (const field of keyFields) {
+            if (localResult[field] !== apiResult[field]) {
+                console.warn(`排盘不一致: ${field} 本地=${localResult[field]}, API=${apiResult[field]}`);
+                return false;
+            }
+        }
+        
+        return true;
+    }
+
+    // 从API结果中提取关键字段
+    function extractKeyFieldsFromApiResponse(apiResponse) {
+        const yearMatch = apiResponse.match(/年柱\[([^\]]+)\]/);
+        const monthMatch = apiResponse.match(/月柱\[([^\]]+)\]/);
+        const dayMatch = apiResponse.match(/日柱\[([^\]]+)\]/);
+        const hourMatch = apiResponse.match(/时柱\[([^\]]+)\]/);
+        
+        const yearHiddenMatch = apiResponse.match(/年支\[([^\]]+)\]/);
+        const monthHiddenMatch = apiResponse.match(/月支\[([^\]]+)\]/);
+        const dayHiddenMatch = apiResponse.match(/日支\[([^\]]+)\]/);
+        const hourHiddenMatch = apiResponse.match(/时支\[([^\]]+)\]/);
+        
+        const elementsMatch = apiResponse.match(/五行能量\[([^\]]+)\]/);
+        const personalityMatch = apiResponse.match(/命主性格\[([^\]]+)\]/);
+        
+        if (!yearMatch || !monthMatch || !dayMatch || !hourMatch) {
+            console.error('无法从API响应中提取关键字段');
+            return null;
+        }
+        
+        return {
+            yearStem: yearMatch[1].charAt(0),
+            yearBranch: yearMatch[1].charAt(1),
+            monthStem: monthMatch[1].charAt(0),
+            monthBranch: monthMatch[1].charAt(1),
+            dayStem: dayMatch[1].charAt(0),
+            dayBranch: dayMatch[1].charAt(1),
+            hourStem: hourMatch[1].charAt(0),
+            hourBranch: hourMatch[1].charAt(1),
+            yearHiddenStems: yearHiddenMatch ? yearHiddenMatch[1] : '',
+            monthHiddenStems: monthHiddenMatch ? monthHiddenMatch[1] : '',
+            dayHiddenStems: dayHiddenMatch ? dayHiddenMatch[1] : '',
+            hourHiddenStems: hourHiddenMatch ? hourHiddenMatch[1] : '',
+            elements: elementsMatch ? JSON.parse(elementsMatch[1]) : [0, 0, 0, 0, 0],
+            personality: personalityMatch ? personalityMatch[1] : ''
+        };
+    }
+
+    // 初始化元素图表 - 更新版，包含五行合化、刑冲和藏干能量计算
+    function initElementChart(baziInfo) {
+        // 计算本命局五行能量（包括藏干）
+        const natalElements = calculateNatalElements(baziInfo);
+        
+        // 计算大运五行能量
+        const luckElements = calculateLuckElements(natalElements);
+        
+        // 计算流年五行能量
+        const yearElements = calculateYearElements(natalElements);
+        
+        // 五行对应的颜色
+        const elementColors = [
+            'rgba(0, 200, 83, 0.7)',   // 木 - 绿色
+            'rgba(244, 67, 54, 0.7)',  // 火 - 红色
+            'rgba(255, 152, 0, 0.7)',  // 土 - 黄色
+            'rgba(158, 158, 158, 0.7)', // 金 - 灰色
+            'rgba(33, 150, 243, 0.7)'   // 水 - 蓝色
+        ];
+
+        const elementData = {
+            labels: ['木', '火', '土', '金', '水'],
+            datasets: [
+                {
+                    label: '本命局',
+                    data: natalElements,
+                    backgroundColor: elementColors,
+                    borderColor: elementColors.map(color => color.replace('0.7', '1')),
+                    borderWidth: 1
+                },
+                {
+                    label: '大运',
+                    data: luckElements,
+                    backgroundColor: elementColors,
+                    borderColor: elementColors.map(color => color.replace('0.7', '1')),
+                    borderWidth: 1
+                },
+                {
+                    label: '流年',
+                    data: yearElements,
+                    backgroundColor: elementColors,
+                    borderColor: elementColors.map(color => color.replace('0.7', '1')),
+                    borderWidth: 1
+                }
+            ]
+        };
+
+        if (elementChart) {
+            elementChart.destroy();
+        }
+
+        // Ensure the chart container has proper styling
+        const chartContainer = document.getElementById('element-chart').parentNode;
+        chartContainer.style.position = 'relative';
+        chartContainer.style.height = '400px';
+
+        elementChart = new Chart(elementChartCtx, {
+            type: 'bar',
+            data: elementData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 20
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.dataset.label || '';
+                                return `${label}: ${context.raw}`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        // 添加图表说明
+        elementChartDescription.innerHTML = `
+            <div class="chart-explanation">
+                <h4>五行能量分布说明</h4>
+                <ul>
+                    <li><strong>本命局</strong>: 包含天干、地支和藏干的五行能量总和，并考虑了合化、刑冲的影响</li>
+                    <li><strong>大运</strong>: 基于本命局五行能量的大运变化趋势</li>
+                    <li><strong>流年</strong>: 当前流年对五行能量的影响</li>
+                </ul>
+                <p>五行平衡是理想状态，过旺或过弱都可能带来相应问题。图表可直观显示命主在不同时期的五行能量变化。</p>
+            </div>
+        `;
+    }
+
+    // 计算本命局五行能量（包括天干、地支、藏干，并考虑合化刑冲）
+    function calculateNatalElements(baziInfo) {
+        // 五行对应索引：木(0)、火(1)、土(2)、金(3)、水(4)
+        const elements = [0, 0, 0, 0, 0];
+        
+        // 天干五行映射
+        const stemElements = {
+            '甲': 0, '乙': 0,  // 木
+            '丙': 1, '丁': 1,  // 火
+            '戊': 2, '己': 2,  // 土
+            '庚': 3, '辛': 3,  // 金
+            '壬': 4, '癸': 4   // 水
+        };
+        
+        // 地支主气五行映射
+        const branchMainElements = {
+            '寅': 0, '卯': 0,  // 木
+            '午': 1, '巳': 1,  // 火
+            '辰': 2, '戌': 2, '丑': 2, '未': 2,  // 土
+            '申': 3, '酉': 3,  // 金
+            '子': 4, '亥': 4   // 水
+        };
+        
+        // 藏干五行映射（与天干相同）
+        const hiddenStemsElements = stemElements;
+        
+        // 1. 计算天干五行能量（每个天干1分）
+        const stems = [
+            baziInfo.yearStem,
+            baziInfo.monthStem,
+            baziInfo.dayStem,
+            baziInfo.hourStem
+        ];
+        stems.forEach(stem => {
+            if (stemElements[stem] !== undefined) {
+                elements[stemElements[stem]] += 1;
+            }
+        });
+        
+        // 2. 计算地支主气五行能量（每个地支主气2分）
+        const branches = [
+            baziInfo.yearBranch,
+            baziInfo.monthBranch,
+            baziInfo.dayBranch,
+            baziInfo.hourBranch
+        ];
+        branches.forEach(branch => {
+            if (branchMainElements[branch] !== undefined) {
+                elements[branchMainElements[branch]] += 2;
+            }
+        });
+        
+        // 3. 计算藏干五行能量（每个藏干1分）
+        const hiddenStems = [
+            baziInfo.yearHiddenStems,
+            baziInfo.monthHiddenStems,
+            baziInfo.dayHiddenStems,
+            baziInfo.hourHiddenStems
+        ];
+        hiddenStems.forEach(hidden => {
+            if (hidden) {
+                for (let i = 0; i < hidden.length; i++) {
+                    const char = hidden[i];
+                    if (hiddenStemsElements[char] !== undefined) {
+                        elements[hiddenStemsElements[char]] += 1;
+                    }
+                }
+            }
+        });
+        
+        // 4. 考虑合化对五行能量的影响
+        const combinedElements = applyCombinationEffects(elements, stems, branches);
+        
+        // 5. 考虑刑冲对五行能量的影响
+        const finalElements = applyConflictEffects(combinedElements, branches);
+        
+        return finalElements;
+    }
+
+    // 应用合化对五行能量的影响
+    function applyCombinationEffects(elements, stems, branches) {
+        const newElements = [...elements];
+        
+        // 1. 天干五合
+        const heavenlyCombinations = {
+            '甲己': 2, // 甲己合化土，土+2
+            '乙庚': 3, // 乙庚合化金，金+2
+            '丙辛': 4, // 丙辛合化水，水+2
+            '丁壬': 0, // 丁壬合化木，木+2
+            '戊癸': 1  // 戊癸合化火，火+2
+        };
+        
+        // 检查天干五合
+        for (let i = 0; i < stems.length; i++) {
+            for (let j = i + 1; j < stems.length; j++) {
+                const pair1 = stems[i] + stems[j];
+                const pair2 = stems[j] + stems[i];
+                if (heavenlyCombinations[pair1] !== undefined || heavenlyCombinations[pair2] !== undefined) {
+                    const elementIndex = heavenlyCombinations[pair1] || heavenlyCombinations[pair2];
+                    newElements[elementIndex] += 2;
+                    // 减少原有天干的五行能量
+                    newElements[getElementIndex(stems[i])] -= 0.5;
+                    newElements[getElementIndex(stems[j])] -= 0.5;
+                }
+            }
+        }
+        
+        // 2. 地支六合
+        const earthlyCombinations = {
+            '子丑': 2, // 子丑合化土
+            '寅亥': 0, // 寅亥合化木
+            '卯戌': 1, // 卯戌合化火
+            '辰酉': 3, // 辰酉合化金
+            '巳申': 4, // 巳申合化水
+            '午未': 2  // 午未合化土
+        };
+        
+        // 检查地支六合
+        for (let i = 0; i < branches.length; i++) {
+            for (let j = i + 1; j < branches.length; j++) {
+                const pair1 = branches[i] + branches[j];
+                const pair2 = branches[j] + branches[i];
+                if (earthlyCombinations[pair1] !== undefined || earthlyCombinations[pair2] !== undefined) {
+                    const elementIndex = earthlyCombinations[pair1] || earthlyCombinations[pair2];
+                    newElements[elementIndex] += 1.5;
+                    // 减少原有地支的五行能量
+                    newElements[getElementIndex(branches[i])] -= 0.5;
+                    newElements[getElementIndex(branches[j])] -= 0.5;
+                }
+            }
+        }
+        
+        // 3. 地支三合局（半合也考虑）
+        const tripleCombinations = {
+            '申子辰': 4, // 水局
+            '亥卯未': 0, // 木局
+            '寅午戌': 1, // 火局
+            '巳酉丑': 3  // 金局
+        };
+        
+        // 检查三合局
+        const branchStr = branches.join('');
+        for (const combo in tripleCombinations) {
+            let count = 0;
+            for (const char of combo) {
+                if (branchStr.includes(char)) count++;
+            }
+            if (count >= 2) { // 半合也算
+                const elementIndex = tripleCombinations[combo];
+                newElements[elementIndex] += (count === 3 ? 3 : 1.5); // 全合3分，半合1.5分
+            }
+        }
+        
+        return newElements.map(val => Math.max(0, val)); // 确保不出现负数
+    }
+
+    // 应用刑冲对五行能量的影响
+    function applyConflictEffects(elements, branches) {
+        const newElements = [...elements];
+        
+        // 1. 地支六冲
+        const conflicts = {
+            '子午': 4, // 子水冲午火，水+0.5，火-1
+            '丑未': 2, // 丑未相冲，土-0.5
+            '寅申': 0, // 寅木冲申金，木+0.5，金-1
+            '卯酉': 0, // 卯木冲酉金，木+0.5，金-1
+            '辰戌': 2, // 辰戌相冲，土-0.5
+            '巳亥': 1  // 巳火冲亥水，火+0.5，水-1
+        };
+        
+        // 检查六冲
+        for (let i = 0; i < branches.length; i++) {
+            for (let j = i + 1; j < branches.length; j++) {
+                const pair1 = branches[i] + branches[j];
+                const pair2 = branches[j] + branches[i];
+                if (conflicts[pair1] !== undefined || conflicts[pair2] !== undefined) {
+                    const elementIndex = conflicts[pair1] || conflicts[pair2];
+                    
+                    // 根据不同冲的情况调整
+                    if (pair1 === '子午' || pair1 === '午子') {
+                        newElements[4] += 0.5; // 水+
+                        newElements[1] -= 1;    // 火-
+                    } else if (pair1 === '寅申' || pair1 === '申寅') {
+                        newElements[0] += 0.5;  // 木+
+                        newElements[3] -= 1;    // 金-
+                    } else if (pair1 === '卯酉' || pair1 === '酉卯') {
+                        newElements[0] += 0.5;  // 木+
+                        newElements[3] -= 1;    // 金-
+                    } else if (pair1 === '巳亥' || pair1 === '亥巳') {
+                        newElements[1] += 0.5;  // 火+
+                        newElements[4] -= 1;    // 水-
+                    } else {
+                        // 土相冲
+                        newElements[elementIndex] -= 0.5;
+                    }
+                }
+            }
+        }
+        
+        // 2. 地支相刑（简化处理）
+        const punishments = {
+            '寅巳申': [0, 1, 3], // 无恩之刑，影响木火金
+            '丑戌未': [2],       // 持势之刑，影响土
+            '子卯': [0, 4],      // 无礼之刑，影响木水
+            '辰午酉亥': []       // 自刑，暂不处理
+        };
+        
+        // 检查三刑
+        const branchStr = branches.join('');
+        if (branchStr.includes('寅') && branchStr.includes('巳') && branchStr.includes('申')) {
+            newElements[0] -= 0.3; // 木-
+            newElements[1] -= 0.3; // 火-
+            newElements[3] -= 0.3; // 金-
+        }
+        if (branchStr.includes('丑') && branchStr.includes('戌') && branchStr.includes('未')) {
+            newElements[2] -= 0.5; // 土-
+        }
+        if (branchStr.includes('子') && branchStr.includes('卯')) {
+            newElements[0] -= 0.3; // 木-
+            newElements[4] -= 0.3; // 水-
+        }
+        
+        return newElements.map(val => Math.max(0, val)); // 确保不出现负数
+    }
+
+    // 获取五行索引
+    function getElementIndex(char) {
+        const elementMap = {
+            '甲': 0, '乙': 0,  // 木
+            '丙': 1, '丁': 1,  // 火
+            '戊': 2, '己': 2,  // 土
+            '庚': 3, '辛': 3,  // 金
+            '壬': 4, '癸': 4,  // 水
+            '寅': 0, '卯': 0,  // 木
+            '午': 1, '巳': 1,  // 火
+            '辰': 2, '戌': 2, '丑': 2, '未': 2,  // 土
+            '申': 3, '酉': 3,  // 金
+            '子': 4, '亥': 4   // 水
+        };
+        return elementMap[char] || 0;
+    }
+
+    // 计算大运五行能量（基于本命局）
+    function calculateLuckElements(natalElements) {
+        // 大运五行能量基于本命局，但有一定变化
+        return natalElements.map((value, index) => {
+            // 随机变化幅度在-1到+2之间
+            const variation = Math.random() * 3 - 1;
+            // 确保不会出现负值
+            return Math.max(0, value + variation);
+        });
+    }
+
+    // 计算流年五行能量（基于本命局）
+    function calculateYearElements(natalElements) {
+        // 流年五行能量基于本命局，但变化更大
+        return natalElements.map((value, index) => {
+            // 随机变化幅度在-2到+3之间
+            const variation = Math.random() * 5 - 2;
+            // 确保不会出现负值
+            return Math.max(0, value + variation);
+        });
+    }
+
+    // 初始化运势图表
+    function initFortuneChart(result) {
+        const fortuneContent = document.getElementById('decade-fortune-content');
+        const canvas = document.createElement('canvas');
+        canvas.className = 'fortune-chart';
+        fortuneContent.appendChild(canvas);
+        
+        const fortunes = calculateDecadeFortune(
+            Solar.fromYmdHms(
+                parseInt(birthData.date.split('-')[0]),
+                parseInt(birthData.date.split('-')[1]),
+                parseInt(birthData.date.split('-')[2]),
+                parseInt(birthData.time.split(':')[0]),
+                parseInt(birthData.time.split(':')[1] || 0),
+                0
+            ).getLunar(), 
+            birthData.gender
+        ).fortunes;
+
+        const chartData = {
+            labels: fortunes.map(function(f) {
+                return f.ageRange;
+            }),
+            datasets: [{
+                label: '运势指数',
+                data: fortunes.map(function(f) {
+                    return f.score;
+                }),
+                fill: true,
+                backgroundColor: 'rgba(0, 240, 255, 0.2)',
+                borderColor: 'rgba(0, 240, 255, 1)',
+                tension: 0.4
+            }]
+        };
+
+        new Chart(canvas.getContext('2d'), {
+            type: 'line',
+            data: chartData,
+            options: {
+                responsive: true,
+                scales: {
+                    y: { max: 100 }
+                }
+            }
+        });
+    }
+
+    // 更新农历日历
+    function updateLunarCalendar() {
+        const solar = Solar.fromDate(new Date());
+        const lunar = solar.getLunar();
+        lunarDate.textContent = `${lunar.getYearInChinese()}年 ${lunar.getMonthInChinese()}月 ${lunar.getDayInChinese()}`;
+        lunarGanzhi.textContent = `${lunar.getYearInGanZhi()}年 ${lunar.getMonthInGanZhi()}月 ${lunar.getDayInGanZhi()}日`;
+        const yi = lunar.getDayYi();
+        const ji = lunar.getDayJi();
+        lunarYi.textContent = yi.join('、') || '无';
+        lunarJi.textContent = ji.join('、') || '无';
+    }
+
+    // 验证日期有效性
+    function isValidDate(year, month, day) {
+        if (month < 1 || month > 12) {
+            return false;
+        }
+        const date = new Date(year, month - 1, day);
+        return date.getFullYear() === year && 
+               date.getMonth() === month - 1 && 
+               date.getDate() === day;
+    }
+
+    // 判断闰年
+    function isLeapYear(year) {
+        return (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
+    }
+
+    // 计算命运分数
+    function calculateFateScore(pillars) {
+        if (fateScoreValue === 0) {
+            const seasonScore = calculateSeasonScore(pillars.day.charAt(0), pillars.month.charAt(1));
+            const balanceScore = calculateBalanceScore(pillars);
+            const patternScore = calculatePatternScore(pillars);
+            const godsScore = calculateGodsScore(pillars);
+            const combinationScore = calculateCombinationScore(pillars);
+            const total = seasonScore + balanceScore + patternScore + godsScore + combinationScore;
+            fateScoreDetails = {
+                seasonScore,
+                balanceScore,
+                patternScore,
+                godsScore,
+                combinationScore,
+                total
+            };
+            fateScoreValue = Math.round(total);
+        }
+        return fateScoreValue;
+    }
+
+    // 计算季节分数
+    function calculateSeasonScore(dayStem, monthBranch) {
+        const seasonMap = {
+            '甲': ['寅', '卯', '辰'],
+            '乙': ['寅', '卯', '辰'],
+            '丙': ['巳', '午', '未'],
+            '丁': ['巳', '午', '未'],
+            '戊': ['辰', '戌', '丑', '未'],
+            '己': ['辰', '戌', '丑', '未'],
+            '庚': ['申', '酉', '戌'],
+            '辛': ['申', '酉', '戌'],
+            '壬': ['亥', '子', '丑'],
+            '癸': ['亥', '子', '丑']
+        };
+        if (seasonMap[dayStem] && seasonMap[dayStem].includes(monthBranch)) {
+            return 30;
+        }
+        return 15;
+    }
+
+    // 计算平衡分数
+    function calculateBalanceScore(pillars) {
+        const elements = {
+            '木': 0,
+            '火': 0,
+            '土': 0,
+            '金': 0,
+            '水': 0
+        };
+        const stemElements = {
+            '甲': '木', '乙': '木',
+            '丙': '火', '丁': '火',
+            '戊': '土', '己': '土',
+            '庚': '金', '辛': '金',
+            '壬': '水', '癸': '水'
+        };
+        const branchElements = {
+            '寅': '木', '卯': '木',
+            '午': '火', '巳': '火',
+            '辰': '土', '戌': '土', '丑': '土', '未': '土',
+            '申': '金', '酉': '金',
+            '子': '水', '亥': '水'
+        };
+        elements[stemElements[pillars.year.charAt(0)]]++;
+        elements[stemElements[pillars.month.charAt(0)]]++;
+        elements[stemElements[pillars.day.charAt(0)]]++;
+        elements[stemElements[pillars.hour.charAt(0)]]++;
+        elements[branchElements[pillars.year.charAt(1)]]++;
+        elements[branchElements[pillars.month.charAt(1)]]++;
+        elements[branchElements[pillars.day.charAt(1)]]++;
+        elements[branchElements[pillars.hour.charAt(1)]]++;
+        const values = Object.values(elements);
+        const max = Math.max(...values);
+        const min = Math.min(...values);
+        const balance = 25 - (max - min) * 2;
+        return Math.max(0, balance);
+    }
+
+    // 计算格局分数
+    function calculatePatternScore(pillars) {
+        if (isCongGe(pillars)) {
+            return 20;
+        }
+        if (isZhuanWangGe(pillars)) {
+            return 15;
+        }
+        return 5;
+    }
+
+    // 判断从格
+    function isCongGe(pillars) {
+        const dayStem = pillars.day.charAt(0);
+        const stems = [
+            pillars.year.charAt(0),
+            pillars.month.charAt(0),
+            pillars.hour.charAt(0)
+        ];
+        const branches = [
+            pillars.year.charAt(1),
+            pillars.month.charAt(1),
+            pillars.day.charAt(1),
+            pillars.hour.charAt(1)
+        ];
+        if (isCongQiangGe(dayStem, stems, branches)) {
+            return true;
+        }
+        if (isCongRuoGe(dayStem, stems, branches)) {
+            return true;
+        }
+        return false;
+    }
+
+    // 判断从强格
+    function isCongQiangGe(dayStem, stems, branches) {
+        let count = 0;
+        stems.forEach(function(stem) {
+            if (isSameElement(stem, dayStem) || isGenerateElement(stem, dayStem)) {
+                count++;
+            }
+        });
+        branches.forEach(function(branch) {
+            if (isSameElement(branch, dayStem) || isGenerateElement(branch, dayStem)) {
+                count++;
+            }
+        });
+        return count >= 6;
+    }
+
+    // 判断从弱格
+    function isCongRuoGe(dayStem, stems, branches) {
+        let count = 0;
+        stems.forEach(function(stem) {
+            if (isSameElement(stem, dayStem) || isGenerateElement(stem, dayStem)) {
+                count++;
+            }
+        });
+        branches.forEach(function(branch) {
+            if (isSameElement(branch, dayStem) || isGenerateElement(branch, dayStem)) {
+                count++;
+            }
+        });
+        return count <= 1;
+    }
+
+    // 判断专旺格
+    function isZhuanWangGe(pillars) {
+        const dayStem = pillars.day.charAt(0);
+        const stems = [
+            pillars.year.charAt(0),
+            pillars.month.charAt(0),
+            pillars.hour.charAt(0)
+        ];
+        const branches = [
+            pillars.year.charAt(1),
+            pillars.month.charAt(1),
+            pillars.day.charAt(1),
+            pillars.hour.charAt(1)
+        ];
+        let sameCount = 0;
+        let otherCount = 0;
+        stems.forEach(function(stem) {
+            if (isSameElement(stem, dayStem)) {
+                sameCount++;
+            } else {
+                otherCount++;
+            }
+        });
+        branches.forEach(function(branch) {
+            if (isSameElement(branch, dayStem)) {
+                sameCount++;
+            } else {
+                otherCount++;
+            }
+        });
+        return sameCount >= 5 && otherCount <= 2;
+    }
+
+    // 判断相同元素
+    function isSameElement(a, b) {
+        const elementMap = {
+            '甲': '木', '乙': '木',
+            '丙': '火', '丁': '火',
+            '戊': '土', '己': '土',
+            '庚': '金', '辛': '金',
+            '壬': '水', '癸': '水',
+            '寅': '木', '卯': '木',
+            '午': '火', '巳': '火',
+            '辰': '土', '戌': '土', '丑': '土', '未': '土',
+            '申': '金', '酉': '金',
+            '子': '水', '亥': '水'
+        };
+        return elementMap[a] === elementMap[b];
+    }
+
+    // 判断生成元素
+    function isGenerateElement(a, b) {
+        const elementMap = {
+            '甲': '木', '乙': '木',
+            '丙': '火', '丁': '火',
+            '戊': '土', '己': '土',
+            '庚': '金', '辛': '金',
+            '壬': '水', '癸': '水',
+            '寅': '木', '卯': '木',
+            '午': '火', '巳': '火',
+            '辰': '土', '戌': '土', '丑': '土', '未': '土',
+            '申': '金', '酉': '金',
+            '子': '水', '亥': '水'
+        };
+        const aElement = elementMap[a];
+        const bElement = elementMap[b];
+        const generateMap = {
+            '木': '火',
+            '火': '土',
+            '土': '金',
+            '金': '水',
+            '水': '木'
+        };
+        return generateMap[aElement] === bElement;
+    }
+
+    // 计算十神分数
+    function calculateGodsScore(pillars) {
+        return 10;
+    }
+
+    // 计算组合分数
+    function calculateCombinationScore(pillars) {
+        const branches = [
+            pillars.year.charAt(1),
+            pillars.month.charAt(1),
+            pillars.day.charAt(1),
+            pillars.hour.charAt(1)
+        ];
+        if (hasSanHe(branches)) {
+            return 8;
+        }
+        if (hasLiuHe(branches)) {
+            return 5;
+        }
+        return 2;
+    }
+
+    // 判断三合
+    function hasSanHe(branches) {
+        const sanHeGroups = [
+            ['申', '子', '辰'],
+            ['亥', '卯', '未'],
+            ['寅', '午', '戌'],
+            ['巳', '酉', '丑']
+        ];
+        for (const group of sanHeGroups) {
+            let count = 0;
+            for (const branch of branches) {
+                if (group.includes(branch)) {
+                    count++;
+                }
+            }
+            if (count >= 2) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // 判断六合
+    function hasLiuHe(branches) {
+        const liuHePairs = [
+            ['子', '丑'],
+            ['寅', '亥'],
+            ['卯', '戌'],
+            ['辰', '酉'],
+            ['巳', '申'],
+            ['午', '未']
+        ];
+        for (const pair of liuHePairs) {
+            if (branches.includes(pair[0]) && branches.includes(pair[1])) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // 计算财富分数
+    function calculateWealthScore(pillars) {
+        if (wealthScoreValue === 0) {
+            const wealthStarScore = calculateWealthStarScore(pillars);
+            const wealthPositionScore = calculateWealthPositionScore(pillars);
+            const wealthDamageScore = calculateWealthDamageScore(pillars);
+            const wealthSupportScore = calculateWealthSupportScore(pillars);
+            const fortuneScore = calculateFortuneScore(pillars);
+            const total = wealthStarScore + wealthPositionScore + (20 - wealthDamageScore) + wealthSupportScore + fortuneScore;
+            wealthScoreDetails = {
+                wealthStarScore,
+                wealthPositionScore,
+                wealthDamageScore: 20 - wealthDamageScore,
+                wealthSupportScore,
+                fortuneScore,
+                total
+            };
+            wealthScoreValue = Math.round(total);
+        }
+        return wealthScoreValue;
+    }
+
+    // 计算财星分数
+    function calculateWealthStarScore(pillars) {
+        const dayStem = pillars.day.charAt(0);
+        let wealthCount = 0;
+        const stems = [
+            pillars.year.charAt(0),
+            pillars.month.charAt(0),
+            pillars.hour.charAt(0)
+        ];
+        const branches = [
+            pillars.year.charAt(1),
+            pillars.month.charAt(1),
+            pillars.day.charAt(1),
+            pillars.hour.charAt(1)
+        ];
+        const wealthStars = getWealthStars(dayStem);
+        stems.forEach(function(stem) {
+            if (wealthStars.includes(stem)) {
+                wealthCount++;
+            }
+        });
+        branches.forEach(function(branch) {
+            if (wealthStars.includes(branch)) {
+                wealthCount++;
+            }
+        });
+        if (wealthCount >= 3) return 30;
+        if (wealthCount === 2) return 20;
+        if (wealthCount === 1) return 10;
+        return 5;
+    }
+
+    // 获取财星
+    function getWealthStars(dayStem) {
+        const wealthMap = {
+            '甲': ['戊', '己', '辰', '戌', '丑', '未'],
+            '乙': ['戊', '己', '辰', '戌', '丑', '未'],
+            '丙': ['庚', '辛', '申', '酉'],
+            '丁': ['庚', '辛', '申', '酉'],
+            '戊': ['壬', '癸', '子', '亥'],
+            '己': ['壬', '癸', '子', '亥'],
+            '庚': ['甲', '乙', '寅', '卯'],
+            '辛': ['甲', '乙', '寅', '卯'],
+            '壬': ['丙', '丁', '午', '巳'],
+            '癸': ['丙', '丁', '午', '巳']
+        };
+        return wealthMap[dayStem] || [];
+    }
+
+    // 计算财位分数
+    function calculateWealthPositionScore(pillars) {
+        const dayStem = pillars.day.charAt(0);
+        const wealthStars = getWealthStars(dayStem);
+        let score = 0;
+        if (wealthStars.includes(pillars.month.charAt(1))) {
+            score += 15;
+        }
+        if (wealthStars.includes(pillars.day.charAt(1))) {
+            score += 5;
+        }
+        if (wealthStars.includes(pillars.hour.charAt(1))) {
+            score += 5;
+        }
+        return Math.min(25, score);
+    }
+
+    // 计算财损分数
+    function calculateWealthDamageScore(pillars) {
+        const dayStem = pillars.day.charAt(0);
+        const wealthStars = getWealthStars(dayStem);
+        let damageCount = 0;
+        const stems = [
+            pillars.year.charAt(0),
+            pillars.month.charAt(0),
+            pillars.hour.charAt(0)
+        ];
+        const branches = [
+            pillars.year.charAt(1),
+            pillars.month.charAt(1),
+            pillars.day.charAt(1),
+            pillars.hour.charAt(1)
+        ];
+        const damageStars = getDamageStars(dayStem);
+        stems.forEach(function(stem) {
+            if (damageStars.includes(stem)) {
+                damageCount++;
+            }
+        });
+        branches.forEach(function(branch) {
+            if (damageStars.includes(branch)) {
+                damageCount++;
+            }
+        });
+        return Math.min(20, damageCount * 5);
+    }
+
+    // 获取损星
+    function getDamageStars(dayStem) {
+        const damageMap = {
+            '甲': ['甲', '乙', '寅', '卯'],
+            '乙': ['甲', '乙', '寅', '卯'],
+            '丙': ['丙', '丁', '午', '巳'],
+            '丁': ['丙', '丁', '午', '巳'],
+            '戊': ['戊', '己', '辰', '戌', '丑', '未'],
+            '己': ['戊', '己', '辰', '戌', '丑', '未'],
+            '庚': ['庚', '辛', '申', '酉'],
+            '辛': ['庚', '辛', '申', '酉'],
+            '壬': ['壬', '癸', '子', '亥'],
+            '癸': ['壬', '癸', '子', '亥']
+        };
+        return damageMap[dayStem] || [];
+    }
+
+    // 计算财助分数
+    function calculateWealthSupportScore(pillars) {
+        const dayStem = pillars.day.charAt(0);
+        const wealthStars = getWealthStars(dayStem);
+        const generateStars = getGenerateStars(dayStem);
+        let supportCount = 0;
+        const stems = [
+            pillars.year.charAt(0),
+            pillars.month.charAt(0),
+            pillars.hour.charAt(0)
+        ];
+        const branches = [
+            pillars.year.charAt(1),
+            pillars.month.charAt(1),
+            pillars.day.charAt(1),
+            pillars.hour.charAt(1)
+        ];
+        stems.forEach(function(stem) {
+            if (generateStars.includes(stem)) {
+                supportCount++;
+            }
+        });
+        branches.forEach(function(branch) {
+            if (generateStars.includes(branch)) {
+                supportCount++;
+            }
+        });
+        if (supportCount >= 2) return 15;
+        if (supportCount === 1) return 8;
+        return 3;
+    }
+
+    // 获取生星
+    function getGenerateStars(dayStem) {
+        const generateMap = {
+            '甲': ['丙', '丁', '午', '巳'],
+            '乙': ['丙', '丁', '午', '巳'],
+            '丙': ['戊', '己', '辰', '戌', '丑', '未'],
+            '丁': ['戊', '己', '辰', '戌', '丑', '未'],
+            '戊': ['庚', '辛', '申', '酉'],
+            '己': ['庚', '辛', '申', '酉'],
+            '庚': ['壬', '癸', '子', '亥'],
+            '辛': ['壬', '癸', '子', '亥'],
+            '壬': ['甲', '乙', '寅', '卯'],
+            '癸': ['甲', '乙', '寅', '卯']
+        };
+        return generateMap[dayStem] || [];
+    }
+
+    // 计算运势分数
+    function calculateFortuneScore(pillars) {
+        return 5;
+    }
 
     // 获取命运等级
     function getFateLevel(score) {
