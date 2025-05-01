@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 增强版缓存对象v2.2ba
+    // 增强版缓存对象v2.2v
     const baziCache = {
         data: {},
         get: function(key) {
@@ -2999,8 +2999,8 @@ ${getWealthSuggestions(score)}
                 break;
             case 'decade-fortune':
                 prompt += `分析十年大运走势：
-1 全部大运财运吉凶详细分析(1-5星)
-2 大运重大事件吉凶详细分析(1-5星)
+1 全部大运财运吉凶详细分析(可用表格方式呈现，1-5星)
+2 大运重大事件吉凶详细分析(可用表格方式呈现，1-5星)
 格式说明：
 1.用简洁语言清晰的表达
 2.使用标准Markdown语法，可用表格方式呈现
