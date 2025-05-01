@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 增强版缓存对象v2.2c
+    // 增强版缓存对象v2.2a
     const baziCache = {
         data: {},
         get: function(key) {
@@ -2870,8 +2870,8 @@ ${getWealthSuggestions(score)}
             case 'wealth':
                 prompt += `详细分析财富情况：
 1 财富格局
-2 流年财运分析(1-5星)
-3 大运财运分析(1-5星)
+2 流年财运详细分析(1-5星)
+3 大运财运详细分析(1-5星)
 格式说明：
 1.用简洁语言清晰的表达
 2.使用标准Markdown语法，可用表格方式呈现
@@ -2912,7 +2912,7 @@ ${getWealthSuggestions(score)}
                 break;
             case 'children':
                 prompt += `分析子女情况：
-1 子女数量分析（男女，数量）
+1 子女男女和数量分析
 2 子女缘分分析
 格式说明：
 1.用简洁语言清晰的表达
@@ -2956,9 +2956,9 @@ ${getWealthSuggestions(score)}
             case 'annual-fortune':
                 prompt += `详细分析当前流年运势：
 1 根据命主八字，大运，流年分析命格强弱           
-2 流年事业吉凶分析(1-5星)
-3 流年婚姻吉凶分析(1-5星)
-4 流年重大事件吉凶分析(1-5星)
+2 流年事业吉凶详细分析(1-5星)
+3 流年婚姻吉凶详细分析(1-5星)
+4 流年重大事件吉凶详细分析(1-5星)
 格式说明：
 1.用简洁语言清晰的表达
 2.使用标准Markdown语法，可用表格方式呈现
@@ -2971,7 +2971,7 @@ ${getWealthSuggestions(score)}
             case 'daily-fortune':
                 prompt += `详细分析每日运势：
 1 根据命主八字，大运，流年分析命格强弱 
-2 流日吉凶时辰
+2 流日吉凶时辰(1-5星)
 3 流日宜忌事项
 4 流日冲煞方位
 格式说明：
@@ -2985,8 +2985,8 @@ ${getWealthSuggestions(score)}
                 break;
             case 'milestones':
                 prompt += `分析一生重要节点和重大灾祸：
-1 一生重要事件分析
-2 一生重大灾祸分析
+1 一生重要事件详细分析
+2 一生重大灾祸详细分析
 3 如何趋吉避凶
 格式说明：
 1.用简洁语言清晰的表达
@@ -2999,8 +2999,8 @@ ${getWealthSuggestions(score)}
                 break;
             case 'decade-fortune':
                 prompt += `分析十年大运走势：
-1 全部大运财运吉凶分析(1-5星)
-2 大运重大事件吉凶分析(1-5星)
+1 全部大运财运吉凶详细分析(1-5星)
+2 大运重大事件吉凶详细分析(1-5星)
 格式说明：
 1.用简洁语言清晰的表达
 2.使用标准Markdown语法，可用表格方式呈现
@@ -3013,9 +3013,9 @@ ${getWealthSuggestions(score)}
             case 'monthly-fortune':
                 prompt += `详细分析今年每月运势：
 1 根据命主八字，大运，流年分析命格强弱 
-2 流月事业吉凶分析(1-5星)
-3 流月婚姻吉凶分析(1-5星)
-4 流月重大事件吉凶分析(1-5星)
+2 流月事业吉凶详细分析(1-5星)
+3 流月婚姻吉凶详细分析(1-5星)
+4 流月重大事件吉凶详细分析(1-5星)
 格式说明：
 1.用简洁语言清晰的表达
 2.使用标准Markdown语法，可用表格方式呈现
