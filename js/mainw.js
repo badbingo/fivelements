@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 增强版缓存对象v2.2v
+    // 增强版缓存对象v2.2a
     const baziCache = {
         data: {},
         get: function(key) {
@@ -305,7 +305,7 @@ document.addEventListener('DOMContentLoaded', function() {
         width: 20px;
         height: 20px;
         animation: spin 1s linear infinite;
-        margin-bottom: 10px;
+        margin-bottom: 7px;
     }
     @keyframes spin {
         0% { transform: rotate(0deg); }
