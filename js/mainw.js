@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 增强版缓存对象v2.2a
+    // 增强版缓存对象v2.2v
     const baziCache = {
         data: {},
         get: function(key) {
@@ -2623,195 +2623,74 @@ function calculateLuckStartingTime(lunar, gender) {
     }
 }
 
-    function determineStrengthType(input) {
-    // ==================== 1. 参数预处理 ====================
-    console.debug("[八字分析] 输入参数:", JSON.stringify(input));
+    // 判断从强从弱
+    function determineStrengthType(pillars) {
+    const dayStem = pillars.dayStem;
+    const stems = [pillars.yearStem, pillars.monthStem, pillars.hourStem];
+    const branches = [pillars.yearBranch, pillars.monthBranch, pillars.dayBranch, pillars.hourBranch];
     
-    let pillars;
-    try {
-        // 情况1：直接传入四柱对象 {year, month, day, hour}
-        if (input && typeof input === 'object' && 
-            ['year','month','day','hour'].every(k => k in input)) {
-            pillars = {
-                year: String(input.year),
-                month: String(input.month),
-                day: String(input.day),
-                hour: String(input.hour)
-            };
-        }
-        // 情况2：传入lunar对象（含getYearGan方法）
-        else if (input && typeof input.getYearGan === 'function') {
-            if (!input.getYearZhi) throw new Error("不完整的lunar对象");
-            pillars = {
-                year: input.getYearGan() + input.getYearZhi(),
-                month: input.getMonthGan() + input.getMonthZhi(),
-                day: input.getDayGan() + input.getDayZhi(),
-                hour: input.getTimeGan() + input.getTimeZhi()
-            };
-        }
-        // 情况3：传入公历日期 {solarYear, solarMonth, solarDay, solarHour}
-        else if (input && 'solarYear' in input) {
-            if (typeof Solar === 'undefined') throw new Error("未加载lunar.js");
-            const solar = Solar.fromYmdHms(
-                parseInt(input.solarYear),
-                parseInt(input.solarMonth),
-                parseInt(input.solarDay),
-                parseInt(input.solarHour),
-                0, 0
-            );
-            const lunarObj = solar.getLunar();
-            pillars = {
-                year: lunarObj.getYearGan() + lunarObj.getYearZhi(),
-                month: lunarObj.getMonthGan() + lunarObj.getMonthZhi(),
-                day: lunarObj.getDayGan() + lunarObj.getDayZhi(),
-                hour: lunarObj.getTimeGan() + lunarObj.getTimeZhi()
-            };
-        }
-        else {
-            throw new Error("不支持的参数格式");
-        }
-
-        // 验证四柱长度
-        if (Object.values(pillars).some(v => v.length !== 2)) {
-            throw new Error("四柱格式必须为两位字符");
-        }
-    } catch (e) {
-        console.error("参数预处理失败:", e);
-        return `错误：${e.message}`;
-    }
-
-    // ==================== 2. 天干地支验证 ====================
-    const VALID_STEMS = '甲乙丙丁戊己庚辛壬癸';
-    const VALID_BRANCHES = '子丑寅卯辰巳午未申酉戌亥';
+    // 1. 计算生助日主的力量（印比）
+    let supportScore = 0;
     
-    try {
-        const validate = (value, name) => {
-            const [stem, branch] = value.split('');
-            if (!VALID_STEMS.includes(stem)) throw `${name}干无效:${stem}`;
-            if (!VALID_BRANCHES.includes(branch)) throw `${name}支无效:${branch}`;
-        };
-
-        validate(pillars.year, '年柱');
-        validate(pillars.month, '月柱');
-        validate(pillars.day, '日柱');
-        validate(pillars.hour, '时柱');
-    } catch (e) {
-        console.error("天干地支验证失败:", e);
-        return `错误：${e}`;
+    // 天干生助（比肩、印）
+    stems.forEach(stem => {
+        if (isSameElement(stem, dayStem)) supportScore += 1; // 比肩
+        if (isGenerateElement(stem, dayStem)) supportScore += 1; // 印
+    });
+    
+    // 地支生助（主气2分，中气1分）
+    branches.forEach(branch => {
+        const hidden = getHiddenStems(branch);
+        hidden.split('').forEach(stem => {
+            if (isSameElement(stem, dayStem)) supportScore += (stem === hidden[0] ? 2 : 1);
+            if (isGenerateElement(stem, dayStem)) supportScore += (stem === hidden[0] ? 1 : 0.5);
+        });
+    });
+    
+    // 2. 特殊冲克处理（关键修正！）
+    // 子午冲：水根被冲掉
+    if (branches.includes('子') && branches.filter(b => b === '午').length >= 1) {
+        supportScore -= 3; // 大幅削弱水根
+        console.log("子午冲：水根-3");
     }
-
-    // ==================== 3. 核心计算逻辑 ====================
-    try {
-        // 3.1 五行配置
-        const ELEMENT_DATA = {
-            // 天干五行
-            '甲':'木','乙':'木','丙':'火','丁':'火','戊':'土','己':'土',
-            '庚':'金','辛':'金','壬':'水','癸':'水',
-            // 地支藏干（主气,余气1,余气2）
-            '寅':['甲','丙','戊'], '卯':['乙'],
-            '辰':['戊','乙','癸'], '巳':['丙','庚','戊'],
-            '午':['丁','己'], '未':['己','丁','乙'],
-            '申':['庚','壬','戊'], '酉':['辛'],
-            '戌':['戊','辛','丁'], '亥':['壬','甲'],
-            '子':['癸'], '丑':['己','癸','辛']
-        };
-
-        // 3.2 工具函数
-        const getElement = char => ELEMENT_DATA[char] || '土';
-        const getHiddenStems = branch => ELEMENT_DATA[branch] || [];
-        const isSameElement = (a, b) => getElement(a) === getElement(b);
-        const isGenerate = (a, b) => ({木:'火',火:'土',土:'金',金:'水',水:'木'})[getElement(a)] === getElement(b);
-        const isOvercome = (a, b) => ({木:'土',土:'水',水:'火',火:'金',金:'木'})[getElement(a)] === getElement(b);
-
-        // 3.3 提取日干和四柱
-        const dayStem = pillars.day[0];
-        const stems = [pillars.year[0], pillars.month[0], pillars.hour[0]];
-        const branches = [pillars.year[1], pillars.month[1], pillars.day[1], pillars.hour[1]];
-
-        console.debug('[DEBUG] 分析数据:', { 日干: dayStem, 天干: stems, 地支: branches });
-
-        // 3.4 计算根气力量（地支藏干中的比劫）
-        let rootPower = branches.reduce((sum, branch) => {
-            return sum + getHiddenStems(branch).reduce((s, stem, idx) => {
-                return s + (stem === dayStem ? (idx === 0 ? 1 : 0.5) : 0);
-            }, 0);
-        }, 0);
-
-        // 3.5 计算生助力量（印+比劫）
-        let supportPower = stems.reduce((sum, stem) => {
-            if (stem === dayStem) return sum + 1; // 比肩
-            if (isGenerate(stem, dayStem)) return sum + 1; // 正偏印
-            return sum;
-        }, rootPower);
-
-        // 3.6 计算克泄耗力量（官杀+食伤+财）
-        let attackPower = [...stems, ...branches].reduce((sum, item) => {
-            if (item === dayStem || isSameElement(item, dayStem)) return sum;
-            if (isGenerate(dayStem, item)) return sum + 1; // 食伤
-            if (isOvercome(item, dayStem)) return sum + 1.5; // 官杀
-            return sum + 1; // 财
-        }, 0);
-
-        console.debug('[DEBUG] 力量计算:', { 根气: rootPower, 生助: supportPower, 克泄耗: attackPower });
-
-        // 3.7 判断特殊格局
-        const totalPower = supportPower + attackPower;
-        if (totalPower > 0) {
-            // 从弱格条件
-            if (rootPower < 0.6 && attackPower / totalPower > 0.75) {
-                // 检查是否得月令
-                const monthBranch = pillars.month[1];
-                if (!getHiddenStems(monthBranch).includes(dayStem)) {
-                    console.debug('[DEBUG] 符合从弱格条件');
-                    return '从弱';
-                }
-            }
-            // 从强格条件
-            if (supportPower / totalPower > 0.8) {
-                const monthBranch = pillars.month[1];
-                if (getElement(monthBranch) === getElement(dayStem) || 
-                    getHiddenStems(monthBranch).includes(dayStem)) {
-                    console.debug('[DEBUG] 符合从强格条件');
-                    return '从强';
-                }
-            }
-        }
-
-        // 3.8 普通身强身弱判断
-        const result = supportPower >= attackPower * 1.2 ? '身强' : '身弱';
-        console.debug('[DEBUG] 最终结果:', result);
-        return result;
-
-    } catch (e) {
-        console.error("核心计算过程出错:", e);
-        return "测算失败：计算异常";
+    
+    // 寅午合火：木气转化为火
+    if (branches.includes('寅') && branches.includes('午')) {
+        supportScore -= 1; // 寅中甲木生火
+        console.log("寅午合：木气-1");
+    }
+    
+    // 3. 计算克泄耗日主的力量（财官食伤）
+    let weakenScore = 0;
+    const dayElement = getElementIndex(dayStem);
+    
+    // 天干克泄耗
+    stems.forEach(stem => {
+        const elem = getElementIndex(stem);
+        if (elem === (dayElement + 2) % 5) weakenScore += 1; // 官杀
+        if (elem === (dayElement - 1 + 5) % 5) weakenScore += 1; // 食伤
+        if (elem === (dayElement - 2 + 5) % 5) weakenScore += 1; // 财
+    });
+    
+    // 地支克泄耗（主气2分）
+    branches.forEach(branch => {
+        const elem = getElementIndex(branch);
+        if (elem === (dayElement + 2) % 5) weakenScore += 2;
+        if (elem === (dayElement - 1 + 5) % 5) weakenScore += 1;
+        if (elem === (dayElement - 2 + 5) % 5) weakenScore += 2;
+    });
+    
+    // 4. 从格判定（调整阈值）
+    console.log(`支撑分:${supportScore} 克泄分:${weakenScore}`);
+    
+    if (supportScore <= 8 && weakenScore >= 15) { // 放宽从弱标准
+        return "从弱";
+    } else if (supportScore >= 15 && weakenScore <= 8) {
+        return "从强";
+    } else {
+        return supportScore > weakenScore ? "身强" : "身弱";
     }
 }
-
-/****************** 使用示例 ******************/
-// 示例1：直接传入四柱
-console.log(determineStrengthType({
-    year: '戊午',
-    month: '己未',
-    day: '乙酉',
-    hour: '丁丑'
-})); // 应返回"从弱"
-
-// 示例2：传入lunar对象
-const lunarObj = Solar.fromYmdHms(1978, 7, 22, 2, 0, 0).getLunar();
-console.log(determineStrengthType(lunarObj)); // 应返回"从弱"
-
-// 示例3：传入公历日期
-console.log(determineStrengthType({
-    solarYear: 1978,
-    solarMonth: 7,
-    solarDay: 22,
-    solarHour: 2
-})); // 应返回"从弱"
-
-// 错误示例
-console.log(determineStrengthType(null)); // 错误：无效的输入参数
-console.log(determineStrengthType({})); // 错误：不支持的参数格式
 
     // 计算十年大运
     function calculateDecadeFortune(lunar, gender) {
