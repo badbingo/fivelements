@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 增强版缓存对象v2.2c
+    // 增强版缓存对象v2.2a
     const baziCache = {
         data: {},
         get: function(key) {
@@ -2545,70 +2545,69 @@ function hasHe(branches, branch1, branch2) {
 
     // 修改后的calculateLuckStartingTime函数
 function calculateLuckStartingTime(lunar, gender) {
-    // 硬编码24节气名称（按年循环顺序）
-    const JIE_QI_ORDER = [
-        '立春', '雨水', '惊蛰', '春分', '清明', '谷雨',
-        '立夏', '小满', '芒种', '夏至', '小暑', '大暑',
-        '立秋', '处暑', '白露', '秋分', '寒露', '霜降',
-        '立冬', '小雪', '大雪', '冬至', '小寒', '大寒'
-    ];
+    // 安全获取节气日期（兼容不同版本lunar.js）
+    function getJieQiDate(lunarObj, name) {
+        try {
+            // 方法1：标准API
+            if (typeof lunarObj.getJieQi === 'function') {
+                const jq = lunarObj.getJieQi(name);
+                if (jq && typeof jq.getSolar === 'function') {
+                    return jq.getSolar();
+                }
+                // 某些版本节气对象本身就是Solar对象
+                if (jq && typeof jq.getYear === 'function') {
+                    return jq;
+                }
+            }
+            
+            // 方法2：备用属性访问
+            if (lunarObj[name] && typeof lunarObj[name].getYear === 'function') {
+                return lunarObj[name];
+            }
+            
+            throw new Error('无法获取节气日期');
+        } catch (e) {
+            console.warn(`获取节气${name}失败`, e);
+            return null;
+        }
+    }
 
     try {
         const solar = lunar.getSolar();
         const yearGan = lunar.getYearGan();
         const isYangYear = ['甲', '丙', '戊', '庚', '壬'].includes(yearGan);
         const isForward = (isYangYear && gender === 'male') || (!isYangYear && gender === 'female');
-        
-        // 获取当前年份所有节气日期
-        const year = solar.getYear();
-        const jieQiDates = JIE_QI_ORDER.map(name => {
-            try {
-                return {
-                    name: name,
-                    date: lunar.getJieQi(name).getSolar()
-                };
-            } catch (e) {
-                console.warn(`获取节气${name}失败`, e);
-                return null;
-            }
-        }).filter(Boolean);
 
-        console.log('当年节气列表:', jieQiDates.map(jq => `${jq.name}:${jq.date.toYmdHms()}`));
+        // 只需要立春和大雪两个关键节气
+        const currentYear = solar.getYear();
+        const jieQi = {
+            // 当年立春
+           立春: getJieQiDate(lunar, '立春'),
+            // 当年大雪
+           大雪: getJieQiDate(lunar, '大雪'),
+            // 次年立春
+           次年立春: getJieQiDate(Solar.fromYmdHms(currentYear+1, 1, 1, 0, 0, 0).getLunar(), '立春'),
+            // 上年大雪
+           上年大雪: getJieQiDate(Solar.fromYmdHms(currentYear-1, 1, 1, 0, 0, 0).getLunar(), '大雪')
+        };
 
-        // 查找目标节气
+        console.log('节气日期:', Object.entries(jieQi).map(([k,v]) => 
+            `${k}: ${v ? v.toYmdHms() : 'null'}`).join(', '));
+
+        // 确定目标节气
         let targetJieQi = null;
         if (isForward) {
-            // 顺排：找之后第一个节气
-            targetJieQi = jieQiDates.find(jq => jq.date.isAfter(solar));
-            if (!targetJieQi) {
-                // 如果当年找不到，用次年立春
-                const nextYear = Solar.fromYmdHms(year+1, 1, 1, 0, 0, 0).getLunar();
-                targetJieQi = {
-                    name: '立春',
-                    date: nextYear.getJieQi('立春').getSolar()
-                };
-            }
+            targetJieQi = jieQi.立春?.isAfter(solar) ? jieQi.立春 : jieQi.次年立春;
         } else {
-            // 逆排：找之前最后一个节气
-            targetJieQi = [...jieQiDates].reverse().find(jq => jq.date.isBefore(solar));
-            if (!targetJieQi) {
-                // 如果当年找不到，用上年大雪
-                const prevYear = Solar.fromYmdHms(year-1, 1, 1, 0, 0, 0).getLunar();
-                targetJieQi = {
-                    name: '大雪',
-                    date: prevYear.getJieQi('大雪').getSolar()
-                };
-            }
+            targetJieQi = jieQi.大雪?.isBefore(solar) ? jieQi.大雪 : jieQi.上年大雪;
         }
 
         if (!targetJieQi) {
             throw new Error('无法确定目标节气');
         }
 
-        console.log('使用节气:', targetJieQi.name, targetJieQi.date.toYmdHms());
-
         // 计算相差天数（绝对值）
-        const diffDays = Math.abs(solar.diffDays(targetJieQi.date));
+        const diffDays = Math.abs(solar.diffDays(targetJieQi));
         console.log('与节气相差天数:', diffDays);
 
         // 3天 = 1年 的换算
