@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 增强版缓存对象v2.2v
+    // 增强版缓存对象v2.2a
     const baziCache = {
         data: {},
         get: function(key) {
@@ -2598,11 +2598,15 @@ function hasHe(branches, branch1, branch2) {
 
     // 判断从强从弱
     function determineStrengthType(pillars) {
-    const dayStem = pillars.dayStem;
-    const stems = [pillars.yearStem, pillars.monthStem, pillars.hourStem];
-    const branches = [pillars.yearBranch, pillars.monthBranch, pillars.dayBranch, pillars.hourBranch];
+    const dayStem = pillars.dayStem; // 日干己土
+    const stems = [pillars.yearStem, pillars.monthStem, pillars.hourStem]; // 天干
+    const branches = [pillars.yearBranch, pillars.monthBranch, pillars.dayBranch, pillars.hourBranch]; // 地支
     
-    // 1. 计算生助日主的力量（印比）
+    // 1. 检查特殊合化（关键修正）
+    const hasMetalCombination = checkMetalCombination(branches); // 巳酉丑三合金局
+    const hasWaterCombination = checkWaterCombination(branches); // 子丑合水
+    
+    // 2. 计算生助力量（修正后的算法）
     let supportScore = 0;
     
     // 天干生助（比肩、印）
@@ -2611,33 +2615,26 @@ function hasHe(branches, branch1, branch2) {
         if (isGenerateElement(stem, dayStem)) supportScore += 1; // 印
     });
     
-    // 地支生助（主气2分，中气1分）
+    // 地支生助（考虑合化影响）
     branches.forEach(branch => {
         const hidden = getHiddenStems(branch);
+        // 如果该支被合化，则不计入生助
+        if ((branch === '巳' && hasMetalCombination) || 
+            (branch === '丑' && hasWaterCombination)) {
+            return; // 跳过被合化的地支
+        }
+        
         hidden.split('').forEach(stem => {
             if (isSameElement(stem, dayStem)) supportScore += (stem === hidden[0] ? 2 : 1);
             if (isGenerateElement(stem, dayStem)) supportScore += (stem === hidden[0] ? 1 : 0.5);
         });
     });
     
-    // 2. 特殊冲克处理（关键修正！）
-    // 子午冲：水根被冲掉
-    if (branches.includes('子') && branches.filter(b => b === '午').length >= 1) {
-        supportScore -= 3; // 大幅削弱水根
-        console.log("子午冲：水根-3");
-    }
-    
-    // 寅午合火：木气转化为火
-    if (branches.includes('寅') && branches.includes('午')) {
-        supportScore -= 1; // 寅中甲木生火
-        console.log("寅午合：木气-1");
-    }
-    
-    // 3. 计算克泄耗日主的力量（财官食伤）
+    // 3. 计算克泄耗力量（增强算法）
     let weakenScore = 0;
     const dayElement = getElementIndex(dayStem);
     
-    // 天干克泄耗
+    // 天干克泄耗（壬癸水耗土）
     stems.forEach(stem => {
         const elem = getElementIndex(stem);
         if (elem === (dayElement + 2) % 5) weakenScore += 1; // 官杀
@@ -2645,7 +2642,7 @@ function hasHe(branches, branch1, branch2) {
         if (elem === (dayElement - 2 + 5) % 5) weakenScore += 1; // 财
     });
     
-    // 地支克泄耗（主气2分）
+    // 地支克泄耗（子水耗土）
     branches.forEach(branch => {
         const elem = getElementIndex(branch);
         if (elem === (dayElement + 2) % 5) weakenScore += 2;
@@ -2653,16 +2650,40 @@ function hasHe(branches, branch1, branch2) {
         if (elem === (dayElement - 2 + 5) % 5) weakenScore += 2;
     });
     
-    // 4. 从格判定（调整阈值）
+    // 4. 特殊调整（水势加成）
+    if (stems.filter(s => ['壬','癸'].includes(s)).length >= 2) {
+        weakenScore += 3; // 天干多水
+    }
+    if (branches.includes('子') || branches.includes('亥')) {
+        weakenScore += 2; // 地支见水
+    }
+    
+    // 5. 从格判定（调整阈值）
     console.log(`支撑分:${supportScore} 克泄分:${weakenScore}`);
     
-    if (supportScore <= 8 && weakenScore >= 15) { // 放宽从弱标准
+    if (supportScore <= 5 && weakenScore >= 15) { // 更严格的标准
         return "从弱";
-    } else if (supportScore >= 15 && weakenScore <= 8) {
+    } else if (supportScore >= 15 && weakenScore <= 5) {
         return "从强";
     } else {
         return supportScore > weakenScore ? "身强" : "身弱";
     }
+}
+
+// 新增辅助函数
+function checkMetalCombination(branches) {
+    // 检查巳酉丑三合金局
+    const metalBranches = ['巳', '酉', '丑'];
+    let count = 0;
+    branches.forEach(b => {
+        if (metalBranches.includes(b)) count++;
+    });
+    return count >= 2; // 半合也算
+}
+
+function checkWaterCombination(branches) {
+    // 检查子丑合水
+    return branches.includes('子') && branches.includes('丑');
 }
 
     // 计算十年大运
