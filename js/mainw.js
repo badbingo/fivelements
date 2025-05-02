@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 增强版缓存对象v2.2a
+    // 增强版缓存对象v2.2v
     const baziCache = {
         data: {},
         get: function(key) {
@@ -2625,88 +2625,102 @@ function calculateLuckStartingTime(lunar, gender) {
 
     // 判断从强从弱
     function determineStrengthType(pillars) {
-    // 特殊八字处理（1973年2月2日18:00 男）
-    const specialCase = {
-        yearStem: '壬', yearBranch: '子',
-        monthStem: '癸', monthBranch: '丑',
-        dayStem: '己', dayBranch: '巳',
-        hourStem: '癸', hourBranch: '酉'
-    };
-    
-    if (JSON.stringify(pillars) === JSON.stringify(specialCase)) {
-        console.log("特殊八字处理：壬子 癸丑 己巳 癸酉 → 从弱格");
-        return "从弱"; 
-    }    
-    const dayStem = pillars.dayStem; // 日干己土
-    const stems = [pillars.yearStem, pillars.monthStem, pillars.hourStem]; // 天干
-    const branches = [pillars.yearBranch, pillars.monthBranch, pillars.dayBranch, pillars.hourBranch]; // 地支
-    
-    // 1. 检查特殊合化（关键修正）
-    const hasMetalCombination = checkMetalCombination(branches); // 巳酉丑三合金局
-    const hasWaterCombination = checkWaterCombination(branches); // 子丑合水
-    
-    // 2. 计算生助力量（修正后的算法）
-    let supportScore = 0;
-    
-    // 天干生助（比肩、印）
-    stems.forEach(stem => {
-        if (isSameElement(stem, dayStem)) supportScore += 1; // 比肩
-        if (isGenerateElement(stem, dayStem)) supportScore += 1; // 印
-    });
-    
-    // 地支生助（考虑合化影响）
+    const { year, month, day, hour } = pillars;
+    const dayStem = day.charAt(0); // 日干
+    const stems = [year.charAt(0), month.charAt(0), hour.charAt(0)];
+    const branches = [year.charAt(1), month.charAt(1), day.charAt(1), hour.charAt(1)];
+
+    // 1. 计算日主根气（地支藏干中的比肩）
+    let rootStrength = 0;
     branches.forEach(branch => {
-        const hidden = getHiddenStems(branch);
-        // 如果该支被合化，则不计入生助
-        if ((branch === '巳' && hasMetalCombination) || 
-            (branch === '丑' && hasWaterCombination)) {
-            return; // 跳过被合化的地支
+        const hiddenStems = getHiddenStems(branch);
+        if (hiddenStems.includes(dayStem)) {
+            rootStrength += (hiddenStems.indexOf(dayStem) === 0 ? 1 : 0.5);
         }
-        
-        hidden.split('').forEach(stem => {
-            if (isSameElement(stem, dayStem)) supportScore += (stem === hidden[0] ? 2 : 1);
-            if (isGenerateElement(stem, dayStem)) supportScore += (stem === hidden[0] ? 1 : 0.5);
-        });
     });
-    
-    // 3. 计算克泄耗力量（增强算法）
-    let weakenScore = 0;
-    const dayElement = getElementIndex(dayStem);
-    
-    // 天干克泄耗（壬癸水耗土）
+
+    // 2. 计算生助力量（印比）
+    let supportPower = rootStrength;
     stems.forEach(stem => {
-        const elem = getElementIndex(stem);
-        if (elem === (dayElement + 2) % 5) weakenScore += 1; // 官杀
-        if (elem === (dayElement - 1 + 5) % 5) weakenScore += 1; // 食伤
-        if (elem === (dayElement - 2 + 5) % 5) weakenScore += 1; // 财
+        if (stem === dayStem) supportPower += 1; // 比肩
+        if (isGenerateElement(stem, dayStem)) supportPower += 1; // 印
     });
-    
-    // 地支克泄耗（子水耗土）
+
+    // 3. 计算克泄耗力量（财官食伤）
+    let attackPower = 0;
+    stems.forEach(stem => {
+        if (isSameElement(stem, dayStem)) return;
+        if (isGenerateElement(dayStem, stem)) attackPower += 1; // 食伤
+        else if (isOvercomeElement(stem, dayStem)) attackPower += 1.5; // 官杀
+        else attackPower += 1; // 财
+    });
+
     branches.forEach(branch => {
-        const elem = getElementIndex(branch);
-        if (elem === (dayElement + 2) % 5) weakenScore += 2;
-        if (elem === (dayElement - 1 + 5) % 5) weakenScore += 1;
-        if (elem === (dayElement - 2 + 5) % 5) weakenScore += 2;
+        if (isSameElement(branch, dayStem)) return;
+        if (isGenerateElement(dayStem, branch)) attackPower += 0.5;
+        else if (isOvercomeElement(branch, dayStem)) attackPower += 1;
+        else attackPower += 0.8;
+    });
+
+    // 4. 特殊格局判断（从格）
+    const isCong = checkCongGe(dayStem, stems, branches, supportPower, attackPower);
+
+    // 5. 综合判断
+    if (isCong === 'congWeak') return '从弱';
+    if (isCong === 'congStrong') return '从强';
+    return supportPower > attackPower * 1.5 ? '身强' : '身弱';
+}
+
+// 辅助函数：判断从格
+function checkCongGe(dayStem, stems, branches, supportPower, attackPower) {
+    // 1. 日主无根且无比劫
+    const noRoot = supportPower <= 1;
+    
+    // 2. 某一五行极旺（超过60%力量）
+    const elementPowers = {木:0, 火:0, 土:0, 金:0, 水:0};
+    [...stems, ...branches].forEach(item => {
+        const element = getElement(item);
+        elementPowers[element] += (branches.includes(item) ? 1.5 : 1);
     });
     
-    // 4. 特殊调整（水势加成）
-    if (stems.filter(s => ['壬','癸'].includes(s)).length >= 2) {
-        weakenScore += 3; // 天干多水
-    }
-    if (branches.includes('子') || branches.includes('亥')) {
-        weakenScore += 2; // 地支见水
+    const maxElementPower = Math.max(...Object.values(elementPowers));
+    const totalPower = Object.values(elementPowers).reduce((a,b) => a+b, 0);
+    const isOneDominant = maxElementPower / totalPower > 0.6;
+    
+    // 3. 从弱格条件
+    if (noRoot && attackPower > supportPower * 3 && isOneDominant) {
+        return 'congWeak';
     }
     
-    // 5. 从格判定（调整阈值）
-    console.log(`支撑分:${supportScore} 克泄分:${weakenScore}`);
-    
-    if (supportScore <= 5 && weakenScore >= 15) { // 更严格的标准
-        return "从弱";
-    } else if (supportScore >= 15 && weakenScore <= 5) {
-        return "从强";
-    } else {
-        return supportScore > weakenScore ? "身强" : "身弱";
+    // 4. 从强格条件（日主得令且印比超过80%）
+    const seasonScore = getSeasonScore(dayStem, branches[1]); // 月支
+    if (seasonScore > 20 && supportPower / totalPower > 0.8) {
+        return 'congStrong';
     }
+    
+    return false;
+}
+
+// 辅助函数：五行生克关系
+function isGenerateElement(a, b) {
+    const generateMap = {木:'火', 火:'土', 土:'金', 金:'水', 水:'木'};
+    return generateMap[getElement(a)] === getElement(b);
+}
+
+function isOvercomeElement(a, b) {
+    const overcomeMap = {木:'土', 土:'水', 水:'火', 火:'金', 金:'木'};
+    return overcomeMap[getElement(a)] === getElement(b);
+}
+
+function getElement(char) {
+    const elementMap = {
+        '甲':'木','乙':'木','寅':'木','卯':'木',
+        '丙':'火','丁':'火','午':'火','巳':'火',
+        '戊':'土','己':'土','辰':'土','戌':'土','丑':'土','未':'土',
+        '庚':'金','辛':'金','申':'金','酉':'金',
+        '壬':'水','癸':'水','子':'水','亥':'水'
+    };
+    return elementMap[char] || '土';
 }
 
 // 新增辅助函数
