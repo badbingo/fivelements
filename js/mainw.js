@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 增强版缓存对象v2.2b
+    // 增强版缓存对象v2.2c
     const baziCache = {
         data: {},
         get: function(key) {
@@ -2649,10 +2649,13 @@ function determineStrengthType(pillars) {
     const branches = [pillars.yearBranch, pillars.monthBranch, pillars.dayBranch, pillars.hourBranch];
     const dayElement = getElementIndex(dayStem);
 
-    // 先计算分数和根气状态
+    // 计算分数和根气状态
     const scores = calculateScores();
     const rootStatus = checkRootStatus();
     const seasonMatch = isSeasonMatch();
+    const rootStrength = calculateRootStrength();
+
+    console.log(`日主:${dayStem} 根气:${rootStatus} 根气强度:${rootStrength} 得令:${seasonMatch} 生助:${scores.support} 克泄:${scores.weaken}`);
 
     // 1. 检查特殊格局
     const specialPattern = checkSpecialPatterns();
@@ -2661,7 +2664,7 @@ function determineStrengthType(pillars) {
     // 2. 最终判定
     if (isTrueCongWeak()) return "从弱";
     if (isTrueCongStrong()) return "从强";
-    return scores.support > scores.weaken ? "身强" : "身弱";
+    return scores.support + rootStrength > scores.weaken ? "身弱" : "从弱";
 
     // ============== 子函数 ============== //
     function calculateScores() {
@@ -2677,52 +2680,41 @@ function determineStrengthType(pillars) {
             else if (elem === (dayElement + 1) % 5) weaken += 1.2;
         });
 
-        // 地支力量
-        branches.forEach((branch, idx) => {
-            const hiddenStems = getHiddenStems(branch);
-            hiddenStems.split('').forEach((stem, i) => {
-                const elem = getElementIndex(stem);
-                const weight = [0.6, 0.3, 0.1][i] || 0;
-                
-                if (elem === dayElement) support += weight * 3;
-                else if (elem === (dayElement + 4) % 5) support += weight * 2;
-                else if (elem === (dayElement + 3) % 5) weaken += weight * 2;
-                else if (elem === (dayElement + 2) % 5) weaken += weight * 3;
-                else if (elem === (dayElement + 1) % 5) weaken += weight * 2;
-            });
-            
-            // 月令加倍权重
-            if (idx === 1) {
-                support *= 2;
-                weaken *= 2;
-            }
-        });
-
         return {
             support: Math.round(support),
             weaken: Math.round(weaken)
         };
     }
 
+    function calculateRootStrength() {
+        let strength = 0;
+        branches.forEach(branch => {
+            const hiddenStems = getHiddenStems(branch);
+            hiddenStems.split('').forEach((stem, i) => {
+                const elem = getElementIndex(stem);
+                const weight = [0.6, 0.3, 0.1][i] || 0;
+                
+                if (elem === dayElement) strength += weight * 3;
+                else if (elem === (dayElement + 4) % 5) strength += weight * 2;
+            });
+        });
+        return Math.round(strength);
+    }
+
     function checkRootStatus() {
-        // 检查日主在地支中的根气（考虑合化）
         let hasRoot = false;
-        
         branches.forEach(branch => {
             const hiddenStems = getHiddenStems(branch);
             if (hiddenStems.includes(dayStem)) {
-                // 检查是否被合化（如午未合化土）
                 if (!isBranchCombined(branch)) {
                     hasRoot = true;
                 }
             }
         });
-        
         return hasRoot ? '有根' : '无根';
     }
 
     function isBranchCombined(branch) {
-        // 地支六合判断
         const combinationPairs = [
             ['子', '丑'], ['午', '未'],
             ['卯', '戌'], ['寅', '亥'],
@@ -2764,7 +2756,6 @@ function determineStrengthType(pillars) {
         const wealthElement = (dayElement + 3) % 5;
         let wealthPower = 0;
         
-        // 计算财星力量
         [...stems, ...branches].forEach(c => {
             if (getElementIndex(c) === wealthElement) wealthPower += 2;
         });
@@ -2773,17 +2764,15 @@ function determineStrengthType(pillars) {
     }
 
     function isTrueCongWeak() {
-        // 修改后的从弱格判断条件
-        return (rootStatus === '无根' && 
-               scores.weaken > scores.support * 2) || 
-               (rootStatus === '无根' && 
-               !seasonMatch && 
-               scores.weaken > scores.support);
+        // 严格从弱条件：无根且克泄力量远大于生助力量
+        return rootStatus === '无根' && 
+               scores.weaken > (scores.support + rootStrength) * 2;
     }
 
     function isTrueCongStrong() {
+        // 严格从强条件：有根且生助力量远大于克泄力量
         return rootStatus === '有根' && 
-               scores.support > scores.weaken * 2 && 
+               (scores.support + rootStrength) > scores.weaken * 2 && 
                seasonMatch;
     }
 }
