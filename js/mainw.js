@@ -479,73 +479,73 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // 命格等级分析按钮
         fateAnalysisBtn.addEventListener('click', async function() {
-            // 添加btn-loading类到按钮本身
-            this.classList.add('btn-loading');
-            
-            // 创建并显示全屏loading遮罩
-            const loadingOverlay = document.createElement('div');
-            loadingOverlay.className = 'loading-overlay';
-            loadingOverlay.innerHTML = `
-                <div class="loading"></div>
-                <p>正在分析命格等级...</p>
-            `;
-            document.body.appendChild(loadingOverlay);
-            
-            // 禁用按钮防止重复点击
-            this.disabled = true;
-            
-            try {
-                const content = await getFateAnalysisContent();
-                showAnalysisModal('命格等级分析', content);
-            } catch (error) {
-                console.error('获取命格分析失败:', error);
-                showAnalysisModal('命格等级分析', '获取分析内容失败，请稍后重试');
-            } finally {
-                // 移除全屏loading遮罩
-                if (document.body.contains(loadingOverlay)) {
-                    document.body.removeChild(loadingOverlay);
-                }
-                // 移除btn-loading类
-                this.classList.remove('btn-loading');
-                // 重新启用按钮
-                this.disabled = false;
-            }
-        });
+    // 添加btn-loading类到按钮本身
+    this.classList.add('btn-loading');
+    
+    // 创建并显示全屏loading遮罩
+    const loadingOverlay = document.createElement('div');
+    loadingOverlay.className = 'loading-overlay';
+    loadingOverlay.innerHTML = `
+        <div class="loading"></div>
+        <p>正在分析命格等级...</p>
+    `;
+    document.body.appendChild(loadingOverlay);
+    
+    // 禁用按钮防止重复点击
+    this.disabled = true;
+    
+    try {
+        const content = await getFateAnalysisContent();
+        showAnalysisModal('命格等级分析', content);
+    } catch (error) {
+        console.error('获取命格分析失败:', error);
+        showAnalysisModal('命格等级分析', '获取分析内容失败，请稍后重试');
+    } finally {
+        // 移除全屏loading遮罩
+        if (document.body.contains(loadingOverlay)) {
+            document.body.removeChild(loadingOverlay);
+        }
+        // 移除btn-loading类
+        this.classList.remove('btn-loading');
+        // 重新启用按钮
+        this.disabled = false;
+    }
+});
 
-        // 财富等级分析按钮
-        wealthAnalysisBtn.addEventListener('click', async function() {
-            // 添加btn-loading类到按钮本身
-            this.classList.add('btn-loading');
-            
-            // 创建并显示全屏loading遮罩
-            const loadingOverlay = document.createElement('div');
-            loadingOverlay.className = 'loading-overlay';
-            loadingOverlay.innerHTML = `
-                <div class="loading"></div>
-                <p>正在分析财富等级...</p>
-            `;
-            document.body.appendChild(loadingOverlay);
-            
-            // 禁用按钮防止重复点击
-            this.disabled = true;
-            
-            try {
-                const content = await getWealthAnalysisContent();
-                showAnalysisModal('财富等级分析', content);
-            } catch (error) {
-                console.error('获取财富分析失败:', error);
-                showAnalysisModal('财富等级分析', '获取分析内容失败，请稍后重试');
-            } finally {
-                // 移除全屏loading遮罩
-                if (document.body.contains(loadingOverlay)) {
-                    document.body.removeChild(loadingOverlay);
-                }
-                // 移除btn-loading类
-                this.classList.remove('btn-loading');
-                // 重新启用按钮
-                this.disabled = false;
-            }
-        });
+// 财富等级分析按钮
+wealthAnalysisBtn.addEventListener('click', async function() {
+    // 添加btn-loading类到按钮本身
+    this.classList.add('btn-loading');
+    
+    // 创建并显示全屏loading遮罩
+    const loadingOverlay = document.createElement('div');
+    loadingOverlay.className = 'loading-overlay';
+    loadingOverlay.innerHTML = `
+        <div class="loading"></div>
+        <p>正在分析财富等级...</p>
+    `;
+    document.body.appendChild(loadingOverlay);
+    
+    // 禁用按钮防止重复点击
+    this.disabled = true;
+    
+    try {
+        const content = await getWealthAnalysisContent();
+        showAnalysisModal('财富等级分析', content);
+    } catch (error) {
+        console.error('获取财富分析失败:', error);
+        showAnalysisModal('财富等级分析', '获取分析内容失败，请稍后重试');
+    } finally {
+        // 移除全屏loading遮罩
+        if (document.body.contains(loadingOverlay)) {
+            document.body.removeChild(loadingOverlay);
+        }
+        // 移除btn-loading类
+        this.classList.remove('btn-loading');
+        // 重新启用按钮
+        this.disabled = false;
+    }
+});
 
         // 关闭模态框
         closeModal.addEventListener('click', function() {
@@ -571,8 +571,6 @@ document.addEventListener('DOMContentLoaded', function() {
     async function getFateAnalysisContent() {
         const score = calculateFateScore(currentPillars);
         const levelInfo = getFateLevel(score);
-        const strengthAnalysis = analyzeStrength(currentPillars);
-        const startLuckTime = calculateStartLuckTime(birthData);
         
         try {
             // 获取API详细分析
@@ -587,16 +585,10 @@ document.addEventListener('DOMContentLoaded', function() {
 ## 2. 命格核心特征
 ${analysis || getDefaultFateAnalysis(score)}
 
-## 3. 起运时间分析
-${startLuckTime.analysis}
-
-## 4. 身强身弱分析
-${strengthAnalysis}
-
-## 5. 实用建议
+## 3. 实用建议
 ${getPracticalFateSuggestions(score)}
 
-## 6. 评分细节
+## 4. 评分细节
 <div class="score-details">
     <div class="score-item">
         <span class="score-label">日主得令:</span>
@@ -640,141 +632,6 @@ ${getPracticalFateSuggestions(score)}
             return getDefaultFateAnalysis(score);
         }
     }
-
-    // 分析身强身弱
-    function analyzeStrength(pillars) {
-        const dayStem = pillars.day.charAt(0);
-        const stems = [
-            pillars.year.charAt(0),
-            pillars.month.charAt(0),
-            pillars.hour.charAt(0)
-        ];
-        const branches = [
-            pillars.year.charAt(1),
-            pillars.month.charAt(1),
-            pillars.day.charAt(1),
-            pillars.hour.charAt(1)
-        ];
-        
-        // 计算印比力量
-        let supportScore = 0;
-        stems.forEach(stem => {
-            if (isSameElement(stem, dayStem) || isGenerateElement(stem, dayStem)) {
-                supportScore += 1;
-            }
-        });
-        
-        branches.forEach(branch => {
-            if (isSameElement(branch, dayStem) || isGenerateElement(branch, dayStem)) {
-                supportScore += 2; // 地支主气2分
-            }
-        });
-        
-        // 计算克泄耗力量
-        let weakenScore = 0;
-        stems.forEach(stem => {
-            if (!isSameElement(stem, dayStem) && !isGenerateElement(stem, dayStem)) {
-                weakenScore += 1;
-            }
-        });
-        
-        branches.forEach(branch => {
-            if (!isSameElement(branch, dayStem) && !isGenerateElement(branch, dayStem)) {
-                weakenScore += 2;
-            }
-        });
-        
-        // 判断身强身弱
-        if (supportScore >= 5 && supportScore > weakenScore) {
-            return "身强：日主得令得地，印比力量强，能担财官。";
-        } else if (supportScore <= 2 && weakenScore > supportScore) {
-            return "身弱：日主失令失地，克泄耗力量强，需印比扶助。";
-        } else if (supportScore >= 5 && weakenScore <= 1) {
-            return "从强：日主极旺，无克泄耗，宜顺其势。";
-        } else if (supportScore <= 1 && weakenScore >= 5) {
-            return "从弱：日主极弱，无生扶，宜从其势。";
-        } else {
-            return "中和：日主力量平衡，需结合大运流年具体分析。";
-        }
-    }
-
-    // 计算起运时间
-    function calculateStartLuckTime(birthData) {
-    const dateParts = birthData.date.split('-');
-    const year = parseInt(dateParts[0]);
-    const month = parseInt(dateParts[1]);
-    const day = parseInt(dateParts[2]);
-    const timeParts = birthData.time.split(':');
-    const hour = parseInt(timeParts[0]);
-    const minute = parseInt(timeParts[1] || 0);
-    
-    const solar = Solar.fromYmdHms(year, month, day, hour, minute, 0);
-    const lunar = solar.getLunar();
-    const bazi = lunar.getEightChar();
-    
-    const yearGan = bazi.getYearGan();
-    const yearZhi = bazi.getYearZhi();
-    const isMale = birthData.gender === 'male';
-    const isYangYear = ['甲', '丙', '戊', '庚', '壬'].includes(yearGan);
-    const isForward = (isYangYear && isMale) || (!isYangYear && !isMale);
-    
-    // Get current solar term
-    const jieQiName = isForward ? '立春' : '大寒';
-    let targetJieQi;
-    
-    try {
-        // Try to get the solar term directly
-        targetJieQi = lunar.getJieQi(jieQiName);
-        
-        // Handle different library versions
-        let targetSolar;
-        if (typeof targetJieQi.getSolar === 'function') {
-            targetSolar = targetJieQi.getSolar();
-        } else if (targetJieQi.solar) {
-            // Alternative for some library versions
-            targetSolar = targetJieQi.solar;
-        } else {
-            // If we can't get the solar date, use a fallback
-            return {
-                age: "未知",
-                date: "未知",
-                analysis: "无法计算起运时间，节气数据获取失败。"
-            };
-        }
-        
-        const daysDiff = isForward ? 
-            targetSolar.getJulianDay() - solar.getJulianDay() :
-            solar.getJulianDay() - targetSolar.getJulianDay();
-        
-        // Calculate start age (3 days = 1 year)
-        const startAge = daysDiff / 3;
-        const startYears = Math.floor(startAge);
-        const startMonths = Math.floor((startAge - startYears) * 12);
-        const startDays = Math.floor(((startAge - startYears) * 12 - startMonths) * 30);
-        
-        const startDate = new Date(solar.getYear(), solar.getMonth() - 1, solar.getDay());
-        startDate.setFullYear(startDate.getFullYear() + startYears);
-        startDate.setMonth(startDate.getMonth() + startMonths);
-        startDate.setDate(startDate.getDate() + startDays);
-        
-        return {
-            age: calculatedAge + "岁",
-            date: formattedDate,
-            analysis: `您的起运时间为${startAge.toFixed(2)}岁（约${startYears}年${startMonths}个月后）。\n\n` +
-                      `起运时间计算方法：\n` +
-                      `1. ${isForward ? '顺排' : '逆排'}大运\n` +
-                      `2. 距离${isForward ? '下一个' : '上一个'}节气"${jieQiName}"共${daysDiff.toFixed(2)}天\n` +
-                      `3. 每3天代表1岁，因此${daysDiff} ÷ 3 = ${startAge.toFixed(2)}岁`
-        };
-    } catch (error) {
-        console.error('计算起运时间出错:', error);
-        return {
-            age: "未知",
-            date: "未知",
-            analysis: "无法计算起运时间，可能是节气数据获取失败。"
-        };
-    }
-}
 
     // 默认命格分析内容
     function getDefaultFateAnalysis(score) {
@@ -854,11 +711,11 @@ ${getFateSuggestions(score)}
         return `
 - <strong>磨练意志</strong>：困难环境能锻炼您的意志力
 - <strong>独特视角</strong>：特殊经历让您看问题更深刻
-- <strong>成长空间</strong>：财富管理能力提升空间大
+- <strong>成长空间大</strong>：每一点进步都是实实在在的
 `;
     }
 
-    // 获取命格建议 - 实用版
+    // 获取命格发展建议 - 实用版
     function getPracticalFateSuggestions(score) {
         if (score >= 85) return `
 1. <strong>善用优势</strong>：充分发挥您的先天优势，但不要骄傲自满
@@ -2509,114 +2366,70 @@ ${getWealthSuggestions(score)}
 
     // 本地计算八字
     function calculateBaziLocally(birthData) {
-    const dateParts = birthData.date.split('-');
-    const year = parseInt(dateParts[0]);
-    const month = parseInt(dateParts[1]);
-    const day = parseInt(dateParts[2]);
-    const timeParts = birthData.time.split(':');
-    const hour = parseInt(timeParts[0]);
-    const minute = parseInt(timeParts[1] || 0);
-    
-    const solar = Solar.fromYmdHms(year, month, day, hour, minute, 0);
-    const lunar = solar.getLunar();
-    const bazi = lunar.getEightChar();
-    
-    // 获取四柱
-    const yearGan = bazi.getYearGan();
-    const yearZhi = bazi.getYearZhi();
-    const monthGan = bazi.getMonthGan();
-    const monthZhi = bazi.getMonthZhi();
-    const dayGan = bazi.getDayGan();
-    const dayZhi = bazi.getDayZhi();
-    const hourGan = bazi.getTimeGan();
-    const hourZhi = bazi.getTimeZhi();
-    
-    // 获取藏干
-    const yearHiddenStems = getHiddenStems(yearZhi);
-    const monthHiddenStems = getHiddenStems(monthZhi);
-    const dayHiddenStems = getHiddenStems(dayZhi);
-    const hourHiddenStems = getHiddenStems(hourZhi);
-    
-    // 计算五行能量
-    const elements = calculateNatalElements({
-        yearStem: yearGan,
-        yearBranch: yearZhi,
-        monthStem: monthGan,
-        monthBranch: monthZhi,
-        dayStem: dayGan,
-        dayBranch: dayZhi,
-        hourStem: hourGan,
-        hourBranch: hourZhi,
-        yearHiddenStems,
-        monthHiddenStems,
-        dayHiddenStems,
-        hourHiddenStems
-    });
-    
-    // 构建四柱对象用于分析
-    const pillars = {
-        year: yearGan + yearZhi,
-        month: monthGan + monthZhi,
-        day: dayGan + dayZhi,
-        hour: hourGan + hourZhi
-    };
-    
-    // 计算各项分析结果
-    const personality = getPersonalityTraits(dayGan);
-    const startLuckTime = calculateStartLuckTime(birthData);
-    const localStrength = analyzeStrength(pillars);
-    const decadeFortune = calculateDecadeFortune(lunar, birthData.gender);
-    const gamblingFortune = calculateGamblingFortune(birthData, lunar);
-    
-    return {
-        // 八字四柱
-        yearStem: yearGan,
-        yearBranch: yearZhi,
-        monthStem: monthGan,
-        monthBranch: monthZhi,
-        dayStem: dayGan,
-        dayBranch: dayZhi,
-        hourStem: hourGan,
-        hourBranch: hourZhi,
+        const dateParts = birthData.date.split('-');
+        const year = parseInt(dateParts[0]);
+        const month = parseInt(dateParts[1]);
+        const day = parseInt(dateParts[2]);
+        const timeParts = birthData.time.split(':');
+        const hour = parseInt(timeParts[0]);
+        const minute = parseInt(timeParts[1] || 0);
         
-        // 藏干
-        yearHiddenStems,
-        monthHiddenStems,
-        dayHiddenStems,
-        hourHiddenStems,
+        const solar = Solar.fromYmdHms(year, month, day, hour, minute, 0);
+        const lunar = solar.getLunar();
+        const bazi = lunar.getEightChar();
         
-        // 分析结果
-        elements,
-        personality,
-        startLuckTime,
-        localStrength, // 确保包含完整的强度分析对象
-        decadeFortune,
-        gamblingFortune,
+        const yearGan = bazi.getYearGan();
+        const yearZhi = bazi.getYearZhi();
+        const monthGan = bazi.getMonthGan();
+        const monthZhi = bazi.getMonthZhi();
+        const dayGan = bazi.getDayGan();
+        const dayZhi = bazi.getDayZhi();
+        const hourGan = bazi.getTimeGan();
+        const hourZhi = bazi.getTimeZhi();
         
-        // 原始数据备份（可选）
-        solarDate: solar.toString(),
-        lunarDate: lunar.toString()
-    };
-}
-
-// 辅助函数：获取地支藏干
-function getHiddenStems(branch) {
-    const hiddenStemsMap = {
-        '子': '癸',
-        '丑': '己癸辛',
-        '寅': '甲丙戊',
-        '卯': '乙',
-        '辰': '戊乙癸',
-        '巳': '丙庚戊',
-        '午': '丁己',
-        '未': '己丁乙',
-        '申': '庚壬戊',
-        '酉': '辛',
-        '戌': '戊辛丁',
-        '亥': '壬甲'
-    };
-    return hiddenStemsMap[branch] || '';
-}
+        const yearHiddenStems = getHiddenStems(yearZhi);
+        const monthHiddenStems = getHiddenStems(monthZhi);
+        const dayHiddenStems = getHiddenStems(dayZhi);
+        const hourHiddenStems = getHiddenStems(hourZhi);
+        
+        const elements = calculateNatalElements({
+            yearStem: yearGan,
+            yearBranch: yearZhi,
+            monthStem: monthGan,
+            monthBranch: monthZhi,
+            dayStem: dayGan,
+            dayBranch: dayZhi,
+            hourStem: hourGan,
+            hourBranch: hourZhi,
+            yearHiddenStems: yearHiddenStems,
+            monthHiddenStems: monthHiddenStems,
+            dayHiddenStems: dayHiddenStems,
+            hourHiddenStems: hourHiddenStems
+        });
+        
+        const personality = getPersonalityTraits(dayGan);
+        const decadeFortune = calculateDecadeFortune(lunar, birthData.gender);
+        const gamblingFortune = calculateGamblingFortune(birthData, lunar);
+        
+        return {
+            yearStem: yearGan,
+            yearBranch: yearZhi,
+            monthStem: monthGan,
+            monthBranch: monthZhi,
+            dayStem: dayGan,
+            dayBranch: dayZhi,
+            hourStem: hourGan,
+            hourBranch: hourZhi,
+            yearHiddenStems: yearHiddenStems,
+            monthHiddenStems: monthHiddenStems,
+            dayHiddenStems: dayHiddenStems,
+            hourHiddenStems: hourHiddenStems,
+            elements,
+            personality,
+            decadeFortune,
+            gamblingFortune
+        };
+    }
 
     // 计算十年大运
     function calculateDecadeFortune(lunar, gender) {
@@ -2992,10 +2805,7 @@ function getHiddenStems(branch) {
 出生时间：${data.time} 
 性别：${data.gender === 'male' ? '男' : '女'}
 八字：${localResult.yearStem}${localResult.yearBranch} ${localResult.monthStem}${localResult.monthBranch} ${localResult.dayStem}${localResult.dayBranch} ${localResult.hourStem}${localResult.hourBranch}
-起运时间：${localResult.startLuckTime.age}（${localResult.startLuckTime.date}）
-格局类型：${localResult.localStrength.type}
-强弱分析：${localResult.localStrength.analysis.split('\n')[0]}
-请直接分析此八字的强弱，格局和起运时间，不要自行排盘或计算起运时间。
+
 `;
 
         // 根据不同部分设置不同的提示词
@@ -3322,4 +3132,4 @@ function getHiddenStems(branch) {
             return '获取答案失败，请稍后重试';
         }
     }
-});
+})
