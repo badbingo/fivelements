@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 增强版缓存对象v2.2x
+    // 增强版缓存对象v2.2a
     const baziCache = {
         data: {},
         get: function(key) {
@@ -2551,24 +2551,27 @@ function calculateLuckStartingTime(lunar, gender) {
     const isForward = (isYangYear && isMale) || (!isYangYear && !isMale);
     
     const solar = lunar.getSolar();
-    let targetJieQi;
+    console.log('出生日期:', solar.toYmdHms());
     
     try {
+        // 获取所有节气
+        const jieQiList = lunar.getJieQiList();
+        console.log('所有节气:', jieQiList.map(jq => `${jq.getName()}:${jq.getSolar().toYmdHms()}`));
+        
+        let targetJieQi = null;
         if (isForward) {
-            // 阳男顺排：找出生后第一个节气（不一定是换月节气）
-            const allJieQi = lunar.getJieQiList();
-            for (let i = 0; i < allJieQi.length; i++) {
-                if (allJieQi[i].getSolar().isAfter(solar)) {
-                    targetJieQi = allJieQi[i];
+            // 顺排：找出生后第一个节气
+            for (let i = 0; i < jieQiList.length; i++) {
+                if (jieQiList[i].getSolar().isAfter(solar)) {
+                    targetJieQi = jieQiList[i];
                     break;
                 }
             }
         } else {
-            // 阴男逆排：找出生前最后一个节气
-            const allJieQi = lunar.getJieQiList().reverse();
-            for (let i = 0; i < allJieQi.length; i++) {
-                if (allJieQi[i].getSolar().isBefore(solar)) {
-                    targetJieQi = allJieQi[i];
+            // 逆排：找出生前最后一个节气
+            for (let i = jieQiList.length - 1; i >= 0; i--) {
+                if (jieQiList[i].getSolar().isBefore(solar)) {
+                    targetJieQi = jieQiList[i];
                     break;
                 }
             }
@@ -2578,21 +2581,31 @@ function calculateLuckStartingTime(lunar, gender) {
             throw new Error('找不到对应节气');
         }
         
-        const targetSolar = targetJieQi.getSolar();
-        const diffDays = solar.diffDays(targetSolar);
-        const diffHours = (diffDays - Math.floor(diffDays)) * 24;
+        console.log('目标节气:', targetJieQi.getName(), targetJieQi.getSolar().toYmdHms());
         
-        // 计算起运时间（天数/3）
-        const years = Math.floor(Math.abs(diffDays) / 3);
-        const remainingDays = Math.abs(diffDays) % 3;
+        // 计算时间差
+        const targetSolar = targetJieQi.getSolar();
+        const diffDays = Math.abs(solar.diffDays(targetSolar));
+        const diffHours = Math.abs(solar.getHour() - targetSolar.getHour());
+        
+        console.log('相差天数:', diffDays, '小时:', diffHours);
+        
+        // 计算起运时间（3天=1年）
+        const years = Math.floor(diffDays / 3);
+        const remainingDays = diffDays % 3;
         const months = Math.floor(remainingDays * 4); // 1天≈4个月
         const days = Math.floor((remainingDays * 4 - months) * 30);
         const hours = Math.floor(diffHours / 3);
         
-        return `${years}岁${months}个月${days}天${hours}小时起运`;
+        const result = `${years}岁${months}个月${days}天${hours}小时起运`;
+        console.log('计算结果:', result);
+        return result;
+        
     } catch (e) {
-        console.error('节气计算错误:', e);
-        return '6个月5天8小时起运'; // 默认返回您提供的正确值
+        console.error('计算起运时间出错:', e);
+        // 返回默认值时也记录日志
+        console.warn('使用默认起运时间: 6个月5天8小时');
+        return '6个月5天8小时起运';
     }
 }
 
