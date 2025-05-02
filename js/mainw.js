@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 增强版缓存对象v2.2b
+    // 增强版缓存对象v2.2v
     const baziCache = {
         data: {},
         get: function(key) {
@@ -2706,11 +2706,15 @@ function determineStrengthType(pillars) {
         return "从弱";
     }
     
-    // 印星被合化（如巳火被巳酉丑合化为金）
-    const combinedStems = getCombinedStems(stems, branches);
-    if (combinedStems.some(stem => isGenerateElement(stem, dayStem))) {
-        supportScore *= 0.5; // 印星被合化，生扶力量减半
-    }
+    // 检查印星是否被合化（不再使用getCombinedStems）
+    branches.forEach(branch => {
+        const hiddenStems = getHiddenStems(branch).split('');
+        hiddenStems.forEach(stem => {
+            if (isGenerateElement(stem, dayStem) && isBranchCombined(branch, branches)) {
+                supportScore *= 0.5; // 印星被合化，生扶力量减半
+            }
+        });
+    });
     
     // 4. 检查三合局、六合对用神的影响
     if (hasSanHe(branches) || hasLiuHe(branches)) {
@@ -2722,7 +2726,7 @@ function determineStrengthType(pillars) {
     }
     
     // 5. 最终判定
-    // 从强格判定：印比总分数 ≥ 80分 且 克泄耗十神均无根或受制
+    // 从强格判定：印比总分数 ≥ 8分 且 克泄耗十神均无根或受制
     if (supportScore >= 8 && allWeakenControlled) {
         return "从强";
     }
