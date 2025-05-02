@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 增强版缓存对象v2.2c
+    // 增强版缓存对象v2.2v
     const baziCache = {
         data: {},
         get: function(key) {
@@ -2649,75 +2649,29 @@ function determineStrengthType(pillars) {
     const branches = [pillars.yearBranch, pillars.monthBranch, pillars.dayBranch, pillars.hourBranch];
     const dayElement = getElementIndex(dayStem);
 
-    // 1. 先检查三会三合局（最高优先级）
-    const combination = checkCombination();
-    
-    // 2. 计算基础分数（不考虑合化）
-    const baseScores = calculateBaseScores();
-    
-    // 3. 应用合化影响
-    const finalScores = applyCombinationEffects(baseScores, combination);
-    
-    // 4. 检查根气（考虑合化后的实际根气）
-    const rootStatus = checkRootStatus(combination);
-    
-    // 5. 得令判断
+    // 1. 先计算不依赖其他变量的基础指标
     const seasonMatch = isSeasonMatch();
-    
-    // 6. 特殊格局检查
-    const specialPattern = checkSpecialPatterns(combination, finalScores, rootStatus);
+    const combinationEffect = checkCombinationEffects();
+
+    // 2. 计算需要combinationEffect的分数
+    const scores = calculateScores(combinationEffect);
+
+    // 3. 检查需要scores的根气状态
+    const rootStatus = checkRootStatus(scores);
+
+    // 4. 特殊格局检查（最后进行）
+    const specialPattern = checkSpecialPatterns(rootStatus, scores, combinationEffect);
     if (specialPattern) return specialPattern;
 
-    console.debug(`[分析] ${dayStem}日主 根气:${rootStatus} 得令:${seasonMatch} 生助:${finalScores.support} 克泄:${finalScores.weaken} 合化:${combination?.type}`);
+    console.debug(`[分析] ${dayStem}日主 根气:${rootStatus} 得令:${seasonMatch} 生助:${scores.support} 克泄:${scores.weaken} 合化:${combinationEffect}`);
 
-    // 7. 最终判定
-    if (isTrueCongWeak(finalScores, rootStatus, seasonMatch, combination)) return "从弱";
-    if (isTrueCongStrong(finalScores, rootStatus, seasonMatch)) return "从强";
-    return finalScores.support > finalScores.weaken ? "身强" : "身弱";
+    // 5. 最终判定
+    if (isTrueCongWeak(rootStatus, scores, seasonMatch, combinationEffect)) return "从弱";
+    if (isTrueCongStrong(rootStatus, scores, seasonMatch)) return "从强";
+    return scores.support > scores.weaken ? "身强" : "身弱";
 
     // ============== 子函数 ============== //
-    function checkCombination() {
-        // 三会局判断（力量最强）
-        const sanhui = [
-            { branches: ['亥','子','丑'], type: '水' },
-            { branches: ['寅','卯','辰'], type: '木' },
-            { branches: ['巳','午','未'], type: '火' },
-            { branches: ['申','酉','戌'], type: '金' }
-        ].find(item => 
-            item.branches.every(b => branches.includes(b)) ||
-            item.branches.filter(b => branches.includes(b)).length >= 2
-        );
-        if (sanhui) return { type: sanhui.type, strength: 15 };
-
-        // 三合局判断
-        const sanhe = [
-            { branches: ['申','子','辰'], type: '水' },
-            { branches: ['亥','卯','未'], type: '木' },
-            { branches: ['寅','午','戌'], type: '火' },
-            { branches: ['巳','酉','丑'], type: '金' }
-        ].find(item => 
-            item.branches.filter(b => branches.includes(b)).length >= 2
-        );
-        if (sanhe) return { type: sanhe.type, strength: 12 };
-
-        // 六合判断
-        const liuhe = [
-            { branches: ['子','丑'], type: '土' },
-            { branches: ['午','未'], type: '土' },
-            { branches: ['卯','戌'], type: '火' },
-            { branches: ['寅','亥'], type: '木' },
-            { branches: ['辰','酉'], type: '金' },
-            { branches: ['巳','申'], type: '水' }
-        ].find(item => 
-            branches.includes(item.branches[0]) && 
-            branches.includes(item.branches[1])
-        );
-        if (liuhe) return { type: liuhe.type, strength: 8 };
-
-        return null;
-    }
-
-    function calculateBaseScores() {
+    function calculateScores(combinationEffect) {
         let support = 0, weaken = 0;
         
         // 天干力量
@@ -2730,8 +2684,10 @@ function determineStrengthType(pillars) {
             else if (elem === (dayElement + 1) % 5) weaken += 1.2;
         });
 
-        // 地支力量（暂不考虑合化）
+        // 地支力量
         branches.forEach((branch, idx) => {
+            if (isBranchCombined(branch)) return;
+            
             const hiddenStems = getHiddenStems(branch);
             hiddenStems.split('').forEach((stem, i) => {
                 const elem = getElementIndex(stem);
@@ -2751,65 +2707,67 @@ function determineStrengthType(pillars) {
             }
         });
 
-        return { support: Math.round(support), weaken: Math.round(weaken) };
+        // 合化影响
+        if (combinationEffect === '水' || combinationEffect === '土') weaken += 10;
+        if (combinationEffect === '金' || combinationEffect === '火') weaken += 8;
+
+        return {
+            support: Math.round(support),
+            weaken: Math.round(weaken)
+        };
     }
 
-    function applyCombinationEffects(baseScores, combination) {
-        if (!combination) return baseScores;
-        
-        const result = { ...baseScores };
-        const comboElement = getElementIndex(combination.type.charAt(0));
-        
-        // 合化增强克泄力量
-        if (comboElement === (dayElement + 3) % 5 || // 财
-            comboElement === (dayElement + 2) % 5 || // 官
-            comboElement === (dayElement + 1) % 5) { // 食伤
-            result.weaken += combination.strength;
-        }
-        
-        // 合化削弱生助力量（如印被合掉）
-        if (comboElement === (dayElement + 4) % 5) { // 印
-            result.support = Math.max(0, result.support - combination.strength);
-        }
-        
-        return result;
-    }
-
-    function checkRootStatus(combination) {
-        // 如果有三会/三合局，被合化的地支不算根
-        const combinedBranches = getCombinedBranches(combination);
-        
+    function checkRootStatus(scores) {
+        // 严格检查日主根气
         let hasRoot = false;
+        
         branches.forEach(branch => {
-            if (combinedBranches.includes(branch)) return;
+            if (isBranchCombined(branch)) return;
             
             const hiddenStems = getHiddenStems(branch);
             if (hiddenStems.includes(dayStem)) {
                 hasRoot = true;
             }
         });
-        
-        // 己土日主在丑月特殊处理
-        if (dayStem === '己' && pillars.monthBranch === '丑') {
-            return combination?.type === '水' ? '无根' : '弱根';
+
+        // 特殊：土日主在辰戌丑未月可能有微根
+        if (dayElement === 2 && ['辰','戌','丑','未'].includes(pillars.monthBranch)) {
+            if (scores.weaken > 30) return '无根';
+            return '弱根';
         }
         
         return hasRoot ? '有根' : '无根';
     }
 
-    function getCombinedBranches(combination) {
-        if (!combination) return [];
-        
-        const combinationGroups = [
-            ['亥','子','丑'], ['寅','卯','辰'],
-            ['巳','午','未'], ['申','酉','戌'],
-            ['子','丑'], ['午','未'], ['卯','戌'],
-            ['寅','亥'], ['辰','酉'], ['巳','申']
+    function isBranchCombined(branch) {
+        const combinationPairs = [
+            ['子', '丑'], ['午', '未'],
+            ['卯', '戌'], ['寅', '亥'],
+            ['辰', '酉'], ['巳', '申']
         ];
         
-        return combinationGroups.find(group => 
-            group.includes(combination.type.charAt(0))
-        ) || [];
+        return combinationPairs.some(pair => 
+            (pair[0] === branch && branches.includes(pair[1])) ||
+            (pair[1] === branch && branches.includes(pair[0]))
+        );
+    }
+
+    function checkCombinationEffects() {
+        // 三会局优先判断
+        if (branches.includes('亥') && branches.includes('子') && branches.includes('丑')) return '水';
+        if (branches.includes('寅') && branches.includes('卯') && branches.includes('辰')) return '木';
+        if (branches.includes('巳') && branches.includes('午') && branches.includes('未')) return '火';
+        if (branches.includes('申') && branches.includes('酉') && branches.includes('戌')) return '金';
+        
+        // 六合判断
+        if (branches.includes('子') && branches.includes('丑')) return '土';
+        if (branches.includes('午') && branches.includes('未')) return '土';
+        if (branches.includes('卯') && branches.includes('戌')) return '火';
+        if (branches.includes('寅') && branches.includes('亥')) return '木';
+        if (branches.includes('辰') && branches.includes('酉')) return '金';
+        if (branches.includes('巳') && branches.includes('申')) return '水';
+        
+        return null;
     }
 
     function isSeasonMatch() {
@@ -2823,15 +2781,14 @@ function determineStrengthType(pillars) {
         return seasonMap[dayElement].includes(pillars.monthBranch);
     }
 
-    function checkSpecialPatterns(combination, scores, rootStatus) {
+    function checkSpecialPatterns(rootStatus, scores, combinationEffect) {
         // 专旺格
         if ([...stems, ...branches].every(c => getElementIndex(c) === dayElement)) {
             return "从强";
         }
         
-        // 从财格（1973案例在此判断）
-        if (rootStatus === '无根' && 
-            (combination?.type === '水' || isWealthDominating(scores))) {
+        // 从财格（针对1973案例）
+        if (rootStatus === '无根' && (combinationEffect === '水' || isWealthDominating(scores))) {
             return "从弱";
         }
         
@@ -2851,7 +2808,7 @@ function determineStrengthType(pillars) {
             if (getElementIndex(c) === wealthElement) wealthPower += 2;
         });
         
-        return wealthPower >= 15 && scores.support < 10;
+        return wealthPower >= 12 && scores.support < 8;
     }
 
     function isOfficerDominating(scores) {
@@ -2862,19 +2819,18 @@ function determineStrengthType(pillars) {
             if (getElementIndex(c) === officerElement) officerPower += 2.5;
         });
         
-        return officerPower >= 18 && scores.support < 8;
+        return officerPower >= 15 && scores.support < 5;
     }
 
-    function isTrueCongWeak(scores, rootStatus, seasonMatch, combination) {
+    function isTrueCongWeak(rootStatus, scores, seasonMatch, combinationEffect) {
         // 从弱条件（1973案例需要满足）
-        const isWaterCombination = combination?.type === '水';
         return rootStatus === '无根' && 
-               (scores.weaken > scores.support * 2 || 
-                isWaterCombination) && 
+               (scores.weaken > scores.support * 1.8 || 
+                combinationEffect === '水') && 
                !seasonMatch;
     }
 
-    function isTrueCongStrong(scores, rootStatus, seasonMatch) {
+    function isTrueCongStrong(rootStatus, scores, seasonMatch) {
         return rootStatus === '有根' && 
                scores.support > scores.weaken * 2 && 
                seasonMatch;
