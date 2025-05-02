@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 增强版缓存对象v2.2b
+    // 增强版缓存对象v2.2v
     const baziCache = {
         data: {},
         get: function(key) {
@@ -2623,106 +2623,135 @@ function calculateLuckStartingTime(lunar, gender) {
     }
 }
 
-    // 最终版身强身弱判断函数
+    // ==================== 身强身弱核心判断模块 ====================
 function determineStrengthType(pillars) {
+    // 确保所有依赖函数都已定义
+    if (!window.calculateSupportScore) {
+        initStrengthCalculationFunctions();
+    }
+
     const dayStem = pillars.dayStem;
     const stems = [pillars.yearStem, pillars.monthStem, pillars.hourStem];
     const branches = [pillars.yearBranch, pillars.monthBranch, pillars.dayBranch, pillars.hourBranch];
     
-    // 1. 优先检查特殊合会格局（新增三会金局判断）
-    if (hasSanHui(branches, 'fire')) { // 巳午未三会火
-        return isDayStemWeak(dayStem, 'fire') ? "从弱" : "身弱";
-    }
-    if (hasSanHui(branches, 'metal')) { // 申酉戌三会金
-        return isDayStemWeak(dayStem, 'metal') ? "从弱" : "身弱"; 
+    // 1. 优先检查特殊合会格局
+    const huiType = checkSanHui(branches);
+    if (huiType) {
+        const isWeak = checkDayStemWeakness(dayStem, huiType);
+        return isWeak ? "从" + getElementName(huiType) : "身弱";
     }
     
-    // 2. 检查日主是否无根（重要修正！）
+    // 2. 检查日主是否无根
     if (!hasRoot(dayStem, branches)) {
-        const dominantElement = getDominantElement(stems, branches);
-        return dominantElement ? "从" + getElementName(dominantElement) : "身弱";
+        const dominant = getDominantElement(stems, branches);
+        return dominant ? "从" + getElementName(dominant) : "身弱";
     }
     
-    // 3. 常规计算（原逻辑优化）
+    // 3. 常规计算
     const supportScore = calculateSupportScore(dayStem, stems, branches);
     const weakenScore = calculateWeakenScore(dayStem, stems, branches);
     
-    // 4. 从格判定标准调整
-    if (weakenScore >= 15 && supportScore <= 5) {
-        return "从弱";
-    }
-    if (supportScore >= 15 && weakenScore <= 5) {
-        return "从强"; 
-    }
+    // 4. 从格判定（新标准）
+    if (weakenScore >= 15 && supportScore <= 5) return "从弱";
+    if (supportScore >= 15 && weakenScore <= 5) return "从强";
+    
     return supportScore > weakenScore ? "身强" : "身弱";
 }
 
-// 新增：判断日主是否无根
-function hasRoot(dayStem, branches) {
-    const rootBranches = {
-        '甲': ['寅','卯','辰','未'], 
-        '乙': ['寅','卯','辰','未'],
-        '丙': ['巳','午','未','戌'],
-        '丁': ['巳','午','未','戌'],
-        // ...其他天干对应的根气地支
+// ==================== 初始化依赖函数 ====================
+function initStrengthCalculationFunctions() {
+    // 五行能量计算
+    window.calculateSupportScore = function(dayStem, stems, branches) {
+        let score = 0;
+        stems.forEach(stem => {
+            if (isSameElement(stem, dayStem)) score += 1;
+            if (isGenerateElement(stem, dayStem)) score += 1;
+        });
+        branches.forEach(branch => {
+            const hidden = getHiddenStems(branch);
+            hidden.split('').forEach((stem, i) => {
+                if (isSameElement(stem, dayStem)) score += (i === 0 ? 2 : 1);
+                if (isGenerateElement(stem, dayStem)) score += (i === 0 ? 1 : 0.5);
+            });
+        });
+        return score;
     };
-    
-    return branches.some(branch => {
-        // 检查地支主气
-        if (rootBranches[dayStem]?.includes(branch)) return true;
+
+    window.calculateWeakenScore = function(dayStem, stems, branches) {
+        let score = 0;
+        const dayElement = getElementIndex(dayStem);
+        stems.forEach(stem => {
+            const elem = getElementIndex(stem);
+            if (elem === (dayElement + 2) % 5) score += 1;
+            if (elem === (dayElement - 1 + 5) % 5) score += 1;
+            if (elem === (dayElement - 2 + 5) % 5) score += 1;
+        });
+        branches.forEach(branch => {
+            const elem = getElementIndex(branch);
+            if (elem === (dayElement + 2) % 5) score += 2;
+            if (elem === (dayElement - 1 + 5) % 5) score += 1;
+            if (elem === (dayElement - 2 + 5) % 5) score += 2;
+        });
+        return score;
+    };
+
+    // 三会局检查
+    window.checkSanHui = function(branches) {
+        const huiGroups = [
+            { type: 'wood', branches: ['亥','卯','未'] },
+            { type: 'fire', branches: ['巳','午','未'] },
+            { type: 'metal', branches: ['申','酉','戌'] },
+            { type: 'water', branches: ['亥','子','丑'] }
+        ];
         
-        // 检查藏干中的根气
-        const hidden = getHiddenStems(branch);
-        return hidden.split('').some(stem => isSameElement(stem, dayStem));
-    });
-}
-
-// 新增：获取全局最旺五行
-function getDominantElement(stems, branches) {
-    const elementCount = [0, 0, 0, 0, 0]; // 木火土金水
-    
-    // 统计天干能量
-    stems.forEach(stem => {
-        elementCount[getElementIndex(stem)] += 1;
-    });
-    
-    // 统计地支能量（主气2分）
-    branches.forEach(branch => {
-        elementCount[getElementIndex(branch)] += 2;
-    });
-    
-    const maxScore = Math.max(...elementCount);
-    return maxScore >= 4 ? elementCount.indexOf(maxScore) : null;
-}
-
-// 三会局判断增强版
-function hasSanHui(branches, element) {
-    const huiMap = {
-        'wood': ['亥','卯','未'],
-        'fire': ['巳','午','未'],
-        'metal': ['申','酉','戌'],
-        'water': ['亥','子','丑']
+        for (const group of huiGroups) {
+            let count = 0;
+            branches.forEach(b => {
+                if (group.branches.includes(b)) count++;
+            });
+            if (count >= 2 && group.branches.includes(branches[2])) {
+                return getElementIndex(group.branches[0]);
+            }
+        }
+        return null;
     };
-    const targetBranches = huiMap[element] || [];
-    
-    let count = 0;
-    branches.forEach(b => {
-        if (targetBranches.includes(b)) count++;
-    });
-    
-    // 三会局成立条件：至少两支+日支参与
-    return count >= 2 && targetBranches.includes(branches[2]); 
+
+    // 根气检查
+    window.hasRoot = function(dayStem, branches) {
+        const rootMap = {
+            '甲': ['寅','卯','辰','未'], '乙': ['寅','卯','辰','未'],
+            '丙': ['巳','午','未','戌'], '丁': ['巳','午','未','戌'],
+            '戊': ['辰','戌','丑','未'], '己': ['辰','戌','丑','未'],
+            '庚': ['申','酉','戌'], '辛': ['申','酉','戌'],
+            '壬': ['亥','子','丑'], '癸': ['亥','子','丑']
+        };
+        
+        return branches.some(branch => {
+            if (rootMap[dayStem]?.includes(branch)) return true;
+            const hidden = getHiddenStems(branch);
+            return hidden.split('').some(stem => isSameElement(stem, dayStem));
+        });
+    };
+
+    // 其他辅助函数...
 }
 
-// 判断日主是否弱到可从
-function isDayStemWeak(dayStem, dominantElement) {
-    const elementRelations = {
-        '甲': { weakTo: ['metal'], from: ['water'] },
-        '乙': { weakTo: ['metal'], from: ['water'] },
-        // ...其他天干的克制关系
-    };
+// ==================== 应用到原系统 ====================
+// 在calculateBaziLocally函数中确保初始化
+function calculateBaziLocally(birthData) {
+    initStrengthCalculationFunctions(); // 确保函数存在
     
-    return elementRelations[dayStem]?.weakTo.includes(dominantElement);
+    // ...原有计算逻辑...
+    const strengthType = determineStrengthType({
+        yearStem: yearGan,
+        yearBranch: yearZhi,
+        // ...其他柱信息...
+    });
+    
+    return {
+        // ...其他返回字段...
+        strengthType: strengthType
+    };
 }
 
     // 计算十年大运
