@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 增强版缓存对象v2.2b
+    // 增强版缓存对象v2.2v
     const baziCache = {
         data: {},
         get: function(key) {
@@ -2625,7 +2625,7 @@ function calculateLuckStartingTime(lunar, gender) {
 
     // 判断从强从弱 - 修改后的函数
 function determineStrengthType(pillars) {
-    // ================== 工具函数 ================== //
+    // ============== 工具函数 ============== //
     const getElementIndex = (char) => {
         const map = { 
             甲:0,乙:0, 丙:1,丁:1, 戊:2,己:2, 庚:3,辛:3, 壬:4,癸:4,
@@ -2643,152 +2643,97 @@ function determineStrengthType(pillars) {
         return map[branch] || '';
     };
 
-    // ================== 主逻辑 ================== //
+    // ============== 主逻辑 ============== //
     const dayStem = pillars.dayStem;
     const stems = [pillars.yearStem, pillars.monthStem, pillars.hourStem];
     const branches = [pillars.yearBranch, pillars.monthBranch, pillars.dayBranch, pillars.hourBranch];
     const dayElement = getElementIndex(dayStem);
 
-    // 1. 检查特殊格局（优先判断）
+    // 先计算分数和根气状态（解决变量初始化顺序问题）
+    const scores = calculateScores();
+    const rootStatus = checkRootStatus();
+    const seasonMatch = isSeasonMatch();
+
+    // 1. 检查特殊格局（使用已计算的rootStatus）
     const specialPattern = checkSpecialPatterns();
     if (specialPattern) return specialPattern;
 
-    // 2. 计算五行力量
-    const scores = calculateScores();
-
-    // 3. 检查根气状态（严格标准）
-    const rootStatus = checkRootStatus();
-
-    // 4. 检查月令得令情况
-    const seasonMatch = isSeasonMatch();
-
     console.debug(`[分析] ${dayStem}日主 根气:${rootStatus} 得令:${seasonMatch} 生助:${scores.support} 克泄:${scores.weaken}`);
 
-    // 5. 最终判定
+    // 2. 最终判定
     if (isTrueCongWeak()) return "从弱";
     if (isTrueCongStrong()) return "从强";
     return scores.support > scores.weaken ? "身强" : "身弱";
 
-    // ================== 子函数实现 ================== //
-    function checkSpecialPatterns() {
-        // 1. 专旺格（所有干支同五行）
-        if (isAllElementsSame()) return "从强";
-        
-        // 2. 从财格（针对1978案例专项优化）
-        if (isCongCaiGe()) return "从弱";
-        
-        // 3. 其他特殊格局...
-        return null;
-    }
-
-    function isAllElementsSame() {
-        const allElements = [...stems, ...branches].map(c => getElementIndex(c));
-        return allElements.every(elem => elem === dayElement);
-    }
-
-    function isCongCaiGe() {
-        // 从财格条件（满足所有）：
-        // 1. 日主无根（包括被合化的微根）
-        // 2. 财星当令且成势
-        // 3. 无印比生扶
-        const wealthElement = (dayElement + 3) % 5; // 日主克者为财
-        
-        // 检查财星力量（天干+地支主气）
-        let wealthPower = stems.filter(s => getElementIndex(s) === wealthElement).length * 2;
-        branches.forEach(b => {
-            if (getElementIndex(b) === wealthElement) wealthPower += 3;
-            if (getHiddenStems(b).charAt(0) === wealthElement) wealthPower += 2;
-        });
-
-        return rootStatus === '无根' && 
-               wealthPower >= 15 && 
-               scores.support < 5 &&
-               // 特殊：午未合土加强财星
-               (branches.includes('午') && branches.includes('未'));
-    }
-
+    // ============== 子函数 ============== //
     function calculateScores() {
         let support = 0, weaken = 0;
-
-        // 天干力量计算
+        
+        // 天干力量
         stems.forEach(stem => {
             const elem = getElementIndex(stem);
-            // 生助（比劫+印）
             if (elem === dayElement) support += 1.5;
             else if (elem === (dayElement + 4) % 5) support += 1;
-            // 克泄（财官食伤）
             else if (elem === (dayElement + 3) % 5) weaken += 1;
             else if (elem === (dayElement + 2) % 5) weaken += 1.5;
             else if (elem === (dayElement + 1) % 5) weaken += 1.2;
         });
 
-        // 地支力量计算（含藏干）
+        // 地支力量
         branches.forEach((branch, idx) => {
-            const branchElem = getElementIndex(branch);
             const hiddenStems = getHiddenStems(branch);
-            let branchSupport = 0, branchWeaken = 0;
-
-            // 主气（60%）、中气（30%）、余气（10%）权重
             hiddenStems.split('').forEach((stem, i) => {
                 const elem = getElementIndex(stem);
                 const weight = [0.6, 0.3, 0.1][i] || 0;
-
-                if (elem === dayElement) branchSupport += weight * 3;
-                else if (elem === (dayElement + 4) % 5) branchSupport += weight * 2;
-                else if (elem === (dayElement + 3) % 5) branchWeaken += weight * 2;
-                else if (elem === (dayElement + 2) % 5) branchWeaken += weight * 3;
-                else if (elem === (dayElement + 1) % 5) branchWeaken += weight * 2;
+                
+                if (elem === dayElement) support += weight * 3;
+                else if (elem === (dayElement + 4) % 5) support += weight * 2;
+                else if (elem === (dayElement + 3) % 5) weaken += weight * 2;
+                else if (elem === (dayElement + 2) % 5) weaken += weight * 3;
+                else if (elem === (dayElement + 1) % 5) weaken += weight * 2;
             });
-
+            
             // 月令加倍权重
-            const multiplier = idx === 1 ? 2 : 1;
-            support += branchSupport * multiplier;
-            weaken += branchWeaken * multiplier;
+            if (idx === 1) {
+                support *= 2;
+                weaken *= 2;
+            }
         });
 
         return {
-            support: Math.round(support * 10),
-            weaken: Math.round(weaken * 10)
+            support: Math.round(support),
+            weaken: Math.round(weaken)
         };
     }
 
     function checkRootStatus() {
-        let hasMainRoot = false; // 主气根
-        let hasSecondaryRoot = false; // 中余气根
-
+        // 检查日主在地支中的根气（考虑合化）
+        let hasRoot = false;
+        
         branches.forEach(branch => {
             const hiddenStems = getHiddenStems(branch);
-            hiddenStems.split('').forEach((stem, i) => {
-                if (getElementIndex(stem) === dayElement) {
-                    // 检查是否被合化（如未中的乙木被午未合土化掉）
-                    if (!isBranchCombined(branch)) {
-                        if (i === 0) hasMainRoot = true;
-                        else hasSecondaryRoot = true;
-                    }
+            if (hiddenStems.includes(dayStem)) {
+                // 检查是否被合化（如午未合化土）
+                if (!isBranchCombined(branch)) {
+                    hasRoot = true;
                 }
-            });
+            }
         });
-
-        // 日支主气根算强根（除非被合化）
-        if (getElementIndex(pillars.dayBranch) === dayElement && 
-            !isBranchCombined(pillars.dayBranch)) {
-            hasMainRoot = true;
-        }
-
-        return hasMainRoot ? '强根' : hasSecondaryRoot ? '弱根' : '无根';
+        
+        return hasRoot ? '有根' : '无根';
     }
 
     function isBranchCombined(branch) {
-        // 地支六合判断（简化版）
-        const combinationMap = {
-            '子': ['丑'], '午': ['未'], 
-            '卯': ['戌'], '寅': ['亥'],
-            '辰': ['酉'], '巳': ['申']
-        };
+        // 地支六合判断
+        const combinationPairs = [
+            ['子', '丑'], ['午', '未'],
+            ['卯', '戌'], ['寅', '亥'],
+            ['辰', '酉'], ['巳', '申']
+        ];
         
-        return branches.some(b => 
-            combinationMap[branch]?.includes(b) || 
-            combinationMap[b]?.includes(branch)
+        return combinationPairs.some(pair => 
+            (pair[0] === branch && branches.includes(pair[1])) ||
+            (pair[1] === branch && branches.includes(pair[0]))
         );
     }
 
@@ -2803,43 +2748,44 @@ function determineStrengthType(pillars) {
         return seasonMap[dayElement].includes(pillars.monthBranch);
     }
 
+    function checkSpecialPatterns() {
+        // 专旺格检查
+        if ([...stems, ...branches].every(c => getElementIndex(c) === dayElement)) {
+            return "从强";
+        }
+        
+        // 从财格检查（使用已计算的rootStatus和scores）
+        if (rootStatus === '无根' && isWealthDominating()) {
+            return "从弱";
+        }
+        
+        return null;
+    }
+
+    function isWealthDominating() {
+        const wealthElement = (dayElement + 3) % 5;
+        let wealthPower = 0;
+        
+        // 计算财星力量
+        [...stems, ...branches].forEach(c => {
+            if (getElementIndex(c) === wealthElement) wealthPower += 2;
+        });
+        
+        return wealthPower >= 10 && scores.support < 5;
+    }
+
     function isTrueCongWeak() {
-        // 从弱严格条件：
-        // 1. 无根
-        // 2. 克泄力量是生助的2倍以上
-        // 3. 不得令
-        // 4. 特殊：财官成势时放宽条件
         return rootStatus === '无根' && 
-               (scores.weaken > scores.support * 2 || isWealthDominating()) && 
+               scores.weaken > scores.support * 2 && 
                !seasonMatch;
     }
 
     function isTrueCongStrong() {
-        // 从强严格条件：
-        // 1. 强根
-        // 2. 生助力量是克泄的2倍以上
-        // 3. 得令
-        return rootStatus === '强根' && 
+        return rootStatus === '有根' && 
                scores.support > scores.weaken * 2 && 
                seasonMatch;
     }
-
-    function isWealthDominating() {
-        // 财星或官杀成势
-        const wealthElement = (dayElement + 3) % 5;
-        const officerElement = (dayElement + 2) % 5;
-        let dominantPower = 0;
-
-        [...stems, ...branches].forEach(c => {
-            const elem = getElementIndex(c);
-            if (elem === wealthElement) dominantPower += 2;
-            if (elem === officerElement) dominantPower += 1.5;
-        });
-
-        return dominantPower >= 15;
-    }
 }
-
     // 计算十年大运
     function calculateDecadeFortune(lunar, gender) {
         const yearGan = lunar.getYearGan();
