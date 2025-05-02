@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 增强版缓存对象v2.2a
+    // 增强版缓存对象v2.2v
     const baziCache = {
         data: {},
         get: function(key) {
@@ -2629,243 +2629,172 @@ function determineStrengthType(pillars) {
     const elementMap = {
         '甲': '木', '乙': '木', '丙': '火', '丁': '火', '戊': '土',
         '己': '土', '庚': '金', '辛': '金', '壬': '水', '癸': '水',
-        '寅': '木', '卯': '木', '午': '火', '巳': '火', '辰': '土',
-        '戌': '土', '丑': '土', '未': '土', '申': '金', '酉': '金',
+        '寅': '木', '卯': '木', '午': '火', '巳': '火', '辰': '湿土',
+        '戌': '燥土', '丑': '湿土', '未': '燥土', '申': '金', '酉': '金',
         '子': '水', '亥': '水'
     };
 
-    // 藏干映射
+    // 藏干映射（区分本气/中气/余气）
     const hiddenStemsMap = {
-        '子': ['癸'], '丑': ['己', '癸', '辛'], '寅': ['甲', '丙', '戊'],
-        '卯': ['乙'], '辰': ['戊', '乙', '癸'], '巳': ['丙', '庚', '戊'],
-        '午': ['丁', '己'], '未': ['己', '丁', '乙'], '申': ['庚', '壬', '戊'],
-        '酉': ['辛'], '戌': ['戊', '辛', '丁'], '亥': ['壬', '甲']
+        '子': [{stem: '癸', weight: 1.0}],
+        '丑': [{stem: '己', weight: 0.6}, {stem: '癸', weight: 0.3}, {stem: '辛', weight: 0.1}],
+        '寅': [{stem: '甲', weight: 0.6}, {stem: '丙', weight: 0.3}, {stem: '戊', weight: 0.1}],
+        '卯': [{stem: '乙', weight: 1.0}],
+        '辰': [{stem: '戊', weight: 0.6}, {stem: '乙', weight: 0.3}, {stem: '癸', weight: 0.1}],
+        '巳': [{stem: '丙', weight: 0.6}, {stem: '庚', weight: 0.3}, {stem: '戊', weight: 0.1}],
+        '午': [{stem: '丁', weight: 0.7}, {stem: '己', weight: 0.3}],
+        '未': [{stem: '己', weight: 0.6}, {stem: '丁', weight: 0.3}, {stem: '乙', weight: 0.1}],
+        '申': [{stem: '庚', weight: 0.6}, {stem: '壬', weight: 0.3}, {stem: '戊', weight: 0.1}],
+        '酉': [{stem: '辛', weight: 1.0}],
+        '戌': [{stem: '戊', weight: 0.6}, {stem: '辛', weight: 0.3}, {stem: '丁', weight: 0.1}],
+        '亥': [{stem: '壬', weight: 0.7}, {stem: '甲', weight: 0.3}]
     };
 
-    // 十神关系
+    // 十神关系权重（日主角度）
     const tenGodsRelation = {
-        '比肩': 1, '劫财': 0.8, '食神': -0.5, '伤官': -0.8,
-        '偏财': -0.5, '正财': -0.5, '七杀': -1.5, '正官': -1,
-        '偏印': 0.5, '正印': 1
+        '比肩': 1.0, '劫财': 0.8, 
+        '正印': 0.8, '偏印': 0.6,
+        '伤官': -0.8, '食神': -0.6,
+        '正财': -0.7, '偏财': -0.7,
+        '正官': -1.0, '七杀': -1.2
     };
 
-    // 获取日主元素
+    // 获取日主信息
     const dayMaster = pillars.dayStem;
     const dayElement = elementMap[dayMaster];
+    const isYinDayMaster = ['乙','丁','己','辛','癸'].includes(dayMaster);
 
-    // 1. 计算得令分数（月令影响）
+    // 1. 月令强度计算（关键修正点）
     const monthBranch = pillars.monthBranch;
-    const monthElement = elementMap[monthBranch];
     let seasonScore = 0;
     
-    // 得令判断
-    if (monthElement === dayElement) {
-        seasonScore = 1.5; // 当令
-    } else {
-        // 生我者为相令
-        const generateMap = {木: '水', 火: '木', 土: '火', 金: '土', 水: '金'};
-        if (generateMap[dayElement] === monthElement) {
-            seasonScore = 1; // 相令
-        }
+    // 得令判断（考虑阴阳差异）
+    if (elementMap[monthBranch] === dayElement) {
+        seasonScore = isYinDayMaster ? 1.2 : 1.5; // 阴干得令稍弱
+    } 
+    // 相令判断（生我者）
+    else if (getGeneratingElement(dayElement) === elementMap[monthBranch]) {
+        seasonScore = 0.8;
+    }
+    // 土月特殊处理
+    else if (elementMap[monthBranch].includes('土')) {
+        if (dayElement === '火') seasonScore = 0.6; // 火生土泄气
+        else if (dayElement === '金') seasonScore = -0.5; // 土生金消耗
     }
 
-    // 2. 计算天干力量
+    // 2. 天干力量计算（优化权重）
     let stemSupport = 0;
     let stemWeaken = 0;
     
     [pillars.yearStem, pillars.monthStem, pillars.hourStem].forEach(stem => {
-        const stemElement = elementMap[stem];
         const relation = getTenGodsRelation(dayMaster, stem);
+        const value = tenGodsRelation[relation] || 0;
         
-        if (relation === '比肩' || relation === '劫财') {
-            stemSupport += tenGodsRelation[relation];
-        } else if (relation === '偏印' || relation === '正印') {
-            stemSupport += tenGodsRelation[relation];
-        } else {
-            stemWeaken += Math.abs(tenGodsRelation[relation]);
-        }
+        if (value > 0) stemSupport += value;
+        else stemWeaken += Math.abs(value);
     });
 
-    // 3. 计算地支力量（含藏干）
+    // 3. 地支力量计算（精确到藏干）
     let branchSupport = 0;
     let branchWeaken = 0;
+    let rootStrength = 0; // 专门记录根气强度
     
-    [pillars.yearBranch, pillars.monthBranch, pillars.dayBranch, pillars.hourBranch].forEach(branch => {
-        const branchElement = elementMap[branch];
+    [pillars.yearBranch, pillars.monthBranch, pillars.dayBranch, pillars.hourBranch].forEach((branch, idx) => {
         const hiddenStems = hiddenStemsMap[branch] || [];
+        const isMonthBranch = (idx === 1); // 月支
         
-        // 主气力量
-        const mainStem = hiddenStems[0];
-        if (mainStem) {
-            const relation = getTenGodsRelation(dayMaster, mainStem);
-            const weight = branch === pillars.monthBranch ? 1.5 : 1; // 月令加倍
-            
-            if (relation === '比肩' || relation === '劫财') {
-                branchSupport += tenGodsRelation[relation] * weight;
-            } else if (relation === '偏印' || relation === '正印') {
-                branchSupport += tenGodsRelation[relation] * weight;
-            } else {
-                branchWeaken += Math.abs(tenGodsRelation[relation]) * weight;
-            }
-        }
-        
-        // 中气余气力量（权重减半）
-        hiddenStems.slice(1).forEach(stem => {
+        hiddenStems.forEach(({stem, weight}) => {
             const relation = getTenGodsRelation(dayMaster, stem);
-            const weight = 0.5 * (branch === pillars.monthBranch ? 1.5 : 1);
+            const value = (tenGodsRelation[relation] || 0) * weight * (isMonthBranch ? 1.5 : 1);
             
             if (relation === '比肩' || relation === '劫财') {
-                branchSupport += tenGodsRelation[relation] * weight;
-            } else if (relation === '偏印' || relation === '正印') {
-                branchSupport += tenGodsRelation[relation] * weight;
-            } else {
-                branchWeaken += Math.abs(tenGodsRelation[relation]) * weight;
+                rootStrength += value; // 记录根气
             }
+            
+            if (value > 0) branchSupport += value;
+            else branchWeaken += Math.abs(value);
         });
     });
 
-    // 4. 计算合化影响
+    // 4. 合化冲刑影响（新增）
     const combinationEffects = checkCombinationEffects(pillars, dayElement);
-    stemSupport += combinationEffects.supportStem;
-    branchSupport += combinationEffects.supportBranch;
-    stemWeaken += combinationEffects.weakenStem;
-    branchWeaken += combinationEffects.weakenBranch;
+    branchSupport += combinationEffects.support;
+    branchWeaken += combinationEffects.weaken;
+    rootStrength *= combinationEffects.rootFactor; // 根气受合化影响
 
     // 5. 综合计算
     const totalSupport = seasonScore + stemSupport + branchSupport;
     const totalWeaken = stemWeaken + branchWeaken;
     const netStrength = totalSupport - totalWeaken;
     
-    // 6. 判断根气情况
-    const hasRoot = checkRootPresence(pillars, dayMaster, hiddenStemsMap);
+    // 6. 根气判定标准调整（关键修正）
+    const hasStrongRoot = rootStrength >= 1.2;
+    const hasWeakRoot = rootStrength >= 0.5 && rootStrength < 1.2;
 
-    // 7. 最终判定
-    if (!hasRoot && totalWeaken > totalSupport * 2) {
+    // 7. 最终判定逻辑（严格标准）
+    if (!hasWeakRoot && !hasStrongRoot && totalWeaken > totalSupport * 2.2) {
         return "从弱";
     }
     
-    if (hasRoot && totalSupport > totalWeaken * 2.5) {
+    if (hasStrongRoot && totalSupport > totalWeaken * 2.8 && seasonScore > 0) {
         return "从强";
     }
     
-    if (Math.abs(netStrength) <= 0.5) {
+    if (Math.abs(netStrength) <= 0.3) {
         return "均衡";
     }
     
-    return netStrength > 0 ? "身强" : "身弱";
+    // 身强/身弱精细判定
+    if (netStrength > 0) {
+        return hasWeakRoot ? "身弱" : "身强"; // 有弱根仍可能身弱
+    } else {
+        return hasStrongRoot ? "身弱" : "从弱"; // 有强根才判身弱
+    }
 
     // ===== 辅助函数 =====
+    function getGeneratingElement(element) {
+        const map = {木:'水', 火:'木', 土:'火', 金:'土', 水:'金'};
+        return map[element];
+    }
+
     function getTenGodsRelation(dayStem, target) {
-        // 十神关系判断逻辑
-        const stemOrder = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
+        const stemOrder = ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
         const dayIndex = stemOrder.indexOf(dayStem);
         const targetIndex = stemOrder.indexOf(target);
         
-        if (targetIndex === -1) return '未知';
-        
         const diff = (targetIndex - dayIndex + 10) % 10;
         
-        switch(diff) {
-            case 0: return '比肩';
-            case 1: return '劫财';
-            case 2: return '食神';
-            case 3: return '伤官';
-            case 4: return '偏财';
-            case 5: return '正财';
-            case 6: return '七杀';
-            case 7: return '正官';
-            case 8: return '偏印';
-            case 9: return '正印';
-            default: return '未知';
-        }
+        const relations = [
+            '比肩', '劫财', '食神', '伤官', '偏财',
+            '正财', '七杀', '正官', '偏印', '正印'
+        ];
+        return relations[diff] || '未知';
     }
-    
-    function checkRootPresence(pillars, dayMaster, hiddenStemsMap) {
-        // 检查日主在地支中的根气
+
+    function checkCombinationEffects(pillars, dayElement) {
+        let support = 0, weaken = 0, rootFactor = 1;
         const branches = [pillars.yearBranch, pillars.monthBranch, pillars.dayBranch, pillars.hourBranch];
         
-        for (const branch of branches) {
-            const hiddenStems = hiddenStemsMap[branch] || [];
-            if (hiddenStems.includes(dayMaster)) {
-                // 检查是否被合化
-                if (!isBranchCombined(branch, branches)) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-    
-    function isBranchCombined(branch, allBranches) {
-        // 检查地支是否被合化
+        // 地支六合检查（影响根气）
         const combinations = [
-            ['子', '丑'], ['寅', '亥'], ['卯', '戌'],
-            ['辰', '酉'], ['巳', '申'], ['午', '未']
+            {pair: ['子','丑'], result: '土', effect: -0.3},
+            {pair: ['卯','戌'], result: '火', effect: -0.4},
+            {pair: ['午','未'], result: '土', effect: -0.3}
         ];
         
-        for (const [a, b] of combinations) {
-            if ((branch === a && allBranches.includes(b)) ||
-                (branch === b && allBranches.includes(a))) {
-                return true;
-            }
-        }
-        return false;
-    }
-    
-    function checkCombinationEffects(pillars, dayElement) {
-        // 检查天干地支合化对日主的影响
-        let supportStem = 0, supportBranch = 0;
-        let weakenStem = 0, weakenBranch = 0;
-        
-        // 天干五合
-        const heavenlyCombinations = {
-            '甲己': '土', '乙庚': '金', '丙辛': '水', 
-            '丁壬': '木', '戊癸': '火'
-        };
-        
-        // 地支六合
-        const earthlyCombinations = {
-            '子丑': '土', '寅亥': '木', '卯戌': '火',
-            '辰酉': '金', '巳申': '水', '午未': '土'
-        };
-        
-        // 检查天干合化
-        const stems = [pillars.yearStem, pillars.monthStem, pillars.dayStem, pillars.hourStem];
-        for (let i = 0; i < stems.length; i++) {
-            for (let j = i + 1; j < stems.length; j++) {
-                const pair1 = stems[i] + stems[j];
-                const pair2 = stems[j] + stems[i];
-                const combo = heavenlyCombinations[pair1] || heavenlyCombinations[pair2];
-                
-                if (combo) {
-                    if (combo === dayElement) {
-                        supportStem += 0.5;
-                    } else {
-                        weakenStem += 0.3;
-                    }
+        combinations.forEach(({pair, result, effect}) => {
+            if (branches.includes(pair[0]) && branches.includes(pair[1])) {
+                if (result === dayElement) {
+                    support += 0.5;
+                } else {
+                    weaken += 0.5;
+                    // 如果是日主的根被合化
+                    if (pair.includes(pillars.dayBranch)) rootFactor *= 0.6;
                 }
             }
-        }
+        });
         
-        // 检查地支合化
-        const branches = [pillars.yearBranch, pillars.monthBranch, pillars.dayBranch, pillars.hourBranch];
-        for (let i = 0; i < branches.length; i++) {
-            for (let j = i + 1; j < branches.length; j++) {
-                const pair1 = branches[i] + branches[j];
-                const pair2 = branches[j] + branches[i];
-                const combo = earthlyCombinations[pair1] || earthlyCombinations[pair2];
-                
-                if (combo) {
-                    if (combo === dayElement) {
-                        supportBranch += 0.8;
-                    } else {
-                        weakenBranch += 0.5;
-                    }
-                }
-            }
-        }
-        
-        return { supportStem, supportBranch, weakenStem, weakenBranch };
+        return {support, weaken, rootFactor};
     }
 }
     // 计算十年大运
