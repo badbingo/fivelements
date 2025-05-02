@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 增强版缓存对象v2.2b
+    // 增强版缓存对象v2.2v
     const baziCache = {
         data: {},
         get: function(key) {
@@ -2625,7 +2625,7 @@ function calculateLuckStartingTime(lunar, gender) {
 
     // 判断从强从弱 - 修改后的函数
 function determineStrengthType(pillars) {
-    // 1. 准备基础数据
+    // 1. 基础数据配置
     const elementMap = {
         '甲': '木', '乙': '木', '丙': '火', '丁': '火', '戊': '土',
         '己': '土', '庚': '金', '辛': '金', '壬': '水', '癸': '水',
@@ -2635,10 +2635,18 @@ function determineStrengthType(pillars) {
     };
 
     const hiddenStems = {
-        '子': ['癸'], '丑': ['己', '癸', '辛'], '寅': ['甲', '丙', '戊'],
-        '卯': ['乙'], '辰': ['戊', '乙', '癸'], '巳': ['丙', '庚', '戊'],
-        '午': ['丁', '己'], '未': ['己', '丁', '乙'], '申': ['庚', '壬', '戊'],
-        '酉': ['辛'], '戌': ['戊', '辛', '丁'], '亥': ['壬', '甲']
+        '子': ['癸'],
+        '丑': ['己', '癸', '辛'],
+        '寅': ['甲', '丙', '戊'],
+        '卯': ['乙'],
+        '辰': ['戊', '乙', '癸'],
+        '巳': ['丙', '庚', '戊'],
+        '午': ['丁', '己'],
+        '未': ['己', '丁', '乙'],
+        '申': ['庚', '壬', '戊'],
+        '酉': ['辛'],
+        '戌': ['戊', '辛', '丁'],
+        '亥': ['壬', '甲']
     };
 
     // 2. 获取日主信息
@@ -2646,20 +2654,47 @@ function determineStrengthType(pillars) {
     const dayElement = elementMap[dayStem];
     const monthBranch = pillars.monthBranch;
     const monthElement = elementMap[monthBranch];
+    const branches = [pillars.yearBranch, pillars.monthBranch, pillars.dayBranch, pillars.hourBranch];
 
-    // 3. 判断得令情况
+    // 3. 检查三合局
+    const checkTripleCombination = () => {
+        const combinations = [
+            { elements: ['巳', '酉', '丑'], result: '金' },
+            { elements: ['亥', '卯', '未'], result: '木' },
+            { elements: ['申', '子', '辰'], result: '水' },
+            { elements: ['寅', '午', '戌'], result: '火' }
+        ];
+
+        for (const combo of combinations) {
+            const count = combo.elements.filter(e => branches.includes(e)).length;
+            if (count >= 2) {
+                return {
+                    element: combo.result,
+                    strength: count === 3 ? 2.0 : 1.5,
+                    elements: combo.elements
+                };
+            }
+        }
+        return null;
+    };
+
+    const tripleCombo = checkTripleCombination();
+
+    // 4. 得令判断
     const getSeasonScore = () => {
-        // 得令判断
+        // 三合局优先判断
+        if (tripleCombo && tripleCombo.element !== dayElement) {
+            return -1.0; // 存在克日主的强三合局
+        }
+
         if (monthElement === dayElement) return 1.5;
         
-        // 相令判断（生我者）
         const generatingElements = {木: '水', 火: '木', 土: '火', 金: '土', 水: '金'};
         if (generatingElements[dayElement] === monthElement) return 1.0;
         
-        // 土月特殊处理
         if (monthElement === '土') {
-            if (dayElement === '火') return 0.5; // 火生土泄气
-            if (dayElement === '金') return -0.5; // 土生金消耗
+            if (dayElement === '火') return 0.5;
+            if (dayElement === '金') return -0.5;
         }
         
         return 0;
@@ -2667,7 +2702,7 @@ function determineStrengthType(pillars) {
 
     const seasonScore = getSeasonScore();
 
-    // 4. 计算天干力量
+    // 5. 天干力量计算
     const calculateStemStrength = () => {
         let support = 0, weaken = 0;
         const stems = [pillars.yearStem, pillars.monthStem, pillars.hourStem];
@@ -2714,19 +2749,34 @@ function determineStrengthType(pillars) {
 
     const stemStrength = calculateStemStrength();
 
-    // 5. 计算地支力量（含藏干）
+    // 6. 地支力量计算（含藏干）
     const calculateBranchStrength = () => {
         let support = 0, weaken = 0, rootPower = 0;
-        const branches = [pillars.yearBranch, pillars.monthBranch, pillars.dayBranch, pillars.hourBranch];
         
         branches.forEach((branch, index) => {
             const isMonthBranch = (index === 1);
             const weight = isMonthBranch ? 1.5 : 1.0;
             
+            // 检查是否属于三合局元素
+            const isComboElement = tripleCombo && tripleCombo.elements.includes(branch);
+            
             (hiddenStems[branch] || []).forEach((stem, i) => {
                 const stemElement = elementMap[stem];
                 const stemWeight = [0.6, 0.3, 0.1][i] || 0.6;
                 const totalWeight = stemWeight * weight;
+                
+                // 三合局元素特殊处理
+                if (isComboElement) {
+                    if (tripleCombo.element === dayElement) {
+                        support += totalWeight * tripleCombo.strength;
+                        if (stemElement === dayElement) {
+                            rootPower += totalWeight * tripleCombo.strength;
+                        }
+                    } else {
+                        weaken += totalWeight * tripleCombo.strength;
+                    }
+                    return;
+                }
                 
                 // 比劫（根气）
                 if (stemElement === dayElement) {
@@ -2770,7 +2820,7 @@ function determineStrengthType(pillars) {
 
     const branchStrength = calculateBranchStrength();
 
-    // 6. 检查特殊格局
+    // 7. 检查特殊格局
     const checkSpecialPattern = () => {
         const totalSupport = seasonScore + stemStrength.support + branchStrength.support;
         const totalWeaken = stemStrength.weaken + branchStrength.weaken;
@@ -2778,13 +2828,15 @@ function determineStrengthType(pillars) {
         // 从强格条件
         if (branchStrength.rootPower >= 2.0 && 
             totalSupport > totalWeaken * 3.0 &&
-            seasonScore > 0) {
+            seasonScore > 0 &&
+            !(tripleCombo && tripleCombo.element !== dayElement)) {
             return "从强";
         }
         
-        // 从弱格条件
-        if (branchStrength.rootPower < 0.5 && 
-            totalWeaken > totalSupport * 3.0) {
+        // 从弱格条件（包含三合局克日主的情况）
+        if ((branchStrength.rootPower < 0.5 || 
+             (tripleCombo && tripleCombo.element !== dayElement)) && 
+            totalWeaken > totalSupport * 2.5) {
             return "从弱";
         }
         
@@ -2794,12 +2846,12 @@ function determineStrengthType(pillars) {
     const specialPattern = checkSpecialPattern();
     if (specialPattern) return specialPattern;
 
-    // 7. 综合判断
+    // 8. 综合判断
     const totalSupport = seasonScore + stemStrength.support + branchStrength.support;
     const totalWeaken = stemStrength.weaken + branchStrength.weaken;
     const netStrength = totalSupport - totalWeaken;
     
-    // 均衡判断
+    // 均衡判断（±0.5分以内）
     if (Math.abs(netStrength) <= 0.5) return "均衡";
     
     // 根气强弱判断
