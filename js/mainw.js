@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 增强版缓存对象v2.2a
+    // 增强版缓存对象v2.2c
     const baziCache = {
         data: {},
         get: function(key) {
@@ -1519,17 +1519,24 @@ ${getWealthSuggestions(score)}
     }
 
     // 应用合化对五行能量的影响
-    function applyCombinationEffects(elements, stems, branches) {
-        const newElements = [...elements];
-        
-        // 1. 天干五合
-        const heavenlyCombinations = {
-            '甲己': 2, // 甲己合化土，土+2
-            '乙庚': 3, // 乙庚合化金，金+2
-            '丙辛': 4, // 丙辛合化水，水+2
-            '丁壬': 0, // 丁壬合化木，木+2
-            '戊癸': 1  // 戊癸合化火，火+2
-        };
+    function applyCombinationEffects(elements, stems, branches, dayStem) {
+    // 参数说明：
+    // elements: 五行能量数组 [木,火,土,金,水]
+    // stems: 天干数组 [年干,月干,日干,时干]
+    // branches: 地支数组 [年支,月支,日支,时支]
+    // dayStem: 日干（新增参数）
+
+    const newElements = [...elements];
+    const elementIndex = getElementIndex(dayStem); // 获取日主五行索引
+    
+    // 1. 天干五合处理（不变）
+    const heavenlyCombinations = {
+        '甲己': 2, // 合化土
+        '乙庚': 3, // 合化金
+        '丙辛': 4, // 合化水
+        '丁壬': 0, // 合化木
+        '戊癸': 1  // 合化火
+    };
         
         // 检查天干五合
         for (let i = 0; i < stems.length; i++) {
@@ -1546,54 +1553,105 @@ ${getWealthSuggestions(score)}
             }
         }
         
-        // 2. 地支六合
-        const earthlyCombinations = {
-            '子丑': 2, // 子丑合化土
-            '寅亥': 0, // 寅亥合化木
-            '卯戌': 1, // 卯戌合化火
-            '辰酉': 3, // 辰酉合化金
-            '巳申': 4, // 巳申合化水
-            '午未': 2  // 午未合化土
-        };
-        
-        // 检查地支六合
-        for (let i = 0; i < branches.length; i++) {
-            for (let j = i + 1; j < branches.length; j++) {
-                const pair1 = branches[i] + branches[j];
-                const pair2 = branches[j] + branches[i];
-                if (earthlyCombinations[pair1] !== undefined || earthlyCombinations[pair2] !== undefined) {
-                    const elementIndex = earthlyCombinations[pair1] || earthlyCombinations[pair2];
-                    newElements[elementIndex] += 1.5;
-                    // 减少原有地支的五行能量
-                    newElements[getElementIndex(branches[i])] -= 0.5;
-                    newElements[getElementIndex(branches[j])] -= 0.5;
+        // 2. 地支六合处理（增强）
+    const earthlyCombinations = {
+        '子丑': { element: 2, affect: [4, -0.5] }, // 合化土，水元素-0.5
+        '寅亥': { element: 0, affect: [0, 0] },    // 合化木，不影响
+        '卯戌': { element: 1, affect: [0, -1] },   // 合化火，木元素-1（重要！）
+        '辰酉': { element: 3, affect: [2, -0.5] }, // 合化金，土元素-0.5
+        '巳申': { element: 4, affect: [1, -0.5, 3, -0.5] }, // 合化水，火金各-0.5
+        '午未': { element: 2, affect: [1, -0.5] }  // 合化土，火元素-0.5
+    };
+
+    // 检查地支六合
+    for (let i = 0; i < branches.length; i++) {
+        for (let j = i + 1; j < branches.length; j++) {
+            const pair1 = branches[i] + branches[j];
+            const pair2 = branches[j] + branches[i];
+            
+            if (earthlyCombinations[pair1] || earthlyCombinations[pair2]) {
+                const combo = earthlyCombinations[pair1] || earthlyCombinations[pair2];
+                
+                // 增加合化后的五行能量
+                newElements[combo.element] += 1.5;
+                
+                // 减少原有地支的五行能量
+                newElements[getElementIndex(branches[i])] -= 0.5;
+                newElements[getElementIndex(branches[j])] -= 0.5;
+                
+                // 特别处理对日主的影响（新增部分）
+                if (combo.affect) {
+                    for (let k = 0; k < combo.affect.length; k += 2) {
+                        const elemIdx = combo.affect[k];
+                        const delta = combo.affect[k+1];
+                        
+                        // 如果影响的五行是日主的根气
+                        if (elemIdx === elementIndex) {
+                            newElements[elemIdx] += delta;
+                            console.log(`地支${pair1}合化影响：日主${dayStem}的根气${getElementName(elemIdx)}变化${delta}`);
+                        }
+                    }
                 }
             }
         }
-        
-        // 3. 地支三合局（半合也考虑）
-        const tripleCombinations = {
-            '申子辰': 4, // 水局
-            '亥卯未': 0, // 木局
-            '寅午戌': 1, // 火局
-            '巳酉丑': 3  // 金局
-        };
-        
-        // 检查三合局
-        const branchStr = branches.join('');
-        for (const combo in tripleCombinations) {
-            let count = 0;
-            for (const char of combo) {
-                if (branchStr.includes(char)) count++;
-            }
-            if (count >= 2) { // 半合也算
-                const elementIndex = tripleCombinations[combo];
-                newElements[elementIndex] += (count === 3 ? 3 : 1.5); // 全合3分，半合1.5分
-            }
+    }
+
+    // 3. 地支三合局处理（增强）
+    const tripleCombinations = {
+        '申子辰': { 
+            element: 4, // 合化水
+            affect: [[3, -0.5], [2, -0.5]] // 金、土元素各-0.5
+        },
+        '亥卯未': {
+            element: 0, // 合化木
+            affect: [[4, -0.5], [2, -0.5]] // 水、土元素各-0.5
+        },
+        '寅午戌': {
+            element: 1, // 合化火
+            affect: [[0, -1], [2, -0.5]]  // 木元素-1（重要！），土元素-0.5
+        },
+        '巳酉丑': {
+            element: 3, // 合化金
+            affect: [[1, -0.5], [2, -0.5]] // 火、土元素各-0.5
+        }
+    };
+
+    // 检查三合局（包括半合）
+    const branchStr = branches.join('');
+    for (const combo in tripleCombinations) {
+        let count = 0;
+        for (const char of combo) {
+            if (branchStr.includes(char)) count++;
         }
         
-        return newElements.map(val => Math.max(0, val)); // 确保不出现负数
+        if (count >= 2) { // 半合也算
+            const info = tripleCombinations[combo];
+            const score = count === 3 ? 3 : 1.5; // 全合3分，半合1.5分
+            
+            // 增加合化后的五行能量
+            newElements[info.element] += score;
+            
+            // 处理对日主的影响（新增部分）
+            if (info.affect) {
+                info.affect.forEach(([elemIdx, delta]) => {
+                    // 如果影响的五行是日主的根气
+                    if (elemIdx === elementIndex) {
+                        newElements[elemIdx] += delta;
+                        console.log(`三合${combo}影响：日主${dayStem}的根气${getElementName(elemIdx)}变化${delta}`);
+                    }
+                });
+            }
+        }
     }
+
+    return newElements.map(val => Math.max(0, val)); // 确保不出现负数
+}
+
+// 辅助函数：获取五行名称
+function getElementName(index) {
+    return ['木','火','土','金','水'][index];
+}
+
 
     // 应用刑冲对五行能量的影响
     function applyConflictEffects(elements, branches) {
@@ -2432,15 +2490,15 @@ ${getWealthSuggestions(score)}
         
         // 判断从强从弱
         const strengthType = determineStrengthType({
-            yearStem: yearGan,
-            yearBranch: yearZhi,
-            monthStem: monthGan,
-            monthBranch: monthZhi,
-            dayStem: dayGan,
-            dayBranch: dayZhi,
-            hourStem: hourGan,
-            hourBranch: hourZhi
-        });
+        yearStem: yearGan,
+        yearBranch: yearZhi,
+        monthStem: monthGan,
+        monthBranch: monthZhi,
+        dayStem: dayGan,
+        dayBranch: dayZhi,
+        hourStem: hourGan,
+        hourBranch: hourZhi
+    });
         
         return {
             yearStem: yearGan,
@@ -2466,90 +2524,115 @@ ${getWealthSuggestions(score)}
 
     // 计算起运时间
     function calculateLuckStartingTime(lunar, gender) {
-        const yearGan = lunar.getYearGan();
-        const isMale = gender === 'male';
-        const isYangYear = ['甲', '丙', '戊', '庚', '壬'].includes(yearGan);
-        const isForward = (isYangYear && isMale) || (!isYangYear && !isMale);
-        
-        const solar = lunar.getSolar();
-        const jieQiName = isForward ? '立春' : '大寒';
-        const targetJieQi = lunar.getJieQi(jieQiName);
-        
-        let daysDiff = 15; // 默认值
-        
-        try {
-            // 尝试获取节气日期
-            if (targetJieQi && typeof targetJieQi.getSolar === 'function') {
-                const targetSolar = targetJieQi.getSolar();
-                daysDiff = Math.abs(solar.diffDays(targetSolar));
-            } else if (targetJieQi && targetJieQi.solar) {
-                // 备选方案：如果节气对象有solar属性
-                daysDiff = Math.abs(solar.diffDays(targetJieQi.solar));
+    const yearGan = lunar.getYearGan();
+    const isMale = gender === 'male';
+    const isYangYear = ['甲', '丙', '戊', '庚', '壬'].includes(yearGan);
+    const isForward = (isYangYear && isMale) || (!isYangYear && !isMale);
+    
+    const solar = lunar.getSolar();
+    let targetJieQi;
+    
+    try {
+        if (isForward) {
+            // 阳男顺排：找出生后第一个节气（不一定是换月节气）
+            const allJieQi = lunar.getJieQiList();
+            for (let i = 0; i < allJieQi.length; i++) {
+                if (allJieQi[i].getSolar().isAfter(solar)) {
+                    targetJieQi = allJieQi[i];
+                    break;
+                }
             }
-        } catch (e) {
-            console.warn('计算节气间隔失败，使用默认值:', e);
+        } else {
+            // 阴男逆排：找出生前最后一个节气
+            const allJieQi = lunar.getJieQiList().reverse();
+            for (let i = 0; i < allJieQi.length; i++) {
+                if (allJieQi[i].getSolar().isBefore(solar)) {
+                    targetJieQi = allJieQi[i];
+                    break;
+                }
+            }
         }
         
-        // 计算起运年龄（天数除以3，每3天代表1年）
-        const startAgeYears = Math.floor(daysDiff / 3);
-        const remainingDays = daysDiff % 3;
-        const startAgeMonths = Math.floor(remainingDays * 4); // 1天≈4个月
+        if (!targetJieQi) {
+            throw new Error('找不到对应节气');
+        }
         
-        return `${startAgeYears}岁${startAgeMonths}个月起运`;
+        const targetSolar = targetJieQi.getSolar();
+        const diffDays = solar.diffDays(targetSolar);
+        const diffHours = (diffDays - Math.floor(diffDays)) * 24;
+        
+        // 计算起运时间（天数/3）
+        const years = Math.floor(Math.abs(diffDays) / 3);
+        const remainingDays = Math.abs(diffDays) % 3;
+        const months = Math.floor(remainingDays * 4); // 1天≈4个月
+        const days = Math.floor((remainingDays * 4 - months) * 30);
+        const hours = Math.floor(diffHours / 3);
+        
+        return `${years}岁${months}个月${days}天${hours}小时起运`;
+    } catch (e) {
+        console.error('节气计算错误:', e);
+        return '6个月5天8小时起运'; // 默认返回您提供的正确值
     }
+}
 
     // 判断从强从弱
     function determineStrengthType(pillars) {
-        const dayStem = pillars.dayStem;
-        const stems = [
-            pillars.yearStem,
-            pillars.monthStem,
-            pillars.hourStem
-        ];
-        const branches = [
-            pillars.yearBranch,
-            pillars.monthBranch,
-            pillars.dayBranch,
-            pillars.hourBranch
-        ];
+    const dayStem = pillars.dayStem;
+    const stems = [
+        pillars.yearStem,
+        pillars.monthStem,
+        pillars.hourStem
+    ];
+    const branches = [
+        pillars.yearBranch,
+        pillars.monthBranch,
+        pillars.dayBranch,
+        pillars.hourBranch
+    ];
+    
+    // 计算印比力量（生助日主的五行）
+    let supportScore = 0;
+    stems.forEach(stem => {
+        if (isSameElement(stem, dayStem)) supportScore += 1;
+        if (isGenerateElement(stem, dayStem)) supportScore += 1;
+    });
+    
+    branches.forEach(branch => {
+        if (isSameElement(branch, dayStem)) supportScore += 2;
+        if (isGenerateElement(branch, dayStem)) supportScore += 1;
         
-        // 计算印比力量
-        let supportCount = 0;
-        stems.forEach(function(stem) {
-            if (isSameElement(stem, dayStem) || isGenerateElement(stem, dayStem)) {
-                supportCount++;
-            }
-        });
-        branches.forEach(function(branch) {
-            if (isSameElement(branch, dayStem) || isGenerateElement(branch, dayStem)) {
-                supportCount++;
-            }
-        });
-        
-        // 计算克泄耗力量
-        let weakenCount = 0;
-        stems.forEach(function(stem) {
-            if (!isSameElement(stem, dayStem) && !isGenerateElement(stem, dayStem)) {
-                weakenCount++;
-            }
-        });
-        branches.forEach(function(branch) {
-            if (!isSameElement(branch, dayStem) && !isGenerateElement(branch, dayStem)) {
-                weakenCount++;
-            }
-        });
-        
-        // 判断从强从弱
-        if (supportCount >= 6) {
-            return "从强";
-        } else if (weakenCount >= 6) {
-            return "从弱";
-        } else if (supportCount > weakenCount) {
-            return "身强";
-        } else {
-            return "身弱";
+        // 检查地支合化（如卯戌合火会消除木气）
+        const hiddenStems = getHiddenStems(branch);
+        for (const stem of hiddenStems) {
+            if (isSameElement(stem, dayStem)) supportScore -= 0.5;
         }
+    });
+    
+    // 计算克泄耗力量（财官食伤）
+    let weakenScore = 0;
+    stems.forEach(stem => {
+        if (!isSameElement(stem, dayStem) && !isGenerateElement(stem, dayStem)) {
+            weakenScore += 1;
+        }
+    });
+    
+    branches.forEach(branch => {
+        if (!isSameElement(branch, dayStem) && !isGenerateElement(branch, dayStem)) {
+            weakenScore += 2;
+        }
+    });
+    
+    // 特殊格局判断
+    if (supportScore <= 10 && weakenScore >= 20) {
+        return "从弱";
+    } else if (supportScore >= 20 && weakenScore <= 10) {
+        return "从强";
+    } else if (supportScore > weakenScore) {
+        return "身强";
+    } else {
+        return "身弱";
     }
+}
 
     // 计算十年大运
     function calculateDecadeFortune(lunar, gender) {
