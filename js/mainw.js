@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 增强版缓存对象v2.2c
+    // 增强版缓存对象v2.2a
     const baziCache = {
         data: {},
         get: function(key) {
@@ -2950,7 +2950,10 @@ ${getWealthSuggestions(score)}
 出生时间：${data.time} 
 性别：${data.gender === 'male' ? '男' : '女'}
 八字：${localResult.yearStem}${localResult.yearBranch} ${localResult.monthStem}${localResult.monthBranch} ${localResult.dayStem}${localResult.dayBranch} ${localResult.hourStem}${localResult.hourBranch}
-
+起运时间：${localLuckTime.age}（${localLuckTime.date}）
+格局类型：${localStrength.type}
+强弱分析：${localStrength.analysis.split('\n')[0]}
+请直接分析此八字的强弱，格局和起运时间，不要自行排盘或计算起运时间。
 `;
 
         // 根据不同部分设置不同的提示词
