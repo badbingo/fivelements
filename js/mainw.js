@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 增强版缓存对象v2.2c
+    // 增强版缓存对象v2.2a
     const baziCache = {
         data: {},
         get: function(key) {
@@ -2080,6 +2080,27 @@ function getElementName(index) {
         return 2;
     }
 
+    // 在工具函数部分添加
+function hasChong(branches, branch1, branch2) {
+    const chongPairs = [['子','午'], ['卯','酉'], ['寅','申'], ['巳','亥'], ['辰','戌'], ['丑','未']];
+    return chongPairs.some(pair => 
+        (pair[0] === branch1 && pair[1] === branch2) || 
+        (pair[0] === branch2 && pair[1] === branch1)
+        && branches.includes(branch1) 
+        && branches.includes(branch2)
+    );
+}
+
+function hasHe(branches, branch1, branch2) {
+    const hePairs = [['子','丑'], ['寅','亥'], ['卯','戌'], ['辰','酉'], ['巳','申'], ['午','未']];
+    return hePairs.some(pair => 
+        (pair[0] === branch1 && pair[1] === branch2) || 
+        (pair[0] === branch2 && pair[1] === branch1)
+        && branches.includes(branch1) 
+        && branches.includes(branch2)
+    );
+}
+    
     // 判断三合
     function hasSanHe(branches) {
         const sanHeGroups = [
@@ -2578,59 +2599,69 @@ function getElementName(index) {
     // 判断从强从弱
     function determineStrengthType(pillars) {
     const dayStem = pillars.dayStem;
-    const stems = [
-        pillars.yearStem,
-        pillars.monthStem,
-        pillars.hourStem
-    ];
-    const branches = [
-        pillars.yearBranch,
-        pillars.monthBranch,
-        pillars.dayBranch,
-        pillars.hourBranch
-    ];
+    const stems = [pillars.yearStem, pillars.monthStem, pillars.hourStem];
+    const branches = [pillars.yearBranch, pillars.monthBranch, pillars.dayBranch, pillars.hourBranch];
     
-    // 计算印比力量（生助日主的五行）
+    // 1. 计算生助日主的力量（印比）
     let supportScore = 0;
+    
+    // 天干生助（比肩、印）
     stems.forEach(stem => {
-        if (isSameElement(stem, dayStem)) supportScore += 1;
-        if (isGenerateElement(stem, dayStem)) supportScore += 1;
+        if (isSameElement(stem, dayStem)) supportScore += 1; // 比肩
+        if (isGenerateElement(stem, dayStem)) supportScore += 1; // 印
     });
     
+    // 地支生助（主气2分，中气1分）
     branches.forEach(branch => {
-        if (isSameElement(branch, dayStem)) supportScore += 2;
-        if (isGenerateElement(branch, dayStem)) supportScore += 1;
-        
-        // 检查地支合化（如卯戌合火会消除木气）
-        const hiddenStems = getHiddenStems(branch);
-        for (const stem of hiddenStems) {
-            if (isSameElement(stem, dayStem)) supportScore -= 0.5;
-        }
+        const hidden = getHiddenStems(branch);
+        hidden.split('').forEach(stem => {
+            if (isSameElement(stem, dayStem)) supportScore += (stem === hidden[0] ? 2 : 1);
+            if (isGenerateElement(stem, dayStem)) supportScore += (stem === hidden[0] ? 1 : 0.5);
+        });
     });
     
-    // 计算克泄耗力量（财官食伤）
+    // 2. 特殊冲克处理（关键修正！）
+    // 子午冲：水根被冲掉
+    if (branches.includes('子') && branches.filter(b => b === '午').length >= 1) {
+        supportScore -= 3; // 大幅削弱水根
+        console.log("子午冲：水根-3");
+    }
+    
+    // 寅午合火：木气转化为火
+    if (branches.includes('寅') && branches.includes('午')) {
+        supportScore -= 1; // 寅中甲木生火
+        console.log("寅午合：木气-1");
+    }
+    
+    // 3. 计算克泄耗日主的力量（财官食伤）
     let weakenScore = 0;
+    const dayElement = getElementIndex(dayStem);
+    
+    // 天干克泄耗
     stems.forEach(stem => {
-        if (!isSameElement(stem, dayStem) && !isGenerateElement(stem, dayStem)) {
-            weakenScore += 1;
-        }
+        const elem = getElementIndex(stem);
+        if (elem === (dayElement + 2) % 5) weakenScore += 1; // 官杀
+        if (elem === (dayElement - 1 + 5) % 5) weakenScore += 1; // 食伤
+        if (elem === (dayElement - 2 + 5) % 5) weakenScore += 1; // 财
     });
     
+    // 地支克泄耗（主气2分）
     branches.forEach(branch => {
-        if (!isSameElement(branch, dayStem) && !isGenerateElement(branch, dayStem)) {
-            weakenScore += 2;
-        }
+        const elem = getElementIndex(branch);
+        if (elem === (dayElement + 2) % 5) weakenScore += 2;
+        if (elem === (dayElement - 1 + 5) % 5) weakenScore += 1;
+        if (elem === (dayElement - 2 + 5) % 5) weakenScore += 2;
     });
     
-    // 特殊格局判断
-    if (supportScore <= 10 && weakenScore >= 20) {
+    // 4. 从格判定（调整阈值）
+    console.log(`支撑分:${supportScore} 克泄分:${weakenScore}`);
+    
+    if (supportScore <= 8 && weakenScore >= 15) { // 放宽从弱标准
         return "从弱";
-    } else if (supportScore >= 20 && weakenScore <= 10) {
+    } else if (supportScore >= 15 && weakenScore <= 8) {
         return "从强";
-    } else if (supportScore > weakenScore) {
-        return "身强";
     } else {
-        return "身弱";
+        return supportScore > weakenScore ? "身强" : "身弱";
     }
 }
 
