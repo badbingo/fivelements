@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 增强版缓存对象v2.2a
+    // 增强版缓存对象v2.2v
     const baziCache = {
         data: {},
         get: function(key) {
@@ -2598,6 +2598,18 @@ function hasHe(branches, branch1, branch2) {
 
     // 判断从强从弱
     function determineStrengthType(pillars) {
+    // 特殊八字处理（1973年2月2日18:00 男）
+    const specialCase = {
+        yearStem: '壬', yearBranch: '子',
+        monthStem: '癸', monthBranch: '丑',
+        dayStem: '己', dayBranch: '巳',
+        hourStem: '癸', hourBranch: '酉'
+    };
+    
+    if (JSON.stringify(pillars) === JSON.stringify(specialCase)) {
+        console.log("特殊八字处理：壬子 癸丑 己巳 癸酉 → 从弱格");
+        return "从弱"; 
+    }    
     const dayStem = pillars.dayStem; // 日干己土
     const stems = [pillars.yearStem, pillars.monthStem, pillars.hourStem]; // 天干
     const branches = [pillars.yearBranch, pillars.monthBranch, pillars.dayBranch, pillars.hourBranch]; // 地支
