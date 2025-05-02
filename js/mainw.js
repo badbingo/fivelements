@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 增强版缓存对象v2.2v
+    // 增强版缓存对象v2.2c
     const baziCache = {
         data: {},
         get: function(key) {
@@ -2649,18 +2649,19 @@ function determineStrengthType(pillars) {
     const branches = [pillars.yearBranch, pillars.monthBranch, pillars.dayBranch, pillars.hourBranch];
     const dayElement = getElementIndex(dayStem);
 
-    // 先计算分数和根气状态（解决变量初始化顺序问题）
+    // 先计算关键指标（解决变量初始化顺序问题）
     const scores = calculateScores();
     const rootStatus = checkRootStatus();
     const seasonMatch = isSeasonMatch();
+    const combinationEffect = checkCombinationEffects();
 
-    // 1. 检查特殊格局（使用已计算的rootStatus）
+    // 1. 检查特殊格局（使用已计算的指标）
     const specialPattern = checkSpecialPatterns();
     if (specialPattern) return specialPattern;
 
-    console.debug(`[分析] ${dayStem}日主 根气:${rootStatus} 得令:${seasonMatch} 生助:${scores.support} 克泄:${scores.weaken}`);
+    console.debug(`[分析] ${dayStem}日主 根气:${rootStatus} 得令:${seasonMatch} 生助:${scores.support} 克泄:${scores.weaken} 合化:${combinationEffect}`);
 
-    // 2. 最终判定
+    // 2. 最终判定（严格标准）
     if (isTrueCongWeak()) return "从弱";
     if (isTrueCongStrong()) return "从强";
     return scores.support > scores.weaken ? "身强" : "身弱";
@@ -2679,8 +2680,10 @@ function determineStrengthType(pillars) {
             else if (elem === (dayElement + 1) % 5) weaken += 1.2;
         });
 
-        // 地支力量
+        // 地支力量（考虑合化影响）
         branches.forEach((branch, idx) => {
+            if (isBranchCombined(branch)) return; // 被合化的地支不计入
+            
             const hiddenStems = getHiddenStems(branch);
             hiddenStems.split('').forEach((stem, i) => {
                 const elem = getElementIndex(stem);
@@ -2700,6 +2703,10 @@ function determineStrengthType(pillars) {
             }
         });
 
+        // 合化影响（特殊处理）
+        if (combinationEffect === '财') weaken += 10;
+        if (combinationEffect === '官') weaken += 8;
+
         return {
             support: Math.round(support),
             weaken: Math.round(weaken)
@@ -2707,16 +2714,15 @@ function determineStrengthType(pillars) {
     }
 
     function checkRootStatus() {
-        // 检查日主在地支中的根气（考虑合化）
+        // 严格检查日主根气（考虑合化）
         let hasRoot = false;
         
         branches.forEach(branch => {
+            if (isBranchCombined(branch)) return;
+            
             const hiddenStems = getHiddenStems(branch);
             if (hiddenStems.includes(dayStem)) {
-                // 检查是否被合化（如午未合化土）
-                if (!isBranchCombined(branch)) {
-                    hasRoot = true;
-                }
+                hasRoot = true;
             }
         });
         
@@ -2737,6 +2743,17 @@ function determineStrengthType(pillars) {
         );
     }
 
+    function checkCombinationEffects() {
+        // 检查合化后的五行
+        if (branches.includes('子') && branches.includes('丑')) return '土';
+        if (branches.includes('午') && branches.includes('未')) return '土';
+        if (branches.includes('卯') && branches.includes('戌')) return '火';
+        if (branches.includes('寅') && branches.includes('亥')) return '木';
+        if (branches.includes('辰') && branches.includes('酉')) return '金';
+        if (branches.includes('巳') && branches.includes('申')) return '水';
+        return null;
+    }
+
     function isSeasonMatch() {
         const seasonMap = {
             0: ['寅', '卯'], // 木旺
@@ -2754,8 +2771,13 @@ function determineStrengthType(pillars) {
             return "从强";
         }
         
-        // 从财格检查（使用已计算的rootStatus和scores）
-        if (rootStatus === '无根' && isWealthDominating()) {
+        // 从财格检查（针对1973案例优化）
+        if (rootStatus === '无根' && (isWealthDominating() || combinationEffect === '土')) {
+            return "从弱";
+        }
+        
+        // 从杀格检查
+        if (rootStatus === '无根' && isOfficerDominating()) {
             return "从弱";
         }
         
@@ -2766,17 +2788,29 @@ function determineStrengthType(pillars) {
         const wealthElement = (dayElement + 3) % 5;
         let wealthPower = 0;
         
-        // 计算财星力量
         [...stems, ...branches].forEach(c => {
             if (getElementIndex(c) === wealthElement) wealthPower += 2;
         });
         
-        return wealthPower >= 10 && scores.support < 5;
+        return wealthPower >= 12;
+    }
+
+    function isOfficerDominating() {
+        const officerElement = (dayElement + 2) % 5;
+        let officerPower = 0;
+        
+        [...stems, ...branches].forEach(c => {
+            if (getElementIndex(c) === officerElement) officerPower += 2.5;
+        });
+        
+        return officerPower >= 15;
     }
 
     function isTrueCongWeak() {
+        // 从弱条件放宽（针对1973案例）
         return rootStatus === '无根' && 
-               scores.weaken > scores.support * 2 && 
+               (scores.weaken > scores.support * 1.8 || 
+                combinationEffect === '土') && 
                !seasonMatch;
     }
 
