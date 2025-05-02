@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 增强版缓存对象v2.2c
+    // 增强版缓存对象v2.2a
     const baziCache = {
         data: {},
         get: function(key) {
@@ -758,8 +758,8 @@ ${getPracticalFateSuggestions(score)}
         startDate.setDate(startDate.getDate() + startDays);
         
         return {
-            age: startAge.toFixed(2) + "岁",
-            date: startDate.toLocaleDateString(),
+            age: calculatedAge + "岁",
+            date: formattedDate,
             analysis: `您的起运时间为${startAge.toFixed(2)}岁（约${startYears}年${startMonths}个月后）。\n\n` +
                       `起运时间计算方法：\n` +
                       `1. ${isForward ? '顺排' : '逆排'}大运\n` +
@@ -2509,77 +2509,113 @@ ${getWealthSuggestions(score)}
 
     // 本地计算八字
     function calculateBaziLocally(birthData) {
-        const dateParts = birthData.date.split('-');
-        const year = parseInt(dateParts[0]);
-        const month = parseInt(dateParts[1]);
-        const day = parseInt(dateParts[2]);
-        const timeParts = birthData.time.split(':');
-        const hour = parseInt(timeParts[0]);
-        const minute = parseInt(timeParts[1] || 0);
-        
-        const solar = Solar.fromYmdHms(year, month, day, hour, minute, 0);
-        const lunar = solar.getLunar();
-        const bazi = lunar.getEightChar();
-        
-        const yearGan = bazi.getYearGan();
-        const yearZhi = bazi.getYearZhi();
-        const monthGan = bazi.getMonthGan();
-        const monthZhi = bazi.getMonthZhi();
-        const dayGan = bazi.getDayGan();
-        const dayZhi = bazi.getDayZhi();
-        const hourGan = bazi.getTimeGan();
-        const hourZhi = bazi.getTimeZhi();
-        
-        const yearHiddenStems = getHiddenStems(yearZhi);
-        const monthHiddenStems = getHiddenStems(monthZhi);
-        const dayHiddenStems = getHiddenStems(dayZhi);
-        const hourHiddenStems = getHiddenStems(hourZhi);
-        
-        const elements = calculateNatalElements({
-            yearStem: yearGan,
-            yearBranch: yearZhi,
-            monthStem: monthGan,
-            monthBranch: monthZhi,
-            dayStem: dayGan,
-            dayBranch: dayZhi,
-            hourStem: hourGan,
-            hourBranch: hourZhi,
-            yearHiddenStems: yearHiddenStems,
-            monthHiddenStems: monthHiddenStems,
-            dayHiddenStems: dayHiddenStems,
-            hourHiddenStems: hourHiddenStems
-        });
-        
-        const personality = getPersonalityTraits(dayGan);
-        const decadeFortune = calculateDecadeFortune(lunar, birthData.gender);
-        const gamblingFortune = calculateGamblingFortune(birthData, lunar);
-        const startLuckTime = calculateStartLuckTime(birthData);
-        
-        return {
-            yearStem: yearGan,
-            yearBranch: yearZhi,
-            monthStem: monthGan,
-            monthBranch: monthZhi,
-            dayStem: dayGan,
-            dayBranch: dayZhi,
-            hourStem: hourGan,
-            hourBranch: hourZhi,
-            yearHiddenStems: yearHiddenStems,
-            monthHiddenStems: monthHiddenStems,
-            dayHiddenStems: dayHiddenStems,
-            hourHiddenStems: hourHiddenStems,
-            elements,
-            personality,
-            decadeFortune,
-            gamblingFortune,
-            startLuckTime,  // 确保返回了起运时间
-            localStrength: analyzeStrength({  // 添加强度分析
-            year: yearGan + yearZhi,
-            month: monthGan + monthZhi,
-            day: dayGan + dayZhi,
-            hour: hourGan + hourZhi
-        })
+    const dateParts = birthData.date.split('-');
+    const year = parseInt(dateParts[0]);
+    const month = parseInt(dateParts[1]);
+    const day = parseInt(dateParts[2]);
+    const timeParts = birthData.time.split(':');
+    const hour = parseInt(timeParts[0]);
+    const minute = parseInt(timeParts[1] || 0);
+    
+    const solar = Solar.fromYmdHms(year, month, day, hour, minute, 0);
+    const lunar = solar.getLunar();
+    const bazi = lunar.getEightChar();
+    
+    // 获取四柱
+    const yearGan = bazi.getYearGan();
+    const yearZhi = bazi.getYearZhi();
+    const monthGan = bazi.getMonthGan();
+    const monthZhi = bazi.getMonthZhi();
+    const dayGan = bazi.getDayGan();
+    const dayZhi = bazi.getDayZhi();
+    const hourGan = bazi.getTimeGan();
+    const hourZhi = bazi.getTimeZhi();
+    
+    // 获取藏干
+    const yearHiddenStems = getHiddenStems(yearZhi);
+    const monthHiddenStems = getHiddenStems(monthZhi);
+    const dayHiddenStems = getHiddenStems(dayZhi);
+    const hourHiddenStems = getHiddenStems(hourZhi);
+    
+    // 计算五行能量
+    const elements = calculateNatalElements({
+        yearStem: yearGan,
+        yearBranch: yearZhi,
+        monthStem: monthGan,
+        monthBranch: monthZhi,
+        dayStem: dayGan,
+        dayBranch: dayZhi,
+        hourStem: hourGan,
+        hourBranch: hourZhi,
+        yearHiddenStems,
+        monthHiddenStems,
+        dayHiddenStems,
+        hourHiddenStems
+    });
+    
+    // 构建四柱对象用于分析
+    const pillars = {
+        year: yearGan + yearZhi,
+        month: monthGan + monthZhi,
+        day: dayGan + dayZhi,
+        hour: hourGan + hourZhi
     };
+    
+    // 计算各项分析结果
+    const personality = getPersonalityTraits(dayGan);
+    const startLuckTime = calculateStartLuckTime(birthData);
+    const localStrength = analyzeStrength(pillars);
+    const decadeFortune = calculateDecadeFortune(lunar, birthData.gender);
+    const gamblingFortune = calculateGamblingFortune(birthData, lunar);
+    
+    return {
+        // 八字四柱
+        yearStem: yearGan,
+        yearBranch: yearZhi,
+        monthStem: monthGan,
+        monthBranch: monthZhi,
+        dayStem: dayGan,
+        dayBranch: dayZhi,
+        hourStem: hourGan,
+        hourBranch: hourZhi,
+        
+        // 藏干
+        yearHiddenStems,
+        monthHiddenStems,
+        dayHiddenStems,
+        hourHiddenStems,
+        
+        // 分析结果
+        elements,
+        personality,
+        startLuckTime,
+        localStrength, // 确保包含完整的强度分析对象
+        decadeFortune,
+        gamblingFortune,
+        
+        // 原始数据备份（可选）
+        solarDate: solar.toString(),
+        lunarDate: lunar.toString()
+    };
+}
+
+// 辅助函数：获取地支藏干
+function getHiddenStems(branch) {
+    const hiddenStemsMap = {
+        '子': '癸',
+        '丑': '己癸辛',
+        '寅': '甲丙戊',
+        '卯': '乙',
+        '辰': '戊乙癸',
+        '巳': '丙庚戊',
+        '午': '丁己',
+        '未': '己丁乙',
+        '申': '庚壬戊',
+        '酉': '辛',
+        '戌': '戊辛丁',
+        '亥': '壬甲'
+    };
+    return hiddenStemsMap[branch] || '';
 }
 
     // 计算十年大运
