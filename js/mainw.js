@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 增强版缓存对象v2.2v
+    // 增强版缓存对象v2.2a
     const baziCache = {
         data: {},
         get: function(key) {
@@ -2721,22 +2721,6 @@ function getElement(char) {
         '壬':'水','癸':'水','子':'水','亥':'水'
     };
     return elementMap[char] || '土';
-}
-
-// 新增辅助函数
-function checkMetalCombination(branches) {
-    // 检查巳酉丑三合金局
-    const metalBranches = ['巳', '酉', '丑'];
-    let count = 0;
-    branches.forEach(b => {
-        if (metalBranches.includes(b)) count++;
-    });
-    return count >= 2; // 半合也算
-}
-
-function checkWaterCombination(branches) {
-    // 检查子丑合水
-    return branches.includes('子') && branches.includes('丑');
 }
 
     // 计算十年大运
