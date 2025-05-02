@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 增强版缓存对象v2.2a
+    // 增强版缓存对象v2.2b
     const baziCache = {
         data: {},
         get: function(key) {
@@ -2805,7 +2805,10 @@ ${getWealthSuggestions(score)}
 出生时间：${data.time} 
 性别：${data.gender === 'male' ? '男' : '女'}
 八字：${localResult.yearStem}${localResult.yearBranch} ${localResult.monthStem}${localResult.monthBranch} ${localResult.dayStem}${localResult.dayBranch} ${localResult.hourStem}${localResult.hourBranch}
+大运：${currentLuck}（${currentLuckAge}）
+流年：${yearStem}${yearBranch}（${currentYear}年）
 
+请分析${section}相关内容，但不要自行排盘或计算起运时间。
 `;
 
         // 根据不同部分设置不同的提示词
