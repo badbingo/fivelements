@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 增强版缓存对象v2.2c
+    // 增强版缓存对象v2.2a
     const baziCache = {
         data: {},
         get: function(key) {
@@ -2649,13 +2649,14 @@ function determineStrengthType(pillars) {
     const branches = [pillars.yearBranch, pillars.monthBranch, pillars.dayBranch, pillars.hourBranch];
     const dayElement = getElementIndex(dayStem);
 
-    // 计算分数和根气状态
+    // 计算各项指标
     const scores = calculateScores();
     const rootStatus = checkRootStatus();
     const seasonMatch = isSeasonMatch();
     const rootStrength = calculateRootStrength();
+    const sameElementCount = countSameElements();
 
-    console.log(`日主:${dayStem} 根气:${rootStatus} 根气强度:${rootStrength} 得令:${seasonMatch} 生助:${scores.support} 克泄:${scores.weaken}`);
+    console.log(`日主:${dayStem} 根气:${rootStatus} 根气强度:${rootStrength} 同五行数:${sameElementCount} 得令:${seasonMatch} 生助:${scores.support} 克泄:${scores.weaken}`);
 
     // 1. 检查特殊格局
     const specialPattern = checkSpecialPatterns();
@@ -2664,7 +2665,7 @@ function determineStrengthType(pillars) {
     // 2. 最终判定
     if (isTrueCongWeak()) return "从弱";
     if (isTrueCongStrong()) return "从强";
-    return scores.support + rootStrength > scores.weaken ? "身弱" : "从弱";
+    return getFinalStrengthType();
 
     // ============== 子函数 ============== //
     function calculateScores() {
@@ -2688,7 +2689,7 @@ function determineStrengthType(pillars) {
 
     function calculateRootStrength() {
         let strength = 0;
-        branches.forEach(branch => {
+        branches.forEach((branch, idx) => {
             const hiddenStems = getHiddenStems(branch);
             hiddenStems.split('').forEach((stem, i) => {
                 const elem = getElementIndex(stem);
@@ -2697,8 +2698,19 @@ function determineStrengthType(pillars) {
                 if (elem === dayElement) strength += weight * 3;
                 else if (elem === (dayElement + 4) % 5) strength += weight * 2;
             });
+            
+            // 月令加倍权重
+            if (idx === 1) strength *= 2;
         });
         return Math.round(strength);
+    }
+
+    function countSameElements() {
+        let count = 0;
+        [...stems, ...branches].forEach(c => {
+            if (getElementIndex(c) === dayElement) count++;
+        });
+        return count;
     }
 
     function checkRootStatus() {
@@ -2740,7 +2752,7 @@ function determineStrengthType(pillars) {
 
     function checkSpecialPatterns() {
         // 专旺格检查
-        if ([...stems, ...branches].every(c => getElementIndex(c) === dayElement)) {
+        if (sameElementCount >= 6) {
             return "从强";
         }
         
@@ -2764,16 +2776,40 @@ function determineStrengthType(pillars) {
     }
 
     function isTrueCongWeak() {
-        // 严格从弱条件：无根且克泄力量远大于生助力量
+        // 严格从弱条件
         return rootStatus === '无根' && 
                scores.weaken > (scores.support + rootStrength) * 2;
     }
 
     function isTrueCongStrong() {
-        // 严格从强条件：有根且生助力量远大于克泄力量
-        return rootStatus === '有根' && 
-               (scores.support + rootStrength) > scores.weaken * 2 && 
+        // 严格从强条件
+        return (rootStatus === '有根' || sameElementCount >= 4) && 
+               (scores.support + rootStrength) > scores.weaken * 1.5 && 
                seasonMatch;
+    }
+
+    function getFinalStrengthType() {
+        const totalSupport = scores.support + rootStrength;
+        
+        // 土日主特殊处理
+        if (dayElement === 2) { // 戊己土
+            if (seasonMatch && totalSupport > scores.weaken) {
+                return "身强";
+            }
+            if (totalSupport > scores.weaken * 1.2) {
+                return "身强";
+            }
+            return "身弱";
+        }
+        
+        // 其他日主
+        if (totalSupport > scores.weaken * 1.5) {
+            return "身强";
+        }
+        if (totalSupport > scores.weaken) {
+            return "身弱";
+        }
+        return "从弱";
     }
 }
     // 计算十年大运
