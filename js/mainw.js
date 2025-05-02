@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 增强版缓存对象v2.2a
+    // 增强版缓存对象v2.2v
     const baziCache = {
         data: {},
         get: function(key) {
@@ -3012,25 +3012,6 @@ function hasHe(branches, branch1, branch2) {
                               currentDate.getDate().toString().padStart(2, '0');
         
         let prompt = `请严格按照以下规则进行专业八字排盘，确保所有计算准确无误：
-        
-1. 排大运规则
-    * 阳年男性顺排 / 阴年女性顺排 → 应取出生后第一个遇到的节气，而非下一个换月节气
-    * 阴年男性逆排 / 阳年女性逆排 → 找上一个换月节气
-2. 起运时间计算方法
-    * 起运岁数 =（出生到下一个节气或上一个节气的天数）÷ 3（注意：阳男1973年2月2日17:00出生（未过立春），下一个节气是顺排到立春（1973年2月4日7:04）而非惊蛰，间隔天数 = 1天14小时4分 → 折合6个月10天起运）
-    * 顺排≠换月节气：阳男顺排是找出生后第一个节气（可能与本月节气相同，如本例立春=丑月结束）
-    * 节气交接日出生者需先判断是否已过节气时刻
-    * 跨年逆排时（如小寒前出生）需找上年大雪
-    * 节气临界点：出生在立春前X天，年柱是XX（如壬子），因未过立春，顺排的下一个节气应该是立春
-3. 从强格判定
-    * 量化标准：印比总分数 ≥ 80分（天干1分，地支主气2分，中气1分）
-    * 克泄耗十神（财官食伤）均无根或受制
-4. 从弱格判定
-    * 若日主唯一根气被合化（如卯戌合火），按从弱处理
-    * 若日主无强根（仅靠被合化的微弱印比），且全局某一五行极旺（如财、官、食伤成势），则直接判定为「从格」。
-    * 若印星被合化（如巳火被巳酉丑合化为金），则不计入生扶力量。
-    * 优先检查「三合局」「六合」对用神的影响。
-5. 所有分析前必须先计算出命主当前八字+大运+流年的格局强弱，再进行分析
 
 当前日期：${currentDateStr}
 根据以下八字信息进行分析：
@@ -3041,7 +3022,7 @@ function hasHe(branches, branch1, branch2) {
 八字：${localResult.yearStem}${localResult.yearBranch} ${localResult.monthStem}${localResult.monthBranch} ${localResult.dayStem}${localResult.dayBranch} ${localResult.hourStem}${localResult.hourBranch}
 起运时间：${localResult.luckStartingTime}
 身强身弱：${localResult.strengthType}
-
+请直接分析此八字的起运时间和身强身弱，不要自行排盘或计算起运时间。
 `;
 
         // 根据不同部分设置不同的提示词
