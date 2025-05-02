@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 增强版缓存对象v2.2v
+    // 增强版缓存对象v2.2a
     const baziCache = {
         data: {},
         get: function(key) {
@@ -1232,10 +1232,10 @@ ${getWealthSuggestions(score)}
             
             // 显示起运时间和从强从弱信息
             if (baziInfo.luckStartingTime) {
-                luckStartingTime.textContent = `起运时间: ${baziInfo.luckStartingTime}`;
+                luckStartingTime.textContent = baziInfo.luckStartingTime;
             }
             if (baziInfo.strengthType) {
-                strengthType.textContent = `身强身弱: ${baziInfo.strengthType}`;
+                strengthType.textContent = baziInfo.strengthType;
             }
             
             inputSection.style.display = 'none';
