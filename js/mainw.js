@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 增强版缓存对象v2.2b
+    // 增强版缓存对象v2.2s
     const baziCache = {
         data: {},
         get: function(key) {
@@ -2624,125 +2624,114 @@ function calculateLuckStartingTime(lunar, gender) {
 }
 
     // 判断从强从弱
-    function determineStrengthType(pillars) {
-    // ==================== 1. 参数校验 ====================
+    JAVASCRIPT
+/**
+ * 完整版八字身强身弱判断函数（带强校验）
+ * @param {object} pillars - 八字四柱 {year, month, day, hour} 
+ * @returns {string} 身强/身弱/从强/从弱/测算失败
+ */
+function determineStrengthType(pillars) {
+    // ============== 1. 增强版参数校验 ==============
     if (!pillars || typeof pillars !== 'object') {
-        console.error('参数必须为八字对象');
+        console.error('错误：参数必须是对象');
         return '测算失败';
     }
 
-    const requiredKeys = ['year', 'month', 'day', 'hour'];
-    const missingKeys = requiredKeys.filter(key => !pillars[key]);
-    if (missingKeys.length > 0) {
-        console.error('缺少八字字段:', missingKeys.join(','));
-        return '八字信息不完整';
-    }
+    // 带默认值的解构
+    const { 
+        year = '', 
+        month = '', 
+        day = '', 
+        hour = '' 
+    } = pillars;
 
-    const { year, month, day, hour } = pillars;
-    try {
-        if ([year, month, day, hour].some(item => typeof item !== 'string' || item.length !== 2)) {
-            throw new Error('四柱应为两位字符串');
-        }
-    } catch (e) {
-        console.error('数据格式错误:', e);
+    // 检查字段有效性
+    const isValid = [year, month, day, hour].every(
+        item => typeof item === 'string' && item.length === 2
+    );
+
+    if (!isValid) {
+        const invalidFields = [];
+        if (year.length !== 2) invalidFields.push('year');
+        if (month.length !== 2) invalidFields.push('month');
+        if (day.length !== 2) invalidFields.push('day');
+        if (hour.length !== 2) invalidFields.push('hour');
+        
+        console.error('无效的八字字段:', invalidFields.join(','));
         return '八字格式不正确';
     }
 
-    // ==================== 2. 核心计算 ====================
+    // ============== 2. 核心计算逻辑 ==============
     try {
-        // 天干地支对应的五行和藏干
-        const ELEMENT_MAP = {
-            // 天干
+        // 天干地支数据配置
+        const ELEMENT_DATA = {
+            // 天干五行
             '甲':'木','乙':'木','丙':'火','丁':'火','戊':'土','己':'土',
             '庚':'金','辛':'金','壬':'水','癸':'水',
-            // 地支
-            '寅':{main:'木', hidden:['甲','丙','戊']},
-            '卯':{main:'木', hidden:['乙']},
-            '辰':{main:'土', hidden:['戊','乙','癸']},
-            '巳':{main:'火', hidden:['丙','庚','戊']},
-            '午':{main:'火', hidden:['丁','己']},
-            '未':{main:'土', hidden:['己','丁','乙']},
-            '申':{main:'金', hidden:['庚','壬','戊']},
-            '酉':{main:'金', hidden:['辛']},
-            '戌':{main:'土', hidden:['戊','辛','丁']},
-            '亥':{main:'水', hidden:['壬','甲']},
-            '子':{main:'水', hidden:['癸']},
-            '丑':{main:'土', hidden:['己','癸','辛']}
+            // 地支藏干
+            '寅':['甲','丙','戊'], '卯':['乙'], 
+            '辰':['戊','乙','癸'], '巳':['丙','庚','戊'],
+            '午':['丁','己'], '未':['己','丁','乙'],
+            '申':['庚','壬','戊'], '酉':['辛'],
+            '戌':['戊','辛','丁'], '亥':['壬','甲'],
+            '子':['癸'], '丑':['己','癸','辛']
         };
 
         // 获取五行属性
-        const getElement = char => {
-            const res = ELEMENT_MAP[char];
-            return typeof res === 'string' ? res : res?.main || '土';
-        };
-
-        // 获取藏干
-        const getHiddenStems = branch => {
-            return ELEMENT_MAP[branch]?.hidden || [];
-        };
+        const getElement = char => ELEMENT_DATA[char] || '土';
 
         // 生克关系判断
-        const isGenerate = (a, b) => { // a生b
-            const map = {木:'火', 火:'土', 土:'金', 金:'水', 水:'木'};
-            return map[getElement(a)] === getElement(b);
-        };
-        const isOvercome = (a, b) => { // a克b
-            const map = {木:'土', 土:'水', 水:'火', 火:'金', 金:'木'};
-            return map[getElement(a)] === getElement(b);
-        };
+        const isGenerate = (a, b) => ({木:'火',火:'土',土:'金',金:'水',水:'木'})[getElement(a)] === getElement(b);
+        const isOvercome = (a, b) => ({木:'土',土:'水',水:'火',火:'金',金:'木'})[getElement(a)] === getElement(b);
 
-        // ========== 正式开始计算 ==========
-        const dayStem = day.charAt(0); // 日干
-        const stems = [year.charAt(0), month.charAt(0), hour.charAt(0)];
-        const branches = [year.charAt(1), month.charAt(1), day.charAt(1), hour.charAt(1)];
+        // ========== 正式计算 ==========
+        const dayStem = day[0]; // 日干
+        const stems = [year[0], month[0], hour[0]]; // 三干
+        const branches = [year[1], month[1], day[1], hour[1]]; // 四支
 
-        // 1. 计算根气（地支藏干中的比劫）
-        let rootPower = 0;
-        branches.forEach(branch => {
-            getHiddenStems(branch).forEach((stem, i) => {
-                if (stem === dayStem) rootPower += (i === 0 ? 1 : 0.5);
-            });
-        });
+        // 1. 计算根气力量（地支藏干）
+        let rootPower = branches.reduce((sum, branch) => {
+            const hidden = ELEMENT_DATA[branch] || [];
+            return sum + hidden.reduce((s, stem, i) => 
+                s + (stem === dayStem ? (i === 0 ? 1 : 0.5) : 0), 0);
+        }, 0);
 
         // 2. 计算生助力量（印+比劫）
-        let supportPower = rootPower;
-        stems.forEach(stem => {
-            if (stem === dayStem) supportPower += 1; // 比肩
-            else if (isGenerate(stem, dayStem)) supportPower += 1; // 正偏印
-        });
+        let supportPower = stems.reduce((sum, stem) => 
+            sum + (stem === dayStem ? 1 : isGenerate(stem, dayStem) ? 1 : 0), rootPower);
 
         // 3. 计算克泄耗力量（官杀+食伤+财）
-        let attackPower = 0;
-        [...stems, ...branches].forEach(item => {
-            if (item === dayStem) return;
-            if (isGenerate(dayStem, item)) attackPower += 1; // 食伤
-            else if (isOvercome(item, dayStem)) attackPower += 1.5; // 官杀
-            else attackPower += 1; // 财
-        });
+        let attackPower = [...stems, ...branches].reduce((sum, item) => {
+            if (item === dayStem) return sum;
+            return sum + (
+                isGenerate(dayStem, item) ? 1 :  // 食伤
+                isOvercome(item, dayStem) ? 1.5 : // 官杀
+                1  // 财
+            );
+        }, 0);
 
-        // 4. 判断从格
+        // 4. 判断特殊格局
         const totalPower = supportPower + attackPower;
         if (totalPower > 0) {
-            // 从弱格条件：日主无根且克泄耗>80%
-            if (rootPower < 0.5 && attackPower / totalPower > 0.8) {
+            // 从弱格条件
+            if (rootPower < 0.6 && attackPower / totalPower > 0.75) {
                 return '从弱';
             }
-            // 从强格条件：生助>85%且得月令
-            if (supportPower / totalPower > 0.85) {
-                const monthBranch = month.charAt(1);
-                const monthElement = getElement(monthBranch);
-                if (monthElement === getElement(dayStem) || 
-                    getHiddenStems(monthBranch).includes(dayStem)) {
+            // 从强格条件
+            if (supportPower / totalPower > 0.8) {
+                const monthBranch = month[1];
+                if (getElement(monthBranch) === getElement(dayStem) || 
+                    (ELEMENT_DATA[monthBranch] || []).includes(dayStem)) {
                     return '从强';
                 }
             }
         }
 
-        // 5. 普通身强身弱判断
-        return supportPower >= attackPower * 1.2 ? '身强' : '身弱';
+        // 5. 普通身强身弱
+        return supportPower >= attackPower ? '身强' : '身弱';
 
     } catch (e) {
-        console.error('测算异常:', e);
+        console.error('计算过程出错:', e);
         return '测算失败';
     }
 }
