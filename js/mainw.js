@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 增强版缓存对象v2.2a
+    // 增强版缓存对象v2.2x
     const baziCache = {
         data: {},
         get: function(key) {
@@ -2543,8 +2543,8 @@ function hasHe(branches, branch1, branch2) {
         };
     }
 
-    // 计算起运时间
-    function calculateLuckStartingTime(lunar, gender) {
+    // 修改后的calculateLuckStartingTime函数
+function calculateLuckStartingTime(lunar, gender) {
     const yearGan = lunar.getYearGan();
     const isMale = gender === 'male';
     const isYangYear = ['甲', '丙', '戊', '庚', '壬'].includes(yearGan);
