@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 增强版缓存对象v2.2b
+    // 增强版缓存对象v2.2c
     const baziCache = {
         data: {},
         get: function(key) {
@@ -2572,9 +2572,15 @@ ${getWealthSuggestions(score)}
             personality,
             decadeFortune,
             gamblingFortune,
-            startLuckTime
-        };
-    }
+            startLuckTime,  // 确保返回了起运时间
+            localStrength: analyzeStrength({  // 添加强度分析
+            year: yearGan + yearZhi,
+            month: monthGan + monthZhi,
+            day: dayGan + dayZhi,
+            hour: hourGan + hourZhi
+        })
+    };
+}
 
     // 计算十年大运
     function calculateDecadeFortune(lunar, gender) {
@@ -2950,9 +2956,9 @@ ${getWealthSuggestions(score)}
 出生时间：${data.time} 
 性别：${data.gender === 'male' ? '男' : '女'}
 八字：${localResult.yearStem}${localResult.yearBranch} ${localResult.monthStem}${localResult.monthBranch} ${localResult.dayStem}${localResult.dayBranch} ${localResult.hourStem}${localResult.hourBranch}
-起运时间：${startLuckTime.age}（${startLuckTime.date}）
-格局类型：${localStrength.type}
-强弱分析：${localStrength.analysis.split('\n')[0]}
+起运时间：${localResult.startLuckTime.age}（${localResult.startLuckTime.date}）
+格局类型：${localResult.localStrength.type}
+强弱分析：${localResult.localStrength.analysis.split('\n')[0]}
 请直接分析此八字的强弱，格局和起运时间，不要自行排盘或计算起运时间。
 `;
 
