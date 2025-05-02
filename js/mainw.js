@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 增强版缓存对象v2.2v
+    // 增强版缓存对象v2.2a
     const baziCache = {
         data: {},
         get: function(key) {
@@ -122,7 +122,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     lastError = error;
                     retries--;
                     if (retries > 0) {
-                        await new Promise(resolve => setTimeout(resolve, 1000 * (4 - retries));
+                        await new Promise(resolve => setTimeout(resolve, 1000 * (4 - retries)));
                     }
                 }
             }
