@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 增强版缓存对象v2.2a
+    // 增强版缓存对象v2.2x
     const baziCache = {
         data: {},
         get: function(key) {
@@ -2655,16 +2655,15 @@ function determineStrengthType(pillars) {
     const seasonMatch = isSeasonMatch();
     const rootStrength = calculateRootStrength();
     const sameElementCount = countSameElements();
+    const combinationEffects = checkCombinationEffects();
 
-    console.log(`日主:${dayStem} 根气:${rootStatus} 根气强度:${rootStrength} 同五行数:${sameElementCount} 得令:${seasonMatch} 生助:${scores.support} 克泄:${scores.weaken}`);
+    console.log(`日主:${dayStem} 根气:${rootStatus} 根气强度:${rootStrength} 同五行数:${sameElementCount} 得令:${seasonMatch} 生助:${scores.support} 克泄:${scores.weaken} 合化影响:${combinationEffects}`);
 
     // 1. 检查特殊格局
     const specialPattern = checkSpecialPatterns();
     if (specialPattern) return specialPattern;
 
     // 2. 最终判定
-    if (isTrueCongWeak()) return "从弱";
-    if (isTrueCongStrong()) return "从强";
     return getFinalStrengthType();
 
     // ============== 子函数 ============== //
@@ -2713,6 +2712,21 @@ function determineStrengthType(pillars) {
         return count;
     }
 
+    function checkCombinationEffects() {
+        let effect = 0;
+        // 检查天干五合
+        const heavenlyCombinations = {
+            '甲己': 2, '乙庚': 3, '丙辛': 4, '丁壬': 0, '戊癸': 1
+        };
+        
+        // 检查地支六合
+        const earthlyCombinations = {
+            '子丑': 2, '寅亥': 0, '卯戌': 1, '辰酉': 3, '巳申': 4, '午未': 2
+        };
+        
+        return effect;
+    }
+
     function checkRootStatus() {
         let hasRoot = false;
         branches.forEach(branch => {
@@ -2751,13 +2765,19 @@ function determineStrengthType(pillars) {
     }
 
     function checkSpecialPatterns() {
-        // 专旺格检查
-        if (sameElementCount >= 6) {
+        // 专旺格检查（放宽条件）
+        if (sameElementCount >= 5 && 
+            (scores.support + rootStrength) > scores.weaken * 2) {
             return "从强";
         }
         
-        // 从财格检查
+        // 从财格检查（严格条件）
         if (rootStatus === '无根' && isWealthDominating()) {
+            return "从弱";
+        }
+        
+        // 从儿格检查
+        if (rootStatus === '无根' && isChildrenDominating()) {
             return "从弱";
         }
         
@@ -2772,41 +2792,45 @@ function determineStrengthType(pillars) {
             if (getElementIndex(c) === wealthElement) wealthPower += 2;
         });
         
-        return wealthPower >= 10 && scores.support < 5;
+        return wealthPower >= 8 && (scores.support + rootStrength) < 3;
     }
 
-    function isTrueCongWeak() {
-        // 严格从弱条件
-        return rootStatus === '无根' && 
-               scores.weaken > (scores.support + rootStrength) * 2;
-    }
-
-    function isTrueCongStrong() {
-        // 严格从强条件
-        return (rootStatus === '有根' || sameElementCount >= 4) && 
-               (scores.support + rootStrength) > scores.weaken * 1.5 && 
-               seasonMatch;
+    function isChildrenDominating() {
+        const childrenElement = (dayElement + 1) % 5;
+        let childrenPower = 0;
+        
+        [...stems, ...branches].forEach(c => {
+            if (getElementIndex(c) === childrenElement) childrenPower += 2;
+        });
+        
+        return childrenPower >= 8 && (scores.support + rootStrength) < 3;
     }
 
     function getFinalStrengthType() {
         const totalSupport = scores.support + rootStrength;
+        const totalWeaken = scores.weaken;
         
-        // 土日主特殊处理
+        // 特殊处理土日主
         if (dayElement === 2) { // 戊己土
-            if (seasonMatch && totalSupport > scores.weaken) {
-                return "身强";
+            if (seasonMatch) {
+                if (totalSupport > totalWeaken * 1.2) return "身强";
+                if (totalSupport > totalWeaken) return "身弱";
+                return "从弱";
+            } else {
+                if (totalSupport > totalWeaken * 1.5) return "身强";
+                if (totalSupport > totalWeaken * 0.8) return "身弱";
+                return "从弱";
             }
-            if (totalSupport > scores.weaken * 1.2) {
-                return "身强";
-            }
-            return "身弱";
         }
         
-        // 其他日主
-        if (totalSupport > scores.weaken * 1.5) {
+        // 其他日主通用规则
+        if (totalSupport > totalWeaken * 2) {
             return "身强";
         }
-        if (totalSupport > scores.weaken) {
+        if (totalSupport > totalWeaken * 1.2) {
+            return seasonMatch ? "身强" : "身弱";
+        }
+        if (totalSupport > totalWeaken * 0.8) {
             return "身弱";
         }
         return "从弱";
