@@ -2805,12 +2805,7 @@ ${getWealthSuggestions(score)}
 出生时间：${data.time} 
 性别：${data.gender === 'male' ? '男' : '女'}
 八字：${localResult.yearStem}${localResult.yearBranch} ${localResult.monthStem}${localResult.monthBranch} ${localResult.dayStem}${localResult.dayBranch} ${localResult.hourStem}${localResult.hourBranch}
-大运信息：
-${generateDecadeFortuneText(localResult.decadeFortune)}
-流年信息：
-${generateYearFortuneText(currentDate)}
 
-请直接基于以上信息进行分析，不要自行排盘或计算起运时间。
 `;
 
         // 根据不同部分设置不同的提示词
