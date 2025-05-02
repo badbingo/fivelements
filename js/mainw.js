@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 增强版缓存对象v2.2c
+    // 增强版缓存对象v2.2a
     const baziCache = {
         data: {},
         get: function(key) {
@@ -2545,83 +2545,81 @@ function hasHe(branches, branch1, branch2) {
 
     // 修改后的calculateLuckStartingTime函数
 function calculateLuckStartingTime(lunar, gender) {
-    // 安全获取节气日期（兼容lunar 1.7.2）
-    function getFixedJieQi(year, name) {
-        // 硬编码常见节气近似日期
-        const JIE_QI_DATES = {
-            '立春': [2, 4], '雨水': [2, 19], '惊蛰': [3, 6], '春分': [3, 21],
-            '清明': [4, 5], '谷雨': [4, 20], '立夏': [5, 6], '小满': [5, 21],
-            '芒种': [6, 6], '夏至': [6, 22], '小暑': [7, 7], '大暑': [7, 23],
-            '立秋': [8, 8], '处暑': [8, 23], '白露': [9, 8], '秋分': [9, 23],
-            '寒露': [10, 8], '霜降': [10, 24], '立冬': [11, 7], '小雪': [11, 22],
-            '大雪': [12, 7], '冬至': [12, 22], '小寒': [1, 6], '大寒': [1, 20]
-        };
-        
-        const [month, day] = JIE_QI_DATES[name] || [2, 4]; // 默认立春
-        return new Date(year, month - 1, day);
+    // 节气近似公历日期（误差±1天不影响年柱计算）
+    const JIE_QI_DATES = {
+        '立春': [2,4], '雨水': [2,19], '惊蛰': [3,6], '春分': [3,21],
+        '清明': [4,5], '谷雨': [4,20], '立夏': [5,6], '小满': [5,21],
+        '芒种': [6,6], '夏至': [6,21], '小暑': [7,7], '大暑': [7,23],
+        '立秋': [8,8], '处暑': [8,23], '白露': [9,8], '秋分': [9,23],
+        '寒露': [10,8], '霜降': [10,23], '立冬': [11,7], '小雪': [11,22],
+        '大雪': [12,7], '冬至': [12,22], '小寒': [1,6], '大寒': [1,20]
+    };
+
+    // 获取最近的节气（向前/向后）
+    function findNearestJieQi(birthDate, isForward) {
+        const year = birthDate.getFullYear();
+        let nearest = null;
+        let minDiff = Infinity;
+
+        Object.entries(JIE_QI_DATES).forEach(([name, [month, day]]) => {
+            const jieQiDate = new Date(year, month - 1, day);
+            const diff = jieQiDate - birthDate;
+
+            if (isForward && diff > 0 && diff < minDiff) {
+                minDiff = diff;
+                nearest = jieQiDate;
+            } else if (!isForward && diff < 0 && -diff < minDiff) {
+                minDiff = -diff;
+                nearest = jieQiDate;
+            }
+        });
+
+        // 跨年处理
+        if (!nearest) {
+            const nextYear = isForward ? year + 1 : year - 1;
+            const jieQiDate = new Date(nextYear, 
+                isForward ? 0 : 11, // 立春(2月)或大雪(12月)
+                isForward ? JIE_QI_DATES['立春'][1] : JIE_QI_DATES['大雪'][1]);
+            return jieQiDate;
+        }
+        return nearest;
     }
 
     try {
-        const birthDate = new Date(lunar.getSolar().getYear(), 
-                                 lunar.getSolar().getMonth() - 1, 
-                                 lunar.getSolar().getDay());
+        // 1. 确定出生日期
+        const birthDate = new Date(
+            lunar.getSolar().getYear(),
+            lunar.getSolar().getMonth() - 1,
+            lunar.getSolar().getDay(),
+            lunar.getSolar().getHour(),
+            lunar.getSolar().getMinute()
+        );
+
+        // 2. 判断顺排/逆排
         const yearGan = lunar.getYearGan();
         const isYangYear = ['甲', '丙', '戊', '庚', '壬'].includes(yearGan);
-        const isForward = (isYangYear && gender === 'male') || (!isYangYear && gender === 'female');
+        const isForward = (isYangYear && gender === 'male') || 
+                         (!isYangYear && gender === 'female');
 
-        // 获取关键节气日期
-        let targetJieQiDate;
-        if (isForward) {
-            // 顺排找下一个立春
-            const year = birthDate.getFullYear();
-            targetJieQiDate = getFixedJieQi(
-                (birthDate.getMonth() < 1 || (birthDate.getMonth() === 1 && birthDate.getDate() < 4)) 
-                    ? year 
-                    : year + 1,
-                '立春'
-            );
-        } else {
-            // 逆排找上一个大雪
-            const year = birthDate.getFullYear();
-            targetJieQiDate = getFixedJieQi(
-                (birthDate.getMonth() < 11 || (birthDate.getMonth() === 11 && birthDate.getDate() < 7)) 
-                    ? year - 1 
-                    : year,
-                '大雪'
-            );
-        }
-
-        // 计算相差天数（兼容所有浏览器）
-        const timeDiff = Math.abs(targetJieQiDate.getTime() - birthDate.getTime());
-        const diffDays = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+        // 3. 找到关键节气
+        const targetJieQi = findNearestJieQi(birthDate, isForward);
         
-        // 3天 = 1年换算
+        // 4. 计算精确时间差（毫秒）
+        const diffMs = Math.abs(targetJieQi - birthDate);
+        const diffDays = diffMs / (1000 * 60 * 60 * 24);
+
+        // 5. 转换为起运时间（3天=1年）
         const years = Math.floor(diffDays / 3);
         const remainingDays = diffDays % 3;
-        const months = Math.min(11, Math.floor(remainingDays * 4));
-        const days = Math.min(30, Math.floor((remainingDays * 4 - months) * 30));
+        const months = Math.floor(remainingDays * 4); // 1天≈4个月
+        const days = Math.floor((remainingDays * 4 - months) * 30);
+        const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
 
-        return `${years}岁${months}个月${days}天起运`;
+        return `${years}岁${months}个月${days}天${Math.round(hours)}小时起运`;
 
     } catch (e) {
-        console.error('使用保底方案:', e);
-        
-        // 特殊案例处理
-        const pillars = {
-            year: lunar.getYearGan() + lunar.getYearZhi(),
-            month: lunar.getMonthGan() + lunar.getMonthZhi(),
-            day: lunar.getDayGan() + lunar.getDayZhi(),
-            hour: lunar.getTimeGan() + lunar.getTimeZhi()
-        };
-        
-        // 已知案例：1973年2月2日18:00
-        if (pillars.year === '壬子' && pillars.month === '癸丑' && 
-            pillars.day === '己巳' && pillars.hour === '癸酉') {
-            return '6岁10个月起运';
-        }
-        
-        // 默认保底值
-        return '6个月5天8小时起运';
+        console.error('计算异常:', e);
+        return '无法计算起运时间';
     }
 }
 
