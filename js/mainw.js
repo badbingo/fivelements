@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 增强版缓存对象v2.2a
+    // 增强版缓存对象v2.2v
     const baziCache = {
         data: {},
         get: function(key) {
@@ -50,7 +50,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 "direction": "东南",
                 "hour": "15-17",
                 "score": 3
-            }
+            },
+            "luckStartingTime": "6岁10个月起运",  // 新增起运时间字段
+            "strengthType": "身强"  // 新增从强从弱字段
         }
     };
 
@@ -120,7 +122,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     lastError = error;
                     retries--;
                     if (retries > 0) {
-                        await new Promise(resolve => setTimeout(resolve, 1000 * (4 - retries)));
+                        await new Promise(resolve => setTimeout(resolve, 1000 * (4 - retries));
                     }
                 }
             }
@@ -360,6 +362,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const analysisTitle = document.getElementById('analysis-title');
     const analysisContent = document.getElementById('analysis-content');
     const closeModal = document.getElementById('close-modal');
+    const luckStartingTime = document.getElementById('luck-starting-time'); // 新增起运时间显示元素
+    const strengthType = document.getElementById('strength-type'); // 新增从强从弱显示元素
 
     // 全局变量
     let elementChart;
@@ -479,73 +483,73 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // 命格等级分析按钮
         fateAnalysisBtn.addEventListener('click', async function() {
-    // 添加btn-loading类到按钮本身
-    this.classList.add('btn-loading');
-    
-    // 创建并显示全屏loading遮罩
-    const loadingOverlay = document.createElement('div');
-    loadingOverlay.className = 'loading-overlay';
-    loadingOverlay.innerHTML = `
-        <div class="loading"></div>
-        <p>正在分析命格等级...</p>
-    `;
-    document.body.appendChild(loadingOverlay);
-    
-    // 禁用按钮防止重复点击
-    this.disabled = true;
-    
-    try {
-        const content = await getFateAnalysisContent();
-        showAnalysisModal('命格等级分析', content);
-    } catch (error) {
-        console.error('获取命格分析失败:', error);
-        showAnalysisModal('命格等级分析', '获取分析内容失败，请稍后重试');
-    } finally {
-        // 移除全屏loading遮罩
-        if (document.body.contains(loadingOverlay)) {
-            document.body.removeChild(loadingOverlay);
-        }
-        // 移除btn-loading类
-        this.classList.remove('btn-loading');
-        // 重新启用按钮
-        this.disabled = false;
-    }
-});
+            // 添加btn-loading类到按钮本身
+            this.classList.add('btn-loading');
+            
+            // 创建并显示全屏loading遮罩
+            const loadingOverlay = document.createElement('div');
+            loadingOverlay.className = 'loading-overlay';
+            loadingOverlay.innerHTML = `
+                <div class="loading"></div>
+                <p>正在分析命格等级...</p>
+            `;
+            document.body.appendChild(loadingOverlay);
+            
+            // 禁用按钮防止重复点击
+            this.disabled = true;
+            
+            try {
+                const content = await getFateAnalysisContent();
+                showAnalysisModal('命格等级分析', content);
+            } catch (error) {
+                console.error('获取命格分析失败:', error);
+                showAnalysisModal('命格等级分析', '获取分析内容失败，请稍后重试');
+            } finally {
+                // 移除全屏loading遮罩
+                if (document.body.contains(loadingOverlay)) {
+                    document.body.removeChild(loadingOverlay);
+                }
+                // 移除btn-loading类
+                this.classList.remove('btn-loading');
+                // 重新启用按钮
+                this.disabled = false;
+            }
+        });
 
-// 财富等级分析按钮
-wealthAnalysisBtn.addEventListener('click', async function() {
-    // 添加btn-loading类到按钮本身
-    this.classList.add('btn-loading');
-    
-    // 创建并显示全屏loading遮罩
-    const loadingOverlay = document.createElement('div');
-    loadingOverlay.className = 'loading-overlay';
-    loadingOverlay.innerHTML = `
-        <div class="loading"></div>
-        <p>正在分析财富等级...</p>
-    `;
-    document.body.appendChild(loadingOverlay);
-    
-    // 禁用按钮防止重复点击
-    this.disabled = true;
-    
-    try {
-        const content = await getWealthAnalysisContent();
-        showAnalysisModal('财富等级分析', content);
-    } catch (error) {
-        console.error('获取财富分析失败:', error);
-        showAnalysisModal('财富等级分析', '获取分析内容失败，请稍后重试');
-    } finally {
-        // 移除全屏loading遮罩
-        if (document.body.contains(loadingOverlay)) {
-            document.body.removeChild(loadingOverlay);
-        }
-        // 移除btn-loading类
-        this.classList.remove('btn-loading');
-        // 重新启用按钮
-        this.disabled = false;
-    }
-});
+        // 财富等级分析按钮
+        wealthAnalysisBtn.addEventListener('click', async function() {
+            // 添加btn-loading类到按钮本身
+            this.classList.add('btn-loading');
+            
+            // 创建并显示全屏loading遮罩
+            const loadingOverlay = document.createElement('div');
+            loadingOverlay.className = 'loading-overlay';
+            loadingOverlay.innerHTML = `
+                <div class="loading"></div>
+                <p>正在分析财富等级...</p>
+            `;
+            document.body.appendChild(loadingOverlay);
+            
+            // 禁用按钮防止重复点击
+            this.disabled = true;
+            
+            try {
+                const content = await getWealthAnalysisContent();
+                showAnalysisModal('财富等级分析', content);
+            } catch (error) {
+                console.error('获取财富分析失败:', error);
+                showAnalysisModal('财富等级分析', '获取分析内容失败，请稍后重试');
+            } finally {
+                // 移除全屏loading遮罩
+                if (document.body.contains(loadingOverlay)) {
+                    document.body.removeChild(loadingOverlay);
+                }
+                // 移除btn-loading类
+                this.classList.remove('btn-loading');
+                // 重新启用按钮
+                this.disabled = false;
+            }
+        });
 
         // 关闭模态框
         closeModal.addEventListener('click', function() {
@@ -1038,6 +1042,10 @@ ${getWealthSuggestions(score)}
         baziQaResponse.innerHTML = '';
         baziQaResponse.style.display = 'none';
         baziQaLoading.style.display = 'none';
+        
+        // 重置起运时间和从强从弱显示
+        luckStartingTime.textContent = '';
+        strengthType.textContent = '';
     }
 
     // 初始化加载按钮
@@ -1221,6 +1229,14 @@ ${getWealthSuggestions(score)}
                 最佳方位: ${baziInfo.gamblingFortune.direction}<br>
                 最佳时段: ${baziInfo.gamblingFortune.hour}
             `;
+            
+            // 显示起运时间和从强从弱信息
+            if (baziInfo.luckStartingTime) {
+                luckStartingTime.textContent = `起运时间: ${baziInfo.luckStartingTime}`;
+            }
+            if (baziInfo.strengthType) {
+                strengthType.textContent = `身强身弱: ${baziInfo.strengthType}`;
+            }
             
             inputSection.style.display = 'none';
             resultSection.style.display = 'block';
@@ -2411,6 +2427,21 @@ ${getWealthSuggestions(score)}
         const decadeFortune = calculateDecadeFortune(lunar, birthData.gender);
         const gamblingFortune = calculateGamblingFortune(birthData, lunar);
         
+        // 计算起运时间
+        const luckStartingTime = calculateLuckStartingTime(lunar, birthData.gender);
+        
+        // 判断从强从弱
+        const strengthType = determineStrengthType({
+            yearStem: yearGan,
+            yearBranch: yearZhi,
+            monthStem: monthGan,
+            monthBranch: monthZhi,
+            dayStem: dayGan,
+            dayBranch: dayZhi,
+            hourStem: hourGan,
+            hourBranch: hourZhi
+        });
+        
         return {
             yearStem: yearGan,
             yearBranch: yearZhi,
@@ -2427,8 +2458,97 @@ ${getWealthSuggestions(score)}
             elements,
             personality,
             decadeFortune,
-            gamblingFortune
+            gamblingFortune,
+            luckStartingTime,  // 新增起运时间
+            strengthType       // 新增从强从弱
         };
+    }
+
+    // 计算起运时间
+    function calculateLuckStartingTime(lunar, gender) {
+        const yearGan = lunar.getYearGan();
+        const isMale = gender === 'male';
+        const isYangYear = ['甲', '丙', '戊', '庚', '壬'].includes(yearGan);
+        const isForward = (isYangYear && isMale) || (!isYangYear && !isMale);
+        
+        const solar = lunar.getSolar();
+        const jieQiName = isForward ? '立春' : '大寒';
+        const targetJieQi = lunar.getJieQi(jieQiName);
+        
+        let daysDiff = 15; // 默认值
+        
+        try {
+            // 尝试获取节气日期
+            if (targetJieQi && typeof targetJieQi.getSolar === 'function') {
+                const targetSolar = targetJieQi.getSolar();
+                daysDiff = Math.abs(solar.diffDays(targetSolar));
+            } else if (targetJieQi && targetJieQi.solar) {
+                // 备选方案：如果节气对象有solar属性
+                daysDiff = Math.abs(solar.diffDays(targetJieQi.solar));
+            }
+        } catch (e) {
+            console.warn('计算节气间隔失败，使用默认值:', e);
+        }
+        
+        // 计算起运年龄（天数除以3，每3天代表1年）
+        const startAgeYears = Math.floor(daysDiff / 3);
+        const remainingDays = daysDiff % 3;
+        const startAgeMonths = Math.floor(remainingDays * 4); // 1天≈4个月
+        
+        return `${startAgeYears}岁${startAgeMonths}个月起运`;
+    }
+
+    // 判断从强从弱
+    function determineStrengthType(pillars) {
+        const dayStem = pillars.dayStem;
+        const stems = [
+            pillars.yearStem,
+            pillars.monthStem,
+            pillars.hourStem
+        ];
+        const branches = [
+            pillars.yearBranch,
+            pillars.monthBranch,
+            pillars.dayBranch,
+            pillars.hourBranch
+        ];
+        
+        // 计算印比力量
+        let supportCount = 0;
+        stems.forEach(function(stem) {
+            if (isSameElement(stem, dayStem) || isGenerateElement(stem, dayStem)) {
+                supportCount++;
+            }
+        });
+        branches.forEach(function(branch) {
+            if (isSameElement(branch, dayStem) || isGenerateElement(branch, dayStem)) {
+                supportCount++;
+            }
+        });
+        
+        // 计算克泄耗力量
+        let weakenCount = 0;
+        stems.forEach(function(stem) {
+            if (!isSameElement(stem, dayStem) && !isGenerateElement(stem, dayStem)) {
+                weakenCount++;
+            }
+        });
+        branches.forEach(function(branch) {
+            if (!isSameElement(branch, dayStem) && !isGenerateElement(branch, dayStem)) {
+                weakenCount++;
+            }
+        });
+        
+        // 判断从强从弱
+        if (supportCount >= 6) {
+            return "从强";
+        } else if (weakenCount >= 6) {
+            return "从弱";
+        } else if (supportCount > weakenCount) {
+            return "身强";
+        } else {
+            return "身弱";
+        }
     }
 
     // 计算十年大运
@@ -2805,6 +2925,8 @@ ${getWealthSuggestions(score)}
 出生时间：${data.time} 
 性别：${data.gender === 'male' ? '男' : '女'}
 八字：${localResult.yearStem}${localResult.yearBranch} ${localResult.monthStem}${localResult.monthBranch} ${localResult.dayStem}${localResult.dayBranch} ${localResult.hourStem}${localResult.hourBranch}
+起运时间：${localResult.luckStartingTime}
+身强身弱：${localResult.strengthType}
 
 `;
 
@@ -3098,6 +3220,8 @@ ${getWealthSuggestions(score)}
    出生时间：${birthData.time}
    性别：${birthData.gender === 'male' ? '男' : '女'}
    八字：${currentPillars.year} ${currentPillars.month} ${currentPillars.day} ${currentPillars.hour}
+   起运时间：${luckStartingTime.textContent || '未计算'}
+   身强身弱：${strengthType.textContent || '未计算'}
 
 用户问题：${question}`;
         
@@ -3132,4 +3256,4 @@ ${getWealthSuggestions(score)}
             return '获取答案失败，请稍后重试';
         }
     }
-})
+});
