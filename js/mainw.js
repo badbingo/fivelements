@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 增强版缓存对象v2.2b
+    // 增强版缓存对象v2.2c
     const baziCache = {
         data: {},
         get: function(key) {
@@ -700,86 +700,81 @@ ${getPracticalFateSuggestions(score)}
 
     // 计算起运时间
     function calculateStartLuckTime(birthData) {
-        const dateParts = birthData.date.split('-');
-        const year = parseInt(dateParts[0]);
-        const month = parseInt(dateParts[1]);
-        const day = parseInt(dateParts[2]);
-        const timeParts = birthData.time.split(':');
-        const hour = parseInt(timeParts[0]);
-        const minute = parseInt(timeParts[1] || 0);
+    const dateParts = birthData.date.split('-');
+    const year = parseInt(dateParts[0]);
+    const month = parseInt(dateParts[1]);
+    const day = parseInt(dateParts[2]);
+    const timeParts = birthData.time.split(':');
+    const hour = parseInt(timeParts[0]);
+    const minute = parseInt(timeParts[1] || 0);
+    
+    const solar = Solar.fromYmdHms(year, month, day, hour, minute, 0);
+    const lunar = solar.getLunar();
+    const bazi = lunar.getEightChar();
+    
+    const yearGan = bazi.getYearGan();
+    const yearZhi = bazi.getYearZhi();
+    const isMale = birthData.gender === 'male';
+    const isYangYear = ['甲', '丙', '戊', '庚', '壬'].includes(yearGan);
+    const isForward = (isYangYear && isMale) || (!isYangYear && !isMale);
+    
+    // Get current solar term
+    const jieQiName = isForward ? '立春' : '大寒';
+    let targetJieQi;
+    
+    try {
+        // Try to get the solar term directly
+        targetJieQi = lunar.getJieQi(jieQiName);
         
-        const solar = Solar.fromYmdHms(year, month, day, hour, minute, 0);
-        const lunar = solar.getLunar();
-        const bazi = lunar.getEightChar();
-        
-        const yearGan = bazi.getYearGan();
-        const yearZhi = bazi.getYearZhi();
-        const isMale = birthData.gender === 'male';
-        const isYangYear = ['甲', '丙', '戊', '庚', '壬'].includes(yearGan);
-        const isForward = (isYangYear && isMale) || (!isYangYear && !isMale);
-        
-        // 获取当前节气
-        const currentJieQi = lunar.getJieQiTable();
-        let targetJieQi = null;
-        let daysDiff = 0;
-        
-        if (isForward) {
-            // 顺排找下一个节气
-            for (let jie in currentJieQi) {
-                if (currentJieQi[jie].getSolar().getJulianDay() > solar.getJulianDay()) {
-                    targetJieQi = currentJieQi[jie];
-                    daysDiff = targetJieQi.getSolar().getJulianDay() - solar.getJulianDay();
-                    break;
-                }
-            }
+        // Handle different library versions
+        let targetSolar;
+        if (typeof targetJieQi.getSolar === 'function') {
+            targetSolar = targetJieQi.getSolar();
+        } else if (targetJieQi.solar) {
+            // Alternative for some library versions
+            targetSolar = targetJieQi.solar;
         } else {
-            // 逆排找上一个节气
-            let prevJie = null;
-            for (let jie in currentJieQi) {
-                if (currentJieQi[jie].getSolar().getJulianDay() < solar.getJulianDay()) {
-                    prevJie = currentJieQi[jie];
-                } else {
-                    break;
-                }
-            }
-            if (prevJie) {
-                targetJieQi = prevJie;
-                daysDiff = solar.getJulianDay() - targetJieQi.getSolar().getJulianDay();
-            }
-        }
-        
-        // 计算起运年龄
-        let startAge = 0;
-        let startDate = null;
-        
-        if (targetJieQi) {
-            startAge = Math.floor(daysDiff / 3); // 3天=1岁
-            const startYears = Math.floor(startAge);
-            const startMonths = Math.floor((startAge - startYears) * 12);
-            const startDays = Math.floor(((startAge - startYears) * 12 - startMonths) * 30);
-            
-            startDate = new Date(solar.getYear(), solar.getMonth() - 1, solar.getDay());
-            startDate.setFullYear(startDate.getFullYear() + startYears);
-            startDate.setMonth(startDate.getMonth() + startMonths);
-            startDate.setDate(startDate.getDate() + startDays);
-            
-            return {
-                age: startAge.toFixed(2) + "岁",
-                date: startDate.toLocaleDateString(),
-                analysis: `您的起运时间为${startAge.toFixed(2)}岁（约${startYears}年${startMonths}个月后）。\n\n` +
-                          `起运时间计算方法：\n` +
-                          `1. ${isForward ? '顺排' : '逆排'}大运\n` +
-                          `2. 距离${isForward ? '下一个' : '上一个'}节气"${targetJieQi.getName()}"共${daysDiff.toFixed(2)}天\n` +
-                          `3. 每3天代表1岁，因此${daysDiff} ÷ 3 = ${startAge.toFixed(2)}岁`
-            };
-        } else {
+            // If we can't get the solar date, use a fallback
             return {
                 age: "未知",
                 date: "未知",
-                analysis: "无法计算起运时间，可能是节气数据获取失败。"
+                analysis: "无法计算起运时间，节气数据获取失败。"
             };
         }
+        
+        const daysDiff = isForward ? 
+            targetSolar.getJulianDay() - solar.getJulianDay() :
+            solar.getJulianDay() - targetSolar.getJulianDay();
+        
+        // Calculate start age (3 days = 1 year)
+        const startAge = daysDiff / 3;
+        const startYears = Math.floor(startAge);
+        const startMonths = Math.floor((startAge - startYears) * 12);
+        const startDays = Math.floor(((startAge - startYears) * 12 - startMonths) * 30);
+        
+        const startDate = new Date(solar.getYear(), solar.getMonth() - 1, solar.getDay());
+        startDate.setFullYear(startDate.getFullYear() + startYears);
+        startDate.setMonth(startDate.getMonth() + startMonths);
+        startDate.setDate(startDate.getDate() + startDays);
+        
+        return {
+            age: startAge.toFixed(2) + "岁",
+            date: startDate.toLocaleDateString(),
+            analysis: `您的起运时间为${startAge.toFixed(2)}岁（约${startYears}年${startMonths}个月后）。\n\n` +
+                      `起运时间计算方法：\n` +
+                      `1. ${isForward ? '顺排' : '逆排'}大运\n` +
+                      `2. 距离${isForward ? '下一个' : '上一个'}节气"${jieQiName}"共${daysDiff.toFixed(2)}天\n` +
+                      `3. 每3天代表1岁，因此${daysDiff} ÷ 3 = ${startAge.toFixed(2)}岁`
+        };
+    } catch (error) {
+        console.error('计算起运时间出错:', error);
+        return {
+            age: "未知",
+            date: "未知",
+            analysis: "无法计算起运时间，可能是节气数据获取失败。"
+        };
     }
+}
 
     // 默认命格分析内容
     function getDefaultFateAnalysis(score) {
