@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 增强版缓存对象v2.2s
+    // 增强版缓存对象v2.2b
     const baziCache = {
         data: {},
         get: function(key) {
@@ -2649,16 +2649,14 @@ function determineStrengthType(pillars) {
     const branches = [pillars.yearBranch, pillars.monthBranch, pillars.dayBranch, pillars.hourBranch];
     const dayElement = getElementIndex(dayStem);
 
-    // 先计算分数和根气状态（解决变量初始化顺序问题）
+    // 先计算分数和根气状态
     const scores = calculateScores();
     const rootStatus = checkRootStatus();
     const seasonMatch = isSeasonMatch();
 
-    // 1. 检查特殊格局（使用已计算的rootStatus）
+    // 1. 检查特殊格局
     const specialPattern = checkSpecialPatterns();
     if (specialPattern) return specialPattern;
-
-    console.debug(`[分析] ${dayStem}日主 根气:${rootStatus} 得令:${seasonMatch} 生助:${scores.support} 克泄:${scores.weaken}`);
 
     // 2. 最终判定
     if (isTrueCongWeak()) return "从弱";
@@ -2754,7 +2752,7 @@ function determineStrengthType(pillars) {
             return "从强";
         }
         
-        // 从财格检查（使用已计算的rootStatus和scores）
+        // 从财格检查
         if (rootStatus === '无根' && isWealthDominating()) {
             return "从弱";
         }
@@ -2775,9 +2773,12 @@ function determineStrengthType(pillars) {
     }
 
     function isTrueCongWeak() {
-        return rootStatus === '无根' && 
-               scores.weaken > scores.support * 2 && 
-               !seasonMatch;
+        // 修改后的从弱格判断条件
+        return (rootStatus === '无根' && 
+               scores.weaken > scores.support * 2) || 
+               (rootStatus === '无根' && 
+               !seasonMatch && 
+               scores.weaken > scores.support);
     }
 
     function isTrueCongStrong() {
