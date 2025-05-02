@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 增强版缓存对象v2.2v
+    // 增强版缓存对象v2.2a
     const baziCache = {
         data: {},
         get: function(key) {
@@ -2623,73 +2623,130 @@ function calculateLuckStartingTime(lunar, gender) {
     }
 }
 
-    // 判断从强从弱
-    function determineStrengthType(pillars) {
+    // 判断从强从弱 - 修改后的函数
+function determineStrengthType(pillars) {
     const dayStem = pillars.dayStem;
     const stems = [pillars.yearStem, pillars.monthStem, pillars.hourStem];
     const branches = [pillars.yearBranch, pillars.monthBranch, pillars.dayBranch, pillars.hourBranch];
     
-    // 1. 计算生助日主的力量（印比）
-    let supportScore = 0;
-    
-    // 天干生助（比肩、印）
-    stems.forEach(stem => {
-        if (isSameElement(stem, dayStem)) supportScore += 1; // 比肩
-        if (isGenerateElement(stem, dayStem)) supportScore += 1; // 印
-    });
-    
-    // 地支生助（主气2分，中气1分）
-    branches.forEach(branch => {
-        const hidden = getHiddenStems(branch);
-        hidden.split('').forEach(stem => {
-            if (isSameElement(stem, dayStem)) supportScore += (stem === hidden[0] ? 2 : 1);
-            if (isGenerateElement(stem, dayStem)) supportScore += (stem === hidden[0] ? 1 : 0.5);
-        });
-    });
-    
-    // 2. 特殊冲克处理（关键修正！）
-    // 子午冲：水根被冲掉
-    if (branches.includes('子') && branches.filter(b => b === '午').length >= 1) {
-        supportScore -= 3; // 大幅削弱水根
-        console.log("子午冲：水根-3");
+    // 1. 优先检查特殊合会格局
+    if (hasSanHuiFire(branches)) {
+        return "从弱"; // 巳午未三会火局，直接判定从弱
     }
     
-    // 寅午合火：木气转化为火
-    if (branches.includes('寅') && branches.includes('午')) {
-        supportScore -= 1; // 寅中甲木生火
-        console.log("寅午合：木气-1");
-    }
+    // 2. 计算生助日主的力量（印比）
+    let supportScore = calculateSupportScore(dayStem, stems, branches);
     
     // 3. 计算克泄耗日主的力量（财官食伤）
-    let weakenScore = 0;
-    const dayElement = getElementIndex(dayStem);
+    let weakenScore = calculateWeakenScore(dayStem, stems, branches);
     
-    // 天干克泄耗
-    stems.forEach(stem => {
-        const elem = getElementIndex(stem);
-        if (elem === (dayElement + 2) % 5) weakenScore += 1; // 官杀
-        if (elem === (dayElement - 1 + 5) % 5) weakenScore += 1; // 食伤
-        if (elem === (dayElement - 2 + 5) % 5) weakenScore += 1; // 财
-    });
+    // 4. 特殊冲克处理
+    supportScore = applySpecialConflicts(supportScore, branches);
     
-    // 地支克泄耗（主气2分）
-    branches.forEach(branch => {
-        const elem = getElementIndex(branch);
-        if (elem === (dayElement + 2) % 5) weakenScore += 2;
-        if (elem === (dayElement - 1 + 5) % 5) weakenScore += 1;
-        if (elem === (dayElement - 2 + 5) % 5) weakenScore += 2;
-    });
-    
-    // 4. 从格判定（调整阈值）
     console.log(`支撑分:${supportScore} 克泄分:${weakenScore}`);
     
-    if (supportScore <= 8 && weakenScore >= 15) { // 放宽从弱标准
+    // 5. 从格判定（调整阈值）
+    if (supportScore <= 8 && weakenScore >= 15) {
         return "从弱";
     } else if (supportScore >= 15 && weakenScore <= 8) {
         return "从强";
     } else {
         return supportScore > weakenScore ? "身强" : "身弱";
     }
+}
+
+// 新增：三会火局判断
+function hasSanHuiFire(branches) {
+    const fireBranches = ['巳', '午', '未'];
+    let count = 0;
+    branches.forEach(b => {
+        if (fireBranches.includes(b)) count++;
+    });
+    return count >= 2; // 两个火支即构成半会
+}
+
+// 新增：计算支撑分数
+function calculateSupportScore(dayStem, stems, branches) {
+    let score = 0;
+    
+    // 天干生助（比肩、印）
+    stems.forEach(stem => {
+        if (isSameElement(stem, dayStem)) score += 1; // 比肩
+        if (isGenerateElement(stem, dayStem)) score += 1; // 印
+    });
+    
+    // 地支生助（主气2分，中气1分）
+    branches.forEach(branch => {
+        const hidden = getHiddenStems(branch);
+        hidden.split('').forEach((stem, i) => {
+            if (isSameElement(stem, dayStem)) {
+                score += (i === 0 ? 2 : 1); // 主气2分，中余气1分
+            }
+            if (isGenerateElement(stem, dayStem)) {
+                score += (i === 0 ? 1 : 0.5); // 主气1分，中余气0.5分
+            }
+        });
+    });
+    
+    return score;
+}
+
+// 新增：计算克泄分数
+function calculateWeakenScore(dayStem, stems, branches) {
+    let score = 0;
+    const dayElement = getElementIndex(dayStem);
+    
+    // 天干克泄耗
+    stems.forEach(stem => {
+        const elem = getElementIndex(stem);
+        if (elem === (dayElement + 2) % 5) score += 1; // 官杀
+        if (elem === (dayElement - 1 + 5) % 5) score += 1; // 食伤
+        if (elem === (dayElement - 2 + 5) % 5) score += 1; // 财
+    });
+    
+    // 地支克泄耗（主气2分）
+    branches.forEach(branch => {
+        const elem = getElementIndex(branch);
+        if (elem === (dayElement + 2) % 5) score += 2;
+        if (elem === (dayElement - 1 + 5) % 5) score += 1;
+        if (elem === (dayElement - 2 + 5) % 5) score += 2;
+    });
+    
+    return score;
+}
+
+// 新增：特殊冲克处理
+function applySpecialConflicts(supportScore, branches) {
+    // 子午冲：水根被冲掉
+    if (branches.includes('子') && branches.filter(b => b === '午').length >= 1) {
+        supportScore -= 3;
+    }
+    
+    // 寅午合火：木气转化为火
+    if (branches.includes('寅') && branches.includes('午')) {
+        supportScore -= 1;
+    }
+    
+    return Math.max(0, supportScore);
+}
+
+// 辅助函数：获取地支藏干
+function getHiddenStems(branch) {
+    const hiddenStemsMap = {
+        '子': '癸',
+        '丑': '己癸辛',
+        '寅': '甲丙戊',
+        '卯': '乙',
+        '辰': '戊乙癸',
+        '巳': '丙庚戊',
+        '午': '丁己',
+        '未': '己丁乙',
+        '申': '庚壬戊',
+        '酉': '辛',
+        '戌': '戊辛丁',
+        '亥': '壬甲'
+    };
+    return hiddenStemsMap[branch] || '';
 }
 
     // 计算十年大运
