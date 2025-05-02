@@ -2625,185 +2625,253 @@ function calculateLuckStartingTime(lunar, gender) {
 
     // 判断从强从弱 - 修改后的函数
 function determineStrengthType(pillars) {
-    // 1. 基础数据配置（增加土性区分）
-    const elementMap = {
-        '甲': '阳木', '乙': '阴木', '丙': '阳火', '丁': '阴火', 
-        '戊': '阳土', '己': '阴土', '庚': '阳金', '辛': '阴金', 
-        '壬': '阳水', '癸': '阴水',
-        '寅': '阳木', '卯': '阴木', '午': '阳火', '巳': '阴火',
-        '辰': '湿土', '戌': '燥土', '丑': '湿土', '未': '燥土',
-        '申': '阳金', '酉': '阴金', '子': '阳水', '亥': '阴水'
-    };
-
-    // 藏干配置（精确到本气/中气/余气）
-    const hiddenStems = {
-        '子': [{stem:'癸', type:'阴水', weight:1.0}],
-        '丑': [{stem:'己', type:'阴土', weight:0.6}, {stem:'癸', weight:0.3}, {stem:'辛', weight:0.1}],
-        '寅': [{stem:'甲', type:'阳木', weight:0.6}, {stem:'丙', weight:0.3}, {stem:'戊', weight:0.1}],
-        '卯': [{stem:'乙', type:'阴木', weight:1.0}],
-        '辰': [{stem:'戊', type:'阳土', weight:0.6}, {stem:'乙', weight:0.3}, {stem:'癸', weight:0.1}],
-        '巳': [{stem:'丙', type:'阳火', weight:0.6}, {stem:'庚', weight:0.3}, {stem:'戊', weight:0.1}],
-        '午': [{stem:'丁', type:'阴火', weight:0.7}, {stem:'己', weight:0.3}],
-        '未': [{stem:'己', type:'阴土', weight:0.6}, {stem:'丁', weight:0.3}, {stem:'乙', weight:0.1}],
-        '申': [{stem:'庚', type:'阳金', weight:0.6}, {stem:'壬', weight:0.3}, {stem:'戊', weight:0.1}],
-        '酉': [{stem:'辛', type:'阴金', weight:1.0}],
-        '戌': [{stem:'戊', type:'阳土', weight:0.6}, {stem:'辛', weight:0.3}, {stem:'丁', weight:0.1}],
-        '亥': [{stem:'壬', type:'阳水', weight:0.7}, {stem:'甲', weight:0.3}]
-    };
-
-    // 2. 获取日主信息
-    const dayStem = pillars.dayStem;
-    const dayElement = elementMap[dayStem];
-    const isEarthDay = dayElement.includes('土');
-    const monthBranch = pillars.monthBranch;
-    const monthElement = elementMap[monthBranch];
-    const branches = [pillars.yearBranch, pillars.monthBranch, pillars.dayBranch, pillars.hourBranch];
-
-    // 3. 得令判断（土日主特殊处理）
-    const getSeasonScore = () => {
-        // 土日主得辰戌丑未月均为得令
-        if (isEarthDay && monthElement.includes('土')) {
-            return monthElement === dayElement ? 1.8 : 1.5; // 同属性更强
+    // 核心计算引擎
+    class StrengthAnalyzer {
+        constructor(pillars) {
+            this.pillars = pillars;
+            this.dayMaster = pillars.dayStem;
+            this.dayElement = this.getElement(this.dayMaster);
+            this.monthBranch = pillars.monthBranch;
+            this.monthElement = this.getElement(this.monthBranch);
+            this.branches = [
+                pillars.yearBranch, 
+                pillars.monthBranch,
+                pillars.dayBranch,
+                pillars.hourBranch
+            ];
+            this.stems = [
+                pillars.yearStem,
+                pillars.monthStem,
+                pillars.hourStem
+            ];
         }
-        
-        if (monthElement === dayElement) return 1.5;
-        
-        const generatingElements = {
-            '阳木':'阳水', '阴木':'阴水', 
-            '阳火':'阳木', '阴火':'阴木',
-            '阳土':'阳火', '阴土':'阴火',
-            '阳金':'阳土', '阴金':'阴土',
-            '阳水':'阳金', '阴水':'阴金'
-        };
-        if (generatingElements[dayElement] === monthElement) return 1.0;
-        
-        return 0;
-    };
 
-    const seasonScore = getSeasonScore();
+        // 元素映射表（含藏干强度）
+        getElement(char) {
+            const map = {
+                // 天干
+                '甲': {element: '木', yinyang: '阳'}, '乙': {element: '木', yinyang: '阴'},
+                '丙': {element: '火', yinyang: '阳'}, '丁': {element: '火', yinyang: '阴'},
+                '戊': {element: '土', yinyang: '阳', subtype: '燥'}, 
+                '己': {element: '土', yinyang: '阴', subtype: '湿'},
+                '庚': {element: '金', yinyang: '阳'}, '辛': {element: '金', yinyang: '阴'},
+                '壬': {element: '水', yinyang: '阳'}, '癸': {element: '水', yinyang: '阴'},
+                // 地支
+                '寅': {element: '木', yinyang: '阳', hidden: [
+                    {stem: '甲', weight: 0.6}, {stem: '丙', weight: 0.3}, {stem: '戊', weight: 0.1}
+                ]},
+                '卯': {element: '木', yinyang: '阴', hidden: [
+                    {stem: '乙', weight: 1.0}
+                ]},
+                '辰': {element: '土', yinyang: '阳', subtype: '湿', hidden: [
+                    {stem: '戊', weight: 0.5}, {stem: '乙', weight: 0.3}, {stem: '癸', weight: 0.2}
+                ]},
+                '巳': {element: '火', yinyang: '阴', hidden: [
+                    {stem: '丙', weight: 0.6}, {stem: '庚', weight: 0.3}, {stem: '戊', weight: 0.1}
+                ]},
+                '午': {element: '火', yinyang: '阳', hidden: [
+                    {stem: '丁', weight: 0.7}, {stem: '己', weight: 0.3}
+                ]},
+                '未': {element: '土', yinyang: '阴', subtype: '燥', hidden: [
+                    {stem: '己', weight: 0.6}, {stem: '丁', weight: 0.3}, {stem: '乙', weight: 0.1}
+                ]},
+                '申': {element: '金', yinyang: '阳', hidden: [
+                    {stem: '庚', weight: 0.6}, {stem: '壬', weight: 0.3}, {stem: '戊', weight: 0.1}
+                ]},
+                '酉': {element: '金', yinyang: '阴', hidden: [
+                    {stem: '辛', weight: 1.0}
+                ]},
+                '戌': {element: '土', yinyang: '阳', subtype: '燥', hidden: [
+                    {stem: '戊', weight: 0.6}, {stem: '辛', weight: 0.3}, {stem: '丁', weight: 0.1}
+                ]},
+                '亥': {element: '水', yinyang: '阴', hidden: [
+                    {stem: '壬', weight: 0.7}, {stem: '甲', weight: 0.3}
+                ]},
+                '子': {element: '水', yinyang: '阳', hidden: [
+                    {stem: '癸', weight: 1.0}
+                ]},
+                '丑': {element: '土', yinyang: '阴', subtype: '湿', hidden: [
+                    {stem: '己', weight: 0.6}, {stem: '癸', weight: 0.3}, {stem: '辛', weight: 0.1}
+                ]}
+            };
+            return map[char] || {};
+        }
 
-    // 4. 天干力量计算（增强土日主比劫）
-    const calculateStemStrength = () => {
-        let support = 0, weaken = 0;
-        const stems = [pillars.yearStem, pillars.monthStem, pillars.hourStem];
-        
-        stems.forEach(stem => {
-            const stemElement = elementMap[stem];
+        // 十神关系判断
+        getRelation(target) {
+            const stemOrder = ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
+            const dayIdx = stemOrder.indexOf(this.dayMaster);
+            const targetIdx = stemOrder.indexOf(target);
+            const diff = (targetIdx - dayIdx + 10) % 10;
             
-            // 比劫（土日主比劫力量增强）
-            if (stemElement === dayElement) {
-                support += (isEarthDay ? 1.5 : 1.2) * (stem === dayStem ? 1.2 : 1.0);
-            }
-            // 印星（区分阴阳）
-            else if ((dayElement === '阳木' && stemElement === '阳水') ||
-                     (dayElement === '阴木' && stemElement === '阴水') ||
-                     (dayElement === '阳火' && stemElement === '阳木') ||
-                     (dayElement === '阴火' && stemElement === '阴木') ||
-                     (dayElement === '阳土' && stemElement === '阳火') ||
-                     (dayElement === '阴土' && stemElement === '阴火') ||
-                     (dayElement === '阳金' && stemElement === '阳土') ||
-                     (dayElement === '阴金' && stemElement === '阴土') ||
-                     (dayElement === '阳水' && stemElement === '阳金') ||
-                     (dayElement === '阴水' && stemElement === '阴金')) {
-                support += 0.8;
-            }
-            // 官杀（金水官杀力量强）
-            else if ((dayElement === '阳木' && (stemElement === '阳金' || stemElement === '阴金')) ||
-                     (dayElement === '阴木' && (stemElement === '阳金' || stemElement === '阴金')) ||
-                     (dayElement === '阳火' && (stemElement === '阳水' || stemElement === '阴水')) ||
-                     (dayElement === '阴火' && (stemElement === '阳水' || stemElement === '阴水')) ||
-                     (dayElement === '阳土' && (stemElement === '阳木' || stemElement === '阴木')) ||
-                     (dayElement === '阴土' && (stemElement === '阳木' || stemElement === '阴木')) ||
-                     (dayElement === '阳金' && (stemElement === '阳火' || stemElement === '阴火')) ||
-                     (dayElement === '阴金' && (stemElement === '阳火' || stemElement === '阴火')) ||
-                     (dayElement === '阳水' && (stemElement === '阳土' || stemElement === '阴土')) ||
-                     (dayElement === '阴水' && (stemElement === '阳土' || stemElement === '阴土'))) {
-                weaken += (stemElement.includes('金') || stemElement.includes('水')) ? 1.2 : 1.0;
-            }
-            // 财星（木克土力量调整）
-            else if ((dayElement.includes('土') && stemElement.includes('木'))) {
-                weaken += 0.7; // 土厚木难克
-            }
-            // 其他财星和食伤
-            else {
-                weaken += 0.6;
-            }
-        });
-        
-        return {support, weaken};
-    };
+            const relations = [
+                '比肩', '劫财', '食神', '伤官', '偏财',
+                '正财', '七杀', '正官', '偏印', '正印'
+            ];
+            return relations[diff];
+        }
 
-    const stemStrength = calculateStemStrength();
-
-    // 5. 地支力量计算（重点修正土日主）
-    const calculateBranchStrength = () => {
-        let support = 0, weaken = 0, rootPower = 0;
-        
-        branches.forEach((branch, index) => {
-            const isMonthBranch = (index === 1);
-            const weight = isMonthBranch ? 1.8 : 1.2; // 月令权重提高
+        // 月令强度计算
+        calculateSeasonStrength() {
+            // 土日主得辰戌丑未月均为得令
+            if (this.dayElement.element === '土' && 
+                this.monthElement.element === '土') {
+                return this.monthElement.subtype === this.dayElement.subtype ? 2.0 : 1.8;
+            }
             
-            (hiddenStems[branch] || []).forEach(({stem, type, weight: stemWeight = 0.6}) => {
-                const stemElement = type || elementMap[stem];
-                const totalWeight = stemWeight * weight * (isEarthDay ? 1.2 : 1.0);
+            // 标准得令判断
+            if (this.monthElement.element === this.dayElement.element) {
+                return 1.5;
+            }
+            
+            // 相令判断（生我者）
+            const generatingMap = {
+                '木': '水', '火': '木', '土': '火', 
+                '金': '土', '水': '金'
+            };
+            if (generatingMap[this.dayElement.element] === this.monthElement.element) {
+                return 1.0;
+            }
+            
+            return 0;
+        }
+
+        // 天干力量计算
+        calculateStemStrength() {
+            let support = 0, weaken = 0;
+            
+            this.stems.forEach(stem => {
+                const relation = this.getRelation(stem);
+                const stemInfo = this.getElement(stem);
                 
-                // 比劫（土日主根气增强）
-                if (stemElement === dayElement) {
-                    const power = totalWeight * (stem === dayStem ? 1.5 : 1.2);
-                    support += power;
-                    rootPower += power * (isEarthDay ? 1.3 : 1.0);
+                // 比劫力量增强
+                if (relation === '比肩') {
+                    support += stemInfo.yinyang === this.dayElement.yinyang ? 1.5 : 1.2;
+                } 
+                else if (relation === '劫财') {
+                    support += 1.0;
                 }
-                // 印星（湿土生金特殊处理）
-                else if (stemElement === '湿土' && dayElement.includes('金')) {
-                    support += totalWeight * 0.9;
+                // 印星力量
+                else if (relation.includes('印')) {
+                    support += relation === '正印' ? 0.9 : 0.7;
                 }
-                // 其他十神关系...
+                // 官杀力量
+                else if (relation.includes('官')) {
+                    weaken += relation === '七杀' ? 1.3 : 1.0;
+                }
+                // 财星力量（木克土特殊处理）
+                else if (relation.includes('财')) {
+                    weaken += (this.dayElement.element === '土' && stemInfo.element === '木') ? 0.6 : 0.8;
+                }
+                // 食伤力量
+                else {
+                    weaken += relation === '伤官' ? 0.9 : 0.7;
+                }
             });
-        });
-        
-        return {support, weaken, rootPower};
-    };
-
-    const branchStrength = calculateBranchStrength();
-
-    // 6. 特殊格局判断（土专旺格）
-    const checkSpecialPattern = () => {
-        const totalSupport = seasonScore + stemStrength.support + branchStrength.support;
-        const totalWeaken = stemStrength.weaken + branchStrength.weaken;
-        
-        // 土专旺格（从强）
-        if (isEarthDay && 
-            branchStrength.rootPower >= 3.0 && 
-            totalSupport > totalWeaken * 3.5) {
-            return "从强";
+            
+            return {support, weaken};
         }
-        
-        // 从弱格（放宽标准）
-        if ((branchStrength.rootPower < 0.8 && totalWeaken > 5) || 
-            (totalWeaken > totalSupport * 3 && branchStrength.rootPower < 1.2)) {
-            return "从弱";
+
+        // 地支力量计算
+        calculateBranchStrength() {
+            let support = 0, weaken = 0, rootPower = 0;
+            
+            this.branches.forEach((branch, idx) => {
+                const branchInfo = this.getElement(branch);
+                const isMonthBranch = (idx === 1);
+                const positionWeight = isMonthBranch ? 1.8 : 1.0;
+                
+                // 主气计算
+                branchInfo.hidden.forEach(({stem, weight}) => {
+                    const relation = this.getRelation(stem);
+                    const stemInfo = this.getElement(stem);
+                    const totalWeight = weight * positionWeight;
+                    
+                    // 比劫（根气）
+                    if (relation === '比肩') {
+                        const power = totalWeight * (stem === this.dayMaster ? 1.5 : 1.2);
+                        support += power;
+                        rootPower += power;
+                    }
+                    else if (relation === '劫财') {
+                        support += totalWeight * 1.0;
+                        rootPower += totalWeight * 0.8;
+                    }
+                    // 印星（湿土生金特殊处理）
+                    else if (relation.includes('印')) {
+                        const isSpecialCase = (
+                            stemInfo.subtype === '湿' && 
+                            this.dayElement.element === '金'
+                        );
+                        support += totalWeight * (
+                            isSpecialCase ? 1.1 : 
+                            (relation === '正印' ? 0.8 : 0.6)
+                        );
+                    }
+                    // 官杀（地支加倍）
+                    else if (relation.includes('官')) {
+                        weaken += totalWeight * (
+                            relation === '七杀' ? 1.5 : 1.2
+                        );
+                    }
+                    // 其他十神
+                    else {
+                        weaken += totalWeight * 0.7;
+                    }
+                });
+            });
+            
+            return {support, weaken, rootPower};
         }
-        
-        return null;
-    };
 
-    const specialPattern = checkSpecialPattern();
-    if (specialPattern) return specialPattern;
+        // 特殊格局检测
+        checkSpecialPattern(totalSupport, totalWeaken, rootPower) {
+            // 专旺格（从强）
+            if (rootPower >= 3.0 && 
+                totalSupport > totalWeaken * 3.5 &&
+                this.dayElement.element === this.monthElement.element) {
+                return "从强";
+            }
+            
+            // 从财格/从杀格（从弱）
+            if (rootPower < 0.8 && 
+                totalWeaken > totalSupport * 3.2) {
+                return "从弱";
+            }
+            
+            return null;
+        }
 
-    // 7. 综合判断（优化土日主阈值）
-    const totalSupport = seasonScore + stemStrength.support + branchStrength.support;
-    const totalWeaken = stemStrength.weaken + branchStrength.weaken;
-    const netStrength = totalSupport - totalWeaken;
-    
-    // 土日主调整阈值
-    const balanceThreshold = isEarthDay ? 0.8 : 0.5;
-    if (Math.abs(netStrength) <= balanceThreshold) return "均衡";
-    
-    if (netStrength > 0) {
-        return branchStrength.rootPower >= (isEarthDay ? 1.8 : 1.5) ? "身强" : "身弱";
-    } else {
-        return branchStrength.rootPower >= 1.0 ? "身弱" : "从弱";
+        // 执行分析
+        analyze() {
+            const seasonScore = this.calculateSeasonStrength();
+            const stemStrength = this.calculateStemStrength();
+            const branchStrength = this.calculateBranchStrength();
+            
+            const totalSupport = seasonScore + stemStrength.support + branchStrength.support;
+            const totalWeaken = stemStrength.weaken + branchStrength.weaken;
+            const netStrength = totalSupport - totalWeaken;
+            
+            // 优先检测特殊格局
+            const specialPattern = this.checkSpecialPattern(
+                totalSupport, totalWeaken, branchStrength.rootPower
+            );
+            if (specialPattern) return specialPattern;
+            
+            // 标准判断
+            if (Math.abs(netStrength) <= 0.6) return "均衡";
+            
+            if (netStrength > 0) {
+                return branchStrength.rootPower >= 1.6 ? "身强" : "身弱";
+            } else {
+                return branchStrength.rootPower >= 1.0 ? "身弱" : "从弱";
+            }
+        }
     }
+
+    // 执行分析
+    const analyzer = new StrengthAnalyzer(pillars);
+    return analyzer.analyze();
 }
     // 计算十年大运
     function calculateDecadeFortune(lunar, gender) {
