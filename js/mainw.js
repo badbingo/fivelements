@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 增强版缓存对象v2.2a
+    // 增强版缓存对象v2.2s
     const baziCache = {
         data: {},
         get: function(key) {
@@ -2629,11 +2629,11 @@ function determineStrengthType(pillars) {
     const dayStem = pillars.dayStem;
     const stems = [pillars.yearStem, pillars.monthStem, pillars.hourStem];
     const branches = [pillars.yearBranch, pillars.monthBranch, pillars.dayBranch, pillars.hourBranch];
+    const dayElement = getElementIndex(dayStem);
     
     // 2. 检查特殊合会格局（优先判断）
-    if (hasSpecialCombination(dayStem, branches)) {
-        return handleSpecialCombination(dayStem, branches);
-    }
+    const specialCase = handleSpecialCombination(dayStem, branches);
+    if (specialCase) return specialCase;
     
     // 3. 计算生助日主的力量（印比）
     let supportScore = calculateSupportScore(dayStem, stems, branches);
@@ -2641,62 +2641,77 @@ function determineStrengthType(pillars) {
     // 4. 计算克泄耗日主的力量（财官食伤）
     let weakenScore = calculateWeakenScore(dayStem, stems, branches);
     
-    // 5. 特殊冲克处理（如子午冲、卯酉冲等）
-    supportScore = applySpecialConflicts(supportScore, branches);
+    // 5. 检查日主根气情况（重要改进）
+    const hasStrongRoot = checkDayStemRoot(dayStem, branches, true);
+    const hasWeakRoot = checkDayStemRoot(dayStem, branches, false);
     
-    console.debug(`[八字强弱分析] 支撑分:${supportScore} 克泄分:${weakenScore}`);
+    // 6. 特殊冲克处理（新增）
+    supportScore = applySpecialConflicts(supportScore, branches, dayElement);
+    weakenScore = applySpecialSupports(weakenScore, branches, dayElement);
     
-    // 6. 最终判定（调整后的专业阈值）
-    if (supportScore <= 5 && weakenScore >= 15) {
+    // 7. 月令权重加强（重要改进）
+    const monthBranchElement = getElementIndex(pillars.monthBranch);
+    if (monthBranchElement === dayElement) supportScore += 5; // 得令+5分
+    if ((monthBranchElement + 1) % 5 === dayElement) supportScore += 3; // 得生+3分
+    
+    // 8. 最终判定（调整后的专业标准）
+    console.debug(`[八字强弱分析] 支撑分:${supportScore} 克泄分:${weakenScore} 强根:${hasStrongRoot} 弱根:${hasWeakRoot}`);
+    
+    // 从格判定标准（严格版）
+    if ((!hasStrongRoot && weakenScore >= 18) || isAllElementsSame(dayElement, stems, branches)) {
         return "从弱";
-    } else if (supportScore >= 12 && weakenScore <= 5) {
+    } else if (supportScore >= 15 && weakenScore <= 3 && hasStrongRoot) {
         return "从强";
-    } else {
-        return supportScore > weakenScore ? "身强" : "身弱";
     }
+    // 普通身强身弱判定
+    return supportScore > weakenScore ? "身强" : "身弱";
     
-    // --- 子函数定义 ---
+    // ================== 子函数实现 ================== //
     
     /**
-     * 检查特殊合会格局
+     * 检查日主根气（重要改进）
+     * @param {string} dayStem - 日干
+     * @param {array} branches - 地支数组
+     * @param {boolean} strongOnly - 是否只检查强根
+     * @returns {boolean} - 是否存在有效根气
      */
-    function hasSpecialCombination(dayStem, branches) {
-        // 三会火局（巳午未）
-        if (countOccurrences(branches, ['巳', '午', '未']) >= 2) return true;
-        
-        // 三合金局（申酉戌或巳酉丑）
-        if (countOccurrences(branches, ['申', '酉', '戌']) >= 2) return true;
-        if (countOccurrences(branches, ['巳', '酉', '丑']) >= 2) return true;
-        
-        // 三合水局（亥子丑）
-        if (countOccurrences(branches, ['亥', '子', '丑']) >= 2) return true;
-        
-        return false;
+    function checkDayStemRoot(dayStem, branches, strongOnly) {
+        const element = getElementIndex(dayStem);
+        return branches.some(branch => {
+            const hiddenStems = getHiddenStems(branch);
+            return hiddenStems.split('').some((stem, i) => {
+                // 主气（i=0）永远算根，中余气根据strongOnly参数决定
+                return getElementIndex(stem) === element && 
+                      (!strongOnly || i === 0 || getElementIndex(branch) === element);
+            });
+        });
     }
     
     /**
-     * 处理特殊格局
+     * 处理特殊合会格局
      */
     function handleSpecialCombination(dayStem, branches) {
         const dayElement = getElementIndex(dayStem);
         
-        // 巳酉丑三合金局
-        if (countOccurrences(branches, ['巳', '酉', '丑']) >= 2) {
-            // 日主为土（戊己）被强金泄气
-            if (dayElement === 2) return "从弱"; 
-            // 日主为金（庚辛）得强根
-            if (dayElement === 3) return "从强";
+        // 三合局判断
+        if (hasTripleCombination(['亥','卯','未'], branches)) {
+            return dayElement === 0 ? "从强" : "从弱"; // 木局
+        }
+        if (hasTripleCombination(['巳','酉','丑'], branches)) {
+            return dayElement === 3 ? "从强" : "从弱"; // 金局
+        }
+        if (hasTripleCombination(['申','子','辰'], branches)) {
+            return dayElement === 4 ? "从强" : "从弱"; // 水局
+        }
+        if (hasTripleCombination(['寅','午','戌'], branches)) {
+            return dayElement === 1 ? "从强" : "从弱"; // 火局
         }
         
-        // 寅午戌三合火局
-        if (countOccurrences(branches, ['寅', '午', '戌']) >= 2) {
-            // 日主为木（甲乙）被强火泄气
-            if (dayElement === 0) return "从弱";
-            // 日主为火（丙丁）得强根
-            if (dayElement === 1) return "from强";
+        // 六合判断（如子丑合土）
+        if (hasConflict(branches, '子', '丑') && dayElement !== 2) {
+            return "从弱"; // 非土日主遇子丑合土
         }
         
-        // 默认不改变原判断
         return null;
     }
     
@@ -2707,23 +2722,26 @@ function determineStrengthType(pillars) {
         let score = 0;
         const dayElement = getElementIndex(dayStem);
         
-        // 天干生助（比肩1分，印1分）
+        // 天干生助（比肩1.5分，印1分）
         stems.forEach(stem => {
             const elem = getElementIndex(stem);
-            if (elem === dayElement) score += 1;       // 比肩
-            if (elem === (dayElement + 4) % 5) score += 1; // 印（相生关系）
+            if (elem === dayElement) score += 1.5;       // 比劫
+            if (elem === (dayElement + 4) % 5) score += 1; // 印
         });
         
-        // 地支生助（主气2分，中气1分，余气0.5分）
+        // 地支生助（主气3分，中气1.5分，余气0.5分）
         branches.forEach(branch => {
             const hiddenStems = getHiddenStems(branch);
             hiddenStems.split('').forEach((stem, i) => {
                 const elem = getElementIndex(stem);
-                const weight = i === 0 ? 2 : (i === 1 ? 1 : 0.5); // 主/中/余气权重
+                const weight = i === 0 ? 3 : (i === 1 ? 1.5 : 0.5);
                 
                 if (elem === dayElement) score += weight;       // 比劫
-                if (elem === (dayElement + 4) % 5) score += weight * 0.8; // 印（地支生力稍弱）
+                if (elem === (dayElement + 4) % 5) score += weight * 0.8; // 印
             });
+            
+            // 地支本气加强（得地）
+            if (getElementIndex(branch) === dayElement) score += 2;
         });
         
         return score;
@@ -2736,42 +2754,79 @@ function determineStrengthType(pillars) {
         let score = 0;
         const dayElement = getElementIndex(dayStem);
         
-        // 天干克泄（财1分，官1.2分，食伤0.8分）
+        // 天干克泄（财1分，官1.5分，食伤1.2分）
         stems.forEach(stem => {
             const elem = getElementIndex(stem);
             if (elem === (dayElement + 3) % 5) score += 1;   // 财
-            if (elem === (dayElement + 2) % 5) score += 1.2; // 官杀
-            if (elem === (dayElement + 1) % 5) score += 0.8; // 食伤
+            if (elem === (dayElement + 2) % 5) score += 1.5; // 官杀
+            if (elem === (dayElement + 1) % 5) score += 1.2; // 食伤
         });
         
-        // 地支克泄（主气2分）
+        // 地支克泄（主气3分，中气1分）
         branches.forEach(branch => {
             const elem = getElementIndex(branch);
-            if (elem === (dayElement + 3) % 5) score += 2;   // 财
-            if (elem === (dayElement + 2) % 5) score += 2.5; // 官杀
-            if (elem === (dayElement + 1) % 5) score += 1.5; // 食伤
+            if (elem === (dayElement + 3) % 5) score += 3;   // 财
+            if (elem === (dayElement + 2) % 5) score += 3.5; // 官杀
+            if (elem === (dayElement + 1) % 5) score += 2;   // 食伤
+            
+            // 地支藏干克泄
+            const hiddenStems = getHiddenStems(branch);
+            hiddenStems.split('').forEach((stem, i) => {
+                const weight = i === 0 ? 1.5 : (i === 1 ? 1 : 0.3);
+                const elem = getElementIndex(stem);
+                
+                if (elem === (dayElement + 3) % 5) score += weight;   // 财
+                if (elem === (dayElement + 2) % 5) score += weight*1.2; // 官杀
+                if (elem === (dayElement + 1) % 5) score += weight;   // 食伤
+            });
         });
         
         return score;
     }
     
     /**
-     * 特殊冲克处理
+     * 特殊冲克处理（削弱日主）
      */
-    function applySpecialConflicts(supportScore, branches) {
+    function applySpecialConflicts(score, branches, dayElement) {
         // 子午冲（水根被冲）
-        if (hasConflict(branches, '子', '午')) supportScore -= 3;
+        if (hasConflict(branches, '子', '午') && dayElement === 4) score -= 4;
         
         // 卯酉冲（木根被冲）
-        if (hasConflict(branches, '卯', '酉')) supportScore -= 2;
+        if (hasConflict(branches, '卯', '酉') && dayElement === 0) score -= 3;
         
         // 寅申冲（木根被冲）
-        if (hasConflict(branches, '寅', '申')) supportScore -= 2;
+        if (hasConflict(branches, '寅', '申') && dayElement === 0) score -= 3;
         
-        return Math.max(0, supportScore);
+        return Math.max(0, score);
     }
     
-    // --- 工具函数 ---
+    /**
+     * 特殊生助处理（增强克泄方）
+     */
+    function applySpecialSupports(score, branches, dayElement) {
+        // 巳酉丑合金增强金
+        if (countOccurrences(branches, ['巳','酉','丑']) >= 2 && (dayElement + 2) % 5 === 3) {
+            score += 3; // 官杀为金时增强
+        }
+        
+        // 寅午戌合火增强火
+        if (countOccurrences(branches, ['寅','午','戌']) >= 2 && (dayElement + 1) % 5 === 1) {
+            score += 3; // 食伤为火时增强
+        }
+        
+        return score;
+    }
+    
+    /**
+     * 检查是否所有五行相同（专旺格判断）
+     */
+    function isAllElementsSame(dayElement, stems, branches) {
+        const allElements = [...stems, ...branches].map(c => getElementIndex(c));
+        return allElements.every(elem => elem === dayElement);
+    }
+    
+    // ================== 工具函数 ================== //
+    
     function countOccurrences(arr, items) {
         return arr.filter(x => items.includes(x)).length;
     }
@@ -2780,16 +2835,24 @@ function determineStrengthType(pillars) {
         return branches.includes(b1) && branches.includes(b2);
     }
     
+    function hasTripleCombination(combo, branches) {
+        return branches.filter(b => combo.includes(b)).length >= 2;
+    }
+    
     function getElementIndex(char) {
-        const map = { 甲:0,乙:0, 丙:1,丁:1, 戊:2,己:2, 庚:3,辛:3, 壬:4,癸:4,
-                     寅:0,卯:0, 午:1,巳:1, 辰:2,戌:2,丑:2,未:2, 申:3,酉:3, 子:4,亥:4 };
+        const map = { 
+            甲:0,乙:0, 丙:1,丁:1, 戊:2,己:2, 庚:3,辛:3, 壬:4,癸:4,
+            寅:0,卯:0, 午:1,巳:1, 辰:2,戌:2,丑:2,未:2, 申:3,酉:3, 子:4,亥:4 
+        };
         return map[char] ?? 0;
     }
     
     function getHiddenStems(branch) {
-        const map = { 子:'癸', 丑:'己癸辛', 寅:'甲丙戊', 卯:'乙', 辰:'戊乙癸',
-                     巳:'丙庚戊', 午:'丁己', 未:'己丁乙', 申:'庚壬戊', 酉:'辛', 
-                     戌:'戊辛丁', 亥:'壬甲' };
+        const map = { 
+            子:'癸', 丑:'己癸辛', 寅:'甲丙戊', 卯:'乙', 辰:'戊乙癸',
+            巳:'丙庚戊', 午:'丁己', 未:'己丁乙', 申:'庚壬戊', 酉:'辛', 
+            戌:'戊辛丁', 亥:'壬甲' 
+        };
         return map[branch] || '';
     }
 }
