@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 增强版缓存对象v2.2v
+    // 增强版缓存对象v2.2s
     const baziCache = {
         data: {},
         get: function(key) {
@@ -3144,7 +3144,7 @@ function determineStrengthType(pillars) {
         
         let prompt = `请严格按照以下规则进行专业八字排盘，确保所有计算准确无误：
         
-1.用简洁语言清晰的表达
+1.用详细清晰的语言表达
 2.使用标准Markdown语法，可用表格方式呈现
 3.进度条用下划线模拟可视化效果
 4.箭头符号仅使用常规字符→
