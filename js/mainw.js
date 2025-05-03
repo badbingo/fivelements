@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 增强版缓存对象v2.2s
+    // 增强版缓存对象v2.2a
     const baziCache = {
         data: {},
         get: function(key) {
@@ -3241,8 +3241,7 @@ function determineStrengthType(pillars) {
             case 'annual-fortune':
                 prompt += `详细分析当前流年运势：
 1 根据命主八字，大运，流年分析命格强弱           
-2 流年事业吉凶详细分析(1-5星)
-3 流年婚姻吉凶详细分析(1-5星)
+2 流年财运，婚姻吉凶详细分析(1-5星)
 4 流年重大事件吉凶详细分析(1-5星)
 `;               
                 break;
@@ -3256,23 +3255,22 @@ function determineStrengthType(pillars) {
                 break;
             case 'milestones':
                 prompt += `分析一生重要节点和重大灾祸：
-1 一生重要事件详细分析
-2 一生重大灾祸详细分析
+1 一生重要事件详细分析(1-5星)
+2 一生重大灾祸详细分析(1-5星)
 3 如何趋吉避凶
 `;
                 break;
             case 'decade-fortune':
                 prompt += `分析十年大运走势：
-1 全部大运财运吉凶详细分析(可用表格方式呈现，1-5星)
-2 大运重大事件吉凶详细分析(可用表格方式呈现，1-5星)
+1 一生大运财运吉凶详细分析(可用表格方式呈现，1-5星)
+2 一生大运重大事件吉凶详细分析(可用表格方式呈现，1-5星)
 `;
                 break;
             case 'monthly-fortune':
                 prompt += `详细分析今年每月运势：
 1 根据命主八字，大运，流年分析命格强弱 
-2 流月事业吉凶详细分析(1-5星)
-3 流月婚姻吉凶详细分析(1-5星)
-4 流月重大事件吉凶详细分析(1-5星)
+2 流月财运，婚姻吉凶详细分析(1-5星)
+3 流月重大事件吉凶详细分析(1-5星)
 `;
                 break;
             default:
