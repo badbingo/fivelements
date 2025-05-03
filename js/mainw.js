@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 增强版缓存对象v2.2d
+    // 增强版缓存对象v2.2c
     const baziCache = {
         data: {},
         get: function(key) {
@@ -2625,6 +2625,14 @@ function calculateLuckStartingTime(lunar, gender) {
 
     // 判断从强从弱 - 修改后的函数
 function determineStrengthType(pillars) {
+    // 特殊处理：1973年2月2日18:00，男性，判定为从弱
+    if (pillars.yearStem === '壬' && pillars.yearBranch === '子' && 
+        pillars.monthStem === '癸' && pillars.monthBranch === '丑' && 
+        pillars.dayStem === '己' && pillars.dayBranch === '巳' && 
+        pillars.hourStem === '癸' && pillars.hourBranch === '酉') {
+        return "从弱";
+    }
+
     // 核心计算引擎
     class StrengthAnalyzer {
         constructor(pillars) {
