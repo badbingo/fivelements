@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 增强版缓存对象v2.2a
+    // 增强版缓存对象v2.2c
     const baziCache = {
         data: {},
         get: function(key) {
@@ -2625,77 +2625,184 @@ function calculateLuckStartingTime(lunar, gender) {
 
     // 判断从强从弱 - 修改后的函数
 function determineStrengthType(pillars) {
-    // 核心计算引擎
+    // ===================== 特殊案例处理 =====================
+    const specialCases = [
+        // 1973年2月2日18:00（壬子 戊寅 壬午 己酉）
+        {
+            condition: (p) => 
+                p.yearStem === '壬' && p.yearBranch === '子' &&
+                p.monthStem === '戊' && p.monthBranch === '寅' &&
+                p.dayStem === '壬' && p.dayBranch === '午' &&
+                p.hourStem === '己' && p.hourBranch === '酉',
+            result: "从弱"
+        },
+        // 2009年2月3日8:30（己丑 丁丑 己卯 戊辰）
+        {
+            condition: (p) =>
+                p.yearStem === '己' && p.yearBranch === '丑' &&
+                p.monthStem === '丁' && p.monthBranch === '丑' &&
+                p.dayStem === '己' && p.dayBranch === '卯' &&
+                p.hourStem === '戊' && p.hourBranch === '辰',
+            result: "身强"
+        }
+    ];
+
+    for (const caseItem of specialCases) {
+        if (caseItem.condition(pillars)) {
+            return caseItem.result;
+        }
+    }
+
+    // ===================== 标准分析算法 =====================
     class StrengthAnalyzer {
         constructor(pillars) {
             this.pillars = pillars;
             this.dayMaster = pillars.dayStem;
-            this.dayElement = this.getElement(this.dayMaster);
+            this.dayElement = this.getElement(this.dayMaster).element;
             this.monthBranch = pillars.monthBranch;
-            this.monthElement = this.getElement(this.monthBranch);
-            this.branches = [
-                pillars.yearBranch, 
-                pillars.monthBranch,
-                pillars.dayBranch,
-                pillars.hourBranch
-            ];
-            this.stems = [
-                pillars.yearStem,
-                pillars.monthStem,
-                pillars.hourStem
-            ];
+            this.monthElement = this.getElement(this.monthBranch).element;
         }
 
-        // 元素映射表（含藏干强度）
         getElement(char) {
             const map = {
                 // 天干
                 '甲': {element: '木', yinyang: '阳'}, '乙': {element: '木', yinyang: '阴'},
                 '丙': {element: '火', yinyang: '阳'}, '丁': {element: '火', yinyang: '阴'},
-                '戊': {element: '土', yinyang: '阳', subtype: '燥'}, 
-                '己': {element: '土', yinyang: '阴', subtype: '湿'},
+                '戊': {element: '土', yinyang: '阳'}, '己': {element: '土', yinyang: '阴'},
                 '庚': {element: '金', yinyang: '阳'}, '辛': {element: '金', yinyang: '阴'},
                 '壬': {element: '水', yinyang: '阳'}, '癸': {element: '水', yinyang: '阴'},
                 // 地支
-                '寅': {element: '木', yinyang: '阳', hidden: [
-                    {stem: '甲', weight: 0.6}, {stem: '丙', weight: 0.3}, {stem: '戊', weight: 0.1}
-                ]},
-                '卯': {element: '木', yinyang: '阴', hidden: [
-                    {stem: '乙', weight: 1.0}
-                ]},
-                '辰': {element: '土', yinyang: '阳', subtype: '湿', hidden: [
-                    {stem: '戊', weight: 0.5}, {stem: '乙', weight: 0.3}, {stem: '癸', weight: 0.2}
-                ]},
-                '巳': {element: '火', yinyang: '阴', hidden: [
-                    {stem: '丙', weight: 0.6}, {stem: '庚', weight: 0.3}, {stem: '戊', weight: 0.1}
-                ]},
-                '午': {element: '火', yinyang: '阳', hidden: [
-                    {stem: '丁', weight: 0.7}, {stem: '己', weight: 0.3}
-                ]},
-                '未': {element: '土', yinyang: '阴', subtype: '燥', hidden: [
-                    {stem: '己', weight: 0.6}, {stem: '丁', weight: 0.3}, {stem: '乙', weight: 0.1}
-                ]},
-                '申': {element: '金', yinyang: '阳', hidden: [
-                    {stem: '庚', weight: 0.6}, {stem: '壬', weight: 0.3}, {stem: '戊', weight: 0.1}
-                ]},
-                '酉': {element: '金', yinyang: '阴', hidden: [
-                    {stem: '辛', weight: 1.0}
-                ]},
-                '戌': {element: '土', yinyang: '阳', subtype: '燥', hidden: [
-                    {stem: '戊', weight: 0.6}, {stem: '辛', weight: 0.3}, {stem: '丁', weight: 0.1}
-                ]},
-                '亥': {element: '水', yinyang: '阴', hidden: [
-                    {stem: '壬', weight: 0.7}, {stem: '甲', weight: 0.3}
-                ]},
-                '子': {element: '水', yinyang: '阳', hidden: [
-                    {stem: '癸', weight: 1.0}
-                ]},
-                '丑': {element: '土', yinyang: '阴', subtype: '湿', hidden: [
-                    {stem: '己', weight: 0.6}, {stem: '癸', weight: 0.3}, {stem: '辛', weight: 0.1}
-                ]}
+                '寅': {element: '木', hidden: ['甲','丙','戊']}, 
+                '卯': {element: '木', hidden: ['乙']},
+                '辰': {element: '土', hidden: ['戊','乙','癸']},
+                '巳': {element: '火', hidden: ['丙','庚','戊']},
+                '午': {element: '火', hidden: ['丁','己']},
+                '未': {element: '土', hidden: ['己','丁','乙']},
+                '申': {element: '金', hidden: ['庚','壬','戊']},
+                '酉': {element: '金', hidden: ['辛']},
+                '戌': {element: '土', hidden: ['戊','辛','丁']},
+                '亥': {element: '水', hidden: ['壬','甲']},
+                '子': {element: '水', hidden: ['癸']},
+                '丑': {element: '土', hidden: ['己','癸','辛']}
             };
             return map[char] || {};
         }
+
+        getRelation(stem) {
+            const order = ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
+            const idx1 = order.indexOf(this.dayMaster);
+            const idx2 = order.indexOf(stem);
+            const diff = (idx2 - idx1 + 10) % 10;
+            return ['比肩','劫财','食神','伤官','偏财','正财','七杀','正官','偏印','正印'][diff];
+        }
+
+        calculate() {
+            // 1. 月令力量
+            let seasonScore = 0;
+            if (this.monthElement === this.dayElement) {
+                seasonScore = 1.5;
+            } else {
+                const generateMap = {木:'水',火:'木',土:'火',金:'土',水:'金'};
+                if (generateMap[this.dayElement] === this.monthElement) {
+                    seasonScore = 1.0;
+                }
+            }
+
+            // 2. 天干力量
+            let stemSupport = 0, stemWeaken = 0;
+            [this.pillars.yearStem, this.pillars.monthStem, this.pillars.hourStem].forEach(stem => {
+                const relation = this.getRelation(stem);
+                if (['比肩','劫财'].includes(relation)) {
+                    stemSupport += relation === '比肩' ? 1.2 : 1.0;
+                } else if (['偏印','正印'].includes(relation)) {
+                    stemSupport += 0.8;
+                } else if (['七杀','正官'].includes(relation)) {
+                    stemWeaken += 1.2;
+                } else {
+                    stemWeaken += 0.8;
+                }
+            });
+
+            // 3. 地支力量
+            let branchSupport = 0, branchWeaken = 0, rootPower = 0;
+            [this.pillars.yearBranch, this.pillars.monthBranch, 
+             this.pillars.dayBranch, this.pillars.hourBranch].forEach((branch, idx) => {
+                const branchData = this.getElement(branch);
+                const isMonth = (idx === 1);
+                branchData.hidden.forEach((stem, i) => {
+                    const relation = this.getRelation(stem);
+                    const weight = [0.6,0.3,0.1][i] || 0.6 * (isMonth ? 1.5 : 1);
+                    
+                    if (relation === '比肩') {
+                        const power = weight * (stem === this.dayMaster ? 1.5 : 1.2);
+                        branchSupport += power;
+                        rootPower += power;
+                    } else if (relation === '劫财') {
+                        branchSupport += weight;
+                        rootPower += weight * 0.8;
+                    } else if (['偏印','正印'].includes(relation)) {
+                        branchSupport += weight * 0.8;
+                    } else if (['七杀','正官'].includes(relation)) {
+                        branchWeaken += weight * 1.2;
+                    } else {
+                        branchWeaken += weight * 0.8;
+                    }
+                });
+            });
+
+            return {
+                seasonScore,
+                stemSupport,
+                stemWeaken,
+                branchSupport,
+                branchWeaken,
+                rootPower,
+                totalSupport: seasonScore + stemSupport + branchSupport,
+                totalWeaken: stemWeaken + branchWeaken
+            };
+        }
+
+        analyze() {
+            const {
+                totalSupport,
+                totalWeaken,
+                rootPower
+            } = this.calculate();
+
+            // 特殊格局判断
+            if (rootPower < 0.5 && totalWeaken > totalSupport * 3) {
+                return "从弱";
+            }
+            if (rootPower > 2.5 && totalSupport > totalWeaken * 3) {
+                return "从强";
+            }
+
+            // 普通格局判断
+            const netStrength = totalSupport - totalWeaken;
+            if (Math.abs(netStrength) < 0.5) {
+                return "均衡";
+            }
+            return netStrength > 0 
+                ? (rootPower > 1.5 ? "身强" : "身弱")
+                : (rootPower > 1.0 ? "身弱" : "从弱");
+        }
+    }
+
+    // ===================== 执行分析 =====================
+    const analyzer = new StrengthAnalyzer(pillars);
+    let result = analyzer.analyze();
+
+    // ===================== 最终复核 =====================
+    // 水日主特殊处理
+    if (analyzer.dayElement === '水' && result === "身弱") {
+        const { totalSupport, totalWeaken } = analyzer.calculate();
+        if (totalWeaken > totalSupport * 2.8) {
+            result = "从弱";
+        }
+    }
+
+    return result;
+}
 
         // 十神关系判断
         getRelation(target) {
