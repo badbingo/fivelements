@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const currentDay = currentDate.getDate(); // 1-31
     const currentHour = currentDate.getHours(); // 0-23
     const currentMinute = currentDate.getMinutes(); // 0-59
-    // 增强版缓存对象v2.2v
+    // 增强版缓存对象v2.2a
     const baziCache = {
         data: {},
         get: function(key) {
@@ -3447,7 +3447,9 @@ function determineStrengthType(pillars) {
 2. 回答应简洁明了，避免冗长
 3. 针对用户问题提供专业分析
 4. 所有分析前必须先计算出命主当前八字+大运+流年的格局强弱，再进行分析
-5. 如果问题与当前命盘相关，请结合以下八字信息：
+   当前日期：${currentDateStr} 
+   如果问题与当前命盘相关，请结合以下八字信息：
+   当前日期：${currentDateStr} 
    姓名：${birthData.name || '未提供'}
    出生日期：${birthData.date}
    出生时间：${birthData.time}
