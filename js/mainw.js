@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const currentDay = currentDate.getDate(); // 1-31
     const currentHour = currentDate.getHours(); // 0-23
     const currentMinute = currentDate.getMinutes(); // 0-59
-    // 增强版缓存对象v2.2a
+    // 增强版缓存对象v2.2v
     const baziCache = {
         data: {},
         get: function(key) {
@@ -374,7 +374,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 全局变量
     let elementChart;
-    const currentDate = new Date();
     let birthData = {};
     let loadedSections = {};
     let currentPillars = {};
