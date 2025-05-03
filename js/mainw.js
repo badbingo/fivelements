@@ -1,5 +1,12 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 增强版缓存对象v2.2c
+    // 确保全局能获取当前日期（动态获取2025年）
+    const currentDate = new Date(); // 自动获取当前日期（2025）
+    const currentYear = currentDate.getFullYear(); // 2025
+    const currentMonth = currentDate.getMonth() + 1; // 1-12
+    const currentDay = currentDate.getDate(); // 1-31
+    const currentHour = currentDate.getHours(); // 0-23
+    const currentMinute = currentDate.getMinutes(); // 0-59
+    // 增强版缓存对象v2.2a
     const baziCache = {
         data: {},
         get: function(key) {
@@ -1810,7 +1817,8 @@ function getElementName(index) {
 
     // 更新农历日历
     function updateLunarCalendar() {
-        const solar = Solar.fromDate(new Date());
+    // 使用 currentDate（2025年）
+        const solar = Solar.fromDate(currentDate); // 修改这里，传入 currentDate
         const lunar = solar.getLunar();
         lunarDate.textContent = `${lunar.getYearInChinese()}年 ${lunar.getMonthInChinese()}月 ${lunar.getDayInChinese()}`;
         lunarGanzhi.textContent = `${lunar.getYearInGanZhi()}年 ${lunar.getMonthInGanZhi()}月 ${lunar.getDayInGanZhi()}日`;
@@ -2861,7 +2869,8 @@ function determineStrengthType(pillars) {
 
     // 计算赌博运势
     function calculateGamblingFortune(birthData, birthLunar) {
-        const currentSolar = Solar.fromDate(new Date());
+    // 使用 currentDate（2025年）
+        const currentSolar = Solar.fromDate(currentDate); // 修改这里，传入 currentDate
         const currentLunar = currentSolar.getLunar();
         const dayGan = birthLunar.getDayGan();
         const dayZhi = birthLunar.getDayZhi();
@@ -3117,30 +3126,30 @@ function determineStrengthType(pillars) {
 
     // 获取八字分析
     async function getBaziAnalysis(section, data) {
-        // 生成缓存键
-        const cacheKey = `${generateBaziHashKey(data)}:${section}`;
-        
-        // 检查缓存
-        const cachedResponse = baziCache.get(cacheKey);
-        if (cachedResponse) {
-            return cachedResponse;
-        }
-        
-        // 先计算本地结果
-        const localResult = calculateBaziLocally(data);
-        
-        // 对于基础信息部分，直接返回本地计算结果
-        if (section === 'basic') {
-            baziCache.set(cacheKey, localResult);
-            return localResult;
-        }
-        
-        // 其他部分调用API
-        const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
-        const apiKey = 'sk-b2950087a9d5427392762814114b22a9';
-        const currentDateStr = currentDate.getFullYear() + '-' + 
-                              (currentDate.getMonth() + 1).toString().padStart(2, '0') + '-' + 
-                              currentDate.getDate().toString().padStart(2, '0');
+    // 生成缓存键
+    const cacheKey = `${generateBaziHashKey(data)}:${section}`;
+    
+    // 检查缓存
+    const cachedResponse = baziCache.get(cacheKey);
+    if (cachedResponse) {
+        return cachedResponse;
+    }
+    
+    // 先计算本地结果
+    const localResult = calculateBaziLocally(data);
+    
+    // 对于基础信息部分，直接返回本地计算结果
+    if (section === 'basic') {
+        baziCache.set(cacheKey, localResult);
+        return localResult;
+    }
+    
+    // 其他部分调用API
+    const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
+    const apiKey = 'sk-b2950087a9d5427392762814114b22a9';
+    
+    // 使用 currentYear（2025）、currentMonth、currentDay
+    const currentDateStr = `${currentYear}-${currentMonth.toString().padStart(2, '0')}-${currentDay.toString().padStart(2, '0')}`;
         
         let prompt = `请严格按照以下规则进行专业八字排盘，确保所有计算准确无误：
         
@@ -3424,6 +3433,8 @@ function determineStrengthType(pillars) {
     async function getBaziAnswer(question) {
         const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
         const apiKey = 'sk-b2950087a9d5427392762814114b22a9';
+    // 使用 currentYear（2025）、currentMonth、currentDay
+        const currentDateStr = `${currentYear}-${currentMonth.toString().padStart(2, '0')}-${currentDay.toString().padStart(2, '0')}`;
         const cacheKey = `qa:${generateBaziHashKey(birthData)}:${question}`;
         
         // 检查缓存
