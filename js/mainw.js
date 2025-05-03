@@ -972,7 +972,7 @@ ${getWealthSuggestions(score)}
             profiles.push(birthData);
         }
         
-        if (profiles.length > 5) {
+        if (profiles.length > 8) {
             profiles.shift();
         }
         
