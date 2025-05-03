@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 增强版缓存对象v2.2b
+    // 增强版缓存对象v2.2c
     const baziCache = {
         data: {},
         get: function(key) {
@@ -3195,29 +3195,22 @@ function determineStrengthType(pillars) {
                 break;
             case 'strength':
                 prompt += `分析命主的身强身弱情况：
-    1. 三维强度评估（百分制）：
-       ├─ 得令评估：${seasonStrength}%（当令${season}月）
-       ├─ 得地评估：${rootStrength}%（${dominantRoot}根）
-       └─ 得势评估：${supportStrength}%（比劫${supportCount}个）
-       → 综合强度：${totalScore}/100（${strengthLevel}）
+1. 三维强度评估（百分制）：
+    - 得令评估：
+    - 得地评估：
+    - 得势评估：
+    => 综合强度：
 
-    2. 格局互动图谱：
-       ┌───────────┐
-       │ 合化：${combineResult}          │
-       │ 刑冲：${clashWarning}         │
-       └───────────┘
-       *特殊格局标记：${specialPattern}
+2. 格局互动图谱：
+    [合化] 
+    [刑冲] 
+    *特殊格局：
 
-    3. 能量平衡方案：
-       ├─ 喜用神：${favorableElements}（增强用）
-       │  ▸ 补益方式：${enhanceMethods}
-       └─ 忌凶神：${unfavorableElements}（化解用）
-          ▸ 规避建议：${avoidanceTips}
-
-    4. 现代应用指南：
-       ├─ 健康管理：${healthImplications}
-       ├─ 职业适配：${careerSuggestions}
-       └─ 人际建议：${relationshipTips}
+3. 能量平衡方案：
+    - 喜用神：
+    > 补益方式：
+    - 忌凶神：
+    > 规避建议：
 `;
                 break;
             case 'career':
@@ -3253,11 +3246,11 @@ function determineStrengthType(pillars) {
             case 'elements':
                 prompt += `分析八字五行强弱，燥湿和流通情况：
 1. 能量雷达图（0-100评分）：
-    - 木：${x}%（肝胆/神经系统）
-    - 火：${y}%（心血管/内分泌）
-    - 土：${z}%（脾胃/免疫系统）
-    - 金：${a}%（呼吸系统）
-    - 水：${b}%（肾脏/生殖系统）
+    - 木：（肝胆/神经系统）
+    - 火：（心血管/内分泌）
+    - 土：（脾胃/免疫系统）
+    - 金：（呼吸系统）
+    - 水：（肾脏/生殖系统）
 2. 气候适应性：
     - 最佳居住地（干燥/湿润地区）
     - 季节性注意事项（如金弱忌秋）
@@ -3289,9 +3282,10 @@ function determineStrengthType(pillars) {
     - 最佳生育年龄段（生理时钟+命理时钟）
     - 易孕体质特征（命中子息星强弱）
 2. 亲子关系图谱：
-    | 子女序位 | 性别倾向 | 缘分深度 | 特殊天赋       |
-    |----------|----------|----------|----------------|
-    | 第一胎   | 男70%    | ★★★★☆   | 数理逻辑突出   |
+    - 子女序位
+    - 性别倾向
+    - 缘分深度
+    - 特殊天赋       |
 3. 现代建议：
     - 备孕时机选择（流年配合）
     - 教育方向建议（五行补益才艺）
