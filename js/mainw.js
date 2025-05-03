@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 增强版缓存对象v2.2b
+    // 增强版缓存对象v2.2c
     const baziCache = {
         data: {},
         get: function(key) {
@@ -2649,7 +2649,7 @@ function determineStrengthType(pillars) {
     const branches = [pillars.yearBranch, pillars.monthBranch, pillars.dayBranch, pillars.hourBranch];
     const dayElement = getElementIndex(dayStem);
 
-    // 先计算分数和根气状态
+    // 计算分数和根气状态（已整合合化影响）
     const scores = calculateScores();
     const rootStatus = checkRootStatus();
     const seasonMatch = isSeasonMatch();
@@ -2667,31 +2667,31 @@ function determineStrengthType(pillars) {
     function calculateScores() {
         let support = 0, weaken = 0;
         
-        // 天干力量
+        // 天干力量计算（已包含合化影响）
         stems.forEach(stem => {
             const elem = getElementIndex(stem);
             if (elem === dayElement) support += 1.5;
-            else if (elem === (dayElement + 4) % 5) support += 1;
-            else if (elem === (dayElement + 3) % 5) weaken += 1;
-            else if (elem === (dayElement + 2) % 5) weaken += 1.5;
-            else if (elem === (dayElement + 1) % 5) weaken += 1.2;
+            else if (elem === (dayElement + 4) % 5) support += 1;   // 印星
+            else if (elem === (dayElement + 3) % 5) weaken += 1;    // 官杀
+            else if (elem === (dayElement + 2) % 5) weaken += 1.5; // 财星
+            else if (elem === (dayElement + 1) % 5) weaken += 1.2; // 食伤
         });
 
-        // 地支力量
+        // 地支力量计算（已包含合化影响）
         branches.forEach((branch, idx) => {
             const hiddenStems = getHiddenStems(branch);
             hiddenStems.split('').forEach((stem, i) => {
                 const elem = getElementIndex(stem);
-                const weight = [0.6, 0.3, 0.1][i] || 0;
+                const weight = [0.6, 0.3, 0.1][i] || 0; // 主气/中气/余气权重
                 
-                if (elem === dayElement) support += weight * 3;
-                else if (elem === (dayElement + 4) % 5) support += weight * 2;
-                else if (elem === (dayElement + 3) % 5) weaken += weight * 2;
-                else if (elem === (dayElement + 2) % 5) weaken += weight * 3;
-                else if (elem === (dayElement + 1) % 5) weaken += weight * 2;
+                if (elem === dayElement) support += weight * 3;       // 比劫
+                else if (elem === (dayElement + 4) % 5) support += weight * 2; // 印星
+                else if (elem === (dayElement + 3) % 5) weaken += weight * 2;  // 官杀
+                else if (elem === (dayElement + 2) % 5) weaken += weight * 3;  // 财星
+                else if (elem === (dayElement + 1) % 5) weaken += weight * 2;  // 食伤
             });
             
-            // 月令加倍权重
+            // 月令加倍权重（已考虑合化影响）
             if (idx === 1) {
                 support *= 2;
                 weaken *= 2;
@@ -2705,54 +2705,31 @@ function determineStrengthType(pillars) {
     }
 
     function checkRootStatus() {
-        // 检查日主在地支中的根气（考虑合化）
-        let hasRoot = false;
-        
-        branches.forEach(branch => {
-            const hiddenStems = getHiddenStems(branch);
-            if (hiddenStems.includes(dayStem)) {
-                // 检查是否被合化（如午未合化土）
-                if (!isBranchCombined(branch)) {
-                    hasRoot = true;
-                }
-            }
-        });
-        
-        return hasRoot ? '有根' : '无根';
-    }
-
-    function isBranchCombined(branch) {
-        // 地支六合判断
-        const combinationPairs = [
-            ['子', '丑'], ['午', '未'],
-            ['卯', '戌'], ['寅', '亥'],
-            ['辰', '酉'], ['巳', '申']
-        ];
-        
-        return combinationPairs.some(pair => 
-            (pair[0] === branch && branches.includes(pair[1])) ||
-            (pair[1] === branch && branches.includes(pair[0]))
+        // 只要藏干存在日主天干即视为有根（合化影响已在分数计算中体现）
+        let hasRoot = branches.some(branch => 
+            getHiddenStems(branch).includes(dayStem)
         );
+        return hasRoot ? '有根' : '无根';
     }
 
     function isSeasonMatch() {
         const seasonMap = {
-            0: ['寅', '卯'], // 木旺
-            1: ['巳', '午'], // 火旺
-            2: ['辰', '未', '戌', '丑'], // 土旺
-            3: ['申', '酉'], // 金旺
-            4: ['亥', '子']  // 水旺
+            0: ['寅','卯','辰'],   // 木旺于春
+            1: ['巳','午','未'],   // 火旺于夏
+            2: ['辰','戌','丑','未'],// 土旺四季
+            3: ['申','酉','戌'],   // 金旺于秋
+            4: ['亥','子','丑']    // 水旺于冬
         };
         return seasonMap[dayElement].includes(pillars.monthBranch);
     }
 
     function checkSpecialPatterns() {
-        // 专旺格检查
+        // 专旺格检查（全盘同类五行）
         if ([...stems, ...branches].every(c => getElementIndex(c) === dayElement)) {
             return "从强";
         }
         
-        // 从财格检查
+        // 从财格检查（修正：需无根且财星力量>3倍）
         if (rootStatus === '无根' && isWealthDominating()) {
             return "从弱";
         }
@@ -2761,27 +2738,23 @@ function determineStrengthType(pillars) {
     }
 
     function isWealthDominating() {
-        const wealthElement = (dayElement + 3) % 5;
-        let wealthPower = 0;
-        
-        // 计算财星力量
-        [...stems, ...branches].forEach(c => {
-            if (getElementIndex(c) === wealthElement) wealthPower += 2;
-        });
-        
+        const wealthElement = (dayElement + 2) % 5; // 正偏财
+        let wealthPower = [...stems, ...branches]
+            .filter(c => getElementIndex(c) === wealthElement)
+            .length * 2; // 财星加权
         return wealthPower >= 10 && scores.support < 5;
     }
 
     function isTrueCongWeak() {
-        // 修改后的从弱格判断条件
-        return (rootStatus === '无根' && 
-               scores.weaken > scores.support * 2) || 
-               (rootStatus === '无根' && 
-               !seasonMatch && 
-               scores.weaken > scores.support);
+        // 强化从弱判断标准
+        return rootStatus === '无根' && (
+            scores.weaken > scores.support * 3 ||  // 削弱力量三倍于支持
+            (scores.weaken > scores.support * 2 && !seasonMatch) // 两倍且不得令
+        );
     }
 
     function isTrueCongStrong() {
+        // 强化从强判断标准
         return rootStatus === '有根' && 
                scores.support > scores.weaken * 2 && 
                seasonMatch;
