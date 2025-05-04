@@ -5,66 +5,89 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>命运之门</title>
     <style>
-        body {
-            margin: 0;
-            padding: 0;
+        /* 验证失败样式 */
+        #access-denied {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
             background-color: #000;
-            color: #c792ea;
-        }
-        #content-container {
+            color: #ff5555;
+            font-family: 'ZCOOL XiaoWei', serif;
+            text-align: center;
             padding: 20px;
         }
-        .back-button {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            padding: 10px 20px;
-            background: rgba(0,0,0,0.7);
+        #access-denied h1 {
+            text-shadow: 0 0 10px #ff0000;
+            margin-bottom: 30px;
+        }
+        #access-denied a {
             color: #c792ea;
-            border: 2px solid #7e57c2;
+            text-decoration: none;
+            border: 1px solid #7e57c2;
+            padding: 10px 20px;
             border-radius: 5px;
-            font-size: 1.2rem;
-            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 20px;
+        }
+        #access-denied a:hover {
+            background-color: rgba(126, 87, 194, 0.2);
+            box-shadow: 0 0 15px #7e57c2;
+        }
+        
+        /* 隐藏内容样式 */
+        #content-container {
+            display: none;
+            width: 100%;
+            height: 100vh;
+        }
+        
+        /* iframe样式 */
+        #content-frame {
+            width: 100%;
+            height: 100%;
+            border: none;
         }
     </style>
 </head>
 <body>
-    <div id="content-container">
-        <!-- 内容将通过AJAX动态加载 -->
+    <!-- 验证失败显示 -->
+    <div id="access-denied">
+        <h1>⚠️ 命运之门警告 ⚠️</h1>
+        <p>命运之路不可强求...</p>
+        <p>唯有通过命运之门的召唤，方能窥见天机</p>
+        <a href="index.html">返回命运之门</a>
     </div>
-    
-    <button class="back-button" onclick="window.location.href='index.html'">返回命运之门</button>
-    
+
+    <!-- 实际内容容器 -->
+    <div id="content-container">
+        <iframe id="content-frame" src="yuanfen.html"></iframe>
+    </div>
+
     <script>
-        // 使用fetch API加载yuanfen.html的内容
-        fetch('yuanfen.html')
-            .then(response => response.text())
-            .then(html => {
-                // 提取yuanfen.html的body内容
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(html, 'text/html');
-                const yuanfenContent = doc.body.innerHTML;
-                
-                // 插入到当前页面
-                document.getElementById('content-container').innerHTML = yuanfenContent;
-                
-                // 执行yuanfen.html中的脚本
-                const scripts = doc.querySelectorAll('script');
-                scripts.forEach(script => {
-                    const newScript = document.createElement('script');
-                    if (script.src) {
-                        newScript.src = script.src;
-                    } else {
-                        newScript.textContent = script.textContent;
-                    }
-                    document.body.appendChild(newScript);
-                });
-            })
-            .catch(error => {
-                console.error('加载命运内容失败:', error);
-                document.getElementById('content-container').innerHTML = 
-                    '<h1>命运内容加载失败</h1><p>请稍后再试或返回主页</p>';
-            });
+        // 验证访问权限
+        function checkAccess() {
+            // 检查sessionStorage中的访问令牌
+            const hasAccess = sessionStorage.getItem("destinyAccess") === "true";
+            
+            // 检查referrer是否来自index.html
+            const validReferrer = document.referrer.includes("index.html");
+            
+            if (hasAccess || validReferrer) {
+                // 验证通过，显示内容
+                document.getElementById("access-denied").style.display = "none";
+                document.getElementById("content-container").style.display = "block";
+                // 清除令牌
+                sessionStorage.removeItem("destinyAccess");
+            } else {
+                // 验证失败，显示警告
+                document.getElementById("access-denied").style.display = "flex";
+            }
+        }
+
+        // 页面加载时验证
+        checkAccess();
     </script>
 </body>
 </html>
