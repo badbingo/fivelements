@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>神秘命运之门</title>
+    <title>禁忌命运之门</title>
     <link href="https://fonts.googleapis.com/css2?family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
     <style>
-        /* 基础样式 */
+        /* 基础黑暗风格 */
         body {
             background-color: #000;
             color: #9e9e9e;
@@ -19,9 +19,10 @@
             margin: 0;
             overflow: hidden;
             position: relative;
+            perspective: 1000px;
         }
-        
-        /* 星空背景 */
+
+        /* 扭曲的星空背景 */
         .stars {
             position: absolute;
             top: 0;
@@ -29,107 +30,164 @@
             width: 100%;
             height: 100%;
             z-index: 0;
+            background: radial-gradient(ellipse at bottom, #1B2735 0%, #090A0F 100%);
+            overflow: hidden;
+            transform-style: preserve-3d;
         }
-        
+
+        /* 3D星空粒子 */
         .star {
             position: absolute;
             background-color: white;
             border-radius: 50%;
-            animation: twinkle var(--duration) infinite alternate;
+            animation: 
+                twinkle var(--duration) infinite alternate,
+                float var(--float-duration) infinite alternate;
             opacity: var(--opacity);
+            filter: blur(0.5px);
+            transform: translateZ(calc(var(--z-depth) * 100px));
         }
-        
-        .shooting-star {
+
+        /* 特殊黄星 */
+        .special-star {
             position: absolute;
-            width: 4px;
-            height: 4px;
-            background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,1) 50%, rgba(255,255,255,0) 100%);
-            transform: rotate(var(--angle));
-            animation: shoot var(--speed) linear infinite;
-            opacity: 0;
-            top: var(--top);
-            left: var(--left);
+            width: 6px;
+            height: 6px;
+            background: radial-gradient(circle, #FFD700 0%, #FFA500 70%);
+            border-radius: 50%;
+            top: 20%;
+            right: 20%;
+            animation: 
+                pulse-gold 3s infinite alternate,
+                float 15s infinite alternate;
+            box-shadow: 0 0 10px 2px rgba(255, 215, 0, 0.7);
+            z-index: 1;
+            cursor: pointer;
+            transform: translateZ(50px);
         }
-        
-        /* 主容器 */
+
+        /* 主容器 - 添加怪异扭曲 */
         .container {
             position: relative;
             z-index: 1;
             text-align: center;
             padding: 20px;
+            transform-style: preserve-3d;
+            animation: subtle-wobble 15s infinite alternate;
         }
-        
+
+        /* 扭曲的标题 */
         h1 {
-            color: #c792ea;
+            color: transparent;
             text-shadow: 0 0 10px #7e57c2;
             margin-bottom: 40px;
-            font-size: 2.5rem;
-            animation: glow-text 3s ease-in-out infinite alternate;
+            font-size: 3rem;
+            background: linear-gradient(45deg, #c792ea, #7e57c2, #69f0ae);
+            -webkit-background-clip: text;
+            background-clip: text;
+            animation: 
+                glow-text 3s ease-in-out infinite alternate,
+                text-distortion 10s infinite alternate;
+            position: relative;
         }
-        
-        /* 命运按钮 */
+
+        h1::after {
+            content: "";
+            position: absolute;
+            bottom: -10px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #7e57c2, transparent);
+            animation: scanline 2s linear infinite;
+        }
+
+        /* 怪异的命运按钮 */
         .button-container {
             position: relative;
-            width: 200px;
-            height: 200px;
+            width: 250px;
+            height: 250px;
             margin: 0 auto;
+            transform-style: preserve-3d;
+            animation: float 8s infinite alternate;
         }
-        
+
         .destiny-button {
             width: 100%;
             height: 100%;
             border-radius: 50%;
-            background: radial-gradient(circle, #1a1a1a 0%, #000 70%);
+            background: 
+                radial-gradient(circle, 
+                    rgba(26, 26, 26, 0.8) 0%, 
+                    rgba(0, 0, 0, 0.9) 70%),
+                url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><path d="M20,50 Q50,20 80,50 Q50,80 20,50 Z" fill="none" stroke="%237e57c2" stroke-width="0.5"/></svg>');
             border: 2px solid #7e57c2;
-            box-shadow: 0 0 20px #7e57c2, inset 0 0 10px #7e57c2;
+            box-shadow: 
+                0 0 30px #7e57c2, 
+                inset 0 0 20px #7e57c2,
+                0 0 60px rgba(126, 87, 194, 0.5);
             cursor: pointer;
             position: relative;
             overflow: hidden;
-            transition: all 0.3s ease;
+            transition: all 0.5s ease;
             outline: none;
+            transform-style: preserve-3d;
+            filter: drop-shadow(0 0 10px rgba(199, 146, 234, 0.7));
         }
-        
+
         .destiny-button:hover {
-            box-shadow: 0 0 30px #c792ea, inset 0 0 15px #c792ea;
+            box-shadow: 
+                0 0 40px #c792ea, 
+                inset 0 0 25px #c792ea,
+                0 0 80px rgba(199, 146, 234, 0.7);
             border-color: #c792ea;
+            transform: scale(1.05) rotateZ(5deg);
         }
-        
+
         .destiny-button:active {
-            transform: scale(0.95);
+            transform: scale(0.95) rotateZ(-5deg);
         }
-        
+
         .destiny-button.disabled {
             cursor: not-allowed;
-            opacity: 0.6;
-            box-shadow: 0 0 10px #7e57c2, inset 0 0 5px #7e57c2;
+            opacity: 0.5;
+            box-shadow: 0 0 15px #7e57c2, inset 0 0 10px #7e57c2;
+            animation: none;
         }
-        
-        /* 指纹图案 */
+
+        /* 怪异的指纹图案 */
         .fingerprint {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 120px;
-            height: 160px;
-            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M30,20 Q50,10 70,20 Q80,30 75,40 Q70,50 60,45 Q50,40 45,50 Q40,60 50,70 Q60,80 55,90" stroke="%23c792ea" fill="none" stroke-width="2"/><path d="M40,25 Q50,15 60,25 Q65,35 55,40 Q45,45 40,55 Q35,65 45,75 Q55,85 50,95" stroke="%23c792ea" fill="none" stroke-width="2"/></svg>');
+            width: 150px;
+            height: 200px;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M30,20 Q50,10 70,20 Q80,30 75,40 Q70,50 60,45 Q50,40 45,50 Q40,60 50,70 Q60,80 55,90" stroke="%23c792ea" fill="none" stroke-width="1.5" stroke-dasharray="5,3"/><path d="M40,25 Q50,15 60,25 Q65,35 55,40 Q45,45 40,55 Q35,65 45,75 Q55,85 50,95" stroke="%23c792ea" fill="none" stroke-width="1.5" stroke-dasharray="3,3"/></svg>');
             background-repeat: no-repeat;
             background-position: center;
-            opacity: 0.8;
+            opacity: 0.9;
+            animation: fingerprint-glow 4s infinite alternate;
         }
-        
-        /* 倒计时 */
+
+        /* 倒计时 - 怪异风格 */
         .countdown {
             margin-top: 30px;
-            font-size: 1.2rem;
-            color: #7e57c2;
+            font-size: 1.5rem;
+            color: transparent;
+            background: linear-gradient(90deg, #7e57c2, #69f0ae);
+            -webkit-background-clip: text;
+            background-clip: text;
             display: none;
+            text-shadow: 0 0 5px rgba(126, 87, 194, 0.5);
+            letter-spacing: 2px;
         }
-        
+
         .countdown.active {
             display: block;
+            animation: countdown-pulse 1s infinite alternate;
         }
-        
+
         /* 粒子效果 */
         .particles {
             position: absolute;
@@ -140,70 +198,138 @@
             pointer-events: none;
             z-index: 2;
         }
-        
-        /* 消息提示 */
+
+        /* 怪异的消息提示 */
         .message {
             position: fixed;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background-color: rgba(0, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0.7);
             border: 1px solid #7e57c2;
-            padding: 20px;
-            border-radius: 5px;
+            border-image: linear-gradient(45deg, #7e57c2, #c792ea) 1;
+            padding: 25px 40px;
+            border-radius: 0;
             color: #c792ea;
             z-index: 10;
             display: none;
             max-width: 80%;
             text-align: center;
+            font-size: 1.3rem;
+            clip-path: polygon(
+                0% 10%, 10% 0%, 90% 0%, 100% 10%, 
+                100% 90%, 90% 100%, 10% 100%, 0% 90%
+            );
+            animation: message-distortion 5s infinite alternate;
         }
-        
+
         .message.show {
             display: block;
-            animation: fadeInOut 3s ease-in-out;
+            animation: 
+                fadeInOut 3s ease-in-out,
+                message-distortion 5s infinite alternate;
         }
-        
+
         /* 动画定义 */
         @keyframes fadeInOut {
-            0% { opacity: 0; }
-            20% { opacity: 1; }
-            80% { opacity: 1; }
-            100% { opacity: 0; }
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+            20% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+            80% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
         }
-        
+
         @keyframes pulse {
-            0% { box-shadow: 0 0 20px #7e57c2, inset 0 0 10px #7e57c2; }
-            50% { box-shadow: 0 0 30px #c792ea, inset 0 0 15px #c792ea; }
-            100% { box-shadow: 0 0 20px #7e57c2, inset 0 0 10px #7e57c2; }
+            0% { box-shadow: 0 0 20px #7e57c2, inset 0 0 10px #7e57c2; transform: scale(1); }
+            50% { box-shadow: 0 0 40px #c792ea, inset 0 0 20px #c792ea; transform: scale(1.05); }
+            100% { box-shadow: 0 0 20px #7e57c2, inset 0 0 10px #7e57c2; transform: scale(1); }
         }
-        
+
         @keyframes twinkle {
-            0% { opacity: 0.2; transform: scale(0.8); }
-            100% { opacity: 1; transform: scale(1.2); }
+            0% { opacity: 0.2; transform: scale(0.8) translateZ(0); }
+            100% { opacity: 1; transform: scale(1.2) translateZ(10px); }
         }
-        
-        @keyframes shoot {
-            0% { transform: translateX(-100%) rotate(var(--angle)); opacity: 0; }
-            10% { opacity: 1; }
-            90% { opacity: 1; }
-            100% { transform: translateX(100vw) rotate(var(--angle)); opacity: 0; }
+
+        @keyframes float {
+            0% { transform: translateY(0) translateZ(0); }
+            100% { transform: translateY(-20px) translateZ(20px); }
         }
-        
+
         @keyframes glow-text {
-            0% { text-shadow: 0 0 10px #7e57c2; }
-            100% { text-shadow: 0 0 20px #c792ea, 0 0 30px #7e57c2; }
+            0% { text-shadow: 0 0 10px #7e57c2, 0 0 20px transparent; }
+            100% { text-shadow: 0 0 10px #c792ea, 0 0 20px #7e57c2, 0 0 30px #69f0ae; }
         }
-        
+
+        @keyframes text-distortion {
+            0%, 100% { transform: skewX(0deg) scaleY(1); }
+            25% { transform: skewX(-2deg) scaleY(1.02); }
+            50% { transform: skewX(1deg) scaleY(0.98); }
+            75% { transform: skewX(2deg) scaleY(1.01); }
+        }
+
+        @keyframes fingerprint-glow {
+            0% { filter: drop-shadow(0 0 5px rgba(199, 146, 234, 0.3)); }
+            100% { filter: drop-shadow(0 0 15px rgba(199, 146, 234, 0.8)); }
+        }
+
+        @keyframes scanline {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        @keyframes countdown-pulse {
+            0% { opacity: 0.7; transform: scale(1); }
+            100% { opacity: 1; transform: scale(1.1); }
+        }
+
+        @keyframes message-distortion {
+            0%, 100% { clip-path: polygon(0% 10%, 10% 0%, 90% 0%, 100% 10%, 100% 90%, 90% 100%, 10% 100%, 0% 90%); }
+            25% { clip-path: polygon(0% 15%, 15% 0%, 85% 0%, 100% 15%, 100% 85%, 85% 100%, 15% 100%, 0% 85%); }
+            50% { clip-path: polygon(5% 10%, 10% 5%, 90% 5%, 95% 10%, 95% 90%, 90% 95%, 10% 95%, 5% 90%); }
+            75% { clip-path: polygon(0% 5%, 5% 0%, 95% 0%, 100% 5%, 100% 95%, 95% 100%, 5% 100%, 0% 95%); }
+        }
+
+        @keyframes subtle-wobble {
+            0%, 100% { transform: rotateZ(0deg); }
+            25% { transform: rotateZ(0.5deg); }
+            50% { transform: rotateZ(-0.3deg); }
+            75% { transform: rotateZ(0.2deg); }
+        }
+
+        @keyframes pulse-gold {
+            0% { box-shadow: 0 0 10px 2px rgba(255, 215, 0, 0.7), 0 0 20px 5px rgba(255, 165, 0, 0.3); }
+            100% { box-shadow: 0 0 15px 5px rgba(255, 215, 0, 0.9), 0 0 30px 10px rgba(255, 165, 0, 0.5); }
+        }
+
         .pulse {
             animation: pulse 2s infinite;
+        }
+
+        /* 禁忌符文装饰 */
+        .rune {
+            position: absolute;
+            font-size: 1.5rem;
+            color: rgba(199, 146, 234, 0.3);
+            animation: rune-float 20s infinite linear;
+            pointer-events: none;
+            user-select: none;
+        }
+
+        @keyframes rune-float {
+            0% { transform: translate(0, 0) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.3; }
+            90% { opacity: 0.3; }
+            100% { transform: translate(100vw, 100vh) rotate(360deg); opacity: 0; }
         }
     </style>
 </head>
 <body>
     <div class="stars" id="stars"></div>
     
+    <!-- 特殊黄星 - 可直接跳过命运之门 -->
+    <div class="special-star" id="specialStar" title="禁忌通道"></div>
+    
     <div class="container">
-        <h1>命运之门</h1>
+        <h1>禁忌命运之门</h1>
         
         <div class="button-container">
             <button id="destinyButton" class="destiny-button pulse">
@@ -220,13 +346,18 @@
         命运正在召唤...请耐心等待
     </div>
     
+    <!-- 添加随机符文装饰 -->
+    <div id="runes"></div>
+    
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // 创建星空背景
             createStars();
             createShootingStars();
+            createRunes();
             
             const destinyButton = document.getElementById('destinyButton');
+            const specialStar = document.getElementById('specialStar');
             const countdownElement = document.getElementById('countdown');
             const messageElement = document.getElementById('message');
             
@@ -240,6 +371,7 @@
                 startCountdown(remainingTime);
             }
             
+            // 命运按钮点击事件
             destinyButton.addEventListener('click', function() {
                 const now = Date.now();
                 
@@ -262,33 +394,46 @@
                 const randomChance = Math.floor(Math.random() * 10) + 1;
                 
                 if (randomChance === 1) {
-                    // 命中 - 设置访问令牌并加载内容
+                    // 命中
                     showMessage('命运之门已开启...', true);
                     sessionStorage.setItem("destinyAccess", "true");
                     setTimeout(() => {
-                        // 创建全屏iframe
-                        const iframe = document.createElement('iframe');
-                        iframe.src = 'yuanfen-content.html';
-                        iframe.style.position = 'fixed';
-                        iframe.style.top = '0';
-                        iframe.style.left = '0';
-                        iframe.style.width = '100%';
-                        iframe.style.height = '100%';
-                        iframe.style.border = 'none';
-                        iframe.style.zIndex = '1000';
-                        iframe.style.backgroundColor = '#000';
-                        
-                        // 清空页面并添加iframe
-                        document.body.innerHTML = '';
-                        document.body.style.margin = '0';
-                        document.body.style.overflow = 'hidden';
-                        document.body.appendChild(iframe);
+                        redirectToContent();
                     }, 2000);
                 } else {
                     // 未命中
                     showMessage('命运尚未显现，请稍后再试');
                 }
             });
+            
+            // 特殊黄星点击事件 - 直接跳过命运之门
+            specialStar.addEventListener('click', function() {
+                showMessage('禁忌通道已激活...', true);
+                sessionStorage.setItem("destinyAccess", "true");
+                setTimeout(() => {
+                    redirectToContent();
+                }, 1000);
+            });
+            
+            function redirectToContent() {
+                // 创建全屏iframe
+                const iframe = document.createElement('iframe');
+                iframe.src = 'yuanfen-content.html';
+                iframe.style.position = 'fixed';
+                iframe.style.top = '0';
+                iframe.style.left = '0';
+                iframe.style.width = '100%';
+                iframe.style.height = '100%';
+                iframe.style.border = 'none';
+                iframe.style.zIndex = '1000';
+                iframe.style.backgroundColor = '#000';
+                
+                // 清空页面并添加iframe
+                document.body.innerHTML = '';
+                document.body.style.margin = '0';
+                document.body.style.overflow = 'hidden';
+                document.body.appendChild(iframe);
+            }
             
             function startCountdown(seconds) {
                 countdownElement.classList.add('active');
@@ -314,6 +459,9 @@
             function showMessage(text, isSuccess = false) {
                 messageElement.textContent = text;
                 messageElement.style.color = isSuccess ? '#69f0ae' : '#c792ea';
+                messageElement.style.borderImage = isSuccess ? 
+                    'linear-gradient(45deg, #69f0ae, #7e57c2) 1' : 
+                    'linear-gradient(45deg, #7e57c2, #c792ea) 1';
                 messageElement.classList.add('show');
                 
                 setTimeout(() => {
@@ -323,7 +471,7 @@
             
             function createStars() {
                 const starsContainer = document.getElementById('stars');
-                const starsCount = 300;
+                const starsCount = 400;
                 
                 for (let i = 0; i < starsCount; i++) {
                     const star = document.createElement('div');
@@ -334,6 +482,8 @@
                     star.style.left = `${Math.random() * 100}%`;
                     star.style.setProperty('--opacity', Math.random() * 0.7 + 0.3);
                     star.style.setProperty('--duration', `${Math.random() * 5 + 3}s`);
+                    star.style.setProperty('--float-duration', `${Math.random() * 10 + 10}s`);
+                    star.style.setProperty('--z-depth', Math.random());
                     
                     if (Math.random() > 0.9) {
                         const colors = ['#c792ea', '#7e57c2', '#69f0ae', '#ffab91'];
@@ -346,7 +496,7 @@
             
             function createShootingStars() {
                 const container = document.getElementById('stars');
-                const shootingStarCount = 5;
+                const shootingStarCount = 8;
                 
                 for (let i = 0; i < shootingStarCount; i++) {
                     const shootingStar = document.createElement('div');
@@ -355,10 +505,27 @@
                     shootingStar.style.left = `${Math.random() * 100}%`;
                     shootingStar.style.setProperty('--angle', `${Math.random() * 30 - 15}deg`);
                     shootingStar.style.setProperty('--speed', `${Math.random() * 5 + 5}s`);
-                    shootingStar.style.setProperty('--delay', `${Math.random() * 20}s`);
+                    shootingStar.style.setProperty('--delay', `${Math.random() * 30}s`);
                     shootingStar.style.animationDelay = `var(--delay)`;
                     
                     container.appendChild(shootingStar);
+                }
+            }
+            
+            function createRunes() {
+                const runesContainer = document.getElementById('runes');
+                const runes = ['✧', '✫', '✺', '✹', '✷', '✶', '✵', '✴', '✳'];
+                const runeCount = 15;
+                
+                for (let i = 0; i < runeCount; i++) {
+                    const rune = document.createElement('div');
+                    rune.className = 'rune';
+                    rune.textContent = runes[Math.floor(Math.random() * runes.length)];
+                    rune.style.top = `${Math.random() * 100}%`;
+                    rune.style.left = `${Math.random() * 100}%`;
+                    rune.style.animationDuration = `${Math.random() * 30 + 20}s`;
+                    
+                    runesContainer.appendChild(rune);
                 }
             }
             
@@ -366,8 +533,8 @@
                 const particlesContainer = document.getElementById('particles');
                 particlesContainer.innerHTML = '';
                 
-                const particleCount = 30;
-                const colors = ['#7e57c2', '#c792ea', '#69f0ae', '#ffab91'];
+                const particleCount = 40;
+                const colors = ['#7e57c2', '#c792ea', '#69f0ae', '#ffab91', '#FFD700'];
                 
                 for (let i = 0; i < particleCount; i++) {
                     const particle = document.createElement('div');
@@ -381,13 +548,14 @@
                     particle.style.opacity = '0';
                     particle.style.transform = 'translate(-50%, -50%)';
                     particle.style.transition = `all ${Math.random() * 1 + 0.5}s ease-out`;
+                    particle.style.filter = 'blur(1px)';
                     
                     particlesContainer.appendChild(particle);
                     
                     setTimeout(() => {
                         particle.style.opacity = '0.8';
                         const angle = Math.random() * Math.PI * 2;
-                        const distance = Math.random() * 200 + 100;
+                        const distance = Math.random() * 300 + 150;
                         particle.style.transform = `translate(${Math.cos(angle) * distance}px, ${Math.sin(angle) * distance}px)`;
                         particle.style.opacity = '0';
                     }, 10);
