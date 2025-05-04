@@ -75,17 +75,17 @@
             opacity: 0.7;
         }
 
-        /* 主容器 */
+        /* 主容器 - 现在可以自由漂浮 */
         .container {
-            position: relative;
+            position: absolute;
             z-index: 1;
             text-align: center;
             padding: 20px;
             transform-style: preserve-3d;
-            animation: subtle-wobble 15s infinite alternate;
+            animation: float-random 30s infinite alternate;
         }
 
-        /* 标题 - 字体调小 */
+        /* 标题 - 现在可以独立漂浮 */
         h1 {
             color: transparent;
             text-shadow: 0 0 10px #7e57c2;
@@ -96,7 +96,8 @@
             background-clip: text;
             animation: 
                 glow-text 3s ease-in-out infinite alternate,
-                text-distortion 10s infinite alternate;
+                text-distortion 10s infinite alternate,
+                float-random 25s infinite alternate-reverse;
             position: relative;
         }
 
@@ -111,90 +112,108 @@
             animation: scanline 2s linear infinite;
         }
 
-        /* 神秘符号按钮容器 */
+        /* 黑洞按钮容器 */
         .button-container {
-            position: relative;
+            position: absolute;
             width: 220px;
             height: 220px;
-            margin: 0 auto;
             transform-style: preserve-3d;
-            animation: float 8s infinite alternate;
+            animation: float-random 40s infinite alternate;
         }
 
-        /* 神秘符号按钮 */
-        .destiny-button {
+        /* 黑洞效果 */
+        .black-hole {
+            position: absolute;
             width: 100%;
             height: 100%;
             border-radius: 50%;
-            background: 
-                radial-gradient(circle, 
-                    rgba(26, 26, 26, 0.8) 0%, 
-                    rgba(0, 0, 0, 0.9) 70%);
-            border: 1px solid #7e57c2;
+            background: radial-gradient(circle at center, 
+                rgba(0, 0, 0, 0.9) 0%, 
+                rgba(70, 0, 100, 0.7) 30%,
+                rgba(0, 0, 0, 0.9) 70%);
             box-shadow: 
-                0 0 20px #7e57c2, 
-                inset 0 0 15px #7e57c2,
-                0 0 40px rgba(126, 87, 194, 0.3);
+                0 0 30px rgba(126, 87, 194, 0.8),
+                inset 0 0 50px rgba(0, 0, 0, 0.9);
             cursor: pointer;
-            position: relative;
             overflow: hidden;
             transition: all 0.5s ease;
             outline: none;
             transform-style: preserve-3d;
         }
 
-        /* 神秘符号SVG - 生命之花变体 */
-        .mystic-symbol {
+        /* 黑洞吸积盘 */
+        .accretion-disk {
             position: absolute;
             top: 50%;
             left: 50%;
-            width: 80%;
-            height: 80%;
-            transform: translate(-50%, -50%);
-            opacity: 0.9;
-            animation: symbol-rotate 40s infinite linear;
+            width: 90%;
+            height: 90%;
+            border-radius: 50%;
+            border: 3px solid transparent;
+            border-top-color: #c792ea;
+            border-right-color: #7e57c2;
+            border-bottom-color: #69f0ae;
+            border-left-color: #c792ea;
+            transform: translate(-50%, -50%) rotate(0deg);
+            animation: disk-rotate 20s linear infinite;
+            opacity: 0.8;
+            filter: blur(1px);
         }
 
-        .mystic-symbol path {
-            stroke: #c792ea;
-            stroke-width: 1;
-            fill: none;
-            stroke-dasharray: 5, 3;
-            animation: symbol-glow 6s infinite alternate;
-        }
-
-        /* 内圈装饰 */
-        .inner-circle {
+        .accretion-disk::before,
+        .accretion-disk::after {
+            content: '';
             position: absolute;
             top: 50%;
             left: 50%;
-            width: 30%;
-            height: 30%;
-            border: 1px dashed rgba(199, 146, 234, 0.5);
             border-radius: 50%;
             transform: translate(-50%, -50%);
-            animation: 
-                circle-pulse 4s infinite alternate,
-                circle-rotate 20s infinite linear reverse;
         }
 
-        .destiny-button:hover {
+        .accretion-disk::before {
+            width: 70%;
+            height: 70%;
+            border: 2px dashed rgba(199, 146, 234, 0.5);
+            animation: disk-rotate-reverse 15s linear infinite;
+        }
+
+        .accretion-disk::after {
+            width: 50%;
+            height: 50%;
+            border: 1px dotted rgba(105, 240, 174, 0.3);
+            animation: disk-rotate 10s linear infinite;
+        }
+
+        /* 事件视界效果 */
+        .event-horizon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 60%;
+            height: 60%;
+            border-radius: 50%;
+            background: radial-gradient(circle at center, 
+                rgba(0, 0, 0, 0.9) 0%, 
+                rgba(40, 0, 60, 0.8) 100%);
+            transform: translate(-50%, -50%);
+            box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.9);
+        }
+
+        .black-hole:hover {
             box-shadow: 
-                0 0 30px #c792ea, 
-                inset 0 0 20px #c792ea,
-                0 0 60px rgba(199, 146, 234, 0.5);
-            border-color: #c792ea;
+                0 0 40px rgba(199, 146, 234, 0.9),
+                inset 0 0 60px rgba(0, 0, 0, 0.9);
             transform: scale(1.05);
         }
 
-        .destiny-button:active {
+        .black-hole:active {
             transform: scale(0.95);
         }
 
-        .destiny-button.disabled {
+        .black-hole.disabled {
             cursor: not-allowed;
-            opacity: 0.5;
-            box-shadow: 0 0 10px #7e57c2, inset 0 0 8px #7e57c2;
+            opacity: 0.7;
+            box-shadow: 0 0 20px rgba(126, 87, 194, 0.5);
             animation: none;
         }
 
@@ -209,11 +228,14 @@
             display: none;
             text-shadow: 0 0 5px rgba(126, 87, 194, 0.3);
             letter-spacing: 1px;
+            animation: float-random 20s infinite alternate;
         }
 
         .countdown.active {
             display: block;
-            animation: countdown-pulse 1.5s infinite alternate;
+            animation: 
+                countdown-pulse 1.5s infinite alternate,
+                float-random 20s infinite alternate;
         }
 
         /* 粒子效果 */
@@ -269,6 +291,14 @@
             100% { transform: translateY(-15px) translateZ(15px); }
         }
 
+        @keyframes float-random {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            20% { transform: translate(20px, 10px) rotate(2deg); }
+            40% { transform: translate(-15px, 15px) rotate(-1deg); }
+            60% { transform: translate(10px, -10px) rotate(1deg); }
+            80% { transform: translate(-20px, 5px) rotate(-2deg); }
+        }
+
         @keyframes glow-text {
             0% { text-shadow: 0 0 8px #7e57c2, 0 0 15px transparent; }
             100% { text-shadow: 0 0 8px #c792ea, 0 0 15px #7e57c2, 0 0 25px #69f0ae; }
@@ -291,37 +321,14 @@
             100% { opacity: 1; transform: scale(1.05); }
         }
 
-        @keyframes subtle-wobble {
-            0%, 100% { transform: rotateZ(0deg); }
-            25% { transform: rotateZ(0.3deg); }
-            50% { transform: rotateZ(-0.2deg); }
-            75% { transform: rotateZ(0.1deg); }
-        }
-
-        @keyframes pulse-white {
-            0% { box-shadow: 0 0 5px 1px rgba(255, 255, 255, 0.3); opacity: 0.6; }
-            100% { box-shadow: 0 0 8px 2px rgba(255, 255, 255, 0.4); opacity: 0.9; }
-        }
-
-        @keyframes symbol-rotate {
+        @keyframes disk-rotate {
             0% { transform: translate(-50%, -50%) rotate(0deg); }
             100% { transform: translate(-50%, -50%) rotate(360deg); }
         }
 
-        @keyframes symbol-glow {
-            0% { stroke: #c792ea; stroke-width: 1; opacity: 0.8; }
-            50% { stroke: #7e57c2; stroke-width: 1.5; opacity: 1; }
-            100% { stroke: #c792ea; stroke-width: 1; opacity: 0.8; }
-        }
-
-        @keyframes circle-pulse {
-            0% { transform: translate(-50%, -50%) scale(1); opacity: 0.5; }
-            100% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.8; }
-        }
-
-        @keyframes circle-rotate {
+        @keyframes disk-rotate-reverse {
             0% { transform: translate(-50%, -50%) rotate(0deg); }
-            100% { transform: translate(-50%, -50%) rotate(360deg); }
+            100% { transform: translate(-50%, -50%) rotate(-360deg); }
         }
 
         @keyframes line-pulse {
@@ -360,33 +367,20 @@
     <!-- 特殊白星 - 更低调 -->
     <div class="special-star" id="specialStar" title="隐秘通道"></div>
     
-    <div class="container">
-        <h1>机缘之门</h1>
-        
-        <div class="button-container">
-            <button id="destinyButton" class="destiny-button pulse">
-                <!-- 神秘符号SVG - 生命之花变体 -->
-                <svg class="mystic-symbol" viewBox="0 0 100 100">
-                    <!-- 复杂的神秘几何图案 -->
-                    <path d="M50,10 C60,10 70,15 75,25 C80,35 80,45 75,55 C70,65 60,70 50,70 C40,70 30,65 25,55 C20,45 20,35 25,25 C30,15 40,10 50,10 Z" />
-                    <path d="M50,20 C57,20 63,23 67,28 C71,33 71,40 67,45 C63,50 57,53 50,53 C43,53 37,50 33,45 C29,40 29,33 33,28 C37,23 43,20 50,20 Z" />
-                    <path d="M50,30 C54,30 57,32 59,34 C61,36 61,39 59,41 C57,43 54,45 50,45 C46,45 43,43 41,41 C39,39 39,36 41,34 C43,32 46,30 50,30 Z" />
-                    <!-- 装饰性线条 -->
-                    <path d="M50,10 L50,30" />
-                    <path d="M70,20 L60,35" />
-                    <path d="M80,40 L65,45" />
-                    <path d="M70,60 L60,55" />
-                    <path d="M50,70 L50,50" />
-                    <path d="M30,60 L40,55" />
-                    <path d="M20,40 L35,45" />
-                    <path d="M30,20 L40,35" />
-                </svg>
-                <div class="inner-circle"></div>
-            </button>
-        </div>
-        
-        <div id="countdown" class="countdown"></div>
+    <div class="container" id="container">
+        <h1 id="title">机缘之门</h1>
     </div>
+    
+    <!-- 黑洞按钮容器 - 独立漂浮 -->
+    <div class="button-container" id="buttonContainer">
+        <button id="destinyButton" class="black-hole pulse">
+            <div class="accretion-disk"></div>
+            <div class="event-horizon"></div>
+        </button>
+    </div>
+    
+    <!-- 倒计时 - 独立漂浮 -->
+    <div id="countdown" class="countdown"></div>
     
     <div class="particles" id="particles"></div>
     
@@ -409,6 +403,12 @@
             const specialStar = document.getElementById('specialStar');
             const countdownElement = document.getElementById('countdown');
             const messageElement = document.getElementById('message');
+            const container = document.getElementById('container');
+            const buttonContainer = document.getElementById('buttonContainer');
+            const title = document.getElementById('title');
+            
+            // 随机定位元素
+            positionElementsRandomly();
             
             // 检查是否有冷却时间 (5分钟 = 300秒)
             const lastClickTime = localStorage.getItem('lastDestinyClick');
@@ -463,6 +463,21 @@
                     redirectToContent();
                 }, 1000);
             });
+            
+            function positionElementsRandomly() {
+                // 随机定位容器
+                container.style.left = `${Math.random() * 60 + 20}%`;
+                container.style.top = `${Math.random() * 40 + 20}%`;
+                
+                // 随机定位按钮
+                buttonContainer.style.left = `${Math.random() * 60 + 20}%`;
+                buttonContainer.style.top = `${Math.random() * 40 + 30}%`;
+                
+                // 随机定位倒计时
+                countdownElement.style.position = 'absolute';
+                countdownElement.style.left = `${Math.random() * 60 + 20}%`;
+                countdownElement.style.top = `${Math.random() * 40 + 60}%`;
+            }
             
             function redirectToContent() {
                 // 创建全屏iframe
