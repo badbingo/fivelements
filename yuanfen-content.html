@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>命运之门</title>
+    <style>
+        /* 验证失败样式 */
+        #access-denied {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #000;
+            color: #ff5555;
+            font-family: 'ZCOOL XiaoWei', serif;
+            text-align: center;
+            padding: 20px;
+        }
+        #access-denied h1 {
+            text-shadow: 0 0 10px #ff0000;
+            margin-bottom: 30px;
+        }
+        #access-denied a {
+            color: #c792ea;
+            text-decoration: none;
+            border: 1px solid #7e57c2;
+            padding: 10px 20px;
+            border-radius: 5px;
+            transition: all 0.3s;
+            margin-top: 20px;
+        }
+        #access-denied a:hover {
+            background-color: rgba(126, 87, 194, 0.2);
+            box-shadow: 0 0 15px #7e57c2;
+        }
+        
+        /* 隐藏内容样式 */
+        #content-container {
+            display: none;
+            width: 100%;
+            height: 100vh;
+        }
+        
+        /* iframe样式 */
+        #content-frame {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- 验证失败显示 -->
+    <div id="access-denied">
+        <h1>⚠️ 命运之门警告 ⚠️</h1>
+        <p>命运之路不可强求...</p>
+        <p>唯有通过命运之门的召唤，方能窥见天机</p>
+        <a href="index.html">返回命运之门</a>
+    </div>
+
+    <!-- 实际内容容器 -->
+    <div id="content-container">
+        <iframe id="content-frame" src="yuanfen.html"></iframe>
+    </div>
+
+    <script>
+        // 验证访问权限
+        function checkAccess() {
+            // 检查sessionStorage中的访问令牌
+            const hasAccess = sessionStorage.getItem("destinyAccess") === "true";
+            
+            // 检查referrer是否来自index.html
+            const validReferrer = document.referrer.includes("index.html");
+            
+            if (hasAccess || validReferrer) {
+                // 验证通过，显示内容
+                document.getElementById("access-denied").style.display = "none";
+                document.getElementById("content-container").style.display = "block";
+                // 清除令牌
+                sessionStorage.removeItem("destinyAccess");
+            } else {
+                // 验证失败，显示警告
+                document.getElementById("access-denied").style.display = "flex";
+            }
+        }
+
+        // 页面加载时验证
+        checkAccess();
+    </script>
+</body>
+</html>
