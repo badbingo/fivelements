@@ -48,6 +48,14 @@
             transform: translateZ(calc(var(--z-depth) * 100px));
         }
 
+        /* 几何线条 */
+        .geometry-line {
+            position: absolute;
+            background: linear-gradient(90deg, rgba(126, 87, 194, 0.1), rgba(199, 146, 234, 0.3), rgba(126, 87, 194, 0.1));
+            transform-origin: left center;
+            animation: line-pulse 8s infinite alternate;
+        }
+
         /* 特殊白星 - 更低调 */
         .special-star {
             position: absolute;
@@ -82,7 +90,7 @@
             color: transparent;
             text-shadow: 0 0 10px #7e57c2;
             margin-bottom: 40px;
-            font-size: 2.2rem; /* 字体调小 */
+            font-size: 2.2rem;
             background: linear-gradient(45deg, #c792ea, #7e57c2, #69f0ae);
             -webkit-background-clip: text;
             background-clip: text;
@@ -103,7 +111,7 @@
             animation: scanline 2s linear infinite;
         }
 
-        /* 六芒星按钮容器 */
+        /* 神秘符号按钮容器 */
         .button-container {
             position: relative;
             width: 220px;
@@ -113,7 +121,7 @@
             animation: float 8s infinite alternate;
         }
 
-        /* 六芒星按钮 */
+        /* 神秘符号按钮 */
         .destiny-button {
             width: 100%;
             height: 100%;
@@ -135,24 +143,39 @@
             transform-style: preserve-3d;
         }
 
-        /* 六芒星SVG */
-        .hexagram {
+        /* 神秘符号SVG - 生命之花变体 */
+        .mystic-symbol {
             position: absolute;
             top: 50%;
             left: 50%;
-            width: 70%;
-            height: 70%;
+            width: 80%;
+            height: 80%;
             transform: translate(-50%, -50%);
             opacity: 0.9;
-            animation: hexagram-rotate 20s infinite linear;
+            animation: symbol-rotate 40s infinite linear;
         }
 
-        .hexagram path {
+        .mystic-symbol path {
             stroke: #c792ea;
-            stroke-width: 1.5;
+            stroke-width: 1;
             fill: none;
             stroke-dasharray: 5, 3;
-            animation: hexagram-glow 4s infinite alternate;
+            animation: symbol-glow 6s infinite alternate;
+        }
+
+        /* 内圈装饰 */
+        .inner-circle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 30%;
+            height: 30%;
+            border: 1px dashed rgba(199, 146, 234, 0.5);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            animation: 
+                circle-pulse 4s infinite alternate,
+                circle-rotate 20s infinite linear reverse;
         }
 
         .destiny-button:hover {
@@ -280,15 +303,30 @@
             100% { box-shadow: 0 0 8px 2px rgba(255, 255, 255, 0.4); opacity: 0.9; }
         }
 
-        @keyframes hexagram-rotate {
+        @keyframes symbol-rotate {
             0% { transform: translate(-50%, -50%) rotate(0deg); }
             100% { transform: translate(-50%, -50%) rotate(360deg); }
         }
 
-        @keyframes hexagram-glow {
-            0% { stroke: #c792ea; stroke-width: 1.5; opacity: 0.8; }
-            50% { stroke: #7e57c2; stroke-width: 2; opacity: 1; }
-            100% { stroke: #c792ea; stroke-width: 1.5; opacity: 0.8; }
+        @keyframes symbol-glow {
+            0% { stroke: #c792ea; stroke-width: 1; opacity: 0.8; }
+            50% { stroke: #7e57c2; stroke-width: 1.5; opacity: 1; }
+            100% { stroke: #c792ea; stroke-width: 1; opacity: 0.8; }
+        }
+
+        @keyframes circle-pulse {
+            0% { transform: translate(-50%, -50%) scale(1); opacity: 0.5; }
+            100% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.8; }
+        }
+
+        @keyframes circle-rotate {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        @keyframes line-pulse {
+            0% { opacity: 0.2; }
+            100% { opacity: 0.5; }
         }
 
         .pulse {
@@ -316,6 +354,9 @@
 <body>
     <div class="stars" id="stars"></div>
     
+    <!-- 几何线条背景 -->
+    <div id="geometry-lines"></div>
+    
     <!-- 特殊白星 - 更低调 -->
     <div class="special-star" id="specialStar" title="隐秘通道"></div>
     
@@ -324,10 +365,23 @@
         
         <div class="button-container">
             <button id="destinyButton" class="destiny-button pulse">
-                <!-- 六芒星SVG -->
-                <svg class="hexagram" viewBox="0 0 100 100">
-                    <path d="M50,10 L65,35 L95,35 L70,60 L85,90 L50,70 L15,90 L30,60 L5,35 L35,35 Z" />
+                <!-- 神秘符号SVG - 生命之花变体 -->
+                <svg class="mystic-symbol" viewBox="0 0 100 100">
+                    <!-- 复杂的神秘几何图案 -->
+                    <path d="M50,10 C60,10 70,15 75,25 C80,35 80,45 75,55 C70,65 60,70 50,70 C40,70 30,65 25,55 C20,45 20,35 25,25 C30,15 40,10 50,10 Z" />
+                    <path d="M50,20 C57,20 63,23 67,28 C71,33 71,40 67,45 C63,50 57,53 50,53 C43,53 37,50 33,45 C29,40 29,33 33,28 C37,23 43,20 50,20 Z" />
+                    <path d="M50,30 C54,30 57,32 59,34 C61,36 61,39 59,41 C57,43 54,45 50,45 C46,45 43,43 41,41 C39,39 39,36 41,34 C43,32 46,30 50,30 Z" />
+                    <!-- 装饰性线条 -->
+                    <path d="M50,10 L50,30" />
+                    <path d="M70,20 L60,35" />
+                    <path d="M80,40 L65,45" />
+                    <path d="M70,60 L60,55" />
+                    <path d="M50,70 L50,50" />
+                    <path d="M30,60 L40,55" />
+                    <path d="M20,40 L35,45" />
+                    <path d="M30,20 L40,35" />
                 </svg>
+                <div class="inner-circle"></div>
             </button>
         </div>
         
@@ -349,6 +403,7 @@
             createStars();
             createShootingStars();
             createRunes();
+            createGeometryLines();
             
             const destinyButton = document.getElementById('destinyButton');
             const specialStar = document.getElementById('specialStar');
@@ -483,6 +538,32 @@
                     }
                     
                     starsContainer.appendChild(star);
+                }
+            }
+            
+            function createGeometryLines() {
+                const container = document.getElementById('geometry-lines');
+                const lineCount = 12;
+                
+                for (let i = 0; i < lineCount; i++) {
+                    const line = document.createElement('div');
+                    line.className = 'geometry-line';
+                    
+                    // 随机位置和角度
+                    const angle = Math.random() * 360;
+                    const length = Math.random() * 200 + 100;
+                    const x = Math.random() * 100;
+                    const y = Math.random() * 100;
+                    
+                    line.style.width = `${length}px`;
+                    line.style.height = `${Math.random() * 2 + 1}px`;
+                    line.style.top = `${y}%`;
+                    line.style.left = `${x}%`;
+                    line.style.transform = `rotate(${angle}deg)`;
+                    line.style.animationDelay = `${Math.random() * 5}s`;
+                    line.style.animationDuration = `${Math.random() * 10 + 5}s`;
+                    
+                    container.appendChild(line);
                 }
             }
             
