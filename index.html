@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>禁忌命运之门</title>
+    <title>机缘之门</title>
     <link href="https://fonts.googleapis.com/css2?family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
     <style>
         /* 基础黑暗风格 */
@@ -48,25 +48,26 @@
             transform: translateZ(calc(var(--z-depth) * 100px));
         }
 
-        /* 特殊黄星 */
+        /* 特殊白星 - 更低调 */
         .special-star {
             position: absolute;
-            width: 6px;
-            height: 6px;
-            background: radial-gradient(circle, #FFD700 0%, #FFA500 70%);
+            width: 5px;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.8);
             border-radius: 50%;
-            top: 20%;
-            right: 20%;
+            top: 15%;
+            right: 15%;
             animation: 
-                pulse-gold 3s infinite alternate,
-                float 15s infinite alternate;
-            box-shadow: 0 0 10px 2px rgba(255, 215, 0, 0.7);
+                pulse-white 5s infinite alternate,
+                float 20s infinite alternate;
+            box-shadow: 0 0 5px 1px rgba(255, 255, 255, 0.3);
             z-index: 1;
             cursor: pointer;
             transform: translateZ(50px);
+            opacity: 0.7;
         }
 
-        /* 主容器 - 添加怪异扭曲 */
+        /* 主容器 */
         .container {
             position: relative;
             z-index: 1;
@@ -76,12 +77,12 @@
             animation: subtle-wobble 15s infinite alternate;
         }
 
-        /* 扭曲的标题 */
+        /* 标题 - 字体调小 */
         h1 {
             color: transparent;
             text-shadow: 0 0 10px #7e57c2;
             margin-bottom: 40px;
-            font-size: 3rem;
+            font-size: 2.2rem; /* 字体调小 */
             background: linear-gradient(45deg, #c792ea, #7e57c2, #69f0ae);
             -webkit-background-clip: text;
             background-clip: text;
@@ -97,21 +98,22 @@
             bottom: -10px;
             left: 0;
             width: 100%;
-            height: 3px;
+            height: 2px;
             background: linear-gradient(90deg, transparent, #7e57c2, transparent);
             animation: scanline 2s linear infinite;
         }
 
-        /* 怪异的命运按钮 */
+        /* 六芒星按钮容器 */
         .button-container {
             position: relative;
-            width: 250px;
-            height: 250px;
+            width: 220px;
+            height: 220px;
             margin: 0 auto;
             transform-style: preserve-3d;
             animation: float 8s infinite alternate;
         }
 
+        /* 六芒星按钮 */
         .destiny-button {
             width: 100%;
             height: 100%;
@@ -119,73 +121,76 @@
             background: 
                 radial-gradient(circle, 
                     rgba(26, 26, 26, 0.8) 0%, 
-                    rgba(0, 0, 0, 0.9) 70%),
-                url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><path d="M20,50 Q50,20 80,50 Q50,80 20,50 Z" fill="none" stroke="%237e57c2" stroke-width="0.5"/></svg>');
-            border: 2px solid #7e57c2;
+                    rgba(0, 0, 0, 0.9) 70%);
+            border: 1px solid #7e57c2;
             box-shadow: 
-                0 0 30px #7e57c2, 
-                inset 0 0 20px #7e57c2,
-                0 0 60px rgba(126, 87, 194, 0.5);
+                0 0 20px #7e57c2, 
+                inset 0 0 15px #7e57c2,
+                0 0 40px rgba(126, 87, 194, 0.3);
             cursor: pointer;
             position: relative;
             overflow: hidden;
             transition: all 0.5s ease;
             outline: none;
             transform-style: preserve-3d;
-            filter: drop-shadow(0 0 10px rgba(199, 146, 234, 0.7));
+        }
+
+        /* 六芒星SVG */
+        .hexagram {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 70%;
+            height: 70%;
+            transform: translate(-50%, -50%);
+            opacity: 0.9;
+            animation: hexagram-rotate 20s infinite linear;
+        }
+
+        .hexagram path {
+            stroke: #c792ea;
+            stroke-width: 1.5;
+            fill: none;
+            stroke-dasharray: 5, 3;
+            animation: hexagram-glow 4s infinite alternate;
         }
 
         .destiny-button:hover {
             box-shadow: 
-                0 0 40px #c792ea, 
-                inset 0 0 25px #c792ea,
-                0 0 80px rgba(199, 146, 234, 0.7);
+                0 0 30px #c792ea, 
+                inset 0 0 20px #c792ea,
+                0 0 60px rgba(199, 146, 234, 0.5);
             border-color: #c792ea;
-            transform: scale(1.05) rotateZ(5deg);
+            transform: scale(1.05);
         }
 
         .destiny-button:active {
-            transform: scale(0.95) rotateZ(-5deg);
+            transform: scale(0.95);
         }
 
         .destiny-button.disabled {
             cursor: not-allowed;
             opacity: 0.5;
-            box-shadow: 0 0 15px #7e57c2, inset 0 0 10px #7e57c2;
+            box-shadow: 0 0 10px #7e57c2, inset 0 0 8px #7e57c2;
             animation: none;
         }
 
-        /* 怪异的指纹图案 */
-        .fingerprint {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 150px;
-            height: 200px;
-            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M30,20 Q50,10 70,20 Q80,30 75,40 Q70,50 60,45 Q50,40 45,50 Q40,60 50,70 Q60,80 55,90" stroke="%23c792ea" fill="none" stroke-width="1.5" stroke-dasharray="5,3"/><path d="M40,25 Q50,15 60,25 Q65,35 55,40 Q45,45 40,55 Q35,65 45,75 Q55,85 50,95" stroke="%23c792ea" fill="none" stroke-width="1.5" stroke-dasharray="3,3"/></svg>');
-            background-repeat: no-repeat;
-            background-position: center;
-            opacity: 0.9;
-            animation: fingerprint-glow 4s infinite alternate;
-        }
-
-        /* 倒计时 - 怪异风格 */
+        /* 倒计时 */
         .countdown {
             margin-top: 30px;
-            font-size: 1.5rem;
+            font-size: 1.3rem;
             color: transparent;
             background: linear-gradient(90deg, #7e57c2, #69f0ae);
             -webkit-background-clip: text;
             background-clip: text;
             display: none;
-            text-shadow: 0 0 5px rgba(126, 87, 194, 0.5);
-            letter-spacing: 2px;
+            text-shadow: 0 0 5px rgba(126, 87, 194, 0.3);
+            letter-spacing: 1px;
         }
 
         .countdown.active {
             display: block;
-            animation: countdown-pulse 1s infinite alternate;
+            animation: countdown-pulse 1.5s infinite alternate;
         }
 
         /* 粒子效果 */
@@ -199,7 +204,7 @@
             z-index: 2;
         }
 
-        /* 怪异的消息提示 */
+        /* 消息提示 */
         .message {
             position: fixed;
             top: 50%;
@@ -207,41 +212,28 @@
             transform: translate(-50%, -50%);
             background: rgba(0, 0, 0, 0.7);
             border: 1px solid #7e57c2;
-            border-image: linear-gradient(45deg, #7e57c2, #c792ea) 1;
-            padding: 25px 40px;
-            border-radius: 0;
+            padding: 20px 35px;
+            border-radius: 5px;
             color: #c792ea;
             z-index: 10;
             display: none;
             max-width: 80%;
             text-align: center;
-            font-size: 1.3rem;
-            clip-path: polygon(
-                0% 10%, 10% 0%, 90% 0%, 100% 10%, 
-                100% 90%, 90% 100%, 10% 100%, 0% 90%
-            );
-            animation: message-distortion 5s infinite alternate;
+            font-size: 1.2rem;
+            box-shadow: 0 0 20px rgba(126, 87, 194, 0.5);
         }
 
         .message.show {
             display: block;
-            animation: 
-                fadeInOut 3s ease-in-out,
-                message-distortion 5s infinite alternate;
+            animation: fadeInOut 3s ease-in-out;
         }
 
         /* 动画定义 */
         @keyframes fadeInOut {
-            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
-            20% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
-            80% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
-            100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
-        }
-
-        @keyframes pulse {
-            0% { box-shadow: 0 0 20px #7e57c2, inset 0 0 10px #7e57c2; transform: scale(1); }
-            50% { box-shadow: 0 0 40px #c792ea, inset 0 0 20px #c792ea; transform: scale(1.05); }
-            100% { box-shadow: 0 0 20px #7e57c2, inset 0 0 10px #7e57c2; transform: scale(1); }
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+            20% { opacity: 1; transform: translate(-50%, -50%) scale(1.05); }
+            80% { opacity: 1; transform: translate(-50%, -50%) scale(1.05); }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
         }
 
         @keyframes twinkle {
@@ -251,24 +243,19 @@
 
         @keyframes float {
             0% { transform: translateY(0) translateZ(0); }
-            100% { transform: translateY(-20px) translateZ(20px); }
+            100% { transform: translateY(-15px) translateZ(15px); }
         }
 
         @keyframes glow-text {
-            0% { text-shadow: 0 0 10px #7e57c2, 0 0 20px transparent; }
-            100% { text-shadow: 0 0 10px #c792ea, 0 0 20px #7e57c2, 0 0 30px #69f0ae; }
+            0% { text-shadow: 0 0 8px #7e57c2, 0 0 15px transparent; }
+            100% { text-shadow: 0 0 8px #c792ea, 0 0 15px #7e57c2, 0 0 25px #69f0ae; }
         }
 
         @keyframes text-distortion {
             0%, 100% { transform: skewX(0deg) scaleY(1); }
-            25% { transform: skewX(-2deg) scaleY(1.02); }
-            50% { transform: skewX(1deg) scaleY(0.98); }
-            75% { transform: skewX(2deg) scaleY(1.01); }
-        }
-
-        @keyframes fingerprint-glow {
-            0% { filter: drop-shadow(0 0 5px rgba(199, 146, 234, 0.3)); }
-            100% { filter: drop-shadow(0 0 15px rgba(199, 146, 234, 0.8)); }
+            25% { transform: skewX(-1deg) scaleY(1.01); }
+            50% { transform: skewX(0.5deg) scaleY(0.99); }
+            75% { transform: skewX(1deg) scaleY(1.01); }
         }
 
         @keyframes scanline {
@@ -277,47 +264,51 @@
         }
 
         @keyframes countdown-pulse {
-            0% { opacity: 0.7; transform: scale(1); }
-            100% { opacity: 1; transform: scale(1.1); }
-        }
-
-        @keyframes message-distortion {
-            0%, 100% { clip-path: polygon(0% 10%, 10% 0%, 90% 0%, 100% 10%, 100% 90%, 90% 100%, 10% 100%, 0% 90%); }
-            25% { clip-path: polygon(0% 15%, 15% 0%, 85% 0%, 100% 15%, 100% 85%, 85% 100%, 15% 100%, 0% 85%); }
-            50% { clip-path: polygon(5% 10%, 10% 5%, 90% 5%, 95% 10%, 95% 90%, 90% 95%, 10% 95%, 5% 90%); }
-            75% { clip-path: polygon(0% 5%, 5% 0%, 95% 0%, 100% 5%, 100% 95%, 95% 100%, 5% 100%, 0% 95%); }
+            0% { opacity: 0.8; transform: scale(1); }
+            100% { opacity: 1; transform: scale(1.05); }
         }
 
         @keyframes subtle-wobble {
             0%, 100% { transform: rotateZ(0deg); }
-            25% { transform: rotateZ(0.5deg); }
-            50% { transform: rotateZ(-0.3deg); }
-            75% { transform: rotateZ(0.2deg); }
+            25% { transform: rotateZ(0.3deg); }
+            50% { transform: rotateZ(-0.2deg); }
+            75% { transform: rotateZ(0.1deg); }
         }
 
-        @keyframes pulse-gold {
-            0% { box-shadow: 0 0 10px 2px rgba(255, 215, 0, 0.7), 0 0 20px 5px rgba(255, 165, 0, 0.3); }
-            100% { box-shadow: 0 0 15px 5px rgba(255, 215, 0, 0.9), 0 0 30px 10px rgba(255, 165, 0, 0.5); }
+        @keyframes pulse-white {
+            0% { box-shadow: 0 0 5px 1px rgba(255, 255, 255, 0.3); opacity: 0.6; }
+            100% { box-shadow: 0 0 8px 2px rgba(255, 255, 255, 0.4); opacity: 0.9; }
+        }
+
+        @keyframes hexagram-rotate {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        @keyframes hexagram-glow {
+            0% { stroke: #c792ea; stroke-width: 1.5; opacity: 0.8; }
+            50% { stroke: #7e57c2; stroke-width: 2; opacity: 1; }
+            100% { stroke: #c792ea; stroke-width: 1.5; opacity: 0.8; }
         }
 
         .pulse {
             animation: pulse 2s infinite;
         }
 
-        /* 禁忌符文装饰 */
+        /* 符文装饰 */
         .rune {
             position: absolute;
-            font-size: 1.5rem;
-            color: rgba(199, 146, 234, 0.3);
-            animation: rune-float 20s infinite linear;
+            font-size: 1.2rem;
+            color: rgba(199, 146, 234, 0.2);
+            animation: rune-float 25s infinite linear;
             pointer-events: none;
             user-select: none;
         }
 
         @keyframes rune-float {
             0% { transform: translate(0, 0) rotate(0deg); opacity: 0; }
-            10% { opacity: 0.3; }
-            90% { opacity: 0.3; }
+            10% { opacity: 0.2; }
+            90% { opacity: 0.2; }
             100% { transform: translate(100vw, 100vh) rotate(360deg); opacity: 0; }
         }
     </style>
@@ -325,15 +316,18 @@
 <body>
     <div class="stars" id="stars"></div>
     
-    <!-- 特殊黄星 - 可直接跳过命运之门 -->
-    <div class="special-star" id="specialStar" title="禁忌通道"></div>
+    <!-- 特殊白星 - 更低调 -->
+    <div class="special-star" id="specialStar" title="隐秘通道"></div>
     
     <div class="container">
-        <h1>禁忌命运之门</h1>
+        <h1>机缘之门</h1>
         
         <div class="button-container">
             <button id="destinyButton" class="destiny-button pulse">
-                <div class="fingerprint"></div>
+                <!-- 六芒星SVG -->
+                <svg class="hexagram" viewBox="0 0 100 100">
+                    <path d="M50,10 L65,35 L95,35 L70,60 L85,90 L50,70 L15,90 L30,60 L5,35 L35,35 Z" />
+                </svg>
             </button>
         </div>
         
@@ -395,20 +389,20 @@
                 
                 if (randomChance === 1) {
                     // 命中
-                    showMessage('命运之门已开启...', true);
+                    showMessage('机缘之门已开启...', true);
                     sessionStorage.setItem("destinyAccess", "true");
                     setTimeout(() => {
                         redirectToContent();
                     }, 2000);
                 } else {
                     // 未命中
-                    showMessage('命运尚未显现，请稍后再试');
+                    showMessage('机缘未至，请稍后再试');
                 }
             });
             
-            // 特殊黄星点击事件 - 直接跳过命运之门
+            // 特殊白星点击事件 - 直接跳过命运之门
             specialStar.addEventListener('click', function() {
-                showMessage('禁忌通道已激活...', true);
+                showMessage('隐秘通道激活中...', true);
                 sessionStorage.setItem("destinyAccess", "true");
                 setTimeout(() => {
                     redirectToContent();
@@ -459,9 +453,7 @@
             function showMessage(text, isSuccess = false) {
                 messageElement.textContent = text;
                 messageElement.style.color = isSuccess ? '#69f0ae' : '#c792ea';
-                messageElement.style.borderImage = isSuccess ? 
-                    'linear-gradient(45deg, #69f0ae, #7e57c2) 1' : 
-                    'linear-gradient(45deg, #7e57c2, #c792ea) 1';
+                messageElement.style.borderColor = isSuccess ? '#69f0ae' : '#7e57c2';
                 messageElement.classList.add('show');
                 
                 setTimeout(() => {
@@ -471,12 +463,12 @@
             
             function createStars() {
                 const starsContainer = document.getElementById('stars');
-                const starsCount = 400;
+                const starsCount = 350;
                 
                 for (let i = 0; i < starsCount; i++) {
                     const star = document.createElement('div');
                     star.className = 'star';
-                    star.style.width = `${Math.random() * 3 + 1}px`;
+                    star.style.width = `${Math.random() * 2 + 1}px`;
                     star.style.height = star.style.width;
                     star.style.top = `${Math.random() * 100}%`;
                     star.style.left = `${Math.random() * 100}%`;
@@ -486,7 +478,7 @@
                     star.style.setProperty('--z-depth', Math.random());
                     
                     if (Math.random() > 0.9) {
-                        const colors = ['#c792ea', '#7e57c2', '#69f0ae', '#ffab91'];
+                        const colors = ['#c792ea', '#7e57c2', '#69f0ae'];
                         star.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
                     }
                     
@@ -496,7 +488,7 @@
             
             function createShootingStars() {
                 const container = document.getElementById('stars');
-                const shootingStarCount = 8;
+                const shootingStarCount = 6;
                 
                 for (let i = 0; i < shootingStarCount; i++) {
                     const shootingStar = document.createElement('div');
@@ -514,8 +506,8 @@
             
             function createRunes() {
                 const runesContainer = document.getElementById('runes');
-                const runes = ['✧', '✫', '✺', '✹', '✷', '✶', '✵', '✴', '✳'];
-                const runeCount = 15;
+                const runes = ['✧', '✫', '✺', '✹', '✷'];
+                const runeCount = 12;
                 
                 for (let i = 0; i < runeCount; i++) {
                     const rune = document.createElement('div');
@@ -524,6 +516,7 @@
                     rune.style.top = `${Math.random() * 100}%`;
                     rune.style.left = `${Math.random() * 100}%`;
                     rune.style.animationDuration = `${Math.random() * 30 + 20}s`;
+                    rune.style.opacity = Math.random() * 0.2 + 0.1;
                     
                     runesContainer.appendChild(rune);
                 }
@@ -533,13 +526,13 @@
                 const particlesContainer = document.getElementById('particles');
                 particlesContainer.innerHTML = '';
                 
-                const particleCount = 40;
-                const colors = ['#7e57c2', '#c792ea', '#69f0ae', '#ffab91', '#FFD700'];
+                const particleCount = 35;
+                const colors = ['#7e57c2', '#c792ea', '#69f0ae'];
                 
                 for (let i = 0; i < particleCount; i++) {
                     const particle = document.createElement('div');
                     particle.style.position = 'absolute';
-                    particle.style.width = `${Math.random() * 8 + 2}px`;
+                    particle.style.width = `${Math.random() * 6 + 2}px`;
                     particle.style.height = particle.style.width;
                     particle.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
                     particle.style.borderRadius = '50%';
@@ -548,14 +541,14 @@
                     particle.style.opacity = '0';
                     particle.style.transform = 'translate(-50%, -50%)';
                     particle.style.transition = `all ${Math.random() * 1 + 0.5}s ease-out`;
-                    particle.style.filter = 'blur(1px)';
+                    particle.style.filter = 'blur(0.5px)';
                     
                     particlesContainer.appendChild(particle);
                     
                     setTimeout(() => {
                         particle.style.opacity = '0.8';
                         const angle = Math.random() * Math.PI * 2;
-                        const distance = Math.random() * 300 + 150;
+                        const distance = Math.random() * 250 + 100;
                         particle.style.transform = `translate(${Math.cos(angle) * distance}px, ${Math.sin(angle) * distance}px)`;
                         particle.style.opacity = '0';
                     }, 10);
