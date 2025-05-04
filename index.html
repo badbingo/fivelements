@@ -93,97 +93,57 @@
             position: relative;
         }
 
-        /* 漩涡按钮容器 */
-        .button-container {
+        /* 神秘符号容器 */
+        .symbol-container {
             position: absolute;
             width: 220px;
             height: 220px;
             transform-style: preserve-3d;
-            animation: float-random 40s infinite alternate;
-        }
-
-        /* 黑色漩涡效果 */
-        .black-vortex {
-            position: relative;
-            width: 100%;
-            height: 100%;
+            animation: 
+                float-random 40s infinite alternate,
+                scale-random 15s infinite alternate;
             cursor: pointer;
-            overflow: hidden;
-            transition: all 0.5s ease;
-            outline: none;
-            transform-style: preserve-3d;
-            background: radial-gradient(ellipse at center, 
-                rgba(0,0,0,0) 0%, 
-                rgba(0,0,0,0.8) 40%,
-                rgba(0,0,0,0.9) 70%);
-            border-radius: 50%;
-        }
-
-        /* 漩涡核心 */
-        .vortex-core {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 30%;
-            height: 30%;
-            background: radial-gradient(circle, 
-                rgba(0,0,0,0.9) 0%, 
-                rgba(40,0,60,0.8) 100%);
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-            box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.9);
+            transition: all 0.3s ease;
             z-index: 2;
         }
 
-        /* 漩涡螺旋 */
-        .vortex-spiral {
-            position: absolute;
-            top: 0;
-            left: 0;
+        /* 高级神秘符号 */
+        .mystic-symbol {
+            position: relative;
             width: 100%;
             height: 100%;
-            background: 
-                conic-gradient(
-                    from 0deg at 50% 50%,
-                    rgba(199, 146, 234, 0) 0%,
-                    rgba(126, 87, 194, 0.3) 30%,
-                    rgba(199, 146, 234, 0.1) 50%,
-                    rgba(126, 87, 194, 0.3) 70%,
-                    rgba(199, 146, 234, 0) 100%
-                );
-            border-radius: 50%;
-            animation: vortex-rotate 10s linear infinite;
-            filter: blur(5px);
-            z-index: 1;
+            background: none;
+            border: none;
+            outline: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transform-style: preserve-3d;
         }
 
-        /* 漩涡外层光环 */
-        .vortex-halo {
-            position: absolute;
-            top: 0;
-            left: 0;
+        .mystic-symbol svg {
             width: 100%;
             height: 100%;
-            border: 1px solid rgba(199, 146, 234, 0.2);
-            border-radius: 50%;
+            filter: drop-shadow(0 0 5px rgba(126, 87, 194, 0.5));
+            transition: all 0.3s ease;
+            transform: rotate(0deg) scale(1);
             animation: 
-                halo-pulse 3s infinite alternate,
-                vortex-rotate-reverse 15s linear infinite;
-            z-index: 0;
+                symbol-rotate 60s infinite linear,
+                symbol-glow 3s infinite alternate;
         }
 
-        .black-vortex:hover {
-            filter: brightness(1.2);
-            transform: scale(1.05);
+        .mystic-symbol:hover svg {
+            filter: drop-shadow(0 0 15px rgba(199, 146, 234, 0.8));
+            transform: scale(1.1);
         }
 
-        .black-vortex:active {
+        .mystic-symbol:active svg {
             transform: scale(0.95);
         }
 
-        .black-vortex.disabled {
+        .mystic-symbol.disabled {
             cursor: not-allowed;
-            opacity: 0.7;
+            opacity: 0.5;
             animation: none;
         }
 
@@ -269,6 +229,11 @@
             80% { transform: translate(-20px, 5px) rotate(-2deg); }
         }
 
+        @keyframes scale-random {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+
         @keyframes glow-text {
             0% { text-shadow: 0 0 8px #7e57c2, 0 0 15px transparent; }
             100% { text-shadow: 0 0 8px #c792ea, 0 0 15px #7e57c2, 0 0 25px #69f0ae; }
@@ -281,19 +246,14 @@
             75% { transform: skewX(1deg) scaleY(1.01); }
         }
 
-        @keyframes vortex-rotate {
+        @keyframes symbol-rotate {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
 
-        @keyframes vortex-rotate-reverse {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(-360deg); }
-        }
-
-        @keyframes halo-pulse {
-            0% { box-shadow: 0 0 10px rgba(199, 146, 234, 0.1); }
-            100% { box-shadow: 0 0 20px rgba(126, 87, 194, 0.3); }
+        @keyframes symbol-glow {
+            0% { filter: drop-shadow(0 0 5px rgba(126, 87, 194, 0.5)); opacity: 0.9; }
+            100% { filter: drop-shadow(0 0 15px rgba(199, 146, 234, 0.8)); opacity: 1; }
         }
 
         @keyframes countdown-pulse {
@@ -333,12 +293,18 @@
         <h1 id="title">机缘之门</h1>
     </div>
     
-    <!-- 漩涡按钮容器 - 独立漂浮 -->
-    <div class="button-container" id="buttonContainer">
-        <button id="destinyButton" class="black-vortex pulse">
-            <div class="vortex-spiral"></div>
-            <div class="vortex-core"></div>
-            <div class="vortex-halo"></div>
+    <!-- 神秘符号容器 - 独立漂浮 -->
+    <div class="symbol-container" id="symbolContainer">
+        <button id="destinyButton" class="mystic-symbol pulse">
+            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <!-- 高级神秘符号 - 复杂几何图案 -->
+                <path d="M50 10 L70 50 L50 90 L30 50 Z" fill="none" stroke="#7e57c2" stroke-width="2"/>
+                <path d="M50 10 L30 50 L50 90 L70 50 Z" fill="none" stroke="#c792ea" stroke-width="2"/>
+                <path d="M30 50 L70 50" fill="none" stroke="#69f0ae" stroke-width="1.5"/>
+                <path d="M50 10 L50 90" fill="none" stroke="#69f0ae" stroke-width="1.5"/>
+                <circle cx="50" cy="50" r="15" fill="none" stroke="#c792ea" stroke-width="1"/>
+                <path d="M35 35 L65 65 M65 35 L35 65" fill="none" stroke="#7e57c2" stroke-width="1.2"/>
+            </svg>
         </button>
     </div>
     
@@ -366,7 +332,7 @@
             const countdownElement = document.getElementById('countdown');
             const messageElement = document.getElementById('message');
             const container = document.getElementById('container');
-            const buttonContainer = document.getElementById('buttonContainer');
+            const symbolContainer = document.getElementById('symbolContainer');
             const title = document.getElementById('title');
             
             // 随机定位元素
@@ -431,9 +397,9 @@
                 container.style.left = `${Math.random() * 60 + 20}%`;
                 container.style.top = `${Math.random() * 40 + 20}%`;
                 
-                // 随机定位按钮
-                buttonContainer.style.left = `${Math.random() * 60 + 20}%`;
-                buttonContainer.style.top = `${Math.random() * 40 + 30}%`;
+                // 随机定位符号
+                symbolContainer.style.left = `${Math.random() * 60 + 20}%`;
+                symbolContainer.style.top = `${Math.random() * 40 + 30}%`;
                 
                 // 随机定位倒计时
                 countdownElement.style.position = 'absolute';
