@@ -3,213 +3,300 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>八字计算器 - 八字学习网</title>
+    <title>八字计算器 - 八字命理教学网</title>
     <link rel="stylesheet" href="../css/style1.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
+    <div class="background-overlay"></div>
+    
     <header>
-        <nav>
+        <div class="container">
             <div class="logo">
-                <a href="../indexl.html">八字学习网</a>
+                <h1>八字命理</h1>
+                <p>传承经典 · 科学学习</p>
             </div>
-            <ul>
-                <li><a href="../basics/bazi-process.html">基础知识</a></li>
-                <li><a href="../advanced/wealth.html">进阶知识</a></li>
-                <li><a href="../patterns/common.html">八字格局</a></li>
-                <li><a href="../tools/calculator.html">工具</a></li>
-                <li><a href="../about.html">关于我们</a></li>
-            </ul>
-        </nav>
+            <nav>
+                <ul>
+                    <li><a href="../indexl.html">首页</a></li>
+                    <li><a href="../basics/bazi-process.html">基础知识</a></li>
+                    <li><a href="../advanced/wealth.html">进阶知识</a></li>
+                    <li><a href="../patterns/common.html">八字格局</a></li>
+                    <li><a href="calculator.html" class="active">工具</a></li>
+                    <li><a href="../about.html">关于</a></li>
+                </ul>
+            </nav>
+        </div>
     </header>
 
-    <main class="container">
-        <article class="content-box">
+    <main class="content-container">
+        <div class="content-title">
             <h1>八字计算器</h1>
-            
-            <section class="calculator-form">
-                <h2>输入出生信息</h2>
-                <form id="bazi-calculator">
+            <p>输入您的出生信息，自动生成完整八字命盘</p>
+        </div>
+
+        <div class="content-section">
+            <div class="calculator-form">
+                <h2>基本信息输入</h2>
+                <form id="bazi-form">
                     <div class="form-group">
-                        <label for="birth-year">出生年份：</label>
-                        <select id="birth-year" required>
-                            <option value="">请选择年份</option>
-                            <!-- 年份将通过JavaScript动态生成 -->
+                        <label for="birth-date">出生日期：</label>
+                        <input type="date" id="birth-date" name="birth-date" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="birth-time">出生时间：</label>
+                        <select id="birth-hour" name="birth-hour" required>
+                            <option value="">-- 时 --</option>
+                            <!-- 生成24小时选项 -->
+                            <script>
+                                for(let i=0; i<24; i++) {
+                                    document.write(`<option value="${i}">${i}时</option>`);
+                                }
+                            </script>
+                        </select>
+                        <select id="birth-minute" name="birth-minute" required>
+                            <option value="">-- 分 --</option>
+                            <!-- 生成分钟选项 -->
+                            <script>
+                                for(let i=0; i<60; i++) {
+                                    document.write(`<option value="${i}">${i}分</option>`);
+                                }
+                            </script>
                         </select>
                     </div>
                     
                     <div class="form-group">
-                        <label for="birth-month">出生月份：</label>
-                        <select id="birth-month" required>
-                            <option value="">请选择月份</option>
-                            <option value="1">1月</option>
-                            <option value="2">2月</option>
-                            <option value="3">3月</option>
-                            <option value="4">4月</option>
-                            <option value="5">5月</option>
-                            <option value="6">6月</option>
-                            <option value="7">7月</option>
-                            <option value="8">8月</option>
-                            <option value="9">9月</option>
-                            <option value="10">10月</option>
-                            <option value="11">11月</option>
-                            <option value="12">12月</option>
+                        <label>出生地区：</label>
+                        <select id="timezone" name="timezone" required>
+                            <option value="8">中国标准时间 (UTC+8)</option>
+                            <option value="-8">太平洋时间 (UTC-8)</option>
+                            <option value="-5">东部时间 (UTC-5)</option>
+                            <option value="0">格林尼治时间 (UTC+0)</option>
+                            <option value="9">日本标准时间 (UTC+9)</option>
+                            <option value="-7">山地时间 (UTC-7)</option>
+                            <option value="-6">中部时间 (UTC-6)</option>
+                            <option value="1">中欧时间 (UTC+1)</option>
+                            <option value="10">澳大利亚东部时间 (UTC+10)</option>
                         </select>
                     </div>
                     
                     <div class="form-group">
-                        <label for="birth-day">出生日期：</label>
-                        <select id="birth-day" required>
-                            <option value="">请选择日期</option>
-                            <!-- 日期将通过JavaScript动态生成 -->
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="birth-hour">出生时辰：</label>
-                        <select id="birth-hour" required>
-                            <option value="">请选择时辰</option>
-                            <option value="23-1">子时 (23:00-1:00)</option>
-                            <option value="1-3">丑时 (1:00-3:00)</option>
-                            <option value="3-5">寅时 (3:00-5:00)</option>
-                            <option value="5-7">卯时 (5:00-7:00)</option>
-                            <option value="7-9">辰时 (7:00-9:00)</option>
-                            <option value="9-11">巳时 (9:00-11:00)</option>
-                            <option value="11-13">午时 (11:00-13:00)</option>
-                            <option value="13-15">未时 (13:00-15:00)</option>
-                            <option value="15-17">申时 (15:00-17:00)</option>
-                            <option value="17-19">酉时 (17:00-19:00)</option>
-                            <option value="19-21">戌时 (19:00-21:00)</option>
-                            <option value="21-23">亥时 (21:00-23:00)</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="gender">性别：</label>
-                        <select id="gender" required>
-                            <option value="">请选择性别</option>
-                            <option value="male">男</option>
-                            <option value="female">女</option>
-                        </select>
+                        <label>性别：</label>
+                        <label><input type="radio" name="gender" value="male" checked> 男</label>
+                        <label><input type="radio" name="gender" value="female"> 女</label>
                     </div>
                     
                     <div class="form-group">
                         <button type="submit" class="btn">计算八字</button>
+                        <button type="reset" class="btn">重置</button>
                     </div>
                 </form>
-            </section>
+            </div>
+        </div>
+
+        <div class="content-section" id="result-section" style="display: none;">
+            <h2>八字命盘结果</h2>
             
-            <section class="result-section" id="result-section" style="display: none;">
-                <h2>八字排盘结果</h2>
-                <div class="bazi-result">
-                    <div class="bazi-grid">
-                        <div class="bazi-cell">
-                            <div class="bazi-title">年柱</div>
-                            <div class="bazi-content" id="year-pillar"></div>
-                        </div>
-                        <div class="bazi-cell">
-                            <div class="bazi-title">月柱</div>
-                            <div class="bazi-content" id="month-pillar"></div>
-                        </div>
-                        <div class="bazi-cell">
-                            <div class="bazi-title">日柱</div>
-                            <div class="bazi-content" id="day-pillar"></div>
-                        </div>
-                        <div class="bazi-cell">
-                            <div class="bazi-title">时柱</div>
-                            <div class="bazi-content" id="hour-pillar"></div>
-                        </div>
+            <div class="bazi-result">
+                <div class="bazi-grid">
+                    <div class="bazi-header">
+                        <div class="bazi-cell">年柱</div>
+                        <div class="bazi-cell">月柱</div>
+                        <div class="bazi-cell">日柱</div>
+                        <div class="bazi-cell">时柱</div>
                     </div>
-                    
-                    <div class="bazi-details">
-                        <h3>八字分析</h3>
-                        <div id="bazi-analysis"></div>
-                        
-                        <h3>大运走势</h3>
-                        <div id="luck-analysis"></div>
+                    <div class="bazi-row">
+                        <div class="bazi-cell" id="year-stem">甲</div>
+                        <div class="bazi-cell" id="month-stem">乙</div>
+                        <div class="bazi-cell" id="day-stem">丙</div>
+                        <div class="bazi-cell" id="hour-stem">丁</div>
+                    </div>
+                    <div class="bazi-row">
+                        <div class="bazi-cell" id="year-branch">子</div>
+                        <div class="bazi-cell" id="month-branch">丑</div>
+                        <div class="bazi-cell" id="day-branch">寅</div>
+                        <div class="bazi-cell" id="hour-branch">卯</div>
+                    </div>
+                    <div class="bazi-row">
+                        <div class="bazi-cell" id="year-element">木</div>
+                        <div class="bazi-cell" id="month-element">木</div>
+                        <div class="bazi-cell" id="day-element">火</div>
+                        <div class="bazi-cell" id="hour-element">火</div>
                     </div>
                 </div>
-            </section>
-            
-            <section>
-                <h2>八字计算说明</h2>
-                <p>八字计算器根据您提供的出生时间（年、月、日、时）计算出您的八字命盘。</p>
-                <p>八字，又称四柱，由年柱、月柱、日柱、时柱组成，每柱由一个天干和一个地支组成，共八个字，故称"八字"。</p>
-                <p>八字命理学认为，一个人的命运可以通过其出生时的天干地支组合来推算。</p>
                 
-                <h3>注意事项</h3>
-                <ul>
-                    <li>请确保输入的出生时间为公历（阳历）日期</li>
-                    <li>出生时间应尽量准确，特别是时辰，对八字影响较大</li>
-                    <li>子时（23:00-1:00）出生的人需特别注意日柱计算</li>
-                    <li>本计算结果仅供参考，命运掌握在自己手中</li>
-                </ul>
-            </section>
-        </article>
+                <div class="bazi-details">
+                    <div class="card">
+                        <h3 class="card-title">基本信息</h3>
+                        <p><strong>出生日期：</strong> <span id="result-date">1984年1月1日</span></p>
+                        <p><strong>出生时间：</strong> <span id="result-time">23:00</span></p>
+                        <p><strong>农历日期：</strong> <span id="result-lunar">癸亥年腊月初八</span></p>
+                        <p><strong>生肖：</strong> <span id="result-zodiac">鼠</span></p>
+                        <p><strong>命宫：</strong> <span id="result-minggong">卯宫</span></p>
+                        <p><strong>身宫：</strong> <span id="result-shengong">酉宫</span></p>
+                    </div>
+                    
+                    <div class="card">
+                        <h3 class="card-title">五行分析</h3>
+                        <div class="wuxing-chart">
+                            <div class="wuxing-item">
+                                <div class="wuxing-bar wood" style="height: 30%;"></div>
+                                <span>木</span>
+                            </div>
+                            <div class="wuxing-item">
+                                <div class="wuxing-bar fire" style="height: 20%;"></div>
+                                <span>火</span>
+                            </div>
+                            <div class="wuxing-item">
+                                <div class="wuxing-bar earth" style="height: 15%;"></div>
+                                <span>土</span>
+                            </div>
+                            <div class="wuxing-item">
+                                <div class="wuxing-bar metal" style="height: 25%;"></div>
+                                <span>金</span>
+                            </div>
+                            <div class="wuxing-item">
+                                <div class="wuxing-bar water" style="height: 10%;"></div>
+                                <span>水</span>
+                            </div>
+                        </div>
+                        <p><strong>五行强弱：</strong> <span id="result-wuxing">木旺、火相、土死、金囚、水休</span></p>
+                        <p><strong>喜用神：</strong> <span id="result-xiyong">金、水</span></p>
+                        <p><strong>忌神：</strong> <span id="result-jishen">木、火</span></p>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h3 class="card-title">十神分析</h3>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>十神</th>
+                                    <th>年柱</th>
+                                    <th>月柱</th>
+                                    <th>日柱</th>
+                                    <th>时柱</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>主星</td>
+                                    <td id="year-main-god">正官</td>
+                                    <td id="month-main-god">偏财</td>
+                                    <td id="day-main-god">日元</td>
+                                    <td id="hour-main-god">正印</td>
+                                </tr>
+                                <tr>
+                                    <td>藏干</td>
+                                    <td id="year-hidden-god">癸(正印)</td>
+                                    <td id="month-hidden-god">己(正财),丁(七杀)</td>
+                                    <td id="day-hidden-god">甲(比肩)</td>
+                                    <td id="hour-hidden-god">乙(劫财)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h3 class="card-title">大运分析</h3>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>大运</th>
+                                    <th>起止时间</th>
+                                    <th>天干</th>
+                                    <th>地支</th>
+                                    <th>五行</th>
+                                    <th>运势</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dayun-table">
+                                <!-- 大运数据将通过JavaScript动态生成 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h3 class="card-title">2025年流年分析</h3>
+                    <div class="liunian-analysis">
+                        <p><strong>流年干支：</strong> <span id="liunian-ganzhi">乙巳</span></p>
+                        <p><strong>流年运势：</strong> <span id="liunian-yunshi">本年天干乙木为比肩，地支巳火为食神，整体运势平稳，事业上有贵人相助，但要注意健康问题。</span></p>
+                        <p><strong>注意事项：</strong> <span id="liunian-notice">注意脾胃健康，避免投资风险。</span></p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group" style="text-align: center; margin-top: 30px;">
+                <button id="print-btn" class="btn"><i class="fas fa-print"></i> 打印命盘</button>
+                <button id="save-btn" class="btn"><i class="fas fa-save"></i> 保存结果</button>
+            </div>
+        </div>
     </main>
 
     <footer>
-        <p>© 2023 八字学习网 | 弘扬国学 传承经典 科学学习 切勿迷信</p>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>关于我们</h3>
+                    <p>致力于传承中国传统命理学，提供专业的八字命理教学服务。</p>
+                </div>
+                <div class="footer-section">
+                    <h3>快速链接</h3>
+                    <ul>
+                        <li><a href="../indexl.html">首页</a></li>
+                        <li><a href="../basics/bazi-process.html">基础知识</a></li>
+                        <li><a href="../advanced/wealth.html">进阶知识</a></li>
+                        <li><a href="calculator.html">八字计算器</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>联系方式</h3>
+                    <p>邮箱: info@bazimingli.com</p>
+                    <p>电话: 123-456-7890</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2023 八字命理教学网. 保留所有权利.</p>
+            </div>
+        </div>
     </footer>
 
     <script src="../js/main1.js"></script>
     <script>
-        // 动态生成年份选项 (1900-当前年份)
-        const yearSelect = document.getElementById('birth-year');
-        const currentYear = new Date().getFullYear();
-        for (let year = currentYear; year >= 1900; year--) {
-            const option = document.createElement('option');
-            option.value = year;
-            option.textContent = year;
-            yearSelect.appendChild(option);
-        }
-        
-        // 动态生成日期选项 (根据月份变化)
-        const monthSelect = document.getElementById('birth-month');
-        const daySelect = document.getElementById('birth-day');
-        
-        monthSelect.addEventListener('change', function() {
-            daySelect.innerHTML = '<option value="">请选择日期</option>';
-            const month = parseInt(this.value);
-            let days = 31;
-            
-            if ([4, 6, 9, 11].includes(month)) {
-                days = 30;
-            } else if (month === 2) {
-                const year = parseInt(yearSelect.value);
-                days = ((year % 4 === 0 && year % 100 !== 0) || year % 400 === 0) ? 29 : 28;
-            }
-            
-            for (let day = 1; day <= days; day++) {
-                const option = document.createElement('option');
-                option.value = day;
-                option.textContent = day;
-                daySelect.appendChild(option);
-            }
-        });
-        
-        // 表单提交处理
-        document.getElementById('bazi-calculator').addEventListener('submit', function(e) {
+        // 八字计算器功能实现
+        document.getElementById('bazi-form').addEventListener('submit', function(e) {
             e.preventDefault();
-            document.getElementById('result-section').style.display = 'block';
+            
+            // 获取表单数据
+            const birthDate = document.getElementById('birth-date').value;
+            const birthHour = document.getElementById('birth-hour').value;
+            const birthMinute = document.getElementById('birth-minute').value;
+            const timezone = document.getElementById('timezone').value;
+            const gender = document.querySelector('input[name="gender"]:checked').value;
             
             // 这里应该是实际的八字计算逻辑
-            // 由于八字计算较为复杂，这里只是模拟显示
-            document.getElementById('year-pillar').textContent = '甲子';
-            document.getElementById('month-pillar').textContent = '乙丑';
-            document.getElementById('day-pillar').textContent = '丙寅';
-            document.getElementById('hour-pillar').textContent = '丁卯';
+            // 由于八字计算算法复杂，这里仅做演示
             
-            document.getElementById('bazi-analysis').innerHTML = `
-                <p>您的八字为：甲子 乙丑 丙寅 丁卯</p>
-                <p>日元为丙火，生于丑月，身弱，喜木火，忌土金水。</p>
-                <p>性格分析：热情开朗，聪明伶俐，但有时急躁冲动。</p>
-            `;
+            // 显示结果区域
+            document.getElementById('result-section').style.display = 'block';
             
-            document.getElementById('luck-analysis').innerHTML = `
-                <p>当前大运：戊辰 (2020-2030)</p>
-                <p>未来大运走势：己巳、庚午、辛未...</p>
-                <p>2023年流年：癸卯，运势平稳，宜守不宜攻。</p>
-            `;
+            // 滚动到结果区域
+            document.getElementById('result-section').scrollIntoView({ behavior: 'smooth' });
+        });
+        
+        // 打印功能
+        document.getElementById('print-btn').addEventListener('click', function() {
+            window.print();
+        });
+        
+        // 保存功能
+        document.getElementById('save-btn').addEventListener('click', function() {
+            alert('保存功能将在后续版本实现');
         });
     </script>
 </body>
