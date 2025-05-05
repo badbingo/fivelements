@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>八字计算器 - 八字命理教学网</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* CSS 代码将在下面提供 */
+    </style>
+</head>
+<body>
+    <!-- 动态背景元素 -->
+    <div class="particles-background"></div>
+    
+    <!-- 主头部 -->
+    <header class="main-header">
+        <div class="container">
+            <div class="header-content">
+                <!-- Logo区域 -->
+                <div class="logo-area">
+                    <div class="logo">
+                        <h1>八字命理</h1>
+                        <p>传承经典 · 科学学习</p>
+                    </div>
+                    <!-- 移动端菜单按钮 -->
+                    <button class="mobile-menu-btn">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                </div>
+                
+                <!-- 主导航 -->
+                <nav class="main-nav">
+                    <ul class="nav-list">
+                        <li class="nav-item">
+                            <a href="../indexl.html" class="nav-link">
+                                <i class="fas fa-home"></i>
+                                <span>首页</span>
+                            </a>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a href="#" class="nav-link">
+                                <i class="fas fa-book-open"></i>
+                                <span>基础知识</span>
+                                <i class="fas fa-chevron-down dropdown-icon"></i>
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a href="../basics/bazi-process.html" class="dropdown-link">批八字流程</a></li>
+                                <li><a href="../basics/elements.html" class="dropdown-link">天干地支意象</a></li>
+                                <li><a href="../basics/balance.html" class="dropdown-link">五行平衡</a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a href="#" class="nav-link">
+                                <i class="fas fa-chart-line"></i>
+                                <span>进阶知识</span>
+                                <i class="fas fa-chevron-down dropdown-icon"></i>
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a href="../advanced/wealth.html" class="dropdown-link">财运分析</a></li>
+                                <li><a href="../advanced/marriage.html" class="dropdown-link">婚姻分析</a></li>
+                                <li><a href="../advanced/health.html" class="dropdown-link">健康分析</a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a href="#" class="nav-link">
+                                <i class="fas fa-chess-board"></i>
+                                <span>八字格局</span>
+                                <i class="fas fa-chevron-down dropdown-icon"></i>
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a href="../patterns/common.html" class="dropdown-link">常见格局</a></li>
+                                <li><a href="../patterns/special.html" class="dropdown-link">特殊格局</a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-item dropdown active">
+                            <a href="#" class="nav-link">
+                                <i class="fas fa-tools"></i>
+                                <span>工具</span>
+                                <i class="fas fa-chevron-down dropdown-icon"></i>
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a href="calculator.html" class="dropdown-link active">八字计算器</a></li>
+                                <li><a href="../tools/reference.html" class="dropdown-link">速查表</a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-item">
+                            <a href="../about.html" class="nav-link">
+                                <i class="fas fa-info-circle"></i>
+                                <span>关于我们</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+        
+        <!-- 导航条下划线指示器 -->
+        <div class="nav-indicator"></div>
+    </header>
+
+    <main class="content-container">
+        <!-- 页面内容保持不变 -->
+        <div class="content-title">
+            <h1>八字计算器</h1>
+            <p>输入您的出生信息，自动生成完整八字命盘</p>
+        </div>
+
+        <div class="content-section">
+            <div class="calculator-form">
+                <div class="form-header">
+                    <h2><i class="fas fa-user-circle"></i> 基本信息输入</h2>
+                    <p>请填写您的出生信息以生成八字命盘</p>
+                </div>
+                <form id="bazi-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="birth-date"><i class="far fa-calendar-alt"></i> 出生日期</label>
+                            <input type="date" id="birth-date" name="birth-date" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label><i class="far fa-clock"></i> 出生时间</label>
+                            <div class="time-select-group">
+                                <select id="birth-hour" name="birth-hour" required>
+                                    <option value="">-- 时 --</option>
+                                    <script>
+                                        for(let i=0; i<24; i++) {
+                                            document.write(`<option value="${i}">${i < 10 ? '0' + i : i}时</option>`);
+                                        }
+                                    </script>
+                                </select>
+                                <select id="birth-minute" name="birth-minute" required>
+                                    <option value="">-- 分 --</option>
+                                    <script>
+                                        for(let i=0; i<60; i++) {
+                                            document.write(`<option value="${i}">${i < 10 ? '0' + i : i}分</option>`);
+                                        }
+                                    </script>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="timezone"><i class="fas fa-globe-asia"></i> 出生地区</label>
+                            <select id="timezone" name="timezone" required>
+                                <option value="8">中国标准时间 (UTC+8)</option>
+                                <option value="-8">太平洋时间 (UTC-8)</option>
+                                <option value="-5">东部时间 (UTC-5)</option>
+                                <option value="0">格林尼治时间 (UTC+0)</option>
+                                <option value="9">日本标准时间 (UTC+9)</option>
+                                <option value="-7">山地时间 (UTC-7)</option>
+                                <option value="-6">中部时间 (UTC-6)</option>
+                                <option value="1">中欧时间 (UTC+1)</option>
+                                <option value="10">澳大利亚东部时间 (UTC+10)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label><i class="fas fa-venus-mars"></i> 性别</label>
+                            <div class="gender-group">
+                                <label><input type="radio" name="gender" value="male" checked> <i class="fas fa-mars"></i> 男</label>
+                                <label><input type="radio" name="gender" value="female"> <i class="fas fa-venus"></i> 女</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-buttons">
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-calculator"></i> 计算八字</button>
+                        <button type="reset" class="btn btn-secondary"><i class="fas fa-redo"></i> 重置</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="content-section" id="result-section" style="display: none;">
+            <div class="result-header">
+                <h2><i class="fas fa-chart-pie"></i> 八字命盘结果</h2>
+                <div class="result-actions">
+                    <button id="print-btn" class="btn btn-action"><i class="fas fa-print"></i> 打印</button>
+                    <button id="save-btn" class="btn btn-action"><i class="fas fa-save"></i> 保存</button>
+                </div>
+            </div>
+            
+            <div class="bazi-result">
+                <div class="basic-info-card">
+                    <h3><i class="fas fa-info-circle"></i> 基本信息</h3>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <span class="info-label">出生日期：</span>
+                            <span class="info-value" id="result-date">1984年1月1日</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">出生时间：</span>
+                            <span class="info-value" id="result-time">23:00</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">农历日期：</span>
+                            <span class="info-value" id="result-lunar">癸亥年腊月初八</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">生肖：</span>
+                            <span class="info-value" id="result-zodiac">鼠</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">命宫：</span>
+                            <span class="info-value" id="result-minggong">卯宫</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">身宫：</span>
+                            <span class="info-value" id="result-shengong">酉宫</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bazi-table-container">
+                    <table class="bazi-table">
+                        <thead>
+                            <tr>
+                                <th>四柱</th>
+                                <th>年柱</th>
+                                <th>月柱</th>
+                                <th>日柱</th>
+                                <th>时柱</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>天干</td>
+                                <td class="wuxing-wood" id="year-stem">甲</td>
+                                <td class="wuxing-wood" id="month-stem">乙</td>
+                                <td class="wuxing-fire" id="day-stem">丙</td>
+                                <td class="wuxing-fire" id="hour-stem">丁</td>
+                            </tr>
+                            <tr>
+                                <td>地支</td>
+                                <td class="wuxing-water" id="year-branch">子</td>
+                                <td class="wuxing-earth" id="month-branch">丑</td>
+                                <td class="wuxing-wood" id="day-branch">寅</td>
+                                <td class="wuxing-wood" id="hour-branch">卯</td>
+                            </tr>
+                            <tr>
+                                <td>藏干</td>
+                                <td class="wuxing-water" id="year-hidden-god">癸(正印)</td>
+                                <td class="wuxing-earth" id="month-hidden-god">己(正财),丁(七杀)</td>
+                                <td class="wuxing-wood" id="day-hidden-god">甲(比肩)</td>
+                                <td class="wuxing-wood" id="hour-hidden-god">乙(劫财)</td>
+                            </tr>
+                            <tr>
+                                <td>十神</td>
+                                <td id="year-main-god">正官</td>
+                                <td id="month-main-god">偏财</td>
+                                <td id="day-main-god">日元</td>
+                                <td id="hour-main-god">正印</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>关于我们</h3>
+                    <p>致力于传承中国传统命理学，提供专业的八字命理教学服务。</p>
+                </div>
+                <div class="footer-section">
+                    <h3>快速链接</h3>
+                    <ul>
+                        <li><a href="../indexl.html">首页</a></li>
+                        <li><a href="../basics/bazi-process.html">基础知识</a></li>
+                        <li><a href="../advanced/wealth.html">进阶知识</a></li>
+                        <li><a href="calculator.html">八字计算器</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>联系方式</h3>
+                    <p>邮箱: info@bazimingli.com</p>
+                    <p>电话: 123-456-7890</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2023 八字命理教学网. 保留所有权利.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="../js/main1.js"></script>
+    <script src="../js/lunar.js"></script>
+    <script>
+        // 简单的粒子背景效果
+        document.addEventListener('DOMContentLoaded', function() {
+            const particlesContainer = document.querySelector('.particles-background');
+            const particleCount = 30;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                
+                // 随机位置和大小
+                const size = Math.random() * 5 + 1;
+                const posX = Math.random() * 100;
+                const posY = Math.random() * 100;
+                const delay = Math.random() * 5;
+                const duration = Math.random() * 10 + 10;
+                
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                particle.style.left = `${posX}%`;
+                particle.style.top = `${posY}%`;
+                particle.style.animationDelay = `${delay}s`;
+                particle.style.animationDuration = `${duration}s`;
+                
+                particlesContainer.appendChild(particle);
+            }
+            
+            // 移动端菜单切换
+            const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
+            const mainNav = document.querySelector('.main-nav');
+            
+            mobileMenuBtn.addEventListener('click', function() {
+                mainNav.classList.toggle('active');
+                this.querySelector('i').classList.toggle('fa-times');
+                this.querySelector('i').classList.toggle('fa-bars');
+            });
+            
+            // 导航条下划线动画
+            const navItems = document.querySelectorAll('.nav-item:not(.dropdown)');
+            const navIndicator = document.querySelector('.nav-indicator');
+            
+            function updateIndicator(el) {
+                const itemRect = el.getBoundingClientRect();
+                const navRect = document.querySelector('.main-nav').getBoundingClientRect();
+                
+                navIndicator.style.width = `${itemRect.width}px`;
+                navIndicator.style.left = `${itemRect.left - navRect.left}px`;
+                navIndicator.style.opacity = '1';
+            }
+            
+            navItems.forEach(item => {
+                item.addEventListener('mouseenter', function() {
+                    updateIndicator(this);
+                });
+                
+                item.addEventListener('mouseleave', function() {
+                    const activeItem = document.querySelector('.nav-item.active');
+                    if (activeItem) {
+                        updateIndicator(activeItem);
+                    } else {
+                        navIndicator.style.opacity = '0';
+                    }
+                });
+            });
+            
+            // 初始化时如果有active项，显示指示器
+            const activeItem = document.querySelector('.nav-item.active');
+            if (activeItem) {
+                updateIndicator(activeItem);
+            }
+        });
+    </script>
+</body>
+</html>
