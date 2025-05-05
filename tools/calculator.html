@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>八字计算器 - 八字学习网</title>
+    <link rel="stylesheet" href="../css/style1.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">
+                <a href="../indexl.html">八字学习网</a>
+            </div>
+            <ul>
+                <li><a href="../basics/bazi-process.html">基础知识</a></li>
+                <li><a href="../advanced/wealth.html">进阶知识</a></li>
+                <li><a href="../patterns/common.html">八字格局</a></li>
+                <li><a href="../tools/calculator.html">工具</a></li>
+                <li><a href="../about.html">关于我们</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="container">
+        <article class="content-box">
+            <h1>八字计算器</h1>
+            
+            <section class="calculator-form">
+                <h2>输入出生信息</h2>
+                <form id="bazi-calculator">
+                    <div class="form-group">
+                        <label for="birth-year">出生年份：</label>
+                        <select id="birth-year" required>
+                            <option value="">请选择年份</option>
+                            <!-- 年份将通过JavaScript动态生成 -->
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="birth-month">出生月份：</label>
+                        <select id="birth-month" required>
+                            <option value="">请选择月份</option>
+                            <option value="1">1月</option>
+                            <option value="2">2月</option>
+                            <option value="3">3月</option>
+                            <option value="4">4月</option>
+                            <option value="5">5月</option>
+                            <option value="6">6月</option>
+                            <option value="7">7月</option>
+                            <option value="8">8月</option>
+                            <option value="9">9月</option>
+                            <option value="10">10月</option>
+                            <option value="11">11月</option>
+                            <option value="12">12月</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="birth-day">出生日期：</label>
+                        <select id="birth-day" required>
+                            <option value="">请选择日期</option>
+                            <!-- 日期将通过JavaScript动态生成 -->
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="birth-hour">出生时辰：</label>
+                        <select id="birth-hour" required>
+                            <option value="">请选择时辰</option>
+                            <option value="23-1">子时 (23:00-1:00)</option>
+                            <option value="1-3">丑时 (1:00-3:00)</option>
+                            <option value="3-5">寅时 (3:00-5:00)</option>
+                            <option value="5-7">卯时 (5:00-7:00)</option>
+                            <option value="7-9">辰时 (7:00-9:00)</option>
+                            <option value="9-11">巳时 (9:00-11:00)</option>
+                            <option value="11-13">午时 (11:00-13:00)</option>
+                            <option value="13-15">未时 (13:00-15:00)</option>
+                            <option value="15-17">申时 (15:00-17:00)</option>
+                            <option value="17-19">酉时 (17:00-19:00)</option>
+                            <option value="19-21">戌时 (19:00-21:00)</option>
+                            <option value="21-23">亥时 (21:00-23:00)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="gender">性别：</label>
+                        <select id="gender" required>
+                            <option value="">请选择性别</option>
+                            <option value="male">男</option>
+                            <option value="female">女</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <button type="submit" class="btn">计算八字</button>
+                    </div>
+                </form>
+            </section>
+            
+            <section class="result-section" id="result-section" style="display: none;">
+                <h2>八字排盘结果</h2>
+                <div class="bazi-result">
+                    <div class="bazi-grid">
+                        <div class="bazi-cell">
+                            <div class="bazi-title">年柱</div>
+                            <div class="bazi-content" id="year-pillar"></div>
+                        </div>
+                        <div class="bazi-cell">
+                            <div class="bazi-title">月柱</div>
+                            <div class="bazi-content" id="month-pillar"></div>
+                        </div>
+                        <div class="bazi-cell">
+                            <div class="bazi-title">日柱</div>
+                            <div class="bazi-content" id="day-pillar"></div>
+                        </div>
+                        <div class="bazi-cell">
+                            <div class="bazi-title">时柱</div>
+                            <div class="bazi-content" id="hour-pillar"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="bazi-details">
+                        <h3>八字分析</h3>
+                        <div id="bazi-analysis"></div>
+                        
+                        <h3>大运走势</h3>
+                        <div id="luck-analysis"></div>
+                    </div>
+                </div>
+            </section>
+            
+            <section>
+                <h2>八字计算说明</h2>
+                <p>八字计算器根据您提供的出生时间（年、月、日、时）计算出您的八字命盘。</p>
+                <p>八字，又称四柱，由年柱、月柱、日柱、时柱组成，每柱由一个天干和一个地支组成，共八个字，故称"八字"。</p>
+                <p>八字命理学认为，一个人的命运可以通过其出生时的天干地支组合来推算。</p>
+                
+                <h3>注意事项</h3>
+                <ul>
+                    <li>请确保输入的出生时间为公历（阳历）日期</li>
+                    <li>出生时间应尽量准确，特别是时辰，对八字影响较大</li>
+                    <li>子时（23:00-1:00）出生的人需特别注意日柱计算</li>
+                    <li>本计算结果仅供参考，命运掌握在自己手中</li>
+                </ul>
+            </section>
+        </article>
+    </main>
+
+    <footer>
+        <p>© 2023 八字学习网 | 弘扬国学 传承经典 科学学习 切勿迷信</p>
+    </footer>
+
+    <script src="../js/main1.js"></script>
+    <script>
+        // 动态生成年份选项 (1900-当前年份)
+        const yearSelect = document.getElementById('birth-year');
+        const currentYear = new Date().getFullYear();
+        for (let year = currentYear; year >= 1900; year--) {
+            const option = document.createElement('option');
+            option.value = year;
+            option.textContent = year;
+            yearSelect.appendChild(option);
+        }
+        
+        // 动态生成日期选项 (根据月份变化)
+        const monthSelect = document.getElementById('birth-month');
+        const daySelect = document.getElementById('birth-day');
+        
+        monthSelect.addEventListener('change', function() {
+            daySelect.innerHTML = '<option value="">请选择日期</option>';
+            const month = parseInt(this.value);
+            let days = 31;
+            
+            if ([4, 6, 9, 11].includes(month)) {
+                days = 30;
+            } else if (month === 2) {
+                const year = parseInt(yearSelect.value);
+                days = ((year % 4 === 0 && year % 100 !== 0) || year % 400 === 0) ? 29 : 28;
+            }
+            
+            for (let day = 1; day <= days; day++) {
+                const option = document.createElement('option');
+                option.value = day;
+                option.textContent = day;
+                daySelect.appendChild(option);
+            }
+        });
+        
+        // 表单提交处理
+        document.getElementById('bazi-calculator').addEventListener('submit', function(e) {
+            e.preventDefault();
+            document.getElementById('result-section').style.display = 'block';
+            
+            // 这里应该是实际的八字计算逻辑
+            // 由于八字计算较为复杂，这里只是模拟显示
+            document.getElementById('year-pillar').textContent = '甲子';
+            document.getElementById('month-pillar').textContent = '乙丑';
+            document.getElementById('day-pillar').textContent = '丙寅';
+            document.getElementById('hour-pillar').textContent = '丁卯';
+            
+            document.getElementById('bazi-analysis').innerHTML = `
+                <p>您的八字为：甲子 乙丑 丙寅 丁卯</p>
+                <p>日元为丙火，生于丑月，身弱，喜木火，忌土金水。</p>
+                <p>性格分析：热情开朗，聪明伶俐，但有时急躁冲动。</p>
+            `;
+            
+            document.getElementById('luck-analysis').innerHTML = `
+                <p>当前大运：戊辰 (2020-2030)</p>
+                <p>未来大运走势：己巳、庚午、辛未...</p>
+                <p>2023年流年：癸卯，运势平稳，宜守不宜攻。</p>
+            `;
+        });
+    </script>
+</body>
+</html>
