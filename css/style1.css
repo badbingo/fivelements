@@ -108,9 +108,9 @@ a:hover {
     background: var(--primary-color);
 }
 
-/* 头部样式 */
-header {
-    background-color: rgba(255, 255, 255, 0.9);
+/* ==================== 新导航条样式 ==================== */
+.main-header {
+    background: linear-gradient(135deg, var(--dark-color), var(--primary-color));
     box-shadow: var(--shadow);
     position: fixed;
     width: 100%;
@@ -119,58 +119,130 @@ header {
     padding: 15px 0;
 }
 
-header .container {
+.header-container {
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
+.logo {
+    color: var(--white);
+}
+
 .logo h1 {
-    color: var(--primary-color);
     font-size: 1.8rem;
-    margin-bottom: 5px;
+    font-weight: 700;
+    letter-spacing: 1px;
 }
 
 .logo p {
-    color: var(--text-light);
-    font-size: 0.9rem;
+    font-size: 0.8rem;
+    opacity: 0.8;
+    margin-top: 5px;
 }
 
-nav ul {
+/* 主导航菜单 */
+.nav-list {
     display: flex;
     list-style: none;
+    align-items: center;
 }
 
-nav ul li {
-    margin-left: 30px;
+.nav-item {
+    position: relative;
+    margin-left: 20px;
 }
 
-nav ul li a {
-    color: var(--dark-color);
+/* 主分类标签样式（不可点击） */
+.nav-label {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 1rem;
     font-weight: 500;
+    padding: 10px 15px;
+    display: block;
+    cursor: default;
+    position: relative;
+    transition: var(--transition);
+}
+
+.nav-item:hover .nav-label {
+    color: var(--white);
+}
+
+/* 下拉箭头 */
+.nav-item.dropdown .nav-label::after {
+    content: "";
+    display: inline-block;
+    margin-left: 8px;
+    vertical-align: middle;
+    border-top: 5px solid rgba(255, 255, 255, 0.7);
+    border-right: 5px solid transparent;
+    border-left: 5px solid transparent;
+    transition: var(--transition);
+}
+
+.nav-item:hover.dropdown .nav-label::after {
+    transform: rotate(180deg);
+    border-top-color: var(--white);
+}
+
+/* 下拉菜单样式 */
+.dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: var(--white);
+    width: 200px;
+    border-radius: 4px;
+    box-shadow: var(--shadow);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(15px);
+    transition: var(--transition);
+    z-index: 100;
+    padding: 5px 0;
+}
+
+.nav-item:hover .dropdown-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+/* 下拉菜单项样式 */
+.dropdown-link {
+    color: var(--text-color);
+    text-decoration: none;
+    font-size: 0.9rem;
+    padding: 10px 20px;
+    display: block;
+    transition: var(--transition);
+    border-left: 3px solid transparent;
+}
+
+.dropdown-link:hover {
+    background: var(--light-color);
+    color: var(--primary-color);
+    border-left: 3px solid var(--primary-color);
+    padding-left: 25px;
+}
+
+/* 活动状态 */
+.nav-link.active {
+    color: var(--white);
     position: relative;
 }
 
-nav ul li a.active,
-nav ul li a:hover {
-    color: var(--primary-color);
-}
-
-nav ul li a::after {
+.nav-link.active::after {
     content: '';
     position: absolute;
     bottom: -5px;
     left: 0;
-    width: 0;
-    height: 2px;
-    background: var(--primary-color);
-    transition: var(--transition);
-}
-
-nav ul li a:hover::after,
-nav ul li a.active::after {
     width: 100%;
+    height: 2px;
+    background: var(--white);
 }
+/* ==================== 导航条样式结束 ==================== */
 
 /* 英雄区域 */
 .hero {
@@ -324,17 +396,18 @@ footer {
 
 /* 响应式设计 */
 @media (max-width: 768px) {
-    header .container {
+    .header-container {
         flex-direction: column;
     }
 
-    nav ul {
+    .nav-list {
         margin-top: 20px;
+        flex-wrap: wrap;
+        justify-content: center;
     }
 
-    nav ul li {
-        margin-left: 15px;
-        margin-right: 15px;
+    .nav-item {
+        margin: 5px 10px;
     }
 
     .hero h2 {
@@ -348,18 +421,25 @@ footer {
     .section-title {
         font-size: 1.8rem;
     }
+
+    /* 移动端下拉菜单调整 */
+    .dropdown-menu {
+        position: static;
+        width: 100%;
+        opacity: 1;
+        visibility: visible;
+        transform: none;
+        display: none;
+        box-shadow: none;
+        background: rgba(0, 0, 0, 0.1);
+    }
+
+    .nav-item:hover .dropdown-menu {
+        display: block;
+    }
 }
 
 @media (max-width: 480px) {
-    nav ul {
-        flex-wrap: wrap;
-        justify-content: center;
-    }
-
-    nav ul li {
-        margin: 5px 10px;
-    }
-
     .hero h2 {
         font-size: 1.8rem;
     }
@@ -672,6 +752,8 @@ tr:hover {
     .right {
         left: 0%;
     }
+}
+
 /* 计算器页面特定样式 */
 .calculator-form {
     background: var(--white);
@@ -804,7 +886,8 @@ tr:hover {
     .wuxing-chart {
         height: 120px;
     }
-    
+}
+
 .reference-section {
     margin-bottom: 50px;
 }
