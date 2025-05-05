@@ -40,34 +40,42 @@ function calculateBazi() {
     const minute = parseInt(birthMinute);
     
     try {
-        // 使用lunar.js计算八字
-        // 注意：根据实际lunar.js库的API进行调整
+        // 使用lunar.js 1.7.2计算八字
         const solarDate = new Date(year, month - 1, day, hour, minute);
         const lunarDate = Lunar.fromDate(solarDate);
         
-        // 获取八字信息 - 根据实际lunar.js库的API进行调整
+        // 获取年柱
+        const yearGanZhi = lunarDate.getYearGanZhi();
+        // 获取月柱 - 需要特殊处理，因为lunar.js 1.7.2可能需要手动计算
+        const monthGanZhi = lunarDate.getMonthGanZhi();
+        // 获取日柱
+        const dayGanZhi = lunarDate.getDayGanZhi();
+        // 获取时柱 - 需要根据日干计算
+        const hourGanZhi = getHourGanZhi(dayGanZhi.substring(0, 1), hour);
+        
+        // 构建八字对象
         const bazi = {
             year: {
-                stem: lunarDate.getYearGan(),
-                branch: lunarDate.getYearZhi(),
-                element: getElementFromStem(lunarDate.getYearGan())
+                stem: yearGanZhi.substring(0, 1),
+                branch: yearGanZhi.substring(1),
+                element: getElementFromStem(yearGanZhi.substring(0, 1))
             },
             month: {
-                stem: lunarDate.getMonthGan(),
-                branch: lunarDate.getMonthZhi(),
-                element: getElementFromStem(lunarDate.getMonthGan())
+                stem: monthGanZhi.substring(0, 1),
+                branch: monthGanZhi.substring(1),
+                element: getElementFromStem(monthGanZhi.substring(0, 1))
             },
             day: {
-                stem: lunarDate.getDayGan(),
-                branch: lunarDate.getDayZhi(),
-                element: getElementFromStem(lunarDate.getDayGan())
+                stem: dayGanZhi.substring(0, 1),
+                branch: dayGanZhi.substring(1),
+                element: getElementFromStem(dayGanZhi.substring(0, 1))
             },
             hour: {
-                stem: lunarDate.getHourGan(hour),
-                branch: lunarDate.getHourZhi(hour),
-                element: getElementFromStem(lunarDate.getHourGan(hour))
+                stem: hourGanZhi.substring(0, 1),
+                branch: hourGanZhi.substring(1),
+                element: getElementFromStem(hourGanZhi.substring(0, 1))
             },
-            lunarDate: lunarDate.toYMD(), // 农历日期
+            lunarDate: lunarDate.toString(), // 农历日期
             zodiac: lunarDate.getYearShengXiao(), // 生肖
             // 其他信息...
         };
@@ -90,6 +98,28 @@ function calculateBazi() {
         console.error('八字计算错误:', error);
         alert('八字计算出错，请检查输入数据是否正确');
     }
+}
+
+// 根据日干和小时计算时柱
+function getHourGanZhi(dayGan, hour) {
+    // 时柱地支固定顺序
+    const zhiList = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
+    const hourZhi = zhiList[Math.floor((hour + 1) / 2) % 12];
+    
+    // 五鼠遁口诀：甲己还加甲，乙庚丙作初，丙辛从戊起，丁壬庚子居，戊癸何方发，壬子是真途
+    const startGanMap = {
+        '甲': 0, '己': 0,
+        '乙': 2, '庚': 2,
+        '丙': 4, '辛': 4,
+        '丁': 6, '壬': 6,
+        '戊': 8, '癸': 8
+    };
+    
+    const ganList = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
+    const startIndex = startGanMap[dayGan];
+    const hourGan = ganList[(startIndex + Math.floor((hour + 1) / 2)) % 10];
+    
+    return hourGan + hourZhi;
 }
 
 // 天干对应的五行
@@ -129,6 +159,22 @@ function displayBaziResult(bazi, info) {
     document.getElementById('hour-element').textContent = bazi.hour.element;
     
     // 其他信息更新...
+    document.getElementById('result-minggong').textContent = '待计算';
+    document.getElementById('result-shengong').textContent = '待计算';
+    document.getElementById('result-wuxing').textContent = '待计算';
+    document.getElementById('result-xiyong').textContent = '待计算';
+    document.getElementById('result-jishen').textContent = '待计算';
+    
+    // 十神分析
+    document.getElementById('year-main-god').textContent = '待计算';
+    document.getElementById('month-main-god').textContent = '待计算';
+    document.getElementById('day-main-god').textContent = '日元';
+    document.getElementById('hour-main-god').textContent = '待计算';
+    
+    document.getElementById('year-hidden-god').textContent = '待计算';
+    document.getElementById('month-hidden-god').textContent = '待计算';
+    document.getElementById('day-hidden-god').textContent = '待计算';
+    document.getElementById('hour-hidden-god').textContent = '待计算';
 }
 
 function saveBaziResult() {
