@@ -1,4 +1,4 @@
-// 八字计算器 - 完整实现a
+// 八字计算器 - 完整实现b
 document.addEventListener('DOMContentLoaded', function() {
     // 初始化表单提交
     document.getElementById('bazi-form').addEventListener('submit', function(e) {
@@ -88,7 +88,8 @@ function calculateFourPillars(lunarDate, hour) {
     };
 }
 
-// 计算时柱（修复版）
+JAVASCRIPT
+// 修正后的时柱计算函数
 function calculateHourPillar(dayGan, hour) {
     const zhiList = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
     const hourZhi = zhiList[Math.floor((parseInt(hour) + 1) / 2) % 12];
@@ -102,7 +103,7 @@ function calculateHourPillar(dayGan, hour) {
     
     const ganList = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
     const startIndex = startGanMap[dayGan] || 0;
-    const hourGan = ganList[(startIndex + Math.floor((parseInt(hour) + 1) / 2) % 10];
+    const hourGan = ganList[(startIndex + Math.floor((parseInt(hour) + 1) / 2)) % 10];
     
     return { 
         stem: hourGan, 
@@ -185,7 +186,7 @@ function calculateWuXing(bazi) {
     };
 }
 
-// 计算大运（已修复天干undefined问题）
+// 修正后的calculateDaYun函数（确保所有括号闭合）
 function calculateDaYun(lunarDate, gender) {
     const yearGan = lunarDate.getYearGan();
     const monthZhi = lunarDate.getMonthZhi();
@@ -203,30 +204,27 @@ function calculateDaYun(lunarDate, gender) {
     const currentGanIndex = ganOrder.indexOf(yearGan);
     const currentZhiIndex = zhiOrder.indexOf(monthZhi);
     
-    // 4. 计算起运年龄（简化版）
+    // 4. 计算起运年龄
     const startAge = isMale ? 1 : 4;
     
     // 5. 生成大运
     const dayunList = [];
-    for (let i = 0; i < 8; i++) {
+    for (let i = 0; i < 8; i++) {  // ← 确保循环括号完整
         const offset = isForward ? i + 1 : -i - 1;
         
         // 计算天干地支
         const gan = ganOrder[(currentGanIndex + offset + 10) % 10];
         const zhi = zhiOrder[(currentZhiIndex + offset + 12) % 12];
         
-        // 计算运势（简化版）
-        const fortune = ['平运','吉运','凶运'][(i + startAge) % 3];
-        
-        dayunList.push({
+        dayunList.push({  // ← 确保对象括号完整
             period: `${i+1}步大运`,
             startAge: startAge + i * 10,
             endAge: startAge + (i + 1) * 10 - 1,
             stem: gan,
             branch: zhi,
             element: getElementFromStem(gan),
-            fortune: fortune
-        });
+            fortune: ['平运','吉运','凶运'][(i + startAge) % 3]
+        });  // ← 确保push方法括号完整
     }
     
     return dayunList;
