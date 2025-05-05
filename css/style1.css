@@ -108,7 +108,7 @@ a:hover {
     background: var(--primary-color);
 }
 
-/* ==================== 新导航条样式 ==================== */
+/* ==================== 头部样式 ==================== */
 .main-header {
     background: linear-gradient(135deg, var(--dark-color), var(--primary-color));
     box-shadow: var(--shadow);
@@ -123,25 +123,31 @@ a:hover {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-direction: row-reverse; /* 将logo移到右侧 */
 }
 
 .logo {
     color: var(--white);
+    text-align: right; /* 文字右对齐 */
 }
 
 .logo h1 {
     font-size: 1.8rem;
     font-weight: 700;
     letter-spacing: 1px;
+    margin-bottom: 5px;
 }
 
 .logo p {
     font-size: 0.8rem;
     opacity: 0.8;
-    margin-top: 5px;
 }
 
 /* 主导航菜单 */
+.main-nav {
+    margin-right: auto; /* 导航推到左侧 */
+}
+
 .nav-list {
     display: flex;
     list-style: none;
@@ -242,13 +248,13 @@ a:hover {
     height: 2px;
     background: var(--white);
 }
-/* ==================== 导航条样式结束 ==================== */
 
-/* 英雄区域 */
+/* ==================== 英雄区域 ==================== */
 .hero {
     height: 100vh;
     display: flex;
     align-items: center;
+    justify-content: center;
     text-align: center;
     padding-top: 80px;
     background-color: rgba(255, 255, 255, 0.7);
@@ -257,10 +263,17 @@ a:hover {
 .hero-content {
     max-width: 800px;
     margin: 0 auto;
+    padding: 20px;
+    animation: fadeIn 1s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 .hero h2 {
-    font-size: 3rem;
+    font-size: 2.5rem;
     margin-bottom: 20px;
     color: var(--dark-color);
 }
@@ -271,7 +284,7 @@ a:hover {
     color: var(--text-color);
 }
 
-/* 特性区域 */
+/* ==================== 其他样式 ==================== */
 .features {
     padding: 80px 0;
     background-color: rgba(255, 255, 255, 0.8);
@@ -314,7 +327,6 @@ a:hover {
     color: var(--dark-color);
 }
 
-/* 评价区域 */
 .testimonials {
     padding: 80px 0;
     background-color: rgba(255, 255, 255, 0.7);
@@ -345,7 +357,6 @@ a:hover {
     color: var(--primary-color);
 }
 
-/* 页脚 */
 footer {
     background: var(--dark-color);
     color: var(--light-color);
@@ -394,34 +405,45 @@ footer {
     font-size: 0.9rem;
 }
 
-/* 响应式设计 */
+/* ==================== 响应式设计 ==================== */
 @media (max-width: 768px) {
     .header-container {
         flex-direction: column;
     }
-
+    
+    .logo {
+        order: -1;
+        margin-bottom: 15px;
+        text-align: center;
+        width: 100%;
+    }
+    
+    .main-nav {
+        margin-right: 0;
+        width: 100%;
+    }
+    
     .nav-list {
-        margin-top: 20px;
         flex-wrap: wrap;
         justify-content: center;
     }
-
+    
     .nav-item {
         margin: 5px 10px;
     }
-
+    
     .hero h2 {
-        font-size: 2.2rem;
+        font-size: 2rem;
     }
-
+    
     .hero p {
         font-size: 1rem;
     }
-
+    
     .section-title {
         font-size: 1.8rem;
     }
-
+    
     /* 移动端下拉菜单调整 */
     .dropdown-menu {
         position: static;
@@ -433,7 +455,7 @@ footer {
         box-shadow: none;
         background: rgba(0, 0, 0, 0.1);
     }
-
+    
     .nav-item:hover .dropdown-menu {
         display: block;
     }
@@ -443,13 +465,13 @@ footer {
     .hero h2 {
         font-size: 1.8rem;
     }
-
+    
     .feature-card {
         padding: 20px;
     }
 }
 
-/* 内容页面样式 */
+/* ==================== 其他页面样式 ==================== */
 .content-container {
     max-width: 1000px;
     margin: 100px auto 50px;
@@ -622,351 +644,45 @@ tr:hover {
     margin: 30px 0;
 }
 
-/* 时间线样式 */
-.timeline {
-    position: relative;
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 20px 0;
-}
-
-.timeline::after {
-    content: '';
-    position: absolute;
-    width: 2px;
-    background-color: var(--primary-color);
-    top: 0;
-    bottom: 0;
-    left: 50%;
-    margin-left: -1px;
-}
-
-.timeline-item {
-    padding: 10px 40px;
-    position: relative;
-    width: 50%;
-    box-sizing: border-box;
-}
-
-.timeline-item::after {
-    content: '';
-    position: absolute;
-    width: 20px;
-    height: 20px;
-    background-color: white;
-    border: 4px solid var(--primary-color);
+/* 返回顶部按钮 */
+.back-to-top {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 50px;
+    height: 50px;
     border-radius: 50%;
-    top: 15px;
-    z-index: 1;
-}
-
-.left {
-    left: 0;
-}
-
-.right {
-    left: 50%;
-}
-
-.left::after {
-    right: -10px;
-}
-
-.right::after {
-    left: -10px;
-}
-
-.timeline-content {
-    padding: 20px;
-    background-color: white;
-    border-radius: 6px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-}
-
-.timeline-content h3 {
-    margin-top: 0;
-    color: var(--primary-color);
-}
-
-/* 工具提示 */
-.tooltip {
-    position: relative;
-    display: inline-block;
-    border-bottom: 1px dotted var(--text-light);
-    cursor: help;
-}
-
-.tooltip .tooltiptext {
-    visibility: hidden;
-    width: 200px;
-    background-color: #555;
-    color: #fff;
-    text-align: center;
-    border-radius: 6px;
-    padding: 5px;
-    position: absolute;
-    z-index: 1;
-    bottom: 125%;
-    left: 50%;
-    margin-left: -100px;
-    opacity: 0;
-    transition: opacity 0.3s;
-}
-
-.tooltip .tooltiptext::after {
-    content: "";
-    position: absolute;
-    top: 100%;
-    left: 50%;
-    margin-left: -5px;
-    border-width: 5px;
-    border-style: solid;
-    border-color: #555 transparent transparent transparent;
-}
-
-.tooltip:hover .tooltiptext {
-    visibility: visible;
-    opacity: 1;
-}
-
-/* 响应式时间线 */
-@media screen and (max-width: 600px) {
-    .timeline::after {
-        left: 31px;
-    }
-    
-    .timeline-item {
-        width: 100%;
-        padding-left: 70px;
-        padding-right: 25px;
-    }
-    
-    .timeline-item::after {
-        left: 21px;
-    }
-    
-    .left::after, .right::after {
-        left: 21px;
-    }
-    
-    .right {
-        left: 0%;
-    }
-}
-
-/* 计算器页面特定样式 */
-.calculator-form {
-    background: var(--white);
-    padding: 30px;
-    border-radius: 10px;
-    box-shadow: var(--shadow);
-    margin-bottom: 40px;
-}
-
-.form-group {
-    margin-bottom: 20px;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: 500;
-}
-
-.form-group input[type="date"],
-.form-group input[type="text"],
-.form-group input[type="number"],
-.form-group select {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    font-size: 1rem;
-}
-
-.form-group input[type="radio"] {
-    margin-right: 5px;
-}
-
-.form-group label:not(:first-child) {
-    margin-left: 15px;
-}
-
-/* 八字结果显示样式 */
-.bazi-result {
-    background: var(--white);
-    padding: 30px;
-    border-radius: 10px;
-    box-shadow: var(--shadow);
-}
-
-.bazi-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 10px;
-    margin-bottom: 30px;
-    text-align: center;
-}
-
-.bazi-header {
-    font-weight: bold;
-    padding: 10px;
-    background: var(--light-color);
-    border-radius: 5px;
-}
-
-.bazi-row {
-    padding: 15px;
-    border-bottom: 1px solid #eee;
-}
-
-.bazi-cell {
-    padding: 10px;
-    font-size: 1.2rem;
-}
-
-/* 五行图表样式 */
-.wuxing-chart {
-    display: flex;
-    justify-content: space-around;
-    height: 150px;
-    align-items: flex-end;
-    margin: 20px 0;
-}
-
-.wuxing-item {
-    text-align: center;
-    width: 15%;
-}
-
-.wuxing-bar {
-    width: 100%;
-    background: #ccc;
-    border-radius: 5px 5px 0 0;
-    transition: height 0.5s ease;
-}
-
-.wuxing-item span {
-    display: block;
-    margin-top: 10px;
-}
-
-/* 五行颜色条 */
-.wood {
-    background: #4CAF50;
-}
-
-.fire {
-    background: #F44336;
-}
-
-.earth {
-    background: #795548;
-}
-
-.metal {
-    background: #607D8B;
-}
-
-.water {
-    background: #2196F3;
-}
-
-/* 响应式调整 */
-@media (max-width: 768px) {
-    .bazi-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .bazi-header, .bazi-row {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-    }
-    
-    .wuxing-chart {
-        height: 120px;
-    }
-}
-
-.reference-section {
-    margin-bottom: 50px;
-}
-
-.reference-card {
-    background: var(--white);
-    padding: 25px;
-    border-radius: 10px;
-    box-shadow: var(--shadow);
-    margin-bottom: 30px;
-}
-
-.reference-card h3 {
-    color: var(--primary-color);
-    margin-bottom: 20px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid var(--light-color);
-}
-
-.reference-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 20px;
-}
-
-.reference-table th {
-    background-color: var(--primary-color);
+    background: var(--primary-color);
     color: white;
-    padding: 12px;
-    text-align: left;
+    border: none;
+    cursor: pointer;
+    font-size: 1.2rem;
+    box-shadow: var(--shadow);
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
 }
 
-.reference-table td {
-    padding: 10px 12px;
-    border-bottom: 1px solid #eee;
+.back-to-top:hover {
+    background: var(--secondary-color);
+    transform: translateY(-5px);
 }
 
-.reference-table tr:nth-child(even) {
-    background-color: #f9f9f9;
+/* 移动端菜单按钮 */
+.mobile-menu-button {
+    display: none;
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 10px;
 }
 
-.reference-table tr:hover {
-    background-color: #f1f1f1;
-}
-
-/* 五行颜色高亮 */
-.wuxing-wood {
-    color: #4CAF50;
-    font-weight: bold;
-}
-
-.wuxing-fire {
-    color: #F44336;
-    font-weight: bold;
-}
-
-.wuxing-earth {
-    color: #795548;
-    font-weight: bold;
-}
-
-.wuxing-metal {
-    color: #607D8B;
-    font-weight: bold;
-}
-
-.wuxing-water {
-    color: #2196F3;
-    font-weight: bold;
-}
-
-/* 响应式表格 */
 @media (max-width: 768px) {
-    .reference-table {
+    .mobile-menu-button {
         display: block;
-        overflow-x: auto;
-    }
-    
-    .card-grid {
-        grid-template-columns: 1fr;
     }
 }
