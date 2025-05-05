@@ -1,4 +1,4 @@
-// 八字计算器 - 完整实现b
+// 八字计算器 - 完整实现
 document.addEventListener('DOMContentLoaded', function() {
     // 初始化表单提交
     document.getElementById('bazi-form').addEventListener('submit', function(e) {
@@ -35,14 +35,8 @@ function calculateBazi() {
         // 4. 计算十神
         const shishen = calculateShiShen(bazi.day.stem, bazi);
         
-        // 5. 计算五行
-        const wuxing = calculateWuXing(bazi);
-        
-        // 6. 计算大运（已修复天干显示问题）
-        const dayun = calculateDaYun(lunarDate, gender);
-        
-        // 7. 显示结果
-        displayFullResult(bazi, shishen, wuxing, dayun, {
+        // 5. 显示结果
+        displayResult(bazi, shishen, {
             date: `${dateParts[0]}年${dateParts[1]}月${dateParts[2]}日`,
             time: `${birthHour}:${birthMinute.padStart(2, '0')}`,
             gender: gender === 'male' ? '男' : '女',
@@ -88,7 +82,6 @@ function calculateFourPillars(lunarDate, hour) {
     };
 }
 
-JAVASCRIPT
 // 修正后的时柱计算函数
 function calculateHourPillar(dayGan, hour) {
     const zhiList = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
@@ -144,94 +137,8 @@ function getShiShen(relations, gan, ganIndex) {
     return '未知';
 }
 
-// 计算五行
-function calculateWuXing(bazi) {
-    const elements = { '木':0, '火':0, '土':0, '金':0, '水':0 };
-    const elementMap = {
-        '甲':'木', '乙':'木', '寅':'木', '卯':'木',
-        '丙':'火', '丁':'火', '巳':'火', '午':'火',
-        '戊':'土', '己':'土', '辰':'土', '戌':'土', '丑':'土', '未':'土',
-        '庚':'金', '辛':'金', '申':'金', '酉':'金',
-        '壬':'水', '癸':'水', '亥':'水', '子':'水'
-    };
-    
-    // 统计天干地支五行
-    ['year', 'month', 'day', 'hour'].forEach(pillar => {
-        elements[elementMap[bazi[pillar].stem]]++;
-        elements[elementMap[bazi[pillar].branch]]++;
-    });
-    
-    // 计算五行百分比
-    const total = Object.values(elements).reduce((a, b) => a + b, 0);
-    const percentages = {};
-    Object.keys(elements).forEach(el => {
-        percentages[el] = Math.round((elements[el] / total) * 100);
-    });
-    
-    // 判断喜用神（简化版）
-    const maxElement = Object.keys(elements).reduce((a, b) => elements[a] > elements[b] ? a : b);
-    const favorable = {
-        '木': ['金', '火', '土'],
-        '火': ['水', '土', '金'],
-        '土': ['木', '金', '水'],
-        '金': ['火', '木', '水'],
-        '水': ['土', '木', '火']
-    }[maxElement] || [];
-    
-    return { 
-        elements, 
-        percentages,
-        favorable: favorable.slice(0, 2),
-        unfavorable: [maxElement]
-    };
-}
-
-// 修正后的calculateDaYun函数（确保所有括号闭合）
-function calculateDaYun(lunarDate, gender) {
-    const yearGan = lunarDate.getYearGan();
-    const monthZhi = lunarDate.getMonthZhi();
-    
-    // 1. 确定顺排还是逆排
-    const isMale = gender === 'male';
-    const isYangYear = ['甲','丙','戊','庚','壬'].includes(yearGan);
-    const isForward = (isMale && isYangYear) || (!isMale && !isYangYear);
-    
-    // 2. 准备干支顺序
-    const ganOrder = ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
-    const zhiOrder = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
-    
-    // 3. 确定起始位置
-    const currentGanIndex = ganOrder.indexOf(yearGan);
-    const currentZhiIndex = zhiOrder.indexOf(monthZhi);
-    
-    // 4. 计算起运年龄
-    const startAge = isMale ? 1 : 4;
-    
-    // 5. 生成大运
-    const dayunList = [];
-    for (let i = 0; i < 8; i++) {  // ← 确保循环括号完整
-        const offset = isForward ? i + 1 : -i - 1;
-        
-        // 计算天干地支
-        const gan = ganOrder[(currentGanIndex + offset + 10) % 10];
-        const zhi = zhiOrder[(currentZhiIndex + offset + 12) % 12];
-        
-        dayunList.push({  // ← 确保对象括号完整
-            period: `${i+1}步大运`,
-            startAge: startAge + i * 10,
-            endAge: startAge + (i + 1) * 10 - 1,
-            stem: gan,
-            branch: zhi,
-            element: getElementFromStem(gan),
-            fortune: ['平运','吉运','凶运'][(i + startAge) % 3]
-        });  // ← 确保push方法括号完整
-    }
-    
-    return dayunList;
-}
-
-// 显示完整结果
-function displayFullResult(bazi, shishen, wuxing, dayun, info) {
+// 显示结果
+function displayResult(bazi, shishen, info) {
     // 1. 显示基本信息
     document.getElementById('result-date').textContent = info.date;
     document.getElementById('result-time').textContent = info.time;
@@ -245,40 +152,25 @@ function displayFullResult(bazi, shishen, wuxing, dayun, info) {
     pillars.forEach(pillar => {
         document.getElementById(`${pillar}-stem`).textContent = bazi[pillar].stem;
         document.getElementById(`${pillar}-branch`).textContent = bazi[pillar].branch;
-        document.getElementById(`${pillar}-element`).textContent = 
-            getElementFromStem(bazi[pillar].stem);
+        
+        // 设置五行颜色类
+        const stemElement = getElementFromStem(bazi[pillar].stem);
+        const branchElement = getElementFromStem(bazi[pillar].branch);
+        
+        document.getElementById(`${pillar}-stem`).className = `wuxing-${stemElement.toLowerCase()}`;
+        document.getElementById(`${pillar}-branch`).className = `wuxing-${branchElement.toLowerCase()}`;
     });
     
     // 3. 显示十神
-    pillars.forEach(pillar => {
-        document.getElementById(`${pillar}-main-god`).textContent = shishen[pillar] || '未知';
-    });
+    document.getElementById('year-main-god').textContent = shishen.year;
+    document.getElementById('month-main-god').textContent = shishen.month;
+    document.getElementById('hour-main-god').textContent = shishen.hour;
     
-    // 4. 显示五行分析
-    const wuxingElements = ['wood', 'fire', 'earth', 'metal', 'water'];
-    const elementNames = {'wood':'木', 'fire':'火', 'earth':'土', 'metal':'金', 'water':'水'};
-    wuxingElements.forEach(el => {
-        const bar = document.querySelector(`.wuxing-bar.${el}`);
-        if (bar) bar.style.height = `${wuxing.percentages[elementNames[el]]}%`;
-    });
-    
-    document.getElementById('result-wuxing').textContent = 
-        Object.entries(wuxing.elements).map(([k, v]) => `${k}${v}`).join('、');
-    document.getElementById('result-xiyong').textContent = wuxing.favorable.join('、');
-    document.getElementById('result-jishen').textContent = wuxing.unfavorable.join('、');
-    
-    // 5. 显示大运（已修复）
-    const dayunTable = document.getElementById('dayun-table');
-    dayunTable.innerHTML = dayun.map(d => `
-        <tr>
-            <td>${d.period}</td>
-            <td>${d.startAge}-${d.endAge}岁</td>
-            <td>${d.stem}</td>
-            <td>${d.branch}</td>
-            <td>${d.element}</td>
-            <td class="${getFortuneClass(d.fortune)}">${d.fortune}</td>
-        </tr>
-    `).join('');
+    // 4. 显示藏干十神
+    document.getElementById('year-hidden-god').textContent = getHiddenGods(bazi.year.branch, bazi.day.stem);
+    document.getElementById('month-hidden-god').textContent = getHiddenGods(bazi.month.branch, bazi.day.stem);
+    document.getElementById('day-hidden-god').textContent = getHiddenGods(bazi.day.branch, bazi.day.stem);
+    document.getElementById('hour-hidden-god').textContent = getHiddenGods(bazi.hour.branch, bazi.day.stem);
 }
 
 // 辅助函数
@@ -291,7 +183,114 @@ function getElementFromStem(gan) {
     return map[gan] || '未知';
 }
 
-function getFortuneClass(fortune) {
-    const map = { '吉运': 'good-fortune', '凶运': 'bad-fortune', '平运': 'neutral-fortune' };
-    return map[fortune] || '';
+function getHiddenGods(branch, dayGan) {
+    const hiddenGodsMap = {
+        '子': ['癸'],
+        '丑': ['己', '癸', '辛'],
+        '寅': ['甲', '丙', '戊'],
+        '卯': ['乙'],
+        '辰': ['戊', '乙', '癸'],
+        '巳': ['丙', '戊', '庚'],
+        '午': ['丁', '己'],
+        '未': ['己', '丁', '乙'],
+        '申': ['庚', '壬', '戊'],
+        '酉': ['辛'],
+        '戌': ['戊', '辛', '丁'],
+        '亥': ['壬', '甲']
+    };
+    
+    const shishenRelations = {
+        '比肩': ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'],
+        '劫财': ['乙', '甲', '丁', '丙', '己', '戊', '辛', '庚', '癸', '壬'],
+        '食神': ['丙', '丁', '戊', '己', '庚', '辛', '壬', '癸', '甲', '乙'],
+        '伤官': ['丁', '丙', '己', '戊', '辛', '庚', '癸', '壬', '乙', '甲'],
+        '偏财': ['戊', '己', '庚', '辛', '壬', '癸', '甲', '乙', '丙', '丁'],
+        '正财': ['己', '戊', '辛', '庚', '癸', '壬', '乙', '甲', '丁', '丙'],
+        '七杀': ['庚', '辛', '壬', '癸', '甲', '乙', '丙', '丁', '戊', '己'],
+        '正官': ['辛', '庚', '癸', '壬', '乙', '甲', '丁', '丙', '己', '戊'],
+        '偏印': ['壬', '癸', '甲', '乙', '丙', '丁', '戊', '己', '庚', '辛'],
+        '正印': ['癸', '壬', '乙', '甲', '丁', '丙', '己', '戊', '辛', '庚']
+    };
+    
+    const ganIndex = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'].indexOf(dayGan);
+    if (ganIndex === -1) return '';
+    
+    const hiddenGods = hiddenGodsMap[branch] || [];
+    return hiddenGods.map(god => {
+        for (const [name, gans] of Object.entries(shishenRelations)) {
+            if (gans[ganIndex] === god) return `${god}(${name})`;
+        }
+        return god;
+    }).join(', ');
 }
+
+// 获取地支对应的藏干
+function getZhiHiddenGan(zhi) {
+    const hiddenGanMap = {
+        '子': ['癸'],
+        '丑': ['己', '癸', '辛'],
+        '寅': ['甲', '丙', '戊'],
+        '卯': ['乙'],
+        '辰': ['戊', '乙', '癸'],
+        '巳': ['丙', '戊', '庚'],
+        '午': ['丁', '己'],
+        '未': ['己', '丁', '乙'],
+        '申': ['庚', '壬', '戊'],
+        '酉': ['辛'],
+        '戌': ['戊', '辛', '丁'],
+        '亥': ['壬', '甲']
+    };
+    return hiddenGanMap[zhi] || [];
+}
+
+// 根据日干和藏干计算十神
+function calculateHiddenShiShen(dayGan, hiddenGans) {
+    const relations = {
+        '比肩': ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'],
+        '劫财': ['乙', '甲', '丁', '丙', '己', '戊', '辛', '庚', '癸', '壬'],
+        '食神': ['丙', '丁', '戊', '己', '庚', '辛', '壬', '癸', '甲', '乙'],
+        '伤官': ['丁', '丙', '己', '戊', '辛', '庚', '癸', '壬', '乙', '甲'],
+        '偏财': ['戊', '己', '庚', '辛', '壬', '癸', '甲', '乙', '丙', '丁'],
+        '正财': ['己', '戊', '辛', '庚', '癸', '壬', '乙', '甲', '丁', '丙'],
+        '七杀': ['庚', '辛', '壬', '癸', '甲', '乙', '丙', '丁', '戊', '己'],
+        '正官': ['辛', '庚', '癸', '壬', '乙', '甲', '丁', '丙', '己', '戊'],
+        '偏印': ['壬', '癸', '甲', '乙', '丙', '丁', '戊', '己', '庚', '辛'],
+        '正印': ['癸', '壬', '乙', '甲', '丁', '丙', '己', '戊', '辛', '庚']
+    };
+    
+    const ganIndex = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'].indexOf(dayGan);
+    if (ganIndex === -1) return hiddenGans.map(gan => `${gan}(未知)`);
+    
+    return hiddenGans.map(gan => {
+        for (const [name, gans] of Object.entries(relations)) {
+            if (gans[ganIndex] === gan) return `${gan}(${name})`;
+        }
+        return `${gan}(未知)`;
+    });
+}
+
+// 获取五行对应的颜色类
+function getElementClass(element) {
+    const elementMap = {
+        '木': 'wuxing-wood',
+        '火': 'wuxing-fire',
+        '土': 'wuxing-earth',
+        '金': 'wuxing-metal',
+        '水': 'wuxing-water'
+    };
+    return elementMap[element] || '';
+}
+
+// 初始化日期选择器为当前日期
+function initDatePicker() {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    document.getElementById('birth-date').value = `${year}-${month}-${day}`;
+}
+
+// 页面加载完成后初始化
+window.addEventListener('load', function() {
+    initDatePicker();
+});
