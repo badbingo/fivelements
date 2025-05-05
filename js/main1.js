@@ -1,152 +1,171 @@
-// 主JavaScript文件
-
+// 八字计算器功能实现
 document.addEventListener('DOMContentLoaded', function() {
-    // 移动logo到右上角
-    const headerContainer = document.querySelector('header .container');
-    const logo = document.querySelector('.logo');
-    const nav = document.querySelector('nav');
+    // 加载lunar.js库
+    loadLunarScript();
     
-    if (headerContainer && logo && nav) {
-        headerContainer.insertBefore(nav, logo);
-    }
-
-    // 导航栏滚动效果
-    const header = document.querySelector('header');
-    if (header) {
-        window.addEventListener('scroll', function() {
-            if (window.scrollY > 100) {
-                header.style.boxShadow = '0 5px 15px rgba(0, 0, 0, 0.1)';
-            } else {
-                header.style.boxShadow = 'none';
-            }
-        });
-    }
-
-    // 平滑滚动
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function(e) {
-            e.preventDefault();
-            
-            const targetId = this.getAttribute('href');
-            if (targetId === '#') return;
-            
-            const targetElement = document.querySelector(targetId);
-            if (targetElement) {
-                window.scrollTo({
-                    top: targetElement.offsetTop - 80,
-                    behavior: 'smooth'
-                });
-            }
-        });
+    // 表单提交处理
+    document.getElementById('bazi-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        calculateBazi();
     });
-
-    // 评价轮播
-    const testimonials = document.querySelectorAll('.testimonial');
-    if (testimonials.length > 1) {
-        let currentTestimonial = 0;
-        
-        function showTestimonial(index) {
-            testimonials.forEach((testimonial, i) => {
-                testimonial.style.display = i === index ? 'block' : 'none';
-            });
-        }
-        
-        showTestimonial(currentTestimonial);
-        
-        setInterval(() => {
-            currentTestimonial = (currentTestimonial + 1) % testimonials.length;
-            showTestimonial(currentTestimonial);
-        }, 5000);
-    }
-
-    // 返回顶部按钮
-    const backToTopButton = document.createElement('button');
-    backToTopButton.innerHTML = '<i class="fas fa-arrow-up"></i>';
-    backToTopButton.className = 'back-to-top';
-    backToTopButton.style.display = 'none';
-    document.body.appendChild(backToTopButton);
-
-    window.addEventListener('scroll', function() {
-        if (window.scrollY > 300) {
-            backToTopButton.style.display = 'block';
-        } else {
-            backToTopButton.style.display = 'none';
-        }
+    
+    // 打印功能
+    document.getElementById('print-btn').addEventListener('click', function() {
+        window.print();
     });
-
-    backToTopButton.addEventListener('click', function() {
-        window.scrollTo({
-            top: 0,
-            behavior: 'smooth'
-        });
+    
+    // 保存功能
+    document.getElementById('save-btn').addEventListener('click', function() {
+        saveBaziResult();
     });
-
-    // 移动端菜单切换
-    const mobileMenuButton = document.createElement('button');
-    mobileMenuButton.innerHTML = '<i class="fas fa-bars"></i>';
-    mobileMenuButton.className = 'mobile-menu-button';
-    const headerContainer = document.querySelector('header .container');
-    if (headerContainer) {
-        headerContainer.prepend(mobileMenuButton);
-    }
-
-    const nav = document.querySelector('nav');
-    if (nav) {
-        mobileMenuButton.addEventListener('click', function() {
-            nav.style.display = nav.style.display === 'block' ? 'none' : 'block';
-        });
-
-        function checkScreenSize() {
-            if (window.innerWidth > 768) {
-                nav.style.display = 'block';
-            } else {
-                nav.style.display = 'none';
-            }
-        }
-
-        window.addEventListener('resize', checkScreenSize);
-        checkScreenSize();
-    }
-
-    // 工具提示初始化
-    document.querySelectorAll('.tooltip').forEach(tooltip => {
-        tooltip.addEventListener('mouseenter', function() {
-            const tooltipText = this.querySelector('.tooltiptext');
-            if (tooltipText) {
-                tooltipText.style.visibility = 'visible';
-                tooltipText.style.opacity = '1';
-            }
-        });
-        
-        tooltip.addEventListener('mouseleave', function() {
-            const tooltipText = this.querySelector('.tooltiptext');
-            if (tooltipText) {
-                tooltipText.style.visibility = 'hidden';
-                tooltipText.style.opacity = '0';
-            }
-        });
-    });
-
-    // 检查并加载首页内容
-    if (document.querySelector('.hero-content') && !document.querySelector('.hero-content').innerHTML.trim()) {
-        loadHomeContent();
-    }
 });
 
-// 加载首页内容
-function loadHomeContent() {
-    const heroContent = document.querySelector('.hero-content');
-    if (heroContent) {
-        heroContent.innerHTML = `
-            <h2>专业八字命理教学平台</h2>
-            <p>系统学习八字命理知识，掌握传统命理精髓</p>
-            <a href="basics/bazi-process.html" class="btn">开始学习</a>
-        `;
+function loadLunarScript() {
+    // 检查是否已加载
+    if (typeof Lunar !== 'undefined') return;
+    
+    // 动态加载lunar.js
+    const script = document.createElement('script');
+    script.src = '../js/lunar.js';
+    script.onload = function() {
+        console.log('lunar.js loaded successfully');
+    };
+    script.onerror = function() {
+        console.error('Failed to load lunar.js');
+        alert('无法加载八字计算库，请稍后再试');
+    };
+    document.head.appendChild(script);
+}
+
+function calculateBazi() {
+    // 获取表单数据
+    const birthDate = document.getElementById('birth-date').value;
+    const birthHour = document.getElementById('birth-hour').value;
+    const birthMinute = document.getElementById('birth-minute').value;
+    const timezone = document.getElementById('timezone').value;
+    const gender = document.querySelector('input[name="gender"]:checked').value;
+    
+    // 验证输入
+    if (!birthDate || birthHour === '' || birthMinute === '') {
+        alert('请填写完整的出生日期和时间');
+        return;
+    }
+    
+    // 解析日期
+    const dateParts = birthDate.split('-');
+    const year = parseInt(dateParts[0]);
+    const month = parseInt(dateParts[1]);
+    const day = parseInt(dateParts[2]);
+    const hour = parseInt(birthHour);
+    const minute = parseInt(birthMinute);
+    
+    try {
+        // 使用lunar.js计算八字
+        const lunarDate = Lunar.fromDate(new Date(year, month - 1, day, hour, minute));
+        const bazi = lunarDate.getBazi();
+        
+        // 显示结果
+        displayBaziResult(bazi, {
+            date: `${year}年${month}月${day}日`,
+            time: `${hour}:${minute.toString().padStart(2, '0')}`,
+            gender: gender === 'male' ? '男' : '女',
+            timezone: `UTC${timezone >= 0 ? '+' : ''}${timezone}`
+        });
+        
+        // 显示结果区域
+        document.getElementById('result-section').style.display = 'block';
+        
+        // 滚动到结果区域
+        document.getElementById('result-section').scrollIntoView({ behavior: 'smooth' });
+        
+    } catch (error) {
+        console.error('八字计算错误:', error);
+        alert('八字计算出错，请检查输入数据是否正确');
     }
 }
 
-// 八字计算器功能
-function calculateBazi() {
-    // 这里可以添加八字计算器的功能
-    console.log('八字计算器功能将在后续实现');
+function displayBaziResult(bazi, info) {
+    // 更新基本信息
+    document.getElementById('result-date').textContent = info.date;
+    document.getElementById('result-time').textContent = info.time;
+    document.getElementById('result-lunar').textContent = bazi.lunarDate;
+    document.getElementById('result-zodiac').textContent = bazi.zodiac;
+    
+    // 更新八字四柱
+    document.getElementById('year-stem').textContent = bazi.year.stem;
+    document.getElementById('month-stem').textContent = bazi.month.stem;
+    document.getElementById('day-stem').textContent = bazi.day.stem;
+    document.getElementById('hour-stem').textContent = bazi.hour.stem;
+    
+    document.getElementById('year-branch').textContent = bazi.year.branch;
+    document.getElementById('month-branch').textContent = bazi.month.branch;
+    document.getElementById('day-branch').textContent = bazi.day.branch;
+    document.getElementById('hour-branch').textContent = bazi.hour.branch;
+    
+    document.getElementById('year-element').textContent = bazi.year.element;
+    document.getElementById('month-element').textContent = bazi.month.element;
+    document.getElementById('day-element').textContent = bazi.day.element;
+    document.getElementById('hour-element').textContent = bazi.hour.element;
+    
+    // 更新十神分析
+    document.getElementById('year-main-god').textContent = bazi.year.mainGod;
+    document.getElementById('month-main-god').textContent = bazi.month.mainGod;
+    document.getElementById('day-main-god').textContent = bazi.day.mainGod;
+    document.getElementById('hour-main-god').textContent = bazi.hour.mainGod;
+    
+    document.getElementById('year-hidden-god').textContent = bazi.year.hiddenGods.join(', ');
+    document.getElementById('month-hidden-god').textContent = bazi.month.hiddenGods.join(', ');
+    document.getElementById('day-hidden-god').textContent = bazi.day.hiddenGods.join(', ');
+    document.getElementById('hour-hidden-god').textContent = bazi.hour.hiddenGods.join(', ');
+    
+    // 更新五行分析
+    updateWuxingChart(bazi.wuxing);
+    document.getElementById('result-wuxing').textContent = bazi.wuxing.strength;
+    document.getElementById('result-xiyong').textContent = bazi.wuxing.favorableElements.join('、');
+    document.getElementById('result-jishen').textContent = bazi.wuxing.unfavorableElements.join('、');
+    
+    // 更新大运
+    updateDayunTable(bazi.dayun);
+    
+    // 更新流年
+    updateLiunian(bazi.liunian);
+}
+
+function updateWuxingChart(wuxing) {
+    const elements = ['wood', 'fire', 'earth', 'metal', 'water'];
+    elements.forEach(el => {
+        const bar = document.querySelector(`.wuxing-bar.${el}`);
+        if (bar) {
+            bar.style.height = `${wuxing.percentages[el]}%`;
+        }
+    });
+}
+
+function updateDayunTable(dayunList) {
+    const tbody = document.getElementById('dayun-table');
+    tbody.innerHTML = '';
+    
+    dayunList.forEach(dayun => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${dayun.period}</td>
+            <td>${dayun.startYear}-${dayun.endYear}</td>
+            <td>${dayun.stem}</td>
+            <td>${dayun.branch}</td>
+            <td>${dayun.element}</td>
+            <td>${dayun.fortune}</td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
+function updateLiunian(liunian) {
+    document.getElementById('liunian-ganzhi').textContent = liunian.ganzhi;
+    document.getElementById('liunian-yunshi').textContent = liunian.fortune;
+    document.getElementById('liunian-notice').textContent = liunian.notice;
+}
+
+function saveBaziResult() {
+    // 这里可以实现保存功能，如生成图片或PDF
+    alert('保存功能将在后续版本实现');
 }
