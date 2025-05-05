@@ -457,41 +457,33 @@
         }
 
         function displayBasicInfo(solar, lunar, gender) {
-            const basicInfo = document.getElementById('basicInfo');
-            
-            // 公历日期
-            const solarDate = `${solar.getYear()}年${solar.getMonth()}月${solar.getDay()}日`;
-            
-            // 农历日期
-            const lunarDate = `${lunar.getYearInChinese()}年${lunar.getMonthInChinese()}月${lunar.getDayInChinese()}`;
-            
-            // 生肖
-            const shengxiao = lunar.getYearShengXiao();
-            
-            // 命宫
-            const minggong = lunar.getMingGong();
-            
-            // 身宫
-            const shengong = lunar.getShenGong();
-            
-            // 胎元
-            const taiyuan = lunar.getTaiYuan();
-            
-            // 五行
-            const wuxing = lunar.getWuXing();
-            
-            basicInfo.innerHTML = `
-                <p><strong>公历日期：</strong>${solarDate}</p>
-                <p><strong>农历日期：</strong>${lunarDate}</p>
-                <p><strong>出生时辰：</strong>${lunar.getTimeZhi()}时</p>
-                <p><strong>生肖属相：</strong>${shengxiao}</p>
-                <p><strong>命宫：</strong>${minggong}</p>
-                <p><strong>身宫：</strong>${shengong}</p>
-                <p><strong>胎元：</strong>${taiyuan}</p>
-                <p><strong>五行：</strong>${wuxing}</p>
-                <p><strong>性别：</strong>${gender === 'male' ? '男' : '女'}</p>
-            `;
-        }
+    const basicInfo = document.getElementById('basicInfo');
+    
+    // 公历日期
+    const solarDate = `${solar.getYear()}年${solar.getMonth()}月${solar.getDay()}日`;
+    
+    // 农历日期
+    const lunarDate = `${lunar.getYearInChinese()}年${lunar.getMonthInChinese()}月${lunar.getDayInChinese()}`;
+    
+    // 生肖
+    const shengxiao = lunar.getYearShengXiao();
+    
+    // 五行
+    const wuxing = lunar.getWuXing();
+    
+    // 节气（如果是节气日）
+    const jieqi = lunar.getJieQi();
+    const jieqiInfo = jieqi ? ` (${jieqi})` : '';
+    
+    basicInfo.innerHTML = `
+        <p><strong>公历日期：</strong>${solarDate}</p>
+        <p><strong>农历日期：</strong>${lunarDate}${jieqiInfo}</p>
+        <p><strong>出生时辰：</strong>${lunar.getTimeZhi()}时</p>
+        <p><strong>生肖属相：</strong>${shengxiao}</p>
+        <p><strong>五行：</strong>${wuxing}</p>
+        <p><strong>性别：</strong>${gender === 'male' ? '男' : '女'}</p>
+    `;
+}
 
         function displayDayunInfo(lunar, gender) {
             const dayunTable = document.getElementById('dayunTable').querySelector('tbody');
