@@ -1,15 +1,26 @@
 // 主JavaScript文件
 
 document.addEventListener('DOMContentLoaded', function() {
+    // 移动logo到右上角
+    const headerContainer = document.querySelector('header .container');
+    const logo = document.querySelector('.logo');
+    const nav = document.querySelector('nav');
+    
+    if (headerContainer && logo && nav) {
+        headerContainer.insertBefore(nav, logo);
+    }
+
     // 导航栏滚动效果
     const header = document.querySelector('header');
-    window.addEventListener('scroll', function() {
-        if (window.scrollY > 100) {
-            header.style.boxShadow = '0 5px 15px rgba(0, 0, 0, 0.1)';
-        } else {
-            header.style.boxShadow = 'none';
-        }
-    });
+    if (header) {
+        window.addEventListener('scroll', function() {
+            if (window.scrollY > 100) {
+                header.style.boxShadow = '0 5px 15px rgba(0, 0, 0, 0.1)';
+            } else {
+                header.style.boxShadow = 'none';
+            }
+        });
+    }
 
     // 平滑滚动
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
@@ -74,23 +85,28 @@ document.addEventListener('DOMContentLoaded', function() {
     const mobileMenuButton = document.createElement('button');
     mobileMenuButton.innerHTML = '<i class="fas fa-bars"></i>';
     mobileMenuButton.className = 'mobile-menu-button';
-    document.querySelector('header .container').prepend(mobileMenuButton);
-
-    const nav = document.querySelector('nav');
-    mobileMenuButton.addEventListener('click', function() {
-        nav.style.display = nav.style.display === 'block' ? 'none' : 'block';
-    });
-
-    function checkScreenSize() {
-        if (window.innerWidth > 768) {
-            nav.style.display = 'block';
-        } else {
-            nav.style.display = 'none';
-        }
+    const headerContainer = document.querySelector('header .container');
+    if (headerContainer) {
+        headerContainer.prepend(mobileMenuButton);
     }
 
-    window.addEventListener('resize', checkScreenSize);
-    checkScreenSize();
+    const nav = document.querySelector('nav');
+    if (nav) {
+        mobileMenuButton.addEventListener('click', function() {
+            nav.style.display = nav.style.display === 'block' ? 'none' : 'block';
+        });
+
+        function checkScreenSize() {
+            if (window.innerWidth > 768) {
+                nav.style.display = 'block';
+            } else {
+                nav.style.display = 'none';
+            }
+        }
+
+        window.addEventListener('resize', checkScreenSize);
+        checkScreenSize();
+    }
 
     // 工具提示初始化
     document.querySelectorAll('.tooltip').forEach(tooltip => {
@@ -110,7 +126,24 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+
+    // 检查并加载首页内容
+    if (document.querySelector('.hero-content') && !document.querySelector('.hero-content').innerHTML.trim()) {
+        loadHomeContent();
+    }
 });
+
+// 加载首页内容
+function loadHomeContent() {
+    const heroContent = document.querySelector('.hero-content');
+    if (heroContent) {
+        heroContent.innerHTML = `
+            <h2>专业八字命理教学平台</h2>
+            <p>系统学习八字命理知识，掌握传统命理精髓</p>
+            <a href="basics/bazi-process.html" class="btn">开始学习</a>
+        `;
+    }
+}
 
 // 八字计算器功能
 function calculateBazi() {
