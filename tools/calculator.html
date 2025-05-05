@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>八字计算器 - 八字命理教学网</title>
     <link rel="stylesheet" href="../css/style1.css">
+    <link rel="stylesheet" href="../css/calculator.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
@@ -78,28 +79,28 @@
                     
                     <div class="form-group">
                         <label for="birth-time">出生时间：</label>
-                        <select id="birth-hour" name="birth-hour" required>
-                            <option value="">-- 时 --</option>
-                            <!-- 生成24小时选项 -->
-                            <script>
-                                for(let i=0; i<24; i++) {
-                                    document.write(`<option value="${i}">${i}时</option>`);
-                                }
-                            </script>
-                        </select>
-                        <select id="birth-minute" name="birth-minute" required>
-                            <option value="">-- 分 --</option>
-                            <!-- 生成分钟选项 -->
-                            <script>
-                                for(let i=0; i<60; i++) {
-                                    document.write(`<option value="${i}">${i}分</option>`);
-                                }
-                            </script>
-                        </select>
+                        <div class="time-select-group">
+                            <select id="birth-hour" name="birth-hour" required>
+                                <option value="">-- 时 --</option>
+                                <script>
+                                    for(let i=0; i<24; i++) {
+                                        document.write(`<option value="${i}">${i < 10 ? '0' + i : i}时</option>`);
+                                    }
+                                </script>
+                            </select>
+                            <select id="birth-minute" name="birth-minute" required>
+                                <option value="">-- 分 --</option>
+                                <script>
+                                    for(let i=0; i<60; i++) {
+                                        document.write(`<option value="${i}">${i < 10 ? '0' + i : i}分</option>`);
+                                    }
+                                </script>
+                            </select>
+                        </div>
                     </div>
                     
                     <div class="form-group">
-                        <label>出生地区：</label>
+                        <label for="timezone">出生地区：</label>
                         <select id="timezone" name="timezone" required>
                             <option value="8">中国标准时间 (UTC+8)</option>
                             <option value="-8">太平洋时间 (UTC-8)</option>
@@ -115,13 +116,15 @@
                     
                     <div class="form-group">
                         <label>性别：</label>
-                        <label><input type="radio" name="gender" value="male" checked> 男</label>
-                        <label><input type="radio" name="gender" value="female"> 女</label>
+                        <div class="gender-group">
+                            <label><input type="radio" name="gender" value="male" checked> 男</label>
+                            <label><input type="radio" name="gender" value="female"> 女</label>
+                        </div>
                     </div>
                     
-                    <div class="form-group">
+                    <div class="form-group form-buttons">
                         <button type="submit" class="btn">计算八字</button>
-                        <button type="reset" class="btn">重置</button>
+                        <button type="reset" class="btn btn-secondary">重置</button>
                     </div>
                 </form>
             </div>
@@ -299,37 +302,6 @@
     </footer>
 
     <script src="../js/main1.js"></script>
-    <script>
-        // 八字计算器功能实现
-        document.getElementById('bazi-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            // 获取表单数据
-            const birthDate = document.getElementById('birth-date').value;
-            const birthHour = document.getElementById('birth-hour').value;
-            const birthMinute = document.getElementById('birth-minute').value;
-            const timezone = document.getElementById('timezone').value;
-            const gender = document.querySelector('input[name="gender"]:checked').value;
-            
-            // 这里应该是实际的八字计算逻辑
-            // 由于八字计算算法复杂，这里仅做演示
-            
-            // 显示结果区域
-            document.getElementById('result-section').style.display = 'block';
-            
-            // 滚动到结果区域
-            document.getElementById('result-section').scrollIntoView({ behavior: 'smooth' });
-        });
-        
-        // 打印功能
-        document.getElementById('print-btn').addEventListener('click', function() {
-            window.print();
-        });
-        
-        // 保存功能
-        document.getElementById('save-btn').addEventListener('click', function() {
-            alert('保存功能将在后续版本实现');
-        });
-    </script>
+    <script src="../js/lunar.js"></script>
 </body>
 </html>
