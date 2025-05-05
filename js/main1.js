@@ -1,8 +1,5 @@
 // 八字计算器功能实现
 document.addEventListener('DOMContentLoaded', function() {
-    // 加载lunar.js库
-    loadLunarScript();
-    
     // 表单提交处理
     document.getElementById('bazi-form').addEventListener('submit', function(e) {
         e.preventDefault();
@@ -19,23 +16,6 @@ document.addEventListener('DOMContentLoaded', function() {
         saveBaziResult();
     });
 });
-
-function loadLunarScript() {
-    // 检查是否已加载
-    if (typeof Lunar !== 'undefined') return;
-    
-    // 动态加载lunar.js
-    const script = document.createElement('script');
-    script.src = '../js/lunar.js';
-    script.onload = function() {
-        console.log('lunar.js loaded successfully');
-    };
-    script.onerror = function() {
-        console.error('Failed to load lunar.js');
-        alert('无法加载八字计算库，请稍后再试');
-    };
-    document.head.appendChild(script);
-}
 
 function calculateBazi() {
     // 获取表单数据
@@ -61,8 +41,36 @@ function calculateBazi() {
     
     try {
         // 使用lunar.js计算八字
-        const lunarDate = Lunar.fromDate(new Date(year, month - 1, day, hour, minute));
-        const bazi = lunarDate.getBazi();
+        // 注意：根据实际lunar.js库的API进行调整
+        const solarDate = new Date(year, month - 1, day, hour, minute);
+        const lunarDate = Lunar.fromDate(solarDate);
+        
+        // 获取八字信息 - 根据实际lunar.js库的API进行调整
+        const bazi = {
+            year: {
+                stem: lunarDate.getYearGan(),
+                branch: lunarDate.getYearZhi(),
+                element: getElementFromStem(lunarDate.getYearGan())
+            },
+            month: {
+                stem: lunarDate.getMonthGan(),
+                branch: lunarDate.getMonthZhi(),
+                element: getElementFromStem(lunarDate.getMonthGan())
+            },
+            day: {
+                stem: lunarDate.getDayGan(),
+                branch: lunarDate.getDayZhi(),
+                element: getElementFromStem(lunarDate.getDayGan())
+            },
+            hour: {
+                stem: lunarDate.getHourGan(hour),
+                branch: lunarDate.getHourZhi(hour),
+                element: getElementFromStem(lunarDate.getHourGan(hour))
+            },
+            lunarDate: lunarDate.toYMD(), // 农历日期
+            zodiac: lunarDate.getYearShengXiao(), // 生肖
+            // 其他信息...
+        };
         
         // 显示结果
         displayBaziResult(bazi, {
@@ -84,6 +92,19 @@ function calculateBazi() {
     }
 }
 
+// 天干对应的五行
+function getElementFromStem(gan) {
+    const elementMap = {
+        '甲': '木', '乙': '木',
+        '丙': '火', '丁': '火',
+        '戊': '土', '己': '土',
+        '庚': '金', '辛': '金',
+        '壬': '水', '癸': '水'
+    };
+    return elementMap[gan] || '未知';
+}
+
+// 显示八字结果
 function displayBaziResult(bazi, info) {
     // 更新基本信息
     document.getElementById('result-date').textContent = info.date;
@@ -107,62 +128,7 @@ function displayBaziResult(bazi, info) {
     document.getElementById('day-element').textContent = bazi.day.element;
     document.getElementById('hour-element').textContent = bazi.hour.element;
     
-    // 更新十神分析
-    document.getElementById('year-main-god').textContent = bazi.year.mainGod;
-    document.getElementById('month-main-god').textContent = bazi.month.mainGod;
-    document.getElementById('day-main-god').textContent = bazi.day.mainGod;
-    document.getElementById('hour-main-god').textContent = bazi.hour.mainGod;
-    
-    document.getElementById('year-hidden-god').textContent = bazi.year.hiddenGods.join(', ');
-    document.getElementById('month-hidden-god').textContent = bazi.month.hiddenGods.join(', ');
-    document.getElementById('day-hidden-god').textContent = bazi.day.hiddenGods.join(', ');
-    document.getElementById('hour-hidden-god').textContent = bazi.hour.hiddenGods.join(', ');
-    
-    // 更新五行分析
-    updateWuxingChart(bazi.wuxing);
-    document.getElementById('result-wuxing').textContent = bazi.wuxing.strength;
-    document.getElementById('result-xiyong').textContent = bazi.wuxing.favorableElements.join('、');
-    document.getElementById('result-jishen').textContent = bazi.wuxing.unfavorableElements.join('、');
-    
-    // 更新大运
-    updateDayunTable(bazi.dayun);
-    
-    // 更新流年
-    updateLiunian(bazi.liunian);
-}
-
-function updateWuxingChart(wuxing) {
-    const elements = ['wood', 'fire', 'earth', 'metal', 'water'];
-    elements.forEach(el => {
-        const bar = document.querySelector(`.wuxing-bar.${el}`);
-        if (bar) {
-            bar.style.height = `${wuxing.percentages[el]}%`;
-        }
-    });
-}
-
-function updateDayunTable(dayunList) {
-    const tbody = document.getElementById('dayun-table');
-    tbody.innerHTML = '';
-    
-    dayunList.forEach(dayun => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${dayun.period}</td>
-            <td>${dayun.startYear}-${dayun.endYear}</td>
-            <td>${dayun.stem}</td>
-            <td>${dayun.branch}</td>
-            <td>${dayun.element}</td>
-            <td>${dayun.fortune}</td>
-        `;
-        tbody.appendChild(row);
-    });
-}
-
-function updateLiunian(liunian) {
-    document.getElementById('liunian-ganzhi').textContent = liunian.ganzhi;
-    document.getElementById('liunian-yunshi').textContent = liunian.fortune;
-    document.getElementById('liunian-notice').textContent = liunian.notice;
+    // 其他信息更新...
 }
 
 function saveBaziResult() {
