@@ -1,4 +1,4 @@
-// 八字计算器功能实现a
+// 八字计算器功能实现 - 兼容 lunar.js 1.7.2 版本c
 document.addEventListener('DOMContentLoaded', function() {
     // 表单提交处理
     document.getElementById('bazi-form').addEventListener('submit', function(e) {
@@ -44,39 +44,45 @@ function calculateBazi() {
         const solarDate = new Date(year, month - 1, day, hour, minute);
         const lunarDate = Lunar.fromDate(solarDate);
         
-        // 获取年柱
-        const yearGanZhi = lunarDate.getYearGanZhi();
-        // 获取月柱 - 需要特殊处理，因为lunar.js 1.7.2可能需要手动计算
-        const monthGanZhi = lunarDate.getMonthGanZhi();
+        // 获取年柱 - 使用lunar.js 1.7.2的正确API
+        const yearGan = lunarDate.getYearGan();
+        const yearZhi = lunarDate.getYearZhi();
+        
+        // 获取月柱
+        const monthGan = lunarDate.getMonthGan();
+        const monthZhi = lunarDate.getMonthZhi();
+        
         // 获取日柱
-        const dayGanZhi = lunarDate.getDayGanZhi();
+        const dayGan = lunarDate.getDayGan();
+        const dayZhi = lunarDate.getDayZhi();
+        
         // 获取时柱 - 需要根据日干计算
-        const hourGanZhi = getHourGanZhi(dayGanZhi.substring(0, 1), hour);
+        const hourGanZhi = getHourGanZhi(dayGan, hour);
         
         // 构建八字对象
         const bazi = {
             year: {
-                stem: yearGanZhi.substring(0, 1),
-                branch: yearGanZhi.substring(1),
-                element: getElementFromStem(yearGanZhi.substring(0, 1))
+                stem: yearGan,
+                branch: yearZhi,
+                element: getElementFromStem(yearGan)
             },
             month: {
-                stem: monthGanZhi.substring(0, 1),
-                branch: monthGanZhi.substring(1),
-                element: getElementFromStem(monthGanZhi.substring(0, 1))
+                stem: monthGan,
+                branch: monthZhi,
+                element: getElementFromStem(monthGan)
             },
             day: {
-                stem: dayGanZhi.substring(0, 1),
-                branch: dayGanZhi.substring(1),
-                element: getElementFromStem(dayGanZhi.substring(0, 1))
+                stem: dayGan,
+                branch: dayZhi,
+                element: getElementFromStem(dayGan)
             },
             hour: {
                 stem: hourGanZhi.substring(0, 1),
                 branch: hourGanZhi.substring(1),
                 element: getElementFromStem(hourGanZhi.substring(0, 1))
             },
-            lunarDate: lunarDate.toString(), // 农历日期
-            zodiac: lunarDate.getYearShengXiao(), // 生肖
+            lunarDate: lunarDate.getYear() + '年' + lunarDate.getMonth() + '月' + lunarDate.getDay() + '日',
+            zodiac: lunarDate.getYearShengXiao(),
             // 其他信息...
         };
         
