@@ -26,22 +26,33 @@ function calculateBazi() {
         const dateParts = birthDate.split('-');
         const solarDate = new Date(dateParts[0], dateParts[1]-1, dateParts[2], birthHour, birthMinute);
         
-        // 使用 lunar.js 1.7.2 的 API
-        const lunarDate = Lunar.fromDate(solarDate); // 确保 Lunar 对象可用
-        const yearGanZhi = lunarDate.getYearGanZhi(); // 获取年柱（干支）
-        const monthGanZhi = lunarDate.getMonthGanZhi(); // 获取月柱（干支）
-        const dayGanZhi = lunarDate.getDayGanZhi(); // 获取日柱（干支）
-        const zodiac = lunarDate.getShengXiao(); // 获取生肖
+        // 使用 lunar.js 1.7.2 的正确API
+        const lunarDate = Lunar.fromDate(solarDate);
+        
+        // 获取年柱（分开获取天干和地支）
+        const yearGan = lunarDate.getYearGan();  // 年干
+        const yearZhi = lunarDate.getYearZhi();  // 年支
+        
+        // 获取月柱
+        const monthGan = lunarDate.getMonthGan(); // 月干
+        const monthZhi = lunarDate.getMonthZhi(); // 月支
+        
+        // 获取日柱
+        const dayGan = lunarDate.getDayGan();    // 日干
+        const dayZhi = lunarDate.getDayZhi();    // 日支
+        
+        // 获取生肖
+        const zodiac = lunarDate.getYearShengXiao();
 
-        // 计算时柱（根据日干和小时）
-        const hourGanZhi = calculateHourPillar(dayGanZhi.substring(0, 1), birthHour);
+        // 计算时柱
+        const hourPillar = calculateHourPillar(dayGan, birthHour);
 
         // 构造四柱对象
         const bazi = {
-            year: { stem: yearGanZhi.substring(0, 1), branch: yearGanZhi.substring(1) },
-            month: { stem: monthGanZhi.substring(0, 1), branch: monthGanZhi.substring(1) },
-            day: { stem: dayGanZhi.substring(0, 1), branch: dayGanZhi.substring(1) },
-            hour: { stem: hourGanZhi.stem, branch: hourGanZhi.branch }
+            year: { stem: yearGan, branch: yearZhi },
+            month: { stem: monthGan, branch: monthZhi },
+            day: { stem: dayGan, branch: dayZhi },
+            hour: hourPillar
         };
 
         // 计算十神并显示结果
