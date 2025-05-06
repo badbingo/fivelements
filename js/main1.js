@@ -1,4 +1,4 @@
-// 八字计算器 - 完整实现
+// 八字计算器 - 完整实现a
 document.addEventListener('DOMContentLoaded', function() {
     // 初始化表单提交
     document.getElementById('bazi-form').addEventListener('submit', function(e) {
