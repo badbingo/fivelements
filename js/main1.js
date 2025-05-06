@@ -15,7 +15,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // 主计算函数
 function calculateBazi() {
-    // 1. 获取输入数据
     const birthDate = document.getElementById('birth-date').value;
     const birthHour = document.getElementById('birth-hour').value;
     const birthMinute = document.getElementById('birth-minute').value;
@@ -24,23 +23,34 @@ function calculateBazi() {
     if (!validateInput(birthDate, birthHour, birthMinute)) return;
 
     try {
-        // 2. 计算核心数据
         const dateParts = birthDate.split('-');
         const solarDate = new Date(dateParts[0], dateParts[1]-1, dateParts[2], birthHour, birthMinute);
-        const lunarDate = Lunar.fromDate(solarDate);
+        
+        // 使用 lunar.js 1.7.2 的 API
+        const lunarDate = Lunar.fromDate(solarDate); // 确保 Lunar 对象可用
+        const yearGanZhi = lunarDate.getYearGanZhi(); // 获取年柱（干支）
+        const monthGanZhi = lunarDate.getMonthGanZhi(); // 获取月柱（干支）
+        const dayGanZhi = lunarDate.getDayGanZhi(); // 获取日柱（干支）
+        const zodiac = lunarDate.getShengXiao(); // 获取生肖
 
-        // 3. 计算四柱
-        const bazi = calculateFourPillars(lunarDate, birthHour);
-        
-        // 4. 计算十神
+        // 计算时柱（根据日干和小时）
+        const hourGanZhi = calculateHourPillar(dayGanZhi.substring(0, 1), birthHour);
+
+        // 构造四柱对象
+        const bazi = {
+            year: { stem: yearGanZhi.substring(0, 1), branch: yearGanZhi.substring(1) },
+            month: { stem: monthGanZhi.substring(0, 1), branch: monthGanZhi.substring(1) },
+            day: { stem: dayGanZhi.substring(0, 1), branch: dayGanZhi.substring(1) },
+            hour: { stem: hourGanZhi.stem, branch: hourGanZhi.branch }
+        };
+
+        // 计算十神并显示结果
         const shishen = calculateShiShen(bazi.day.stem, bazi);
-        
-        // 5. 显示结果
         displayResult(bazi, shishen, {
             date: `${dateParts[0]}年${dateParts[1]}月${dateParts[2]}日`,
             time: `${birthHour}:${birthMinute.padStart(2, '0')}`,
             gender: gender === 'male' ? '男' : '女',
-            zodiac: lunarDate.getYearShengXiao(),
+            zodiac: zodiac,
             lunarDate: `${lunarDate.getYear()}年${lunarDate.getMonth()}月${lunarDate.getDay()}日`
         });
 
