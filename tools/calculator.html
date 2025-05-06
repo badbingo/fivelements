@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>八字计算器 - 八字命理教学网</title>
     <link rel="stylesheet" href="../css/style1.css">
-    <link rel="stylesheet" href="../css/calculator.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
@@ -100,32 +99,41 @@
                     <h2><i class="fas fa-user-circle"></i> 基本信息输入</h2>
                     <p>请填写您的出生信息以生成八字命盘</p>
                 </div>
-                <form id="bazi-form">
+                <form id="bazi-form" class="elegant-form">
                     <div class="form-row">
                         <div class="form-group">
                             <label for="birth-date"><i class="far fa-calendar-alt"></i> 出生日期</label>
-                            <input type="date" id="birth-date" name="birth-date" required>
+                            <div class="input-with-icon">
+                                <i class="fas fa-calendar-day"></i>
+                                <input type="date" id="birth-date" name="birth-date" required>
+                            </div>
                         </div>
                         
                         <div class="form-group">
                             <label><i class="far fa-clock"></i> 出生时间</label>
                             <div class="time-select-group">
-                                <select id="birth-hour" name="birth-hour" required>
-                                    <option value="">-- 时 --</option>
-                                    <script>
-                                        for(let i=0; i<24; i++) {
-                                            document.write(`<option value="${i}">${i < 10 ? '0' + i : i}时</option>`);
-                                        }
-                                    </script>
-                                </select>
-                                <select id="birth-minute" name="birth-minute" required>
-                                    <option value="">-- 分 --</option>
-                                    <script>
-                                        for(let i=0; i<60; i++) {
-                                            document.write(`<option value="${i}">${i < 10 ? '0' + i : i}分</option>`);
-                                        }
-                                    </script>
-                                </select>
+                                <div class="select-with-icon">
+                                    <i class="fas fa-hourglass-start"></i>
+                                    <select id="birth-hour" name="birth-hour" required>
+                                        <option value="">-- 时 --</option>
+                                        <script>
+                                            for(let i=0; i<24; i++) {
+                                                document.write(`<option value="${i}">${i < 10 ? '0' + i : i}时</option>`);
+                                            }
+                                        </script>
+                                    </select>
+                                </div>
+                                <div class="select-with-icon">
+                                    <i class="fas fa-hourglass-end"></i>
+                                    <select id="birth-minute" name="birth-minute" required>
+                                        <option value="">-- 分 --</option>
+                                        <script>
+                                            for(let i=0; i<60; i++) {
+                                                document.write(`<option value="${i}">${i < 10 ? '0' + i : i}分</option>`);
+                                            }
+                                        </script>
+                                    </select>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -133,24 +141,35 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label for="timezone"><i class="fas fa-globe-asia"></i> 出生地区</label>
-                            <select id="timezone" name="timezone" required>
-                                <option value="8">中国标准时间 (UTC+8)</option>
-                                <option value="-8">太平洋时间 (UTC-8)</option>
-                                <option value="-5">东部时间 (UTC-5)</option>
-                                <option value="0">格林尼治时间 (UTC+0)</option>
-                                <option value="9">日本标准时间 (UTC+9)</option>
-                                <option value="-7">山地时间 (UTC-7)</option>
-                                <option value="-6">中部时间 (UTC-6)</option>
-                                <option value="1">中欧时间 (UTC+1)</option>
-                                <option value="10">澳大利亚东部时间 (UTC+10)</option>
-                            </select>
+                            <div class="select-with-icon">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <select id="timezone" name="timezone" required>
+                                    <option value="8">中国标准时间 (UTC+8)</option>
+                                    <option value="-8">太平洋时间 (UTC-8)</option>
+                                    <option value="-5">东部时间 (UTC-5)</option>
+                                    <option value="0">格林尼治时间 (UTC+0)</option>
+                                    <option value="9">日本标准时间 (UTC+9)</option>
+                                    <option value="-7">山地时间 (UTC-7)</option>
+                                    <option value="-6">中部时间 (UTC-6)</option>
+                                    <option value="1">中欧时间 (UTC+1)</option>
+                                    <option value="10">澳大利亚东部时间 (UTC+10)</option>
+                                </select>
+                            </div>
                         </div>
                         
                         <div class="form-group">
                             <label><i class="fas fa-venus-mars"></i> 性别</label>
                             <div class="gender-group">
-                                <label><input type="radio" name="gender" value="male" checked> <i class="fas fa-mars"></i> 男</label>
-                                <label><input type="radio" name="gender" value="female"> <i class="fas fa-venus"></i> 女</label>
+                                <label class="gender-option">
+                                    <input type="radio" name="gender" value="male" checked>
+                                    <span class="gender-icon"><i class="fas fa-mars"></i></span>
+                                    <span class="gender-text">男</span>
+                                </label>
+                                <label class="gender-option">
+                                    <input type="radio" name="gender" value="female">
+                                    <span class="gender-icon"><i class="fas fa-venus"></i></span>
+                                    <span class="gender-text">女</span>
+                                </label>
                             </div>
                         </div>
                     </div>
@@ -204,7 +223,7 @@
                 </div>
                 
                 <div class="bazi-table-container">
-                    <table class="bazi-table">
+                    <table class="bazi-elegant-table">
                         <thead>
                             <tr>
                                 <th>四柱</th>
@@ -216,32 +235,39 @@
                         </thead>
                         <tbody>
                             <tr>
-                                <td>天干</td>
-                                <td class="wuxing-wood" id="year-stem">甲</td>
-                                <td class="wuxing-wood" id="month-stem">乙</td>
-                                <td class="wuxing-fire" id="day-stem">丙</td>
-                                <td class="wuxing-fire" id="hour-stem">丁</td>
+                                <td class="pillar-label">天干</td>
+                                <td class="wuxing-wood" id="year-stem">甲<br><span class="ten-god">(比肩)</span></td>
+                                <td class="wuxing-wood" id="month-stem">乙<br><span class="ten-god">(劫财)</span></td>
+                                <td class="wuxing-fire" id="day-stem">丙<br><span class="ten-god">(日元)</span></td>
+                                <td class="wuxing-fire" id="hour-stem">丁<br><span class="ten-god">(伤官)</span></td>
                             </tr>
                             <tr>
-                                <td>地支</td>
-                                <td class="wuxing-water" id="year-branch">子</td>
-                                <td class="wuxing-earth" id="month-branch">丑</td>
-                                <td class="wuxing-wood" id="day-branch">寅</td>
-                                <td class="wuxing-wood" id="hour-branch">卯</td>
+                                <td class="pillar-label">地支</td>
+                                <td class="wuxing-water" id="year-branch">子<br><span class="ten-god">(正官)</span></td>
+                                <td class="wuxing-earth" id="month-branch">丑<br><span class="ten-god">(正印)</span></td>
+                                <td class="wuxing-wood" id="day-branch">寅<br><span class="ten-god">(偏印)</span></td>
+                                <td class="wuxing-wood" id="hour-branch">卯<br><span class="ten-god">(正印)</span></td>
                             </tr>
                             <tr>
-                                <td>藏干</td>
-                                <td class="wuxing-water" id="year-hidden-god">癸(正印)</td>
-                                <td class="wuxing-earth" id="month-hidden-god">己(正财),丁(七杀)</td>
-                                <td class="wuxing-wood" id="day-hidden-god">甲(比肩)</td>
-                                <td class="wuxing-wood" id="hour-hidden-god">乙(劫财)</td>
+                                <td class="pillar-label">藏干</td>
+                                <td class="wuxing-water" id="year-hidden-god">癸<br><span class="ten-god">(正印)</span></td>
+                                <td class="wuxing-earth" id="month-hidden-god">己(正财)<br>癸(正印)<br>辛(正官)</td>
+                                <td class="wuxing-wood" id="day-hidden-god">甲(比肩)<br>丙(劫财)<br>戊(食神)</td>
+                                <td class="wuxing-wood" id="hour-hidden-god">乙<br><span class="ten-god">(劫财)</span></td>
                             </tr>
                             <tr>
-                                <td>十神</td>
-                                <td id="year-main-god">正官</td>
-                                <td id="month-main-god">偏财</td>
-                                <td id="day-main-god">日元</td>
-                                <td id="hour-main-god">正印</td>
+                                <td class="pillar-label">空亡</td>
+                                <td id="year-void">戌亥</td>
+                                <td id="month-void">戌亥</td>
+                                <td id="day-void">戌亥</td>
+                                <td id="hour-void">戌亥</td>
+                            </tr>
+                            <tr>
+                                <td class="pillar-label">纳音</td>
+                                <td id="year-nayin">海中金</td>
+                                <td id="month-nayin">海中金</td>
+                                <td id="day-nayin">炉中火</td>
+                                <td id="hour-nayin">炉中火</td>
                             </tr>
                         </tbody>
                     </table>
@@ -250,7 +276,7 @@
         </div>
     </main>
 
-   <footer class="main-footer">
+    <footer class="main-footer">
         <div class="container">
             <p>&copy; 2025 八字命理教学网. 保留所有权利.</p>
             <p>传承经典命理文化，科学学习八字知识</p>
