@@ -10,6 +10,11 @@
     --black: #000;
     --shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
     --transition: all 0.3s ease;
+    
+    /* 新增设计变量 */
+    --accent-color: #e74c3c;
+    --border-radius: 8px;
+    --input-bg: #f9f9f9;
 }
 
 * {
@@ -251,10 +256,11 @@ a:hover {
 .content-container {
     max-width: 1000px;
     margin: 30px auto 50px;
-    background-color: rgba(255, 255, 255, 0.9);
+    background-color: rgba(255, 255, 255, 0.95);
     padding: 40px;
-    border-radius: 10px;
+    border-radius: var(--border-radius);
     box-shadow: var(--shadow);
+    backdrop-filter: blur(5px);
 }
 
 .content-title {
@@ -266,6 +272,19 @@ a:hover {
 .content-title h1 {
     font-size: 2.5rem;
     margin-bottom: 15px;
+    position: relative;
+    display: inline-block;
+}
+
+.content-title h1::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 3px;
+    background: linear-gradient(to right, var(--primary-color), var(--accent-color));
 }
 
 .content-title p {
@@ -304,6 +323,397 @@ a:hover {
     margin-bottom: 10px;
 }
 
+/* ==================== 计算器表单 (全新设计) ==================== */
+.calculator-form {
+    background: var(--white);
+    border-radius: var(--border-radius);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    margin-bottom: 40px;
+    overflow: hidden;
+}
+
+.form-header {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    padding: 20px;
+    text-align: center;
+}
+
+.form-header h2 {
+    font-size: 1.8rem;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+
+.form-header p {
+    font-size: 0.95rem;
+    opacity: 0.9;
+}
+
+.elegant-form {
+    padding: 30px;
+}
+
+.form-row {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 0 -10px 20px;
+}
+
+.form-group {
+    flex: 1;
+    min-width: 250px;
+    padding: 0 10px;
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: 600;
+    color: var(--dark-color);
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.form-group label i {
+    color: var(--primary-color);
+    font-size: 0.9em;
+}
+
+.input-with-icon {
+    position: relative;
+}
+
+.input-with-icon i {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--primary-color);
+    font-size: 0.9rem;
+}
+
+.input-with-icon input {
+    width: 100%;
+    padding: 12px 15px 12px 40px;
+    border: 1px solid #ddd;
+    border-radius: var(--border-radius);
+    font-size: 0.95rem;
+    transition: var(--transition);
+    background-color: var(--input-bg);
+}
+
+.input-with-icon input:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(142, 68, 173, 0.2);
+    outline: none;
+    background-color: var(--white);
+}
+
+.time-select-group {
+    display: flex;
+    gap: 10px;
+}
+
+.select-with-icon {
+    position: relative;
+    flex: 1;
+}
+
+.select-with-icon i {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--primary-color);
+    font-size: 0.9rem;
+    z-index: 1;
+}
+
+.select-with-icon select {
+    width: 100%;
+    padding: 12px 15px 12px 40px;
+    border: 1px solid #ddd;
+    border-radius: var(--border-radius);
+    font-size: 0.95rem;
+    appearance: none;
+    background-color: var(--input-bg);
+    transition: var(--transition);
+}
+
+.select-with-icon select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(142, 68, 173, 0.2);
+    outline: none;
+    background-color: var(--white);
+}
+
+.gender-group {
+    display: flex;
+    gap: 10px;
+    margin-top: 5px;
+}
+
+.gender-option {
+    display: flex;
+    align-items: center;
+    padding: 10px 15px;
+    border-radius: var(--border-radius);
+    background: #f5f3ff;
+    flex: 1;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.gender-option input {
+    display: none;
+}
+
+.gender-option .gender-icon {
+    margin-right: 8px;
+    color: var(--primary-color);
+}
+
+.gender-option:hover {
+    background: #ede7f6;
+}
+
+.gender-option input:checked {
+    background: var(--primary-color);
+}
+
+.gender-option input:checked + .gender-icon {
+    color: white;
+}
+
+.gender-option input:checked ~ .gender-text {
+    color: white;
+}
+
+.form-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 30px;
+}
+
+.btn {
+    padding: 12px 25px;
+    font-size: 1rem;
+    font-weight: 500;
+    border-radius: var(--border-radius);
+    transition: var(--transition);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn i {
+    font-size: 0.9em;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    border: none;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, var(--secondary-color), #8e44ad);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(155, 89, 182, 0.2);
+}
+
+.btn-secondary {
+    background: white;
+    color: #666;
+    border: 1px solid #ddd;
+}
+
+.btn-secondary:hover {
+    background: #f5f5f5;
+    color: #333;
+    border-color: #ccc;
+}
+
+/* ==================== 结果区域 (整合优化) ==================== */
+#result-section {
+    display: none;
+    animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.result-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+}
+
+.result-header h2 {
+    color: var(--primary-color);
+    font-size: 1.8rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.result-header h2 i {
+    color: var(--accent-color);
+}
+
+.result-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-action {
+    padding: 8px 15px;
+    font-size: 0.9rem;
+    background: white;
+    color: #666;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.btn-action:hover {
+    background: #f5f5f5;
+}
+
+.basic-info-card {
+    background: white;
+    padding: 25px;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    margin-bottom: 30px;
+    position: relative;
+}
+
+.basic-info-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: linear-gradient(to bottom, var(--primary-color), var(--accent-color));
+}
+
+.basic-info-card h3 {
+    color: var(--primary-color);
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+    font-size: 1.4rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.basic-info-card h3 i {
+    color: var(--accent-color);
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 15px;
+}
+
+.info-item {
+    display: flex;
+}
+
+.info-label {
+    font-weight: 600;
+    color: #555;
+    min-width: 80px;
+}
+
+.info-value {
+    color: #333;
+}
+
+/* ==================== 八字表格 (专业排版) ==================== */
+.bazi-table-container {
+    overflow-x: auto;
+    margin-bottom: 30px;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    background: white;
+}
+
+.bazi-elegant-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    min-width: 600px;
+}
+
+.bazi-elegant-table th {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    padding: 15px;
+    text-align: center;
+    font-weight: 500;
+    position: relative;
+}
+
+.bazi-elegant-table th:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 1px;
+    height: 60%;
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.bazi-elegant-table td {
+    padding: 15px;
+    text-align: center;
+    border: 1px solid #eee;
+    vertical-align: middle;
+}
+
+.bazi-elegant-table .pillar-label {
+    background: #f5f3ff;
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+.bazi-elegant-table tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.ten-god {
+    display: block;
+    font-size: 0.8rem;
+    color: #666;
+    margin-top: 5px;
+    font-weight: normal;
+}
+
 /* 卡片布局 */
 .card {
     background: white;
@@ -332,11 +742,6 @@ a:hover {
 }
 
 /* 表格样式 */
-.bazi-table-container {
-    overflow-x: auto;
-    margin-bottom: 30px;
-}
-
 .bazi-simple-table {
     width: 100%;
     border-collapse: collapse;
@@ -555,6 +960,13 @@ a:hover {
     border-top: 3px solid #e74c3c;
 }
 
+/* 五行颜色类 */
+.wuxing-wood { color: #2e7d32; font-weight: 600; }
+.wuxing-fire { color: #c62828; font-weight: 600; }
+.wuxing-earth { color: #8d6e63; font-weight: 600; }
+.wuxing-metal { color: #1565c0; font-weight: 600; }
+.wuxing-water { color: #0277bd; font-weight: 600; }
+
 /* 页脚样式 */
 .main-footer {
     background: linear-gradient(135deg, #4a148c, #2c3e50);
@@ -568,6 +980,7 @@ a:hover {
     margin-bottom: 10px;
     color: rgba(255, 255, 255, 0.9);
 }
+
 /* 响应式设计 */
 @media (max-width: 992px) {
     .container {
@@ -636,6 +1049,14 @@ a:hover {
     .timeline-item.right::after {
         left: 21px;
     }
+    
+    .content-container {
+        padding: 30px;
+    }
+    
+    .form-group {
+        min-width: calc(50% - 20px);
+    }
 }
 
 @media (max-width: 768px) {
@@ -651,6 +1072,41 @@ a:hover {
     .card-grid, 
     .resource-grid {
         grid-template-columns: 1fr;
+    }
+    
+    .form-row {
+        flex-direction: column;
+    }
+    
+    .form-group {
+        min-width: 100%;
+    }
+    
+    .time-select-group {
+        flex-direction: column;
+    }
+    
+    .gender-group {
+        flex-direction: column;
+    }
+    
+    .info-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .bazi-elegant-table {
+        font-size: 0.9rem;
+    }
+    
+    .result-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+    
+    .result-actions {
+        width: 100%;
+        justify-content: flex-end;
     }
 }
 
@@ -682,5 +1138,21 @@ a:hover {
     
     .content-section h2 {
         font-size: 1.5rem;
+    }
+    
+    .form-buttons {
+        flex-direction: column;
+    }
+    
+    .btn {
+        width: 100%;
+    }
+    
+    .bazi-elegant-table td {
+        padding: 10px 5px;
+    }
+    
+    .ten-god {
+        font-size: 0.7rem;
     }
 }
