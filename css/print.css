@@ -1,9 +1,44 @@
 /* ============================================
-   赛博命理系统 - 子目录打印专用样式表
+   赛博命理系统 - 打印按钮专用样式
    Version: 2.1
    Last Updated: 2025-05-08
    ============================================ */
 
+/* 常规状态下的打印按钮样式 */
+.section-print-btn {
+    display: block;
+    margin: 20px auto 0;
+    padding: 8px 20px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border: none;
+    border-radius: 20px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    opacity: 1;
+    visibility: visible;
+    position: relative;
+    z-index: 10;
+}
+
+.section-print-btn:hover {
+    background: linear-gradient(135deg, #764ba2, #667eea);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.section-print-btn i {
+    margin-right: 8px;
+}
+
+/* 确保按钮在内容区域内 */
+.section-content {
+    position: relative;
+    padding-bottom: 50px; /* 为按钮留出空间 */
+}
+
+/* 打印状态下的特殊样式 */
 @media print {
     /* 基础重置 */
     body * {
@@ -50,6 +85,11 @@
         color: #666 !important;
     }
     
+    /* 隐藏打印按钮本身 */
+    .section-print-btn {
+        display: none !important;
+    }
+    
     /* 卡片样式 */
     .detail-card {
         border: none !important;
@@ -58,56 +98,12 @@
         break-inside: avoid;
     }
     
-    /* 八字表格优化 */
-    .bazi-table {
-        width: 100%;
-        border-collapse: collapse;
-        margin: 20px 0;
-        page-break-inside: avoid;
-    }
-    
-    .bazi-cell {
-        border: 1px solid #ddd !important;
-        padding: 10px;
-        text-align: center;
-        font-size: 12pt;
-    }
-    
-    .bazi-header .bazi-cell {
-        background-color: #f9f9f9 !important;
-        font-weight: bold;
-    }
-    
     /* 五行图表 */
     .element-chart-container {
         width: 70% !important;
         height: auto !important;
         margin: 20px auto;
         page-break-inside: avoid;
-    }
-    
-    /* 文字内容 */
-    .personality-traits,
-    .chart-description,
-    .score-details {
-        font-size: 12pt;
-        line-height: 1.8;
-        margin: 15px 0;
-    }
-    
-    /* 隐藏不需要的元素 */
-    .print-btn,
-    .section-print-btn,
-    .load-btn-container,
-    .menu-tabs,
-    .calculate-btn-container,
-    .cyber-grid,
-    .neon-particles,
-    .scanlines,
-    .toggle-icon,
-    .bazi-qa-container,
-    .gambling-analysis {
-        display: none !important;
     }
     
     /* 页眉页脚设置 */
@@ -130,110 +126,18 @@
         }
     }
     
-    /* 首页特殊样式 */
-    @page :first {
-        @top-center {
-            content: none;
-        }
-    }
-    
-    /* 列表样式 */
-    ul, ol {
-        margin-left: 25px;
-    }
-    
-    li {
-        margin-bottom: 8px;
-        page-break-inside: avoid;
-    }
-    
-    /* 黄历卡片 */
-    .lunar-calendar-card {
-        border: 1px solid #eee !important;
-        padding: 15px;
-        page-break-inside: avoid;
-    }
-    
-    .lunar-yiji-column {
-        display: inline-block;
-        width: 48%;
-        vertical-align: top;
-    }
-    
-    /* 强制分页控制 */
-    .page-break {
-        page-break-before: always;
-    }
-    
-    /* 避免标题孤立 */
-    h3, h4 {
-        page-break-after: avoid;
-    }
-    
-    /* 链接处理 */
-    a {
-        color: #333 !important;
-        text-decoration: underline !important;
-    }
-    
-    /* 图标处理 */
-    .fas {
-        display: inline !important;
-        margin-right: 5px;
-    }
-    
-    /* 评分样式 */
-    .rating-container {
-        display: flex;
-        justify-content: space-around;
-        margin: 20px 0;
-    }
-    
-    .rating-level {
-        font-size: 16pt;
-        font-weight: bold;
-    }
-    
-    /* 响应式处理 */
-    img, canvas {
-        max-width: 100% !important;
-        height: auto !important;
-    }
-    /* 打印按钮样式 */
-.section-print-btn {
-    display: block;
-    margin: 20px auto 0;
-    padding: 8px 20px;
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    color: white;
-    border: none;
-    border-radius: 20px;
-    font-size: 14px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.section-print-btn:hover {
-    background: linear-gradient(135deg, #764ba2, #667eea);
-    transform: translateY(-2px);
-}
-
-.section-print-btn i {
-    margin-right: 8px;
-}
-.section-print-btn {
-    display: block !important;
-    opacity: 1 !important;
-    visibility: visible !important;
-}
-/* 确保内容区域可见 */
-.section-content {
-    position: relative;
-}
     /* 打印颜色优化 */
     .wood-color { background-color: #8BC34A !important; }
     .fire-color { background-color: #FF5722 !important; }
     .earth-color { background-color: #795548 !important; }
     .metal-color { background-color: #607D8B !important; }
     .water-color { background-color: #2196F3 !important; }
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+    .section-print-btn {
+        padding: 10px 15px;
+        font-size: 13px;
+    }
 }
