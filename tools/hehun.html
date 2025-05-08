@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="专业八字合婚测算系统，分析婚姻契合度">
+    <meta name="keywords" content="合婚,八字,婚姻,配对,姻缘">
+    <title>五行合婚·八字配对</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.css">
+    <link rel="stylesheet" href="../css/hehun.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="header-container">
+            <h1 class="header-title">五行八字<span class="he-character">合</span>婚</h1>
+            <div class="header-subtitle">传统命理 · 姻缘配对</div>
+        </div>
+        
+        <div class="input-section" id="input-section">
+            <div class="partner-cards-container">
+                <div class="partner-card male-card">
+                    <div class="partner-title male-title">
+                        <i class="fas fa-mars"></i> 男方信息
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="male-name"><i class="fas fa-user"></i> 姓名</label>
+                            <input type="text" id="male-name" placeholder="男方姓名">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group date-wrapper">
+                            <label for="male-birth-date"><i class="fas fa-calendar-day"></i> 出生日期</label>
+                            <input type="date" id="male-birth-date" required>
+                        </div>
+                        <div class="form-group time-select-wrapper">
+                            <label for="male-birth-time"><i class="fas fa-clock"></i> 出生时辰</label>
+                            <select id="male-birth-time" required>
+                                <option value="">选择时辰</option>
+                                <option value="23:00">子时 (23:00-00:59)</option>
+                                <option value="01:00">丑时 (01:00-02:59)</option>
+                                <option value="03:00">寅时 (03:00-04:59)</option>
+                                <option value="05:00">卯时 (05:00-06:59)</option>
+                                <option value="07:00">辰时 (07:00-08:59)</option>
+                                <option value="09:00">巳时 (09:00-10:59)</option>
+                                <option value="11:00">午时 (11:00-12:59)</option>
+                                <option value="13:00">未时 (13:00-14:59)</option>
+                                <option value="15:00">申时 (15:00-16:59)</option>
+                                <option value="17:00">酉时 (17:00-18:59)</option>
+                                <option value="19:00">戌时 (19:00-20:59)</option>
+                                <option value="21:00">亥时 (21:00-22:59)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="partner-card female-card">
+                    <div class="partner-title female-title">
+                        <i class="fas fa-venus"></i> 女方信息
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="female-name"><i class="fas fa-user"></i> 姓名</label>
+                            <input type="text" id="female-name" placeholder="女方姓名">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group date-wrapper">
+                            <label for="female-birth-date"><i class="fas fa-calendar-day"></i> 出生日期</label>
+                            <input type="date" id="female-birth-date" required>
+                        </div>
+                        <div class="form-group time-select-wrapper">
+                            <label for="female-birth-time"><i class="fas fa-clock"></i> 出生时辰</label>
+                            <select id="female-birth-time" required>
+                                <option value="">选择时辰</option>
+                                <option value="23:00">子时 (23:00-00:59)</option>
+                                <option value="01:00">丑时 (01:00-02:59)</option>
+                                <option value="03:00">寅时 (03:00-04:59)</option>
+                                <option value="05:00">卯时 (05:00-06:59)</option>
+                                <option value="07:00">辰时 (07:00-08:59)</option>
+                                <option value="09:00">巳时 (09:00-10:59)</option>
+                                <option value="11:00">午时 (11:00-12:59)</option>
+                                <option value="13:00">未时 (13:00-14:59)</option>
+                                <option value="15:00">申时 (15:00-16:59)</option>
+                                <option value="17:00">酉时 (17:00-18:59)</option>
+                                <option value="19:00">戌时 (19:00-20:59)</option>
+                                <option value="21:00">亥时 (21:00-22:59)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="disclaimer">
+                <i class="fas fa-info-circle"></i> 本系统采用传统命理算法，数据来自《渊海子平》《三命通会》等古籍
+            </div>
+            
+            <div class="calculate-btn-container">
+                <button id="calculate-btn"><i class="fas fa-heart"></i> 开始合婚测算</button>
+            </div>
+        </div>
+        
+        <div class="result-section" id="result-section">
+            <div class="basic-info" id="basic-info">
+                <div class="couple-info">
+                    <div class="partner-card male-card">
+                        <div class="partner-title male-title">
+                            <i class="fas fa-mars"></i> 男方八字
+                        </div>
+                        <table class="bazi-table">
+                            <tr>
+                                <th>四柱</th>
+                                <th>年柱</th>
+                                <th>月柱</th>
+                                <th>日柱</th>
+                                <th>时柱</th>
+                            </tr>
+                            <tr>
+                                <td>天干</td>
+                                <td id="male-year-stem"></td>
+                                <td id="male-month-stem"></td>
+                                <td id="male-day-stem"></td>
+                                <td id="male-hour-stem"></td>
+                            </tr>
+                            <tr>
+                                <td>地支</td>
+                                <td id="male-year-branch"></td>
+                                <td id="male-month-branch"></td>
+                                <td id="male-day-branch"></td>
+                                <td id="male-hour-branch"></td>
+                            </tr>
+                        </table>
+                    </div>
+                    
+                    <div class="partner-card female-card">
+                        <div class="partner-title female-title">
+                            <i class="fas fa-venus"></i> 女方八字
+                        </div>
+                        <table class="bazi-table">
+                            <tr>
+                                <th>四柱</th>
+                                <th>年柱</th>
+                                <th>月柱</th>
+                                <th>日柱</th>
+                                <th>时柱</th>
+                            </tr>
+                            <tr>
+                                <td>天干</td>
+                                <td id="female-year-stem"></td>
+                                <td id="female-month-stem"></td>
+                                <td id="female-day-stem"></td>
+                                <td id="female-hour-stem"></td>
+                            </tr>
+                            <tr>
+                                <td>地支</td>
+                                <td id="female-year-branch"></td>
+                                <td id="female-month-branch"></td>
+                                <td id="female-day-branch"></td>
+                                <td id="female-hour-branch"></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="compatibility-score">
+                    <div>姻缘匹配度</div>
+                    <div class="score-value" id="compatibility-score">-</div>
+                    <div class="compatibility-meter">
+                        <div class="meter-fill" id="compatibility-meter"></div>
+                    </div>
+                    <div class="meter-labels">
+                        <span>不宜</span>
+                        <span>可调和</span>
+                        <span>天作之合</span>
+                    </div>
+                </div>
+                <div class="recommendation" id="recommendation">
+                    <i class="fas fa-heart"></i> 分析中...
+                </div>
+                <div class="score-explanation">
+                    <h4><i class="fas fa-info-circle"></i> 姻缘算法说明</h4>
+                    <ul>
+                        <li><strong>日柱相合</strong>：分析双方日柱天干地支的相生相克关系</li>
+                        <li><strong>五行互补</strong>：评估双方八字五行能量的平衡与互补</li>
+                        <li><strong>十神关系</strong>：分析双方十神组合对婚姻的影响</li>
+                        <li><strong>大运走势</strong>：考察双方大运走势的同步性</li>
+                        <li><strong>流年影响</strong>：预测关键年份对婚姻的影响</li>
+                    </ul>
+                    
+                    <div class="score-ranges">
+                        <p><strong>90-100分</strong>：八字高度匹配，婚后和谐幸福</p>
+                        <p><strong>80-89分</strong>：八字匹配良好，需要少量调和即可</p>
+                        <p><strong>70-79分</strong>：八字基本匹配，需注意沟通方式</p>
+                        <p><strong>60-69分</strong>：八字匹配度一般，需共同努力维系</p>
+                        <p><strong>50-59分</strong>：八字匹配度较低，需谨慎考虑</p>
+                        <p><strong>50分以下</strong>：八字冲克较多，婚姻可能不稳固</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="menu-tabs">
+                <div class="menu-tab active" data-tab="compatibility"><i class="fas fa-heart"></i> 合婚分析</div>
+                <div class="menu-tab" data-tab="fate"><i class="fas fa-star"></i> 命理分析</div>
+                <div class="menu-tab" data-tab="suggestion"><i class="fas fa-comments"></i> 优化建议</div>
+            </div>
+            
+            <div class="tab-content active" id="compatibility-tab">
+                <div class="detail-card">
+                    <button class="load-btn" data-section="basic-analysis">
+                        <span><i class="fas fa-heartbeat"></i> 基础合婚分析</span>
+                        <i class="fas fa-chevron-down toggle-icon"></i>
+                    </button>
+                    <div id="basic-analysis-content" class="section-content"></div>
+                </div>
+                
+                <div class="detail-card">
+                    <button class="load-btn" data-section="element-analysis">
+                        <span><i class="fas fa-yin-yang"></i> 五行能量分析</span>
+                        <i class="fas fa-chevron-down toggle-icon"></i>
+                    </button>
+                    <div id="element-analysis-content" class="section-content"></div>
+                </div>
+                
+                <div class="detail-card">
+                    <button class="load-btn" data-section="god-analysis">
+                        <span><i class="fas fa-star"></i> 十神关系分析</span>
+                        <i class="fas fa-chevron-down toggle-icon"></i>
+                    </button>
+                    <div id="god-analysis-content" class="section-content"></div>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="fate-tab">
+                <div class="detail-card">
+                    <button class="load-btn" data-section="male-fate">
+                        <span><i class="fas fa-mars"></i> 男方命理分析</span>
+                        <i class="fas fa-chevron-down toggle-icon"></i>
+                    </button>
+                    <div id="male-fate-content" class="section-content"></div>
+                </div>
+                
+                <div class="detail-card">
+                    <button class="load-btn" data-section="female-fate">
+                        <span><i class="fas fa-venus"></i> 女方命理分析</span>
+                        <i class="fas fa-chevron-down toggle-icon"></i>
+                    </button>
+                    <div id="female-fate-content" class="section-content"></div>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="suggestion-tab">
+                <div class="detail-card">
+                    <button class="load-btn" data-section="strength-weakness">
+                        <span><i class="fas fa-balance-scale"></i> 优劣势分析</span>
+                        <i class="fas fa-chevron-down toggle-icon"></i>
+                    </button>
+                    <div id="strength-weakness-content" class="section-content"></div>
+                </div>
+                
+                <div class="detail-card">
+                    <button class="load-btn" data-section="improvement">
+                        <span><i class="fas fa-hands-helping"></i> 改善建议</span>
+                        <i class="fas fa-chevron-down toggle-icon"></i>
+                    </button>
+                    <div id="improvement-content" class="section-content"></div>
+                </div>
+                
+                <div class="detail-card">
+                    <button class="load-btn" data-section="timing">
+                        <span><i class="fas fa-calendar-check"></i> 婚运时机</span>
+                        <i class="fas fa-chevron-down toggle-icon"></i>
+                    </button>
+                    <div id="timing-content" class="section-content"></div>
+                </div>
+            </div>
+            
+            <div class="calculate-btn-container" style="margin-top: 30px;">
+                <button id="recalculate-btn"><i class="fas fa-redo"></i> 重新测算</button>
+            </div>
+        </div>
+        
+        <div class="copyright">
+            © 2025 五行命理 版权所有 | 传承传统命理文化
+        </div>
+    </div>
+
+    <div class="api-status" id="api-status"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+    <script src="../js/lunar.js"></script>
+    <script src="../js/hehun.js"></script>
+</body>
+</html>
