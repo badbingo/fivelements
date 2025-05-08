@@ -1267,7 +1267,7 @@ ${getWealthSuggestions(score)}
                 <div>${tempDiv.innerHTML}</div>
                 
                 <div class="print-footer">
-                    <p>本报告由AI生成，仅供参考娱乐</p>
+                    <p>本报告由机缘命理系统生成</p>
                 </div>
                 
                 <div class="no-print" style="margin-top: 30px; text-align: center;">
