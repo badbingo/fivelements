@@ -14,6 +14,8 @@
     --earth-color: #d4a017;
     --metal-color: #95a5a6;
     --water-color: #3498db;
+    --header-bg: linear-gradient(135deg, #2c3e50, #4a148c);
+    --footer-bg: linear-gradient(135deg, #4a148c, #2c3e50);
 }
 
 * {
@@ -34,10 +36,191 @@ body {
     padding: 0;
     overflow-x: hidden;
     min-height: 100vh;
+    padding-top: 80px;
+}
+
+/* ==================== 头部样式 ==================== */
+.main-header {
+    background: var(--header-bg);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    position: fixed;
+    width: 100%;
+    top: 0;
+    z-index: 1000;
+    padding: 0;
+}
+
+.container {
+    width: 90%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* 右上角logo设计 */
+.logo-container {
+    margin-left: auto;
+    padding: 15px 0;
+    text-align: right;
+}
+
+.logo-text {
+    display: inline-block;
+    text-align: center;
+    color: white;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    padding: 5px 10px;
+    border-radius: 5px;
+    background: rgba(255, 255, 255, 0);
+    backdrop-filter: blur(5px);
+}
+
+.logo-text h1 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    margin-bottom: 0;
+    background: linear-gradient(to right, #ff8a00, #e52e71);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: gradient 5s ease infinite;
+    background-size: 200% 200%;
+    white-space: nowrap;
+}
+
+.slogan {
+    font-size: 0.8rem;
+    color: #f8f9fa;
+    font-style: italic;
+    display: block;
+    margin-top: -3px;
+    letter-spacing: 1px;
+}
+
+@keyframes gradient {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* 主导航菜单 */
+.main-nav {
+    margin-right: auto;
+}
+
+.nav-list {
+    display: flex;
+    list-style: none;
+    align-items: center;
+    margin: 0;
+    padding: 0;
+}
+
+.nav-item {
+    position: relative;
+    margin: 0 5px;
+}
+
+.nav-link {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 1rem;
+    font-weight: 500;
+    padding: 20px 15px;
+    display: flex;
+    align-items: center;
+    transition: all 0.3s ease;
+    position: relative;
+    text-decoration: none;
+}
+
+.nav-link i {
+    margin-right: 8px;
+    font-size: 0.9em;
+}
+
+.nav-link:hover {
+    color: white;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.nav-link.active {
+    color: white;
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.nav-link.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(to right, #ff8a00, #e52e71);
+}
+
+.dropdown-icon {
+    margin-left: 5px;
+    font-size: 0.7em;
+    transition: transform 0.3s ease;
+}
+
+/* 下拉菜单样式 */
+.dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: white;
+    width: 220px;
+    border-radius: 0 0 8px 8px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(10px);
+    transition: all 0.3s ease;
+    z-index: 100;
+    padding: 5px 0;
+}
+
+.nav-item:hover .dropdown-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.nav-item:hover .nav-link .dropdown-icon {
+    transform: rotate(180deg);
+}
+
+/* 下拉菜单项样式 */
+.dropdown-link {
+    color: #333;
+    text-decoration: none;
+    font-size: 0.9rem;
+    padding: 12px 20px;
+    display: block;
+    transition: all 0.3s ease;
+    border-left: 3px solid transparent;
+}
+
+.dropdown-link:hover {
+    background: #f8f9fa;
+    color: #8e44ad;
+    border-left: 3px solid #8e44ad;
+    padding-left: 25px;
+}
+
+.dropdown-link.active {
+    background: #f3e5f5;
+    color: #8e44ad;
+    border-left: 3px solid #8e44ad;
+    font-weight: 500;
 }
 
 /* 主容器透明度设置 */
-.container {
+.content-container {
     max-width: 1200px;
     margin: 40px auto;
     background: rgba(255, 255, 255, 0.2); /* 20%透明度 */
@@ -569,6 +752,20 @@ button i {
     font-size: 17px;
 }
 
+/* ==================== 页脚样式 ==================== */
+.main-footer {
+    background: var(--footer-bg);
+    color: #ecf0f1;
+    padding: 30px 0 20px;
+    text-align: center;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.main-footer p {
+    margin-bottom: 10px;
+    color: rgba(255, 255, 255, 0.9);
+}
+
 .copyright {
     text-align: center;
     padding: 25px;
@@ -689,6 +886,56 @@ button i {
 }
 
 /* 响应式设计 */
+@media (max-width: 992px) {
+    .container {
+        flex-direction: column;
+        padding: 10px;
+    }
+    
+    .logo-container {
+        width: 100%;
+        justify-content: center;
+        padding: 10px 0;
+        margin-left: 0;
+        order: -1;
+        text-align: center;
+    }
+    
+    .main-nav {
+        width: 100%;
+        margin: 10px 0 0;
+    }
+    
+    .nav-list {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
+    .nav-item {
+        margin: 5px;
+    }
+    
+    .nav-link {
+        padding: 12px 10px;
+        font-size: 0.9rem;
+    }
+    
+    .dropdown-menu {
+        position: static;
+        width: 100%;
+        opacity: 1;
+        visibility: visible;
+        transform: none;
+        display: none;
+        box-shadow: none;
+        border-radius: 0;
+    }
+    
+    .nav-item:hover .dropdown-menu {
+        display: block;
+    }
+}
+
 @media (max-width: 768px) {
     .container {
         margin: 20px auto;
