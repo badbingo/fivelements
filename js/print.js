@@ -6,62 +6,82 @@ function initContentLoaders() {
       const section = document.getElementById(sectionId);
       if (!section) return;
 
-      // 隐藏并清空现有按钮
-      const btnContainer = getOrCreateButtonContainer(section);
-      btnContainer.style.display = 'none';
-      btnContainer.innerHTML = '';
-
-      // 显示加载状态
-      section.innerHTML = '<div class="loading-indicator">内容加载中...</div>';
+      // 1. 准备阶段 - 隐藏所有内容
+      section.classList.remove('loaded');
+      hidePrintButton(section);
+      
+      // 2. 显示加载动画
+      showLoadingAnimation(section);
 
       try {
-        // 模拟内容加载（替换为您的实际加载逻辑）
+        // 3. 加载内容（替换为您的实际加载逻辑）
         await loadContent(sectionId);
         
-        // 内容加载完成后显示打印按钮
+        // 4. 隐藏加载动画
+        hideLoadingAnimation(section);
+        
+        // 5. 显示内容和打印按钮
+        section.classList.add('loaded');
         showPrintButton(section, sectionId);
+        
       } catch (error) {
-        section.innerHTML = '<div class="error-message">内容加载失败</div>';
+        hideLoadingAnimation(section);
         console.error('加载失败:', error);
       }
     });
   });
 }
 
-// 获取或创建按钮容器
-function getOrCreateButtonContainer(section) {
+// 显示加载动画
+function showLoadingAnimation(section) {
+  // 移除旧的加载动画
+  const existingOverlay = section.querySelector('.loading-overlay');
+  if (existingOverlay) existingOverlay.remove();
+
+  // 创建新的加载动画
+  const overlay = document.createElement('div');
+  overlay.className = 'loading-overlay';
+  overlay.innerHTML = '<div class="spinner"></div>';
+  section.appendChild(overlay);
+}
+
+// 隐藏加载动画
+function hideLoadingAnimation(section) {
+  const overlay = section.querySelector('.loading-overlay');
+  if (overlay) overlay.remove();
+}
+
+// 隐藏打印按钮
+function hidePrintButton(section) {
+  const btnContainer = section.nextElementSibling;
+  if (btnContainer && btnContainer.classList.contains('print-btn-container')) {
+    btnContainer.style.display = 'none';
+  }
+}
+
+// 显示打印按钮
+function showPrintButton(section, sectionId) {
   let btnContainer = section.nextElementSibling;
+  
+  // 创建按钮容器（如果不存在）
   if (!btnContainer || !btnContainer.classList.contains('print-btn-container')) {
     btnContainer = document.createElement('div');
     btnContainer.className = 'print-btn-container';
     section.parentNode.insertBefore(btnContainer, section.nextSibling);
   }
-  return btnContainer;
-}
 
-// 显示打印按钮
-function showPrintButton(section, sectionId) {
-  const btnContainer = section.nextElementSibling;
-  
-  // 创建打印按钮
+  // 创建/更新打印按钮
+  btnContainer.innerHTML = '';
   const printBtn = document.createElement('button');
   printBtn.className = 'section-print-btn';
   printBtn.innerHTML = '<i class="fas fa-print"></i> 打印本段内容';
   
-  // 添加点击事件
   printBtn.addEventListener('click', () => {
     printSection(sectionId);
   });
 
-  // 添加到容器并显示
-  btnContainer.innerHTML = '';
   btnContainer.appendChild(printBtn);
   btnContainer.style.display = 'block';
-  
-  // 滚动到内容底部（可选）
-  setTimeout(() => {
-    section.scrollIntoView({ behavior: 'smooth', block: 'end' });
-  }, 100);
 }
 
 // 打印功能
@@ -81,12 +101,12 @@ function printSection(sectionId) {
     <head>
       <title>打印内容</title>
       <style>
-        body { font-family: 'Noto Serif SC', serif; padding: 20px; line-height: 1.6 }
+        body { font-family: 'Noto Serif SC', serif; padding: 20px }
         @page { size: auto; margin: 15mm }
       </style>
     </head>
     <body>
-      ${section.innerHTML}
+      ${section.innerHTML.replace(/loading-overlay/g, '')}
       <script>
         setTimeout(() => {
           window.print();
@@ -103,15 +123,16 @@ function printSection(sectionId) {
 async function loadContent(sectionId) {
   return new Promise(resolve => {
     setTimeout(() => {
-      document.getElementById(sectionId).innerHTML = `
+      const section = document.getElementById(sectionId);
+      section.innerHTML = `
         <div class="loaded-content">
-          <h3>${sectionId.replace('-content', '')}内容</h3>
-          <p>这里是实际加载的内容...</p>
-          <p>更多详细内容显示在这里...</p>
+          <h3>${sectionId.replace('-content', '')}</h3>
+          <p>这是实际加载完成的内容...</p>
+          <p>所有内容都在加载完成后才会显示</p>
         </div>
       `;
       resolve();
-    }, 800); // 模拟网络延迟
+    }, 1500); // 模拟网络请求延迟
   });
 }
 
