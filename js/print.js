@@ -1,4 +1,4 @@
-// 确保在页面完全加载后执行
+// 修改后的打印按钮添加逻辑
 window.addEventListener('load', function() {
     // 1. 添加全局打印按钮
     const globalPrintBtn = document.createElement('button');
@@ -7,7 +7,6 @@ window.addEventListener('load', function() {
     globalPrintBtn.title = '打印全部内容';
     document.body.appendChild(globalPrintBtn);
     
-    // 全局打印功能
     globalPrintBtn.addEventListener('click', function() {
         window.print();
     });
@@ -32,8 +31,8 @@ window.addEventListener('load', function() {
                 printSection(sectionId);
             });
             
-            // 将按钮添加到内容区域
-            section.appendChild(sectionPrintBtn);
+            // 将按钮添加到内容区域的顶部
+            section.insertBefore(sectionPrintBtn, section.firstChild);
         });
     });
 });
@@ -43,6 +42,9 @@ function printSection(sectionId) {
     const section = document.getElementById(sectionId);
     if (!section) return;
 
+    // 获取标题文本
+    const title = section.closest('.detail-card').querySelector('.load-btn span').textContent;
+    
     // 创建打印窗口
     const printWindow = window.open('', '_blank');
     
@@ -51,12 +53,13 @@ function printSection(sectionId) {
         <!DOCTYPE html>
         <html>
         <head>
-            <title>机缘命理 - ${section.previousElementSibling.querySelector('span').textContent}</title>
-            <link rel="stylesheet" href="../css/print.css">
+            <title>赛博命理 - ${title}</title>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
             <style>
                 body { 
                     padding: 20px; 
                     font-family: 'Noto Serif SC', serif;
+                    color: #333;
                 }
                 .print-header {
                     text-align: center;
@@ -64,10 +67,18 @@ function printSection(sectionId) {
                     border-bottom: 1px solid #eee;
                     padding-bottom: 10px;
                 }
+                .print-header h2 {
+                    margin-bottom: 5px;
+                    color: #222;
+                }
+                .print-user-info {
+                    font-size: 14px;
+                    color: #666;
+                }
                 @page {
                     margin: 15mm;
                     @top-center {
-                        content: "机缘命理分析报告";
+                        content: "赛博命理分析报告";
                         font-size: 12px;
                     }
                     @bottom-right {
@@ -79,8 +90,10 @@ function printSection(sectionId) {
         </head>
         <body>
             <div class="print-header">
-                <h2>${section.previousElementSibling.querySelector('span').textContent}</h2>
-                <p>${document.getElementById('user-name-display').textContent} | ${new Date().toLocaleString()}</p>
+                <h2>${title}</h2>
+                <div class="print-user-info">
+                    ${document.getElementById('user-name-display').textContent} | ${new Date().toLocaleString()}
+                </div>
             </div>
             ${section.innerHTML.replace('section-print-btn', '')}
             <script>
