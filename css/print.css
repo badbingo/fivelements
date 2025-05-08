@@ -1,168 +1,157 @@
 /* ============================================
-   赛博命理系统 - 打印样式表
-   Version: 1.0
+   赛博命理系统 - 子目录打印专用样式表
+   Version: 2.1
    Last Updated: 2025-05-08
    ============================================ */
 
-/* 基础打印重置 */
 @media print {
-    /* 隐藏所有不需要打印的元素 */
-    * {
-        -webkit-print-color-adjust: exact !important;
-        color-adjust: exact !important;
-        print-color-adjust: exact !important;
+    /* 基础重置 */
+    body * {
+        visibility: hidden;
+        background: transparent !important;
+        color: #000 !important;
     }
     
-    body {
-        background: white !important;
-        color: black !important;
-        font-family: "Noto Serif SC", serif, "Microsoft YaHei", sans-serif;
-        font-size: 12pt;
-        line-height: 1.5;
-        padding: 0 !important;
-        margin: 0 !important;
-    }
-    
-    /* 隐藏UI元素 */
-    .cyber-grid,
-    .neon-particles,
-    .scanlines,
-    .print-btn,
-    .menu-tabs,
-    .calculate-btn-container,
-    .copyright,
-    .bazi-qa-container,
-    .gambling-analysis,
-    .tab-content:not(.active),
-    .section-print-btn,
-    .load-btn-container,
-    .toggle-icon,
-    .header-links,
-    .saved-profiles,
-    .disclaimer,
-    .big-dipper {
-        display: none !important;
+    /* 只显示当前打印的子目录内容 */
+    .section-content,
+    .section-content * {
+        visibility: visible;
     }
     
     /* 容器样式 */
-    .container {
+    .section-content {
+        position: absolute;
+        left: 0;
+        top: 0;
         width: 100% !important;
-        max-width: 100% !important;
-        padding: 0 !important;
         margin: 0 !important;
+        padding: 15px !important;
         box-shadow: none !important;
-        background: white !important;
-    }
-    
-    /* 头部信息 */
-    .header-container {
-        text-align: center;
-        margin-bottom: 20px;
-        padding-bottom: 15px;
-        border-bottom: 1px solid #eee;
-    }
-    
-    .header-title {
-        color: #333 !important;
-        text-shadow: none !important;
-        font-size: 24pt !important;
-        margin-bottom: 5px !important;
-    }
-    
-    .header-subtitle {
-        color: #666 !important;
-        font-size: 12pt !important;
-    }
-    
-    /* 用户基本信息 */
-    .basic-info {
-        page-break-after: avoid;
-    }
-    
-    .info-section {
         page-break-inside: avoid;
-        margin-bottom: 15px;
     }
     
-    .info-section h3 {
+    /* 打印头部信息 */
+    .print-header {
+        text-align: center;
+        margin-bottom: 25px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #eee;
+    }
+    
+    .print-header h2 {
         color: #333 !important;
-        border-bottom: 1px solid #ddd;
-        padding-bottom: 5px;
-        font-size: 14pt !important;
+        font-size: 22pt !important;
+        margin-bottom: 5px;
+        text-shadow: none !important;
     }
     
-    /* 八字表格样式 */
+    .user-info {
+        font-size: 12pt;
+        color: #666 !important;
+    }
+    
+    /* 卡片样式 */
+    .detail-card {
+        border: none !important;
+        box-shadow: none !important;
+        page-break-inside: avoid;
+        break-inside: avoid;
+    }
+    
+    /* 八字表格优化 */
     .bazi-table {
         width: 100%;
         border-collapse: collapse;
-        margin: 10px 0;
+        margin: 20px 0;
         page-break-inside: avoid;
     }
     
     .bazi-cell {
-        border: 1px solid #ddd;
-        padding: 8px;
+        border: 1px solid #ddd !important;
+        padding: 10px;
         text-align: center;
+        font-size: 12pt;
     }
     
     .bazi-header .bazi-cell {
-        background-color: #f5f5f5 !important;
+        background-color: #f9f9f9 !important;
         font-weight: bold;
     }
     
-    /* 图表打印优化 */
+    /* 五行图表 */
     .element-chart-container {
-        width: 80% !important;
+        width: 70% !important;
         height: auto !important;
-        margin: 0 auto;
+        margin: 20px auto;
         page-break-inside: avoid;
     }
     
-    /* 五行图例 */
-    .element-legend {
-        display: flex;
-        justify-content: center;
-        margin-top: 10px;
+    /* 文字内容 */
+    .personality-traits,
+    .chart-description,
+    .score-details {
+        font-size: 12pt;
+        line-height: 1.8;
+        margin: 15px 0;
     }
     
-    .element-legend-item {
-        display: flex;
-        align-items: center;
-        margin: 0 10px;
+    /* 隐藏不需要的元素 */
+    .print-btn,
+    .section-print-btn,
+    .load-btn-container,
+    .menu-tabs,
+    .calculate-btn-container,
+    .cyber-grid,
+    .neon-particles,
+    .scanlines,
+    .toggle-icon,
+    .bazi-qa-container,
+    .gambling-analysis {
+        display: none !important;
     }
     
-    .element-legend-color {
-        width: 15px;
-        height: 15px;
-        margin-right: 5px;
-        border: 1px solid #ddd;
+    /* 页眉页脚设置 */
+    @page {
+        size: A4;
+        margin: 15mm;
+        
+        @top-center {
+            content: "赛博命理分析报告";
+            font-family: "Noto Serif SC", serif;
+            font-size: 10pt;
+            color: #666;
+        }
+        
+        @bottom-right {
+            content: "页 " counter(page);
+            font-family: "Noto Serif SC", serif;
+            font-size: 9pt;
+            color: #666;
+        }
     }
     
-    /* 内容卡片样式 */
-    .detail-card {
-        border: 1px solid #eee !important;
-        box-shadow: none !important;
-        margin-bottom: 15px !important;
+    /* 首页特殊样式 */
+    @page :first {
+        @top-center {
+            content: none;
+        }
+    }
+    
+    /* 列表样式 */
+    ul, ol {
+        margin-left: 25px;
+    }
+    
+    li {
+        margin-bottom: 8px;
         page-break-inside: avoid;
-        padding: 15px;
-    }
-    
-    .section-content {
-        display: block !important;
-        width: 100% !important;
-        padding: 0 !important;
-        margin: 0 !important;
     }
     
     /* 黄历卡片 */
     .lunar-calendar-card {
-        border: 1px solid #ddd !important;
-        padding: 10px;
-    }
-    
-    .lunar-header {
-        font-weight: bold;
-        margin-bottom: 8px;
+        border: 1px solid #eee !important;
+        padding: 15px;
+        page-break-inside: avoid;
     }
     
     .lunar-yiji-column {
@@ -171,124 +160,50 @@
         vertical-align: top;
     }
     
-    /* 评分样式 */
-    .rating-container {
-        display: flex;
-        justify-content: space-around;
-    }
-    
-    .rating-group {
-        text-align: center;
-    }
-    
-    .rating-title {
-        font-weight: bold;
-    }
-    
-    .rating-level {
-        font-size: 16pt;
-        font-weight: bold;
-        color: #333;
-    }
-    
-    /* 页眉页脚设置 */
-    @page {
-        size: auto;
-        margin: 15mm;
-        
-        @top-center {
-            content: "赛博命理分析报告";
-            font-size: 10pt;
-            color: #666;
-        }
-        
-        @bottom-right {
-            content: "页 " counter(page);
-            font-size: 9pt;
-            color: #666;
-        }
-    }
-    
-    @page :first {
-        @top-center {
-            content: none;
-        }
-    }
-    
-    /* 强制分页 */
+    /* 强制分页控制 */
     .page-break {
         page-break-before: always;
     }
     
-    /* 链接打印样式 */
+    /* 避免标题孤立 */
+    h3, h4 {
+        page-break-after: avoid;
+    }
+    
+    /* 链接处理 */
     a {
         color: #333 !important;
         text-decoration: underline !important;
     }
     
-    a::after {
-        content: " (" attr(href) ")";
-        font-size: 80%;
-        color: #666;
-    }
-    
     /* 图标处理 */
-    .fas, .fab {
-        display: inline-block;
+    .fas {
+        display: inline !important;
         margin-right: 5px;
     }
     
-    /* 打印日期 */
-    .print-date {
-        text-align: right;
-        font-size: 10pt;
-        color: #666;
-        margin-bottom: 10px;
+    /* 评分样式 */
+    .rating-container {
+        display: flex;
+        justify-content: space-around;
+        margin: 20px 0;
     }
     
-    /* 表格数据 */
-    table {
-        border-collapse: collapse;
-        width: 100%;
-        margin: 10px 0;
-    }
-    
-    th, td {
-        border: 1px solid #ddd;
-        padding: 8px;
-        text-align: left;
-    }
-    
-    th {
-        background-color: #f5f5f5;
-    }
-    
-    /* 避免内容被切断 */
-    h1, h2, h3, h4, h5, h6 {
-        page-break-after: avoid;
-    }
-    
-    p, li {
-        page-break-inside: avoid;
-    }
-    
-    /* 列表样式 */
-    ul, ol {
-        margin-left: 20px;
-    }
-    
-    /* 代码块 */
-    pre {
-        background-color: #f5f5f5;
-        padding: 10px;
-        border-radius: 3px;
-        overflow: auto;
-        page-break-inside: avoid;
+    .rating-level {
+        font-size: 16pt;
+        font-weight: bold;
     }
     
     /* 响应式处理 */
-    img {
+    img, canvas {
         max-width: 100% !important;
         height: auto !important;
     }
+    
+    /* 打印颜色优化 */
+    .wood-color { background-color: #8BC34A !important; }
+    .fire-color { background-color: #FF5722 !important; }
+    .earth-color { background-color: #795548 !important; }
+    .metal-color { background-color: #607D8B !important; }
+    .water-color { background-color: #2196F3 !important; }
 }
