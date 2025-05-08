@@ -1166,19 +1166,41 @@ ${getWealthSuggestions(score)}
     printBtn.className = 'print-btn';
     printBtn.innerHTML = '<i class="fas fa-print"></i> 打印此部分';
     
+    // 定义英文到中文的标题映射
+    const sectionTitles = {
+        'basic': '基础信息',
+        'fate-level': '命格等级',
+        'wealth-level': '财富等级',
+        'strength': '身强身弱',
+        'career': '事业分析',
+        'wealth': '财富分析',
+        'elements': '五行分析',
+        'personality': '性格分析',
+        'children': '子女运势',
+        'marriage': '婚姻分析',
+        'health': '健康分析',
+        'annual-fortune': '年度运势',
+        'daily-fortune': '每日运势',
+        'milestones': '人生节点',
+        'decade-fortune': '十年大运',
+        'monthly-fortune': '每月运势'
+    };
+    
+    // 获取中文标题，如果没有匹配则使用原始section
+    const chineseTitle = sectionTitles[section] || section;
+    
     // 添加打印功能
     printBtn.onclick = function() {
         const printWindow = window.open('', '_blank');
-        const sectionTitle = section.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
         
         printWindow.document.write(`
             <!DOCTYPE html>
             <html>
             <head>
-                <title>八字分析打印 - ${sectionTitle}</title>
+                <title>八字分析打印 - ${chineseTitle}</title>
                 <style>
                     body { 
-                        font-family: Arial, sans-serif; 
+                        font-family: "Microsoft YaHei", Arial, sans-serif; 
                         line-height: 1.6; 
                         padding: 20px; 
                         color: #333;
@@ -1187,7 +1209,12 @@ ${getWealthSuggestions(score)}
                         color: #2c3e50;
                         margin-top: 20px;
                     }
-                    h1 { font-size: 24px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+                    h1 { 
+                        font-size: 24px; 
+                        border-bottom: 1px solid #eee; 
+                        padding-bottom: 10px;
+                        text-align: center;
+                    }
                     h2 { font-size: 20px; }
                     h3 { font-size: 18px; }
                     table { 
@@ -1233,14 +1260,14 @@ ${getWealthSuggestions(score)}
             </head>
             <body>
                 <div class="print-header">
-                    <h1>八字分析报告 - ${sectionTitle}</h1>
-                    <p>生成时间: ${new Date().toLocaleString()}</p>
+                    <h1>八字分析报告 - ${chineseTitle}</h1>
+                    <p>生成时间: ${new Date().toLocaleString('zh-CN')}</p>
                 </div>
                 
                 <div>${tempDiv.innerHTML}</div>
                 
                 <div class="print-footer">
-                    <p>本报告由机缘命理系统算法生成</p>
+                    <p>本报告由AI生成，仅供参考娱乐</p>
                 </div>
                 
                 <div class="no-print" style="margin-top: 30px; text-align: center;">
