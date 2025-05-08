@@ -1,49 +1,45 @@
-// 修改后的打印按钮添加逻辑
-window.addEventListener('load', function() {
-    // 1. 添加全局打印按钮
-    const globalPrintBtn = document.createElement('button');
-    globalPrintBtn.className = 'print-btn';
-    globalPrintBtn.innerHTML = '<i class="fas fa-print"></i>';
-    globalPrintBtn.title = '打印全部内容';
-    document.body.appendChild(globalPrintBtn);
-    
-    globalPrintBtn.addEventListener('click', function() {
-        window.print();
-    });
+// 子目录打印功能
+document.addEventListener('DOMContentLoaded', function() {
+    // 移除全局打印按钮（如果存在）
+    const globalPrintBtn = document.querySelector('.print-btn');
+    if (globalPrintBtn) globalPrintBtn.remove();
 
-    // 2. 为每个可加载的内容区块添加打印按钮
+    // 为所有可展开的子目录添加点击事件
     document.querySelectorAll('.load-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             const sectionId = this.getAttribute('data-section') + '-content';
             const section = document.getElementById(sectionId);
             
-            // 确保只添加一次打印按钮
-            if (!section || section.querySelector('.section-print-btn')) return;
+            // 先移除可能存在的旧打印按钮
+            const existingBtn = section.querySelector('.section-print-btn');
+            if (existingBtn) existingBtn.remove();
             
-            // 创建区块打印按钮
-            const sectionPrintBtn = document.createElement('button');
-            sectionPrintBtn.className = 'section-print-btn';
-            sectionPrintBtn.innerHTML = '<i class="fas fa-print"></i> 打印本段内容';
+            // 创建新的打印按钮（放在内容下方）
+            const printBtn = document.createElement('button');
+            printBtn.className = 'section-print-btn';
+            printBtn.innerHTML = '<i class="fas fa-print"></i> 打印本段内容';
             
             // 添加点击事件
-            sectionPrintBtn.addEventListener('click', function(e) {
+            printBtn.addEventListener('click', function(e) {
                 e.stopPropagation();
-                printSection(sectionId);
+                printSubsection(sectionId);
             });
             
-            // 将按钮添加到内容区域的顶部
-            section.insertBefore(sectionPrintBtn, section.firstChild);
+            // 将按钮添加到内容区域的底部
+            section.appendChild(printBtn);
         });
     });
 });
 
-// 打印特定区块内容
-function printSection(sectionId) {
+// 打印子目录专用函数
+function printSubsection(sectionId) {
     const section = document.getElementById(sectionId);
     if (!section) return;
 
-    // 获取标题文本
+    // 获取标题和用户信息
     const title = section.closest('.detail-card').querySelector('.load-btn span').textContent;
+    const userName = document.getElementById('user-name-display').textContent || '匿名用户';
+    const birthInfo = document.getElementById('user-birth-display').textContent || '';
     
     // 创建打印窗口
     const printWindow = window.open('', '_blank');
@@ -56,48 +52,69 @@ function printSection(sectionId) {
             <title>赛博命理 - ${title}</title>
             <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
             <style>
-                body { 
-                    padding: 20px; 
-                    font-family: 'Noto Serif SC', serif;
+                body {
+                    padding: 20px;
+                    font-family: "Noto Serif SC", serif;
                     color: #333;
+                    line-height: 1.6;
                 }
                 .print-header {
                     text-align: center;
                     margin-bottom: 20px;
-                    border-bottom: 1px solid #eee;
                     padding-bottom: 10px;
+                    border-bottom: 1px solid #eee;
                 }
                 .print-header h2 {
-                    margin-bottom: 5px;
                     color: #222;
+                    margin-bottom: 5px;
                 }
-                .print-user-info {
+                .user-info {
                     font-size: 14px;
                     color: #666;
                 }
                 @page {
+                    size: A4;
                     margin: 15mm;
                     @top-center {
-                        content: "赛博命理分析报告";
-                        font-size: 12px;
+                        content: "赛博命理 - ${title}";
+                        font-size: 10pt;
                     }
                     @bottom-right {
-                        content: "页 " counter(page);
-                        font-size: 10px;
+                        content: "页码 " counter(page);
+                        font-size: 9pt;
                     }
+                }
+                /* 保留原有内容样式 */
+                .bazi-table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin: 15px 0;
+                }
+                .bazi-cell {
+                    border: 1px solid #ddd;
+                    padding: 8px;
+                    text-align: center;
+                }
+                .element-chart-container {
+                    width: 80%;
+                    margin: 0 auto;
                 }
             </style>
         </head>
         <body>
             <div class="print-header">
                 <h2>${title}</h2>
-                <div class="print-user-info">
-                    ${document.getElementById('user-name-display').textContent} | ${new Date().toLocaleString()}
+                <div class="user-info">
+                    ${userName} ${birthInfo ? '· '+birthInfo : ''}
                 </div>
             </div>
             ${section.innerHTML.replace('section-print-btn', '')}
             <script>
-                setTimeout(() => { window.print(); window.close(); }, 300);
+                // 自动触发打印并关闭窗口
+                setTimeout(() => {
+                    window.print();
+                    window.close();
+                }, 300);
             </script>
         </body>
         </html>
