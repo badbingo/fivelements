@@ -1,60 +1,66 @@
 /* ============================================
-   机缘命理系统 - 打印功能完整样式修复
-   Version: 3.0
-   Last Updated: 2025-05-10
+   机缘命理系统 - 打印功能完整CSS解决方案
+   Version: 4.1
+   Last Updated: 2025-05-15
    ============================================ */
 
-/* 全局滚动修复 (解决滚动异常问题) */
-html {
-  scroll-behavior: smooth;
-  overflow-anchor: none;
-}
-
+/* 全局基础重置 */
 body {
   overflow-x: hidden;
-  position: static !important;
-  overscroll-behavior-y: contain;
+  overscroll-behavior-y: none;
 }
 
-/* 内容区域基础样式 */
+/* 内容区域保护样式 */
 .section-content {
   position: relative;
-  overflow: visible !important;
   min-height: 50px;
-  padding-bottom: 20px;
-  contain: layout;
+  padding-bottom: 60px; /* 为按钮预留空间 */
+  contain: content;
 }
 
-/* 打印按钮核心样式 (强制显示) */
+/* 打印按钮容器（关键修复） */
+.print-btn-container {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  text-align: center;
+  padding: 15px 0;
+  z-index: 100;
+  pointer-events: none;
+}
+
+/* 打印按钮核心样式（强制可见） */
 .section-print-btn {
   /* 重置所有继承样式 */
-  all: initial;
+  all: unset;
   
   /* 基础样式 */
-  display: block !important;
+  display: inline-block !important;
   visibility: visible !important;
   opacity: 1 !important;
-  margin: 25px auto 15px;
   padding: 12px 28px;
-  background: linear-gradient(135deg, #6e8efb, #4a6cf7);
+  background: linear-gradient(135deg, #4a6cf7, #6e8efb);
   color: white !important;
   border: none;
   border-radius: 30px;
-  font: 15px/1.5 'Noto Serif SC', serif;
+  font-family: 'Noto Serif SC', serif;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.5;
   cursor: pointer;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
-  z-index: 100;
+  pointer-events: auto;
   position: relative;
-  text-align: center;
-  -webkit-appearance: none;
+  z-index: 110;
 }
 
 /* 按钮交互状态 */
 .section-print-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-  background: linear-gradient(135deg, #4a6cf7, #6e8efb);
+  background: linear-gradient(135deg, #3a5bd9, #5a7ef3);
 }
 
 .section-print-btn:active {
@@ -62,24 +68,29 @@ body {
 }
 
 /* 按钮图标样式 */
-.section-print-btn i.fas {
+.section-print-btn .fas {
   margin-right: 8px;
   font-size: 14px;
 }
 
 /* 卡片容器修复 */
 .detail-card {
-  contain: layout;
-  overflow: visible;
   position: relative;
+  overflow: visible;
 }
 
-/* 打印样式 (保留原有功能) */
+/* 加载状态指示器 */
+.loading-spinner {
+  text-align: center;
+  padding: 30px;
+  color: #666;
+  font-style: italic;
+}
+
+/* 打印样式优化 */
 @media print {
   body * {
     visibility: hidden;
-    background: transparent !important;
-    color: #000 !important;
   }
   
   .section-content,
@@ -87,21 +98,13 @@ body {
     visibility: visible;
   }
   
-  .section-content {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100% !important;
-    margin: 0 !important;
-    padding: 15px !important;
-  }
-  
+  .print-btn-container,
   .section-print-btn {
     display: none !important;
   }
   
   @page {
-    size: A4;
+    size: auto;
     margin: 15mm;
   }
 }
@@ -111,20 +114,34 @@ body {
   .section-print-btn {
     padding: 10px 20px;
     font-size: 14px;
-    margin: 20px auto;
+  }
+  
+  .print-btn-container {
+    padding: 10px 0;
   }
 }
 
-/* 防止其他插件干扰 */
-#print-button-fix {
+/* 防御性样式（防止覆盖） */
+button.section-print-btn,
+input[type="button"].section-print-btn {
+  all: revert !important;
+  display: inline-block !important;
+  visibility: visible !important;
+}
+
+/* 动画性能优化 */
+@media (prefers-reduced-motion: reduce) {
+  .section-print-btn {
+    transition: none !important;
+  }
+}
+
+/* 强制显示保障（最高优先级） */
+#force-print-btn-display {
   display: none !important;
 }
 
-/* 强制覆盖其他可能冲突的样式 */
-button.section-print-btn,
-input.section-print-btn,
-[class*="print-btn"] {
-  all: revert !important;
-  display: block !important;
+body .section-print-btn {
+  display: inline-block !important;
   visibility: visible !important;
 }
