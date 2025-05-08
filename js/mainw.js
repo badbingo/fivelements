@@ -1142,19 +1142,193 @@ ${getWealthSuggestions(score)}
 
     // 显示部分内容
     function displaySectionContent(section, result, contentElement) {
-        if (result.includes('★')) {
-            result = result.replace(/(★+)/g, '<span class="rating" style="color:var(--earth-color);text-shadow:0 0 5px var(--earth-color)">$1</span>');
-            result = result.replace(/(☆+)/g, '<span style="color:#666">$1</span>');
-        }
-        const html = marked.parse(result);
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = html;
-        tempDiv.querySelectorAll('table').forEach(function(table) {
-            table.classList.add('markdown-table');
-        });
-        contentElement.innerHTML = tempDiv.innerHTML;
+    if (result.includes('★')) {
+        result = result.replace(/(★+)/g, '<span class="rating" style="color:var(--earth-color);text-shadow:0 0 5px var(--earth-color)">$1</span>');
+        result = result.replace(/(☆+)/g, '<span style="color:#666">$1</span>');
     }
-
+    
+    // 解析Markdown内容
+    const html = marked.parse(result);
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = html;
+    
+    // 为表格添加样式类
+    tempDiv.querySelectorAll('table').forEach(function(table) {
+        table.classList.add('markdown-table');
+    });
+    
+    // 创建打印按钮容器
+    const printContainer = document.createElement('div');
+    printContainer.className = 'print-btn-container';
+    
+    // 创建打印按钮
+    const printBtn = document.createElement('button');
+    printBtn.className = 'print-btn';
+    printBtn.innerHTML = '<i class="fas fa-print"></i> 打印此部分';
+    
+    // 添加打印功能
+    printBtn.onclick = function() {
+        const printWindow = window.open('', '_blank');
+        const sectionTitle = section.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        
+        printWindow.document.write(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>八字分析打印 - ${sectionTitle}</title>
+                <style>
+                    body { 
+                        font-family: Arial, sans-serif; 
+                        line-height: 1.6; 
+                        padding: 20px; 
+                        color: #333;
+                    }
+                    h1, h2, h3, h4 { 
+                        color: #2c3e50;
+                        margin-top: 20px;
+                    }
+                    h1 { font-size: 24px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+                    h2 { font-size: 20px; }
+                    h3 { font-size: 18px; }
+                    table { 
+                        border-collapse: collapse; 
+                        width: 100%; 
+                        margin: 15px 0; 
+                        font-size: 14px;
+                    }
+                    th, td { 
+                        border: 1px solid #ddd; 
+                        padding: 8px 12px; 
+                        text-align: left; 
+                    }
+                    th { 
+                        background-color: #f2f2f2; 
+                        font-weight: bold;
+                    }
+                    .rating { 
+                        color: #e67e22; 
+                        font-weight: bold; 
+                        letter-spacing: 2px;
+                    }
+                    .print-header {
+                        text-align: center;
+                        margin-bottom: 20px;
+                        padding-bottom: 10px;
+                        border-bottom: 1px solid #eee;
+                    }
+                    .print-footer {
+                        text-align: center;
+                        margin-top: 30px;
+                        padding-top: 10px;
+                        border-top: 1px solid #eee;
+                        font-size: 12px;
+                        color: #7f8c8d;
+                    }
+                    @media print {
+                        body { padding: 0 10px; }
+                        .no-print { display: none; }
+                        @page { margin: 1cm; }
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="print-header">
+                    <h1>八字分析报告 - ${sectionTitle}</h1>
+                    <p>生成时间: ${new Date().toLocaleString()}</p>
+                </div>
+                
+                <div>${tempDiv.innerHTML}</div>
+                
+                <div class="print-footer">
+                    <p>本报告由AI生成，仅供参考娱乐</p>
+                </div>
+                
+                <div class="no-print" style="margin-top: 30px; text-align: center;">
+                    <button onclick="window.print()" style="
+                        padding: 10px 20px; 
+                        background: #3498db; 
+                        color: white; 
+                        border: none; 
+                        border-radius: 4px; 
+                        cursor: pointer;
+                        font-size: 16px;
+                        margin-right: 10px;
+                    ">
+                        <i class="fas fa-print"></i> 打印报告
+                    </button>
+                    <button onclick="window.close()" style="
+                        padding: 10px 20px; 
+                        background: #e74c3c; 
+                        color: white; 
+                        border: none; 
+                        border-radius: 4px; 
+                        cursor: pointer;
+                        font-size: 16px;
+                    ">
+                        <i class="fas fa-times"></i> 关闭窗口
+                    </button>
+                </div>
+                
+                <script>
+                    // 添加Font Awesome图标库
+                    const fa = document.createElement('link');
+                    fa.rel = 'stylesheet';
+                    fa.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css';
+                    document.head.appendChild(fa);
+                </script>
+            </body>
+            </html>
+        `);
+        printWindow.document.close();
+    };
+    
+    // 将打印按钮添加到容器
+    printContainer.appendChild(printBtn);
+    
+    // 清空内容元素并添加新内容和打印按钮
+    contentElement.innerHTML = '';
+    contentElement.appendChild(tempDiv);
+    contentElement.appendChild(printContainer);
+    
+    // 添加打印按钮样式
+    if (!document.querySelector('style.print-btn-style')) {
+        const style = document.createElement('style');
+        style.className = 'print-btn-style';
+        style.textContent = `
+            .print-btn-container {
+                margin-top: 20px;
+                text-align: right;
+                padding: 15px 0;
+                border-top: 1px solid #eee;
+            }
+            
+            .print-btn {
+                background-color: var(--primary-color);
+                color: white;
+                border: none;
+                padding: 8px 15px;
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 14px;
+                transition: all 0.3s;
+                display: inline-flex;
+                align-items: center;
+                gap: 5px;
+            }
+            
+            .print-btn:hover {
+                background-color: var(--primary-dark-color);
+                transform: translateY(-1px);
+                box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            }
+            
+            .print-btn:active {
+                transform: translateY(0);
+            }
+        `;
+        document.head.appendChild(style);
+    }
+}
     // 计算八字
     async function calculateBazi(e) {
         e.preventDefault();
