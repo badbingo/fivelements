@@ -1097,8 +1097,6 @@ ${getWealthSuggestions(score)}
             calculateBtn.innerHTML = '<i class="fas fa-brain"></i> 开始量子测算';
         }
     }
-    // 初始化应用
-    init();
         
     // 生成八字哈希键
     function generateBaziHashKey(birthData) {
