@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>八字命理 - 趋吉避凶之道 | 麦八字教学网</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style1.css">
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-2NHJXGKS0Y"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+    
+      gtag('config', 'G-2NHJXGKS0Y');
+    </script>
+    <style>
+        /* 新增的开场页专属样式 */
+        .hero-section {
+            position: relative;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: white;
+            overflow: hidden;
+            background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.7)), url('images/cosmic-bg.jpg') no-repeat center center;
+            background-size: cover;
+        }
+        
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            max-width: 900px;
+            padding: 0 20px;
+        }
+        
+        .hero-title {
+            font-size: 4.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            text-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+            animation: fadeInDown 1.5s ease;
+        }
+        
+        .hero-subtitle {
+            font-size: 1.8rem;
+            margin-bottom: 2.5rem;
+            line-height: 1.4;
+            text-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
+            animation: fadeIn 2s ease;
+        }
+        
+        .highlight-phrase {
+            display: inline-block;
+            font-size: 3.5rem;
+            color: #f8d64e;
+            text-shadow: 0 0 15px rgba(248, 214, 78, 0.7);
+            margin: 1rem 0;
+            padding: 0.5rem 1.5rem;
+            border-radius: 5px;
+            background: rgba(0, 0, 0, 0.4);
+            transform: rotate(-5deg);
+            animation: pulse 2s infinite alternate, float 6s ease-in-out infinite;
+        }
+        
+        .bazi-elements {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin: 3rem 0;
+            flex-wrap: wrap;
+        }
+        
+        .element {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: bold;
+            opacity: 0;
+            transform: translateY(50px);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+            animation: elementAppear 0.8s forwards;
+        }
+        
+        .element:nth-child(1) { animation-delay: 0.5s; background: rgba(139, 195, 74, 0.8); } /* 木 */
+        .element:nth-child(2) { animation-delay: 0.8s; background: rgba(244, 67, 54, 0.8); } /* 火 */
+        .element:nth-child(3) { animation-delay: 1.1s; background: rgba(255, 235, 59, 0.8); } /* 土 */
+        .element:nth-child(4) { animation-delay: 1.4s; background: rgba(96, 125, 139, 0.8); } /* 金 */
+        .element:nth-child(5) { animation-delay: 1.7s; background: rgba(33, 150, 243, 0.8); } /* 水 */
+        
+        .cta-button {
+            display: inline-block;
+            padding: 1rem 2.5rem;
+            background: linear-gradient(45deg, #8a2387, #e94057, #f27121);
+            color: white;
+            border-radius: 50px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            text-decoration: none;
+            margin: 1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            animation: fadeInUp 1.5s ease 2s forwards;
+            opacity: 0;
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+        }
+        
+        .scroll-down {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            font-size: 2rem;
+            animation: bounce 2s infinite;
+            cursor: pointer;
+        }
+        
+        .destiny-quote {
+            font-size: 1.5rem;
+            margin-top: 3rem;
+            font-style: italic;
+            position: relative;
+            padding: 1rem 2rem;
+            display: inline-block;
+            animation: fadeIn 2.5s ease;
+        }
+        
+        .destiny-quote:before, .destiny-quote:after {
+            content: '"';
+            font-size: 3rem;
+            color: rgba(255, 255, 255, 0.3);
+            position: absolute;
+        }
+        
+        .destiny-quote:before {
+            top: -10px;
+            left: -5px;
+        }
+        
+        .destiny-quote:after {
+            bottom: -30px;
+            right: -5px;
+        }
+        
+        /* 动画效果 */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes fadeInDown {
+            from { 
+                opacity: 0; 
+                transform: translateY(-50px);
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes fadeInUp {
+            from { 
+                opacity: 0; 
+                transform: translateY(50px);
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes pulse {
+            from { transform: rotate(-5deg) scale(1); }
+            to { transform: rotate(-5deg) scale(1.05); }
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: rotate(-5deg) translateY(0); }
+            50% { transform: rotate(-5deg) translateY(-10px); }
+        }
+        
+        @keyframes elementAppear {
+            to { 
+                opacity: 1; 
+                transform: translateY(0) rotate(360deg);
+            }
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0) translateX(-50%); }
+            40% { transform: translateY(-20px) translateX(-50%); }
+            60% { transform: translateY(-10px) translateX(-50%); }
+        }
+        
+        /* 星空背景动画 */
+        .stars {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            overflow: hidden;
+        }
+        
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle var(--duration) infinite ease-in-out;
+        }
+        
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.2; }
+            50% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <!-- 星空背景 -->
+    <div class="stars" id="stars"></div>
+    
+    <!-- 开场英雄区域 -->
+    <section class="hero-section">
+        <div class="hero-content">
+            <h1 class="hero-title">探索八字命理的奥秘</h1>
+            <p class="hero-subtitle">了解自己的命运轨迹，掌握改变人生的钥匙</p>
+            
+            <div class="bazi-elements">
+                <div class="element">木</div>
+                <div class="element">火</div>
+                <div class="element">土</div>
+                <div class="element">金</div>
+                <div class="element">水</div>
+            </div>
+            
+            <div class="highlight-phrase">趋吉避凶</div>
+            
+            <p class="hero-subtitle" style="font-size: 1.5rem; max-width: 800px; margin: 0 auto;">
+                八字命理不仅是预测工具，更是了解自我、把握机遇的智慧。<br>
+                通过分析五行生克、十神关系，我们可以预见人生起伏，<br>
+                在关键时刻做出明智选择，实现"我命由我不由天"的人生境界。
+            </p>
+            
+            <p class="destiny-quote">
+                知命而不认命，顺势而为，逆天改运
+            </p>
+            
+            <a href="#main-content" class="cta-button">开始探索命理奥秘</a>
+        </div>
+        
+        <div class="scroll-down" onclick="document.getElementById('main-content').scrollIntoView({ behavior: 'smooth' })">
+            <i class="fas fa-chevron-down"></i>
+        </div>
+    </section>
+    
+    <!-- 主内容区域 -->
+    <main class="content-container" id="main-content">
+        <!-- 原有内容保持不变 -->
+        <div class="content-title">
+            <h1>八字批命七步法</h1>
+            <p>零基础入门八字命理，懂命方能趋吉避凶</p>
+        </div>
+        
+        <!-- 原有七步法内容 -->
+        <!-- ... -->
+    </main>
+
+    <footer class="main-footer">
+        <div class="container">
+            <p>&copy; 2025 麦八字教学网. 保留所有权利.</p>
+            <p>传承经典命理文化，科学学习八字知识</p>
+        </div>
+    </footer>
+    
+    <script>
+        // 创建星空背景
+        document.addEventListener('DOMContentLoaded', function() {
+            const starsContainer = document.getElementById('stars');
+            const starCount = 200;
+            
+            for (let i = 0; i < starCount; i++) {
+                const star = document.createElement('div');
+                star.classList.add('star');
+                
+                // 随机大小 (1-3px)
+                const size = Math.random() * 2 + 1;
+                star.style.width = `${size}px`;
+                star.style.height = `${size}px`;
+                
+                // 随机位置
+                star.style.left = `${Math.random() * 100}%`;
+                star.style.top = `${Math.random() * 100}%`;
+                
+                // 随机闪烁时间 (2-5秒)
+                star.style.setProperty('--duration', `${Math.random() * 3 + 2}s`);
+                
+                starsContainer.appendChild(star);
+            }
+            
+            // 五行元素鼠标悬停效果
+            const elements = document.querySelectorAll('.element');
+            elements.forEach(el => {
+                el.addEventListener('mouseover', () => {
+                    el.style.transform = 'scale(1.2)';
+                    el.style.boxShadow = '0 0 30px rgba(255, 255, 255, 0.6)';
+                });
+                
+                el.addEventListener('mouseout', () => {
+                    el.style.transform = 'scale(1)';
+                    el.style.boxShadow = '0 0 20px rgba(255, 255, 255, 0.3)';
+                });
+            });
+        });
+    </script>
+</body>
+</html>
