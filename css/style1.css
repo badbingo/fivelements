@@ -112,20 +112,22 @@ body {
     position: relative;
 }
 
-.nav-link {
-    color: var(--black);
-    font-size: 0.9rem;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    padding: 10px 0;
-    position: relative;
-    text-decoration: none;
+/* 修改导航条小图标颜色 - 每个导航项使用不同颜色 */
+.nav-link i {
+    margin-right: 8px;
     transition: var(--transition);
 }
 
-.nav-link:hover {
-    color: var(--primary-color);
+/* 为每个导航项的小图标设置不同颜色 */
+.nav-item:nth-child(1) .nav-link i { color: #ED1C24; } /* 红色 */
+.nav-item:nth-child(2) .nav-link i { color: #3498db; } /* 蓝色 */
+.nav-item:nth-child(3) .nav-link i { color: #2ecc71; } /* 绿色 */
+.nav-item:nth-child(4) .nav-link i { color: #f39c12; } /* 橙色 */
+.nav-item:nth-child(5) .nav-link i { color: #9b59b6; } /* 紫色 */
+
+/* 导航图标悬停动画 */
+.nav-link:hover i {
+    transform: rotate(15deg) scale(1.2);
 }
 
 .nav-link::after {
@@ -185,7 +187,125 @@ body {
     color: var(--primary-color);
     background-color: var(--light-gray);
 }
+/* 为文字标题添加笔刷效果底色 */
+.content-title h1,
+.content-section h2,
+.content-section h3,
+.card-title {
+    position: relative;
+    display: inline-block;
+    z-index: 1;
+}
 
+.content-title h1::after,
+.content-section h2::after,
+.content-section h3::after,
+.card-title::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: -5px;
+    width: calc(100% + 10px);
+    height: 40%;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="20" viewBox="0 0 100 20"><path d="M0,10 C20,0 40,20 60,10 C80,0 100,20 100,10 L100,20 L0,20 Z" fill="rgba(237, 28, 36, 0.2)"/></svg>');
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    z-index: -1;
+    opacity: 0.7;
+    transition: var(--transition);
+}
+
+.content-title h1:hover::after,
+.content-section h2:hover::after,
+.content-section h3:hover::after,
+.card-title:hover::after {
+    transform: scaleY(1.5) rotate(-1deg);
+    opacity: 0.9;
+}
+
+/* 为不同级别标题设置不同笔刷颜色 */
+.content-title h1::after {
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="20" viewBox="0 0 100 20"><path d="M0,10 C20,0 40,20 60,10 C80,0 100,20 100,10 L100,20 L0,20 Z" fill="rgba(237, 28, 36, 0.3)"/></svg>');
+    height: 50%;
+}
+
+.content-section h2::after {
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="20" viewBox="0 0 100 20"><path d="M0,10 C20,0 40,20 60,10 C80,0 100,20 100,10 L100,20 L0,20 Z" fill="rgba(52, 152, 219, 0.3)"/></svg>');
+}
+
+.content-section h3::after {
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="20" viewBox="0 0 100 20"><path d="M0,10 C20,0 40,20 60,10 C80,0 100,20 100,10 L100,20 L0,20 Z" fill="rgba(46, 204, 113, 0.3)"/></svg>');
+    height: 30%;
+}
+
+.card-title::after {
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="20" viewBox="0 0 100 20"><path d="M0,10 C20,0 40,20 60,10 C80,0 100,20 100,10 L100,20 L0,20 Z" fill="rgba(155, 89, 182, 0.3)"/></svg>');
+}
+
+/* 新增动态效果 - 卡片浮动动画 */
+.card {
+    animation: floatCard 8s ease-in-out infinite;
+}
+
+@keyframes floatCard {
+    0%, 100% { transform: translateY(0) rotate(0.5deg); }
+    50% { transform: translateY(-10px) rotate(-0.5deg); }
+}
+
+/* 新增动态效果 - 按钮脉冲动画 */
+.btn {
+    position: relative;
+    overflow: hidden;
+}
+
+.btn::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: rgba(255, 255, 255, 0.2);
+    transform: rotate(30deg);
+    animation: btnShine 3s infinite;
+    opacity: 0;
+}
+
+@keyframes btnShine {
+    0% { transform: rotate(30deg) translate(-30%, -30%); opacity: 0; }
+    20% { opacity: 1; }
+    100% { transform: rotate(30deg) translate(30%, 30%); opacity: 0; }
+}
+
+/* 新增动态效果 - 表格行悬停动画 */
+.bazi-elegant-table tbody tr {
+    transition: var(--transition);
+}
+
+.bazi-elegant-table tbody tr:hover {
+    transform: translateX(5px);
+    box-shadow: 5px 0 15px rgba(0, 0, 0, 0.1);
+}
+
+/* 新增动态效果 - 粒子背景增强 */
+.particle {
+    animation: float 15s infinite linear, pulse 2s infinite alternate;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 0.7; }
+    50% { transform: scale(1.2); opacity: 0.9; }
+}
+
+/* 新增动态效果 - 页面加载动画 */
+@keyframes pageLoad {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.content-container {
+    animation: pageLoad 0.8s ease-out;
+}
 /* 按钮样式 - ArtCenter 风格 */
 .btn {
     display: inline-block;
