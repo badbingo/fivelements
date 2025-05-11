@@ -49,11 +49,6 @@ body {
 
 /* 头部样式 - ArtCenter 风格 */
 .main-header {
-    background: 
-        linear-gradient(rgba(255, 255, 255, 0.3), /* 70%透明的白色覆盖层 */
-        url('../images/slogo.jpg') left center / auto 80% no-repeat,
-        var(--white); /* 原始背景色作为回退 */
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     position: fixed;
     width: 100%;
     top: 0;
@@ -61,6 +56,27 @@ body {
     padding: 15px 0;
     border-bottom: 1px solid var(--light-gray);
     transition: var(--transition);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    background-color: var(--white); /* 基础背景色 */
+}
+
+/* 使用伪元素实现透明背景图 */
+.main-header::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 200px; /* 根据实际图片宽度调整 */
+    height: 100%;
+    background: url('../images/slogo.jpg') left center/contain no-repeat;
+    opacity: 0.3; /* 70%透明 = 30%不透明 */
+    z-index: -1;
+}
+
+/* 恢复logo容器原有样式 */
+.logo-container {
+    display: flex;
+    align-items: center;
 }
 
 .main-header.scrolled {
