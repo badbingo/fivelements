@@ -302,15 +302,18 @@ body {
 .content-title h1 {
     background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
     color: white;
-    padding: 15px 40px;
+    padding: 15px 50px 15px 30px; /* 左右不对称padding */
     display: inline-block;
     clip-path: polygon(
-        0 0,
-        100% 0,
-        95% 50%,
-        100% 100%,
-        0 100%,
-        5% 50%
+        0 10%,          /* 左上角内凹 */
+        5% 0,           /* 左上突起 */
+        90% 0,          /* 右上角不到头 */
+        100% 30%,       /* 右上斜切 */
+        93% 50%,        /* 右侧中部凹陷 */
+        100% 70%,       /* 右下斜切 */
+        90% 100%,       /* 右下角不到头 */
+        5% 100%,        /* 左下突起 */
+        0 90%           /* 左下角内凹 */
     );
     box-shadow: 
         0 5px 15px rgba(237, 28, 36, 0.3),
@@ -319,6 +322,8 @@ body {
     letter-spacing: 2px;
     position: relative;
     z-index: 1;
+    transform: skewX(-5deg); /* 轻微倾斜增加动感 */
+    margin-left: 20px;       /* 为倾斜留出空间 */
 }
 
 /* 标题特殊效果 */
@@ -342,18 +347,35 @@ body {
     bottom: 2px;
     background: var(--black);
     clip-path: polygon(
-        0 0,
-        100% 0,
-        95% 50%,
-        100% 100%,
-        0 100%,
-        5% 50%
+        0 10%,
+        5% 0,
+        90% 0,
+        100% 30%,
+        93% 50%,
+        100% 70%,
+        90% 100%,
+        5% 100%,
+        0 90%
     );
     z-index: -1;
+    opacity: 0.9;
 }
 
+/* 为保持整体平衡，可以添加装饰元素 */
 .content-title h1::after {
-    right: -20px;
+    content: '';
+    position: absolute;
+    right: -15px;
+    top: 50%;
+    transform: translateY(-50%) rotate(45deg);
+    width: 30px;
+    height: 30px;
+    background: var(--primary-color);
+    clip-path: polygon(
+        0 0,
+        100% 0,
+        100% 100%
+    );
 }
 
 .content-title h1 span {
