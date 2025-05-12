@@ -56,23 +56,12 @@
     width: 100%;
     top: 0;
     z-index: 1000;
-    padding: 15px 0;
-    border-bottom: 1px solid var(--light-gray);
+    padding: 10px 0; /* 减少上下padding降低高度 */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     transition: var(--transition);
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    background-color: var(--white);
-    /* 使用伪元素实现透明背景图 */
-    &::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 200px;
-        height: 100%;
-        background: url('../images/slogo.jpg') left center/contain no-repeat;
-        opacity: 0.3;
-        z-index: -1;
-    }
+    background: linear-gradient(135deg, rgba(44, 62, 80, 0.98), rgba(74, 20, 140, 0.98));
+    backdrop-filter: blur(12px);
 }
 
 .main-header.scrolled {
@@ -94,6 +83,8 @@
 .logo-container {
     display: flex;
     align-items: center;
+    position: relative;
+    z-index: 10;
 }
 
 .logo-link {
@@ -104,18 +95,37 @@
 
 .logo-text h1 {
     font-size: 1.8rem;
-    font-weight: 700;
-    color: var(--primary-color);
+    font-weight: 800;
     margin: 0;
-    letter-spacing: -0.5px;
+    background: linear-gradient(135deg, #f5d742, #ff8a00, #e52e71);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-size: 200% 200%;
+    animation: gradient 6s ease infinite;
+    letter-spacing: 1px;
+    font-family: 'Poppins', sans-serif;
+    line-height: 1;
 }
 
 .logo-text .slogan {
-    font-size: 0.8rem;
-    color: var(--black);
-    margin-top: 3px;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.9);
+    font-style: italic;
+    margin-top: 5px;
+    letter-spacing: 1px;
+    position: relative;
+    padding-left: 15px;
+    font-family: 'Playfair Display', serif;
+}
+.logo-text .slogan::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 10px;
+    height: 2px;
+    background: linear-gradient(90deg, #f5d742, #e52e71);
 }
 
 /* ==================== 导航条设计 - 从第一个CSS覆盖 ==================== */
@@ -123,51 +133,23 @@
     margin-left: auto;
 }
 
-.nav-list {
-    display: flex;
-    list-style: none;
-    margin: 0;
-    padding: 0;
+.logo-text .slogan::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 10px;
+    height: 2px;
+    background: linear-gradient(90deg, #f5d742, #e52e71);
 }
-
-.nav-item {
-    margin-left: 30px;
-    position: relative;
-}
-
-.nav-link {
-    color: var(--black);
-    font-size: 0.9rem;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    padding: 10px 0;
-    position: relative;
-    text-decoration: none;
-    transition: var(--transition);
-    display: flex;
-    align-items: center;
-}
-
-/* 为每个导航项设置不同的图标颜色 */
-.nav-item:nth-child(1) .nav-link i {
-    color: var(--nav-icon-1);
-}
-.nav-item:nth-child(2) .nav-link i {
-    color: var(--nav-icon-2);
-}
-.nav-item:nth-child(3) .nav-link i {
-    color: var(--nav-icon-3);
-}
-.nav-item:nth-child(4) .nav-link i {
-    color: var(--nav-icon-4);
-}
-.nav-item:nth-child(5) .nav-link i {
-    color: var(--nav-icon-5);
-}
-.nav-item:nth-child(6) .nav-link i {
-    color: var(--nav-icon-6);
-}
+/* 确保所有导航项显示 */
+.nav-item:nth-child(1) .nav-link::before { content: "首页"; }
+.nav-item:nth-child(2) .nav-link::before { content: "八字排盘"; }
+.nav-item:nth-child(3) .nav-link::before { content: "在线批命"; }
+.nav-item:nth-child(4) .nav-link::before { content: "婚姻配对"; }
+.nav-item:nth-child(5) .nav-link::before { content: "流年运势"; }
+.nav-item:nth-child(6) .nav-link::before { content: "关于我们"; }
 
 .nav-link i {
     margin-right: 8px;
@@ -974,6 +956,23 @@ button i {
 }
 
 /* 响应式设计 */
+@media (max-width: 992px) {
+    .main-header {
+        padding: 8px 0;
+    }
+    
+    .logo-text h1 {
+        font-size: 1.5rem;
+    }
+    
+    .nav-item {
+        margin-left: 15px;
+    }
+    
+    .nav-link {
+        font-size: 0.9rem;
+        padding: 10px 0;
+    }
 @media (max-width: 1200px) {
     .nav-link {
         padding: 25px 15px;
@@ -1109,16 +1108,17 @@ button i {
 
 @media (max-width: 768px) {
     .logo-text h1 {
-        font-size: 1.8rem;
+        font-size: 1.3rem;
     }
-    
-    .slogan {
-        font-size: 0.75rem;
+    .logo-text .slogan {
+        font-size: 0.7rem;
     }
     
     .nav-link {
-        padding: 12px 10px;
-        font-size: 0.85rem;
+        font-size: 0.8rem;
+    }
+    .slogan {
+        font-size: 0.75rem;
     }
     
     .nav-link i {
