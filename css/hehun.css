@@ -53,54 +53,49 @@
 /* ==================== 头部样式 - 从第一个CSS覆盖 ==================== */
 .main-header {
     position: fixed;
-    width: 100%;
     top: 0;
+    left: 0;
+    width: 100%;
+    height: 80px; /* 固定高度 */
     z-index: 1000;
-    padding: 15px 0;
-    border-bottom: 1px solid var(--light-gray);
-    transition: var(--transition);
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     background-color: var(--white);
-    /* 使用伪元素实现透明背景图 */
-    &::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 200px;
-        height: 100%;
-        background: url('../images/slogo.jpg') left center/contain no-repeat;
-        opacity: 0.3;
-        z-index: -1;
-    }
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
 }
 
+/* 滚动时缩小高度 */
 .main-header.scrolled {
-    padding: 10px 0;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    height: 60px;
 }
-
-.container {
-    width: 90%;
+/* ========== 容器样式 ========== */
+.main-header .container {
+    width: 100%;
     max-width: 1200px;
     margin: 0 auto;
-    padding: 0 15px;
+    padding: 0 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    height: 100%; /* 继承header高度 */
 }
 
-/* ==================== Logo设计 - 从第一个CSS覆盖 ==================== */
+/* ========== Logo容器 ========== */
 .logo-container {
+    height: 100%;
     display: flex;
     align-items: center;
+    min-width: 180px; /* 防止被压缩 */
 }
 
 .logo-link {
     display: flex;
     align-items: center;
+    height: 100%;
     text-decoration: none;
 }
+
 
 .logo-text h1 {
     font-size: 1.8rem;
@@ -120,34 +115,39 @@
 
 /* ==================== 导航条设计 - 从第一个CSS覆盖 ==================== */
 .main-nav {
+    height: 100%;
     margin-left: auto;
 }
 
 .nav-list {
     display: flex;
-    list-style: none;
-    margin: 0;
-    padding: 0;
+    height: 100%;
+    align-items: center;
 }
 
 .nav-item {
-    margin-left: 30px;
     position: relative;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    margin-left: 20px; /* 调整间距 */
 }
 
 .nav-link {
-    color: var(--black);
-    font-size: 0.9rem;
+    color: #333; /* 直接指定颜色避免变量问题 */
+    font-size: 14px;
     font-weight: 500;
     text-transform: uppercase;
-    letter-spacing: 1px;
-    padding: 10px 0;
-    position: relative;
-    text-decoration: none;
-    transition: var(--transition);
+    letter-spacing: 0.5px;
+    padding: 0 12px; /* 精确控制左右间距 */
+    height: 100%;
     display: flex;
     align-items: center;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    white-space: nowrap; /* 防止文字换行 */
 }
+
 
 /* 为每个导航项设置不同的图标颜色 */
 .nav-item:nth-child(1) .nav-link i {
@@ -183,27 +183,44 @@
     transform: scale(1.2) rotate(15deg);
 }
 
+/* 悬停和下划线效果 */
 .nav-link::after {
     content: '';
     position: absolute;
     bottom: 0;
-    left: 0;
-    width: 0;
+    left: 12px; /* 与padding-left一致 */
+    width: calc(100% - 24px); /* 减去左右padding */
     height: 2px;
-    background-color: var(--primary-color);
-    transition: var(--transition);
+    background-color: #ED1C24;
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
 }
 
-.nav-link:hover::after {
-    width: 100%;
-}
-
-.nav-link.active {
-    color: var(--primary-color);
-}
-
+.nav-link:hover::after,
 .nav-link.active::after {
-    width: 100%;
+    transform: scaleX(1);
+}
+/* ========== 响应式调整 ========== */
+@media (max-width: 992px) {
+    .nav-item {
+        margin-left: 15px;
+    }
+    .nav-link {
+        padding: 0 10px;
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 768px) {
+    .main-header {
+        height: 70px;
+    }
+    .main-header.scrolled {
+        height: 50px;
+    }
+    body {
+        padding-top: 70px;
+    }
 }
 
 /* 下拉菜单设计 */
