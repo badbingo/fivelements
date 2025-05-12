@@ -633,6 +633,7 @@ input:focus, select:focus {
     margin-top: var(--spacing-xs);
 }
 
+/* 修复时间选择器样式 - 确保选中状态明显 */
 .time-period-option {
     padding: var(--spacing-sm);
     text-align: center;
@@ -641,7 +642,8 @@ input:focus, select:focus {
     cursor: pointer;
     transition: var(--transition);
     font-size: 0.9rem;
-    background-color: rgba(255, 255, 255, 0.5);
+    background-color: rgba(255, 255, 255, 0.7); /* 半透明白色背景 */
+    color: var(--text-color); /* 确保文字颜色为深色 */
 }
 
 .time-period-option:hover {
@@ -650,14 +652,25 @@ input:focus, select:focus {
     box-shadow: 0 2px 6px rgba(255, 51, 102, 0.1);
 }
 
+/* 增强选中状态样式 */
 .time-period-option.selected {
-    background-color: var(--accent-color);
-    color: white;
+    background-color: var(--accent-color) !important; /* 使用重要声明确保覆盖 */
+    color: white !important; /* 白色文字 */
     border-color: var(--accent-color);
+    font-weight: bold;
     box-shadow: 0 2px 8px rgba(255, 51, 102, 0.3);
-    font-weight: bold; /* 添加加粗效果 */
+    position: relative;
+    z-index: 1;
 }
-
+/* 添加选中状态的装饰元素 */
+.time-period-option.selected::after {
+    content: "✓";
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.8em;
+}
 .disclaimer {
     margin-top: var(--spacing-md);
     padding: var(--spacing-sm);
