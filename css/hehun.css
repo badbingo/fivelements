@@ -51,6 +51,8 @@
 }
 
 /* ==================== 头部样式 - 从第一个CSS覆盖 ==================== */
+
+/* 头部样式 - ArtCenter 风格 */
 .main-header {
     position: fixed;
     width: 100%;
@@ -60,19 +62,26 @@
     border-bottom: 1px solid var(--light-gray);
     transition: var(--transition);
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    background-color: var(--white);
-    /* 使用伪元素实现透明背景图 */
-    &::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 200px;
-        height: 100%;
-        background: url('../images/slogo.jpg') left center/contain no-repeat;
-        opacity: 0.3;
-        z-index: -1;
-    }
+    background-color: var(--white); /* 基础背景色 */
+}
+
+/* 使用伪元素实现透明背景图 */
+.main-header::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 200px; /* 根据实际图片宽度调整 */
+    height: 100%;
+    background: url('../images/slogo.jpg') left center/contain no-repeat;
+    opacity: 0.3; /* 70%透明 = 30%不透明 */
+    z-index: -1;
+}
+
+/* 恢复logo容器原有样式 */
+.logo-container {
+    display: flex;
+    align-items: center;
 }
 
 .main-header.scrolled {
@@ -90,7 +99,7 @@
     align-items: center;
 }
 
-/* ==================== Logo设计 - 从第一个CSS覆盖 ==================== */
+/* Logo 样式 - ArtCenter 风格 */
 .logo-container {
     display: flex;
     align-items: center;
@@ -118,7 +127,7 @@
     text-transform: uppercase;
 }
 
-/* ==================== 导航条设计 - 从第一个CSS覆盖 ==================== */
+/* 导航条 - ArtCenter 风格 - 修改图标颜色 */
 .main-nav {
     margin-left: auto;
 }
@@ -205,8 +214,29 @@
 .nav-link.active::after {
     width: 100%;
 }
+/* 修复下拉菜单active状态 */
+.dropdown-menu .dropdown-link.active {
+    color: var(--primary-color) !important;
+    background-color: rgba(237, 28, 36, 0.1);
+    position: relative;
+}
 
-/* 下拉菜单设计 */
+.dropdown-menu .dropdown-link.active::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 3px;
+    background: var(--primary-color);
+}
+
+/* 确保鼠标悬停时active状态仍然可见 */
+.dropdown-menu .dropdown-link.active:hover {
+    color: var(--primary-color) !important;
+    background-color: rgba(237, 28, 36, 0.15);
+}
+/* 下拉菜单 - ArtCenter 风格 */
 .dropdown-menu {
     position: absolute;
     top: 100%;
@@ -248,28 +278,6 @@
     background-color: var(--light-gray);
 }
 
-/* 修复下拉菜单active状态 */
-.dropdown-menu .dropdown-link.active {
-    color: var(--primary-color) !important;
-    background-color: rgba(237, 28, 36, 0.1);
-    position: relative;
-}
-
-.dropdown-menu .dropdown-link.active::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 0;
-    height: 100%;
-    width: 3px;
-    background: var(--primary-color);
-}
-
-/* 确保鼠标悬停时active状态仍然可见 */
-.dropdown-menu .dropdown-link.active:hover {
-    color: var(--primary-color) !important;
-    background-color: rgba(237, 28, 36, 0.15);
-}
 
 /* 以下是第二个CSS的其余部分保持不变... */
 
