@@ -1,3 +1,4 @@
+import { API_KEY } from './config.js';
 document.addEventListener('DOMContentLoaded', function() {
     // 确保全局能获取当前日期（动态获取2025年）
     const currentDate = new Date(); // 自动获取当前日期（2025）
@@ -3346,7 +3347,7 @@ function determineStrengthType(pillars) {
     
     // 其他部分调用API
     const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
-    const apiKey = 'sk-b2950087a9d5427392762814114b22a9';
+    const apiKey = API_KEY; // 使用从 config.js 导入的Key
     
     // 使用 currentYear（2025）、currentMonth、currentDay
     const currentDateStr = `${currentYear}-${currentMonth.toString().padStart(2, '0')}-${currentDay.toString().padStart(2, '0')}`;
@@ -3633,7 +3634,7 @@ function determineStrengthType(pillars) {
     // 获取八字问答答案
     async function getBaziAnswer(question) {
         const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
-        const apiKey = 'sk-b2950087a9d5427392762814114b22a9';
+        const apiKey = API_KEY; // 使用从 config.js 导入的Key
     // 使用 currentYear（2025）、currentMonth、currentDay
         const currentDateStr = `${currentYear}-${currentMonth.toString().padStart(2, '0')}-${currentDay.toString().padStart(2, '0')}`;
         const cacheKey = `qa:${generateBaziHashKey(birthData)}:${question}`;
