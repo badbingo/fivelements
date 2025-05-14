@@ -6,6 +6,83 @@
     <title>八字命理 - 趋吉避凶之道 | 麦八字教学网</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* 添加按钮特效样式 */
+        .cta-button {
+            display: inline-block;
+            padding: 15px 30px;
+            margin: 20px 0;
+            background: linear-gradient(135deg, #6e8efb, #a777e3);
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 500;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            text-decoration: none;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+        
+        .cta-button:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #a777e3, #6e8efb);
+            z-index: -1;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .cta-button:hover:before {
+            opacity: 1;
+        }
+        
+        .cta-button:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        .cta-button:after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 5px;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.5);
+            opacity: 0;
+            border-radius: 100%;
+            transform: scale(1, 1) translate(-50%);
+            transform-origin: 50% 50%;
+        }
+        
+        .cta-button:focus:not(:active)::after {
+            animation: ripple 1s ease-out;
+        }
+        
+        @keyframes ripple {
+            0% {
+                transform: scale(0, 0);
+                opacity: 0.5;
+            }
+            100% {
+                transform: scale(20, 20);
+                opacity: 0;
+            }
+        }
+    </style>
     <link rel="stylesheet" href="css/style1.css">
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-2NHJXGKS0Y"></script>
@@ -36,7 +113,7 @@
             </div>
             
             <a href="seven.html" class="cta-button">开始探索命理奥秘</a>
-
+            
             <p class="hero-subtitle" style="font-size: 1.2rem; max-width: 800px; margin: 0 auto;">
                 八字命理不仅是预测工具，更是了解自我、把握机遇的智慧。<br>
                 通过分析五行生克、十神关系，我们可以预见人生起伏，<br>
@@ -89,6 +166,37 @@
                 el.addEventListener('mouseout', () => {
                     el.style.transform = 'scale(1)';
                     el.style.boxShadow = '0 0 20px rgba(255, 255, 255, 0.3)';
+                });
+            });
+            
+            // 按钮点击波纹效果
+            const buttons = document.querySelectorAll('.cta-button');
+            buttons.forEach(button => {
+                button.addEventListener('click', function(e) {
+                    // 移除之前的波纹
+                    const oldRipple = this.querySelector('.ripple');
+                    if (oldRipple) {
+                        oldRipple.remove();
+                    }
+                    
+                    // 创建新的波纹
+                    const ripple = document.createElement('span');
+                    ripple.classList.add('ripple');
+                    
+                    // 设置波纹位置
+                    const rect = this.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    
+                    ripple.style.left = `${x}px`;
+                    ripple.style.top = `${y}px`;
+                    
+                    this.appendChild(ripple);
+                    
+                    // 动画结束后移除
+                    setTimeout(() => {
+                        ripple.remove();
+                    }, 600);
                 });
             });
         });
