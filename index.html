@@ -7,101 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
-        /* 五行元素容器 */
-        .bazi-elements {
-            position: relative;
-            height: 200px;
-            width: 100%;
-            margin: 40px 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        
-        /* 五行元素基础样式 */
-        .element {
-            position: absolute;
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: white;
-            box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
-            cursor: pointer;
-            transition: all 0.5s ease;
-            z-index: 10;
-            animation-duration: 15s;
-            animation-iteration-count: infinite;
-            animation-timing-function: ease-in-out;
-        }
-        
-        /* 五行元素颜色 */
-        .element:nth-child(1) { /* 木 */
-            background: rgba(0, 128, 0, 0.7);
-            animation-name: moveWood;
-        }
-        
-        .element:nth-child(2) { /* 火 */
-            background: rgba(255, 69, 0, 0.7);
-            animation-name: moveFire;
-        }
-        
-        .element:nth-child(3) { /* 土 */
-            background: rgba(139, 69, 19, 0.7);
-            animation-name: moveEarth;
-        }
-        
-        .element:nth-child(4) { /* 金 */
-            background: rgba(255, 215, 0, 0.7);
-            animation-name: moveMetal;
-        }
-        
-        .element:nth-child(5) { /* 水 */
-            background: rgba(0, 191, 255, 0.7);
-            animation-name: moveWater;
-        }
-        
-        /* 五行元素动画 */
-        @keyframes moveWood {
-            0%, 100% { transform: translate(-50%, -50%) rotate(0deg); }
-            25% { transform: translate(-60%, -60%) rotate(5deg); }
-            50% { transform: translate(-40%, -40%) rotate(-5deg); }
-            75% { transform: translate(-55%, -55%) rotate(3deg); }
-        }
-        
-        @keyframes moveFire {
-            0%, 100% { transform: translate(-50%, -50%) rotate(0deg); }
-            25% { transform: translate(-30%, -65%) rotate(-7deg); }
-            50% { transform: translate(-70%, -35%) rotate(4deg); }
-            75% { transform: translate(-45%, -45%) rotate(-3deg); }
-        }
-        
-        @keyframes moveEarth {
-            0%, 100% { transform: translate(-50%, -50%) rotate(0deg); }
-            25% { transform: translate(-65%, -35%) rotate(6deg); }
-            50% { transform: translate(-35%, -60%) rotate(-8deg); }
-            75% { transform: translate(-55%, -45%) rotate(2deg); }
-        }
-        
-        @keyframes moveMetal {
-            0%, 100% { transform: translate(-50%, -50%) rotate(0deg); }
-            25% { transform: translate(-40%, -75%) rotate(-10deg); }
-            50% { transform: translate(-60%, -35%) rotate(5deg); }
-            75% { transform: translate(-35%, -45%) rotate(-2deg); }
-        }
-        
-        @keyframes moveWater {
-            0%, 100% { transform: translate(-50%, -50%) rotate(0deg); }
-            25% { transform: translate(-70%, -45%) rotate(8deg); }
-            50% { transform: translate(-30%, -30%) rotate(-12deg); }
-            75% { transform: translate(-65%, -50%) rotate(4deg); }
-        }
-        
-        /* 按钮样式 */
+        /* 添加按钮特效样式 */
         .cta-button {
             display: inline-block;
             padding: 15px 30px;
@@ -121,17 +27,77 @@
             z-index: 1;
         }
         
+        .cta-button:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #a777e3, #6e8efb);
+            z-index: -1;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
         .cta-button:hover {
             transform: translateY(-3px);
             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
-            background: linear-gradient(135deg, #a777e3, #6e8efb);
+        }
+        
+        .cta-button:hover:before {
+            opacity: 1;
+        }
+        
+        .cta-button:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        .cta-button:after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 5px;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.5);
+            opacity: 0;
+            border-radius: 100%;
+            transform: scale(1, 1) translate(-50%);
+            transform-origin: 50% 50%;
+        }
+        
+        .cta-button:focus:not(:active)::after {
+            animation: ripple 1s ease-out;
+        }
+        
+        @keyframes ripple {
+            0% {
+                transform: scale(0, 0);
+                opacity: 0.5;
+            }
+            100% {
+                transform: scale(20, 20);
+                opacity: 0;
+            }
         }
     </style>
+    <link rel="stylesheet" href="css/style1.css">
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-2NHJXGKS0Y"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-2NHJXGKS0Y');
+    </script>
 </head>
 <body>
     <!-- 星空背景 -->
     <div class="stars" id="stars"></div>
     
+
     <!-- 开场英雄区域 -->
     <section class="hero-section">
         <div class="hero-content">
@@ -139,11 +105,11 @@
             <p class="hero-subtitle">了解自己的命运轨迹，掌握改变人生的钥匙</p>
             
             <div class="bazi-elements">
-                <div class="element" style="top: 50%; left: 50%;">木</div>
-                <div class="element" style="top: 50%; left: 50%;">火</div>
-                <div class="element" style="top: 50%; left: 50%;">土</div>
-                <div class="element" style="top: 50%; left: 50%;">金</div>
-                <div class="element" style="top: 50%; left: 50%;">水</div>
+                <div class="element">木</div>
+                <div class="element">火</div>
+                <div class="element">土</div>
+                <div class="element">金</div>
+                <div class="element">水</div>
             </div>
             
             <a href="seven.html" class="cta-button">开始探索命理奥秘</a>
@@ -158,29 +124,15 @@
                 知命而不认命，顺势而为，逆天改运
             </p>
         </div>
+        
+        <div class="scroll-down" onclick="document.getElementById('main-content').scrollIntoView({ behavior: 'smooth' })">
+            <i class="fas fa-chevron-down"></i>
+        </div>
     </section>
     
     <script>
+        // 创建星空背景
         document.addEventListener('DOMContentLoaded', function() {
-            // 五行元素鼠标悬停效果
-            const elements = document.querySelectorAll('.element');
-            elements.forEach(el => {
-                el.addEventListener('mouseover', () => {
-                    el.style.transform = 'scale(1.3) translate(-50%, -50%)';
-                    el.style.boxShadow = '0 0 40px rgba(255, 255, 255, 0.8)';
-                    el.style.zIndex = '20';
-                    el.style.animationPlayState = 'paused';
-                });
-                
-                el.addEventListener('mouseout', () => {
-                    el.style.transform = 'scale(1) translate(-50%, -50%)';
-                    el.style.boxShadow = '0 0 20px rgba(255, 255, 255, 0.3)';
-                    el.style.zIndex = '10';
-                    el.style.animationPlayState = 'running';
-                });
-            });
-            
-            // 星空背景
             const starsContainer = document.getElementById('stars');
             const starCount = 200;
             
@@ -188,15 +140,65 @@
                 const star = document.createElement('div');
                 star.classList.add('star');
                 
+                // 随机大小 (1-3px)
                 const size = Math.random() * 2 + 1;
                 star.style.width = `${size}px`;
                 star.style.height = `${size}px`;
+                
+                // 随机位置
                 star.style.left = `${Math.random() * 100}%`;
                 star.style.top = `${Math.random() * 100}%`;
+                
+                // 随机闪烁时间 (2-5秒)
                 star.style.setProperty('--duration', `${Math.random() * 3 + 2}s`);
                 
                 starsContainer.appendChild(star);
             }
+            
+            // 五行元素鼠标悬停效果
+            const elements = document.querySelectorAll('.element');
+            elements.forEach(el => {
+                el.addEventListener('mouseover', () => {
+                    el.style.transform = 'scale(1.2)';
+                    el.style.boxShadow = '0 0 30px rgba(255, 255, 255, 0.6)';
+                });
+                
+                el.addEventListener('mouseout', () => {
+                    el.style.transform = 'scale(1)';
+                    el.style.boxShadow = '0 0 20px rgba(255, 255, 255, 0.3)';
+                });
+            });
+            
+            // 按钮点击波纹效果
+            const buttons = document.querySelectorAll('.cta-button');
+            buttons.forEach(button => {
+                button.addEventListener('click', function(e) {
+                    // 移除之前的波纹
+                    const oldRipple = this.querySelector('.ripple');
+                    if (oldRipple) {
+                        oldRipple.remove();
+                    }
+                    
+                    // 创建新的波纹
+                    const ripple = document.createElement('span');
+                    ripple.classList.add('ripple');
+                    
+                    // 设置波纹位置
+                    const rect = this.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    
+                    ripple.style.left = `${x}px`;
+                    ripple.style.top = `${y}px`;
+                    
+                    this.appendChild(ripple);
+                    
+                    // 动画结束后移除
+                    setTimeout(() => {
+                        ripple.remove();
+                    }, 600);
+                });
+            });
         });
     </script>
 </body>
