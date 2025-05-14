@@ -107,7 +107,7 @@
             user-select: none;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
             box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
-            position: relative; /* 改为相对定位 */
+            position: relative;
         }
         
         .element:nth-child(1) { background-color: #4CAF50; } /* 木 - 绿色 */
@@ -200,15 +200,7 @@
             // 五行元素鼠标悬停效果
             const elements = document.querySelectorAll('.element');
             
-            // 存储元素的原始位置
-            const originalPositions = [];
-            elements.forEach((el, index) => {
-                const rect = el.getBoundingClientRect();
-                originalPositions[index] = {
-                    left: rect.left,
-                    top: rect.top
-                };
-                
+            elements.forEach((el) => {
                 el.addEventListener('mouseover', () => {
                     el.style.transform = 'scale(1.2)';
                     el.style.boxShadow = '0 0 30px rgba(255, 255, 255, 0.6)';
@@ -245,6 +237,11 @@
                     // 禁用过渡效果
                     currentElement.style.transition = 'none';
                     
+                    // 设置为绝对定位
+                    currentElement.style.position = 'absolute';
+                    currentElement.style.left = `${rect.left}px`;
+                    currentElement.style.top = `${rect.top}px`;
+                    
                     e.preventDefault();
                 }
             });
@@ -252,12 +249,11 @@
             // 鼠标移动事件
             document.addEventListener('mousemove', function(e) {
                 if (isDragging && currentElement) {
-                    // 计算新位置
+                    // 计算新位置 - 确保元素中心跟随鼠标
                     const x = e.clientX - offsetX;
                     const y = e.clientY - offsetY;
                     
                     // 应用新位置
-                    currentElement.style.position = 'absolute';
                     currentElement.style.left = `${x}px`;
                     currentElement.style.top = `${y}px`;
                 }
@@ -272,9 +268,6 @@
                     currentElement.style.transition = 'transform 0.5s ease, box-shadow 0.3s ease';
                     
                     // 返回原始位置
-                    const index = Array.from(elements).indexOf(currentElement);
-                    
-                    // 恢复原始位置
                     currentElement.style.position = '';
                     currentElement.style.left = '';
                     currentElement.style.top = '';
