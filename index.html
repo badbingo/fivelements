@@ -90,7 +90,7 @@
             gap: 20px;
             margin: 30px 0;
             position: relative;
-            height: 80px; /* 确保容器有固定高度 */
+            height: 80px;
         }
         
         .element {
@@ -125,21 +125,11 @@
             z-index: 100;
         }
     </style>
-    <link rel="stylesheet" href="css/style1.css">
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-2NHJXGKS0Y"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-2NHJXGKS0Y');
-    </script>
 </head>
 <body>
     <!-- 星空背景 -->
     <div class="stars" id="stars"></div>
     
-
     <!-- 开场英雄区域 -->
     <section class="hero-section">
         <div class="hero-content">
@@ -166,41 +156,34 @@
                 知命而不认命，顺势而为，逆天改运
             </p>
         </div>
-        
-        <div class="scroll-down" onclick="document.getElementById('main-content').scrollIntoView({ behavior: 'smooth' })">
-            <i class="fas fa-chevron-down"></i>
-        </div>
     </section>
     
     <script>
-        // 创建星空背景
         document.addEventListener('DOMContentLoaded', function() {
+            // 创建星空背景
             const starsContainer = document.getElementById('stars');
             const starCount = 200;
             
             for (let i = 0; i < starCount; i++) {
                 const star = document.createElement('div');
                 star.classList.add('star');
-                
-                // 随机大小 (1-3px)
                 const size = Math.random() * 2 + 1;
                 star.style.width = `${size}px`;
                 star.style.height = `${size}px`;
-                
-                // 随机位置
                 star.style.left = `${Math.random() * 100}%`;
                 star.style.top = `${Math.random() * 100}%`;
-                
-                // 随机闪烁时间 (2-5秒)
                 star.style.setProperty('--duration', `${Math.random() * 3 + 2}s`);
-                
                 starsContainer.appendChild(star);
             }
             
-            // 五行元素鼠标悬停效果
+            // 五行元素拖拽功能
             const elements = document.querySelectorAll('.element');
+            let isDragging = false;
+            let currentElement = null;
+            let startX, startY, elementX, elementY;
             
-            elements.forEach((el) => {
+            elements.forEach(el => {
+                // 鼠标悬停效果
                 el.addEventListener('mouseover', () => {
                     el.style.transform = 'scale(1.2)';
                     el.style.boxShadow = '0 0 30px rgba(255, 255, 255, 0.6)';
@@ -212,111 +195,65 @@
                         el.style.boxShadow = '0 0 20px rgba(255, 255, 255, 0.3)';
                     }
                 });
-            });
-            
-            // 拖拽功能实现
-            let isDragging = false;
-            let currentElement = null;
-            let offsetX, offsetY;
-            
-            // 鼠标按下事件
-            document.addEventListener('mousedown', function(e) {
-                if (e.target.classList.contains('element')) {
+                
+                // 鼠标按下
+                el.addEventListener('mousedown', function(e) {
                     isDragging = true;
-                    currentElement = e.target;
+                    currentElement = this;
                     currentElement.classList.add('dragging');
                     
-                    // 计算鼠标位置与元素位置的偏移量
-                    const rect = currentElement.getBoundingClientRect();
-                    offsetX = e.clientX - rect.left;
-                    offsetY = e.clientY - rect.top;
+                    // 获取元素当前位置
+                    const rect = this.getBoundingClientRect();
+                    elementX = rect.left;
+                    elementY = rect.top;
                     
-                    // 提升元素层级
-                    currentElement.style.zIndex = '100';
+                    // 记录鼠标按下时的位置
+                    startX = e.clientX;
+                    startY = e.clientY;
                     
-                    // 禁用过渡效果
-                    currentElement.style.transition = 'none';
-                    
-                    // 设置为绝对定位
-                    currentElement.style.position = 'absolute';
-                    currentElement.style.left = `${rect.left}px`;
-                    currentElement.style.top = `${rect.top}px`;
+                    // 设置为绝对定位并保持当前位置
+                    this.style.position = 'absolute';
+                    this.style.left = `${elementX}px`;
+                    this.style.top = `${elementY}px`;
+                    this.style.margin = '0';
+                    this.style.zIndex = '100';
+                    this.style.transition = 'none';
                     
                     e.preventDefault();
-                }
-            });
-            
-            // 鼠标移动事件
-            document.addEventListener('mousemove', function(e) {
-                if (isDragging && currentElement) {
-                    // 计算新位置 - 确保元素中心跟随鼠标
-                    const x = e.clientX - offsetX;
-                    const y = e.clientY - offsetY;
-                    
-                    // 应用新位置
-                    currentElement.style.left = `${x}px`;
-                    currentElement.style.top = `${y}px`;
-                }
-            });
-            
-            // 鼠标释放事件
-            document.addEventListener('mouseup', function(e) {
-                if (isDragging && currentElement) {
-                    isDragging = false;
-                    
-                    // 恢复过渡效果
-                    currentElement.style.transition = 'transform 0.5s ease, box-shadow 0.3s ease';
-                    
-                    // 返回原始位置
-                    currentElement.style.position = '';
-                    currentElement.style.left = '';
-                    currentElement.style.top = '';
-                    
-                    // 恢复原始层级
-                    setTimeout(() => {
-                        currentElement.style.zIndex = '';
-                    }, 500);
-                    
-                    // 移除拖动类
-                    setTimeout(() => {
-                        currentElement.classList.remove('dragging');
-                        currentElement.style.transform = 'scale(1)';
-                        currentElement.style.boxShadow = '0 0 20px rgba(255, 255, 255, 0.3)';
-                    }, 500);
-                    
-                    currentElement = null;
-                }
-            });
-            
-            // 按钮点击波纹效果
-            const buttons = document.querySelectorAll('.cta-button');
-            buttons.forEach(button => {
-                button.addEventListener('click', function(e) {
-                    // 移除之前的波纹
-                    const oldRipple = this.querySelector('.ripple');
-                    if (oldRipple) {
-                        oldRipple.remove();
-                    }
-                    
-                    // 创建新的波纹
-                    const ripple = document.createElement('span');
-                    ripple.classList.add('ripple');
-                    
-                    // 设置波纹位置
-                    const rect = this.getBoundingClientRect();
-                    const x = e.clientX - rect.left;
-                    const y = e.clientY - rect.top;
-                    
-                    ripple.style.left = `${x}px`;
-                    ripple.style.top = `${y}px`;
-                    
-                    this.appendChild(ripple);
-                    
-                    // 动画结束后移除
-                    setTimeout(() => {
-                        ripple.remove();
-                    }, 600);
                 });
+            });
+            
+            // 鼠标移动
+            document.addEventListener('mousemove', function(e) {
+                if (!isDragging || !currentElement) return;
+                
+                // 计算移动距离
+                const dx = e.clientX - startX;
+                const dy = e.clientY - startY;
+                
+                // 更新元素位置
+                currentElement.style.left = `${elementX + dx}px`;
+                currentElement.style.top = `${elementY + dy}px`;
+            });
+            
+            // 鼠标释放
+            document.addEventListener('mouseup', function() {
+                if (!isDragging || !currentElement) return;
+                
+                isDragging = false;
+                currentElement.classList.remove('dragging');
+                
+                // 恢复元素状态
+                currentElement.style.position = '';
+                currentElement.style.left = '';
+                currentElement.style.top = '';
+                currentElement.style.margin = '';
+                currentElement.style.zIndex = '';
+                currentElement.style.transition = 'transform 0.3s ease, box-shadow 0.3s ease';
+                currentElement.style.transform = 'scale(1)';
+                currentElement.style.boxShadow = '0 0 20px rgba(255, 255, 255, 0.3)';
+                
+                currentElement = null;
             });
         });
     </script>
