@@ -199,14 +199,15 @@
             
             // 五行元素鼠标悬停效果
             const elements = document.querySelectorAll('.element');
+            const elementsContainer = document.querySelector('.bazi-elements');
             
             // 存储元素的原始位置
             const originalPositions = [];
             elements.forEach((el, index) => {
                 const rect = el.getBoundingClientRect();
                 originalPositions[index] = {
-                    left: rect.left,
-                    top: rect.top
+                    left: rect.left - elementsContainer.getBoundingClientRect().left,
+                    top: rect.top - elementsContainer.getBoundingClientRect().top
                 };
                 
                 el.addEventListener('mouseover', () => {
@@ -273,14 +274,16 @@
                     isDragging = false;
                     
                     // 恢复过渡效果
-                    currentElement.style.transition = 'transform 0.5s ease, box-shadow 0.3s ease';
+                    currentElement.style.transition = 'all 0.5s ease';
                     
                     // 返回原始位置
                     const index = Array.from(elements).indexOf(currentElement);
-                    const originalPos = originalPositions[index];
+                    const containerRect = elementsContainer.getBoundingClientRect();
+                    const originalLeft = originalPositions[index].left + containerRect.left;
+                    const originalTop = originalPositions[index].top + containerRect.top;
                     
-                    currentElement.style.left = `${originalPos.left}px`;
-                    currentElement.style.top = `${originalPos.top}px`;
+                    currentElement.style.left = `${originalLeft}px`;
+                    currentElement.style.top = `${originalTop}px`;
                     
                     // 动画结束后恢复相对定位
                     setTimeout(() => {
