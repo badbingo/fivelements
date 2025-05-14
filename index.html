@@ -107,7 +107,7 @@
             user-select: none;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
             box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
-            position: relative; /* 改为相对定位 */
+            position: relative;
         }
         
         .element:nth-child(1) { background-color: #4CAF50; } /* 木 - 绿色 */
@@ -273,23 +273,21 @@
                     isDragging = false;
                     
                     // 恢复过渡效果
-                    currentElement.style.transition = 'transform 0.5s ease, box-shadow 0.3s ease, left 0.5s ease, top 0.5s ease';
+                    currentElement.style.transition = 'transform 0.5s ease, box-shadow 0.3s ease';
                     
                     // 返回原始位置
                     const index = Array.from(elements).indexOf(currentElement);
                     const originalPos = originalPositions[index];
                     
-                    currentElement.style.left = '';
-                    currentElement.style.top = '';
-                    currentElement.style.position = '';
+                    currentElement.style.left = `${originalPos.left}px`;
+                    currentElement.style.top = `${originalPos.top}px`;
                     
-                    // 恢复原始层级
+                    // 动画结束后恢复相对定位
                     setTimeout(() => {
+                        currentElement.style.position = '';
+                        currentElement.style.left = '';
+                        currentElement.style.top = '';
                         currentElement.style.zIndex = '';
-                    }, 500);
-                    
-                    // 移除拖动类
-                    setTimeout(() => {
                         currentElement.classList.remove('dragging');
                         currentElement.style.transform = 'scale(1)';
                         currentElement.style.boxShadow = '0 0 20px rgba(255, 255, 255, 0.3)';
