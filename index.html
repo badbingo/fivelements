@@ -245,11 +245,6 @@
                     // 禁用过渡效果
                     currentElement.style.transition = 'none';
                     
-                    // 设置为绝对定位
-                    currentElement.style.position = 'absolute';
-                    currentElement.style.left = `${rect.left}px`;
-                    currentElement.style.top = `${rect.top}px`;
-                    
                     e.preventDefault();
                 }
             });
@@ -262,6 +257,7 @@
                     const y = e.clientY - offsetY;
                     
                     // 应用新位置
+                    currentElement.style.position = 'absolute';
                     currentElement.style.left = `${x}px`;
                     currentElement.style.top = `${y}px`;
                 }
@@ -273,15 +269,15 @@
                     isDragging = false;
                     
                     // 恢复过渡效果
-                    currentElement.style.transition = 'transform 0.5s ease, box-shadow 0.3s ease, left 0.5s ease, top 0.5s ease';
+                    currentElement.style.transition = 'transform 0.5s ease, box-shadow 0.3s ease';
                     
                     // 返回原始位置
                     const index = Array.from(elements).indexOf(currentElement);
-                    const originalPos = originalPositions[index];
                     
+                    // 恢复原始位置
+                    currentElement.style.position = '';
                     currentElement.style.left = '';
                     currentElement.style.top = '';
-                    currentElement.style.position = '';
                     
                     // 恢复原始层级
                     setTimeout(() => {
