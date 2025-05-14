@@ -103,11 +103,11 @@
             font-size: 24px;
             font-weight: bold;
             color: white;
-            cursor: grab;
+            cursor: pointer;
             user-select: none;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            transition: transform 0.5s ease, box-shadow 0.3s ease;
             box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
-            position: relative; /* 改为相对定位 */
+            position: relative;
         }
         
         .element:nth-child(1) { background-color: #4CAF50; } /* 木 - 绿色 */
@@ -116,13 +116,14 @@
         .element:nth-child(4) { background-color: #607D8B; } /* 金 - 灰色 */
         .element:nth-child(5) { background-color: #2196F3; } /* 水 - 蓝色 */
         
-        .element:active {
-            cursor: grabbing;
-        }
-        
-        .element.dragging {
-            transition: none;
-            z-index: 100;
+        /* 悬停动画 */
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0) scale(1);
+            }
+            50% {
+                transform: translateY(-15px) scale(1.1);
+            }
         }
     </style>
     <link rel="stylesheet" href="css/style1.css">
@@ -200,103 +201,28 @@
             // 五行元素鼠标悬停效果
             const elements = document.querySelectorAll('.element');
             
-            // 存储元素的原始位置
-            const originalPositions = [];
             elements.forEach((el, index) => {
-                const rect = el.getBoundingClientRect();
-                originalPositions[index] = {
-                    left: rect.left,
-                    top: rect.top
-                };
-                
-                el.addEventListener('mouseover', () => {
-                    el.style.transform = 'scale(1.2)';
+                // 鼠标悬停时添加浮动动画
+                el.addEventListener('mouseenter', () => {
+                    // 随机方向移动
+                    const directionX = Math.random() * 20 - 10; // -10到10之间的随机数
+                    const directionY = Math.random() * 20 - 10;
+                    
+                    el.style.transform = `translate(${directionX}px, ${directionY}px) scale(1.2)`;
                     el.style.boxShadow = '0 0 30px rgba(255, 255, 255, 0.6)';
+                    
+                    // 0.5秒后恢复原位
+                    setTimeout(() => {
+                        el.style.transform = 'translate(0, 0) scale(1)';
+                        el.style.boxShadow = '0 0 20px rgba(255, 255, 255, 0.3)';
+                    }, 500);
                 });
                 
-                el.addEventListener('mouseout', () => {
-                    if (!el.classList.contains('dragging')) {
-                        el.style.transform = 'scale(1)';
-                        el.style.boxShadow = '0 0 20px rgba(255, 255, 255, 0.3)';
-                    }
+                // 鼠标移出时恢复原样
+                el.addEventListener('mouseleave', () => {
+                    el.style.transform = 'translate(0, 0) scale(1)';
+                    el.style.boxShadow = '0 0 20px rgba(255, 255, 255, 0.3)';
                 });
-            });
-            
-            // 拖拽功能实现
-            let isDragging = false;
-            let currentElement = null;
-            let offsetX, offsetY;
-            
-            // 鼠标按下事件
-            document.addEventListener('mousedown', function(e) {
-                if (e.target.classList.contains('element')) {
-                    isDragging = true;
-                    currentElement = e.target;
-                    currentElement.classList.add('dragging');
-                    
-                    // 计算鼠标位置与元素位置的偏移量
-                    const rect = currentElement.getBoundingClientRect();
-                    offsetX = e.clientX - rect.left;
-                    offsetY = e.clientY - rect.top;
-                    
-                    // 提升元素层级
-                    currentElement.style.zIndex = '100';
-                    
-                    // 禁用过渡效果
-                    currentElement.style.transition = 'none';
-                    
-                    // 设置为绝对定位
-                    currentElement.style.position = 'absolute';
-                    currentElement.style.left = `${rect.left}px`;
-                    currentElement.style.top = `${rect.top}px`;
-                    
-                    e.preventDefault();
-                }
-            });
-            
-            // 鼠标移动事件
-            document.addEventListener('mousemove', function(e) {
-                if (isDragging && currentElement) {
-                    // 计算新位置
-                    const x = e.clientX - offsetX;
-                    const y = e.clientY - offsetY;
-                    
-                    // 应用新位置
-                    currentElement.style.left = `${x}px`;
-                    currentElement.style.top = `${y}px`;
-                }
-            });
-            
-            // 鼠标释放事件
-            document.addEventListener('mouseup', function(e) {
-                if (isDragging && currentElement) {
-                    isDragging = false;
-                    
-                    // 恢复过渡效果
-                    currentElement.style.transition = 'transform 0.5s ease, box-shadow 0.3s ease, left 0.5s ease, top 0.5s ease';
-                    
-                    // 返回原始位置
-                    const index = Array.from(elements).indexOf(currentElement);
-                    const originalPos = originalPositions[index];
-                    
-                    currentElement.style.left = '';
-                    currentElement.style.top = '';
-                    currentElement.style.position = '';
-                    
-                    // 恢复原始层级
-                    setTimeout(() => {
-                        currentElement.style.zIndex = '';
-                    }, 500);
-                    
-                    // 移除拖动类
-                    setTimeout(() => {
-                        currentElement.classList.remove('dragging');
-                        currentElement.style.transform = 'scale(1)';
-                        currentElement.style.boxShadow = '0 0 20px rgba(255, 255, 255, 0.3)';
-                    }, 500);
-                    
-                    currentElement = null;
-                }
             });
             
             // 按钮点击波纹效果
