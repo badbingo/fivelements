@@ -89,6 +89,7 @@
             justify-content: center;
             gap: 20px;
             margin: 30px 0;
+            position: relative;
         }
         
         .element {
@@ -103,9 +104,9 @@
             color: white;
             cursor: grab;
             user-select: none;
-            position: relative;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            transition: transform 0.3s ease, box-shadow 0.3s ease, left 0.5s ease, top 0.5s ease;
             box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+            position: relative;
         }
         
         .element:nth-child(1) { background-color: #4CAF50; } /* 木 - 绿色 */
@@ -145,11 +146,11 @@
             <p class="hero-subtitle">了解自己的命运轨迹，掌握改变人生的钥匙</p>
             
             <div class="bazi-elements">
-                <div class="element" data-original-x="0" data-original-y="0">木</div>
-                <div class="element" data-original-x="0" data-original-y="0">火</div>
-                <div class="element" data-original-x="0" data-original-y="0">土</div>
-                <div class="element" data-original-x="0" data-original-y="0">金</div>
-                <div class="element" data-original-x="0" data-original-y="0">水</div>
+                <div class="element">木</div>
+                <div class="element">火</div>
+                <div class="element">土</div>
+                <div class="element">金</div>
+                <div class="element">水</div>
             </div>
             
             <a href="seven.html" class="cta-button">开始探索命理奥秘</a>
@@ -199,10 +200,13 @@
             const elements = document.querySelectorAll('.element');
             
             // 存储元素的原始位置
-            elements.forEach(el => {
+            const originalPositions = [];
+            elements.forEach((el, index) => {
                 const rect = el.getBoundingClientRect();
-                el.dataset.originalX = rect.left;
-                el.dataset.originalY = rect.top;
+                originalPositions[index] = {
+                    left: rect.left,
+                    top: rect.top
+                };
                 
                 el.addEventListener('mouseover', () => {
                     el.style.transform = 'scale(1.2)';
@@ -240,6 +244,11 @@
                     // 禁用过渡效果
                     currentElement.style.transition = 'none';
                     
+                    // 设置为绝对定位
+                    currentElement.style.position = 'absolute';
+                    currentElement.style.left = `${rect.left}px`;
+                    currentElement.style.top = `${rect.top}px`;
+                    
                     e.preventDefault();
                 }
             });
@@ -252,7 +261,6 @@
                     const y = e.clientY - offsetY;
                     
                     // 应用新位置
-                    currentElement.style.position = 'absolute';
                     currentElement.style.left = `${x}px`;
                     currentElement.style.top = `${y}px`;
                 }
@@ -264,9 +272,12 @@
                     isDragging = false;
                     
                     // 恢复过渡效果
-                    currentElement.style.transition = 'transform 0.5s ease, box-shadow 0.3s ease';
+                    currentElement.style.transition = 'transform 0.5s ease, box-shadow 0.3s ease, left 0.5s ease, top 0.5s ease';
                     
                     // 返回原始位置
+                    const index = Array.from(elements).indexOf(currentElement);
+                    const originalPos = originalPositions[index];
+                    
                     currentElement.style.left = '';
                     currentElement.style.top = '';
                     currentElement.style.position = '';
