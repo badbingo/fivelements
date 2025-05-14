@@ -90,7 +90,7 @@
             gap: 20px;
             margin: 30px 0;
             position: relative;
-            height: 80px; /* 确保容器有固定高度 */
+            height: 80px;
         }
         
         .element {
@@ -105,9 +105,10 @@
             color: white;
             cursor: pointer;
             user-select: none;
-            transition: transform 0.5s ease, box-shadow 0.3s ease;
+            transition: all 0.5s cubic-bezier(0.25, 0.1, 0.25, 1);
             box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
             position: relative;
+            transform: translateY(0);
         }
         
         .element:nth-child(1) { background-color: #4CAF50; } /* 木 - 绿色 */
@@ -116,7 +117,15 @@
         .element:nth-child(4) { background-color: #607D8B; } /* 金 - 灰色 */
         .element:nth-child(5) { background-color: #2196F3; } /* 水 - 蓝色 */
         
-        /* 悬停动画 */
+        .element:hover {
+            animation: float 1s ease-in-out;
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.6);
+        }
+        
+        .element:active {
+            transform: scale(0.95);
+        }
+        
         @keyframes float {
             0%, 100% {
                 transform: translateY(0) scale(1);
@@ -126,7 +135,6 @@
             }
         }
     </style>
-    <link rel="stylesheet" href="css/style1.css">
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-2NHJXGKS0Y"></script>
     <script>
@@ -198,30 +206,29 @@
                 starsContainer.appendChild(star);
             }
             
-            // 五行元素鼠标悬停效果
+            // 五行元素点击效果
             const elements = document.querySelectorAll('.element');
             
-            elements.forEach((el, index) => {
-                // 鼠标悬停时添加浮动动画
-                el.addEventListener('mouseenter', () => {
-                    // 随机方向移动
-                    const directionX = Math.random() * 20 - 10; // -10到10之间的随机数
-                    const directionY = Math.random() * 20 - 10;
-                    
-                    el.style.transform = `translate(${directionX}px, ${directionY}px) scale(1.2)`;
-                    el.style.boxShadow = '0 0 30px rgba(255, 255, 255, 0.6)';
-                    
-                    // 0.5秒后恢复原位
+            elements.forEach(el => {
+                // 点击效果
+                el.addEventListener('click', function() {
+                    this.style.transform = 'scale(0.9)';
                     setTimeout(() => {
-                        el.style.transform = 'translate(0, 0) scale(1)';
-                        el.style.boxShadow = '0 0 20px rgba(255, 255, 255, 0.3)';
-                    }, 500);
+                        this.style.transform = 'scale(1)';
+                    }, 200);
                 });
                 
-                // 鼠标移出时恢复原样
-                el.addEventListener('mouseleave', () => {
-                    el.style.transform = 'translate(0, 0) scale(1)';
-                    el.style.boxShadow = '0 0 20px rgba(255, 255, 255, 0.3)';
+                // 添加浮动效果
+                el.addEventListener('mouseenter', function() {
+                    this.style.animation = 'float 1s ease-in-out';
+                });
+                
+                el.addEventListener('mouseleave', function() {
+                    this.style.animation = 'none';
+                    setTimeout(() => {
+                        this.style.animation = '';
+                        this.style.transform = 'translateY(0) scale(1)';
+                    }, 10);
                 });
             });
             
