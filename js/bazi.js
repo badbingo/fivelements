@@ -1,6 +1,6 @@
 
 document.addEventListener('DOMContentLoaded', function() {
-    // 确保全局能获取当前日期（动态获取2025年v）
+    // 确保全局能获取当前日期（动态获取2025年c）
     const currentDate = new Date(); // 自动获取当前日期（2025）
     const currentYear = currentDate.getFullYear(); // 2025
     const currentMonth = currentDate.getMonth() + 1; // 1-12
@@ -3746,7 +3746,7 @@ function getFortuneDescription(gan, element) {
    八字：${currentPillars.year} ${currentPillars.month} ${currentPillars.day} ${currentPillars.hour}
    起运时间：${luckStartingTime.textContent || '未计算'}
    身强身弱：${strengthType.textContent || '未计算'}
-
+   日主大运：${dayMasterFortune.dayMasterFortune || '未计算'}
    请直接分析此八字的起运时间，日主大运和身强身弱，不要自行排盘或计算。
 
 用户问题：${question}`;
