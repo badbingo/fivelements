@@ -1,6 +1,6 @@
 
 document.addEventListener('DOMContentLoaded', function() {
-    // 确保全局能获取当前日期（动态获取2025年a）
+    // 确保全局能获取当前日期（动态获取2025年b）
     const currentDate = new Date(); // 自动获取当前日期（2025）
     const currentYear = currentDate.getFullYear(); // 2025
     const currentMonth = currentDate.getMonth() + 1; // 1-12
@@ -2719,6 +2719,9 @@ function hasHe(branches, branch1, branch2) {
         
         // 计算起运时间
         const luckStartingTime = calculateLuckStartingTime(lunar, birthData.gender);
+        
+        // 计算十年大运
+        const decadeFortune = calculateDecadeFortune(lunar, birthData.gender);
         
         // 判断从强从弱
         const strengthType = determineStrengthType({
