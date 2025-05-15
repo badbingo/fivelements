@@ -3345,43 +3345,37 @@ function determineStrengthType(pillars) {
         return cachedResponse;
     }
     
-    // 先计算本地结果
+    // 1. 先计算本地结果
     const localResult = calculateBaziLocally(data);
+    const solar = Solar.fromYmdHms(
+        parseInt(data.date.split('-')[0]),
+        parseInt(data.date.split('-')[1]),
+        parseInt(data.date.split('-')[2]),
+        parseInt(data.time.split(':')[0]),
+        parseInt(data.time.split(':')[1] || 0),
+        0
+    );
+    const lunar = solar.getLunar();
     
-    // 对于基础信息部分，直接返回本地计算结果
-    if (section === 'basic') {
-        baziCache.set(cacheKey, localResult);
-        return localResult;
-    }
+    // 2. 本地计算大运信息（增强版）
+    const decadeFortune = calculateDecadeFortune(lunar, data.gender);
+    const currentYearFortune = getCurrentYearFortune(decadeFortune, currentYear); // 使用全局 currentYear（2025）
     
-    // 其他部分调用API
-    const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
-    const apiKey = 'sk-b2950087a9d5427392762814114b22a9';
-    
-    // 使用 currentYear（2025）、currentMonth、currentDay
-    const currentDateStr = `${currentYear}-${currentMonth.toString().padStart(2, '0')}-${currentDay.toString().padStart(2, '0')}`;
-        
-        let prompt = `请严格按照以下规则进行专业八字排盘，确保所有计算准确无误：
-        
-1.用详细清晰的语言表达
-2.使用标准Markdown语法，可用表格方式呈现
-3.进度条用下划线模拟可视化效果
-4.箭头符号仅使用常规字符→
-5.重点突出加粗显示关键信息
-6.每个分析模块之间保留空行
-7.实现专业排版效果
-
-当前日期：${currentDateStr}
-根据以下八字信息进行分析：
+    // 3. 构建专业分析提示词
+    let prompt = `【专业八字分析指令】\n
+请严格基于以下本地计算结果进行分析（不要重新计算）：
+----------------------------------
+基础信息：
 姓名：${data.name || '未提供'}
-出生日期：${data.date}
-出生时间：${data.time} 
 性别：${data.gender === 'male' ? '男' : '女'}
+出生：${data.date} ${data.time}
 八字：${localResult.yearStem}${localResult.yearBranch} ${localResult.monthStem}${localResult.monthBranch} ${localResult.dayStem}${localResult.dayBranch} ${localResult.hourStem}${localResult.hourBranch}
+
+核心参数：
 起运时间：${localResult.luckStartingTime}
 身强身弱：${localResult.strengthType}
-请直接分析此八字的起运时间和身强身弱，不要自行排盘或计算起运时间。
-`;
+当前大运：${currentYearFortune.ganZhi} (${currentYearFortune.ageRange})
+----------------------------------\n`;
 
         // 根据不同部分设置不同的提示词
         switch(section) {
@@ -3613,95 +3607,215 @@ function determineStrengthType(pillars) {
         }
         
         try {
-            const response = await apiRequestQueue.addRequest({
-                url: apiUrl,
-                options: {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${apiKey}`
-                    },
-                    body: JSON.stringify({
-                        model: "deepseek-chat",
-                        messages: [{ role: "user", content: prompt }],
-                        temperature: 0,
-                        seed: 12345 // 固定seed值确保相同输入得到相同输出
-                    })
+        // 5. 调用API（使用批处理队列）
+        const apiResponse = await apiRequestQueue.addRequest({
+            url: 'https://api.deepseek.com/v1/chat/completions',
+            options: {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer sk-b2950087a9d5427392762814114b22a9`
                 },
-                section: section,
-                cacheKey: cacheKey
-            });
-            
-            return response;
-            
-        } catch (error) {
-            console.error(`获取${section}分析失败:`, error);
-            throw error;
-        }
-    }
+                body: JSON.stringify({
+                    model: "deepseek-chat",
+                    messages: [{ role: "user", content: prompt }],
+                    temperature: 0.3,
+                    max_tokens: 2000
+                })
+            },
+            cacheKey: cacheKey,
+            section: section
+        });
 
-    // 获取八字问答答案
-    async function getBaziAnswer(question) {
-        const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
-        const apiKey = 'sk-b2950087a9d5427392762814114b22a9';
-    // 使用 currentYear（2025）、currentMonth、currentDay
-        const currentDateStr = `${currentYear}-${currentMonth.toString().padStart(2, '0')}-${currentDay.toString().padStart(2, '0')}`;
-        const cacheKey = `qa:${generateBaziHashKey(birthData)}:${question}`;
-        
-        // 检查缓存
-        const cachedResponse = baziCache.get(cacheKey);
-        if (cachedResponse) {
-            return cachedResponse;
-        }
-        
-        const prompt = `【八字专业问答规范】请严格遵循以下规则回答：
-1. 回答必须基于传统八字命理学知识
-2. 回答应简洁明了，避免冗长
-3. 针对用户问题提供专业分析
-4. 所有分析前必须先计算出命主当前八字+大运+流年的格局强弱，再进行分析
-   当前日期：${currentDateStr} 
-   如果问题与当前命盘相关，请结合以下八字信息：
-   当前日期：${currentDateStr} 
-   姓名：${birthData.name || '未提供'}
-   出生日期：${birthData.date}
-   出生时间：${birthData.time}
-   性别：${birthData.gender === 'male' ? '男' : '女'}
-   八字：${currentPillars.year} ${currentPillars.month} ${currentPillars.day} ${currentPillars.hour}
-   起运时间：${luckStartingTime.textContent || '未计算'}
-   身强身弱：${strengthType.textContent || '未计算'}
-   请直接分析此八字的起运时间和身强身弱，不要自行排盘或计算起运时间。
-
-用户问题：${question}`;
-        
+        // 6. 处理API响应
+        let result;
         try {
-            const response = await apiRequestQueue.addRequest({
-                url: apiUrl,
-                options: {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${apiKey}`
-                    },
-                    body: JSON.stringify({
-                        model: "deepseek-chat",
-                        messages: [{
-                            role: "system",
-                            content: "你是一位资深的八字命理大师，精通子平八字、紫微斗数等传统命理学。请严格按照八字专业问答规范回答用户问题。"
-                        }, {
-                            role: "user",
-                            content: prompt
-                        }],
-                        temperature: 0
-                    })
-                },
-                cacheKey: cacheKey
-            });
-            
-            return response;
-            
-        } catch (error) {
-            console.error('获取问答答案失败:', error);
-            return '获取答案失败，请稍后重试';
+            result = JSON.parse(apiResponse).choices[0].message.content;
+        } catch (e) {
+            console.error('API响应解析失败，使用原始响应:', e);
+            result = apiResponse;
         }
+
+        // 7. 缓存结果（包含本地计算的关键数据）
+        const finalResult = {
+            ...localResult,
+            analysis: result,
+            decadeFortune,
+            currentYearFortune
+        };
+        baziCache.set(cacheKey, finalResult);
+        
+        return finalResult;
+        
+    } catch (error) {
+        console.error(`获取${section}分析失败:`, error);
+        
+        // 8. 降级处理：返回本地计算结果
+        const fallbackResult = {
+            ...localResult,
+            analysis: `专业分析获取失败，当前基础信息：
+起运时间：${localResult.luckStartingTime}
+身强身弱：${localResult.strengthType}
+2025年大运：${currentYearFortune.ganZhi}`,
+            decadeFortune
+        };
+        
+        // 缓存降级结果避免重复请求
+        baziCache.set(cacheKey, fallbackResult, 600000); // 10分钟缓存
+        return fallbackResult;
     }
+}
+
+// 辅助函数：获取当前年份的大运信息
+function getCurrentYearFortune(decadeFortune, targetYear) {
+    const birthYear = parseInt(birthData.date.split('-')[0]);
+    const age = targetYear - birthYear;
+    
+    return decadeFortune.fortunes.find(f => {
+        const [start, end] = f.ageRange.split('-').map(Number);
+        return age >= start && age <= end;
+    }) || decadeFortune.fortunes[0];
+}
+
+    // 获取八字问答答案（答疑解惑核心函数）
+async function getBaziAnswer(question) {
+    // 1. 检查是否已计算过八字
+    if (!currentPillars.year) {
+        return "请先完成八字排盘再提问";
+    }
+
+    // 2. 生成包含本地计算结果的上下文
+    const context = await generateBaziContext();
+    const cacheKey = `qa:${generateBaziHashKey(birthData)}:${md5(question)}`;
+
+    // 检查缓存
+    const cachedAnswer = baziCache.get(cacheKey);
+    if (cachedAnswer) {
+        return cachedAnswer;
+    }
+
+    // 3. 构建专业提示词
+    const prompt = `【八字专业问答指令】
+根据以下精确排盘结果回答问题，禁止自行推算：
+
+${context}
+
+用户问题：${question}
+
+回答要求：
+1. 必须基于上述排盘数据
+2. 引用具体神煞/五行依据
+3. 2025年流年要特别说明
+4. 给出3条可操作建议`;
+
+    try {
+        // 4. 调用API（使用批处理队列）
+        const response = await apiRequestQueue.addRequest({
+            url: 'https://api.deepseek.com/v1/chat/completions',
+            options: {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`
+                },
+                body: JSON.stringify({
+                    model: "deepseek-chat",
+                    messages: [
+                        {
+                            role: "system",
+                            content: "你是资深命理师，需严格根据提供的八字数据回答问题"
+                        },
+                        {
+                            role: "user", 
+                            content: prompt
+                        }
+                    ],
+                    temperature: 0.3,
+                    max_tokens: 1500
+                })
+            },
+            cacheKey: cacheKey
+        });
+
+        // 5. 处理响应
+        let answer = JSON.parse(response).choices[0].message.content;
+        
+        // 6. 后处理（添加本地计算的关键数据）
+        answer += `\n\n[基于${currentYear}年分析，起运时间：${context.match(/起运时间：(.*?)\n/)[1]}]`;
+        
+        // 7. 缓存答案（1小时）
+        baziCache.set(cacheKey, answer, 3600000);
+        
+        return answer;
+
+    } catch (error) {
+        console.error('答疑API请求失败:', error);
+        
+        // 8. 降级方案：返回本地关键数据
+        return `专业解答暂时不可用，当前基础信息：
+${context.split('\n').slice(0, 8).join('\n')}
+建议重新提问或稍后重试`;
+    }
+}
+
+// 生成排盘上下文数据
+async function generateBaziContext() {
+    // 获取本地计算结果
+    const localResult = calculateBaziLocally(birthData);
+    const lunar = Solar.fromYmdHms(
+        parseInt(birthData.date.split('-')[0]),
+        parseInt(birthData.date.split('-')[1]),
+        parseInt(birthData.date.split('-')[2]),
+        parseInt(birthData.time.split(':')[0]),
+        parseInt(birthData.time.split(':')[1] || 0),
+        0
+    ).getLunar();
+
+    // 计算关键指标
+    const decadeFortune = calculateDecadeFortune(lunar, birthData.gender);
+    const currentFortune = getCurrentYearFortune(decadeFortune, currentYear);
+    const elements = calculateNatalElements(localResult);
+
+    return `【精确排盘数据】  
+姓名：${birthData.name || '未提供'}  
+八字：${localResult.yearStem}${localResult.yearBranch} ${localResult.monthStem}${localResult.monthBranch} ${localResult.dayStem}${localResult.dayBranch} ${localResult.hourStem}${localResult.hourBranch}  
+起运时间：${localResult.luckStartingTime}  
+身强身弱：${localResult.strengthType}  
+
+当前大运（${currentYear}）：
+${currentFortune.ageRange}: ${currentFortune.ganZhi}  
+能量评分：${currentFortune.score}/100  
+
+五行力量：
+木:${elements[0]} 火:${elements[1]} 土:${elements[2]}  
+金:${elements[3]} 水:${elements[4]}  
+
+2025年流年：
+太岁${lunar.getYearInGanZhi()} 冲${getChongZhi(lunar.getYearZhi())}  
+宜：${lunar.getDayYi().join('、') || '无'}  
+忌：${lunar.getDayJi().join('、') || '无'}`;
+}
+
+// 辅助函数：获取相冲地支
+function getChongZhi(zhi) {
+    const chongMap = {
+        '子':'午', '午':'子',
+        '卯':'酉', '酉':'卯',
+        '寅':'申', '申':'寅',
+        '巳':'亥', '亥':'巳',
+        '辰':'戌', '戌':'辰',
+        '丑':'未', '未':'丑'
+    };
+    return chongMap[zhi] || '无';
+}
+
+// 辅助函数：获取当前大运
+function getCurrentYearFortune(fortune, year) {
+    const birthYear = parseInt(birthData.date.split('-')[0]);
+    const age = year - birthYear;
+    return fortune.fortunes.find(f => {
+        const [start, end] = f.ageRange.split('-').map(Number);
+        return age >= start && age < end;
+    }) || fortune.fortunes[0];
+}
 });
