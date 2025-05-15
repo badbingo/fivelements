@@ -1,6 +1,6 @@
 
 document.addEventListener('DOMContentLoaded', function() {
-    // 确保全局能获取当前日期（动态获取2025年c）
+    // 确保全局能获取当前日期（动态获取2025年a）
     const currentDate = new Date(); // 自动获取当前日期（2025）
     const currentYear = currentDate.getFullYear(); // 2025
     const currentMonth = currentDate.getMonth() + 1; // 1-12
@@ -3638,9 +3638,9 @@ function setHiddenStemsColors(element, stems) {
 `;
                 break;
             default:
-                prompt += `请分析${section}相关内容`;
+                prompt += `请分析命主的${section}情况`;
         }
-        
+
         try {
             const response = await apiRequestQueue.addRequest({
                 url: apiUrl,
@@ -3652,19 +3652,22 @@ function setHiddenStemsColors(element, stems) {
                     },
                     body: JSON.stringify({
                         model: "deepseek-chat",
-                        messages: [{ role: "user", content: prompt }],
-                        temperature: 0,
-                        seed: 12345 // 固定seed值确保相同输入得到相同输出
+                        messages: [
+                            {
+                                role: "user",
+                                content: prompt
+                            }
+                        ],
+                        temperature: 0.7
                     })
                 },
-                section: section,
-                cacheKey: cacheKey
+                cacheKey: cacheKey,
+                section: section
             });
-            
+
             return response;
-            
         } catch (error) {
-            console.error(`获取${section}分析失败:`, error);
+            console.error(`API请求失败 (${section}):`, error);
             throw error;
         }
     }
