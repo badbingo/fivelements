@@ -1359,18 +1359,20 @@ ${getWealthSuggestions(score)}
 }
     // 计算八字
     async function calculateBazi(e) {
+    if (e) {
         e.preventDefault();
-        resetAllContent();
-        
-        const name = document.getElementById('name').value;
-        const birthDate = document.getElementById('birth-date').value;
-        const birthTime = birthTimeInput.value;
-        const gender = document.getElementById('gender').value;
-        
-        if (!birthDate || !birthTime || !gender) {
-            alert('请填写完整的出生信息');
-            return;
-        }
+    }
+    resetAllContent();
+    
+    const name = document.getElementById('name').value;
+    const birthDate = document.getElementById('birth-date').value;
+    const birthTime = birthTimeInput.value;
+    const gender = document.getElementById('gender').value;
+    
+    if (!birthDate || !birthTime || !gender) {
+        alert('请填写完整的出生信息');
+        return;
+    }
         
         const dateParts = birthDate.split('-');
         const year = parseInt(dateParts[0]);
@@ -3150,49 +3152,51 @@ function determineStrengthType(pillars) {
 
     // 加载保存的个人资料
     function loadSavedProfiles() {
-        const profiles = JSON.parse(localStorage.getItem('baziProfiles') || '[]');
-        savedProfilesList.innerHTML = '';
-        if (profiles.length === 0) {
-            savedProfilesList.innerHTML = '<div style="color:var(--text-light);font-size:14px;">暂无历史记录</div>';
-            return;
-        }
-        profiles.forEach(function(profile, index) {
-            const hour = parseInt(profile.time.split(':')[0]);
-            const timeMap = {
-                23: '子时', 0: '子时',
-                1: '丑时', 3: '寅时',
-                5: '卯时', 7: '辰时',
-                9: '巳时', 11: '午时',
-                13: '未时', 15: '申时',
-                17: '酉时', 19: '戌时',
-                21: '亥时'
-           };
-            const profileElement = document.createElement('div');
-            profileElement.className = 'saved-profile';
-            profileElement.innerHTML = `
-                <span class="profile-content">
-                    ${profile.name || '匿名'} · 
-                    ${profile.date.replace(/-/g, '/')} · 
-                    ${timeMap[hour]} · 
-                    ${profile.gender === 'male' ? '男' : '女'}
-                </span>
-                <span class="remove-profile-btn" data-index="${index}">
-                    <i class="fas fa-times"></i>
-                </span>
-            `;
-            
-            profileElement.querySelector('.profile-content').addEventListener('click', function() {
-                loadProfile(profile);
-            });
-            
-            profileElement.querySelector('.remove-profile-btn').addEventListener('click', function(e) {
-                e.stopPropagation();
-                removeProfile(index);
-            });
-            
-            savedProfilesList.appendChild(profileElement);
-        });
+    const profiles = JSON.parse(localStorage.getItem('baziProfiles') || '[]');
+    savedProfilesList.innerHTML = '';
+    if (profiles.length === 0) {
+        savedProfilesList.innerHTML = '<div style="color:var(--text-light);font-size:14px;">暂无历史记录</div>';
+        return;
     }
+    profiles.forEach(function(profile, index) {
+        const hour = parseInt(profile.time.split(':')[0]);
+        const timeMap = {
+            23: '子时', 0: '子时',
+            1: '丑时', 3: '寅时',
+            5: '卯时', 7: '辰时',
+            9: '巳时', 11: '午时',
+            13: '未时', 15: '申时',
+            17: '酉时', 19: '戌时',
+            21: '亥时'
+       };
+        const profileElement = document.createElement('div');
+        profileElement.className = 'saved-profile';
+        profileElement.innerHTML = `
+            <span class="profile-content">
+                ${profile.name || '匿名'} · 
+                ${profile.date.replace(/-/g, '/')} · 
+                ${timeMap[hour]} · 
+                ${profile.gender === 'male' ? '男' : '女'}
+            </span>
+            <span class="remove-profile-btn" data-index="${index}">
+                <i class="fas fa-times"></i>
+            </span>
+        `;
+        
+        // 修改点击事件处理
+        profileElement.querySelector('.profile-content').addEventListener('click', function(e) {
+            e.preventDefault();
+            loadProfile(profile);
+        });
+        
+        profileElement.querySelector('.remove-profile-btn').addEventListener('click', function(e) {
+            e.stopPropagation();
+            removeProfile(index);
+        });
+        
+        savedProfilesList.appendChild(profileElement);
+    });
+}
 
     // 移除个人资料
     function removeProfile(index) {
@@ -3206,20 +3210,25 @@ function determineStrengthType(pillars) {
 
     // 加载个人资料
     function loadProfile(profile) {
-        document.getElementById('name').value = profile.name || '';
-        document.getElementById('birth-date').value = profile.date;
-        document.getElementById('birth-time').value = profile.time;
-        document.getElementById('gender').value = profile.gender;
-        const hour = parseInt(profile.time.split(':')[0]);
-        timePeriodOptions.forEach(function(opt) {
-            opt.classList.remove('selected');
-        });
-        const selectedOption = document.querySelector(`.time-period-option[data-hour="${hour}"]`);
-        if (selectedOption) {
-            selectedOption.classList.add('selected');
-            birthTimeInput.value = profile.time;
-        }
+    document.getElementById('name').value = profile.name || '';
+    document.getElementById('birth-date').value = profile.date;
+    document.getElementById('birth-time').value = profile.time;
+    document.getElementById('gender').value = profile.gender;
+    const hour = parseInt(profile.time.split(':')[0]);
+    timePeriodOptions.forEach(function(opt) {
+        opt.classList.remove('selected');
+    });
+    const selectedOption = document.querySelector(`.time-period-option[data-hour="${hour}"]`);
+    if (selectedOption) {
+        selectedOption.classList.add('selected');
+        birthTimeInput.value = profile.time;
     }
+    
+    // 自动触发计算
+    setTimeout(() => {
+        calculateBtn.click();
+    }, 100);
+}
 
     // 显示基础信息
     function displayBasicInfo(info) {
