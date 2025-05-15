@@ -3445,29 +3445,31 @@ function getFortuneDescription(gan, element) {
     // 显示起运时间
     luckStartingTime.textContent = info.luckStartingTime || '未计算';
     
-    // 显示日主大运（简略版）
+    // 安全获取元素（新增防御性代码）
     const dayMasterFortuneElement = document.getElementById('day-master-fortune');
     const dayMasterFortuneDetails = document.getElementById('day-master-fortune-details');
     
-    if (info.dayMasterFortune && info.dayMasterFortune.length > 0) {
-        // 简略显示前三个大运
-        const shortDisplay = info.dayMasterFortune.slice(0, 3)
-            .map(f => `${f.gan}(${f.element})`)
-            .join(' → ') + (info.dayMasterFortune.length > 3 ? '...' : '');
-        
-        dayMasterFortuneElement.textContent = shortDisplay;
-        
-        // 添加点击查看详情功能
-        dayMasterFortuneElement.style.cursor = 'pointer';
-        dayMasterFortuneElement.title = '点击查看完整大运走势';
-        dayMasterFortuneElement.onclick = function() {
-            toggleDayMasterFortuneDetails(info.dayMasterFortune);
-        };
-        
-        // 初始化时隐藏详情
-        dayMasterFortuneDetails.style.display = 'none';
+    // 确保元素存在再操作
+    if (dayMasterFortuneElement && dayMasterFortuneDetails) {
+        if (info.dayMasterFortune && info.dayMasterFortune.length > 0) {
+            const shortDisplay = info.dayMasterFortune.slice(0, 3)
+                .map(f => `${f.gan}(${f.element})`)
+                .join(' → ') + (info.dayMasterFortune.length > 3 ? '...' : '');
+            
+            dayMasterFortuneElement.textContent = shortDisplay;
+            dayMasterFortuneElement.style.cursor = 'pointer';
+            dayMasterFortuneElement.onclick = function() {
+                toggleDayMasterFortuneDetails(info.dayMasterFortune);
+            };
+            
+            // 初始化详情容器
+            dayMasterFortuneDetails.style.display = 'none';
+        } else {
+            dayMasterFortuneElement.textContent = '未计算';
+        }
     } else {
-        dayMasterFortuneElement.textContent = '未计算';
+        console.error('找不到日主大运显示元素');
+        // 可以在这里创建备用元素或显示错误信息
     }
 
     // 设置十神点击事件
