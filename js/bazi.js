@@ -736,7 +736,6 @@ document.addEventListener('DOMContentLoaded', function() {
     document.head.appendChild(style);
 
     // DOM元素
-    const recalculateBtn = document.getElementById('recalculate-btn');
     const inputSection = document.getElementById('input-section');
     const resultSection = document.getElementById('result-section');
     const timePeriodOptions = document.querySelectorAll('.time-period-option');
