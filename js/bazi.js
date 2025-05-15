@@ -2720,9 +2720,6 @@ function hasHe(branches, branch1, branch2) {
         // 计算起运时间
         const luckStartingTime = calculateLuckStartingTime(lunar, birthData.gender);
         
-        // 新增：计算完整大运周期（包含起运年龄、每个大运的干支和年龄段）
-        const decadeFortune = calculateDecadeFortune(lunar, birthData.gender); 
-        
         // 新增：判断当前处于哪个大运（基于当前日期）
         const currentFortune = getCurrentFortune(decadeFortune, birthData.date);
         
