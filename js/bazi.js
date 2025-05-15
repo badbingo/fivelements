@@ -3134,24 +3134,6 @@ function getFortuneDescription(gan, element) {
     };
     return descriptions[gan] || '运势平稳期';
 }
-
-// 在displayBasicInfo函数中显示日主大运信息
-function displayBasicInfo(info) {
-    // ...原有代码...
-    
-    // 显示日主大运
-    if (info.dayMasterFortune) {
-        const dayMasterFortuneElement = document.getElementById('day-master-fortune');
-        if (dayMasterFortuneElement) {
-            let html = '<h4>日主大运走势</h4><ul>';
-            info.dayMasterFortune.forEach(fortune => {
-                html += `<li><strong>${fortune.ageRange}</strong>: ${fortune.gan}(${fortune.element}) - ${fortune.description}</li>`;
-            });
-            html += '</ul>';
-            dayMasterFortuneElement.innerHTML = html;
-        }
-    }
-}
     
     // 计算赌博运势
     function calculateGamblingFortune(birthData, birthLunar) {
@@ -3365,7 +3347,18 @@ function displayBasicInfo(info) {
             day: info.dayStem + info.dayBranch,
             hour: info.hourStem + info.hourBranch
         };
-
+        // 显示日主大运
+        if (info.dayMasterFortune) {
+            const dayMasterFortuneElement = document.getElementById('day-master-fortune');
+            if (dayMasterFortuneElement) {
+                let html = '<h4>日主大运走势</h4><ul>';
+                info.dayMasterFortune.forEach(fortune => {
+                    html += `<li><strong>${fortune.ageRange}</strong>: ${fortune.gan}(${fortune.element}) - ${fortune.description}</li>`;
+                });
+                html += '</ul>';
+                dayMasterFortuneElement.innerHTML = html;
+            }
+        }
         // 设置十神点击事件
         setupTenGodsClickHandlers();
     }
