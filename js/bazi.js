@@ -3149,7 +3149,7 @@ function determineStrengthType(pillars) {
         };
         return traits[dayStem] || '似静水流深，临危反生智，藏锋守拙却暗含凌云之志';
     }
-
+    import { API_KEY } from './config.js';
     // 加载保存的个人资料
     function loadSavedProfiles() {
     const profiles = JSON.parse(localStorage.getItem('baziProfiles') || '[]');
@@ -3315,7 +3315,6 @@ function determineStrengthType(pillars) {
         }
     }
 
-    import { API_KEY } from './config.js';
     // 更新藏干颜色设置函数
     function setHiddenStemsColors(element, stems) {
         element.classList.remove('wood', 'fire', 'earth', 'metal', 'water');
