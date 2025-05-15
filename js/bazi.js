@@ -2719,6 +2719,9 @@ function hasHe(branches, branch1, branch2) {
         
         // 计算起运时间
         const luckStartingTime = calculateLuckStartingTime(lunar, birthData.gender);
+
+        // 计算日主大运
+        const dayMasterFortune = calculateDayMasterFortune(dayGan, lunar, gender);
         
         // 判断从强从弱
         const strengthType = determineStrengthType({
@@ -2750,7 +2753,9 @@ function hasHe(branches, branch1, branch2) {
             decadeFortune,
             gamblingFortune,
             luckStartingTime,  // 新增起运时间
+            dayMasterFortune,  // 新增日主大运参数
             strengthType       // 新增从强从弱
+            
         };
     }
 
@@ -3070,6 +3075,84 @@ function determineStrengthType(pillars) {
         };
     }
 
+    // 新增日主大运计算函数
+function calculateDayMasterFortune(dayGan, lunar, gender) {
+    const ganOrder = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
+    const currentIndex = ganOrder.indexOf(dayGan);
+    
+    // 根据性别确定顺排还是逆排
+    const isMale = gender === 'male';
+    const direction = isMale ? 1 : -1;
+    
+    // 计算未来10个大运
+    const fortunes = [];
+    for (let i = 1; i <= 10; i++) {
+        const newIndex = (currentIndex + (i * direction) + 10) % 10;
+        const fortuneGan = ganOrder[newIndex];
+        
+        // 根据天干五行确定大运特征
+        const element = getElementForGan(fortuneGan);
+        const description = getFortuneDescription(fortuneGan, element);
+        
+        fortunes.push({
+            sequence: i,
+            gan: fortuneGan,
+            element: element,
+            description: description,
+            ageRange: `${i * 10 - 10}-${i * 10}岁`
+        });
+    }
+    
+    return fortunes;
+}
+
+// 获取天干对应的五行
+function getElementForGan(gan) {
+    const elementMap = {
+        '甲': '木', '乙': '木',
+        '丙': '火', '丁': '火',
+        '戊': '土', '己': '土',
+        '庚': '金', '辛': '金',
+        '壬': '水', '癸': '水'
+    };
+    return elementMap[gan] || '';
+}
+
+// 获取大运描述
+function getFortuneDescription(gan, element) {
+    const descriptions = {
+        '甲': `${element}运，象征成长发展，事业有突破机会`,
+        '乙': `${element}运，适合柔性发展，人际关系提升`,
+        '丙': `${element}运，充满活力，但需注意冲动`,
+        '丁': `${element}运，智慧发光，适合学习创新`,
+        '戊': `${element}运，稳定务实，财富积累期`,
+        '己': `${element}运，包容性强，需防优柔寡断`,
+        '庚': `${element}运，变革时期，可能面临挑战`,
+        '辛': `${element}运，精炼提升，专业技能发展`,
+        '壬': `${element}运，流动变化，适应力是关键`,
+        '癸': `${element}运，细腻敏感，需注意情绪管理`
+    };
+    return descriptions[gan] || '运势平稳期';
+}
+
+// 在displayBasicInfo函数中显示日主大运信息
+function displayBasicInfo(info) {
+    // ...原有代码...
+    
+    // 显示日主大运
+    if (info.dayMasterFortune) {
+        const dayMasterFortuneElement = document.getElementById('day-master-fortune');
+        if (dayMasterFortuneElement) {
+            let html = '<h4>日主大运走势</h4><ul>';
+            info.dayMasterFortune.forEach(fortune => {
+                html += `<li><strong>${fortune.ageRange}</strong>: ${fortune.gan}(${fortune.element}) - ${fortune.description}</li>`;
+            });
+            html += '</ul>';
+            dayMasterFortuneElement.innerHTML = html;
+        }
+    }
+}
+    
     // 计算赌博运势
     function calculateGamblingFortune(birthData, birthLunar) {
     // 使用 currentDate（2025年）
@@ -3380,7 +3463,8 @@ function determineStrengthType(pillars) {
 八字：${localResult.yearStem}${localResult.yearBranch} ${localResult.monthStem}${localResult.monthBranch} ${localResult.dayStem}${localResult.dayBranch} ${localResult.hourStem}${localResult.hourBranch}
 起运时间：${localResult.luckStartingTime}
 身强身弱：${localResult.strengthType}
-请直接分析此八字的起运时间和身强身弱，不要自行排盘或计算起运时间。
+日主大运：${localResult.dayMasterFortune}
+请直接分析此八字的起运时间，身强身弱和日主大运，不要自行排盘或计算起运时间。
 `;
 
         // 根据不同部分设置不同的提示词
@@ -3658,7 +3742,7 @@ function determineStrengthType(pillars) {
 1. 回答必须基于传统八字命理学知识
 2. 回答应简洁明了，避免冗长
 3. 针对用户问题提供专业分析
-4. 命主大运按照本地提供的起运时间计算，确保正确
+
    当前日期：${currentDateStr} 
    如果问题与当前命盘相关，请结合以下八字信息：
    当前日期：${currentDateStr} 
@@ -3669,7 +3753,8 @@ function determineStrengthType(pillars) {
    八字：${currentPillars.year} ${currentPillars.month} ${currentPillars.day} ${currentPillars.hour}
    起运时间：${luckStartingTime.textContent || '未计算'}
    身强身弱：${strengthType.textContent || '未计算'}
-   请直接分析此八字的起运时间和身强身弱，不要自行排盘或计算起运时间。
+   日主大运：${localResult.dayMasterFortune || '未计算'}
+   请直接分析此八字的起运时间，身强身弱和日主大运，不要自行排盘或计算起运时间。
 
 用户问题：${question}`;
         
