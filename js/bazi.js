@@ -3381,71 +3381,153 @@ function getFortuneDescription(gan, element) {
 
     // 显示基础信息
     function displayBasicInfo(info) {
-        const nameDisplay = document.getElementById('user-name-display');
-        const birthDisplay = document.getElementById('user-birth-display');
-        const hour = parseInt(birthData.time.split(':')[0]);
-        const timeMap = {
-            23: '子时 (23-1)', 0: '子时 (23-1)',
-            1: '丑时 (1-3)', 3: '寅时 (3-5)',
-            5: '卯时 (5-7)', 7: '辰时 (7-9)',
-            9: '巳时 (9-11)', 11: '午时 (11-13)',
-            13: '未时 (13-15)', 15: '申时 (15-17)',
-            17: '酉时 (17-19)', 19: '戌时 (19-21)',
-            21: '亥时 (21-23)'
-       };
-        nameDisplay.textContent = birthData.name || '匿名用户';
-        birthDisplay.textContent = birthData.date.replace(/-/g, '/') + ' ' + timeMap[hour];
+    // 显示姓名和出生信息
+    const nameDisplay = document.getElementById('user-name-display');
+    const birthDisplay = document.getElementById('user-birth-display');
+    const hour = parseInt(birthData.time.split(':')[0]);
+    const timeMap = {
+        23: '子时 (23-1)', 0: '子时 (23-1)',
+        1: '丑时 (1-3)', 3: '寅时 (3-5)',
+        5: '卯时 (5-7)', 7: '辰时 (7-9)',
+        9: '巳时 (9-11)', 11: '午时 (11-13)',
+        13: '未时 (13-15)', 15: '申时 (15-17)',
+        17: '酉时 (17-19)', 19: '戌时 (19-21)',
+        21: '亥时 (21-23)'
+    };
+    nameDisplay.textContent = birthData.name || '匿名用户';
+    birthDisplay.textContent = birthData.date.replace(/-/g, '/') + ' ' + timeMap[hour];
+    
+    // 显示八字四柱
+    yearStem.textContent = info.yearStem;
+    yearBranch.textContent = info.yearBranch;
+    yearHiddenStems.textContent = info.yearHiddenStems;
+    monthStem.textContent = info.monthStem;
+    monthBranch.textContent = info.monthBranch;
+    monthHiddenStems.textContent = info.monthHiddenStems;
+    dayStem.textContent = info.dayStem;
+    dayBranch.textContent = info.dayBranch;
+    dayHiddenStems.textContent = info.dayHiddenStems;
+    hourStem.textContent = info.hourStem;
+    hourBranch.textContent = info.hourBranch;
+    hourHiddenStems.textContent = info.hourHiddenStems;
+    
+    // 设置五行颜色
+    setElementColors(yearStem, info.yearStem);
+    setElementColors(yearBranch, info.yearBranch);
+    setElementColors(monthStem, info.monthStem);
+    setElementColors(monthBranch, info.monthBranch);
+    setElementColors(dayStem, info.dayStem);
+    setElementColors(dayBranch, info.dayBranch);
+    setElementColors(hourStem, info.hourStem);
+    setElementColors(hourBranch, info.hourBranch);
+    
+    setHiddenStemsColors(yearHiddenStems, info.yearHiddenStems);
+    setHiddenStemsColors(monthHiddenStems, info.monthHiddenStems);
+    setHiddenStemsColors(dayHiddenStems, info.dayHiddenStems);
+    setHiddenStemsColors(hourHiddenStems, info.hourHiddenStems);
+    
+    // 显示性格特征
+    personalityTraits.textContent = `命主性格：${info.personality}`;
+    
+    // 保存当前八字数据
+    currentPillars = {
+        year: info.yearStem + info.yearBranch,
+        month: info.monthStem + info.monthBranch,
+        day: info.dayStem + info.dayBranch,
+        hour: info.hourStem + info.hourBranch,
+        dayMasterFortune: info.dayMasterFortune // 保存日主大运数据
+    };
+
+    // 显示日主强弱
+    strengthType.textContent = info.strengthType || '未计算';
+    setStrengthTypeStyle(info.strengthType);
+    
+    // 显示起运时间
+    luckStartingTime.textContent = info.luckStartingTime || '未计算';
+    
+    // 显示日主大运（简略版）
+    const dayMasterFortuneElement = document.getElementById('day-master-fortune');
+    const dayMasterFortuneDetails = document.getElementById('day-master-fortune-details');
+    
+    if (info.dayMasterFortune && info.dayMasterFortune.length > 0) {
+        // 简略显示前三个大运
+        const shortDisplay = info.dayMasterFortune.slice(0, 3)
+            .map(f => `${f.gan}(${f.element})`)
+            .join(' → ') + (info.dayMasterFortune.length > 3 ? '...' : '');
         
-        yearStem.textContent = info.yearStem;
-        yearBranch.textContent = info.yearBranch;
-        yearHiddenStems.textContent = info.yearHiddenStems;
-        monthStem.textContent = info.monthStem;
-        monthBranch.textContent = info.monthBranch;
-        monthHiddenStems.textContent = info.monthHiddenStems;
-        dayStem.textContent = info.dayStem;
-        dayBranch.textContent = info.dayBranch;
-        dayHiddenStems.textContent = info.dayHiddenStems;
-        hourStem.textContent = info.hourStem;
-        hourBranch.textContent = info.hourBranch;
-        hourHiddenStems.textContent = info.hourHiddenStems;
+        dayMasterFortuneElement.textContent = shortDisplay;
         
-        setElementColors(yearStem, info.yearStem);
-        setElementColors(yearBranch, info.yearBranch);
-        setElementColors(monthStem, info.monthStem);
-        setElementColors(monthBranch, info.monthBranch);
-        setElementColors(dayStem, info.dayStem);
-        setElementColors(dayBranch, info.dayBranch);
-        setElementColors(hourStem, info.hourStem);
-        setElementColors(hourBranch, info.hourBranch);
-        
-        setHiddenStemsColors(yearHiddenStems, info.yearHiddenStems);
-        setHiddenStemsColors(monthHiddenStems, info.monthHiddenStems);
-        setHiddenStemsColors(dayHiddenStems, info.dayHiddenStems);
-        setHiddenStemsColors(hourHiddenStems, info.hourHiddenStems);
-        
-        personalityTraits.textContent = `命主性格：${info.personality}`;
-        
-        currentPillars = {
-            year: info.yearStem + info.yearBranch,
-            month: info.monthStem + info.monthBranch,
-            day: info.dayStem + info.dayBranch,
-            hour: info.hourStem + info.hourBranch
+        // 添加点击查看详情功能
+        dayMasterFortuneElement.style.cursor = 'pointer';
+        dayMasterFortuneElement.title = '点击查看完整大运走势';
+        dayMasterFortuneElement.onclick = function() {
+            toggleDayMasterFortuneDetails(info.dayMasterFortune);
         };
-        // 显示日主大运
-        if (info.dayMasterFortune) {
-            const dayMasterFortuneElement = document.getElementById('day-master-fortune');
-            if (dayMasterFortuneElement) {
-                let html = '<h4>日主大运走势</h4><ul>';
-                info.dayMasterFortune.forEach(fortune => {
-                    html += `<li><strong>${fortune.ageRange}</strong>: ${fortune.gan}(${fortune.element}) - ${fortune.description}</li>`;
-                });
-                html += '</ul>';
-                dayMasterFortuneElement.innerHTML = html;
-            }
-        }
-        // 设置十神点击事件
-        setupTenGodsClickHandlers();
+        
+        // 初始化时隐藏详情
+        dayMasterFortuneDetails.style.display = 'none';
+    } else {
+        dayMasterFortuneElement.textContent = '未计算';
     }
+
+    // 设置十神点击事件
+    setupTenGodsClickHandlers();
+}
+
+// 显示/隐藏完整大运详情
+function toggleDayMasterFortuneDetails(fortunes) {
+    const detailsContainer = document.getElementById('day-master-fortune-details');
+    
+    if (detailsContainer.style.display === 'block') {
+        detailsContainer.style.display = 'none';
+        return;
+    }
+    
+    let html = '<div class="fortune-details-header">';
+    html += '<h4>完整日主大运走势</h4>';
+    html += '<span class="close-details" onclick="event.stopPropagation();this.parentElement.parentElement.style.display=\'none\'">×</span>';
+    html += '</div><ul class="fortune-details-list">';
+    
+    fortunes.forEach(fortune => {
+        html += `<li>
+            <span class="fortune-age">${fortune.ageRange}</span>
+            <span class="fortune-ganzhi ${getElementClass(fortune.element)}">${fortune.gan}(${fortune.element})</span>
+            <span class="fortune-desc">${fortune.description}</span>
+        </li>`;
+    });
+    
+    html += '</ul>';
+    detailsContainer.innerHTML = html;
+    detailsContainer.style.display = 'block';
+}
+
+// 根据身强身弱设置样式
+function setStrengthTypeStyle(strengthType) {
+    const element = document.getElementById('strength-type');
+    element.className = 'feature-value'; // 重置类名
+    
+    if (strengthType === '身强') {
+        element.classList.add('strong');
+    } else if (strengthType === '身弱') {
+        element.classList.add('weak');
+    } else if (strengthType === '从强') {
+        element.classList.add('cong-strong');
+    } else if (strengthType === '从弱') {
+        element.classList.add('cong-weak');
+    }
+}
+
+// 获取五行对应的CSS类名
+function getElementClass(element) {
+    const map = {
+        '木': 'wood',
+        '火': 'fire',
+        '土': 'earth',
+        '金': 'metal',
+        '水': 'water'
+    };
+    return map[element] || '';
+}
 
     // 设置元素颜色
     function setElementColors(element, text) {
