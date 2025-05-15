@@ -1,6 +1,6 @@
 
 document.addEventListener('DOMContentLoaded', function() {
-    // 确保全局能获取当前日期（动态获取2025年c）
+    // 确保全局能获取当前日期（动态获取2025年）
     const currentDate = new Date(); // 自动获取当前日期（2025）
     const currentYear = currentDate.getFullYear(); // 2025
     const currentMonth = currentDate.getMonth() + 1; // 1-12
@@ -1143,192 +1143,218 @@ ${getWealthSuggestions(score)}
 
     // 显示部分内容
     function displaySectionContent(section, result, contentElement) {
-    // ==================== 1. 数据预处理 ====================
-    let content = '';
-    let metadata = {};
-    const currentYear = new Date().getFullYear(); // 获取当前年份(2025)
-
-    // 类型安全处理
-    if (typeof result === 'string') {
-        try {
-            // 尝试解析可能的JSON字符串
-            const parsed = JSON.parse(result);
-            content = parsed.analysis || parsed.message || result;
-            metadata = parsed;
-        } catch {
-            content = result;
-        }
-    } else if (result && typeof result === 'object') {
-        // 处理结构化数据
-        content = result.analysis || 
-                 result.choices?.[0]?.message?.content || 
-                 result.content || 
-                 JSON.stringify(result, null, 2);
-        metadata = result;
+    if (result.includes('★')) {
+        result = result.replace(/(★+)/g, '<span class="rating" style="color:var(--earth-color);text-shadow:0 0 5px var(--earth-color)">$1</span>');
+        result = result.replace(/(☆+)/g, '<span style="color:#666">$1</span>');
     }
-
-    // ==================== 2. 特殊模块处理 ====================
-    // 大运模块增强
-    if (section === 'decade-fortune') {
-        if (metadata.fortunes || metadata.decadeFortune) {
-            const fortunes = metadata.fortunes || metadata.decadeFortune.fortunes;
-            content = generateDecadeFortuneContent(fortunes, currentYear) + '\n\n' + content;
-        }
-    }
-
-    // 流年模块增强
-    if (section === 'annual-fortune') {
-        content = `## ${currentYear}年流年详批\n` + content;
-        if (metadata.luckStartingTime) {
-            content += `\n\n> 起运时间：${metadata.luckStartingTime}`;
-        }
-    }
-
-    // ==================== 3. 内容渲染 ====================
-    const container = document.createElement('div');
-    container.className = 'analysis-content';
-
-    try {
-        // 安全解析Markdown
-        container.innerHTML = marked.parse(content || '暂无分析内容');
-
-        // 增强表格显示
-        enhanceTables(container);
-
-        // 处理评分显示
-        highlightRatings(container);
-
-        // 添加折叠功能
-        addCollapsibleSections(container);
-    } catch (e) {
-        console.error('内容渲染失败:', e);
-        container.innerHTML = `
-            <div class="alert alert-error">
-                <i class="fas fa-exclamation-triangle"></i>
-                内容解析错误，请尝试重新加载
-            </div>
-            <pre>${content || '无可用数据'}</pre>
-        `;
-    }
-
-    // ==================== 4. 最终渲染 ====================
-    contentElement.innerHTML = '';
-    contentElement.appendChild(container);
-
-    // 添加功能按钮
-    addActionButtons(contentElement, section, metadata);
-
-    // 特殊图表初始化
-    if (section === 'decade-fortune' && (metadata.fortunes || metadata.decadeFortune)) {
-        initFortuneChart(metadata.fortunes || metadata.decadeFortune.fortunes);
-    }
-
-    if (section === 'elements' && metadata.elements) {
-        initElementChart(metadata.elements);
-    }
-
-    // ==================== 辅助函数 ====================
-    function generateDecadeFortuneContent(fortunes, year) {
-        if (!fortunes?.length) return '';
-
-        let markdown = `## 十年大运走势\n<div class="fortune-grid">`;
+    
+    // 解析Markdown内容
+    const html = marked.parse(result);
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = html;
+    
+    // 为表格添加样式类
+    tempDiv.querySelectorAll('table').forEach(function(table) {
+        table.classList.add('markdown-table');
+    });
+    
+    // 创建打印按钮容器
+    const printContainer = document.createElement('div');
+    printContainer.className = 'print-btn-container';
+    
+    // 创建打印按钮
+    const printBtn = document.createElement('button');
+    printBtn.className = 'print-btn';
+    printBtn.innerHTML = '<i class="fas fa-print"></i> 打印此部分';
+    
+    // 定义英文到中文的标题映射
+    const sectionTitles = {
+        'basic': '基础信息',
+        'fate-level': '命格等级',
+        'wealth-level': '财富等级',
+        'strength': '身强身弱',
+        'career': '事业分析',
+        'wealth': '财富分析',
+        'elements': '五行分析',
+        'personality': '性格分析',
+        'children': '子女运势',
+        'marriage': '婚姻分析',
+        'health': '健康分析',
+        'annual-fortune': '年度运势',
+        'daily-fortune': '每日运势',
+        'milestones': '人生节点',
+        'decade-fortune': '十年大运',
+        'monthly-fortune': '每月运势'
+    };
+    
+    // 获取中文标题，如果没有匹配则使用原始section
+    const chineseTitle = sectionTitles[section] || section;
+    
+    // 添加打印功能
+    printBtn.onclick = function() {
+        const printWindow = window.open('', '_blank');
         
-        fortunes.forEach((fortune, index) => {
-            const isCurrent = fortune.ageRange.includes(year - parseInt(birthData.date.split('-')[0]));
-            markdown += `
-                <div class="fortune-card ${isCurrent ? 'current' : ''}">
-                    <h4>${fortune.ganZhi || ''}</h4>
-                    <div class="age-range">${fortune.ageRange || ''}</div>
-                    <div class="score">${renderScore(fortune.score)}</div>
-                    ${fortune.tips ? `<p class="tips">${fortune.tips}</p>` : ''}
+        printWindow.document.write(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>八字分析打印 - ${chineseTitle}</title>
+                <style>
+                    body { 
+                        font-family: "Microsoft YaHei", Arial, sans-serif; 
+                        line-height: 1.6; 
+                        padding: 20px; 
+                        color: #333;
+                    }
+                    h1, h2, h3, h4 { 
+                        color: #2c3e50;
+                        margin-top: 20px;
+                    }
+                    h1 { 
+                        font-size: 24px; 
+                        border-bottom: 1px solid #eee; 
+                        padding-bottom: 10px;
+                        text-align: center;
+                    }
+                    h2 { font-size: 20px; }
+                    h3 { font-size: 18px; }
+                    table { 
+                        border-collapse: collapse; 
+                        width: 100%; 
+                        margin: 15px 0; 
+                        font-size: 14px;
+                    }
+                    th, td { 
+                        border: 1px solid #ddd; 
+                        padding: 8px 12px; 
+                        text-align: left; 
+                    }
+                    th { 
+                        background-color: #f2f2f2; 
+                        font-weight: bold;
+                    }
+                    .rating { 
+                        color: #e67e22; 
+                        font-weight: bold; 
+                        letter-spacing: 2px;
+                    }
+                    .print-header {
+                        text-align: center;
+                        margin-bottom: 20px;
+                        padding-bottom: 10px;
+                        border-bottom: 1px solid #eee;
+                    }
+                    .print-footer {
+                        text-align: center;
+                        margin-top: 30px;
+                        padding-top: 10px;
+                        border-top: 1px solid #eee;
+                        font-size: 12px;
+                        color: #7f8c8d;
+                    }
+                    @media print {
+                        body { padding: 0 10px; }
+                        .no-print { display: none; }
+                        @page { margin: 1cm; }
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="print-header">
+                    <h1>八字分析报告 - ${chineseTitle}</h1>
+                    <p>生成时间: ${new Date().toLocaleString('zh-CN')}</p>
                 </div>
-            `;
-        });
-
-        return markdown + `</div>`;
-    }
-
-    function renderScore(score) {
-        if (!score) return '';
-        const filled = Math.min(5, Math.floor(score / 20));
-        return '★'.repeat(filled) + '☆'.repeat(5 - filled);
-    }
-
-    function enhanceTables(container) {
-        container.querySelectorAll('table').forEach(table => {
-            // 添加包装容器确保响应式
-            const wrapper = document.createElement('div');
-            wrapper.className = 'table-responsive';
-            table.parentNode.insertBefore(wrapper, table);
-            wrapper.appendChild(table);
-
-            // 添加表头高亮
-            const headers = table.querySelectorAll('th');
-            if (headers.length > 0) {
-                headers.forEach(th => {
-                    th.classList.add('table-header');
-                });
+                
+                <div>${tempDiv.innerHTML}</div>
+                
+                <div class="print-footer">
+                    <p>本报告由机缘命理系统生成</p>
+                </div>
+                
+                <div class="no-print" style="margin-top: 30px; text-align: center;">
+                    <button onclick="window.print()" style="
+                        padding: 10px 20px; 
+                        background: #3498db; 
+                        color: white; 
+                        border: none; 
+                        border-radius: 4px; 
+                        cursor: pointer;
+                        font-size: 16px;
+                        margin-right: 10px;
+                    ">
+                        <i class="fas fa-print"></i> 打印报告
+                    </button>
+                    <button onclick="window.close()" style="
+                        padding: 10px 20px; 
+                        background: #e74c3c; 
+                        color: white; 
+                        border: none; 
+                        border-radius: 4px; 
+                        cursor: pointer;
+                        font-size: 16px;
+                    ">
+                        <i class="fas fa-times"></i> 关闭窗口
+                    </button>
+                </div>
+                
+                <script>
+                    // 添加Font Awesome图标库
+                    const fa = document.createElement('link');
+                    fa.rel = 'stylesheet';
+                    fa.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css';
+                    document.head.appendChild(fa);
+                </script>
+            </body>
+            </html>
+        `);
+        printWindow.document.close();
+    };
+    
+    // 将打印按钮添加到容器
+    printContainer.appendChild(printBtn);
+    
+    // 清空内容元素并添加新内容和打印按钮
+    contentElement.innerHTML = '';
+    contentElement.appendChild(tempDiv);
+    contentElement.appendChild(printContainer);
+    
+    // 添加打印按钮样式
+    if (!document.querySelector('style.print-btn-style')) {
+        const style = document.createElement('style');
+        style.className = 'print-btn-style';
+        style.textContent = `
+            .print-btn-container {
+                margin-top: 20px;
+                text-align: right;
+                padding: 15px 0;
+                border-top: 1px solid #eee;
             }
-        });
-    }
-
-    function highlightRatings(container) {
-        // 处理星级评分
-        container.innerHTML = container.innerHTML
-            .replace(/(★+)/g, '<span class="star-rating filled">$1</span>')
-            .replace(/(☆+)/g, '<span class="star-rating">$1</span>');
-
-        // 处理百分比
-        container.innerHTML = container.innerHTML
-            .replace(/(\d{1,3})%/g, '<span class="percentage">$1%</span>');
-    }
-
-    function addCollapsibleSections(container) {
-        container.querySelectorAll('h3, h4').forEach(heading => {
-            if (!heading.nextElementSibling || !heading.nextElementSibling.tagName.match(/P|UL|OL|DIV/i)) {
-                return;
+            
+            .print-btn {
+                background-color: var(--primary-color);
+                color: white;
+                border: none;
+                padding: 8px 15px;
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 14px;
+                transition: all 0.3s;
+                display: inline-flex;
+                align-items: center;
+                gap: 5px;
             }
-
-            heading.classList.add('collapsible');
-            heading.innerHTML = `
-                <span class="toggle-icon">▶</span>
-                ${heading.innerHTML}
-            `;
-
-            heading.addEventListener('click', () => {
-                let content = heading.nextElementSibling;
-                while (content && !content.tagName.match(/H[1-6]/i)) {
-                    content.style.display = content.style.display === 'none' ? '' : 'none';
-                    content = content.nextElementSibling;
-                }
-                const icon = heading.querySelector('.toggle-icon');
-                icon.textContent = icon.textContent === '▶' ? '▼' : '▶';
-            });
-        });
-    }
-
-    function addActionButtons(container, section, data) {
-        const btnContainer = document.createElement('div');
-        btnContainer.className = 'action-buttons';
-
-        // 打印按钮
-        const printBtn = document.createElement('button');
-        printBtn.className = 'btn print-btn';
-        printBtn.innerHTML = '<i class="fas fa-print"></i> 打印';
-        printBtn.onclick = () => printSection(section, data);
-        btnContainer.appendChild(printBtn);
-
-        // 保存按钮（仅限有价值数据）
-        if (section === 'decade-fortune' || section === 'annual-fortune') {
-            const saveBtn = document.createElement('button');
-            saveBtn.className = 'btn save-btn';
-            saveBtn.innerHTML = '<i class="fas fa-download"></i> 保存PDF';
-            saveBtn.onclick = () => exportToPDF(section, data);
-            btnContainer.appendChild(saveBtn);
-        }
-
-        // 添加到容器
-        container.appendChild(btnContainer);
+            
+            .print-btn:hover {
+                background-color: var(--primary-dark-color);
+                transform: translateY(-1px);
+                box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            }
+            
+            .print-btn:active {
+                transform: translateY(0);
+            }
+        `;
+        document.head.appendChild(style);
     }
 }
     // 计算八字
@@ -3319,37 +3345,43 @@ function determineStrengthType(pillars) {
         return cachedResponse;
     }
     
-    // 1. 先计算本地结果
+    // 先计算本地结果
     const localResult = calculateBaziLocally(data);
-    const solar = Solar.fromYmdHms(
-        parseInt(data.date.split('-')[0]),
-        parseInt(data.date.split('-')[1]),
-        parseInt(data.date.split('-')[2]),
-        parseInt(data.time.split(':')[0]),
-        parseInt(data.time.split(':')[1] || 0),
-        0
-    );
-    const lunar = solar.getLunar();
     
-    // 2. 本地计算大运信息（增强版）
-    const decadeFortune = calculateDecadeFortune(lunar, data.gender);
-    const currentYearFortune = getCurrentYearFortune(decadeFortune, currentYear); // 使用全局 currentYear（2025）
+    // 对于基础信息部分，直接返回本地计算结果
+    if (section === 'basic') {
+        baziCache.set(cacheKey, localResult);
+        return localResult;
+    }
     
-    // 3. 构建专业分析提示词
-    let prompt = `【专业八字分析指令】\n
-请严格基于以下本地计算结果进行分析（不要重新计算）：
-----------------------------------
-基础信息：
-姓名：${data.name || '未提供'}
-性别：${data.gender === 'male' ? '男' : '女'}
-出生：${data.date} ${data.time}
-八字：${localResult.yearStem}${localResult.yearBranch} ${localResult.monthStem}${localResult.monthBranch} ${localResult.dayStem}${localResult.dayBranch} ${localResult.hourStem}${localResult.hourBranch}
+    // 其他部分调用API
+    const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
+    const apiKey = 'sk-b2950087a9d5427392762814114b22a9';
+    
+    // 使用 currentYear（2025）、currentMonth、currentDay
+    const currentDateStr = `${currentYear}-${currentMonth.toString().padStart(2, '0')}-${currentDay.toString().padStart(2, '0')}`;
+        
+        let prompt = `请严格按照以下规则进行专业八字排盘，确保所有计算准确无误：
+        
+1.用详细清晰的语言表达
+2.使用标准Markdown语法，可用表格方式呈现
+3.进度条用下划线模拟可视化效果
+4.箭头符号仅使用常规字符→
+5.重点突出加粗显示关键信息
+6.每个分析模块之间保留空行
+7.实现专业排版效果
 
-核心参数：
+当前日期：${currentDateStr}
+根据以下八字信息进行分析：
+姓名：${data.name || '未提供'}
+出生日期：${data.date}
+出生时间：${data.time} 
+性别：${data.gender === 'male' ? '男' : '女'}
+八字：${localResult.yearStem}${localResult.yearBranch} ${localResult.monthStem}${localResult.monthBranch} ${localResult.dayStem}${localResult.dayBranch} ${localResult.hourStem}${localResult.hourBranch}
 起运时间：${localResult.luckStartingTime}
 身强身弱：${localResult.strengthType}
-当前大运：${currentYearFortune.ganZhi} (${currentYearFortune.ageRange})
-----------------------------------\n`;
+请直接分析此八字的起运时间和身强身弱，不要自行排盘或计算起运时间。
+`;
 
         // 根据不同部分设置不同的提示词
         switch(section) {
@@ -3581,215 +3613,95 @@ function determineStrengthType(pillars) {
         }
         
         try {
-        // 5. 调用API（使用批处理队列）
-        const apiResponse = await apiRequestQueue.addRequest({
-            url: 'https://api.deepseek.com/v1/chat/completions',
-            options: {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer sk-b2950087a9d5427392762814114b22a9`
+            const response = await apiRequestQueue.addRequest({
+                url: apiUrl,
+                options: {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: "deepseek-chat",
+                        messages: [{ role: "user", content: prompt }],
+                        temperature: 0,
+                        seed: 12345 // 固定seed值确保相同输入得到相同输出
+                    })
                 },
-                body: JSON.stringify({
-                    model: "deepseek-chat",
-                    messages: [{ role: "user", content: prompt }],
-                    temperature: 0.3,
-                    max_tokens: 2000
-                })
-            },
-            cacheKey: cacheKey,
-            section: section
-        });
-
-        // 6. 处理API响应
-        let result;
-        try {
-            result = JSON.parse(apiResponse).choices[0].message.content;
-        } catch (e) {
-            console.error('API响应解析失败，使用原始响应:', e);
-            result = apiResponse;
+                section: section,
+                cacheKey: cacheKey
+            });
+            
+            return response;
+            
+        } catch (error) {
+            console.error(`获取${section}分析失败:`, error);
+            throw error;
         }
-
-        // 7. 缓存结果（包含本地计算的关键数据）
-        const finalResult = {
-            ...localResult,
-            analysis: result,
-            decadeFortune,
-            currentYearFortune
-        };
-        baziCache.set(cacheKey, finalResult);
-        
-        return finalResult;
-        
-    } catch (error) {
-        console.error(`获取${section}分析失败:`, error);
-        
-        // 8. 降级处理：返回本地计算结果
-        const fallbackResult = {
-            ...localResult,
-            analysis: `专业分析获取失败，当前基础信息：
-起运时间：${localResult.luckStartingTime}
-身强身弱：${localResult.strengthType}
-2025年大运：${currentYearFortune.ganZhi}`,
-            decadeFortune
-        };
-        
-        // 缓存降级结果避免重复请求
-        baziCache.set(cacheKey, fallbackResult, 600000); // 10分钟缓存
-        return fallbackResult;
-    }
-}
-
-// 辅助函数：获取当前年份的大运信息
-function getCurrentYearFortune(decadeFortune, targetYear) {
-    const birthYear = parseInt(birthData.date.split('-')[0]);
-    const age = targetYear - birthYear;
-    
-    return decadeFortune.fortunes.find(f => {
-        const [start, end] = f.ageRange.split('-').map(Number);
-        return age >= start && age <= end;
-    }) || decadeFortune.fortunes[0];
-}
-
-    // 获取八字问答答案（答疑解惑核心函数）
-async function getBaziAnswer(question) {
-    // 1. 检查是否已计算过八字
-    if (!currentPillars.year) {
-        return "请先完成八字排盘再提问";
     }
 
-    // 2. 生成包含本地计算结果的上下文
-    const context = await generateBaziContext();
-    const cacheKey = `qa:${generateBaziHashKey(birthData)}:${md5(question)}`;
+    // 获取八字问答答案
+    async function getBaziAnswer(question) {
+        const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
+        const apiKey = 'sk-b2950087a9d5427392762814114b22a9';
+    // 使用 currentYear（2025）、currentMonth、currentDay
+        const currentDateStr = `${currentYear}-${currentMonth.toString().padStart(2, '0')}-${currentDay.toString().padStart(2, '0')}`;
+        const cacheKey = `qa:${generateBaziHashKey(birthData)}:${question}`;
+        
+        // 检查缓存
+        const cachedResponse = baziCache.get(cacheKey);
+        if (cachedResponse) {
+            return cachedResponse;
+        }
+        
+        const prompt = `【八字专业问答规范】请严格遵循以下规则回答：
+1. 回答必须基于传统八字命理学知识
+2. 回答应简洁明了，避免冗长
+3. 针对用户问题提供专业分析
+4. 所有分析前必须先计算出命主当前八字+大运+流年的格局强弱，再进行分析
+   当前日期：${currentDateStr} 
+   如果问题与当前命盘相关，请结合以下八字信息：
+   当前日期：${currentDateStr} 
+   姓名：${birthData.name || '未提供'}
+   出生日期：${birthData.date}
+   出生时间：${birthData.time}
+   性别：${birthData.gender === 'male' ? '男' : '女'}
+   八字：${currentPillars.year} ${currentPillars.month} ${currentPillars.day} ${currentPillars.hour}
+   起运时间：${luckStartingTime.textContent || '未计算'}
+   身强身弱：${strengthType.textContent || '未计算'}
+   请直接分析此八字的起运时间和身强身弱，不要自行排盘或计算起运时间。
 
-    // 检查缓存
-    const cachedAnswer = baziCache.get(cacheKey);
-    if (cachedAnswer) {
-        return cachedAnswer;
-    }
-
-    // 3. 构建专业提示词
-    const prompt = `【八字专业问答指令】
-根据以下精确排盘结果回答问题，禁止自行推算：
-
-${context}
-
-用户问题：${question}
-
-回答要求：
-1. 必须基于上述排盘数据
-2. 引用具体神煞/五行依据
-3. 2025年流年要特别说明
-4. 给出3条可操作建议`;
-
-    try {
-        // 4. 调用API（使用批处理队列）
-        const response = await apiRequestQueue.addRequest({
-            url: 'https://api.deepseek.com/v1/chat/completions',
-            options: {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${apiKey}`
-                },
-                body: JSON.stringify({
-                    model: "deepseek-chat",
-                    messages: [
-                        {
+用户问题：${question}`;
+        
+        try {
+            const response = await apiRequestQueue.addRequest({
+                url: apiUrl,
+                options: {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: "deepseek-chat",
+                        messages: [{
                             role: "system",
-                            content: "你是资深命理师，需严格根据提供的八字数据回答问题"
-                        },
-                        {
-                            role: "user", 
+                            content: "你是一位资深的八字命理大师，精通子平八字、紫微斗数等传统命理学。请严格按照八字专业问答规范回答用户问题。"
+                        }, {
+                            role: "user",
                             content: prompt
-                        }
-                    ],
-                    temperature: 0.3,
-                    max_tokens: 1500
-                })
-            },
-            cacheKey: cacheKey
-        });
-
-        // 5. 处理响应
-        let answer = JSON.parse(response).choices[0].message.content;
-        
-        // 6. 后处理（添加本地计算的关键数据）
-        answer += `\n\n[基于${currentYear}年分析，起运时间：${context.match(/起运时间：(.*?)\n/)[1]}]`;
-        
-        // 7. 缓存答案（1小时）
-        baziCache.set(cacheKey, answer, 3600000);
-        
-        return answer;
-
-    } catch (error) {
-        console.error('答疑API请求失败:', error);
-        
-        // 8. 降级方案：返回本地关键数据
-        return `专业解答暂时不可用，当前基础信息：
-${context.split('\n').slice(0, 8).join('\n')}
-建议重新提问或稍后重试`;
+                        }],
+                        temperature: 0
+                    })
+                },
+                cacheKey: cacheKey
+            });
+            
+            return response;
+            
+        } catch (error) {
+            console.error('获取问答答案失败:', error);
+            return '获取答案失败，请稍后重试';
+        }
     }
-}
-
-// 生成排盘上下文数据
-async function generateBaziContext() {
-    // 获取本地计算结果
-    const localResult = calculateBaziLocally(birthData);
-    const lunar = Solar.fromYmdHms(
-        parseInt(birthData.date.split('-')[0]),
-        parseInt(birthData.date.split('-')[1]),
-        parseInt(birthData.date.split('-')[2]),
-        parseInt(birthData.time.split(':')[0]),
-        parseInt(birthData.time.split(':')[1] || 0),
-        0
-    ).getLunar();
-
-    // 计算关键指标
-    const decadeFortune = calculateDecadeFortune(lunar, birthData.gender);
-    const currentFortune = getCurrentYearFortune(decadeFortune, currentYear);
-    const elements = calculateNatalElements(localResult);
-
-    return `【精确排盘数据】  
-姓名：${birthData.name || '未提供'}  
-八字：${localResult.yearStem}${localResult.yearBranch} ${localResult.monthStem}${localResult.monthBranch} ${localResult.dayStem}${localResult.dayBranch} ${localResult.hourStem}${localResult.hourBranch}  
-起运时间：${localResult.luckStartingTime}  
-身强身弱：${localResult.strengthType}  
-
-当前大运（${currentYear}）：
-${currentFortune.ageRange}: ${currentFortune.ganZhi}  
-能量评分：${currentFortune.score}/100  
-
-五行力量：
-木:${elements[0]} 火:${elements[1]} 土:${elements[2]}  
-金:${elements[3]} 水:${elements[4]}  
-
-2025年流年：
-太岁${lunar.getYearInGanZhi()} 冲${getChongZhi(lunar.getYearZhi())}  
-宜：${lunar.getDayYi().join('、') || '无'}  
-忌：${lunar.getDayJi().join('、') || '无'}`;
-}
-
-// 辅助函数：获取相冲地支
-function getChongZhi(zhi) {
-    const chongMap = {
-        '子':'午', '午':'子',
-        '卯':'酉', '酉':'卯',
-        '寅':'申', '申':'寅',
-        '巳':'亥', '亥':'巳',
-        '辰':'戌', '戌':'辰',
-        '丑':'未', '未':'丑'
-    };
-    return chongMap[zhi] || '无';
-}
-
-// 辅助函数：获取当前大运
-function getCurrentYearFortune(fortune, year) {
-    const birthYear = parseInt(birthData.date.split('-')[0]);
-    const age = year - birthYear;
-    return fortune.fortunes.find(f => {
-        const [start, end] = f.ageRange.split('-').map(Number);
-        return age >= start && age < end;
-    }) || fortune.fortunes[0];
-}
 });
