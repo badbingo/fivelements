@@ -1,6 +1,6 @@
 
 document.addEventListener('DOMContentLoaded', function() {
-    // 确保全局能获取当前日期（动态获取2025年a）
+    // 确保全局能获取当前日期（动态获取2025年）
     const currentDate = new Date(); // 自动获取当前日期（2025）
     const currentYear = currentDate.getFullYear(); // 2025
     const currentMonth = currentDate.getMonth() + 1; // 1-12
@@ -2731,11 +2731,6 @@ function hasHe(branches, branch1, branch2) {
         hourStem: hourGan,
         hourBranch: hourZhi
     });
-        // 将十年大运信息格式化为字符串
-        const decadeFortuneStr = `起运年龄: ${decadeFortune.startAge}岁\n` +
-        decadeFortune.fortunes.map(f => 
-            `${f.ageRange}: ${f.ganZhi} (运势指数: ${f.score}/100)`
-        ).join('\n');
         
         return {
             yearStem: yearGan,
@@ -2753,7 +2748,6 @@ function hasHe(branches, branch1, branch2) {
             elements,
             personality,
             decadeFortune,
-            decadeFortuneStr,       // 新增：字符串格式的十年大运信息
             gamblingFortune,
             luckStartingTime,  // 新增起运时间
             strengthType       // 新增从强从弱
@@ -3353,10 +3347,7 @@ function determineStrengthType(pillars) {
     
     // 先计算本地结果
     const localResult = calculateBaziLocally(data);
-        
-    // 使用 localResult.decadeFortuneStr 而不是直接使用 decadeFortuneStr
-    const currentDateStr = `${currentYear}-${currentMonth.toString().padStart(2, '0')}-${currentDay.toString().padStart(2, '0')}`;
-        
+    
     // 对于基础信息部分，直接返回本地计算结果
     if (section === 'basic') {
         baziCache.set(cacheKey, localResult);
@@ -3367,6 +3358,8 @@ function determineStrengthType(pillars) {
     const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
     const apiKey = 'sk-b2950087a9d5427392762814114b22a9';
     
+    // 使用 currentYear（2025）、currentMonth、currentDay
+    const currentDateStr = `${currentYear}-${currentMonth.toString().padStart(2, '0')}-${currentDay.toString().padStart(2, '0')}`;
         
         let prompt = `请严格按照以下规则进行专业八字排盘，确保所有计算准确无误：
         
@@ -3387,10 +3380,7 @@ function determineStrengthType(pillars) {
 八字：${localResult.yearStem}${localResult.yearBranch} ${localResult.monthStem}${localResult.monthBranch} ${localResult.dayStem}${localResult.dayBranch} ${localResult.hourStem}${localResult.hourBranch}
 起运时间：${localResult.luckStartingTime}
 身强身弱：${localResult.strengthType}
-【十年大运信息】
-${localResult.decadeFortuneStr}  // 修改这里，使用 localResult.decadeFortuneStr
-
-请直接使用以上提供的大运信息进行分析，不要自行排盘或计算大运。
+请直接分析此八字的起运时间和身强身弱，不要自行排盘或计算起运时间。
 `;
 
         // 根据不同部分设置不同的提示词
@@ -3679,11 +3669,7 @@ ${localResult.decadeFortuneStr}  // 修改这里，使用 localResult.decadeFort
    八字：${currentPillars.year} ${currentPillars.month} ${currentPillars.day} ${currentPillars.hour}
    起运时间：${luckStartingTime.textContent || '未计算'}
    身强身弱：${strengthType.textContent || '未计算'}
-   
-   【十年大运信息】
-    ${localResult.decadeFortuneStr}  // 修改这里，使用 localResult.decadeFortuneStr
-
-重要提示：请直接使用以上提供的八字和大运信息进行分析，不要自行排盘或计算！
+   请直接分析此八字的起运时间和身强身弱，不要自行排盘或计算起运时间。
 
 用户问题：${question}`;
         
