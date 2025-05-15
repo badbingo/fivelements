@@ -1,6 +1,6 @@
 
 document.addEventListener('DOMContentLoaded', function() {
-    // 确保全局能获取当前日期（动态获取2025年c）
+    // 确保全局能获取当前日期（动态获取2025年b）
     const currentDate = new Date(); // 自动获取当前日期（2025）
     const currentYear = currentDate.getFullYear(); // 2025
     const currentMonth = currentDate.getMonth() + 1; // 1-12
@@ -3249,197 +3249,217 @@ function determineStrengthType(pillars) {
 
     // 显示基础信息
     function displayBasicInfo(info) {
-    // ============== 1. 数据验证 ============== //
-    if (!info || typeof info !== 'object') {
-        console.error('无效的测算数据');
-        showError('测算数据异常，请重新计算');
+    // ============== 1. 参数验证 ============== //
+    if (!validateInfo(info)) {
+        showError('输入的八字数据不完整');
         return;
     }
 
-    // ============== 2. 获取DOM元素（带空值检查） ============== //
-    const elements = {
-        nameDisplay: getElementSafely('user-name-display'),
-        birthDisplay: getElementSafely('user-birth-display'),
-        currentFortune: getElementSafely('current-fortune'),
-        luckStartingTime: getElementSafely('luck-starting-time'),
-        strengthType: getElementSafely('strength-type'),
-        personality: getElementSafely('personality-traits'),
-        pillars: ['year', 'month', 'day', 'hour'].map(pillar => ({
-            stem: getElementSafely(`${pillar}-stem`),
-            branch: getElementSafely(`${pillar}-branch`),
-            hidden: getElementSafely(`${pillar}-hidden-stems`)
-        }))
-    };
+    // ============== 2. 获取DOM元素 ============== //
+    const elements = getDisplayElements();
+    if (!elements) return;
 
-    // ============== 3. 显示基础信息 ============== //
+    // ============== 3. 渲染核心信息 ============== //
     try {
-        // 3.1 显示用户信息
-        displayUserInfo(elements, info);
-        
-        // 3.2 显示四柱信息
-        displayPillars(elements.pillars, info);
-        
-        // 3.3 显示运势信息
-        displayFortuneInfo(elements, info);
-        
-        // 3.4 初始化交互功能
-        initInteractiveFeatures();
-        
+        // 3.1 用户基本信息
+        renderUserInfo(elements, info);
+
+        // 3.2 八字四柱
+        renderPillars(elements.pillars, info);
+
+        // 3.3 运势信息
+        renderFortune(elements.fortune, info);
+
+        // 3.4 交互功能初始化
+        initInteractions(info);
+
     } catch (error) {
-        console.error('渲染失败:', error);
-        showError('信息显示异常');
+        console.error('渲染过程中出错:', error);
+        showError('数据渲染异常，请刷新重试');
     }
 }
 
 // ==================== 辅助函数 ==================== //
 
-/**
- * 安全获取DOM元素
- */
-function getElementSafely(id) {
-    const el = document.getElementById(id);
-    if (!el) console.warn(`未找到元素 #${id}`);
-    return el;
+/** 数据验证 */
+function validateInfo(info) {
+    const requiredFields = [
+        'yearStem', 'monthStem', 'dayStem', 'hourStem',
+        'luckStartingTime', 'strengthType', 'personality'
+    ];
+    return info && requiredFields.every(field => info[field]);
 }
 
-/**
- * 显示错误信息
- */
-function showError(message) {
-    const errorContainer = document.getElementById('error-container') || document.body;
-    errorContainer.innerHTML = `<div class="error-message">${message}</div>`;
+/** 获取所有显示元素 */
+function getDisplayElements() {
+    const elements = {
+        // 用户信息
+        nameDisplay: document.getElementById('user-name-display'),
+        birthDisplay: document.getElementById('user-birth-display'),
+        
+        // 四柱元素
+        pillars: ['year', 'month', 'day', 'hour'].map(pillar => ({
+            name: pillar,
+            stem: document.getElementById(`${pillar}-stem`),
+            branch: document.getElementById(`${pillar}-branch`),
+            hidden: document.getElementById(`${pillar}-hidden-stems`)
+        })),
+        
+        // 运势信息
+        fortune: {
+            luckTime: document.getElementById('luck-starting-time'),
+            strength: document.getElementById('strength-type'),
+            current: document.getElementById('current-fortune'),
+            personality: document.getElementById('personality-traits')
+        }
+    };
+
+    // 检查关键元素是否存在
+    const missingElements = Object.entries(elements)
+        .filter(([key, val]) => !val && key !== 'fortune')
+        .concat(
+            Object.entries(elements.fortune)
+                .filter(([_, el]) => !el)
+        );
+
+    if (missingElements.length) {
+        console.error('缺少DOM元素:', missingElements.map(e => e[0]));
+        return null;
+    }
+    return elements;
 }
 
-/**
- * 显示用户基本信息
- */
-function displayUserInfo(elements, info) {
-    if (!birthData) return;
-    
-    // 显示姓名
+/** 渲染用户信息 */
+function renderUserInfo(elements, info) {
+    // 姓名显示
     if (elements.nameDisplay) {
-        elements.nameDisplay.textContent = birthData.name || '匿名用户';
+        elements.nameDisplay.textContent = birthData?.name || '匿名用户';
     }
-    
-    // 显示出生时间
-    if (elements.birthDisplay) {
-        const timeMap = {
-            23: '子时 (23-1)', 0: '子时 (23-1)',
-            1: '丑时 (1-3)', 3: '寅时 (3-5)',
-            5: '卯时 (5-7)', 7: '辰时 (7-9)',
-            9: '巳时 (9-11)', 11: '午时 (11-13)',
-            13: '未时 (13-15)', 15: '申时 (15-17)',
-            17: '酉时 (17-19)', 19: '戌时 (19-21)',
-            21: '亥时 (21-23)'
-        };
+
+    // 出生时间显示
+    if (elements.birthDisplay && birthData) {
         const hour = parseInt(birthData.time?.split(':')[0]) || 0;
-        elements.birthDisplay.textContent = `${birthData.date?.replace(/-/g, '/') || '未知日期'} ${timeMap[hour] || '未知时辰'}`;
+        const timeText = getTimePeriodText(hour);
+        elements.birthDisplay.textContent = 
+            `${birthData.date?.replace(/-/g, '/') || '--'} ${timeText}`;
     }
 }
 
-/**
- * 显示四柱信息
- */
-function displayPillars(pillars, info) {
-    pillars.forEach((pillar, index) => {
-        const pillarName = ['年柱', '月柱', '日柱', '时柱'][index];
+/** 获取时辰文本 */
+function getTimePeriodText(hour) {
+    const periodMap = {
+        23: '子时 (23-1)', 0: '子时 (23-1)',
+        1: '丑时 (1-3)', 3: '寅时 (3-5)',
+        5: '卯时 (5-7)', 7: '辰时 (7-9)',
+        9: '巳时 (9-11)', 11: '午时 (11-13)',
+        13: '未时 (13-15)', 15: '申时 (15-17)',
+        17: '酉时 (17-19)', 19: '戌时 (19-21)',
+        21: '亥时 (21-23)'
+    };
+    return periodMap[hour] || '未知时辰';
+}
+
+/** 渲染四柱信息 */
+function renderPillars(pillars, info) {
+    pillars.forEach(pillar => {
+        const prefix = pillar.name.charAt(0); // y/m/d/h
         
         // 天干
         if (pillar.stem) {
-            const stem = info[`${pillarName.charAt(0)}Stem`];
+            const stem = info[`${prefix}Stem`];
             pillar.stem.textContent = stem || '--';
-            if (stem) setElementColor(pillar.stem, stem);
+            setElementColor(pillar.stem, stem);
         }
-        
+
         // 地支
         if (pillar.branch) {
-            const branch = info[`${pillarName.charAt(0)}Branch`];
+            const branch = info[`${prefix}Branch`];
             pillar.branch.textContent = branch || '--';
-            if (branch) setElementColor(pillar.branch, branch);
+            setElementColor(pillar.branch, branch);
         }
-        
+
         // 藏干
         if (pillar.hidden) {
-            const hidden = info[`${pillarName.charAt(0)}HiddenStems`];
+            const hidden = info[`${prefix}HiddenStems`];
             pillar.hidden.innerHTML = hidden 
-                ? hidden.split('').map(char => 
-                    `<span class="${getElementClass(char)}">${char}</span>`
+                ? hidden.split('').map(c => 
+                    `<span class="${getElementClass(c)}">${c}</span>`
                   ).join('')
                 : '--';
         }
     });
 }
 
-/**
- * 显示运势信息
- */
-function displayFortuneInfo(elements, info) {
+/** 渲染运势信息 */
+function renderFortune(fortune, info) {
     // 起运时间
-    if (elements.luckStartingTime) {
-        elements.luckStartingTime.textContent = info.luckStartingTime || '未计算';
-        elements.luckStartingTime.className = info.luckStartingTime 
+    if (fortune.luckTime) {
+        fortune.luckTime.textContent = info.luckStartingTime || '未计算';
+        fortune.luckTime.className = info.luckStartingTime 
             ? 'result-value highlight' 
             : 'result-value disabled';
     }
-    
+
     // 身强身弱
-    if (elements.strengthType) {
-        elements.strengthType.textContent = info.strengthType || '未计算';
+    if (fortune.strength) {
+        fortune.strength.textContent = info.strengthType || '未计算';
         if (info.strengthType) {
-            elements.strengthType.className = `strength-${
+            fortune.strength.className = `strength-${
                 info.strengthType.includes('强') ? 'strong' : 'weak'
             }`;
         }
     }
-    
+
     // 当前大运
-    if (elements.currentFortune) {
+    if (fortune.current) {
         if (info.currentFortune) {
-            elements.currentFortune.innerHTML = `
+            fortune.current.innerHTML = `
                 <span class="ganzhi">${info.currentFortune.ganZhi || '--'}</span>
-                <span class="age-range">(${info.currentFortune.ageRange || '未知年龄段'})</span>
-                <span class="score">${
-                    info.currentFortune.score !== undefined 
-                        ? `运势指数: ${info.currentFortune.score}/100` 
-                        : '运势未评分'
-                }</span>
+                <span class="age-range">(${info.currentFortune.ageRange || '--'})</span>
+                ${renderScore(info.currentFortune.score)}
             `;
             
             // 设置大运干支颜色
             if (info.currentFortune.ganZhi) {
-                const ganzhiSpans = elements.currentFortune.querySelectorAll('.ganzhi');
-                setElementColor(ganzhiSpans[0], info.currentFortune.ganZhi[0]); // 天干
-                setElementColor(ganzhiSpans[1], info.currentFortune.ganZhi[1]); // 地支
+                const spans = fortune.current.querySelectorAll('.ganzhi');
+                setElementColor(spans[0], info.currentFortune.ganZhi[0]);
+                setElementColor(spans[1], info.currentFortune.ganZhi[1]);
             }
         } else {
-            elements.currentFortune.textContent = '大运数据未计算';
+            fortune.current.textContent = '大运数据未计算';
         }
     }
-    
+
     // 性格特征
-    if (elements.personality) {
-        elements.personality.textContent = `命主性格：${
-            info.personality || '未分析'
-        }`;
+    if (fortune.personality) {
+        fortune.personality.textContent = `命主性格：${info.personality || '未分析'}`;
     }
 }
 
-/**
- * 初始化交互功能
- */
-function initInteractiveFeatures() {
-    // 十神提示功能
+/** 渲染运势评分 */
+function renderScore(score) {
+    if (score === undefined || score === null) return '';
+    const stars = '★'.repeat(Math.round(score/20)) + 
+                 '☆'.repeat(5 - Math.round(score/20));
+    return `<span class="score">${stars} ${score}/100</span>`;
+}
+
+/** 初始化交互功能 */
+function initInteractions(info) {
+    // 十神提示系统
     setupTenGodsClickHandlers();
     
-    // 大运图表（需要确保已加载Chart.js）
+    // 大运走势图
     if (window.Chart && info.decadeFortune) {
-        initFortuneChart(info.decadeFortune);
+        try {
+            initFortuneChart(info.decadeFortune);
+        } catch (e) {
+            console.error('图表初始化失败:', e);
+        }
     }
 }
 
-/**
- * 设置五行颜色
- */
+/** 设置五行颜色 */
 function setElementColor(element, text) {
     if (!element || !text) return;
     
@@ -3451,19 +3471,13 @@ function setElementColor(element, text) {
         '壬': 'water', '癸': 'water', '子': 'water', '亥': 'water'
     };
     
-    // 移除所有五行class
-    element.classList.remove('wood', 'fire', 'earth', 'metal', 'water');
-    
-    // 添加新class
-    const elementClass = colorMap[text];
-    if (elementClass) {
-        element.classList.add(elementClass);
+    element.className = ''; // 清空现有class
+    if (colorMap[text]) {
+        element.classList.add(colorMap[text]);
     }
 }
 
-/**
- * 获取五行class
- */
+/** 获取五行class */
 function getElementClass(char) {
     const map = {
         '甲': 'wood', '乙': 'wood',
@@ -3473,6 +3487,17 @@ function getElementClass(char) {
         '壬': 'water', '癸': 'water'
     };
     return map[char] || '';
+}
+
+/** 显示错误信息 */
+function showError(message) {
+    const container = document.getElementById('error-container') || document.body;
+    container.innerHTML = `
+        <div class="bazi-error">
+            <i class="fas fa-exclamation-triangle"></i>
+            ${message}
+        </div>
+    `;
 }
 
     // 获取八字分析
