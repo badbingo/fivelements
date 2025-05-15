@@ -1,6 +1,6 @@
 
 document.addEventListener('DOMContentLoaded', function() {
-    // 确保全局能获取当前日期（动态获取2025年w）
+    // 确保全局能获取当前日期（动态获取2025年a）
     const currentDate = new Date(); // 自动获取当前日期（2025）
     const currentYear = currentDate.getFullYear(); // 2025
     const currentMonth = currentDate.getMonth() + 1; // 1-12
@@ -2731,6 +2731,11 @@ function hasHe(branches, branch1, branch2) {
         hourStem: hourGan,
         hourBranch: hourZhi
     });
+        // 将十年大运信息格式化为字符串
+        const decadeFortuneStr = `起运年龄: ${decadeFortune.startAge}岁\n` +
+        decadeFortune.fortunes.map(f => 
+            `${f.ageRange}: ${f.ganZhi} (运势指数: ${f.score}/100)`
+        ).join('\n');
         
         return {
             yearStem: yearGan,
@@ -2748,6 +2753,7 @@ function hasHe(branches, branch1, branch2) {
             elements,
             personality,
             decadeFortune,
+            decadeFortuneStr,       // 新增：字符串格式的十年大运信息
             gamblingFortune,
             luckStartingTime,  // 新增起运时间
             strengthType       // 新增从强从弱
