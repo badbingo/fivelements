@@ -3835,6 +3835,8 @@ function showError(message) {
    八字：${currentPillars.year} ${currentPillars.month} ${currentPillars.day} ${currentPillars.hour}
    起运时间：${luckStartingTime.textContent || '未计算'}
    身强身弱：${strengthType.textContent || '未计算'}
+当前大运：${localResult.currentFortune.ganZhi} (${localResult.currentFortune.ageRange})
+未来大运：${localResult.decadeFortune.fortunes.map(f => f.ganZhi).join('→')}
    请直接分析此八字的起运时间和身强身弱，不要自行排盘或计算起运时间。
 
 用户问题：${question}`;
