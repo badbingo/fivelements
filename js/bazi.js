@@ -3683,7 +3683,7 @@ function determineStrengthType(pillars) {
                         'Authorization': `Bearer ${apiKey}`
                     },
                     body: JSON.stringify({
-                        model: "deepseek-chat",
+                        model: "deepseek-reasoner",
                         messages: [{
                             role: "system",
                             content: "你是一位资深的八字命理大师，精通子平八字、紫微斗数等传统命理学。请严格按照八字专业问答规范回答用户问题。"
