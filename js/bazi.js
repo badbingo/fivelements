@@ -1,6 +1,6 @@
 
 document.addEventListener('DOMContentLoaded', function() {
-    // 确保全局能获取当前日期（动态获取2025年b）
+    // 确保全局能获取当前日期（动态获取2025年）
     const currentDate = new Date(); // 自动获取当前日期（2025）
     const currentYear = currentDate.getFullYear(); // 2025
     const currentMonth = currentDate.getMonth() + 1; // 1-12
@@ -2756,86 +2756,82 @@ function hasHe(branches, branch1, branch2) {
 
     // 修改后的calculateLuckStartingTime函数
 function calculateLuckStartingTime(lunar, gender) {
-    // 1. 基础参数准备
-    const solar = lunar.getSolar();
-    const yearGan = lunar.getYearGan();
-    const yearZhi = lunar.getYearZhi();
-    
-    // 2. 判断顺排/逆排大运
-    const isYangYear = ['甲', '丙', '戊', '庚', '壬'].includes(yearGan);
-    const isForward = (isYangYear && gender === 'male') || (!isYangYear && gender === 'female');
-    
-    // 3. 节气定义（公历近似日期，误差±1天）
-    const JIE_QI_MAP = {
-        '立春': [2, 4], '雨水': [2, 19], '惊蛰': [3, 6], '春分': [3, 21],
-        '清明': [4, 5], '谷雨': [4, 20], '立夏': [5, 6], '小满': [5, 21],
-        '芒种': [6, 6], '夏至': [6, 21], '小暑': [7, 7], '大暑': [7, 23],
-        '立秋': [8, 8], '处暑': [8, 23], '白露': [9, 8], '秋分': [9, 23],
-        '寒露': [10, 8], '霜降': [10, 23], '立冬': [11, 7], '小雪': [11, 22],
-        '大雪': [12, 7], '冬至': [12, 22], '小寒': [1, 6], '大寒': [1, 20]
+    // 节气近似公历日期（误差±1天不影响年柱计算）
+    const JIE_QI_DATES = {
+        '立春': [2,4], '雨水': [2,19], '惊蛰': [3,6], '春分': [3,21],
+        '清明': [4,5], '谷雨': [4,20], '立夏': [5,6], '小满': [5,21],
+        '芒种': [6,6], '夏至': [6,21], '小暑': [7,7], '大暑': [7,23],
+        '立秋': [8,8], '处暑': [8,23], '白露': [9,8], '秋分': [9,23],
+        '寒露': [10,8], '霜降': [10,23], '立冬': [11,7], '小雪': [11,22],
+        '大雪': [12,7], '冬至': [12,22], '小寒': [1,6], '大寒': [1,20]
     };
-    
-    // 4. 找到关键节气（顺排找下一个立春，逆排找上一个冬至）
-    const targetJieQiName = isForward ? '立春' : '大寒';
-    const [jieQiMonth, jieQiDay] = JIE_QI_MAP[targetJieQiName];
-    let jieQiYear = solar.getYear();
-    
-    // 处理跨年节气（如1月出生的大寒可能在去年）
-    if (!isForward && solar.getMonth() < jieQiMonth) {
-        jieQiYear--;
+
+    // 获取最近的节气（向前/向后）
+    function findNearestJieQi(birthDate, isForward) {
+        const year = birthDate.getFullYear();
+        let nearest = null;
+        let minDiff = Infinity;
+
+        Object.entries(JIE_QI_DATES).forEach(([name, [month, day]]) => {
+            const jieQiDate = new Date(year, month - 1, day);
+            const diff = jieQiDate - birthDate;
+
+            if (isForward && diff > 0 && diff < minDiff) {
+                minDiff = diff;
+                nearest = jieQiDate;
+            } else if (!isForward && diff < 0 && -diff < minDiff) {
+                minDiff = -diff;
+                nearest = jieQiDate;
+            }
+        });
+
+        // 跨年处理
+        if (!nearest) {
+            const nextYear = isForward ? year + 1 : year - 1;
+            const jieQiDate = new Date(nextYear, 
+                isForward ? 0 : 11, // 立春(2月)或大雪(12月)
+                isForward ? JIE_QI_DATES['立春'][1] : JIE_QI_DATES['大雪'][1]);
+            return jieQiDate;
+        }
+        return nearest;
     }
-    
-    // 5. 计算节气日期（简化计算，实际应使用精确节气时间）
-    const jieQiDate = new Date(jieQiYear, jieQiMonth - 1, jieQiDay);
-    const birthDate = new Date(solar.getYear(), solar.getMonth() - 1, solar.getDay());
-    
-    // 6. 计算时间差（毫秒）
-    const diffMs = isForward 
-        ? jieQiDate - birthDate  // 顺排：节气在出生后
-        : birthDate - jieQiDate; // 逆排：节气在出生前
-    
-    // 7. 转换为天数（3天=1年）
-    const totalDays = diffMs / (1000 * 60 * 60 * 24);
-    const years = Math.floor(totalDays / 3);
-    const remainingDays = totalDays % 3;
-    const months = Math.floor(remainingDays * 4);       // 1天≈4个月
-    const days = Math.floor((remainingDays * 4 - months) * 30); // 0.1个月≈3天
-    
-    // 8. 计算起运年龄和日期
-    const startAge = years;
-    const startDate = new Date(
-        birthDate.getFullYear() + years,
-        birthDate.getMonth() + months,
-        birthDate.getDate() + days
-    );
-    
-    // 9. 返回结构化结果
-    return {
-        // 基础信息
-        gender: gender,
-        yearGanZhi: yearGan + yearZhi,
-        direction: isForward ? '顺排' : '逆排',
-        jieQi: targetJieQiName,
+
+    try {
+        // 1. 确定出生日期
+        const birthDate = new Date(
+            lunar.getSolar().getYear(),
+            lunar.getSolar().getMonth() - 1,
+            lunar.getSolar().getDay(),
+            lunar.getSolar().getHour(),
+            lunar.getSolar().getMinute()
+        );
+
+        // 2. 判断顺排/逆排
+        const yearGan = lunar.getYearGan();
+        const isYangYear = ['甲', '丙', '戊', '庚', '壬'].includes(yearGan);
+        const isForward = (isYangYear && gender === 'male') || 
+                         (!isYangYear && gender === 'female');
+
+        // 3. 找到关键节气
+        const targetJieQi = findNearestJieQi(birthDate, isForward);
         
-        // 时间计算结果
-        startAge: startAge,
-        startYear: startDate.getFullYear(),
-        startDate: `${startDate.getFullYear()}年${startDate.getMonth() + 1}月${startDate.getDate()}日`,
-        
-        // 详细分解
-        totalDays: totalDays.toFixed(2),
-        years: years,
-        months: months,
-        days: days,
-        
-        // 显示文本
-        description: `${startAge}岁${months}个月${days}天起运`,
-        shortDescription: `${startAge}岁起运`,
-        
-        // 节气信息（用于调试）
-        jieQiDate: `${jieQiYear}年${jieQiMonth}月${jieQiDay}日`,
-        birthDate: `${solar.getYear()}年${solar.getMonth()}月${solar.getDay()}日`
-    };
+        // 4. 计算精确时间差（毫秒）
+        const diffMs = Math.abs(targetJieQi - birthDate);
+        const diffDays = diffMs / (1000 * 60 * 60 * 24);
+
+        // 5. 转换为起运时间（3天=1年）
+        const years = Math.floor(diffDays / 3);
+        const remainingDays = diffDays % 3;
+        const months = Math.floor(remainingDays * 4); // 1天≈4个月
+        const days = Math.floor((remainingDays * 4 - months) * 30);
+        const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+
+        return `${years}岁${months}个月${days}天${Math.round(hours)}小时起运`;
+
+    } catch (e) {
+        console.error('计算异常:', e);
+        return '无法计算起运时间';
+    }
 }
 
     // 判断从强从弱 - 修改后的函数
@@ -3013,200 +3009,66 @@ function determineStrengthType(pillars) {
 }
     // 计算十年大运
     function calculateDecadeFortune(lunar, gender) {
-    // 1. 基础参数准备
-    const solar = lunar.getSolar();
-    const yearGan = lunar.getYearGan();
-    const yearZhi = lunar.getYearZhi();
-    const dayGan = lunar.getDayGan();
-    const dayZhi = lunar.getDayZhi();
-    
-    // 2. 计算起运时间（依赖前文实现的calculateLuckStartingTime）
-    const luckTime = calculateLuckStartingTime(lunar, gender);
-    const startAge = luckTime.startAge;
-    
-    // 3. 确定顺排/逆排
-    const isYangYear = ['甲', '丙', '戊', '庚', '壬'].includes(yearGan);
-    const isForward = (isYangYear && gender === 'male') || (!isYangYear && gender === 'female');
-    
-    // 4. 干支顺序定义
-    const GAN = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
-    const ZHI = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
-    
-    // 5. 初始化干支指针（年柱）
-    let ganIndex = GAN.indexOf(yearGan);
-    let zhiIndex = ZHI.indexOf(yearZhi);
-    
-    // 6. 大运计算（8个周期，每个周期10年）
-    const fortunes = [];
-    for (let i = 0; i < 8; i++) {
-        // 移动干支指针
-        ganIndex = isForward ? 
-            (ganIndex + 1) % 10 : 
-            (ganIndex - 1 + 10) % 10;
-        zhiIndex = isForward ? 
-            (zhiIndex + 1) % 12 : 
-            (zhiIndex - 1 + 12) % 12;
+        const yearGan = lunar.getYearGan();
+        const yearZhi = lunar.getYearZhi();
+        const isMale = gender === 'male';
+        const isYangYear = ['甲', '丙', '戊', '庚', '壬'].includes(yearGan);
+        const isForward = (isYangYear && isMale) || (!isYangYear && !isMale);
         
-        const gan = GAN[ganIndex];
-        const zhi = ZHI[zhiIndex];
+        const solar = lunar.getSolar();
+        const jieQiName = isForward ? '立春' : '大寒';
+        const targetJieQi = lunar.getJieQi(jieQiName);
         
-        // 计算大运能量值（0-100）
-        const energy = calculateFortuneEnergy(gan, zhi, dayGan, dayZhi);
+        let daysDiff = 15; // 默认值
         
-        // 生成分析报告
-        const analysis = generateFortuneAnalysis(gan, zhi, dayGan);
+        try {
+            // 尝试获取节气日期
+            if (targetJieQi && typeof targetJieQi.getSolar === 'function') {
+                const targetSolar = targetJieQi.getSolar();
+                daysDiff = Math.abs(solar.diffDays(targetSolar));
+            } else if (targetJieQi && targetJieQi.solar) {
+                // 备选方案：如果节气对象有solar属性
+                daysDiff = Math.abs(solar.diffDays(targetJieQi.solar));
+            }
+        } catch (e) {
+            console.warn('计算节气间隔失败，使用默认值:', e);
+        }
         
-        fortunes.push({
-            // 基础信息
-            index: i + 1,
-            ageRange: `${startAge + i * 10}-${startAge + (i + 1) * 10}岁`,
-            ganZhi: gan + zhi,
+        const startAge = Math.floor(daysDiff / 3);
+        const zhiOrder = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
+        let currentZhiIndex = zhiOrder.indexOf(yearZhi);
+        
+        const ganOrder = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
+        let currentGanIndex = ganOrder.indexOf(yearGan);
+        
+        const fortunes = [];
+        for (let i = 0; i < 8; i++) {
+            currentZhiIndex = isForward ? 
+                (currentZhiIndex + 1) % 12 : 
+                (currentZhiIndex - 1 + 12) % 12;
+            currentGanIndex = isForward ?
+                (currentGanIndex + 1) % 10 :
+                (currentGanIndex - 1 + 10) % 10;
             
-            // 能量评估
-            energyScore: energy,
-            energyLevel: getEnergyLevel(energy),
+            const gan = ganOrder[currentGanIndex];
+            const zhi = zhiOrder[currentZhiIndex];
+            const baseScore = 60 + Math.floor(Math.random() * 20);
+            const trendBonus = isForward ? i * 2 : (7 - i) * 2;
+            const score = Math.min(90, baseScore + trendBonus);
             
-            // 十神关系
-            relation: getTenGodRelation(dayGan, gan),
-            hiddenStems: getHiddenStems(zhi),
-            
-            // 分析结果
-            careerAdvice: getCareerAdvice(gan, zhi, dayGan),
-            wealthTrend: getWealthTrend(gan, zhi),
-            healthWarning: getHealthWarning(zhi),
-            
-            // 完整分析文本
-            analysis: analysis
-        });
+            fortunes.push({
+                ageRange: `${startAge + i * 10}-${startAge + (i + 1) * 10}岁`,
+                ganZhi: gan + zhi,
+                score: score
+            });
+        }
+        
+        return {
+            isForward: isForward,
+            startAge: startAge,
+            fortunes: fortunes
+        };
     }
-    
-    return {
-        // 基础信息
-        birthDate: `${solar.getYear()}年${solar.getMonth()}月${solar.getDay()}日`,
-        gender: gender,
-        yearGanZhi: yearGan + yearZhi,
-        dayGanZhi: dayGan + dayZhi,
-        direction: isForward ? '顺排' : '逆排',
-        startAge: startAge,
-        
-        // 大运数据
-        fortunes: fortunes,
-        
-        // 关键提示
-        notice: getFortuneNotice(yearGan, yearZhi, isForward)
-    };
-}
-
-// ================== 辅助函数 ================== //
-// 获取天干地支的五行属性（木、火、土、金、水）
-function getElement(char) {
-    const elementMap = {
-        // 天干
-        '甲': '木', '乙': '木',
-        '丙': '火', '丁': '火',
-        '戊': '土', '己': '土', 
-        '庚': '金', '辛': '金',
-        '壬': '水', '癸': '水',
-        
-        // 地支
-        '寅': '木', '卯': '木',
-        '午': '火', '巳': '火',
-        '辰': '土', '戌': '土', '丑': '土', '未': '土',
-        '申': '金', '酉': '金', 
-        '子': '水', '亥': '水'
-    };
-    return elementMap[char] || '木'; // 默认返回木属性
-}
-function calculateFortuneEnergy(gan, zhi, dayGan, dayZhi) {
-    // 1. 十神基础分
-    const relationScore = {
-        '比肩': 60, '劫财': 55, '食神': 85, '伤官': 70,
-        '偏财': 80, '正财': 75, '七杀': 40, '正官': 65,
-        '偏印': 50, '正印': 90
-    };
-    
-    // 2. 完整的五行生克关系表（补全所有组合）
-    const elementRelations = {
-        '木': { '木':1.0, '火':0.8, '土':0.6, '金':0.4, '水':0.9 },
-        '火': { '木':1.2, '火':1.0, '土':0.7, '金':0.5, '水':0.3 },
-        '土': { '木':0.5, '火':0.7, '土':1.0, '金':0.8, '水':0.6 },
-        '金': { '木':0.3, '火':0.5, '土':0.8, '金':1.0, '水':0.7 },
-        '水': { '木':0.7, '火':0.4, '土':0.6, '金':0.9, '水':1.0 }
-    };
-    
-    // 3. 获取五行属性（确保getElement函数存在）
-    const dayElement = getElement(dayGan);
-    const ganElement = getElement(gan);
-    const zhiElement = getElement(zhi);
-    
-    // 4. 安全访问（防止undefined）
-    const dayToGan = elementRelations[dayElement]?.[ganElement] || 1.0;
-    const dayToZhi = elementRelations[dayElement]?.[zhiElement] || 1.0;
-    
-    // 5. 计算总分
-    const relation = getTenGodRelation(dayGan, gan);
-    let score = relationScore[relation] || 50;
-    score = score * dayToGan * dayToZhi;
-    
-    return Math.min(100, Math.max(0, Math.round(score)));
-}
-    
-    // 应用五行生克
-    const dayElement = getElement(dayGan);
-    const ganElement = getElement(gan);
-    const zhiElement = getElement(zhi);
-    score *= elementRelations[dayElement][ganElement];
-    score *= elementRelations[dayElement][zhiElement];
-    
-    return Math.min(100, Math.max(0, Math.round(score)));
-}
-
-/** 生成大运分析报告 */
-function generateFortuneAnalysis(gan, zhi, dayGan) {
-    const relation = getTenGodRelation(dayGan, gan);
-    const stems = getHiddenStems(zhi).split('');
-    
-    let analysis = `【${gan}${zhi}大运分析】\n`;
-    analysis += `十神：${relation}\n`;
-    analysis += `地支藏干：${stems.join('、')}\n\n`;
-    
-    // 添加十神特质分析
-    analysis += getRelationAnalysis(relation) + '\n';
-    
-    // 添加五行建议
-    analysis += `五行建议：${getElementAdvice(gan, zhi)}\n`;
-    
-    return analysis;
-}
-
-/** 获取十神关系 */
-function getTenGodRelation(dayGan, targetGan) {
-    const relations = {
-        '甲': { '甲':'比肩', '乙':'劫财', '丙':'食神', '丁':'伤官', '戊':'偏财', 
-               '己':'正财', '庚':'七杀', '辛':'正官', '壬':'偏印', '癸':'正印' },
-        // ...其他日干映射
-    };
-    return relations[dayGan]?.[targetGan] || '无关系';
-}
-
-/** 获取地支藏干 */
-function getHiddenStems(zhi) {
-    const map = {
-        '子':'癸', '丑':'己癸辛', '寅':'甲丙戊', '卯':'乙', 
-        '辰':'戊乙癸', '巳':'丙庚戊', '午':'丁己', '未':'己丁乙',
-        '申':'庚壬戊', '酉':'辛', '戌':'戊辛丁', '亥':'壬甲'
-    };
-    return map[zhi] || '';
-}
-
-/** 获取能量等级 */
-function getEnergyLevel(score) {
-    if (score >= 85) return '★★★★★ (旺盛)';
-    if (score >= 70) return '★★★★☆ (强劲)';
-    if (score >= 55) return '★★★☆☆ (平稳)';
-    if (score >= 40) return '★★☆☆☆ (低迷)';
-    return '★☆☆☆☆ (衰弱)';
-}
 
     // 计算赌博运势
     function calculateGamblingFortune(birthData, birthLunar) {
@@ -3796,7 +3658,7 @@ function getEnergyLevel(score) {
 1. 回答必须基于传统八字命理学知识
 2. 回答应简洁明了，避免冗长
 3. 针对用户问题提供专业分析
-4. 根据所提供的起运时间，推算出大运
+4. 所有分析前必须先计算出命主当前八字+大运+流年的格局强弱，再进行分析
    当前日期：${currentDateStr} 
    如果问题与当前命盘相关，请结合以下八字信息：
    当前日期：${currentDateStr} 
