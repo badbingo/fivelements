@@ -3144,60 +3144,106 @@ body::after {
     animation: starFly 1.2s ease-out forwards;
 }
 
-/* 星光闪烁效果 */
-@keyframes starTwinkle {
-    0%, 100% { opacity: 0.3; }
-    50% { opacity: 1; }
+/* 3D翻页过渡效果 */
+.page-3d-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    perspective: 2400px;
+    z-index: 9998;
+    pointer-events: none;
 }
 
-/* 粒子飞行动画 */
-@keyframes starFly {
-    0% {
-        transform: translate(0, 0) scale(0.3);
-        opacity: 0;
-    }
-    20% {
-        opacity: 1;
-    }
-    100% {
-        transform: translate(var(--tx), var(--ty)) scale(1);
-        opacity: 0;
-    }
-}
-
-/* 背景淡出动画 */
-@keyframes starFadeOut {
-    0% {
-        opacity: 1;
-    }
-    70% {
-        opacity: 1;
-    }
-    100% {
-        opacity: 0;
-    }
-}
-
-/* 星座连线效果（可选） */
-.constellation-line {
+.page-3d {
     position: absolute;
-    height: 1px;
-    background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.6) 50%, rgba(255,255,255,0) 100%);
-    transform-origin: left center;
-    opacity: 0;
-    animation: lineFade 1.5s ease-out forwards;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    backface-visibility: hidden;
+    transition: transform 1s cubic-bezier(0.42, 0, 0.58, 1);
 }
 
-@keyframes lineFade {
-    0% {
-        opacity: 0;
-        transform: scaleX(0);
+/* 当前页面样式 */
+.page-current {
+    z-index: 2;
+    background: var(--white);
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.2);
+}
+
+/* 下一页样式 */
+.page-next {
+    z-index: 1;
+    background: var(--light-gray);
+    transform: rotateY(180deg);
+}
+
+/* 翻页动画状态 */
+.page-3d-container.flip-out .page-current {
+    transform: rotateY(-180deg);
+}
+
+.page-3d-container.flip-in .page-next {
+    transform: rotateY(0deg);
+}
+
+/* 页面内容容器（防止内容变形） */
+.page-content {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    backface-visibility: hidden;
+    transform-style: preserve-3d;
+}
+
+/* 翻页时的背面内容 */
+.page-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: var(--light-gray);
+    transform: rotateY(180deg);
+    backface-visibility: hidden;
+}
+
+/* 页面边缘效果 */
+.page-3d::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 10px;
+    height: 100%;
+    background: linear-gradient(to left, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0) 100%);
+    transform: translateX(10px);
+    z-index: 10;
+}
+
+/* 加载指示器 */
+.page-loader {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 9999;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.page-loader.active {
+    opacity: 1;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+    .page-3d-container {
+        perspective: 1200px;
     }
-    30% {
-        opacity: 0.6;
-    }
-    100% {
-        opacity: 0;
-        transform: scaleX(var(--scale));
+    
+    .page-3d {
+        transition-duration: 0.8s;
     }
 }
+
