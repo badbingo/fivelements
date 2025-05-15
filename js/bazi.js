@@ -1143,218 +1143,192 @@ ${getWealthSuggestions(score)}
 
     // 显示部分内容
     function displaySectionContent(section, result, contentElement) {
-    if (result.includes('★')) {
-        result = result.replace(/(★+)/g, '<span class="rating" style="color:var(--earth-color);text-shadow:0 0 5px var(--earth-color)">$1</span>');
-        result = result.replace(/(☆+)/g, '<span style="color:#666">$1</span>');
+    // ==================== 1. 数据预处理 ====================
+    let content = '';
+    let metadata = {};
+    const currentYear = new Date().getFullYear(); // 获取当前年份(2025)
+
+    // 类型安全处理
+    if (typeof result === 'string') {
+        try {
+            // 尝试解析可能的JSON字符串
+            const parsed = JSON.parse(result);
+            content = parsed.analysis || parsed.message || result;
+            metadata = parsed;
+        } catch {
+            content = result;
+        }
+    } else if (result && typeof result === 'object') {
+        // 处理结构化数据
+        content = result.analysis || 
+                 result.choices?.[0]?.message?.content || 
+                 result.content || 
+                 JSON.stringify(result, null, 2);
+        metadata = result;
     }
-    
-    // 解析Markdown内容
-    const html = marked.parse(result);
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = html;
-    
-    // 为表格添加样式类
-    tempDiv.querySelectorAll('table').forEach(function(table) {
-        table.classList.add('markdown-table');
-    });
-    
-    // 创建打印按钮容器
-    const printContainer = document.createElement('div');
-    printContainer.className = 'print-btn-container';
-    
-    // 创建打印按钮
-    const printBtn = document.createElement('button');
-    printBtn.className = 'print-btn';
-    printBtn.innerHTML = '<i class="fas fa-print"></i> 打印此部分';
-    
-    // 定义英文到中文的标题映射
-    const sectionTitles = {
-        'basic': '基础信息',
-        'fate-level': '命格等级',
-        'wealth-level': '财富等级',
-        'strength': '身强身弱',
-        'career': '事业分析',
-        'wealth': '财富分析',
-        'elements': '五行分析',
-        'personality': '性格分析',
-        'children': '子女运势',
-        'marriage': '婚姻分析',
-        'health': '健康分析',
-        'annual-fortune': '年度运势',
-        'daily-fortune': '每日运势',
-        'milestones': '人生节点',
-        'decade-fortune': '十年大运',
-        'monthly-fortune': '每月运势'
-    };
-    
-    // 获取中文标题，如果没有匹配则使用原始section
-    const chineseTitle = sectionTitles[section] || section;
-    
-    // 添加打印功能
-    printBtn.onclick = function() {
-        const printWindow = window.open('', '_blank');
-        
-        printWindow.document.write(`
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <title>八字分析打印 - ${chineseTitle}</title>
-                <style>
-                    body { 
-                        font-family: "Microsoft YaHei", Arial, sans-serif; 
-                        line-height: 1.6; 
-                        padding: 20px; 
-                        color: #333;
-                    }
-                    h1, h2, h3, h4 { 
-                        color: #2c3e50;
-                        margin-top: 20px;
-                    }
-                    h1 { 
-                        font-size: 24px; 
-                        border-bottom: 1px solid #eee; 
-                        padding-bottom: 10px;
-                        text-align: center;
-                    }
-                    h2 { font-size: 20px; }
-                    h3 { font-size: 18px; }
-                    table { 
-                        border-collapse: collapse; 
-                        width: 100%; 
-                        margin: 15px 0; 
-                        font-size: 14px;
-                    }
-                    th, td { 
-                        border: 1px solid #ddd; 
-                        padding: 8px 12px; 
-                        text-align: left; 
-                    }
-                    th { 
-                        background-color: #f2f2f2; 
-                        font-weight: bold;
-                    }
-                    .rating { 
-                        color: #e67e22; 
-                        font-weight: bold; 
-                        letter-spacing: 2px;
-                    }
-                    .print-header {
-                        text-align: center;
-                        margin-bottom: 20px;
-                        padding-bottom: 10px;
-                        border-bottom: 1px solid #eee;
-                    }
-                    .print-footer {
-                        text-align: center;
-                        margin-top: 30px;
-                        padding-top: 10px;
-                        border-top: 1px solid #eee;
-                        font-size: 12px;
-                        color: #7f8c8d;
-                    }
-                    @media print {
-                        body { padding: 0 10px; }
-                        .no-print { display: none; }
-                        @page { margin: 1cm; }
-                    }
-                </style>
-            </head>
-            <body>
-                <div class="print-header">
-                    <h1>八字分析报告 - ${chineseTitle}</h1>
-                    <p>生成时间: ${new Date().toLocaleString('zh-CN')}</p>
-                </div>
-                
-                <div>${tempDiv.innerHTML}</div>
-                
-                <div class="print-footer">
-                    <p>本报告由机缘命理系统生成</p>
-                </div>
-                
-                <div class="no-print" style="margin-top: 30px; text-align: center;">
-                    <button onclick="window.print()" style="
-                        padding: 10px 20px; 
-                        background: #3498db; 
-                        color: white; 
-                        border: none; 
-                        border-radius: 4px; 
-                        cursor: pointer;
-                        font-size: 16px;
-                        margin-right: 10px;
-                    ">
-                        <i class="fas fa-print"></i> 打印报告
-                    </button>
-                    <button onclick="window.close()" style="
-                        padding: 10px 20px; 
-                        background: #e74c3c; 
-                        color: white; 
-                        border: none; 
-                        border-radius: 4px; 
-                        cursor: pointer;
-                        font-size: 16px;
-                    ">
-                        <i class="fas fa-times"></i> 关闭窗口
-                    </button>
-                </div>
-                
-                <script>
-                    // 添加Font Awesome图标库
-                    const fa = document.createElement('link');
-                    fa.rel = 'stylesheet';
-                    fa.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css';
-                    document.head.appendChild(fa);
-                </script>
-            </body>
-            </html>
-        `);
-        printWindow.document.close();
-    };
-    
-    // 将打印按钮添加到容器
-    printContainer.appendChild(printBtn);
-    
-    // 清空内容元素并添加新内容和打印按钮
-    contentElement.innerHTML = '';
-    contentElement.appendChild(tempDiv);
-    contentElement.appendChild(printContainer);
-    
-    // 添加打印按钮样式
-    if (!document.querySelector('style.print-btn-style')) {
-        const style = document.createElement('style');
-        style.className = 'print-btn-style';
-        style.textContent = `
-            .print-btn-container {
-                margin-top: 20px;
-                text-align: right;
-                padding: 15px 0;
-                border-top: 1px solid #eee;
-            }
-            
-            .print-btn {
-                background-color: var(--primary-color);
-                color: white;
-                border: none;
-                padding: 8px 15px;
-                border-radius: 4px;
-                cursor: pointer;
-                font-size: 14px;
-                transition: all 0.3s;
-                display: inline-flex;
-                align-items: center;
-                gap: 5px;
-            }
-            
-            .print-btn:hover {
-                background-color: var(--primary-dark-color);
-                transform: translateY(-1px);
-                box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            }
-            
-            .print-btn:active {
-                transform: translateY(0);
-            }
+
+    // ==================== 2. 特殊模块处理 ====================
+    // 大运模块增强
+    if (section === 'decade-fortune') {
+        if (metadata.fortunes || metadata.decadeFortune) {
+            const fortunes = metadata.fortunes || metadata.decadeFortune.fortunes;
+            content = generateDecadeFortuneContent(fortunes, currentYear) + '\n\n' + content;
+        }
+    }
+
+    // 流年模块增强
+    if (section === 'annual-fortune') {
+        content = `## ${currentYear}年流年详批\n` + content;
+        if (metadata.luckStartingTime) {
+            content += `\n\n> 起运时间：${metadata.luckStartingTime}`;
+        }
+    }
+
+    // ==================== 3. 内容渲染 ====================
+    const container = document.createElement('div');
+    container.className = 'analysis-content';
+
+    try {
+        // 安全解析Markdown
+        container.innerHTML = marked.parse(content || '暂无分析内容');
+
+        // 增强表格显示
+        enhanceTables(container);
+
+        // 处理评分显示
+        highlightRatings(container);
+
+        // 添加折叠功能
+        addCollapsibleSections(container);
+    } catch (e) {
+        console.error('内容渲染失败:', e);
+        container.innerHTML = `
+            <div class="alert alert-error">
+                <i class="fas fa-exclamation-triangle"></i>
+                内容解析错误，请尝试重新加载
+            </div>
+            <pre>${content || '无可用数据'}</pre>
         `;
-        document.head.appendChild(style);
+    }
+
+    // ==================== 4. 最终渲染 ====================
+    contentElement.innerHTML = '';
+    contentElement.appendChild(container);
+
+    // 添加功能按钮
+    addActionButtons(contentElement, section, metadata);
+
+    // 特殊图表初始化
+    if (section === 'decade-fortune' && (metadata.fortunes || metadata.decadeFortune)) {
+        initFortuneChart(metadata.fortunes || metadata.decadeFortune.fortunes);
+    }
+
+    if (section === 'elements' && metadata.elements) {
+        initElementChart(metadata.elements);
+    }
+
+    // ==================== 辅助函数 ====================
+    function generateDecadeFortuneContent(fortunes, year) {
+        if (!fortunes?.length) return '';
+
+        let markdown = `## 十年大运走势\n<div class="fortune-grid">`;
+        
+        fortunes.forEach((fortune, index) => {
+            const isCurrent = fortune.ageRange.includes(year - parseInt(birthData.date.split('-')[0]));
+            markdown += `
+                <div class="fortune-card ${isCurrent ? 'current' : ''}">
+                    <h4>${fortune.ganZhi || ''}</h4>
+                    <div class="age-range">${fortune.ageRange || ''}</div>
+                    <div class="score">${renderScore(fortune.score)}</div>
+                    ${fortune.tips ? `<p class="tips">${fortune.tips}</p>` : ''}
+                </div>
+            `;
+        });
+
+        return markdown + `</div>`;
+    }
+
+    function renderScore(score) {
+        if (!score) return '';
+        const filled = Math.min(5, Math.floor(score / 20));
+        return '★'.repeat(filled) + '☆'.repeat(5 - filled);
+    }
+
+    function enhanceTables(container) {
+        container.querySelectorAll('table').forEach(table => {
+            // 添加包装容器确保响应式
+            const wrapper = document.createElement('div');
+            wrapper.className = 'table-responsive';
+            table.parentNode.insertBefore(wrapper, table);
+            wrapper.appendChild(table);
+
+            // 添加表头高亮
+            const headers = table.querySelectorAll('th');
+            if (headers.length > 0) {
+                headers.forEach(th => {
+                    th.classList.add('table-header');
+                });
+            }
+        });
+    }
+
+    function highlightRatings(container) {
+        // 处理星级评分
+        container.innerHTML = container.innerHTML
+            .replace(/(★+)/g, '<span class="star-rating filled">$1</span>')
+            .replace(/(☆+)/g, '<span class="star-rating">$1</span>');
+
+        // 处理百分比
+        container.innerHTML = container.innerHTML
+            .replace(/(\d{1,3})%/g, '<span class="percentage">$1%</span>');
+    }
+
+    function addCollapsibleSections(container) {
+        container.querySelectorAll('h3, h4').forEach(heading => {
+            if (!heading.nextElementSibling || !heading.nextElementSibling.tagName.match(/P|UL|OL|DIV/i)) {
+                return;
+            }
+
+            heading.classList.add('collapsible');
+            heading.innerHTML = `
+                <span class="toggle-icon">▶</span>
+                ${heading.innerHTML}
+            `;
+
+            heading.addEventListener('click', () => {
+                let content = heading.nextElementSibling;
+                while (content && !content.tagName.match(/H[1-6]/i)) {
+                    content.style.display = content.style.display === 'none' ? '' : 'none';
+                    content = content.nextElementSibling;
+                }
+                const icon = heading.querySelector('.toggle-icon');
+                icon.textContent = icon.textContent === '▶' ? '▼' : '▶';
+            });
+        });
+    }
+
+    function addActionButtons(container, section, data) {
+        const btnContainer = document.createElement('div');
+        btnContainer.className = 'action-buttons';
+
+        // 打印按钮
+        const printBtn = document.createElement('button');
+        printBtn.className = 'btn print-btn';
+        printBtn.innerHTML = '<i class="fas fa-print"></i> 打印';
+        printBtn.onclick = () => printSection(section, data);
+        btnContainer.appendChild(printBtn);
+
+        // 保存按钮（仅限有价值数据）
+        if (section === 'decade-fortune' || section === 'annual-fortune') {
+            const saveBtn = document.createElement('button');
+            saveBtn.className = 'btn save-btn';
+            saveBtn.innerHTML = '<i class="fas fa-download"></i> 保存PDF';
+            saveBtn.onclick = () => exportToPDF(section, data);
+            btnContainer.appendChild(saveBtn);
+        }
+
+        // 添加到容器
+        container.appendChild(btnContainer);
     }
 }
     // 计算八字
