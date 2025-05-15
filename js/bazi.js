@@ -1,6 +1,6 @@
 
 document.addEventListener('DOMContentLoaded', function() {
-    // 确保全局能获取当前日期（动态获取2025年a）
+    // 确保全局能获取当前日期（动态获取2025年b）
     const currentDate = new Date(); // 自动获取当前日期（2025）
     const currentYear = currentDate.getFullYear(); // 2025
     const currentMonth = currentDate.getMonth() + 1; // 1-12
@@ -3803,67 +3803,55 @@ function getFortuneDescription(gan, element) {
 
     // 获取八字问答答案
     async function getBaziAnswer(question) {
-        const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
-        const apiKey = 'sk-b2950087a9d5427392762814114b22a9';
-    // 使用 currentYear（2025）、currentMonth、currentDay
-        const currentDateStr = `${currentYear}-${currentMonth.toString().padStart(2, '0')}-${currentDay.toString().padStart(2, '0')}`;
-        const cacheKey = `qa:${generateBaziHashKey(birthData)}:${question}`;
-        
-        // 检查缓存
-        const cachedResponse = baziCache.get(cacheKey);
-        if (cachedResponse) {
-            return cachedResponse;
-        }
-        
-        const prompt = `【八字专业问答规范】请严格遵循以下规则回答：
-1. 回答必须基于传统八字命理学知识
-2. 回答应简洁明了，避免冗长
-3. 针对用户问题提供专业分析
-
-   当前日期：${currentDateStr} 
-   如果问题与当前命盘相关，请结合以下八字信息：
-   当前日期：${currentDateStr} 
-   姓名：${birthData.name || '未提供'}
-   出生日期：${birthData.date}
-   出生时间：${birthData.time}
-   性别：${birthData.gender === 'male' ? '男' : '女'}
-   八字：${currentPillars.year} ${currentPillars.month} ${currentPillars.day} ${currentPillars.hour}
-   起运时间：${luckStartingTime.textContent || '未计算'}
-   身强身弱：${strengthType.textContent || '未计算'}
-   日主大运：${info.dayMasterFortune ? info.dayMasterFortune.map(f => `${f.gan}(${f.element})`).join(' → ') : '未计算'}
-   请直接分析此八字的起运时间、日主大运和身强身弱，不要自行排盘或计算。
-
-用户问题：${question}`;
-        
-        try {
-            const response = await apiRequestQueue.addRequest({
-                url: apiUrl,
-                options: {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${apiKey}`
-                    },
-                    body: JSON.stringify({
-                        model: "deepseek-chat",
-                        messages: [{
-                            role: "system",
-                            content: "你是一位资深的八字命理大师，精通子平八字、紫微斗数等传统命理学。请严格按照八字专业问答规范回答用户问题。"
-                        }, {
-                            role: "user",
-                            content: prompt
-                        }],
-                        temperature: 0
-                    })
-                },
-                cacheKey: cacheKey
-            });
-            
-            return response;
-            
-        } catch (error) {
-            console.error('获取问答答案失败:', error);
-            return '获取答案失败，请稍后重试';
-        }
+    // 确保能访问到当前的八字数据
+    if (!currentPillars.year) {
+        return "请先完成八字排盘再提问";
     }
+
+    // 使用 currentDate（2025年）
+    const currentDate = new Date();
+    const currentDateStr = `${currentDate.getFullYear()}-${(currentDate.getMonth()+1).toString().padStart(2,'0')}-${currentDate.getDate().toString().padStart(2,'0')}`;
+    
+    const prompt = `作为专业命理师，请根据以下八字信息回答问题：
+当前日期：${currentDateStr}
+姓名：${birthData.name || '未提供'}
+出生日期：${birthData.date}
+出生时间：${birthData.time}
+性别：${birthData.gender === 'male' ? '男' : '女'}
+八字：${currentPillars.year} ${currentPillars.month} ${currentPillars.day} ${currentPillars.hour}
+起运时间：${luckStartingTime.textContent || '未计算'}
+身强身弱：${strengthType.textContent || '未计算'}
+日主大运：${birthData.dayMasterFortune ? birthData.dayMasterFortune.map(f => `${f.gan}(${f.element})`).join(' → ') : '未计算'}
+
+用户问题：${question}
+
+请专业、准确地回答，避免模糊表述。`;
+
+    const cacheKey = `qa:${generateBaziHashKey(birthData)}:${question}`;
+    
+    try {
+        const response = await apiRequestQueue.addRequest({
+            url: 'https://api.deepseek.com/v1/chat/completions',
+            options: {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer sk-b2950087a9d5427392762814114b22a9'
+                },
+                body: JSON.stringify({
+                    model: "deepseek-chat",
+                    messages: [{ role: "user", content: prompt }],
+                    temperature: 0.7
+                })
+            },
+            cacheKey: cacheKey
+        });
+        
+        return response;
+    } catch (error) {
+        console.error('获取回答失败:', error);
+        return "获取回答失败，请稍后再试";
+    }
+}
+
 });
