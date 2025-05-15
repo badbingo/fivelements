@@ -1,6 +1,6 @@
 
 document.addEventListener('DOMContentLoaded', function() {
-    // 确保全局能获取当前日期（动态获取2025年b）
+    // 确保全局能获取当前日期（动态获取2025年c）
     const currentDate = new Date(); // 自动获取当前日期（2025）
     const currentYear = currentDate.getFullYear(); // 2025
     const currentMonth = currentDate.getMonth() + 1; // 1-12
@@ -2720,9 +2720,6 @@ function hasHe(branches, branch1, branch2) {
         // 计算起运时间
         const luckStartingTime = calculateLuckStartingTime(lunar, birthData.gender);
         
-        // 计算十年大运
-        const decadeFortune = calculateDecadeFortune(lunar, birthData.gender);
-        
         // 判断从强从弱
         const strengthType = determineStrengthType({
         yearStem: yearGan,
@@ -3356,7 +3353,10 @@ function determineStrengthType(pillars) {
     
     // 先计算本地结果
     const localResult = calculateBaziLocally(data);
-    
+        
+    // 使用 localResult.decadeFortuneStr 而不是直接使用 decadeFortuneStr
+    const currentDateStr = `${currentYear}-${currentMonth.toString().padStart(2, '0')}-${currentDay.toString().padStart(2, '0')}`;
+        
     // 对于基础信息部分，直接返回本地计算结果
     if (section === 'basic') {
         baziCache.set(cacheKey, localResult);
@@ -3390,7 +3390,7 @@ function determineStrengthType(pillars) {
 起运时间：${localResult.luckStartingTime}
 身强身弱：${localResult.strengthType}
 【十年大运信息】
-${decadeFortuneStr}
+${localResult.decadeFortuneStr}  // 修改这里，使用 localResult.decadeFortuneStr
 
 请直接使用以上提供的大运信息进行分析，不要自行排盘或计算大运。
 `;
@@ -3683,7 +3683,7 @@ ${decadeFortuneStr}
    身强身弱：${strengthType.textContent || '未计算'}
    
    【十年大运信息】
-    ${decadeFortuneStr}
+    ${localResult.decadeFortuneStr}  // 修改这里，使用 localResult.decadeFortuneStr
 
 重要提示：请直接使用以上提供的八字和大运信息进行分析，不要自行排盘或计算！
 
