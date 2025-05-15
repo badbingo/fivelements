@@ -1,6 +1,6 @@
 
 document.addEventListener('DOMContentLoaded', function() {
-    // 确保全局能获取当前日期（动态获取2025年b）
+    // 确保全局能获取当前日期（动态获取2025年）
     const currentDate = new Date(); // 自动获取当前日期（2025）
     const currentYear = currentDate.getFullYear(); // 2025
     const currentMonth = currentDate.getMonth() + 1; // 1-12
@@ -2672,142 +2672,56 @@ function hasHe(branches, branch1, branch2) {
 
     // 本地计算八字
     function calculateBaziLocally(birthData) {
-    const dateParts = birthData.date.split('-');
-    const year = parseInt(dateParts[0]);
-    const month = parseInt(dateParts[1]);
-    const day = parseInt(dateParts[2]);
-    const timeParts = birthData.time.split(':');
-    const hour = parseInt(timeParts[0]);
-    const minute = parseInt(timeParts[1] || 0);
-    
-    const solar = Solar.fromYmdHms(year, month, day, hour, minute, 0);
-    const lunar = solar.getLunar();
-    const bazi = lunar.getEightChar();
-    
-    const yearGan = bazi.getYearGan();
-    const yearZhi = bazi.getYearZhi();
-    const monthGan = bazi.getMonthGan();
-    const monthZhi = bazi.getMonthZhi();
-    const dayGan = bazi.getDayGan();
-    const dayZhi = bazi.getDayZhi();
-    const hourGan = bazi.getTimeGan();
-    const hourZhi = bazi.getTimeZhi();
-    
-    const yearHiddenStems = getHiddenStems(yearZhi);
-    const monthHiddenStems = getHiddenStems(monthZhi);
-    const dayHiddenStems = getHiddenStems(dayZhi);
-    const hourHiddenStems = getHiddenStems(hourZhi);
-    
-    const elements = calculateNatalElements({
-        yearStem: yearGan,
-        yearBranch: yearZhi,
-        monthStem: monthGan,
-        monthBranch: monthZhi,
-        dayStem: dayGan,
-        dayBranch: dayZhi,
-        hourStem: hourGan,
-        hourBranch: hourZhi,
-        yearHiddenStems: yearHiddenStems,
-        monthHiddenStems: monthHiddenStems,
-        dayHiddenStems: dayHiddenStems,
-        hourHiddenStems: hourHiddenStems
-    });
-    
-    const personality = getPersonalityTraits(dayGan);
-    const decadeFortune = calculateDecadeFortune(lunar, birthData.gender);
-    const gamblingFortune = calculateGamblingFortune(birthData, lunar);
-    
-    // 计算起运时间
-    const luckStartingTime = calculateLuckStartingTime(lunar, birthData.gender);
-    
-    // 判断从强从弱
-    const strengthType = determineStrengthType({
-        yearStem: yearGan,
-        yearBranch: yearZhi,
-        monthStem: monthGan,
-        monthBranch: monthZhi,
-        dayStem: dayGan,
-        dayBranch: dayZhi,
-        hourStem: hourGan,
-        hourBranch: hourZhi
-    });
-    
-    // 计算日主大运
-    const dayMasterFortune = calculateDayMasterFortune(dayGan, lunar, birthData.gender);
-    
-    return {
-        yearStem: yearGan,
-        yearBranch: yearZhi,
-        monthStem: monthGan,
-        monthBranch: monthZhi,
-        dayStem: dayGan,
-        dayBranch: dayZhi,
-        hourStem: hourGan,
-        hourBranch: hourZhi,
-        yearHiddenStems: yearHiddenStems,
-        monthHiddenStems: monthHiddenStems,
-        dayHiddenStems: dayHiddenStems,
-        hourHiddenStems: hourHiddenStems,
-        elements,
-        personality,
-        decadeFortune,
-        gamblingFortune,
-        luckStartingTime,
-        strengthType,
-        dayMasterFortune  // 新增日主大运数据
-    };
-}
-function calculateBaziLocally(birthData) {
-    const dateParts = birthData.date.split('-');
-    const year = parseInt(dateParts[0]);
-    const month = parseInt(dateParts[1]);
-    const day = parseInt(dateParts[2]);
-    const timeParts = birthData.time.split(':');
-    const hour = parseInt(timeParts[0]);
-    const minute = parseInt(timeParts[1] || 0);
-    
-    const solar = Solar.fromYmdHms(year, month, day, hour, minute, 0);
-    const lunar = solar.getLunar();
-    const bazi = lunar.getEightChar();
-    
-    const yearGan = bazi.getYearGan();
-    const yearZhi = bazi.getYearZhi();
-    const monthGan = bazi.getMonthGan();
-    const monthZhi = bazi.getMonthZhi();
-    const dayGan = bazi.getDayGan();
-    const dayZhi = bazi.getDayZhi();
-    const hourGan = bazi.getTimeGan();
-    const hourZhi = bazi.getTimeZhi();
-    
-    const yearHiddenStems = getHiddenStems(yearZhi);
-    const monthHiddenStems = getHiddenStems(monthZhi);
-    const dayHiddenStems = getHiddenStems(dayZhi);
-    const hourHiddenStems = getHiddenStems(hourZhi);
-    
-    const elements = calculateNatalElements({
-        yearStem: yearGan,
-        yearBranch: yearZhi,
-        monthStem: monthGan,
-        monthBranch: monthZhi,
-        dayStem: dayGan,
-        dayBranch: dayZhi,
-        hourStem: hourGan,
-        hourBranch: hourZhi,
-        yearHiddenStems: yearHiddenStems,
-        monthHiddenStems: monthHiddenStems,
-        dayHiddenStems: dayHiddenStems,
-        hourHiddenStems: hourHiddenStems
-    });
-    
-    const personality = getPersonalityTraits(dayGan);
-    const decadeFortune = calculateDecadeFortune(lunar, birthData.gender);
-    const gamblingFortune = calculateGamblingFortune(birthData, lunar);
-    
-    // 计算起运时间
-    const luckStartingTime = calculateLuckStartingTime(lunar, birthData.gender);
-    
-    // 判断从强从弱
-    const strengthType = determineStrengthType({
+        const dateParts = birthData.date.split('-');
+        const year = parseInt(dateParts[0]);
+        const month = parseInt(dateParts[1]);
+        const day = parseInt(dateParts[2]);
+        const timeParts = birthData.time.split(':');
+        const hour = parseInt(timeParts[0]);
+        const minute = parseInt(timeParts[1] || 0);
+        
+        const solar = Solar.fromYmdHms(year, month, day, hour, minute, 0);
+        const lunar = solar.getLunar();
+        const bazi = lunar.getEightChar();
+        
+        const yearGan = bazi.getYearGan();
+        const yearZhi = bazi.getYearZhi();
+        const monthGan = bazi.getMonthGan();
+        const monthZhi = bazi.getMonthZhi();
+        const dayGan = bazi.getDayGan();
+        const dayZhi = bazi.getDayZhi();
+        const hourGan = bazi.getTimeGan();
+        const hourZhi = bazi.getTimeZhi();
+        
+        const yearHiddenStems = getHiddenStems(yearZhi);
+        const monthHiddenStems = getHiddenStems(monthZhi);
+        const dayHiddenStems = getHiddenStems(dayZhi);
+        const hourHiddenStems = getHiddenStems(hourZhi);
+        
+        const elements = calculateNatalElements({
+            yearStem: yearGan,
+            yearBranch: yearZhi,
+            monthStem: monthGan,
+            monthBranch: monthZhi,
+            dayStem: dayGan,
+            dayBranch: dayZhi,
+            hourStem: hourGan,
+            hourBranch: hourZhi,
+            yearHiddenStems: yearHiddenStems,
+            monthHiddenStems: monthHiddenStems,
+            dayHiddenStems: dayHiddenStems,
+            hourHiddenStems: hourHiddenStems
+        });
+        
+        const personality = getPersonalityTraits(dayGan);
+        const decadeFortune = calculateDecadeFortune(lunar, birthData.gender);
+        const gamblingFortune = calculateGamblingFortune(birthData, lunar);
+        
+        // 计算起运时间
+        const luckStartingTime = calculateLuckStartingTime(lunar, birthData.gender);
+        
+        // 判断从强从弱
+        const strengthType = determineStrengthType({
         yearStem: yearGan,
         yearBranch: yearZhi,
         monthStem: monthGan,
@@ -2817,32 +2731,29 @@ function calculateBaziLocally(birthData) {
         hourStem: hourGan,
         hourBranch: hourZhi
     });
-    
-    // 计算日主大运
-    const dayMasterFortune = calculateDayMasterFortune(dayGan, lunar, birthData.gender);
-    
-    return {
-        yearStem: yearGan,
-        yearBranch: yearZhi,
-        monthStem: monthGan,
-        monthBranch: monthZhi,
-        dayStem: dayGan,
-        dayBranch: dayZhi,
-        hourStem: hourGan,
-        hourBranch: hourZhi,
-        yearHiddenStems: yearHiddenStems,
-        monthHiddenStems: monthHiddenStems,
-        dayHiddenStems: dayHiddenStems,
-        hourHiddenStems: hourHiddenStems,
-        elements,
-        personality,
-        decadeFortune,
-        gamblingFortune,
-        luckStartingTime,
-        strengthType,
-        dayMasterFortune  // 新增日主大运数据
-    };
-}
+        
+        return {
+            yearStem: yearGan,
+            yearBranch: yearZhi,
+            monthStem: monthGan,
+            monthBranch: monthZhi,
+            dayStem: dayGan,
+            dayBranch: dayZhi,
+            hourStem: hourGan,
+            hourBranch: hourZhi,
+            yearHiddenStems: yearHiddenStems,
+            monthHiddenStems: monthHiddenStems,
+            dayHiddenStems: dayHiddenStems,
+            hourHiddenStems: hourHiddenStems,
+            elements,
+            personality,
+            decadeFortune,
+            gamblingFortune,
+            luckStartingTime,  // 新增起运时间
+            strengthType       // 新增从强从弱
+        };
+    }
+
     // 修改后的calculateLuckStartingTime函数
 function calculateLuckStartingTime(lunar, gender) {
     // 节气近似公历日期（误差±1天不影响年柱计算）
@@ -3159,66 +3070,6 @@ function determineStrengthType(pillars) {
         };
     }
 
-    // 新增日主大运计算函数
-function calculateDayMasterFortune(dayGan, lunar, gender) {
-    const ganOrder = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
-    const currentIndex = ganOrder.indexOf(dayGan);
-    
-    // 根据性别确定顺排还是逆排
-    const isMale = gender === 'male';
-    const direction = isMale ? 1 : -1;
-    
-    // 计算未来10个大运
-    const fortunes = [];
-    for (let i = 1; i <= 10; i++) {
-        const newIndex = (currentIndex + (i * direction) + 10) % 10;
-        const fortuneGan = ganOrder[newIndex];
-        
-        // 根据天干五行确定大运特征
-        const element = getElementForGan(fortuneGan);
-        const description = getFortuneDescription(fortuneGan, element);
-        
-        fortunes.push({
-            sequence: i,
-            gan: fortuneGan,
-            element: element,
-            description: description,
-            ageRange: `${i * 10 - 10}-${i * 10}岁`
-        });
-    }
-    
-    return fortunes;
-}
-
-// 获取天干对应的五行
-function getElementForGan(gan) {
-    const elementMap = {
-        '甲': '木', '乙': '木',
-        '丙': '火', '丁': '火',
-        '戊': '土', '己': '土',
-        '庚': '金', '辛': '金',
-        '壬': '水', '癸': '水'
-    };
-    return elementMap[gan] || '';
-}
-
-// 获取大运描述
-function getFortuneDescription(gan, element) {
-    const descriptions = {
-        '甲': `${element}运，象征成长发展，事业有突破机会`,
-        '乙': `${element}运，适合柔性发展，人际关系提升`,
-        '丙': `${element}运，充满活力，但需注意冲动`,
-        '丁': `${element}运，智慧发光，适合学习创新`,
-        '戊': `${element}运，稳定务实，财富积累期`,
-        '己': `${element}运，包容性强，需防优柔寡断`,
-        '庚': `${element}运，变革时期，可能面临挑战`,
-        '辛': `${element}运，精炼提升，专业技能发展`,
-        '壬': `${element}运，流动变化，适应力是关键`,
-        '癸': `${element}运，细腻敏感，需注意情绪管理`
-    };
-    return descriptions[gan] || '运势平稳期';
-}
-    
     // 计算赌博运势
     function calculateGamblingFortune(birthData, birthLunar) {
     // 使用 currentDate（2025年）
@@ -3381,155 +3232,60 @@ function getFortuneDescription(gan, element) {
 
     // 显示基础信息
     function displayBasicInfo(info) {
-    // 显示姓名和出生信息
-    const nameDisplay = document.getElementById('user-name-display');
-    const birthDisplay = document.getElementById('user-birth-display');
-    const hour = parseInt(birthData.time.split(':')[0]);
-    const timeMap = {
-        23: '子时 (23-1)', 0: '子时 (23-1)',
-        1: '丑时 (1-3)', 3: '寅时 (3-5)',
-        5: '卯时 (5-7)', 7: '辰时 (7-9)',
-        9: '巳时 (9-11)', 11: '午时 (11-13)',
-        13: '未时 (13-15)', 15: '申时 (15-17)',
-        17: '酉时 (17-19)', 19: '戌时 (19-21)',
-        21: '亥时 (21-23)'
-    };
-    nameDisplay.textContent = birthData.name || '匿名用户';
-    birthDisplay.textContent = birthData.date.replace(/-/g, '/') + ' ' + timeMap[hour];
-    
-    // 显示八字四柱
-    yearStem.textContent = info.yearStem;
-    yearBranch.textContent = info.yearBranch;
-    yearHiddenStems.textContent = info.yearHiddenStems;
-    monthStem.textContent = info.monthStem;
-    monthBranch.textContent = info.monthBranch;
-    monthHiddenStems.textContent = info.monthHiddenStems;
-    dayStem.textContent = info.dayStem;
-    dayBranch.textContent = info.dayBranch;
-    dayHiddenStems.textContent = info.dayHiddenStems;
-    hourStem.textContent = info.hourStem;
-    hourBranch.textContent = info.hourBranch;
-    hourHiddenStems.textContent = info.hourHiddenStems;
-    
-    // 设置五行颜色
-    setElementColors(yearStem, info.yearStem);
-    setElementColors(yearBranch, info.yearBranch);
-    setElementColors(monthStem, info.monthStem);
-    setElementColors(monthBranch, info.monthBranch);
-    setElementColors(dayStem, info.dayStem);
-    setElementColors(dayBranch, info.dayBranch);
-    setElementColors(hourStem, info.hourStem);
-    setElementColors(hourBranch, info.hourBranch);
-    
-    setHiddenStemsColors(yearHiddenStems, info.yearHiddenStems);
-    setHiddenStemsColors(monthHiddenStems, info.monthHiddenStems);
-    setHiddenStemsColors(dayHiddenStems, info.dayHiddenStems);
-    setHiddenStemsColors(hourHiddenStems, info.hourHiddenStems);
-    
-    // 显示性格特征
-    personalityTraits.textContent = `命主性格：${info.personality}`;
-    
-    // 保存当前八字数据
-    currentPillars = {
-        year: info.yearStem + info.yearBranch,
-        month: info.monthStem + info.monthBranch,
-        day: info.dayStem + info.dayBranch,
-        hour: info.hourStem + info.hourBranch,
-        dayMasterFortune: info.dayMasterFortune // 保存日主大运数据
-    };
+        const nameDisplay = document.getElementById('user-name-display');
+        const birthDisplay = document.getElementById('user-birth-display');
+        const hour = parseInt(birthData.time.split(':')[0]);
+        const timeMap = {
+            23: '子时 (23-1)', 0: '子时 (23-1)',
+            1: '丑时 (1-3)', 3: '寅时 (3-5)',
+            5: '卯时 (5-7)', 7: '辰时 (7-9)',
+            9: '巳时 (9-11)', 11: '午时 (11-13)',
+            13: '未时 (13-15)', 15: '申时 (15-17)',
+            17: '酉时 (17-19)', 19: '戌时 (19-21)',
+            21: '亥时 (21-23)'
+       };
+        nameDisplay.textContent = birthData.name || '匿名用户';
+        birthDisplay.textContent = birthData.date.replace(/-/g, '/') + ' ' + timeMap[hour];
+        
+        yearStem.textContent = info.yearStem;
+        yearBranch.textContent = info.yearBranch;
+        yearHiddenStems.textContent = info.yearHiddenStems;
+        monthStem.textContent = info.monthStem;
+        monthBranch.textContent = info.monthBranch;
+        monthHiddenStems.textContent = info.monthHiddenStems;
+        dayStem.textContent = info.dayStem;
+        dayBranch.textContent = info.dayBranch;
+        dayHiddenStems.textContent = info.dayHiddenStems;
+        hourStem.textContent = info.hourStem;
+        hourBranch.textContent = info.hourBranch;
+        hourHiddenStems.textContent = info.hourHiddenStems;
+        
+        setElementColors(yearStem, info.yearStem);
+        setElementColors(yearBranch, info.yearBranch);
+        setElementColors(monthStem, info.monthStem);
+        setElementColors(monthBranch, info.monthBranch);
+        setElementColors(dayStem, info.dayStem);
+        setElementColors(dayBranch, info.dayBranch);
+        setElementColors(hourStem, info.hourStem);
+        setElementColors(hourBranch, info.hourBranch);
+        
+        setHiddenStemsColors(yearHiddenStems, info.yearHiddenStems);
+        setHiddenStemsColors(monthHiddenStems, info.monthHiddenStems);
+        setHiddenStemsColors(dayHiddenStems, info.dayHiddenStems);
+        setHiddenStemsColors(hourHiddenStems, info.hourHiddenStems);
+        
+        personalityTraits.textContent = `命主性格：${info.personality}`;
+        
+        currentPillars = {
+            year: info.yearStem + info.yearBranch,
+            month: info.monthStem + info.monthBranch,
+            day: info.dayStem + info.dayBranch,
+            hour: info.hourStem + info.hourBranch
+        };
 
-    // 显示日主强弱
-    strengthType.textContent = info.strengthType || '未计算';
-    setStrengthTypeStyle(info.strengthType);
-    
-    // 显示起运时间
-    luckStartingTime.textContent = info.luckStartingTime || '未计算';
-    
-    // 安全获取元素（新增防御性代码）
-    const dayMasterFortuneElement = document.getElementById('day-master-fortune');
-    const dayMasterFortuneDetails = document.getElementById('day-master-fortune-details');
-    
-    // 确保元素存在再操作
-    if (dayMasterFortuneElement && dayMasterFortuneDetails) {
-        if (info.dayMasterFortune && info.dayMasterFortune.length > 0) {
-            const shortDisplay = info.dayMasterFortune.slice(0, 3)
-                .map(f => `${f.gan}(${f.element})`)
-                .join(' → ') + (info.dayMasterFortune.length > 3 ? '...' : '');
-            
-            dayMasterFortuneElement.textContent = shortDisplay;
-            dayMasterFortuneElement.style.cursor = 'pointer';
-            dayMasterFortuneElement.onclick = function() {
-                toggleDayMasterFortuneDetails(info.dayMasterFortune);
-            };
-            
-            // 初始化详情容器
-            dayMasterFortuneDetails.style.display = 'none';
-        } else {
-            dayMasterFortuneElement.textContent = '未计算';
-        }
-    } else {
-        console.error('找不到日主大运显示元素');
-        // 可以在这里创建备用元素或显示错误信息
+        // 设置十神点击事件
+        setupTenGodsClickHandlers();
     }
-
-    // 设置十神点击事件
-    setupTenGodsClickHandlers();
-}
-
-// 显示/隐藏完整大运详情
-function toggleDayMasterFortuneDetails(fortunes) {
-    const detailsContainer = document.getElementById('day-master-fortune-details');
-    
-    if (detailsContainer.style.display === 'block') {
-        detailsContainer.style.display = 'none';
-        return;
-    }
-    
-    let html = '<div class="fortune-details-header">';
-    html += '<h4>完整日主大运走势</h4>';
-    html += '<span class="close-details" onclick="event.stopPropagation();this.parentElement.parentElement.style.display=\'none\'">×</span>';
-    html += '</div><ul class="fortune-details-list">';
-    
-    fortunes.forEach(fortune => {
-        html += `<li>
-            <span class="fortune-age">${fortune.ageRange}</span>
-            <span class="fortune-ganzhi ${getElementClass(fortune.element)}">${fortune.gan}(${fortune.element})</span>
-            <span class="fortune-desc">${fortune.description}</span>
-        </li>`;
-    });
-    
-    html += '</ul>';
-    detailsContainer.innerHTML = html;
-    detailsContainer.style.display = 'block';
-}
-
-// 根据身强身弱设置样式
-function setStrengthTypeStyle(strengthType) {
-    const element = document.getElementById('strength-type');
-    element.className = 'feature-value'; // 重置类名
-    
-    if (strengthType === '身强') {
-        element.classList.add('strong');
-    } else if (strengthType === '身弱') {
-        element.classList.add('weak');
-    } else if (strengthType === '从强') {
-        element.classList.add('cong-strong');
-    } else if (strengthType === '从弱') {
-        element.classList.add('cong-weak');
-    }
-}
-
-// 获取五行对应的CSS类名
-function getElementClass(element) {
-    const map = {
-        '木': 'wood',
-        '火': 'fire',
-        '土': 'earth',
-        '金': 'metal',
-        '水': 'water'
-    };
-    return map[element] || '';
-}
 
     // 设置元素颜色
     function setElementColors(element, text) {
@@ -3624,8 +3380,7 @@ function getElementClass(element) {
 八字：${localResult.yearStem}${localResult.yearBranch} ${localResult.monthStem}${localResult.monthBranch} ${localResult.dayStem}${localResult.dayBranch} ${localResult.hourStem}${localResult.hourBranch}
 起运时间：${localResult.luckStartingTime}
 身强身弱：${localResult.strengthType}
-日主大运：${localResult.dayMasterFortune}
-请直接分析此八字的起运时间，身强身弱和日主大运，不要自行排盘或计算起运时间。
+请直接分析此八字的起运时间和身强身弱，不要自行排盘或计算起运时间。
 `;
 
         // 根据不同部分设置不同的提示词
@@ -3887,55 +3642,66 @@ function getElementClass(element) {
 
     // 获取八字问答答案
     async function getBaziAnswer(question) {
-    // 确保能访问到当前的八字数据
-    if (!currentPillars.year) {
-        return "请先完成八字排盘再提问";
-    }
-
-    // 使用 currentDate（2025年）
-    const currentDate = new Date();
-    const currentDateStr = `${currentDate.getFullYear()}-${(currentDate.getMonth()+1).toString().padStart(2,'0')}-${currentDate.getDate().toString().padStart(2,'0')}`;
-    
-    const prompt = `作为专业命理师，请根据以下八字信息回答问题：
-当前日期：${currentDateStr}
-姓名：${birthData.name || '未提供'}
-出生日期：${birthData.date}
-出生时间：${birthData.time}
-性别：${birthData.gender === 'male' ? '男' : '女'}
-八字：${currentPillars.year} ${currentPillars.month} ${currentPillars.day} ${currentPillars.hour}
-起运时间：${luckStartingTime.textContent || '未计算'}
-身强身弱：${strengthType.textContent || '未计算'}
-日主大运：${birthData.dayMasterFortune ? birthData.dayMasterFortune.map(f => `${f.gan}(${f.element})`).join(' → ') : '未计算'}
-请直接分析此八字的起运时间，身强身弱和日主大运，不要自行排盘或计算起运时间。
-用户问题：${question}
-
-请专业、准确地回答，避免模糊表述。`;
-
-    const cacheKey = `qa:${generateBaziHashKey(birthData)}:${question}`;
-    
-    try {
-        const response = await apiRequestQueue.addRequest({
-            url: 'https://api.deepseek.com/v1/chat/completions',
-            options: {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer sk-b2950087a9d5427392762814114b22a9'
-                },
-                body: JSON.stringify({
-                    model: "deepseek-chat",
-                    messages: [{ role: "user", content: prompt }],
-                    temperature: 0.7
-                })
-            },
-            cacheKey: cacheKey
-        });
+        const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
+        const apiKey = 'sk-b2950087a9d5427392762814114b22a9';
+    // 使用 currentYear（2025）、currentMonth、currentDay
+        const currentDateStr = `${currentYear}-${currentMonth.toString().padStart(2, '0')}-${currentDay.toString().padStart(2, '0')}`;
+        const cacheKey = `qa:${generateBaziHashKey(birthData)}:${question}`;
         
-        return response;
-    } catch (error) {
-        console.error('获取回答失败:', error);
-        return "获取回答失败，请稍后再试";
-    }
-}
+        // 检查缓存
+        const cachedResponse = baziCache.get(cacheKey);
+        if (cachedResponse) {
+            return cachedResponse;
+        }
+        
+        const prompt = `【八字专业问答规范】请严格遵循以下规则回答：
+1. 回答必须基于传统八字命理学知识
+2. 回答应简洁明了，避免冗长
+3. 针对用户问题提供专业分析
+4. 所有分析前必须先计算出命主当前八字+大运+流年的格局强弱，再进行分析
+   当前日期：${currentDateStr} 
+   如果问题与当前命盘相关，请结合以下八字信息：
+   当前日期：${currentDateStr} 
+   姓名：${birthData.name || '未提供'}
+   出生日期：${birthData.date}
+   出生时间：${birthData.time}
+   性别：${birthData.gender === 'male' ? '男' : '女'}
+   八字：${currentPillars.year} ${currentPillars.month} ${currentPillars.day} ${currentPillars.hour}
+   起运时间：${luckStartingTime.textContent || '未计算'}
+   身强身弱：${strengthType.textContent || '未计算'}
+   请直接分析此八字的起运时间和身强身弱，不要自行排盘或计算起运时间。
 
+用户问题：${question}`;
+        
+        try {
+            const response = await apiRequestQueue.addRequest({
+                url: apiUrl,
+                options: {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: "deepseek-chat",
+                        messages: [{
+                            role: "system",
+                            content: "你是一位资深的八字命理大师，精通子平八字、紫微斗数等传统命理学。请严格按照八字专业问答规范回答用户问题。"
+                        }, {
+                            role: "user",
+                            content: prompt
+                        }],
+                        temperature: 0
+                    })
+                },
+                cacheKey: cacheKey
+            });
+            
+            return response;
+            
+        } catch (error) {
+            console.error('获取问答答案失败:', error);
+            return '获取答案失败，请稍后重试';
+        }
+    }
 });
