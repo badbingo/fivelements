@@ -2720,6 +2720,12 @@ function hasHe(branches, branch1, branch2) {
         // 计算起运时间
         const luckStartingTime = calculateLuckStartingTime(lunar, birthData.gender);
         
+        // 新增：计算完整大运周期（包含起运年龄、每个大运的干支和年龄段）
+        const decadeFortune = calculateDecadeFortune(lunar, birthData.gender); 
+        
+        // 新增：判断当前处于哪个大运（基于当前日期）
+        const currentFortune = getCurrentFortune(decadeFortune, birthData.date);
+        
         // 判断从强从弱
         const strengthType = determineStrengthType({
         yearStem: yearGan,
@@ -2750,6 +2756,8 @@ function hasHe(branches, branch1, branch2) {
             decadeFortune,
             gamblingFortune,
             luckStartingTime,  // 新增起运时间
+            decadeFortune,    // 完整大运周期
+            currentFortune,   // 当前大运信息
             strengthType       // 新增从强从弱
         };
     }
@@ -2833,7 +2841,19 @@ function calculateLuckStartingTime(lunar, gender) {
         return '无法计算起运时间';
     }
 }
-
+    
+    function getCurrentFortune(decadeFortune, birthDate) {
+    const birthYear = parseInt(birthDate.split('-')[0]);
+    const currentAge = currentYear - birthYear; // 使用全局currentYear（2025）
+    
+    // 找到当前年龄对应的大运
+    const currentFortune = decadeFortune.fortunes.find(f => {
+        const [startAge, endAge] = f.ageRange.split('-').map(age => parseInt(age));
+        return currentAge >= startAge && currentAge < endAge;
+    });
+    
+    return currentFortune || decadeFortune.fortunes[0]; // 默认返回第一个大运
+}
     // 判断从强从弱 - 修改后的函数
 function determineStrengthType(pillars) {
     // ============== 工具函数 ============== //
@@ -3380,6 +3400,8 @@ function determineStrengthType(pillars) {
 八字：${localResult.yearStem}${localResult.yearBranch} ${localResult.monthStem}${localResult.monthBranch} ${localResult.dayStem}${localResult.dayBranch} ${localResult.hourStem}${localResult.hourBranch}
 起运时间：${localResult.luckStartingTime}
 身强身弱：${localResult.strengthType}
+当前大运：${localResult.currentFortune.ganZhi} (${localResult.currentFortune.ageRange})
+未来大运：${localResult.decadeFortune.fortunes.map(f => f.ganZhi).join('→')}
 请直接分析此八字的起运时间和身强身弱，不要自行排盘或计算起运时间。
 `;
 
@@ -3658,7 +3680,7 @@ function determineStrengthType(pillars) {
 1. 回答必须基于传统八字命理学知识
 2. 回答应简洁明了，避免冗长
 3. 针对用户问题提供专业分析
-4. 所有分析前必须先计算出命主当前八字+大运+流年的格局强弱，再进行分析
+4. 请分析以下八字的大运走势，但【必须使用】我提供的大运数据
    当前日期：${currentDateStr} 
    如果问题与当前命盘相关，请结合以下八字信息：
    当前日期：${currentDateStr} 
@@ -3669,6 +3691,8 @@ function determineStrengthType(pillars) {
    八字：${currentPillars.year} ${currentPillars.month} ${currentPillars.day} ${currentPillars.hour}
    起运时间：${luckStartingTime.textContent || '未计算'}
    身强身弱：${strengthType.textContent || '未计算'}
+   当前大运：${localResult.currentFortune.ganZhi} (${localResult.currentFortune.ageRange})
+   未来大运：${localResult.decadeFortune.fortunes.map(f => f.ganZhi).join('→')}
    请直接分析此八字的起运时间和身强身弱，不要自行排盘或计算起运时间。
 
 用户问题：${question}`;
