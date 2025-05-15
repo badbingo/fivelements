@@ -3906,7 +3906,7 @@ function getElementClass(element) {
 起运时间：${luckStartingTime.textContent || '未计算'}
 身强身弱：${strengthType.textContent || '未计算'}
 日主大运：${birthData.dayMasterFortune ? birthData.dayMasterFortune.map(f => `${f.gan}(${f.element})`).join(' → ') : '未计算'}
-
+请直接分析此八字的起运时间，身强身弱和日主大运，不要自行排盘或计算起运时间。
 用户问题：${question}
 
 请专业、准确地回答，避免模糊表述。`;
