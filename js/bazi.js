@@ -1,6 +1,6 @@
 
 document.addEventListener('DOMContentLoaded', function() {
-    // 确保全局能获取当前日期（动态获取2025年a）
+    // 确保全局能获取当前日期（动态获取2025年）
     const currentDate = new Date(); // 自动获取当前日期（2025）
     const currentYear = currentDate.getFullYear(); // 2025
     const currentMonth = currentDate.getMonth() + 1; // 1-12
@@ -2672,53 +2672,56 @@ function hasHe(branches, branch1, branch2) {
 
     // 本地计算八字
     function calculateBaziLocally(birthData) {
-    const dateParts = birthData.date.split('-');
-    const year = parseInt(dateParts[0]);
-    const month = parseInt(dateParts[1]);
-    const day = parseInt(dateParts[2]);
-    const timeParts = birthData.time.split(':');
-    const hour = parseInt(timeParts[0]);
-    const minute = parseInt(timeParts[1] || 0);
-    
-    const solar = Solar.fromYmdHms(year, month, day, hour, minute, 0);
-    const lunar = solar.getLunar();
-    const bazi = lunar.getEightChar();
-    
-    const yearGan = bazi.getYearGan();
-    const yearZhi = bazi.getYearZhi();
-    const monthGan = bazi.getMonthGan();
-    const monthZhi = bazi.getMonthZhi();
-    const dayGan = bazi.getDayGan();
-    const dayZhi = bazi.getDayZhi();
-    const hourGan = bazi.getTimeGan();
-    const hourZhi = bazi.getTimeZhi();
-    
-    const yearHiddenStems = getHiddenStems(yearZhi);
-    const monthHiddenStems = getHiddenStems(monthZhi);
-    const dayHiddenStems = getHiddenStems(dayZhi);
-    const hourHiddenStems = getHiddenStems(hourZhi);
-    
-    const elements = calculateNatalElements({
-        yearStem: yearGan,
-        yearBranch: yearZhi,
-        monthStem: monthGan,
-        monthBranch: monthZhi,
-        dayStem: dayGan,
-        dayBranch: dayZhi,
-        hourStem: hourGan,
-        hourBranch: hourZhi,
-        yearHiddenStems,
-        monthHiddenStems,
-        dayHiddenStems,
-        hourHiddenStems
-    });
-    
-    const personality = getPersonalityTraits(dayGan);
-    const gamblingFortune = calculateGamblingFortune(birthData, lunar);
-    
-    // 确保这些变量只被声明一次
-    const luckStartingTime = calculateLuckStartingTime(lunar, birthData.gender);
-    const strengthType = determineStrengthType({
+        const dateParts = birthData.date.split('-');
+        const year = parseInt(dateParts[0]);
+        const month = parseInt(dateParts[1]);
+        const day = parseInt(dateParts[2]);
+        const timeParts = birthData.time.split(':');
+        const hour = parseInt(timeParts[0]);
+        const minute = parseInt(timeParts[1] || 0);
+        
+        const solar = Solar.fromYmdHms(year, month, day, hour, minute, 0);
+        const lunar = solar.getLunar();
+        const bazi = lunar.getEightChar();
+        
+        const yearGan = bazi.getYearGan();
+        const yearZhi = bazi.getYearZhi();
+        const monthGan = bazi.getMonthGan();
+        const monthZhi = bazi.getMonthZhi();
+        const dayGan = bazi.getDayGan();
+        const dayZhi = bazi.getDayZhi();
+        const hourGan = bazi.getTimeGan();
+        const hourZhi = bazi.getTimeZhi();
+        
+        const yearHiddenStems = getHiddenStems(yearZhi);
+        const monthHiddenStems = getHiddenStems(monthZhi);
+        const dayHiddenStems = getHiddenStems(dayZhi);
+        const hourHiddenStems = getHiddenStems(hourZhi);
+        
+        const elements = calculateNatalElements({
+            yearStem: yearGan,
+            yearBranch: yearZhi,
+            monthStem: monthGan,
+            monthBranch: monthZhi,
+            dayStem: dayGan,
+            dayBranch: dayZhi,
+            hourStem: hourGan,
+            hourBranch: hourZhi,
+            yearHiddenStems: yearHiddenStems,
+            monthHiddenStems: monthHiddenStems,
+            dayHiddenStems: dayHiddenStems,
+            hourHiddenStems: hourHiddenStems
+        });
+        
+        const personality = getPersonalityTraits(dayGan);
+        const decadeFortune = calculateDecadeFortune(lunar, birthData.gender);
+        const gamblingFortune = calculateGamblingFortune(birthData, lunar);
+        
+        // 计算起运时间
+        const luckStartingTime = calculateLuckStartingTime(lunar, birthData.gender);
+        
+        // 判断从强从弱
+        const strengthType = determineStrengthType({
         yearStem: yearGan,
         yearBranch: yearZhi,
         monthStem: monthGan,
@@ -2728,30 +2731,28 @@ function hasHe(branches, branch1, branch2) {
         hourStem: hourGan,
         hourBranch: hourZhi
     });
-    
-    const decadeFortune = calculateDecadeFortune(lunar, birthData.gender);
-    
-    return {
-        yearStem: yearGan,
-        yearBranch: yearZhi,
-        monthStem: monthGan,
-        monthBranch: monthZhi,
-        dayStem: dayGan,
-        dayBranch: dayZhi,
-        hourStem: hourGan,
-        hourBranch: hourZhi,
-        yearHiddenStems,
-        monthHiddenStems,
-        dayHiddenStems,
-        hourHiddenStems,
-        elements,
-        personality,
-        decadeFortune,
-        gamblingFortune,
-        luckStartingTime,
-        strengthType
-    };
-}
+        
+        return {
+            yearStem: yearGan,
+            yearBranch: yearZhi,
+            monthStem: monthGan,
+            monthBranch: monthZhi,
+            dayStem: dayGan,
+            dayBranch: dayZhi,
+            hourStem: hourGan,
+            hourBranch: hourZhi,
+            yearHiddenStems: yearHiddenStems,
+            monthHiddenStems: monthHiddenStems,
+            dayHiddenStems: dayHiddenStems,
+            hourHiddenStems: hourHiddenStems,
+            elements,
+            personality,
+            decadeFortune,
+            gamblingFortune,
+            luckStartingTime,  // 新增起运时间
+            strengthType       // 新增从强从弱
+        };
+    }
 
     // 修改后的calculateLuckStartingTime函数
 function calculateLuckStartingTime(lunar, gender) {
@@ -3231,136 +3232,107 @@ function determineStrengthType(pillars) {
 
     // 显示基础信息
     function displayBasicInfo(info) {
-    // 显示用户基本信息
-    const nameDisplay = document.getElementById('user-name-display');
-    const birthDisplay = document.getElementById('user-birth-display');
-    const hour = parseInt(birthData.time.split(':')[0]);
-    const timeMap = {
-        23: '子时 (23-1)', 0: '子时 (23-1)',
-        1: '丑时 (1-3)', 3: '寅时 (3-5)',
-        5: '卯时 (5-7)', 7: '辰时 (7-9)',
-        9: '巳时 (9-11)', 11: '午时 (11-13)',
-        13: '未时 (13-15)', 15: '申时 (15-17)',
-        17: '酉时 (17-19)', 19: '戌时 (19-21)',
-        21: '亥时 (21-23)'
-    };
-    nameDisplay.textContent = birthData.name || '匿名用户';
-    birthDisplay.textContent = `${birthData.date.replace(/-/g, '/')} ${timeMap[hour] || birthData.time}`;
-    
-    // 显示八字四柱
-    yearStem.textContent = info.yearStem;
-    yearBranch.textContent = info.yearBranch;
-    yearHiddenStems.textContent = info.yearHiddenStems;
-    monthStem.textContent = info.monthStem;
-    monthBranch.textContent = info.monthBranch;
-    monthHiddenStems.textContent = info.monthHiddenStems;
-    dayStem.textContent = info.dayStem;
-    dayBranch.textContent = info.dayBranch;
-    dayHiddenStems.textContent = info.dayHiddenStems;
-    hourStem.textContent = info.hourStem;
-    hourBranch.textContent = info.hourBranch;
-    hourHiddenStems.textContent = info.hourHiddenStems;
-    
-    // 设置天干地支的五行颜色
-    setElementColors(yearStem, info.yearStem);
-    setElementColors(yearBranch, info.yearBranch);
-    setElementColors(monthStem, info.monthStem);
-    setElementColors(monthBranch, info.monthBranch);
-    setElementColors(dayStem, info.dayStem);
-    setElementColors(dayBranch, info.dayBranch);
-    setElementColors(hourStem, info.hourStem);
-    setElementColors(hourBranch, info.hourBranch);
-    
-    // 设置藏干的五行颜色
-    setHiddenStemsColors(yearHiddenStems, info.yearHiddenStems);
-    setHiddenStemsColors(monthHiddenStems, info.monthHiddenStems);
-    setHiddenStemsColors(dayHiddenStems, info.dayHiddenStems);
-    setHiddenStemsColors(hourHiddenStems, info.hourHiddenStems);
-    
-    // 显示性格特征
-    personalityTraits.textContent = `命主性格：${info.personality || getPersonalityTraits(info.dayStem)}`;
-    
-    // 显示运程信息
-    if (info.luckStartingTime) {
-        luckStartingTime.textContent = info.luckStartingTime;
-        luckStartingTime.className = 'highlight-info';
-    } else {
-        luckStartingTime.textContent = '未计算';
-        luckStartingTime.className = 'missing-info';
+        const nameDisplay = document.getElementById('user-name-display');
+        const birthDisplay = document.getElementById('user-birth-display');
+        const hour = parseInt(birthData.time.split(':')[0]);
+        const timeMap = {
+            23: '子时 (23-1)', 0: '子时 (23-1)',
+            1: '丑时 (1-3)', 3: '寅时 (3-5)',
+            5: '卯时 (5-7)', 7: '辰时 (7-9)',
+            9: '巳时 (9-11)', 11: '午时 (11-13)',
+            13: '未时 (13-15)', 15: '申时 (15-17)',
+            17: '酉时 (17-19)', 19: '戌时 (19-21)',
+            21: '亥时 (21-23)'
+       };
+        nameDisplay.textContent = birthData.name || '匿名用户';
+        birthDisplay.textContent = birthData.date.replace(/-/g, '/') + ' ' + timeMap[hour];
+        
+        yearStem.textContent = info.yearStem;
+        yearBranch.textContent = info.yearBranch;
+        yearHiddenStems.textContent = info.yearHiddenStems;
+        monthStem.textContent = info.monthStem;
+        monthBranch.textContent = info.monthBranch;
+        monthHiddenStems.textContent = info.monthHiddenStems;
+        dayStem.textContent = info.dayStem;
+        dayBranch.textContent = info.dayBranch;
+        dayHiddenStems.textContent = info.dayHiddenStems;
+        hourStem.textContent = info.hourStem;
+        hourBranch.textContent = info.hourBranch;
+        hourHiddenStems.textContent = info.hourHiddenStems;
+        
+        setElementColors(yearStem, info.yearStem);
+        setElementColors(yearBranch, info.yearBranch);
+        setElementColors(monthStem, info.monthStem);
+        setElementColors(monthBranch, info.monthBranch);
+        setElementColors(dayStem, info.dayStem);
+        setElementColors(dayBranch, info.dayBranch);
+        setElementColors(hourStem, info.hourStem);
+        setElementColors(hourBranch, info.hourBranch);
+        
+        setHiddenStemsColors(yearHiddenStems, info.yearHiddenStems);
+        setHiddenStemsColors(monthHiddenStems, info.monthHiddenStems);
+        setHiddenStemsColors(dayHiddenStems, info.dayHiddenStems);
+        setHiddenStemsColors(hourHiddenStems, info.hourHiddenStems);
+        
+        personalityTraits.textContent = `命主性格：${info.personality}`;
+        
+        currentPillars = {
+            year: info.yearStem + info.yearBranch,
+            month: info.monthStem + info.monthBranch,
+            day: info.dayStem + info.dayBranch,
+            hour: info.hourStem + info.hourBranch
+        };
+
+        // 设置十神点击事件
+        setupTenGodsClickHandlers();
     }
-    
-    if (info.strengthType) {
-        strengthType.textContent = info.strengthType;
-        // 根据身强身弱设置不同颜色
-        if (info.strengthType.includes('强')) {
-            strengthType.className = 'strength-strong';
-        } else if (info.strengthType.includes('弱')) {
-            strengthType.className = 'strength-weak';
-        } else if (info.strengthType.includes('从')) {
-            strengthType.className = 'strength-special';
+
+    // 设置元素颜色
+    function setElementColors(element, text) {
+        const stemElements = {
+            '甲': 'wood', '乙': 'wood',
+            '丙': 'fire', '丁': 'fire',
+            '戊': 'earth', '己': 'earth',
+            '庚': 'metal', '辛': 'metal',
+            '壬': 'water', '癸': 'water'
+        };
+        const branchElements = {
+            '寅': 'wood', '卯': 'wood',
+            '午': 'fire', '巳': 'fire',
+            '辰': 'earth', '戌': 'earth', '丑': 'earth', '未': 'earth',
+            '申': 'metal', '酉': 'metal',
+            '子': 'water', '亥': 'water'
+        };
+        
+        // 移除所有可能的颜色类
+        element.classList.remove('wood', 'fire', 'earth', 'metal', 'water');
+        
+        // 添加新的颜色类
+        if (stemElements[text]) {
+            element.classList.add(stemElements[text]);
+        } else if (branchElements[text]) {
+            element.classList.add(branchElements[text]);
         }
-    } else {
-        strengthType.textContent = '未判断';
-        strengthType.className = 'missing-info';
     }
-    
-    // 设置当前八字信息（用于后续分析）
-    currentPillars = {
-        year: info.yearStem + info.yearBranch,
-        month: info.monthStem + info.monthBranch,
-        day: info.dayStem + info.dayBranch,
-        hour: info.hourStem + info.hourBranch
-    };
 
-    // 初始化十神点击事件
-    setupTenGodsClickHandlers();
-
-// 辅助函数：设置天干地支的五行颜色
-function setElementColors(element, text) {
-    const stemElements = {
-        '甲': 'wood', '乙': 'wood',
-        '丙': 'fire', '丁': 'fire',
-        '戊': 'earth', '己': 'earth',
-        '庚': 'metal', '辛': 'metal',
-        '壬': 'water', '癸': 'water'
-    };
-    const branchElements = {
-        '寅': 'wood', '卯': 'wood',
-        '午': 'fire', '巳': 'fire',
-        '辰': 'earth', '戌': 'earth', '丑': 'earth', '未': 'earth',
-        '申': 'metal', '酉': 'metal',
-        '子': 'water', '亥': 'water'
-    };
-    
-    // 移除所有可能的颜色类
-    element.classList.remove('wood', 'fire', 'earth', 'metal', 'water');
-    
-    // 添加新的颜色类
-    if (stemElements[text]) {
-        element.classList.add(stemElements[text]);
-    } else if (branchElements[text]) {
-        element.classList.add(branchElements[text]);
+    // 更新藏干颜色设置函数
+    function setHiddenStemsColors(element, stems) {
+        element.classList.remove('wood', 'fire', 'earth', 'metal', 'water');
+        const stemElements = {
+            '甲': 'wood', '乙': 'wood',
+            '丙': 'fire', '丁': 'fire',
+            '戊': 'earth', '己': 'earth',
+            '庚': 'metal', '辛': 'metal',
+            '壬': 'water', '癸': 'water'
+        };
+        const spans = [];
+        for (let i = 0; i < stems.length; i++) {
+            const char = stems[i];
+            const elementClass = stemElements[char] || '';
+            spans.push(`<span class="${elementClass}">${char}</span>`);
+        }
+        element.innerHTML = spans.join('');
     }
-}
-
-// 辅助函数：设置藏干的五行颜色
-function setHiddenStemsColors(element, stems) {
-    element.classList.remove('wood', 'fire', 'earth', 'metal', 'water');
-    const stemElements = {
-        '甲': 'wood', '乙': 'wood',
-        '丙': 'fire', '丁': 'fire',
-        '戊': 'earth', '己': 'earth',
-        '庚': 'metal', '辛': 'metal',
-        '壬': 'water', '癸': 'water'
-    };
-    const spans = [];
-    for (let i = 0; i < stems.length; i++) {
-        const char = stems[i];
-        const elementClass = stemElements[char] || '';
-        spans.push(`<span class="${elementClass}">${char}</span>`);
-    }
-    element.innerHTML = spans.join('');
-}
 
     // 获取八字分析
     async function getBaziAnalysis(section, data) {
@@ -3408,8 +3380,7 @@ function setHiddenStemsColors(element, stems) {
 八字：${localResult.yearStem}${localResult.yearBranch} ${localResult.monthStem}${localResult.monthBranch} ${localResult.dayStem}${localResult.dayBranch} ${localResult.hourStem}${localResult.hourBranch}
 起运时间：${localResult.luckStartingTime}
 身强身弱：${localResult.strengthType}
-十年大运：${JSON.stringify(localResult.decadeFortune)}
-请基于以上信息分析${section}相关内容，不要自行计算或修改起运时间和身强身弱判断。
+请直接分析此八字的起运时间和身强身弱，不要自行排盘或计算起运时间。
 `;
 
         // 根据不同部分设置不同的提示词
@@ -3638,9 +3609,9 @@ function setHiddenStemsColors(element, stems) {
 `;
                 break;
             default:
-                prompt += `请分析命主的${section}情况`;
+                prompt += `请分析${section}相关内容`;
         }
-
+        
         try {
             const response = await apiRequestQueue.addRequest({
                 url: apiUrl,
@@ -3652,22 +3623,19 @@ function setHiddenStemsColors(element, stems) {
                     },
                     body: JSON.stringify({
                         model: "deepseek-chat",
-                        messages: [
-                            {
-                                role: "user",
-                                content: prompt
-                            }
-                        ],
-                        temperature: 0.7
+                        messages: [{ role: "user", content: prompt }],
+                        temperature: 0,
+                        seed: 12345 // 固定seed值确保相同输入得到相同输出
                     })
                 },
-                cacheKey: cacheKey,
-                section: section
+                section: section,
+                cacheKey: cacheKey
             });
-
+            
             return response;
+            
         } catch (error) {
-            console.error(`API请求失败 (${section}):`, error);
+            console.error(`获取${section}分析失败:`, error);
             throw error;
         }
     }
