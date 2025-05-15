@@ -1,6 +1,6 @@
 
 document.addEventListener('DOMContentLoaded', function() {
-    // 确保全局能获取当前日期（动态获取2025年a）
+    // 确保全局能获取当前日期（动态获取2025年c）
     const currentDate = new Date(); // 自动获取当前日期（2025）
     const currentYear = currentDate.getFullYear(); // 2025
     const currentMonth = currentDate.getMonth() + 1; // 1-12
@@ -3370,9 +3370,6 @@ function determineStrengthType(pillars) {
     // 其他部分调用API
     const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
     const apiKey = 'sk-b2950087a9d5427392762814114b22a9';
-
-    // 生成缓存键
-    const cacheKey = `${generateBaziHashKey(data)}:${section}`;
         
     // 使用 currentYear（2025）、currentMonth、currentDay
     const currentDateStr = `${currentYear}-${currentMonth.toString().padStart(2, '0')}-${currentDay.toString().padStart(2, '0')}`;
