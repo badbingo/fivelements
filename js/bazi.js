@@ -3380,7 +3380,10 @@ function determineStrengthType(pillars) {
 八字：${localResult.yearStem}${localResult.yearBranch} ${localResult.monthStem}${localResult.monthBranch} ${localResult.dayStem}${localResult.dayBranch} ${localResult.hourStem}${localResult.hourBranch}
 起运时间：${localResult.luckStartingTime}
 身强身弱：${localResult.strengthType}
-请直接分析此八字的起运时间和身强身弱，不要自行排盘或计算起运时间。
+【十年大运信息】
+${decadeFortuneStr}
+
+请直接使用以上提供的大运信息进行分析，不要自行排盘或计算大运。
 `;
 
         // 根据不同部分设置不同的提示词
@@ -3669,7 +3672,11 @@ function determineStrengthType(pillars) {
    八字：${currentPillars.year} ${currentPillars.month} ${currentPillars.day} ${currentPillars.hour}
    起运时间：${luckStartingTime.textContent || '未计算'}
    身强身弱：${strengthType.textContent || '未计算'}
-   请直接分析此八字的起运时间和身强身弱，不要自行排盘或计算起运时间。
+   
+   【十年大运信息】
+    ${decadeFortuneStr}
+
+重要提示：请直接使用以上提供的八字和大运信息进行分析，不要自行排盘或计算！
 
 用户问题：${question}`;
         
