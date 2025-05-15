@@ -2672,59 +2672,53 @@ function hasHe(branches, branch1, branch2) {
 
     // 本地计算八字
     function calculateBaziLocally(birthData) {
-        const dateParts = birthData.date.split('-');
-        const year = parseInt(dateParts[0]);
-        const month = parseInt(dateParts[1]);
-        const day = parseInt(dateParts[2]);
-        const timeParts = birthData.time.split(':');
-        const hour = parseInt(timeParts[0]);
-        const minute = parseInt(timeParts[1] || 0);
-        
-        const solar = Solar.fromYmdHms(year, month, day, hour, minute, 0);
-        const lunar = solar.getLunar();
-        const bazi = lunar.getEightChar();
-        
-        const yearGan = bazi.getYearGan();
-        const yearZhi = bazi.getYearZhi();
-        const monthGan = bazi.getMonthGan();
-        const monthZhi = bazi.getMonthZhi();
-        const dayGan = bazi.getDayGan();
-        const dayZhi = bazi.getDayZhi();
-        const hourGan = bazi.getTimeGan();
-        const hourZhi = bazi.getTimeZhi();
-        
-        const yearHiddenStems = getHiddenStems(yearZhi);
-        const monthHiddenStems = getHiddenStems(monthZhi);
-        const dayHiddenStems = getHiddenStems(dayZhi);
-        const hourHiddenStems = getHiddenStems(hourZhi);
-        
-        const elements = calculateNatalElements({
-            yearStem: yearGan,
-            yearBranch: yearZhi,
-            monthStem: monthGan,
-            monthBranch: monthZhi,
-            dayStem: dayGan,
-            dayBranch: dayZhi,
-            hourStem: hourGan,
-            hourBranch: hourZhi,
-            yearHiddenStems: yearHiddenStems,
-            monthHiddenStems: monthHiddenStems,
-            dayHiddenStems: dayHiddenStems,
-            hourHiddenStems: hourHiddenStems
-        });
-        
-        const personality = getPersonalityTraits(dayGan);
-        const decadeFortune = calculateDecadeFortune(lunar, birthData.gender);
-        const gamblingFortune = calculateGamblingFortune(birthData, lunar);
-        
-        // 计算起运时间
-        const luckStartingTime = calculateLuckStartingTime(lunar, birthData.gender);
-        
-        // 计算十年大运
-        const decadeFortune = calculateDecadeFortune(lunar, birthData.gender);
-        
-        // 判断从强从弱
-        const strengthType = determineStrengthType({
+    const dateParts = birthData.date.split('-');
+    const year = parseInt(dateParts[0]);
+    const month = parseInt(dateParts[1]);
+    const day = parseInt(dateParts[2]);
+    const timeParts = birthData.time.split(':');
+    const hour = parseInt(timeParts[0]);
+    const minute = parseInt(timeParts[1] || 0);
+    
+    const solar = Solar.fromYmdHms(year, month, day, hour, minute, 0);
+    const lunar = solar.getLunar();
+    const bazi = lunar.getEightChar();
+    
+    const yearGan = bazi.getYearGan();
+    const yearZhi = bazi.getYearZhi();
+    const monthGan = bazi.getMonthGan();
+    const monthZhi = bazi.getMonthZhi();
+    const dayGan = bazi.getDayGan();
+    const dayZhi = bazi.getDayZhi();
+    const hourGan = bazi.getTimeGan();
+    const hourZhi = bazi.getTimeZhi();
+    
+    const yearHiddenStems = getHiddenStems(yearZhi);
+    const monthHiddenStems = getHiddenStems(monthZhi);
+    const dayHiddenStems = getHiddenStems(dayZhi);
+    const hourHiddenStems = getHiddenStems(hourZhi);
+    
+    const elements = calculateNatalElements({
+        yearStem: yearGan,
+        yearBranch: yearZhi,
+        monthStem: monthGan,
+        monthBranch: monthZhi,
+        dayStem: dayGan,
+        dayBranch: dayZhi,
+        hourStem: hourGan,
+        hourBranch: hourZhi,
+        yearHiddenStems,
+        monthHiddenStems,
+        dayHiddenStems,
+        hourHiddenStems
+    });
+    
+    const personality = getPersonalityTraits(dayGan);
+    const gamblingFortune = calculateGamblingFortune(birthData, lunar);
+    
+    // 确保这些变量只被声明一次
+    const luckStartingTime = calculateLuckStartingTime(lunar, birthData.gender);
+    const strengthType = determineStrengthType({
         yearStem: yearGan,
         yearBranch: yearZhi,
         monthStem: monthGan,
@@ -2734,29 +2728,30 @@ function hasHe(branches, branch1, branch2) {
         hourStem: hourGan,
         hourBranch: hourZhi
     });
-        
-        return {
-            yearStem: yearGan,
-            yearBranch: yearZhi,
-            monthStem: monthGan,
-            monthBranch: monthZhi,
-            dayStem: dayGan,
-            dayBranch: dayZhi,
-            hourStem: hourGan,
-            hourBranch: hourZhi,
-            yearHiddenStems: yearHiddenStems,
-            monthHiddenStems: monthHiddenStems,
-            dayHiddenStems: dayHiddenStems,
-            hourHiddenStems: hourHiddenStems,
-            elements,
-            personality,
-            decadeFortune,
-            gamblingFortune,
-            luckStartingTime,  // 新增起运时间
-            strengthType,      // 新增从强从弱
-            decadeFortune
-        };
-    }
+    
+    const decadeFortune = calculateDecadeFortune(lunar, birthData.gender);
+    
+    return {
+        yearStem: yearGan,
+        yearBranch: yearZhi,
+        monthStem: monthGan,
+        monthBranch: monthZhi,
+        dayStem: dayGan,
+        dayBranch: dayZhi,
+        hourStem: hourGan,
+        hourBranch: hourZhi,
+        yearHiddenStems,
+        monthHiddenStems,
+        dayHiddenStems,
+        hourHiddenStems,
+        elements,
+        personality,
+        decadeFortune,
+        gamblingFortune,
+        luckStartingTime,
+        strengthType
+    };
+}
 
     // 修改后的calculateLuckStartingTime函数
 function calculateLuckStartingTime(lunar, gender) {
