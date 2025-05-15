@@ -3754,7 +3754,6 @@ function displayBasicInfo(info) {
 身强身弱：${localResult.strengthType}
 日主大运：${localResult.dayMasterFortune}
 请直接分析此八字的起运时间，身强身弱和日主大运，不要自行排盘或计算起运时间。
-`;
 
 用户问题：${question}`;
         
