@@ -3117,7 +3117,6 @@ function getElement(char) {
     };
     return elementMap[char] || '木'; // 默认返回木属性
 }
-/** 计算大运能量值（0-100） */
 function calculateFortuneEnergy(gan, zhi, dayGan, dayZhi) {
     // 1. 十神基础分
     const relationScore = {
@@ -3126,16 +3125,31 @@ function calculateFortuneEnergy(gan, zhi, dayGan, dayZhi) {
         '偏印': 50, '正印': 90
     };
     
-    // 2. 干支五行生克
+    // 2. 完整的五行生克关系表（补全所有组合）
     const elementRelations = {
         '木': { '木':1.0, '火':0.8, '土':0.6, '金':0.4, '水':0.9 },
         '火': { '木':1.2, '火':1.0, '土':0.7, '金':0.5, '水':0.3 },
-        // ...其他五行关系
+        '土': { '木':0.5, '火':0.7, '土':1.0, '金':0.8, '水':0.6 },
+        '金': { '木':0.3, '火':0.5, '土':0.8, '金':1.0, '水':0.7 },
+        '水': { '木':0.7, '火':0.4, '土':0.6, '金':0.9, '水':1.0 }
     };
     
-    // 3. 计算总分
+    // 3. 获取五行属性（确保getElement函数存在）
+    const dayElement = getElement(dayGan);
+    const ganElement = getElement(gan);
+    const zhiElement = getElement(zhi);
+    
+    // 4. 安全访问（防止undefined）
+    const dayToGan = elementRelations[dayElement]?.[ganElement] || 1.0;
+    const dayToZhi = elementRelations[dayElement]?.[zhiElement] || 1.0;
+    
+    // 5. 计算总分
     const relation = getTenGodRelation(dayGan, gan);
     let score = relationScore[relation] || 50;
+    score = score * dayToGan * dayToZhi;
+    
+    return Math.min(100, Math.max(0, Math.round(score)));
+}
     
     // 应用五行生克
     const dayElement = getElement(dayGan);
