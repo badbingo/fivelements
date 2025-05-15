@@ -3367,8 +3367,6 @@ function determineStrengthType(pillars) {
     const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
     const apiKey = 'sk-b2950087a9d5427392762814114b22a9';
     
-    // 使用 currentYear（2025）、currentMonth、currentDay
-    const currentDateStr = `${currentYear}-${currentMonth.toString().padStart(2, '0')}-${currentDay.toString().padStart(2, '0')}`;
         
         let prompt = `请严格按照以下规则进行专业八字排盘，确保所有计算准确无误：
         
