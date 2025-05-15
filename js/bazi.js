@@ -3750,11 +3750,11 @@ function displayBasicInfo(info) {
    出生日期：${birthData.date}
    出生时间：${birthData.time}
    性别：${birthData.gender === 'male' ? '男' : '女'}
-   八字：${currentPillars.year} ${currentPillars.month} ${currentPillars.day} ${currentPillars.hour}
-   起运时间：${luckStartingTime.textContent || '未计算'}
-   身强身弱：${strengthType.textContent || '未计算'}
-   日主大运：${dayMasterFortune.dayMasterFortune || '未计算'}
-   请直接分析此八字的起运时间，身强身弱和日主大运，不要自行排盘或计算起运时间。
+   八字：${localResult.yearStem}${localResult.yearBranch} ${localResult.monthStem}${localResult.monthBranch} ${localResult.dayStem}${localResult.dayBranch} ${localResult.hourStem}${localResult.hourBranch}
+    起运时间：${localResult.luckStartingTime}
+    身强身弱：${localResult.strengthType}
+    日主大运：${localResult.dayMasterFortune}
+    请直接分析此八字的起运时间，身强身弱和日主大运，不要自行排盘或计算起运时间。
 
 用户问题：${question}`;
         
