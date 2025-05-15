@@ -254,22 +254,22 @@ document.addEventListener('DOMContentLoaded', function() {
         function I(x, y, z) { return (y ^ (x | (~z))); }
         
         function FF(a, b, c, d, x, s, ac) {
-            a = addUnsigned(a, addUnsigned(addUnsigned(F(b, c, d), addUnsigned(x, ac)));
+            a = addUnsigned(a, addUnsigned(addUnsigned(F(b, c, d), addUnsigned(x, ac))));
             return addUnsigned(rotateLeft(a, s), b);
         }
         
         function GG(a, b, c, d, x, s, ac) {
-            a = addUnsigned(a, addUnsigned(addUnsigned(G(b, c, d), addUnsigned(x, ac)));
+            a = addUnsigned(a, addUnsigned(addUnsigned(G(b, c, d), addUnsigned(x, ac))));
             return addUnsigned(rotateLeft(a, s), b);
         }
         
         function HH(a, b, c, d, x, s, ac) {
-            a = addUnsigned(a, addUnsigned(addUnsigned(H(b, c, d), addUnsigned(x, ac)));
+            a = addUnsigned(a, addUnsigned(addUnsigned(H(b, c, d), addUnsigned(x, ac))));
             return addUnsigned(rotateLeft(a, s), b);
         }
         
         function II(a, b, c, d, x, s, ac) {
-            a = addUnsigned(a, addUnsigned(addUnsigned(I(b, c, d), addUnsigned(x, ac)));
+            a = addUnsigned(a, addUnsigned(addUnsigned(I(b, c, d), addUnsigned(x, ac))));
             return addUnsigned(rotateLeft(a, s), b);
         }
         
