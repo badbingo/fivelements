@@ -3743,17 +3743,18 @@ function displayBasicInfo(info) {
 2. 回答应简洁明了，避免冗长
 3. 针对用户问题提供专业分析
 
-当前日期：${currentDateStr}
-根据以下八字信息进行分析：
-姓名：${data.name || '未提供'}
-出生日期：${data.date}
-出生时间：${data.time} 
-性别：${data.gender === 'male' ? '男' : '女'}
-八字：${localResult.yearStem}${localResult.yearBranch} ${localResult.monthStem}${localResult.monthBranch} ${localResult.dayStem}${localResult.dayBranch} ${localResult.hourStem}${localResult.hourBranch}
-起运时间：${localResult.luckStartingTime}
-身强身弱：${localResult.strengthType}
-日主大运：${localResult.dayMasterFortune}
-请直接分析此八字的起运时间，身强身弱和日主大运，不要自行排盘或计算起运时间。
+   当前日期：${currentDateStr} 
+   如果问题与当前命盘相关，请结合以下八字信息：
+   当前日期：${currentDateStr} 
+   姓名：${birthData.name || '未提供'}
+   出生日期：${birthData.date}
+   出生时间：${birthData.time}
+   性别：${birthData.gender === 'male' ? '男' : '女'}
+   八字：${currentPillars.year} ${currentPillars.month} ${currentPillars.day} ${currentPillars.hour}
+   起运时间：${luckStartingTime.textContent || '未计算'}
+   身强身弱：${strengthType.textContent || '未计算'}
+   日主大运：${dayMasterFortune.dayMasterFortune || '未计算'}
+   请直接分析此八字的起运时间，日主大运和身强身弱，不要自行排盘或计算。
 
 用户问题：${question}`;
         
