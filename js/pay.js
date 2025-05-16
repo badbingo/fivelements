@@ -1,101 +1,125 @@
-// pay.js
+// pay.js - 支付功能实现
+
 document.addEventListener('DOMContentLoaded', function() {
+    const payBtn = document.getElementById('pay-btn');
     const calculateBtn = document.getElementById('calculate-btn');
     const savedProfilesList = document.getElementById('saved-profiles-list');
     
-    // 检查是否已付费
+    // 检查本地存储中是否有已付费记录
     function checkPaymentStatus() {
         const paidUsers = JSON.parse(localStorage.getItem('paidUsers')) || [];
-        const name = document.getElementById('name').value.trim();
-        return paidUsers.includes(name);
-    }
-    
-    // 保存付费用户
-    function savePaidUser(name) {
-        let paidUsers = JSON.parse(localStorage.getItem('paidUsers')) || [];
-        if (!paidUsers.includes(name)) {
-            paidUsers.push(name);
-            localStorage.setItem('paidUsers', JSON.stringify(paidUsers));
-            updateHistoryList();
-        }
-    }
-    
-    // 更新历史记录列表
-    function updateHistoryList() {
-        const paidUsers = JSON.parse(localStorage.getItem('paidUsers')) || [];
-        savedProfilesList.innerHTML = '';
+        const currentUser = document.getElementById('name').value.trim();
         
-        if (paidUsers.length > 0) {
-            savedProfilesList.innerHTML = '<div class="saved-profiles-title"><i class="fas fa-check-circle"></i> 已付费用户</div>';
-            paidUsers.forEach(user => {
-                const userEl = document.createElement('div');
-                userEl.className = 'saved-profile';
-                userEl.innerHTML = `<i class="fas fa-user"></i> ${user}`;
-                savedProfilesList.appendChild(userEl);
-            });
-        } else {
-            savedProfilesList.innerHTML = '<div class="no-history">暂无历史记录</div>';
+        if (currentUser && paidUsers.includes(currentUser)) {
+            payBtn.style.display = 'none';
+            calculateBtn.style.display = 'block';
         }
     }
     
-    // 初始化检查
-    updateHistoryList();
+    // 初始化时检查支付状态
+    checkPaymentStatus();
     
-    // 支付函数
-    function initiatePayment() {
+    // 支付按钮点击事件
+    payBtn.addEventListener('click', function() {
         const name = document.getElementById('name').value.trim();
-        const gender = document.getElementById('gender').value;
         const birthDate = document.getElementById('birth-date').value;
         const birthTime = document.getElementById('birth-time').value;
         
-        if (!name || !gender || !birthDate || !birthTime) {
-            alert('请填写完整信息后再进行支付');
+        if (!name) {
+            alert('请输入您的姓名');
             return;
         }
         
-        if (checkPaymentStatus()) {
-            alert('您已是付费用户，可以直接开始测算');
+        if (!birthDate) {
+            alert('请输入出生日期');
             return;
         }
         
-        // 生成订单号
-        const outTradeNo = 'bazi_' + Date.now() + Math.floor(Math.random() * 1000);
+        if (!birthTime) {
+            alert('请选择出生时辰');
+            return;
+        }
         
-        // 支付参数
+        // 调用支付接口
+        initiatePayment(name);
+    });
+    
+    // 开始测算按钮点击事件
+    calculateBtn.addEventListener('click', function() {
+        const name = document.getElementById('name').value.trim();
+        if (name) {
+            // 记录已测算用户
+            addToHistory(name);
+            // 这里可以添加实际的测算逻辑
+            alert('量子测算开始...');
+        }
+    });
+    
+    // 初始化支付
+    function initiatePayment(name) {
+        const pid = '2025051013380915';
+        const key = 'UsXrSwn0wft5SeLB0LaQfecvJmpkS18T';
+        const outTradeNo = generateOrderNo();
+        const notifyUrl = encodeURIComponent('https://mybazi.net/system/bazisystem.html');
+        const returnUrl = encodeURIComponent('https://mybazi.net/system/bazisystem.html');
+        
+        // 构造支付参数
         const params = {
-            pid: '2025051013380915',
-            type: 'alipay',
+            pid: pid,
+            type: 'wxpay', // 只使用微信支付
             out_trade_no: outTradeNo,
-            notify_url: 'https://mybazi.net/system/bazisystem.html',
-            return_url: 'https://mybazi.net/system/bazisystem.html',
+            notify_url: notifyUrl,
+            return_url: returnUrl,
             name: '八字测算-' + name,
             money: '1.00',
             param: name
         };
         
         // 生成签名
-        const sign = generateSign(params, 'UsXrSwn0wft5SeLB0LaQfecvJmpkS18T');
-        params.sign = sign;
+        params.sign = generateSign(params, key);
         params.sign_type = 'MD5';
         
         // 提交支付
         submitPayment(params);
     }
     
+    // 生成订单号
+    function generateOrderNo() {
+        const now = new Date();
+        return now.getFullYear() + 
+               padZero(now.getMonth() + 1) + 
+               padZero(now.getDate()) + 
+               padZero(now.getHours()) + 
+               padZero(now.getMinutes()) + 
+               padZero(now.getSeconds()) + 
+               Math.floor(Math.random() * 1000);
+    }
+    
+    // 补零函数
+    function padZero(num) {
+        return num < 10 ? '0' + num : num;
+    }
+    
     // 生成签名
     function generateSign(params, key) {
-        // 按参数名ASCII码从小到大排序
-        const sortedKeys = Object.keys(params).sort();
-        let signStr = '';
-        
-        sortedKeys.forEach((keyName, index) => {
-            if (keyName !== 'sign' && keyName !== 'sign_type' && params[keyName] !== '') {
-                if (index !== 0) signStr += '&';
-                signStr += `${keyName}=${params[keyName]}`;
+        // 过滤空值和sign/sign_type
+        const filteredParams = {};
+        for (const k in params) {
+            if (params[k] !== '' && k !== 'sign' && k !== 'sign_type') {
+                filteredParams[k] = params[k];
             }
+        }
+        
+        // 按ASCII码排序
+        const sortedKeys = Object.keys(filteredParams).sort();
+        
+        // 拼接字符串
+        let signStr = '';
+        sortedKeys.forEach((k, i) => {
+            signStr += (i === 0 ? '' : '&') + k + '=' + filteredParams[k];
         });
         
-        // 拼接密钥并生成MD5
+        // 加上密钥并MD5加密
         signStr += key;
         return CryptoJS.MD5(signStr).toString();
     }
@@ -107,43 +131,89 @@ document.addEventListener('DOMContentLoaded', function() {
         form.action = 'https://zpayz.cn/submit.php';
         form.style.display = 'none';
         
-        Object.keys(params).forEach(key => {
+        // 添加参数到form
+        for (const key in params) {
             const input = document.createElement('input');
             input.type = 'hidden';
             input.name = key;
             input.value = params[key];
             form.appendChild(input);
-        });
+        }
         
         document.body.appendChild(form);
         form.submit();
     }
     
-    // 处理支付回调
-    function handlePaymentCallback() {
+    // 添加到历史记录
+    function addToHistory(name) {
+        let paidUsers = JSON.parse(localStorage.getItem('paidUsers')) || [];
+        if (!paidUsers.includes(name)) {
+            paidUsers.push(name);
+            localStorage.setItem('paidUsers', JSON.stringify(paidUsers));
+        }
+        
+        // 更新历史记录显示
+        updateHistoryDisplay();
+    }
+    
+    // 更新历史记录显示
+    function updateHistoryDisplay() {
+        const paidUsers = JSON.parse(localStorage.getItem('paidUsers')) || [];
+        savedProfilesList.innerHTML = '';
+        
+        paidUsers.forEach(user => {
+            const item = document.createElement('div');
+            item.className = 'saved-profile-item';
+            item.innerHTML = `
+                <div class="saved-profile-name">${user}</div>
+                <div class="saved-profile-status">已付费用户</div>
+            `;
+            savedProfilesList.appendChild(item);
+        });
+    }
+    
+    // 检查URL中是否有支付成功参数
+    function checkPaymentSuccess() {
         const urlParams = new URLSearchParams(window.location.search);
         const tradeStatus = urlParams.get('trade_status');
         const name = urlParams.get('param');
         
         if (tradeStatus === 'TRADE_SUCCESS' && name) {
-            savePaidUser(name);
-            alert('支付成功！您现在可以开始测算');
+            // 验证签名
+            const sign = urlParams.get('sign');
+            const pid = urlParams.get('pid');
+            const money = urlParams.get('money');
+            const outTradeNo = urlParams.get('out_trade_no');
+            const tradeNo = urlParams.get('trade_no');
+            const type = urlParams.get('type');
+            
+            const params = {
+                pid: pid,
+                money: money,
+                out_trade_no: outTradeNo,
+                trade_no: tradeNo,
+                type: type,
+                param: name,
+                trade_status: tradeStatus
+            };
+            
+            const key = 'UsXrSwn0wft5SeLB0LaQfecvJmpkS18T';
+            const calculatedSign = generateSign(params, key);
+            
+            if (calculatedSign === sign) {
+                // 签名验证通过，支付成功
+                addToHistory(name);
+                document.getElementById('pay-btn').style.display = 'none';
+                document.getElementById('calculate-btn').style.display = 'block';
+                
+                // 清除URL参数
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
         }
     }
     
-    // 绑定事件
-    calculateBtn.addEventListener('click', initiatePayment);
-    
-    // 页面加载时检查是否有支付回调
-    handlePaymentCallback();
-    
-    // 如果已付费用户点击按钮，直接开始测算
-    calculateBtn.addEventListener('click', function() {
-        const name = document.getElementById('name').value.trim();
-        if (checkPaymentStatus() && name) {
-            // 这里可以调用原有的测算函数
-            alert('开始测算...');
-            // startCalculation(); // 假设这是原有的测算函数
-        }
-    });
+    // 页面加载时检查支付成功
+    checkPaymentSuccess();
+    // 初始化历史记录显示
+    updateHistoryDisplay();
 });
