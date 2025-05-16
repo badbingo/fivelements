@@ -1,4 +1,4 @@
-// pay.js - 使用现有loading样式版a
+// pay.js - 终极优化版
 document.addEventListener('DOMContentLoaded', function() {
     // 配置参数
     const CONFIG = {
@@ -6,13 +6,14 @@ document.addEventListener('DOMContentLoaded', function() {
         key: 'UsXrSwn0wft5SeLB0LaQfecvJmpkS18T',
         apiUrl: 'https://zpayz.cn/submit.php',
         returnUrl: window.location.href.split('?')[0],
-        amount: '0.01'
+        amount: '1.00'
     };
 
     // DOM元素
     const payBtn = document.getElementById('pay-btn');
     const calculateBtn = document.getElementById('calculate-btn');
     const nameInput = document.getElementById('name');
+    const fullscreenLoading = document.getElementById('fullscreen-loading');
 
     /* ========== 初始化 ========== */
     initPaymentSystem();
@@ -65,11 +66,13 @@ document.addEventListener('DOMContentLoaded', function() {
     /* ========== 支付操作 ========== */
     function startPayment() {
         const userName = nameInput.value.trim();
-        if (!validateInputs(userName)) return;
+        if (!userName) {
+            alert('请输入您的姓名');
+            return;
+        }
 
-        // 使用现有loading样式
-        payBtn.innerHTML = '<div class="loading"></div> 支付处理中';
-        payBtn.disabled = true;
+        // 显示全屏loading
+        fullscreenLoading.style.display = 'flex';
 
         const paymentData = {
             pid: CONFIG.pid,
@@ -87,8 +90,32 @@ document.addEventListener('DOMContentLoaded', function() {
         submitPayment(paymentData);
     }
 
+    function submitPayment(data) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = CONFIG.apiUrl;
+        form.style.display = 'none';
+
+        Object.entries(data).forEach(([key, value]) => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = key;
+            input.value = value;
+            form.appendChild(input);
+        });
+
+        document.body.appendChild(form);
+        form.submit();
+        
+        // 5秒后自动隐藏loading（防止卡死）
+        setTimeout(() => {
+            fullscreenLoading.style.display = 'none';
+        }, 5000);
+    }
+
     /* ========== 支付成功处理 ========== */
     function handlePaymentSuccess(userName) {
+        fullscreenLoading.style.display = 'none';
         localStorage.setItem(`paid_${userName}`, 'true');
         localStorage.removeItem(`used_${userName}`);
         updateButtonState();
@@ -98,29 +125,19 @@ document.addEventListener('DOMContentLoaded', function() {
         const userName = nameInput.value.trim();
         if (!userName) return;
         
-        // 使用现有loading样式
-        calculateBtn.innerHTML = '<div class="loading"></div> 测算中';
-        
         // 执行测算逻辑
-        setTimeout(() => {
-            localStorage.setItem(`used_${userName}`, 'true');
-            calculateBtn.innerHTML = '<i class="fas fa-atom"></i> 开始量子测算';
-            // 实际测算逻辑...
-        }, 100);
+        startQuantumCalculation(userName);
     }
 
     /* ========== UI控制 ========== */
     function resetPayButton() {
-        payBtn.innerHTML = '<i class="fas fa-credit-card"></i> 点击付款';
         payBtn.style.display = 'block';
         calculateBtn.style.display = 'none';
-        payBtn.disabled = false;
     }
 
     function showCalculateButton() {
         payBtn.style.display = 'none';
         calculateBtn.style.display = 'block';
-        calculateBtn.innerHTML = '<i class="fas fa-atom"></i> 开始量子测算';
     }
 
     /* ========== 工具函数 ========== */
@@ -164,37 +181,17 @@ document.addEventListener('DOMContentLoaded', function() {
         window.history.replaceState({}, document.title, window.location.pathname);
     }
 
-    function validateInputs(userName) {
-        if (!userName) {
-            showPayButtonLoading(false);
-            alert('请输入您的姓名');
-            return false;
-        }
-        if (!document.getElementById('birth-date').value) {
-            showPayButtonLoading(false);
-            alert('请输入出生日期');
-            return false;
-        }
-        if (!document.getElementById('birth-time').value) {
-            showPayButtonLoading(false);
-            alert('请选择出生时辰');
-            return false;
-        }
-        return true;
+    function startQuantumCalculation(userName) {
+        // 实际测算逻辑
+        console.log(`开始测算: ${userName}`);
+        // 可以在这里跳转到结果页或显示结果
     }
 
     /* ========== 事件监听 ========== */
     function setupEventListeners() {
-        // 支付按钮
         payBtn.addEventListener('click', startPayment);
-        
-        // 测算按钮
         calculateBtn.addEventListener('click', handleCalculationStart);
-        
-        // 姓名输入变化时更新状态
         nameInput.addEventListener('input', updateButtonState);
-        
-        // 页面显示时检查状态
         window.addEventListener('pageshow', updateButtonState);
     }
 });
