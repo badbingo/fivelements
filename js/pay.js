@@ -1,13 +1,12 @@
-// pay.js - 终极解决方案
+// pay.js - 一次性测算解决方案
 document.addEventListener('DOMContentLoaded', function() {
     // 配置参数
     const CONFIG = {
         pid: '2025051013380915',
         key: 'UsXrSwn0wft5SeLB0LaQfecvJmpkS18T',
         apiUrl: 'https://zpayz.cn/submit.php',
-        returnUrl: window.location.origin + window.location.pathname, // 动态获取当前页URL
-        amount: '1.00',
-        paymentExpireTime: 30 * 60 * 1000 // 30分钟有效期
+        returnUrl: window.location.href.split('?')[0], // 当前页URL
+        amount: '1.00'
     };
 
     // DOM元素
@@ -19,21 +18,18 @@ document.addEventListener('DOMContentLoaded', function() {
     initPaymentSystem();
 
     function initPaymentSystem() {
-        // 1. 检查URL中的支付回调
-        checkUrlPaymentStatus();
+        // 1. 检查URL支付回调
+        checkPaymentReturn();
         
-        // 2. 检查本地支付状态
-        checkLocalPaymentStatus();
+        // 2. 初始化按钮状态
+        updateButtonState();
         
         // 3. 设置事件监听
         setupEventListeners();
-        
-        // 4. 添加定时状态检查（每5秒）
-        setInterval(checkLocalPaymentStatus, 5000);
     }
 
-    /* ========== 支付状态检查 ========== */
-    function checkUrlPaymentStatus() {
+    /* ========== 支付状态管理 ========== */
+    function checkPaymentReturn() {
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('trade_status') === 'TRADE_SUCCESS') {
             const paymentData = {
@@ -51,17 +47,21 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (verifyPayment(paymentData)) {
                 const userName = decodeURIComponent(paymentData.param || '');
-                handleSuccessfulPayment(userName);
+                handlePaymentSuccess(userName);
                 cleanUrl();
             }
         }
     }
 
-    function checkLocalPaymentStatus() {
+    function updateButtonState() {
         const userName = nameInput.value.trim();
-        if (!userName) return;
-        
-        if (getPaymentStatus(userName)) {
+        if (!userName) {
+            showPayButton();
+            return;
+        }
+
+        // 检查是否已支付但未使用测算
+        if (localStorage.getItem(`paid_${userName}`) && !localStorage.getItem(`used_${userName}`)) {
             showCalculateButton();
         } else {
             showPayButton();
@@ -72,8 +72,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function startPayment() {
         const userName = nameInput.value.trim();
         if (!validateInputs(userName)) return;
-        
-        // 构建支付数据
+
         const paymentData = {
             pid: CONFIG.pid,
             type: 'wxpay',
@@ -86,14 +85,11 @@ document.addEventListener('DOMContentLoaded', function() {
             sign_type: 'MD5'
         };
         
-        // 生成签名
         paymentData.sign = generateSign(paymentData);
-        
-        console.log('提交支付数据:', paymentData);
-        submitPaymentForm(paymentData);
+        submitPayment(paymentData);
     }
 
-    function submitPaymentForm(data) {
+    function submitPayment(data) {
         const form = document.createElement('form');
         form.method = 'POST';
         form.action = CONFIG.apiUrl;
@@ -112,55 +108,31 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     /* ========== 支付成功处理 ========== */
-    function handleSuccessfulPayment(userName) {
-        // 1. 记录支付状态
-        setPaymentStatus(userName, true);
+    function handlePaymentSuccess(userName) {
+        // 标记为已支付但未使用
+        localStorage.setItem(`paid_${userName}`, 'true');
+        localStorage.removeItem(`used_${userName}`);
         
-        // 2. 更新UI
-        showCalculateButton();
+        // 更新UI
+        updateButtonState();
         
-        // 3. 显示成功提示
+        // 显示成功提示
         alert(`${userName}，支付成功！您现在可以开始量子测算`);
     }
 
-    /* ========== 状态管理 ========== */
-    function setPaymentStatus(userName, isPaid) {
+    function handleCalculationStart() {
+        const userName = nameInput.value.trim();
         if (!userName) return;
         
-        // 使用sessionStorage存储当前会话状态
-        if (isPaid) {
-            sessionStorage.setItem('paidUser', userName);
-            sessionStorage.setItem('paymentTime', Date.now());
-        } else {
-            sessionStorage.removeItem('paidUser');
-        }
+        // 标记为已使用测算
+        localStorage.setItem(`used_${userName}`, 'true');
         
-        // 使用localStorage存储长期记录
-        const paidUsers = JSON.parse(localStorage.getItem('paidUsers')) || [];
-        if (isPaid && !paidUsers.includes(userName)) {
-            paidUsers.push(userName);
-            localStorage.setItem('paidUsers', JSON.stringify(paidUsers));
-        }
-    }
-
-    function getPaymentStatus(userName) {
-        if (!userName) return false;
+        // 更新UI
+        updateButtonState();
         
-        // 1. 检查当前会话状态
-        const paidUser = sessionStorage.getItem('paidUser');
-        const paymentTime = sessionStorage.getItem('paymentTime');
-        
-        if (paidUser === userName) {
-            // 检查是否过期
-            if (Date.now() - paymentTime < CONFIG.paymentExpireTime) {
-                return true;
-            }
-            sessionStorage.removeItem('paidUser');
-        }
-        
-        // 2. 检查长期记录
-        const paidUsers = JSON.parse(localStorage.getItem('paidUsers')) || [];
-        return paidUsers.includes(userName);
+        // 执行测算逻辑
+        alert(`开始为 ${userName} 进行量子测算...`);
+        // 这里添加实际测算代码
     }
 
     /* ========== UI控制 ========== */
@@ -176,7 +148,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     /* ========== 工具函数 ========== */
     function generateSign(params) {
-        // 过滤空值和签名相关字段
         const filtered = {};
         Object.keys(params).forEach(k => {
             if (params[k] !== '' && k !== 'sign' && k !== 'sign_type') {
@@ -184,7 +155,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         
-        // 按ASCII码排序并拼接
         const signStr = Object.keys(filtered).sort()
             .map(k => `${k}=${filtered[k]}`)
             .join('&') + CONFIG.key;
@@ -239,15 +209,12 @@ document.addEventListener('DOMContentLoaded', function() {
         payBtn.addEventListener('click', startPayment);
         
         // 测算按钮
-        calculateBtn.addEventListener('click', function() {
-            const userName = nameInput.value.trim();
-            if (userName) {
-                alert(`开始为 ${userName} 进行量子测算...`);
-                // 实际测算逻辑...
-            }
-        });
+        calculateBtn.addEventListener('click', handleCalculationStart);
         
-        // 姓名输入变化时检查状态
-        nameInput.addEventListener('input', checkLocalPaymentStatus);
+        // 姓名输入变化时更新状态
+        nameInput.addEventListener('input', updateButtonState);
+        
+        // 页面显示时检查状态
+        window.addEventListener('pageshow', updateButtonState);
     }
 });
