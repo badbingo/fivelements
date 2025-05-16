@@ -1,4 +1,4 @@
-// pay.js - 签名修正版a
+// pay.js - 签名修正版b
 document.addEventListener('DOMContentLoaded', function() {
     // 配置参数
     const CONFIG = {
@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', function() {
         apiUrl: 'https://zpayz.cn/submit.php',
         returnUrl: 'https://mybazi.net/system/bazisystem.html',
         notifyUrl: 'https://mybazi.net/system/bazisystem.html',
-        amount: '1.00'
+        amount: '0.01'
     };
 
     // 生成正确的支付签名
