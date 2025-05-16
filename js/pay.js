@@ -1,4 +1,4 @@
-// pay.js - 完整修正版
+// pay.js - 完整修正版（支付成功后立即更新按钮状态）
 document.addEventListener('DOMContentLoaded', function() {
     // 配置参数
     const CONFIG = {
@@ -24,14 +24,14 @@ document.addEventListener('DOMContentLoaded', function() {
         // 1. 检查URL支付回调
         checkPaymentReturn();
         
-        // 2. 初始化按钮状态
-        updateButtonState();
+        // 2. 检查本地支付状态
+        checkLocalPaymentStatus();
         
         // 3. 设置事件监听
         setupEventListeners();
     }
 
-    /* ========== 状态管理 ========== */
+    /* ========== 支付状态检查 ========== */
     function checkPaymentReturn() {
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('trade_status') === 'TRADE_SUCCESS') {
@@ -56,23 +56,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    function updateButtonState() {
+    function checkLocalPaymentStatus() {
         const userName = nameInput.value.trim();
-        if (!userName) {
-            resetToPayState();
-            return;
-        }
-
-        if (isPaidAndUnused(userName)) {
+        if (userName && isPaidAndUnused(userName)) {
             showCalculateState();
-        } else {
-            resetToPayState();
         }
-    }
-
-    function isPaidAndUnused(userName) {
-        return localStorage.getItem(`paid_${userName}`) && 
-              !localStorage.getItem(`used_${userName}`);
     }
 
     /* ========== 支付流程 ========== */
@@ -99,17 +87,20 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function handlePaymentSuccess(userName) {
-        // 1. 记录支付状态
+        // 1. 存储支付状态
         localStorage.setItem(`paid_${userName}`, 'true');
         localStorage.removeItem(`used_${userName}`);
         
-        // 2. 更新UI
-        updateButtonState();
+        // 2. 自动填充用户名（关键修正点）
+        nameInput.value = userName;
         
-        // 3. 显示成功提示
+        // 3. 立即更新按钮状态（不再等待输入事件）
+        showCalculateState();
+        
+        // 4. 显示成功提示
         showPaymentSuccessAlert();
         
-        // 4. 隐藏loading
+        // 5. 隐藏loading
         showFullscreenLoading(false);
     }
 
@@ -123,19 +114,28 @@ document.addEventListener('DOMContentLoaded', function() {
         // 标记为已使用测算
         localStorage.setItem(`used_${userName}`, 'true');
         
-        // 更新UI状态
+        // 更新按钮状态
         updateButtonState();
         
         // 执行测算
         executeQuantumCalculation(userName, gender);
     }
 
-    function executeQuantumCalculation(name, gender) {
-        console.log(`开始量子测算 - 姓名: ${name}, 性别: ${gender}`);
-        // 实际测算逻辑...
+    /* ========== UI控制 ========== */
+    function updateButtonState() {
+        const userName = nameInput.value.trim();
+        if (!userName) {
+            resetToPayState();
+            return;
+        }
+
+        if (isPaidAndUnused(userName)) {
+            showCalculateState();
+        } else {
+            resetToPayState();
+        }
     }
 
-    /* ========== UI控制 ========== */
     function resetToPayState() {
         payBtn.style.display = 'block';
         calculateBtn.style.display = 'none';
@@ -157,7 +157,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 3000);
     }
 
-    /* ========== 验证函数 ========== */
+    /* ========== 工具函数 ========== */
+    function isPaidAndUnused(userName) {
+        return localStorage.getItem(`paid_${userName}`) && 
+              !localStorage.getItem(`used_${userName}`);
+    }
+
     function validateName(name) {
         if (!name) {
             alert('请输入您的姓名');
@@ -179,7 +184,6 @@ document.addEventListener('DOMContentLoaded', function() {
         return true;
     }
 
-    /* ========== 工具函数 ========== */
     function generateSign(params) {
         const filtered = {};
         Object.keys(params).forEach(k => {
@@ -234,6 +238,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
         document.body.appendChild(form);
         form.submit();
+    }
+
+    function executeQuantumCalculation(name, gender) {
+        console.log(`开始量子测算 - 姓名: ${name}, 性别: ${gender}`);
+        // 实际测算逻辑...
     }
 
     /* ========== 事件监听 ========== */
