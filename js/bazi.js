@@ -1,6 +1,6 @@
 
 document.addEventListener('DOMContentLoaded', function() {
-    // 确保全局能获取当前日期（动态获取2025年c）
+    // 确保全局能获取当前日期（动态获取2025年a）
     const currentDate = new Date(); // 自动获取当前日期（2025）
     const currentYear = currentDate.getFullYear(); // 2025
     const currentMonth = currentDate.getMonth() + 1; // 1-12
@@ -1084,65 +1084,71 @@ ${getWealthSuggestions(score)}
 
     // 加载按钮点击处理函数
     async function loadButtonClickHandler(e) {
-        e.preventDefault();
-        const button = this;
-        const section = button.getAttribute('data-section');
-        const contentElement = document.getElementById(`${section}-content`);
-        const container = button.closest('.load-btn-container');
-        
-        // 如果已经加载过，只切换显示/隐藏
-        if (loadedSections[section]) {
-            container.classList.toggle('active');
-            contentElement.classList.toggle('active');
-            return;
-        }
-        
-        const originalBtnHtml = button.innerHTML;
-        button.disabled = true;
-        button.innerHTML = `<span style="display: flex; align-items: center; justify-content: center; width: 100%;"><span class="loading"></span>  量子分析中...</span><i class="fas fa-chevron-down toggle-icon"></i>`;
-        container.classList.add('active');
-        
-        const progressContainer = document.createElement('div');
-        progressContainer.className = 'progress-container';
-        progressContainer.innerHTML = '<div class="progress-bar"></div>';
-        contentElement.innerHTML = '';
-        contentElement.appendChild(progressContainer);
-        
-        const progressBar = progressContainer.querySelector('.progress-bar');
-        let progress = 0;
-        const progressInterval = setInterval(function() {
-            progress += Math.random() * 10;
-            if (progress >= 100) progress = 100;
-            progressBar.style.width = `${progress}%`;
-        }, 300);
-        
-        try {
-            const result = await getBaziAnalysis(section, birthData);
-            clearInterval(progressInterval);
-            displaySectionContent(section, result, contentElement);
-            
-            // 恢复按钮状态，添加完成标记
-            const originalText = button.getAttribute('data-original-text');
-            button.innerHTML = `<span>${originalText}</span><i class="fas fa-check"></i><i class="fas fa-chevron-down toggle-icon"></i>`;
-            button.disabled = false;
-            
-            contentElement.classList.add('active');
-            loadedSections[section] = true;
-            
-            if (section === 'decade-fortune') {
-                initFortuneChart(result);
-            }
-        } catch (error) {
-            console.error(`加载${section}失败:`, error);
-            clearInterval(progressInterval);
-            contentElement.innerHTML = '<p style="color:var(--danger-color)">加载失败，请重试</p>';
-            button.disabled = false;
-            button.innerHTML = `<span>${button.getAttribute('data-original-text')}</span><i class="fas fa-chevron-down toggle-icon"></i>`;
-        }
+    e.preventDefault();
+    const button = this;
+    const section = button.getAttribute('data-section');
+    const contentElement = document.getElementById(`${section}-content`);
+    const container = button.closest('.load-btn-container');
+    
+    // 如果已经加载过，只切换显示/隐藏
+    if (loadedSections[section]) {
+        container.classList.toggle('active');
+        contentElement.classList.toggle('active');
+        return;
     }
+    
+    const originalBtnHtml = button.innerHTML;
+    button.disabled = true;
+    button.innerHTML = `<span style="display: flex; align-items: center; justify-content: center; width: 100%;"><span class="loading"></span>  命理数据库解索中，请耐心等待...</span><i class="fas fa-chevron-down toggle-icon"></i>`;
+    container.classList.add('active');
+    
+    const progressContainer = document.createElement('div');
+    progressContainer.className = 'progress-container';
+    progressContainer.innerHTML = '<div class="progress-bar"></div>';
+    contentElement.innerHTML = '';
+    contentElement.appendChild(progressContainer);
+    
+    // 增加内容区域的最小高度
+    contentElement.style.minHeight = '500px'; // 增加页面长度
+    
+    const progressBar = progressContainer.querySelector('.progress-bar');
+    let progress = 0;
+    const progressInterval = setInterval(function() {
+        progress += Math.random() * 10;
+        if (progress >= 100) progress = 100;
+        progressBar.style.width = `${progress}%`;
+    }, 300);
+    
+    try {
+        const result = await getBaziAnalysis(section, birthData);
+        clearInterval(progressInterval);
+        displaySectionContent(section, result, contentElement);
+        
+        // 恢复按钮状态，添加完成标记
+        const originalText = button.getAttribute('data-original-text');
+        button.innerHTML = `<span>${originalText}</span><i class="fas fa-check"></i><i class="fas fa-chevron-down toggle-icon"></i>`;
+        button.disabled = false;
+        
+        contentElement.classList.add('active');
+        loadedSections[section] = true;
+        
+        if (section === 'decade-fortune') {
+            initFortuneChart(result);
+        }
+    } catch (error) {
+        console.error(`加载${section}失败:`, error);
+        clearInterval(progressInterval);
+        contentElement.innerHTML = '<p style="color:var(--danger-color)">加载失败，请重试</p>';
+        button.disabled = false;
+        button.innerHTML = `<span>${button.getAttribute('data-original-text')}</span><i class="fas fa-chevron-down toggle-icon"></i>`;
+    }
+}
 
-    // 显示部分内容
-    function displaySectionContent(section, result, contentElement) {
+// 在 displaySectionContent 函数中增加内容区域样式
+function displaySectionContent(section, result, contentElement) {
+    // 增加内容区域的最小高度
+    contentElement.style.minHeight = '500px';
+    
     if (result.includes('★')) {
         result = result.replace(/(★+)/g, '<span class="rating" style="color:var(--earth-color);text-shadow:0 0 5px var(--earth-color)">$1</span>');
         result = result.replace(/(☆+)/g, '<span style="color:#666">$1</span>');
