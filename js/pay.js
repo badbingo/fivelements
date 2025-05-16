@@ -1,4 +1,4 @@
-// pay.js - 终极优化版
+// pay.js - 使用现有loading样式版a
 document.addEventListener('DOMContentLoaded', function() {
     // 配置参数
     const CONFIG = {
@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', function() {
         key: 'UsXrSwn0wft5SeLB0LaQfecvJmpkS18T',
         apiUrl: 'https://zpayz.cn/submit.php',
         returnUrl: window.location.href.split('?')[0],
-        amount: '1.00'
+        amount: '0.01'
     };
 
     // DOM元素
@@ -18,13 +18,8 @@ document.addEventListener('DOMContentLoaded', function() {
     initPaymentSystem();
 
     function initPaymentSystem() {
-        // 1. 检查URL支付回调
         checkPaymentReturn();
-        
-        // 2. 初始化按钮状态
         updateButtonState();
-        
-        // 3. 设置事件监听
         setupEventListeners();
     }
 
@@ -72,8 +67,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const userName = nameInput.value.trim();
         if (!validateInputs(userName)) return;
 
-        // 显示loading状态
-        showPayButtonLoading(true);
+        // 使用现有loading样式
+        payBtn.innerHTML = '<div class="loading"></div> 支付处理中';
+        payBtn.disabled = true;
 
         const paymentData = {
             pid: CONFIG.pid,
@@ -91,31 +87,10 @@ document.addEventListener('DOMContentLoaded', function() {
         submitPayment(paymentData);
     }
 
-    function submitPayment(data) {
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = CONFIG.apiUrl;
-        form.style.display = 'none';
-
-        Object.entries(data).forEach(([key, value]) => {
-            const input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = key;
-            input.value = value;
-            form.appendChild(input);
-        });
-
-        document.body.appendChild(form);
-        form.submit();
-    }
-
     /* ========== 支付成功处理 ========== */
     function handlePaymentSuccess(userName) {
-        // 标记为已支付但未使用
         localStorage.setItem(`paid_${userName}`, 'true');
         localStorage.removeItem(`used_${userName}`);
-        
-        // 更新UI
         updateButtonState();
     }
 
@@ -123,14 +98,15 @@ document.addEventListener('DOMContentLoaded', function() {
         const userName = nameInput.value.trim();
         if (!userName) return;
         
-        // 标记为已使用测算
-        localStorage.setItem(`used_${userName}`, 'true');
+        // 使用现有loading样式
+        calculateBtn.innerHTML = '<div class="loading"></div> 测算中';
         
-        // 更新UI
-        updateButtonState();
-        
-        // 执行实际测算逻辑
-        startQuantumCalculation(userName);
+        // 执行测算逻辑
+        setTimeout(() => {
+            localStorage.setItem(`used_${userName}`, 'true');
+            calculateBtn.innerHTML = '<i class="fas fa-atom"></i> 开始量子测算';
+            // 实际测算逻辑...
+        }, 100);
     }
 
     /* ========== UI控制 ========== */
@@ -141,26 +117,10 @@ document.addEventListener('DOMContentLoaded', function() {
         payBtn.disabled = false;
     }
 
-    function showPayButtonLoading(loading) {
-        if (loading) {
-            payBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 支付处理中';
-            payBtn.disabled = true;
-        } else {
-            resetPayButton();
-        }
-    }
-
     function showCalculateButton() {
         payBtn.style.display = 'none';
         calculateBtn.style.display = 'block';
         calculateBtn.innerHTML = '<i class="fas fa-atom"></i> 开始量子测算';
-    }
-
-    /* ========== 测算逻辑 ========== */
-    function startQuantumCalculation(userName) {
-        // 这里添加实际的测算逻辑
-        console.log(`开始量子测算: ${userName}`);
-        // 测算完成后可以跳转到结果页或更新UI
     }
 
     /* ========== 工具函数 ========== */
