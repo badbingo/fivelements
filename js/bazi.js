@@ -1,6 +1,6 @@
 
 document.addEventListener('DOMContentLoaded', function() {
-    // 确保全局能获取当前日期（动态获取2025年a）
+    // 确保全局能获取当前日期（动态获取2025年c）
     const currentDate = new Date(); // 自动获取当前日期（2025）
     const currentYear = currentDate.getFullYear(); // 2025
     const currentMonth = currentDate.getMonth() + 1; // 1-12
@@ -1094,6 +1094,14 @@ ${getWealthSuggestions(score)}
     if (loadedSections[section]) {
         container.classList.toggle('active');
         contentElement.classList.toggle('active');
+        
+        // 切换时调整最大高度
+        if (container.classList.contains('active')) {
+            contentElement.style.maxHeight = 'none'; // 展开时不限制高度
+            contentElement.style.overflowY = 'auto'; // 内容多时显示滚动条
+        } else {
+            contentElement.style.maxHeight = ''; // 收起时恢复默认
+        }
         return;
     }
     
@@ -1107,9 +1115,6 @@ ${getWealthSuggestions(score)}
     progressContainer.innerHTML = '<div class="progress-bar"></div>';
     contentElement.innerHTML = '';
     contentElement.appendChild(progressContainer);
-    
-    // 增加内容区域的最小高度
-    contentElement.style.minHeight = '500px'; // 增加页面长度
     
     const progressBar = progressContainer.querySelector('.progress-bar');
     let progress = 0;
@@ -1132,6 +1137,10 @@ ${getWealthSuggestions(score)}
         contentElement.classList.add('active');
         loadedSections[section] = true;
         
+        // 设置展开后的最大高度
+        contentElement.style.maxHeight = 'none';
+        contentElement.style.overflowY = 'auto';
+        
         if (section === 'decade-fortune') {
             initFortuneChart(result);
         }
@@ -1144,10 +1153,10 @@ ${getWealthSuggestions(score)}
     }
 }
 
-// 在 displaySectionContent 函数中增加内容区域样式
+// 修改 displaySectionContent 函数
 function displaySectionContent(section, result, contentElement) {
-    // 增加内容区域的最小高度
-    contentElement.style.minHeight = '500px';
+    // 移除之前可能设置的高度限制
+    contentElement.style.minHeight = '';
     
     if (result.includes('★')) {
         result = result.replace(/(★+)/g, '<span class="rating" style="color:var(--earth-color);text-shadow:0 0 5px var(--earth-color)">$1</span>');
