@@ -1,4 +1,4 @@
-// pay.js - 终极优化版
+// pay.js - 终极优化版a
 document.addEventListener('DOMContentLoaded', function() {
     // 配置参数
     const CONFIG = {
@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', function() {
         key: 'UsXrSwn0wft5SeLB0LaQfecvJmpkS18T',
         apiUrl: 'https://zpayz.cn/submit.php',
         returnUrl: window.location.href.split('?')[0],
-        amount: '1.00'
+        amount: '0.01'
     };
 
     // DOM元素
