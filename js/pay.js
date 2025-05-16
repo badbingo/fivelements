@@ -1,12 +1,12 @@
-// pay.js - 一次性测算解决方案
+// pay.js - 终极优化版
 document.addEventListener('DOMContentLoaded', function() {
     // 配置参数
     const CONFIG = {
         pid: '2025051013380915',
         key: 'UsXrSwn0wft5SeLB0LaQfecvJmpkS18T',
         apiUrl: 'https://zpayz.cn/submit.php',
-        returnUrl: window.location.href.split('?')[0], // 当前页URL
-        amount: '0.01'
+        returnUrl: window.location.href.split('?')[0],
+        amount: '1.00'
     };
 
     // DOM元素
@@ -56,15 +56,14 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateButtonState() {
         const userName = nameInput.value.trim();
         if (!userName) {
-            showPayButton();
+            resetPayButton();
             return;
         }
 
-        // 检查是否已支付但未使用测算
         if (localStorage.getItem(`paid_${userName}`) && !localStorage.getItem(`used_${userName}`)) {
             showCalculateButton();
         } else {
-            showPayButton();
+            resetPayButton();
         }
     }
 
@@ -72,6 +71,9 @@ document.addEventListener('DOMContentLoaded', function() {
     function startPayment() {
         const userName = nameInput.value.trim();
         if (!validateInputs(userName)) return;
+
+        // 显示loading状态
+        showPayButtonLoading(true);
 
         const paymentData = {
             pid: CONFIG.pid,
@@ -115,9 +117,6 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // 更新UI
         updateButtonState();
-        
-        // 显示成功提示
-        alert(`${userName}，支付成功！您现在可以开始量子测算`);
     }
 
     function handleCalculationStart() {
@@ -130,20 +129,38 @@ document.addEventListener('DOMContentLoaded', function() {
         // 更新UI
         updateButtonState();
         
-        // 执行测算逻辑
-        alert(`开始为 ${userName} 进行量子测算...`);
-        // 这里添加实际测算代码
+        // 执行实际测算逻辑
+        startQuantumCalculation(userName);
     }
 
     /* ========== UI控制 ========== */
-    function showPayButton() {
+    function resetPayButton() {
+        payBtn.innerHTML = '<i class="fas fa-credit-card"></i> 点击付款';
         payBtn.style.display = 'block';
         calculateBtn.style.display = 'none';
+        payBtn.disabled = false;
+    }
+
+    function showPayButtonLoading(loading) {
+        if (loading) {
+            payBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 支付处理中';
+            payBtn.disabled = true;
+        } else {
+            resetPayButton();
+        }
     }
 
     function showCalculateButton() {
         payBtn.style.display = 'none';
         calculateBtn.style.display = 'block';
+        calculateBtn.innerHTML = '<i class="fas fa-atom"></i> 开始量子测算';
+    }
+
+    /* ========== 测算逻辑 ========== */
+    function startQuantumCalculation(userName) {
+        // 这里添加实际的测算逻辑
+        console.log(`开始量子测算: ${userName}`);
+        // 测算完成后可以跳转到结果页或更新UI
     }
 
     /* ========== 工具函数 ========== */
@@ -189,14 +206,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function validateInputs(userName) {
         if (!userName) {
+            showPayButtonLoading(false);
             alert('请输入您的姓名');
             return false;
         }
         if (!document.getElementById('birth-date').value) {
+            showPayButtonLoading(false);
             alert('请输入出生日期');
             return false;
         }
         if (!document.getElementById('birth-time').value) {
+            showPayButtonLoading(false);
             alert('请选择出生时辰');
             return false;
         }
