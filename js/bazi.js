@@ -1,6 +1,6 @@
 
 document.addEventListener('DOMContentLoaded', function() {
-    // 确保全局能获取当前日期（动态获取2025年b）
+    // 确保全局能获取当前日期（动态获取2025年v）
     const currentDate = new Date(); // 自动获取当前日期（2025）
     const currentYear = currentDate.getFullYear(); // 2025
     const currentMonth = currentDate.getMonth() + 1; // 1-12
@@ -3636,12 +3636,12 @@ function determineStrengthType(pillars) {
                 prompt += `作为从业20年的专业命理师，请为用户生成深度月度运势报告（要求：分板块详细论述，总字数不少于800字）：
 【本月天时精析】
 1. 干支能量解码：
-   - 本月干支「${currentMonthStemBranch}」与命局形成的特殊组合
+   - 本月干支与命局形成的特殊组合
    * 天干透出何种十神（需结合日主强弱分析）
    * 地支引发何种暗合/刑冲（如寅巳申三刑需特别警示）
    
 2. 节气磁场变化：
-   - 当月两个节气（${solarTerm1}/${solarTerm2}）的五行转换
+   - 当月两个节气的五行转换
    * 节气前后3日能量不稳定期提醒
    * 特定时辰（如子时/午时）的吉凶提示
 
