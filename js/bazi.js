@@ -1,6 +1,6 @@
 
 document.addEventListener('DOMContentLoaded', function() {
-    // 确保全局能获取当前日期（动态获取2025年b）
+    // 确保全局能获取当前日期（动态获取2025年c）
     const currentDate = new Date(); // 自动获取当前日期（2025）
     const currentYear = currentDate.getFullYear(); // 2025
     const currentMonth = currentDate.getMonth() + 1; // 1-12
@@ -3538,7 +3538,7 @@ function determineStrengthType(pillars) {
 `;
                 break;
             case 'annual-fortune':
-                prompt += `作为资深命理师，请为用户提供专业级流年运势分析（要求：每个部分详细展开，总字数不少于600字）：
+                prompt += `作为资深命理师，请为用户提供专业级流年运势分析（要求：每个部分详细展开，总字数不少于1000字）：
 【岁运深度剖析】
 1. 干支作用分析：
    - 流年天干与日主十神关系（需结合五行强弱分析）
@@ -3555,6 +3555,11 @@ function determineStrengthType(pillars) {
 | 月份 | 节气关键点 | 事业运 | 感情运 | 健康风险 | 开运建议 |
 |------|------------|--------|--------|----------|----------|
 ...（要求填充完整12个月数据）
+
+3. 流年总结（不少于300字）：
+    - 事业运
+    - 感情运
+    - 健康运
 
 【定制化建议】
 1. 风水调整：
