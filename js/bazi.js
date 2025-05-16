@@ -1,6 +1,6 @@
 
 document.addEventListener('DOMContentLoaded', function() {
-    // 确保全局能获取当前日期（动态获取2025年v）
+    // 确保全局能获取当前日期（动态获取2025年a）
     const currentDate = new Date(); // 自动获取当前日期（2025）
     const currentYear = currentDate.getFullYear(); // 2025
     const currentMonth = currentDate.getMonth() + 1; // 1-12
@@ -3567,11 +3567,11 @@ function determineStrengthType(pillars) {
 
 【每月精批】 
 采用表格形式呈现，包含：
-| 月份 | 节气关键点 | 事业运 | 感情运 | 健康风险 | 开运建议 |
-|------|------------|--------|--------|----------|----------|
+| 月份 | 节气关键点 | 事业运 | 感情运 | 健康风险 |
+|------|------------|--------|--------|----------|
 ...（要求填充完整12个月数据）
 
-3. 流年总结（不少于600字）：
+3. 流年总结（不少于500字）：
     - 事业运
     - 感情运
     - 健康运
