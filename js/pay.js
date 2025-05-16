@@ -1,4 +1,4 @@
-// pay.js - 完整实现版
+// pay.js - 完整修正版
 document.addEventListener('DOMContentLoaded', function() {
     // 配置参数
     const CONFIG = {
@@ -6,13 +6,14 @@ document.addEventListener('DOMContentLoaded', function() {
         key: 'UsXrSwn0wft5SeLB0LaQfecvJmpkS18T',
         apiUrl: 'https://zpayz.cn/submit.php',
         returnUrl: window.location.href.split('?')[0],
-        amount: '0.01'
+        amount: '1.00'
     };
 
     // DOM元素
     const payBtn = document.getElementById('pay-btn');
     const calculateBtn = document.getElementById('calculate-btn');
     const nameInput = document.getElementById('name');
+    const genderInput = document.getElementById('gender');
     const fullscreenLoading = document.getElementById('fullscreen-loading');
     const paymentSuccessAlert = document.getElementById('payment-success-alert');
 
@@ -30,7 +31,7 @@ document.addEventListener('DOMContentLoaded', function() {
         setupEventListeners();
     }
 
-    /* ========== 支付状态管理 ========== */
+    /* ========== 状态管理 ========== */
     function checkPaymentReturn() {
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('trade_status') === 'TRADE_SUCCESS') {
@@ -58,14 +59,14 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateButtonState() {
         const userName = nameInput.value.trim();
         if (!userName) {
-            resetPayButton();
+            resetToPayState();
             return;
         }
 
         if (isPaidAndUnused(userName)) {
-            showCalculateButton();
+            showCalculateState();
         } else {
-            resetPayButton();
+            resetToPayState();
         }
     }
 
@@ -74,15 +75,11 @@ document.addEventListener('DOMContentLoaded', function() {
               !localStorage.getItem(`used_${userName}`);
     }
 
-    /* ========== 支付操作 ========== */
+    /* ========== 支付流程 ========== */
     function startPayment() {
         const userName = nameInput.value.trim();
-        if (!userName) {
-            alert('请输入您的姓名');
-            return;
-        }
+        if (!validateName(userName)) return;
 
-        // 显示全屏loading
         showFullscreenLoading(true);
 
         const paymentData = {
@@ -98,98 +95,88 @@ document.addEventListener('DOMContentLoaded', function() {
         };
         
         paymentData.sign = generateSign(paymentData);
-        submitPayment(paymentData);
+        submitPaymentForm(paymentData);
     }
 
-    function submitPayment(data) {
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = CONFIG.apiUrl;
-        form.style.display = 'none';
-
-        Object.entries(data).forEach(([key, value]) => {
-            const input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = key;
-            input.value = value;
-            form.appendChild(input);
-        });
-
-        document.body.appendChild(form);
-        form.submit();
-        
-        // 5秒后自动隐藏loading（防止卡死）
-        setTimeout(() => {
-            showFullscreenLoading(false);
-        }, 5000);
-    }
-
-    /* ========== 支付成功处理 ========== */
     function handlePaymentSuccess(userName) {
-        // 1. 隐藏loading
-        showFullscreenLoading(false);
+        // 1. 记录支付状态
+        localStorage.setItem(`paid_${userName}`, 'true');
+        localStorage.removeItem(`used_${userName}`);
         
-        // 2. 记录支付状态
-        setPaymentStatus(userName, true);
-        
-        // 3. 更新UI
+        // 2. 更新UI
         updateButtonState();
         
-        // 4. 显示成功提示
+        // 3. 显示成功提示
         showPaymentSuccessAlert();
+        
+        // 4. 隐藏loading
+        showFullscreenLoading(false);
     }
 
-    function setPaymentStatus(userName, isPaid) {
-        if (isPaid) {
-            localStorage.setItem(`paid_${userName}`, 'true');
-            localStorage.removeItem(`used_${userName}`);
-        } else {
-            localStorage.removeItem(`paid_${userName}`);
-        }
+    /* ========== 测算流程 ========== */
+    function startCalculation() {
+        const userName = nameInput.value.trim();
+        const gender = genderInput.value;
+        
+        if (!validateCalculationInputs(userName, gender)) return;
+
+        // 标记为已使用测算
+        localStorage.setItem(`used_${userName}`, 'true');
+        
+        // 更新UI状态
+        updateButtonState();
+        
+        // 执行测算
+        executeQuantumCalculation(userName, gender);
+    }
+
+    function executeQuantumCalculation(name, gender) {
+        console.log(`开始量子测算 - 姓名: ${name}, 性别: ${gender}`);
+        // 实际测算逻辑...
+    }
+
+    /* ========== UI控制 ========== */
+    function resetToPayState() {
+        payBtn.style.display = 'block';
+        calculateBtn.style.display = 'none';
+    }
+
+    function showCalculateState() {
+        payBtn.style.display = 'none';
+        calculateBtn.style.display = 'block';
+    }
+
+    function showFullscreenLoading(show) {
+        fullscreenLoading.style.display = show ? 'flex' : 'none';
     }
 
     function showPaymentSuccessAlert() {
         paymentSuccessAlert.style.display = 'block';
-        
-        // 3秒后自动隐藏
         setTimeout(() => {
             paymentSuccessAlert.style.display = 'none';
         }, 3000);
     }
 
-    /* ========== 测算操作 ========== */
-    function handleCalculationStart() {
-        const userName = nameInput.value.trim();
-        if (!userName) return;
-        
-        // 标记为已使用测算
-        localStorage.setItem(`used_${userName}`, 'true');
-        
-        // 更新UI
-        updateButtonState();
-        
-        // 执行测算逻辑
-        startQuantumCalculation(userName);
+    /* ========== 验证函数 ========== */
+    function validateName(name) {
+        if (!name) {
+            alert('请输入您的姓名');
+            showFullscreenLoading(false);
+            return false;
+        }
+        return true;
     }
 
-    function startQuantumCalculation(userName) {
-        console.log(`开始量子测算: ${userName}`);
-        // 实际测算逻辑...
-    }
-
-    /* ========== UI控制 ========== */
-    function showFullscreenLoading(show) {
-        fullscreenLoading.style.display = show ? 'flex' : 'none';
-    }
-
-    function resetPayButton() {
-        payBtn.style.display = 'block';
-        calculateBtn.style.display = 'none';
-    }
-
-    function showCalculateButton() {
-        payBtn.style.display = 'none';
-        calculateBtn.style.display = 'block';
+    function validateCalculationInputs(name, gender) {
+        if (!name) {
+            alert('请输入姓名');
+            return false;
+        }
+        if (!gender) {
+            alert('请选择性别');
+            return false;
+        }
+        return true;
     }
 
     /* ========== 工具函数 ========== */
@@ -213,8 +200,6 @@ document.addEventListener('DOMContentLoaded', function() {
         delete paymentData.sign;
         
         const calculatedSign = generateSign(paymentData);
-        console.log('验证签名:', { paymentData, calculatedSign, receivedSign: sign });
-        
         return calculatedSign === sign;
     }
 
@@ -233,15 +218,33 @@ document.addEventListener('DOMContentLoaded', function() {
         window.history.replaceState({}, document.title, window.location.pathname);
     }
 
+    function submitPaymentForm(data) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = CONFIG.apiUrl;
+        form.style.display = 'none';
+
+        Object.entries(data).forEach(([key, value]) => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = key;
+            input.value = value;
+            form.appendChild(input);
+        });
+
+        document.body.appendChild(form);
+        form.submit();
+    }
+
     /* ========== 事件监听 ========== */
     function setupEventListeners() {
         // 支付按钮
         payBtn.addEventListener('click', startPayment);
         
         // 测算按钮
-        calculateBtn.addEventListener('click', handleCalculationStart);
+        calculateBtn.addEventListener('click', startCalculation);
         
-        // 姓名输入变化时更新状态
+        // 输入变化时更新状态
         nameInput.addEventListener('input', updateButtonState);
         
         // 页面显示时检查状态
