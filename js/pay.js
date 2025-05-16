@@ -71,7 +71,7 @@ document.addEventListener('DOMContentLoaded', function() {
             notify_url: notifyUrl,
             return_url: returnUrl,
             name: '八字测算-' + name,
-            money: '1.00',
+            money: '0.01',
             param: name
         };
         
