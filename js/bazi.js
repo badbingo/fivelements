@@ -1192,72 +1192,68 @@ function hideReloadIcon(button) {
 
 // 添加重新加载内容的函数
 async function reloadSectionContent(button, section) {
-    console.log('Starting reload for:', section); // 调试日志
-    
     const contentElement = document.getElementById(`${section}-content`);
-    if (!contentElement) {
-        console.error('Content element not found for section:', section);
-        return;
-    }
-
     const container = button.closest('.load-btn-container');
-    if (!container) {
-        console.error('Container not found for button');
-        return;
-    }
-
-    // 收起内容
+    
+    // 1. 收起内容区域
     container.classList.remove('active');
     contentElement.classList.remove('active');
-    contentElement.style.maxHeight = '0';
-    contentElement.innerHTML = ''; // 清空内容
-
-    // 显示加载状态
-    const originalText = button.textContent.trim();
+    contentElement.style.maxHeight = '';
+    
+    // 2. 显示加载状态
+    const originalText = button.getAttribute('data-original-text');
     button.innerHTML = `
         <span style="display: flex; align-items: center; justify-content: center; width: 100%;">
-            <span class="loading"></span> 更新中...
+            <span class="loading"></span> 获取最新数据中...
         </span>
         <i class="fas fa-chevron-down toggle-icon"></i>
     `;
     button.disabled = true;
-
+    
     try {
-        // 模拟加载延迟（实际使用时移除）
-        await new Promise(resolve => setTimeout(resolve, 500));
+        // 3. 强制从API获取最新数据（不读缓存）
+        const result = await getBaziAnalysis(section, birthData, true); // 注意这里的true参数
         
-        const result = await getBaziAnalysis(section, birthData);
-        console.log('Reload data received:', result); // 调试
-        
+        // 4. 显示新内容
         displaySectionContent(section, result, contentElement);
         
-        // 恢复按钮
+        // 5. 恢复按钮状态
         button.innerHTML = `
             <span>${originalText}</span>
             <i class="fas fa-check"></i>
             <i class="fas fa-chevron-down toggle-icon"></i>
         `;
         button.disabled = false;
-
-        // 展开内容
+        
+        // 6. 展开内容区域
         container.classList.add('active');
         contentElement.classList.add('active');
         contentElement.style.maxHeight = 'none';
-
+        
+        // 7. 显示更新时间戳
+        const timestamp = new Date().toLocaleTimeString();
+        contentElement.insertAdjacentHTML('beforeend', `
+            <div class="update-timestamp">
+                <i class="fas fa-clock"></i> 最后更新: ${timestamp}
+            </div>
+        `);
+        
     } catch (error) {
-        console.error('Reload failed:', error);
+        console.error('刷新失败:', error);
         contentElement.innerHTML = `
             <div class="error-message">
                 <i class="fas fa-exclamation-triangle"></i>
-                加载失败，请<a href="javascript:void(0)" class="retry-link">重试</a>
+                刷新失败: ${error.message || '未知错误'}
+                <a href="javascript:void(0)" class="retry-link">重试</a>
             </div>
         `;
         
-        // 添加重试点击事件
+        // 添加重试事件
         contentElement.querySelector('.retry-link').addEventListener('click', () => {
             reloadSectionContent(button, section);
         });
         
+        // 恢复按钮但显示错误状态
         button.innerHTML = `
             <span>${originalText}</span>
             <i class="fas fa-exclamation-circle"></i>
@@ -3464,23 +3460,19 @@ function determineStrengthType(pillars) {
     }
 
     // 获取八字分析
-    async function getBaziAnalysis(section, data) {
-    // 生成缓存键
+    async function getBaziAnalysis(section, data, forceRefresh = false) {
     const cacheKey = `${generateBaziHashKey(data)}:${section}`;
     
-    // 检查缓存
-    const cachedResponse = baziCache.get(cacheKey);
-    if (cachedResponse) {
-        return cachedResponse;
-    }
-    
-    // 先计算本地结果
-    const localResult = calculateBaziLocally(data);
-    
-    // 对于基础信息部分，直接返回本地计算结果
-    if (section === 'basic') {
-        baziCache.set(cacheKey, localResult);
-        return localResult;
+    // 强制刷新时直接跳过缓存
+    if (forceRefresh) {
+        console.log('Bypassing cache for:', cacheKey);
+        baziCache.set(cacheKey, null); // 清除旧缓存
+    } else {
+        // 正常流程检查缓存
+        const cachedResponse = baziCache.get(cacheKey);
+        if (cachedResponse) {
+            return cachedResponse;
+        }
     }
     
     // 其他部分调用API
