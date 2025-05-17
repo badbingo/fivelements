@@ -3401,7 +3401,7 @@ function determineStrengthType(pillars) {
         // 根据不同部分设置不同的提示词
         switch(section) {
             case 'fate-level':
-                prompt += `详细分析命格等级：
+                prompt += `作为从业20年的专业命理师，请为用户生成深度分析命主命格等级（要求：分板块详细论述，总字数不少于600字）：
 1. 格局判定：
     - 成格条件满足度（百分比）
     - 特殊格局验证（从儿/化气等）
@@ -3415,7 +3415,7 @@ function determineStrengthType(pillars) {
 `;
                 break;
             case 'wealth-level':
-                prompt += `详细分析财富等级：
+                prompt += `作为从业20年的专业命理师，请为用户生成深度分析命主财富等级（要求：分板块详细论述，总字数不少于600字）：
 1. 财星结构：
    - 正偏财比例（柱中/大运）
    - 财库状态（开/闭）
@@ -3428,7 +3428,7 @@ function determineStrengthType(pillars) {
 `;
                 break;
             case 'strength':
-                prompt += `分析命主的身强身弱情况：
+                prompt += `作为从业20年的专业命理师，请为用户生成深度分析命主身强身弱情况（要求：分板块详细论述，总字数不少于1000字）：
 1. 三维强度评估（百分制）：
     - 得令评估：
     - 得地评估：
@@ -3448,7 +3448,7 @@ function determineStrengthType(pillars) {
 `;
                 break;
             case 'career':
-                prompt += `详细分析适合行业情况：
+                prompt += `作为从业20年的专业命理师，请为用户生成深度分析命主适合行业情况（要求：分板块详细论述，总字数不少于1000字）：
 1. 天赋匹配：
     - 十神对应的现代职业
     - 适合的职场角色
@@ -3461,7 +3461,7 @@ function determineStrengthType(pillars) {
 `;
                 break;
             case 'wealth':
-                prompt += `详细分析财富情况：
+                prompt += `作为从业20年的专业命理师，请为用户生成深度分析财富报告（要求：分板块详细论述，总字数不少于1000字）：
 1. 财星结构分析：
     - 正偏财分布（天干透出/地支藏干）
     - 财库状态（辰戌丑未四库评估）
@@ -3478,7 +3478,7 @@ function determineStrengthType(pillars) {
 `;
                 break;
             case 'elements':
-                prompt += `分析八字五行强弱，燥湿和流通情况：
+                prompt += `作为从业20年的专业命理师，请为用户生成深度分析八字五行强弱，燥湿和流通报告（要求：分板块详细论述，总字数不少于1000字）：
 1. 能量雷达图（0-100评分）：
     - 木：（肝胆/神经系统）
     - 火：（心血管/内分泌）
@@ -3495,8 +3495,7 @@ function determineStrengthType(pillars) {
 `;
                 break;
             case 'personality':
-                prompt += `分析命主脾气性格：
-1. 社会面具（MBTI类型参考）：
+                prompt += `作为从业20年的专业命理师，请为用户生成深度分析脾气性格报告（要求：分板块详细论述，总字数不少于1000字）：
     - 主导功能（如Te外向思考）
     - 外在行为模式
 2. 内在本质（九型人格参考）：
@@ -3511,7 +3510,7 @@ function determineStrengthType(pillars) {
 `;
                 break;
             case 'children':
-                prompt += `分析子女情况：
+                prompt += `作为从业20年的专业命理师，请为用户生成深度分析子女信息报告（要求：分板块详细论述，总字数不少于1000字）：
 1. 生育能量评估：
     - 最佳生育年龄段（生理时钟+命理时钟）
     - 易孕体质特征（命中子息星强弱）
@@ -3527,7 +3526,7 @@ function determineStrengthType(pillars) {
 `;
                 break;
             case 'marriage':
-                prompt += `分析婚姻情况：
+                prompt += `作为从业20年的专业命理师，请为用户生成深度分析婚姻情况报告（要求：分板块详细论述，总字数不少于1000字）：
 1. 配偶特征：
     - 出现时段（大运流年）
     - 可能职业/性格
@@ -3540,7 +3539,7 @@ function determineStrengthType(pillars) {
 `;
                 break;
             case 'health':
-                prompt += `详细分析健康状况：
+                prompt += `作为从业20年的专业命理师，请为用户生成深度分析健康状况报告（要求：分板块详细论述，总字数不少于1000字）：
 1. 体质诊断：
     - 五行偏枯对应的现代医学风险
     - 先天薄弱脏器
@@ -3553,7 +3552,7 @@ function determineStrengthType(pillars) {
 `;
                 break;
             case 'annual-fortune':
-                prompt += `作为资深命理师，请为用户提供专业级流年运势分析（要求：每个部分详细展开，总字数不少于2500，流年总结不少于600字）：
+                prompt += `作为资深命理师，请为用户提供专业级流年运势分析报告（要求：每个部分详细展开，总字数不少于2500，流年总结不少于600字）：
 【岁运深度剖析】
 1. 流年总结（不少于500字）：
     - 事业运
@@ -3590,7 +3589,7 @@ function determineStrengthType(pillars) {
                 
                 break;
             case 'daily-fortune':
-                prompt += `作为从业20年的专业命理师，请为用户生成深度今日运势报告（要求：分板块详细论述，总字数不少于800字）：
+                prompt += `作为从业20年的专业命理师，请为用户生成深度今日运势报告（要求：分板块详细论述，总字数不少于1000字）：
 1. 本日命理气象：
 - 四柱能量分布（用百分比表示）
 - 特殊星曜影响（如驿马/桃花等）
@@ -3605,7 +3604,7 @@ function determineStrengthType(pillars) {
 `;
                 break;
             case 'milestones':
-                prompt += `分析一生重要节点和重大灾祸：
+                prompt += `作为从业20年的专业命理师，请为用户生成深度分析一生重要节点和重大灾祸报告（要求：分板块详细论述，总字数不少于1000字）：
 1. 重要发展阶段：
     - 教育关键期（适合深造年份）
     - 事业转折点（行业转换建议）
