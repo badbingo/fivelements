@@ -1,6 +1,6 @@
 
 document.addEventListener('DOMContentLoaded', function() {
-    // 确保全局能获取当前日期（动态获取2025年v）
+    // 确保全局能获取当前日期（动态获取2025年a）
     const currentDate = new Date(); // 自动获取当前日期（2025）
     const currentYear = currentDate.getFullYear(); // 2025
     const currentMonth = currentDate.getMonth() + 1; // 1-12
@@ -1097,12 +1097,10 @@ ${getWealthSuggestions(score)}
         
         // 切换时调整最大高度
         if (container.classList.contains('active')) {
-            contentElement.style.maxHeight = 'none';
-            contentElement.style.overflowY = 'auto';
-            showReloadIcon(button, section); // 显示reload图标
+            contentElement.style.maxHeight = 'none'; // 展开时不限制高度
+            contentElement.style.overflowY = 'auto'; // 内容多时显示滚动条
         } else {
-            contentElement.style.maxHeight = '';
-            hideReloadIcon(button); // 隐藏reload图标
+            contentElement.style.maxHeight = ''; // 收起时恢复默认
         }
         return;
     }
@@ -1143,9 +1141,6 @@ ${getWealthSuggestions(score)}
         contentElement.style.maxHeight = 'none';
         contentElement.style.overflowY = 'auto';
         
-        // 显示reload图标
-        showReloadIcon(button, section);
-        
         if (section === 'decade-fortune') {
             initFortuneChart(result);
         }
@@ -1155,115 +1150,6 @@ ${getWealthSuggestions(score)}
         contentElement.innerHTML = '<p style="color:var(--danger-color)">加载失败，请重试</p>';
         button.disabled = false;
         button.innerHTML = `<span>${button.getAttribute('data-original-text')}</span><i class="fas fa-chevron-down toggle-icon"></i>`;
-    }
-}
-
-// 添加显示reload图标的函数
-function showReloadIcon(button, section) {
-    // 先移除可能存在的旧监听器
-    const existingBtn = button.querySelector('.reload-section-btn');
-    if (existingBtn) {
-        existingBtn.remove();
-    }
-
-    const reloadBtn = document.createElement('span');
-    reloadBtn.className = 'reload-section-btn';
-    reloadBtn.innerHTML = '<i class="fas fa-sync-alt"></i>';
-    reloadBtn.title = '重新加载此部分内容';
-    
-    // 添加点击事件（使用事件委托更可靠）
-    reloadBtn.addEventListener('click', async function(e) {
-        e.stopPropagation();
-        e.preventDefault();
-        console.log('Reload clicked for section:', section); // 调试用
-        await reloadSectionContent(button, section);
-    }, { once: false }); // 确保可以多次触发
-
-    button.appendChild(reloadBtn);
-}
-
-// 添加隐藏reload图标的函数
-function hideReloadIcon(button) {
-    const reloadBtn = button.querySelector('.reload-section-btn');
-    if (reloadBtn) {
-        button.removeChild(reloadBtn);
-    }
-}
-
-// 添加重新加载内容的函数
-async function reloadSectionContent(button, section) {
-    console.log('Starting reload for:', section); // 调试日志
-    
-    const contentElement = document.getElementById(`${section}-content`);
-    if (!contentElement) {
-        console.error('Content element not found for section:', section);
-        return;
-    }
-
-    const container = button.closest('.load-btn-container');
-    if (!container) {
-        console.error('Container not found for button');
-        return;
-    }
-
-    // 收起内容
-    container.classList.remove('active');
-    contentElement.classList.remove('active');
-    contentElement.style.maxHeight = '0';
-    contentElement.innerHTML = ''; // 清空内容
-
-    // 显示加载状态
-    const originalText = button.textContent.trim();
-    button.innerHTML = `
-        <span style="display: flex; align-items: center; justify-content: center; width: 100%;">
-            <span class="loading"></span> 更新中...
-        </span>
-        <i class="fas fa-chevron-down toggle-icon"></i>
-    `;
-    button.disabled = true;
-
-    try {
-        // 模拟加载延迟（实际使用时移除）
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
-        const result = await getBaziAnalysis(section, birthData);
-        console.log('Reload data received:', result); // 调试
-        
-        displaySectionContent(section, result, contentElement);
-        
-        // 恢复按钮
-        button.innerHTML = `
-            <span>${originalText}</span>
-            <i class="fas fa-check"></i>
-            <i class="fas fa-chevron-down toggle-icon"></i>
-        `;
-        button.disabled = false;
-
-        // 展开内容
-        container.classList.add('active');
-        contentElement.classList.add('active');
-        contentElement.style.maxHeight = 'none';
-
-    } catch (error) {
-        console.error('Reload failed:', error);
-        contentElement.innerHTML = `
-            <div class="error-message">
-                <i class="fas fa-exclamation-triangle"></i>
-                加载失败，请<a href="javascript:void(0)" class="retry-link">重试</a>
-            </div>
-        `;
-        
-        // 添加重试点击事件
-        contentElement.querySelector('.retry-link').addEventListener('click', () => {
-            reloadSectionContent(button, section);
-        });
-        
-        button.innerHTML = `
-            <span>${originalText}</span>
-            <i class="fas fa-exclamation-circle"></i>
-            <i class="fas fa-chevron-down toggle-icon"></i>
-        `;
-        button.disabled = false;
     }
 }
 
