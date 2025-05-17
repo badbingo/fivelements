@@ -1,6 +1,6 @@
 
 document.addEventListener('DOMContentLoaded', function() {
-    // 确保全局能获取当前日期（动态获取2025年v）
+    // 确保全局能获取当前日期（动态获取2025年a）
     const currentDate = new Date(); // 自动获取当前日期（2025）
     const currentYear = currentDate.getFullYear(); // 2025
     const currentMonth = currentDate.getMonth() + 1; // 1-12
@@ -3461,19 +3461,24 @@ function determineStrengthType(pillars) {
 
     // 获取八字分析
     async function getBaziAnalysis(section, data, forceRefresh = false) {
+    // 生成缓存键
     const cacheKey = `${generateBaziHashKey(data)}:${section}`;
     
-    // 强制刷新时直接跳过缓存
-    if (forceRefresh) {
-        console.log('Bypassing cache for:', cacheKey);
-        baziCache.set(cacheKey, null); // 清除旧缓存
-    } else {
-        // 正常流程检查缓存
+    // 如果不是强制刷新，先检查缓存
+    if (!forceRefresh) {
         const cachedResponse = baziCache.get(cacheKey);
         if (cachedResponse) {
             return cachedResponse;
         }
     }
+
+    try {
+        // 对于基础信息部分，使用本地计算
+        if (section === 'basic') {
+            const localCalculation = calculateBaziLocally(data);
+            baziCache.set(cacheKey, localCalculation);
+            return localCalculation;
+        }
     
     // 其他部分调用API
     const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
@@ -3784,19 +3789,30 @@ function determineStrengthType(pillars) {
                         temperature: 0,
                         seed: 12345 // 固定seed值确保相同输入得到相同输出
                     })
-                },
-                section: section,
-                cacheKey: cacheKey
-            });
-            
-            return response;
-            
-        } catch (error) {
-            console.error(`获取${section}分析失败:`, error);
-            throw error;
-        }
-    }
+                });
 
+        if (!response.ok) {
+            throw new Error(`API请求失败: ${response.status}`);
+        }
+
+        const result = await response.json();
+        const apiResponse = result.choices[0].message.content;
+        
+        // 缓存结果
+        baziCache.set(cacheKey, apiResponse);
+        
+        return apiResponse;
+    } catch (error) {
+        console.error(`获取${section}分析失败:`, error);
+        
+        // 失败时尝试返回本地计算结果作为兜底
+        if (section === 'basic') {
+            return calculateBaziLocally(data);
+        }
+        
+        throw error;
+    }
+}
     // 获取八字问答答案
     async function getBaziAnswer(question) {
         const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
