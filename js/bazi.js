@@ -1,6 +1,6 @@
 
 document.addEventListener('DOMContentLoaded', function() {
-    // 确保全局能获取当前日期（动态获取2025年a）
+    // 确保全局能获取当前日期（动态获取2025年b）
     const currentDate = new Date(); // 自动获取当前日期（2025）
     const currentYear = currentDate.getFullYear(); // 2025
     const currentMonth = currentDate.getMonth() + 1; // 1-12
@@ -1097,10 +1097,12 @@ ${getWealthSuggestions(score)}
         
         // 切换时调整最大高度
         if (container.classList.contains('active')) {
-            contentElement.style.maxHeight = 'none'; // 展开时不限制高度
-            contentElement.style.overflowY = 'auto'; // 内容多时显示滚动条
+            contentElement.style.maxHeight = 'none';
+            contentElement.style.overflowY = 'auto';
+            showReloadIcon(button, section); // 显示reload图标
         } else {
-            contentElement.style.maxHeight = ''; // 收起时恢复默认
+            contentElement.style.maxHeight = '';
+            hideReloadIcon(button); // 隐藏reload图标
         }
         return;
     }
@@ -1141,6 +1143,9 @@ ${getWealthSuggestions(score)}
         contentElement.style.maxHeight = 'none';
         contentElement.style.overflowY = 'auto';
         
+        // 显示reload图标
+        showReloadIcon(button, section);
+        
         if (section === 'decade-fortune') {
             initFortuneChart(result);
         }
@@ -1150,6 +1155,74 @@ ${getWealthSuggestions(score)}
         contentElement.innerHTML = '<p style="color:var(--danger-color)">加载失败，请重试</p>';
         button.disabled = false;
         button.innerHTML = `<span>${button.getAttribute('data-original-text')}</span><i class="fas fa-chevron-down toggle-icon"></i>`;
+    }
+}
+
+// 添加显示reload图标的函数
+function showReloadIcon(button, section) {
+    // 检查是否已经添加了reload图标
+    if (!button.querySelector('.reload-section-btn')) {
+        const reloadBtn = document.createElement('span');
+        reloadBtn.className = 'reload-section-btn';
+        reloadBtn.innerHTML = '<i class="fas fa-sync-alt"></i>';
+        reloadBtn.title = '重新加载此部分内容';
+        reloadBtn.style.marginLeft = '10px';
+        reloadBtn.style.cursor = 'pointer';
+        reloadBtn.style.color = 'var(--primary-color)';
+        
+        // 添加点击事件
+        reloadBtn.addEventListener('click', async function(e) {
+            e.stopPropagation();
+            await reloadSectionContent(button, section);
+        });
+        
+        button.appendChild(reloadBtn);
+    }
+}
+
+// 添加隐藏reload图标的函数
+function hideReloadIcon(button) {
+    const reloadBtn = button.querySelector('.reload-section-btn');
+    if (reloadBtn) {
+        button.removeChild(reloadBtn);
+    }
+}
+
+// 添加重新加载内容的函数
+async function reloadSectionContent(button, section) {
+    const contentElement = document.getElementById(`${section}-content`);
+    const container = button.closest('.load-btn-container');
+    
+    // 保存原始按钮文本
+    const originalText = button.getAttribute('data-original-text');
+    const originalHtml = button.innerHTML;
+    
+    // 显示加载状态
+    button.innerHTML = `<span style="display: flex; align-items: center; justify-content: center; width: 100%;"><span class="loading"></span>  重新加载中...</span><i class="fas fa-chevron-down toggle-icon"></i>`;
+    
+    // 清空内容区域
+    contentElement.innerHTML = '<div class="progress-container"><div class="progress-bar"></div></div>';
+    
+    try {
+        // 重新获取数据
+        const result = await getBaziAnalysis(section, birthData);
+        
+        // 显示新内容
+        displaySectionContent(section, result, contentElement);
+        
+        // 恢复按钮状态
+        button.innerHTML = `<span>${originalText}</span><i class="fas fa-check"></i><i class="fas fa-chevron-down toggle-icon"></i>`;
+        
+        // 重新显示reload图标
+        showReloadIcon(button, section);
+        
+        if (section === 'decade-fortune') {
+            initFortuneChart(result);
+        }
+    } catch (error) {
+        console.error(`重新加载${section}失败:`, error);
+        contentElement.innerHTML = '<p style="color:var(--danger-color)">重新加载失败，请重试</p>';
+        button.innerHTML = originalHtml;
     }
 }
 
