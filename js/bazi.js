@@ -1,6 +1,6 @@
 
 document.addEventListener('DOMContentLoaded', function() {
-    // 确保全局能获取当前日期（动态获取2025年v）
+    // 确保全局能获取当前日期（动态获取2025年a）
     const currentDate = new Date(); // 自动获取当前日期（2025）
     const currentYear = currentDate.getFullYear(); // 2025
     const currentMonth = currentDate.getMonth() + 1; // 1-12
@@ -3204,20 +3204,11 @@ function determineStrengthType(pillars) {
                 ${timeMap[hour]} · 
                 ${profile.gender === 'male' ? '男' : '女'}
             </span>
-            <span class="remove-profile-btn" data-index="${index}">
-                <i class="fas fa-times"></i>
-            </span>
         `;
         
-        // 修改点击事件处理
-        profileElement.querySelector('.profile-content').addEventListener('click', function(e) {
+        profileElement.addEventListener('click', function(e) {
             e.preventDefault();
             loadProfile(profile);
-        });
-        
-        profileElement.querySelector('.remove-profile-btn').addEventListener('click', function(e) {
-            e.stopPropagation();
-            removeProfile(index);
         });
         
         savedProfilesList.appendChild(profileElement);
