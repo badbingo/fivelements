@@ -1,6 +1,6 @@
 
 document.addEventListener('DOMContentLoaded', function() {
-    // 确保全局能获取当前日期（动态获取2025年c）
+    // 确保全局能获取当前日期（动态获取2025年v）
     const currentDate = new Date(); // 自动获取当前日期（2025）
     const currentYear = currentDate.getFullYear(); // 2025
     const currentMonth = currentDate.getMonth() + 1; // 1-12
@@ -1160,24 +1160,26 @@ ${getWealthSuggestions(score)}
 
 // 添加显示reload图标的函数
 function showReloadIcon(button, section) {
-    // 检查是否已经添加了reload图标
-    if (!button.querySelector('.reload-section-btn')) {
-        const reloadBtn = document.createElement('span');
-        reloadBtn.className = 'reload-section-btn';
-        reloadBtn.innerHTML = '<i class="fas fa-sync-alt"></i>';
-        reloadBtn.title = '重新加载此部分内容';
-        reloadBtn.style.marginLeft = '10px';
-        reloadBtn.style.cursor = 'pointer';
-        reloadBtn.style.color = 'var(--primary-color)';
-        
-        // 添加点击事件
-        reloadBtn.addEventListener('click', async function(e) {
-            e.stopPropagation();
-            await reloadSectionContent(button, section);
-        });
-        
-        button.appendChild(reloadBtn);
+    // 先移除可能存在的旧监听器
+    const existingBtn = button.querySelector('.reload-section-btn');
+    if (existingBtn) {
+        existingBtn.remove();
     }
+
+    const reloadBtn = document.createElement('span');
+    reloadBtn.className = 'reload-section-btn';
+    reloadBtn.innerHTML = '<i class="fas fa-sync-alt"></i>';
+    reloadBtn.title = '重新加载此部分内容';
+    
+    // 添加点击事件（使用事件委托更可靠）
+    reloadBtn.addEventListener('click', async function(e) {
+        e.stopPropagation();
+        e.preventDefault();
+        console.log('Reload clicked for section:', section); // 调试用
+        await reloadSectionContent(button, section);
+    }, { once: false }); // 确保可以多次触发
+
+    button.appendChild(reloadBtn);
 }
 
 // 添加隐藏reload图标的函数
@@ -1190,57 +1192,78 @@ function hideReloadIcon(button) {
 
 // 添加重新加载内容的函数
 async function reloadSectionContent(button, section) {
-    const contentElement = document.getElementById(`${section}-content`);
-    const container = button.closest('.load-btn-container');
+    console.log('Starting reload for:', section); // 调试日志
     
-    // 1. 收起内容区域
+    const contentElement = document.getElementById(`${section}-content`);
+    if (!contentElement) {
+        console.error('Content element not found for section:', section);
+        return;
+    }
+
+    const container = button.closest('.load-btn-container');
+    if (!container) {
+        console.error('Container not found for button');
+        return;
+    }
+
+    // 收起内容
     container.classList.remove('active');
     contentElement.classList.remove('active');
-    contentElement.style.maxHeight = '';
-    
-    // 2. 显示加载状态
-    const originalText = button.getAttribute('data-original-text');
-    button.innerHTML = `<span style="display: flex; align-items: center; justify-content: center; width: 100%;">
-        <span class="loading"></span> 数据更新中...
-    </span><i class="fas fa-chevron-down toggle-icon"></i>`;
+    contentElement.style.maxHeight = '0';
+    contentElement.innerHTML = ''; // 清空内容
+
+    // 显示加载状态
+    const originalText = button.textContent.trim();
+    button.innerHTML = `
+        <span style="display: flex; align-items: center; justify-content: center; width: 100%;">
+            <span class="loading"></span> 更新中...
+        </span>
+        <i class="fas fa-chevron-down toggle-icon"></i>
+    `;
     button.disabled = true;
-    
-    // 3. 隐藏reload按钮避免重复点击
-    hideReloadIcon(button);
-    
+
     try {
-        // 4. 重新获取数据
-        const result = await getBaziAnalysis(section, birthData);
+        // 模拟加载延迟（实际使用时移除）
+        await new Promise(resolve => setTimeout(resolve, 500));
         
-        // 5. 显示新内容
+        const result = await getBaziAnalysis(section, birthData);
+        console.log('Reload data received:', result); // 调试
+        
         displaySectionContent(section, result, contentElement);
         
-        // 6. 恢复按钮状态
-        button.innerHTML = `<span>${originalText}</span><i class="fas fa-check"></i><i class="fas fa-chevron-down toggle-icon"></i>`;
+        // 恢复按钮
+        button.innerHTML = `
+            <span>${originalText}</span>
+            <i class="fas fa-check"></i>
+            <i class="fas fa-chevron-down toggle-icon"></i>
+        `;
         button.disabled = false;
-        
-        // 7. 展开内容区域
+
+        // 展开内容
         container.classList.add('active');
         contentElement.classList.add('active');
         contentElement.style.maxHeight = 'none';
-        
-        // 8. 重新显示reload图标
-        showReloadIcon(button, section);
-        
-        if (section === 'decade-fortune') {
-            initFortuneChart(result);
-        }
+
     } catch (error) {
-        console.error(`重新加载${section}失败:`, error);
-        contentElement.innerHTML = '<p style="color:var(--danger-color)">重新加载失败，请重试</p>';
-        button.innerHTML = `<span>${originalText}</span><i class="fas fa-chevron-down toggle-icon"></i>`;
-        button.disabled = false;
+        console.error('Reload failed:', error);
+        contentElement.innerHTML = `
+            <div class="error-message">
+                <i class="fas fa-exclamation-triangle"></i>
+                加载失败，请<a href="javascript:void(0)" class="retry-link">重试</a>
+            </div>
+        `;
         
-        // 即使失败也展开显示错误信息
-        container.classList.add('active');
-        contentElement.classList.add('active');
-        contentElement.style.maxHeight = 'none';
-        showReloadIcon(button, section);
+        // 添加重试点击事件
+        contentElement.querySelector('.retry-link').addEventListener('click', () => {
+            reloadSectionContent(button, section);
+        });
+        
+        button.innerHTML = `
+            <span>${originalText}</span>
+            <i class="fas fa-exclamation-circle"></i>
+            <i class="fas fa-chevron-down toggle-icon"></i>
+        `;
+        button.disabled = false;
     }
 }
 
