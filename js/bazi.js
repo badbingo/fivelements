@@ -1,6 +1,6 @@
 
 document.addEventListener('DOMContentLoaded', function() {
-    // 确保全局能获取当前日期（动态获取2025年w）
+    // 确保全局能获取当前日期（动态获取2025年a）
     const currentDate = new Date(); // 自动获取当前日期（2025）
     const currentYear = currentDate.getFullYear(); // 2025
     const currentMonth = currentDate.getMonth() + 1; // 1-12
@@ -3569,11 +3569,11 @@ function determineStrengthType(pillars) {
    - 犯太岁的具体表现（需区分刑/冲/破/害）
    - 2025年九宫飞星方位吉凶提示
 
-【每月精批】 
+【重点月份精批】 
 采用表格形式呈现，包含：
-| 月份 | 节气关键点 | 事业运 | 感情运 | 健康风险 |
-|------|------------|--------|--------|----------|
-...（要求填充完整12个月数据）
+| 阳历月份 | 事业运 | 感情运 | 健康风险 |
+|------|--------|--------|----------|
+
 
 【定制化建议】
 1. 风水调整：
