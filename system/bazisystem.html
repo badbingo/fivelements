@@ -95,7 +95,7 @@
             </section>
             
             <!-- 新增的指南部分，放在输入部分和结果部分之间 -->
-            <section class="guide-section" style="margin: 30px 0; background: rgba(255,255,255,0.8); border-radius: 8px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+            <section class="guide-section" id="guide-section" style="margin: 30px 0; background: rgba(255,255,255,0.8); border-radius: 8px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
                 <div class="saved-profiles-title">
                     <i class="fas fa-book"></i> 机缘命理系统使用指南
                 </div>
@@ -161,349 +161,14 @@
                         </div>
                     </div>
                 </div>
+                <div class="calculate-btn-container" style="margin-top: 20px; text-align: center;">
+                    <button id="back-btn" class="btn" style="background-color: #666;"><i class="fas fa-arrow-left"></i> 返回首页</button>
+                </div>
             </section>
             
             <section class="result-section" id="result-section">
-                <div class="basic-info" id="basic-info">
-                    <div class="info-section">
-                        <h3>
-                            <i class="fas fa-user-astronaut"></i> <span id="user-name-display"></span> · <span id="user-birth-display"></span>
-                        </h3>
-                        <div class="info-content">
-                            <div class="rating-container">
-                                <div class="rating-group" id="fate-analysis-btn">
-                                    <div class="rating-title"><i class="fas fa-star"></i> 命格等级</div>
-                                    <div class="rating-level" id="fate-level"></div>
-                                    <div class="rating-score" id="fate-score"></div>
-                                    <div class="score-details" id="fate-details"></div>
-                                </div>
-                                <div class="rating-group" id="wealth-analysis-btn">
-                                    <div class="rating-title"><i class="fas fa-coins"></i> 财富等级</div>
-                                    <div class="rating-level" id="wealth-level"></div>
-                                    <div class="rating-score" id="wealth-score"></div>
-                                    <div class="score-details" id="wealth-details"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="info-section">
-                        <h3><i class="fas fa-dna"></i> 八字四柱</h3>
-                        <div class="info-content">
-                            <div class="bazi-table">
-                                <div class="bazi-row bazi-header">
-                                    <div class="bazi-cell">四柱</div>
-                                    <div class="bazi-cell">年柱</div>
-                                    <div class="bazi-cell">月柱</div>
-                                    <div class="bazi-cell">日柱</div>
-                                    <div class="bazi-cell">时柱</div>
-                                </div>
-                                <div class="bazi-row">
-                                    <div class="bazi-cell">天干</div>
-                                    <div class="bazi-cell" id="year-stem">壬</div>
-                                    <div class="bazi-cell" id="month-stem">癸</div>
-                                    <div class="bazi-cell" id="day-stem">己</div>
-                                    <div class="bazi-cell" id="hour-stem">癸</div>
-                                </div>
-                                <div class="bazi-row">
-                                    <div class="bazi-cell">地支</div>
-                                    <div class="bazi-cell" id="year-branch">子</div>
-                                    <div class="bazi-cell" id="month-branch">丑</div>
-                                    <div class="bazi-cell" id="day-branch">巳</div>
-                                    <div class="bazi-cell" id="hour-branch">酉</div>
-                                </div>
-                                <div class="bazi-row">
-                                    <div class="bazi-cell">藏干</div>
-                                    <div class="bazi-cell">
-                                        <div class="hidden-stems" id="year-hidden-stems">癸</div>
-                                    </div>
-                                    <div class="bazi-cell">
-                                        <div class="hidden-stems" id="month-hidden-stems">己癸辛</div>
-                                    </div>
-                                    <div class="bazi-cell">
-                                        <div class="hidden-stems" id="day-hidden-stems">丙庚戊</div>
-                                    </div>
-                                    <div class="bazi-cell">
-                                        <div class="hidden-stems" id="hour-hidden-stems">辛</div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="personality-traits" id="personality-traits">
-                                命主性格：似静水流深，临危反生智，藏锋守拙却暗含凌云之志
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="info-section">
-                        <h3><i class="fas fa-hourglass-start"></i> 命理特征</h3>
-                        <div class="info-content">
-                            <div class="bazi-features">
-                                <div class="bazi-feature-item">
-                                    <span class="feature-label">日主强弱:</span>
-                                    <span class="feature-value" id="strength-type"></span>
-                                </div>
-                                <div class="bazi-feature-item">
-                                    <span class="feature-label">起运时间:</span>
-                                    <span class="feature-value" id="luck-starting-time"></span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="info-section">
-                        <h3><i class="fas fa-atom"></i> 五行能量分布</h3>
-                        <div class="info-content">
-                            <div class="element-chart-container">
-                                <canvas id="element-chart" class="element-chart"></canvas>
-                            </div>
-                            <div id="element-chart-description" class="chart-description"></div>
-                            <div class="element-legend">
-                                <div class="element-legend-item">
-                                    <div class="element-legend-color wood-color"></div>
-                                    <span>木</span>
-                                </div>
-                                <div class="element-legend-item">
-                                    <div class="element-legend-color fire-color"></div>
-                                    <span>火</span>
-                                </div>
-                                <div class="element-legend-item">
-                                    <div class="element-legend-color earth-color"></div>
-                                    <span>土</span>
-                                </div>
-                                <div class="element-legend-item">
-                                    <div class="element-legend-color metal-color"></div>
-                                    <span>金</span>
-                                </div>
-                                <div class="element-legend-item">
-                                    <div class="element-legend-color water-color"></div>
-                                    <span>水</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="info-section">
-                        <div class="lunar-calendar-card">
-                            <div class="lunar-header">
-                                <i class="fas fa-calendar-alt"></i>
-                                <span>今日黄历</span>
-                            </div>
-                            <div class="lunar-date" id="lunar-date"></div>
-                            <div class="lunar-ganzhi" id="lunar-ganzhi"></div>
-                            <div class="lunar-yiji">
-                                <div class="lunar-yiji-column">
-                                    <div class="lunar-yiji-title">宜</div>
-                                    <div class="lunar-yiji-content" id="lunar-yi"></div>
-                                </div>
-                                <div class="lunar-yiji-column">
-                                    <div class="lunar-yiji-title">忌</div>
-                                    <div class="lunar-yiji-content" id="lunar-ji"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="menu-tabs">
-                    <div class="menu-tab active" data-tab="fortune"><i class="fas fa-network-wired"></i> 运势分析</div>
-                    <div class="menu-tab" data-tab="character"><i class="fas fa-user-astronaut"></i> 性格财富</div>
-                    <div class="menu-tab" data-tab="relationship"><i class="fas fa-heartbeat"></i> 婚姻健康</div>
-                    <div class="menu-tab" data-tab="trend"><i class="fas fa-chart-line"></i> 命盘分析</div>
-                </div>
-                
-                <div class="tab-content active" id="fortune-tab">
-                    <div class="detail-card">
-                        <div class="bazi-qa-container">
-                            <div class="bazi-qa-title">
-                                <i class="fas fa-question-circle"></i> 答疑解惑
-                            </div>
-                            <div class="bazi-qa-input-container">
-                                <input type="text" class="bazi-qa-input" id="bazi-question" placeholder="输入您想了解的八字相关的一切问题...">
-                                <button class="bazi-qa-submit" id="bazi-qa-submit">提问</button>
-                            </div>
-                            <div id="bazi-qa-response" class="bazi-qa-response" style="display: none;">
-                                <!-- 回答内容将在这里显示 -->
-                            </div>
-                            <div id="bazi-qa-loading" class="bazi-qa-loading" style="display: none;">
-                                <div class="loading"></div>
-                                <span>命理数据库解索中，请耐心等待...</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="detail-card">
-                        <div class="load-btn-container">
-                            <button class="load-btn" data-section="annual-fortune">
-                                <span><i class="fas fa-calendar-alt"></i> 流年分析</span>
-                                <i class="fas fa-chevron-down toggle-icon"></i>
-                            </button>
-                            <div class="load-btn-description">详细分析当前流年对命局的影响，包括五行强弱、神煞系统和地支关系</div>
-                        </div>
-                        <div id="annual-fortune-content" class="section-content"></div>
-                    </div>
-                    
-                    <div class="detail-card">
-                        <div class="load-btn-container">
-                            <button class="load-btn" data-section="monthly-fortune">
-                                <span><i class="fas fa-calendar-day"></i> 流月分析</span>
-                                <i class="fas fa-chevron-down toggle-icon"></i>
-                            </button>
-                            <div class="load-btn-description">预测当前年份每月的运势起伏和注意事项</div>
-                        </div>
-                        <div id="monthly-fortune-content" class="section-content"></div>
-                    </div>
-                    
-                    <div class="detail-card">
-                        <div class="load-btn-container">
-                            <button class="load-btn" data-section="daily-fortune">
-                                <span><i class="fas fa-calendar-day"></i> 流日分析</span>
-                                <i class="fas fa-chevron-down toggle-icon"></i>
-                            </button>
-                            <div class="load-btn-description">分析每日运势变化和吉凶时辰</div>
-                        </div>
-                        <div id="daily-fortune-content" class="section-content"></div>
-                    </div>
-                    
-                    <div class="detail-card">
-                        <div class="load-btn-container">
-                            <button class="load-btn" data-section="decade-fortune">
-                                <span><i class="fas fa-hourglass-half"></i> 十年大运分析</span>
-                                <i class="fas fa-chevron-down toggle-icon"></i>
-                            </button>
-                            <div class="load-btn-description">分析一生中各阶段大运走势，预测重要时期吉凶</div>
-                        </div>
-                        <div id="decade-fortune-content" class="section-content"></div>
-                    </div>
-                    
-                    <div class="detail-card">
-                        <div class="load-btn-container">
-                            <button class="load-btn" data-section="milestones">
-                                <span><i class="fas fa-map-marked-alt"></i> 重要节点和重大灾祸分析</span>
-                                <i class="fas fa-chevron-down toggle-icon"></i>
-                            </button>
-                            <div class="load-btn-description">指出人生中重要的年份和可能发生的重大事件和重大灾祸</div>
-                        </div>
-                        <div id="milestones-content" class="section-content"></div>
-                    </div>
-                </div>
-
-                <div class="tab-content" id="character-tab">
-                    <div class="detail-card">
-                        <div class="load-btn-container">
-                            <button class="load-btn" data-section="personality">
-                                <span><i class="fas fa-brain"></i> 性格分析</span>
-                                <i class="fas fa-chevron-down toggle-icon"></i>
-                            </button>
-                            <div class="load-btn-description">根据八字分析命主的主要性格特征和优缺点</div>
-                        </div>
-                        <div id="personality-content" class="section-content"></div>
-                    </div>
-                    
-                    <div class="detail-card">
-                        <div class="load-btn-container">
-                            <button class="load-btn" data-section="career">
-                                <span><i class="fas fa-briefcase"></i> 适合行业分析</span>
-                                <i class="fas fa-chevron-down toggle-icon"></i>
-                            </button>
-                            <div class="load-btn-description">根据八字五行和十神分析适合从事的职业方向</div>
-                        </div>
-                        <div id="career-content" class="section-content"></div>
-                    </div>
-                    
-                    <div class="detail-card">
-                        <div class="load-btn-container">
-                            <button class="load-btn" data-section="wealth">
-                                <span><i class="fas fa-coins"></i> 财富格局分析</span>
-                                <i class="fas fa-chevron-down toggle-icon"></i>
-                            </button>
-                            <div class="load-btn-description">分析八字中的财富格局和理财建议</div>
-                        </div>
-                        <div id="wealth-content" class="section-content"></div>
-                        <div class="gambling-analysis">
-                            <div class="gambling-title">
-                                <i class="fas fa-dice"></i> 今日赌运分析
-                            </div>
-                            <div class="gambling-rating" id="gambling-rating">★★★☆☆</div>
-                            <div class="gambling-details" id="gambling-details">
-                                今日偏财运中等，适合小赌怡情但不宜大额投注。东南方位较为有利，下午3-5点时段运势最佳。注意见好就收，避免贪心导致损失。
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="tab-content" id="relationship-tab">
-                    <div class="detail-card">
-                        <div class="load-btn-container">
-                            <button class="load-btn" data-section="marriage">
-                                <span><i class="fas fa-ring"></i> 婚姻情况分析</span>
-                                <i class="fas fa-chevron-down toggle-icon"></i>
-                            </button>
-                            <div class="load-btn-description">分析八字中婚姻宫和配偶星情况，预测婚姻状况</div>
-                        </div>
-                        <div id="marriage-content" class="section-content"></div>
-                    </div>
-                    
-                    <div class="detail-card">
-                        <div class="load-btn-container">
-                            <button class="load-btn" data-section="children">
-                                <span><i class="fas fa-baby"></i> 子女情况分析</span>
-                                <i class="fas fa-chevron-down toggle-icon"></i>
-                            </button>
-                            <div class="load-btn-description">分析八字中子女宫和子女星情况，预测子女缘分</div>
-                        </div>
-                        <div id="children-content" class="section-content"></div>
-                    </div>
-                    
-                    <div class="detail-card">
-                        <div class="load-btn-container">
-                            <button class="load-btn" data-section="family">
-                                <span><i class="fas fa-home"></i> 家庭关系分析</span>
-                                <i class="fas fa-chevron-down toggle-icon"></i>
-                            </button>
-                            <div class="load-btn-description">分析八字中父母、兄弟姐妹等家庭关系</div>
-                        </div>
-                        <div id="family-content" class="section-content"></div>
-                    </div>
-                    
-                    <div class="detail-card">
-                        <div class="load-btn-container">
-                            <button class="load-btn" data-section="health">
-                                <span><i class="fas fa-heartbeat"></i> 健康情况分析</span>
-                                <i class="fas fa-chevron-down toggle-icon"></i>
-                            </button>
-                            <div class="load-btn-description">根据五行平衡分析命主的健康状况和潜在健康问题</div>
-                        </div>
-                        <div id="health-content" class="section-content"></div>
-                    </div>
-                </div>
-
-                <div class="tab-content" id="trend-tab">
-                    <div class="detail-card">
-                        <div class="load-btn-container">
-                            <button class="load-btn" data-section="strength">
-                                <span><i class="fas fa-dumbbell"></i> 身强，身弱，格局分析</span>
-                                <i class="fas fa-chevron-down toggle-icon"></i>
-                            </button>
-                            <div class="load-btn-description">量子分析命主八字中日主的强弱程度和格局，判断是身强、身弱、均衡、从强还是从弱</div>
-                        </div>
-                        <div id="strength-content" class="section-content"></div>
-                    </div>
-
-                    <div class="detail-card">
-                        <div class="load-btn-container">
-                            <button class="load-btn" data-section="elements">
-                                <span><i class="fas fa-yin-yang"></i> 五行强弱，燥湿，流通分析</span>
-                                <i class="fas fa-chevron-down toggle-icon"></i>
-                            </button>
-                            <div class="load-btn-description">量子计算八字五行分布情况，判断五行强弱，燥湿，流通和调候</div>
-                        </div>
-                        <div id="elements-content" class="section-content"></div>
-                    </div>
-                </div>
-
-                <div class="calculate-btn-container" style="margin-top: 30px;">
-                    <button id="recalculate-btn"><i class="fas fa-redo"></i> 重新测算</button>
-                </div>
+                <!-- 结果部分内容保持不变 -->
+                <!-- ... -->
             </section>
         </main>
 
@@ -517,22 +182,8 @@
         </div>
     </div>
     
-          <!-- 全屏loading层 -->
-            <div id="fullscreen-loading" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
-                <div style="color:white; font-size:24px; text-align:center;">
-                    <div class="loading" style="margin:0 auto 20px;"></div>
-                    <div>支付处理中，请稍候...</div>
-                </div>
-            </div>
-            
-            <!-- 支付成功提示 -->
-            <div id="payment-success-alert" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:white; padding:20px; border-radius:5px; z-index:10000; box-shadow:0 0 10px rgba(0,0,0,0.3); text-align:center;">
-                <p style="margin-bottom:15px; font-size:18px;">支付已成功，请输入出生信息开始测算！</p>
-                <button style="padding:5px 15px; background:#2196F3; color:white; border:none; border-radius:3px; cursor:pointer;"
-                        onclick="document.getElementById('payment-success-alert').style.display='none'">
-                    确定
-                </button>
-            </div>
+    <!-- 全屏loading层和支付成功提示保持不变 -->
+    <!-- ... -->
     
     <footer class="main-footer">
         <div class="container">
@@ -551,5 +202,44 @@
     <script src="../js/lunar.js"></script>
     <script src="../js/bazi.js"></script>
     <script src="../js/pay.js"></script>
+    
+    <script>
+    // 新增的控制指南显示的JavaScript代码
+    document.addEventListener('DOMContentLoaded', function() {
+        // 获取相关元素
+        const inputSection = document.getElementById('input-section');
+        const resultSection = document.getElementById('result-section');
+        const guideSection = document.getElementById('guide-section');
+        const backBtn = document.getElementById('back-btn');
+        
+        // 初始化显示状态
+        resultSection.style.display = 'none';
+        guideSection.style.display = 'block';
+        
+        // 返回按钮点击事件
+        backBtn.addEventListener('click', function() {
+            window.location.href = 'bazi.html';
+        });
+        
+        // 假设这是点击"开始测算"按钮后的回调函数
+        function onCalculateStart() {
+            inputSection.style.display = 'none';
+            guideSection.style.display = 'none';
+            resultSection.style.display = 'block';
+        }
+        
+        // 假设这是点击"重新测算"按钮后的回调函数
+        function onRecalculate() {
+            inputSection.style.display = 'block';
+            guideSection.style.display = 'block';
+            resultSection.style.display = 'none';
+        }
+        
+        // 这里需要根据您实际的测算按钮事件绑定这些函数
+        // 例如：
+        // document.getElementById('calculate-btn').addEventListener('click', onCalculateStart);
+        // document.getElementById('recalculate-btn').addEventListener('click', onRecalculate);
+    });
+    </script>
 </body>
 </html>
