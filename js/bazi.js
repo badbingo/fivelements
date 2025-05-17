@@ -1,6 +1,6 @@
 
 document.addEventListener('DOMContentLoaded', function() {
-    // 确保全局能获取当前日期（动态获取2025年b）
+    // 确保全局能获取当前日期（动态获取2025年v）
     const currentDate = new Date(); // 自动获取当前日期（2025）
     const currentYear = currentDate.getFullYear(); // 2025
     const currentMonth = currentDate.getMonth() + 1; // 1-12
@@ -1192,68 +1192,72 @@ function hideReloadIcon(button) {
 
 // 添加重新加载内容的函数
 async function reloadSectionContent(button, section) {
-    const contentElement = document.getElementById(`${section}-content`);
-    const container = button.closest('.load-btn-container');
+    console.log('Starting reload for:', section); // 调试日志
     
-    // 1. 收起内容区域
+    const contentElement = document.getElementById(`${section}-content`);
+    if (!contentElement) {
+        console.error('Content element not found for section:', section);
+        return;
+    }
+
+    const container = button.closest('.load-btn-container');
+    if (!container) {
+        console.error('Container not found for button');
+        return;
+    }
+
+    // 收起内容
     container.classList.remove('active');
     contentElement.classList.remove('active');
-    contentElement.style.maxHeight = '';
-    
-    // 2. 显示加载状态
-    const originalText = button.getAttribute('data-original-text');
+    contentElement.style.maxHeight = '0';
+    contentElement.innerHTML = ''; // 清空内容
+
+    // 显示加载状态
+    const originalText = button.textContent.trim();
     button.innerHTML = `
         <span style="display: flex; align-items: center; justify-content: center; width: 100%;">
-            <span class="loading"></span> 获取最新数据中...
+            <span class="loading"></span> 更新中...
         </span>
         <i class="fas fa-chevron-down toggle-icon"></i>
     `;
     button.disabled = true;
-    
+
     try {
-        // 3. 强制从API获取最新数据（不读缓存）
-        const result = await getBaziAnalysis(section, birthData, true); // 注意这里的true参数
+        // 模拟加载延迟（实际使用时移除）
+        await new Promise(resolve => setTimeout(resolve, 500));
         
-        // 4. 显示新内容
+        const result = await getBaziAnalysis(section, birthData);
+        console.log('Reload data received:', result); // 调试
+        
         displaySectionContent(section, result, contentElement);
         
-        // 5. 恢复按钮状态
+        // 恢复按钮
         button.innerHTML = `
             <span>${originalText}</span>
             <i class="fas fa-check"></i>
             <i class="fas fa-chevron-down toggle-icon"></i>
         `;
         button.disabled = false;
-        
-        // 6. 展开内容区域
+
+        // 展开内容
         container.classList.add('active');
         contentElement.classList.add('active');
         contentElement.style.maxHeight = 'none';
-        
-        // 7. 显示更新时间戳
-        const timestamp = new Date().toLocaleTimeString();
-        contentElement.insertAdjacentHTML('beforeend', `
-            <div class="update-timestamp">
-                <i class="fas fa-clock"></i> 最后更新: ${timestamp}
-            </div>
-        `);
-        
+
     } catch (error) {
-        console.error('刷新失败:', error);
+        console.error('Reload failed:', error);
         contentElement.innerHTML = `
             <div class="error-message">
                 <i class="fas fa-exclamation-triangle"></i>
-                刷新失败: ${error.message || '未知错误'}
-                <a href="javascript:void(0)" class="retry-link">重试</a>
+                加载失败，请<a href="javascript:void(0)" class="retry-link">重试</a>
             </div>
         `;
         
-        // 添加重试事件
+        // 添加重试点击事件
         contentElement.querySelector('.retry-link').addEventListener('click', () => {
             reloadSectionContent(button, section);
         });
         
-        // 恢复按钮但显示错误状态
         button.innerHTML = `
             <span>${originalText}</span>
             <i class="fas fa-exclamation-circle"></i>
@@ -1484,74 +1488,20 @@ function displaySectionContent(section, result, contentElement) {
 }
     // 计算八字
     async function calculateBazi(e) {
-    if (e) e.preventDefault();
-    
+    if (e) {
+        e.preventDefault();
+    }
     resetAllContent();
     
-    // 获取输入数据
-    birthData = {
-        name: document.getElementById('name').value,
-        date: document.getElementById('birth-date').value,
-        time: birthTimeInput.value,
-        gender: document.getElementById('gender').value
-    };
+    const name = document.getElementById('name').value;
+    const birthDate = document.getElementById('birth-date').value;
+    const birthTime = birthTimeInput.value;
+    const gender = document.getElementById('gender').value;
     
-    if (!birthData.date || !birthData.time || !birthData.gender) {
+    if (!birthDate || !birthTime || !gender) {
         alert('请填写完整的出生信息');
         return;
     }
-    
-    try {
-        // 显示全局加载状态
-        const loadingOverlay = createLoadingOverlay('量子测算中...');
-        
-        // 获取基础信息（强制从本地计算）
-        const baziInfo = await getBaziAnalysis('basic', birthData, true);
-        
-        // 显示结果
-        displayBasicInfo(baziInfo);
-        initElementChart(baziInfo);
-        
-        // 保存当前八字信息
-        currentPillars = {
-            year: baziInfo.yearStem + baziInfo.yearBranch,
-            month: baziInfo.monthStem + baziInfo.monthBranch,
-            day: baziInfo.dayStem + baziInfo.dayBranch,
-            hour: baziInfo.hourStem + baziInfo.hourBranch
-        };
-        
-        // 显示分数和其他信息
-        displayScores();
-        updateLunarCalendar();
-        
-        // 切换界面
-        inputSection.style.display = 'none';
-        resultSection.style.display = 'block';
-        
-    } catch (error) {
-        console.error('测算失败:', error);
-        alert('测算失败，请检查输入信息后重试');
-    } finally {
-        removeLoadingOverlay();
-        calculateBtn.disabled = false;
-    }
-}
-
-function createLoadingOverlay(text) {
-    const overlay = document.createElement('div');
-    overlay.className = 'loading-overlay';
-    overlay.innerHTML = `
-        <div class="loading-spinner"></div>
-        <p>${text}</p>
-    `;
-    document.body.appendChild(overlay);
-    return overlay;
-}
-
-function removeLoadingOverlay() {
-    const overlay = document.querySelector('.loading-overlay');
-    if (overlay) overlay.remove();
-}
         
         const dateParts = birthDate.split('-');
         const year = parseInt(dateParts[0]);
@@ -3514,25 +3464,24 @@ function determineStrengthType(pillars) {
     }
 
     // 获取八字分析
-    async function getBaziAnalysis(section, data, forceRefresh = false) {
+    async function getBaziAnalysis(section, data) {
     // 生成缓存键
     const cacheKey = `${generateBaziHashKey(data)}:${section}`;
     
-    // 如果不是强制刷新，先检查缓存
-    if (!forceRefresh) {
-        const cachedResponse = baziCache.get(cacheKey);
-        if (cachedResponse) {
-            return cachedResponse;
-        }
+    // 检查缓存
+    const cachedResponse = baziCache.get(cacheKey);
+    if (cachedResponse) {
+        return cachedResponse;
     }
-
-    try {
-        // 对于基础信息部分，使用本地计算
-        if (section === 'basic') {
-            const localCalculation = calculateBaziLocally(data);
-            baziCache.set(cacheKey, localCalculation);
-            return localCalculation;
-        }
+    
+    // 先计算本地结果
+    const localResult = calculateBaziLocally(data);
+    
+    // 对于基础信息部分，直接返回本地计算结果
+    if (section === 'basic') {
+        baziCache.set(cacheKey, localResult);
+        return localResult;
+    }
     
     // 其他部分调用API
     const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
@@ -3843,30 +3792,19 @@ function determineStrengthType(pillars) {
                         temperature: 0,
                         seed: 12345 // 固定seed值确保相同输入得到相同输出
                     })
-                });
-
-        if (!response.ok) {
-            throw new Error(`API请求失败: ${response.status}`);
+                },
+                section: section,
+                cacheKey: cacheKey
+            });
+            
+            return response;
+            
+        } catch (error) {
+            console.error(`获取${section}分析失败:`, error);
+            throw error;
         }
-
-        const result = await response.json();
-        const apiResponse = result.choices[0].message.content;
-        
-        // 缓存结果
-        baziCache.set(cacheKey, apiResponse);
-        
-        return apiResponse;
-    } catch (error) {
-        console.error(`获取${section}分析失败:`, error);
-        
-        // 失败时尝试返回本地计算结果作为兜底
-        if (section === 'basic') {
-            return calculateBaziLocally(data);
-        }
-        
-        throw error;
     }
-}
+
     // 获取八字问答答案
     async function getBaziAnswer(question) {
         const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
