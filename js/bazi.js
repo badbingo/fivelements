@@ -1,6 +1,6 @@
 
 document.addEventListener('DOMContentLoaded', function() {
-    // 确保全局能获取当前日期（动态获取2025年b）
+    // 确保全局能获取当前日期（动态获取2025年c）
     const currentDate = new Date(); // 自动获取当前日期（2025）
     const currentYear = currentDate.getFullYear(); // 2025
     const currentMonth = currentDate.getMonth() + 1; // 1-12
@@ -1193,27 +1193,38 @@ async function reloadSectionContent(button, section) {
     const contentElement = document.getElementById(`${section}-content`);
     const container = button.closest('.load-btn-container');
     
-    // 保存原始按钮文本
+    // 1. 收起内容区域
+    container.classList.remove('active');
+    contentElement.classList.remove('active');
+    contentElement.style.maxHeight = '';
+    
+    // 2. 显示加载状态
     const originalText = button.getAttribute('data-original-text');
-    const originalHtml = button.innerHTML;
+    button.innerHTML = `<span style="display: flex; align-items: center; justify-content: center; width: 100%;">
+        <span class="loading"></span> 数据更新中...
+    </span><i class="fas fa-chevron-down toggle-icon"></i>`;
+    button.disabled = true;
     
-    // 显示加载状态
-    button.innerHTML = `<span style="display: flex; align-items: center; justify-content: center; width: 100%;"><span class="loading"></span>  重新加载中...</span><i class="fas fa-chevron-down toggle-icon"></i>`;
-    
-    // 清空内容区域
-    contentElement.innerHTML = '<div class="progress-container"><div class="progress-bar"></div></div>';
+    // 3. 隐藏reload按钮避免重复点击
+    hideReloadIcon(button);
     
     try {
-        // 重新获取数据
+        // 4. 重新获取数据
         const result = await getBaziAnalysis(section, birthData);
         
-        // 显示新内容
+        // 5. 显示新内容
         displaySectionContent(section, result, contentElement);
         
-        // 恢复按钮状态
+        // 6. 恢复按钮状态
         button.innerHTML = `<span>${originalText}</span><i class="fas fa-check"></i><i class="fas fa-chevron-down toggle-icon"></i>`;
+        button.disabled = false;
         
-        // 重新显示reload图标
+        // 7. 展开内容区域
+        container.classList.add('active');
+        contentElement.classList.add('active');
+        contentElement.style.maxHeight = 'none';
+        
+        // 8. 重新显示reload图标
         showReloadIcon(button, section);
         
         if (section === 'decade-fortune') {
@@ -1222,7 +1233,14 @@ async function reloadSectionContent(button, section) {
     } catch (error) {
         console.error(`重新加载${section}失败:`, error);
         contentElement.innerHTML = '<p style="color:var(--danger-color)">重新加载失败，请重试</p>';
-        button.innerHTML = originalHtml;
+        button.innerHTML = `<span>${originalText}</span><i class="fas fa-chevron-down toggle-icon"></i>`;
+        button.disabled = false;
+        
+        // 即使失败也展开显示错误信息
+        container.classList.add('active');
+        contentElement.classList.add('active');
+        contentElement.style.maxHeight = 'none';
+        showReloadIcon(button, section);
     }
 }
 
