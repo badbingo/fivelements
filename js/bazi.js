@@ -1,6 +1,6 @@
 
 document.addEventListener('DOMContentLoaded', function() {
-    // 确保全局能获取当前日期（动态获取2025年v）
+    // 确保全局能获取当前日期（动态获取2025年w）
     const currentDate = new Date(); // 自动获取当前日期（2025）
     const currentYear = currentDate.getFullYear(); // 2025
     const currentMonth = currentDate.getMonth() + 1; // 1-12
@@ -3553,7 +3553,7 @@ function determineStrengthType(pillars) {
 `;
                 break;
             case 'annual-fortune':
-                prompt += `作为资深命理师，请为用户提供专业级流年运势分析（要求：每个部分详细展开，总字数不少于1500，流年总结不少于500字）：
+                prompt += `作为资深命理师，请为用户提供专业级流年运势分析（要求：每个部分详细展开，总字数不少于2500，流年总结不少于600字）：
 【岁运深度剖析】
 1. 流年总结（不少于500字）：
     - 事业运
