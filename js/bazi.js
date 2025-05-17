@@ -1,6 +1,6 @@
 
 document.addEventListener('DOMContentLoaded', function() {
-    // 确保全局能获取当前日期（动态获取2025年b）
+    // 确保全局能获取当前日期（动态获取2025年v）
     const currentDate = new Date(); // 自动获取当前日期（2025）
     const currentYear = currentDate.getFullYear(); // 2025
     const currentMonth = currentDate.getMonth() + 1; // 1-12
@@ -1013,6 +1013,9 @@ ${getWealthSuggestions(score)}
         wealthScore.textContent = '';
         wealthDetails.innerHTML = '';
         personalityTraits.textContent = '命主性格：';
+        
+        // 重新显示指南部分
+        document.getElementById('guide-section').style.display = 'block';
         
         // 重置内容区域
         document.querySelectorAll('.section-content').forEach(function(el) {
