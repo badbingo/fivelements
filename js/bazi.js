@@ -1,6 +1,6 @@
 
 document.addEventListener('DOMContentLoaded', function() {
-    // 确保全局能获取当前日期（动态获取2025年a）
+    // 确保全局能获取当前日期（动态获取2025年b）
     const currentDate = new Date(); // 自动获取当前日期（2025）
     const currentYear = currentDate.getFullYear(); // 2025
     const currentMonth = currentDate.getMonth() + 1; // 1-12
@@ -403,7 +403,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 birthTimeInput.value = `${hour.padStart(2, '0')}:${minute.padStart(2, '0')}`;
             });
         });
-
+        
+        // 返回按钮功能
+        document.getElementById('back-to-bazi')?.addEventListener('click', function() {
+            window.location.href = 'bazi.html';
+        });
+        
         // 语言切换
         languageBtns.forEach(function(btn) {
             btn.addEventListener('click', function() {
@@ -1378,7 +1383,10 @@ function displaySectionContent(section, result, contentElement) {
         e.preventDefault();
     }
     resetAllContent();
-    
+        
+    // 隐藏指南部分
+    document.getElementById('guide-section').style.display = 'none';
+        
     const name = document.getElementById('name').value;
     const birthDate = document.getElementById('birth-date').value;
     const birthTime = birthTimeInput.value;
