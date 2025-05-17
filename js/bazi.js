@@ -1,6 +1,6 @@
 
 document.addEventListener('DOMContentLoaded', function() {
-    // 确保全局能获取当前日期（动态获取2025年a）
+    // 确保全局能获取当前日期（动态获取2025年b）
     const currentDate = new Date(); // 自动获取当前日期（2025）
     const currentYear = currentDate.getFullYear(); // 2025
     const currentMonth = currentDate.getMonth() + 1; // 1-12
@@ -1484,20 +1484,74 @@ function displaySectionContent(section, result, contentElement) {
 }
     // 计算八字
     async function calculateBazi(e) {
-    if (e) {
-        e.preventDefault();
-    }
+    if (e) e.preventDefault();
+    
     resetAllContent();
     
-    const name = document.getElementById('name').value;
-    const birthDate = document.getElementById('birth-date').value;
-    const birthTime = birthTimeInput.value;
-    const gender = document.getElementById('gender').value;
+    // 获取输入数据
+    birthData = {
+        name: document.getElementById('name').value,
+        date: document.getElementById('birth-date').value,
+        time: birthTimeInput.value,
+        gender: document.getElementById('gender').value
+    };
     
-    if (!birthDate || !birthTime || !gender) {
+    if (!birthData.date || !birthData.time || !birthData.gender) {
         alert('请填写完整的出生信息');
         return;
     }
+    
+    try {
+        // 显示全局加载状态
+        const loadingOverlay = createLoadingOverlay('量子测算中...');
+        
+        // 获取基础信息（强制从本地计算）
+        const baziInfo = await getBaziAnalysis('basic', birthData, true);
+        
+        // 显示结果
+        displayBasicInfo(baziInfo);
+        initElementChart(baziInfo);
+        
+        // 保存当前八字信息
+        currentPillars = {
+            year: baziInfo.yearStem + baziInfo.yearBranch,
+            month: baziInfo.monthStem + baziInfo.monthBranch,
+            day: baziInfo.dayStem + baziInfo.dayBranch,
+            hour: baziInfo.hourStem + baziInfo.hourBranch
+        };
+        
+        // 显示分数和其他信息
+        displayScores();
+        updateLunarCalendar();
+        
+        // 切换界面
+        inputSection.style.display = 'none';
+        resultSection.style.display = 'block';
+        
+    } catch (error) {
+        console.error('测算失败:', error);
+        alert('测算失败，请检查输入信息后重试');
+    } finally {
+        removeLoadingOverlay();
+        calculateBtn.disabled = false;
+    }
+}
+
+function createLoadingOverlay(text) {
+    const overlay = document.createElement('div');
+    overlay.className = 'loading-overlay';
+    overlay.innerHTML = `
+        <div class="loading-spinner"></div>
+        <p>${text}</p>
+    `;
+    document.body.appendChild(overlay);
+    return overlay;
+}
+
+function removeLoadingOverlay() {
+    const overlay = document.querySelector('.loading-overlay');
+    if (overlay) overlay.remove();
+}
         
         const dateParts = birthDate.split('-');
         const year = parseInt(dateParts[0]);
