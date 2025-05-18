@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const resultSection = document.getElementById('result-section');
     const apiStatus = document.getElementById('api-status');
     
-    // 八字四柱元素v
+    // 八字四柱元素a
     const maleYearStem = document.getElementById('male-year-stem');
     const maleYearBranch = document.getElementById('male-year-branch');
     const maleMonthStem = document.getElementById('male-month-stem');
@@ -156,27 +156,25 @@ document.addEventListener('DOMContentLoaded', function() {
             const buttonText = this.querySelector('span').textContent.trim();
             const cacheKey = `${maleData.date}-${maleData.time}-${femaleData.date}-${femaleData.time}-${section}`;
 
-            // 1. Check if content already exists and not loading (toggle visibility)
-            if (contentElement.innerHTML.trim() !== '' && !this.classList.contains('loading')) {
-                // Toggle the active class for both button and content
+            // 1. 检查内容是否已存在 (切换显示/隐藏)
+            if (contentElement.innerHTML.trim() !== '') {
+                // 切换激活状态
                 this.classList.toggle('active');
                 contentElement.classList.toggle('active');
                 
-                // Toggle the chevron icon
+                // 切换箭头图标
                 const icon = this.querySelector('.toggle-icon');
                 icon.classList.toggle('fa-chevron-down');
                 icon.classList.toggle('fa-chevron-up');
                 
-                // Adjust min-height for animation
-                if (contentElement.classList.contains('active')) {
-                    contentElement.style.minHeight = `${contentElement.scrollHeight}px`;
-                } else {
-                    contentElement.style.minHeight = '0';
-                }
+                // 调整高度动画
+                contentElement.style.minHeight = contentElement.classList.contains('active') 
+                    ? `${contentElement.scrollHeight}px` 
+                    : '0';
                 return;
             }
 
-            // 2. Check cache
+            // 2. 检查缓存
             if (analysisCache[cacheKey]) {
                 contentElement.innerHTML = analysisCache[cacheKey];
                 contentElement.classList.add('active');
@@ -187,93 +185,40 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            // 3. Set loading state
-            this.classList.add('loading');
+            // 3. 设置加载状态 (简化版，无旋转动画)
             this.disabled = true;
             this.innerHTML = `
                 <span>
-                    <span class="loading-spinner" style="
-                        display: inline-block;
-                        width: 14px;
-                        height: 14px;
-                        border: 2px solid rgba(230,43,30,0.2);
-                        border-top-color: #E62B1E;
-                        border-radius: 50%;
-                        animation: spin 1s linear infinite;
-                        margin-right: 8px;
-                        vertical-align: middle;
-                    "></span>
-                    ${buttonText}
+                    <i class="fas fa-${getSectionIcon(section)}"></i>
+                    ${buttonText} (加载中...)
                 </span>
                 <i class="fas fa-chevron-down toggle-icon"></i>
             `;
 
-            // 4. Show content loading effect
-            contentElement.innerHTML = `
-                <div class="loading-overlay" style="
-                    position: absolute;
-                    top: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 100%;
-                    background: rgba(255,255,255,0.85);
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    justify-content: center;
-                    z-index: 10;
-                    backdrop-filter: blur(3px);
-                    border-radius: 0 0 12px 12px;
-                ">
-                    <div style="
-                        width: 40px;
-                        height: 40px;
-                        border: 4px solid rgba(230,43,30,0.2);
-                        border-top-color: #E62B1E;
-                        border-radius: 50%;
-                        animation: spin 1s linear infinite;
-                        margin-bottom: 15px;
-                    "></div>
-                    <div style="
-                        color: #E62B1E;
-                        font-size: 1.1rem;
-                        font-weight: 500;
-                    ">合婚数据库解索中，请耐心等待...</div>
-                </div>
-            `;
-            contentElement.style.position = 'relative';
-            contentElement.style.minHeight = '200px';
+            // 4. 清空内容区域
+            contentElement.innerHTML = '';
+            contentElement.style.minHeight = '0';
 
             try {
-                // 5. Get analysis data
+                // 5. 获取分析数据
                 const result = await getMarriageAnalysis(section, maleData, femaleData);
                 
-                // 6. Process result
+                // 6. 处理结果
                 analysisCache[cacheKey] = result;
-                
-                // Remove loading class before displaying content
-                this.classList.remove('loading');
-                
-                // Display the content
                 displaySectionContent(section, result, contentElement, this);
                 
             } catch (error) {
                 console.error(`加载${section}失败:`, error);
                 
-                // Error handling
+                // 错误处理
                 contentElement.innerHTML = `
-                    <div class="error-message" style="
-                        padding: 20px;
-                        color: var(--fire-color);
-                        text-align: center;
-                    ">
-                        <i class="fas fa-exclamation-triangle" style="font-size: 1.5rem; margin-bottom: 10px;"></i>
+                    <div class="error-message">
+                        <i class="fas fa-exclamation-triangle"></i>
                         <p>加载失败，请<a href="#" onclick="location.reload()">刷新页面</a>重试</p>
                     </div>
                 `;
                 
-                // Reset button state
-                this.classList.remove('loading');
+                // 重置按钮状态
                 this.disabled = false;
                 this.innerHTML = `
                     <span>
