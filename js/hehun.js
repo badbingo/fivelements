@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const resultSection = document.getElementById('result-section');
     const apiStatus = document.getElementById('api-status');
     
-    // 八字四柱元素a
+    // 八字四柱元素v
     const maleYearStem = document.getElementById('male-year-stem');
     const maleYearBranch = document.getElementById('male-year-branch');
     const maleMonthStem = document.getElementById('male-month-stem');
@@ -162,12 +162,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 this.classList.toggle('active');
                 contentElement.classList.toggle('active');
                 
-                // 切换箭头图标
+                // 切换箭头图标方向
                 const icon = this.querySelector('.toggle-icon');
                 icon.classList.toggle('fa-chevron-down');
                 icon.classList.toggle('fa-chevron-up');
                 
-                // 调整高度动画
+                // 调整内容区域高度
                 contentElement.style.minHeight = contentElement.classList.contains('active') 
                     ? `${contentElement.scrollHeight}px` 
                     : '0';
@@ -185,7 +185,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            // 3. 设置加载状态 (简化版，无旋转动画)
+            // 3. 设置加载状态
             this.disabled = true;
             this.innerHTML = `
                 <span>
@@ -203,16 +203,93 @@ document.addEventListener('DOMContentLoaded', function() {
                 // 5. 获取分析数据
                 const result = await getMarriageAnalysis(section, maleData, femaleData);
                 
-                // 6. 处理结果
+                // 6. 缓存并显示结果
                 analysisCache[cacheKey] = result;
-                displaySectionContent(section, result, contentElement, this);
+                
+                // 7. 显示内容
+                contentElement.innerHTML = marked.parse(result);
+                
+                // 标准化表格样式
+                contentElement.querySelectorAll('table').forEach(table => {
+                    table.classList.add('markdown-table');
+                    table.style.width = '100%';
+                });
+                
+                // 添加打印按钮
+                const printBtn = document.createElement('button');
+                printBtn.innerHTML = '<i class="fas fa-print"></i> 打印此内容';
+                printBtn.className = 'load-btn print-btn';
+                printBtn.style.cssText = `
+                    display: block;
+                    margin: 25px auto 10px;
+                    padding: 12px 25px;
+                    background: linear-gradient(to right, #6a3093, #a044ff);
+                    color: white;
+                    border: none;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    transition: all 0.3s;
+                `;
+                printBtn.addEventListener('click', () => {
+                    const printWindow = window.open('', '_blank');
+                    const printContent = `
+                        <!DOCTYPE html>
+                        <html>
+                        <head>
+                            <meta charset="UTF-8">
+                            <title>${document.title} - ${section}</title>
+                            <style>
+                                body { font-family: 'Noto Sans SC', sans-serif; padding: 20px; }
+                                h2 { color: #6a3093; text-align: center; border-bottom: 1px solid #eee; }
+                                table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+                                th, td { padding: 10px; border: 1px solid #ddd; }
+                                th { background-color: #f5f5f5; }
+                                .print-footer { margin-top: 30px; text-align: center; color: #999; }
+                            </style>
+                        </head>
+                        <body>
+                            <h2>${document.querySelector('.header-title').textContent}</h2>
+                            <h3>${buttonText}</h3>
+                            ${contentElement.innerHTML}
+                            <div class="print-footer">
+                                打印时间：${new Date().toLocaleString('zh-CN')}
+                            </div>
+                        </body>
+                        </html>
+                    `;
+                    printWindow.document.open();
+                    printWindow.document.write(printContent);
+                    printWindow.document.close();
+                });
+                contentElement.appendChild(printBtn);
+                
+                // 8. 更新按钮状态
+                this.disabled = false;
+                this.classList.add('active');
+                this.innerHTML = `
+                    <span>
+                        <i class="fas fa-${getSectionIcon(section)}"></i>
+                        ${buttonText}
+                    </span>
+                    <i class="fas fa-chevron-up toggle-icon"></i>
+                `;
+                
+                // 9. 显示内容区域
+                setTimeout(() => {
+                    contentElement.style.minHeight = `${contentElement.scrollHeight}px`;
+                    contentElement.classList.add('active');
+                }, 10);
                 
             } catch (error) {
                 console.error(`加载${section}失败:`, error);
                 
                 // 错误处理
                 contentElement.innerHTML = `
-                    <div class="error-message">
+                    <div class="error-message" style="
+                        padding: 20px;
+                        color: var(--fire-color);
+                        text-align: center;
+                    ">
                         <i class="fas fa-exclamation-triangle"></i>
                         <p>加载失败，请<a href="#" onclick="location.reload()">刷新页面</a>重试</p>
                     </div>
