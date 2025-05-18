@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const resultSection = document.getElementById('result-section');
     const apiStatus = document.getElementById('api-status');
     
-    // 八字四柱元素2
+    // 八字四柱元素1
     const maleYearStem = document.getElementById('male-year-stem');
     const maleYearBranch = document.getElementById('male-year-branch');
     const maleMonthStem = document.getElementById('male-month-stem');
@@ -297,82 +297,135 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function displaySectionContent(section, result, contentElement) {
-    // 1. 保留最小高度200px，仅扩展最大高度
-    const MIN_HEIGHT = 200; // 保持原有最小高度
-    contentElement.style.minHeight = `${MIN_HEIGHT}px`;
-    contentElement.style.maxHeight = 'none'; // 移除最大高度限制
+    // 1. 设置内容区域样式（保持最小高度，移除最大高度限制）
+    contentElement.style.minHeight = '50px';
+    contentElement.style.maxHeight = 'none';
     contentElement.style.overflow = 'visible';
     contentElement.classList.add('active');
 
     // 2. 解析Markdown内容
     const htmlContent = marked.parse(result);
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = htmlContent;
+    contentElement.innerHTML = htmlContent;
 
-    // 3. 优化表格显示（保持原有样式）
-    tempDiv.querySelectorAll('table').forEach(table => {
-        if (!table.classList.contains('markdown-table')) {
-            table.classList.add('markdown-table');
-            table.style.width = '100%';
-            table.style.margin = '15px 0';
-        }
+    // 3. 标准化表格样式
+    contentElement.querySelectorAll('table').forEach(table => {
+        table.classList.add('markdown-table');
+        table.style.width = '100%';
     });
 
-    // 4. 清空并填充新内容
-    contentElement.innerHTML = '';
-    contentElement.appendChild(tempDiv);
-
-    // 5. 添加打印按钮（保持原有功能）
+    // 4. 添加智能打印按钮
     const printBtn = document.createElement('button');
     printBtn.innerHTML = '<i class="fas fa-print"></i> 打印此内容';
-    printBtn.className = 'load-btn';
+    printBtn.className = 'load-btn print-btn';
     printBtn.style.cssText = `
         display: block;
-        margin: 20px auto;
-        width: auto;
-        padding: 10px 20px;
+        margin: 25px auto 10px;
+        padding: 12px 25px;
+        background: linear-gradient(to right, #6a3093, #a044ff);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.3s;
     `;
 
+    printBtn.addEventListener('mouseover', () => {
+        printBtn.style.transform = 'translateY(-2px)';
+        printBtn.style.boxShadow = '0 5px 15px rgba(106, 48, 147, 0.3)';
+    });
+
+    printBtn.addEventListener('mouseout', () => {
+        printBtn.style.transform = 'none';
+        printBtn.style.boxShadow = 'none';
+    });
+
+    // 5. 增强版打印功能（自动关闭）
     printBtn.addEventListener('click', () => {
         const printWindow = window.open('', '_blank');
-        printWindow.document.write(`
+        const printContent = `
             <!DOCTYPE html>
             <html>
             <head>
                 <meta charset="UTF-8">
-                <title>${document.querySelector('.header-title').textContent}</title>
+                <title>${document.title} - ${section}</title>
                 <style>
-                    body { 
+                    body {
                         font-family: 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
                         padding: 20px;
                         line-height: 1.6;
+                        color: #333;
                     }
-                    h2 { color: #6a3093; text-align: center; }
-                    table { 
-                        width: 100%; 
+                    h2 {
+                        color: #6a3093;
+                        text-align: center;
+                        border-bottom: 1px solid #eee;
+                        padding-bottom: 10px;
+                    }
+                    table {
+                        width: 100%;
                         border-collapse: collapse;
                         margin: 15px 0;
+                        page-break-inside: avoid;
                     }
-                    th, td { padding: 10px; border: 1px solid #ddd; }
-                    th { background-color: #f5f5f5; }
+                    th, td {
+                        padding: 10px;
+                        border: 1px solid #ddd;
+                    }
+                    th {
+                        background-color: #f5f5f5;
+                    }
+                    .print-footer {
+                        margin-top: 30px;
+                        text-align: center;
+                        color: #999;
+                        font-size: 12px;
+                    }
                 </style>
             </head>
             <body>
-                <h2>${document.querySelector(`.load-btn[data-section="${section}"] span`).textContent.trim()}</h2>
+                <h2>${document.querySelector('.header-title').textContent}</h2>
+                <h3 style="text-align:center">${document.querySelector(`[data-section="${section}"] span`).textContent.trim()}</h3>
                 ${contentElement.innerHTML}
-                <script>setTimeout(() => window.print(), 200);</script>
+                <div class="print-footer">
+                    打印时间：${new Date().toLocaleString('zh-CN')}
+                </div>
+                <script>
+                    // 打印后自动关闭（兼容所有浏览器）
+                    window.onafterprint = function() {
+                        setTimeout(function() {
+                            window.close();
+                        }, 300);
+                    };
+                    // 如果onafterprint不支持（如Firefox）
+                    setTimeout(function() {
+                        window.print();
+                        // 备用关闭方案
+                        setTimeout(function() {
+                            try { window.close(); } catch(e) {}
+                        }, 3000);
+                    }, 200);
+                </script>
             </body>
             </html>
-        `);
+        `;
+
+        // 写入内容并处理不同浏览器的关闭逻辑
+        printWindow.document.open();
+        printWindow.document.write(printContent);
         printWindow.document.close();
+
+        // 处理弹窗被拦截的情况
+        if (!printWindow || printWindow.closed) {
+            alert('请允许弹出窗口以使用打印功能');
+            return;
+        }
     });
 
     contentElement.appendChild(printBtn);
 
-    // 6. 内容加载后轻微动画（保持原有体验）
+    // 6. 内容高度自适应（保持200px最小高度）
     setTimeout(() => {
-        contentElement.style.transition = 'min-height 0.3s ease';
-        contentElement.style.minHeight = `${Math.max(contentElement.scrollHeight, MIN_HEIGHT)}px`;
+        contentElement.style.minHeight = `${Math.max(contentElement.scrollHeight, 200)}px`;
     }, 10);
 }
     
