@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const resultSection = document.getElementById('result-section');
     const apiStatus = document.getElementById('api-status');
     
-    // 八字四柱元素
+    // 八字四柱元素v
     const maleYearStem = document.getElementById('male-year-stem');
     const maleYearBranch = document.getElementById('male-year-branch');
     const maleMonthStem = document.getElementById('male-month-stem');
@@ -147,129 +147,145 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     function initLoadButtons() {
-        document.querySelectorAll('.load-btn').forEach(button => {
-            button.addEventListener('click', async function(e) {
-                e.preventDefault();
+    document.querySelectorAll('.load-btn').forEach(button => {
+        button.addEventListener('click', async function(e) {
+            e.preventDefault();
+            
+            const section = this.getAttribute('data-section');
+            const contentElement = document.getElementById(`${section}-content`);
+            const buttonText = this.querySelector('span').textContent.trim();
+            const cacheKey = `${maleData.date}-${maleData.time}-${femaleData.date}-${femaleData.time}-${section}`;
+
+            // 1. Check if content already exists and not loading (toggle visibility)
+            if (contentElement.innerHTML.trim() !== '' && !this.classList.contains('loading')) {
+                // Toggle the active class for both button and content
+                this.classList.toggle('active');
+                contentElement.classList.toggle('active');
                 
-                const section = this.getAttribute('data-section');
-                const contentElement = document.getElementById(`${section}-content`);
-                const buttonText = this.querySelector('span').textContent.trim();
-                const cacheKey = `${maleData.date}-${maleData.time}-${femaleData.date}-${femaleData.time}-${section}`;
-
-                // 1. Check if content already exists (toggle visibility)
-                if (contentElement.innerHTML.trim() !== '') {
-                    // Toggle the active class for both button and content
-                    this.classList.toggle('active');
-                    contentElement.classList.toggle('active');
-                    
-                    // Toggle the chevron icon
-                    const icon = this.querySelector('.toggle-icon');
-                    icon.classList.toggle('fa-chevron-down');
-                    icon.classList.toggle('fa-chevron-up');
-                    return;
+                // Toggle the chevron icon
+                const icon = this.querySelector('.toggle-icon');
+                icon.classList.toggle('fa-chevron-down');
+                icon.classList.toggle('fa-chevron-up');
+                
+                // Adjust min-height for animation
+                if (contentElement.classList.contains('active')) {
+                    contentElement.style.minHeight = `${contentElement.scrollHeight}px`;
+                } else {
+                    contentElement.style.minHeight = '0';
                 }
+                return;
+            }
 
-                // 2. Check cache
-                if (analysisCache[cacheKey]) {
-                    contentElement.innerHTML = analysisCache[cacheKey];
-                    contentElement.classList.add('active');
-                    this.classList.add('active');
-                    this.querySelector('.toggle-icon').classList.add('fa-chevron-up');
-                    this.querySelector('.toggle-icon').classList.remove('fa-chevron-down');
-                    return;
-                }
+            // 2. Check cache
+            if (analysisCache[cacheKey]) {
+                contentElement.innerHTML = analysisCache[cacheKey];
+                contentElement.classList.add('active');
+                this.classList.add('active');
+                this.querySelector('.toggle-icon').classList.add('fa-chevron-up');
+                this.querySelector('.toggle-icon').classList.remove('fa-chevron-down');
+                contentElement.style.minHeight = `${contentElement.scrollHeight}px`;
+                return;
+            }
 
-                // 3. Set loading state
-                this.disabled = true;
+            // 3. Set loading state
+            this.classList.add('loading');
+            this.disabled = true;
+            this.innerHTML = `
+                <span>
+                    <span class="loading-spinner" style="
+                        display: inline-block;
+                        width: 14px;
+                        height: 14px;
+                        border: 2px solid rgba(230,43,30,0.2);
+                        border-top-color: #E62B1E;
+                        border-radius: 50%;
+                        animation: spin 1s linear infinite;
+                        margin-right: 8px;
+                        vertical-align: middle;
+                    "></span>
+                    ${buttonText}
+                </span>
+                <i class="fas fa-chevron-down toggle-icon"></i>
+            `;
+
+            // 4. Show content loading effect
+            contentElement.innerHTML = `
+                <div class="loading-overlay" style="
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(255,255,255,0.85);
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    z-index: 10;
+                    backdrop-filter: blur(3px);
+                    border-radius: 0 0 12px 12px;
+                ">
+                    <div style="
+                        width: 40px;
+                        height: 40px;
+                        border: 4px solid rgba(230,43,30,0.2);
+                        border-top-color: #E62B1E;
+                        border-radius: 50%;
+                        animation: spin 1s linear infinite;
+                        margin-bottom: 15px;
+                    "></div>
+                    <div style="
+                        color: #E62B1E;
+                        font-size: 1.1rem;
+                        font-weight: 500;
+                    ">合婚数据库解索中，请耐心等待...</div>
+                </div>
+            `;
+            contentElement.style.position = 'relative';
+            contentElement.style.minHeight = '200px';
+
+            try {
+                // 5. Get analysis data
+                const result = await getMarriageAnalysis(section, maleData, femaleData);
+                
+                // 6. Process result
+                analysisCache[cacheKey] = result;
+                
+                // Remove loading class before displaying content
+                this.classList.remove('loading');
+                
+                // Display the content
+                displaySectionContent(section, result, contentElement, this);
+                
+            } catch (error) {
+                console.error(`加载${section}失败:`, error);
+                
+                // Error handling
+                contentElement.innerHTML = `
+                    <div class="error-message" style="
+                        padding: 20px;
+                        color: var(--fire-color);
+                        text-align: center;
+                    ">
+                        <i class="fas fa-exclamation-triangle" style="font-size: 1.5rem; margin-bottom: 10px;"></i>
+                        <p>加载失败，请<a href="#" onclick="location.reload()">刷新页面</a>重试</p>
+                    </div>
+                `;
+                
+                // Reset button state
+                this.classList.remove('loading');
+                this.disabled = false;
                 this.innerHTML = `
                     <span>
-                        <span class="loading-spinner" style="
-                            display: inline-block;
-                            width: 14px;
-                            height: 14px;
-                            border: 2px solid rgba(230,43,30,0.2);
-                            border-top-color: #E62B1E;
-                            border-radius: 50%;
-                            animation: spin 1s linear infinite;
-                            margin-right: 8px;
-                            vertical-align: middle;
-                        "></span>
+                        <i class="fas fa-${getSectionIcon(section)}"></i>
                         ${buttonText}
                     </span>
                     <i class="fas fa-chevron-down toggle-icon"></i>
                 `;
-
-                // 4. Show content loading effect
-                contentElement.innerHTML = `
-                    <div class="loading-overlay" style="
-                        position: absolute;
-                        top: 0;
-                        left: 0;
-                        width: 100%;
-                        height: 100%;
-                        background: rgba(255,255,255,0.85);
-                        display: flex;
-                        flex-direction: column;
-                        align-items: center;
-                        justify-content: center;
-                        z-index: 10;
-                        backdrop-filter: blur(3px);
-                        border-radius: 0 0 12px 12px;
-                    ">
-                        <div style="
-                            width: 40px;
-                            height: 40px;
-                            border: 4px solid rgba(230,43,30,0.2);
-                            border-top-color: #E62B1E;
-                            border-radius: 50%;
-                            animation: spin 1s linear infinite;
-                            margin-bottom: 15px;
-                        "></div>
-                        <div style="
-                            color: #E62B1E;
-                            font-size: 1.1rem;
-                            font-weight: 500;
-                        ">合婚数据库解索中，请耐心等待...</div>
-                    </div>
-                `;
-                contentElement.style.position = 'relative';
-                contentElement.style.minHeight = '200px';
-
-                try {
-                    // 5. Get analysis data
-                    const result = await getMarriageAnalysis(section, maleData, femaleData);
-                    
-                    // 6. Process result
-                    analysisCache[cacheKey] = result;
-                    displaySectionContent(section, result, contentElement, this);
-                    
-                } catch (error) {
-                    console.error(`加载${section}失败:`, error);
-                    
-                    // 8. Error handling
-                    contentElement.innerHTML = `
-                        <div class="error-message" style="
-                            padding: 20px;
-                            color: var(--fire-color);
-                            text-align: center;
-                        ">
-                            <i class="fas fa-exclamation-triangle" style="font-size: 1.5rem; margin-bottom: 10px;"></i>
-                            <p>加载失败，请<a href="#" onclick="location.reload()">刷新页面</a>重试</p>
-                        </div>
-                    `;
-                    
-                    this.disabled = false;
-                    this.innerHTML = `
-                        <span>
-                            <i class="fas fa-${getSectionIcon(section)}"></i>
-                            ${buttonText}
-                        </span>
-                        <i class="fas fa-chevron-down toggle-icon"></i>
-                    `;
-                }
-            });
+            }
         });
-    }
+    });
+}
 
     function getSectionIcon(section) {
         const icons = {
