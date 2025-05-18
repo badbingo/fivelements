@@ -1,6 +1,6 @@
 
 document.addEventListener('DOMContentLoaded', function() {
-    // 确保全局能获取当前日期（动态获取2025年v）
+    // 确保全局能获取当前日期（动态获取2025年a）
     const currentDate = new Date(); // 自动获取当前日期（2025）
     const currentYear = currentDate.getFullYear(); // 2025
     const currentMonth = currentDate.getMonth() + 1; // 1-12
@@ -1213,11 +1213,9 @@ function displaySectionContent(section, result, contentElement) {
     // 获取中文标题，如果没有匹配则使用原始section
     const chineseTitle = sectionTitles[section] || section;
     
-    // 添加打印功能
+    // 修改打印功能 - 直接打印并关闭窗口
     printBtn.onclick = function() {
-        const printWindow = window.open('', '_blank');
-        
-        printWindow.document.write(`
+        const printContent = `
             <!DOCTYPE html>
             <html>
             <head>
@@ -1275,14 +1273,17 @@ function displaySectionContent(section, result, contentElement) {
                         font-size: 12px;
                         color: #7f8c8d;
                     }
+                    @page { 
+                        size: auto;
+                        margin: 10mm;
+                    }
                     @media print {
                         body { padding: 0 10px; }
                         .no-print { display: none; }
-                        @page { margin: 1cm; }
                     }
                 </style>
             </head>
-            <body>
+            <body onload="window.print();window.close()">
                 <div class="print-header">
                     <h1>八字分析报告 - ${chineseTitle}</h1>
                     <p>生成时间: ${new Date().toLocaleString('zh-CN')}</p>
@@ -1293,43 +1294,13 @@ function displaySectionContent(section, result, contentElement) {
                 <div class="print-footer">
                     <p>本报告由机缘命理系统生成</p>
                 </div>
-                
-                <div class="no-print" style="margin-top: 30px; text-align: center;">
-                    <button onclick="window.print()" style="
-                        padding: 10px 20px; 
-                        background: #3498db; 
-                        color: white; 
-                        border: none; 
-                        border-radius: 4px; 
-                        cursor: pointer;
-                        font-size: 16px;
-                        margin-right: 10px;
-                    ">
-                        <i class="fas fa-print"></i> 打印报告
-                    </button>
-                    <button onclick="window.close()" style="
-                        padding: 10px 20px; 
-                        background: #e74c3c; 
-                        color: white; 
-                        border: none; 
-                        border-radius: 4px; 
-                        cursor: pointer;
-                        font-size: 16px;
-                    ">
-                        <i class="fas fa-times"></i> 关闭窗口
-                    </button>
-                </div>
-                
-                <script>
-                    // 添加Font Awesome图标库
-                    const fa = document.createElement('link');
-                    fa.rel = 'stylesheet';
-                    fa.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css';
-                    document.head.appendChild(fa);
-                </script>
             </body>
             </html>
-        `);
+        `;
+        
+        const printWindow = window.open('', '_blank');
+        printWindow.document.open();
+        printWindow.document.write(printContent);
         printWindow.document.close();
     };
     
@@ -1379,6 +1350,7 @@ function displaySectionContent(section, result, contentElement) {
         `;
         document.head.appendChild(style);
     }
+}
 }
     // 计算八字
     async function calculateBazi(e) {
