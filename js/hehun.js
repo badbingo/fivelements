@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const resultSection = document.getElementById('result-section');
     const apiStatus = document.getElementById('api-status');
     
-    // 八字四柱元素
+    // 八字四柱元素1
     const maleYearStem = document.getElementById('male-year-stem');
     const maleYearBranch = document.getElementById('male-year-branch');
     const maleMonthStem = document.getElementById('male-month-stem');
@@ -297,66 +297,112 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function displaySectionContent(section, result, contentElement) {
-        // 使用marked.js解析Markdown内容
-        const htmlContent = marked.parse(result);
+    // 使用marked.js解析Markdown内容
+    const htmlContent = marked.parse(result);
+    
+    // 创建临时容器来放置解析后的HTML
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = htmlContent;
+    
+    // 处理表格样式
+    const tables = tempDiv.querySelectorAll('table');
+    tables.forEach(table => {
+        table.classList.add('markdown-table');
+    });
+    
+    // 清空内容区域
+    contentElement.innerHTML = '';
+    
+    // 将解析后的内容添加到内容区域
+    contentElement.appendChild(tempDiv);
+    
+    // 创建打印按钮
+    const printBtn = document.createElement('button');
+    printBtn.innerHTML = '<i class="fas fa-print"></i> 打印此内容';
+    printBtn.className = 'load-btn';
+    printBtn.style.marginTop = '20px';
+    printBtn.style.width = 'auto';
+    printBtn.style.display = 'block';
+    printBtn.style.marginLeft = 'auto';
+    printBtn.style.marginRight = 'auto';
+    
+    // 添加打印功能
+    printBtn.addEventListener('click', function() {
+        const printWindow = window.open('', '_blank');
         
-        // 创建临时容器来放置解析后的HTML
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = htmlContent;
+        // 获取当前内容的HTML
+        const contentHTML = contentElement.innerHTML;
         
-        // 处理表格样式
-        const tables = tempDiv.querySelectorAll('table');
-        tables.forEach(table => {
-            table.classList.add('markdown-table');
-        });
-        
-        // 清空内容区域
-        contentElement.innerHTML = '';
-        
-        // 将解析后的内容添加到内容区域
-        contentElement.appendChild(tempDiv);
-        
-        // 创建打印按钮
-        const printBtn = document.createElement('button');
-        printBtn.innerHTML = '<i class="fas fa-print"></i> 打印此内容';
-        printBtn.className = 'load-btn';
-        printBtn.style.marginTop = '20px';
-        printBtn.style.width = 'auto';
-        printBtn.style.display = 'block';
-        printBtn.style.marginLeft = 'auto';
-        printBtn.style.marginRight = 'auto';
-        
-        // 添加打印功能
-        printBtn.addEventListener('click', function() {
-            const printWindow = window.open('', '_blank');
-            printWindow.document.write(`
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <title>打印内容</title>
-                    <style>
-                        body { font-family: 'Noto Sans SC', sans-serif; padding: 20px; }
-                        h2 { color: ${getComputedStyle(document.documentElement).getPropertyValue('--accent-color')}; 
-                             text-align: center; margin-bottom: 30px; }
-                        table { width: 100%; border-collapse: collapse; margin: 15px 0; }
-                        th, td { padding: 10px; border: 1px solid #ddd; text-align: left; }
-                        th { background-color: #f5f5f5; }
-                    </style>
-                </head>
-                <body>
-                    <h2>${document.querySelector('.header-title').textContent} - ${document.querySelector(`.load-btn[data-section="${section}"] span`).textContent.trim()}</h2>
-                    ${contentElement.innerHTML.replace('active', '')}
-                    <script>
-                        setTimeout(function() { window.print(); }, 300);
-                    </script>
-                </body>
-                </html>
-            `);
-            printWindow.document.close();
-        });
-        
-        contentElement.appendChild(printBtn);
-    }
+        // 创建完整的打印文档
+        printWindow.document.write(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>八字合婚分析报告</title>
+                <meta charset="UTF-8">
+                <style>
+                    @page { size: A4; margin: 1cm; }
+                    body { 
+                        font-family: 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
+                        line-height: 1.6;
+                        color: #333;
+                        padding: 20px;
+                    }
+                    h2 { 
+                        color: #6a3093;
+                        text-align: center; 
+                        margin-bottom: 30px;
+                        padding-bottom: 10px;
+                        border-bottom: 1px solid #eee;
+                    }
+                    table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        margin: 15px 0;
+                        font-size: 14px;
+                    }
+                    th, td {
+                        padding: 10px;
+                        border: 1px solid #ddd;
+                        text-align: left;
+                    }
+                    th {
+                        background-color: #f8f9fa;
+                        font-weight: 500;
+                    }
+                    .markdown-table {
+                        width: 100%;
+                        margin: 20px 0;
+                    }
+                    .print-footer {
+                        text-align: center;
+                        margin-top: 30px;
+                        font-size: 12px;
+                        color: #999;
+                    }
+                </style>
+            </head>
+            <body>
+                <h2>${document.querySelector('.header-title').textContent}</h2>
+                <h3>${document.querySelector(`.load-btn[data-section="${section}"] span`).textContent.trim()}</h3>
+                ${contentHTML}
+                <div class="print-footer">
+                    本报告由系统自动生成 &middot; ${new Date().toLocaleDateString()}
+                </div>
+                <script>
+                    setTimeout(function() {
+                        window.print();
+                        window.close();
+                    }, 300);
+                </script>
+            </body>
+            </html>
+        `);
+        printWindow.document.close();
+    });
+    
+    contentElement.appendChild(printBtn);
+}
     
     async function getMarriageAnalysis(section, maleData, femaleData) {
         const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
