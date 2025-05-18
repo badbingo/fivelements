@@ -297,79 +297,164 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function displaySectionContent(section, result, contentElement) {
+    // 1. 清除旧内容和限制
+    contentElement.innerHTML = '';
+    contentElement.style.maxHeight = 'none';
+    contentElement.style.overflow = 'visible';
+    contentElement.classList.add('active');
+
+    // 2. 解析Markdown内容
     const htmlContent = marked.parse(result);
-    contentElement.innerHTML = htmlContent;
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = htmlContent;
 
-    // 创建打印按钮
-    const printBtn = document.createElement('button');
-    printBtn.innerHTML = '<i class="fas fa-print"></i> 打印此内容';
-    printBtn.className = 'load-btn';
-    printBtn.style.margin = '20px auto';
-    printBtn.style.display = 'block';
-
-    printBtn.addEventListener('click', function() {
-        // 创建打印专用窗口
-        const printWindow = window.open('', '_blank');
+    // 3. 优化表格显示
+    tempDiv.querySelectorAll('table').forEach(table => {
+        table.classList.add('markdown-table');
+        table.style.width = '100%';
+        table.style.margin = '20px 0';
+        table.style.borderCollapse = 'collapse';
         
-        // 获取当前日期（中文格式）
+        // 确保表头有背景色
+        if (!table.querySelector('th')) {
+            const firstRow = table.querySelector('tr');
+            if (firstRow) {
+                firstRow.querySelectorAll('td').forEach(td => {
+                    const th = document.createElement('th');
+                    th.innerHTML = td.innerHTML;
+                    th.style.backgroundColor = '#f8f9fa';
+                    td.replaceWith(th);
+                });
+            }
+        }
+    });
+
+    // 4. 处理其他内容样式
+    tempDiv.querySelectorAll('pre').forEach(pre => {
+        pre.style.overflowX = 'auto';
+        pre.style.backgroundColor = '#f8f9fa';
+        pre.style.padding = '15px';
+        pre.style.borderRadius = '6px';
+    });
+
+    // 5. 创建内容容器
+    const contentContainer = document.createElement('div');
+    contentContainer.className = 'full-content';
+    contentContainer.appendChild(tempDiv);
+
+    // 6. 添加到DOM
+    contentElement.appendChild(contentContainer);
+
+    // 7. 添加打印按钮
+    addPrintButton(section, contentElement, contentContainer.innerHTML);
+
+    // 8. 触发高度重计算（用于动画）
+    setTimeout(() => {
+        contentElement.style.maxHeight = `${contentElement.scrollHeight}px`;
+    }, 10);
+}
+
+/**
+ * 添加打印按钮
+ * @param {string} section - 章节ID 
+ * @param {HTMLElement} container - 内容容器
+ * @param {string} contentHTML - 要打印的HTML内容
+ */
+function addPrintButton(section, container, contentHTML) {
+    // 移除旧的打印按钮（如果存在）
+    const oldBtn = container.querySelector('.print-btn');
+    if (oldBtn) oldBtn.remove();
+
+    // 创建新按钮
+    const printBtn = document.createElement('button');
+    printBtn.className = 'load-btn print-btn';
+    printBtn.innerHTML = '<i class="fas fa-print"></i> 打印此内容';
+    printBtn.style.display = 'block';
+    printBtn.style.margin = '25px auto 10px';
+    printBtn.style.padding = '12px 25px';
+
+    // 打印功能
+    printBtn.addEventListener('click', () => {
+        const printWindow = window.open('', '_blank');
         const currentDate = new Date().toLocaleDateString('zh-CN', {
             year: 'numeric',
             month: '2-digit',
             day: '2-digit'
         });
 
-        // 构建打印内容（关键修改点）
         printWindow.document.write(`
             <!DOCTYPE html>
             <html>
             <head>
-                <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-                <title>八字合婚报告</title>
+                <meta charset="UTF-8">
+                <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+                <title>${document.querySelector('.header-title').textContent} - ${document.querySelector(`[data-section="${section}"] span`).textContent.trim()}</title>
                 <style>
+                    @page { size: A4; margin: 1.5cm; }
                     body {
                         font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
                         line-height: 1.6;
-                        padding: 20px;
                         color: #333;
+                        padding: 20px;
+                        -webkit-print-color-adjust: exact;
+                        print-color-adjust: exact;
                     }
                     h2 {
                         color: #6a3093;
                         text-align: center;
                         border-bottom: 1px solid #eee;
                         padding-bottom: 10px;
+                        margin-bottom: 25px;
                     }
                     table {
                         width: 100%;
                         border-collapse: collapse;
-                        margin: 15px 0;
-                        font-size: 14px;
+                        margin: 20px 0;
+                        page-break-inside: avoid;
+                    }
+                    th, td {
+                        padding: 10px 12px;
+                        border: 1px solid #ddd;
+                        text-align: left;
                     }
                     th {
                         background-color: #f5f5f5 !important;
                     }
-                    th, td {
-                        padding: 8px 12px;
-                        border: 1px solid #ddd;
+                    pre {
+                        background-color: #f8f9fa !important;
+                        padding: 15px !important;
+                        border-radius: 6px;
+                        overflow-x: auto;
+                        white-space: pre-wrap;
                     }
                     .print-footer {
-                        margin-top: 30px;
+                        margin-top: 40px;
                         text-align: center;
                         color: #999;
-                        font-size: 12px;
+                        font-size: 13px;
+                        border-top: 1px solid #eee;
+                        padding-top: 15px;
                     }
+                    .wood { color: #5b8c5a; }
+                    .fire { color: #e74c3c; }
+                    .earth { color: #d4a017; }
+                    .metal { color: #95a5a6; }
+                    .water { color: #3498db; }
                 </style>
             </head>
             <body>
                 <h2>${document.querySelector('.header-title').textContent}</h2>
-                <h3 style="text-align:center">${document.querySelector(`[data-section="${section}"] span`).textContent.trim()}</h3>
-                ${contentElement.innerHTML}
+                <h3 style="text-align:center;color:#6a3093;margin-bottom:30px;">
+                    ${document.querySelector(`[data-section="${section}"] span`).textContent.trim()}
+                </h3>
+                ${contentHTML}
                 <div class="print-footer">
-                    报告生成时间：${currentDate} | © ${new Date().getFullYear()} 麦八字
+                    报告生成时间：${currentDate} | © ${new Date().getFullYear()} ${document.title}
                 </div>
                 <script>
                     setTimeout(function() {
                         window.print();
-                        window.close();
+                        setTimeout(window.close, 300);
                     }, 200);
                 </script>
             </body>
@@ -378,7 +463,7 @@ document.addEventListener('DOMContentLoaded', function() {
         printWindow.document.close();
     });
 
-    contentElement.appendChild(printBtn);
+    container.appendChild(printBtn);
 }
     
     async function getMarriageAnalysis(section, maleData, femaleData) {
