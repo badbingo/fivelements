@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const resultSection = document.getElementById('result-section');
     const apiStatus = document.getElementById('api-status');
     
-    // 八字四柱元素v
+    // 八字四柱元素a
     const maleYearStem = document.getElementById('male-year-stem');
     const maleYearBranch = document.getElementById('male-year-branch');
     const maleMonthStem = document.getElementById('male-month-stem');
@@ -146,11 +146,8 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    function initLoadButtons() {
+function initLoadButtons() {
     document.querySelectorAll('.load-btn').forEach(button => {
-        // 保存按钮的原始HTML结构
-        const originalButtonHTML = button.innerHTML;
-        
         button.addEventListener('click', async function(e) {
             e.preventDefault();
             
@@ -185,32 +182,49 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            // 3. 设置加载状态 - 不改变按钮结构，只添加loading类
+            // 3. 设置加载状态 - 只添加loading类，不改变按钮内容
+            const originalButtonHTML = this.innerHTML;
             this.classList.add('loading');
             this.disabled = true;
             
-            // 保存原始按钮内容
-            const originalContent = this.querySelector('span').cloneNode(true);
-            const originalIcon = this.querySelector('.toggle-icon').cloneNode(true);
+           
             
-            // 添加小型加载指示器到按钮文本后面
-            const loadingSpinner = document.createElement('span');
-            loadingSpinner.className = 'btn-loading-spinner';
-            loadingSpinner.innerHTML = '&nbsp;<i class="fas fa-circle-notch fa-spin"></i>';
-            loadingSpinner.style.marginLeft = '8px';
-            loadingSpinner.style.display = 'inline-block';
+            // 隐藏原始内容，显示loading
+            this.querySelector('span').style.display = 'none';
+            this.querySelector('.toggle-icon').style.display = 'none';
+            this.appendChild(loadingElement);
             
-            // 更新按钮内容 - 保持原始结构，只添加旋转图标
-            this.innerHTML = '';
-            this.appendChild(originalContent);
-            this.appendChild(loadingSpinner);
-            this.appendChild(originalIcon);
-            
-            // 4. 显示内容区域的加载效果
+            // 4. 显示内容加载效果
             contentElement.innerHTML = `
-                <div class="content-loading-overlay">
-                    <div class="content-loading-spinner"></div>
-                    <div class="content-loading-text">合婚数据库解索中，请耐心等待...</div>
+                <div class="loading-overlay" style="
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(255,255,255,0.85);
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    z-index: 10;
+                    backdrop-filter: blur(3px);
+                    border-radius: 0 0 12px 12px;
+                ">
+                    <div style="
+                        width: 40px;
+                        height: 40px;
+                        border: 4px solid rgba(230,43,30,0.2);
+                        border-top-color: #E62B1E;
+                        border-radius: 50%;
+                        animation: spin 1s linear infinite;
+                        margin-bottom: 15px;
+                    "></div>
+                    <div style="
+                        color: #E62B1E;
+                        font-size: 1.1rem;
+                        font-weight: 500;
+                    ">合婚数据库解索中，请耐心等待...</div>
                 </div>
             `;
             contentElement.style.position = 'relative';
@@ -223,13 +237,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 // 6. 处理结果
                 analysisCache[cacheKey] = result;
                 
-                // 移除加载状态 - 完全恢复原始按钮
+                // 移除加载状态 - 恢复原始按钮内容
                 this.classList.remove('loading');
-                this.disabled = false;
-                this.innerHTML = originalButtonHTML;
-                this.classList.add('active');
-                this.querySelector('.toggle-icon').classList.add('fa-chevron-up');
-                this.querySelector('.toggle-icon').classList.remove('fa-chevron-down');
+                this.removeChild(loadingElement);
+                this.querySelector('span').style.display = '';
+                this.querySelector('.toggle-icon').style.display = '';
                 
                 // 显示内容
                 const htmlContent = marked.parse(result);
@@ -244,8 +256,25 @@ document.addEventListener('DOMContentLoaded', function() {
                 // 添加打印按钮
                 const printBtn = document.createElement('button');
                 printBtn.innerHTML = '<i class="fas fa-print"></i> 打印此内容';
-                printBtn.className = 'print-btn';
+                printBtn.className = 'load-btn print-btn';
+                printBtn.style.cssText = `
+                    display: block;
+                    margin: 25px auto 10px;
+                    padding: 12px 25px;
+                    background: linear-gradient(to right, #6a3093, #a044ff);
+                    color: white;
+                    border: none;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    transition: all 0.3s;
+                `;
                 contentElement.appendChild(printBtn);
+                
+                // 更新按钮状态
+                this.disabled = false;
+                this.classList.add('active');
+                this.querySelector('.toggle-icon').classList.add('fa-chevron-up');
+                this.querySelector('.toggle-icon').classList.remove('fa-chevron-down');
                 
                 // 显示内容区域
                 setTimeout(() => {
@@ -258,16 +287,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // 错误处理
                 contentElement.innerHTML = `
-                    <div class="error-message">
+                    <div class="error-message" style="
+                        padding: 20px;
+                        color: var(--fire-color);
+                        text-align: center;
+                    ">
                         <i class="fas fa-exclamation-triangle"></i>
                         <p>加载失败，请<a href="#" onclick="location.reload()">刷新页面</a>重试</p>
                     </div>
                 `;
                 
-                // 重置按钮状态 - 完全恢复原始按钮
+                // 重置按钮状态 - 恢复原始内容
                 this.classList.remove('loading');
+                this.removeChild(loadingElement);
+                this.querySelector('span').style.display = '';
+                this.querySelector('.toggle-icon').style.display = '';
                 this.disabled = false;
-                this.innerHTML = originalButtonHTML;
                 this.querySelector('.toggle-icon').classList.add('fa-chevron-down');
                 this.querySelector('.toggle-icon').classList.remove('fa-chevron-up');
             }
