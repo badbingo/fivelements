@@ -1,6 +1,6 @@
 
 document.addEventListener('DOMContentLoaded', function() {
-    // 确保全局能获取当前日期（动态获取2025年v）
+    // 确保全局能获取当前日期（动态获取2025年a）
     const currentDate = new Date(); // 自动获取当前日期（2025）
     const currentYear = currentDate.getFullYear(); // 2025
     const currentMonth = currentDate.getMonth() + 1; // 1-12
@@ -563,21 +563,41 @@ document.getElementById('collapse-analysis-btn').addEventListener('click', funct
     document.getElementById('analysis-content-container').style.display = 'none';
 });
 
-// 打印按钮点击事件 - 与其他页面保持一致
+// 打印功能修改（使用现有样式）
 document.getElementById('print-analysis-btn').addEventListener('click', function() {
-    const printContent = document.getElementById('analysis-content-body').innerHTML;
-    const originalContent = document.body.innerHTML;
+    const printWindow = window.open('', '_blank');
+    const title = document.getElementById('analysis-content-title').textContent;
+    const content = document.getElementById('analysis-content-body').innerHTML;
     
-    document.body.innerHTML = `
-        <div style="padding:20px;max-width:800px;margin:0 auto;">
-            <h2 style="text-align:center;margin-bottom:20px;">${document.getElementById('analysis-content-title').textContent}</h2>
-            ${printContent}
-        </div>
-    `;
-    
-    window.print();
-    document.body.innerHTML = originalContent;
-    window.location.reload();
+    printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+            <head>
+                <title>${title}</title>
+                <link rel="stylesheet" href="../css/stylew.css">
+                <link rel="stylesheet" href="../css/style1.css">
+                <style>
+                    body { padding: 20px; background: white !important; }
+                    .detail-card { box-shadow: none; border: none; }
+                </style>
+            </head>
+            <body>
+                <div class="detail-card">
+                    <h3>${title}</h3>
+                    <div class="section-content active">
+                        ${content}
+                    </div>
+                </div>
+                <script>
+                    setTimeout(() => {
+                        window.print();
+                        window.onafterprint = () => window.close();
+                    }, 300);
+                </script>
+            </body>
+        </html>
+    `);
+    printWindow.document.close();
 });
     }
 
