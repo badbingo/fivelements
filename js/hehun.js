@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const resultSection = document.getElementById('result-section');
     const apiStatus = document.getElementById('api-status');
     
-    // 八字四柱元素a
+    // 八字四柱元素c
     const maleYearStem = document.getElementById('male-year-stem');
     const maleYearBranch = document.getElementById('male-year-branch');
     const maleMonthStem = document.getElementById('male-month-stem');
@@ -123,8 +123,9 @@ document.addEventListener('DOMContentLoaded', function() {
                         margin-bottom: 15px;
                         color: #E62B1E;
                         font-size: 2rem;
+                        animation: spin 1.5s linear infinite;
                     ">
-                        <i class="fas fa-hourglass-half"></i> <!-- 改用静态图标替代旋转动画 -->
+                        <i class="fas fa-circle-notch"></i> <!-- Changed to spinning circle-notch icon -->
                     </div>
                     <div style="
                         color: #E62B1E;
