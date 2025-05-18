@@ -129,84 +129,98 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     function initLoadButtons() {
-        document.querySelectorAll('.load-btn').forEach(button => {
-            const section = button.getAttribute('data-section');
-            const contentElement = document.getElementById(`${section}-content`);
+    document.querySelectorAll('.load-btn').forEach(button => {
+        const section = button.getAttribute('data-section');
+        const contentElement = document.getElementById(`${section}-content`);
+        
+        button.addEventListener('click', async function(e) {
+            e.preventDefault();
             
-            button.addEventListener('click', async function(e) {
-                e.preventDefault();
+            const cacheKey = `${maleData.date}-${maleData.time}-${femaleData.date}-${femaleData.time}-${section}`;
+            
+            // 检查是否已经加载过内容
+            const hasContent = contentElement.innerHTML.trim() !== '';
+            
+            // 如果已经有内容，直接切换显示/隐藏状态
+            if (hasContent) {
+                contentElement.classList.toggle('active');
+                button.querySelector('.toggle-icon').classList.toggle('rotate-180');
                 
-                const cacheKey = `${maleData.date}-${maleData.time}-${femaleData.date}-${femaleData.time}-${section}`;
-                
-                if (analysisCache[cacheKey]) {
-                    contentElement.innerHTML = analysisCache[cacheKey];
-                    contentElement.classList.toggle('active');
-                    button.querySelector('.toggle-icon').classList.toggle('rotate-180');
-                    return;
+                // 调整内容区域高度
+                if (contentElement.classList.contains('active')) {
+                    contentElement.style.minHeight = `${contentElement.scrollHeight}px`;
+                } else {
+                    contentElement.style.minHeight = '0';
                 }
+                return;
+            }
+            
+            // 如果缓存中有内容，使用缓存
+            if (analysisCache[cacheKey]) {
+                contentElement.innerHTML = analysisCache[cacheKey];
+                contentElement.classList.add('active');
+                button.querySelector('.toggle-icon').classList.add('rotate-180');
+                contentElement.style.minHeight = `${contentElement.scrollHeight}px`;
+                return;
+            }
+            
+            // 加载新内容
+            this.disabled = true;
+            const buttonText = button.textContent.trim();
+            button.innerHTML = `<span><span class="loading"></span> ${buttonText}</span><i class="fas fa-chevron-down toggle-icon"></i>`;
+            
+            const progressContainer = document.createElement('div');
+            progressContainer.className = 'progress-container';
+            progressContainer.innerHTML = '<div class="progress-bar"></div>';
+            
+            contentElement.innerHTML = '';
+            contentElement.appendChild(progressContainer);
+            
+            const progressBar = progressContainer.querySelector('.progress-bar');
+            let progress = 0;
+            const progressInterval = setInterval(() => {
+                progress += Math.random() * 10;
+                if (progress >= 100) progress = 100;
+                progressBar.style.width = `${progress}%`;
+            }, 300);
+            
+            try {
+                const startTime = performance.now();
+                const result = await getMarriageAnalysis(section, maleData, femaleData);
+                const endTime = performance.now();
                 
-                if (loadedSections[section]) {
-                    contentElement.classList.toggle('active');
-                    button.querySelector('.toggle-icon').classList.toggle('rotate-180');
-                    return;
-                }
+                clearInterval(progressInterval);
+                displaySectionContent(section, result, contentElement);
                 
-                this.disabled = true;
-                const buttonText = button.textContent.trim();
-                button.innerHTML = `<span><span class="loading"></span> ${buttonText}</span><i class="fas fa-chevron-down toggle-icon"></i>`;
+                analysisCache[cacheKey] = contentElement.innerHTML;
                 
-                const progressContainer = document.createElement('div');
-                progressContainer.className = 'progress-container';
-                progressContainer.innerHTML = '<div class="progress-bar"></div>';
+                button.innerHTML = `<span><i class="fas fa-${button.getAttribute('data-section') === 'basic-analysis' ? 'heartbeat' : 
+                              button.getAttribute('data-section') === 'element-analysis' ? 'yin-yang' : 
+                              button.getAttribute('data-section') === 'god-analysis' ? 'star' : 
+                              button.getAttribute('data-section') === 'male-fate' ? 'mars' : 
+                              button.getAttribute('data-section') === 'female-fate' ? 'venus' : 
+                              button.getAttribute('data-section') === 'strength-weakness' ? 'balance-scale' : 
+                              button.getAttribute('data-section') === 'improvement' ? 'hands-helping' : 'calendar-check'}"></i> ${buttonText}</span><i class="fas fa-chevron-down toggle-icon rotate-180"></i>`;
+                button.disabled = false;
+                contentElement.classList.add('active');
+                loadedSections[section] = true;
                 
-                contentElement.innerHTML = '';
-                contentElement.appendChild(progressContainer);
-                
-                const progressBar = progressContainer.querySelector('.progress-bar');
-                let progress = 0;
-                const progressInterval = setInterval(() => {
-                    progress += Math.random() * 10;
-                    if (progress >= 100) progress = 100;
-                    progressBar.style.width = `${progress}%`;
-                }, 300);
-                
-                try {
-                    const startTime = performance.now();
-                    const result = await getMarriageAnalysis(section, maleData, femaleData);
-                    const endTime = performance.now();
-                    
-                    clearInterval(progressInterval);
-                    displaySectionContent(section, result, contentElement);
-                    
-                    analysisCache[cacheKey] = contentElement.innerHTML;
-                    
-                    button.innerHTML = `<span><i class="fas fa-${button.getAttribute('data-section') === 'basic-analysis' ? 'heartbeat' : 
-                                  button.getAttribute('data-section') === 'element-analysis' ? 'yin-yang' : 
-                                  button.getAttribute('data-section') === 'god-analysis' ? 'star' : 
-                                  button.getAttribute('data-section') === 'male-fate' ? 'mars' : 
-                                  button.getAttribute('data-section') === 'female-fate' ? 'venus' : 
-                                  button.getAttribute('data-section') === 'strength-weakness' ? 'balance-scale' : 
-                                  button.getAttribute('data-section') === 'improvement' ? 'hands-helping' : 'calendar-check'}"></i> ${buttonText}</span><i class="fas fa-chevron-down toggle-icon"></i>`;
-                    button.disabled = false;
-                    contentElement.classList.add('active');
-                    loadedSections[section] = true;
-                    
-                } catch (error) {
-                    console.error(`加载${section}失败:`, error);
-                    clearInterval(progressInterval);
-                    contentElement.innerHTML = '<p style="color:var(--fire-color)">加载失败，请重试</p>';
-                    button.disabled = false;
-                    button.innerHTML = `<span><i class="fas fa-${button.getAttribute('data-section') === 'basic-analysis' ? 'heartbeat' : 
-                                  button.getAttribute('data-section') === 'element-analysis' ? 'yin-yang' : 
-                                  button.getAttribute('data-section') === 'god-analysis' ? 'star' : 
-                                  button.getAttribute('data-section') === 'male-fate' ? 'mars' : 
-                                  button.getAttribute('data-section') === 'female-fate' ? 'venus' : 
-                                  button.getAttribute('data-section') === 'strength-weakness' ? 'balance-scale' : 
-                                  button.getAttribute('data-section') === 'improvement' ? 'hands-helping' : 'calendar-check'}"></i> ${buttonText}</span><i class="fas fa-chevron-down toggle-icon"></i>`;
-                }
-            });
+            } catch (error) {
+                console.error(`加载${section}失败:`, error);
+                clearInterval(progressInterval);
+                contentElement.innerHTML = '<p style="color:var(--fire-color)">加载失败，请重试</p>';
+                button.disabled = false;
+                button.innerHTML = `<span><i class="fas fa-${button.getAttribute('data-section') === 'basic-analysis' ? 'heartbeat' : 
+                              button.getAttribute('data-section') === 'element-analysis' ? 'yin-yang' : 
+                              button.getAttribute('data-section') === 'god-analysis' ? 'star' : 
+                              button.getAttribute('data-section') === 'male-fate' ? 'mars' : 
+                              button.getAttribute('data-section') === 'female-fate' ? 'venus' : 
+                              button.getAttribute('data-section') === 'strength-weakness' ? 'balance-scale' : 
+                              button.getAttribute('data-section') === 'improvement' ? 'hands-helping' : 'calendar-check'}"></i> ${buttonText}</span><i class="fas fa-chevron-down toggle-icon"></i>`;
+            }
         });
-    }
+    });
+}
     
     // 使用lunar.js计算八字
     function calculateBazi(birthDate, birthTime) {
@@ -297,23 +311,22 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function displaySectionContent(section, result, contentElement) {
-    // 1. 设置内容区域样式（保持最小高度，移除最大高度限制）
-    contentElement.style.minHeight = '50px';
-    contentElement.style.maxHeight = 'none';
-    contentElement.style.overflow = 'visible';
-    contentElement.classList.add('active');
-
-    // 2. 解析Markdown内容
+    // 设置内容区域样式
+    contentElement.style.minHeight = '0';
+    contentElement.style.overflow = 'hidden';
+    contentElement.classList.remove('active');
+    
+    // 解析Markdown内容
     const htmlContent = marked.parse(result);
     contentElement.innerHTML = htmlContent;
-
-    // 3. 标准化表格样式
+    
+    // 标准化表格样式
     contentElement.querySelectorAll('table').forEach(table => {
         table.classList.add('markdown-table');
         table.style.width = '100%';
     });
-
-    // 4. 添加智能打印按钮
+    
+    // 添加智能打印按钮
     const printBtn = document.createElement('button');
     printBtn.innerHTML = '<i class="fas fa-print"></i> 打印此内容';
     printBtn.className = 'load-btn print-btn';
@@ -422,10 +435,11 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     contentElement.appendChild(printBtn);
-
-    // 6. 内容高度自适应（保持200px最小高度）
+    
+    // 使用动画展开内容区域
     setTimeout(() => {
-        contentElement.style.minHeight = `${Math.max(contentElement.scrollHeight, 200)}px`;
+        contentElement.style.minHeight = `${contentElement.scrollHeight}px`;
+        contentElement.classList.add('active');
     }, 10);
 }
     
