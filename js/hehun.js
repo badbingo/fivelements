@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const resultSection = document.getElementById('result-section');
     const apiStatus = document.getElementById('api-status');
     
-    // 八字四柱元素1
+    // 八字四柱元素2
     const maleYearStem = document.getElementById('male-year-stem');
     const maleYearBranch = document.getElementById('male-year-branch');
     const maleMonthStem = document.getElementById('male-month-stem');
@@ -297,7 +297,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function displaySectionContent(section, result, contentElement) {
-    // 1. 清除旧内容和限制
+    // 1. 保留最小高度200px，仅扩展最大高度
     const MIN_HEIGHT = 200; // 保持原有最小高度
     contentElement.style.minHeight = `${MIN_HEIGHT}px`;
     contentElement.style.maxHeight = 'none'; // 移除最大高度限制
@@ -309,162 +309,71 @@ document.addEventListener('DOMContentLoaded', function() {
     const tempDiv = document.createElement('div');
     tempDiv.innerHTML = htmlContent;
 
-    // 3. 优化表格显示
+    // 3. 优化表格显示（保持原有样式）
     tempDiv.querySelectorAll('table').forEach(table => {
-        table.classList.add('markdown-table');
-        table.style.width = '100%';
-        table.style.margin = '20px 0';
-        table.style.borderCollapse = 'collapse';
-        
-        // 确保表头有背景色
-        if (!table.querySelector('th')) {
-            const firstRow = table.querySelector('tr');
-            if (firstRow) {
-                firstRow.querySelectorAll('td').forEach(td => {
-                    const th = document.createElement('th');
-                    th.innerHTML = td.innerHTML;
-                    th.style.backgroundColor = '#f8f9fa';
-                    td.replaceWith(th);
-                });
-            }
+        if (!table.classList.contains('markdown-table')) {
+            table.classList.add('markdown-table');
+            table.style.width = '100%';
+            table.style.margin = '15px 0';
         }
     });
 
-    // 4. 处理其他内容样式
-    tempDiv.querySelectorAll('pre').forEach(pre => {
-        pre.style.overflowX = 'auto';
-        pre.style.backgroundColor = '#f8f9fa';
-        pre.style.padding = '15px';
-        pre.style.borderRadius = '6px';
-    });
+    // 4. 清空并填充新内容
+    contentElement.innerHTML = '';
+    contentElement.appendChild(tempDiv);
 
-    // 5. 创建内容容器
-    const contentContainer = document.createElement('div');
-    contentContainer.className = 'full-content';
-    contentContainer.appendChild(tempDiv);
-
-    // 6. 添加到DOM
-    contentElement.appendChild(contentContainer);
-
-    // 7. 添加打印按钮
-    addPrintButton(section, contentElement, contentContainer.innerHTML);
-
-    // 8. 触发高度重计算（用于动画）
-    setTimeout(() => {
-        contentElement.style.maxHeight = `${contentElement.scrollHeight}px`;
-    }, 10);
-}
-
-/**
- * 添加打印按钮
- * @param {string} section - 章节ID 
- * @param {HTMLElement} container - 内容容器
- * @param {string} contentHTML - 要打印的HTML内容
- */
-function addPrintButton(section, container, contentHTML) {
-    // 移除旧的打印按钮（如果存在）
-    const oldBtn = container.querySelector('.print-btn');
-    if (oldBtn) oldBtn.remove();
-
-    // 创建新按钮
+    // 5. 添加打印按钮（保持原有功能）
     const printBtn = document.createElement('button');
-    printBtn.className = 'load-btn print-btn';
     printBtn.innerHTML = '<i class="fas fa-print"></i> 打印此内容';
-    printBtn.style.display = 'block';
-    printBtn.style.margin = '25px auto 10px';
-    printBtn.style.padding = '12px 25px';
+    printBtn.className = 'load-btn';
+    printBtn.style.cssText = `
+        display: block;
+        margin: 20px auto;
+        width: auto;
+        padding: 10px 20px;
+    `;
 
-    // 打印功能
     printBtn.addEventListener('click', () => {
         const printWindow = window.open('', '_blank');
-        const currentDate = new Date().toLocaleDateString('zh-CN', {
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit'
-        });
-
         printWindow.document.write(`
             <!DOCTYPE html>
             <html>
             <head>
                 <meta charset="UTF-8">
-                <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-                <title>${document.querySelector('.header-title').textContent} - ${document.querySelector(`[data-section="${section}"] span`).textContent.trim()}</title>
+                <title>${document.querySelector('.header-title').textContent}</title>
                 <style>
-                    @page { size: A4; margin: 1.5cm; }
-                    body {
-                        font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
-                        line-height: 1.6;
-                        color: #333;
+                    body { 
+                        font-family: 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
                         padding: 20px;
-                        -webkit-print-color-adjust: exact;
-                        print-color-adjust: exact;
+                        line-height: 1.6;
                     }
-                    h2 {
-                        color: #6a3093;
-                        text-align: center;
-                        border-bottom: 1px solid #eee;
-                        padding-bottom: 10px;
-                        margin-bottom: 25px;
-                    }
-                    table {
-                        width: 100%;
+                    h2 { color: #6a3093; text-align: center; }
+                    table { 
+                        width: 100%; 
                         border-collapse: collapse;
-                        margin: 20px 0;
-                        page-break-inside: avoid;
+                        margin: 15px 0;
                     }
-                    th, td {
-                        padding: 10px 12px;
-                        border: 1px solid #ddd;
-                        text-align: left;
-                    }
-                    th {
-                        background-color: #f5f5f5 !important;
-                    }
-                    pre {
-                        background-color: #f8f9fa !important;
-                        padding: 15px !important;
-                        border-radius: 6px;
-                        overflow-x: auto;
-                        white-space: pre-wrap;
-                    }
-                    .print-footer {
-                        margin-top: 40px;
-                        text-align: center;
-                        color: #999;
-                        font-size: 13px;
-                        border-top: 1px solid #eee;
-                        padding-top: 15px;
-                    }
-                    .wood { color: #5b8c5a; }
-                    .fire { color: #e74c3c; }
-                    .earth { color: #d4a017; }
-                    .metal { color: #95a5a6; }
-                    .water { color: #3498db; }
+                    th, td { padding: 10px; border: 1px solid #ddd; }
+                    th { background-color: #f5f5f5; }
                 </style>
             </head>
             <body>
-                <h2>${document.querySelector('.header-title').textContent}</h2>
-                <h3 style="text-align:center;color:#6a3093;margin-bottom:30px;">
-                    ${document.querySelector(`[data-section="${section}"] span`).textContent.trim()}
-                </h3>
-                ${contentHTML}
-                <div class="print-footer">
-                    报告生成时间：${currentDate} | © ${new Date().getFullYear()} ${document.title}
-                </div>
-                <script>
-                    setTimeout(function() {
-                        window.print();
-                        setTimeout(window.close, 300);
-                    }, 200);
-                </script>
+                <h2>${document.querySelector(`.load-btn[data-section="${section}"] span`).textContent.trim()}</h2>
+                ${contentElement.innerHTML}
+                <script>setTimeout(() => window.print(), 200);</script>
             </body>
             </html>
         `);
         printWindow.document.close();
     });
 
-    container.appendChild(printBtn);
+    contentElement.appendChild(printBtn);
+
+    // 6. 内容加载后轻微动画（保持原有体验）
+    setTimeout(() => {
+        contentElement.style.transition = 'min-height 0.3s ease';
+        contentElement.style.minHeight = `${Math.max(contentElement.scrollHeight, MIN_HEIGHT)}px`;
+    }, 10);
 }
     
     async function getMarriageAnalysis(section, maleData, femaleData) {
