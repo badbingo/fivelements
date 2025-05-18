@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const currentDay = currentDate.getDate(); // 1-31
     const currentHour = currentDate.getHours(); // 0-23
     const currentMinute = currentDate.getMinutes(); // 0-59
-    // 增强版缓存对象v2.2b
+    // 增强版缓存对象v2.2a
     const baziCache = {
         data: {},
         get: function(key) {
@@ -391,49 +391,76 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 新添加的通用处理函数（放在这里）
     // ============================================
-    async function handleRatingAnalysis(btnElement, getContentFunction) {
-        const groupElement = btnElement.closest('.rating-group');
-        const contentElement = groupElement.querySelector('.rating-content');
-        const loadingElement = groupElement.querySelector('.rating-loading');
-        
-        // 切换激活状态
-        groupElement.classList.toggle('active');
-        
-        // 如果内容已加载且不在加载中，只切换显示
-        if (contentElement.innerHTML.trim() && loadingElement.style.display !== 'flex') {
-            return;
-        }
-        
-        // 如果需要加载内容
-        if (!contentElement.innerHTML.trim()) {
-            loadingElement.style.display = 'flex';
-            contentElement.style.display = 'none';
-            
-            try {
-                const content = await getContentFunction();
-                contentElement.innerHTML = marked.parse(content);
-            } catch (error) {
-                console.error('获取分析内容失败:', error);
-                contentElement.innerHTML = '<p style="color:var(--danger-color)">获取分析内容失败，请稍后重试</p>';
-            } finally {
-                loadingElement.style.display = 'none';
-                contentElement.style.display = 'block';
-            }
-        }
+    async function handleRatingAnalysis(btnElement, getContentFunction, title) {
+    const groupElement = btnElement.closest('.rating-group');
+    const loadingElement = groupElement.querySelector('.rating-loading');
+    
+    // 移除可能已存在的内容框
+    const existingContent = groupElement.querySelector('.rating-content-box');
+    if (existingContent) {
+        existingContent.remove();
     }
     
-    // ============================================
-    // 事件监听器绑定（原有代码，在其上方添加新函数）
-    // ============================================
-    // 命格等级分析按钮
-    fateAnalysisBtn.addEventListener('click', async function() {
-        await handleRatingAnalysis(fateAnalysisBtn, getFateAnalysisContent);
-    });
+    // 显示loading
+    loadingElement.style.display = 'block';
     
-    // 财富等级分析按钮
-    wealthAnalysisBtn.addEventListener('click', async function() {
-        await handleRatingAnalysis(wealthAnalysisBtn, getWealthAnalysisContent);
-    });
+    try {
+        // 获取内容
+        const content = await getContentFunction();
+        
+        // 创建内容框
+        const contentBox = document.createElement('div');
+        contentBox.className = 'rating-content-box';
+        contentBox.innerHTML = `
+            <div class="rating-content-header">
+                <span>${title}分析结果</span>
+                <i class="fas fa-chevron-up toggle-icon"></i>
+            </div>
+            <div class="rating-content-body">${marked.parse(content)}</div>
+        `;
+        
+        // 插入到评分组底部
+        groupElement.appendChild(contentBox);
+        
+        // 添加收起/展开功能
+        const header = contentBox.querySelector('.rating-content-header');
+        const body = contentBox.querySelector('.rating-content-body');
+        const icon = contentBox.querySelector('.toggle-icon');
+        
+        header.addEventListener('click', () => {
+            const isCollapsed = body.style.display === 'none';
+            body.style.display = isCollapsed ? 'block' : 'none';
+            icon.className = isCollapsed ? 'fas fa-chevron-up toggle-icon' : 'fas fa-chevron-down toggle-icon';
+        });
+        
+    } catch (error) {
+        console.error('获取分析内容失败:', error);
+        // 创建错误提示框
+        const errorBox = document.createElement('div');
+        errorBox.className = 'rating-content-box';
+        errorBox.innerHTML = `
+            <div class="rating-content-header">
+                <span style="color: var(--danger-color)">分析失败</span>
+                <i class="fas fa-chevron-up toggle-icon"></i>
+            </div>
+            <div class="rating-content-body">
+                <p style="color: var(--danger-color)">获取分析内容失败，请稍后重试</p>
+            </div>
+        `;
+        groupElement.appendChild(errorBox);
+    } finally {
+        loadingElement.style.display = 'none';
+    }
+}
+
+// 事件绑定
+fateAnalysisBtn.addEventListener('click', () => {
+    handleRatingAnalysis(fateAnalysisBtn, getFateAnalysisContent, '命格等级');
+});
+
+wealthAnalysisBtn.addEventListener('click', () => {
+    handleRatingAnalysis(wealthAnalysisBtn, getWealthAnalysisContent, '财富等级');
+});
     
     // 事件监听器初始化
     function initEventListeners() {
