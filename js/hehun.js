@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const resultSection = document.getElementById('result-section');
     const apiStatus = document.getElementById('api-status');
     
-    // 八字四柱元素c
+    // 八字四柱元素d
     const maleYearStem = document.getElementById('male-year-stem');
     const maleYearBranch = document.getElementById('male-year-branch');
     const maleMonthStem = document.getElementById('male-month-stem');
@@ -78,73 +78,91 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     function resetAllContent() {
-        // Reset Bazi display
-        maleYearStem.textContent = '';
-        maleYearBranch.textContent = '';
-        maleMonthStem.textContent = '';
-        maleMonthBranch.textContent = '';
-        maleDayStem.textContent = '';
-        maleDayBranch.textContent = '';
-        maleHourStem.textContent = '';
-        maleHourBranch.textContent = '';
-        
-        femaleYearStem.textContent = '';
-        femaleYearBranch.textContent = '';
-        femaleMonthStem.textContent = '';
-        femaleMonthBranch.textContent = '';
-        femaleDayStem.textContent = '';
-        femaleDayBranch.textContent = '';
-        femaleHourStem.textContent = '';
-        femaleHourBranch.textContent = '';
-        
-        // Reset compatibility score
-        compatibilityScore.textContent = '-';
-        compatibilityMeter.style.width = '0%';
-        recommendation.className = 'recommendation';
-        recommendation.innerHTML = '<i class="fas fa-heart"></i> 分析中...';
-        
-        // Reset all section content
-        document.querySelectorAll('.section-content').forEach(el => {
-            el.innerHTML = '';
-            el.classList.remove('active');
-            el.style.minHeight = '0';
-        });
-        
-        // Reset all load buttons
-        document.querySelectorAll('.load-btn').forEach(btn => {
-            btn.innerHTML = `
-                <span>
-                    <i class="fas fa-${btn.getAttribute('data-section') === 'basic-analysis' ? 'heartbeat' : 
-                    btn.getAttribute('data-section') === 'element-analysis' ? 'yin-yang' : 
-                    btn.getAttribute('data-section') === 'god-analysis' ? 'star' : 
-                    btn.getAttribute('data-section') === 'male-fate' ? 'mars' : 
-                    btn.getAttribute('data-section') === 'female-fate' ? 'venus' : 
-                    btn.getAttribute('data-section') === 'strength-weakness' ? 'balance-scale' : 
-                    btn.getAttribute('data-section') === 'improvement' ? 'hands-helping' : 'calendar-check'}"></i> 
-                    ${btn.textContent.trim()}
-                </span>
-                <i class="fas fa-chevron-down toggle-icon"></i>`;
-            btn.classList.remove('active');
-            btn.disabled = false;
-        });
-        
-        // Reset tabs
-        document.querySelectorAll('.menu-tab').forEach(tab => tab.classList.remove('active'));
-        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-        document.querySelector('.menu-tab[data-tab="compatibility"]').classList.add('active');
-        document.getElementById('compatibility-tab').classList.add('active');
-    }
-    
-    document.querySelectorAll('.menu-tab').forEach(tab => {
-        tab.addEventListener('click', function() {
-            document.querySelectorAll('.menu-tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            
-            this.classList.add('active');
-            const tabId = this.getAttribute('data-tab') + '-tab';
-            document.getElementById(tabId).classList.add('active');
-        });
+    // 1. 清除所有加载动画元素
+    document.querySelectorAll('.button-loading, .loading-spinner, .loading-overlay').forEach(el => {
+        el.remove();
     });
+
+    // 2. 重置八字四柱显示
+    const baziElements = [
+        'male-year-stem', 'male-year-branch', 'male-month-stem', 'male-month-branch',
+        'male-day-stem', 'male-day-branch', 'male-hour-stem', 'male-hour-branch',
+        'female-year-stem', 'female-year-branch', 'female-month-stem', 'female-month-branch',
+        'female-day-stem', 'female-day-branch', 'female-hour-stem', 'female-hour-branch'
+    ];
+    
+    baziElements.forEach(id => {
+        document.getElementById(id).textContent = '';
+    });
+
+    // 3. 重置合婚评分
+    document.getElementById('compatibility-score').textContent = '-';
+    document.getElementById('compatibility-meter').style.width = '0%';
+    const recommendation = document.getElementById('recommendation');
+    recommendation.className = 'recommendation';
+    recommendation.innerHTML = '<i class="fas fa-heart"></i> 分析中...';
+
+    // 4. 重置所有内容区域
+    document.querySelectorAll('.section-content').forEach(el => {
+        el.innerHTML = '';
+        el.classList.remove('active');
+        el.style.minHeight = '0';
+        el.style.position = '';
+        el.style.overflow = '';
+    });
+
+    // 5. 重置所有目录按钮
+    document.querySelectorAll('.load-btn').forEach(btn => {
+        const section = btn.getAttribute('data-section');
+        const iconMap = {
+            'basic-analysis': 'heartbeat',
+            'element-analysis': 'yin-yang',
+            'god-analysis': 'star',
+            'male-fate': 'mars',
+            'female-fate': 'venus',
+            'strength-weakness': 'balance-scale',
+            'improvement': 'hands-helping',
+            'timing': 'calendar-check'
+        };
+
+        btn.innerHTML = `
+            <span>
+                <i class="fas fa-${iconMap[section] || 'info-circle'}"></i>
+                ${btn.textContent.trim()}
+            </span>
+            <i class="fas fa-chevron-down toggle-icon"></i>
+        `;
+        
+        btn.classList.remove('active', 'loading');
+        btn.disabled = false;
+        
+        // 确保图标状态正确
+        const toggleIcon = btn.querySelector('.toggle-icon');
+        if (toggleIcon) {
+            toggleIcon.classList.add('fa-chevron-down');
+            toggleIcon.classList.remove('fa-chevron-up');
+            toggleIcon.style.display = '';
+        }
+    });
+
+    // 6. 重置标签页状态
+    document.querySelectorAll('.menu-tab').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.remove('active');
+    });
+    
+    // 默认激活合婚标签页
+    document.querySelector('.menu-tab[data-tab="compatibility"]').classList.add('active');
+    document.getElementById('compatibility-tab').classList.add('active');
+
+    // 7. 清除缓存数据
+    analysisCache = {};
+    loadedSections = {};
+    maleData = {};
+    femaleData = {};
+}
     
     function initLoadButtons() {
     document.querySelectorAll('.load-btn').forEach(button => {
