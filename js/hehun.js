@@ -631,3 +631,4 @@ document.addEventListener('DOMContentLoaded', function() {
     contentElement.innerHTML = tempDiv.innerHTML;
     contentElement.appendChild(printBtn);
 }
+});
