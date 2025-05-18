@@ -942,6 +942,56 @@ button i {
 .load-btn.active .toggle-icon {
     transform: rotate(180deg);
 }
+/* 1. 禁用按钮loading时的形状变化 */
+.load-btn.loading {
+    /* 保持按钮原有形状 */
+    transform: none !important;
+    background: rgba(255,255,255,0.7) !important;
+}
+
+/* 2. 保持按钮文本不变 */
+.load-btn.loading span {
+    display: flex !important;
+    align-items: center;
+    transform: none !important;
+    width: auto !important;
+    height: auto !important;
+    border: none !important;
+    animation: none !important;
+}
+
+/* 3. 修改loading指示器为简单的旋转图标 */
+.load-btn.loading .toggle-icon {
+    animation: spin 1s linear infinite;
+    color: var(--accent-color);
+    /* 确保不变成球状 */
+    width: auto !important;
+    height: auto !important;
+    border: none !important;
+    margin-left: 8px;
+}
+
+/* 4. 确保不显示球状loading */
+.load-btn.loading .loading-spinner {
+    display: none !important;
+}
+/* 5. 内容区域保持原有加载效果不变 */
+.section-content.loading-effect::before {
+    /* 保留内容区域的旋转球效果 */
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 40px;
+    height: 40px;
+    border: 4px solid rgba(230, 43, 30, 0.2);
+    border-top-color: var(--accent-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    z-index: 11;
+    margin-top: -30px;
+}
 
 .section-content {
     max-height: 0;
