@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const resultSection = document.getElementById('result-section');
     const apiStatus = document.getElementById('api-status');
     
-    // 八字四柱元素a
+    // 八字四柱元素c
     const maleYearStem = document.getElementById('male-year-stem');
     const maleYearBranch = document.getElementById('male-year-branch');
     const maleMonthStem = document.getElementById('male-month-stem');
@@ -182,15 +182,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            // 3. 设置加载状态 (保留原样式但不变成球)
+            // 3. 设置加载状态 - 按钮保持不变
             this.classList.add('loading');
             this.disabled = true;
+            // 保持按钮原有样式不变
             this.innerHTML = `
                 <span>
                     <i class="fas fa-${getSectionIcon(section)}"></i>
                     ${buttonText}
                 </span>
-                <i class="fas fa-spinner fa-spin toggle-icon"></i>
+                <i class="fas fa-chevron-down toggle-icon"></i>
             `;
 
             // 4. 显示内容加载效果
@@ -210,11 +211,15 @@ document.addEventListener('DOMContentLoaded', function() {
                     backdrop-filter: blur(3px);
                     border-radius: 0 0 12px 12px;
                 ">
-                    <i class="fas fa-spinner fa-spin" style="
-                        font-size: 2rem;
-                        color: #E62B1E;
+                    <div style="
+                        width: 40px;
+                        height: 40px;
+                        border: 4px solid rgba(230,43,30,0.2);
+                        border-top-color: #E62B1E;
+                        border-radius: 50%;
+                        animation: spin 1s linear infinite;
                         margin-bottom: 15px;
-                    "></i>
+                    "></div>
                     <div style="
                         color: #E62B1E;
                         font-size: 1.1rem;
