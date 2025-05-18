@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const resultSection = document.getElementById('result-section');
     const apiStatus = document.getElementById('api-status');
     
-    // 八字四柱元素a
+    // 八字四柱元素v
     const maleYearStem = document.getElementById('male-year-stem');
     const maleYearBranch = document.getElementById('male-year-branch');
     const maleMonthStem = document.getElementById('male-month-stem');
@@ -182,9 +182,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            // 3. 设置加载状态 - 按钮保持不变
+            // 3. 设置加载状态 - 只添加loading类，不改变按钮内容
             this.classList.add('loading');
             this.disabled = true;
+            
+            // 保存原始按钮HTML
+            const originalButtonHTML = this.innerHTML;
             
             // 4. 显示内容加载效果
             contentElement.innerHTML = `
@@ -259,16 +262,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 `;
                 contentElement.appendChild(printBtn);
                 
-                // 更新按钮状态
+                // 更新按钮状态 - 恢复原始HTML
                 this.disabled = false;
                 this.classList.add('active');
-                this.innerHTML = `
-                    <span>
-                        <i class="fas fa-${getSectionIcon(section)}"></i>
-                        ${buttonText}
-                    </span>
-                    <i class="fas fa-chevron-up toggle-icon"></i>
-                `;
+                this.innerHTML = originalButtonHTML;
+                this.querySelector('.toggle-icon').classList.add('fa-chevron-up');
+                this.querySelector('.toggle-icon').classList.remove('fa-chevron-down');
                 
                 // 显示内容区域
                 setTimeout(() => {
@@ -291,16 +290,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                 `;
                 
-                // 重置按钮状态
+                // 重置按钮状态 - 恢复原始HTML
                 this.classList.remove('loading');
                 this.disabled = false;
-                this.innerHTML = `
-                    <span>
-                        <i class="fas fa-${getSectionIcon(section)}"></i>
-                        ${buttonText}
-                    </span>
-                    <i class="fas fa-chevron-down toggle-icon"></i>
-                `;
+                this.innerHTML = originalButtonHTML;
+                this.querySelector('.toggle-icon').classList.add('fa-chevron-down');
+                this.querySelector('.toggle-icon').classList.remove('fa-chevron-up');
             }
         });
     });
