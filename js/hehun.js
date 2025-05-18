@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const resultSection = document.getElementById('result-section');
     const apiStatus = document.getElementById('api-status');
     
-    // 八字四柱元素c
+    // 八字四柱元素a
     const maleYearStem = document.getElementById('male-year-stem');
     const maleYearBranch = document.getElementById('male-year-branch');
     const maleMonthStem = document.getElementById('male-month-stem');
@@ -52,99 +52,13 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     recalculateBtn.addEventListener('click', function() {
-        // Reset form inputs
-        document.getElementById('male-name').value = '';
-        document.getElementById('male-birth-date').value = '';
-        document.getElementById('male-birth-time').value = '';
-        document.getElementById('female-name').value = '';
-        document.getElementById('female-birth-date').value = '';
-        document.getElementById('female-birth-time').value = '';
-        
-        // Reset UI state
-        resultSection.style.display = 'none';
-        inputSection.style.display = 'block';
-        
-        // Reset all content and loading states
-        resetAllContent();
-        
-        // Reset data
-        maleData = {};
-        femaleData = {};
-        loadedSections = {};
-        analysisCache = {};
-        
-        // Scroll to top
-        window.scrollTo(0, 0);
-    });
+    // 清除可能的缓存数据（可选）
+    if (window.sessionStorage) sessionStorage.clear();
+    if (window.localStorage) localStorage.clear();
     
-    function resetAllContent() {
-        // Reset Bazi display
-        maleYearStem.textContent = '';
-        maleYearBranch.textContent = '';
-        maleMonthStem.textContent = '';
-        maleMonthBranch.textContent = '';
-        maleDayStem.textContent = '';
-        maleDayBranch.textContent = '';
-        maleHourStem.textContent = '';
-        maleHourBranch.textContent = '';
-        
-        femaleYearStem.textContent = '';
-        femaleYearBranch.textContent = '';
-        femaleMonthStem.textContent = '';
-        femaleMonthBranch.textContent = '';
-        femaleDayStem.textContent = '';
-        femaleDayBranch.textContent = '';
-        femaleHourStem.textContent = '';
-        femaleHourBranch.textContent = '';
-        
-        // Reset compatibility score
-        compatibilityScore.textContent = '-';
-        compatibilityMeter.style.width = '0%';
-        recommendation.className = 'recommendation';
-        recommendation.innerHTML = '<i class="fas fa-heart"></i> 分析中...';
-        
-        // Reset all section content
-        document.querySelectorAll('.section-content').forEach(el => {
-            el.innerHTML = '';
-            el.classList.remove('active');
-            el.style.minHeight = '0';
-        });
-        
-        // Reset all load buttons
-        document.querySelectorAll('.load-btn').forEach(btn => {
-            btn.innerHTML = `
-                <span>
-                    <i class="fas fa-${btn.getAttribute('data-section') === 'basic-analysis' ? 'heartbeat' : 
-                    btn.getAttribute('data-section') === 'element-analysis' ? 'yin-yang' : 
-                    btn.getAttribute('data-section') === 'god-analysis' ? 'star' : 
-                    btn.getAttribute('data-section') === 'male-fate' ? 'mars' : 
-                    btn.getAttribute('data-section') === 'female-fate' ? 'venus' : 
-                    btn.getAttribute('data-section') === 'strength-weakness' ? 'balance-scale' : 
-                    btn.getAttribute('data-section') === 'improvement' ? 'hands-helping' : 'calendar-check'}"></i> 
-                    ${btn.textContent.trim()}
-                </span>
-                <i class="fas fa-chevron-down toggle-icon"></i>`;
-            btn.classList.remove('active');
-            btn.disabled = false;
-        });
-        
-        // Reset tabs
-        document.querySelectorAll('.menu-tab').forEach(tab => tab.classList.remove('active'));
-        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-        document.querySelector('.menu-tab[data-tab="compatibility"]').classList.add('active');
-        document.getElementById('compatibility-tab').classList.add('active');
-    }
-    
-    document.querySelectorAll('.menu-tab').forEach(tab => {
-        tab.addEventListener('click', function() {
-            document.querySelectorAll('.menu-tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            
-            this.classList.add('active');
-            const tabId = this.getAttribute('data-tab') + '-tab';
-            document.getElementById(tabId).classList.add('active');
-        });
-    });
+    // 强制重新加载页面（相当于 Ctrl + Shift + R）
+    window.location.href = window.location.href.split('?')[0] + '?reload=' + Date.now();
+});
     
     function initLoadButtons() {
     document.querySelectorAll('.load-btn').forEach(button => {
