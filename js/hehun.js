@@ -128,13 +128,17 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    function initLoadButtons() {
+    // 在initLoadButtons函数中修改点击事件处理
+function initLoadButtons() {
     document.querySelectorAll('.load-btn').forEach(button => {
         const section = button.getAttribute('data-section');
         const contentElement = document.getElementById(`${section}-content`);
         
         button.addEventListener('click', async function(e) {
             e.preventDefault();
+            
+            // 添加加载效果
+            contentElement.classList.add('loading-effect');
             
             const cacheKey = `${maleData.date}-${maleData.time}-${femaleData.date}-${femaleData.time}-${section}`;
             
@@ -143,6 +147,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // 如果已经有内容，直接切换显示/隐藏状态
             if (hasContent) {
+                contentElement.classList.remove('loading-effect');
                 contentElement.classList.toggle('active');
                 button.querySelector('.toggle-icon').classList.toggle('rotate-180');
                 
@@ -158,6 +163,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // 如果缓存中有内容，使用缓存
             if (analysisCache[cacheKey]) {
                 contentElement.innerHTML = analysisCache[cacheKey];
+                contentElement.classList.remove('loading-effect');
                 contentElement.classList.add('active');
                 button.querySelector('.toggle-icon').classList.add('rotate-180');
                 contentElement.style.minHeight = `${contentElement.scrollHeight}px`;
@@ -190,6 +196,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const endTime = performance.now();
                 
                 clearInterval(progressInterval);
+                contentElement.classList.remove('loading-effect');
                 displaySectionContent(section, result, contentElement);
                 
                 analysisCache[cacheKey] = contentElement.innerHTML;
@@ -208,6 +215,7 @@ document.addEventListener('DOMContentLoaded', function() {
             } catch (error) {
                 console.error(`加载${section}失败:`, error);
                 clearInterval(progressInterval);
+                contentElement.classList.remove('loading-effect');
                 contentElement.innerHTML = '<p style="color:var(--fire-color)">加载失败，请重试</p>';
                 button.disabled = false;
                 button.innerHTML = `<span><i class="fas fa-${button.getAttribute('data-section') === 'basic-analysis' ? 'heartbeat' : 
@@ -311,6 +319,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function displaySectionContent(section, result, contentElement) {
+    // 确保移除加载效果
+    contentElement.classList.remove('loading-effect');
     // 设置内容区域样式
     contentElement.style.minHeight = '0';
     contentElement.style.overflow = 'hidden';
