@@ -1351,7 +1351,6 @@ function displaySectionContent(section, result, contentElement) {
         document.head.appendChild(style);
     }
 }
-}
     // 计算八字
     async function calculateBazi(e) {
     if (e) {
