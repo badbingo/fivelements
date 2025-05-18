@@ -585,30 +585,49 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function displaySectionContent(section, result, contentElement) {
-        // 使用marked.js解析Markdown内容
-        const htmlContent = marked.parse(result);
-        
-        // 创建临时容器来放置解析后的HTML
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = htmlContent;
-        
-        // 处理表格样式
-        const tables = tempDiv.querySelectorAll('table');
-        tables.forEach(table => {
-            table.classList.add('markdown-table');
-        });
-        
-        // 将处理后的内容放入目标元素
-        contentElement.innerHTML = tempDiv.innerHTML;
-    }
+    // 使用marked.js解析Markdown内容
+    const htmlContent = marked.parse(result);
     
-    window.addEventListener('load', function() {
-        const today = new Date();
-        const dateStr = today.toISOString().split('T')[0];
-        document.getElementById('male-birth-date').value = dateStr;
-        document.getElementById('female-birth-date').value = dateStr;
-        
-        document.getElementById('male-birth-time').value = '11:00';
-        document.getElementById('female-birth-time').value = '11:00';
+    // 创建临时容器来放置解析后的HTML
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = htmlContent;
+    
+    // 处理表格样式
+    const tables = tempDiv.querySelectorAll('table');
+    tables.forEach(table => {
+        table.classList.add('markdown-table');
     });
-});
+    
+    // 创建打印按钮
+    const printBtn = document.createElement('button');
+    printBtn.innerHTML = '<i class="fas fa-print"></i> 打印此内容';
+    printBtn.className = 'load-btn'; // 使用现有的load-btn样式
+    printBtn.style.marginTop = '20px';
+    printBtn.style.width = 'auto';
+    printBtn.style.display = 'block';
+    printBtn.style.marginLeft = 'auto';
+    printBtn.style.marginRight = 'auto';
+    
+    // 添加打印功能
+    printBtn.addEventListener('click', function() {
+        const printContent = contentElement.innerHTML;
+        const originalContent = document.body.innerHTML;
+        
+        document.body.innerHTML = `
+            <div style="max-width:800px; margin:0 auto; padding:20px; font-family:'Noto Sans SC', sans-serif;">
+                <h2 style="text-align:center; margin-bottom:30px; color:${getComputedStyle(document.documentElement).getPropertyValue('--accent-color')}">
+                    ${document.querySelector('.header-title').textContent} - ${document.querySelector(`.load-btn[data-section="${section}"]`).textContent.trim()}
+                </h2>
+                ${printContent.replace('active', '')}
+            </div>
+        `;
+        
+        window.print();
+        document.body.innerHTML = originalContent;
+        window.scrollTo(0, contentElement.offsetTop);
+    });
+    
+    // 将处理后的内容放入目标元素
+    contentElement.innerHTML = tempDiv.innerHTML;
+    contentElement.appendChild(printBtn);
+}
