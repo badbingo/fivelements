@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const resultSection = document.getElementById('result-section');
     const apiStatus = document.getElementById('api-status');
     
-    // 八字四柱元素a
+    // 八字四柱元素c
     const maleYearStem = document.getElementById('male-year-stem');
     const maleYearBranch = document.getElementById('male-year-branch');
     const maleMonthStem = document.getElementById('male-month-stem');
@@ -146,7 +146,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-function initLoadButtons() {
+    function initLoadButtons() {
     document.querySelectorAll('.load-btn').forEach(button => {
         button.addEventListener('click', async function(e) {
             e.preventDefault();
@@ -182,17 +182,8 @@ function initLoadButtons() {
                 return;
             }
 
-            // 3. 设置加载状态 - 只添加loading类，不改变按钮内容
-            const originalButtonHTML = this.innerHTML;
-            this.classList.add('loading');
+            // 3. 设置加载状态 - 只禁用按钮，不添加动画
             this.disabled = true;
-            
-           
-            
-            // 隐藏原始内容，显示loading
-            this.querySelector('span').style.display = 'none';
-            this.querySelector('.toggle-icon').style.display = 'none';
-            this.appendChild(loadingElement);
             
             // 4. 显示内容加载效果
             contentElement.innerHTML = `
@@ -237,11 +228,8 @@ function initLoadButtons() {
                 // 6. 处理结果
                 analysisCache[cacheKey] = result;
                 
-                // 移除加载状态 - 恢复原始按钮内容
-                this.classList.remove('loading');
-                this.removeChild(loadingElement);
-                this.querySelector('span').style.display = '';
-                this.querySelector('.toggle-icon').style.display = '';
+                // 移除加载状态 - 恢复按钮状态
+                this.disabled = false;
                 
                 // 显示内容
                 const htmlContent = marked.parse(result);
@@ -297,11 +285,7 @@ function initLoadButtons() {
                     </div>
                 `;
                 
-                // 重置按钮状态 - 恢复原始内容
-                this.classList.remove('loading');
-                this.removeChild(loadingElement);
-                this.querySelector('span').style.display = '';
-                this.querySelector('.toggle-icon').style.display = '';
+                // 重置按钮状态
                 this.disabled = false;
                 this.querySelector('.toggle-icon').classList.add('fa-chevron-down');
                 this.querySelector('.toggle-icon').classList.remove('fa-chevron-up');
@@ -309,7 +293,6 @@ function initLoadButtons() {
         });
     });
 }
-
     function getSectionIcon(section) {
         const icons = {
             'basic-analysis': 'heartbeat',
