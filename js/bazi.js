@@ -1,6 +1,6 @@
 
 document.addEventListener('DOMContentLoaded', function() {
-    // 确保全局能获取当前日期（动态获取2025年b）
+    // 确保全局能获取当前日期（动态获取2025年a）
     const currentDate = new Date(); // 自动获取当前日期（2025）
     const currentYear = currentDate.getFullYear(); // 2025
     const currentMonth = currentDate.getMonth() + 1; // 1-12
@@ -571,25 +571,50 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         
-        // 新增 - 收起按钮点击事件
-        document.getElementById('collapse-analysis-btn').addEventListener('click', function() {
-            document.getElementById('analysis-content-container').style.display = 'none';
-        });
-
-        // 新增：打印按钮点击事件
-    document.getElementById('print-analysis-btn')?.addEventListener('click', function() {
-        const printContent = document.getElementById('analysis-content-container').innerHTML;
-        const originalContent = document.body.innerHTML;
-        
-        document.body.innerHTML = printContent;
-        window.print();
-        document.body.innerHTML = originalContent;
-        
-        // 重新绑定事件（因为innerHTML会清除事件监听器）
-        document.getElementById('collapse-analysis-btn')?.addEventListener('click', function() {
-            document.getElementById('analysis-content-container').style.display = 'none';
-        });
+        // 收起按钮
+    document.getElementById('collapse-analysis-btn')?.addEventListener('click', function() {
+        document.getElementById('analysis-content-container').style.display = 'none';
     });
+
+    // 打印按钮（修复版）
+    document.getElementById('print-analysis-btn')?.addEventListener('click', function() {
+        const printContent = document.getElementById('analysis-content-container').outerHTML;
+        const printWindow = window.open('', '_blank');
+        printWindow.document.open();
+        printWindow.document.write(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>命理分析报告</title>
+                <style>
+                    body { font-family: Arial, sans-serif; color: black !important; }
+                    h3 { color: #ff0000; }
+                    .loading { display: none; }
+                    @media print {
+                        body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                    }
+                </style>
+            </head>
+            <body>${printContent}</body>
+            </html>
+        `);
+        printWindow.document.close();
+        printWindow.print();
+        printWindow.close();
+    });
+}
+
+// 显示加载状态
+function showAnalysisLoading() {
+    document.getElementById('analysis-loading').style.display = 'block';
+    document.getElementById('analysis-content-body').style.display = 'none';
+}
+
+// 隐藏加载状态，显示内容
+function showAnalysisContent(content) {
+    document.getElementById('analysis-loading').style.display = 'none';
+    document.getElementById('analysis-content-body').innerHTML = content;
+    document.getElementById('analysis-content-body').style.display = 'block';
 }
 
     // 显示分析模态框
