@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const currentDay = currentDate.getDate(); // 1-31
     const currentHour = currentDate.getHours(); // 0-23
     const currentMinute = currentDate.getMinutes(); // 0-59
-    // 增强版缓存对象v2.2a
+    // 增强版缓存对象v2.2c
     const baziCache = {
         data: {},
         get: function(key) {
@@ -495,84 +495,85 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // 命格等级分析按钮
         fateAnalysisBtn.addEventListener('click', async function() {
-            // 添加btn-loading类到按钮本身
-            this.classList.add('btn-loading');
-            
-            // 创建并显示全屏loading遮罩
-            const loadingOverlay = document.createElement('div');
-            loadingOverlay.className = 'loading-overlay';
-            loadingOverlay.innerHTML = `
-                <div class="loading"></div>
-                <p>正在分析命格等级...</p>
-            `;
-            document.body.appendChild(loadingOverlay);
-            
-            // 禁用按钮防止重复点击
-            this.disabled = true;
-            
-            try {
-                const content = await getFateAnalysisContent();
-                showAnalysisModal('命格等级分析', content);
-            } catch (error) {
-                console.error('获取命格分析失败:', error);
-                showAnalysisModal('命格等级分析', '获取分析内容失败，请稍后重试');
-            } finally {
-                // 移除全屏loading遮罩
-                if (document.body.contains(loadingOverlay)) {
-                    document.body.removeChild(loadingOverlay);
-                }
-                // 移除btn-loading类
-                this.classList.remove('btn-loading');
-                // 重新启用按钮
-                this.disabled = false;
-            }
-        });
+    // 1. 显示当前命格等级框内的loading
+    const loadingElement = this.querySelector('.rating-loading');
+    loadingElement.style.display = 'flex';
+    
+    // 2. 隐藏财富等级的loading（如果正在显示）
+    const wealthLoading = wealthAnalysisBtn.querySelector('.rating-loading');
+    wealthLoading.style.display = 'none';
+    
+    // 3. 禁用按钮防止重复点击
+    this.style.pointerEvents = 'none';
+    wealthAnalysisBtn.style.pointerEvents = 'none';
+    
+    try {
+        // 4. 获取分析内容
+        const content = await getFateAnalysisContent();
+        
+        // 5. 隐藏loading
+        loadingElement.style.display = 'none';
+        
+        // 6. 显示内容区域
+        document.getElementById('analysis-content-title').textContent = '命格等级分析';
+        document.getElementById('analysis-content-body').innerHTML = marked.parse(content);
+        document.getElementById('analysis-content-container').style.display = 'block';
+        
+        // 7. 滚动到内容区域
+        document.getElementById('analysis-content-container').scrollIntoView({ behavior: 'smooth' });
+    } catch (error) {
+        console.error('获取命格分析失败:', error);
+        loadingElement.style.display = 'none';
+        alert('获取分析内容失败，请稍后重试');
+    } finally {
+        // 8. 重新启用按钮
+        this.style.pointerEvents = 'auto';
+        wealthAnalysisBtn.style.pointerEvents = 'auto';
+    }
+});
 
-        // 财富等级分析按钮
+// 新增/修改这部分代码 - 财富等级分析按钮点击处理
         wealthAnalysisBtn.addEventListener('click', async function() {
-            // 添加btn-loading类到按钮本身
-            this.classList.add('btn-loading');
+            // 1. 显示当前财富等级框内的loading
+            const loadingElement = this.querySelector('.rating-loading');
+            loadingElement.style.display = 'flex';
             
-            // 创建并显示全屏loading遮罩
-            const loadingOverlay = document.createElement('div');
-            loadingOverlay.className = 'loading-overlay';
-            loadingOverlay.innerHTML = `
-                <div class="loading"></div>
-                <p>正在分析财富等级...</p>
-            `;
-            document.body.appendChild(loadingOverlay);
+            // 2. 隐藏命格等级的loading（如果正在显示）
+            const fateLoading = fateAnalysisBtn.querySelector('.rating-loading');
+            fateLoading.style.display = 'none';
             
-            // 禁用按钮防止重复点击
-            this.disabled = true;
+            // 3. 禁用按钮防止重复点击
+            this.style.pointerEvents = 'none';
+            fateAnalysisBtn.style.pointerEvents = 'none';
             
             try {
+                // 4. 获取分析内容
                 const content = await getWealthAnalysisContent();
-                showAnalysisModal('财富等级分析', content);
+                
+                // 5. 隐藏loading
+                loadingElement.style.display = 'none';
+                
+                // 6. 显示内容区域
+                document.getElementById('analysis-content-title').textContent = '财富等级分析';
+                document.getElementById('analysis-content-body').innerHTML = marked.parse(content);
+                document.getElementById('analysis-content-container').style.display = 'block';
+                
+                // 7. 滚动到内容区域
+                document.getElementById('analysis-content-container').scrollIntoView({ behavior: 'smooth' });
             } catch (error) {
                 console.error('获取财富分析失败:', error);
-                showAnalysisModal('财富等级分析', '获取分析内容失败，请稍后重试');
+                loadingElement.style.display = 'none';
+                alert('获取分析内容失败，请稍后重试');
             } finally {
-                // 移除全屏loading遮罩
-                if (document.body.contains(loadingOverlay)) {
-                    document.body.removeChild(loadingOverlay);
-                }
-                // 移除btn-loading类
-                this.classList.remove('btn-loading');
-                // 重新启用按钮
-                this.disabled = false;
+                // 8. 重新启用按钮
+                this.style.pointerEvents = 'auto';
+                fateAnalysisBtn.style.pointerEvents = 'auto';
             }
         });
-
-        // 关闭模态框
-        closeModal.addEventListener('click', function() {
-            analysisModal.style.display = 'none';
-        });
-
-        // 点击模态框外部关闭
-        window.addEventListener('click', function(event) {
-            if (event.target === analysisModal) {
-                analysisModal.style.display = 'none';
-            }
+        
+        // 新增 - 收起按钮点击事件
+        document.getElementById('collapse-analysis-btn').addEventListener('click', function() {
+            document.getElementById('analysis-content-container').style.display = 'none';
         });
     }
 
