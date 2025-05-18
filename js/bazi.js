@@ -1,6 +1,6 @@
 
 document.addEventListener('DOMContentLoaded', function() {
-    // 确保全局能获取当前日期（动态获取2025年b）
+    // 确保全局能获取当前日期（动态获取2025年c）
     const currentDate = new Date(); // 自动获取当前日期（2025）
     const currentYear = currentDate.getFullYear(); // 2025
     const currentMonth = currentDate.getMonth() + 1; // 1-12
@@ -574,8 +574,22 @@ document.addEventListener('DOMContentLoaded', function() {
         // 新增 - 收起按钮点击事件
         document.getElementById('collapse-analysis-btn').addEventListener('click', function() {
             document.getElementById('analysis-content-container').style.display = 'none';
+            
+        // 新增：打印按钮点击事件
+    document.getElementById('print-analysis-btn')?.addEventListener('click', function() {
+        const printContent = document.getElementById('analysis-content-container').innerHTML;
+        const originalContent = document.body.innerHTML;
+        
+        document.body.innerHTML = printContent;
+        window.print();
+        document.body.innerHTML = originalContent;
+        
+        // 重新绑定事件（因为innerHTML会清除事件监听器）
+        document.getElementById('collapse-analysis-btn')?.addEventListener('click', function() {
+            document.getElementById('analysis-content-container').style.display = 'none';
         });
-    }
+    });
+}
 
     // 显示分析模态框
     function showAnalysisModal(title, content) {
