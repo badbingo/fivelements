@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const resultSection = document.getElementById('result-section');
     const apiStatus = document.getElementById('api-status');
     
-    // 八字四柱元素2
+    // 八字四柱元素1
     const maleYearStem = document.getElementById('male-year-stem');
     const maleYearBranch = document.getElementById('male-year-branch');
     const maleMonthStem = document.getElementById('male-month-stem');
@@ -298,8 +298,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function displaySectionContent(section, result, contentElement) {
     // 1. 清除旧内容和限制
-    contentElement.innerHTML = '';
-    contentElement.style.maxHeight = 'none';
+    const MIN_HEIGHT = 200; // 保持原有最小高度
+    contentElement.style.minHeight = `${MIN_HEIGHT}px`;
+    contentElement.style.maxHeight = 'none'; // 移除最大高度限制
     contentElement.style.overflow = 'visible';
     contentElement.classList.add('active');
 
