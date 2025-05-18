@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const resultSection = document.getElementById('result-section');
     const apiStatus = document.getElementById('api-status');
     
-    // 八字四柱元素b
+    // 八字四柱元素
     const maleYearStem = document.getElementById('male-year-stem');
     const maleYearBranch = document.getElementById('male-year-branch');
     const maleMonthStem = document.getElementById('male-month-stem');
@@ -158,7 +158,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 // 1. Check if content already exists (toggle visibility)
                 if (contentElement.innerHTML.trim() !== '') {
+                    // Toggle the active class for both button and content
+                    this.classList.toggle('active');
                     contentElement.classList.toggle('active');
+                    
+                    // Toggle the chevron icon
                     const icon = this.querySelector('.toggle-icon');
                     icon.classList.toggle('fa-chevron-down');
                     icon.classList.toggle('fa-chevron-up');
@@ -169,6 +173,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (analysisCache[cacheKey]) {
                     contentElement.innerHTML = analysisCache[cacheKey];
                     contentElement.classList.add('active');
+                    this.classList.add('active');
                     this.querySelector('.toggle-icon').classList.add('fa-chevron-up');
                     this.querySelector('.toggle-icon').classList.remove('fa-chevron-down');
                     return;
@@ -236,17 +241,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     
                     // 6. Process result
                     analysisCache[cacheKey] = result;
-                    displaySectionContent(section, result, contentElement);
-                    
-                    // 7. Restore button state
-                    this.disabled = false;
-                    this.innerHTML = `
-                        <span>
-                            <i class="fas fa-${getSectionIcon(section)}"></i>
-                            ${buttonText}
-                        </span>
-                        <i class="fas fa-chevron-up toggle-icon"></i>
-                    `;
+                    displaySectionContent(section, result, contentElement, this);
                     
                 } catch (error) {
                     console.error(`加载${section}失败:`, error);
@@ -376,12 +371,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 50);
     }
     
-    function displaySectionContent(section, result, contentElement) {
+    function displaySectionContent(section, result, contentElement, buttonElement) {
         // Remove loading effect
         contentElement.classList.remove('loading-effect');
         contentElement.style.minHeight = '0';
         contentElement.style.overflow = 'hidden';
-        contentElement.classList.remove('active');
         
         // Parse Markdown content
         const htmlContent = marked.parse(result);
@@ -463,7 +457,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 </head>
                 <body>
                     <h2>${document.querySelector('.header-title').textContent}</h2>
-                    <h3 style="text-align:center">${document.querySelector(`[data-section="${section}"] span`).textContent.trim()}</h3>
+                    <h3 style="text-align:center">${buttonElement.querySelector('span').textContent.trim()}</h3>
                     ${contentElement.innerHTML}
                     <div class="print-footer">
                         打印时间：${new Date().toLocaleString('zh-CN')}
@@ -497,6 +491,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
         contentElement.appendChild(printBtn);
         
+        // Set button to active state
+        buttonElement.disabled = false;
+        buttonElement.classList.add('active');
+        buttonElement.innerHTML = `
+            <span>
+                <i class="fas fa-${getSectionIcon(section)}"></i>
+                ${buttonElement.querySelector('span').textContent.trim()}
+            </span>
+            <i class="fas fa-chevron-up toggle-icon"></i>
+        `;
+        
+        // Show content with animation
         setTimeout(() => {
             contentElement.style.minHeight = `${contentElement.scrollHeight}px`;
             contentElement.classList.add('active');
@@ -558,10 +564,10 @@ document.addEventListener('DOMContentLoaded', function() {
 1 男方八字：年柱[内容] 月柱[内容] 日柱[内容] 时柱[内容]
 2 女方八字：年柱[内容] 月柱[内容] 日柱[内容] 时柱[内容]
 
-不要使用任何符号如#*、等。`;
+用简洁格式返回，不要分析内容，不要使用任何符号如#*、等。`;
                 break;
             case 'basic-analysis':
-                prompt += `作为从业20年的专业命理师，请为用户生成深度分析双方八字的基本匹配程度报告（要求：分板块详细论述，总字数不少于2000字）：
+                prompt += `分析双方八字的基本匹配程度：
 1 天干地支的相生相克关系
 2 日柱的合冲关系
 3 年柱、月柱的匹配情况
@@ -571,10 +577,10 @@ document.addEventListener('DOMContentLoaded', function() {
 天干关系：[表格方式详细分析]
 地支关系：[表格方式详细分析]
 日柱分析：[表格方式详细分析]
-综合结论：[不少于1000字]`;
+综合结论：[表格方式详细分析]`;
                 break;
             case 'element-analysis':
-                prompt += `作为从业20年的专业命理师，请为用户生成深度分析双方五行能量的互补情况报告（要求：分板块详细论述，总字数不少于2000字）：
+                prompt += `分析双方五行能量的互补情况：
 1 双方五行分布对比
 2 五行相生相克关系
 3 是否能够相互调和
@@ -583,10 +589,10 @@ document.addEventListener('DOMContentLoaded', function() {
 返回格式：
 五行对比：[表格方式详细分析]
 互补情况：[表格方式详细分析]
-调候建议：[不少于600字]`;
+调候建议：[表格方式详细建议]`;
                 break;
             case 'god-analysis':
-                prompt += `作为从业20年的专业命理师，请为用户生成深度分析双方十神之间的相互关系报告（要求：分板块详细论述，总字数不少于2000字）：
+                prompt += `分析双方十神之间的相互关系：
 1 十神配对分析（正官vs正印等）
 2 十神相生相克关系
 3 角色定位互补性
@@ -595,11 +601,11 @@ document.addEventListener('DOMContentLoaded', function() {
 返回格式：
 十神配对：[表格方式详细分析]
 相生相克：[表格方式详细分析]
-互补分析：[不少于500字]
-矛盾分析：[不少于500字]`;
+互补分析：[表格方式详细分析]
+矛盾分析：[表格方式详细分析]`;
                 break;
             case 'male-fate':
-                prompt += `作为从业20年的专业命理师，请为用户生成深度分析男方八字命理特点报告（要求：分板块详细论述，总字数不少于2000字）：
+                prompt += `分析男方八字命理特点：
 1 命格分析（正官格、偏印格等）
 2 五行喜忌
 3 性格特点
@@ -609,10 +615,10 @@ document.addEventListener('DOMContentLoaded', function() {
 命格分析：[表格方式详细分析]
 五行喜忌：[表格方式详细分析]
 性格特点：[表格方式详细分析]
-事业分析：[不少于600字]`;
+事业分析：[表格方式详细分析]`;
                 break;
             case 'female-fate':
-                prompt += `作为从业20年的专业命理师，请为用户生成深度分析女方八字命理特点报告（要求：分板块详细论述，总字数不少于2000字）：
+                prompt += `分析女方八字命理特点：
 1 命格分析（正印格、食神格等）
 2 五行喜忌
 3 性格特点
@@ -622,10 +628,10 @@ document.addEventListener('DOMContentLoaded', function() {
 命格分析：[表格方式详细分析]
 五行喜忌：[表格方式详细分析]
 性格特点：[表格方式详细分析]
-婚姻分析：[不少于600字]`;
+婚姻分析：[表格方式详细分析]`;
                 break;
             case 'strength-weakness':
-                prompt += `作为从业20年的专业命理师，请为用户生成深度分析这段婚姻关系的优劣势报告（要求：分板块详细论述，总字数不少于2000字）：
+                prompt += `分析这段婚姻关系的优劣势：
 1 八字匹配的优势点
 2 八字冲突的劣势点
 3 潜在的危机年份
@@ -635,10 +641,10 @@ document.addEventListener('DOMContentLoaded', function() {
 优势分析：[表格方式详细分析]
 劣势分析：[表格方式详细分析]
 危机年份：[表格方式年份列表]
-互补潜力：[不少于600字]`;
+互补潜力：[表格方式详细分析]`;
                 break;
             case 'improvement':
-                prompt += `作为从业20年的专业命理师，请为用户生成深度婚姻关系改善建议报告（要求：分板块详细论述，总字数不少于2000字）：
+                prompt += `提供婚姻关系改善建议：
 1 五行调和建议
 2 相处方式建议
 3 重要年份注意事项
@@ -646,12 +652,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
 返回格式：
 五行调和：[表格方式详细建议]
-相处建议：[不少于600字]
+相处建议：[表格方式详细建议]
 年份注意：[表格方式详细说明]
 子女缘分：[表格方式详细分析]`;
                 break;
             case 'timing':
-                prompt += `作为从业20年的专业命理师，请为用户生成深度分析最适合结婚的时机报告（要求：分板块详细论述，总字数不少于2000字）：
+                prompt += `分析最适合结婚的时机：
 1 近3年婚运分析
 2 最佳结婚年份
 3 需要避开的年份
