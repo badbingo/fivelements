@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const resultSection = document.getElementById('result-section');
     const apiStatus = document.getElementById('api-status');
     
-    // 八字四柱元素c
+    // 八字四柱元素a
     const maleYearStem = document.getElementById('male-year-stem');
     const maleYearBranch = document.getElementById('male-year-branch');
     const maleMonthStem = document.getElementById('male-month-stem');
@@ -185,15 +185,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // 3. 设置加载状态 - 按钮保持不变
             this.classList.add('loading');
             this.disabled = true;
-            // 保持按钮原有样式不变
-            this.innerHTML = `
-                <span>
-                    <i class="fas fa-${getSectionIcon(section)}"></i>
-                    ${buttonText}
-                </span>
-                <i class="fas fa-chevron-down toggle-icon"></i>
-            `;
-
+            
             // 4. 显示内容加载效果
             contentElement.innerHTML = `
                 <div class="loading-overlay" style="
