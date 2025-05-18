@@ -297,63 +297,46 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function displaySectionContent(section, result, contentElement) {
-    // 使用marked.js解析Markdown内容
     const htmlContent = marked.parse(result);
-    
-    // 创建临时容器来放置解析后的HTML
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = htmlContent;
-    
-    // 处理表格样式
-    const tables = tempDiv.querySelectorAll('table');
-    tables.forEach(table => {
-        table.classList.add('markdown-table');
-    });
-    
-    // 清空内容区域
-    contentElement.innerHTML = '';
-    
-    // 将解析后的内容添加到内容区域
-    contentElement.appendChild(tempDiv);
-    
+    contentElement.innerHTML = htmlContent;
+
     // 创建打印按钮
     const printBtn = document.createElement('button');
     printBtn.innerHTML = '<i class="fas fa-print"></i> 打印此内容';
     printBtn.className = 'load-btn';
-    printBtn.style.marginTop = '20px';
-    printBtn.style.width = 'auto';
+    printBtn.style.margin = '20px auto';
     printBtn.style.display = 'block';
-    printBtn.style.marginLeft = 'auto';
-    printBtn.style.marginRight = 'auto';
-    
-    // 添加打印功能
+
     printBtn.addEventListener('click', function() {
+        // 创建打印专用窗口
         const printWindow = window.open('', '_blank');
         
-        // 获取当前内容的HTML
-        const contentHTML = contentElement.innerHTML;
-        
-        // 创建完整的打印文档
+        // 获取当前日期（中文格式）
+        const currentDate = new Date().toLocaleDateString('zh-CN', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit'
+        });
+
+        // 构建打印内容（关键修改点）
         printWindow.document.write(`
             <!DOCTYPE html>
             <html>
             <head>
-                <title>八字合婚分析报告</title>
-                <meta charset="UTF-8">
+                <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+                <title>八字合婚报告</title>
                 <style>
-                    @page { size: A4; margin: 1cm; }
-                    body { 
-                        font-family: 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
+                    body {
+                        font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
                         line-height: 1.6;
-                        color: #333;
                         padding: 20px;
+                        color: #333;
                     }
-                    h2 { 
+                    h2 {
                         color: #6a3093;
-                        text-align: center; 
-                        margin-bottom: 30px;
-                        padding-bottom: 10px;
+                        text-align: center;
                         border-bottom: 1px solid #eee;
+                        padding-bottom: 10px;
                     }
                     table {
                         width: 100%;
@@ -361,46 +344,40 @@ document.addEventListener('DOMContentLoaded', function() {
                         margin: 15px 0;
                         font-size: 14px;
                     }
-                    th, td {
-                        padding: 10px;
-                        border: 1px solid #ddd;
-                        text-align: left;
-                    }
                     th {
-                        background-color: #f8f9fa;
-                        font-weight: 500;
+                        background-color: #f5f5f5 !important;
                     }
-                    .markdown-table {
-                        width: 100%;
-                        margin: 20px 0;
+                    th, td {
+                        padding: 8px 12px;
+                        border: 1px solid #ddd;
                     }
                     .print-footer {
-                        text-align: center;
                         margin-top: 30px;
-                        font-size: 12px;
+                        text-align: center;
                         color: #999;
+                        font-size: 12px;
                     }
                 </style>
             </head>
             <body>
                 <h2>${document.querySelector('.header-title').textContent}</h2>
-                <h3>${document.querySelector(`.load-btn[data-section="${section}"] span`).textContent.trim()}</h3>
-                ${contentHTML}
+                <h3 style="text-align:center">${document.querySelector(`[data-section="${section}"] span`).textContent.trim()}</h3>
+                ${contentElement.innerHTML}
                 <div class="print-footer">
-                    本报告由系统自动生成 &middot; ${new Date().toLocaleDateString()}
+                    报告生成时间：${currentDate} | © ${new Date().getFullYear()} 麦八字
                 </div>
                 <script>
                     setTimeout(function() {
                         window.print();
                         window.close();
-                    }, 300);
+                    }, 200);
                 </script>
             </body>
             </html>
         `);
         printWindow.document.close();
     });
-    
+
     contentElement.appendChild(printBtn);
 }
     
