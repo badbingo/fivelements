@@ -588,7 +588,6 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('collapse-analysis-btn')?.addEventListener('click', function() {
             document.getElementById('analysis-content-container').style.display = 'none';
         });
-    });
 }
 
     // 显示分析模态框
