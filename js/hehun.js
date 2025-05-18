@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const resultSection = document.getElementById('result-section');
     const apiStatus = document.getElementById('api-status');
     
-    // 八字四柱元素c
+    // 八字四柱元素a
     const maleYearStem = document.getElementById('male-year-stem');
     const maleYearBranch = document.getElementById('male-year-branch');
     const maleMonthStem = document.getElementById('male-month-stem');
@@ -435,81 +435,50 @@ document.addEventListener('DOMContentLoaded', function() {
             printBtn.style.boxShadow = 'none';
         });
 
-        printBtn.addEventListener('click', () => {
-            const printWindow = window.open('', '_blank');
-            const printContent = `
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <meta charset="UTF-8">
-                    <title>${document.title} - ${section}</title>
-                    <style>
-                        body {
-                            font-family: 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
-                            padding: 20px;
-                            line-height: 1.6;
-                            color: #333;
-                        }
-                        h2 {
-                            color: #6a3093;
-                            text-align: center;
-                            border-bottom: 1px solid #eee;
-                            padding-bottom: 10px;
-                        }
-                        table {
-                            width: 100%;
-                            border-collapse: collapse;
-                            margin: 15px 0;
-                            page-break-inside: avoid;
-                        }
-                        th, td {
-                            padding: 10px;
-                            border: 1px solid #ddd;
-                        }
-                        th {
-                            background-color: #f5f5f5;
-                        }
-                        .print-footer {
-                            margin-top: 30px;
-                            text-align: center;
-                            color: #999;
-                            font-size: 12px;
-                        }
-                    </style>
-                </head>
-                <body>
-                    <h2>${document.querySelector('.header-title').textContent}</h2>
-                    <h3 style="text-align:center">${buttonElement.querySelector('span').textContent.trim()}</h3>
-                    ${contentElement.innerHTML}
-                    <div class="print-footer">
-                        打印时间：${new Date().toLocaleString('zh-CN')}
-                    </div>
-                    <script>
-                        window.onafterprint = function() {
-                            setTimeout(function() {
-                                window.close();
-                            }, 300);
-                        };
+        printBtn.addEventListener('click', function(e) {
+    e.preventDefault();
+    const sectionTitle = buttonElement.querySelector('span').textContent.trim();
+    const printContent = contentElement.innerHTML.replace(printBtn.outerHTML, '');
+    
+    const printWindow = window.open('', '_blank');
+    const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>${sectionTitle}</title>
+            <style>
+                body { font-family: Arial, sans-serif; padding: 20px; }
+                h2 { color: #6a3093; text-align: center; }
+                table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+                th, td { padding: 8px; border: 1px solid #ddd; }
+                th { background-color: #f5f5f5; }
+                .print-footer { margin-top: 30px; text-align: center; font-size: 12px; color: #999; }
+            </style>
+        </head>
+        <body>
+            <h2>${sectionTitle}</h2>
+            ${printContent}
+            <div class="print-footer">
+                打印时间：${new Date().toLocaleString()}
+            </div>
+            <script>
+                window.onload = function() {
+                    setTimeout(function() {
+                        window.print();
                         setTimeout(function() {
-                            window.print();
-                            setTimeout(function() {
-                                try { window.close(); } catch(e) {}
-                            }, 3000);
-                        }, 200);
-                    </script>
-                </body>
-                </html>
-            `;
-
-            printWindow.document.open();
-            printWindow.document.write(printContent);
-            printWindow.document.close();
-
-            if (!printWindow || printWindow.closed) {
-                alert('请允许弹出窗口以使用打印功能');
-                return;
-            }
-        });
+                            window.close();
+                        }, 1000);
+                    }, 200);
+                };
+            </script>
+        </body>
+        </html>
+    `;
+    
+    printWindow.document.open();
+    printWindow.document.write(htmlContent);
+    printWindow.document.close();
+});
 
         contentElement.appendChild(printBtn);
         
