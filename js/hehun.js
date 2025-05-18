@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const resultSection = document.getElementById('result-section');
     const apiStatus = document.getElementById('api-status');
     
-    // 八字四柱元素a
+    // 八字四柱元素b
     const maleYearStem = document.getElementById('male-year-stem');
     const maleYearBranch = document.getElementById('male-year-branch');
     const maleMonthStem = document.getElementById('male-month-stem');
@@ -93,16 +93,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 this.querySelector('.toggle-icon').classList.add('fa-chevron-up');
                 this.querySelector('.toggle-icon').classList.remove('fa-chevron-down');
                 contentElement.style.minHeight = `${contentElement.scrollHeight}px`;
-                
-                // 为缓存内容添加打印事件
-                addPrintEventListener(button, contentElement);
                 return;
             }
 
             // 3. 设置加载状态
             this.disabled = true;
             
-            // 4. 显示加载效果（仅修改此处，移除目录条动画）
+            // 4. 显示FontAwesome动态加载效果
             contentElement.innerHTML = `
                 <div class="loading-overlay" style="
                     position: absolute;
@@ -119,13 +116,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     backdrop-filter: blur(3px);
                     border-radius: 0 0 12px 12px;
                 ">
-                    <div style="
-                        margin-bottom: 15px;
-                        color: #E62B1E;
-                        font-size: 2rem;
-                    ">
-                        <i class="fas fa-hourglass-half"></i> <!-- 改用静态图标替代旋转动画 -->
-                    </div>
+                    <i class="fas fa-spinner fa-pulse fa-3x" style="color: #E62B1E; margin-bottom: 15px;"></i>
                     <div style="
                         color: #E62B1E;
                         font-size: 1.1rem;
@@ -159,7 +150,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 // 添加打印按钮
                 const printBtn = document.createElement('button');
                 printBtn.innerHTML = '<i class="fas fa-print"></i> 打印此内容';
-                printBtn.className = 'print-btn';
+                printBtn.className = 'load-btn print-btn';
                 printBtn.style.cssText = `
                     display: block;
                     margin: 25px auto 10px;
@@ -170,13 +161,38 @@ document.addEventListener('DOMContentLoaded', function() {
                     border-radius: 6px;
                     cursor: pointer;
                     transition: all 0.3s;
-                    font-family: inherit;
-                    font-size: 14px;
                 `;
-                contentElement.appendChild(printBtn);
                 
-                // 添加打印事件监听
-                addPrintEventListener(button, contentElement);
+                printBtn.addEventListener('click', function() {
+                    const printWindow = window.open('', '_blank');
+                    const printContent = `
+                        <!DOCTYPE html>
+                        <html>
+                        <head>
+                            <title>${document.title} - ${section}</title>
+                            <style>
+                                body { font-family: Arial, sans-serif; padding: 20px; }
+                                h2 { color: #6a3093; text-align: center; }
+                                table { width: 100%; border-collapse: collapse; }
+                                th, td { padding: 8px; border: 1px solid #ddd; }
+                                .print-footer { margin-top: 20px; text-align: center; font-size: 12px; color: #999; }
+                            </style>
+                        </head>
+                        <body>
+                            <h2>${buttonText}</h2>
+                            ${contentElement.innerHTML.replace(printBtn.outerHTML, '')}
+                            <div class="print-footer">
+                                打印时间：${new Date().toLocaleString('zh-CN')}
+                            </div>
+                        </body>
+                        </html>
+                    `;
+                    printWindow.document.write(printContent);
+                    printWindow.document.close();
+                    printWindow.print();
+                });
+                
+                contentElement.appendChild(printBtn);
                 
                 // 更新按钮状态
                 this.disabled = false;
@@ -195,11 +211,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // 错误处理
                 contentElement.innerHTML = `
-                    <div class="error-message" style="
-                        padding: 20px;
-                        color: var(--fire-color);
-                        text-align: center;
-                    ">
+                    <div style="padding: 20px; color: #E62B1E; text-align: center;">
                         <i class="fas fa-exclamation-triangle"></i>
                         <p>加载失败，请<a href="#" onclick="location.reload()">刷新页面</a>重试</p>
                     </div>
@@ -212,7 +224,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
-
+}
     // 打印功能函数保持不变
     function addPrintEventListener(button, contentElement) {
         const printBtn = contentElement.querySelector('.print-btn');
