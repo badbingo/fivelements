@@ -131,103 +131,147 @@ document.addEventListener('DOMContentLoaded', function() {
     // 在initLoadButtons函数中修改点击事件处理
 function initLoadButtons() {
     document.querySelectorAll('.load-btn').forEach(button => {
-        const section = button.getAttribute('data-section');
-        const contentElement = document.getElementById(`${section}-content`);
-        
         button.addEventListener('click', async function(e) {
             e.preventDefault();
             
-            // 添加加载效果
-            contentElement.classList.add('loading-effect');
-            
+            const section = this.getAttribute('data-section');
+            const contentElement = document.getElementById(`${section}-content`);
+            const buttonText = this.querySelector('span').textContent.trim();
             const cacheKey = `${maleData.date}-${maleData.time}-${femaleData.date}-${femaleData.time}-${section}`;
-            
-            // 检查是否已经加载过内容
-            const hasContent = contentElement.innerHTML.trim() !== '';
-            
-            // 如果已经有内容，直接切换显示/隐藏状态
-            if (hasContent) {
-                contentElement.classList.remove('loading-effect');
+
+            // 1. 检查是否已有内容（切换显示/隐藏）
+            if (contentElement.innerHTML.trim() !== '') {
                 contentElement.classList.toggle('active');
-                button.querySelector('.toggle-icon').classList.toggle('rotate-180');
-                
-                // 调整内容区域高度
-                if (contentElement.classList.contains('active')) {
-                    contentElement.style.minHeight = `${contentElement.scrollHeight}px`;
-                } else {
-                    contentElement.style.minHeight = '0';
-                }
+                const icon = this.querySelector('.toggle-icon');
+                icon.classList.toggle('fa-chevron-down');
+                icon.classList.toggle('fa-chevron-up');
                 return;
             }
-            
-            // 如果缓存中有内容，使用缓存
+
+            // 2. 检查缓存
             if (analysisCache[cacheKey]) {
                 contentElement.innerHTML = analysisCache[cacheKey];
-                contentElement.classList.remove('loading-effect');
                 contentElement.classList.add('active');
-                button.querySelector('.toggle-icon').classList.add('rotate-180');
-                contentElement.style.minHeight = `${contentElement.scrollHeight}px`;
+                this.querySelector('.toggle-icon').classList.add('fa-chevron-up');
+                this.querySelector('.toggle-icon').classList.remove('fa-chevron-down');
                 return;
             }
-            
-            // 加载新内容
+
+            // 3. 准备加载状态
             this.disabled = true;
-            const buttonText = button.textContent.trim();
-            button.innerHTML = `<span><span class="loading"></span> ${buttonText}</span><i class="fas fa-chevron-down toggle-icon"></i>`;
-            
-            const progressContainer = document.createElement('div');
-            progressContainer.className = 'progress-container';
-            progressContainer.innerHTML = '<div class="progress-bar"></div>';
-            
-            contentElement.innerHTML = '';
-            contentElement.appendChild(progressContainer);
-            
-            const progressBar = progressContainer.querySelector('.progress-bar');
-            let progress = 0;
-            const progressInterval = setInterval(() => {
-                progress += Math.random() * 10;
-                if (progress >= 100) progress = 100;
-                progressBar.style.width = `${progress}%`;
-            }, 300);
-            
+            this.innerHTML = `
+                <span>
+                    <span class="loading-spinner" style="
+                        display: inline-block;
+                        width: 14px;
+                        height: 14px;
+                        border: 2px solid rgba(230,43,30,0.2);
+                        border-top-color: #E62B1E;
+                        border-radius: 50%;
+                        animation: spin 1s linear infinite;
+                        margin-right: 8px;
+                        vertical-align: middle;
+                    "></span>
+                    ${buttonText}
+                </span>
+                <i class="fas fa-chevron-down toggle-icon"></i>
+            `;
+
+            // 4. 显示内容区域加载效果
+            contentElement.innerHTML = `
+                <div class="loading-overlay" style="
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(255,255,255,0.85);
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    z-index: 10;
+                    backdrop-filter: blur(3px);
+                    border-radius: 0 0 12px 12px;
+                ">
+                    <div style="
+                        width: 40px;
+                        height: 40px;
+                        border: 4px solid rgba(230,43,30,0.2);
+                        border-top-color: #E62B1E;
+                        border-radius: 50%;
+                        animation: spin 1s linear infinite;
+                        margin-bottom: 15px;
+                    "></div>
+                    <div style="
+                        color: #E62B1E;
+                        font-size: 1.1rem;
+                        font-weight: 500;
+                    ">合婚数据库解索中，请耐心等待...</div>
+                </div>
+            `;
+            contentElement.style.position = 'relative';
+            contentElement.style.minHeight = '200px';
+
             try {
-                const startTime = performance.now();
+                // 5. 获取分析数据
                 const result = await getMarriageAnalysis(section, maleData, femaleData);
-                const endTime = performance.now();
                 
-                clearInterval(progressInterval);
-                contentElement.classList.remove('loading-effect');
+                // 6. 处理结果
+                analysisCache[cacheKey] = result;
                 displaySectionContent(section, result, contentElement);
                 
-                analysisCache[cacheKey] = contentElement.innerHTML;
-                
-                button.innerHTML = `<span><i class="fas fa-${button.getAttribute('data-section') === 'basic-analysis' ? 'heartbeat' : 
-                              button.getAttribute('data-section') === 'element-analysis' ? 'yin-yang' : 
-                              button.getAttribute('data-section') === 'god-analysis' ? 'star' : 
-                              button.getAttribute('data-section') === 'male-fate' ? 'mars' : 
-                              button.getAttribute('data-section') === 'female-fate' ? 'venus' : 
-                              button.getAttribute('data-section') === 'strength-weakness' ? 'balance-scale' : 
-                              button.getAttribute('data-section') === 'improvement' ? 'hands-helping' : 'calendar-check'}"></i> ${buttonText}</span><i class="fas fa-chevron-down toggle-icon rotate-180"></i>`;
-                button.disabled = false;
-                contentElement.classList.add('active');
-                loadedSections[section] = true;
+                // 7. 恢复按钮状态
+                this.disabled = false;
+                this.innerHTML = `
+                    <span>
+                        <i class="fas fa-${getSectionIcon(section)}"></i>
+                        ${buttonText}
+                    </span>
+                    <i class="fas fa-chevron-up toggle-icon"></i>
+                `;
                 
             } catch (error) {
                 console.error(`加载${section}失败:`, error);
-                clearInterval(progressInterval);
-                contentElement.classList.remove('loading-effect');
-                contentElement.innerHTML = '<p style="color:var(--fire-color)">加载失败，请重试</p>';
-                button.disabled = false;
-                button.innerHTML = `<span><i class="fas fa-${button.getAttribute('data-section') === 'basic-analysis' ? 'heartbeat' : 
-                              button.getAttribute('data-section') === 'element-analysis' ? 'yin-yang' : 
-                              button.getAttribute('data-section') === 'god-analysis' ? 'star' : 
-                              button.getAttribute('data-section') === 'male-fate' ? 'mars' : 
-                              button.getAttribute('data-section') === 'female-fate' ? 'venus' : 
-                              button.getAttribute('data-section') === 'strength-weakness' ? 'balance-scale' : 
-                              button.getAttribute('data-section') === 'improvement' ? 'hands-helping' : 'calendar-check'}"></i> ${buttonText}</span><i class="fas fa-chevron-down toggle-icon"></i>`;
+                
+                // 8. 错误处理
+                contentElement.innerHTML = `
+                    <div class="error-message" style="
+                        padding: 20px;
+                        color: var(--fire-color);
+                        text-align: center;
+                    ">
+                        <i class="fas fa-exclamation-triangle" style="font-size: 1.5rem; margin-bottom: 10px;"></i>
+                        <p>加载失败，请<a href="#" onclick="location.reload()">刷新页面</a>重试</p>
+                    </div>
+                `;
+                
+                this.disabled = false;
+                this.innerHTML = `
+                    <span>
+                        <i class="fas fa-${getSectionIcon(section)}"></i>
+                        ${buttonText}
+                    </span>
+                    <i class="fas fa-chevron-down toggle-icon"></i>
+                `;
             }
         });
     });
+}
+
+// 辅助函数：获取不同模块的图标
+function getSectionIcon(section) {
+    const icons = {
+        'basic-analysis': 'heartbeat',
+        'element-analysis': 'yin-yang',
+        'god-analysis': 'star',
+        'male-fate': 'mars',
+        'female-fate': 'venus',
+        'strength-weakness': 'balance-scale',
+        'improvement': 'hands-helping',
+        'timing': 'calendar-check'
+    };
+    return icons[section] || 'info-circle';
 }
     
     // 使用lunar.js计算八字
