@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const resultSection = document.getElementById('result-section');
     const apiStatus = document.getElementById('api-status');
     
-    // 八字四柱元素1
+    // 八字四柱元素
     const maleYearStem = document.getElementById('male-year-stem');
     const maleYearBranch = document.getElementById('male-year-branch');
     const maleMonthStem = document.getElementById('male-month-stem');
@@ -239,97 +239,6 @@ document.addEventListener('DOMContentLoaded', function() {
         };
     }
     
-    calculateBtn.addEventListener('click', async function(e) {
-        e.preventDefault();
-        
-        const maleName = document.getElementById('male-name').value;
-        const maleBirthDate = document.getElementById('male-birth-date').value;
-        const maleBirthTime = document.getElementById('male-birth-time').value;
-        
-        const femaleName = document.getElementById('female-name').value;
-        const femaleBirthDate = document.getElementById('female-birth-date').value;
-        const femaleBirthTime = document.getElementById('female-birth-time').value;
-        
-        if (!maleBirthDate || !maleBirthTime || !femaleBirthDate || !femaleBirthTime) {
-            showApiStatus('请填写完整的出生信息', 'error');
-            return;
-        }
-        
-        const [maleYear, maleMonth, maleDay] = maleBirthDate.split('-');
-        const maleHours = maleBirthTime.split(':')[0];
-        const maleMinutes = maleBirthTime.split(':')[1];
-        const maleBirthDateTime = new Date(maleYear, maleMonth-1, maleDay, maleHours, maleMinutes);
-        const maleTimezoneOffset = maleBirthDateTime.getTimezoneOffset();
-        
-        maleData = { 
-            name: maleName,
-            date: `${maleYear}年${maleMonth}月${maleDay}日`,
-            time: `${maleHours}时${maleMinutes}分`, 
-            timezoneOffset: maleTimezoneOffset
-        };
-        
-        const [femaleYear, femaleMonth, femaleDay] = femaleBirthDate.split('-');
-        const femaleHours = femaleBirthTime.split(':')[0];
-        const femaleMinutes = femaleBirthTime.split(':')[1];
-        const femaleBirthDateTime = new Date(femaleYear, femaleMonth-1, femaleDay, femaleHours, femaleMinutes);
-        const femaleTimezoneOffset = femaleBirthDateTime.getTimezoneOffset();
-        
-        femaleData = { 
-            name: femaleName,
-            date: `${femaleYear}年${femaleMonth}月${femaleDay}日`,
-            time: `${femaleHours}时${femaleMinutes}分`, 
-            timezoneOffset: femaleTimezoneOffset
-        };
-        
-        calculateBtn.disabled = true;
-        calculateBtn.innerHTML = '<span class="loading"></span> 测算中...';
-        showApiStatus('开始测算，请稍候...', 'success');
-        
-        try {
-            // 使用lunar.js计算八字
-            const maleBazi = calculateBazi(maleBirthDate, maleBirthTime);
-            const femaleBazi = calculateBazi(femaleBirthDate, femaleBirthTime);
-            
-            // 更新八字显示
-            maleYearStem.textContent = maleBazi.year.stem;
-            maleYearBranch.textContent = maleBazi.year.branch;
-            maleMonthStem.textContent = maleBazi.month.stem;
-            maleMonthBranch.textContent = maleBazi.month.branch;
-            maleDayStem.textContent = maleBazi.day.stem;
-            maleDayBranch.textContent = maleBazi.day.branch;
-            maleHourStem.textContent = maleBazi.hour.stem;
-            maleHourBranch.textContent = maleBazi.hour.branch;
-            
-            femaleYearStem.textContent = femaleBazi.year.stem;
-            femaleYearBranch.textContent = femaleBazi.year.branch;
-            femaleMonthStem.textContent = femaleBazi.month.stem;
-            femaleMonthBranch.textContent = femaleBazi.month.branch;
-            femaleDayStem.textContent = femaleBazi.day.stem;
-            femaleDayBranch.textContent = femaleBazi.day.branch;
-            femaleHourStem.textContent = femaleBazi.hour.stem;
-            femaleHourBranch.textContent = femaleBazi.hour.branch;
-            
-            // 使用确定性算法计算合婚评分
-            const score = calculateCompatibilityScore(maleData, femaleData);
-            updateCompatibilityScore(score);
-            
-            inputSection.style.display = 'none';
-            resultSection.style.display = 'block';
-            calculateBtn.disabled = false;
-            calculateBtn.innerHTML = '<i class="fas fa-heart"></i> 开始结婚测算';
-            
-            initLoadButtons();
-            window.scrollTo(0, 0);
-            
-            showApiStatus('测算完成', 'success');
-        } catch (error) {
-            console.error('测算失败:', error);
-            showApiStatus(`测算失败: ${error.message}`, 'error');
-            calculateBtn.disabled = false;
-            calculateBtn.innerHTML = '<i class="fas fa-heart"></i> 开始结婚测算';
-        }
-    });
-    
     // 确定性合婚评分算法
     function calculateCompatibilityScore(maleData, femaleData) {
         // 使用双方出生日期和时间作为种子
@@ -347,6 +256,106 @@ document.addEventListener('DOMContentLoaded', function() {
         const score = 60 + Math.abs(hash) % 36;
         
         return score;
+    }
+    
+    function updateCompatibilityScore(score) {
+        score = parseInt(score);
+        if (isNaN(score)) {
+            score = 50;
+        }
+        score = Math.max(0, Math.min(100, score));
+        
+        compatibilityScore.textContent = score;
+        compatibilityMeter.style.width = `${score}%`;
+        
+        if (score >= 80) {
+            recommendation.className = 'recommendation good-match';
+            recommendation.innerHTML = '<i class="fas fa-heart"></i> 八字高度匹配 - 双方非常合适';
+        } else if (score >= 60) {
+            recommendation.className = 'recommendation medium-match';
+            recommendation.innerHTML = '<i class="fas fa-handshake"></i> 八字匹配良好 - 需要少量调和';
+        } else {
+            recommendation.className = 'recommendation bad-match';
+            recommendation.innerHTML = '<i class="fas fa-exclamation-triangle"></i> 八字匹配度低 - 需要谨慎考虑';
+        }
+        
+        animateScore(score);
+    }
+    
+    function animateScore(targetScore) {
+        let currentScore = 0;
+        const increment = Math.ceil(targetScore / 20);
+        const scoreInterval = setInterval(() => {
+            currentScore += increment;
+            if (currentScore >= targetScore) {
+                currentScore = targetScore;
+                clearInterval(scoreInterval);
+            }
+            compatibilityScore.textContent = currentScore;
+            compatibilityMeter.style.width = `${currentScore}%`;
+        }, 50);
+    }
+    
+    function displaySectionContent(section, result, contentElement) {
+        // 使用marked.js解析Markdown内容
+        const htmlContent = marked.parse(result);
+        
+        // 创建临时容器来放置解析后的HTML
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = htmlContent;
+        
+        // 处理表格样式
+        const tables = tempDiv.querySelectorAll('table');
+        tables.forEach(table => {
+            table.classList.add('markdown-table');
+        });
+        
+        // 清空内容区域
+        contentElement.innerHTML = '';
+        
+        // 将解析后的内容添加到内容区域
+        contentElement.appendChild(tempDiv);
+        
+        // 创建打印按钮
+        const printBtn = document.createElement('button');
+        printBtn.innerHTML = '<i class="fas fa-print"></i> 打印此内容';
+        printBtn.className = 'load-btn';
+        printBtn.style.marginTop = '20px';
+        printBtn.style.width = 'auto';
+        printBtn.style.display = 'block';
+        printBtn.style.marginLeft = 'auto';
+        printBtn.style.marginRight = 'auto';
+        
+        // 添加打印功能
+        printBtn.addEventListener('click', function() {
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>打印内容</title>
+                    <style>
+                        body { font-family: 'Noto Sans SC', sans-serif; padding: 20px; }
+                        h2 { color: ${getComputedStyle(document.documentElement).getPropertyValue('--accent-color')}; 
+                             text-align: center; margin-bottom: 30px; }
+                        table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+                        th, td { padding: 10px; border: 1px solid #ddd; text-align: left; }
+                        th { background-color: #f5f5f5; }
+                    </style>
+                </head>
+                <body>
+                    <h2>${document.querySelector('.header-title').textContent} - ${document.querySelector(`.load-btn[data-section="${section}"] span`).textContent.trim()}</h2>
+                    ${contentElement.innerHTML.replace('active', '')}
+                    <script>
+                        setTimeout(function() { window.print(); }, 300);
+                    </script>
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+        });
+        
+        contentElement.appendChild(printBtn);
     }
     
     async function getMarriageAnalysis(section, maleData, femaleData) {
@@ -546,102 +555,96 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    function displaySectionContent(section, result, contentElement) {
-    // 使用marked.js解析Markdown内容
-    const htmlContent = marked.parse(result);
-    
-    // 创建临时容器来放置解析后的HTML
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = htmlContent;
-    
-    // 处理表格样式
-    const tables = tempDiv.querySelectorAll('table');
-    tables.forEach(table => {
-        table.classList.add('markdown-table');
+    calculateBtn.addEventListener('click', async function(e) {
+        e.preventDefault();
+        
+        const maleName = document.getElementById('male-name').value;
+        const maleBirthDate = document.getElementById('male-birth-date').value;
+        const maleBirthTime = document.getElementById('male-birth-time').value;
+        
+        const femaleName = document.getElementById('female-name').value;
+        const femaleBirthDate = document.getElementById('female-birth-date').value;
+        const femaleBirthTime = document.getElementById('female-birth-time').value;
+        
+        if (!maleBirthDate || !maleBirthTime || !femaleBirthDate || !femaleBirthTime) {
+            showApiStatus('请填写完整的出生信息', 'error');
+            return;
+        }
+        
+        const [maleYear, maleMonth, maleDay] = maleBirthDate.split('-');
+        const maleHours = maleBirthTime.split(':')[0];
+        const maleMinutes = maleBirthTime.split(':')[1];
+        const maleBirthDateTime = new Date(maleYear, maleMonth-1, maleDay, maleHours, maleMinutes);
+        const maleTimezoneOffset = maleBirthDateTime.getTimezoneOffset();
+        
+        maleData = { 
+            name: maleName,
+            date: `${maleYear}年${maleMonth}月${maleDay}日`,
+            time: `${maleHours}时${maleMinutes}分`, 
+            timezoneOffset: maleTimezoneOffset
+        };
+        
+        const [femaleYear, femaleMonth, femaleDay] = femaleBirthDate.split('-');
+        const femaleHours = femaleBirthTime.split(':')[0];
+        const femaleMinutes = femaleBirthTime.split(':')[1];
+        const femaleBirthDateTime = new Date(femaleYear, femaleMonth-1, femaleDay, femaleHours, femaleMinutes);
+        const femaleTimezoneOffset = femaleBirthDateTime.getTimezoneOffset();
+        
+        femaleData = { 
+            name: femaleName,
+            date: `${femaleYear}年${femaleMonth}月${femaleDay}日`,
+            time: `${femaleHours}时${femaleMinutes}分`, 
+            timezoneOffset: femaleTimezoneOffset
+        };
+        
+        calculateBtn.disabled = true;
+        calculateBtn.innerHTML = '<span class="loading"></span> 测算中...';
+        showApiStatus('开始测算，请稍候...', 'success');
+        
+        try {
+            // 使用lunar.js计算八字
+            const maleBazi = calculateBazi(maleBirthDate, maleBirthTime);
+            const femaleBazi = calculateBazi(femaleBirthDate, femaleBirthTime);
+            
+            // 更新八字显示
+            maleYearStem.textContent = maleBazi.year.stem;
+            maleYearBranch.textContent = maleBazi.year.branch;
+            maleMonthStem.textContent = maleBazi.month.stem;
+            maleMonthBranch.textContent = maleBazi.month.branch;
+            maleDayStem.textContent = maleBazi.day.stem;
+            maleDayBranch.textContent = maleBazi.day.branch;
+            maleHourStem.textContent = maleBazi.hour.stem;
+            maleHourBranch.textContent = maleBazi.hour.branch;
+            
+            femaleYearStem.textContent = femaleBazi.year.stem;
+            femaleYearBranch.textContent = femaleBazi.year.branch;
+            femaleMonthStem.textContent = femaleBazi.month.stem;
+            femaleMonthBranch.textContent = femaleBazi.month.branch;
+            femaleDayStem.textContent = femaleBazi.day.stem;
+            femaleDayBranch.textContent = femaleBazi.day.branch;
+            femaleHourStem.textContent = femaleBazi.hour.stem;
+            femaleHourBranch.textContent = femaleBazi.hour.branch;
+            
+            // 使用确定性算法计算合婚评分
+            const score = calculateCompatibilityScore(maleData, femaleData);
+            updateCompatibilityScore(score);
+            
+            inputSection.style.display = 'none';
+            resultSection.style.display = 'block';
+            calculateBtn.disabled = false;
+            calculateBtn.innerHTML = '<i class="fas fa-heart"></i> 开始结婚测算';
+            
+            initLoadButtons();
+            window.scrollTo(0, 0);
+            
+            showApiStatus('测算完成', 'success');
+        } catch (error) {
+            console.error('测算失败:', error);
+            showApiStatus(`测算失败: ${error.message}`, 'error');
+            calculateBtn.disabled = false;
+            calculateBtn.innerHTML = '<i class="fas fa-heart"></i> 开始结婚测算';
+        }
     });
-    
-    // 清空内容区域（确保没有重复内容）
-    contentElement.innerHTML = '';
-    
-    // 将解析后的内容添加到内容区域
-    contentElement.appendChild(tempDiv);
-    
-    // 创建打印按钮容器（确保它不会被Markdown内容覆盖）
-    const printBtnContainer = document.createElement('div');
-    printBtnContainer.style.textAlign = 'center';
-    printBtnContainer.style.marginTop = '20px';
-    
-    // 创建打印按钮
-    const printBtn = document.createElement('button');
-    printBtn.innerHTML = '<i class="fas fa-print"></i> 打印此内容';
-    printBtn.className = 'load-btn'; // 使用现有的load-btn样式
-    printBtn.style.display = 'inline-block';
-    printBtn.style.padding = '10px 20px';
-    
-    // 添加打印功能
-    printBtn.addEventListener('click', function() {
-        const printWindow = window.open('', '_blank');
-        printWindow.document.write(`
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <title>打印内容</title>
-                <style>
-                    body { font-family: 'Noto Sans SC', sans-serif; padding: 20px; }
-                    h2 { color: ${getComputedStyle(document.documentElement).getPropertyValue('--accent-color')}; 
-                         text-align: center; margin-bottom: 30px; }
-                    table { width: 100%; border-collapse: collapse; margin: 15px 0; }
-                    th, td { padding: 10px; border: 1px solid #ddd; text-align: left; }
-                    th { background-color: #f5f5f5; }
-                </style>
-            </head>
-            <body>
-                <h2>${document.querySelector('.header-title').textContent} - ${document.querySelector(`.load-btn[data-section="${section}"] span`).textContent.trim()}</h2>
-                ${contentElement.innerHTML.replace('active', '')}
-                <script>
-                    setTimeout(function() { window.print(); }, 300);
-                </script>
-            </body>
-            </html>
-        `);
-        printWindow.document.close();
-    });
-    
-    printBtnContainer.appendChild(printBtn);
-    contentElement.appendChild(printBtnContainer);
-}
-    
-    function animateScore(targetScore) {
-        let currentScore = 0;
-        const increment = Math.ceil(targetScore / 20);
-        const scoreInterval = setInterval(() => {
-            currentScore += increment;
-            if (currentScore >= targetScore) {
-                currentScore = targetScore;
-                clearInterval(scoreInterval);
-            }
-            compatibilityScore.textContent = currentScore;
-            compatibilityMeter.style.width = `${currentScore}%`;
-        }, 50);
-    }
-    
-    function displaySectionContent(section, result, contentElement) {
-        // 使用marked.js解析Markdown内容
-        const htmlContent = marked.parse(result);
-        
-        // 创建临时容器来放置解析后的HTML
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = htmlContent;
-        
-        // 处理表格样式
-        const tables = tempDiv.querySelectorAll('table');
-        tables.forEach(table => {
-            table.classList.add('markdown-table');
-        });
-        
-        // 将处理后的内容放入目标元素
-        contentElement.innerHTML = tempDiv.innerHTML;
-    }
     
     window.addEventListener('load', function() {
         const today = new Date();
