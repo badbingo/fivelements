@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const resultSection = document.getElementById('result-section');
     const apiStatus = document.getElementById('api-status');
     
-    // 八字四柱元素a
+    // 八字四柱元素c
     const maleYearStem = document.getElementById('male-year-stem');
     const maleYearBranch = document.getElementById('male-year-branch');
     const maleMonthStem = document.getElementById('male-month-stem');
@@ -78,236 +78,220 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     function resetAllContent() {
-    // 1. 清除所有加载动画元素
-    document.querySelectorAll('.button-loading, .loading-spinner, .loading-overlay').forEach(el => {
-        el.remove();
-    });
-
-    // 2. 重置八字四柱显示
-    const baziElements = [
-        'male-year-stem', 'male-year-branch', 'male-month-stem', 'male-month-branch',
-        'male-day-stem', 'male-day-branch', 'male-hour-stem', 'male-hour-branch',
-        'female-year-stem', 'female-year-branch', 'female-month-stem', 'female-month-branch',
-        'female-day-stem', 'female-day-branch', 'female-hour-stem', 'female-hour-branch'
-    ];
+        // Reset Bazi display
+        maleYearStem.textContent = '';
+        maleYearBranch.textContent = '';
+        maleMonthStem.textContent = '';
+        maleMonthBranch.textContent = '';
+        maleDayStem.textContent = '';
+        maleDayBranch.textContent = '';
+        maleHourStem.textContent = '';
+        maleHourBranch.textContent = '';
+        
+        femaleYearStem.textContent = '';
+        femaleYearBranch.textContent = '';
+        femaleMonthStem.textContent = '';
+        femaleMonthBranch.textContent = '';
+        femaleDayStem.textContent = '';
+        femaleDayBranch.textContent = '';
+        femaleHourStem.textContent = '';
+        femaleHourBranch.textContent = '';
+        
+        // Reset compatibility score
+        compatibilityScore.textContent = '-';
+        compatibilityMeter.style.width = '0%';
+        recommendation.className = 'recommendation';
+        recommendation.innerHTML = '<i class="fas fa-heart"></i> 分析中...';
+        
+        // Reset all section content
+        document.querySelectorAll('.section-content').forEach(el => {
+            el.innerHTML = '';
+            el.classList.remove('active');
+            el.style.minHeight = '0';
+        });
+        
+        // Reset all load buttons
+        document.querySelectorAll('.load-btn').forEach(btn => {
+            btn.innerHTML = `
+                <span>
+                    <i class="fas fa-${btn.getAttribute('data-section') === 'basic-analysis' ? 'heartbeat' : 
+                    btn.getAttribute('data-section') === 'element-analysis' ? 'yin-yang' : 
+                    btn.getAttribute('data-section') === 'god-analysis' ? 'star' : 
+                    btn.getAttribute('data-section') === 'male-fate' ? 'mars' : 
+                    btn.getAttribute('data-section') === 'female-fate' ? 'venus' : 
+                    btn.getAttribute('data-section') === 'strength-weakness' ? 'balance-scale' : 
+                    btn.getAttribute('data-section') === 'improvement' ? 'hands-helping' : 'calendar-check'}"></i> 
+                    ${btn.textContent.trim()}
+                </span>
+                <i class="fas fa-chevron-down toggle-icon"></i>`;
+            btn.classList.remove('active');
+            btn.disabled = false;
+        });
+        
+        // Reset tabs
+        document.querySelectorAll('.menu-tab').forEach(tab => tab.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+        document.querySelector('.menu-tab[data-tab="compatibility"]').classList.add('active');
+        document.getElementById('compatibility-tab').classList.add('active');
+    }
     
-    baziElements.forEach(id => {
-        document.getElementById(id).textContent = '';
-    });
-
-    // 3. 重置合婚评分
-    document.getElementById('compatibility-score').textContent = '-';
-    document.getElementById('compatibility-meter').style.width = '0%';
-    const recommendation = document.getElementById('recommendation');
-    recommendation.className = 'recommendation';
-    recommendation.innerHTML = '<i class="fas fa-heart"></i> 分析中...';
-
-    // 4. 重置所有内容区域
-    document.querySelectorAll('.section-content').forEach(el => {
-        el.innerHTML = '';
-        el.classList.remove('active');
-        el.style.minHeight = '0';
-        el.style.position = '';
-        el.style.overflow = '';
-    });
-
-    // 5. 重置所有目录按钮
-    document.querySelectorAll('.load-btn').forEach(btn => {
-        const section = btn.getAttribute('data-section');
-        const iconMap = {
-            'basic-analysis': 'heartbeat',
-            'element-analysis': 'yin-yang',
-            'god-analysis': 'star',
-            'male-fate': 'mars',
-            'female-fate': 'venus',
-            'strength-weakness': 'balance-scale',
-            'improvement': 'hands-helping',
-            'timing': 'calendar-check'
-        };
-
-        btn.innerHTML = `
-            <span>
-                <i class="fas fa-${iconMap[section] || 'info-circle'}"></i>
-                ${btn.textContent.trim()}
-            </span>
-            <i class="fas fa-chevron-down toggle-icon"></i>
-        `;
-        
-        btn.classList.remove('active', 'loading');
-        btn.disabled = false;
-        
-        // 确保图标状态正确
-        const toggleIcon = btn.querySelector('.toggle-icon');
-        if (toggleIcon) {
-            toggleIcon.classList.add('fa-chevron-down');
-            toggleIcon.classList.remove('fa-chevron-up');
-            toggleIcon.style.display = '';
-        }
-    });
-
-    // 6. 重置标签页状态
     document.querySelectorAll('.menu-tab').forEach(tab => {
-        tab.classList.remove('active');
+        tab.addEventListener('click', function() {
+            document.querySelectorAll('.menu-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            this.classList.add('active');
+            const tabId = this.getAttribute('data-tab') + '-tab';
+            document.getElementById(tabId).classList.add('active');
+        });
     });
-    document.querySelectorAll('.tab-content').forEach(content => {
-        content.classList.remove('active');
-    });
-    
-    // 默认激活合婚标签页
-    document.querySelector('.menu-tab[data-tab="compatibility"]').classList.add('active');
-    document.getElementById('compatibility-tab').classList.add('active');
-
-    // 7. 清除缓存数据
-    analysisCache = {};
-    loadedSections = {};
-    maleData = {};
-    femaleData = {};
-}
     
     function initLoadButtons() {
-    // 先移除所有旧的点击事件监听器
     document.querySelectorAll('.load-btn').forEach(button => {
-        button.removeEventListener('click', loadButtonClickHandler);
-    });
-
-    // 为所有目录按钮绑定新的事件处理程序
-    document.querySelectorAll('.load-btn').forEach(button => {
-        button.addEventListener('click', loadButtonClickHandler);
-    });
-
-    async function loadButtonClickHandler(e) {
-        e.preventDefault();
-        const button = this;
-        const section = button.getAttribute('data-section');
-        const contentElement = document.getElementById(`${section}-content`);
-        const toggleIcon = button.querySelector('.toggle-icon');
-        const buttonText = button.querySelector('span').textContent.trim();
-        const cacheKey = `${maleData.date}-${maleData.time}-${femaleData.date}-${femaleData.time}-${section}`;
-
-        // 1. 处理折叠/展开切换
-        if (contentElement.innerHTML.trim() && !button.classList.contains('loading')) {
-            // 切换展开状态
-            const isActivating = !contentElement.classList.contains('active');
+        button.addEventListener('click', async function(e) {
+            e.preventDefault();
             
-            button.classList.toggle('active');
-            contentElement.classList.toggle('active');
-            
-            // 更新图标状态
-            toggleIcon.classList.toggle('fa-chevron-down');
-            toggleIcon.classList.toggle('fa-chevron-up');
-            
-            // 动画处理
-            if (isActivating) {
-                contentElement.style.minHeight = `${contentElement.scrollHeight}px`;
-            } else {
-                contentElement.style.minHeight = '0';
+            const section = this.getAttribute('data-section');
+            const contentElement = document.getElementById(`${section}-content`);
+            const buttonText = this.querySelector('span').textContent.trim();
+            const cacheKey = `${maleData.date}-${maleData.time}-${femaleData.date}-${femaleData.time}-${section}`;
+
+            // 1. 检查内容是否已存在 (切换显示/隐藏)
+            if (contentElement.innerHTML.trim() !== '' && !this.classList.contains('loading')) {
+                this.classList.toggle('active');
+                contentElement.classList.toggle('active');
+                
+                const icon = this.querySelector('.toggle-icon');
+                icon.classList.toggle('fa-chevron-down');
+                icon.classList.toggle('fa-chevron-up');
+                
+                contentElement.style.minHeight = contentElement.classList.contains('active') 
+                    ? `${contentElement.scrollHeight}px` 
+                    : '0';
+                return;
             }
-            return;
-        }
 
-        // 2. 检查缓存
-        if (analysisCache[cacheKey]) {
-            contentElement.innerHTML = analysisCache[cacheKey];
-            contentElement.classList.add('active');
-            button.classList.add('active');
-            toggleIcon.classList.add('fa-chevron-up');
-            toggleIcon.classList.remove('fa-chevron-down');
-            contentElement.style.minHeight = `${contentElement.scrollHeight}px`;
-            return;
-        }
-
-        // 3. 设置加载状态（无动画）
-        button.disabled = true;
-        button.classList.add('loading');
-
-        // 4. 显示内容加载效果
-        contentElement.innerHTML = `
-            <div class="loading-overlay">
-                <div class="loading-spinner"></div>
-                <div class="loading-text">合婚数据库解索中，请耐心等待...</div>
-            </div>
-        `;
-        contentElement.style.minHeight = '200px';
-
-        try {
-            // 5. 获取分析数据
-            const result = await getMarriageAnalysis(section, maleData, femaleData);
-            
-            // 6. 处理结果
-            analysisCache[cacheKey] = result;
-            
-            // 7. 移除加载状态
-            button.classList.remove('loading');
-            button.disabled = false;
-            
-            // 8. 显示内容
-            const htmlContent = marked.parse(result);
-            contentElement.innerHTML = htmlContent;
-            
-            // 标准化表格样式
-            contentElement.querySelectorAll('table').forEach(table => {
-                table.classList.add('markdown-table');
-            });
-            
-            // 添加打印按钮
-            const printBtn = document.createElement('button');
-            printBtn.className = 'print-btn';
-            printBtn.innerHTML = '<i class="fas fa-print"></i> 打印此内容';
-            contentElement.appendChild(printBtn);
-            
-            printBtn.addEventListener('click', () => {
-                const printContent = contentElement.innerHTML;
-                const printWindow = window.open('', '_blank');
-                printWindow.document.write(`
-                    <!DOCTYPE html>
-                    <html>
-                    <head>
-                        <title>${buttonText}</title>
-                        <style>
-                            body { font-family: Arial, sans-serif; padding: 20px; }
-                            .markdown-table { width: 100%; border-collapse: collapse; }
-                            .markdown-table th, .markdown-table td { padding: 8px; border: 1px solid #ddd; }
-                            .print-btn { display: none; }
-                        </style>
-                    </head>
-                    <body>
-                        <h2>${buttonText}</h2>
-                        ${printContent}
-                    </body>
-                    </html>
-                `);
-                printWindow.document.close();
-                printWindow.print();
-            });
-
-            // 9. 更新按钮状态
-            button.classList.add('active');
-            toggleIcon.classList.add('fa-chevron-up');
-            toggleIcon.classList.remove('fa-chevron-down');
-            
-            // 10. 显示内容区域
-            setTimeout(() => {
+            // 2. 检查缓存
+            if (analysisCache[cacheKey]) {
+                contentElement.innerHTML = analysisCache[cacheKey];
+                contentElement.classList.add('active');
+                this.classList.add('active');
+                this.querySelector('.toggle-icon').classList.add('fa-chevron-up');
+                this.querySelector('.toggle-icon').classList.remove('fa-chevron-down');
                 contentElement.style.minHeight = `${contentElement.scrollHeight}px`;
-            }, 10);
+                return;
+            }
+
+            // 3. 设置加载状态 - 只禁用按钮，不添加动画
+            this.disabled = true;
             
-        } catch (error) {
-            console.error(`加载${section}失败:`, error);
-            
-            // 错误处理
+            // 4. 显示内容加载效果
             contentElement.innerHTML = `
-                <div class="error-message">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <p>加载失败，请<a href="#" onclick="location.reload()">刷新页面</a>重试</p>
+                <div class="loading-overlay" style="
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(255,255,255,0.85);
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    z-index: 10;
+                    backdrop-filter: blur(3px);
+                    border-radius: 0 0 12px 12px;
+                ">
+                    <div style="
+                        width: 40px;
+                        height: 40px;
+                        border: 4px solid rgba(230,43,30,0.2);
+                        border-top-color: #E62B1E;
+                        border-radius: 50%;
+                        animation: spin 1s linear infinite;
+                        margin-bottom: 15px;
+                    "></div>
+                    <div style="
+                        color: #E62B1E;
+                        font-size: 1.1rem;
+                        font-weight: 500;
+                    ">合婚数据库解索中，请耐心等待...</div>
                 </div>
             `;
-            
-            // 重置按钮状态
-            button.classList.remove('loading');
-            button.disabled = false;
-            toggleIcon.classList.add('fa-chevron-down');
-            toggleIcon.classList.remove('fa-chevron-up');
-        }
-    }
+            contentElement.style.position = 'relative';
+            contentElement.style.minHeight = '200px';
+
+            try {
+                // 5. 获取分析数据
+                const result = await getMarriageAnalysis(section, maleData, femaleData);
+                
+                // 6. 处理结果
+                analysisCache[cacheKey] = result;
+                
+                // 移除加载状态 - 恢复按钮状态
+                this.disabled = false;
+                
+                // 显示内容
+                const htmlContent = marked.parse(result);
+                contentElement.innerHTML = htmlContent;
+                
+                // 标准化表格样式
+                contentElement.querySelectorAll('table').forEach(table => {
+                    table.classList.add('markdown-table');
+                    table.style.width = '100%';
+                });
+                
+                // 添加打印按钮
+                const printBtn = document.createElement('button');
+                printBtn.innerHTML = '<i class="fas fa-print"></i> 打印此内容';
+                printBtn.className = 'load-btn print-btn';
+                printBtn.style.cssText = `
+                    display: block;
+                    margin: 25px auto 10px;
+                    padding: 12px 25px;
+                    background: linear-gradient(to right, #6a3093, #a044ff);
+                    color: white;
+                    border: none;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    transition: all 0.3s;
+                `;
+                contentElement.appendChild(printBtn);
+                
+                // 更新按钮状态
+                this.disabled = false;
+                this.classList.add('active');
+                this.querySelector('.toggle-icon').classList.add('fa-chevron-up');
+                this.querySelector('.toggle-icon').classList.remove('fa-chevron-down');
+                
+                // 显示内容区域
+                setTimeout(() => {
+                    contentElement.style.minHeight = `${contentElement.scrollHeight}px`;
+                    contentElement.classList.add('active');
+                }, 10);
+                
+            } catch (error) {
+                console.error(`加载${section}失败:`, error);
+                
+                // 错误处理
+                contentElement.innerHTML = `
+                    <div class="error-message" style="
+                        padding: 20px;
+                        color: var(--fire-color);
+                        text-align: center;
+                    ">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>加载失败，请<a href="#" onclick="location.reload()">刷新页面</a>重试</p>
+                    </div>
+                `;
+                
+                // 重置按钮状态
+                this.disabled = false;
+                this.querySelector('.toggle-icon').classList.add('fa-chevron-down');
+                this.querySelector('.toggle-icon').classList.remove('fa-chevron-up');
+            }
+        });
+    });
 }
     function getSectionIcon(section) {
         const icons = {
