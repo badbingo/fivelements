@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const resultSection = document.getElementById('result-section');
     const apiStatus = document.getElementById('api-status');
     
-    // 八字四柱元素2
+    // 八字四柱元素1
     const maleYearStem = document.getElementById('male-year-stem');
     const maleYearBranch = document.getElementById('male-year-branch');
     const maleMonthStem = document.getElementById('male-month-stem');
@@ -560,38 +560,55 @@ document.addEventListener('DOMContentLoaded', function() {
         table.classList.add('markdown-table');
     });
     
+    // 清空内容区域（确保没有重复内容）
+    contentElement.innerHTML = '';
+    
+    // 将解析后的内容添加到内容区域
+    contentElement.appendChild(tempDiv);
+    
+    // 创建打印按钮容器（确保它不会被Markdown内容覆盖）
+    const printBtnContainer = document.createElement('div');
+    printBtnContainer.style.textAlign = 'center';
+    printBtnContainer.style.marginTop = '20px';
+    
     // 创建打印按钮
     const printBtn = document.createElement('button');
     printBtn.innerHTML = '<i class="fas fa-print"></i> 打印此内容';
     printBtn.className = 'load-btn'; // 使用现有的load-btn样式
-    printBtn.style.marginTop = '20px';
-    printBtn.style.width = 'auto';
-    printBtn.style.display = 'block';
-    printBtn.style.marginLeft = 'auto';
-    printBtn.style.marginRight = 'auto';
+    printBtn.style.display = 'inline-block';
+    printBtn.style.padding = '10px 20px';
     
     // 添加打印功能
     printBtn.addEventListener('click', function() {
-        const printContent = contentElement.innerHTML;
-        const originalContent = document.body.innerHTML;
-        
-        document.body.innerHTML = `
-            <div style="max-width:800px; margin:0 auto; padding:20px; font-family:'Noto Sans SC', sans-serif;">
-                <h2 style="text-align:center; margin-bottom:30px; color:${getComputedStyle(document.documentElement).getPropertyValue('--accent-color')}">
-                    ${document.querySelector('.header-title').textContent} - ${document.querySelector(`.load-btn[data-section="${section}"]`).textContent.trim()}
-                </h2>
-                ${printContent.replace('active', '')}
-            </div>
-        `;
-        
-        window.print();
-        document.body.innerHTML = originalContent;
-        window.scrollTo(0, contentElement.offsetTop);
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>打印内容</title>
+                <style>
+                    body { font-family: 'Noto Sans SC', sans-serif; padding: 20px; }
+                    h2 { color: ${getComputedStyle(document.documentElement).getPropertyValue('--accent-color')}; 
+                         text-align: center; margin-bottom: 30px; }
+                    table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+                    th, td { padding: 10px; border: 1px solid #ddd; text-align: left; }
+                    th { background-color: #f5f5f5; }
+                </style>
+            </head>
+            <body>
+                <h2>${document.querySelector('.header-title').textContent} - ${document.querySelector(`.load-btn[data-section="${section}"] span`).textContent.trim()}</h2>
+                ${contentElement.innerHTML.replace('active', '')}
+                <script>
+                    setTimeout(function() { window.print(); }, 300);
+                </script>
+            </body>
+            </html>
+        `);
+        printWindow.document.close();
     });
     
-    // 将处理后的内容放入目标元素
-    contentElement.innerHTML = tempDiv.innerHTML;
-    contentElement.appendChild(printBtn);
+    printBtnContainer.appendChild(printBtn);
+    contentElement.appendChild(printBtnContainer);
 }
     
     function animateScore(targetScore) {
