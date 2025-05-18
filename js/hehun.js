@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const resultSection = document.getElementById('result-section');
     const apiStatus = document.getElementById('api-status');
     
-    // 八字四柱元素c
+    // 八字四柱元素a
     const maleYearStem = document.getElementById('male-year-stem');
     const maleYearBranch = document.getElementById('male-year-branch');
     const maleMonthStem = document.getElementById('male-month-stem');
@@ -179,13 +179,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 this.querySelector('.toggle-icon').classList.add('fa-chevron-up');
                 this.querySelector('.toggle-icon').classList.remove('fa-chevron-down');
                 contentElement.style.minHeight = `${contentElement.scrollHeight}px`;
+                
+                // 为缓存内容添加打印事件
+                addPrintEventListener(button, contentElement);
                 return;
             }
 
-            // 3. 设置加载状态 - 只禁用按钮，不添加动画
+            // 3. 设置加载状态
             this.disabled = true;
+            this.classList.add('loading');
             
-            // 4. 显示内容加载效果
+            // 4. 显示加载效果
             contentElement.innerHTML = `
                 <div class="loading-overlay" style="
                     position: absolute;
@@ -228,8 +232,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 // 6. 处理结果
                 analysisCache[cacheKey] = result;
                 
-                // 移除加载状态 - 恢复按钮状态
+                // 移除加载状态
                 this.disabled = false;
+                this.classList.remove('loading');
                 
                 // 显示内容
                 const htmlContent = marked.parse(result);
@@ -244,7 +249,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 // 添加打印按钮
                 const printBtn = document.createElement('button');
                 printBtn.innerHTML = '<i class="fas fa-print"></i> 打印此内容';
-                printBtn.className = 'load-btn print-btn';
+                printBtn.className = 'print-btn';
                 printBtn.style.cssText = `
                     display: block;
                     margin: 25px auto 10px;
@@ -255,8 +260,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     border-radius: 6px;
                     cursor: pointer;
                     transition: all 0.3s;
+                    font-family: inherit;
+                    font-size: 14px;
                 `;
                 contentElement.appendChild(printBtn);
+                
+                // 添加打印事件监听
+                addPrintEventListener(button, contentElement);
                 
                 // 更新按钮状态
                 this.disabled = false;
@@ -287,11 +297,79 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // 重置按钮状态
                 this.disabled = false;
+                this.classList.remove('loading');
                 this.querySelector('.toggle-icon').classList.add('fa-chevron-down');
                 this.querySelector('.toggle-icon').classList.remove('fa-chevron-up');
             }
         });
     });
+
+    // 独立的打印功能函数
+    function addPrintEventListener(button, contentElement) {
+        const printBtn = contentElement.querySelector('.print-btn');
+        if (!printBtn) return;
+
+        printBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const sectionTitle = button.querySelector('span').textContent.trim();
+            const printContent = contentElement.innerHTML.replace(/<button class="print-btn[\s\S]*?<\/button>/, '');
+            
+            // 创建打印窗口
+            const printWindow = window.open('', '_blank');
+            if (!printWindow) {
+                alert('请允许弹出窗口以使用打印功能');
+                return;
+            }
+
+            const printHtml = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="UTF-8">
+                    <title>八字合婚分析 - ${sectionTitle}</title>
+                    <style>
+                        @media print {
+                            body { font-family: 'Microsoft YaHei', sans-serif; padding: 20px; }
+                            h1 { color: #6a3093; text-align: center; margin-bottom: 20px; }
+                            h2 { color: #333; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+                            table { width: 100%; border-collapse: collapse; margin: 15px 0; page-break-inside: avoid; }
+                            th, td { padding: 10px; border: 1px solid #ddd; text-align: left; }
+                            th { background-color: #f5f5f5; }
+                            .print-footer { margin-top: 30px; text-align: center; font-size: 12px; color: #999; }
+                            .no-print { display: none !important; }
+                        }
+                        @media screen {
+                            body { font-family: 'Microsoft YaHei', sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <h1>八字合婚分析报告</h1>
+                    <h2>${sectionTitle}</h2>
+                    ${printContent}
+                    <div class="print-footer">
+                        打印时间: ${new Date().toLocaleString('zh-CN')} &nbsp;|&nbsp; 
+                        © ${new Date().getFullYear()} 八字合婚分析系统
+                    </div>
+                    <script>
+                        setTimeout(function() {
+                            window.print();
+                            setTimeout(function() {
+                                window.close();
+                            }, 1000);
+                        }, 200);
+                    </script>
+                </body>
+                </html>
+            `;
+
+            printWindow.document.open();
+            printWindow.document.write(printHtml);
+            printWindow.document.close();
+        });
+    }
 }
     function getSectionIcon(section) {
         const icons = {
