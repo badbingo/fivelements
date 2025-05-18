@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const resultSection = document.getElementById('result-section');
     const apiStatus = document.getElementById('api-status');
     
-    // 八字四柱元素
+    // 八字四柱元素2
     const maleYearStem = document.getElementById('male-year-stem');
     const maleYearBranch = document.getElementById('male-year-branch');
     const maleMonthStem = document.getElementById('male-month-stem');
@@ -546,29 +546,53 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    function updateCompatibilityScore(score) {
-        score = parseInt(score);
-        if (isNaN(score)) {
-            score = 50;
-        }
-        score = Math.max(0, Math.min(100, score));
+    function displaySectionContent(section, result, contentElement) {
+    // 使用marked.js解析Markdown内容
+    const htmlContent = marked.parse(result);
+    
+    // 创建临时容器来放置解析后的HTML
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = htmlContent;
+    
+    // 处理表格样式
+    const tables = tempDiv.querySelectorAll('table');
+    tables.forEach(table => {
+        table.classList.add('markdown-table');
+    });
+    
+    // 创建打印按钮
+    const printBtn = document.createElement('button');
+    printBtn.innerHTML = '<i class="fas fa-print"></i> 打印此内容';
+    printBtn.className = 'load-btn'; // 使用现有的load-btn样式
+    printBtn.style.marginTop = '20px';
+    printBtn.style.width = 'auto';
+    printBtn.style.display = 'block';
+    printBtn.style.marginLeft = 'auto';
+    printBtn.style.marginRight = 'auto';
+    
+    // 添加打印功能
+    printBtn.addEventListener('click', function() {
+        const printContent = contentElement.innerHTML;
+        const originalContent = document.body.innerHTML;
         
-        compatibilityScore.textContent = score;
-        compatibilityMeter.style.width = `${score}%`;
+        document.body.innerHTML = `
+            <div style="max-width:800px; margin:0 auto; padding:20px; font-family:'Noto Sans SC', sans-serif;">
+                <h2 style="text-align:center; margin-bottom:30px; color:${getComputedStyle(document.documentElement).getPropertyValue('--accent-color')}">
+                    ${document.querySelector('.header-title').textContent} - ${document.querySelector(`.load-btn[data-section="${section}"]`).textContent.trim()}
+                </h2>
+                ${printContent.replace('active', '')}
+            </div>
+        `;
         
-        if (score >= 80) {
-            recommendation.className = 'recommendation good-match';
-            recommendation.innerHTML = '<i class="fas fa-heart"></i> 八字高度匹配 - 双方非常合适';
-        } else if (score >= 60) {
-            recommendation.className = 'recommendation medium-match';
-            recommendation.innerHTML = '<i class="fas fa-handshake"></i> 八字匹配良好 - 需要少量调和';
-        } else {
-            recommendation.className = 'recommendation bad-match';
-            recommendation.innerHTML = '<i class="fas fa-exclamation-triangle"></i> 八字匹配度低 - 需要谨慎考虑';
-        }
-        
-        animateScore(score);
-    }
+        window.print();
+        document.body.innerHTML = originalContent;
+        window.scrollTo(0, contentElement.offsetTop);
+    });
+    
+    // 将处理后的内容放入目标元素
+    contentElement.innerHTML = tempDiv.innerHTML;
+    contentElement.appendChild(printBtn);
+}
     
     function animateScore(targetScore) {
         let currentScore = 0;
