@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const resultSection = document.getElementById('result-section');
     const apiStatus = document.getElementById('api-status');
     
-    // 八字四柱元素v
+    // 八字四柱元素c
     const maleYearStem = document.getElementById('male-year-stem');
     const maleYearBranch = document.getElementById('male-year-branch');
     const maleMonthStem = document.getElementById('male-month-stem');
@@ -153,12 +153,21 @@ document.addEventListener('DOMContentLoaded', function() {
             
             const section = this.getAttribute('data-section');
             const contentElement = document.getElementById(`${section}-content`);
+            const buttonText = this.querySelector('span').textContent.trim();
             const cacheKey = `${maleData.date}-${maleData.time}-${femaleData.date}-${femaleData.time}-${section}`;
 
             // 1. 检查内容是否已存在 (切换显示/隐藏)
             if (contentElement.innerHTML.trim() !== '' && !this.classList.contains('loading')) {
                 this.classList.toggle('active');
                 contentElement.classList.toggle('active');
+                
+                const icon = this.querySelector('.toggle-icon');
+                icon.classList.toggle('fa-chevron-down');
+                icon.classList.toggle('fa-chevron-up');
+                
+                contentElement.style.minHeight = contentElement.classList.contains('active') 
+                    ? `${contentElement.scrollHeight}px` 
+                    : '0';
                 return;
             }
 
@@ -167,6 +176,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 contentElement.innerHTML = analysisCache[cacheKey];
                 contentElement.classList.add('active');
                 this.classList.add('active');
+                this.querySelector('.toggle-icon').classList.add('fa-chevron-up');
+                this.querySelector('.toggle-icon').classList.remove('fa-chevron-down');
+                contentElement.style.minHeight = `${contentElement.scrollHeight}px`;
                 
                 // 为缓存内容添加打印事件
                 addPrintEventListener(button, contentElement);
@@ -176,25 +188,39 @@ document.addEventListener('DOMContentLoaded', function() {
             // 3. 设置加载状态
             this.disabled = true;
             
-            // 4. 显示加载效果 (简化版)
+            // 4. 显示加载效果（仅修改此处，移除目录条动画）
             contentElement.innerHTML = `
-                <div style="
-                    padding: 40px 0;
-                    text-align: center;
-                    color: #E62B1E;
+                <div class="loading-overlay" style="
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(255,255,255,0.85);
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    z-index: 10;
+                    backdrop-filter: blur(3px);
+                    border-radius: 0 0 12px 12px;
                 ">
                     <div style="
-                        width: 40px;
-                        height: 40px;
-                        border: 4px solid rgba(230,43,30,0.2);
-                        border-top-color: #E62B1E;
-                        border-radius: 50%;
-                        animation: spin 1s linear infinite;
-                        margin: 0 auto 15px;
-                    "></div>
-                    合婚数据库解索中，请耐心等待...
+                        margin-bottom: 15px;
+                        color: #E62B1E;
+                        font-size: 2rem;
+                    ">
+                        <i class="fas fa-hourglass-half"></i> <!-- 改用静态图标替代旋转动画 -->
+                    </div>
+                    <div style="
+                        color: #E62B1E;
+                        font-size: 1.1rem;
+                        font-weight: 500;
+                    ">合婚数据库解索中，请耐心等待...</div>
                 </div>
             `;
+            contentElement.style.position = 'relative';
+            contentElement.style.minHeight = '200px';
 
             try {
                 // 5. 获取分析数据
@@ -229,6 +255,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     border: none;
                     border-radius: 6px;
                     cursor: pointer;
+                    transition: all 0.3s;
                     font-family: inherit;
                     font-size: 14px;
                 `;
@@ -240,16 +267,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 // 更新按钮状态
                 this.disabled = false;
                 this.classList.add('active');
-                contentElement.classList.add('active');
+                this.querySelector('.toggle-icon').classList.add('fa-chevron-up');
+                this.querySelector('.toggle-icon').classList.remove('fa-chevron-down');
+                
+                // 显示内容区域
+                setTimeout(() => {
+                    contentElement.style.minHeight = `${contentElement.scrollHeight}px`;
+                    contentElement.classList.add('active');
+                }, 10);
                 
             } catch (error) {
                 console.error(`加载${section}失败:`, error);
                 
                 // 错误处理
                 contentElement.innerHTML = `
-                    <div style="
+                    <div class="error-message" style="
                         padding: 20px;
-                        color: #E62B1E;
+                        color: var(--fire-color);
                         text-align: center;
                     ">
                         <i class="fas fa-exclamation-triangle"></i>
@@ -259,11 +293,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // 重置按钮状态
                 this.disabled = false;
+                this.querySelector('.toggle-icon').classList.add('fa-chevron-down');
+                this.querySelector('.toggle-icon').classList.remove('fa-chevron-up');
             }
         });
     });
 
-    // 打印功能函数 (无动画)
+    // 打印功能函数保持不变
     function addPrintEventListener(button, contentElement) {
         const printBtn = contentElement.querySelector('.print-btn');
         if (!printBtn) return;
@@ -288,20 +324,37 @@ document.addEventListener('DOMContentLoaded', function() {
                     <meta charset="UTF-8">
                     <title>八字合婚分析 - ${sectionTitle}</title>
                     <style>
-                        body { font-family: 'Microsoft YaHei', sans-serif; padding: 20px; }
-                        h1 { color: #6a3093; text-align: center; }
-                        table { width: 100%; border-collapse: collapse; margin: 15px 0; }
-                        th, td { padding: 10px; border: 1px solid #ddd; }
-                        th { background-color: #f5f5f5; }
+                        @media print {
+                            body { font-family: 'Microsoft YaHei', sans-serif; padding: 20px; }
+                            h1 { color: #6a3093; text-align: center; margin-bottom: 20px; }
+                            h2 { color: #333; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+                            table { width: 100%; border-collapse: collapse; margin: 15px 0; page-break-inside: avoid; }
+                            th, td { padding: 10px; border: 1px solid #ddd; text-align: left; }
+                            th { background-color: #f5f5f5; }
+                            .print-footer { margin-top: 30px; text-align: center; font-size: 12px; color: #999; }
+                            .no-print { display: none !important; }
+                        }
+                        @media screen {
+                            body { font-family: 'Microsoft YaHei', sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; }
+                        }
                     </style>
                 </head>
                 <body>
-                    <h1>${sectionTitle}</h1>
+                    <h1>八字合婚分析报告</h1>
+                    <h2>${sectionTitle}</h2>
                     ${printContent}
-                    <div style="text-align:center;margin-top:30px;font-size:12px;color:#999">
-                        打印时间: ${new Date().toLocaleString('zh-CN')}
+                    <div class="print-footer">
+                        打印时间: ${new Date().toLocaleString('zh-CN')} &nbsp;|&nbsp; 
+                        © ${new Date().getFullYear()} 八字合婚分析系统
                     </div>
-                    <script>window.print();</script>
+                    <script>
+                        setTimeout(function() {
+                            window.print();
+                            setTimeout(function() {
+                                window.close();
+                            }, 1000);
+                        }, 200);
+                    </script>
                 </body>
                 </html>
             `;
