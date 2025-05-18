@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const resultSection = document.getElementById('result-section');
     const apiStatus = document.getElementById('api-status');
     
-    // 八字四柱元素v
+    // 八字四柱元素a
     const maleYearStem = document.getElementById('male-year-stem');
     const maleYearBranch = document.getElementById('male-year-branch');
     const maleMonthStem = document.getElementById('male-month-stem');
@@ -157,17 +157,14 @@ document.addEventListener('DOMContentLoaded', function() {
             const cacheKey = `${maleData.date}-${maleData.time}-${femaleData.date}-${femaleData.time}-${section}`;
 
             // 1. 检查内容是否已存在 (切换显示/隐藏)
-            if (contentElement.innerHTML.trim() !== '') {
-                // 切换激活状态
+            if (contentElement.innerHTML.trim() !== '' && !this.classList.contains('loading')) {
                 this.classList.toggle('active');
                 contentElement.classList.toggle('active');
                 
-                // 切换箭头图标方向
                 const icon = this.querySelector('.toggle-icon');
                 icon.classList.toggle('fa-chevron-down');
                 icon.classList.toggle('fa-chevron-up');
                 
-                // 调整内容区域高度
                 contentElement.style.minHeight = contentElement.classList.contains('active') 
                     ? `${contentElement.scrollHeight}px` 
                     : '0';
@@ -185,29 +182,62 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            // 3. 设置加载状态
+            // 3. 设置加载状态 (保留原样式但不变成球)
+            this.classList.add('loading');
             this.disabled = true;
             this.innerHTML = `
                 <span>
                     <i class="fas fa-${getSectionIcon(section)}"></i>
-                    ${buttonText} (加载中...)
+                    ${buttonText}
                 </span>
-                <i class="fas fa-chevron-down toggle-icon"></i>
+                <i class="fas fa-spinner fa-spin toggle-icon"></i>
             `;
 
-            // 4. 清空内容区域
-            contentElement.innerHTML = '';
-            contentElement.style.minHeight = '0';
+            // 4. 显示内容加载效果
+            contentElement.innerHTML = `
+                <div class="loading-overlay" style="
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(255,255,255,0.85);
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    z-index: 10;
+                    backdrop-filter: blur(3px);
+                    border-radius: 0 0 12px 12px;
+                ">
+                    <i class="fas fa-spinner fa-spin" style="
+                        font-size: 2rem;
+                        color: #E62B1E;
+                        margin-bottom: 15px;
+                    "></i>
+                    <div style="
+                        color: #E62B1E;
+                        font-size: 1.1rem;
+                        font-weight: 500;
+                    ">合婚数据库解索中，请耐心等待...</div>
+                </div>
+            `;
+            contentElement.style.position = 'relative';
+            contentElement.style.minHeight = '200px';
 
             try {
                 // 5. 获取分析数据
                 const result = await getMarriageAnalysis(section, maleData, femaleData);
                 
-                // 6. 缓存并显示结果
+                // 6. 处理结果
                 analysisCache[cacheKey] = result;
                 
-                // 7. 显示内容
-                contentElement.innerHTML = marked.parse(result);
+                // 移除加载状态
+                this.classList.remove('loading');
+                
+                // 显示内容
+                const htmlContent = marked.parse(result);
+                contentElement.innerHTML = htmlContent;
                 
                 // 标准化表格样式
                 contentElement.querySelectorAll('table').forEach(table => {
@@ -230,40 +260,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     cursor: pointer;
                     transition: all 0.3s;
                 `;
-                printBtn.addEventListener('click', () => {
-                    const printWindow = window.open('', '_blank');
-                    const printContent = `
-                        <!DOCTYPE html>
-                        <html>
-                        <head>
-                            <meta charset="UTF-8">
-                            <title>${document.title} - ${section}</title>
-                            <style>
-                                body { font-family: 'Noto Sans SC', sans-serif; padding: 20px; }
-                                h2 { color: #6a3093; text-align: center; border-bottom: 1px solid #eee; }
-                                table { width: 100%; border-collapse: collapse; margin: 15px 0; }
-                                th, td { padding: 10px; border: 1px solid #ddd; }
-                                th { background-color: #f5f5f5; }
-                                .print-footer { margin-top: 30px; text-align: center; color: #999; }
-                            </style>
-                        </head>
-                        <body>
-                            <h2>${document.querySelector('.header-title').textContent}</h2>
-                            <h3>${buttonText}</h3>
-                            ${contentElement.innerHTML}
-                            <div class="print-footer">
-                                打印时间：${new Date().toLocaleString('zh-CN')}
-                            </div>
-                        </body>
-                        </html>
-                    `;
-                    printWindow.document.open();
-                    printWindow.document.write(printContent);
-                    printWindow.document.close();
-                });
                 contentElement.appendChild(printBtn);
                 
-                // 8. 更新按钮状态
+                // 更新按钮状态
                 this.disabled = false;
                 this.classList.add('active');
                 this.innerHTML = `
@@ -274,7 +273,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <i class="fas fa-chevron-up toggle-icon"></i>
                 `;
                 
-                // 9. 显示内容区域
+                // 显示内容区域
                 setTimeout(() => {
                     contentElement.style.minHeight = `${contentElement.scrollHeight}px`;
                     contentElement.classList.add('active');
@@ -296,6 +295,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 `;
                 
                 // 重置按钮状态
+                this.classList.remove('loading');
                 this.disabled = false;
                 this.innerHTML = `
                     <span>
