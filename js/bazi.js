@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const currentDay = currentDate.getDate(); // 1-31
     const currentHour = currentDate.getHours(); // 0-23
     const currentMinute = currentDate.getMinutes(); // 0-59
-    // 增强版缓存对象v2.2a
+    // 增强版缓存对象v2.2b
     const baziCache = {
         data: {},
         get: function(key) {
@@ -389,6 +389,52 @@ document.addEventListener('DOMContentLoaded', function() {
     updateLunarCalendar();
     initEventListeners();
 
+    // 新添加的通用处理函数（放在这里）
+    // ============================================
+    async function handleRatingAnalysis(btnElement, getContentFunction) {
+        const groupElement = btnElement.closest('.rating-group');
+        const contentElement = groupElement.querySelector('.rating-content');
+        const loadingElement = groupElement.querySelector('.rating-loading');
+        
+        // 切换激活状态
+        groupElement.classList.toggle('active');
+        
+        // 如果内容已加载且不在加载中，只切换显示
+        if (contentElement.innerHTML.trim() && loadingElement.style.display !== 'flex') {
+            return;
+        }
+        
+        // 如果需要加载内容
+        if (!contentElement.innerHTML.trim()) {
+            loadingElement.style.display = 'flex';
+            contentElement.style.display = 'none';
+            
+            try {
+                const content = await getContentFunction();
+                contentElement.innerHTML = marked.parse(content);
+            } catch (error) {
+                console.error('获取分析内容失败:', error);
+                contentElement.innerHTML = '<p style="color:var(--danger-color)">获取分析内容失败，请稍后重试</p>';
+            } finally {
+                loadingElement.style.display = 'none';
+                contentElement.style.display = 'block';
+            }
+        }
+    }
+    
+    // ============================================
+    // 事件监听器绑定（原有代码，在其上方添加新函数）
+    // ============================================
+    // 命格等级分析按钮
+    fateAnalysisBtn.addEventListener('click', async function() {
+        await handleRatingAnalysis(fateAnalysisBtn, getFateAnalysisContent);
+    });
+    
+    // 财富等级分析按钮
+    wealthAnalysisBtn.addEventListener('click', async function() {
+        await handleRatingAnalysis(wealthAnalysisBtn, getWealthAnalysisContent);
+    });
+    
     // 事件监听器初始化
     function initEventListeners() {
         // 时间选择
