@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const resultSection = document.getElementById('result-section');
     const apiStatus = document.getElementById('api-status');
     
-    // 八字四柱元素c
+    // 八字四柱元素a
     const maleYearStem = document.getElementById('male-year-stem');
     const maleYearBranch = document.getElementById('male-year-branch');
     const maleMonthStem = document.getElementById('male-month-stem');
@@ -52,14 +52,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     recalculateBtn.addEventListener('click', function() {
-    // 清除可能的缓存数据（可选）
-    if (window.sessionStorage) sessionStorage.clear();
-    if (window.localStorage) localStorage.clear();
-    
-    // 强制重新加载页面（相当于 Ctrl + Shift + R）
-    window.location.href = window.location.href.split('?')[0] + '?reload=' + Date.now();
-});
-    
+    // 强制刷新页面（绕过缓存，相当于 Ctrl+Shift+R）
+        window.location.reload(true);
+    });
+        
     function initLoadButtons() {
     document.querySelectorAll('.load-btn').forEach(button => {
         button.addEventListener('click', async function(e) {
