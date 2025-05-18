@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const resultSection = document.getElementById('result-section');
     const apiStatus = document.getElementById('api-status');
     
-    // 八字四柱元素1
+    // 八字四柱元素
     const maleYearStem = document.getElementById('male-year-stem');
     const maleYearBranch = document.getElementById('male-year-branch');
     const maleMonthStem = document.getElementById('male-month-stem');
@@ -52,6 +52,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     recalculateBtn.addEventListener('click', function() {
+        // Reset form inputs
         document.getElementById('male-name').value = '';
         document.getElementById('male-birth-date').value = '';
         document.getElementById('male-birth-time').value = '';
@@ -59,15 +60,25 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('female-birth-date').value = '';
         document.getElementById('female-birth-time').value = '';
         
+        // Reset UI state
         resultSection.style.display = 'none';
         inputSection.style.display = 'block';
         
+        // Reset all content and loading states
         resetAllContent();
         
+        // Reset data
+        maleData = {};
+        femaleData = {};
+        loadedSections = {};
+        analysisCache = {};
+        
+        // Scroll to top
         window.scrollTo(0, 0);
     });
     
     function resetAllContent() {
+        // Reset Bazi display
         maleYearStem.textContent = '';
         maleYearBranch.textContent = '';
         maleMonthStem.textContent = '';
@@ -86,35 +97,42 @@ document.addEventListener('DOMContentLoaded', function() {
         femaleHourStem.textContent = '';
         femaleHourBranch.textContent = '';
         
+        // Reset compatibility score
         compatibilityScore.textContent = '-';
         compatibilityMeter.style.width = '0%';
         recommendation.className = 'recommendation';
         recommendation.innerHTML = '<i class="fas fa-heart"></i> 分析中...';
         
+        // Reset all section content
         document.querySelectorAll('.section-content').forEach(el => {
             el.innerHTML = '';
             el.classList.remove('active');
+            el.style.minHeight = '0';
         });
         
+        // Reset all load buttons
         document.querySelectorAll('.load-btn').forEach(btn => {
-            btn.innerHTML = `<span><i class="fas fa-${btn.getAttribute('data-section') === 'basic-analysis' ? 'heartbeat' : 
-                            btn.getAttribute('data-section') === 'element-analysis' ? 'yin-yang' : 
-                            btn.getAttribute('data-section') === 'god-analysis' ? 'star' : 
-                            btn.getAttribute('data-section') === 'male-fate' ? 'mars' : 
-                            btn.getAttribute('data-section') === 'female-fate' ? 'venus' : 
-                            btn.getAttribute('data-section') === 'strength-weakness' ? 'balance-scale' : 
-                            btn.getAttribute('data-section') === 'improvement' ? 'hands-helping' : 'calendar-check'}"></i> ${btn.textContent.trim()}</span><i class="fas fa-chevron-down toggle-icon"></i>`;
+            btn.innerHTML = `
+                <span>
+                    <i class="fas fa-${btn.getAttribute('data-section') === 'basic-analysis' ? 'heartbeat' : 
+                    btn.getAttribute('data-section') === 'element-analysis' ? 'yin-yang' : 
+                    btn.getAttribute('data-section') === 'god-analysis' ? 'star' : 
+                    btn.getAttribute('data-section') === 'male-fate' ? 'mars' : 
+                    btn.getAttribute('data-section') === 'female-fate' ? 'venus' : 
+                    btn.getAttribute('data-section') === 'strength-weakness' ? 'balance-scale' : 
+                    btn.getAttribute('data-section') === 'improvement' ? 'hands-helping' : 'calendar-check'}"></i> 
+                    ${btn.textContent.trim()}
+                </span>
+                <i class="fas fa-chevron-down toggle-icon"></i>`;
             btn.classList.remove('active');
             btn.disabled = false;
         });
         
+        // Reset tabs
         document.querySelectorAll('.menu-tab').forEach(tab => tab.classList.remove('active'));
         document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
         document.querySelector('.menu-tab[data-tab="compatibility"]').classList.add('active');
         document.getElementById('compatibility-tab').classList.add('active');
-        
-        loadedSections = {};
-        analysisCache = {};
     }
     
     document.querySelectorAll('.menu-tab').forEach(tab => {
@@ -128,153 +146,150 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // 在initLoadButtons函数中修改点击事件处理
-function initLoadButtons() {
-    document.querySelectorAll('.load-btn').forEach(button => {
-        button.addEventListener('click', async function(e) {
-            e.preventDefault();
-            
-            const section = this.getAttribute('data-section');
-            const contentElement = document.getElementById(`${section}-content`);
-            const buttonText = this.querySelector('span').textContent.trim();
-            const cacheKey = `${maleData.date}-${maleData.time}-${femaleData.date}-${femaleData.time}-${section}`;
-
-            // 1. 检查是否已有内容（切换显示/隐藏）
-            if (contentElement.innerHTML.trim() !== '') {
-                contentElement.classList.toggle('active');
-                const icon = this.querySelector('.toggle-icon');
-                icon.classList.toggle('fa-chevron-down');
-                icon.classList.toggle('fa-chevron-up');
-                return;
-            }
-
-            // 2. 检查缓存
-            if (analysisCache[cacheKey]) {
-                contentElement.innerHTML = analysisCache[cacheKey];
-                contentElement.classList.add('active');
-                this.querySelector('.toggle-icon').classList.add('fa-chevron-up');
-                this.querySelector('.toggle-icon').classList.remove('fa-chevron-down');
-                return;
-            }
-
-            // 3. 准备加载状态
-            this.disabled = true;
-            this.innerHTML = `
-                <span>
-                    <span class="loading-spinner" style="
-                        display: inline-block;
-                        width: 14px;
-                        height: 14px;
-                        border: 2px solid rgba(230,43,30,0.2);
-                        border-top-color: #E62B1E;
-                        border-radius: 50%;
-                        animation: spin 1s linear infinite;
-                        margin-right: 8px;
-                        vertical-align: middle;
-                    "></span>
-                    ${buttonText}
-                </span>
-                <i class="fas fa-chevron-down toggle-icon"></i>
-            `;
-
-            // 4. 显示内容区域加载效果
-            contentElement.innerHTML = `
-                <div class="loading-overlay" style="
-                    position: absolute;
-                    top: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 100%;
-                    background: rgba(255,255,255,0.85);
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    justify-content: center;
-                    z-index: 10;
-                    backdrop-filter: blur(3px);
-                    border-radius: 0 0 12px 12px;
-                ">
-                    <div style="
-                        width: 40px;
-                        height: 40px;
-                        border: 4px solid rgba(230,43,30,0.2);
-                        border-top-color: #E62B1E;
-                        border-radius: 50%;
-                        animation: spin 1s linear infinite;
-                        margin-bottom: 15px;
-                    "></div>
-                    <div style="
-                        color: #E62B1E;
-                        font-size: 1.1rem;
-                        font-weight: 500;
-                    ">合婚数据库解索中，请耐心等待...</div>
-                </div>
-            `;
-            contentElement.style.position = 'relative';
-            contentElement.style.minHeight = '200px';
-
-            try {
-                // 5. 获取分析数据
-                const result = await getMarriageAnalysis(section, maleData, femaleData);
+    function initLoadButtons() {
+        document.querySelectorAll('.load-btn').forEach(button => {
+            button.addEventListener('click', async function(e) {
+                e.preventDefault();
                 
-                // 6. 处理结果
-                analysisCache[cacheKey] = result;
-                displaySectionContent(section, result, contentElement);
-                
-                // 7. 恢复按钮状态
-                this.disabled = false;
+                const section = this.getAttribute('data-section');
+                const contentElement = document.getElementById(`${section}-content`);
+                const buttonText = this.querySelector('span').textContent.trim();
+                const cacheKey = `${maleData.date}-${maleData.time}-${femaleData.date}-${femaleData.time}-${section}`;
+
+                // 1. Check if content already exists (toggle visibility)
+                if (contentElement.innerHTML.trim() !== '') {
+                    contentElement.classList.toggle('active');
+                    const icon = this.querySelector('.toggle-icon');
+                    icon.classList.toggle('fa-chevron-down');
+                    icon.classList.toggle('fa-chevron-up');
+                    return;
+                }
+
+                // 2. Check cache
+                if (analysisCache[cacheKey]) {
+                    contentElement.innerHTML = analysisCache[cacheKey];
+                    contentElement.classList.add('active');
+                    this.querySelector('.toggle-icon').classList.add('fa-chevron-up');
+                    this.querySelector('.toggle-icon').classList.remove('fa-chevron-down');
+                    return;
+                }
+
+                // 3. Set loading state
+                this.disabled = true;
                 this.innerHTML = `
                     <span>
-                        <i class="fas fa-${getSectionIcon(section)}"></i>
-                        ${buttonText}
-                    </span>
-                    <i class="fas fa-chevron-up toggle-icon"></i>
-                `;
-                
-            } catch (error) {
-                console.error(`加载${section}失败:`, error);
-                
-                // 8. 错误处理
-                contentElement.innerHTML = `
-                    <div class="error-message" style="
-                        padding: 20px;
-                        color: var(--fire-color);
-                        text-align: center;
-                    ">
-                        <i class="fas fa-exclamation-triangle" style="font-size: 1.5rem; margin-bottom: 10px;"></i>
-                        <p>加载失败，请<a href="#" onclick="location.reload()">刷新页面</a>重试</p>
-                    </div>
-                `;
-                
-                this.disabled = false;
-                this.innerHTML = `
-                    <span>
-                        <i class="fas fa-${getSectionIcon(section)}"></i>
+                        <span class="loading-spinner" style="
+                            display: inline-block;
+                            width: 14px;
+                            height: 14px;
+                            border: 2px solid rgba(230,43,30,0.2);
+                            border-top-color: #E62B1E;
+                            border-radius: 50%;
+                            animation: spin 1s linear infinite;
+                            margin-right: 8px;
+                            vertical-align: middle;
+                        "></span>
                         ${buttonText}
                     </span>
                     <i class="fas fa-chevron-down toggle-icon"></i>
                 `;
-            }
-        });
-    });
-}
 
-// 辅助函数：获取不同模块的图标
-function getSectionIcon(section) {
-    const icons = {
-        'basic-analysis': 'heartbeat',
-        'element-analysis': 'yin-yang',
-        'god-analysis': 'star',
-        'male-fate': 'mars',
-        'female-fate': 'venus',
-        'strength-weakness': 'balance-scale',
-        'improvement': 'hands-helping',
-        'timing': 'calendar-check'
-    };
-    return icons[section] || 'info-circle';
-}
+                // 4. Show content loading effect
+                contentElement.innerHTML = `
+                    <div class="loading-overlay" style="
+                        position: absolute;
+                        top: 0;
+                        left: 0;
+                        width: 100%;
+                        height: 100%;
+                        background: rgba(255,255,255,0.85);
+                        display: flex;
+                        flex-direction: column;
+                        align-items: center;
+                        justify-content: center;
+                        z-index: 10;
+                        backdrop-filter: blur(3px);
+                        border-radius: 0 0 12px 12px;
+                    ">
+                        <div style="
+                            width: 40px;
+                            height: 40px;
+                            border: 4px solid rgba(230,43,30,0.2);
+                            border-top-color: #E62B1E;
+                            border-radius: 50%;
+                            animation: spin 1s linear infinite;
+                            margin-bottom: 15px;
+                        "></div>
+                        <div style="
+                            color: #E62B1E;
+                            font-size: 1.1rem;
+                            font-weight: 500;
+                        ">合婚数据库解索中，请耐心等待...</div>
+                    </div>
+                `;
+                contentElement.style.position = 'relative';
+                contentElement.style.minHeight = '200px';
+
+                try {
+                    // 5. Get analysis data
+                    const result = await getMarriageAnalysis(section, maleData, femaleData);
+                    
+                    // 6. Process result
+                    analysisCache[cacheKey] = result;
+                    displaySectionContent(section, result, contentElement);
+                    
+                    // 7. Restore button state
+                    this.disabled = false;
+                    this.innerHTML = `
+                        <span>
+                            <i class="fas fa-${getSectionIcon(section)}"></i>
+                            ${buttonText}
+                        </span>
+                        <i class="fas fa-chevron-up toggle-icon"></i>
+                    `;
+                    
+                } catch (error) {
+                    console.error(`加载${section}失败:`, error);
+                    
+                    // 8. Error handling
+                    contentElement.innerHTML = `
+                        <div class="error-message" style="
+                            padding: 20px;
+                            color: var(--fire-color);
+                            text-align: center;
+                        ">
+                            <i class="fas fa-exclamation-triangle" style="font-size: 1.5rem; margin-bottom: 10px;"></i>
+                            <p>加载失败，请<a href="#" onclick="location.reload()">刷新页面</a>重试</p>
+                        </div>
+                    `;
+                    
+                    this.disabled = false;
+                    this.innerHTML = `
+                        <span>
+                            <i class="fas fa-${getSectionIcon(section)}"></i>
+                            ${buttonText}
+                        </span>
+                        <i class="fas fa-chevron-down toggle-icon"></i>
+                    `;
+                }
+            });
+        });
+    }
+
+    function getSectionIcon(section) {
+        const icons = {
+            'basic-analysis': 'heartbeat',
+            'element-analysis': 'yin-yang',
+            'god-analysis': 'star',
+            'male-fate': 'mars',
+            'female-fate': 'venus',
+            'strength-weakness': 'balance-scale',
+            'improvement': 'hands-helping',
+            'timing': 'calendar-check'
+        };
+        return icons[section] || 'info-circle';
+    }
     
-    // 使用lunar.js计算八字
     function calculateBazi(birthDate, birthTime) {
         const [year, month, day] = birthDate.split('-').map(Number);
         const [hour, minute] = birthTime.split(':').map(Number);
@@ -305,7 +320,6 @@ function getSectionIcon(section) {
         };
     }
     
-    // 确定性合婚评分算法
     function calculateCompatibilityScore(maleData, femaleData) {
         // 使用双方出生日期和时间作为种子
         const seed = `${maleData.date}-${maleData.time}-${femaleData.date}-${femaleData.time}`;
@@ -363,139 +377,131 @@ function getSectionIcon(section) {
     }
     
     function displaySectionContent(section, result, contentElement) {
-    // 确保移除加载效果
-    contentElement.classList.remove('loading-effect');
-    // 设置内容区域样式
-    contentElement.style.minHeight = '0';
-    contentElement.style.overflow = 'hidden';
-    contentElement.classList.remove('active');
-    
-    // 解析Markdown内容
-    const htmlContent = marked.parse(result);
-    contentElement.innerHTML = htmlContent;
-    
-    // 标准化表格样式
-    contentElement.querySelectorAll('table').forEach(table => {
-        table.classList.add('markdown-table');
-        table.style.width = '100%';
-    });
-    
-    // 添加智能打印按钮
-    const printBtn = document.createElement('button');
-    printBtn.innerHTML = '<i class="fas fa-print"></i> 打印此内容';
-    printBtn.className = 'load-btn print-btn';
-    printBtn.style.cssText = `
-        display: block;
-        margin: 25px auto 10px;
-        padding: 12px 25px;
-        background: linear-gradient(to right, #6a3093, #a044ff);
-        color: white;
-        border: none;
-        border-radius: 6px;
-        cursor: pointer;
-        transition: all 0.3s;
-    `;
-
-    printBtn.addEventListener('mouseover', () => {
-        printBtn.style.transform = 'translateY(-2px)';
-        printBtn.style.boxShadow = '0 5px 15px rgba(106, 48, 147, 0.3)';
-    });
-
-    printBtn.addEventListener('mouseout', () => {
-        printBtn.style.transform = 'none';
-        printBtn.style.boxShadow = 'none';
-    });
-
-    // 5. 增强版打印功能（自动关闭）
-    printBtn.addEventListener('click', () => {
-        const printWindow = window.open('', '_blank');
-        const printContent = `
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <meta charset="UTF-8">
-                <title>${document.title} - ${section}</title>
-                <style>
-                    body {
-                        font-family: 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
-                        padding: 20px;
-                        line-height: 1.6;
-                        color: #333;
-                    }
-                    h2 {
-                        color: #6a3093;
-                        text-align: center;
-                        border-bottom: 1px solid #eee;
-                        padding-bottom: 10px;
-                    }
-                    table {
-                        width: 100%;
-                        border-collapse: collapse;
-                        margin: 15px 0;
-                        page-break-inside: avoid;
-                    }
-                    th, td {
-                        padding: 10px;
-                        border: 1px solid #ddd;
-                    }
-                    th {
-                        background-color: #f5f5f5;
-                    }
-                    .print-footer {
-                        margin-top: 30px;
-                        text-align: center;
-                        color: #999;
-                        font-size: 12px;
-                    }
-                </style>
-            </head>
-            <body>
-                <h2>${document.querySelector('.header-title').textContent}</h2>
-                <h3 style="text-align:center">${document.querySelector(`[data-section="${section}"] span`).textContent.trim()}</h3>
-                ${contentElement.innerHTML}
-                <div class="print-footer">
-                    打印时间：${new Date().toLocaleString('zh-CN')}
-                </div>
-                <script>
-                    // 打印后自动关闭（兼容所有浏览器）
-                    window.onafterprint = function() {
-                        setTimeout(function() {
-                            window.close();
-                        }, 300);
-                    };
-                    // 如果onafterprint不支持（如Firefox）
-                    setTimeout(function() {
-                        window.print();
-                        // 备用关闭方案
-                        setTimeout(function() {
-                            try { window.close(); } catch(e) {}
-                        }, 3000);
-                    }, 200);
-                </script>
-            </body>
-            </html>
+        // Remove loading effect
+        contentElement.classList.remove('loading-effect');
+        contentElement.style.minHeight = '0';
+        contentElement.style.overflow = 'hidden';
+        contentElement.classList.remove('active');
+        
+        // Parse Markdown content
+        const htmlContent = marked.parse(result);
+        contentElement.innerHTML = htmlContent;
+        
+        // Standardize table styles
+        contentElement.querySelectorAll('table').forEach(table => {
+            table.classList.add('markdown-table');
+            table.style.width = '100%';
+        });
+        
+        // Add print button
+        const printBtn = document.createElement('button');
+        printBtn.innerHTML = '<i class="fas fa-print"></i> 打印此内容';
+        printBtn.className = 'load-btn print-btn';
+        printBtn.style.cssText = `
+            display: block;
+            margin: 25px auto 10px;
+            padding: 12px 25px;
+            background: linear-gradient(to right, #6a3093, #a044ff);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
         `;
 
-        // 写入内容并处理不同浏览器的关闭逻辑
-        printWindow.document.open();
-        printWindow.document.write(printContent);
-        printWindow.document.close();
+        printBtn.addEventListener('mouseover', () => {
+            printBtn.style.transform = 'translateY(-2px)';
+            printBtn.style.boxShadow = '0 5px 15px rgba(106, 48, 147, 0.3)';
+        });
 
-        // 处理弹窗被拦截的情况
-        if (!printWindow || printWindow.closed) {
-            alert('请允许弹出窗口以使用打印功能');
-            return;
-        }
-    });
+        printBtn.addEventListener('mouseout', () => {
+            printBtn.style.transform = 'none';
+            printBtn.style.boxShadow = 'none';
+        });
 
-    contentElement.appendChild(printBtn);
-    
-    // 使用动画展开内容区域
-    setTimeout(() => {
-        contentElement.style.minHeight = `${contentElement.scrollHeight}px`;
-        contentElement.classList.add('active');
-    }, 10);
-}
+        printBtn.addEventListener('click', () => {
+            const printWindow = window.open('', '_blank');
+            const printContent = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="UTF-8">
+                    <title>${document.title} - ${section}</title>
+                    <style>
+                        body {
+                            font-family: 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
+                            padding: 20px;
+                            line-height: 1.6;
+                            color: #333;
+                        }
+                        h2 {
+                            color: #6a3093;
+                            text-align: center;
+                            border-bottom: 1px solid #eee;
+                            padding-bottom: 10px;
+                        }
+                        table {
+                            width: 100%;
+                            border-collapse: collapse;
+                            margin: 15px 0;
+                            page-break-inside: avoid;
+                        }
+                        th, td {
+                            padding: 10px;
+                            border: 1px solid #ddd;
+                        }
+                        th {
+                            background-color: #f5f5f5;
+                        }
+                        .print-footer {
+                            margin-top: 30px;
+                            text-align: center;
+                            color: #999;
+                            font-size: 12px;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <h2>${document.querySelector('.header-title').textContent}</h2>
+                    <h3 style="text-align:center">${document.querySelector(`[data-section="${section}"] span`).textContent.trim()}</h3>
+                    ${contentElement.innerHTML}
+                    <div class="print-footer">
+                        打印时间：${new Date().toLocaleString('zh-CN')}
+                    </div>
+                    <script>
+                        window.onafterprint = function() {
+                            setTimeout(function() {
+                                window.close();
+                            }, 300);
+                        };
+                        setTimeout(function() {
+                            window.print();
+                            setTimeout(function() {
+                                try { window.close(); } catch(e) {}
+                            }, 3000);
+                        }, 200);
+                    </script>
+                </body>
+                </html>
+            `;
+
+            printWindow.document.open();
+            printWindow.document.write(printContent);
+            printWindow.document.close();
+
+            if (!printWindow || printWindow.closed) {
+                alert('请允许弹出窗口以使用打印功能');
+                return;
+            }
+        });
+
+        contentElement.appendChild(printBtn);
+        
+        setTimeout(() => {
+            contentElement.style.minHeight = `${contentElement.scrollHeight}px`;
+            contentElement.classList.add('active');
+        }, 10);
+    }
     
     async function getMarriageAnalysis(section, maleData, femaleData) {
         const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
