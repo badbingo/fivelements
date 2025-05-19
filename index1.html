@@ -154,7 +154,7 @@
                 </div>
             </div>
             
-            <div class="warning-zodiacs">
+            <div class="warning-zodiacs" id="warningZodiacs">
                 <div class="warning-zodiac">
                     <i class="fas fa-exclamation-triangle"></i>
                     <span>鼠：注意交通安全</span>
@@ -346,19 +346,19 @@
             <div class="energy-forecast">
                 <div class="energy-card">
                     <h3 class="energy-title">年度五行能量</h3>
-                    <div class="energy-value wood">木：强</div>
+                    <div class="energy-value wood" id="annual-energy">木：强</div>
                     <div class="energy-desc">木能量旺盛，利于成长、创新和新开始</div>
                 </div>
                 
                 <div class="energy-card">
                     <h3 class="energy-title">本月五行能量</h3>
-                    <div class="energy-value fire">火：中</div>
+                    <div class="energy-value fire" id="monthly-energy">火：中</div>
                     <div class="energy-desc">火能量平稳，适合社交和情感表达</div>
                 </div>
                 
                 <div class="energy-card">
                     <h3 class="energy-title">今日能量</h3>
-                    <div class="energy-value metal">金：弱</div>
+                    <div class="energy-value metal" id="daily-energy">金：弱</div>
                     <div class="energy-desc">金能量不足，注意决策和财务事宜</div>
                 </div>
             </div>
@@ -388,19 +388,25 @@
                 <div class="energy-card">
                     <h3 class="energy-title">事业建议</h3>
                     <div class="energy-icon"><i class="fas fa-briefcase"></i></div>
-                    <div class="energy-desc">本月适合拓展人脉，寻求合作机会。避免与属<span class="tiger">虎</span>的人发生直接冲突。</div>
+                    <div class="energy-desc" id="career-advice">
+                        本月适合拓展人脉，寻求合作机会。避免与属<span class="tiger">虎</span>的人发生直接冲突。
+                    </div>
                 </div>
                 
                 <div class="energy-card">
                     <h3 class="energy-title">感情建议</h3>
                     <div class="energy-icon"><i class="fas fa-heart"></i></div>
-                    <div class="energy-desc">单身者可多参加社交活动，已有伴侣者宜安排浪漫约会增进感情。</div>
+                    <div class="energy-desc" id="love-advice">
+                        单身者可多参加社交活动，已有伴侣者宜安排浪漫约会增进感情。
+                    </div>
                 </div>
                 
                 <div class="energy-card">
                     <h3 class="energy-title">健康建议</h3>
                     <div class="energy-icon"><i class="fas fa-heartbeat"></i></div>
-                    <div class="energy-desc">注意肝胆健康，适量运动，避免熬夜。属<span class="snake">蛇</span>和<span class="horse">马</span>的人尤其需要注意。</div>
+                    <div class="energy-desc" id="health-advice">
+                        注意肝胆健康，适量运动，避免熬夜。属<span class="snake">蛇</span>和<span class="horse">马</span>的人尤其需要注意。
+                    </div>
                 </div>
             </div>
         </div>
@@ -461,7 +467,7 @@
                 <div class="energy-card">
                     <h3 class="energy-title">今日五行</h3>
                     <div class="energy-icon"><i class="fas fa-leaf"></i></div>
-                    <div class="energy-desc">
+                    <div class="energy-desc" id="today-wuxing">
                         <p>今日天干为<span class="wood">甲木</span>，地支为<span class="earth">辰土</span>，<span class="wood">木</span>克<span class="earth">土</span>，能量冲突。</p>
                         <p>适合：种植、学习、创意工作</p>
                         <p>忌讳：动土、签订重要合同</p>
@@ -471,7 +477,7 @@
                 <div class="energy-card">
                     <h3 class="energy-title">今日吉时</h3>
                     <div class="energy-icon"><i class="fas fa-clock"></i></div>
-                    <div class="energy-desc">
+                    <div class="energy-desc" id="lucky-hours">
                         <p><span class="success">巳时 (9-11点)</span>：贵人运强，适合洽谈</p>
                         <p><span class="success">申时 (15-17点)</span>：财运最佳，适合投资</p>
                         <p><span class="danger">卯时 (5-7点)</span>：冲太岁，避免远行</p>
@@ -481,7 +487,7 @@
                 <div class="energy-card">
                     <h3 class="energy-title">今日方位</h3>
                     <div class="energy-icon"><i class="fas fa-compass"></i></div>
-                    <div class="energy-desc">
+                    <div class="energy-desc" id="lucky-directions">
                         <p><span class="success">吉利方位</span>：东南方（财运）、北方（桃花）</p>
                         <p><span class="danger">不利方位</span>：西南方（病符位）、西方（是非位）</p>
                         <p>办公桌可摆放绿色植物增强<span class="wood">木</span>能量</p>
@@ -555,7 +561,7 @@
     </div>
     
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="js/lunar.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lunar-javascript@1.3.6/dist/lunar.min.js"></script>
     <script>
         // 当前选择的生肖
         let currentZodiac = 'dragon';
@@ -578,42 +584,90 @@
         
         // 今日运势数据
         const dailyFortuneData = {
-            rat: { love: 4, money: 3, career: 4, health: 3, social: 5, 
-                  loveDesc: "单身者有望邂逅心仪对象", moneyDesc: "谨慎投资，避免冲动消费", 
-                  careerDesc: "工作上有贵人相助", healthDesc: "注意肠胃消化问题", socialDesc: "社交活跃，人缘极佳" },
-            ox: { love: 3, money: 4, career: 3, health: 4, social: 4, 
-                  loveDesc: "已有伴侣者感情稳定", moneyDesc: "正财收入增加", 
-                  careerDesc: "稳扎稳打是关键", healthDesc: "注意脾胃问题", socialDesc: "同事关系融洽" },
-            tiger: { love: 4, money: 3, career: 5, health: 2, social: 4, 
-                    loveDesc: "魅力提升，吸引异性", moneyDesc: "偏财机会多但需谨慎", 
-                    careerDesc: "晋升机会出现", healthDesc: "注意肝胆问题", socialDesc: "领导赏识" },
-            rabbit: { love: 5, money: 2, career: 3, health: 3, social: 4, 
-                     loveDesc: "红鸾星动，良缘将至", moneyDesc: "保守理财为上", 
-                     careerDesc: "避免口舌是非", healthDesc: "注意情绪管理", socialDesc: "朋友支持多" },
-            dragon: { love: 4, money: 4, career: 4, health: 3, social: 5, 
-                     loveDesc: "单身者有望遇到正缘", moneyDesc: "投资运佳", 
-                     careerDesc: "贵人提携", healthDesc: "注意呼吸系统", socialDesc: "人缘极佳" },
-            snake: { love: 3, money: 5, career: 4, health: 4, social: 3, 
-                    loveDesc: "职场桃花旺盛", moneyDesc: "财运亨通", 
-                    careerDesc: "展现才华机会", healthDesc: "注意皮肤问题", socialDesc: "专注工作" },
-            horse: { love: 4, money: 3, career: 3, health: 3, social: 4, 
-                    loveDesc: "旧情复燃可能", moneyDesc: "正财稳定", 
-                    careerDesc: "稳扎稳打", healthDesc: "注意心脏问题", socialDesc: "朋友聚会多" },
-            goat: { love: 3, money: 3, career: 4, health: 4, social: 4, 
-                   loveDesc: "家庭和睦", moneyDesc: "储蓄增加", 
-                   careerDesc: "耐心积累", healthDesc: "注意体重管理", socialDesc: "同事关系好" },
-            monkey: { love: 4, money: 4, career: 5, health: 3, social: 4, 
-                     loveDesc: "魅力四射", moneyDesc: "投资眼光独到", 
-                     careerDesc: "创新领域突破", healthDesc: "注意呼吸系统", socialDesc: "人脉拓展" },
-            rooster: { love: 3, money: 3, career: 3, health: 4, social: 3, 
-                      loveDesc: "职场桃花", moneyDesc: "保守理财", 
-                      careerDesc: "谨言慎行", healthDesc: "注意咽喉问题", socialDesc: "专注工作" },
-            dog: { love: 4, money: 3, career: 3, health: 3, social: 4, 
-                  loveDesc: "多沟通理解", moneyDesc: "正财为主", 
-                  careerDesc: "稳扎稳打", healthDesc: "注意肠胃问题", socialDesc: "朋友支持" },
-            pig: { love: 4, money: 4, career: 4, health: 3, social: 5, 
-                   loveDesc: "有望遇到正缘", moneyDesc: "正财增长", 
-                   careerDesc: "稳中求进", healthDesc: "注意代谢问题", socialDesc: "人缘极佳" }
+            rat: { 
+                love: 4, money: 3, career: 4, health: 3, social: 5, 
+                loveDesc: "单身者有望邂逅心仪对象", moneyDesc: "谨慎投资，避免冲动消费", 
+                careerDesc: "工作上有贵人相助", healthDesc: "注意肠胃消化问题", socialDesc: "社交活跃，人缘极佳",
+                warnings: ["鼠：注意交通安全", "兔：谨防财务纠纷", "马：小心口舌是非"],
+                healthWarning: "注意呼吸系统"
+            },
+            ox: { 
+                love: 3, money: 4, career: 3, health: 4, social: 4, 
+                loveDesc: "已有伴侣者感情稳定", moneyDesc: "正财收入增加", 
+                careerDesc: "稳扎稳打是关键", healthDesc: "注意脾胃问题", socialDesc: "同事关系融洽",
+                warnings: ["牛：注意健康问题", "羊：避免投资风险", "狗：小心人际关系"],
+                healthWarning: "注意脾胃消化"
+            },
+            tiger: { 
+                love: 4, money: 3, career: 5, health: 2, social: 4, 
+                loveDesc: "魅力提升，吸引异性", moneyDesc: "偏财机会多但需谨慎", 
+                careerDesc: "晋升机会出现", healthDesc: "注意肝胆问题", socialDesc: "领导赏识",
+                warnings: ["虎：注意情绪管理", "猴：避免冲动决策", "蛇：小心财务纠纷"],
+                healthWarning: "注意肝胆系统"
+            },
+            rabbit: { 
+                love: 5, money: 2, career: 3, health: 3, social: 4, 
+                loveDesc: "红鸾星动，良缘将至", moneyDesc: "保守理财为上", 
+                careerDesc: "避免口舌是非", healthDesc: "注意情绪管理", socialDesc: "朋友支持多",
+                warnings: ["兔：谨防财务纠纷", "鼠：注意交通安全", "鸡：小心口舌是非"],
+                healthWarning: "注意情绪波动"
+            },
+            dragon: { 
+                love: 4, money: 4, career: 4, health: 3, social: 5, 
+                loveDesc: "单身者有望遇到正缘", moneyDesc: "投资运佳", 
+                careerDesc: "贵人提携", healthDesc: "注意呼吸系统", socialDesc: "人缘极佳",
+                warnings: ["龙：注意呼吸系统", "狗：避免合作风险", "兔：小心人际关系"],
+                healthWarning: "注意呼吸系统"
+            },
+            snake: { 
+                love: 3, money: 5, career: 4, health: 4, social: 3, 
+                loveDesc: "职场桃花旺盛", moneyDesc: "财运亨通", 
+                careerDesc: "展现才华机会", healthDesc: "注意皮肤问题", socialDesc: "专注工作",
+                warnings: ["蛇：注意皮肤问题", "猪：避免投资风险", "虎：小心财务纠纷"],
+                healthWarning: "注意皮肤过敏"
+            },
+            horse: { 
+                love: 4, money: 3, career: 3, health: 3, social: 4, 
+                loveDesc: "旧情复燃可能", moneyDesc: "正财稳定", 
+                careerDesc: "稳扎稳打", healthDesc: "注意心脏问题", socialDesc: "朋友聚会多",
+                warnings: ["马：小心口舌是非", "鼠：注意交通安全", "牛：避免冲动决策"],
+                healthWarning: "注意心血管健康"
+            },
+            goat: { 
+                love: 3, money: 3, career: 4, health: 4, social: 4, 
+                loveDesc: "家庭和睦", moneyDesc: "储蓄增加", 
+                careerDesc: "耐心积累", healthDesc: "注意体重管理", socialDesc: "同事关系好",
+                warnings: ["羊：避免投资风险", "牛：注意健康问题", "狗：小心人际关系"],
+                healthWarning: "注意体重控制"
+            },
+            monkey: { 
+                love: 4, money: 4, career: 5, health: 3, social: 4, 
+                loveDesc: "魅力四射", moneyDesc: "投资眼光独到", 
+                careerDesc: "创新领域突破", healthDesc: "注意呼吸系统", socialDesc: "人脉拓展",
+                warnings: ["猴：避免冲动决策", "虎：注意情绪管理", "猪：小心财务纠纷"],
+                healthWarning: "注意呼吸系统"
+            },
+            rooster: { 
+                love: 3, money: 3, career: 3, health: 4, social: 3, 
+                loveDesc: "职场桃花", moneyDesc: "保守理财", 
+                careerDesc: "谨言慎行", healthDesc: "注意咽喉问题", socialDesc: "专注工作",
+                warnings: ["鸡：小心口舌是非", "兔：谨防财务纠纷", "狗：避免合作风险"],
+                healthWarning: "注意咽喉健康"
+            },
+            dog: { 
+                love: 4, money: 3, career: 3, health: 3, social: 4, 
+                loveDesc: "多沟通理解", moneyDesc: "正财为主", 
+                careerDesc: "稳扎稳打", healthDesc: "注意肠胃问题", socialDesc: "朋友支持",
+                warnings: ["狗：小心人际关系", "龙：注意呼吸系统", "羊：避免投资风险"],
+                healthWarning: "注意肠胃消化"
+            },
+            pig: { 
+                love: 4, money: 4, career: 4, health: 3, social: 5, 
+                loveDesc: "有望遇到正缘", moneyDesc: "正财增长", 
+                careerDesc: "稳中求进", healthDesc: "注意代谢问题", socialDesc: "人缘极佳",
+                warnings: ["猪：小心财务纠纷", "蛇：注意皮肤问题", "猴：避免冲动决策"],
+                healthWarning: "注意新陈代谢"
+            }
         };
         
         // 能量预测数据
@@ -634,18 +688,66 @@
         
         // 本月建议数据
         const adviceData = {
-            rat: { career: "适合创新项目", love: "多参加社交活动", health: "注意肝胆" },
-            ox: { career: "稳扎稳打", love: "多关心伴侣", health: "注意脾胃" },
-            tiger: { career: "尝试新领域", love: "控制脾气", health: "注意血压" },
-            rabbit: { career: "谨慎行事", love: "多表达情感", health: "注意睡眠" },
-            dragon: { career: "贵人提携", love: "安排约会", health: "注意呼吸" },
-            snake: { career: "展现才华", love: "职场桃花", health: "注意皮肤" },
-            horse: { career: "稳扎稳打", love: "旧情复燃", health: "注意心脏" },
-            goat: { career: "耐心积累", love: "家庭和睦", health: "注意体重" },
-            monkey: { career: "创新突破", love: "魅力四射", health: "注意呼吸" },
-            rooster: { career: "谨言慎行", love: "职场桃花", health: "注意咽喉" },
-            dog: { career: "稳扎稳打", love: "多沟通", health: "注意肠胃" },
-            pig: { career: "稳中求进", love: "正缘机会", health: "注意代谢" }
+            rat: { 
+                career: "适合创新项目，避免与属马的人合作", 
+                love: "多参加社交活动，已有伴侣者宜安排约会", 
+                health: "注意肝胆健康，避免熬夜" 
+            },
+            ox: { 
+                career: "稳扎稳打，专注提升专业技能", 
+                love: "多关心伴侣，避免因工作忽视家庭", 
+                health: "注意脾胃消化，饮食宜清淡" 
+            },
+            tiger: { 
+                career: "尝试新领域，展现领导才能", 
+                love: "控制脾气，多表达情感", 
+                health: "注意血压和情绪管理" 
+            },
+            rabbit: { 
+                career: "谨慎行事，避免卷入是非", 
+                love: "多表达情感，安排浪漫约会", 
+                health: "注意睡眠质量，避免过度思虑" 
+            },
+            dragon: { 
+                career: "贵人提携，把握晋升机会", 
+                love: "单身者主动社交，已婚者增进沟通", 
+                health: "注意呼吸系统，避免空气污染" 
+            },
+            snake: { 
+                career: "展现才华，把握表现机会", 
+                love: "职场桃花旺盛，但需谨慎选择", 
+                health: "注意皮肤护理，避免过敏" 
+            },
+            horse: { 
+                career: "稳扎稳打，避免冲动决策", 
+                love: "旧情复燃可能，需理性对待", 
+                health: "注意心脏健康，适度运动" 
+            },
+            goat: { 
+                career: "耐心积累，稳中求进", 
+                love: "家庭和睦，多花时间陪伴家人", 
+                health: "注意体重管理，均衡饮食" 
+            },
+            monkey: { 
+                career: "创新突破，展现创意", 
+                love: "魅力四射，主动社交", 
+                health: "注意呼吸系统，多户外活动" 
+            },
+            rooster: { 
+                career: "谨言慎行，避免口舌是非", 
+                love: "职场桃花，但需保持专业", 
+                health: "注意咽喉健康，多喝温水" 
+            },
+            dog: { 
+                career: "稳扎稳打，专注本职工作", 
+                love: "多沟通理解，增进感情", 
+                health: "注意肠胃消化，规律饮食" 
+            },
+            pig: { 
+                career: "稳中求进，把握正财机会", 
+                love: "有望遇到正缘，主动社交", 
+                health: "注意新陈代谢，适度运动" 
+            }
         };
         
         // 生肖配对数据
@@ -776,23 +878,23 @@
                     switch(elementText) {
                         case '木':
                             elementInfo = '木代表生长、发展、创造力。木旺的人通常具有领导才能和创新思维。';
-                            elementColor = 'var(--element-wood)';
+                            elementColor = '#4CAF50';
                             break;
                         case '火':
                             elementInfo = '火代表热情、活力、表现力。火旺的人通常性格开朗，善于交际。';
-                            elementColor = 'var(--element-fire)';
+                            elementColor = '#F44336';
                             break;
                         case '土':
                             elementInfo = '土代表稳定、实际、包容。土旺的人通常踏实可靠，注重实际。';
-                            elementColor = 'var(--element-earth)';
+                            elementColor = '#FFC107';
                             break;
                         case '金':
                             elementInfo = '金代表决断、精确、效率。金旺的人通常思维清晰，执行力强。';
-                            elementColor = 'var(--element-metal)';
+                            elementColor = '#607D8B';
                             break;
                         case '水':
                             elementInfo = '水代表智慧、流动、适应力。水旺的人通常聪明机智，善于变通。';
-                            elementColor = 'var(--element-water)';
+                            elementColor = '#2196F3';
                             break;
                     }
                     
@@ -911,6 +1013,9 @@
             }
             document.getElementById('today-energy').textContent = energyDesc;
             
+            // 更新八字小知识
+            updateBaziKnowledge(lunarDate);
+            
             // 生肖排行榜点击查看详情
             const zodiacRankings = document.querySelectorAll('.zodiac-ranking');
             const zodiacModal = document.getElementById('zodiacModal');
@@ -997,6 +1102,109 @@
             });
         });
         
+        // 更新八字小知识
+        function updateBaziKnowledge(lunarDate) {
+            // 获取天干地支
+            const dayGanZhi = lunarDate.getDayGanZhi();
+            const dayGan = dayGanZhi.substring(0, 1);
+            const dayZhi = dayGanZhi.substring(1);
+            
+            // 五行映射
+            const wuXingMap = {
+                '甲': '木', '乙': '木', '丙': '火', '丁': '火', '戊': '土',
+                '己': '土', '庚': '金', '辛': '金', '壬': '水', '癸': '水',
+                '子': '水', '丑': '土', '寅': '木', '卯': '木', '辰': '土',
+                '巳': '火', '午': '火', '未': '土', '申': '金', '酉': '金',
+                '戌': '土', '亥': '水'
+            };
+            
+            // 今日五行
+            const dayGanWuXing = wuXingMap[dayGan] || '';
+            const dayZhiWuXing = wuXingMap[dayZhi] || '';
+            
+            let wuxingDesc = '';
+            if (dayGanWuXing === dayZhiWuXing) {
+                wuxingDesc = `<p>今日天干为<span class="${dayGanWuXing}">${dayGan}${dayGanWuXing}</span>，地支为<span class="${dayZhiWuXing}">${dayZhi}${dayZhiWuXing}</span>，<span class="${dayGanWuXing}">${dayGanWuXing}</span>气专旺，能量集中。</p>`;
+            } else {
+                wuxingDesc = `<p>今日天干为<span class="${dayGanWuXing}">${dayGan}${dayGanWuXing}</span>，地支为<span class="${dayZhiWuXing}">${dayZhi}${dayZhiWuXing}</span>，<span class="${dayGanWuXing}">${dayGanWuXing}</span>与<span class="${dayZhiWuXing}">${dayZhiWuXing}</span>相生相克，能量流转。</p>`;
+            }
+            
+            // 适合和忌讳的活动
+            let suitableActivities = '';
+            let avoidActivities = '';
+            
+            switch(dayGanWuXing) {
+                case '木':
+                    suitableActivities = '种植、学习、创意工作、社交活动';
+                    avoidActivities = '动土、签订重要合同、金属加工';
+                    break;
+                case '火':
+                    suitableActivities = '表现自我、社交活动、创意工作';
+                    avoidActivities = '水上活动、重大决策、金融交易';
+                    break;
+                case '土':
+                    suitableActivities = '房地产、建筑、农业、稳定工作';
+                    avoidActivities = '旅行、变动、创新项目';
+                    break;
+                case '金':
+                    suitableActivities = '金融交易、决策、金属加工';
+                    avoidActivities = '火相关活动、创意工作、社交活动';
+                    break;
+                case '水':
+                    suitableActivities = '水上活动、旅行、冥想';
+                    avoidActivities = '土相关活动、房地产、建筑';
+                    break;
+            }
+            
+            wuxingDesc += `<p>适合：${suitableActivities}</p><p>忌讳：${avoidActivities}</p>`;
+            document.getElementById('today-wuxing').innerHTML = wuxingDesc;
+            
+            // 今日吉时
+            const luckyHours = [
+                { time: '子时 (23-1点)', luck: '平', desc: '适合休息冥想' },
+                { time: '丑时 (1-3点)', luck: '凶', desc: '避免重要活动' },
+                { time: '寅时 (3-5点)', luck: '吉', desc: '适合早起工作' },
+                { time: '卯时 (5-7点)', luck: '凶', desc: '冲太岁，避免远行' },
+                { time: '辰时 (7-9点)', luck: '吉', desc: '适合开始新项目' },
+                { time: '巳时 (9-11点)', luck: '大吉', desc: '贵人运强，适合洽谈' },
+                { time: '午时 (11-13点)', luck: '吉', desc: '适合社交活动' },
+                { time: '未时 (13-15点)', luck: '平', desc: '适合日常工作' },
+                { time: '申时 (15-17点)', luck: '大吉', desc: '财运最佳，适合投资' },
+                { time: '酉时 (17-19点)', luck: '吉', desc: '适合总结反思' },
+                { time: '戌时 (19-21点)', luck: '平', desc: '适合家庭活动' },
+                { time: '亥时 (21-23点)', luck: '凶', desc: '避免重大决策' }
+            ];
+            
+            let luckyHoursHTML = '';
+            luckyHours.forEach(hour => {
+                const luckClass = hour.luck === '大吉' ? 'success' : hour.luck === '凶' ? 'danger' : '';
+                luckyHoursHTML += `<p><span class="${luckClass}">${hour.time} (${hour.luck})</span>：${hour.desc}</p>`;
+            });
+            document.getElementById('lucky-hours').innerHTML = luckyHoursHTML;
+            
+            // 今日方位
+            const luckyDirections = [
+                { direction: '东方', type: '桃花位', luck: '吉', desc: '增强人际关系' },
+                { direction: '南方', type: '财运位', luck: '吉', desc: '增强财运' },
+                { direction: '西方', type: '是非位', luck: '凶', desc: '避免冲突' },
+                { direction: '北方', type: '事业位', luck: '吉', desc: '增强事业运' },
+                { direction: '东南方', type: '健康位', luck: '平', desc: '注意健康' },
+                { direction: '西南方', type: '病符位', luck: '凶', desc: '避免久留' },
+                { direction: '西北方', type: '贵人位', luck: '吉', desc: '寻求帮助' },
+                { direction: '东北方', type: '学业位', luck: '平', desc: '适合学习' }
+            ];
+            
+            let goodDirections = luckyDirections.filter(d => d.luck === '吉').map(d => `${d.direction}（${d.type}）`).join('、');
+            let badDirections = luckyDirections.filter(d => d.luck === '凶').map(d => `${d.direction}（${d.type}）`).join('、');
+            
+            let directionsHTML = `
+                <p><span class="success">吉利方位</span>：${goodDirections}</p>
+                <p><span class="danger">不利方位</span>：${badDirections}</p>
+                <p>办公桌可摆放绿色植物增强<span class="wood">木</span>能量</p>
+            `;
+            document.getElementById('lucky-directions').innerHTML = directionsHTML;
+        }
+        
         // 初始化生肖选择器
         function initZodiacSelector() {
             const zodiacOptions = document.getElementById('zodiacOptions');
@@ -1061,22 +1269,21 @@
             
             // 更新能量预测
             const energy = energyData[zodiac];
-            document.querySelector('.energy-value.wood').textContent = `木：${energy.annual.split('：')[1]}`;
-            document.querySelector('.energy-value.fire').textContent = `火：${energy.monthly.split('：')[1]}`;
-            document.querySelector('.energy-value.metal').textContent = `金：${energy.daily.split('：')[1]}`;
+            document.getElementById('annual-energy').textContent = energy.annual;
+            document.getElementById('monthly-energy').textContent = energy.monthly;
+            document.getElementById('daily-energy').textContent = energy.daily;
             
             // 更新本月建议
             const advice = adviceData[zodiac];
-            document.querySelectorAll('.energy-card')[0].querySelector('.energy-desc').innerHTML = advice.career;
-            document.querySelectorAll('.energy-card')[1].querySelector('.energy-desc').innerHTML = advice.love;
-            document.querySelectorAll('.energy-card')[2].querySelector('.energy-desc').innerHTML = advice.health;
+            document.getElementById('career-advice').innerHTML = advice.career;
+            document.getElementById('love-advice').innerHTML = advice.love;
+            document.getElementById('health-advice').innerHTML = advice.health;
             
             // 更新警告生肖
-            const warnings = getWarningZodiacs(zodiac);
-            const warningContainer = document.querySelector('.warning-zodiacs');
+            const warningContainer = document.getElementById('warningZodiacs');
             warningContainer.innerHTML = '';
             
-            warnings.forEach(warning => {
+            fortune.warnings.forEach(warning => {
                 const warningElement = document.createElement('div');
                 warningElement.className = 'warning-zodiac';
                 warningElement.innerHTML = `<i class="fas fa-exclamation-triangle"></i><span>${warning}</span>`;
@@ -1085,26 +1292,6 @@
             
             // 更新五行能量图
             updateEnergyChart(zodiac);
-        }
-        
-        // 获取警告生肖
-        function getWarningZodiacs(currentZodiac) {
-            const warnings = {
-                rat: ['鼠：注意交通安全', '兔：谨防财务纠纷', '马：小心口舌是非'],
-                ox: ['牛：注意健康问题', '羊：避免投资风险', '狗：小心人际关系'],
-                tiger: ['虎：注意情绪管理', '猴：避免冲动决策', '蛇：小心财务纠纷'],
-                rabbit: ['兔：谨防财务纠纷', '鼠：注意交通安全', '鸡：小心口舌是非'],
-                dragon: ['龙：注意呼吸系统', '狗：避免合作风险', '兔：小心人际关系'],
-                snake: ['蛇：注意皮肤问题', '猪：避免投资风险', '虎：小心财务纠纷'],
-                horse: ['马：小心口舌是非', '鼠：注意交通安全', '牛：避免冲动决策'],
-                goat: ['羊：避免投资风险', '牛：注意健康问题', '狗：小心人际关系'],
-                monkey: ['猴：避免冲动决策', '虎：注意情绪管理', '猪：小心财务纠纷'],
-                rooster: ['鸡：小心口舌是非', '兔：谨防财务纠纷', '狗：避免合作风险'],
-                dog: ['狗：小心人际关系', '龙：注意呼吸系统', '羊：避免投资风险'],
-                pig: ['猪：小心财务纠纷', '蛇：注意皮肤问题', '猴：避免冲动决策']
-            };
-            
-            return warnings[currentZodiac] || warnings.dragon;
         }
         
         // 显示生肖详情弹窗
@@ -1437,6 +1624,22 @@
             window.wuxingChart.data.datasets[0].data = currentData;
             window.wuxingChart.data.datasets[1].data = forecastData;
             window.wuxingChart.update();
+            
+            // 更新能量描述
+            const elements = ['木', '火', '土', '金', '水'];
+            let desc = '';
+            currentData.forEach((value, index) => {
+                const element = elements[index];
+                let status = '';
+                if (value >= 80) status = '旺盛';
+                else if (value >= 60) status = '平稳';
+                else if (value >= 40) status = '一般';
+                else status = '低迷';
+                
+                desc += `<span class="${element.toLowerCase()}">${element}能量</span>当前${status}（${value}%），`;
+            });
+            
+            document.querySelector('.energy-desc p').innerHTML = desc.slice(0, -1) + '。';
         }
     </script>
     <!-- Google tag (gtag.js) -->
