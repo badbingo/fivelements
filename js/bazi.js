@@ -1,6 +1,6 @@
 
 document.addEventListener('DOMContentLoaded', function() {
-    // 确保全局能获取当前日期（动态获取2025年b）
+    // 确保全局能获取当前日期（动态获取2025年a）
     const currentDate = new Date(); // 自动获取当前日期（2025）
     const currentYear = currentDate.getFullYear(); // 2025
     const currentMonth = currentDate.getMonth() + 1; // 1-12
@@ -3725,7 +3725,7 @@ function determineStrengthType(pillars) {
 
     // 获取八字问答答案
     async function getBaziAnswer(question) {
-        const apiUrl = 'https://free.v36.cm';
+        const apiUrl = 'https://free.v36.cm/v1/';
         const apiKey = 'sk-G0qsBl5T4Ile8aRv92275592B13244CdB3C0413f55AfDc94';
     // 使用 currentYear（2025）、currentMonth、currentDay
         const currentDateStr = `${currentYear}-${currentMonth.toString().padStart(2, '0')}-${currentDay.toString().padStart(2, '0')}`;
