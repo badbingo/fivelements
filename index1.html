@@ -16,57 +16,33 @@
       gtag('config', 'G-2NHJXGKS0Y');
     </script>
     <style>
-        /* 生肖图标样式 - 使用SVG图标 */
+        /* 生肖图标样式 */
         .zodiac-icon {
-            width: 48px;
-            height: 48px;
+            font-size: 2rem;
             margin: 0 5px;
-            transition: all 0.3s ease;
-            filter: drop-shadow(0 0 5px rgba(0,0,0,0.3));
-        }
-        
-        .zodiac-icon:hover {
-            transform: scale(1.1);
-            filter: drop-shadow(0 0 8px rgba(255,215,0,0.7));
-        }
-        
-        .zodiac-icon.selected {
-            transform: scale(1.2);
-            filter: drop-shadow(0 0 12px rgba(255,215,0,0.9));
-            animation: glow 1.5s infinite alternate;
-        }
-        
-        @keyframes glow {
-            from {
-                filter: drop-shadow(0 0 5px rgba(255,215,0,0.7));
-            }
-            to {
-                filter: drop-shadow(0 0 15px rgba(255,215,0,0.9));
-            }
+            text-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
         }
         
         .zodiac-icon-small {
-            width: 32px;
-            height: 32px;
+            font-size: 1.5rem;
             margin: 0 3px;
         }
         
-        .zodiac-icon-large {
-            width: 64px;
-            height: 64px;
-            margin: 0 8px;
+        /* 生肖对应的卡通图标 */
+        .zodiac-icon img {
+            width: 40px;
+            height: 40px;
         }
         
-        /* 游戏中的生肖选择器 */
-        .zodiac-option {
-            cursor: pointer;
-            display: inline-block;
-            margin: 5px;
+        .game-area .zodiac-icon img {
+            width: 60px;
+            height: 60px;
+        }
+        
+        .zodiac-option.selected {
+            transform: scale(1.2);
+            filter: drop-shadow(0 0 10px gold);
             transition: all 0.3s ease;
-        }
-        
-        .zodiac-option:hover {
-            transform: scale(1.1);
         }
     </style>
 </head>
@@ -253,7 +229,21 @@
     </section>
     
     <script>
-        
+        // 卡通风格生肖图标映射
+        const zodiacIcons = {
+            "rat": { symbol: "🐭", name: "鼠", image: "https://img.icons8.com/color/48/000000/rat.png" },
+            "ox": { symbol: "🐮", name: "牛", image: "https://img.icons8.com/color/48/000000/ox.png" },
+            "tiger": { symbol: "🐯", name: "虎", image: "https://img.icons8.com/color/48/000000/tiger.png" },
+            "rabbit": { symbol: "🐰", name: "兔", image: "https://img.icons8.com/color/48/000000/rabbit.png" },
+            "dragon": { symbol: "🐲", name: "龙", image: "https://img.icons8.com/color/48/000000/dragon.png" },
+            "snake": { symbol: "🐍", name: "蛇", image: "https://img.icons8.com/color/48/000000/snake.png" },
+            "horse": { symbol: "🐴", name: "马", image: "https://img.icons8.com/color/48/000000/horse.png" },
+            "sheep": { symbol: "🐏", name: "羊", image: "https://img.icons8.com/color/48/000000/sheep.png" },
+            "monkey": { symbol: "🐵", name: "猴", image: "https://img.icons8.com/color/48/000000/monkey.png" },
+            "rooster": { symbol: "🐔", name: "鸡", image: "https://img.icons8.com/color/48/000000/rooster.png" },
+            "dog": { symbol: "🐶", name: "狗", image: "https://img.icons8.com/color/48/000000/dog.png" },
+            "pig": { symbol: "🐷", name: "猪", image: "https://img.icons8.com/color/48/000000/pig.png" }
+        };
 
         // 创建星空背景
         document.addEventListener('DOMContentLoaded', function() {
@@ -585,11 +575,10 @@
             luckyZodiacs.innerHTML = '';
             
             data.luckyZodiacs.forEach(zodiac => {
-                const div = document.createElement('div');
-                div.className = `zodiac-icon zodiac-${zodiac}`;
-                div.innerHTML = zodiacIcons[zodiac].svg;
-                div.title = zodiacIcons[zodiac].name;
-                luckyZodiacs.appendChild(div);
+                const span = document.createElement('span');
+                span.className = `zodiac-icon zodiac-${zodiac}`;
+                span.innerHTML = `<img src="${zodiacIcons[zodiac].image}" alt="${zodiacIcons[zodiac].name}" title="${zodiacIcons[zodiac].name}">`;
+                luckyZodiacs.appendChild(span);
             });
         }
         
@@ -615,9 +604,9 @@
                 div.innerHTML = `
                     <div class="ranking-rank ${rankClass}">${index + 1}</div>
                     <div class="ranking-zodiac">
-                        <div class="zodiac-icon zodiac-${item.name}" title="${zodiacIcons[item.name].name}">
-                            ${zodiacIcons[item.name].svg}
-                        </div>
+                        <span class="zodiac-icon zodiac-${item.name}" title="${zodiacIcons[item.name].name}">
+                            <img src="${zodiacIcons[item.name].image}" alt="${zodiacIcons[item.name].name}">
+                        </span>
                     </div>
                     <div class="ranking-score">
                         <div class="score-bar" style="width: ${item.score}%"></div>
@@ -640,9 +629,9 @@
                 
                 card.innerHTML = `
                     <div class="zodiac-header">
-                        <div class="zodiac-icon zodiac-${item.zodiac}" title="${zodiacIcons[item.zodiac].name}">
-                            ${zodiacIcons[item.zodiac].svg}
-                        </div>
+                        <span class="zodiac-icon zodiac-${item.zodiac}" title="${zodiacIcons[item.zodiac].name}">
+                            <img src="${zodiacIcons[item.zodiac].image}" alt="${zodiacIcons[item.zodiac].name}">
+                        </span>
                         <h3>${zodiacIcons[item.zodiac].name}生肖</h3>
                     </div>
                     <div class="zodiac-advice">${item.advice}</div>
@@ -715,8 +704,7 @@
             zodiacs.forEach(zodiac => {
                 const div = document.createElement('div');
                 div.className = `zodiac-option zodiac-${zodiac}`;
-                div.innerHTML = `<div class="zodiac-icon-large">${zodiacIcons[zodiac].svg}</div>`;
-                div.title = zodiacIcons[zodiac].name;
+                div.innerHTML = `<img src="${zodiacIcons[zodiac].image}" alt="${zodiacIcons[zodiac].name}" title="${zodiacIcons[zodiac].name}">`;
                 div.addEventListener('click', function() {
                     document.querySelectorAll('#user-zodiac .zodiac-option').forEach(opt => opt.classList.remove('selected'));
                     this.classList.add('selected');
@@ -725,8 +713,7 @@
                 
                 const div2 = document.createElement('div');
                 div2.className = `zodiac-option zodiac-${zodiac}`;
-                div2.innerHTML = `<div class="zodiac-icon-large">${zodiacIcons[zodiac].svg}</div>`;
-                div2.title = zodiacIcons[zodiac].name;
+                div2.innerHTML = `<img src="${zodiacIcons[zodiac].image}" alt="${zodiacIcons[zodiac].name}" title="${zodiacIcons[zodiac].name}">`;
                 div2.addEventListener('click', function() {
                     document.querySelectorAll('#target-zodiac .zodiac-option').forEach(opt => opt.classList.remove('selected'));
                     this.classList.add('selected');
@@ -740,11 +727,11 @@
             
             // 测试契合度按钮
             document.getElementById('check-compatibility').addEventListener('click', function() {
-                const userSelected = document.querySelector('#user-zodiac .selected').textContent;
-                const targetSelected = document.querySelector('#target-zodiac .selected').textContent;
+                const userSelected = document.querySelector('#user-zodiac .selected img').alt;
+                const targetSelected = document.querySelector('#target-zodiac .selected img').alt;
                 
-                const userZodiacName = Object.keys(zodiacIcons).find(key => zodiacIcons[key].name === document.querySelector('#user-zodiac .selected').title);
-                const targetZodiacName = Object.keys(zodiacIcons).find(key => zodiacIcons[key].name === document.querySelector('#target-zodiac .selected').title);
+                const userZodiacName = Object.keys(zodiacIcons).find(key => zodiacIcons[key].name === userSelected);
+                const targetZodiacName = Object.keys(zodiacIcons).find(key => zodiacIcons[key].name === targetSelected);
                 
                 if (userZodiacName === targetZodiacName) {
                     showCompatibilityResult("同一生肖，契合度100%！你们有相似的思维方式和行为模式，容易理解彼此。");
