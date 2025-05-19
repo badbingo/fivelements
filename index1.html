@@ -29,7 +29,7 @@
             margin: 0 3px;
         }
         
-        /* 生肖对应的Font Awesome图标 */
+        /* 生肖对应的Unicode符号和颜色 */
         .zodiac-rat { color: #6e8efb; }
         .zodiac-ox { color: #8BC34A; }
         .zodiac-tiger { color: #FF9800; }
@@ -48,7 +48,6 @@
     <!-- 星空背景 -->
     <div class="stars" id="stars"></div>
     
-
     <!-- 开场英雄区域 -->
     <section class="hero-section">
         <div class="hero-content">
@@ -229,20 +228,20 @@
     
     <script src="js/lunar.js"></script>
     <script>
-        // 生肖图标映射
+        // 生肖图标映射 - 使用Unicode符号
         const zodiacIcons = {
-            "rat": { icon: "fa-rat", name: "鼠" },
-            "ox": { icon: "fa-ox", name: "牛" },
-            "tiger": { icon: "fa-paw", name: "虎" },
-            "rabbit": { icon: "fa-rabbit", name: "兔" },
-            "dragon": { icon: "fa-dragon", name: "龙" },
-            "snake": { icon: "fa-staff-snake", name: "蛇" },
-            "horse": { icon: "fa-horse", name: "马" },
-            "sheep": { icon: "fa-sheep", name: "羊" },
-            "monkey": { icon: "fa-monkey", name: "猴" },
-            "rooster": { icon: "fa-crow", name: "鸡" },
-            "dog": { icon: "fa-dog", name: "狗" },
-            "pig": { icon: "fa-piggy-bank", name: "猪" }
+            "rat": { symbol: "🐀", name: "鼠" },
+            "ox": { symbol: "🐂", name: "牛" },
+            "tiger": { symbol: "🐅", name: "虎" },
+            "rabbit": { symbol: "🐇", name: "兔" },
+            "dragon": { symbol: "🐉", name: "龙" },
+            "snake": { symbol: "🐍", name: "蛇" },
+            "horse": { symbol: "🐎", name: "马" },
+            "sheep": { symbol: "🐑", name: "羊" },
+            "monkey": { symbol: "🐒", name: "猴" },
+            "rooster": { symbol: "🐓", name: "鸡" },
+            "dog": { symbol: "🐕", name: "狗" },
+            "pig": { symbol: "🐖", name: "猪" }
         };
 
         // 创建星空背景
@@ -577,7 +576,7 @@
             data.luckyZodiacs.forEach(zodiac => {
                 const span = document.createElement('span');
                 span.className = `zodiac-icon zodiac-${zodiac}`;
-                span.innerHTML = `<i class="fas ${zodiacIcons[zodiac].icon}"></i>`;
+                span.textContent = zodiacIcons[zodiac].symbol;
                 span.title = zodiacIcons[zodiac].name;
                 luckyZodiacs.appendChild(span);
             });
@@ -606,7 +605,7 @@
                     <div class="ranking-rank ${rankClass}">${index + 1}</div>
                     <div class="ranking-zodiac">
                         <span class="zodiac-icon zodiac-${item.name}" title="${zodiacIcons[item.name].name}">
-                            <i class="fas ${zodiacIcons[item.name].icon}"></i>
+                            ${zodiacIcons[item.name].symbol}
                         </span>
                     </div>
                     <div class="ranking-score">
@@ -631,7 +630,7 @@
                 card.innerHTML = `
                     <div class="zodiac-header">
                         <span class="zodiac-icon zodiac-${item.zodiac}" title="${zodiacIcons[item.zodiac].name}">
-                            <i class="fas ${zodiacIcons[item.zodiac].icon}"></i>
+                            ${zodiacIcons[item.zodiac].symbol}
                         </span>
                         <h3>${zodiacIcons[item.zodiac].name}生肖</h3>
                     </div>
@@ -705,7 +704,7 @@
             zodiacs.forEach(zodiac => {
                 const div = document.createElement('div');
                 div.className = `zodiac-option zodiac-${zodiac}`;
-                div.innerHTML = `<i class="fas ${zodiacIcons[zodiac].icon}"></i>`;
+                div.textContent = zodiacIcons[zodiac].symbol;
                 div.title = zodiacIcons[zodiac].name;
                 div.addEventListener('click', function() {
                     document.querySelectorAll('#user-zodiac .zodiac-option').forEach(opt => opt.classList.remove('selected'));
@@ -715,7 +714,7 @@
                 
                 const div2 = document.createElement('div');
                 div2.className = `zodiac-option zodiac-${zodiac}`;
-                div2.innerHTML = `<i class="fas ${zodiacIcons[zodiac].icon}"></i>`;
+                div2.textContent = zodiacIcons[zodiac].symbol;
                 div2.title = zodiacIcons[zodiac].name;
                 div2.addEventListener('click', function() {
                     document.querySelectorAll('#target-zodiac .zodiac-option').forEach(opt => opt.classList.remove('selected'));
@@ -730,11 +729,11 @@
             
             // 测试契合度按钮
             document.getElementById('check-compatibility').addEventListener('click', function() {
-                const userSelected = document.querySelector('#user-zodiac .selected i').className.replace('fas ', '');
-                const targetSelected = document.querySelector('#target-zodiac .selected i').className.replace('fas ', '');
+                const userSelected = document.querySelector('#user-zodiac .selected').textContent;
+                const targetSelected = document.querySelector('#target-zodiac .selected').textContent;
                 
-                const userZodiacName = Object.keys(zodiacIcons).find(key => zodiacIcons[key].icon === userSelected);
-                const targetZodiacName = Object.keys(zodiacIcons).find(key => zodiacIcons[key].icon === targetSelected);
+                const userZodiacName = Object.keys(zodiacIcons).find(key => zodiacIcons[key].symbol === userSelected);
+                const targetZodiacName = Object.keys(zodiacIcons).find(key => zodiacIcons[key].symbol === targetSelected);
                 
                 if (userZodiacName === targetZodiacName) {
                     showCompatibilityResult("同一生肖，契合度100%！你们有相似的思维方式和行为模式，容易理解彼此。");
