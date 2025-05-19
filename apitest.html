@@ -38,7 +38,7 @@
             responseDiv.textContent = '正在请求中...';
 
             try {
-                const apiUrl = 'https://free.v36.cm'; // 替换为你的 API URL
+                const apiUrl = 'https://free.v36.cm/'; // 替换为正确的 API URL
                 const apiKey = 'sk-G0qsBl5T4Ile8aRv92275592B13244CdB3C0413f55AfDc94'; // 替换为你的 API Key
 
                 const result = await fetch(apiUrl, {
@@ -54,11 +54,16 @@
                     })
                 });
 
+                // 检查 HTTP 请求是否成功
                 if (!result.ok) {
                     throw new Error(`HTTP Error: ${result.status}`);
                 }
 
-                const data = await result.json();
+                // 尝试解析 JSON
+                const textResponse = await result.text(); // 获取文本响应
+                console.log(textResponse); // 输出原始响应以便调试
+
+                const data = JSON.parse(textResponse); // 尝试解析 JSON
 
                 // 显示返回的信息
                 if (data && data.choices && data.choices.length > 0) {
