@@ -1,6 +1,6 @@
 
 document.addEventListener('DOMContentLoaded', function() {
-    // 确保全局能获取当前日期（动态获取2025年a）
+    // 确保全局能获取当前日期（动态获取2025年b）
     const currentDate = new Date(); // 自动获取当前日期（2025）
     const currentYear = currentDate.getFullYear(); // 2025
     const currentMonth = currentDate.getMonth() + 1; // 1-12
@@ -3725,8 +3725,8 @@ function determineStrengthType(pillars) {
 
     // 获取八字问答答案
     async function getBaziAnswer(question) {
-        const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
-        const apiKey = 'sk-b2950087a9d5427392762814114b22a9';
+        const apiUrl = 'https://free.v36.cm';
+        const apiKey = 'sk-G0qsBl5T4Ile8aRv92275592B13244CdB3C0413f55AfDc94';
     // 使用 currentYear（2025）、currentMonth、currentDay
         const currentDateStr = `${currentYear}-${currentMonth.toString().padStart(2, '0')}-${currentDay.toString().padStart(2, '0')}`;
         const cacheKey = `qa:${generateBaziHashKey(birthData)}:${question}`;
@@ -3785,7 +3785,7 @@ function determineStrengthType(pillars) {
                         'Authorization': `Bearer ${apiKey}`
                     },
                     body: JSON.stringify({
-                        model: "deepseek-chat",
+                        model: "gpt-4o-mini",
                         messages: [{
                             role: "system",
                             content: "你是一位资深的八字命理大师，精通子平八字、紫微斗数等传统命理学。请严格按照八字专业问答规范回答用户问题。"
