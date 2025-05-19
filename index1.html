@@ -15,6 +15,34 @@
       gtag('js', new Date());
       gtag('config', 'G-2NHJXGKS0Y');
     </script>
+    <style>
+        /* 生肖图标样式 */
+        .zodiac-icon {
+            font-size: 2rem;
+            margin: 0 5px;
+            color: #FFD700;
+            text-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+        }
+        
+        .zodiac-icon-small {
+            font-size: 1.5rem;
+            margin: 0 3px;
+        }
+        
+        /* 生肖对应的Font Awesome图标 */
+        .zodiac-rat { color: #6e8efb; }
+        .zodiac-ox { color: #8BC34A; }
+        .zodiac-tiger { color: #FF9800; }
+        .zodiac-rabbit { color: #E91E63; }
+        .zodiac-dragon { color: #F44336; }
+        .zodiac-snake { color: #4CAF50; }
+        .zodiac-horse { color: #9C27B0; }
+        .zodiac-sheep { color: #00BCD4; }
+        .zodiac-monkey { color: #FF5722; }
+        .zodiac-rooster { color: #FFEB3B; }
+        .zodiac-dog { color: #795548; }
+        .zodiac-pig { color: #607D8B; }
+    </style>
 </head>
 <body>
     <!-- 星空背景 -->
@@ -201,6 +229,22 @@
     
     <script src="js/lunar.js"></script>
     <script>
+        // 生肖图标映射
+        const zodiacIcons = {
+            "rat": { icon: "fa-rat", name: "鼠" },
+            "ox": { icon: "fa-ox", name: "牛" },
+            "tiger": { icon: "fa-paw", name: "虎" },
+            "rabbit": { icon: "fa-rabbit", name: "兔" },
+            "dragon": { icon: "fa-dragon", name: "龙" },
+            "snake": { icon: "fa-staff-snake", name: "蛇" },
+            "horse": { icon: "fa-horse", name: "马" },
+            "sheep": { icon: "fa-sheep", name: "羊" },
+            "monkey": { icon: "fa-monkey", name: "猴" },
+            "rooster": { icon: "fa-crow", name: "鸡" },
+            "dog": { icon: "fa-dog", name: "狗" },
+            "pig": { icon: "fa-piggy-bank", name: "猪" }
+        };
+
         // 创建星空背景
         document.addEventListener('DOMContentLoaded', function() {
             const starsContainer = document.getElementById('stars');
@@ -531,29 +575,12 @@
             luckyZodiacs.innerHTML = '';
             
             data.luckyZodiacs.forEach(zodiac => {
-                const div = document.createElement('div');
-                div.className = 'zodiac-icon-img';
-                div.innerHTML = `<img src="images/zodiac/${zodiac}.png" alt="${zodiac}" title="${getZodiacName(zodiac)}">`;
-                luckyZodiacs.appendChild(div);
+                const span = document.createElement('span');
+                span.className = `zodiac-icon zodiac-${zodiac}`;
+                span.innerHTML = `<i class="fas ${zodiacIcons[zodiac].icon}"></i>`;
+                span.title = zodiacIcons[zodiac].name;
+                luckyZodiacs.appendChild(span);
             });
-        }
-        
-        function getZodiacName(zodiac) {
-            const zodiacNames = {
-                "rat": "鼠",
-                "ox": "牛",
-                "tiger": "虎",
-                "rabbit": "兔",
-                "dragon": "龙",
-                "snake": "蛇",
-                "horse": "马",
-                "sheep": "羊",
-                "monkey": "猴",
-                "rooster": "鸡",
-                "dog": "狗",
-                "pig": "猪"
-            };
-            return zodiacNames[zodiac] || zodiac;
         }
         
         function updateZodiacRankings(rankings) {
@@ -578,7 +605,9 @@
                 div.innerHTML = `
                     <div class="ranking-rank ${rankClass}">${index + 1}</div>
                     <div class="ranking-zodiac">
-                        <img src="images/zodiac/${item.name}.png" alt="${item.name}" title="${getZodiacName(item.name)}">
+                        <span class="zodiac-icon zodiac-${item.name}" title="${zodiacIcons[item.name].name}">
+                            <i class="fas ${zodiacIcons[item.name].icon}"></i>
+                        </span>
                     </div>
                     <div class="ranking-score">
                         <div class="score-bar" style="width: ${item.score}%"></div>
@@ -601,10 +630,10 @@
                 
                 card.innerHTML = `
                     <div class="zodiac-header">
-                        <div class="zodiac-icon-img">
-                            <img src="images/zodiac/${item.zodiac}.png" alt="${item.zodiac}" title="${getZodiacName(item.zodiac)}">
-                        </div>
-                        <h3>${getZodiacName(item.zodiac)}生肖</h3>
+                        <span class="zodiac-icon zodiac-${item.zodiac}" title="${zodiacIcons[item.zodiac].name}">
+                            <i class="fas ${zodiacIcons[item.zodiac].icon}"></i>
+                        </span>
+                        <h3>${zodiacIcons[item.zodiac].name}生肖</h3>
                     </div>
                     <div class="zodiac-advice">${item.advice}</div>
                 `;
@@ -668,26 +697,28 @@
         }
         
         function initZodiacGame() {
-            const zodiacs = ["rat", "ox", "tiger", "rabbit", "dragon", "snake", "horse", "sheep", "monkey", "rooster", "dog", "pig"];
+            const zodiacs = Object.keys(zodiacIcons);
             const userZodiac = document.getElementById('user-zodiac');
             const targetZodiac = document.getElementById('target-zodiac');
             
             // 创建生肖选择器
             zodiacs.forEach(zodiac => {
                 const div = document.createElement('div');
-                div.className = 'zodiac-option-img';
-                div.innerHTML = `<img src="images/zodiac/${zodiac}.png" alt="${zodiac}" title="${getZodiacName(zodiac)}">`;
+                div.className = `zodiac-option zodiac-${zodiac}`;
+                div.innerHTML = `<i class="fas ${zodiacIcons[zodiac].icon}"></i>`;
+                div.title = zodiacIcons[zodiac].name;
                 div.addEventListener('click', function() {
-                    document.querySelectorAll('#user-zodiac .zodiac-option-img').forEach(opt => opt.classList.remove('selected'));
+                    document.querySelectorAll('#user-zodiac .zodiac-option').forEach(opt => opt.classList.remove('selected'));
                     this.classList.add('selected');
                 });
                 userZodiac.appendChild(div);
                 
                 const div2 = document.createElement('div');
-                div2.className = 'zodiac-option-img';
-                div2.innerHTML = `<img src="images/zodiac/${zodiac}.png" alt="${zodiac}" title="${getZodiacName(zodiac)}">`;
+                div2.className = `zodiac-option zodiac-${zodiac}`;
+                div2.innerHTML = `<i class="fas ${zodiacIcons[zodiac].icon}"></i>`;
+                div2.title = zodiacIcons[zodiac].name;
                 div2.addEventListener('click', function() {
-                    document.querySelectorAll('#target-zodiac .zodiac-option-img').forEach(opt => opt.classList.remove('selected'));
+                    document.querySelectorAll('#target-zodiac .zodiac-option').forEach(opt => opt.classList.remove('selected'));
                     this.classList.add('selected');
                 });
                 targetZodiac.appendChild(div2);
@@ -699,10 +730,13 @@
             
             // 测试契合度按钮
             document.getElementById('check-compatibility').addEventListener('click', function() {
-                const userSelected = document.querySelector('#user-zodiac .selected img').alt;
-                const targetSelected = document.querySelector('#target-zodiac .selected img').alt;
+                const userSelected = document.querySelector('#user-zodiac .selected i').className.replace('fas ', '');
+                const targetSelected = document.querySelector('#target-zodiac .selected i').className.replace('fas ', '');
                 
-                if (userSelected === targetSelected) {
+                const userZodiacName = Object.keys(zodiacIcons).find(key => zodiacIcons[key].icon === userSelected);
+                const targetZodiacName = Object.keys(zodiacIcons).find(key => zodiacIcons[key].icon === targetSelected);
+                
+                if (userZodiacName === targetZodiacName) {
                     showCompatibilityResult("同一生肖，契合度100%！你们有相似的思维方式和行为模式，容易理解彼此。");
                     return;
                 }
@@ -727,24 +761,24 @@
                 let description = "你们之间相处需要更多理解和包容。";
                 
                 // 检查三合关系
-                if ((compatibilityGroups[userSelected] && compatibilityGroups[userSelected].includes(targetSelected)) ||
-                    (compatibilityGroups[targetSelected] && compatibilityGroups[targetSelected].includes(userSelected))) {
+                if ((compatibilityGroups[userZodiacName] && compatibilityGroups[userZodiacName].includes(targetZodiacName)) ||
+                    (compatibilityGroups[targetZodiacName] && compatibilityGroups[targetZodiacName].includes(userZodiacName))) {
                     score = 90;
                     description = "你们是三合生肖，天生默契度高，合作顺利！";
                 } 
                 // 检查六合关系
-                else if ((compatibilityGroups[userSelected] && compatibilityGroups[userSelected][0] === targetSelected) ||
-                         (compatibilityGroups[targetSelected] && compatibilityGroups[targetSelected][0] === userSelected)) {
+                else if ((compatibilityGroups[userZodiacName] && compatibilityGroups[userZodiacName][0] === targetZodiacName) ||
+                         (compatibilityGroups[targetZodiacName] && compatibilityGroups[targetZodiacName][0] === userZodiacName)) {
                     score = 95;
                     description = "你们是六合生肖，最佳拍档，互相促进！";
                 }
                 // 检查相冲关系
-                else if (isConflict(userSelected, targetSelected)) {
+                else if (isConflict(userZodiacName, targetZodiacName)) {
                     score = 40;
                     description = "你们生肖相冲，容易产生矛盾，需要更多包容。";
                 }
                 // 检查相害关系
-                else if (isHarm(userSelected, targetSelected)) {
+                else if (isHarm(userZodiacName, targetZodiacName)) {
                     score = 50;
                     description = "你们生肖相害，相处需注意方式方法。";
                 }
@@ -754,7 +788,7 @@
                     description = "你们相处融洽，有不错的默契和互补性。";
                 }
                 
-                showCompatibilityResult(`生肖${getZodiacName(userSelected)}和${getZodiacName(targetSelected)}的契合度是${score}%！${description}`);
+                showCompatibilityResult(`生肖${zodiacIcons[userZodiacName].name}和${zodiacIcons[targetZodiacName].name}的契合度是${score}%！${description}`);
             });
         }
         
