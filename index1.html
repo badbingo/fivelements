@@ -6,7 +6,6 @@
     <title>八字命理 - 趋吉避凶之道 | 麦八字教学网</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/index.css">
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-2NHJXGKS0Y"></script>
     <script>
@@ -16,32 +15,58 @@
       gtag('config', 'G-2NHJXGKS0Y');
     </script>
     <style>
-        /* 生肖图标样式 */
+        /* 生肖图标样式 - 使用SVG图标 */
         .zodiac-icon {
-            font-size: 2rem;
+            width: 48px;
+            height: 48px;
             margin: 0 5px;
-            color: #FFD700;
-            text-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+            transition: all 0.3s ease;
+            filter: drop-shadow(0 0 5px rgba(0,0,0,0.3));
+        }
+        
+        .zodiac-icon:hover {
+            transform: scale(1.1);
+            filter: drop-shadow(0 0 8px rgba(255,215,0,0.7));
+        }
+        
+        .zodiac-icon.selected {
+            transform: scale(1.2);
+            filter: drop-shadow(0 0 12px rgba(255,215,0,0.9));
+            animation: glow 1.5s infinite alternate;
+        }
+        
+        @keyframes glow {
+            from {
+                filter: drop-shadow(0 0 5px rgba(255,215,0,0.7));
+            }
+            to {
+                filter: drop-shadow(0 0 15px rgba(255,215,0,0.9));
+            }
         }
         
         .zodiac-icon-small {
-            font-size: 1.5rem;
+            width: 32px;
+            height: 32px;
             margin: 0 3px;
         }
         
-        /* 生肖对应的Unicode符号和颜色 */
-        .zodiac-rat { color: #6e8efb; }
-        .zodiac-ox { color: #8BC34A; }
-        .zodiac-tiger { color: #FF9800; }
-        .zodiac-rabbit { color: #E91E63; }
-        .zodiac-dragon { color: #F44336; }
-        .zodiac-snake { color: #4CAF50; }
-        .zodiac-horse { color: #9C27B0; }
-        .zodiac-sheep { color: #00BCD4; }
-        .zodiac-monkey { color: #FF5722; }
-        .zodiac-rooster { color: #FFEB3B; }
-        .zodiac-dog { color: #795548; }
-        .zodiac-pig { color: #607D8B; }
+        .zodiac-icon-large {
+            width: 64px;
+            height: 64px;
+            margin: 0 8px;
+        }
+        
+        /* 游戏中的生肖选择器 */
+        .zodiac-option {
+            cursor: pointer;
+            display: inline-block;
+            margin: 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .zodiac-option:hover {
+            transform: scale(1.1);
+        }
     </style>
 </head>
 <body>
@@ -226,22 +251,21 @@
         </div>
     </section>
     
-    <script src="js/lunar.js"></script>
     <script>
-        // 生肖图标映射 - 使用Unicode符号
+        // 生肖图标映射 - 使用SVG图标
         const zodiacIcons = {
-            "rat": { symbol: "🐀", name: "鼠" },
-            "ox": { symbol: "🐂", name: "牛" },
-            "tiger": { symbol: "🐅", name: "虎" },
-            "rabbit": { symbol: "🐇", name: "兔" },
-            "dragon": { symbol: "🐉", name: "龙" },
-            "snake": { symbol: "🐍", name: "蛇" },
-            "horse": { symbol: "🐎", name: "马" },
-            "sheep": { symbol: "🐑", name: "羊" },
-            "monkey": { symbol: "🐒", name: "猴" },
-            "rooster": { symbol: "🐓", name: "鸡" },
-            "dog": { symbol: "🐕", name: "狗" },
-            "pig": { symbol: "🐖", name: "猪" }
+            "rat": { symbol: "🐭", name: "鼠", svg: '<svg viewBox="0 0 24 24"><path d="M12,3C7,3 3,7 3,12C3,17 7,21 12,21C17,21 21,17 21,12C21,7 17,3 12,3M12,5C15.9,5 19,8.1 19,12C19,15.9 15.9,19 12,19C8.1,19 5,15.9 5,12C5,8.1 8.1,5 12,5M12,8C11.4,8 11,8.4 11,9C11,9.6 11.4,10 12,10C12.6,10 13,9.6 13,9C13,8.4 12.6,8 12,8M12,11C11.4,11 11,11.4 11,12C11,12.6 11.4,13 12,13C12.6,13 13,12.6 13,12C13,11.4 12.6,11 12,11M12,14C11.4,14 11,14.4 11,15C11,15.6 11.4,16 12,16C12.6,16 13,15.6 13,15C13,14.4 12.6,14 12,14Z"/></svg>' },
+            "ox": { symbol: "🐮", name: "牛", svg: '<svg viewBox="0 0 24 24"><path d="M12,2C6.5,2 2,6.5 2,12C2,17.5 6.5,22 12,22C17.5,22 22,17.5 22,12C22,6.5 17.5,2 12,2M12,4C16.4,4 20,7.6 20,12C20,16.4 16.4,20 12,20C7.6,20 4,16.4 4,12C4,7.6 7.6,4 12,4M12,6C10.9,6 10,6.9 10,8C10,9.1 10.9,10 12,10C13.1,10 14,9.1 14,8C14,6.9 13.1,6 12,6M12,12C10.9,12 10,12.9 10,14C10,15.1 10.9,16 12,16C13.1,16 14,15.1 14,14C14,12.9 13.1,12 12,12Z"/></svg>' },
+            "tiger": { symbol: "🐯", name: "虎", svg: '<svg viewBox="0 0 24 24"><path d="M12,2C6.5,2 2,6.5 2,12C2,17.5 6.5,22 12,22C17.5,22 22,17.5 22,12C22,6.5 17.5,2 12,2M12,4C16.4,4 20,7.6 20,12C20,16.4 16.4,20 12,20C7.6,20 4,16.4 4,12C4,7.6 7.6,4 12,4M12,6C10.9,6 10,6.9 10,8C10,9.1 10.9,10 12,10C13.1,10 14,9.1 14,8C14,6.9 13.1,6 12,6M12,12C10.9,12 10,12.9 10,14C10,15.1 10.9,16 12,16C13.1,16 14,15.1 14,14C14,12.9 13.1,12 12,12Z"/></svg>' },
+            "rabbit": { symbol: "🐰", name: "兔", svg: '<svg viewBox="0 0 24 24"><path d="M12,2C6.5,2 2,6.5 2,12C2,17.5 6.5,22 12,22C17.5,22 22,17.5 22,12C22,6.5 17.5,2 12,2M12,4C16.4,4 20,7.6 20,12C20,16.4 16.4,20 12,20C7.6,20 4,16.4 4,12C4,7.6 7.6,4 12,4M12,6C10.9,6 10,6.9 10,8C10,9.1 10.9,10 12,10C13.1,10 14,9.1 14,8C14,6.9 13.1,6 12,6M12,12C10.9,12 10,12.9 10,14C10,15.1 10.9,16 12,16C13.1,16 14,15.1 14,14C14,12.9 13.1,12 12,12Z"/></svg>' },
+            "dragon": { symbol: "🐲", name: "龙", svg: '<svg viewBox="0 0 24 24"><path d="M12,2C6.5,2 2,6.5 2,12C2,17.5 6.5,22 12,22C17.5,22 22,17.5 22,12C22,6.5 17.5,2 12,2M12,4C16.4,4 20,7.6 20,12C20,16.4 16.4,20 12,20C7.6,20 4,16.4 4,12C4,7.6 7.6,4 12,4M12,6C10.9,6 10,6.9 10,8C10,9.1 10.9,10 12,10C13.1,10 14,9.1 14,8C14,6.9 13.1,6 12,6M12,12C10.9,12 10,12.9 10,14C10,15.1 10.9,16 12,16C13.1,16 14,15.1 14,14C14,12.9 13.1,12 12,12Z"/></svg>' },
+            "snake": { symbol: "🐍", name: "蛇", svg: '<svg viewBox="0 0 24 24"><path d="M12,2C6.5,2 2,6.5 2,12C2,17.5 6.5,22 12,22C17.5,22 22,17.5 22,12C22,6.5 17.5,2 12,2M12,4C16.4,4 20,7.6 20,12C20,16.4 16.4,20 12,20C7.6,20 4,16.4 4,12C4,7.6 7.6,4 12,4M12,6C10.9,6 10,6.9 10,8C10,9.1 10.9,10 12,10C13.1,10 14,9.1 14,8C14,6.9 13.1,6 12,6M12,12C10.9,12 10,12.9 10,14C10,15.1 10.9,16 12,16C13.1,16 14,15.1 14,14C14,12.9 13.1,12 12,12Z"/></svg>' },
+            "horse": { symbol: "🐴", name: "马", svg: '<svg viewBox="0 0 24 24"><path d="M12,2C6.5,2 2,6.5 2,12C2,17.5 6.5,22 12,22C17.5,22 22,17.5 22,12C22,6.5 17.5,2 12,2M12,4C16.4,4 20,7.6 20,12C20,16.4 16.4,20 12,20C7.6,20 4,16.4 4,12C4,7.6 7.6,4 12,4M12,6C10.9,6 10,6.9 10,8C10,9.1 10.9,10 12,10C13.1,10 14,9.1 14,8C14,6.9 13.1,6 12,6M12,12C10.9,12 10,12.9 10,14C10,15.1 10.9,16 12,16C13.1,16 14,15.1 14,14C14,12.9 13.1,12 12,12Z"/></svg>' },
+            "sheep": { symbol: "🐑", name: "羊", svg: '<svg viewBox="0 0 24 24"><path d="M12,2C6.5,2 2,6.5 2,12C2,17.5 6.5,22 12,22C17.5,22 22,17.5 22,12C22,6.5 17.5,2 12,2M12,4C16.4,4 20,7.6 20,12C20,16.4 16.4,20 12,20C7.6,20 4,16.4 4,12C4,7.6 7.6,4 12,4M12,6C10.9,6 10,6.9 10,8C10,9.1 10.9,10 12,10C13.1,10 14,9.1 14,8C14,6.9 13.1,6 12,6M12,12C10.9,12 10,12.9 10,14C10,15.1 10.9,16 12,16C13.1,16 14,15.1 14,14C14,12.9 13.1,12 12,12Z"/></svg>' },
+            "monkey": { symbol: "🐵", name: "猴", svg: '<svg viewBox="0 0 24 24"><path d="M12,2C6.5,2 2,6.5 2,12C2,17.5 6.5,22 12,22C17.5,22 22,17.5 22,12C22,6.5 17.5,2 12,2M12,4C16.4,4 20,7.6 20,12C20,16.4 16.4,20 12,20C7.6,20 4,16.4 4,12C4,7.6 7.6,4 12,4M12,6C10.9,6 10,6.9 10,8C10,9.1 10.9,10 12,10C13.1,10 14,9.1 14,8C14,6.9 13.1,6 12,6M12,12C10.9,12 10,12.9 10,14C10,15.1 10.9,16 12,16C13.1,16 14,15.1 14,14C14,12.9 13.1,12 12,12Z"/></svg>' },
+            "rooster": { symbol: "🐔", name: "鸡", svg: '<svg viewBox="0 0 24 24"><path d="M12,2C6.5,2 2,6.5 2,12C2,17.5 6.5,22 12,22C17.5,22 22,17.5 22,12C22,6.5 17.5,2 12,2M12,4C16.4,4 20,7.6 20,12C20,16.4 16.4,20 12,20C7.6,20 4,16.4 4,12C4,7.6 7.6,4 12,4M12,6C10.9,6 10,6.9 10,8C10,9.1 10.9,10 12,10C13.1,10 14,9.1 14,8C14,6.9 13.1,6 12,6M12,12C10.9,12 10,12.9 10,14C10,15.1 10.9,16 12,16C13.1,16 14,15.1 14,14C14,12.9 13.1,12 12,12Z"/></svg>' },
+            "dog": { symbol: "🐶", name: "狗", svg: '<svg viewBox="0 0 24 24"><path d="M12,2C6.5,2 2,6.5 2,12C2,17.5 6.5,22 12,22C17.5,22 22,17.5 22,12C22,6.5 17.5,2 12,2M12,4C16.4,4 20,7.6 20,12C20,16.4 16.4,20 12,20C7.6,20 4,16.4 4,12C4,7.6 7.6,4 12,4M12,6C10.9,6 10,6.9 10,8C10,9.1 10.9,10 12,10C13.1,10 14,9.1 14,8C14,6.9 13.1,6 12,6M12,12C10.9,12 10,12.9 10,14C10,15.1 10.9,16 12,16C13.1,16 14,15.1 14,14C14,12.9 13.1,12 12,12Z"/></svg>' },
+            "pig": { symbol: "🐷", name: "猪", svg: '<svg viewBox="0 0 24 24"><path d="M12,2C6.5,2 2,6.5 2,12C2,17.5 6.5,22 12,22C17.5,22 22,17.5 22,12C22,6.5 17.5,2 12,2M12,4C16.4,4 20,7.6 20,12C20,16.4 16.4,20 12,20C7.6,20 4,16.4 4,12C4,7.6 7.6,4 12,4M12,6C10.9,6 10,6.9 10,8C10,9.1 10.9,10 12,10C13.1,10 14,9.1 14,8C14,6.9 13.1,6 12,6M12,12C10.9,12 10,12.9 10,14C10,15.1 10.9,16 12,16C13.1,16 14,15.1 14,14C14,12.9 13.1,12 12,12Z"/></svg>' }
         };
 
         // 创建星空背景
@@ -574,11 +598,11 @@
             luckyZodiacs.innerHTML = '';
             
             data.luckyZodiacs.forEach(zodiac => {
-                const span = document.createElement('span');
-                span.className = `zodiac-icon zodiac-${zodiac}`;
-                span.textContent = zodiacIcons[zodiac].symbol;
-                span.title = zodiacIcons[zodiac].name;
-                luckyZodiacs.appendChild(span);
+                const div = document.createElement('div');
+                div.className = `zodiac-icon zodiac-${zodiac}`;
+                div.innerHTML = zodiacIcons[zodiac].svg;
+                div.title = zodiacIcons[zodiac].name;
+                luckyZodiacs.appendChild(div);
             });
         }
         
@@ -604,9 +628,9 @@
                 div.innerHTML = `
                     <div class="ranking-rank ${rankClass}">${index + 1}</div>
                     <div class="ranking-zodiac">
-                        <span class="zodiac-icon zodiac-${item.name}" title="${zodiacIcons[item.name].name}">
-                            ${zodiacIcons[item.name].symbol}
-                        </span>
+                        <div class="zodiac-icon zodiac-${item.name}" title="${zodiacIcons[item.name].name}">
+                            ${zodiacIcons[item.name].svg}
+                        </div>
                     </div>
                     <div class="ranking-score">
                         <div class="score-bar" style="width: ${item.score}%"></div>
@@ -629,9 +653,9 @@
                 
                 card.innerHTML = `
                     <div class="zodiac-header">
-                        <span class="zodiac-icon zodiac-${item.zodiac}" title="${zodiacIcons[item.zodiac].name}">
-                            ${zodiacIcons[item.zodiac].symbol}
-                        </span>
+                        <div class="zodiac-icon zodiac-${item.zodiac}" title="${zodiacIcons[item.zodiac].name}">
+                            ${zodiacIcons[item.zodiac].svg}
+                        </div>
                         <h3>${zodiacIcons[item.zodiac].name}生肖</h3>
                     </div>
                     <div class="zodiac-advice">${item.advice}</div>
@@ -704,7 +728,7 @@
             zodiacs.forEach(zodiac => {
                 const div = document.createElement('div');
                 div.className = `zodiac-option zodiac-${zodiac}`;
-                div.textContent = zodiacIcons[zodiac].symbol;
+                div.innerHTML = `<div class="zodiac-icon-large">${zodiacIcons[zodiac].svg}</div>`;
                 div.title = zodiacIcons[zodiac].name;
                 div.addEventListener('click', function() {
                     document.querySelectorAll('#user-zodiac .zodiac-option').forEach(opt => opt.classList.remove('selected'));
@@ -714,7 +738,7 @@
                 
                 const div2 = document.createElement('div');
                 div2.className = `zodiac-option zodiac-${zodiac}`;
-                div2.textContent = zodiacIcons[zodiac].symbol;
+                div2.innerHTML = `<div class="zodiac-icon-large">${zodiacIcons[zodiac].svg}</div>`;
                 div2.title = zodiacIcons[zodiac].name;
                 div2.addEventListener('click', function() {
                     document.querySelectorAll('#target-zodiac .zodiac-option').forEach(opt => opt.classList.remove('selected'));
@@ -732,8 +756,8 @@
                 const userSelected = document.querySelector('#user-zodiac .selected').textContent;
                 const targetSelected = document.querySelector('#target-zodiac .selected').textContent;
                 
-                const userZodiacName = Object.keys(zodiacIcons).find(key => zodiacIcons[key].symbol === userSelected);
-                const targetZodiacName = Object.keys(zodiacIcons).find(key => zodiacIcons[key].symbol === targetSelected);
+                const userZodiacName = Object.keys(zodiacIcons).find(key => zodiacIcons[key].name === document.querySelector('#user-zodiac .selected').title);
+                const targetZodiacName = Object.keys(zodiacIcons).find(key => zodiacIcons[key].name === document.querySelector('#target-zodiac .selected').title);
                 
                 if (userZodiacName === targetZodiacName) {
                     showCompatibilityResult("同一生肖，契合度100%！你们有相似的思维方式和行为模式，容易理解彼此。");
@@ -828,6 +852,5 @@
             resultElement.style.animation = 'fadeIn 0.5s ease-out';
         }
     </script>
-    <script src="js/ink.js"></script>
 </body>
 </html>
