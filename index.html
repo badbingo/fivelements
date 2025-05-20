@@ -818,6 +818,14 @@
             const attemptsDisplay = document.getElementById('attempts');
             const resetButton = document.getElementById('resetGame');
             
+            // 获取模态框元素
+            const discountModal = document.getElementById('discountModal');
+            const nameInputModal = document.getElementById('nameInputModal');
+            const acceptDiscountBtn = document.getElementById('acceptDiscount');
+            const declineDiscountBtn = document.getElementById('declineDiscount');
+            const submitPaymentBtn = document.getElementById('submitPayment');
+            const userNameInput = document.getElementById('userName');
+            
             let cards = [];
             let hasFlippedCard = false;
             let lockBoard = false;
@@ -900,9 +908,34 @@
                 
                 if (matches === memoryGameData.length) {
                     setTimeout(() => {
-                        alert(`恭喜你完成了游戏！总尝试次数: ${attempts}`);
+                        // 检查是否在10步内完成
+                        if (attempts <= 10) {
+                            showDiscountModal();
+                        } else {
+                            alert(`恭喜你完成了游戏！总步数: ${attempts}`);
+                        }
                     }, 500);
                 }
+            }
+            
+            // 显示优惠模态框
+            function showDiscountModal() {
+                discountModal.style.display = 'block';
+            }
+            
+            // 隐藏优惠模态框
+            function hideDiscountModal() {
+                discountModal.style.display = 'none';
+            }
+            
+            // 显示名字输入模态框
+            function showNameInputModal() {
+                nameInputModal.style.display = 'block';
+            }
+            
+            // 隐藏名字输入模态框
+            function hideNameInputModal() {
+                nameInputModal.style.display = 'none';
             }
             
             // 翻回不匹配的卡片
@@ -929,11 +962,61 @@
                 createCards();
             }
             
-            // 绑定重置按钮事件
-            resetButton.addEventListener('click', resetGame);
+            // 绑定事件监听器
+            function setupEventListeners() {
+                // 重置按钮
+                resetButton.addEventListener('click', resetGame);
+                
+                // 优惠模态框按钮
+                acceptDiscountBtn.addEventListener('click', function() {
+                    hideDiscountModal();
+                    showNameInputModal();
+                });
+                
+                declineDiscountBtn.addEventListener('click', function() {
+                    hideDiscountModal();
+                    alert('游戏完成！');
+                });
+                
+                // 关闭按钮
+                document.querySelectorAll('.close').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        this.closest('.modal').style.display = 'none';
+                    });
+                });
+                
+                // 提交付款按钮
+                submitPaymentBtn.addEventListener('click', function() {
+                    const userName = userNameInput.value.trim();
+                    if (!userName) {
+                        alert('请输入您的姓名');
+                        return;
+                    }
+                    
+                    // 调用支付JS
+                    if (typeof startPayment === 'function') {
+                        startPayment(userName);
+                    } else {
+                        console.log('支付功能将在实际环境中工作');
+                        // 模拟支付成功
+                        setTimeout(() => {
+                            hideNameInputModal();
+                            alert('支付成功！');
+                        }, 1000);
+                    }
+                });
+                
+                // 点击模态框外部关闭
+                window.addEventListener('click', function(event) {
+                    if (event.target.classList.contains('modal')) {
+                        event.target.style.display = 'none';
+                    }
+                });
+            }
             
-            // 初始化游戏
+            // 初始化游戏和事件监听
             createCards();
+            setupEventListeners();
         }
     </script>
 </body>
