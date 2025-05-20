@@ -1,268 +1,312 @@
-// pay.js - 完整修正版（支付成功后立即更新按钮状态）
-document.addEventListener('DOMContentLoaded', function() {
-    // 配置参数
-    const CONFIG = {
-        pid: '2025051013380915',
-        key: 'UsXrSwn0wft5SeLB0LaQfecvJmpkS18T',
-        apiUrl: 'https://zpayz.cn/submit.php',
-        returnUrl: window.location.href.split('?')[0],
-        amount: '0.01'
+/**
+ * 集中式支付管理模块 - gamepay.js
+ * 功能：处理zpay平台支付流程，包括订单生成、签名验证、状态跳转
+ * 特点：
+ * 1. 完全独立，不依赖HTML中的支付代码
+ * 2. 动态创建支付相关UI元素
+ * 3. 自动处理支付状态检查和回调
+ */
+
+class PaymentManager {
+  constructor() {
+    // 支付配置
+    this.config = {
+      pid: '2025051013380915',
+      key: 'UsXrSwn0wft5SeLB0LaQfecvJmpkS18T',
+      apiUrl: 'https://zpayz.cn/submit.php',
+      returnUrl: window.location.href.split('?')[0],
+      amount: '0.01',
+      successRedirectUrl: 'system/bazisystem.html'
     };
 
-    // DOM元素
-    const payBtn = document.getElementById('pay-btn');
-    const calculateBtn = document.getElementById('calculate-btn');
-    const nameInput = document.getElementById('name');
-    const genderInput = document.getElementById('gender');
-    const fullscreenLoading = document.getElementById('fullscreen-loading');
-    const paymentSuccessAlert = document.getElementById('payment-success-alert');
+    // 初始化支付系统
+    this.init();
+  }
 
-    /* ========== 初始化 ========== */
-    initPaymentSystem();
+  /* ==================== 初始化方法 ==================== */
+  init() {
+    // 创建必要UI元素
+    this.createPaymentUI();
+    
+    // 获取DOM元素引用
+    this.payBtn = document.getElementById('pay-btn');
+    this.calculateBtn = document.getElementById('calculate-btn');
+    this.nameInput = document.getElementById('name');
+    this.loadingEl = document.getElementById('fullscreen-loading');
+    this.successAlertEl = document.getElementById('payment-success-alert');
 
-    function initPaymentSystem() {
-        // 1. 检查URL支付回调
-        checkPaymentReturn();
-        
-        // 2. 检查本地支付状态
-        checkLocalPaymentStatus();
-        
-        // 3. 设置事件监听
-        setupEventListeners();
+    // 绑定事件
+    this.bindEvents();
+    
+    // 检查支付状态
+    this.checkPaymentStatus();
+  }
+
+  createPaymentUI() {
+    // 动态创建全屏加载层（如果不存在）
+    if (!document.getElementById('fullscreen-loading')) {
+      const loadingDiv = document.createElement('div');
+      loadingDiv.id = 'fullscreen-loading';
+      loadingDiv.style.cssText = `
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.7);
+        z-index: 9999;
+        justify-content: center;
+        align-items: center;
+      `;
+      loadingDiv.innerHTML = `
+        <div style="color: white; text-align: center;">
+          <i class="fas fa-spinner fa-spin fa-3x"></i>
+          <p>正在处理支付请求，请稍候...</p>
+        </div>
+      `;
+      document.body.appendChild(loadingDiv);
     }
 
-    /* ========== 支付状态检查 ========== */
-    function checkPaymentReturn() {
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('trade_status') === 'TRADE_SUCCESS') {
-            const paymentData = {
-                pid: urlParams.get('pid'),
-                trade_no: urlParams.get('trade_no'),
-                out_trade_no: urlParams.get('out_trade_no'),
-                type: urlParams.get('type'),
-                name: urlParams.get('name'),
-                money: urlParams.get('money'),
-                trade_status: urlParams.get('trade_status'),
-                param: urlParams.get('param'),
-                sign: urlParams.get('sign'),
-                sign_type: urlParams.get('sign_type')
-            };
+    // 动态创建支付成功提示（如果不存在）
+    if (!document.getElementById('payment-success-alert')) {
+      const alertDiv = document.createElement('div');
+      alertDiv.id = 'payment-success-alert';
+      alertDiv.style.cssText = `
+        display: none;
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: #4CAF50;
+        color: white;
+        padding: 15px;
+        border-radius: 5px;
+        z-index: 1000;
+      `;
+      alertDiv.textContent = '支付成功！正在跳转到测算页面...';
+      document.body.appendChild(alertDiv);
+    }
+  }
 
-            if (verifyPayment(paymentData)) {
-                const userName = decodeURIComponent(paymentData.param || '');
-                handlePaymentSuccess(userName);
-                cleanUrl();
-            }
-        }
+  bindEvents() {
+    // 支付按钮事件
+    if (this.payBtn) {
+      this.payBtn.addEventListener('click', () => this.startPayment());
     }
 
-    function checkLocalPaymentStatus() {
-        const userName = nameInput.value.trim();
-        if (userName && isPaidAndUnused(userName)) {
-            showCalculateState();
-        }
+    // 测算按钮事件
+    if (this.calculateBtn) {
+      this.calculateBtn.addEventListener('click', () => this.startCalculation());
     }
 
-    /* ========== 支付流程 ========== */
-    function startPayment() {
-        const userName = nameInput.value.trim();
-        if (!validateName(userName)) return;
-
-        showFullscreenLoading(true);
-
-        const paymentData = {
-            pid: CONFIG.pid,
-            type: 'wxpay',
-            out_trade_no: generateOrderNo(),
-            notify_url: CONFIG.returnUrl,
-            return_url: CONFIG.returnUrl,
-            name: `八字测算-${userName.substring(0, 20)}`,
-            money: CONFIG.amount,
-            param: encodeURIComponent(userName),
-            sign_type: 'MD5'
-        };
-        
-        paymentData.sign = generateSign(paymentData);
-        submitPaymentForm(paymentData);
+    // 姓名输入变化事件
+    if (this.nameInput) {
+      this.nameInput.addEventListener('input', () => this.updateButtonState());
     }
+  }
 
-    function handlePaymentSuccess(userName) {
+  /* ==================== 支付核心逻辑 ==================== */
+  startPayment() {
+    const userName = this.nameInput?.value.trim();
+    if (!this.validateName(userName)) return;
+
+    this.showLoading(true);
+
+    const paymentData = {
+      pid: this.config.pid,
+      type: 'wxpay',
+      out_trade_no: this.generateOrderNo(),
+      notify_url: this.config.returnUrl,
+      return_url: this.config.returnUrl,
+      name: `八字测算-${userName.substring(0, 20)}`,
+      money: this.config.amount,
+      param: encodeURIComponent(userName),
+      sign_type: 'MD5'
+    };
+
+    // 生成签名并提交支付
+    paymentData.sign = this.generateSign(paymentData);
+    this.submitPaymentForm(paymentData);
+  }
+
+  handlePaymentSuccess(userName) {
     // 1. 存储支付状态
     localStorage.setItem(`paid_${userName}`, 'true');
     localStorage.removeItem(`used_${userName}`);
-    
-    // 2. 自动填充用户名
-    nameInput.value = userName;
-    
-    // 3. 立即更新按钮状态
-    showCalculateState();
-    
-    // 4. 显示成功提示
-    showPaymentSuccessAlert();
-    
-    // 5. 隐藏loading
-    showFullscreenLoading(false);
-    
-    // 6. 3秒后跳转到测算页面（新增）
+
+    // 2. 更新按钮状态
+    this.updateButtonState();
+
+    // 3. 显示成功提示
+    this.showSuccessAlert();
+
+    // 4. 3秒后跳转
     setTimeout(() => {
-        window.location.href = `www.mybazi.net/system/bazisystem.html?name=${encodeURIComponent(userName)}`;
+      window.location.href = `${this.config.successRedirectUrl}?name=${encodeURIComponent(userName)}`;
     }, 3000);
+  }
+
+  /* ==================== 支付状态管理 ==================== */
+  checkPaymentStatus() {
+    // 检查URL回调参数
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('trade_status') === 'TRADE_SUCCESS') {
+      const paymentData = {
+        pid: urlParams.get('pid'),
+        trade_no: urlParams.get('trade_no'),
+        out_trade_no: urlParams.get('out_trade_no'),
+        type: urlParams.get('type'),
+        name: urlParams.get('name'),
+        money: urlParams.get('money'),
+        trade_status: urlParams.get('trade_status'),
+        param: urlParams.get('param'),
+        sign: urlParams.get('sign'),
+        sign_type: urlParams.get('sign_type')
+      };
+
+      if (this.verifyPayment(paymentData)) {
+        const userName = decodeURIComponent(paymentData.param || '');
+        this.handlePaymentSuccess(userName);
+        this.cleanUrl();
+      }
+    }
+
+    // 检查本地存储状态
+    this.updateButtonState();
+  }
+
+  updateButtonState() {
+    const userName = this.nameInput?.value.trim();
+    if (!userName) {
+      this.resetToPayState();
+      return;
+    }
+
+    if (this.isPaidAndUnused(userName)) {
+      this.showCalculateState();
+    } else {
+      this.resetToPayState();
+    }
+  }
+
+  /* ==================== 工具方法 ==================== */
+  // 生成订单号 (格式: yyyyMMddHHmmss + 随机4位)
+  generateOrderNo() {
+    const now = new Date();
+    return `${now.getFullYear()}${this.pad(now.getMonth()+1)}${this.pad(now.getDate())}` +
+           `${this.pad(now.getHours())}${this.pad(now.getMinutes())}${this.pad(now.getSeconds())}` +
+           `${Math.floor(Math.random()*9000)+1000}`;
+  }
+
+  // 生成支付签名
+  generateSign(params) {
+    const filtered = {};
+    Object.keys(params).forEach(k => {
+      if (params[k] !== '' && k !== 'sign' && k !== 'sign_type') {
+        filtered[k] = params[k];
+      }
+    });
+
+    const signStr = Object.keys(filtered).sort()
+      .map(k => `${k}=${filtered[k]}`)
+      .join('&') + this.config.key;
+
+    return CryptoJS.MD5(signStr).toString();
+  }
+
+  // 验证支付回调签名
+  verifyPayment(paymentData) {
+    const sign = paymentData.sign;
+    const calculatedSign = this.generateSign(paymentData);
+    return calculatedSign === sign;
+  }
+
+  // 提交支付表单
+  submitPaymentForm(data) {
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = this.config.apiUrl;
+    form.style.display = 'none';
+
+    Object.entries(data).forEach(([key, value]) => {
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = key;
+      input.value = value;
+      form.appendChild(input);
+    });
+
+    document.body.appendChild(form);
+    form.submit();
+  }
+
+  /* ==================== UI控制方法 ==================== */
+  showLoading(show) {
+    if (this.loadingEl) {
+      this.loadingEl.style.display = show ? 'flex' : 'none';
+    }
+  }
+
+  showSuccessAlert() {
+    if (this.successAlertEl) {
+      this.successAlertEl.style.display = 'block';
+      setTimeout(() => {
+        this.successAlertEl.style.display = 'none';
+      }, 3000);
+    }
+  }
+
+  resetToPayState() {
+    if (this.payBtn) this.payBtn.style.display = 'block';
+    if (this.calculateBtn) this.calculateBtn.style.display = 'none';
+  }
+
+  showCalculateState() {
+    if (this.payBtn) this.payBtn.style.display = 'none';
+    if (this.calculateBtn) this.calculateBtn.style.display = 'block';
+  }
+
+  /* ==================== 辅助方法 ==================== */
+  validateName(name) {
+    if (!name) {
+      alert('请输入姓名');
+      this.showLoading(false);
+      return false;
+    }
+    return true;
+  }
+
+  isPaidAndUnused(userName) {
+    return localStorage.getItem(`paid_${userName}`) && 
+          !localStorage.getItem(`used_${userName}`);
+  }
+
+  cleanUrl() {
+    window.history.replaceState({}, document.title, window.location.pathname);
+  }
+
+  pad(num) {
+    return num < 10 ? `0${num}` : num;
+  }
+
+  // 测算功能（示例）
+  startCalculation() {
+    const userName = this.nameInput?.value.trim();
+    const gender = document.getElementById('gender')?.value;
+    
+    if (!userName || !gender) {
+      alert('请填写完整信息');
+      return;
+    }
+
+    // 标记为已使用
+    localStorage.setItem(`used_${userName}`, 'true');
+    console.log(`开始测算: ${userName}, 性别: ${gender}`);
+    // 实际测算逻辑...
+  }
 }
 
-
-    /* ========== 测算流程 ========== */
-    function startCalculation() {
-        const userName = nameInput.value.trim();
-        const gender = genderInput.value;
-        
-        if (!validateCalculationInputs(userName, gender)) return;
-
-        // 标记为已使用测算
-        localStorage.setItem(`used_${userName}`, 'true');
-        
-        // 更新按钮状态
-        updateButtonState();
-        
-        // 执行测算
-        executeQuantumCalculation(userName, gender);
-    }
-
-    /* ========== UI控制 ========== */
-    function updateButtonState() {
-        const userName = nameInput.value.trim();
-        if (!userName) {
-            resetToPayState();
-            return;
-        }
-
-        if (isPaidAndUnused(userName)) {
-            showCalculateState();
-        } else {
-            resetToPayState();
-        }
-    }
-
-    function resetToPayState() {
-        payBtn.style.display = 'block';
-        calculateBtn.style.display = 'none';
-    }
-
-    function showCalculateState() {
-        payBtn.style.display = 'none';
-        calculateBtn.style.display = 'block';
-    }
-
-    function showFullscreenLoading(show) {
-        fullscreenLoading.style.display = show ? 'flex' : 'none';
-    }
-
-    function showPaymentSuccessAlert() {
-        paymentSuccessAlert.style.display = 'block';
-        setTimeout(() => {
-            paymentSuccessAlert.style.display = 'none';
-        }, 3000);
-    }
-
-    /* ========== 工具函数 ========== */
-    function isPaidAndUnused(userName) {
-        return localStorage.getItem(`paid_${userName}`) && 
-              !localStorage.getItem(`used_${userName}`);
-    }
-
-    function validateName(name) {
-        if (!name) {
-            alert('请输入您的姓名');
-            showFullscreenLoading(false);
-            return false;
-        }
-        return true;
-    }
-
-    function validateCalculationInputs(name, gender) {
-        if (!name) {
-            alert('请输入姓名');
-            return false;
-        }
-        if (!gender) {
-            alert('请选择性别');
-            return false;
-        }
-        return true;
-    }
-
-    function generateSign(params) {
-        const filtered = {};
-        Object.keys(params).forEach(k => {
-            if (params[k] !== '' && k !== 'sign' && k !== 'sign_type') {
-                filtered[k] = params[k];
-            }
-        });
-        
-        const signStr = Object.keys(filtered).sort()
-            .map(k => `${k}=${filtered[k]}`)
-            .join('&') + CONFIG.key;
-        
-        return CryptoJS.MD5(signStr).toString();
-    }
-
-    function verifyPayment(paymentData) {
-        const sign = paymentData.sign;
-        delete paymentData.sign;
-        
-        const calculatedSign = generateSign(paymentData);
-        return calculatedSign === sign;
-    }
-
-    function generateOrderNo() {
-        const now = new Date();
-        return `${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}` +
-               `${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}` +
-               `${Math.floor(Math.random()*9000)+1000}`;
-    }
-
-    function pad(num) {
-        return num < 10 ? `0${num}` : num;
-    }
-
-    function cleanUrl() {
-        window.history.replaceState({}, document.title, window.location.pathname);
-    }
-
-    function submitPaymentForm(data) {
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = CONFIG.apiUrl;
-        form.style.display = 'none';
-
-        Object.entries(data).forEach(([key, value]) => {
-            const input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = key;
-            input.value = value;
-            form.appendChild(input);
-        });
-
-        document.body.appendChild(form);
-        form.submit();
-    }
-
-    function executeQuantumCalculation(name, gender) {
-        console.log(`开始量子测算 - 姓名: ${name}, 性别: ${gender}`);
-        // 实际测算逻辑...
-    }
-
-    /* ========== 事件监听 ========== */
-    function setupEventListeners() {
-        // 支付按钮
-        payBtn.addEventListener('click', startPayment);
-        
-        // 测算按钮
-        calculateBtn.addEventListener('click', startCalculation);
-        
-        // 输入变化时更新状态
-        nameInput.addEventListener('input', updateButtonState);
-        
-        // 页面显示时检查状态
-        window.addEventListener('pageshow', updateButtonState);
-    }
+// 页面加载后初始化支付系统
+document.addEventListener('DOMContentLoaded', () => {
+  new PaymentManager();
 });
