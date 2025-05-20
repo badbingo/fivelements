@@ -8,6 +8,54 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/index.css">
     <script src="js/lunar.js"></script>
+    <style>
+        /* 添加简单的样式用于生肖缘分结果展示 */
+        .compatibility-result {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            transition: background 0.3s;
+        }
+
+        .compatibility-result:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .compatibility-desc {
+            margin-left: 10px;
+            font-size: 0.9rem;
+            color: #ccc;
+        }
+        
+        .result-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .zodiac-icon {
+            width: 50px;
+            height: 50px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+
+        .best-match {
+            color: #2ed573; /* 绿色 */
+        }
+
+        .good-match {
+            color: #ffa502; /* 橙色 */
+        }
+
+        .bad-match {
+            color: #ff4757; /* 红色 */
+        }
+    </style>
 </head>
 <body>
     <!-- 生肖选择器 -->
@@ -54,7 +102,7 @@
             </div>
         </div>
     </div>
-
+    
     <!-- 星空背景 -->
     <div class="stars" id="stars"></div>
     
@@ -1074,59 +1122,70 @@
                     love: '单身猪人今年桃花运不错，尤其9-10月容易邂逅理想对象。已婚者家庭和睦，可考虑装修房屋或添置家具。属猪女性今年有望通过长辈介绍结识条件优越的对象。',
                     career: '事业上发展平稳，需耐心积累。上半年可能面临一些琐碎任务，保持积极态度是关键。创业者宜在下半年推出新服务，注意与属蛇的客户保持良好关系。',
                     health: '健康运整体良好，但需注意体重和代谢问题。避免高糖高脂饮食，保持适度运动。建议定期体检，办公室可摆放小零食避免暴饮暴食。',
-                    advice: '1. 佩戴粉晶或月光石增强桃花运<br>2. 家中北方摆放水景装饰提升财运<br>3. 每月初一行善可提升福报<br>4. 避免前往东南方位旅行<br>5. 卧室宜使用淡蓝色调'
+                    advice: '1. 佩戴粉晶或白水晶化解太岁<br>2. 家中西南方摆放金属装饰物稳定运势<br>3. 农历二月、七月避免重大决策<br>4. 每月初十可以做些善事来提升运势<br>5. 卧室使用柔和暖色调，增添家庭和谐气氛'
                 }
             };
-            
-            return info[zodiac] || info.dragon;
+
+            return info[zodiac];
+        }
+
+        // 初始化生肖缘分测试游戏
+        function initZodiacCompatibilityGame() {
+            const compatibilityResultsContainer = document.getElementById('compatibilityResults');
+            const bestMatchContainer = compatibilityResultsContainer.querySelector('.best-match');
+            const goodMatchContainer = compatibilityResultsContainer.querySelector('.good-match');
+            const badMatchContainer = compatibilityResultsContainer.querySelector('.bad-match');
+
+            // 根据选择的生肖来获取配对信息
+            const compatibility = compatibilityData[currentZodiac];
+
+            // 清除先前的结果
+            bestMatchContainer.innerHTML = '';
+            goodMatchContainer.innerHTML = '';
+            badMatchContainer.innerHTML = '';
+
+            // 显示最佳配对
+            compatibility.best.forEach(zodiac => {
+                const zodiacInfo = zodiacData[zodiac];
+                const zodiacElement = document.createElement('div');
+                zodiacElement.className = 'compatibility-result best-match';
+                zodiacElement.innerHTML = `
+                    <div class="zodiac-icon" style="background-image: url('https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/${zodiacInfo.emoji}.svg');"></div>
+                    <div class="compatibility-desc">${zodiacInfo.name}（最佳配对）</div>
+                `;
+                bestMatchContainer.appendChild(zodiacElement);
+            });
+
+            // 显示良好配对
+            compatibility.good.forEach(zodiac => {
+                const zodiacInfo = zodiacData[zodiac];
+                const zodiacElement = document.createElement('div');
+                zodiacElement.className = 'compatibility-result good-match';
+                zodiacElement.innerHTML = `
+                    <div class="zodiac-icon" style="background-image: url('https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/${zodiacInfo.emoji}.svg');"></div>
+                    <div class="compatibility-desc">${zodiacInfo.name}（良好配对）</div>
+                `;
+                goodMatchContainer.appendChild(zodiacElement);
+            });
+
+            // 显示不良配对
+            compatibility.bad.forEach(zodiac => {
+                const zodiacInfo = zodiacData[zodiac];
+                const zodiacElement = document.createElement('div');
+                zodiacElement.className = 'compatibility-result bad-match';
+                zodiacElement.innerHTML = `
+                    <div class="zodiac-icon" style="background-image: url('https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/${zodiacInfo.emoji}.svg');"></div>
+                    <div class="compatibility-desc">${zodiacInfo.name}（不良配对）</div>
+                `;
+                badMatchContainer.appendChild(zodiacElement);
+            });
         }
         
-        // 初始化生肖配对游戏
-        function initZodiacCompatibilityGame() {
-            const selectedZodiac = document.getElementById('selectedZodiac');
-            const zodiacOptions = document.getElementById('zodiacOptions').querySelectorAll('.zodiac-option');
-            
-            // 为每个生肖选项添加点击事件
-zodiacOptions.forEach(option => {
-    option.addEventListener('click', function() {
-        const zodiac = this.getAttribute('data-zodiac');
-
-        // 更新选中的生肖显示
-        selectedZodiac.innerHTML = `
-            <div class="zodiac-icon" style="background-image: url('https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/${zodiacData[zodiac].emoji}.svg');"></div>
-            <div class="zodiac-name">${zodiacData[zodiac].name}</div>
-        `;
-
-        // 获取与当前生肖的缘分结果
-        const compatibilityResults = document.getElementById('compatibilityResults');
-        compatibilityResults.innerHTML = ''; // 清空之前的结果
-
-        const bestMatches = compatibilityData[zodiac].best;
-        const goodMatches = compatibilityData[zodiac].good;
-        const badMatches = compatibilityData[zodiac].bad;
-
-        // 显示最佳配对
-        bestMatches.forEach(match => {
-            const resultDiv = document.createElement('div');
-            resultDiv.className = 'compatibility-result';
-            resultDiv.innerHTML = `<span class="result-title">最佳缘分：</span>${zodiacData[match].name}`;
-            compatibilityResults.appendChild(resultDiv);
-        });
-
-        // 显示良好配对
-        goodMatches.forEach(match => {
-            const resultDiv = document.createElement('div');
-            resultDiv.className = 'compatibility-result';
-            resultDiv.innerHTML = `<span class="result-title">良好缘分：</span>${zodiacData[match].name}`;
-            compatibilityResults.appendChild(resultDiv);
-        });
-
-        // 显示不佳配对
-        badMatches.forEach(match => {
-            const resultDiv = document.createElement('div');
-            resultDiv.className = 'compatibility-result';
-            resultDiv.innerHTML = `<span class="result-title">不佳缘分：</span>${zodiacData[match].name}`;
-            compatibilityResults.appendChild(resultDiv);
-        });
-    });
-});
+        // 显示选择生肖后的配对结果
+        function updateCompatibilityResults(zodiac) {
+            currentZodiac = zodiac;
+            initZodiacCompatibilityGame();
+        }
+    </script>
+</body>
+</html>
