@@ -5,152 +5,139 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>八字命理 - 趋吉避凶之道 | 麦八字教学网</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="stylesheet" href="css/index.css">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;700&display=swap" rel="stylesheet">
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-2NHJXGKS0Y"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-2NHJXGKS0Y');
-    </script>
+    <link rel="stylesheet" href=css/index.css">
     <style>
+        /* 基础样式 */
+        body {
+            font-family: 'Noto Serif SC', serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        
         /* 生肖图标样式 */
         .zodiac-icon {
-            font-size: 2rem;
+            display: inline-block;
             margin: 0 5px;
-            text-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+            text-align: center;
         }
         
-        .zodiac-icon-small {
-            font-size: 1.5rem;
-            margin: 0 3px;
-        }
-        
-        /* 生肖对应的卡通图标 */
         .zodiac-icon img {
             width: 40px;
             height: 40px;
-        }
-        
-        .game-area .zodiac-icon img {
-            width: 60px;
-            height: 60px;
-        }
-        
-        .zodiac-option.selected {
-            transform: scale(1.2);
-            filter: drop-shadow(0 0 10px gold);
             transition: all 0.3s ease;
         }
         
-        /* 排行榜内容样式 */
+        /* 游戏区域生肖图标 */
+        .game-area .zodiac-icon img {
+            width: 50px;
+            height: 50px;
+        }
+        
+        .zodiac-option {
+            cursor: pointer;
+            margin: 5px;
+            display: inline-block;
+        }
+        
+        .zodiac-option.selected {
+            transform: scale(1.1);
+            filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.7));
+        }
+        
+        /* 排行榜样式 */
+        .ranking-tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .ranking-tab {
+            padding: 10px 20px;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        .ranking-tab.active {
+            border-bottom-color: #4CAF50;
+            font-weight: bold;
+        }
+        
         .ranking-tab-content {
             display: none;
+            animation: fadeIn 0.5s ease-out;
         }
         
         .ranking-tab-content.active {
             display: block;
         }
         
-        /* 能量预测内容样式 */
+        .ranking-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            margin-bottom: 10px;
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        /* 能量预测样式 */
+        .forecast-tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .forecast-tab {
+            padding: 10px 20px;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        .forecast-tab.active {
+            border-bottom-color: #2196F3;
+            font-weight: bold;
+        }
+        
         .forecast-tab-content {
             display: none;
+            animation: fadeIn 0.5s ease-out;
         }
         
         .forecast-tab-content.active {
             display: block;
         }
+        
+        /* 动画效果 */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        /* 游戏结果样式 */
+        .game-result {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            display: none;
+        }
     </style>
 </head>
 <body>
-    <!-- 星空背景 -->
-    <div class="stars" id="stars"></div>
-    
-    <!-- 开场英雄区域 -->
-    <section class="hero-section">
-        <div class="hero-content">
-            <h1 class="hero-title">探索八字命理的奥秘</h1>
-            <p class="hero-subtitle">了解自己的命运轨迹，掌握改变人生的钥匙</p>
-            
-            <div class="bazi-elements">
-                <div class="element">木</div>
-                <div class="element">火</div>
-                <div class="element">土</div>
-                <div class="element">金</div>
-                <div class="element">水</div>
-            </div>
-            
-            <a href="seven.html" class="cta-button">开始探索命理奥秘</a>
-            
-            <p class="hero-subtitle" style="font-size: 1.2rem; max-width: 800px; margin: 0 auto;">
-                八字命理不仅是预测工具，更是了解自我、把握机遇的智慧。<br>
-                通过分析五行生克、十神关系，我们可以预见人生起伏，<br>
-                在关键时刻做出明智选择，实现"我命由我不由天"的人生境界。
-            </p>
-            
-            <p class="destiny-quote">
-                知命而不认命，顺势而为，逆天改运
-            </p>
-        </div>
-    </section>
-
-    <!-- 新增内容区域 -->
+    <!-- 内容区域 -->
     <section class="content-section">
-        <!-- 今日运势概览 -->
-        <div class="dashboard-container">
-            <div class="dashboard-header">
-                <h2><i class="fas fa-calendar-day"></i> 今日运势概览</h2>
-                <div class="date-display" id="current-date"></div>
-            </div>
-            
-            <div class="dashboard-grid">
-                <!-- 今日能量 -->
-                <div class="dashboard-card energy-card">
-                    <div class="card-header">
-                        <i class="fas fa-bolt"></i>
-                        <h3>今日能量指数</h3>
-                    </div>
-                    <div class="energy-meter">
-                        <div class="energy-level" id="today-energy"></div>
-                        <div class="energy-labels">
-                            <span>低</span>
-                            <span>中</span>
-                            <span>高</span>
-                        </div>
-                    </div>
-                    <div class="energy-desc" id="energy-desc"></div>
-                </div>
-                
-                <!-- 宜忌 -->
-                <div class="dashboard-card suitable-card">
-                    <div class="card-header">
-                        <i class="fas fa-thumbs-up"></i>
-                        <h3>今日宜</h3>
-                    </div>
-                    <ul class="suitable-list" id="today-suitable"></ul>
-                </div>
-                
-                <div class="dashboard-card avoid-card">
-                    <div class="card-header">
-                        <i class="fas fa-thumbs-down"></i>
-                        <h3>今日忌</h3>
-                    </div>
-                    <ul class="avoid-list" id="today-avoid"></ul>
-                </div>
-                
-                <!-- 幸运生肖 -->
-                <div class="dashboard-card lucky-zodiac">
-                    <div class="card-header">
-                        <i class="fas fa-star"></i>
-                        <h3>今日幸运生肖</h3>
-                    </div>
-                    <div class="zodiac-icons" id="lucky-zodiacs"></div>
-                </div>
-            </div>
-        </div>
-        
         <!-- 生肖运势排行榜 -->
         <div class="ranking-container">
             <h2><i class="fas fa-trophy"></i> 2025年生肖运势排行榜</h2>
@@ -180,12 +167,6 @@
                     <div class="ranking-list" id="health-list"></div>
                 </div>
             </div>
-        </div>
-        
-        <!-- 本月生肖运势建议 -->
-        <div class="monthly-zodiac-container">
-            <h2><i class="fas fa-calendar-alt"></i> 本月生肖运势建议</h2>
-            <div class="zodiac-grid" id="monthly-zodiac-advice"></div>
         </div>
         
         <!-- 能量预测 -->
@@ -235,203 +216,69 @@
                 </div>
             </div>
         </div>
-        
-        <!-- 每日命理小知识 -->
-        <div class="knowledge-container">
-            <h2><i class="fas fa-lightbulb"></i> 每日命理小知识</h2>
-            <div class="knowledge-card">
-                <div class="knowledge-content" id="daily-knowledge"></div>
-                <div class="knowledge-source">每日更新 · 源自传统命理智慧</div>
-            </div>
-        </div>
     </section>
-    
+
     <script>
-        // 卡通风格生肖图标映射 - 使用新的图片URL
+        // 新的卡通风格生肖图标
         const zodiacIcons = {
-            "rat": { symbol: "🐭", name: "鼠", image: "https://cdn-icons-png.flaticon.com/512/616/616408.png" },
-            "ox": { symbol: "🐮", name: "牛", image: "https://cdn-icons-png.flaticon.com/512/616/616430.png" },
-            "tiger": { symbol: "🐯", name: "虎", image: "https://cdn-icons-png.flaticon.com/512/616/616412.png" },
-            "rabbit": { symbol: "🐰", name: "兔", image: "https://cdn-icons-png.flaticon.com/512/616/616434.png" },
-            "dragon": { symbol: "🐲", name: "龙", image: "https://cdn-icons-png.flaticon.com/512/2972/2972185.png" },
-            "snake": { symbol: "🐍", name: "蛇", image: "https://cdn-icons-png.flaticon.com/512/616/616433.png" },
-            "horse": { symbol: "🐴", name: "马", image: "https://cdn-icons-png.flaticon.com/512/616/616435.png" },
-            "sheep": { symbol: "🐏", name: "羊", image: "https://cdn-icons-png.flaticon.com/512/616/616436.png" },
-            "monkey": { symbol: "🐵", name: "猴", image: "https://cdn-icons-png.flaticon.com/512/616/616437.png" },
-            "rooster": { symbol: "🐔", name: "鸡", image: "https://cdn-icons-png.flaticon.com/512/616/616438.png" },
-            "dog": { symbol: "🐶", name: "狗", image: "https://cdn-icons-png.flaticon.com/512/616/616439.png" },
-            "pig": { symbol: "🐷", name: "猪", image: "https://cdn-icons-png.flaticon.com/512/616/616440.png" }
+            "rat": { name: "鼠", image: "https://i.imgur.com/JqYeZ0p.png" },
+            "ox": { name: "牛", image: "https://i.imgur.com/8mTnWQk.png" },
+            "tiger": { name: "虎", image: "https://i.imgur.com/5XvW9dP.png" },
+            "rabbit": { name: "兔", image: "https://i.imgur.com/LkZ4GgQ.png" },
+            "dragon": { name: "龙", image: "https://i.imgur.com/VvVhJyW.png" },
+            "snake": { name: "蛇", image: "https://i.imgur.com/tjHcB7U.png" },
+            "horse": { name: "马", image: "https://i.imgur.com/9QYqjJN.png" },
+            "sheep": { name: "羊", image: "https://i.imgur.com/3sKk7fz.png" },
+            "monkey": { name: "猴", image: "https://i.imgur.com/RbVvQ2G.png" },
+            "rooster": { name: "鸡", image: "https://i.imgur.com/pLmDZqy.png" },
+            "dog": { name: "狗", image: "https://i.imgur.com/9tKjJ7L.png" },
+            "pig": { name: "猪", image: "https://i.imgur.com/qzGvW1E.png" }
         };
 
-        // 创建星空背景
+        // 页面加载完成后执行
         document.addEventListener('DOMContentLoaded', function() {
-            const starsContainer = document.getElementById('stars');
-            const starCount = 200;
-            
-            for (let i = 0; i < starCount; i++) {
-                const star = document.createElement('div');
-                star.classList.add('star');
-                
-                // 随机大小 (1-3px)
-                const size = Math.random() * 2 + 1;
-                star.style.width = `${size}px`;
-                star.style.height = `${size}px`;
-                
-                // 随机位置
-                star.style.left = `${Math.random() * 100}%`;
-                star.style.top = `${Math.random() * 100}%`;
-                
-                // 随机闪烁时间 (2-5秒)
-                star.style.setProperty('--duration', `${Math.random() * 3 + 2}s`);
-                
-                starsContainer.appendChild(star);
-            }
-            
-            // 五行元素交互效果
-            const elements = document.querySelectorAll('.element');
-            
-            elements.forEach((el) => {
-                // 点击效果
-                el.addEventListener('click', function() {
-                    // 创建波纹效果
-                    const ripple = document.createElement('span');
-                    ripple.classList.add('ripple');
-                    
-                    // 设置波纹位置
-                    const rect = this.getBoundingClientRect();
-                    const x = event.clientX - rect.left;
-                    const y = event.clientY - rect.top;
-                    
-                    ripple.style.left = `${x}px`;
-                    ripple.style.top = `${y}px`;
-                    
-                    this.appendChild(ripple);
-                    
-                    // 动画结束后移除
-                    setTimeout(() => {
-                        ripple.remove();
-                    }, 600);
-                    
-                    // 弹跳效果
-                    this.style.animation = 'none';
-                    void this.offsetWidth; // 触发重绘
-                    this.style.animation = 'elementClick 0.5s ease-out';
-                });
-                
-                // 鼠标悬停时轻微抖动
-                el.addEventListener('mouseover', function() {
-                    this.style.animation = 'float 3s ease-in-out infinite';
-                });
-                
-                // 鼠标移出恢复原状
-                el.addEventListener('mouseout', function() {
-                    this.style.animation = 'float 6s ease-in-out infinite';
-                });
-            });
-            
-            // 按钮点击波纹效果
-            const buttons = document.querySelectorAll('.cta-button');
-            buttons.forEach(button => {
-                button.addEventListener('click', function(e) {
-                    // 移除之前的波纹
-                    const oldRipple = this.querySelector('.ripple');
-                    if (oldRipple) {
-                        oldRipple.remove();
-                    }
-                    
-                    // 创建新的波纹
-                    const ripple = document.createElement('span');
-                    ripple.classList.add('ripple');
-                    
-                    // 设置波纹位置
-                    const rect = this.getBoundingClientRect();
-                    const x = e.clientX - rect.left;
-                    const y = e.clientY - rect.top;
-                    
-                    ripple.style.left = `${x}px`;
-                    ripple.style.top = `${y}px`;
-                    
-                    this.appendChild(ripple);
-                    
-                    // 动画结束后移除
-                    setTimeout(() => {
-                        ripple.remove();
-                    }, 600);
-                });
-            });
-            
-            // 元素循环发光效果
-            function elementGlow() {
-                elements.forEach((el, index) => {
-                    setTimeout(() => {
-                        el.style.boxShadow = '0 0 40px rgba(255, 255, 255, 0.8)';
-                        setTimeout(() => {
-                            el.style.boxShadow = '0 0 30px rgba(255, 255, 255, 0.3)';
-                        }, 1000);
-                    }, index * 300);
-                });
-                
-                setTimeout(elementGlow, 3000);
-            }
-            
-            // 启动循环发光效果
-            setTimeout(elementGlow, 2000);
-            
             // 加载八字数据
             loadBaziData();
             
-            // 排行榜标签切换
-            setupTabSwitching('.ranking-tab', '.ranking-tab-content');
-            
-            // 能量预测标签切换
-            setupTabSwitching('.forecast-tab', '.forecast-tab-content');
+            // 初始化标签切换
+            initTabSwitching();
             
             // 初始化生肖互动游戏
             initZodiacGame();
         });
         
-        function setupTabSwitching(tabSelector, contentSelector) {
-            const tabs = document.querySelectorAll(tabSelector);
-            tabs.forEach(tab => {
+        function initTabSwitching() {
+            // 排行榜标签切换
+            document.querySelectorAll('.ranking-tab').forEach(tab => {
                 tab.addEventListener('click', function() {
                     // 移除所有active类
-                    document.querySelectorAll(tabSelector).forEach(t => t.classList.remove('active'));
-                    document.querySelectorAll(contentSelector).forEach(c => c.classList.remove('active'));
+                    document.querySelectorAll('.ranking-tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.ranking-tab-content').forEach(c => c.classList.remove('active'));
                     
                     // 添加active类到当前标签和对应内容
                     this.classList.add('active');
                     const tabId = this.getAttribute('data-tab');
-                    document.getElementById(`${tabId}-${contentSelector.replace('.', '')}`).classList.add('active');
+                    document.getElementById(`${tabId}-ranking`).classList.add('active');
+                });
+            });
+            
+            // 能量预测标签切换
+            document.querySelectorAll('.forecast-tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    // 移除所有active类
+                    document.querySelectorAll('.forecast-tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.forecast-tab-content').forEach(c => c.classList.remove('active'));
+                    
+                    // 添加active类到当前标签和对应内容
+                    this.classList.add('active');
+                    const tabId = this.getAttribute('data-tab');
+                    document.getElementById(`${tabId}-forecast`).classList.add('active');
                 });
             });
         }
         
         function loadBaziData() {
-            // 获取当前日期
-            const now = new Date();
-            const year = now.getFullYear();
-            const month = now.getMonth() + 1;
-            const day = now.getDate();
-            
-            // 显示当前日期
-            document.getElementById('current-date').textContent = `${year}年${month}月${day}日`;
-            
-            // 模拟从lunar.js获取数据
-            // 实际使用时替换为真实的lunar.js API调用
-            
-            // 今日运势数据
-            const todayData = {
-                energy: 75, // 0-100
-                energyDesc: "今日能量中等偏上，适合处理重要事务，但下午3-5点能量较低，建议避免重大决策。",
-                suitable: ["签约", "搬家", "投资", "社交", "学习新技能"],
-                avoid: ["借贷", "争吵", "远行", "手术", "重大变更"],
-                luckyZodiacs: ["rat", "dragon", "monkey"]
-            };
-            
-            // 更新今日运势
-            updateTodayFortune(todayData);
-            
-            // 2025年生肖排行榜数据（基于五行生克和流年运势推算）
+            // 2025年生肖排行榜数据
             const zodiacRankings = {
                 overall: [
                     {name: "snake", score: 95, desc: "2025年蛇年为本命年，但得'天解'吉星相助，运势强劲"},
@@ -508,26 +355,7 @@
             // 更新生肖排行榜
             updateZodiacRankings(zodiacRankings);
             
-            // 本月生肖运势建议
-            const monthlyAdvice = [
-                {zodiac: "rat", advice: "本月财运亨通，但需注意健康，避免过度劳累。事业上有贵人相助，把握机会展现才能。"},
-                {zodiac: "ox", advice: "本月工作压力大，需保持耐心。感情方面需多沟通，避免误会积累。健康注意肠胃问题。"},
-                {zodiac: "tiger", advice: "本月事业运上升，有晋升机会。财运平稳，宜储蓄不宜投机。感情上需多花时间陪伴伴侣。"},
-                {zodiac: "rabbit", advice: "本月变动较多，需灵活应对。财运起伏大，谨慎投资。健康注意睡眠质量。"},
-                {zodiac: "dragon", advice: "本月运势良好，各方面顺利。事业有突破，财运亨通。感情甜蜜，单身者易遇良缘。"},
-                {zodiac: "snake", advice: "本月小有波折，但终能化解。工作上需注意细节。财运一般，宜守不宜攻。健康注意呼吸道。"},
-                {zodiac: "horse", advice: "本月压力较大，需调整心态。事业上遇到挑战，坚持不懈终有收获。感情需主动沟通。"},
-                {zodiac: "sheep", advice: "本月运势低迷，宜保守行事。工作上谨言慎行。财运紧张，避免借贷。健康全面调理。"},
-                {zodiac: "monkey", advice: "本月人缘佳，社交活跃。桃花运旺盛，单身者机会多。财运不错，但需节制消费。"},
-                {zodiac: "rooster", advice: "本月小人作祟，谨言慎行。工作上避免卷入是非。财运有破财风险，看好钱包。"},
-                {zodiac: "dog", advice: "本月平稳发展，按部就班。感情稳定，考虑长远。健康良好，适度运动。"},
-                {zodiac: "pig", advice: "本月平淡无奇，等待时机。工作上缺乏突破。财运一般，忌投机。健康注意饮食规律。"}
-            ];
-            
-            // 更新本月运势建议
-            updateMonthlyAdvice(monthlyAdvice);
-            
-            // 能量预测数据（基于五行能量变化周期）
+            // 能量预测数据
             const energyForecast = {
                 year: {
                     desc: "2025乙巳蛇年，五行属木火，整体能量呈波浪式上升。春季(2-4月)木旺火相，能量平稳；夏季(5-7月)火旺土相，能量达到高峰；秋季(8-10月)金旺水相，能量回落；冬季(11-1月)水旺木相，能量平稳回升。",
@@ -545,63 +373,10 @@
             
             // 更新能量预测
             updateEnergyForecast(energyForecast);
-            
-            // 每日命理小知识
-            const dailyKnowledge = [
-                "2025年为乙巳蛇年，天干乙木，地支巳火，木火相生，整体运势偏向积极向上。",
-                "蛇年出生的人2025年值太岁，但得'天解'吉星相助，可化解大部分不利影响。",
-                "2025年三合生肖：牛、蛇、鸡，这三个生肖相互配合能增强运势。",
-                "2025年冲太岁生肖：猪，需特别注意健康和安全问题。",
-                "2025年'紫微'、'龙德'吉星入命生肖：鸡，事业上有突破性发展。",
-                "2025年'驿马'星动生肖：马，适合外出发展或开拓新市场。",
-                "2025年'金匮'财星入命生肖：鼠，财运亨通，投资理财收益可观。",
-                "2025年'太阳'吉星入命生肖：虎，男性运势更佳，事业有贵人相助。",
-                "2025年'病符'星现生肖：猴，需特别注意健康问题，预防旧疾复发。",
-                "2025年'孤辰'入命生肖：猪，感情上易感孤独，需主动社交拓展人脉。"
-            ];
-            
-            // 更新每日知识
-            updateDailyKnowledge(dailyKnowledge);
-        }
-        
-        function updateTodayFortune(data) {
-            // 更新今日能量
-            document.getElementById('today-energy').style.width = `${data.energy}%`;
-            document.getElementById('energy-desc').textContent = data.energyDesc;
-            
-            // 更新今日宜忌
-            const suitableList = document.getElementById('today-suitable');
-            const avoidList = document.getElementById('today-avoid');
-            
-            suitableList.innerHTML = '';
-            avoidList.innerHTML = '';
-            
-            data.suitable.forEach(item => {
-                const li = document.createElement('li');
-                li.textContent = item;
-                suitableList.appendChild(li);
-            });
-            
-            data.avoid.forEach(item => {
-                const li = document.createElement('li');
-                li.textContent = item;
-                avoidList.appendChild(li);
-            });
-            
-            // 更新幸运生肖
-            const luckyZodiacs = document.getElementById('lucky-zodiacs');
-            luckyZodiacs.innerHTML = '';
-            
-            data.luckyZodiacs.forEach(zodiac => {
-                const span = document.createElement('span');
-                span.className = `zodiac-icon zodiac-${zodiac}`;
-                span.innerHTML = `<img src="${zodiacIcons[zodiac].image}" alt="${zodiacIcons[zodiac].name}" title="${zodiacIcons[zodiac].name}">`;
-                luckyZodiacs.appendChild(span);
-            });
         }
         
         function updateZodiacRankings(rankings) {
-            // 更新综合运势排行
+            // 更新所有排行榜
             updateRankingList('overall-list', rankings.overall);
             updateRankingList('wealth-list', rankings.wealth);
             updateRankingList('career-list', rankings.career);
@@ -634,28 +409,6 @@
                 `;
                 
                 list.appendChild(div);
-            });
-        }
-        
-        function updateMonthlyAdvice(adviceList) {
-            const container = document.getElementById('monthly-zodiac-advice');
-            container.innerHTML = '';
-            
-            adviceList.forEach(item => {
-                const card = document.createElement('div');
-                card.className = 'zodiac-advice-card';
-                
-                card.innerHTML = `
-                    <div class="zodiac-header">
-                        <span class="zodiac-icon zodiac-${item.zodiac}" title="${zodiacIcons[item.zodiac].name}">
-                            <img src="${zodiacIcons[item.zodiac].image}" alt="${zodiacIcons[item.zodiac].name}">
-                        </span>
-                        <h3>${zodiacIcons[item.zodiac].name}生肖</h3>
-                    </div>
-                    <div class="zodiac-advice">${item.advice}</div>
-                `;
-                
-                container.appendChild(card);
             });
         }
         
@@ -706,13 +459,6 @@
             });
         }
         
-        function updateDailyKnowledge(knowledgeList) {
-            const knowledgeElement = document.getElementById('daily-knowledge');
-            const today = new Date().getDate();
-            const index = today % knowledgeList.length;
-            knowledgeElement.textContent = knowledgeList[index];
-        }
-        
         function initZodiacGame() {
             const zodiacs = Object.keys(zodiacIcons);
             const userZodiac = document.getElementById('user-zodiac');
@@ -720,23 +466,25 @@
             
             // 创建生肖选择器
             zodiacs.forEach(zodiac => {
-                const div = document.createElement('div');
-                div.className = `zodiac-option zodiac-${zodiac}`;
-                div.innerHTML = `<img src="${zodiacIcons[zodiac].image}" alt="${zodiacIcons[zodiac].name}" title="${zodiacIcons[zodiac].name}">`;
-                div.addEventListener('click', function() {
+                // 用户生肖选择
+                const userDiv = document.createElement('div');
+                userDiv.className = `zodiac-option zodiac-${zodiac}`;
+                userDiv.innerHTML = `<img src="${zodiacIcons[zodiac].image}" alt="${zodiacIcons[zodiac].name}" title="${zodiacIcons[zodiac].name}">`;
+                userDiv.addEventListener('click', function() {
                     document.querySelectorAll('#user-zodiac .zodiac-option').forEach(opt => opt.classList.remove('selected'));
                     this.classList.add('selected');
                 });
-                userZodiac.appendChild(div);
+                userZodiac.appendChild(userDiv);
                 
-                const div2 = document.createElement('div');
-                div2.className = `zodiac-option zodiac-${zodiac}`;
-                div2.innerHTML = `<img src="${zodiacIcons[zodiac].image}" alt="${zodiacIcons[zodiac].name}" title="${zodiacIcons[zodiac].name}">`;
-                div2.addEventListener('click', function() {
+                // 目标生肖选择
+                const targetDiv = document.createElement('div');
+                targetDiv.className = `zodiac-option zodiac-${zodiac}`;
+                targetDiv.innerHTML = `<img src="${zodiacIcons[zodiac].image}" alt="${zodiacIcons[zodiac].name}" title="${zodiacIcons[zodiac].name}">`;
+                targetDiv.addEventListener('click', function() {
                     document.querySelectorAll('#target-zodiac .zodiac-option').forEach(opt => opt.classList.remove('selected'));
                     this.classList.add('selected');
                 });
-                targetZodiac.appendChild(div2);
+                targetZodiac.appendChild(targetDiv);
             });
             
             // 设置默认选择
@@ -837,8 +585,6 @@
             const resultElement = document.getElementById('compatibility-result');
             resultElement.textContent = text;
             resultElement.style.display = 'block';
-            
-            // 添加动画效果
             resultElement.style.animation = 'none';
             void resultElement.offsetWidth;
             resultElement.style.animation = 'fadeIn 0.5s ease-out';
