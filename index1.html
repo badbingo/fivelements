@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/index.css">
+    <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-2NHJXGKS0Y"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
@@ -25,31 +26,7 @@
             background-position: center;
             transition: all 0.3s ease;
         }
-
-        .zodiac-icon-small {
-            font-size: 1.5rem;
-            margin: 0 3px;
-        }
-
-        .zodiac-option {
-            cursor: pointer;
-            display: inline-block;
-            padding: 5px;
-            border-radius: 50%;
-            transition: all 0.3s ease;
-        }
-
-        .zodiac-option:hover {
-            transform: scale(1.2);
-        }
-
-        .zodiac-option.selected {
-            transform: scale(1.3);
-            box-shadow: 0 0 15px rgba(255, 215, 0, 0.7);
-            background-color: rgba(255, 215, 0, 0.2);
-            border-radius: 50%;
-        }
-
+        
         /* 生肖对应的颜色 */
         .zodiac-rat { color: #6e8efb; }
         .zodiac-ox { color: #8BC34A; }
@@ -63,39 +40,6 @@
         .zodiac-rooster { color: #FFC107; }
         .zodiac-dog { color: #795548; }
         .zodiac-pig { color: #607D8B; }
-        
-        /* 其他样式保持不变 */
-        body {
-            font-family: 'Noto Serif SC', serif;
-            margin: 0;
-            padding: 0;
-            color: #fff;
-            background-color: #0a0a1a;
-        }
-
-        .hero-section {
-            text-align: center;
-            padding: 20px;
-        }
-
-        .dashboard-container {
-            padding: 20px;
-        }
-
-        /* 其他的样式保持不变 */
-
-        .stars {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            overflow: hidden;
-            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 60"><path d="M25,10 Q30,0 40,5 Q50,0 55,10 Q65,5 75,15 Q85,10 90,20 Q95,25 85,30 Q95,35 85,40 Q95,45 75,45 Q65,55 50,50 Q35,55 25,45 Q5,45 10,30 Q0,25 10,20 Q5,10 25,10" fill="white"/></svg>') no-repeat;
-            background-size: cover;
-            opacity: 0.3;
-        }
     </style>
 </head>
 <body>
@@ -322,76 +266,27 @@
                 starsContainer.appendChild(star);
             }
             
-            // 生肖数据
-            const zodiacData = {
-                rat: { name: '鼠', years: '2020、2008、1996、1984、1972...' },
-                ox: { name: '牛', years: '2021、2009、1997、1985、1973...' },
-                tiger: { name: '虎', years: '2022、2010、1998、1986、1974...' },
-                rabbit: { name: '兔', years: '2023、2011、1999、1987、1975...' },
-                dragon: { name: '龙', years: '2024、2012、2000、1988、1976...' },
-                snake: { name: '蛇', years: '2025、2013、2001、1989、1977...' },
-                horse: { name: '马', years: '2026、2014、2002、1990、1978...' },
-                goat: { name: '羊', years: '2027、2015、2003、1991、1979...' },
-                monkey: { name: '猴', years: '2028、2016、2004、1992、1980...' },
-                rooster: { name: '鸡', years: '2029、2017、2005、1993、1981...' },
-                dog: { name: '狗', years: '2030、2018、2006、1994、1982...' },
-                pig: { name: '猪', years: '2031、2019、2007、1995、1983...' }
-            };
-            
             // 今日运势数据
-            const dailyFortuneData = {
-                rat: { love: 4, money: 3, career: 4, health: 3, social: 5, 
-                      loveDesc: "单身者有望邂逅心仪对象", moneyDesc: "谨慎投资，避免冲动消费", 
-                      careerDesc: "工作上有贵人相助", healthDesc: "注意肠胃消化问题", socialDesc: "社交活跃，人缘极佳" },
-                ox: { love: 3, money: 4, career: 3, health: 4, social: 4, 
-                      loveDesc: "已有伴侣者感情稳定", moneyDesc: "正财收入增加", 
-                      careerDesc: "稳扎稳打是关键", healthDesc: "注意脾胃问题", socialDesc: "同事关系融洽" },
-                tiger: { love: 4, money: 3, career: 5, health: 2, social: 4, 
-                        loveDesc: "魅力提升，吸引异性", moneyDesc: "偏财机会多但需谨慎", 
-                        careerDesc: "晋升机会出现", healthDesc: "注意肝胆问题", socialDesc: "领导赏识" },
-                rabbit: { love: 5, money: 2, career: 3, health: 3, social: 4, 
-                         loveDesc: "红鸾星动，良缘将至", moneyDesc: "保守理财为上", 
-                         careerDesc: "避免口舌是非", healthDesc: "注意情绪管理", socialDesc: "朋友支持多" },
-                dragon: { love: 4, money: 4, career: 4, health: 3, social: 5, 
-                         loveDesc: "单身者有望遇到正缘", moneyDesc: "投资运佳", 
-                         careerDesc: "贵人提携", healthDesc: "注意呼吸系统", socialDesc: "人缘极佳" },
-                snake: { love: 3, money: 5, career: 4, health: 4, social: 3, 
-                        loveDesc: "职场桃花旺盛", moneyDesc: "财运亨通", 
-                        careerDesc: "展现才华机会", healthDesc: "注意皮肤问题", socialDesc: "专注工作" },
-                horse: { love: 4, money: 3, career: 3, health: 3, social: 4, 
-                        loveDesc: "旧情复燃可能", moneyDesc: "正财稳定", 
-                        careerDesc: "稳扎稳打", healthDesc: "注意心脏问题", socialDesc: "朋友聚会多" },
-                goat: { love: 3, money: 3, career: 4, health: 4, social: 4, 
-                       loveDesc: "家庭和睦", moneyDesc: "储蓄增加", 
-                       careerDesc: "耐心积累", healthDesc: "注意体重管理", socialDesc: "同事关系好" },
-                monkey: { love: 4, money: 4, career: 5, health: 3, social: 4, 
-                         loveDesc: "魅力四射", moneyDesc: "投资眼光独到", 
-                         careerDesc: "创新领域突破", healthDesc: "注意呼吸系统", socialDesc: "人脉拓展" },
-                rooster: { love: 3, money: 3, career: 3, health: 4, social: 3, 
-                          loveDesc: "职场桃花", moneyDesc: "保守理财", 
-                          careerDesc: "谨言慎行", healthDesc: "注意咽喉问题", socialDesc: "专注工作" },
-                dog: { love: 4, money: 3, career: 3, health: 3, social: 4, 
-                      loveDesc: "多沟通理解", moneyDesc: "正财为主", 
-                      careerDesc: "稳扎稳打", healthDesc: "注意肠胃问题", socialDesc: "朋友支持" },
-                pig: { love: 4, money: 4, career: 4, health: 3, social: 5, 
-                       loveDesc: "有望遇到正缘", moneyDesc: "正财增长", 
-                       careerDesc: "稳中求进", healthDesc: "注意代谢问题", socialDesc: "人缘极佳" }
+            const todayData = {
+                energy: 75, // 示例数据
+                energyDesc: "今日能量中等偏上，适合处理重要事务，但下午3-5点能量较低，建议避免重大决策。",
+                suitable: ["签约", "搬家", "投资", "社交", "学习新技能"],
+                avoid: ["借贷", "争吵", "远行", "手术", "重大变更"],
+                luckyZodiacs: ["rat", "ox", "tiger"] // 示例数据
             };
 
-            // 创建今日运势界面
-            updateTodayFortune(dailyFortuneData.rat); // 示例数据
+            updateTodayFortune(todayData);
 
             // 创建幸运生肖
             const luckyZodiacs = document.getElementById('lucky-zodiacs');
-            const luckyData = ["rat", "ox", "tiger"]; // 示例幸运生肖数据
-            luckyData.forEach(zodiac => {
+            todayData.luckyZodiacs.forEach(zodiac => {
                 const div = document.createElement('div');
                 div.className = `zodiac-icon zodiac-${zodiac}`;
                 div.style.backgroundImage = `url(${zodiacIconUrls[zodiac]})`;
                 luckyZodiacs.appendChild(div);
             });
 
-            // 创建生肖排行榜
+            // 示例生肖运势排行榜数据
             const rankings = {
                 overall: [
                     {name: "snake", score: 95, desc: "2025年蛇年为本命年，但得'天解'吉星相助，运势强劲"},
@@ -407,15 +302,27 @@
 
         function updateTodayFortune(data) {
             // 更新今日能量
-            document.getElementById('today-energy').style.width = '75%'; // 示例
-            document.getElementById('energy-desc').textContent = "今日能量中等偏上，适合处理重要事务，但下午3-5点能量较低，建议避免重大决策。"; // 示例
+            document.getElementById('today-energy').style.width = `${data.energy}%`;
+            document.getElementById('energy-desc').textContent = data.energyDesc;
 
             // 更新今日宜忌
             const suitableList = document.getElementById('today-suitable');
             const avoidList = document.getElementById('today-avoid');
 
-            suitableList.innerHTML = '<li>签约</li><li>搬家</li><li>投资</li><li>社交</li><li>学习新技能</li>'; // 示例
-            avoidList.innerHTML = '<li>借贷</li><li>争吵</li><li>远行</li><li>手术</li><li>重大变更</li>'; // 示例
+            suitableList.innerHTML = '';
+            avoidList.innerHTML = '';
+
+            data.suitable.forEach(item => {
+                const li = document.createElement('li');
+                li.textContent = item;
+                suitableList.appendChild(li);
+            });
+
+            data.avoid.forEach(item => {
+                const li = document.createElement('li');
+                li.textContent = item;
+                avoidList.appendChild(li);
+            });
         }
 
         function updateZodiacRankings(rankings) {
@@ -427,7 +334,7 @@
                 div.innerHTML = `
                     <div class="ranking-rank">${index + 1}</div>
                     <div class="ranking-zodiac">
-                        <span class="zodiac-icon zodiac-${item.name}" title="${item.name}" style="background-image: url('${zodiacIconUrls[item.name]}');"></span>
+                        <div class="zodiac-icon zodiac-${item.name}" style="background-image: url('${zodiacIconUrls[item.name]}');"></div>
                     </div>
                     <div class="ranking-score">${item.score}</div>
                     <div class="ranking-desc">${item.desc}</div>
