@@ -729,19 +729,20 @@
             const day = today.getDate();
             
             // 使用lunar.js获取农历日期
-            const lunarDate = calendar.solar2lunar(year, month, day);
-            const lunarDateStr = `${lunarDate.IMonthCn}${lunarDate.IDayCn}`;
+            const lunarDate = Lunar.fromDate(today);
+            const lunarDateStr = lunarDate.getMonthInChinese() + lunarDate.getDayInChinese();
+            const festival = lunarDate.getFestivals().join('') || '普通';
             
             document.getElementById('today-date').textContent = `${year}年${month}月${day}日`;
             document.getElementById('lunar-date').textContent = lunarDateStr;
-            document.getElementById('today-energy').textContent = `五行能量以${lunarDate.lunarFestival || '普通'}为主`;
+            document.getElementById('today-energy').textContent = `五行能量以${festival}为主`;
             
             // 更新运势
             updateDailyFortune();
             updateEnergyForecast();
             updateAdvice();
         }
-        
+                
         // 更新每日运势
         function updateDailyFortune() {
             const fortune = dailyFortuneData[currentZodiac];
@@ -795,6 +796,8 @@
             
             // 创建卡片
             function createCards() {
+                gameBoard.innerHTML = ''; // 清空游戏板
+                
                 // 复制卡片以形成配对
                 const gameCards = [...memoryGameData, ...memoryGameData];
                 
@@ -826,6 +829,7 @@
             function flipCard() {
                 if (lockBoard) return;
                 if (this === firstCard) return;
+                if (this.classList.contains('matched')) return;
                 
                 this.classList.add('flipped');
                 
@@ -838,6 +842,7 @@
                 
                 // 第二次点击
                 secondCard = this;
+                lockBoard = true;
                 attempts++;
                 attemptsDisplay.textContent = attempts;
                 checkForMatch();
@@ -847,19 +852,7 @@
             function checkForMatch() {
                 const isMatch = firstCard.dataset.zodiac === secondCard.dataset.zodiac;
                 
-                if (isMatch) {
-                    disableCards();
-                    matches++;
-                    matchesDisplay.textContent = matches;
-                    
-                    if (matches === memoryGameData.length) {
-                        setTimeout(() => {
-                            alert(`恭喜你完成了游戏！总尝试次数: ${attempts}`);
-                        }, 500);
-                    }
-                } else {
-                    unflipCards();
-                }
+                isMatch ? disableCards() : unflipCards();
             }
             
             // 禁用已匹配的卡片
@@ -867,17 +860,22 @@
                 firstCard.removeEventListener('click', flipCard);
                 secondCard.removeEventListener('click', flipCard);
                 
-                setTimeout(() => {
-                    firstCard.classList.add('matched');
-                    secondCard.classList.add('matched');
-                    resetBoard();
-                }, 1000);
+                firstCard.classList.add('matched');
+                secondCard.classList.add('matched');
+                matches++;
+                matchesDisplay.textContent = matches;
+                
+                resetBoard();
+                
+                if (matches === memoryGameData.length) {
+                    setTimeout(() => {
+                        alert(`恭喜你完成了游戏！总尝试次数: ${attempts}`);
+                    }, 500);
+                }
             }
             
             // 翻回不匹配的卡片
             function unflipCards() {
-                lockBoard = true;
-                
                 setTimeout(() => {
                     firstCard.classList.remove('flipped');
                     secondCard.classList.remove('flipped');
@@ -893,7 +891,6 @@
             
             // 重置游戏
             function resetGame() {
-                gameBoard.innerHTML = '';
                 matches = 0;
                 attempts = 0;
                 matchesDisplay.textContent = '0';
