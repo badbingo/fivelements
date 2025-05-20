@@ -105,7 +105,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 6. 3秒后跳转到测算页面（新增）
     setTimeout(() => {
-        window.location.href = `system/bazisystem.html?name=${encodeURIComponent(userName)}`;
+        window.location.href = `www.mybazi.net/system/bazisystem.html?name=${encodeURIComponent(userName)}`;
     }, 3000);
 }
 
