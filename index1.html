@@ -54,7 +54,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- 星空背景 -->
     <div class="stars" id="stars"></div>
     
@@ -372,7 +372,7 @@
             </div>
         </div>
         
-        <!-- 生肖配对游戏 - 新版 -->
+        <!-- 生肖缘分测试游戏 -->
         <div class="card">
             <h2 class="card-title"><i class="fas fa-gamepad"></i>生肖缘分测试</h2>
             <p>测试你与12生肖的缘分指数，看看哪些生肖与你最合拍！</p>
@@ -501,7 +501,7 @@
     <script>
         // 当前选择的生肖
         let currentZodiac = 'dragon';
-        
+
         // 生肖数据
         const zodiacData = {
             rat: { name: '鼠', emoji: '1f400', years: '2020、2008、1996、1984、1972...' },
@@ -517,7 +517,7 @@
             dog: { name: '狗', emoji: '1f415', years: '2030、2018、2006、1994、1982...' },
             pig: { name: '猪', emoji: '1f437', years: '2031、2019、2007、1995、1983...' }
         };
-        
+
         // 生肖缘分数据
         const compatibilityData = {
             rat: { best: ['ox', 'dragon', 'monkey'], good: ['tiger', 'pig'], bad: ['horse', 'goat', 'rooster'] },
@@ -533,7 +533,7 @@
             dog: { best: ['tiger', 'horse', 'rabbit'], good: ['goat', 'pig'], bad: ['dragon', 'rooster'] },
             pig: { best: ['tiger', 'rabbit', 'goat'], good: ['rat', 'dog'], bad: ['snake', 'monkey'] }
         };
-        
+
         // 创建星空背景
         document.addEventListener('DOMContentLoaded', function() {
             const starsContainer = document.getElementById('stars');
@@ -1087,88 +1087,46 @@
             const zodiacOptions = document.getElementById('zodiacOptions').querySelectorAll('.zodiac-option');
             
             // 为每个生肖选项添加点击事件
-            zodiacOptions.forEach(option => {
-                option.addEventListener('click', function() {
-                    const zodiac = this.getAttribute('data-zodiac');
-                    
-                    // 更新选中的生肖显示
-                    selectedZodiac.innerHTML = `
-                        <div class="zodiac-icon" style="background-image: url('https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/${zodiacData[zodiac].emoji}.svg')"></div>
-                        <div class="zodiac-name">${zodiacData[zodiac].name}</div>
-                    `;
-                    
-                    // 更新配对结果
-                    updateCompatibilityResults(zodiac);
-                });
-            });
-        }
-        
-        // 更新生肖配对结果
-        function updateCompatibilityResults(zodiac) {
-            const resultsContainer = document.querySelector('.compatibility-results .result-grid');
-            resultsContainer.innerHTML = '';
-            
-            // 获取当前生肖的配对数据
-            const compatibility = compatibilityData[zodiac];
-            
-            // 生成所有生肖的配对结果
-            Object.keys(zodiacData).forEach(otherZodiac => {
-                if (otherZodiac === zodiac) return; // 跳过自己
-                
-                // 计算缘分指数
-                let score = 60; // 基础分
-                let desc = '缘分中等，相处需互相包容';
-                
-                if (compatibility.best.includes(otherZodiac)) {
-                    score = 90 + Math.floor(Math.random() * 10); // 90-99
-                    desc = '天作之合，相处非常融洽';
-                } else if (compatibility.good.includes(otherZodiac)) {
-                    score = 75 + Math.floor(Math.random() * 15); // 75-89
-                    desc = '相处愉快，互补性强';
-                } else if (compatibility.bad.includes(otherZodiac)) {
-                    score = 40 + Math.floor(Math.random() * 20); // 40-59
-                    desc = '容易产生矛盾，需多沟通';
-                }
-                
-                // 创建结果卡片
-                const resultCard = document.createElement('div');
-                resultCard.className = 'result-card';
-                resultCard.innerHTML = `
-                    <div class="result-zodiac-icon" style="background-image: url('https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/${zodiacData[otherZodiac].emoji}.svg')"></div>
-                    <div class="result-zodiac-name">${zodiacData[otherZodiac].name}</div>
-                    <div class="result-score">${score}分</div>
-                    <div class="result-desc">${desc}</div>
-                    <div class="result-bar">
-                        <div class="result-progress" style="width: ${score}%;"></div>
-                    </div>
-                `;
-                
-                // 根据分数设置颜色
-                const progressBar = resultCard.querySelector('.result-progress');
-                if (score >= 90) {
-                    progressBar.style.background = 'linear-gradient(90deg, #4CAF50, #8BC34A)';
-                } else if (score >= 75) {
-                    progressBar.style.background = 'linear-gradient(90deg, #FFC107, #FFEB3B)';
-                } else if (score >= 60) {
-                    progressBar.style.background = 'linear-gradient(90deg, #FF9800, #FFC107)';
-                } else {
-                    progressBar.style.background = 'linear-gradient(90deg, #F44336, #FF5722)';
-                }
-                
-                resultsContainer.appendChild(resultCard);
-            });
-            
-            // 显示结果区域
-            document.getElementById('compatibilityResults').style.display = 'block';
-        }
-    </script>
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-2NHJXGKS0Y"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-2NHJXGKS0Y');
-    </script>
-</body>
-</html>
+zodiacOptions.forEach(option => {
+    option.addEventListener('click', function() {
+        const zodiac = this.getAttribute('data-zodiac');
+
+        // 更新选中的生肖显示
+        selectedZodiac.innerHTML = `
+            <div class="zodiac-icon" style="background-image: url('https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/${zodiacData[zodiac].emoji}.svg');"></div>
+            <div class="zodiac-name">${zodiacData[zodiac].name}</div>
+        `;
+
+        // 获取与当前生肖的缘分结果
+        const compatibilityResults = document.getElementById('compatibilityResults');
+        compatibilityResults.innerHTML = ''; // 清空之前的结果
+
+        const bestMatches = compatibilityData[zodiac].best;
+        const goodMatches = compatibilityData[zodiac].good;
+        const badMatches = compatibilityData[zodiac].bad;
+
+        // 显示最佳配对
+        bestMatches.forEach(match => {
+            const resultDiv = document.createElement('div');
+            resultDiv.className = 'compatibility-result';
+            resultDiv.innerHTML = `<span class="result-title">最佳缘分：</span>${zodiacData[match].name}`;
+            compatibilityResults.appendChild(resultDiv);
+        });
+
+        // 显示良好配对
+        goodMatches.forEach(match => {
+            const resultDiv = document.createElement('div');
+            resultDiv.className = 'compatibility-result';
+            resultDiv.innerHTML = `<span class="result-title">良好缘分：</span>${zodiacData[match].name}`;
+            compatibilityResults.appendChild(resultDiv);
+        });
+
+        // 显示不佳配对
+        badMatches.forEach(match => {
+            const resultDiv = document.createElement('div');
+            resultDiv.className = 'compatibility-result';
+            resultDiv.innerHTML = `<span class="result-title">不佳缘分：</span>${zodiacData[match].name}`;
+            compatibilityResults.appendChild(resultDiv);
+        });
+    });
+});
