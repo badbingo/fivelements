@@ -6,8 +6,8 @@
     <title>八字命理 - 趋吉避凶之道 | 麦八字教学网</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/index.css">    
-</head>
+    <link rel="stylesheet" href="css/index.css">
+  </head>
 <body>
     <!-- 生肖选择器 -->
     <div class="zodiac-selector">
@@ -405,50 +405,18 @@
             </div>
         </div>
         
-        <!-- 生肖配对游戏 -->
+        <!-- 生肖连连看游戏 -->
         <div class="card">
-            <h2 class="card-title"><i class="fas fa-gamepad"></i>生肖配对游戏</h2>
-            <p>想知道你和TA的生肖配对指数吗？选择两个生肖查看配对结果！</p>
+            <h2 class="card-title"><i class="fas fa-gamepad"></i>生肖连连看游戏</h2>
+            <p>找出所有配对的生肖卡片，测试你的记忆力！</p>
             
-            <div class="zodiac-match-game">
-                <div class="game-container">
-                    <div class="zodiac-select" data-zodiac="rat" style="background-image: url('https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f400.svg');"></div>
-                    <div class="zodiac-select" data-zodiac="ox" style="background-image: url('https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f402.svg');"></div>
-                    <div class="zodiac-select" data-zodiac="tiger" style="background-image: url('https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f405.svg');"></div>
-                    <div class="zodiac-select" data-zodiac="rabbit" style="background-image: url('https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f407.svg');"></div>
-                    <div class="zodiac-select" data-zodiac="dragon" style="background-image: url('https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f409.svg');"></div>
-                    <div class="zodiac-select" data-zodiac="snake" style="background-image: url('https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f40d.svg');"></div>
-                    <div class="zodiac-select" data-zodiac="horse" style="background-image: url('https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f40e.svg');"></div>
-                    <div class="zodiac-select" data-zodiac="goat" style="background-image: url('https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f411.svg');"></div>
-                    <div class="zodiac-select" data-zodiac="monkey" style="background-image: url('https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f412.svg');"></div>
-                    <div class="zodiac-select" data-zodiac="rooster" style="background-image: url('https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f413.svg');"></div>
-                    <div class="zodiac-select" data-zodiac="dog" style="background-image: url('https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f415.svg');"></div>
-                    <div class="zodiac-select" data-zodiac="pig" style="background-image: url('https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f437.svg');"></div>
+            <div class="zodiac-memory-game">
+                <div class="game-board" id="gameBoard"></div>
+                <div class="game-info">
+                    <div class="game-stats">配对: <span id="matches">0</span>/6</div>
+                    <div class="game-stats">尝试次数: <span id="attempts">0</span></div>
+                    <button id="restartGame" class="cta-button" style="padding: 10px 20px; font-size: 1rem;">重新开始</button>
                 </div>
-                
-                <div class="match-result" id="matchResult">
-                    <h3 class="match-title">生肖配对结果</h3>
-                    <div class="match-score" id="matchScore">85分</div>
-                    <div class="match-desc" id="matchDesc">
-                        你们的生肖相合度较高，在性格上能够互补。鼠的机智灵活与牛的稳重踏实形成良好搭配。
-                        在感情方面，需要鼠多体谅牛的固执，牛也要适应鼠的活跃多变。
-                        事业上可以形成很好的合作伙伴，牛的执行力加上鼠的创意能产生良好效果。
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- 五行能量图 -->
-        <div class="card">
-            <h2 class="card-title"><i class="fas fa-chart-line"></i>五行能量波动图</h2>
-            <p>当前五行能量分布及未来一周变化趋势：</p>
-            
-            <div class="energy-chart" id="energyChart">
-                <canvas id="wuxingChart" width="800" height="300"></canvas>
-            </div>
-            
-            <div class="energy-desc">
-                <p><span class="wood">木能量</span>当前旺盛，适合开展新项目；<span class="fire">火能量</span>平稳，利于社交；<span class="earth">土能量</span>不足，注意健康；<span class="metal">金能量</span>上升，利于决策；<span class="water">水能量</span>低迷，需谨慎投资。</p>
             </div>
         </div>
         
@@ -555,6 +523,7 @@
     </div>
     
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="js/lunar.js"></script>
     <script>
         // 当前选择的生肖
         let currentZodiac = 'dragon';
@@ -647,19 +616,199 @@
             pig: { career: "稳中求进", love: "正缘机会", health: "注意代谢" }
         };
         
-        // 生肖配对数据
-        const matchData = {
-            'rat-ox': { score: 85, desc: "鼠的机智灵活与牛的稳重踏实形成良好搭配。在感情方面，需要鼠多体谅牛的固执，牛也要适应鼠的活跃多变。事业上可以形成很好的合作伙伴，牛的执行力加上鼠的创意能产生良好效果。" },
-            'tiger-pig': { score: 90, desc: "虎的活力与猪的随和形成互补。感情上虎能给猪带来激情，猪能让虎学会放松。事业上猪的财运能带动虎的进取心，合作项目容易成功。需要注意的是虎要控制脾气，猪要更积极主动。" },
-            'rabbit-dog': { score: 88, desc: "兔的细腻与狗的忠诚非常相配。感情上双方都能给予对方安全感，关系稳定和谐。事业上兔的创意加上狗的执行力能产生良好效果。需要注意的是兔要多表达情感，狗要更细心体贴。" },
-            'dragon-monkey': { score: 92, desc: "龙的抱负与猴的机智是绝佳组合。感情上双方都欣赏对方的才华，关系充满活力。事业上合作无间，尤其适合创业或创新项目。需要注意的是龙要控制支配欲，猴要更专注持久。" },
-            'snake-rooster': { score: 86, desc: "蛇的智慧与鸡的勤奋相互欣赏。感情上鸡的直率能让蛇更开朗，蛇的深沉能让鸡更稳重。事业上蛇的策略加上鸡的执行力能创造佳绩。需要注意的是蛇要多沟通，鸡要更包容。" },
-            'horse-goat': { score: 84, desc: "马的活力与羊的温和相得益彰。感情上马能给羊带来激情，羊能让马学会体贴。事业上马的行动力加上羊的创意能产生良好效果。需要注意的是马要有耐心，羊要更果断。" },
-            'default': { score: 75, desc: "你们的生肖相合度中等，在性格上各有特点。相处时需要多沟通理解，互相包容对方的不足。事业上可以互补，但需要明确分工。感情上需要多花时间培养默契，建立共同兴趣。" }
-        };
-        
+        // 连连看游戏数据
+        const memoryGameData = [
+            'rat', 'ox', 'tiger', 'rabbit', 'dragon', 'snake',
+            'horse', 'goat', 'monkey', 'rooster', 'dog', 'pig'
+        ];
+
+        // 游戏状态变量
+        let hasFlippedCard = false;
+        let lockBoard = false;
+        let firstCard, secondCard;
+        let matches = 0;
+        let attempts = 0;
+        let cards = [];
+
+        // 初始化游戏
+        function initMemoryGame() {
+            const gameBoard = document.getElementById('gameBoard');
+            gameBoard.innerHTML = '';
+            matches = 0;
+            attempts = 0;
+            updateGameStats();
+            
+            // 创建卡片对
+            const gameCards = [...memoryGameData.slice(0, 6), ...memoryGameData.slice(0, 6)];
+            cards = shuffleArray(gameCards);
+            
+            // 生成卡片元素
+            cards.forEach((zodiac, index) => {
+                const card = document.createElement('div');
+                card.classList.add('memory-card');
+                card.dataset.zodiac = zodiac;
+                card.dataset.index = index;
+                
+                const frontFace = document.createElement('div');
+                frontFace.classList.add('front-face');
+                frontFace.style.backgroundImage = `url(https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/${zodiacData[zodiac].emoji}.svg)`;
+                frontFace.style.backgroundSize = 'contain';
+                frontFace.style.backgroundRepeat = 'no-repeat';
+                frontFace.style.backgroundPosition = 'center';
+                
+                const backFace = document.createElement('div');
+                backFace.classList.add('back-face');
+                
+                card.appendChild(frontFace);
+                card.appendChild(backFace);
+                card.addEventListener('click', flipCard);
+                gameBoard.appendChild(card);
+            });
+        }
+
+        // 洗牌函数
+        function shuffleArray(array) {
+            const newArray = [...array];
+            for (let i = newArray.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+            }
+            return newArray;
+        }
+
+        // 翻转卡片
+        function flipCard() {
+            if (lockBoard) return;
+            if (this === firstCard) return;
+            
+            this.classList.add('flipped');
+            
+            if (!hasFlippedCard) {
+                // 第一次点击
+                hasFlippedCard = true;
+                firstCard = this;
+                return;
+            }
+            
+            // 第二次点击
+            secondCard = this;
+            lockBoard = true;
+            attempts++;
+            updateGameStats();
+            
+            checkForMatch();
+        }
+
+        // 检查是否匹配
+        function checkForMatch() {
+            const isMatch = firstCard.dataset.zodiac === secondCard.dataset.zodiac;
+            
+            if (isMatch) {
+                disableCards();
+                matches++;
+                updateGameStats();
+                
+                if (matches === 6) {
+                    setTimeout(() => {
+                        alert(`恭喜你完成了游戏！总共尝试了 ${attempts} 次。`);
+                    }, 500);
+                }
+            } else {
+                unflipCards();
+            }
+        }
+
+        // 禁用已匹配的卡片
+        function disableCards() {
+            firstCard.removeEventListener('click', flipCard);
+            secondCard.removeEventListener('click', flipCard);
+            
+            setTimeout(() => {
+                firstCard.classList.add('matched');
+                secondCard.classList.add('matched');
+                resetBoard();
+            }, 1000);
+        }
+
+        // 翻回不匹配的卡片
+        function unflipCards() {
+            setTimeout(() => {
+                firstCard.classList.remove('flipped');
+                secondCard.classList.remove('flipped');
+                resetBoard();
+            }, 1000);
+        }
+
+        // 重置游戏板状态
+        function resetBoard() {
+            [hasFlippedCard, lockBoard] = [false, false];
+            [firstCard, secondCard] = [null, null];
+        }
+
+        // 更新游戏统计
+        function updateGameStats() {
+            document.getElementById('matches').textContent = matches;
+            document.getElementById('attempts').textContent = attempts;
+        }
+
+        // 设置日期
+        function setupDate() {
+            const today = new Date();
+            const lunarDate = calendar.solar2lunar(today.getFullYear(), today.getMonth() + 1, today.getDate());
+            
+            document.getElementById('today-date').textContent = `${today.getFullYear()}年${today.getMonth() + 1}月${today.getDate()}日`;
+            document.getElementById('lunar-date').textContent = `${lunarDate.lYear}年${lunarDate.lMonth}月${lunarDate.lDay}日`;
+            document.getElementById('today-energy').textContent = `今日五行能量以${lunarDate.lunarFestival || '普通'}为主`;
+        }
+
+        // 初始化生肖选择器
+        function initZodiacSelector() {
+            const zodiacOptions = document.querySelectorAll('.zodiac-option');
+            zodiacOptions.forEach(option => {
+                const zodiac = option.dataset.zodiac;
+                option.style.backgroundImage = `url(https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/${zodiacData[zodiac].emoji}.svg)`;
+                
+                option.addEventListener('click', () => {
+                    // 移除之前的选择
+                    document.querySelector('.zodiac-option.selected')?.classList.remove('selected');
+                    // 添加新的选择
+                    option.classList.add('selected');
+                    currentZodiac = zodiac;
+                    updateDailyFortune(zodiac);
+                    // 滚动到今日运势区域
+                    document.getElementById('today-fortune').scrollIntoView({ behavior: 'smooth' });
+                });
+            });
+        }
+
+        // 更新每日运势
+        function updateDailyFortune(zodiac) {
+            const fortune = dailyFortuneData[zodiac];
+            
+            // 更新运势星级
+            document.getElementById('today-love').textContent = '★'.repeat(fortune.love) + '☆'.repeat(5 - fortune.love);
+            document.getElementById('today-money').textContent = '★'.repeat(fortune.money) + '☆'.repeat(5 - fortune.money);
+            document.getElementById('today-career').textContent = '★'.repeat(fortune.career) + '☆'.repeat(5 - fortune.career);
+            document.getElementById('today-health').textContent = '★'.repeat(fortune.health) + '☆'.repeat(5 - fortune.health);
+            document.getElementById('today-social').textContent = '★'.repeat(fortune.social) + '☆'.repeat(5 - fortune.social);
+            
+            // 更新运势描述
+            document.getElementById('today-love-desc').textContent = fortune.loveDesc;
+            document.getElementById('today-money-desc').textContent = fortune.moneyDesc;
+            document.getElementById('today-career-desc').textContent = fortune.careerDesc;
+            document.getElementById('today-health-desc').textContent = fortune.healthDesc;
+            document.getElementById('today-social-desc').textContent = fortune.socialDesc;
+            
+            // 更新进度条宽度
+            document.querySelector('#today-fortune .fortune-card:nth-child(1) .fortune-level').style.width = `${fortune.love * 20}%`;
+            document.querySelector('#today-fortune .fortune-card:nth-child(2) .fortune-level').style.width = `${fortune.money * 20}%`;
+            document.querySelector('#today-fortune .fortune-card:nth-child(3) .fortune-level').style.width = `${fortune.career * 20}%`;
+            document.querySelector('#today-fortune .fortune-card:nth-child(4) .fortune-level').style.width = `${fortune.health * 20}%`;
+            document.querySelector('#today-fortune .fortune-card:nth-child(5) .fortune-level').style.width = `${fortune.social * 20}%`;
+        }
+
         // 创建星空背景
-        document.addEventListener('DOMContentLoaded', function() {
+        function createStars() {
             const starsContainer = document.getElementById('stars');
             const starCount = 200;
             
@@ -681,8 +830,10 @@
                 
                 starsContainer.appendChild(star);
             }
-            
-            // 创建云朵背景
+        }
+
+        // 创建云朵背景
+        function createClouds() {
             const cloudsContainer = document.getElementById('clouds');
             const cloudCount = 5;
             
@@ -696,745 +847,48 @@
                 cloud.style.height = `${size * 0.6}px`;
                 
                 // 随机位置和速度
-                const top = Math.random() * 100;
-                const duration = Math.random() * 100 + 100;
-                const delay = Math.random() * -100;
-                
-                cloud.style.top = `${top}%`;
-                cloud.style.animationDuration = `${duration}s`;
-                cloud.style.animationDelay = `${delay}s`;
+                cloud.style.top = `${Math.random() * 100}%`;
+                cloud.style.animationDuration = `${Math.random() * 100 + 100}s`;
+                cloud.style.animationDelay = `${Math.random() * -100}s`;
                 
                 cloudsContainer.appendChild(cloud);
             }
-            
-            // 创建粒子背景
-            const particlesContainer = document.getElementById('particles');
-            const particleCount = 30;
-            
-            for (let i = 0; i < particleCount; i++) {
-                const particle = document.createElement('div');
-                particle.classList.add('particle');
-                
-                // 随机大小 (1-3px)
-                const size = Math.random() * 2 + 1;
-                particle.style.width = `${size}px`;
-                particle.style.height = `${size}px`;
-                
-                // 随机位置
-                particle.style.left = `${Math.random() * 100}%`;
-                particle.style.top = `${Math.random() * 100}%`;
-                
-                // 随机动画
-                const duration = Math.random() * 10 + 10;
-                const delay = Math.random() * -10;
-                
-                particle.style.animation = `float ${duration}s linear infinite`;
-                particle.style.animationDelay = `${delay}s`;
-                
-                particlesContainer.appendChild(particle);
-            }
-            
-            // 初始化生肖选择器
+        }
+
+        // 初始化页面
+        document.addEventListener('DOMContentLoaded', function() {
+            createStars();
+            createClouds();
+            setupDate();
             initZodiacSelector();
+            initMemoryGame();
+            updateDailyFortune(currentZodiac);
             
-            // 五行元素交互效果
-            const elements = document.querySelectorAll('.element');
+            // 重新开始游戏按钮
+            document.getElementById('restartGame').addEventListener('click', initMemoryGame);
             
-            elements.forEach((el) => {
-                // 点击效果
-                el.addEventListener('click', function() {
+            // 滚动指示
+            document.getElementById('scrollDown').addEventListener('click', () => {
+                document.querySelector('.content-section').scrollIntoView({ behavior: 'smooth' });
+            });
+            
+            // 元素点击效果
+            document.querySelectorAll('.element').forEach(element => {
+                element.addEventListener('click', function(e) {
                     // 创建波纹效果
                     const ripple = document.createElement('span');
                     ripple.classList.add('ripple');
-                    
-                    // 设置波纹位置
-                    const rect = this.getBoundingClientRect();
-                    const x = event.clientX - rect.left;
-                    const y = event.clientY - rect.top;
-                    
-                    ripple.style.left = `${x}px`;
-                    ripple.style.top = `${y}px`;
-                    
+                    ripple.style.left = `${e.offsetX}px`;
+                    ripple.style.top = `${e.offsetY}px`;
                     this.appendChild(ripple);
                     
-                    // 动画结束后移除
-                    setTimeout(() => {
-                        ripple.remove();
-                    }, 600);
-                    
-                    // 弹跳效果
-                    this.style.animation = 'none';
-                    void this.offsetWidth; // 触发重绘
-                    this.style.animation = 'elementClick 0.5s ease-out';
-                    
-                    // 显示五行信息
-                    const elementText = this.textContent;
-                    let elementInfo = '';
-                    let elementColor = '';
-                    
-                    switch(elementText) {
-                        case '木':
-                            elementInfo = '木代表生长、发展、创造力。木旺的人通常具有领导才能和创新思维。';
-                            elementColor = 'var(--element-wood)';
-                            break;
-                        case '火':
-                            elementInfo = '火代表热情、活力、表现力。火旺的人通常性格开朗，善于交际。';
-                            elementColor = 'var(--element-fire)';
-                            break;
-                        case '土':
-                            elementInfo = '土代表稳定、实际、包容。土旺的人通常踏实可靠，注重实际。';
-                            elementColor = 'var(--element-earth)';
-                            break;
-                        case '金':
-                            elementInfo = '金代表决断、精确、效率。金旺的人通常思维清晰，执行力强。';
-                            elementColor = 'var(--element-metal)';
-                            break;
-                        case '水':
-                            elementInfo = '水代表智慧、流动、适应力。水旺的人通常聪明机智，善于变通。';
-                            elementColor = 'var(--element-water)';
-                            break;
-                    }
-                    
-                    // 创建浮动提示
-                    const tooltip = document.createElement('div');
-                    tooltip.style.position = 'fixed';
-                    tooltip.style.left = `${rect.left + rect.width/2}px`;
-                    tooltip.style.top = `${rect.top}px`;
-                    tooltip.style.transform = 'translateX(-50%) translateY(-100%)';
-                    tooltip.style.backgroundColor = 'rgba(20, 20, 40, 0.9)';
-                    tooltip.style.border = `2px solid ${elementColor}`;
-                    tooltip.style.borderRadius = '10px';
-                    tooltip.style.padding = '10px 15px';
-                    tooltip.style.maxWidth = '300px';
-                    tooltip.style.boxShadow = '0 5px 15px rgba(0, 0, 0, 0.3)';
-                    tooltip.style.zIndex = '1000';
-                    tooltip.style.opacity = '0';
-                    tooltip.style.transition = 'all 0.3s ease';
-                    tooltip.textContent = elementInfo;
-                    
-                    document.body.appendChild(tooltip);
-                    
-                    // 显示提示
-                    setTimeout(() => {
-                        tooltip.style.opacity = '1';
-                        tooltip.style.transform = 'translateX(-50%) translateY(-120%)';
-                    }, 10);
-                    
-                    // 3秒后淡出并移除提示
-                    setTimeout(() => {
-                        tooltip.style.opacity = '0';
-                        tooltip.style.transform = 'translateX(-50%) translateY(-140%)';
-                        setTimeout(() => {
-                            tooltip.remove();
-                        }, 300);
-                    }, 3000);
-                });
-            });
-            
-            // 按钮点击波纹效果
-            const buttons = document.querySelectorAll('.cta-button');
-            buttons.forEach(button => {
-                button.addEventListener('click', function(e) {
-                    // 移除之前的波纹
-                    const oldRipple = this.querySelector('.ripple');
-                    if (oldRipple) {
-                        oldRipple.remove();
-                    }
-                    
-                    // 创建新的波纹
-                    const ripple = document.createElement('span');
-                    ripple.classList.add('ripple');
-                    
-                    // 设置波纹位置
-                    const rect = this.getBoundingClientRect();
-                    const x = e.clientX - rect.left;
-                    const y = e.clientY - rect.top;
-                    
-                    ripple.style.left = `${x}px`;
-                    ripple.style.top = `${y}px`;
-                    
-                    this.appendChild(ripple);
-                    
-                    // 动画结束后移除
+                    // 移除波纹元素
                     setTimeout(() => {
                         ripple.remove();
                     }, 600);
                 });
-            });
-            
-            // 滚动到内容区域
-            document.getElementById('scrollDown').addEventListener('click', function() {
-                document.querySelector('.content-section').scrollIntoView({
-                    behavior: 'smooth'
-                });
-            });
-            
-            // 设置今日日期
-            const today = new Date();
-            const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
-            document.getElementById('today-date').textContent = today.toLocaleDateString('zh-CN', options);
-            
-            // 模拟农历日期
-            const lunarMonths = ['正', '二', '三', '四', '五', '六', '七', '八', '九', '十', '冬', '腊'];
-            const lunarDays = ['初一', '初二', '初三', '初四', '初五', '初六', '初七', '初八', '初九', '初十',
-                              '十一', '十二', '十三', '十四', '十五', '十六', '十七', '十八', '十九', '二十',
-                              '廿一', '廿二', '廿三', '廿四', '廿五', '廿六', '廿七', '廿八', '廿九', '三十'];
-            
-            const randomLunarMonth = lunarMonths[Math.floor(Math.random() * lunarMonths.length)];
-            const randomLunarDay = lunarDays[Math.floor(Math.random() * lunarDays.length)];
-            document.getElementById('lunar-date').textContent = `${randomLunarMonth}月${randomLunarDay}`;
-            
-            // 随机今日能量描述
-            const energyDescriptions = [
-                "五行平衡，诸事顺遂",
-                "木火通明，利于创新",
-                "金水相生，智慧涌现",
-                "土气旺盛，稳中求进",
-                "水火既济，动态平衡"
-            ];
-            document.getElementById('today-energy').textContent = energyDescriptions[Math.floor(Math.random() * energyDescriptions.length)];
-            
-            // 时间选择器交互
-            const dateOptions = document.querySelectorAll('.date-option');
-            dateOptions.forEach(option => {
-                option.addEventListener('click', function() {
-                    dateOptions.forEach(opt => opt.classList.remove('active'));
-                    this.classList.add('active');
-                    
-                    // 这里可以添加加载不同时间范围数据的逻辑
-                });
-            });
-            
-            // 生肖排行榜点击查看详情
-            const zodiacRankings = document.querySelectorAll('.zodiac-ranking');
-            const zodiacModal = document.getElementById('zodiacModal');
-            const closeModal = document.getElementById('closeModal');
-            
-            zodiacRankings.forEach(ranking => {
-                ranking.addEventListener('click', function() {
-                    const zodiac = this.getAttribute('data-zodiac');
-                    showZodiacModal(zodiac);
-                });
-            });
-            
-            closeModal.addEventListener('click', function() {
-                zodiacModal.classList.remove('active');
-            });
-            
-            zodiacModal.addEventListener('click', function(e) {
-                if (e.target === this) {
-                    this.classList.remove('active');
-                }
-            });
-            
-            // 生肖配对游戏
-            const zodiacSelects = document.querySelectorAll('.zodiac-select');
-            const matchResult = document.getElementById('matchResult');
-            let selectedZodiacs = [];
-            
-            zodiacSelects.forEach(select => {
-                select.addEventListener('click', function() {
-                    const zodiac = this.getAttribute('data-zodiac');
-                    
-                    if (selectedZodiacs.includes(zodiac)) {
-                        // 如果已经选中，则取消选择
-                        this.classList.remove('selected');
-                        selectedZodiacs = selectedZodiacs.filter(z => z !== zodiac);
-                    } else {
-                        if (selectedZodiacs.length < 2) {
-                            this.classList.add('selected');
-                            selectedZodiacs.push(zodiac);
-                        } else {
-                            // 如果已经选了两个，先取消第一个选择
-                            const firstSelected = document.querySelector(`.zodiac-select[data-zodiac="${selectedZodiacs[0]}"]`);
-                            firstSelected.classList.remove('selected');
-                            selectedZodiacs.shift();
-                            
-                            this.classList.add('selected');
-                            selectedZodiacs.push(zodiac);
-                        }
-                    }
-                    
-                    // 如果选了两个生肖，显示配对结果
-                    if (selectedZodiacs.length === 2) {
-                        showMatchResult(selectedZodiacs[0], selectedZodiacs[1]);
-                    } else {
-                        matchResult.style.display = 'none';
-                    }
-                });
-            });
-            
-            // 初始化五行能量图
-            initEnergyChart();
-            
-            // 元素循环发光效果
-            function elementGlow() {
-                elements.forEach((el, index) => {
-                    setTimeout(() => {
-                        el.style.boxShadow = '0 0 40px rgba(255, 255, 255, 0.8)';
-                        setTimeout(() => {
-                            el.style.boxShadow = '0 0 30px rgba(255, 255, 255, 0.3)';
-                        }, 1000);
-                    }, index * 300);
-                });
-                
-                setTimeout(elementGlow, 3000);
-            }
-            
-            // 启动循环发光效果
-            setTimeout(elementGlow, 2000);
-            
-            // 心跳动画
-            const heartIcons = document.querySelectorAll('.fa-heart, .fa-heartbeat');
-            heartIcons.forEach(icon => {
-                icon.classList.add('beating');
             });
         });
-        
-        // 初始化生肖选择器
-        function initZodiacSelector() {
-            const zodiacOptions = document.getElementById('zodiacOptions');
-            
-            // 为每个生肖选项设置背景图片
-            const options = zodiacOptions.querySelectorAll('.zodiac-option');
-            options.forEach(option => {
-                const zodiac = option.getAttribute('data-zodiac');
-                option.style.backgroundImage = `url('https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/${zodiacData[zodiac].emoji}.svg')`;
-                
-                // 点击事件
-                option.addEventListener('click', function() {
-                    // 移除所有选中状态
-                    options.forEach(opt => opt.classList.remove('selected'));
-                    
-                    // 设置当前选中
-                    this.classList.add('selected');
-                    
-                    // 更新当前生肖
-                    currentZodiac = zodiac;
-                    
-                    // 更新页面内容
-                    updateContentForZodiac(zodiac);
-                });
-            });
-            
-            // 默认选中龙
-            const defaultOption = zodiacOptions.querySelector('.zodiac-option[data-zodiac="dragon"]');
-            defaultOption.classList.add('selected');
-            
-            // 初始化内容
-            updateContentForZodiac(currentZodiac);
-        }
-        
-        // 根据选择的生肖更新内容
-        function updateContentForZodiac(zodiac) {
-            // 更新今日运势
-            const fortune = dailyFortuneData[zodiac];
-            document.getElementById('today-love').textContent = '★'.repeat(fortune.love) + '☆'.repeat(5 - fortune.love);
-            document.getElementById('today-money').textContent = '★'.repeat(fortune.money) + '☆'.repeat(5 - fortune.money);
-            document.getElementById('today-career').textContent = '★'.repeat(fortune.career) + '☆'.repeat(5 - fortune.career);
-            document.getElementById('today-health').textContent = '★'.repeat(fortune.health) + '☆'.repeat(5 - fortune.health);
-            document.getElementById('today-social').textContent = '★'.repeat(fortune.social) + '☆'.repeat(5 - fortune.social);
-            
-            document.getElementById('today-love-desc').textContent = fortune.loveDesc;
-            document.getElementById('today-money-desc').textContent = fortune.moneyDesc;
-            document.getElementById('today-career-desc').textContent = fortune.careerDesc;
-            document.getElementById('today-health-desc').textContent = fortune.healthDesc;
-            document.getElementById('today-social-desc').textContent = fortune.socialDesc;
-            
-            // 更新进度条宽度
-            document.querySelector('#today-fortune .fortune-level[style*="e84393"]').style.width = `${fortune.love * 20}%`;
-            document.querySelector('#today-fortune .fortune-level[style*="fdcb6e"]').style.width = `${fortune.money * 20}%`;
-            document.querySelector('#today-fortune .fortune-level[style*="70a1ff"]').style.width = `${fortune.career * 20}%`;
-            document.querySelector('#today-fortune .fortune-level[style*="7bed9f"]').style.width = `${fortune.health * 20}%`;
-            document.querySelector('#today-fortune .fortune-level[style*="d6a2e8"]').style.width = `${fortune.social * 20}%`;
-            
-            // 更新能量预测
-            const energy = energyData[zodiac];
-            document.querySelector('.energy-value.wood').textContent = `木：${energy.annual.split('：')[1]}`;
-            document.querySelector('.energy-value.fire').textContent = `火：${energy.monthly.split('：')[1]}`;
-            document.querySelector('.energy-value.metal').textContent = `金：${energy.daily.split('：')[1]}`;
-            
-            // 更新本月建议
-            const advice = adviceData[zodiac];
-            document.querySelectorAll('.energy-card')[0].querySelector('.energy-desc').innerHTML = advice.career;
-            document.querySelectorAll('.energy-card')[1].querySelector('.energy-desc').innerHTML = advice.love;
-            document.querySelectorAll('.energy-card')[2].querySelector('.energy-desc').innerHTML = advice.health;
-            
-            // 更新警告生肖
-            const warnings = getWarningZodiacs(zodiac);
-            const warningContainer = document.querySelector('.warning-zodiacs');
-            warningContainer.innerHTML = '';
-            
-            warnings.forEach(warning => {
-                const warningElement = document.createElement('div');
-                warningElement.className = 'warning-zodiac';
-                warningElement.innerHTML = `<i class="fas fa-exclamation-triangle"></i><span>${warning}</span>`;
-                warningContainer.appendChild(warningElement);
-            });
-            
-            // 更新五行能量图
-            updateEnergyChart(zodiac);
-        }
-        
-        // 获取警告生肖
-        function getWarningZodiacs(currentZodiac) {
-            const warnings = {
-                rat: ['鼠：注意交通安全', '兔：谨防财务纠纷', '马：小心口舌是非'],
-                ox: ['牛：注意健康问题', '羊：避免投资风险', '狗：小心人际关系'],
-                tiger: ['虎：注意情绪管理', '猴：避免冲动决策', '蛇：小心财务纠纷'],
-                rabbit: ['兔：谨防财务纠纷', '鼠：注意交通安全', '鸡：小心口舌是非'],
-                dragon: ['龙：注意呼吸系统', '狗：避免合作风险', '兔：小心人际关系'],
-                snake: ['蛇：注意皮肤问题', '猪：避免投资风险', '虎：小心财务纠纷'],
-                horse: ['马：小心口舌是非', '鼠：注意交通安全', '牛：避免冲动决策'],
-                goat: ['羊：避免投资风险', '牛：注意健康问题', '狗：小心人际关系'],
-                monkey: ['猴：避免冲动决策', '虎：注意情绪管理', '猪：小心财务纠纷'],
-                rooster: ['鸡：小心口舌是非', '兔：谨防财务纠纷', '狗：避免合作风险'],
-                dog: ['狗：小心人际关系', '龙：注意呼吸系统', '羊：避免投资风险'],
-                pig: ['猪：小心财务纠纷', '蛇：注意皮肤问题', '猴：避免冲动决策']
-            };
-            
-            return warnings[currentZodiac] || warnings.dragon;
-        }
-        
-        // 显示生肖详情弹窗
-        function showZodiacModal(zodiac) {
-            const modal = document.getElementById('zodiacModal');
-            const zodiacInfo = getZodiacInfo(zodiac);
-            
-            // 设置弹窗内容
-            document.getElementById('modalZodiacName').textContent = zodiacInfo.name;
-            document.getElementById('modalZodiacYear').textContent = zodiacInfo.years;
-            document.getElementById('modalZodiacIcon').style.backgroundImage = `url('https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/${zodiacInfo.emoji}.svg')`;
-            
-            document.getElementById('modalOverall').innerHTML = zodiacInfo.overall;
-            document.getElementById('modalWealth').innerHTML = zodiacInfo.wealth;
-            document.getElementById('modalLove').innerHTML = zodiacInfo.love;
-            document.getElementById('modalCareer').innerHTML = zodiacInfo.career;
-            document.getElementById('modalHealth').innerHTML = zodiacInfo.health;
-            document.getElementById('modalAdvice').innerHTML = zodiacInfo.advice;
-            
-            // 显示弹窗
-            modal.classList.add('active');
-        }
-        
-        // 获取生肖详细信息
-        function getZodiacInfo(zodiac) {
-            const info = {
-                rat: {
-                    name: '鼠',
-                    emoji: '1f400',
-                    years: '2020、2008、1996、1984、1972...',
-                    overall: '2025年对于属鼠的人来说是三合之年，整体运势较为顺畅。事业上有突破机会，尤其利于创意、策划类工作。财运平稳上升，投资需谨慎选择。感情方面单身者桃花旺盛，已婚者家庭和睦。健康方面注意呼吸道问题。',
-                    wealth: '本年正财稳定，副业收入增加。3-4月有意外之财，但需注意理财规划。避免与属马的人有金钱往来，9月容易有财务纠纷。适合投资教育、科技类项目。',
-                    love: '单身鼠人今年魅力提升，尤其5-6月容易遇到心仪对象。已婚者需注意沟通方式，避免因工作忙碌忽视伴侣感受。属鼠女性今年有望通过社交活动结识条件优越的对象。',
-                    career: '事业上机遇增多，尤其利于转换跑道或创业。上半年有贵人提携，下半年需靠实力证明自己。注意与属羊的同事保持良好关系，避免卷入办公室政治。',
-                    health: '健康运整体良好，但需注意呼吸道和肠胃问题。冬季易感冒，注意保暖。建议定期运动增强免疫力，办公室可摆放绿植净化空气。',
-                    advice: '1. 佩戴蓝宝石或海蓝宝增强财运<br>2. 办公室摆放文昌塔提升事业运<br>3. 每月初八行善积德可提升运势<br>4. 避免前往正南方位旅行<br>5. 家中北方保持明亮增强桃花运'
-                },
-                ox: {
-                    name: '牛',
-                    emoji: '1f402',
-                    years: '2021、2009、1997、1985、1973...',
-                    overall: '2025年对于属牛的人来说是刑太岁之年，运势起伏较大。事业上需稳扎稳打，避免激进决策。财运方面正财为主，不宜高风险投资。感情上需多花时间经营关系。健康方面注意脾胃问题。',
-                    wealth: '本年财运以正财为主，工资收入稳定。副业机会不多，宜专注本职工作。5月和10月容易有意外支出，需做好财务规划。避免与属羊的人合伙投资。',
-                    love: '单身牛人今年桃花运一般，需主动拓展社交圈。已婚者需多关心伴侣感受，避免因工作压力影响家庭和谐。属牛男性今年有望通过长辈介绍结识合适对象。',
-                    career: '事业上压力较大，但付出终有回报。上半年可能面临岗位调整，保持耐心是关键。创业者宜稳守现有业务，不宜盲目扩张。注意与属狗的同事保持距离。',
-                    health: '健康运较弱，尤其注意脾胃和关节问题。避免过度劳累，保证充足睡眠。建议练习瑜伽或太极舒缓压力，饮食宜清淡。',
-                    advice: '1. 佩戴黄水晶或虎眼石化解太岁<br>2. 家中西南方摆放陶瓷摆件稳定运势<br>3. 农历六月避免重大决策<br>4. 定期捐赠旧物可提升运势<br>5. 办公室保持整洁有序'
-                },
-                tiger: {
-                    name: '虎',
-                    emoji: '1f405',
-                    years: '2022、2010、1998、1986、1974...',
-                    overall: '2025年对于属虎的人来说是破太岁之年，但整体运势比去年有所提升。事业上有新机遇，尤其利于跨界发展。财运方面偏财较旺，但需合法合规。感情上单身者有望脱单。健康方面注意肝胆问题。',
-                    wealth: '本年偏财运佳，尤其利于投资房地产或长期项目。3-4月有意外收入，但需谨慎处理。避免与属猴的人有金钱往来。创业者下半年有融资机会。',
-                    love: '单身虎人今年魅力提升，尤其7-8月容易邂逅理想对象。已婚者需注意与异性保持适当距离，避免误会。属虎女性今年有望遇到成熟稳重的追求者。',
-                    career: '事业上机遇与挑战并存，适合尝试新领域。上半年可能面临团队变动，保持灵活应变。创业者宜在秋季推出新产品或服务。注意与属蛇的上级沟通方式。',
-                    health: '健康运整体良好，但需注意肝胆和血压问题。避免熬夜和过量饮酒，春季易发过敏症状。建议定期体检，保持适度运动。',
-                    advice: '1. 佩戴黑曜石或茶晶化解太岁<br>2. 办公室摆放绿色植物增强运势<br>3. 每月初一吃素可提升福报<br>4. 避免参加水上活动<br>5. 家中东方保持明亮增强事业运'
-                },
-                rabbit: {
-                    name: '兔',
-                    emoji: '1f407',
-                    years: '2023、2011、1999、1987、1975...',
-                    overall: '2025年对于属兔的人来说是害太岁之年，运势较为波动。事业上需谨慎行事，避免口舌是非。财运方面宜保守理财。感情上单身者有望遇到正缘。健康方面注意情绪管理。',
-                    wealth: '本年财运较为平稳，宜以储蓄为主。投资需谨慎，尤其避免高风险项目。8-9月容易有意外支出，需做好预算。适合发展与艺术、设计相关的副业。',
-                    love: '单身兔人今年桃花运旺盛，尤其4-5月红鸾星动。已婚者需多花时间陪伴家人，避免因工作忽视家庭。属兔女性今年有望通过朋友介绍结识优质对象。',
-                    career: '事业上压力较大，需保持耐心。上半年可能遭遇小人暗算，谨言慎行为上。创业者宜稳守现有客户，不宜盲目扩张。注意与属鸡的同事保持良好关系。',
-                    health: '健康运较弱，尤其注意神经系统和睡眠质量。避免过度思虑，适当放松心情。建议练习冥想或深呼吸，卧室宜使用柔和的色调。',
-                    advice: '1. 佩戴粉晶或月光石增强桃花运<br>2. 家中摆放铜葫芦化解病符<br>3. 农历二月、八月避免远行<br>4. 定期放生可积累福报<br>5. 办公室西北方保持整洁'
-                },
-                dragon: {
-                    name: '龙',
-                    emoji: '1f409',
-                    years: '2024、2012、2000、1988、1976...',
-                    overall: '2025年对于属龙的人来说是合太岁之年，整体运势较为顺畅。事业上有贵人提携，适合展现才华。财运稳定上升，适合长期投资。感情上单身者有望脱单。健康方面注意呼吸系统。',
-                    wealth: '本年正财运佳，工资收入有望增长。副业机会增多，尤其利于咨询、教育类工作。投资宜选择稳健项目，避免短线操作。4月和10月有意外之财，但需合法合规。',
-                    love: '单身龙人今年魅力提升，尤其6-7月容易遇到心仪对象。已婚者夫妻关系和谐，可考虑添丁或购置房产。属龙女性今年有望通过职场结识条件匹配的对象。',
-                    career: '事业上机遇增多，尤其利于晋升或转换跑道。上半年有贵人相助，下半年需靠实力证明自己。创业者宜在上半年拓展新客户，注意与属狗的合作伙伴明确权责。',
-                    health: '健康运整体良好，但需注意呼吸系统和皮肤问题。避免吸烟和空气污染，夏季易发过敏症状。建议定期有氧运动，饮食多摄入新鲜蔬果。',
-                    advice: '1. 佩戴紫水晶或青金石增强智慧运<br>2. 办公室东南方摆放文昌塔提升事业<br>3. 每月初六吃素可积累福报<br>4. 避免前往东北方位旅行<br>5. 家中南方摆放红色物品增强桃花运'
-                },
-                snake: {
-                    name: '蛇',
-                    emoji: '1f40d',
-                    years: '2025、2013、2001、1989、1977...',
-                    overall: '2025年对于属蛇的人来说是本命年，太岁当头，整体运势起伏较大。事业上会有贵人相助，但也容易遭遇小人暗算。财运方面偏财较旺，适合投资理财，但需谨慎选择项目。感情上单身者有望遇到正缘，已婚者需注意沟通方式。健康方面要特别注意皮肤和呼吸系统。',
-                    wealth: '本年财运呈现先扬后抑的趋势。年初投资运佳，尤其适合科技、创新类项目。正财收入稳定，副业机会增多。需要注意的是，6月和12月容易有财务纠纷，签订合同需谨慎。',
-                    love: '单身蛇人今年职场桃花旺盛，尤其3-4月和9-10月容易与同事产生情愫。已婚者上半年夫妻关系和谐，下半年可能因工作忙碌产生疏离感。属蛇女性今年有望遇到条件优越的追求者。',
-                    career: '事业上机遇与挑战并存。年初可能面临团队重组，保持灵活应变能力是关键。5-7月有表现机会，需把握时机。创业者宜在下半年启动新项目，尤其适合与科技、咨询相关的领域。',
-                    health: '本命年健康运较弱，尤其注意皮肤和呼吸系统问题。避免熬夜和空气污染，春季易发过敏症状。7-8月需防意外伤害。建议年初做全面体检，家中东北方位保持整洁。',
-                    advice: '1. 本命年可穿戴红色衣物或佩戴红玛瑙化解太岁<br>2. 办公室或家中摆放蛇形摆件增强贵人运<br>3. 每月初一、十五可到庙宇祈福<br>4. 避免参加白事<br>5. 农历三月、九月行善积德可提升运势'
-                },
-                horse: {
-                    name: '马',
-                    emoji: '1f40e',
-                    years: '2026、2014、2002、1990、1978...',
-                    overall: '2025年对于属马的人来说是冲太岁之年，运势波动较大。事业上需稳扎稳打，避免冲动决策。财运方面宜保守理财。感情上需多沟通理解。健康方面注意心脏和血压问题。',
-                    wealth: '本年财运起伏不定，正财收入稳定但偏财不佳。投资需格外谨慎，尤其避免高风险项目。3月和9月容易有意外支出，需做好储蓄计划。适合发展与技能培训相关的副业。',
-                    love: '单身马人今年桃花运一般，需主动参加社交活动。已婚者需多花时间陪伴家人，避免因工作压力影响感情。属马女性今年有望通过朋友介绍结识可靠对象。',
-                    career: '事业上挑战较多，需保持耐心和毅力。上半年可能面临竞争压力，专注提升自身能力是关键。创业者宜稳守现有业务，不宜盲目扩张。注意与属鼠的同事保持良好关系。',
-                    health: '健康运较弱，尤其注意心脏和血压问题。避免暴饮暴食和不规律作息，饮食宜清淡少盐。建议适度运动增强体质，办公室可摆放小盆栽舒缓压力。',
-                    advice: '1. 佩戴红玛瑙或石榴石化解太岁<br>2. 家中正南方摆放马形摆件稳定运势<br>3. 农历五月避免重大决策<br>4. 定期行善可积累福报<br>5. 办公室保持整洁有序'
-                },
-                goat: {
-                    name: '羊',
-                    emoji: '1f411',
-                    years: '2027、2015、2003、1991、1979...',
-                    overall: '2025年对于属羊的人来说是合太岁之年，整体运势较为平稳。事业上需脚踏实地，稳中求进。财运方面正财为主，储蓄增加。感情上单身者有望遇到正缘。健康方面注意体重管理。',
-                    wealth: '本年财运以正财为主，工资收入有望增长。副业机会不多，宜专注提升专业技能。投资宜选择稳健项目，避免跟风操作。8月和12月有小偏财，但不宜过度依赖。',
-                    love: '单身羊人今年桃花运不错，尤其9-10月容易邂逅理想对象。已婚者家庭和睦，可考虑装修房屋或添置家具。属羊女性今年有望通过长辈介绍结识条件优越的对象。',
-                    career: '事业上发展平稳，需耐心积累。上半年可能面临一些琐碎任务，保持积极态度是关键。创业者宜在下半年推出新服务，注意与属牛的客户保持良好关系。',
-                    health: '健康运整体良好，但需注意体重和代谢问题。避免高糖高脂饮食，保持适度运动。建议定期体检，办公室可摆放小零食避免暴饮暴食。',
-                    advice: '1. 佩戴粉晶或月光石增强桃花运<br>2. 家中北方摆放水景装饰提升财运<br>3. 每月初一行善可提升福报<br>4. 避免前往东南方位旅行<br>5. 卧室宜使用淡蓝色调'
-                },
-                monkey: {
-                    name: '猴',
-                    emoji: '1f412',
-                    years: '2028、2016、2004、1992、1980...',
-                    overall: '2025年对于属猴的人来说是三合之年，整体运势较为顺畅。事业上有突破机会，尤其利于创新领域。财运亨通，投资运佳。感情上单身者桃花旺盛。健康方面注意呼吸系统。',
-                    wealth: '本年财运亨通，正偏财皆旺。投资眼光独到，尤其适合科技、创新类项目。5-6月有意外之财，但需合法合规。创业者融资机会增多，宜把握时机扩大规模。',
-                    love: '单身猴人今年魅力四射，尤其7-8月追求者众。已婚者夫妻关系甜蜜，可考虑蜜月旅行或重温浪漫。属猴女性今年有望遇到多金又体贴的对象。',
-                    career: '事业上机遇连连，尤其利于转换跑道或创业。上半年有贵人提携，下半年靠创意制胜。注意与属虎的上级保持良好沟通，避免因直言不讳得罪人。',
-                    health: '健康运整体良好，但需注意呼吸系统和皮肤问题。避免吸烟和空气污染，多摄入富含维生素C的食物。建议定期户外活动，增强肺活量。',
-                    advice: '1. 佩戴黑曜石或茶晶增强决断力<br>2. 办公室摆放水晶洞提升财运<br>3. 农历三月、九月行善积德<br>4. 避免参加水上活动<br>5. 家中北方保持明亮增强桃花运'
-                },
-                rooster: {
-                    name: '鸡',
-                    emoji: '1f413',
-                    years: '2029、2017、2005、1993、1981...',
-                    overall: '2025年对于属鸡的人来说是刑太岁之年，运势较为波动。事业上需谨言慎行，避免口舌是非。财运方面宜保守理财。感情上单身者职场桃花旺。健康方面注意呼吸系统。',
-                    wealth: '本年财运较为平稳，宜以正财为主。投资需谨慎，尤其避免高风险项目。4月和10月容易有意外支出，需做好财务规划。适合发展与沟通、培训相关的副业。',
-                    love: '单身鸡人今年职场桃花旺盛，尤其5-6月容易与同事产生情愫。已婚者需注意工作与家庭平衡，避免因忙碌忽视伴侣感受。属鸡男性今年有望遇到聪明能干的对象。',
-                    career: '事业上压力较大，需保持耐心。上半年可能遭遇小人暗算，专注本职工作为上。创业者宜稳守现有客户，不宜盲目扩张。注意与属兔的同事保持距离。',
-                    health: '健康运较弱，尤其注意呼吸系统和咽喉问题。避免过度用嗓和空气污染，多喝温水。建议练习深呼吸，办公室可摆放空气净化植物。',
-                    advice: '1. 佩戴白水晶或珍珠化解太岁<br>2. 家中西方摆放铜器稳定运势<br>3. 农历二月、八月避免远行<br>4. 定期捐赠旧书可提升智慧运<br>5. 卧室宜使用淡雅色调'
-                },
-                dog: {
-                    name: '狗',
-                    emoji: '1f415',
-                    years: '2030、2018、2006、1994、1982...',
-                    overall: '2025年对于属狗的人来说是冲太岁之年，运势起伏较大。事业上需稳扎稳打，避免冲动决策。财运方面宜保守理财。感情上需多沟通理解。健康方面注意肠胃问题。',
-                    wealth: '本年财运起伏不定，正财收入稳定但偏财不佳。投资需格外谨慎，尤其避免高风险项目。3月和9月容易有意外支出，需做好储蓄计划。适合发展与技能培训相关的副业。',
-                    love: '单身狗人今年桃花运一般，需主动参加社交活动。已婚者需多花时间陪伴家人，避免因工作压力影响感情。属狗女性今年有望通过朋友介绍结识可靠对象。',
-                    career: '事业上挑战较多，需保持耐心和毅力。上半年可能面临竞争压力，专注提升自身能力是关键。创业者宜稳守现有业务，不宜盲目扩张。注意与属龙的同事保持良好关系。',
-                    health: '健康运较弱，尤其注意肠胃和消化问题。避免暴饮暴食和不规律作息，饮食宜清淡易消化。建议适度运动增强体质，办公室可摆放小盆栽舒缓压力。',
-                    advice: '1. 佩戴黑曜石或茶晶化解太岁<br>2. 家中西北方摆放金属摆件稳定运势<br>3. 农历六月避免重大决策<br>4. 定期行善可积累福报<br>5. 办公室保持整洁有序'
-                },
-                pig: {
-                    name: '猪',
-                    emoji: '1f437',
-                    years: '2031、2019、2007、1995、1983...',
-                    overall: '2025年对于属猪的人来说是合太岁之年，整体运势较为平稳。事业上需脚踏实地，稳中求进。财运方面正财为主，储蓄增加。感情上单身者有望遇到正缘。健康方面注意体重管理。',
-                    wealth: '本年财运以正财为主，工资收入有望增长。副业机会不多，宜专注提升专业技能。投资宜选择稳健项目，避免跟风操作。8月和12月有小偏财，但不宜过度依赖。',
-                    love: '单身猪人今年桃花运不错，尤其9-10月容易邂逅理想对象。已婚者家庭和睦，可考虑装修房屋或添置家具。属猪女性今年有望通过长辈介绍结识条件优越的对象。',
-                    career: '事业上发展平稳，需耐心积累。上半年可能面临一些琐碎任务，保持积极态度是关键。创业者宜在下半年推出新服务，注意与属蛇的客户保持良好关系。',
-                    health: '健康运整体良好，但需注意体重和代谢问题。避免高糖高脂饮食，保持适度运动。建议定期体检，办公室可摆放小零食避免暴饮暴食。',
-                    advice: '1. 佩戴粉晶或月光石增强桃花运<br>2. 家中北方摆放水景装饰提升财运<br>3. 每月初一行善可提升福报<br>4. 避免前往东南方位旅行<br>5. 卧室宜使用淡蓝色调'
-                }
-            };
-            
-            return info[zodiac] || info.dragon;
-        }
-        
-        // 显示生肖配对结果
-        function showMatchResult(zodiac1, zodiac2) {
-            const matchResult = document.getElementById('matchResult');
-            const matchScore = document.getElementById('matchScore');
-            const matchDesc = document.getElementById('matchDesc');
-            
-            // 获取配对数据
-            const pair1 = `${zodiac1}-${zodiac2}`;
-            const pair2 = `${zodiac2}-${zodiac1}`;
-            
-            let matchInfo;
-            if (matchData[pair1]) {
-                matchInfo = matchData[pair1];
-            } else if (matchData[pair2]) {
-                matchInfo = matchData[pair2];
-            } else {
-                matchInfo = matchData.default;
-            }
-            
-            // 设置结果内容
-            matchScore.textContent = `${matchInfo.score}分`;
-            matchDesc.innerHTML = matchInfo.desc;
-            
-            // 显示结果区域
-            matchResult.style.display = 'block';
-            
-            // 动画效果
-            matchResult.style.opacity = '0';
-            matchResult.style.transform = 'translateY(20px)';
-            
-            setTimeout(() => {
-                matchResult.style.opacity = '1';
-                matchResult.style.transform = 'translateY(0)';
-            }, 10);
-        }
-        
-        // 初始化五行能量图
-        function initEnergyChart() {
-            const ctx = document.getElementById('wuxingChart').getContext('2d');
-            
-            // 五行数据
-            const data = {
-                labels: ['木', '火', '土', '金', '水'],
-                datasets: [{
-                    label: '当前能量',
-                    data: [85, 70, 60, 45, 30],
-                    backgroundColor: [
-                        'rgba(76, 175, 80, 0.7)',
-                        'rgba(244, 67, 54, 0.7)',
-                        'rgba(255, 193, 7, 0.7)',
-                        'rgba(96, 125, 139, 0.7)',
-                        'rgba(33, 150, 243, 0.7)'
-                    ],
-                    borderColor: [
-                        'rgba(76, 175, 80, 1)',
-                        'rgba(244, 67, 54, 1)',
-                        'rgba(255, 193, 7, 1)',
-                        'rgba(96, 125, 139, 1)',
-                        'rgba(33, 150, 243, 1)'
-                    ],
-                    borderWidth: 1
-                }, {
-                    label: '一周后预测',
-                    data: [80, 75, 65, 55, 40],
-                    backgroundColor: [
-                        'rgba(76, 175, 80, 0.4)',
-                        'rgba(244, 67, 54, 0.4)',
-                        'rgba(255, 193, 7, 0.4)',
-                        'rgba(96, 125, 139, 0.4)',
-                        'rgba(33, 150, 243, 0.4)'
-                    ],
-                    borderColor: [
-                        'rgba(76, 175, 80, 1)',
-                        'rgba(244, 67, 54, 1)',
-                        'rgba(255, 193, 7, 1)',
-                        'rgba(96, 125, 139, 1)',
-                        'rgba(33, 150, 243, 1)'
-                    ],
-                    borderWidth: 1
-                }]
-            };
-            
-            // 图表配置
-            const config = {
-                type: 'radar',
-                data: data,
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            position: 'top',
-                            labels: {
-                                color: '#fff',
-                                font: {
-                                    family: "'Noto Serif SC', serif"
-                                }
-                            }
-                        },
-                        title: {
-                            display: true,
-                            text: '五行能量分布及变化趋势',
-                            color: '#fff',
-                            font: {
-                                family: "'Noto Serif SC', serif",
-                                size: 16
-                            }
-                        }
-                    },
-                    scales: {
-                        r: {
-                            angleLines: {
-                                color: 'rgba(255, 255, 255, 0.1)'
-                            },
-                            grid: {
-                                color: 'rgba(255, 255, 255, 0.1)'
-                            },
-                            pointLabels: {
-                                color: '#fff',
-                                font: {
-                                    family: "'Noto Serif SC', serif"
-                                }
-                            },
-                            ticks: {
-                                backdropColor: 'rgba(0, 0, 0, 0)',
-                                color: '#fff',
-                                font: {
-                                    family: "'Noto Serif SC', serif"
-                                }
-                            }
-                        }
-                    }
-                }
-            };
-            
-            // 创建图表
-            window.wuxingChart = new Chart(ctx, config);
-        }
-        
-        // 更新五行能量图
-        function updateEnergyChart(zodiac) {
-            if (!window.wuxingChart) return;
-            
-            // 根据生肖生成随机能量数据
-            const energyValues = {
-                rat: [85, 70, 60, 45, 30],
-                ox: [60, 75, 85, 55, 40],
-                tiger: [90, 80, 50, 40, 60],
-                rabbit: [85, 60, 70, 45, 50],
-                dragon: [60, 70, 85, 55, 40],
-                snake: [50, 90, 60, 70, 40],
-                horse: [60, 85, 70, 50, 45],
-                goat: [70, 60, 85, 50, 40],
-                monkey: [60, 70, 50, 85, 60],
-                rooster: [50, 60, 70, 85, 50],
-                dog: [70, 60, 85, 50, 40],
-                pig: [50, 60, 70, 40, 85]
-            };
-            
-            // 生成预测数据（当前数据加减随机值）
-            const currentData = energyValues[zodiac];
-            const forecastData = currentData.map(value => {
-                const change = Math.floor(Math.random() * 20) - 10; // -10到10之间的随机变化
-                return Math.max(10, Math.min(100, value + change)); // 确保在10-100之间
-            });
-            
-            // 更新图表数据
-            window.wuxingChart.data.datasets[0].data = currentData;
-            window.wuxingChart.data.datasets[1].data = forecastData;
-            window.wuxingChart.update();
-        }
-    </script>
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-2NHJXGKS0Y"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-2NHJXGKS0Y');
     </script>
 </body>
 </html>
