@@ -1029,6 +1029,120 @@
             createCards();
             setupEventListeners();
         }
+
+        // 确保支付系统初始化
+            function initPaymentSystem() {
+                // 如果已经初始化则跳过
+                if(window.paymentInitialized) return;
+                
+                // 支付配置
+                window.paymentConfig = {
+                    pid: '2025051013380915', // 替换为你的真实PID
+                    key: 'UsXrSwn0wft5SeLB0LaQfecvJmpkS18T', // 替换为你的真实密钥
+                    apiUrl: 'https://zpayz.cn/submit.php',
+                    returnUrl: window.location.href.split('?')[0],
+                    amount: '0.01'
+                };
+            
+                // 定义支付函数
+                window.startPayment = function(userName) {
+                    if(!userName || userName.trim() === '') {
+                        alert('请输入您的姓名');
+                        return false;
+                    }
+            
+                    // 显示加载中
+                    document.getElementById('fullscreen-loading').style.display = 'flex';
+                    
+                    // 准备支付数据
+                    const paymentData = {
+                        pid: window.paymentConfig.pid,
+                        type: 'wxpay',
+                        out_trade_no: generateOrderNo(),
+                        notify_url: window.paymentConfig.returnUrl,
+                        return_url: window.paymentConfig.returnUrl,
+                        name: `八字测算-${userName.substring(0, 20)}`,
+                        money: window.paymentConfig.amount,
+                        param: encodeURIComponent(userName),
+                        sign_type: 'MD5'
+                    };
+                    
+                    // 生成签名
+                    paymentData.sign = generateSign(paymentData, window.paymentConfig.key);
+                    
+                    // 提交支付
+                    submitPaymentForm(paymentData, window.paymentConfig.apiUrl);
+                    return true;
+                };
+            
+                // 标记为已初始化
+                window.paymentInitialized = true;
+            }
+            
+            // 辅助函数
+            function generateOrderNo() {
+                const now = new Date();
+                return `${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}` +
+                       `${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}` +
+                       `${Math.floor(Math.random()*9000)+1000}`;
+            }
+            
+            function generateSign(params, key) {
+                const filtered = {};
+                Object.keys(params).forEach(k => {
+                    if(params[k] !== '' && k !== 'sign' && k !== 'sign_type') {
+                        filtered[k] = params[k];
+                    }
+                });
+                
+                const signStr = Object.keys(filtered).sort()
+                    .map(k => `${k}=${filtered[k]}`)
+                    .join('&') + key;
+                
+                return CryptoJS.MD5(signStr).toString();
+            }
+            
+            function submitPaymentForm(data, url) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = url;
+                form.style.display = 'none';
+            
+                Object.entries(data).forEach(([key, value]) => {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = key;
+                    input.value = value;
+                    form.appendChild(input);
+                });
+            
+                document.body.appendChild(form);
+                form.submit();
+            }
+            
+            function pad(num) {
+                return num < 10 ? `0${num}` : num;
+            }
+            
+            // 页面加载后初始化
+            document.addEventListener('DOMContentLoaded', function() {
+                // 初始化支付系统
+                initPaymentSystem();
+                
+                // 设置事件监听
+                document.getElementById('submitPayment')?.addEventListener('click', function() {
+                    const userName = document.getElementById('userName').value.trim();
+                    
+                    if(typeof startPayment === 'function') {
+                        if(!startPayment(userName)) {
+                            console.error('支付启动失败');
+                        }
+                    } else {
+                        console.error('支付功能未加载: startPayment函数未定义');
+                        alert('支付系统初始化失败，请刷新页面重试');
+                    }
+                });
+            });
     </script>
 </body>
 </html>
