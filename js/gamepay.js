@@ -11,7 +11,7 @@ const PAYMENT_CONFIG = {
   apiUrl: 'https://zpayz.cn/submit.php',
   
   // 可选配置
-  amount: '0.02',
+  amount: '10.00',
   currency: 'CNY',
   successRedirectUrl: 'https://mybazi.net/system/bazisystem.html',
   debug: true,
