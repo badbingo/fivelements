@@ -188,30 +188,7 @@ class PaymentSystem {
       this.updateButtonState();
     });
   }
-// ========= 新增：支付按钮事件绑定 =========
-  const payBtn = document.getElementById('submitPayment');
-  if (payBtn) {
-    payBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      const userName = document.getElementById('userName')?.value.trim();
 
-      // 1. 检查姓名是否输入
-      if (!userName) {
-        alert("请输入姓名！");
-        return;
-      }
-
-      // 2. 检查支付系统是否初始化
-      if (!window.paymentSystem) {
-        alert("支付系统未加载，请刷新页面！");
-        return;
-      }
-
-      // 3. 调用支付
-      window.paymentSystem.processPayment();
-    });
-  }
-}
   // ============== 支付流程 ==============
   async processPayment() {
     try {
