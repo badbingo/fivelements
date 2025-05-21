@@ -962,12 +962,25 @@
                 // 重置按钮
                 resetButton.addEventListener('click', resetGame);
                 
-                // 优惠模态框按钮
+                // 修改 acceptDiscountBtn 的点击事件
                 acceptDiscountBtn.addEventListener('click', function() {
-                    hideDiscountModal();
-                    showNameInputModal();
+                  hideDiscountModal();
+                  
+                  // 1. 显示 gamepay.js 的支付表单
+                  const paymentContainer = document.getElementById('payment-container');
+                  if (paymentContainer) {
+                    paymentContainer.style.display = 'block';
+                  }
+                  
+                  // 2. 自动聚焦到姓名输入框
+                  const nameInput = document.getElementById('name');
+                  if (nameInput) {
+                    nameInput.focus();
+                  }
+                  
+                  // 3. 删除任何与旧模态框相关的代码
                 });
-                
+                                
                 declineDiscountBtn.addEventListener('click', function() {
                     hideDiscountModal();
                     alert('游戏完成！');
