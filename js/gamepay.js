@@ -1,7 +1,9 @@
 /**
- * 终极支付解决方案 - gamepay.js v4.35
- * 修复初始化问题和依赖加载
- * 增强支付流程和页面跳转
+ * 终极支付解决方案 - gamepay.js v4.4
+ * 修复问题：
+ * 1. 支付表单默认隐藏
+ * 2. 必须填写姓名才能支付
+ * 3. 优化支付流程交互
  */
 
 // ==================== 配置区 ====================
@@ -117,45 +119,52 @@ class PaymentSystem {
     return element;
   }
 
- createContainer() {
-  // 判断当前是否是 bazisystem.html 页面
-  const isBaziSystemPage = window.location.pathname.includes('bazisystem.html');
-  
-  // 如果在第二个页面，直接返回不创建元素
-  if (isBaziSystemPage) {
-    return null; 
-  }
+  createContainer() {
+    // 判断当前是否是 bazisystem.html 页面
+    const isBaziSystemPage = window.location.pathname.includes('bazisystem.html');
+    
+    // 如果在第二个页面，直接返回不创建元素
+    if (isBaziSystemPage) {
+      return null; 
+    }
 
-  // 第一个页面：创建支付表单但默认隐藏
-  const container = document.createElement('div');
-  container.id = this.config.elements.container;
-  container.style.display = 'none'; // 默认隐藏
-  container.innerHTML = `
-    <input type="text" 
-           id="${this.config.elements.nameInput}" 
-           placeholder="请输入姓名"
-           style="width:100%; padding:10px; margin-bottom:15px; border:1px solid #ddd; border-radius:4px;">
+    // 第一个页面：创建支付表单但默认隐藏
+    const container = document.createElement('div');
+    container.id = this.config.elements.container;
+    container.style.display = 'none'; // 默认隐藏
+    container.innerHTML = `
+      <input type="text" 
+             id="${this.config.elements.nameInput}" 
+             placeholder="请输入姓名"
+             style="width:100%; padding:10px; margin-bottom:15px; border:1px solid #ddd; border-radius:4px;">
+      
+      <button id="${this.config.elements.payBtn}" 
+              style="width:100%; padding:12px; background:#07c160; color:white; border:none; border-radius:4px; font-size:16px; opacity:0.7;"
+              disabled>
+        立即支付
+      </button>
+      
+      <button id="${this.config.elements.calculateBtn}" 
+              style="display:none; width:100%; padding:12px; margin-top:10px; background:#1989fa; color:white; border:none; border-radius:4px; font-size:16px;">
+        开始测算
+      </button>
+    `;
     
-    <button id="${this.config.elements.payBtn}" 
-            style="width:100%; padding:12px; background:#07c160; color:white; border:none; border-radius:4px; font-size:16px;">
-      立即支付
-    </button>
-    
-    <button id="${this.config.elements.calculateBtn}" 
-            style="display:none; width:100%; padding:12px; margin-top:10px; background:#1989fa; color:white; border:none; border-radius:4px; font-size:16px;">
-      开始测算
-    </button>
-  `;
-  
-  document.body.appendChild(container);
-  return container;
-}
+    document.body.appendChild(container);
+    return container;
+  }
 
   // ============== 事件绑定 ==============
   bindEvents() {
     // 支付按钮事件
     this.elements.payBtn.addEventListener('click', () => {
       if (!this.state.processing) {
+        // 检查姓名是否填写
+        if (!this.getUserName()) {
+          alert('请输入您的姓名！');
+          this.elements.nameInput.focus(); // 自动聚焦到输入框
+          return;
+        }
         this.processPayment();
       }
     });
@@ -164,6 +173,9 @@ class PaymentSystem {
     this.elements.nameInput.addEventListener('input', () => {
       this.updateButtonState();
     });
+    
+    // 初始化时禁用支付按钮（如果姓名为空）
+    this.updateButtonState();
   }
 
   // ============== 支付流程 ==============
@@ -176,7 +188,7 @@ class PaymentSystem {
         type: 'wxpay',
         out_trade_no: this.generateOrderId(),
         notify_url: location.href,
-        return_url: this.config.successRedirectUrl, // 使用配置的跳转URL
+        return_url: this.config.successRedirectUrl,
         name: `支付-${this.getUserName()}`,
         money: this.config.amount,
         param: encodeURIComponent(this.getUserName()),
@@ -255,7 +267,6 @@ class PaymentSystem {
       
       // 设置点击事件
       this.elements.calculateBtn.onclick = () => {
-        // 这里可以添加跳转或执行测算的逻辑
         window.location.href = this.config.successRedirectUrl;
       };
     }
@@ -272,11 +283,7 @@ class PaymentSystem {
   handlePaymentSuccess(userName) {
     this.log(`支付成功: ${userName}`);
     this.hideLoading();
-    
-    // 显示成功提示
     this.showSuccessAlert();
-    
-    // 更新UI状态
     this.updateButtonState();
   }
 
@@ -285,7 +292,14 @@ class PaymentSystem {
     const userName = this.getUserName();
     const isPaid = userName && localStorage.getItem(`paid_${userName}`);
     
-    this.elements.payBtn.style.display = isPaid ? 'none' : 'block';
+    // 控制支付按钮状态
+    if (this.elements.payBtn) {
+      this.elements.payBtn.disabled = !userName;
+      this.elements.payBtn.style.opacity = userName ? '1' : '0.7';
+      this.elements.payBtn.style.display = isPaid ? 'none' : 'block';
+    }
+    
+    // 控制测算按钮
     if (this.elements.calculateBtn) {
       this.elements.calculateBtn.style.display = isPaid ? 'block' : 'none';
     }
@@ -404,7 +418,7 @@ class PaymentSystem {
       this.elements.payBtn.disabled = processing;
       this.elements.payBtn.innerHTML = processing 
         ? '<i class="fas fa-spinner fa-spin"></i> 处理中...' 
-        : '<i class="fas fa-credit-card"></i> 立即支付';
+        : '立即支付';
     }
   }
 
@@ -467,6 +481,7 @@ window.startPayment = function(userName) {
     const nameInput = document.getElementById(window.paymentSystem.config.elements.nameInput);
     if (nameInput) {
       nameInput.value = userName;
+      window.paymentSystem.updateButtonState(); // 更新按钮状态
       window.paymentSystem.processPayment();
     } else {
       alert('无法找到姓名输入框');
