@@ -1,258 +1,239 @@
 /**
- * 终极支付解决方案 - gamepay.js v3.0a
+ * 终极支付解决方案 - gamepay.js v3.2
  * 功能：
- * 1. 全自动支付流程控制
- * 2. 哈希路由兼容处理
- * 3. 多层错误防御机制
- * 4. 智能状态同步
+ * - 全自动支付流程管理
+ * - 哈希路由兼容处理
+ * - 多层错误防御机制
+ * - 智能状态同步
+ * - 详细调试日志
  */
 
 // ==================== 配置区 ====================
 const PAYMENT_CONFIG = {
-  // 基础配置
-  pid: '2025051013380915',
-  key: 'UsXrSwn0wft5SeLB0LaQfecvJmpkS18T',
-  apiUrl: 'https://zpayz.cn/submit.php',
-  amount: '0.01',
-  currency: 'CNY',
+  // 必填配置
+  pid: '2025051013380915',              // 商户ID
+  key: 'UsXrSwn0wft5SeLB0LaQfecvJmpkS18T', // 签名密钥
+  apiUrl: 'https://zpayz.cn/submit.php', // 支付接口地址
   
-  // 页面配置
-  successRedirectUrl: 'system/bazisystem.html',
-  
-  // 高级配置
-  debug: true,  // 开启调试日志
-  autoRedirect: true,
-  maxRetryCount: 3
+  // 可选配置
+  amount: '0.01',                       // 默认金额
+  currency: 'CNY',                      // 货币类型
+  successRedirectUrl: 'system/bazisystem.html', // 支付成功跳转
+  debug: true,                          // 调试模式
+  maxRetryCount: 3,                     // 最大重试次数
+  paymentTypes: ['wxpay', 'alipay']     // 支持的支付方式
 };
 
-// ==================== 核心类 ====================
+// ==================== 核心支付系统 ====================
 class PaymentSystem {
-  constructor(config) {
+  constructor(userConfig = {}) {
     // 合并配置
     this.config = {
       ...PAYMENT_CONFIG,
-      ...config
+      ...userConfig
     };
     
-    // 状态变量
+    // 初始化状态
     this.state = {
       initialized: false,
-      paymentProcessed: false,
-      retryCount: 0
+      processing: false,
+      retryCount: 0,
+      currentPayment: null
     };
     
     // DOM元素缓存
     this.elements = {};
     
     // 启动系统
-    this.boot();
+    this.initialize();
   }
 
-  // ================ 生命周期方法 ================
-  async boot() {
+  // ============== 初始化方法 ==============
+  async initialize() {
     try {
-      await this.prepareDependencies();
-      this.setupEnvironment();
-      this.createUIComponents();
-      this.attachEventHandlers();
-      this.processInitialState();
+      this.log('系统启动中...');
+      
+      // 1. 准备依赖
+      await this.loadDependencies();
+      
+      // 2. 环境检测
+      this.checkEnvironment();
+      
+      // 3. 创建UI
+      this.createUI();
+      
+      // 4. 绑定事件
+      this.bindEvents();
+      
+      // 5. 处理初始状态
+      this.checkInitialState();
       
       this.state.initialized = true;
-      this.log('系统启动完成');
+      this.log('系统就绪');
     } catch (error) {
-      this.handleCriticalError(error);
+      this.handleFatalError(error);
     }
   }
 
-  // ================ 初始化流程 ================
-  async prepareDependencies() {
-    // 确保CryptoJS可用
-    if (typeof CryptoJS === 'undefined') {
-      await this.loadScript(
-        'https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js',
-        'CryptoJS'
-      );
+  // ============== 支付流程控制 ==============
+  async startPayment(paymentType = 'wxpay') {
+    if (this.state.processing) {
+      this.showNotice('已有支付正在进行', false);
+      return;
     }
-  }
-
-  setupEnvironment() {
-    // 修复哈希路由问题
-    if (window.location.hash.includes('?')) {
-      const [hashPath, hashQuery] = window.location.hash.split('?');
-      this.config.returnUrl = `${window.location.pathname}${hashPath}?${hashQuery}`;
-      this.log('检测到哈希路由参数，已调整returnUrl:', this.config.returnUrl);
-    }
-  }
-
-  createUIComponents() {
-    // 加载动画
-    if (!document.getElementById('payment-loader')) {
-      const loader = document.createElement('div');
-      loader.id = 'payment-loader';
-      loader.className = 'payment-loader';
-      loader.innerHTML = `
-        <div class="payment-spinner">
-          <svg viewBox="0 0 50 50">
-            <circle cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
-          </svg>
-          <p>支付处理中...</p>
-        </div>
-      `;
-      document.body.appendChild(loader);
-    }
-
-    // 支付成功提示
-    if (!document.getElementById('payment-notice')) {
-      const notice = document.createElement('div');
-      notice.id = 'payment-notice';
-      notice.className = 'payment-notice';
-      notice.innerHTML = `
-        <div class="notice-content">
-          <i class="icon-success"></i>
-          <span class="notice-message"></span>
-        </div>
-      `;
-      document.body.appendChild(notice);
-    }
-  }
-
-  // ================ 支付核心逻辑 ================
-  async initiatePayment() {
-    if (!this.validateInputs()) return;
     
     try {
-      this.setState('processing', true);
+      // 1. 验证输入
+      const userName = this.getUserName();
+      if (!this.validateUserName(userName)) return;
       
-      const paymentData = {
-        pid: this.config.pid,
-        type: 'wxpay',
-        out_trade_no: this.generateTransactionId(),
-        notify_url: this.getCallbackUrl(),
-        return_url: this.getCallbackUrl(),
-        name: `八字测算-${this.getUserName().substring(0, 20)}`,
-        money: this.config.amount,
-        currency: this.config.currency,
-        param: encodeURIComponent(this.getUserName()),
-        sign_type: 'MD5'
-      };
-
-      paymentData.sign = this.generateSignature(paymentData);
-      this.submitPaymentRequest(paymentData);
+      // 2. 准备支付数据
+      const paymentData = this.preparePaymentData(userName, paymentType);
+      
+      // 3. 显示加载状态
+      this.setProcessingState(true);
+      
+      // 4. 提交支付
+      this.submitPayment(paymentData);
       
     } catch (error) {
       this.handlePaymentError(error);
     }
   }
 
-  verifyPaymentResponse() {
-    const params = this.extractCallbackParams();
-    
-    if (params.trade_status === 'TRADE_SUCCESS') {
-      const isValid = this.validateSignature(params);
-      
-      if (isValid) {
-        this.completePayment({
-          userName: decodeURIComponent(params.param),
-          transactionId: params.out_trade_no,
-          amount: params.money
-        });
-        return true;
-      }
-    }
-    return false;
+  // ============== 核心工具方法 ==============
+  preparePaymentData(userName, paymentType) {
+    return {
+      pid: this.config.pid,
+      type: paymentType,
+      out_trade_no: this.generateOrderId(),
+      notify_url: this.getCallbackUrl(),
+      return_url: this.getCallbackUrl(),
+      name: `服务支付-${userName.substring(0, 20)}`,
+      money: this.config.amount,
+      currency: this.config.currency,
+      param: encodeURIComponent(userName),
+      sign_type: 'MD5',
+      timestamp: Date.now()
+    };
   }
 
-  // ================ 工具方法 ================
-  generateTransactionId() {
+  generateOrderId() {
     const now = new Date();
-    const timestamp = `${now.getFullYear()}${(now.getMonth()+1).toString().padStart(2,'0')}${now.getDate().toString().padStart(2,'0')}${now.getHours().toString().padStart(2,'0')}${now.getMinutes().toString().padStart(2,'0')}${now.getSeconds().toString().padStart(2,'0')}`;
-    const random = Math.floor(Math.random()*9000)+1000;
-    return `${timestamp}${random}`;
+    return `${now.getFullYear()}${(now.getMonth()+1).toString().padStart(2,'0')}${now.getDate().toString().padStart(2,'0')}${now.getHours().toString().padStart(2,'0')}${now.getMinutes().toString().padStart(2,'0')}${now.getSeconds().toString().padStart(2,'0')}${Math.floor(Math.random()*9000)+1000}`;
   }
 
   generateSignature(params) {
-    const filtered = {};
-    Object.keys(params)
-      .filter(k => params[k] !== '' && !['sign', 'sign_type'].includes(k))
-      .sort()
-      .forEach(k => filtered[k] = params[k]);
-
-    const signStr = Object.entries(filtered)
-      .map(([k, v]) => `${k}=${v}`)
+    // 过滤空值和签名字段
+    const filtered = Object.fromEntries(
+      Object.entries(params).filter(([k, v]) => v !== '' && !['sign', 'sign_type'].includes(k))
+    );
+    
+    // 排序后生成签名字符串
+    const signStr = Object.keys(filtered).sort()
+      .map(key => `${key}=${filtered[key]}`)
       .join('&') + this.config.key;
-
+    
+    // 使用CryptoJS生成MD5签名
     return CryptoJS.MD5(signStr).toString();
   }
 
-  // ================ UI控制 ================
-  showLoader(show) {
-    const loader = document.getElementById('payment-loader');
-    if (loader) loader.style.display = show ? 'flex' : 'none';
+  // ============== UI管理 ==============
+  createUI() {
+    // 创建加载动画
+    if (!document.getElementById('payment-loader')) {
+      const loader = document.createElement('div');
+      loader.id = 'payment-loader';
+      loader.className = 'payment-loader';
+      loader.innerHTML = `
+        <div class="spinner-container">
+          <div class="spinner"></div>
+          <p>支付处理中，请稍候...</p>
+        </div>
+      `;
+      document.body.appendChild(loader);
+    }
+    
+    // 创建通知弹窗
+    if (!document.getElementById('payment-notification')) {
+      const notice = document.createElement('div');
+      notice.id = 'payment-notification';
+      notice.className = 'payment-notification';
+      notice.innerHTML = `
+        <div class="notification-content">
+          <span class="icon"></span>
+          <p class="message"></p>
+        </div>
+      `;
+      document.body.appendChild(notice);
+    }
   }
 
   showNotice(message, isSuccess = true) {
-    const notice = document.getElementById('payment-notice');
+    const notice = document.getElementById('payment-notification');
     if (notice) {
-      notice.className = `payment-notice ${isSuccess ? 'success' : 'error'}`;
-      notice.querySelector('.notice-message').textContent = message;
+      notice.className = `payment-notification ${isSuccess ? 'success' : 'error'}`;
+      notice.querySelector('.message').textContent = message;
       notice.style.display = 'block';
       
+      // 自动隐藏
       setTimeout(() => {
         notice.style.display = 'none';
       }, 3000);
     }
   }
 
-  // ================ 错误处理 ================
+  // ============== 错误处理 ==============
   handlePaymentError(error) {
     this.state.retryCount++;
     
     if (this.state.retryCount <= this.config.maxRetryCount) {
       this.log(`支付失败，正在重试 (${this.state.retryCount}/${this.config.maxRetryCount})`);
-      setTimeout(() => this.initiatePayment(), 1000);
+      setTimeout(() => this.startPayment(), 1000);
     } else {
-      this.showNotice('支付失败，请稍后重试', false);
-      this.setState('processing', false);
+      this.showNotice('支付失败，请联系客服', false);
+      this.setProcessingState(false);
     }
   }
 
-  handleCriticalError(error) {
-    console.error('支付系统崩溃:', error);
-    this.showNotice('支付系统初始化失败', false);
+  handleFatalError(error) {
+    console.error('!!! 支付系统崩溃 !!!', error);
     
     // 降级方案
     const payBtn = document.getElementById('pay-btn');
     if (payBtn) {
       payBtn.onclick = () => {
-        alert('当前无法支付，请联系客服');
+        alert('支付系统暂时不可用，请稍后再试');
       };
+      payBtn.style.backgroundColor = '#ccc';
     }
   }
 
-  // ================ 辅助方法 ================
-  log(...args) {
+  // ============== 辅助方法 ==============
+  log(...messages) {
     if (this.config.debug) {
-      console.log('[PaymentSystem]', ...args);
+      console.log('[PaymentSystem]', ...messages);
     }
   }
 }
 
 // ==================== 自动初始化 ====================
 (function() {
-  // 兼容不同加载方式
-  const init = () => {
+  // 确保DOM就绪后初始化
+  function init() {
     try {
       window.paymentSystem = new PaymentSystem();
       
-      // 暴露必要方法给全局
-      window.processPaymentCallback = () => {
-        window.paymentSystem.verifyPaymentResponse();
+      // 暴露回调方法
+      window.handlePaymentCallback = function() {
+        return window.paymentSystem.processCallback();
       };
     } catch (e) {
       console.error('支付系统初始化失败:', e);
     }
-  };
+  }
 
+  // 多种初始化方式兼容
   if (document.readyState === 'complete') {
     init();
   } else {
