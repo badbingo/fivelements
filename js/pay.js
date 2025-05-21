@@ -1,7 +1,6 @@
-// pay.js - 修改后的版本（每次测算都需要支付1）
-
+// pay.js - 完整实现版
 document.addEventListener('DOMContentLoaded', function() {
-    // 配置参数
+    // ==================== 配置常量 ====================
     const CONFIG = {
         pid: '2025051013380915',
         key: 'UsXrSwn0wft5SeLB0LaQfecvJmpkS18T',
@@ -10,40 +9,48 @@ document.addEventListener('DOMContentLoaded', function() {
         amount: '0.01'
     };
 
-    // DOM元素
-    const payBtn = document.getElementById('pay-btn');
-    const calculateBtn = document.getElementById('calculate-btn');
-    const nameInput = document.getElementById('name');
-    const genderInput = document.getElementById('gender');
-    const fullscreenLoading = document.getElementById('fullscreen-loading');
-    const paymentSuccessAlert = document.getElementById('payment-success-alert');
+    // ==================== DOM元素 ====================
+    const elements = {
+        nameInput: document.getElementById('name'),
+        payBtn: document.getElementById('pay-btn'),
+        calculateBtn: document.getElementById('calculate-btn'),
+        genderSelect: document.getElementById('gender'),
+        birthDate: document.getElementById('birth-date'),
+        fullscreenLoading: document.getElementById('fullscreen-loading'),
+        paymentSuccessAlert: document.getElementById('payment-success-alert'),
+        recalculateBtn: document.getElementById('recalculate-btn')
+    };
 
-    /* ========== 初始化 ========== */
-    initPaymentSystem();
-
-    function initPaymentSystem() {
-        // 1. 检查URL支付回调
+    // ==================== 初始化函数 ====================
+    function init() {
+        // 设置初始状态
+        resetFormState();
+        
+        // 检查支付回调
         checkPaymentReturn();
         
-        // 2. 设置事件监听
+        // 设置事件监听
         setupEventListeners();
+        
+        // 安全监测
+        initSecurityCheck();
     }
 
-    /* ========== 支付状态检查 ========== */
+    // ==================== 核心功能函数 ====================
     function checkPaymentReturn() {
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('trade_status') === 'TRADE_SUCCESS') {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('trade_status') === 'TRADE_SUCCESS') {
             const paymentData = {
-                pid: urlParams.get('pid'),
-                trade_no: urlParams.get('trade_no'),
-                out_trade_no: urlParams.get('out_trade_no'),
-                type: urlParams.get('type'),
-                name: urlParams.get('name'),
-                money: urlParams.get('money'),
-                trade_status: urlParams.get('trade_status'),
-                param: urlParams.get('param'),
-                sign: urlParams.get('sign'),
-                sign_type: urlParams.get('sign_type')
+                pid: params.get('pid'),
+                trade_no: params.get('trade_no'),
+                out_trade_no: params.get('out_trade_no'),
+                type: params.get('type'),
+                name: params.get('name'),
+                money: params.get('money'),
+                trade_status: params.get('trade_status'),
+                param: params.get('param'),
+                sign: params.get('sign'),
+                sign_type: params.get('sign_type')
             };
 
             if (verifyPayment(paymentData)) {
@@ -54,9 +61,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    /* ========== 支付流程 ========== */
     function startPayment() {
-        const userName = nameInput.value.trim();
+        const userName = elements.nameInput.value.trim();
         if (!validateName(userName)) return;
 
         showFullscreenLoading(true);
@@ -78,73 +84,89 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function handlePaymentSuccess(userName) {
-        // 1. 锁定姓名输入框
-        const nameInput = document.getElementById('name');
-        nameInput.readOnly = true;
-        nameInput.style.backgroundColor = '#f5f5f5'; // 可选：视觉上显示不可编辑
+        // 锁定姓名输入
+        lockNameInput(userName);
         
-        // 2. 自动填充用户名
-        nameInput.value = userName;
+        // 更新UI状态
+        elements.payBtn.style.display = 'none';
+        elements.calculateBtn.style.display = 'block';
         
-        // 3. 显示"开始测算"按钮
-        showCalculateState();
-        
-        // 4. 显示成功提示
+        // 显示成功提示
         showPaymentSuccessAlert();
         
-        // 5. 隐藏loading
+        // 隐藏loading
         showFullscreenLoading(false);
     }
 
-    /* ========== 测算流程 ========== */
-        function startCalculation() {
-        const userName = nameInput.value.trim();
-        const gender = genderInput.value;
+    function startCalculation() {
+        const userName = elements.nameInput.value.trim();
+        const gender = elements.genderSelect.value;
         
         if (!validateCalculationInputs(userName, gender)) return;
         
-        // 执行测算前可以解锁姓名框（根据需求决定）
-        // document.getElementById('name').readOnly = false;
+        // 保持姓名锁定状态
+        lockNameInput(userName);
         
         // 执行测算
         executeQuantumCalculation(userName, gender);
     }
-    
-    // 重新测算按钮事件
-    document.getElementById('recalculate-btn')?.addEventListener('click', function() {
-        // 解锁姓名框
-        const nameInput = document.getElementById('name');
-        nameInput.readOnly = false;
-        nameInput.style.backgroundColor = '';
-        nameInput.style.cursor = '';
-        nameInput.value = '';
+
+    function resetFormState() {
+        // 解锁姓名输入
+        elements.nameInput.readOnly = false;
+        elements.nameInput.style.backgroundColor = '';
+        elements.nameInput.style.cursor = '';
         
-        // 重置UI状态
-        document.getElementById('pay-btn').style.display = 'block';
-        document.getElementById('calculate-btn').style.display = 'none';
+        // 重置按钮状态
+        elements.payBtn.style.display = 'block';
+        elements.calculateBtn.style.display = 'none';
         
-        // 跳转回输入页面
-        window.location.href = window.location.pathname;
-    });
-    
-    /* ========== UI控制 ========== */
-    function showCalculateState() {
-        payBtn.style.display = 'none';
-        calculateBtn.style.display = 'block';
+        // 重置表单值
+        elements.nameInput.value = '';
+        elements.genderSelect.value = '';
+        elements.birthDate.value = '';
+    }
+
+    // ==================== UI控制函数 ====================
+    function lockNameInput(userName) {
+        elements.nameInput.readOnly = true;
+        elements.nameInput.style.backgroundColor = '#f5f5f5';
+        elements.nameInput.style.cursor = 'not-allowed';
+        if (userName && !elements.nameInput.value) {
+            elements.nameInput.value = userName;
+        }
     }
 
     function showFullscreenLoading(show) {
-        fullscreenLoading.style.display = show ? 'flex' : 'none';
+        elements.fullscreenLoading.style.display = show ? 'flex' : 'none';
     }
 
     function showPaymentSuccessAlert() {
-        paymentSuccessAlert.style.display = 'block';
+        elements.paymentSuccessAlert.style.display = 'block';
         setTimeout(() => {
-            paymentSuccessAlert.style.display = 'none';
+            elements.paymentSuccessAlert.style.display = 'none';
         }, 3000);
     }
 
-    /* ========== 工具函数 ========== */
+    // ==================== 安全验证函数 ====================
+    function initSecurityCheck() {
+        // 防止通过开发者工具修改
+        setInterval(() => {
+            if (elements.calculateBtn.style.display === 'block' && 
+                !elements.nameInput.readOnly) {
+                lockNameInput(elements.nameInput.value);
+                console.warn('安全监测：检测到异常操作，已重新锁定姓名框');
+            }
+        }, 1000);
+
+        // 防止移动端键盘弹出
+        elements.nameInput.addEventListener('focus', function() {
+            if (this.readOnly) {
+                this.blur();
+            }
+        });
+    }
+
     function validateName(name) {
         if (!name) {
             alert('请输入您的姓名');
@@ -166,6 +188,7 @@ document.addEventListener('DOMContentLoaded', function() {
         return true;
     }
 
+    // ==================== 工具函数 ====================
     function generateSign(params) {
         const filtered = {};
         Object.keys(params).forEach(k => {
@@ -184,9 +207,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function verifyPayment(paymentData) {
         const sign = paymentData.sign;
         delete paymentData.sign;
-        
-        const calculatedSign = generateSign(paymentData);
-        return calculatedSign === sign;
+        return generateSign(paymentData) === sign;
     }
 
     function generateOrderNo() {
@@ -227,12 +248,29 @@ document.addEventListener('DOMContentLoaded', function() {
         // 实际测算逻辑...
     }
 
-    /* ========== 事件监听 ========== */
+    // ==================== 事件监听 ====================
     function setupEventListeners() {
         // 支付按钮
-        payBtn.addEventListener('click', startPayment);
+        elements.payBtn.addEventListener('click', startPayment);
         
         // 测算按钮
-        calculateBtn.addEventListener('click', startCalculation);
+        elements.calculateBtn.addEventListener('click', startCalculation);
+        
+        // 重新测算按钮
+        if (elements.recalculateBtn) {
+            elements.recalculateBtn.addEventListener('click', resetFormState);
+        }
+        
+        // 页面显示时检查状态
+        window.addEventListener('pageshow', function() {
+            if (elements.nameInput.readOnly && 
+                elements.calculateBtn.style.display === 'block') {
+                // 保持锁定状态
+                lockNameInput(elements.nameInput.value);
+            }
+        });
     }
+
+    // ==================== 启动初始化 ====================
+    init();
 });
