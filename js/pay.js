@@ -1,4 +1,4 @@
-// pay.js - 修改后的版本（每次测算都需要支付）
+// pay.js - 修改后的版本（每次测算都需要支付1）
 
 document.addEventListener('DOMContentLoaded', function() {
     // 配置参数
