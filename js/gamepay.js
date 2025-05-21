@@ -148,9 +148,9 @@ class PaymentSystem {
         out_trade_no: this.generateOrderId(),
         notify_url: location.href,
         return_url: this.config.successRedirectUrl, // 使用配置的跳转URL
-        name: `支付-${this.getUserName()}`,
+        name: `支付-${userName}`, // 直接使用参数
         money: this.config.amount,
-        param: encodeURIComponent(this.getUserName()),
+        param: encodeURIComponent(userName) // 直接使用参数
         sign_type: 'MD5'
       };
       
@@ -339,9 +339,6 @@ class PaymentSystem {
   }
 
   // ============== 工具方法 ==============
-  getUserName() {
-    return this.elements.nameInput ? this.elements.nameInput.value.trim() : '';
-  }
 
   generateOrderId() {
     const now = new Date();
