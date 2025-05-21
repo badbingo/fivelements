@@ -146,7 +146,7 @@ class PaymentSystem {
     </button>
   `;
   
-
+  document.body.appendChild(container);
   return container;
 }
 
