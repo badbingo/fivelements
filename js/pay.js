@@ -1,13 +1,5 @@
 // pay.js - 完整修正版（支付成功后立即更新按钮状态）
 
-// ===== 在pay.js最前面添加 =====
-document.getElementById('pay-btn')?.addEventListener('click', function(e) {
-    if (e.isTrusted) {  // 只处理真实用户点击
-        startPayment(e);
-        e.stopImmediatePropagation();
-    }
-}, true);  // 使用捕获阶段
-
 document.addEventListener('DOMContentLoaded', function() {
     // 配置参数
     const CONFIG = {
