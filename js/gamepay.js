@@ -117,7 +117,7 @@ class PaymentSystem {
     return element;
   }
 
-  createContainer() {
+ createContainer() {
   // 判断当前是否是 bazisystem.html 页面
   const isBaziSystemPage = window.location.pathname.includes('bazisystem.html');
   
@@ -126,9 +126,10 @@ class PaymentSystem {
     return null; 
   }
 
-  // 第一个页面：正常创建支付表单
+  // 第一个页面：创建支付表单但默认隐藏
   const container = document.createElement('div');
   container.id = this.config.elements.container;
+  container.style.display = 'none'; // 默认隐藏
   container.innerHTML = `
     <input type="text" 
            id="${this.config.elements.nameInput}" 
