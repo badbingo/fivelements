@@ -1,5 +1,5 @@
 /**
- * 终极支付解决方案 - gamepay.js v4.2
+ * 终极支付解决方案 - gamepay.js v4.3
  * 修复初始化问题和依赖加载
  * 增强支付流程和页面跳转
  */
@@ -14,7 +14,7 @@ const PAYMENT_CONFIG = {
   // 可选配置
   amount: '0.01',
   currency: 'CNY',
-  successRedirectUrl: 'system/bazisystem.html',
+  successRedirectUrl: 'https://mybazi.net/system/bazisystem.html',
   debug: true,
   
   // 元素ID配置
