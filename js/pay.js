@@ -1,5 +1,12 @@
 // pay.js - 完整修正版（支付成功后立即更新按钮状态）
 document.addEventListener('DOMContentLoaded', function() {
+    
+    // 检查按钮是否指定了使用pay.js处理
+    const payBtn = document.getElementById('pay-btn');
+    if (payBtn && payBtn.dataset.paymentHandler !== 'payjs') {
+        return; // 如果不是指定pay.js处理的按钮，则不初始化支付逻辑
+    }
+    
     // 配置参数
     const CONFIG = {
         pid: '2025051013380915',
