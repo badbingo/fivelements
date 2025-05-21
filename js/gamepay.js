@@ -1,5 +1,5 @@
 /**
- * 终极支付解决方案 - gamepay.js v4.6
+ * 终极支付解决方案 - gamepay.js v4.65
  * 修复初始化问题和依赖加载
  * 增强支付流程和页面跳转
  */
@@ -192,7 +192,14 @@ class PaymentSystem {
   // ============== 支付流程 ==============
   async processPayment() {
     try {
-      this.setProcessingState(true);
+    const userName = this.getUserName();
+    if (!userName) {
+      alert('请输入您的姓名');
+      this.elements.nameInput.focus();
+      return;
+    }
+
+    this.setProcessingState(true);
       
       const paymentData = {
         pid: this.config.pid,
@@ -486,6 +493,12 @@ class PaymentSystem {
 
 // 暴露支付启动函数
 window.startPayment = function(userName) {
+  // 再次验证用户名
+  if (!userName || userName.trim() === '') {
+    alert('请输入有效的姓名');
+    return;
+  }
+
   if (window.paymentSystem) {
     // 如果 paymentSystem 初始化成功，直接调用支付
     window.paymentSystem.processPayment();
@@ -494,7 +507,7 @@ window.startPayment = function(userName) {
     const paymentData = {
       pid: PAYMENT_CONFIG.pid,
       type: 'wxpay',
-      out_trade_no: generateOrderId(), // 需要定义这个函数
+      out_trade_no: generateOrderId(),
       notify_url: location.href,
       return_url: PAYMENT_CONFIG.successRedirectUrl,
       name: `支付-${userName}`,
@@ -503,7 +516,7 @@ window.startPayment = function(userName) {
       sign_type: 'MD5'
     };
     
-    paymentData.sign = generateSignature(paymentData); // 需要定义这个函数
-    submitPaymentForm(paymentData); // 需要定义这个函数
+    paymentData.sign = generateSignature(paymentData);
+    submitPaymentForm(paymentData);
   }
 };
