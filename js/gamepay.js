@@ -1,5 +1,5 @@
 /**
- * 终极支付解决方案 - gamepay.js v4.3
+ * 终极支付解决方案 - gamepay.js v4.35
  * 修复初始化问题和依赖加载
  * 增强支付流程和页面跳转
  */
@@ -118,39 +118,37 @@ class PaymentSystem {
   }
 
   createContainer() {
-    const container = document.createElement('div');
-    container.id = this.config.elements.container;
-    container.style.cssText = `
-      position: relative;
-      margin: 20px auto;
-      max-width: 500px;
-      padding: 20px;
-      background: #fff;
-      border-radius: 8px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    `;
-    
-    // 自动创建必要元素
-    container.innerHTML = `
-      <input type="text" 
-             id="${this.config.elements.nameInput}" 
-             placeholder="请输入姓名"
-             style="width:100%; padding:10px; margin-bottom:15px; border:1px solid #ddd; border-radius:4px;">
-      
-      <button id="${this.config.elements.payBtn}" 
-              style="width:100%; padding:12px; background:#07c160; color:white; border:none; border-radius:4px; font-size:16px;">
-        立即支付
-      </button>
-      
-      <button id="${this.config.elements.calculateBtn}" 
-              style="display:none; width:100%; padding:12px; margin-top:10px; background:#1989fa; color:white; border:none; border-radius:4px; font-size:16px;">
-        开始测算
-      </button>
-    `;
-    
-    document.body.appendChild(container);
-    return container;
+  // 判断当前是否是 bazisystem.html 页面
+  const isBaziSystemPage = window.location.pathname.includes('bazisystem.html');
+  
+  // 如果在第二个页面，直接返回不创建元素
+  if (isBaziSystemPage) {
+    return null; 
   }
+
+  // 第一个页面：正常创建支付表单
+  const container = document.createElement('div');
+  container.id = this.config.elements.container;
+  container.innerHTML = `
+    <input type="text" 
+           id="${this.config.elements.nameInput}" 
+           placeholder="请输入姓名"
+           style="width:100%; padding:10px; margin-bottom:15px; border:1px solid #ddd; border-radius:4px;">
+    
+    <button id="${this.config.elements.payBtn}" 
+            style="width:100%; padding:12px; background:#07c160; color:white; border:none; border-radius:4px; font-size:16px;">
+      立即支付
+    </button>
+    
+    <button id="${this.config.elements.calculateBtn}" 
+            style="display:none; width:100%; padding:12px; margin-top:10px; background:#1989fa; color:white; border:none; border-radius:4px; font-size:16px;">
+      开始测算
+    </button>
+  `;
+  
+  document.body.appendChild(container);
+  return container;
+}
 
   // ============== 事件绑定 ==============
   bindEvents() {
