@@ -96,24 +96,22 @@ class PaymentSystem {
 
   // ============== DOM准备 ==============
  prepareDOM() {
-    // 确保容器存在
-    if (!document.getElementById(this.config.elements.container)) {
-        this.createContainer();
-    }
-    
-    // 检查必要元素
+    // 获取按钮时直接排除标记为 payjs 的按钮
     this.elements = {
         nameInput: this.getElement(this.config.elements.nameInput, true),
-        payBtn: this.getElement(this.config.elements.payBtn, true),
+        payBtn: (() => {
+            const btn = document.getElementById(this.config.elements.payBtn);
+            return btn && !btn.hasAttribute('data-payment-handler') ? btn : null;
+        })(),
         calculateBtn: this.getElement(this.config.elements.calculateBtn)
     };
-    
-    // 新增：如果按钮指定了使用pay.js，则跳过这个按钮的处理
-    if (this.elements.payBtn && this.elements.payBtn.dataset.paymentHandler === 'payjs') {
-        this.elements.payBtn = null;
+
+    // 如果 payBtn 被排除，后续代码不会处理它
+    if (!this.elements.payBtn) {
+        console.log('[GamePay] 跳过已标记的支付按钮');
+        return;
     }
 }
-
  createContainer() {
   // 判断当前是否是 bazisystem.html 页面
   const isBaziSystemPage = window.location.pathname.includes('bazisystem.html');
