@@ -435,13 +435,12 @@ class PaymentSystem {
 // 暴露支付启动函数
 window.startPayment = function(userName) {
   if (window.paymentSystem) {
-    const nameInput = document.getElementById(window.paymentSystem.config.elements.nameInput);
-    if (nameInput) {
-      nameInput.value = userName;
-      window.paymentSystem.processPayment();
-    } else {
-      alert('无法找到姓名输入框');
+    if (!userName) {
+      alert('请输入姓名');
+      return;
     }
+    // 直接调用支付逻辑，传递 userName
+    window.paymentSystem.processPayment(userName);
   } else {
     alert('支付系统未初始化，请刷新页面重试');
   }
