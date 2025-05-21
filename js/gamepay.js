@@ -1,5 +1,5 @@
 /**
- * 终极支付解决方案 - gamepay.js v4.45
+ * 终极支付解决方案 - gamepay.js v4.35
  * 修复初始化问题和依赖加载
  * 增强支付流程和页面跳转
  */
@@ -118,6 +118,11 @@ class PaymentSystem {
   }
 
  createContainer() {
+  // 判断当前是否是 bazisystem.html 页面
+  const isBaziSystemPage = window.location.pathname.includes('bazisystem.html');
+  
+  // 如果在第二个页面，直接返回不创建元素
+  if (isBaziSystemPage) {
     return null; 
   }
 
