@@ -95,27 +95,24 @@ class PaymentSystem {
   }
 
   // ============== DOM准备 ==============
-  prepareDOM() {
+ prepareDOM() {
     // 确保容器存在
     if (!document.getElementById(this.config.elements.container)) {
-      this.createContainer();
+        this.createContainer();
     }
     
     // 检查必要元素
     this.elements = {
-      nameInput: this.getElement(this.config.elements.nameInput, true),
-      payBtn: this.getElement(this.config.elements.payBtn, true),
-      calculateBtn: this.getElement(this.config.elements.calculateBtn)
+        nameInput: this.getElement(this.config.elements.nameInput, true),
+        payBtn: this.getElement(this.config.elements.payBtn, true),
+        calculateBtn: this.getElement(this.config.elements.calculateBtn)
     };
-  }
-
-  getElement(id, required = false) {
-    const element = document.getElementById(id);
-    if (!element && required) {
-      throw new Error(`缺少必要元素: #${id}`);
+    
+    // 新增：如果按钮指定了使用pay.js，则跳过这个按钮的处理
+    if (this.elements.payBtn && this.elements.payBtn.dataset.paymentHandler === 'payjs') {
+        this.elements.payBtn = null;
     }
-    return element;
-  }
+}
 
  createContainer() {
   // 判断当前是否是 bazisystem.html 页面
