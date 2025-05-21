@@ -1,4 +1,4 @@
-// pay.js - 完整修正版（支付成功后立即更新按钮状态）
+// pay.js - 修改后的版本（每次测算都需要支付）
 
 document.addEventListener('DOMContentLoaded', function() {
     // 配置参数
@@ -25,10 +25,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // 1. 检查URL支付回调
         checkPaymentReturn();
         
-        // 2. 检查本地支付状态
-        checkLocalPaymentStatus();
-        
-        // 3. 设置事件监听
+        // 2. 设置事件监听
         setupEventListeners();
     }
 
@@ -57,13 +54,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    function checkLocalPaymentStatus() {
-        const userName = nameInput.value.trim();
-        if (userName && isPaidAndUnused(userName)) {
-            showCalculateState();
-        }
-    }
-
     /* ========== 支付流程 ========== */
     function startPayment() {
         const userName = nameInput.value.trim();
@@ -88,20 +78,16 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function handlePaymentSuccess(userName) {
-        // 1. 存储支付状态
-        localStorage.setItem(`paid_${userName}`, 'true');
-        localStorage.removeItem(`used_${userName}`);
-        
-        // 2. 自动填充用户名（关键修正点）
+        // 1. 自动填充用户名
         nameInput.value = userName;
         
-        // 3. 立即更新按钮状态（不再等待输入事件）
+        // 2. 显示"开始测算"按钮
         showCalculateState();
         
-        // 4. 显示成功提示
+        // 3. 显示成功提示
         showPaymentSuccessAlert();
         
-        // 5. 隐藏loading
+        // 4. 隐藏loading
         showFullscreenLoading(false);
     }
 
@@ -111,37 +97,12 @@ document.addEventListener('DOMContentLoaded', function() {
         const gender = genderInput.value;
         
         if (!validateCalculationInputs(userName, gender)) return;
-
-        // 标记为已使用测算
-        localStorage.setItem(`used_${userName}`, 'true');
-        
-        // 更新按钮状态
-        updateButtonState();
         
         // 执行测算
         executeQuantumCalculation(userName, gender);
     }
 
     /* ========== UI控制 ========== */
-    function updateButtonState() {
-        const userName = nameInput.value.trim();
-        if (!userName) {
-            resetToPayState();
-            return;
-        }
-
-        if (isPaidAndUnused(userName)) {
-            showCalculateState();
-        } else {
-            resetToPayState();
-        }
-    }
-
-    function resetToPayState() {
-        payBtn.style.display = 'block';
-        calculateBtn.style.display = 'none';
-    }
-
     function showCalculateState() {
         payBtn.style.display = 'none';
         calculateBtn.style.display = 'block';
@@ -159,11 +120,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     /* ========== 工具函数 ========== */
-    function isPaidAndUnused(userName) {
-        return localStorage.getItem(`paid_${userName}`) && 
-              !localStorage.getItem(`used_${userName}`);
-    }
-
     function validateName(name) {
         if (!name) {
             alert('请输入您的姓名');
@@ -253,11 +209,5 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // 测算按钮
         calculateBtn.addEventListener('click', startCalculation);
-        
-        // 输入变化时更新状态
-        nameInput.addEventListener('input', updateButtonState);
-        
-        // 页面显示时检查状态
-        window.addEventListener('pageshow', updateButtonState);
     }
 });
