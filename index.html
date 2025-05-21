@@ -456,6 +456,15 @@
                     </div>
                 </div>
             </div>
+            
+            <!-- 添加名字输入模态框 -->
+            <div id="nameInputModal" class="modal">
+                <div class="modal-content">
+                    <h3>请输入您的姓名</h3>
+                    <input type="text" id="userName" placeholder="请输入您的姓名">
+                    <button id="submitPayment" class="cta-button">请输入名字，点击付款</button>
+                </div>
+            </div>
         </div>
         
         <!-- 八字小知识 -->
@@ -927,6 +936,10 @@
                 discountModal.style.display = 'none';
             }
             
+            // 显示名字输入模态框
+            function showNameInputModal() {
+                nameInputModal.style.display = 'block';
+            }
             
             // 隐藏名字输入模态框
             function hideNameInputModal() {
@@ -962,25 +975,12 @@
                 // 重置按钮
                 resetButton.addEventListener('click', resetGame);
                 
-                // 修改 acceptDiscountBtn 的点击事件
+                // 优惠模态框按钮
                 acceptDiscountBtn.addEventListener('click', function() {
-                  hideDiscountModal();
-                  
-                  // 1. 显示 gamepay.js 的支付表单
-                  const paymentContainer = document.getElementById('payment-container');
-                  if (paymentContainer) {
-                    paymentContainer.style.display = 'block';
-                  }
-                  
-                  // 2. 自动聚焦到姓名输入框
-                  const nameInput = document.getElementById('name');
-                  if (nameInput) {
-                    nameInput.focus();
-                  }
-                  
-                  // 3. 删除任何与旧模态框相关的代码
+                    hideDiscountModal();
+                    showNameInputModal();
                 });
-                                
+                
                 declineDiscountBtn.addEventListener('click', function() {
                     hideDiscountModal();
                     alert('游戏完成！');
@@ -996,6 +996,7 @@
                 // 修改submitPaymentBtn的点击事件处理函数
                 // 获取按钮和输入框元素
                 const submitPaymentBtn = document.getElementById('submitPayment');
+                const userNameInput = document.getElementById('userName');
                 
                 if (submitPaymentBtn && userNameInput) {
                   submitPaymentBtn.addEventListener('click', function() {
