@@ -457,16 +457,12 @@
                 </div>
             </div>
             
+            <!-- 添加名字输入模态框 -->
             <div id="nameInputModal" class="modal">
-            <div class="modal-content">
-                <h3>请输入您的姓名</h3>
-                <input type="text" id="userName" placeholder="请输入您的姓名">
-                <button id="submitPayment" class="cta-button">请输入名字，点击付款</button>
-                <!-- 添加支付系统需要的容器 -->
-                <div id="payment-container" style="display:none;">
-                    <input type="text" id="name">
-                    <button id="pay-btn">立即支付</button>
-                    <button id="calculate-btn" style="display:none;">开始测算</button>
+                <div class="modal-content">
+                    <h3>请输入您的姓名</h3>
+                    <input type="text" id="userName" placeholder="请输入您的姓名">
+                    <button id="submitPayment" class="cta-button">请输入名字，点击付款</button>
                 </div>
             </div>
         </div>
@@ -1003,28 +999,36 @@
                 const userNameInput = document.getElementById('userName');
                 
                 if (submitPaymentBtn && userNameInput) {
-                  const submitPaymentBtn = document.getElementById('submitPayment');
-                const userNameInput = document.getElementById('userName');
-                
-                if (submitPaymentBtn && userNameInput) {
                   submitPaymentBtn.addEventListener('click', function() {
+                    // 1. 获取并验证用户名
                     const userName = userNameInput.value.trim();
                     if (!userName) {
                       alert('请输入您的姓名');
-                      userNameInput.focus();
+                      userNameInput.focus(); // 自动聚焦到输入框
                       return;
                     }
-                    
-                    // 检查支付系统是否加载
+                
+                    // 2. 显示加载状态（可选）
+                    this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 支付处理中...';
+                    this.disabled = true;
+                
+                    // 3. 调用支付接口
                     if (typeof startPayment === 'function') {
-                      this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 支付处理中...';
-                      startPayment(userName);
+                      startPayment(userName); // 调用修改后的支付函数
                     } else {
+                      // 支付系统未加载的备用方案
                       console.error('支付功能未加载');
                       alert('支付系统初始化失败，请刷新页面重试');
+                      
+                      // 恢复按钮状态
+                      this.innerHTML = '立即支付';
+                      this.disabled = false;
                     }
                   });
+                } else {
+                  console.error('未找到支付按钮或姓名输入框');
                 }
+            }
             
             // 初始化游戏
             createCards();
