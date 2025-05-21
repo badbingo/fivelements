@@ -1,5 +1,5 @@
 /**
- * 终极支付解决方案 - gamepay.js v4.65
+ * 终极支付解决方案 - gamepay.js v4.7
  * 修复初始化问题和依赖加载
  * 增强支付流程和页面跳转
  */
@@ -188,28 +188,30 @@ class PaymentSystem {
       this.updateButtonState();
     });
   }
-// ============ 新增代码开始 ============
-  // 绑定支付按钮（兼容HTML表单）
+// ========= 新增：支付按钮事件绑定 =========
   const payBtn = document.getElementById('submitPayment');
   if (payBtn) {
     payBtn.addEventListener('click', (e) => {
-      e.preventDefault(); // 防止表单意外提交
+      e.preventDefault();
       const userName = document.getElementById('userName')?.value.trim();
-      
-      // 检查是否输入了名字
+
+      // 1. 检查姓名是否输入
       if (!userName) {
         alert("请输入姓名！");
         return;
       }
 
-      // 调用支付逻辑
-      if (this.processPayment) {
-        this.processPayment(); // 使用gamepay.js自己的支付方法
-      } else {
-        alert("支付功能初始化失败，请刷新页面");
+      // 2. 检查支付系统是否初始化
+      if (!window.paymentSystem) {
+        alert("支付系统未加载，请刷新页面！");
+        return;
       }
+
+      // 3. 调用支付
+      window.paymentSystem.processPayment();
     });
   }
+}
   // ============== 支付流程 ==============
   async processPayment() {
     try {
