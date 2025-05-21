@@ -564,46 +564,36 @@
         </div>
     </footer>
     
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      // 检查URL中的支付状态
-      const params = new URLSearchParams(window.location.search);
-      if (params.get('trade_status') === 'TRADE_SUCCESS') {
+   <script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 只保留支付成功后的UI更新，不存储任何状态
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('trade_status') === 'TRADE_SUCCESS') {
         const userName = decodeURIComponent(params.get('param') || '');
         if (userName) {
-          // 存储支付状态
-          localStorage.setItem(`paid_${userName}`, 'true');
-          
-          // 显示"开始量子测算"按钮
-          const calculateBtn = document.getElementById('calculate-btn');
-          if (calculateBtn) {
-            calculateBtn.style.display = 'block';
-            document.getElementById('pay-btn').style.display = 'none';
-            
-            // 填充姓名
-            const nameInput = document.getElementById('name');
-            if (nameInput) nameInput.value = userName;
-          }
+            // 仅更新UI，不存储支付状态
+            const calculateBtn = document.getElementById('calculate-btn');
+            if (calculateBtn) {
+                calculateBtn.style.display = 'block';
+                document.getElementById('pay-btn').style.display = 'none';
+                
+                const nameInput = document.getElementById('name');
+                if (nameInput) nameInput.value = userName;
+            }
         }
-      }
-      
-      // 检查本地存储中的支付状态
-      const nameInput = document.getElementById('name');
-      if (nameInput) {
+    }
+    
+    // 移除所有本地存储检查逻辑
+    const nameInput = document.getElementById('name');
+    if (nameInput) {
         nameInput.addEventListener('input', function() {
-          const userName = this.value.trim();
-          const isPaid = userName && localStorage.getItem(`paid_${userName}`);
-          const calculateBtn = document.getElementById('calculate-btn');
-          const payBtn = document.getElementById('pay-btn');
-          
-          if (calculateBtn && payBtn) {
-            calculateBtn.style.display = isPaid ? 'block' : 'none';
-            payBtn.style.display = isPaid ? 'none' : 'block';
-          }
+            // 始终保持支付按钮可见
+            document.getElementById('pay-btn').style.display = 'block';
+            document.getElementById('calculate-btn').style.display = 'none';
         });
-      }
-    });
-    </script>
+    }
+});
+</script>
     
     <!-- 外部脚本引用 -->
     
