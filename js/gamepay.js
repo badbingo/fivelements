@@ -1,5 +1,5 @@
 /**
- * 终极支付解决方案 - gamepay.js v4.5
+ * 终极支付解决方案 - gamepay.js v4.51
  * 修复初始化问题和依赖加载
  * 增强支付流程和页面跳转
  */
@@ -96,10 +96,7 @@ class PaymentSystem {
 
   // ============== DOM准备 ==============
   prepareDOM() {
-    // 确保容器存在
-    if (!document.getElementById(this.config.elements.container)) {
-      this.createContainer();
-    }
+
     
     // 检查必要元素
     this.elements = {
@@ -121,34 +118,9 @@ class PaymentSystem {
   const isBaziSystemPage = window.location.pathname.includes('bazisystem.html');
   
   // 如果在第二个页面，直接返回不创建元素
-  if (isBaziSystemPage) {
     return null; 
   }
 
-  // 第一个页面：创建支付表单但默认隐藏
-  const container = document.createElement('div');
-  container.id = this.config.elements.container;
-  container.style.display = 'none'; // 默认隐藏
-  container.innerHTML = `
-    <input type="text" 
-           id="${this.config.elements.nameInput}" 
-           placeholder="请输入姓名"
-           style="width:100%; padding:10px; margin-bottom:15px; border:1px solid #ddd; border-radius:4px;">
-    
-    <button id="${this.config.elements.payBtn}" 
-            style="width:100%; padding:12px; background:#07c160; color:white; border:none; border-radius:4px; font-size:16px;">
-      立即支付
-    </button>
-    
-    <button id="${this.config.elements.calculateBtn}" 
-            style="display:none; width:100%; padding:12px; margin-top:10px; background:#1989fa; color:white; border:none; border-radius:4px; font-size:16px;">
-      开始测算
-    </button>
-  `;
-  
-  document.body.appendChild(container);
-  return container;
-}
 
   // ============== 事件绑定 ==============
   bindEvents() {
