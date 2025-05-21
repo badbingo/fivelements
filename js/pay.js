@@ -78,30 +78,55 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function handlePaymentSuccess(userName) {
-        // 1. 自动填充用户名
+        // 1. 锁定姓名输入框
+        const nameInput = document.getElementById('name');
+        nameInput.readOnly = true;
+        nameInput.style.backgroundColor = '#f5f5f5'; // 可选：视觉上显示不可编辑
+        
+        // 2. 自动填充用户名
         nameInput.value = userName;
         
-        // 2. 显示"开始测算"按钮
+        // 3. 显示"开始测算"按钮
         showCalculateState();
         
-        // 3. 显示成功提示
+        // 4. 显示成功提示
         showPaymentSuccessAlert();
         
-        // 4. 隐藏loading
+        // 5. 隐藏loading
         showFullscreenLoading(false);
     }
 
     /* ========== 测算流程 ========== */
-    function startCalculation() {
+        function startCalculation() {
         const userName = nameInput.value.trim();
         const gender = genderInput.value;
         
         if (!validateCalculationInputs(userName, gender)) return;
         
+        // 执行测算前可以解锁姓名框（根据需求决定）
+        // document.getElementById('name').readOnly = false;
+        
         // 执行测算
         executeQuantumCalculation(userName, gender);
     }
-
+    
+    // 重新测算按钮事件
+    document.getElementById('recalculate-btn')?.addEventListener('click', function() {
+        // 解锁姓名框
+        const nameInput = document.getElementById('name');
+        nameInput.readOnly = false;
+        nameInput.style.backgroundColor = '';
+        nameInput.style.cursor = '';
+        nameInput.value = '';
+        
+        // 重置UI状态
+        document.getElementById('pay-btn').style.display = 'block';
+        document.getElementById('calculate-btn').style.display = 'none';
+        
+        // 跳转回输入页面
+        window.location.href = window.location.pathname;
+    });
+    
     /* ========== UI控制 ========== */
     function showCalculateState() {
         payBtn.style.display = 'none';
