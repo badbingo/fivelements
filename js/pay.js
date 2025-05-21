@@ -1,23 +1,12 @@
 // pay.js - 完整修正版（支付成功后立即更新按钮状态）
 
-// ===== 在 pay.js 最前面添加 =====
-// 先保存原始的事件监听器
-const payBtn = document.getElementById('pay-btn');
-const originalOnClick = payBtn?.onclick;
-
-// 清除所有现有事件（包括gamepay.js绑定的）
-payBtn?.replaceWith(payBtn.cloneNode(true));
-
-// 重新绑定原始事件（如果有）
-if (originalOnClick) {
-    payBtn.onclick = originalOnClick;
-}
-
-// 绑定pay.js的支付逻辑
-payBtn?.addEventListener('click', function(e) {
-    // 这里不需要stopImmediatePropagation
-    startPayment(e);
-});
+// ===== 在pay.js最前面添加 =====
+document.getElementById('pay-btn')?.addEventListener('click', function(e) {
+    if (e.isTrusted) {  // 只处理真实用户点击
+        startPayment(e);
+        e.stopImmediatePropagation();
+    }
+}, true);  // 使用捕获阶段
 
 document.addEventListener('DOMContentLoaded', function() {
     // 配置参数
