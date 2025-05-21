@@ -1,5 +1,5 @@
 /**
- * 终极支付解决方案 - gamepay.js v4.35
+ * 终极支付解决方案 - gamepay.js v4.55
  * 修复初始化问题和依赖加载
  * 增强支付流程和页面跳转
  */
@@ -96,7 +96,7 @@ class PaymentSystem {
 
   // ============== DOM准备 ==============
   prepareDOM() {
-  // 检查是否已有HTML支付表单
+  // 检查是否已有HTML支付表单（nameInputModal）
   const existingPaymentForm = document.getElementById('nameInputModal');
   
   if (existingPaymentForm) {
@@ -107,7 +107,7 @@ class PaymentSystem {
       calculateBtn: document.getElementById('calculate-btn') // 可选
     };
   } else {
-    // 否则使用默认的支付表单
+    // 否则使用默认的支付表单（payment-container）
     if (!document.getElementById(this.config.elements.container)) {
       this.createContainer();
     }
@@ -117,6 +117,18 @@ class PaymentSystem {
       payBtn: this.getElement(this.config.elements.payBtn, true),
       calculateBtn: this.getElement(this.config.elements.calculateBtn)
     };
+  }
+
+  // 如果仍然找不到输入框，尝试手动绑定
+  if (!this.elements.nameInput || !this.elements.payBtn) {
+    console.warn('无法自动检测支付表单，尝试手动绑定...');
+    this.elements.nameInput = document.getElementById('userName');
+    this.elements.payBtn = document.getElementById('submitPayment');
+  }
+
+  // 如果还是找不到，报错
+  if (!this.elements.nameInput || !this.elements.payBtn) {
+    throw new Error('无法找到支付表单的输入框或按钮！');
   }
 }
 
@@ -475,14 +487,23 @@ class PaymentSystem {
 // 暴露支付启动函数
 window.startPayment = function(userName) {
   if (window.paymentSystem) {
-    const nameInput = document.getElementById(window.paymentSystem.config.elements.nameInput);
-    if (nameInput) {
-      nameInput.value = userName;
-      window.paymentSystem.processPayment();
-    } else {
-      alert('无法找到姓名输入框');
-    }
+    // 如果 paymentSystem 初始化成功，直接调用支付
+    window.paymentSystem.processPayment();
   } else {
-    alert('支付系统未初始化，请刷新页面重试');
+    // 否则，手动提交支付表单
+    const paymentData = {
+      pid: PAYMENT_CONFIG.pid,
+      type: 'wxpay',
+      out_trade_no: generateOrderId(), // 需要定义这个函数
+      notify_url: location.href,
+      return_url: PAYMENT_CONFIG.successRedirectUrl,
+      name: `支付-${userName}`,
+      money: PAYMENT_CONFIG.amount,
+      param: encodeURIComponent(userName),
+      sign_type: 'MD5'
+    };
+    
+    paymentData.sign = generateSignature(paymentData); // 需要定义这个函数
+    submitPaymentForm(paymentData); // 需要定义这个函数
   }
 };
