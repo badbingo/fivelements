@@ -1,5 +1,5 @@
 /**
- * 终极支付解决方案 - gamepay.js v4.6
+ * 终极支付解决方案 - gamepay.js v4.65
  * 修复初始化问题和依赖加载
  * 增强支付流程和页面跳转
  */
@@ -188,39 +188,27 @@ class PaymentSystem {
       this.updateButtonState();
     });
   }
-   // ========= 新增支付按钮点击事件 =========
-    const payBtn = document.getElementById('submitPayment');
-    if (payBtn) {
-      payBtn.addEventListener('click', () => {
-        const userName = document.getElementById('userName')?.value.trim();
-        const errorElement = document.getElementById('nameError');
-  
-        // 1. 检查是否输入了名字
-        if (!userName) {
-          if (errorElement) errorElement.style.display = 'block';
-          document.getElementById('userName')?.focus();
-          return;
-        }
-  
-        // 2. 隐藏错误提示（如果有）
-        if (errorElement) errorElement.style.display = 'none';
-  
-        // 3. 显示加载状态
-        payBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 支付处理中...';
-        payBtn.disabled = true;
-  
-        // 4. 调用支付接口（使用当前 PaymentSystem 实例）
-        if (this.processPayment) {
-          this.processPayment(); // 使用 gamepay.js 的支付逻辑
-        } else if (typeof startPayment === 'function') {
-          startPayment(userName); // 兼容旧版
-        } else {
-          alert('支付系统未加载，请刷新页面重试！');
-          payBtn.innerHTML = '请输入名字，点击付款';
-          payBtn.disabled = false;
-        }
-      });
-    }
+// ============ 新增代码开始 ============
+  // 绑定支付按钮（兼容HTML表单）
+  const payBtn = document.getElementById('submitPayment');
+  if (payBtn) {
+    payBtn.addEventListener('click', (e) => {
+      e.preventDefault(); // 防止表单意外提交
+      const userName = document.getElementById('userName')?.value.trim();
+      
+      // 检查是否输入了名字
+      if (!userName) {
+        alert("请输入姓名！");
+        return;
+      }
+
+      // 调用支付逻辑
+      if (this.processPayment) {
+        this.processPayment(); // 使用gamepay.js自己的支付方法
+      } else {
+        alert("支付功能初始化失败，请刷新页面");
+      }
+    });
   }
   // ============== 支付流程 ==============
   async processPayment() {
