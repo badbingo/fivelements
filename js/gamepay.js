@@ -1,5 +1,5 @@
 /**
- * 终极支付解决方案 - gamepay.js v4.51
+ * 终极支付解决方案 - gamepay.js v4.6
  * 修复初始化问题和依赖加载
  * 增强支付流程和页面跳转
  */
@@ -20,8 +20,8 @@ const PAYMENT_CONFIG = {
   // 元素ID配置
   elements: {
     container: 'payment-container',
-    nameInput: 'name',
-    payBtn: 'pay-btn',
+    nameInput: 'userName',  // 改为您的实际输入框ID
+    payBtn: 'submitPayment', // 改为您的实际支付按钮ID
     calculateBtn: 'calculate-btn'
   }
 };
@@ -52,25 +52,28 @@ class PaymentSystem {
   // ============== 安全初始化 ==============
   async safeInitialize() {
     try {
-      // 1. 准备DOM环境
-      this.prepareDOM();
-      
-      // 2. 加载必要依赖
-      await this.loadDependencies();
-      
-      // 3. 绑定事件
-      this.bindEvents();
-      
-      // 4. 检查支付状态
-      this.checkPaymentStatus();
-      
-      this.state.initialized = true;
-      this.log('支付系统就绪');
+        // 确保CryptoJS已加载
+        if (typeof CryptoJS === 'undefined') {
+            await new Promise((resolve) => {
+                const script = document.createElement('script');
+                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js';
+                script.onload = resolve;
+                document.head.appendChild(script);
+            });
+        }
+        
+        // 继续其他初始化...
+        this.prepareDOM();
+        this.bindEvents();
+        this.checkPaymentStatus();
+        
+        this.state.initialized = true;
+        this.log('支付系统就绪');
     } catch (error) {
-      this.handleError('初始化失败', error);
-      this.fallbackUI();
+        this.handleError('初始化失败', error);
+        this.fallbackUI();
     }
-  }
+}
 
   // ============== 加载依赖 ==============
   async loadDependencies() {
@@ -431,14 +434,18 @@ class PaymentSystem {
 
 // 暴露支付启动函数
 window.startPayment = function(userName) {
-  if (window.paymentSystem) {
-    if (!userName) {
-      alert('请输入姓名');
-      return;
+    if (window.paymentSystem) {
+        if (!userName) {
+            alert('请输入姓名');
+            return;
+        }
+        
+        // 设置用户名到支付系统
+        document.getElementById('name').value = userName;
+        
+        // 触发支付
+        document.getElementById('pay-btn').click();
+    } else {
+        alert('支付系统未初始化，请刷新页面重试');
     }
-    // 直接调用支付逻辑，传递 userName
-    window.paymentSystem.processPayment(userName);
-  } else {
-    alert('支付系统未初始化，请刷新页面重试');
-  }
 };
