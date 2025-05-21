@@ -1,5 +1,5 @@
 /**
- * 终极支付解决方案 - gamepay.js v4.65
+ * 终极支付解决方案 - gamepay.js v4.7
  * 修复初始化问题和依赖加载
  * 增强支付流程和页面跳转
  */
@@ -219,7 +219,22 @@ class PaymentSystem {
     } catch (error) {
       this.handlePaymentError(error);
     }
-  }
+}
+
+// ============== UI控制 ==============
+updateButtonState() {
+    // 移除检查是否已支付的逻辑，始终显示支付按钮
+    this.elements.payBtn.style.display = 'block';
+    if (this.elements.calculateBtn) {
+        this.elements.calculateBtn.style.display = 'none';
+    }
+}
+
+// ============== 支付状态检查 ==============
+checkPaymentStatus() {
+    // 移除检查本地存储的逻辑
+    this.updateButtonState();
+}
 
   // ============== 提交支付 ==============
   submitPayment(paymentData) {
