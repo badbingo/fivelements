@@ -96,18 +96,29 @@ class PaymentSystem {
 
   // ============== DOM准备 ==============
   prepareDOM() {
-    // 确保容器存在
+  // 检查是否已有HTML支付表单
+  const existingPaymentForm = document.getElementById('nameInputModal');
+  
+  if (existingPaymentForm) {
+    // 使用HTML表单的元素
+    this.elements = {
+      nameInput: document.getElementById('userName'),
+      payBtn: document.getElementById('submitPayment'),
+      calculateBtn: document.getElementById('calculate-btn') // 可选
+    };
+  } else {
+    // 否则使用默认的支付表单
     if (!document.getElementById(this.config.elements.container)) {
       this.createContainer();
     }
     
-    // 检查必要元素
     this.elements = {
       nameInput: this.getElement(this.config.elements.nameInput, true),
       payBtn: this.getElement(this.config.elements.payBtn, true),
       calculateBtn: this.getElement(this.config.elements.calculateBtn)
     };
   }
+}
 
   getElement(id, required = false) {
     const element = document.getElementById(id);
@@ -118,15 +129,15 @@ class PaymentSystem {
   }
 
  createContainer() {
-  // 判断当前是否是 bazisystem.html 页面
-  const isBaziSystemPage = window.location.pathname.includes('bazisystem.html');
+  // 判断是否已经存在支付表单（由HTML提供）
+  const existingPaymentForm = document.getElementById('nameInputModal');
   
-  // 如果在第二个页面，直接返回不创建元素
-  if (isBaziSystemPage) {
-    return null; 
+  // 如果已经存在HTML支付表单，则不创建新的支付表单
+  if (existingPaymentForm) {
+    return null;
   }
 
-  // 第一个页面：创建支付表单但默认隐藏
+  // 否则，创建默认支付表单（兼容旧代码）
   const container = document.createElement('div');
   container.id = this.config.elements.container;
   container.style.display = 'none'; // 默认隐藏
