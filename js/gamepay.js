@@ -1,5 +1,5 @@
 /**
- * 终极支付解决方案 - gamepay.js v4.6
+ * 终极支付解决方案 - gamepay.js v4.35
  * 修复初始化问题和依赖加载
  * 增强支付流程和页面跳转
  */
@@ -20,8 +20,8 @@ const PAYMENT_CONFIG = {
   // 元素ID配置
   elements: {
     container: 'payment-container',
-    nameInput: 'userName',  // 改为您的实际输入框ID
-    payBtn: 'submitPayment', // 改为您的实际支付按钮ID
+    nameInput: 'name',
+    payBtn: 'pay-btn',
     calculateBtn: 'calculate-btn'
   }
 };
@@ -52,28 +52,25 @@ class PaymentSystem {
   // ============== 安全初始化 ==============
   async safeInitialize() {
     try {
-        // 确保CryptoJS已加载
-        if (typeof CryptoJS === 'undefined') {
-            await new Promise((resolve) => {
-                const script = document.createElement('script');
-                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js';
-                script.onload = resolve;
-                document.head.appendChild(script);
-            });
-        }
-        
-        // 继续其他初始化...
-        this.prepareDOM();
-        this.bindEvents();
-        this.checkPaymentStatus();
-        
-        this.state.initialized = true;
-        this.log('支付系统就绪');
+      // 1. 准备DOM环境
+      this.prepareDOM();
+      
+      // 2. 加载必要依赖
+      await this.loadDependencies();
+      
+      // 3. 绑定事件
+      this.bindEvents();
+      
+      // 4. 检查支付状态
+      this.checkPaymentStatus();
+      
+      this.state.initialized = true;
+      this.log('支付系统就绪');
     } catch (error) {
-        this.handleError('初始化失败', error);
-        this.fallbackUI();
+      this.handleError('初始化失败', error);
+      this.fallbackUI();
     }
-}
+  }
 
   // ============== 加载依赖 ==============
   async loadDependencies() {
@@ -99,7 +96,10 @@ class PaymentSystem {
 
   // ============== DOM准备 ==============
   prepareDOM() {
-
+    // 确保容器存在
+    if (!document.getElementById(this.config.elements.container)) {
+      this.createContainer();
+    }
     
     // 检查必要元素
     this.elements = {
@@ -116,14 +116,40 @@ class PaymentSystem {
     }
     return element;
   }
+
  createContainer() {
   // 判断当前是否是 bazisystem.html 页面
   const isBaziSystemPage = window.location.pathname.includes('bazisystem.html');
   
   // 如果在第二个页面，直接返回不创建元素
+  if (isBaziSystemPage) {
     return null; 
   }
 
+  // 第一个页面：创建支付表单但默认隐藏
+  const container = document.createElement('div');
+  container.id = this.config.elements.container;
+  container.style.display = 'none'; // 默认隐藏
+  container.innerHTML = `
+    <input type="text" 
+           id="${this.config.elements.nameInput}" 
+           placeholder="请输入姓名"
+           style="width:100%; padding:10px; margin-bottom:15px; border:1px solid #ddd; border-radius:4px;">
+    
+    <button id="${this.config.elements.payBtn}" 
+            style="width:100%; padding:12px; background:#07c160; color:white; border:none; border-radius:4px; font-size:16px;">
+      立即支付
+    </button>
+    
+    <button id="${this.config.elements.calculateBtn}" 
+            style="display:none; width:100%; padding:12px; margin-top:10px; background:#1989fa; color:white; border:none; border-radius:4px; font-size:16px;">
+      开始测算
+    </button>
+  `;
+  
+  document.body.appendChild(container);
+  return container;
+}
 
   // ============== 事件绑定 ==============
   bindEvents() {
@@ -151,9 +177,9 @@ class PaymentSystem {
         out_trade_no: this.generateOrderId(),
         notify_url: location.href,
         return_url: this.config.successRedirectUrl, // 使用配置的跳转URL
-        name: `支付-${userName}`, // 直接使用参数
+        name: `支付-${this.getUserName()}`,
         money: this.config.amount,
-        param: encodeURIComponent(userName) // 直接使用参数
+        param: encodeURIComponent(this.getUserName()),
         sign_type: 'MD5'
       };
       
@@ -342,6 +368,9 @@ class PaymentSystem {
   }
 
   // ============== 工具方法 ==============
+  getUserName() {
+    return this.elements.nameInput ? this.elements.nameInput.value.trim() : '';
+  }
 
   generateOrderId() {
     const now = new Date();
@@ -434,18 +463,15 @@ class PaymentSystem {
 
 // 暴露支付启动函数
 window.startPayment = function(userName) {
-    if (window.paymentSystem) {
-        if (!userName) {
-            alert('请输入姓名');
-            return;
-        }
-        
-        // 设置用户名到支付系统
-        document.getElementById('name').value = userName;
-        
-        // 触发支付
-        document.getElementById('pay-btn').click();
+  if (window.paymentSystem) {
+    const nameInput = document.getElementById(window.paymentSystem.config.elements.nameInput);
+    if (nameInput) {
+      nameInput.value = userName;
+      window.paymentSystem.processPayment();
     } else {
-        alert('支付系统未初始化，请刷新页面重试');
+      alert('无法找到姓名输入框');
     }
+  } else {
+    alert('支付系统未初始化，请刷新页面重试');
+  }
 };
