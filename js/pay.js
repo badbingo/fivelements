@@ -1,24 +1,5 @@
 // pay.js - 完整修正版（支付成功后立即更新按钮状态）
 document.addEventListener('DOMContentLoaded', function() {
-    // === 新增代码：强制恢复按钮样式 ===
-    const payBtn = document.getElementById('pay-btn');
-    if (payBtn) {
-        // 1. 恢复 class（确保 hover-red 生效）
-        payBtn.className = 'btn hover-red';
-        
-        // 2. 恢复内联样式（圆角 50px）
-        payBtn.style.borderRadius = '50px';
-        
-        // 3. 确保按钮可点击（移除 disabled 状态）
-        payBtn.disabled = false;
-        
-        // 4. 清除可能被覆盖的背景色
-        payBtn.style.backgroundColor = '';
-        
-        // 5. 恢复鼠标悬停效果（可选）
-        payBtn.style.cursor = 'pointer';
-    }
-    
     // 配置参数
     const CONFIG = {
         pid: '2025051013380915',
