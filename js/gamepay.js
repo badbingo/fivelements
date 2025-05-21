@@ -1,155 +1,208 @@
 /**
- * 集中式支付管理模块 - gamepay.js
- * 功能：处理zpay平台支付流程，包括订单生成、签名验证、状态跳转
- * 特点：
- * 1. 完全独立，不依赖HTML中的支付代码
- * 2. 动态创建支付相关UI元素
- * 3. 自动处理支付状态检查和回调
+ * 完整支付解决方案 - gamepay.js v2.2
+ * 功能：
+ * 1. 集中管理zpay平台支付流程
+ * 2. 自动处理支付状态同步
+ * 3. 动态UI生成与错误隔离
  */
 
 class PaymentManager {
   constructor() {
-    // 支付配置
+    // 支付配置（需根据实际修改）
     this.config = {
       pid: '2025051013380915',
       key: 'UsXrSwn0wft5SeLB0LaQfecvJmpkS18T',
       apiUrl: 'https://zpayz.cn/submit.php',
-      returnUrl: window.location.href.split('?')[0],
       amount: '0.01',
+      currency: 'CNY',
       successRedirectUrl: 'system/bazisystem.html'
     };
 
-    // 初始化支付系统
-    this.init();
+    // 元素引用缓存
+    this.elements = {
+      payBtn: null,
+      calculateBtn: null,
+      nameInput: null,
+      loadingEl: null,
+      successAlertEl: null
+    };
+
+    // 初始化支付系统（安全模式）
+    this.initialize();
   }
 
   /* ==================== 初始化方法 ==================== */
-  init() {
-    // 创建必要UI元素
-    this.createPaymentUI();
-    
-    // 获取DOM元素引用
-    this.payBtn = document.getElementById('pay-btn');
-    this.calculateBtn = document.getElementById('calculate-btn');
-    this.nameInput = document.getElementById('name');
-    this.loadingEl = document.getElementById('fullscreen-loading');
-    this.successAlertEl = document.getElementById('payment-success-alert');
-
-    // 绑定事件
-    this.bindEvents();
-    
-    // 检查支付状态
-    this.checkPaymentStatus();
+  async initialize() {
+    try {
+      await this.waitForDOMReady();
+      this.injectDependencies();
+      this.createPaymentUI();
+      this.cacheDOMElements();
+      this.bindEventListeners();
+      this.syncPaymentState();
+      
+      console.log('[Payment] 系统初始化完成');
+    } catch (error) {
+      console.error('[Payment] 初始化失败:', error);
+      this.fallbackUI();
+    }
   }
 
+  waitForDOMReady() {
+    return new Promise((resolve) => {
+      if (document.readyState === 'complete') {
+        resolve();
+      } else {
+        document.addEventListener('DOMContentLoaded', resolve);
+        window.addEventListener('load', resolve);
+      }
+    });
+  }
+
+  injectDependencies() {
+    // 确保CryptoJS可用（MD5签名依赖）
+    if (typeof CryptoJS === 'undefined') {
+      console.warn('[Payment] 正在动态加载CryptoJS');
+      const script = document.createElement('script');
+      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js';
+      script.onload = () => console.log('[Payment] CryptoJS加载完成');
+      script.onerror = () => console.error('[Payment] CryptoJS加载失败');
+      document.head.appendChild(script);
+    }
+  }
+
+  /* ==================== UI管理 ==================== */
   createPaymentUI() {
-    // 动态创建全屏加载层（如果不存在）
-    if (!document.getElementById('fullscreen-loading')) {
+    // 创建加载动画容器
+    if (!document.getElementById('payment-loading')) {
       const loadingDiv = document.createElement('div');
-      loadingDiv.id = 'fullscreen-loading';
-      loadingDiv.style.cssText = `
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0,0,0,0.7);
-        z-index: 9999;
-        justify-content: center;
-        align-items: center;
-      `;
+      loadingDiv.id = 'payment-loading';
+      loadingDiv.className = 'payment-overlay';
       loadingDiv.innerHTML = `
-        <div style="color: white; text-align: center;">
-          <i class="fas fa-spinner fa-spin fa-3x"></i>
-          <p>正在处理支付请求，请稍候...</p>
+        <div class="payment-spinner">
+          <i class="fas fa-spinner fa-spin"></i>
+          <p>支付处理中...</p>
         </div>
       `;
       document.body.appendChild(loadingDiv);
     }
 
-    // 动态创建支付成功提示（如果不存在）
-    if (!document.getElementById('payment-success-alert')) {
+    // 创建支付成功提示
+    if (!document.getElementById('payment-alert')) {
       const alertDiv = document.createElement('div');
-      alertDiv.id = 'payment-success-alert';
-      alertDiv.style.cssText = `
-        display: none;
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        background: #4CAF50;
-        color: white;
-        padding: 15px;
-        border-radius: 5px;
-        z-index: 1000;
+      alertDiv.id = 'payment-alert';
+      alertDiv.className = 'payment-alert';
+      alertDiv.innerHTML = `
+        <div class="alert-content">
+          <i class="fas fa-check-circle"></i>
+          <span>支付成功！正在跳转...</span>
+        </div>
       `;
-      alertDiv.textContent = '支付成功！正在跳转到测算页面...';
       document.body.appendChild(alertDiv);
     }
   }
 
-  bindEvents() {
-    // 支付按钮事件
-    if (this.payBtn) {
-      this.payBtn.addEventListener('click', () => this.startPayment());
-    }
+  cacheDOMElements() {
+    this.elements = {
+      payBtn: document.getElementById('pay-btn'),
+      calculateBtn: document.getElementById('calculate-btn'),
+      nameInput: document.getElementById('name'),
+      loadingEl: document.getElementById('payment-loading'),
+      successAlertEl: document.getElementById('payment-alert')
+    };
 
-    // 测算按钮事件
-    if (this.calculateBtn) {
-      this.calculateBtn.addEventListener('click', () => this.startCalculation());
-    }
-
-    // 姓名输入变化事件
-    if (this.nameInput) {
-      this.nameInput.addEventListener('input', () => this.updateButtonState());
+    // 关键元素检查
+    if (!this.elements.nameInput) {
+      throw new Error('缺少姓名输入框');
     }
   }
 
   /* ==================== 支付核心逻辑 ==================== */
-  startPayment() {
-    const userName = this.nameInput?.value.trim();
-    if (!this.validateName(userName)) return;
+  async startPayment() {
+    try {
+      const userName = this.elements.nameInput.value.trim();
+      if (!this.validateName(userName)) return;
 
-    this.showLoading(true);
+      this.showLoading(true);
 
-    const paymentData = {
-      pid: this.config.pid,
-      type: 'wxpay',
-      out_trade_no: this.generateOrderNo(),
-      notify_url: this.config.returnUrl,
-      return_url: this.config.returnUrl,
-      name: `八字测算-${userName.substring(0, 20)}`,
-      money: this.config.amount,
-      param: encodeURIComponent(userName),
-      sign_type: 'MD5'
-    };
+      const paymentData = {
+        pid: this.config.pid,
+        type: 'wxpay',
+        out_trade_no: this.generateOrderNo(),
+        notify_url: location.href,
+        return_url: location.href,
+        name: `八字测算-${userName.substring(0, 20)}`,
+        money: this.config.amount,
+        currency: this.config.currency,
+        param: encodeURIComponent(userName),
+        sign_type: 'MD5'
+      };
 
-    // 生成签名并提交支付
-    paymentData.sign = this.generateSign(paymentData);
-    this.submitPaymentForm(paymentData);
+      paymentData.sign = this.generateSignature(paymentData);
+      this.submitPaymentForm(paymentData);
+
+    } catch (error) {
+      console.error('[Payment] 支付启动失败:', error);
+      this.showLoading(false);
+      alert('支付发起失败，请重试');
+    }
   }
 
   handlePaymentSuccess(userName) {
-    // 1. 存储支付状态
+    // 状态存储
     localStorage.setItem(`paid_${userName}`, 'true');
     localStorage.removeItem(`used_${userName}`);
 
-    // 2. 更新按钮状态
+    // UI更新
     this.updateButtonState();
-
-    // 3. 显示成功提示
     this.showSuccessAlert();
 
-    // 4. 3秒后跳转
-    setTimeout(() => {
-      window.location.href = `${this.config.successRedirectUrl}?name=${encodeURIComponent(userName)}`;
-    }, 3000);
+    // 页面跳转（仅在第一个页面需要）
+    if (this.config.successRedirectUrl && !location.pathname.includes('bazisystem')) {
+      setTimeout(() => {
+        location.href = `${this.config.successRedirectUrl}?name=${encodeURIComponent(userName)}`;
+      }, 1500);
+    }
   }
 
-  /* ==================== 支付状态管理 ==================== */
-  checkPaymentStatus() {
-    // 检查URL回调参数
-    const urlParams = new URLSearchParams(window.location.search);
+  /* ==================== 工具方法 ==================== */
+  generateSignature(params) {
+    const filtered = {};
+    Object.keys(params).forEach(k => {
+      if (params[k] !== '' && k !== 'sign' && k !== 'sign_type') {
+        filtered[k] = params[k];
+      }
+    });
+
+    const signStr = Object.keys(filtered).sort()
+      .map(k => `${k}=${filtered[k]}`)
+      .join('&') + this.config.key;
+
+    return CryptoJS.MD5(signStr).toString();
+  }
+
+  verifyPayment(paymentData) {
+    try {
+      const sign = paymentData.sign;
+      const calculatedSign = this.generateSignature(paymentData);
+      return sign === calculatedSign;
+    } catch (error) {
+      console.error('[Payment] 签名验证失败:', error);
+      return false;
+    }
+  }
+
+  generateOrderNo() {
+    const now = new Date();
+    return `${now.getFullYear()}${this.pad(now.getMonth()+1)}${this.pad(now.getDate())}` +
+           `${this.pad(now.getHours())}${this.pad(now.getMinutes())}${this.pad(now.getSeconds())}` +
+           `${Math.floor(Math.random()*9000)+1000}`;
+  }
+
+  /* ==================== 状态管理 ==================== */
+  syncPaymentState() {
+    // 1. 检查URL回调
+    const urlParams = new URLSearchParams(location.search);
     if (urlParams.get('trade_status') === 'TRADE_SUCCESS') {
       const paymentData = {
         pid: urlParams.get('pid'),
@@ -167,16 +220,16 @@ class PaymentManager {
       if (this.verifyPayment(paymentData)) {
         const userName = decodeURIComponent(paymentData.param || '');
         this.handlePaymentSuccess(userName);
-        this.cleanUrl();
+        this.cleanURLParams();
       }
     }
 
-    // 检查本地存储状态
+    // 2. 检查本地状态
     this.updateButtonState();
   }
 
   updateButtonState() {
-    const userName = this.nameInput?.value.trim();
+    const userName = this.elements.nameInput?.value.trim();
     if (!userName) {
       this.resetToPayState();
       return;
@@ -189,39 +242,54 @@ class PaymentManager {
     }
   }
 
-  /* ==================== 工具方法 ==================== */
-  // 生成订单号 (格式: yyyyMMddHHmmss + 随机4位)
-  generateOrderNo() {
-    const now = new Date();
-    return `${now.getFullYear()}${this.pad(now.getMonth()+1)}${this.pad(now.getDate())}` +
-           `${this.pad(now.getHours())}${this.pad(now.getMinutes())}${this.pad(now.getSeconds())}` +
-           `${Math.floor(Math.random()*9000)+1000}`;
+  /* ==================== UI控制 ==================== */
+  showLoading(show) {
+    if (this.elements.loadingEl) {
+      this.elements.loadingEl.style.display = show ? 'flex' : 'none';
+    }
   }
 
-  // 生成支付签名
-  generateSign(params) {
-    const filtered = {};
-    Object.keys(params).forEach(k => {
-      if (params[k] !== '' && k !== 'sign' && k !== 'sign_type') {
-        filtered[k] = params[k];
-      }
-    });
-
-    const signStr = Object.keys(filtered).sort()
-      .map(k => `${k}=${filtered[k]}`)
-      .join('&') + this.config.key;
-
-    return CryptoJS.MD5(signStr).toString();
+  showSuccessAlert() {
+    if (this.elements.successAlertEl) {
+      this.elements.successAlertEl.style.display = 'block';
+      setTimeout(() => {
+        this.elements.successAlertEl.style.display = 'none';
+      }, 3000);
+    }
   }
 
-  // 验证支付回调签名
-  verifyPayment(paymentData) {
-    const sign = paymentData.sign;
-    const calculatedSign = this.generateSign(paymentData);
-    return calculatedSign === sign;
+  resetToPayState() {
+    if (this.elements.payBtn) this.elements.payBtn.style.display = 'block';
+    if (this.elements.calculateBtn) this.elements.calculateBtn.style.display = 'none';
   }
 
-  // 提交支付表单
+  showCalculateState() {
+    if (this.elements.payBtn) this.elements.payBtn.style.display = 'none';
+    if (this.elements.calculateBtn) this.elements.calculateBtn.style.display = 'block';
+  }
+
+  /* ==================== 辅助方法 ==================== */
+  validateName(name) {
+    if (!name || name.length < 2) {
+      alert('请输入有效姓名（至少2个字符）');
+      return false;
+    }
+    return true;
+  }
+
+  isPaidAndUnused(userName) {
+    return localStorage.getItem(`paid_${userName}`) && 
+          !localStorage.getItem(`used_${userName}`);
+  }
+
+  cleanURLParams() {
+    window.history.replaceState({}, document.title, window.location.pathname);
+  }
+
+  pad(num) {
+    return num < 10 ? `0${num}` : num;
+  }
+
   submitPaymentForm(data) {
     const form = document.createElement('form');
     form.method = 'POST';
@@ -240,73 +308,19 @@ class PaymentManager {
     form.submit();
   }
 
-  /* ==================== UI控制方法 ==================== */
-  showLoading(show) {
-    if (this.loadingEl) {
-      this.loadingEl.style.display = show ? 'flex' : 'none';
+  fallbackUI() {
+    console.warn('[Payment] 启用降级UI');
+    if (this.elements.payBtn) {
+      this.elements.payBtn.onclick = () => {
+        alert('支付系统初始化失败，请刷新页面重试');
+      };
     }
-  }
-
-  showSuccessAlert() {
-    if (this.successAlertEl) {
-      this.successAlertEl.style.display = 'block';
-      setTimeout(() => {
-        this.successAlertEl.style.display = 'none';
-      }, 3000);
-    }
-  }
-
-  resetToPayState() {
-    if (this.payBtn) this.payBtn.style.display = 'block';
-    if (this.calculateBtn) this.calculateBtn.style.display = 'none';
-  }
-
-  showCalculateState() {
-    if (this.payBtn) this.payBtn.style.display = 'none';
-    if (this.calculateBtn) this.calculateBtn.style.display = 'block';
-  }
-
-  /* ==================== 辅助方法 ==================== */
-  validateName(name) {
-    if (!name) {
-      alert('请输入姓名');
-      this.showLoading(false);
-      return false;
-    }
-    return true;
-  }
-
-  isPaidAndUnused(userName) {
-    return localStorage.getItem(`paid_${userName}`) && 
-          !localStorage.getItem(`used_${userName}`);
-  }
-
-  cleanUrl() {
-    window.history.replaceState({}, document.title, window.location.pathname);
-  }
-
-  pad(num) {
-    return num < 10 ? `0${num}` : num;
-  }
-
-  // 测算功能（示例）
-  startCalculation() {
-    const userName = this.nameInput?.value.trim();
-    const gender = document.getElementById('gender')?.value;
-    
-    if (!userName || !gender) {
-      alert('请填写完整信息');
-      return;
-    }
-
-    // 标记为已使用
-    localStorage.setItem(`used_${userName}`, 'true');
-    console.log(`开始测算: ${userName}, 性别: ${gender}`);
-    // 实际测算逻辑...
   }
 }
 
-// 页面加载后初始化支付系统
-document.addEventListener('DOMContentLoaded', () => {
+// 自动初始化（兼容新旧浏览器）
+if (document.readyState === 'complete') {
   new PaymentManager();
-});
+} else {
+  document.addEventListener('DOMContentLoaded', () => new PaymentManager());
+}
