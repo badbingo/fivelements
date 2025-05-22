@@ -71,8 +71,8 @@
         }
         
         .coin {
-            width: 60px;
-            height: 60px;
+            width: 80px;  /* 放大钱币尺寸 */
+            height: 80px;
             border-radius: 50%;
             background: linear-gradient(135deg, #f5f5f5, #e0e0e0);
             display: flex;
@@ -86,8 +86,8 @@
         }
         
         .coin.selected {
-            background: linear-gradient(135deg, #fffacd, #ffeb3b);
-            box-shadow: 0 0 15px rgba(255,235,59,0.7);
+            background: linear-gradient(135deg, #ffcdcd, #ff3b3b); /* 红色选中效果 */
+            box-shadow: 0 0 15px rgba(255,0,0,0.7);
         }
         
         .coin-face {
@@ -448,8 +448,8 @@
             }
             
             .coin {
-                width: 50px;
-                height: 50px;
+                width: 60px;
+                height: 60px;
             }
             
             .hexagram-line {
@@ -672,9 +672,6 @@
                                 </div>
                             </div>
                             <div class="form-buttons">
-                                <button type="button" id="auto-cast-btn" class="btn btn-action">
-                                    <i class="fas fa-bolt"></i> 自动摇卦
-                                </button>
                                 <button type="button" id="cast-btn" class="btn btn-primary">
                                     <i class="fas fa-random"></i> 摇卦（<span id="cast-count">0</span>/6）
                                 </button>
@@ -963,17 +960,18 @@
             const coins = document.querySelectorAll('.coin');
             coins.forEach(coin => {
                 coin.addEventListener('click', function() {
-                    if (castCount < 6) {
-                        flipCoin(this);
+                    // 如果已经摇过6次或者已经选择过这枚钱币，则不允许再次点击
+                    if (castCount >= 6 || this.dataset.side) {
+                        return;
                     }
+                    
+                    // 如果已经选择了3枚钱币，不允许再选择
+                    if (countSetCoins() >= 3) {
+                        return;
+                    }
+                    
+                    flipCoin(this);
                 });
-            });
-            
-            // 自动摇卦按钮
-            document.getElementById('auto-cast-btn').addEventListener('click', function() {
-                if (currentMethod === 'coin' && castCount < 6) {
-                    autoCastCoins();
-                }
             });
             
             // 摇卦按钮
@@ -1032,23 +1030,6 @@
             const timeStr = now.toISOString().slice(0, 16);
             document.getElementById('time').value = timeStr;
         });
-        
-        // 自动摇卦函数
-        function autoCastCoins() {
-            const coins = document.querySelectorAll('.coin');
-            coins.forEach(coin => {
-                if (!coin.dataset.side) {
-                    flipCoin(coin);
-                }
-            });
-            
-            // 1秒后自动记录结果
-            setTimeout(() => {
-                if (countSetCoins() === 3) {
-                    castWithCoins();
-                }
-            }, 1200);
-        }
         
         // 钱币翻转动画
         function flipCoin(coin) {
