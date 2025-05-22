@@ -82,7 +82,12 @@
             position: relative;
             transform-style: preserve-3d;
             cursor: pointer;
-            transition: transform 0.6s ease;
+            transition: transform 0.6s ease, background 0.3s ease;
+        }
+        
+        .coin.selected {
+            background: linear-gradient(135deg, #fffacd, #ffeb3b);
+            box-shadow: 0 0 15px rgba(255,235,59,0.7);
         }
         
         .coin-face {
@@ -378,6 +383,60 @@
         .info-frame p {
             margin: 0;
             line-height: 1.6;
+        }
+        
+        /* 历史记录样式 */
+        .divination-history {
+            background: rgba(255,255,255,0.8);
+            padding: 25px;
+            border-radius: 15px;
+            margin: 30px 0;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.4);
+        }
+        
+        .history-item {
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            background: rgba(255,255,255,0.9);
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .history-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+        }
+        
+        .history-gua {
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        
+        .history-date {
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .clear-history {
+            margin-top: 20px;
+            padding: 10px 15px;
+            background: rgba(237, 28, 36, 0.1);
+            color: var(--primary-color);
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .clear-history:hover {
+            background: rgba(237, 28, 36, 0.2);
         }
         
         /* 响应式调整 */
@@ -976,7 +1035,9 @@
         function autoCastCoins() {
             const coins = document.querySelectorAll('.coin');
             coins.forEach(coin => {
-                flipCoin(coin);
+                if (!coin.dataset.side) {
+                    flipCoin(coin);
+                }
             });
             
             // 1秒后自动记录结果
@@ -1001,6 +1062,9 @@
                     coin.dataset.side = 'tail';
                     coin.style.transform = 'rotateY(180deg)';
                 }
+                
+                // 添加选中效果
+                coin.classList.add('selected');
                 
                 // 更新状态显示
                 updateCoinStatus();
@@ -1104,6 +1168,7 @@
             coins.forEach(coin => {
                 delete coin.dataset.side;
                 coin.style.transform = 'rotateY(0deg)';
+                coin.classList.remove('selected');
             });
             
             // 更新状态显示
@@ -1153,7 +1218,7 @@
             
             // 显示时间和方法
             document.getElementById('divination-time').textContent = date.toLocaleString();
-            document.getElementById('divination-method').textContent = "钱币摇卦";
+            document.getElementById('divination-method').textContent = "时间起卦";
             
             // 显示结果
             showResult();
@@ -1189,7 +1254,7 @@
             // 显示时间和方法
             const now = new Date();
             document.getElementById('divination-time').textContent = now.toLocaleString();
-            document.getElementById('divination-method').textContent = "钱币摇卦";
+            document.getElementById('divination-method').textContent = "数字起卦";
             
             // 显示结果
             showResult();
@@ -1595,6 +1660,7 @@
             coins.forEach(coin => {
                 delete coin.dataset.side;
                 coin.style.transform = 'rotateY(0deg)';
+                coin.classList.remove('selected');
             });
             
             // 滚动到顶部
