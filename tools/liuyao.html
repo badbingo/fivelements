@@ -340,6 +340,45 @@
             color: var(--primary-color);
             margin-right: 10px;
         }
+
+        /* 新增样式：卦象信息框架 */
+        .info-frames {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .info-frame {
+            flex: 1;
+            min-width: 200px;
+            margin: 0 10px 20px;
+            background: rgba(255,255,255,0.7);
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.4);
+        }
+
+        .info-frame h3 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid rgba(237, 28, 36, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1.1rem;
+        }
+
+        .info-frame h3 i {
+            font-size: 1em;
+        }
+
+        .info-frame p {
+            margin: 0;
+            line-height: 1.6;
+        }
         
         /* 响应式调整 */
         @media (max-width: 768px) {
@@ -369,6 +408,15 @@
             .method-btn {
                 width: 100%;
                 justify-content: center;
+            }
+
+            .info-frames {
+                flex-direction: column;
+            }
+
+            .info-frame {
+                margin: 0 0 15px;
+                min-width: auto;
             }
         }
     </style>
@@ -673,15 +721,22 @@
                 </div>
             </div>
             
-            <div class="gua-description">
-                <h3><i class="fas fa-question"></i> 占卜问题</h3>
-                <p id="question-display">暂无问题</p>
+            <!-- 新增：信息框架横向排列 -->
+            <div class="info-frames">
+                <div class="info-frame">
+                    <h3><i class="fas fa-question"></i> 占卜问题</h3>
+                    <p id="question-display">暂无问题</p>
+                </div>
                 
-                <h3><i class="fas fa-calendar-alt"></i> 占卜时间</h3>
-                <p id="divination-time">暂无时间</p>
+                <div class="info-frame">
+                    <h3><i class="fas fa-calendar-alt"></i> 占卜时间</h3>
+                    <p id="divination-time">暂无时间</p>
+                </div>
                 
-                <h3><i class="fas fa-dice"></i> 起卦方式</h3>
-                <p id="divination-method">暂无</p>
+                <div class="info-frame">
+                    <h3><i class="fas fa-dice"></i> 起卦方式</h3>
+                    <p id="divination-method">暂无</p>
+                </div>
             </div>
             
             <div class="hexagram-container" id="hexagram-display">
@@ -696,7 +751,7 @@
                 <div class="result-card">
                     <h3><i class="fas fa-info-circle"></i> 卦象解析</h3>
                     <div id="gua-image-container">
-                        <img src="" alt="卦象图" class="gua-image" id="gua-image" style="display: none;">
+                        <img src="../images/hexagrams/qian.png" alt="卦象图" class="gua-image" id="gua-image">
                     </div>
                     <div class="interpretation-text" id="gua-interpretation">
                         <!-- 卦象解析将通过JavaScript动态生成 -->
@@ -1098,7 +1153,7 @@
             
             // 显示时间和方法
             document.getElementById('divination-time').textContent = date.toLocaleString();
-            document.getElementById('divination-method').textContent = "时间起卦";
+            document.getElementById('divination-method').textContent = "钱币摇卦";
             
             // 显示结果
             showResult();
@@ -1134,7 +1189,7 @@
             // 显示时间和方法
             const now = new Date();
             document.getElementById('divination-time').textContent = now.toLocaleString();
-            document.getElementById('divination-method').textContent = "数字起卦";
+            document.getElementById('divination-method').textContent = "钱币摇卦";
             
             // 显示结果
             showResult();
@@ -1219,7 +1274,7 @@
             // 获取卦象信息
             const guaInfo = guaData[hexagramCode] || { 
                 name: "未知卦", 
-                image: "placeholder.png", 
+                image: "qian.png", 
                 interpretation: "此卦象暂无详细解释。" 
             };
             
@@ -1235,7 +1290,8 @@
                 guaImage.src = `../images/hexagrams/${guaInfo.image}`;
                 guaImage.style.display = 'block';
             } else {
-                guaImage.style.display = 'none';
+                guaImage.src = '../images/hexagrams/qian.png';
+                guaImage.style.display = 'block';
             }
             
             // 显示卦象解析
@@ -1273,7 +1329,7 @@
             document.getElementById('loading-indicator').style.display = 'block';
             
             // 从DeepSeek API获取详细卦辞
-            fetchGuaDetailFromAPI(guaInfo.name, hexagramCode, changingYao);
+            fetchGuaDetailFromAPI(currentQuestion, guaInfo.name, hexagramCode, changingYao);
             
             // 显示结果区域
             document.getElementById('hexagram-section').style.display = 'block';
@@ -1283,24 +1339,26 @@
         }
         
         // 从DeepSeek API获取卦辞详解
-        async function fetchGuaDetailFromAPI(guaName, hexagramCode, changingYao) {
+        async function fetchGuaDetailFromAPI(question, guaName, hexagramCode, changingYao) {
             try {
-                const prompt = `请详细解释《易经》中的${guaName}卦（卦象编码：${hexagramCode}），请按照以下结构用中文回答：
+                const prompt = `用户占卜问题："${question}"
+                
+请详细解释《易经》中的${guaName}卦（卦象编码：${hexagramCode}），并结合用户的问题给出针对性解答，请按照以下结构用中文回答：
                 
 1. 卦象概述：
-   用一段话简要说明此卦的核心含义
+   用一段话简要说明此卦的核心含义，以及与用户问题的关联
 
 2. 象征意义：
    详细解释卦象的象征意义，包括上下卦的组合含义
 
 3. 变爻分析：
-   ${changingYao.length > 0 ? '重点分析第' + changingYao.join('、') + '爻的变化含义' : '本次占卜无变爻，说明事情将保持现状'}
+   ${changingYao.length > 0 ? '重点分析第' + changingYao.join('、') + '爻的变化含义及其对用户问题的启示' : '本次占卜无变爻，说明事情将保持现状'}
 
 4. 传统卦辞：
    解释此卦的传统卦辞和爻辞含义
 
 5. 现实应用：
-   给出此卦在现实生活中的应用建议
+   针对用户的具体问题，给出此卦在现实生活中的应用建议
 
 6. 注意事项：
    提醒占卜者需要注意的关键点
