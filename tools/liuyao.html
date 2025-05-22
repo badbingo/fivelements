@@ -298,6 +298,21 @@
             border-radius: 3px;
         }
         
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(237, 28, 36, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--primary-color);
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
         /* 响应式调整 */
         @media (max-width: 768px) {
             .coin-container {
@@ -649,7 +664,9 @@
             <div class="result-grid">
                 <div class="result-card">
                     <h3><i class="fas fa-info-circle"></i> 卦象解析</h3>
-                    <img src="https://via.placeholder.com/120" alt="卦象图" class="gua-image" id="gua-image">
+                    <div id="gua-image-container">
+                        <img src="" alt="卦象图" class="gua-image" id="gua-image" style="display: none;">
+                    </div>
                     <div class="interpretation-text" id="gua-interpretation">
                         <!-- 卦象解析将通过JavaScript动态生成 -->
                     </div>
@@ -673,7 +690,10 @@
             <div class="gua-description">
                 <h3><i class="fas fa-book"></i> 卦辞详解</h3>
                 <div id="gua-detail">
-                    <!-- 卦辞详解将通过JavaScript动态生成 -->
+                    <p id="gua-detail-content">正在获取卦辞详解...</p>
+                    <div id="loading-indicator" style="display: none;">
+                        <span class="loading"></span>正在从DeepSeek API获取详细解释...
+                    </div>
                 </div>
             </div>
         </div>
@@ -695,6 +715,10 @@
     </footer>
 
     <script>
+        // DeepSeek API配置
+        const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
+        const apiKey = 'sk-b2950087a9d5427392762814114b22a9';
+        
         // 六爻卦象数据
         const guaData = {
             "111111": { name: "乾为天", image: "qian.png", interpretation: "乾卦象征天，代表刚健、创始、主动。占得此卦者，往往表示事情将会顺利发展，但需要保持积极进取的态度。" },
@@ -1021,7 +1045,7 @@
             currentHexagram = generateHexagramFromNumbers(upperNum, lowerNum, changingYaoPos);
             castCount = 6;
             
-            // 显示时间
+            // 显示时间和方法
             document.getElementById('divination-time').textContent = date.toLocaleString();
             document.getElementById('divination-method').textContent = "时间起卦";
             
@@ -1056,7 +1080,7 @@
             currentHexagram = generateHexagramFromNumbers(upperNum, lowerNum, changingYaoPos);
             castCount = 6;
             
-            // 显示时间
+            // 显示时间和方法
             const now = new Date();
             document.getElementById('divination-time').textContent = now.toLocaleString();
             document.getElementById('divination-method').textContent = "数字起卦";
@@ -1155,7 +1179,13 @@
             document.getElementById('gua-name').textContent = guaInfo.name;
             
             // 显示卦象图
-            document.getElementById('gua-image').src = `../images/hexagrams/${guaInfo.image}`;
+            const guaImage = document.getElementById('gua-image');
+            if (guaInfo.image) {
+                guaImage.src = `../images/hexagrams/${guaInfo.image}`;
+                guaImage.style.display = 'block';
+            } else {
+                guaImage.style.display = 'none';
+            }
             
             // 显示卦象解析
             document.getElementById('gua-interpretation').innerHTML = `
@@ -1188,21 +1218,65 @@
             document.getElementById('advice').innerHTML = advice;
             
             // 显示卦辞详解
-            let guaDetail = "<p>暂无详细卦辞。</p>";
-            if (yaoData[hexagramCode]) {
-                guaDetail = "<ul>";
-                yaoData[hexagramCode].forEach((yao, index) => {
-                    guaDetail += `<li>${yao}</li>`;
-                });
-                guaDetail += "</ul>";
-            }
-            document.getElementById('gua-detail').innerHTML = guaDetail;
+            document.getElementById('gua-detail-content').textContent = "正在获取卦辞详解...";
+            document.getElementById('loading-indicator').style.display = 'block';
+            
+            // 从DeepSeek API获取详细卦辞
+            fetchGuaDetailFromAPI(guaInfo.name, hexagramCode, changingYao);
             
             // 显示结果区域
             document.getElementById('hexagram-section').style.display = 'block';
             
             // 滚动到结果区域
             document.getElementById('hexagram-section').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        // 从DeepSeek API获取卦辞详解
+        async function fetchGuaDetailFromAPI(guaName, hexagramCode, changingYao) {
+            try {
+                const prompt = `请详细解释《易经》中的${guaName}卦（卦象编码：${hexagramCode}），包括：
+1. 卦象的基本含义
+2. 卦象的象征意义
+3. 变爻位置：${changingYao.length > 0 ? '第' + changingYao.join('、') + '爻' : '无变爻'}
+4. 对占卜者的建议
+5. 传统卦辞的解释
+
+请用中文回答，内容要详细专业，适合命理学习者。`;
+                
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: "deepseek-chat",
+                        messages: [
+                            {
+                                role: "user",
+                                content: prompt
+                            }
+                        ],
+                        temperature: 0.7
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`API请求失败: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                const guaDetail = data.choices[0].message.content;
+                
+                document.getElementById('gua-detail-content').innerHTML = guaDetail;
+                document.getElementById('loading-indicator').style.display = 'none';
+            } catch (error) {
+                console.error('获取卦辞详解失败:', error);
+                document.getElementById('gua-detail-content').innerHTML = 
+                    `<p>获取卦辞详解失败: ${error.message}</p>
+                     <p>以下是基础解释: ${guaData[hexagramCode]?.interpretation || '暂无解释'}</p>`;
+                document.getElementById('loading-indicator').style.display = 'none';
+            }
         }
         
         // 生成建议指导
