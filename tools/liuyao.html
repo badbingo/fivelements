@@ -82,6 +82,7 @@
             position: relative;
             transform-style: preserve-3d;
             cursor: pointer;
+            transition: transform 0.6s ease;
         }
         
         .coin-face {
@@ -313,6 +314,33 @@
             to { transform: rotate(360deg); }
         }
         
+        /* 卦辞详解样式 */
+        .detail-title {
+            color: var(--primary-color);
+            margin: 20px 0 10px;
+            padding-bottom: 5px;
+            border-bottom: 1px dashed rgba(237, 28, 36, 0.3);
+        }
+        
+        .detail-para {
+            line-height: 1.8;
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+        
+        .detail-highlight {
+            background-color: rgba(255, 235, 59, 0.2);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .detail-highlight i {
+            color: var(--primary-color);
+            margin-right: 10px;
+        }
+        
         /* 响应式调整 */
         @media (max-width: 768px) {
             .coin-container {
@@ -535,6 +563,9 @@
                                 </div>
                             </div>
                             <div class="form-buttons">
+                                <button type="button" id="auto-cast-btn" class="btn btn-action">
+                                    <i class="fas fa-bolt"></i> 自动摇卦
+                                </button>
                                 <button type="button" id="cast-btn" class="btn btn-primary">
                                     <i class="fas fa-random"></i> 摇卦（<span id="cast-count">0</span>/6）
                                 </button>
@@ -822,6 +853,13 @@
                 });
             });
             
+            // 自动摇卦按钮
+            document.getElementById('auto-cast-btn').addEventListener('click', function() {
+                if (currentMethod === 'coin' && castCount < 6) {
+                    autoCastCoins();
+                }
+            });
+            
             // 摇卦按钮
             document.getElementById('cast-btn').addEventListener('click', function() {
                 if (currentMethod === 'coin') {
@@ -879,13 +917,23 @@
             document.getElementById('time').value = timeStr;
         });
         
+        // 自动摇卦函数
+        function autoCastCoins() {
+            const coins = document.querySelectorAll('.coin');
+            coins.forEach(coin => {
+                flipCoin(coin);
+            });
+            
+            // 1秒后自动记录结果
+            setTimeout(() => {
+                if (countSetCoins() === 3) {
+                    castWithCoins();
+                }
+            }, 1200);
+        }
+        
         // 钱币翻转动画
         function flipCoin(coin) {
-            // 检查是否已经设置过正反面
-            if (coin.dataset.side) {
-                return;
-            }
-            
             coin.classList.add('flipping');
             setTimeout(() => {
                 coin.classList.remove('flipping');
@@ -893,8 +941,10 @@
                 const isHead = Math.random() > 0.5;
                 if (isHead) {
                     coin.dataset.side = 'head';
+                    coin.style.transform = 'rotateY(0deg)';
                 } else {
                     coin.dataset.side = 'tail';
+                    coin.style.transform = 'rotateY(180deg)';
                 }
                 
                 // 更新状态显示
@@ -998,6 +1048,7 @@
             // 重置钱币状态
             coins.forEach(coin => {
                 delete coin.dataset.side;
+                coin.style.transform = 'rotateY(0deg)';
             });
             
             // 更新状态显示
@@ -1234,14 +1285,27 @@
         // 从DeepSeek API获取卦辞详解
         async function fetchGuaDetailFromAPI(guaName, hexagramCode, changingYao) {
             try {
-                const prompt = `请详细解释《易经》中的${guaName}卦（卦象编码：${hexagramCode}），包括：
-1. 卦象的基本含义
-2. 卦象的象征意义
-3. 变爻位置：${changingYao.length > 0 ? '第' + changingYao.join('、') + '爻' : '无变爻'}
-4. 对占卜者的建议
-5. 传统卦辞的解释
+                const prompt = `请详细解释《易经》中的${guaName}卦（卦象编码：${hexagramCode}），请按照以下结构用中文回答：
+                
+1. 卦象概述：
+   用一段话简要说明此卦的核心含义
 
-请用中文回答，内容要详细专业，适合命理学习者。`;
+2. 象征意义：
+   详细解释卦象的象征意义，包括上下卦的组合含义
+
+3. 变爻分析：
+   ${changingYao.length > 0 ? '重点分析第' + changingYao.join('、') + '爻的变化含义' : '本次占卜无变爻，说明事情将保持现状'}
+
+4. 传统卦辞：
+   解释此卦的传统卦辞和爻辞含义
+
+5. 现实应用：
+   给出此卦在现实生活中的应用建议
+
+6. 注意事项：
+   提醒占卜者需要注意的关键点
+
+内容要详细专业，适合命理学习者，使用清晰的分段和标题。`;
                 
                 const response = await fetch(apiUrl, {
                     method: 'POST',
@@ -1266,17 +1330,66 @@
                 }
                 
                 const data = await response.json();
-                const guaDetail = data.choices[0].message.content;
+                const rawContent = data.choices[0].message.content;
                 
-                document.getElementById('gua-detail-content').innerHTML = guaDetail;
+                // 格式化卦辞详解
+                const formattedContent = formatGuaDetail(rawContent);
+                document.getElementById('gua-detail-content').innerHTML = formattedContent;
                 document.getElementById('loading-indicator').style.display = 'none';
             } catch (error) {
                 console.error('获取卦辞详解失败:', error);
                 document.getElementById('gua-detail-content').innerHTML = 
-                    `<p>获取卦辞详解失败: ${error.message}</p>
-                     <p>以下是基础解释: ${guaData[hexagramCode]?.interpretation || '暂无解释'}</p>`;
+                    `<div class="detail-highlight"><i class="fas fa-exclamation-triangle"></i> 获取卦辞详解失败: ${error.message}</div>
+                     <p class="detail-para">${guaData[hexagramCode]?.interpretation || '暂无解释'}</p>`;
                 document.getElementById('loading-indicator').style.display = 'none';
             }
+        }
+        
+        // 卦辞格式化函数
+        function formatGuaDetail(text) {
+            // 分割段落
+            let paragraphs = text.split('\n').filter(p => p.trim() !== '');
+            
+            // 如果没有明显分段，尝试按句号分
+            if (paragraphs.length <= 1) {
+                paragraphs = text.split(/[。！？]/).filter(p => p.trim() !== '');
+            }
+            
+            // 识别标题和关键部分
+            let html = '';
+            paragraphs.forEach(para => {
+                para = para.trim();
+                if (!para) return;
+                
+                // 识别标题（包含数字或冒号的部分）
+                if (/^\d+[、.]/.test(para) || /[:：]$/.test(para)) {
+                    html += `<h4 class="detail-title">${para}</h4>`;
+                } 
+                // 识别重点内容
+                else if (para.includes('建议') || para.includes('注意') || para.includes('关键')) {
+                    html += `<div class="detail-highlight"><i class="fas fa-lightbulb"></i> ${para}</div>`;
+                }
+                // 识别列表项
+                else if (para.startsWith('-') || para.startsWith('•')) {
+                    if (!html.includes('<ul>')) html += '<ul>';
+                    html += `<li>${para.substring(1).trim()}</li>`;
+                }
+                // 普通段落
+                else {
+                    // 如果上一项是ul，先闭合
+                    if (html.includes('<ul>') && !html.includes('</ul>')) {
+                        html += '</ul>';
+                    }
+                    html += `<p class="detail-para">${para}</p>`;
+                }
+            });
+            
+            // 确保ul标签闭合
+            if (html.includes('<ul>') && !html.includes('</ul>')) {
+                html += '</ul>';
+            }
+            
+            return html;
         }
         
         // 生成建议指导
@@ -1423,10 +1536,8 @@
             const coins = document.querySelectorAll('.coin');
             coins.forEach(coin => {
                 delete coin.dataset.side;
+                coin.style.transform = 'rotateY(0deg)';
             });
-            
-            // 重置问题（保留）
-            // document.getElementById('question').value = '';
             
             // 滚动到顶部
             window.scrollTo({ top: 0, behavior: 'smooth' });
