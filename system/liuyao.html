@@ -353,6 +353,45 @@
             margin-right: 10px;
         }
 
+        /* 新增样式：卦象信息框架 */
+        .info-frames {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .info-frame {
+            flex: 1;
+            min-width: 200px;
+            margin: 0 10px 20px;
+            background: rgba(255,255,255,0.7);
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.4);
+        }
+
+        .info-frame h3 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid rgba(237, 28, 36, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1.1rem;
+        }
+
+        .info-frame h3 i {
+            font-size: 1em;
+        }
+
+        .info-frame p {
+            margin: 0;
+            line-height: 1.6;
+        }
+        
         /* 历史记录样式 */
         .divination-history {
             background: rgba(255,255,255,0.8);
@@ -435,6 +474,15 @@
             .method-btn {
                 width: 100%;
                 justify-content: center;
+            }
+
+            .info-frames {
+                flex-direction: column;
+            }
+
+            .info-frame {
+                margin: 0 0 15px;
+                min-width: auto;
             }
         }
     </style>
@@ -736,6 +784,24 @@
                 </div>
             </div>
             
+            <!-- 新增：信息框架横向排列 -->
+            <div class="info-frames">
+                <div class="info-frame">
+                    <h3><i class="fas fa-question"></i> 占卜问题</h3>
+                    <p id="question-display">暂无问题</p>
+                </div>
+                
+                <div class="info-frame">
+                    <h3><i class="fas fa-calendar-alt"></i> 占卜时间</h3>
+                    <p id="divination-time">暂无时间</p>
+                </div>
+                
+                <div class="info-frame">
+                    <h3><i class="fas fa-dice"></i> 起卦方式</h3>
+                    <p id="divination-method">暂无</p>
+                </div>
+            </div>
+            
             <div class="hexagram-container" id="hexagram-display">
                 <!-- 卦象将通过JavaScript动态生成 -->
             </div>
@@ -752,13 +818,6 @@
                     </div>
                     <div class="interpretation-text" id="gua-interpretation">
                         <!-- 卦象解析将通过JavaScript动态生成 -->
-                    </div>
-                </div>
-                
-                <div class="result-card">
-                    <h3><i class="fas fa-history"></i> 摇卦记录</h3>
-                    <div id="casting-records">
-                        <!-- 摇卦记录将通过JavaScript动态生成 -->
                     </div>
                 </div>
             </div>
@@ -913,7 +972,6 @@
         let currentQuestion = "";
         let currentMethod = "coin";
         let castCount = 0;
-        let castingRecords = [];
         let history = JSON.parse(localStorage.getItem('divinationHistory')) || [];
         
         // DOM加载完成后执行
@@ -1083,7 +1141,6 @@
                 const now = new Date();
                 document.getElementById('divination-time').textContent = now.toLocaleString();
                 document.getElementById('divination-method').textContent = "钱币摇卦";
-                castingRecords = []; // 重置摇卦记录
             }
             
             const coins = document.querySelectorAll('.coin');
@@ -1105,28 +1162,22 @@
             
             // 确定爻的性质
             let yao;
-            let recordText = "";
             switch (headCount) {
                 case 0: // 三个反面，老阴，变爻
                     yao = { type: '6', line: '000', changing: true };
-                    recordText = "第" + (castCount + 1) + "次：三枚反面（老阴，变爻）";
                     break;
                 case 1: // 一个正面，少阳，不变
                     yao = { type: '7', line: '001', changing: false };
-                    recordText = "第" + (castCount + 1) + "次：一枚正面（少阴，不变）";
                     break;
                 case 2: // 两个正面，少阴，不变
                     yao = { type: '8', line: '010', changing: false };
-                    recordText = "第" + (castCount + 1) + "次：两枚正面（少阳，不变）";
                     break;
                 case 3: // 三个正面，老阳，变爻
                     yao = { type: '9', line: '111', changing: true };
-                    recordText = "第" + (castCount + 1) + "次：三枚正面（老阳，变爻）";
                     break;
             }
             
             currentHexagram.push(yao);
-            castingRecords.push(recordText);
             castCount++;
             
             // 更新摇卦次数显示
@@ -1161,7 +1212,6 @@
             }
             
             currentQuestion = question;
-            castingRecords = []; // 重置摇卦记录
             
             let dateTime = document.getElementById('time').value;
             if (!dateTime) {
@@ -1186,22 +1236,6 @@
             currentHexagram = generateHexagramFromNumbers(upperNum, lowerNum, changingYaoPos);
             castCount = 6;
             
-            // 生成摇卦记录
-            for (let i = 0; i < 6; i++) {
-                const yao = currentHexagram[i];
-                let recordText = "第" + (i + 1) + "次：";
-                if (yao.type === '6') {
-                    recordText += "老阴（变爻）";
-                } else if (yao.type === '7') {
-                    recordText += "少阳（不变）";
-                } else if (yao.type === '8') {
-                    recordText += "少阴（不变）";
-                } else if (yao.type === '9') {
-                    recordText += "老阳（变爻）";
-                }
-                castingRecords.push(recordText);
-            }
-            
             // 显示时间和方法
             document.getElementById('divination-time').textContent = date.toLocaleString();
             document.getElementById('divination-method').textContent = "时间起卦";
@@ -1219,7 +1253,6 @@
             }
             
             currentQuestion = question;
-            castingRecords = []; // 重置摇卦记录
             
             const num1 = parseInt(document.getElementById('number1').value);
             const num2 = parseInt(document.getElementById('number2').value);
@@ -1237,22 +1270,6 @@
             // 根据数字生成卦象
             currentHexagram = generateHexagramFromNumbers(upperNum, lowerNum, changingYaoPos);
             castCount = 6;
-            
-            // 生成摇卦记录
-            for (let i = 0; i < 6; i++) {
-                const yao = currentHexagram[i];
-                let recordText = "第" + (i + 1) + "次：";
-                if (yao.type === '6') {
-                    recordText += "老阴（变爻）";
-                } else if (yao.type === '7') {
-                    recordText += "少阳（不变）";
-                } else if (yao.type === '8') {
-                    recordText += "少阴（不变）";
-                } else if (yao.type === '9') {
-                    recordText += "老阳（变爻）";
-                }
-                castingRecords.push(recordText);
-            }
             
             // 显示时间和方法
             const now = new Date();
@@ -1367,15 +1384,6 @@
                 <p>${guaInfo.interpretation}</p>
                 <p><strong>卦象编码：</strong>${hexagramCode}</p>
             `;
-            
-            // 显示摇卦记录
-            const recordsContainer = document.getElementById('casting-records');
-            recordsContainer.innerHTML = '';
-            castingRecords.forEach(record => {
-                const p = document.createElement('p');
-                p.textContent = record;
-                recordsContainer.appendChild(p);
-            });
             
             // 显示结果区域
             document.getElementById('hexagram-section').style.display = 'block';
@@ -1569,7 +1577,6 @@
             
             // 根据卦象编码重建卦象
             currentHexagram = [];
-            castingRecords = []; // 重置摇卦记录
             for (let i = 0; i < record.hexagram.length; i++) {
                 const char = record.hexagram[i];
                 currentHexagram.push({
@@ -1577,15 +1584,6 @@
                     line: char === '1' ? '111' : '000',
                     changing: false
                 });
-                
-                // 生成摇卦记录
-                let recordText = "第" + (i + 1) + "次：";
-                if (char === '1') {
-                    recordText += "少阳（不变）";
-                } else {
-                    recordText += "少阴（不变）";
-                }
-                castingRecords.push(recordText);
             }
             
             castCount = 6;
