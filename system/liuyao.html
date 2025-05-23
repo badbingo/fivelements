@@ -1161,18 +1161,6 @@
     </footer>
 
     <script>
-        // 新增安全的随机数生成函数（放在脚本最前面）
-        function getSecureRandom() {
-            // 优先使用加密级随机数
-            if (window.crypto && window.crypto.getRandomValues) {
-                const array = new Uint32Array(1);
-                window.crypto.getRandomValues(array);
-                return array[0] / 4294967295;
-            }
-            // 备用方案（普通随机数+时间熵增强）
-            return Math.random() * performance.now() % 1;
-        }
-        
         // DeepSeek API配置
         const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
         const apiKey = 'sk-b2950087a9d5427392762814114b22a9';
@@ -1428,40 +1416,68 @@ function autoCastCoins() {
     // 快速完成6次摇卦
     function autoCastFull() {
         if (castCount >= 6) {
-            // 恢复按钮状态
-            document.getElementById('cast-status').textContent = "摇卦完成";
+            // 全部完成后恢复按钮状态
+            autoCastBtn.disabled = false;
+            castBtn.disabled = false;
+            resetBtn.disabled = false;
+            autoCastBtn.innerHTML = '<i class="fas fa-bolt"></i> 自动摇卦';
+            
+            // 自动滚动到结果区域
+            setTimeout(() => {
+                document.getElementById('hexagram-section').scrollIntoView({ 
+                    behavior: 'smooth' 
+                });
+            }, 500);
             return;
         }
 
         const coins = document.querySelectorAll('.coin');
         let currentCoinIndex = 0;
         
-        // 改进的快速摇币（带随机延迟）
+        // 超快速摇动单个钱币（200ms完成）
+        function quickFlipCoin(coin, callback) {
+            coin.classList.add('quick-flipping');
+            setTimeout(() => {
+                coin.classList.remove('quick-flipping');
+                const isHead = Math.random() > 0.5;
+                coin.dataset.side = isHead ? 'head' : 'tail';
+                coin.style.transform = isHead ? 'rotateY(0deg)' : 'rotateY(180deg)';
+                coin.classList.add('selected', 'locked');
+                if (callback) callback();
+            }, 200); // 单个硬币动画时间200ms
+        }
+
+        // 依次快速摇三个钱币
         function flipNextQuickCoin() {
-            setTimeout(() => { // 关键修改：增加随机延迟
-                if (currentCoinIndex >= coins.length) {
-                    setTimeout(() => {
-                        castWithCoins();
-                        // 下一次摇卦增加随机间隔
-                        setTimeout(autoCastFull, 200 + Math.random() * 300);
-                    }, 200);
-                    return;
-                }
-                
-                const coin = coins[currentCoinIndex];
+            if (currentCoinIndex >= coins.length) {
+                // 三个钱币都摇完后，自动记录结果
+                setTimeout(() => {
+                    castWithCoins();
+                    // 继续下一次摇卦（间隔200ms）
+                    setTimeout(autoCastFull, 200);
+                }, 200);
+                return;
+            }
+            
+            const coin = coins[currentCoinIndex];
+            if (!coin.classList.contains('locked')) {
+                // 显示当前正在摇的硬币
                 coin.classList.add('highlight-coin');
-                
-                // 使用改良的flipCoin
-                flipCoin(coin, () => {
+                quickFlipCoin(coin, () => {
                     coin.classList.remove('highlight-coin');
                     currentCoinIndex++;
                     flipNextQuickCoin();
                 });
-            }, Math.random() * 100); // 随机延迟
+            } else {
+                currentCoinIndex++;
+                flipNextQuickCoin();
+            }
         }
         
+        // 更新状态显示
         document.getElementById('cast-status').textContent = 
-            `自动进行第 ${castCount + 1} 次摇卦...`;
+            `正在自动进行第 ${castCount + 1} 次摇卦...`;
+        
         flipNextQuickCoin();
     }
     
@@ -1471,11 +1487,10 @@ function autoCastCoins() {
 // 改进的钱币翻转动画，增加回调函数
 function flipCoin(coin, callback) {
     coin.classList.add('flipping');
-    // 增加随机延迟（50-150ms）
     setTimeout(() => {
         coin.classList.remove('flipping');
-        const isHead = getSecureRandom() > 0.5; // 使用增强随机数
-        
+        // 随机决定是正面还是反面
+        const isHead = Math.random() > 0.5;
         if (isHead) {
             coin.dataset.side = 'head';
             coin.style.transform = 'rotateY(0deg)';
@@ -1484,12 +1499,18 @@ function flipCoin(coin, callback) {
             coin.style.transform = 'rotateY(180deg)';
         }
         
-        coin.classList.add('selected', 'locked');
-        updateCoinStatus();
-        if (callback) callback();
-    }, 50 + Math.random() * 100);
-}
+        // 添加选中效果并锁定
+        coin.classList.add('selected');
+        coin.classList.add('locked');
         
+        // 更新状态显示
+        updateCoinStatus();
+        
+        // 执行回调函数
+        if (callback) callback();
+    }, 1000);
+}
+
 // 更新钱币状态显示
 function updateCoinStatus() {
     const coins = document.querySelectorAll('.coin');
@@ -1876,10 +1897,10 @@ function generateHexagramSvg(hexagramCode) {
         } else {
             // 阴爻（两段虚线）
             svgContent += `
-                <line x1="20" y1="${yPos}" x2="50" y2="${yPos}" 
+                <line x1="20" y1="${yPos}" x2="58" y2="${yPos}" 
                       stroke="#8e44ad" stroke-width="${lineHeight}" 
                       stroke-linecap="round" class="yin-line"/>
-                <line x1="70" y1="${yPos}" x2="100" y2="${yPos}" 
+                <line x1="62" y1="${yPos}" x2="100" y2="${yPos}" 
                       stroke="#8e44ad" stroke-width="${lineHeight}" 
                       stroke-linecap="round" class="yin-line"/>
             `;
@@ -2144,28 +2165,24 @@ function getYaoChangeInterpretation(count, hexagramCode) {
         
         // 重置占卜
         function resetDivination() {
-    currentHexagram = [];
-    castCount = 0;
-    
-    // 增强的状态清除
-    const coins = document.querySelectorAll('.coin');
-    coins.forEach(coin => {
-        delete coin.dataset.side;
-        coin.style.transform = 'rotateY(0deg)';
-        // 清除所有可能的状态类
-        coin.classList.remove(
-            'selected', 
-            'locked', 
-            'highlight-coin',
-            'flipping',
-            'quick-flipping'
-        );
-    });
-    
-    document.getElementById('cast-count').textContent = '0';
-    document.getElementById('cast-status').textContent = '准备开始';
-    document.getElementById('hexagram-section').style.display = 'none';
-}
+            currentHexagram = [];
+            castCount = 0;
+            document.getElementById('hexagram-display').innerHTML = '';
+            document.getElementById('hexagram-section').style.display = 'none';
+            document.getElementById('cast-count').textContent = '0';
+            document.getElementById('cast-status').textContent = '准备开始，请点击钱币确定正反面';
+            
+            // 重置钱币
+            const coins = document.querySelectorAll('.coin');
+            coins.forEach(coin => {
+                delete coin.dataset.side;
+                coin.style.transform = 'rotateY(0deg)';
+                coin.classList.remove('selected');
+            });
+            
+            // 滚动到顶部
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
     </script>
 </body>
 </html>
