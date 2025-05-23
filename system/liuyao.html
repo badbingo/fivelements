@@ -440,7 +440,18 @@
         .clear-history:hover {
             background: rgba(237, 28, 36, 0.2);
         }
+        /* 添加锁定状态的样式 */
+        .coin.locked {
+            pointer-events: none; /* 禁止点击 */
+            opacity: 0.8; /* 降低透明度表示锁定 */
+            box-shadow: 0 0 15px rgba(255,235,59,0.9); /* 更明显的选中效果 */
+        }
         
+        /* 修改选中状态的样式 */
+        .coin.selected {
+            background: linear-gradient(135deg, #fffacd, #ffeb3b);
+            box-shadow: 0 0 20px rgba(255,235,59,0.9);
+        }
         /* 响应式调整 */
         @media (max-width: 768px) {
             .coin-container {
@@ -1155,80 +1166,138 @@
         
         // 使用钱币摇卦
         function castWithCoins() {
-            const question = document.getElementById('question').value.trim();
-            if (!question) {
-                alert('请输入占卜问题');
-                return;
-            }
-            
-            // 第一次摇卦时设置问题
-            if (castCount === 0) {
-                currentQuestion = question;
-                // 设置占卜时间和方法
-                const now = new Date();
-                document.getElementById('divination-time').textContent = now.toLocaleString();
-                document.getElementById('divination-method').textContent = "钱币摇卦";
-            }
-            
             const coins = document.querySelectorAll('.coin');
-            let allCoinsSet = true;
-            let headCount = 0;
-            
             coins.forEach(coin => {
-                if (!coin.dataset.side) {
-                    allCoinsSet = false;
-                } else if (coin.dataset.side === 'head') {
-                    headCount++;
-                }
+                coin.addEventListener('click', function() {
+                    // 只有当钱币未被锁定且当前轮次未完成时才允许点击
+                    if (!this.classList.contains('locked') && castCount < 6) {
+                        flipCoin(this);
+                        // 锁定钱币
+                        this.classList.add('locked');
+                    }
+                });
             });
             
-            if (!allCoinsSet) {
-                alert('请先点击所有钱币确定正反面');
-                return;
+            // 修改flipCoin函数
+            function flipCoin(coin) {
+                coin.classList.add('flipping');
+                setTimeout(() => {
+                    coin.classList.remove('flipping');
+                    // 随机决定是正面还是反面
+                    const isHead = Math.random() > 0.5;
+                    if (isHead) {
+                        coin.dataset.side = 'head';
+                        coin.style.transform = 'rotateY(0deg)';
+                    } else {
+                        coin.dataset.side = 'tail';
+                        coin.style.transform = 'rotateY(180deg)';
+                    }
+                    
+                    // 添加选中效果
+                    coin.classList.add('selected');
+                    
+                    // 更新状态显示
+                    updateCoinStatus();
+                }, 1000);
             }
             
-            // 确定爻的性质
-            let yao;
-            switch (headCount) {
-                case 0: // 三个反面，老阴，变爻
-                    yao = { type: '6', line: '000', changing: true };
-                    break;
-                case 1: // 一个正面，少阳，不变
-                    yao = { type: '7', line: '001', changing: false };
-                    break;
-                case 2: // 两个正面，少阴，不变
-                    yao = { type: '8', line: '010', changing: false };
-                    break;
-                case 3: // 三个正面，老阳，变爻
-                    yao = { type: '9', line: '111', changing: true };
-                    break;
+            // 修改castWithCoins函数
+            function castWithCoins() {
+                const question = document.getElementById('question').value.trim();
+                if (!question) {
+                    alert('请输入占卜问题');
+                    return;
+                }
+                
+                // 第一次摇卦时设置问题
+                if (castCount === 0) {
+                    currentQuestion = question;
+                    // 设置占卜时间和方法
+                    const now = new Date();
+                    document.getElementById('divination-time').textContent = now.toLocaleString();
+                    document.getElementById('divination-method').textContent = "钱币摇卦";
+                }
+                
+                const coins = document.querySelectorAll('.coin');
+                let allCoinsSet = true;
+                let headCount = 0;
+                
+                coins.forEach(coin => {
+                    if (!coin.dataset.side) {
+                        allCoinsSet = false;
+                    } else if (coin.dataset.side === 'head') {
+                        headCount++;
+                    }
+                });
+                
+                if (!allCoinsSet) {
+                    alert('请先点击所有钱币确定正反面');
+                    return;
+                }
+                
+                // 确定爻的性质
+                let yao;
+                switch (headCount) {
+                    case 0: // 三个反面，老阴，变爻
+                        yao = { type: '6', line: '000', changing: true };
+                        break;
+                    case 1: // 一个正面，少阳，不变
+                        yao = { type: '7', line: '001', changing: false };
+                        break;
+                    case 2: // 两个正面，少阴，不变
+                        yao = { type: '8', line: '010', changing: false };
+                        break;
+                    case 3: // 三个正面，老阳，变爻
+                        yao = { type: '9', line: '111', changing: true };
+                        break;
+                }
+                
+                currentHexagram.push(yao);
+                castCount++;
+                
+                // 更新摇卦次数显示
+                document.getElementById('cast-count').textContent = castCount;
+                
+                // 重置钱币状态（解锁并清除状态）
+                coins.forEach(coin => {
+                    delete coin.dataset.side;
+                    coin.style.transform = 'rotateY(0deg)';
+                    coin.classList.remove('selected');
+                    coin.classList.remove('locked'); // 解锁钱币
+                });
+                
+                // 更新状态显示
+                document.getElementById('cast-status').textContent = `第 ${castCount} 次摇卦完成，请继续点击钱币`;
+                
+                // 更新UI
+                updateHexagramDisplay();
+                
+                // 如果已经摇了6次，显示结果
+                if (castCount === 6) {
+                    showResult();
+                }
             }
+        // 修改resetDivination函数
+        function resetDivination() {
+            currentHexagram = [];
+            castCount = 0;
+            document.getElementById('hexagram-display').innerHTML = '';
+            document.getElementById('hexagram-section').style.display = 'none';
+            document.getElementById('cast-count').textContent = '0';
+            document.getElementById('cast-status').textContent = '准备开始，请点击钱币确定正反面';
             
-            currentHexagram.push(yao);
-            castCount++;
-            
-            // 更新摇卦次数显示
-            document.getElementById('cast-count').textContent = castCount;
-            
-            // 重置钱币状态
+            // 重置钱币
+            const coins = document.querySelectorAll('.coin');
             coins.forEach(coin => {
                 delete coin.dataset.side;
                 coin.style.transform = 'rotateY(0deg)';
                 coin.classList.remove('selected');
+                coin.classList.remove('locked'); // 解锁钱币
             });
             
-            // 更新状态显示
-            document.getElementById('cast-status').textContent = `第 ${castCount} 次摇卦完成，请继续点击钱币`;
-            
-            // 更新UI
-            updateHexagramDisplay();
-            
-            // 如果已经摇了6次，显示结果
-            if (castCount === 6) {
-                showResult();
-            }
+            // 滚动到顶部
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
-        
         // 使用时间起卦
         function castWithTime() {
             const question = document.getElementById('question').value.trim();
