@@ -1789,29 +1789,30 @@ function showResult() {
     // 显示问题
     document.getElementById('question-display').textContent = currentQuestion;
 
-    // 只显示卦名（移除原来包含大卦象图的整个div）
-    document.getElementById('gua-name').innerHTML = `
-        <div class="simplified-gua-title">
-            <i class="fas fa-hexagon"></i>
-            <span>${guaInfo.name}</span>
-        </div>
-    `;
+    // 显示卦名（大标题保留）
+    document.getElementById('gua-name').textContent = guaInfo.name;
 
-    // 清空可能存在的卦象图容器
+    // 清空原有卦象图容器（移除空白图片）
     document.getElementById('gua-image-container').innerHTML = '';
 
-    // 显示整合后的卦象解析（包含小型SVG卦象图）
+    // 显示整合后的卦象解析（包含动态生成的卦象图）
     document.getElementById('gua-interpretation').innerHTML = `
         <div class="gua-result-container">
-            <div class="compact-hexagram-view">
-                ${generateCompactHexagram(hexagramCode)}
-                <div class="hexagram-meta">
-                    <span class="hexagram-code">${hexagramCode}</span>
-                    <span class="gua-structure">${getGuaStructure(hexagramCode)}</span>
+            <div class="gua-visual-box">
+                ${generateHexagramSvg(hexagramCode)}
+                <div class="gua-meta-box">
+                    <div class="gua-name-tag">${guaInfo.name}</div>
+                    <div class="hexagram-code">卦象编码：${hexagramCode}</div>
                 </div>
             </div>
             <div class="gua-text-content">
+                <h4><i class="fas fa-info-circle"></i> 卦象释义</h4>
                 <div class="interpretation-text">${guaInfo.interpretation}</div>
+                
+                <div class="gua-structure">
+                    <i class="fas fa-project-diagram"></i>
+                    <span>卦象结构：${getGuaStructure(hexagramCode)}</span>
+                </div>
             </div>
         </div>
     `;
@@ -1872,41 +1873,49 @@ function showResult() {
 }
         
 // 动态生成SVG卦象图
-function generateCompactHexagram(hexagramCode) {
-    const svgHeight = 100;
-    const lineSpacing = 14;
-    const lineHeight = 5;
+function generateHexagramSvg(hexagramCode) {
+    const svgWidth = 120;
+    const svgHeight = 180;
+    const lineHeight = 8;  // 爻线粗细
+    const spacing = 20;    // 爻间距
     
     let svgContent = '';
+    const yaoNames = ['初', '二', '三', '四', '五', '上'];
     
     // 从下往上绘制六爻
     for (let i = 0; i < 6; i++) {
-        const yPos = 15 + i * lineSpacing;
+        const yPos = 30 + i * spacing;
         const isYang = hexagramCode[5-i] === '1'; // 从下往上数
         
         if (isYang) {
             // 阳爻（实线）
             svgContent += `
-                <line x1="20" y1="${yPos}" x2="80" y2="${yPos}" 
+                <line x1="20" y1="${yPos}" x2="100" y2="${yPos}" 
                       stroke="#d4a017" stroke-width="${lineHeight}" 
-                      stroke-linecap="round"/>
+                      stroke-linecap="round" class="yang-line"/>
             `;
         } else {
             // 阴爻（两段虚线）
             svgContent += `
-                <line x1="20" y1="${yPos}" x2="50" y2="${yPos}" 
+                <line x1="20" y1="${yPos}" x2="58" y2="${yPos}" 
                       stroke="#8e44ad" stroke-width="${lineHeight}" 
-                      stroke-linecap="round"/>
-                <line x1="54" y1="${yPos}" x2="80" y2="${yPos}" 
+                      stroke-linecap="round" class="yin-line"/>
+                <line x1="62" y1="${yPos}" x2="100" y2="${yPos}" 
                       stroke="#8e44ad" stroke-width="${lineHeight}" 
-                      stroke-linecap="round"/>
+                      stroke-linecap="round" class="yin-line"/>
             `;
         }
+        
+        // 爻位标注
+        svgContent += `
+            <text x="105" y="${yPos+5}" class="yao-position">${yaoNames[i]}</text>
+        `;
     }
     
     return `
-        <svg width="100" height="${svgHeight}" viewBox="0 0 100 ${svgHeight}" 
-             xmlns="http://www.w3.org/2000/svg" class="compact-hexagram">
+        <svg width="${svgWidth}" height="${svgHeight}" viewBox="0 0 120 180" 
+             xmlns="http://www.w3.org/2000/svg" class="hexagram-svg">
+            <rect width="100%" height="100%" rx="8" fill="#f9f9f9"/>
             ${svgContent}
         </svg>
     `;
