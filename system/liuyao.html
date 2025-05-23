@@ -1610,10 +1610,26 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // 重置按钮
-    document.getElementById('reset-btn').addEventListener('click', resetDivination);
+    document.getElementById('reset-btn').addEventListener('click', function() {
+    // 重置占卜状态
+    resetDivination();
+    // 锁定输入框
+    isPaid = false;
+    updatePaymentStatus();
+    // 刷新页面
+    location.reload();
+    });
     
     // 新占卜按钮
-    document.getElementById('new-divination').addEventListener('click', resetDivination);
+   document.getElementById('new-divination').addEventListener('click', function() {
+    // 重置占卜状态
+    resetDivination();
+    // 锁定输入框
+    isPaid = false;
+    updatePaymentStatus();
+    // 刷新页面
+    location.reload();
+    });
     
     // 保存卦象按钮
     document.getElementById('save-hexagram').addEventListener('click', saveHexagram);
@@ -1637,6 +1653,18 @@ document.addEventListener('DOMContentLoaded', function() {
         } else if (currentMethod === 'number') {
             castWithNumbers();
         }
+    });
+
+    document.getElementById('divination-form').addEventListener('submit', function(e) {
+    if (!isPaid) {
+        e.preventDefault();
+        showToast('请先支付1元解锁占卜功能', 'error');
+        return;
+    }
+    
+    // 占卜完成后立即锁定输入框
+    isPaid = false;
+    updatePaymentStatus();
     });
     
     // 初始化时间输入框为当前时间
@@ -2459,8 +2487,15 @@ function getYaoChangeInterpretation(count, hexagramCode) {
             coins.forEach(coin => {
                 delete coin.dataset.side;
                 coin.style.transform = 'rotateY(0deg)';
-                coin.classList.remove('selected');
+                coin.classList.remove('selected', 'locked');
             });
+            
+            // 重置问题输入框
+            document.getElementById('question').value = '';
+            
+            // 锁定输入框
+            isPaid = false;
+            updatePaymentStatus();
             
             // 滚动到顶部
             window.scrollTo({ top: 0, behavior: 'smooth' });
