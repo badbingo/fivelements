@@ -1816,14 +1816,20 @@ function showResult() {
     // 显示卦名（大标题保留）
     document.getElementById('gua-name').textContent = guaInfo.name;
 
-    // 清空原有卦象图容器（移除空白图片）
-    document.getElementById('gua-image-container').innerHTML = '';
+    // 清空原有卦象图容器并显示大卦象图
+    const guaImageContainer = document.getElementById('gua-image-container');
+    guaImageContainer.innerHTML = `
+        <div class="gua-image-box">
+            ${generateHexagramSvg(hexagramCode, true)}  <!-- 传入true表示生成大图 -->
+            <div class="gua-name-banner">${guaInfo.name}</div>
+        </div>
+    `;
 
-    // 显示整合后的卦象解析（包含动态生成的卦象图）
+    // 显示整合后的卦象解析
     document.getElementById('gua-interpretation').innerHTML = `
         <div class="gua-result-container">
             <div class="gua-visual-box">
-                ${generateHexagramSvg(hexagramCode)}
+                ${generateHexagramSvg(hexagramCode)}  <!-- 小图 -->
                 <div class="gua-meta-box">
                     <div class="gua-name-tag">${guaInfo.name}</div>
                     <div class="hexagram-code">卦象编码：${hexagramCode}</div>
