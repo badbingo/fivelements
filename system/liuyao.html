@@ -812,26 +812,12 @@
             
             <div class="result-grid">
                 <div class="result-card">
-                    <h3><i class="fas fa-info-circle"></i> 卦象解析</h3>
+                    <h3><i class="fas fa-info-circle"></i> 卦象信息</h3>
                     <div id="gua-image-container">
                         <img src="../images/hexagrams/qian.png" alt="卦象图" class="gua-image" id="gua-image">
                     </div>
                     <div class="interpretation-text" id="gua-interpretation">
                         <!-- 卦象解析将通过JavaScript动态生成 -->
-                    </div>
-                </div>
-                
-                <div class="result-card">
-                    <h3><i class="fas fa-exchange-alt"></i> 变爻分析</h3>
-                    <div class="interpretation-text" id="yao-analysis">
-                        <!-- 变爻分析将通过JavaScript动态生成 -->
-                    </div>
-                </div>
-                
-                <div class="result-card">
-                    <h3><i class="fas fa-lightbulb"></i> 建议指导</h3>
-                    <div class="interpretation-text" id="advice">
-                        <!-- 建议指导将通过JavaScript动态生成 -->
                     </div>
                 </div>
             </div>
@@ -841,7 +827,7 @@
                 <div id="gua-detail">
                     <p id="gua-detail-content">正在获取卦辞详解...</p>
                     <div id="loading-indicator" style="display: none;">
-                        <span class="loading"></span>正在从周易命理数据库获取详细解释...
+                        <span class="loading"></span>正在从DeepSeek API获取详细解释...
                     </div>
                 </div>
             </div>
@@ -1399,50 +1385,26 @@
                 <p><strong>卦象编码：</strong>${hexagramCode}</p>
             `;
             
-            // 显示变爻分析
-            let changingYao = [];
-            currentHexagram.forEach((yao, index) => {
-                if (yao.changing) {
-                    changingYao.push(index + 1);
-                }
-            });
+            // 显示结果区域
+            document.getElementById('hexagram-section').style.display = 'block';
             
-            let yaoAnalysis = '';
-            if (changingYao.length > 0) {
-                yaoAnalysis = `<p><strong>变爻位置：</strong>第 ${changingYao.join('、')} 爻</p>`;
-                changingYao.forEach(pos => {
-                    const yaoText = yaoData[hexagramCode] ? yaoData[hexagramCode][pos - 1] : "暂无爻辞";
-                    yaoAnalysis += `<p><strong>第${pos}爻：</strong>${yaoText}</p>`;
-                });
-            } else {
-                yaoAnalysis = "<p>本次占卜没有变爻，表示事情将按现状发展。</p>";
-            }
-            document.getElementById('yao-analysis').innerHTML = yaoAnalysis;
-            
-            // 显示建议指导
-            const advice = generateAdvice(hexagramCode, changingYao);
-            document.getElementById('advice').innerHTML = advice;
+            // 滚动到结果区域
+            document.getElementById('hexagram-section').scrollIntoView({ behavior: 'smooth' });
             
             // 显示卦辞详解
             document.getElementById('gua-detail-content').textContent = "正在获取卦辞详解...";
             document.getElementById('loading-indicator').style.display = 'block';
             
             // 从DeepSeek API获取详细卦辞
-            fetchGuaDetailFromAPI(currentQuestion, guaInfo.name, hexagramCode, changingYao);
-            
-            // 显示结果区域
-            document.getElementById('hexagram-section').style.display = 'block';
-            
-            // 滚动到结果区域
-            document.getElementById('hexagram-section').scrollIntoView({ behavior: 'smooth' });
+            fetchGuaDetailFromAPI(currentQuestion, guaInfo.name, hexagramCode);
         }
         
         // 从DeepSeek API获取卦辞详解
-        async function fetchGuaDetailFromAPI(question, guaName, hexagramCode, changingYao) {
+        async function fetchGuaDetailFromAPI(question, guaName, hexagramCode) {
             try {
                 const prompt = `用户占卜问题："${question}"
                 
-请详细解释《易经》中的${guaName}卦（卦象编码：${hexagramCode}），并结合用户的问题给出针对性解答，请按照以下结构用中文回答：
+请详细解释《易经》中的${guaName}卦（卦象编码：${hexagramCode}），并结合用户的问题给出针对性解答，请用中文回答：
                 
 1. 卦象概述：
    用一段话简要说明此卦的核心含义，以及与用户问题的关联
@@ -1450,19 +1412,13 @@
 2. 象征意义：
    详细解释卦象的象征意义，包括上下卦的组合含义
 
-3. 变爻分析：
-   ${changingYao.length > 0 ? '重点分析第' + changingYao.join('、') + '爻的变化含义及其对用户问题的启示' : '本次占卜无变爻，说明事情将保持现状'}
-
-4. 传统卦辞：
+3. 传统卦辞：
    解释此卦的传统卦辞和爻辞含义
 
-5. 现实应用：
+4. 现实应用：
    针对用户的具体问题，给出此卦在现实生活中的应用建议
 
-6. 注意事项：
-   提醒占卜者需要注意的关键点
-
-内容要详细专业，适合命理学习者，使用清晰的分段和标题。不要使用任何特殊符号;#*--`;
+内容要详细专业，适合命理学习者，使用清晰的分段和标题。`;
                 
                 const response = await fetch(apiUrl, {
                     method: 'POST',
@@ -1547,34 +1503,6 @@
             }
             
             return html;
-        }
-        
-        // 生成建议指导
-        function generateAdvice(hexagramCode, changingYao) {
-            // 这里只是示例，实际应根据卦象和变爻生成具体建议
-            let advice = "";
-            
-            if (changingYao.length > 0) {
-                advice += "<p>卦中有变爻，表示事情将发生变化，您需要：</p><ul>";
-                advice += "<li>关注变爻所指的方向</li>";
-                advice += "<li>做好应对变化的准备</li>";
-                advice += "<li>灵活调整策略</li>";
-                advice += "</ul>";
-            } else {
-                advice += "<p>卦中无变爻，表示事情将保持现状，您需要：</p><ul>";
-                advice += "<li>保持当前策略</li>";
-                advice += "<li>耐心等待时机</li>";
-                advice += "<li>巩固现有基础</li>";
-                advice += "</ul>";
-            }
-            
-            if (hexagramCode.startsWith("111")) {
-                advice += "<p>卦象多阳爻，宜采取积极行动，主动争取。</p>";
-            } else if (hexagramCode.startsWith("000")) {
-                advice += "<p>卦象多阴爻，宜以静制动，谨慎行事。</p>";
-            }
-            
-            return advice;
         }
         
         // 保存卦象到历史记录
