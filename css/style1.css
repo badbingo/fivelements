@@ -45,7 +45,6 @@ body {
     min-height: 100vh;
     overflow-x: hidden;
 }
-
 body::after {
     content: "";
     position: fixed;
@@ -54,37 +53,51 @@ body::after {
     width: 100%;
     height: 100%; 
     background: url('../images/cbg.jpg') bottom center/cover no-repeat;
-    z-index: -1;
-    pointer-events: none;
-}
 
+    z-index: -1; /* 置于内容下方 */
+    pointer-events: none; /* 防止干扰交互 */
+}
 /* 头部样式 - ArtCenter 风格 */
 .main-header {
+    /* 保留原有定位和布局属性 */
     position: fixed;
     width: 100%;
     top: 0;
     z-index: 1000;
     padding: 15px 0;
-    background: rgba(237, 28, 36, 0.6);
+    
+    /* 调整为80%透明的红色背景 */
+    background: rgba(237, 28, 36, 0.6); /* 使用rgba设置透明度 */
+    
+    /* 保留光影特效 */
     animation: headerGlow 8s ease infinite;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    backdrop-filter: blur(5px);
+    backdrop-filter: blur(5px); /* 添加毛玻璃效果增强质感 */
     -webkit-backdrop-filter: blur(5px);
+    
+    /* 其他原有样式 */
     color: white;
     transition: var(--transition);
 }
 
+/* 使用伪元素实现透明背景图 */
 .main-header::before {
-    opacity: 0.6;
+    opacity: 0.6; /* 相应降低高光强度 */
 }
 
 .main-header::after {
     background: linear-gradient(
         to bottom right,
         rgba(255,255,255,0),
-        rgba(255,255,255,0.05),
+        rgba(255,255,255,0.05), /* 降低光效强度 */
         rgba(255,255,255,0)
     );
+}
+
+/* 恢复logo容器原有样式 */
+.logo-container {
+    display: flex;
+    align-items: center;
 }
 
 .main-header.scrolled {
@@ -102,13 +115,14 @@ body::after {
     align-items: center;
 }
 
-/* Logo 样式 */
+/* Logo 样式 - ArtCenter 风格 */
 .logo-container {
     display: flex;
     align-items: center;
-    justify-content: center;
-    text-align: center;
-    font-family: 'Noto Serif SC', serif;
+    justify-content: center; /* 垂直居中 */
+    text-align: center; /* 文本居中 */
+    font-family: 'Noto Serif SC', serif; /* 添加这一行 */
+
 }
 
 .logo-link {
@@ -116,46 +130,87 @@ body::after {
     align-items: center;
     text-decoration: none;
 }
-
+/* Logo 文字容器 */
 .logo-text {
     display: flex;
     flex-direction: column;
     align-items: center;
-    line-height: 1.2;
+    line-height: 1.2; /* 添加这一行确保紧凑排列 */
 }
-
 .logo-text h1 {
     font-size: 2.0rem;
     font-weight: 700;
-    color: var(--white);
+    color: var(--white); /* 改为白色 */
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
     margin: 0;
     letter-spacing: -0.5px;
     font-family: 'Noto Serif SC', serif;
-    align-items: flex-end;
+    align-items: flex-end; /* 底部对齐 */
 }
 
 .logo-text .slogan {
     font-size: 0.8rem;
-    color: rgba(255, 255, 255, 0.8);
+    color: rgba(255, 255, 255, 0.8); /* 改为浅白色 */
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
     margin-top: 3px;
     letter-spacing: 0.5px;
     text-transform: uppercase;
 }
-
+/* 只放大"八"字50% */
 .logo-text .ba-character {
-    font-size: 1.5em;
+    font-size: 1.5em; /* 加大50% */
     display: inline-block;
-    transform: translateY(0.05em);
-    color: inherit;
+    transform: translateY(0.05em); /* 微调垂直对齐 */
+    color: inherit; /* 继承父元素颜色 */
 }
 
-/* 导航条 - ArtCenter 风格 */
+/* Slogan样式 */
+.logo-text .slogan {
+    margin-top: 2px; /* 从原来的 5px 减小到 2px */
+    font-size: 0.8rem; /* 保持原有大小 */
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    color: rgba(255, 255, 255, 0.8);
+}
+
+/* 导航条上的"在线批命"改为黄色显示 */
+.nav-item:nth-child(5) .nav-link {
+    color: #FFD700 !important; /* 黄色 */
+}
+
+.nav-item:nth-child(5) .nav-link:hover {
+    color: #FFEA00 !important; /* 更亮的黄色 */
+}
+
+.nav-item:nth-child(5) .nav-link::after {
+    background-color: #FFD700 !important; /* 下划线黄色 */
+}
+
+/* 在线批命下拉菜单背景改为黄色 */
+.nav-item:nth-child(5) .dropdown-menu {
+    background-color: #FFF9C4; /* 浅黄色背景 */
+    border: 1px solid #FFEE58; /* 黄色边框 */
+}
+
+.nav-item:nth-child(5) .dropdown-link {
+    color: #5D4037 !important; /* 默认深棕色文字 */
+}
+
+.nav-item:nth-child(5) .dropdown-link:hover {
+    background-color: #FFF176 !important; /* 悬停时稍深的黄色背景 */
+    color: #000 !important; /* 悬停时黑色文字 */
+}
+/* 下拉菜单链接激活/点击状态样式 */
+.nav-item:nth-child(5) .dropdown-link:active,
+.nav-item:nth-child(5) .dropdown-link.active {
+    color: #000 !important; /* 点击后黑色文字 */
+    background-color: #FFEE58 !important; /* 点击后更深的黄色背景 */
+}
+
+/* 导航条 - ArtCenter 风格 - 修改图标颜色 */
 .main-nav {
     margin-left: auto;
-    position: relative;
-    z-index: 100;
 }
 
 .nav-list {
@@ -163,7 +218,6 @@ body::after {
     list-style: none;
     margin: 0;
     padding: 0;
-    position: relative;
 }
 
 .nav-item {
@@ -172,7 +226,7 @@ body::after {
 }
 
 .nav-link {
-    color: var(--white);
+    color: var(--white); /* 改为白色 */
     font-size: 0.9rem;
     font-weight: 500;
     text-transform: uppercase;
@@ -185,7 +239,7 @@ body::after {
     display: flex;
     align-items: center;
 }
-
+/* 增强当前选中项的视觉反馈 */
 .nav-item.active {
     transform: translateY(-2px);
 }
@@ -199,6 +253,25 @@ body::after {
     transform: scale(1.2);
     filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.7));
 }
+/* 为每个导航项设置不同的图标颜色 */
+.nav-item:nth-child(1) .nav-link i {
+    color: rgba(255, 255, 255, 0.9);
+}
+.nav-item:nth-child(2) .nav-link i {
+    color: rgba(255, 255, 255, 0.9);
+}
+.nav-item:nth-child(3) .nav-link i {
+    color: rgba(255, 255, 255, 0.9);
+}
+.nav-item:nth-child(4) .nav-link i {
+    color: rgba(255, 255, 255, 0.9);
+}
+.nav-item:nth-child(5) .nav-link i {
+    color: rgba(255, 255, 255, 0.9);
+}
+.nav-item:nth-child(6) .nav-link i {
+    color: rgba(255, 255, 255, 0.9);
+}
 
 .nav-link i {
     margin-right: 8px;
@@ -207,8 +280,8 @@ body::after {
 }
 
 .nav-link:hover {
-    color: var(--white) !important;
-    opacity: 0.9;
+    color: var(--white) !important; /* 改为白色 */
+    opacity: 0.9; /* 添加轻微透明度变化增强效果 */
 }
 
 .nav-link:hover i {
@@ -224,32 +297,53 @@ body::after {
     left: 0;
     width: 0;
     height: 2px;
-    background-color: var(--white);
+    background-color: var(--white); /* 下划线改为白色 */
     transition: var(--transition);
 }
 
 .nav-link:hover::after {
     width: 100%;
-    background-color: var(--white) !important;
+    background-color: var(--white) !important; /* 下划线保持白色 */
 }
 
 .nav-link.active {
-    color: var(--white) !important;
+    color: var(--white) !important; /* 强制保持白色 */
     position: relative;
 }
 
 .nav-link.active::after {
-    background-color: var(--white) !important;
+    background-color: var(--white) !important; /* 下划线保持白色 */
     width: 100% !important;
 }
+/* 修复下拉菜单active状态 */
+.dropdown-menu .dropdown-link.active {
+    color: var(--white) !important;
+    background-color: rgba(255, 255, 255, 0.2) !important; /* 浅色背景 */
+    position: relative;
+}
 
-/* 下拉菜单 */
+.dropdown-menu .dropdown-link.active::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 3px;
+    background: var(--white) !important; /* 左侧标记线保持白色 */
+}
+
+/* 确保鼠标悬停时active状态仍然可见 */
+.dropdown-menu .dropdown-link.active:hover {
+    color: var(--white) !important;
+    background-color: rgba(255, 255, 255, 0.3) !important; /* 悬停时背景稍亮 */
+}
+/* 下拉菜单 - ArtCenter 风格 */
 .dropdown-menu {
     position: absolute;
     top: 100%;
     left: 0;
     width: 200px;
-    background-color: var(--primary-color);
+    background-color: var(--primary-color); /* 下拉菜单也改为红色 */
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
     opacity: 0;
     visibility: hidden;
@@ -266,7 +360,7 @@ body::after {
 }
 
 .dropdown-link {
-    color: var(--white);
+    color: var(--white); /* 下拉菜单文字改为白色 */
     padding: 10px 20px;
     display: block;
     font-size: 0.85rem;
@@ -282,31 +376,10 @@ body::after {
 
 .dropdown-link:hover {
     color: var(--white) !important;
-    background-color: rgba(255, 255, 255, 0.15);
+    background-color: rgba(255, 255, 255, 0.15); /* 浅色背景 */
 }
 
-.dropdown-menu .dropdown-link.active {
-    color: var(--white) !important;
-    background-color: rgba(255, 255, 255, 0.2) !important;
-    position: relative;
-}
-
-.dropdown-menu .dropdown-link.active::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 0;
-    height: 100%;
-    width: 3px;
-    background: var(--white) !important;
-}
-
-.dropdown-menu .dropdown-link.active:hover {
-    color: var(--white) !important;
-    background-color: rgba(255, 255, 255, 0.3) !important;
-}
-
-/* 按钮样式 */
+/* 按钮样式 - ArtCenter 风格 */
 .btn {
     display: inline-block;
     padding: 12px 25px;
@@ -338,7 +411,7 @@ body::after {
     color: var(--white);
 }
 
-/* 主内容区域 */
+/* 主内容区域 - 增强版 */
 .content-container {
     position: relative;
     max-width: 1000px;
@@ -347,14 +420,21 @@ body::after {
     background: rgba(255, 255, 255, 0.2);
     backdrop-filter: blur(5px);
     -webkit-backdrop-filter: blur(5px);
+
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-    border-radius: 40px;
+    
+    /* 新增圆角设计 */
+    border-radius: 40px; /* 主圆角扩大一倍（原20px） */
+    
+    /* 渐变边框增强版（可选） */
     border-image: linear-gradient(135deg, 
         rgba(237, 28, 36, 0.8), 
         rgba(237, 28, 36, 0.3)) 1;
-    overflow: hidden;
+    
+    overflow: hidden; /* 确保内部元素不溢出圆角 */
 }
 
+/* 添加内发光效果增强立体感 */
 .content-container::before {
     content: "";
     position: absolute;
@@ -362,20 +442,21 @@ body::after {
     left: 0;
     right: 0;
     bottom: 0;
-    border-radius: inherit;
+    border-radius: inherit; /* 继承父元素圆角 */
     box-shadow: inset 0 0 15px rgba(237, 28, 36, 0.2);
     pointer-events: none;
     z-index: -1;
 }
 
+/* 响应式调整圆角 */
 @media (max-width: 768px) {
     .content-container {
-        border-radius: 30px;
+        border-radius: 30px; /* 移动端统一圆角 */
         padding: 40px 30px;
     }
     
     .content-container.soft-rounded {
-        border-radius: 40px;
+        border-radius: 40px; /* 移动端更大的统一圆角 */
     }
 }
 
@@ -409,7 +490,7 @@ body::after {
     z-index: 1;
     margin-bottom: 20px;
     transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    font-family: 'Noto Serif SC', serif;
+    font-family: 'Noto Serif SC', serif; /* 添加这一行 */
 }
 
 .content-title h1:hover {
@@ -484,6 +565,7 @@ body::after {
     animation: titleSlideIn 0.8s ease-out;
 }
 
+/* 动态标题效果 */
 @keyframes titleSlideIn {
     from {
         opacity: 0;
@@ -546,7 +628,7 @@ body::after {
     animation: fadeInUp 0.6s ease-out;
 }
 
-/* 表格样式 */
+/* 表格样式 - ArtCenter 风格 */
 .bazi-elegant-table {
     width: 100%;
     border-collapse: collapse;
@@ -575,7 +657,7 @@ body::after {
     background-color: var(--light-gray);
 }
 
-/* 卡片样式 */
+/* 卡片样式 - ArtCenter 风格 */
 .card {
     background: rgba(255, 255, 255, 0.5);
     backdrop-filter: blur(5px);
@@ -616,7 +698,7 @@ body::after {
     width: 80px;
 }
 
-/* 页脚样式 */
+/* 页脚样式 - ArtCenter 风格 */
 .main-footer {
     background-color: var(--black);
     color: var(--white);
@@ -668,6 +750,54 @@ body::after {
     color: var(--medium-gray);
 }
 
+/* 响应式设计 */
+@media (max-width: 992px) {
+    .nav-item {
+        margin-left: 20px;
+    }
+    
+    .content-container {
+        padding: 40px;
+    }
+}
+
+@media (max-width: 768px) {
+    .main-header {
+        padding: 10px 0;
+    }
+    
+    .logo-text h1 {
+        font-size: 1.5rem;
+    }
+    
+    .main-nav {
+        display: none;
+    }
+    
+    .content-container {
+        padding: 30px;
+    }
+    
+    .content-title h1 {
+        font-size: 2rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .content-container {
+        padding: 20px;
+    }
+    
+    .content-title h1 {
+        font-size: 1.8rem;
+    }
+    
+    .footer-links {
+        flex-direction: column;
+        gap: 15px;
+    }
+}
+
 /* 粒子背景效果 */
 .particles {
     position: fixed;
@@ -693,7 +823,7 @@ body::after {
     100% { transform: translateY(-100vh) translateX(100px); opacity: 0; }
 }
 
-/* 计算器表单 */
+/* ==================== 计算器表单 (ArtCenter风格) ==================== */
 .calculator-form {
     background: var(--white);
     border-radius: var(--border-radius);
@@ -1002,7 +1132,7 @@ body::after {
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
 }
 
-/* 结果区域 */
+/* ==================== 结果区域 (ArtCenter风格) ==================== */
 #result-section {
     display: none;
     animation: fadeIn 0.6s ease;
@@ -1137,7 +1267,7 @@ body::after {
     font-weight: 500;
 }
 
-/* 八字表格 */
+/* ==================== 八字表格 (ArtCenter风格) ==================== */
 .bazi-table-container {
     overflow-x: auto;
     margin-bottom: 40px;
@@ -1226,7 +1356,7 @@ body::after {
     font-style: italic;
 }
 
-/* 卡片布局 */
+/* 卡片布局 - ArtCenter风格 */
 .card {
     background: var(--white);
     border-radius: var(--border-radius);
@@ -1287,7 +1417,7 @@ body::after {
     margin: 40px 0;
 }
 
-/* 表格样式 */
+/* 表格样式 - ArtCenter风格 */
 .bazi-simple-table {
     width: 100%;
     border-collapse: collapse;
@@ -1331,7 +1461,7 @@ body::after {
     background-color: rgba(237, 28, 36, 0.05);
 }
 
-/* 提示框样式 */
+/* 提示框样式 - ArtCenter风格 */
 .note-box {
     background-color: rgba(248, 249, 250, 0.8);
     border-left: 4px solid var(--primary-color);
@@ -1421,7 +1551,7 @@ body::after {
     color: #0d47a1;
 }
 
-/* 步骤框样式 */
+/* 步骤框样式 - ArtCenter风格 */
 .step-box {
     margin: 40px 0;
     background: rgba(255, 255, 255, 0.5);
@@ -1551,7 +1681,7 @@ body::after {
     margin-bottom: 0;
 }
 
-/* 时间轴样式 */
+/* 时间轴样式 - ArtCenter风格 */
 .timeline {
     position: relative;
     max-width: 900px;
@@ -1664,7 +1794,7 @@ body::after {
     margin-bottom: 0;
 }
 
-/* 资源网格样式 */
+/* 资源网格样式 - ArtCenter风格 */
 .resource-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -1748,7 +1878,7 @@ body::after {
     border-top: 5px solid #e74c3c;
 }
 
-/* 五行雷达图样式 */
+/* 五行雷达图样式 - ArtCenter风格 */
 .wuxing-chart {
     margin: 40px 0;
 }
@@ -1876,7 +2006,7 @@ body::after {
 .wuxing-metal { color: #1565c0; font-weight: 600; }
 .wuxing-water { color: #0277bd; font-weight: 600; }
 
-/* 页脚样式 */
+/* 页脚样式 - ArtCenter风格 */
 .main-footer {
     background: linear-gradient(135deg, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.9));
     color: var(--light-color);
@@ -2000,7 +2130,7 @@ body::after {
     font-size: 0.9rem;
 }
 
-/* 动画效果 */
+/* 动画效果 - 增强版 */
 @keyframes gradient {
     0% { background-position: 0% 50%; }
     50% { background-position: 100% 50%; }
@@ -2023,7 +2153,7 @@ body::after {
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* 响应式设计 */
+/* 响应式设计 - 优化版 */
 @media (max-width: 1200px) {
     .nav-link {
         padding: 25px 18px;
@@ -2076,53 +2206,65 @@ body::after {
     .dropdown-menu {
         position: static;
         width: 100%;
-        transform: none;
         opacity: 1;
         visibility: visible;
-        max-height: 0;
-        overflow: hidden;
-        transition: max-height 0.4s ease;
-        background: rgba(237, 28, 36, 0.2);
-        margin-top: 5px;
+        transform: none;
+        display: none;
+        box-shadow: none;
+        border-radius: 0;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: none;
+        padding: 5px 0;
     }
     
     .nav-item:hover .dropdown-menu {
+        display: block;
         transform: none;
     }
     
-    .dropdown-menu.active {
-        max-height: 500px;
+    .dropdown-link {
+        color: rgba(255, 255, 255, 0.9);
+        padding: 12px 30px;
     }
     
-    .dropdown-link::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
-    transition: all 0.6s ease;
+    .dropdown-link:hover {
+        color: var(--white);
+        background: rgba(255, 255, 255, 0.1);
     }
     
-    .dropdown-link:hover::before {
-    left: 100%;
+    .dropdown-link i {
+        color: rgba(255, 255, 255, 0.7);
     }
     
-    .mobile-menu-btn {
-        display: flex;
+    .timeline::after {
+        left: 31px;
     }
     
-    .mobile-menu-btn.active .bar:nth-child(1) {
-        transform: translateY(10px) rotate(45deg);
+    .timeline-item {
+        width: 100%;
+        padding-left: 70px;
+        padding-right: 25px;
     }
     
-    .mobile-menu-btn.active .bar:nth-child(2) {
-        opacity: 0;
+    .timeline-item.right {
+        left: 0;
     }
     
-    .mobile-menu-btn.active .bar:nth-child(3) {
-        transform: translateY(-10px) rotate(-45deg);
+    .timeline-item.left::after, 
+    .timeline-item.right::after {
+        left: 21px;
+    }
+    
+    .content-container {
+        padding: 30px;
+    }
+    
+    .form-group {
+        min-width: calc(50% - 30px);
+    }
+    
+    .chart-container {
+        flex-direction: column;
     }
 }
 
@@ -2354,7 +2496,7 @@ body::after {
     opacity: 1;
 }
 
-/* 开场页专属样式 */
+/* 新增的开场页专属样式 */
 .hero-section {
     position: relative;
     height: 100vh;
@@ -2553,7 +2695,7 @@ body::after {
     animation: twinkle var(--duration) infinite ease-in-out;
 }
 
-/* 动画效果 */
+/* 新增动画效果 */
 @keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
@@ -2722,7 +2864,8 @@ body::after {
     }
 }
 
-/* 动态效果 */
+/* 新增动态效果 */
+/* 滚动视差效果 */
 .parallax {
     background-attachment: fixed;
     background-position: center;
@@ -2755,6 +2898,7 @@ body::after {
     background: rgba(0, 0, 0, 0.3);
 }
 
+/* 悬停放大效果 */
 .hover-zoom {
     transition: transform 0.5s ease;
     overflow: hidden;
@@ -2772,6 +2916,7 @@ body::after {
     transform: scale(1.1);
 }
 
+/* 文字浮动效果 */
 .floating-text {
     animation: floating 3s ease-in-out infinite;
 }
@@ -2781,6 +2926,7 @@ body::after {
     50% { transform: translateY(-15px); }
 }
 
+/* 背景动画 */
 .animated-bg {
     position: relative;
     overflow: hidden;
@@ -2807,6 +2953,7 @@ body::after {
     100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
 }
 
+/* 标题特殊效果增强 */
 .special-title {
     position: relative;
     display: inline-block;
@@ -2857,6 +3004,7 @@ body::after {
     background: rgba(237, 28, 36, 0.3);
 }
 
+/* 卡片悬停效果增强 */
 .hover-card {
     transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     transform-style: preserve-3d;
@@ -2868,6 +3016,7 @@ body::after {
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
 }
 
+/* 按钮悬停效果增强 */
 .hover-btn {
     position: relative;
     overflow: hidden;
@@ -2893,6 +3042,7 @@ body::after {
     transform-origin: left;
 }
 
+/* 导航图标动画 */
 .nav-icon {
     transition: all 0.3s ease;
 }
@@ -2907,6 +3057,7 @@ body::after {
     50% { transform: rotate(15deg) scale(1.3); }
 }
 
+/* 页面加载动画 */
 .page-loader {
     position: fixed;
     top: 0;
@@ -2936,6 +3087,7 @@ body::after {
     animation: spin 1s linear infinite;
 }
 
+/* 元素渐显效果 */
 .fade-in-element {
     opacity: 0;
     transform: translateY(30px);
@@ -2947,6 +3099,7 @@ body::after {
     transform: translateY(0);
 }
 
+/* 背景颗粒效果 */
 .grain-effect {
     position: relative;
 }
@@ -2963,7 +3116,14 @@ body::after {
     z-index: 1;
 }
 
-/* 导航条样式 */
+
+/* 新增导航条样式 */
+.main-nav {
+    position: relative;
+    margin-left: auto;
+    z-index: 100;
+}
+
 .nav-background {
     position: absolute;
     top: 0;
@@ -2991,6 +3151,35 @@ body::after {
 .wuxing-element.metal { background-color: #1565c0; }
 .wuxing-element.water { background-color: #0277bd; }
 
+.nav-list {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    position: relative;
+}
+
+.nav-item {
+    position: relative;
+    margin: 0 10px;
+}
+
+.nav-link {
+    color: var(--white);
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 20px 15px;
+    position: relative;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    z-index: 2;
+}
+
 .nav-text {
     margin-top: 5px;
     transition: transform 0.3s ease;
@@ -3007,14 +3196,22 @@ body::after {
     transition: all 0.3s ease;
 }
 
+.nav-link i {
+    font-size: 1.2em;
+    transition: all 0.3s ease;
+}
+
+/* 五行对应的导航项颜色 */
 .nav-item[data-wuxing="wood"] .nav-link { color: #a5d6a7; }
 .nav-item[data-wuxing="fire"] .nav-link { color: #ef9a9a; }
 .nav-item[data-wuxing="earth"] .nav-link { color: #d7ccc8; }
 .nav-item[data-wuxing="metal"] .nav-link { color: #90caf9; }
 .nav-item[data-wuxing="water"] .nav-link { color: #80deea; }
 
+/* 金色特殊项 */
 .nav-item.golden .nav-link { color: #FFD700; }
 
+/* 悬停效果 */
 .nav-item:hover .nav-link {
     transform: translateY(-3px);
     text-shadow: 0 0 10px currentColor;
@@ -3028,6 +3225,11 @@ body::after {
     width: 60%;
 }
 
+.nav-item:hover .nav-link i {
+    transform: scale(1.2) rotate(15deg);
+}
+
+/* 激活状态 */
 .nav-link.active {
     font-weight: 600;
 }
@@ -3036,6 +3238,45 @@ body::after {
     width: 80%;
     height: 3px;
 }
+
+/* 下拉菜单增强效果 */
+.dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%) translateY(10px);
+    width: 220px;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+    border-radius: 10px;
+    overflow: hidden;
+    z-index: 100;
+}
+
+.nav-item:hover .dropdown-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0);
+}
+
+.dropdown-link {
+    color: var(--white);
+    padding: 12px 20px;
+    display: block;
+    font-size: 0.85rem;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.dropdown-link:hover {
+    background: rgba(255,255,255,0.1);
+}
+
 
 /* 移动端菜单按钮 */
 .mobile-menu-btn {
