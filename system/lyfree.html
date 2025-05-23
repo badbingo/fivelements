@@ -1743,26 +1743,27 @@ function castWithNumbers() {
 function generateHexagramFromNumbers(upperNum, lowerNum, changingYaoPos) {
     const hexagram = [];
     
-    // 生成基础卦象（上卦和下卦组合）
+    // 1. 先生成下卦（内卦，初爻→三爻）
     for (let i = 0; i < 3; i++) {
         hexagram.push({
-            type: upperNum % 2 === 0 ? '8' : '7',
-            line: upperNum % 2 === 0 ? '000' : '111',
-            changing: false
-        });
-    }
-    
-    for (let i = 0; i < 3; i++) {
-        hexagram.push({
-            type: lowerNum % 2 === 0 ? '8' : '7',
+            type: lowerNum % 2 === 0 ? '8' : '7',  // 修正：用lowerNum生成下卦
             line: lowerNum % 2 === 0 ? '000' : '111',
             changing: false
         });
     }
     
-    // 设置变爻
+    // 2. 再生成上卦（外卦，四爻→上爻）
+    for (let i = 0; i < 3; i++) {
+        hexagram.push({
+            type: upperNum % 2 === 0 ? '8' : '7',  // 修正：用upperNum生成上卦
+            line: upperNum % 2 === 0 ? '000' : '111',
+            changing: false
+        });
+    }
+    
+    // 3. 处理变爻（position从1开始计数，1=初爻）
     if (changingYaoPos >= 1 && changingYaoPos <= 6) {
-        const index = changingYaoPos - 1;
+        const index = changingYaoPos - 1; // 转换为数组索引
         hexagram[index].changing = true;
         hexagram[index].type = hexagram[index].type === '7' ? '9' : '6';
         hexagram[index].line = hexagram[index].line === '111' ? '000' : '111';
