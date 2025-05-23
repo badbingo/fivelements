@@ -170,6 +170,22 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        .highlight-coin {
+            box-shadow: 0 0 20px rgba(255, 255, 0, 0.8);
+            transform: scale(1.1);
+            transition: all 0.2s;
+        }
+        
+        .quick-flipping {
+            animation: quick-flip 0.2s ease-out forwards;
+        }
+        
+        @keyframes quick-flip {
+            0% { transform: rotateY(0) scale(1); }
+            50% { transform: rotateY(540deg) scale(1.05); }
+            100% { transform: rotateY(1080deg) scale(1); }
+        }
         
         .result-grid {
             display: grid;
@@ -1124,28 +1140,57 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // 自动摇卦函数 - 改进版，模拟手动摇卦过程
 function autoCastCoins() {
-    if (castCount >= 6) return;
+    // 先验证是否输入了占卜问题
+    const question = document.getElementById('question').value.trim();
+    if (!question) {
+        alert('请先输入您的占卜问题');
+        return;
+    }
+
+    if (castCount >= 6) {
+        alert('六次摇卦已完成，请查看结果或重置');
+        return;
+    }
     
     // 禁用按钮防止重复点击
     const autoCastBtn = document.getElementById('auto-cast-btn');
     const castBtn = document.getElementById('cast-btn');
+    const resetBtn = document.getElementById('reset-btn');
     autoCastBtn.disabled = true;
     castBtn.disabled = true;
+    resetBtn.disabled = true;
     autoCastBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 自动摇卦中...';
+
+    // 如果是第一次摇卦，记录问题
+    if (castCount === 0) {
+        currentQuestion = question;
+        const now = new Date();
+        document.getElementById('divination-time').textContent = now.toLocaleString();
+        document.getElementById('divination-method').textContent = "钱币摇卦";
+    }
 
     // 快速完成6次摇卦
     function autoCastFull() {
         if (castCount >= 6) {
+            // 全部完成后恢复按钮状态
             autoCastBtn.disabled = false;
             castBtn.disabled = false;
+            resetBtn.disabled = false;
             autoCastBtn.innerHTML = '<i class="fas fa-bolt"></i> 自动摇卦';
+            
+            // 自动滚动到结果区域
+            setTimeout(() => {
+                document.getElementById('hexagram-section').scrollIntoView({ 
+                    behavior: 'smooth' 
+                });
+            }, 500);
             return;
         }
 
         const coins = document.querySelectorAll('.coin');
         let currentCoinIndex = 0;
         
-        // 快速摇动三个钱币（每个硬币动画时间300ms）
+        // 超快速摇动单个钱币（200ms完成）
         function quickFlipCoin(coin, callback) {
             coin.classList.add('quick-flipping');
             setTimeout(() => {
@@ -1155,7 +1200,7 @@ function autoCastCoins() {
                 coin.style.transform = isHead ? 'rotateY(0deg)' : 'rotateY(180deg)';
                 coin.classList.add('selected', 'locked');
                 if (callback) callback();
-            }, 300);
+            }, 200); // 单个硬币动画时间200ms
         }
 
         // 依次快速摇三个钱币
@@ -1164,15 +1209,18 @@ function autoCastCoins() {
                 // 三个钱币都摇完后，自动记录结果
                 setTimeout(() => {
                     castWithCoins();
-                    // 继续下一次摇卦
-                    setTimeout(autoCastFull, 300);
-                }, 300);
+                    // 继续下一次摇卦（间隔200ms）
+                    setTimeout(autoCastFull, 200);
+                }, 200);
                 return;
             }
             
             const coin = coins[currentCoinIndex];
             if (!coin.classList.contains('locked')) {
+                // 显示当前正在摇的硬币
+                coin.classList.add('highlight-coin');
                 quickFlipCoin(coin, () => {
+                    coin.classList.remove('highlight-coin');
                     currentCoinIndex++;
                     flipNextQuickCoin();
                 });
@@ -1181,6 +1229,10 @@ function autoCastCoins() {
                 flipNextQuickCoin();
             }
         }
+        
+        // 更新状态显示
+        document.getElementById('cast-status').textContent = 
+            `正在自动进行第 ${castCount + 1} 次摇卦...`;
         
         flipNextQuickCoin();
     }
