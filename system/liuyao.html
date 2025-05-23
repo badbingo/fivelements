@@ -124,6 +124,28 @@
             50% { transform: rotateY(540deg); }
             100% { transform: rotateY(1080deg); }
         }
+        /* 添加摇动中的样式 */
+        .coin.casting {
+            animation: coin-shake 0.4s ease-in-out infinite;
+        }
+        
+        @keyframes coin-shake {
+            0% { transform: rotateY(0deg); }
+            25% { transform: rotateY(30deg); }
+            50% { transform: rotateY(0deg); }
+            75% { transform: rotateY(-30deg); }
+            100% { transform: rotateY(0deg); }
+        }
+        
+        /* 自动摇卦按钮加载状态 */
+        .fa-spin {
+            animation: fa-spin 1s infinite linear;
+        }
+        
+        @keyframes fa-spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
         
         .result-grid {
             display: grid;
@@ -1076,26 +1098,70 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('time').value = timeStr;
 });
 
-// 自动摇卦函数 - 改进后的版本
+// 自动摇卦函数 - 改进版，模拟手动摇卦过程
 function autoCastCoins() {
-    const coins = document.querySelectorAll('.coin');
-    coins.forEach(coin => {
-        if (!coin.classList.contains('locked')) {
-            flipCoin(coin);
-            coin.classList.add('locked');
-        }
-    });
+    if (castCount >= 6) return;
     
-    // 1秒后自动记录结果
-    setTimeout(() => {
-        if (countSetCoins() === 3) {
-            castWithCoins();
+    // 禁用自动摇卦按钮，防止重复点击
+    const autoCastBtn = document.getElementById('auto-cast-btn');
+    autoCastBtn.disabled = true;
+    autoCastBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 摇卦中...';
+    
+    const coins = document.querySelectorAll('.coin');
+    let currentCoinIndex = 0;
+    
+    // 依次摇动每个钱币
+    function flipNextCoin() {
+        if (currentCoinIndex >= coins.length) {
+            // 所有钱币摇完后，自动记录结果
+            setTimeout(() => {
+                castWithCoins();
+                autoCastBtn.disabled = false;
+                autoCastBtn.innerHTML = '<i class="fas fa-bolt"></i> 自动摇卦';
+            }, 1000);
+            return;
         }
-    }, 1200);
+        
+        const coin = coins[currentCoinIndex];
+        
+        // 只有未锁定的钱币才摇动
+        if (!coin.classList.contains('locked')) {
+            // 显示正在摇动的状态
+            coin.classList.add('casting');
+            
+            // 模拟摇动动画
+            let shakeCount = 0;
+            const maxShakes = 3;
+            const shakeInterval = setInterval(() => {
+                if (shakeCount >= maxShakes * 2) {
+                    clearInterval(shakeInterval);
+                    coin.classList.remove('casting');
+                    
+                    // 最终确定正反面
+                    flipCoin(coin, () => {
+                        currentCoinIndex++;
+                        setTimeout(flipNextCoin, 500); // 延迟500ms摇下一个钱币
+                    });
+                    return;
+                }
+                
+                // 左右摇晃效果
+                const angle = shakeCount % 2 === 0 ? 15 : -15;
+                coin.style.transform = `rotateY(${angle}deg)`;
+                shakeCount++;
+            }, 200);
+        } else {
+            currentCoinIndex++;
+            flipNextCoin();
+        }
+    }
+    
+    // 开始摇第一个钱币
+    flipNextCoin();
 }
 
-// 钱币翻转动画 - 改进后的版本
-function flipCoin(coin) {
+// 改进的钱币翻转动画，增加回调函数
+function flipCoin(coin, callback) {
     coin.classList.add('flipping');
     setTimeout(() => {
         coin.classList.remove('flipping');
@@ -1109,11 +1175,15 @@ function flipCoin(coin) {
             coin.style.transform = 'rotateY(180deg)';
         }
         
-        // 添加选中效果
+        // 添加选中效果并锁定
         coin.classList.add('selected');
+        coin.classList.add('locked');
         
         // 更新状态显示
         updateCoinStatus();
+        
+        // 执行回调函数
+        if (callback) callback();
     }, 1000);
 }
 
