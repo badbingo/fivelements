@@ -1165,6 +1165,22 @@
         // DeepSeek API配置
         const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
         const apiKey = 'sk-b2950087a9d5427392762814114b22a9';
+
+        // 新增：安全的随机数生成函数
+        function getSecureRandom() {
+            if(window.crypto && window.crypto.getRandomValues) {
+                const buf = new Uint32Array(1);
+                window.crypto.getRandomValues(buf);
+                return buf[0] / 4294967295; // 转换为0~1之间的浮点数
+            }
+            return Math.random(); // 兼容不支持crypto的旧浏览器
+        }
+        
+        // 六爻卦象数据 - 完整64卦
+        const guaData = {
+            "111111": { name: "乾为天", ... },
+            ...
+        };
         
         // 六爻卦象数据 - 完整64卦
         const guaData = {
