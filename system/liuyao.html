@@ -4,9 +4,161 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>六爻起卦 - 麦八字教学网</title>
-    <link rel="stylesheet" href="../css/style1.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
+        /* 基础样式 */
+        :root {
+            --primary-color: #ed1c24;
+            --secondary-color: #f15a29;
+            --text-color: #333;
+            --light-bg: #f9f9f9;
+            --border-color: #ddd;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Microsoft YaHei', 'SimHei', sans-serif;
+            color: var(--text-color);
+            line-height: 1.6;
+            background-color: #f5f5f5;
+            position: relative;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+        
+        h1, h2, h3, h4, h5, h6 {
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        
+        p {
+            margin-bottom: 15px;
+        }
+        
+        a {
+            text-decoration: none;
+            color: var(--primary-color);
+            transition: all 0.3s ease;
+        }
+        
+        a:hover {
+            color: var(--secondary-color);
+        }
+        
+        ul, ol {
+            margin-bottom: 15px;
+            padding-left: 20px;
+        }
+        
+        li {
+            margin-bottom: 8px;
+        }
+        
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+        
+        /* 按钮样式 */
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            text-align: center;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(237, 28, 36, 0.3);
+        }
+        
+        .btn-secondary {
+            background: #fff;
+            color: var(--primary-color);
+            border: 1px solid var(--primary-color);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+        
+        .btn-action {
+            background: linear-gradient(135deg, #4CAF50, #2E7D32);
+            color: white;
+        }
+        
+        .btn-action:hover {
+            background: linear-gradient(135deg, #2E7D32, #4CAF50);
+        }
+        
+        /* 表单样式 */
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 10px 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(237, 28, 36, 0.1);
+        }
+        
+        .input-with-icon {
+            position: relative;
+        }
+        
+        .input-with-icon i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+        }
+        
+        .input-with-icon input {
+            padding-left: 40px;
+        }
+        
+        .hint-text {
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 5px;
+        }
+        
         /* 六爻起卦专属样式 */
         .hexagram-container {
             display: flex;
@@ -83,6 +235,11 @@
             transform-style: preserve-3d;
             cursor: pointer;
             transition: transform 0.6s ease;
+        }
+        
+        .coin.active {
+            background: linear-gradient(135deg, #FFD700, #D4AF37);
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.7);
         }
         
         .coin-face {
@@ -380,8 +537,234 @@
             line-height: 1.6;
         }
         
+        /* 历史记录样式 */
+        .divination-history {
+            background: rgba(255,255,255,0.8);
+            padding: 25px;
+            border-radius: 15px;
+            margin-top: 40px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.4);
+        }
+        
+        .history-item {
+            padding: 15px;
+            margin-bottom: 10px;
+            background: white;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .history-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .history-gua {
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        
+        .history-date {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .clear-history {
+            margin-top: 20px;
+            width: 100%;
+            padding: 10px;
+            background: #f5f5f5;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .clear-history:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+        
+        /* 头部和内容样式 */
+        .main-header {
+            background: rgba(255,255,255,0.9);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+        }
+        
+        .logo-link {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .logo-text h1 {
+            margin: 0;
+            font-size: 1.8rem;
+            color: var(--primary-color);
+        }
+        
+        .slogan {
+            font-size: 0.8rem;
+            color: #666;
+            margin: 0;
+        }
+        
+        .main-nav ul {
+            display: flex;
+            list-style: none;
+        }
+        
+        .nav-item {
+            position: relative;
+        }
+        
+        .nav-link {
+            padding: 10px 15px;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .nav-link:hover, .nav-link.active {
+            color: var(--primary-color);
+        }
+        
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: white;
+            min-width: 200px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-radius: 5px;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 100;
+        }
+        
+        .dropdown:hover .dropdown-menu {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .dropdown-link {
+            padding: 10px 15px;
+            display: block;
+            color: #333;
+        }
+        
+        .dropdown-link:hover {
+            background: #f5f5f5;
+            color: var(--primary-color);
+        }
+        
+        .content-container {
+            padding: 40px 0;
+        }
+        
+        .content-title {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .content-title h1 {
+            font-size: 2.5rem;
+            color: var(--primary-color);
+        }
+        
+        .content-title p {
+            font-size: 1.1rem;
+            color: #666;
+        }
+        
+        .content-section {
+            background: rgba(255,255,255,0.8);
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .calculator-form {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            padding: 30px;
+            border-radius: 15px;
+            color: white;
+        }
+        
+        .form-header h2 {
+            margin-bottom: 10px;
+        }
+        
+        .form-header p {
+            margin-bottom: 20px;
+            opacity: 0.9;
+        }
+        
+        .form-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        
+        .result-actions {
+            display: flex;
+            gap: 15px;
+        }
+        
+        /* 页脚样式 */
+        .main-footer {
+            background: #333;
+            color: white;
+            padding: 30px 0;
+            text-align: center;
+        }
+        
+        .main-footer p {
+            margin-bottom: 10px;
+        }
+        
         /* 响应式调整 */
         @media (max-width: 768px) {
+            .header-container {
+                flex-direction: column;
+            }
+            
+            .main-nav {
+                margin-top: 15px;
+            }
+            
+            .nav-list {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
             .coin-container {
                 gap: 15px;
             }
@@ -418,25 +801,23 @@
                 margin: 0 0 15px;
                 min-width: auto;
             }
+            
+            .form-buttons {
+                flex-direction: column;
+            }
+            
+            .result-actions {
+                flex-direction: column;
+                margin-top: 15px;
+            }
         }
     </style>
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-2NHJXGKS0Y"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-    
-      gtag('config', 'G-2NHJXGKS0Y');
-    </script>
 </head>
 <body>
-    <div class="background-overlay"></div>
-    
     <header class="main-header">
         <div class="container header-container">
             <div class="logo-container">
-                <a href="../index.html" class="logo-link">
+                <a href="index.html" class="logo-link">
                     <div class="logo-text">
                     <h1>麦<span class="ba-character">八</span>字</h1>
                     <p class="slogan">我命由我不由天</p>
@@ -447,7 +828,7 @@
             <nav class="main-nav">
                 <ul class="nav-list">
                     <li class="nav-item">
-                        <a href="../seven.html" class="nav-link">
+                        <a href="seven.html" class="nav-link">
                             <i class="fas fa-home"></i>七步速成
                         </a>
                     </li>
@@ -457,14 +838,14 @@
                             <i class="fas fa-book-open"></i> 基础知识 <i class="fas fa-chevron-down dropdown-icon"></i>
                         </a>
                         <ul class="dropdown-menu">
-                            <li><a href="../basics/bazi-process.html" class="dropdown-link">八字介绍</a></li>
-                            <li><a href="../basics/bazi-chart.html" class="dropdown-link">八字排盘</a></li>
-                            <li><a href="../basics/yen-strength.html" class="dropdown-link">日元强弱分析</a></li>
-                            <li><a href="../basics/elements.html" class="dropdown-link">天干地支意象</a></li>
-                            <li><a href="../basics/wuxing.html" class="dropdown-link">五行生克</a></li>
-                            <li><a href="../basics/balance.html" class="dropdown-link">五行平衡</a></li>
-                            <li><a href="../basics/ten-gods.html" class="dropdown-link">十神关系</a></li>
-                            <li><a href="../basics/combinations.html" class="dropdown-link">合冲破害</a></li>
+                            <li><a href="basics/bazi-process.html" class="dropdown-link">八字介绍</a></li>
+                            <li><a href="basics/bazi-chart.html" class="dropdown-link">八字排盘</a></li>
+                            <li><a href="basics/yen-strength.html" class="dropdown-link">日元强弱分析</a></li>
+                            <li><a href="basics/elements.html" class="dropdown-link">天干地支意象</a></li>
+                            <li><a href="basics/wuxing.html" class="dropdown-link">五行生克</a></li>
+                            <li><a href="basics/balance.html" class="dropdown-link">五行平衡</a></li>
+                            <li><a href="basics/ten-gods.html" class="dropdown-link">十神关系</a></li>
+                            <li><a href="basics/combinations.html" class="dropdown-link">合冲破害</a></li>
                         </ul>
                     </li>
                     
@@ -473,14 +854,14 @@
                             <i class="fas fa-chart-line"></i> 进阶知识 <i class="fas fa-chevron-down dropdown-icon"></i>
                         </a>
                         <ul class="dropdown-menu">
-                            <li><a href="../advanced/tomb.html" class="dropdown-link">四大墓库</a></li>
-                            <li><a href="../advanced/personality.html" class="dropdown-link">性格分析</a></li>
-                            <li><a href="../advanced/wealth.html" class="dropdown-link">财运分析</a></li>
-                            <li><a href="../advanced/career.html" class="dropdown-link">事业分析</a></li>
-                            <li><a href="../advanced/marriage.html" class="dropdown-link">婚姻分析</a></li>
-                            <li><a href="../advanced/health.html" class="dropdown-link">健康分析</a></li>
-                            <li><a href="../advanced/luck.html" class="dropdown-link">大运流年</a></li>
-                            <li><a href="../advanced/disaster.html" class="dropdown-link">重大灾祸</a></li>
+                            <li><a href="advanced/tomb.html" class="dropdown-link">四大墓库</a></li>
+                            <li><a href="advanced/personality.html" class="dropdown-link">性格分析</a></li>
+                            <li><a href="advanced/wealth.html" class="dropdown-link">财运分析</a></li>
+                            <li><a href="advanced/career.html" class="dropdown-link">事业分析</a></li>
+                            <li><a href="advanced/marriage.html" class="dropdown-link">婚姻分析</a></li>
+                            <li><a href="advanced/health.html" class="dropdown-link">健康分析</a></li>
+                            <li><a href="advanced/luck.html" class="dropdown-link">大运流年</a></li>
+                            <li><a href="advanced/disaster.html" class="dropdown-link">重大灾祸</a></li>
                         </ul>
                     </li>
                     
@@ -503,13 +884,13 @@
                             <i class="fas fa-shapes"></i> 在线批命 <i class="fas fa-chevron-down dropdown-icon"></i>
                         </a>
                         <ul class="dropdown-menu">
-                            <li><a href="../system/bazi.html" class="dropdown-link">机缘命理系统</a></li>
-                            <li><a href="../system/hehun.html" class="dropdown-link">八字合婚系统</a></li>
+                            <li><a href="system/bazi.html" class="dropdown-link">机缘命理系统</a></li>
+                            <li><a href="system/hehun.html" class="dropdown-link">八字合婚系统</a></li>
                         </ul>
                     </li>
                     
                     <li class="nav-item">
-                        <a href="../about.html" class="nav-link">
+                        <a href="about.html" class="nav-link">
                             <i class="fas fa-info-circle"></i> 关于我们
                         </a>
                     </li>
@@ -519,277 +900,279 @@
     </header>
 
     <main class="content-container">
-        <div class="content-title">
-            <h1>六爻起卦系统</h1>
-            <p>通过传统六爻占卜，探索问题答案与未来趋势</p>
-        </div>
-
-        <div class="content-section">
-            <div class="instruction-card">
-                <h4><i class="fas fa-info-circle"></i> 六爻占卜简介</h4>
-                <p>六爻占卜是中国古代《易经》预测方法之一，通过六次投掷钱币或其它方式得到一个六爻卦象，根据卦象变化解读事物发展趋势。本系统提供三种起卦方式：</p>
-                <ol>
-                    <li><strong>钱币摇卦</strong> - 传统三枚钱币方法，最正统的起卦方式</li>
-                    <li><strong>时间起卦</strong> - 根据当前时间或指定时间生成卦象</li>
-                    <li><strong>数字起卦</strong> - 输入两组数字生成卦象，方便快捷</li>
-                </ol>
-                <p>请先专注思考您要占卜的问题，然后选择一种起卦方式开始占卜。</p>
+        <div class="container">
+            <div class="content-title">
+                <h1>六爻起卦系统</h1>
+                <p>通过传统六爻占卜，探索问题答案与未来趋势</p>
             </div>
 
-            <div class="calculator-form">
-                <div class="form-header">
-                    <h2 style="color: white;"><i class="fas fa-question-circle"></i> 占卜问题</h2>
-                    <p style="color: white;">请专注思考您要占卜的问题，然后选择起卦方式</p>
+            <div class="content-section">
+                <div class="instruction-card">
+                    <h4><i class="fas fa-info-circle"></i> 六爻占卜简介</h4>
+                    <p>六爻占卜是中国古代《易经》预测方法之一，通过六次投掷钱币或其它方式得到一个六爻卦象，根据卦象变化解读事物发展趋势。本系统提供三种起卦方式：</p>
+                    <ol>
+                        <li><strong>钱币摇卦</strong> - 传统三枚钱币方法，最正统的起卦方式</li>
+                        <li><strong>时间起卦</strong> - 根据当前时间或指定时间生成卦象</li>
+                        <li><strong>数字起卦</strong> - 输入两组数字生成卦象，方便快捷</li>
+                    </ol>
+                    <p>请先专注思考您要占卜的问题，然后选择一种起卦方式开始占卜。</p>
                 </div>
-                <form id="divination-form" class="elegant-form">
-                    <div class="form-group">
-                        <label for="question"><i class="fas fa-pen"></i> 占卜问题</label>
-                        <div class="input-with-icon">
-                            <i class="fas fa-question"></i>
-                            <input type="text" id="question" name="question" placeholder="请输入您要占卜的问题..." required>
-                        </div>
-                        <p class="hint-text">请清晰明确地描述您要占卜的问题，问题越具体，占卜结果越准确</p>
+
+                <div class="calculator-form">
+                    <div class="form-header">
+                        <h2 style="color: white;"><i class="fas fa-question-circle"></i> 占卜问题</h2>
+                        <p style="color: white;">请专注思考您要占卜的问题，然后选择起卦方式</p>
                     </div>
-                    
-                    <div class="form-group">
-                        <label><i class="fas fa-dice"></i> 起卦方式</label>
-                        <div class="divination-methods">
-                            <button type="button" class="method-btn active" data-method="coin">
-                                <i class="fas fa-coins"></i> 钱币摇卦
-                            </button>
-                            <button type="button" class="method-btn" data-method="time">
-                                <i class="fas fa-clock"></i> 时间起卦
-                            </button>
-                            <button type="button" class="method-btn" data-method="number">
-                                <i class="fas fa-sort-numeric-up"></i> 数字起卦
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div class="method-section active" id="coin-method">
-                        <div class="instruction-card">
-                            <h4><i class="fas fa-coins"></i> 钱币摇卦使用说明</h4>
-                            <p>钱币摇卦是六爻占卜最传统的方法，使用三枚相同的钱币（如乾隆通宝），通过六次投掷得到卦象。</p>
-                            <div class="method-steps">
-                                <div class="method-step">
-                                    <strong>第一步：</strong> 准备三枚相同的钱币（本系统已模拟）
-                                </div>
-                                <div class="method-step">
-                                    <strong>第二步：</strong> 点击每枚钱币进行"投掷"，系统会随机显示正面或反面
-                                </div>
-                                <div class="method-step">
-                                    <strong>第三步：</strong> 点击"摇卦"按钮记录本次投掷结果（共需六次）
-                                </div>
-                                <div class="method-step">
-                                    <strong>判定标准：</strong>
-                                    <ul>
-                                        <li>三枚正面（3阳）：老阳（变爻，阳变阴）</li>
-                                        <li>两枚正面（2阳1阴）：少阳（不变）</li>
-                                        <li>一枚正面（1阳2阴）：少阴（不变）</li>
-                                        <li>无正面（3阴）：老阴（变爻，阴变阳）</li>
-                                    </ul>
-                                </div>
+                    <form id="divination-form" class="elegant-form">
+                        <div class="form-group">
+                            <label for="question"><i class="fas fa-pen"></i> 占卜问题</label>
+                            <div class="input-with-icon">
+                                <i class="fas fa-question"></i>
+                                <input type="text" id="question" name="question" placeholder="请输入您要占卜的问题..." required>
                             </div>
-                            <p class="highlight">提示：每次摇卦前请先点击钱币确定正反面，然后点击"摇卦"按钮记录结果</p>
+                            <p class="hint-text">请清晰明确地描述您要占卜的问题，问题越具体，占卜结果越准确</p>
                         </div>
                         
                         <div class="form-group">
-                            <label><i class="fas fa-coins"></i> 钱币摇卦</label>
-                            <p id="cast-status">准备开始，请点击钱币确定正反面</p>
-                            <div class="coin-container" id="coin-container">
-                                <div class="coin" data-coin="1">
-                                    <div class="coin-face coin-head">阳</div>
-                                    <div class="coin-face coin-tail">阴</div>
+                            <label><i class="fas fa-dice"></i> 起卦方式</label>
+                            <div class="divination-methods">
+                                <button type="button" class="method-btn active" data-method="coin">
+                                    <i class="fas fa-coins"></i> 钱币摇卦
+                                </button>
+                                <button type="button" class="method-btn" data-method="time">
+                                    <i class="fas fa-clock"></i> 时间起卦
+                                </button>
+                                <button type="button" class="method-btn" data-method="number">
+                                    <i class="fas fa-sort-numeric-up"></i> 数字起卦
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="method-section active" id="coin-method">
+                            <div class="instruction-card">
+                                <h4><i class="fas fa-coins"></i> 钱币摇卦使用说明</h4>
+                                <p>钱币摇卦是六爻占卜最传统的方法，使用三枚相同的钱币（如乾隆通宝），通过六次投掷得到卦象。</p>
+                                <div class="method-steps">
+                                    <div class="method-step">
+                                        <strong>第一步：</strong> 准备三枚相同的钱币（本系统已模拟）
+                                    </div>
+                                    <div class="method-step">
+                                        <strong>第二步：</strong> 点击每枚钱币进行"投掷"，系统会随机显示正面或反面
+                                    </div>
+                                    <div class="method-step">
+                                        <strong>第三步：</strong> 点击"摇卦"按钮记录本次投掷结果（共需六次）
+                                    </div>
+                                    <div class="method-step">
+                                        <strong>判定标准：</strong>
+                                        <ul>
+                                            <li>三枚正面（3阳）：老阳（变爻，阳变阴）</li>
+                                            <li>两枚正面（2阳1阴）：少阳（不变）</li>
+                                            <li>一枚正面（1阳2阴）：少阴（不变）</li>
+                                            <li>无正面（3阴）：老阴（变爻，阴变阳）</li>
+                                        </ul>
+                                    </div>
                                 </div>
-                                <div class="coin" data-coin="2">
-                                    <div class="coin-face coin-head">阳</div>
-                                    <div class="coin-face coin-tail">阴</div>
+                                <p class="highlight">提示：每次摇卦前请先点击钱币确定正反面，然后点击"摇卦"按钮记录结果</p>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label><i class="fas fa-coins"></i> 钱币摇卦</label>
+                                <p id="cast-status">准备开始，请点击钱币确定正反面</p>
+                                <div class="coin-container" id="coin-container">
+                                    <div class="coin" data-coin="1">
+                                        <div class="coin-face coin-head">阳</div>
+                                        <div class="coin-face coin-tail">阴</div>
+                                    </div>
+                                    <div class="coin" data-coin="2">
+                                        <div class="coin-face coin-head">阳</div>
+                                        <div class="coin-face coin-tail">阴</div>
+                                    </div>
+                                    <div class="coin" data-coin="3">
+                                        <div class="coin-face coin-head">阳</div>
+                                        <div class="coin-face coin-tail">阴</div>
+                                    </div>
                                 </div>
-                                <div class="coin" data-coin="3">
-                                    <div class="coin-face coin-head">阳</div>
-                                    <div class="coin-face coin-tail">阴</div>
+                                <div class="form-buttons">
+                                    <button type="button" id="auto-cast-btn" class="btn btn-action">
+                                        <i class="fas fa-bolt"></i> 自动摇卦
+                                    </button>
+                                    <button type="button" id="cast-btn" class="btn btn-primary">
+                                        <i class="fas fa-random"></i> 摇卦（<span id="cast-count">0</span>/6）
+                                    </button>
+                                    <button type="button" id="reset-btn" class="btn btn-secondary">
+                                        <i class="fas fa-redo"></i> 重置
+                                    </button>
                                 </div>
                             </div>
+                        </div>
+                        
+                        <div class="method-section" id="time-method">
+                            <div class="instruction-card">
+                                <h4><i class="fas fa-clock"></i> 时间起卦使用说明</h4>
+                                <p>时间起卦是根据当前时间或指定时间生成卦象的方法，适合没有钱币时的快速起卦。</p>
+                                <div class="method-steps">
+                                    <div class="method-step">
+                                        <strong>第一步：</strong> 输入或选择占卜时间（默认使用当前时间）
+                                    </div>
+                                    <div class="method-step">
+                                        <strong>第二步：</strong> 系统会根据时间计算出上卦和下卦的数字
+                                    </div>
+                                    <div class="method-step">
+                                        <strong>第三步：</strong> 点击"起卦"按钮生成卦象
+                                    </div>
+                                    <div class="method-step">
+                                        <strong>计算方法：</strong>
+                                        <p>上卦数 = (年 + 月 + 日) ÷ 8 的余数</p>
+                                        <p>下卦数 = (时 + 分) ÷ 8 的余数</p>
+                                        <p>动爻 = (年 + 月 + 日 + 时 + 分) ÷ 6 的余数</p>
+                                    </div>
+                                </div>
+                                <p class="highlight">提示：时间起卦简便快捷，但不如钱币摇卦准确，适合简单问题</p>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="time"><i class="fas fa-clock"></i> 时间</label>
+                                <div class="input-with-icon">
+                                    <i class="fas fa-calendar-alt"></i>
+                                    <input type="datetime-local" id="time" name="time">
+                                </div>
+                                <p class="hint-text">请输入您想占卜的具体时间，或使用当前时间</p>
+                            </div>
+                            
                             <div class="form-buttons">
-                                <button type="button" id="auto-cast-btn" class="btn btn-action">
-                                    <i class="fas fa-bolt"></i> 自动摇卦
-                                </button>
-                                <button type="button" id="cast-btn" class="btn btn-primary">
-                                    <i class="fas fa-random"></i> 摇卦（<span id="cast-count">0</span>/6）
-                                </button>
-                                <button type="button" id="reset-btn" class="btn btn-secondary">
-                                    <i class="fas fa-redo"></i> 重置
+                                <button type="button" id="time-cast-btn" class="btn btn-primary">
+                                    <i class="fas fa-random"></i> 起卦
                                 </button>
                             </div>
                         </div>
-                    </div>
-                    
-                    <div class="method-section" id="time-method">
-                        <div class="instruction-card">
-                            <h4><i class="fas fa-clock"></i> 时间起卦使用说明</h4>
-                            <p>时间起卦是根据当前时间或指定时间生成卦象的方法，适合没有钱币时的快速起卦。</p>
-                            <div class="method-steps">
-                                <div class="method-step">
-                                    <strong>第一步：</strong> 输入或选择占卜时间（默认使用当前时间）
-                                </div>
-                                <div class="method-step">
-                                    <strong>第二步：</strong> 系统会根据时间计算出上卦和下卦的数字
-                                </div>
-                                <div class="method-step">
-                                    <strong>第三步：</strong> 点击"起卦"按钮生成卦象
-                                </div>
-                                <div class="method-step">
-                                    <strong>计算方法：</strong>
-                                    <p>上卦数 = (年 + 月 + 日) ÷ 8 的余数</p>
-                                    <p>下卦数 = (时 + 分) ÷ 8 的余数</p>
-                                    <p>动爻 = (年 + 月 + 日 + 时 + 分) ÷ 6 的余数</p>
-                                </div>
-                            </div>
-                            <p class="highlight">提示：时间起卦简便快捷，但不如钱币摇卦准确，适合简单问题</p>
-                        </div>
                         
-                        <div class="form-group">
-                            <label for="time"><i class="fas fa-clock"></i> 时间</label>
-                            <div class="input-with-icon">
-                                <i class="fas fa-calendar-alt"></i>
-                                <input type="datetime-local" id="time" name="time">
-                            </div>
-                            <p class="hint-text">请输入您想占卜的具体时间，或使用当前时间</p>
-                        </div>
-                        
-                        <div class="form-buttons">
-                            <button type="button" id="time-cast-btn" class="btn btn-primary">
-                                <i class="fas fa-random"></i> 起卦
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div class="method-section" id="number-method">
-                        <div class="instruction-card">
-                            <h4><i class="fas fa-sort-numeric-up"></i> 数字起卦使用说明</h4>
-                            <p>数字起卦是通过输入两组数字生成卦象的方法，适合没有钱币和时间紧迫时使用。</p>
-                            <div class="method-steps">
-                                <div class="method-step">
-                                    <strong>第一步：</strong> 随意想两组三位数数字（1-999）
+                        <div class="method-section" id="number-method">
+                            <div class="instruction-card">
+                                <h4><i class="fas fa-sort-numeric-up"></i> 数字起卦使用说明</h4>
+                                <p>数字起卦是通过输入两组数字生成卦象的方法，适合没有钱币和时间紧迫时使用。</p>
+                                <div class="method-steps">
+                                    <div class="method-step">
+                                        <strong>第一步：</strong> 随意想两组三位数数字（1-999）
+                                    </div>
+                                    <div class="method-step">
+                                        <strong>第二步：</strong> 将两组数字分别输入到对应框中
+                                    </div>
+                                    <div class="method-step">
+                                        <strong>第三步：</strong> 点击"起卦"按钮生成卦象
+                                    </div>
+                                    <div class="method-step">
+                                        <strong>计算方法：</strong>
+                                        <p>上卦数 = 第一组数字 ÷ 8 的余数</p>
+                                        <p>下卦数 = 第二组数字 ÷ 8 的余数</p>
+                                        <p>动爻 = (第一组数字 + 第二组数字) ÷ 6 的余数</p>
+                                    </div>
                                 </div>
-                                <div class="method-step">
-                                    <strong>第二步：</strong> 将两组数字分别输入到对应框中
-                                </div>
-                                <div class="method-step">
-                                    <strong>第三步：</strong> 点击"起卦"按钮生成卦象
-                                </div>
-                                <div class="method-step">
-                                    <strong>计算方法：</strong>
-                                    <p>上卦数 = 第一组数字 ÷ 8 的余数</p>
-                                    <p>下卦数 = 第二组数字 ÷ 8 的余数</p>
-                                    <p>动爻 = (第一组数字 + 第二组数字) ÷ 6 的余数</p>
-                                </div>
+                                <p class="highlight">提示：数字起卦时心要诚，数字要随意想，不要刻意选择</p>
                             </div>
-                            <p class="highlight">提示：数字起卦时心要诚，数字要随意想，不要刻意选择</p>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="number1"><i class="fas fa-sort-numeric-up"></i> 第一组数字</label>
-                            <div class="input-with-icon">
-                                <i class="fas fa-hashtag"></i>
-                                <input type="number" id="number1" name="number1" min="1" max="999" placeholder="1-999">
+                            
+                            <div class="form-group">
+                                <label for="number1"><i class="fas fa-sort-numeric-up"></i> 第一组数字</label>
+                                <div class="input-with-icon">
+                                    <i class="fas fa-hashtag"></i>
+                                    <input type="number" id="number1" name="number1" min="1" max="999" placeholder="1-999">
+                                </div>
+                                <label for="number2"><i class="fas fa-sort-numeric-up-alt"></i> 第二组数字</label>
+                                <div class="input-with-icon">
+                                    <i class="fas fa-hashtag"></i>
+                                    <input type="number" id="number2" name="number2" min="1" max="999" placeholder="1-999">
+                                </div>
+                                <p class="hint-text">请随意想两组三位数数字输入，数字越随机结果越准确</p>
                             </div>
-                            <label for="number2"><i class="fas fa-sort-numeric-up-alt"></i> 第二组数字</label>
-                            <div class="input-with-icon">
-                                <i class="fas fa-hashtag"></i>
-                                <input type="number" id="number2" name="number2" min="1" max="999" placeholder="1-999">
+                            
+                            <div class="form-buttons">
+                                <button type="button" id="number-cast-btn" class="btn btn-primary">
+                                    <i class="fas fa-random"></i> 起卦
+                                </button>
                             </div>
-                            <p class="hint-text">请随意想两组三位数数字输入，数字越随机结果越准确</p>
                         </div>
-                        
-                        <div class="form-buttons">
-                            <button type="button" id="number-cast-btn" class="btn btn-primary">
-                                <i class="fas fa-random"></i> 起卦
-                            </button>
-                        </div>
-                    </div>
-                </form>
+                    </form>
+                </div>
             </div>
-        </div>
 
-        <div class="content-section" id="hexagram-section" style="display: none;">
-            <div class="result-header">
-                <h2><i class="fas fa-chart-pie"></i> 卦象结果</h2>
-                <div class="result-actions">
-                    <button id="save-hexagram" class="btn btn-action"><i class="fas fa-save"></i> 保存</button>
-                    <button id="new-divination" class="btn btn-action"><i class="fas fa-plus"></i> 新占卜</button>
-                </div>
-            </div>
-            
-            <!-- 新增：信息框架横向排列 -->
-            <div class="info-frames">
-                <div class="info-frame">
-                    <h3><i class="fas fa-question"></i> 占卜问题</h3>
-                    <p id="question-display">暂无问题</p>
-                </div>
-                
-                <div class="info-frame">
-                    <h3><i class="fas fa-calendar-alt"></i> 占卜时间</h3>
-                    <p id="divination-time">暂无时间</p>
-                </div>
-                
-                <div class="info-frame">
-                    <h3><i class="fas fa-dice"></i> 起卦方式</h3>
-                    <p id="divination-method">暂无</p>
-                </div>
-            </div>
-            
-            <div class="hexagram-container" id="hexagram-display">
-                <!-- 卦象将通过JavaScript动态生成 -->
-            </div>
-            
-            <div class="gua-name" id="gua-name">
-                <!-- 卦名将通过JavaScript动态生成 -->
-            </div>
-            
-            <div class="result-grid">
-                <div class="result-card">
-                    <h3><i class="fas fa-info-circle"></i> 卦象解析</h3>
-                    <div id="gua-image-container">
-                        <img src="../images/hexagrams/qian.png" alt="卦象图" class="gua-image" id="gua-image">
-                    </div>
-                    <div class="interpretation-text" id="gua-interpretation">
-                        <!-- 卦象解析将通过JavaScript动态生成 -->
+            <div class="content-section" id="hexagram-section" style="display: none;">
+                <div class="result-header">
+                    <h2><i class="fas fa-chart-pie"></i> 卦象结果</h2>
+                    <div class="result-actions">
+                        <button id="save-hexagram" class="btn btn-action"><i class="fas fa-save"></i> 保存</button>
+                        <button id="new-divination" class="btn btn-action"><i class="fas fa-plus"></i> 新占卜</button>
                     </div>
                 </div>
                 
-                <div class="result-card">
-                    <h3><i class="fas fa-exchange-alt"></i> 变爻分析</h3>
-                    <div class="interpretation-text" id="yao-analysis">
-                        <!-- 变爻分析将通过JavaScript动态生成 -->
+                <!-- 新增：信息框架横向排列 -->
+                <div class="info-frames">
+                    <div class="info-frame">
+                        <h3><i class="fas fa-question"></i> 占卜问题</h3>
+                        <p id="question-display">暂无问题</p>
+                    </div>
+                    
+                    <div class="info-frame">
+                        <h3><i class="fas fa-calendar-alt"></i> 占卜时间</h3>
+                        <p id="divination-time">暂无时间</p>
+                    </div>
+                    
+                    <div class="info-frame">
+                        <h3><i class="fas fa-dice"></i> 起卦方式</h3>
+                        <p id="divination-method">暂无</p>
                     </div>
                 </div>
                 
-                <div class="result-card">
-                    <h3><i class="fas fa-lightbulb"></i> 建议指导</h3>
-                    <div class="interpretation-text" id="advice">
-                        <!-- 建议指导将通过JavaScript动态生成 -->
+                <div class="hexagram-container" id="hexagram-display">
+                    <!-- 卦象将通过JavaScript动态生成 -->
+                </div>
+                
+                <div class="gua-name" id="gua-name">
+                    <!-- 卦名将通过JavaScript动态生成 -->
+                </div>
+                
+                <div class="result-grid">
+                    <div class="result-card">
+                        <h3><i class="fas fa-info-circle"></i> 卦象解析</h3>
+                        <div id="gua-image-container">
+                            <img src="images/hexagrams/qian.png" alt="卦象图" class="gua-image" id="gua-image">
+                        </div>
+                        <div class="interpretation-text" id="gua-interpretation">
+                            <!-- 卦象解析将通过JavaScript动态生成 -->
+                        </div>
+                    </div>
+                    
+                    <div class="result-card">
+                        <h3><i class="fas fa-exchange-alt"></i> 变爻分析</h3>
+                        <div class="interpretation-text" id="yao-analysis">
+                            <!-- 变爻分析将通过JavaScript动态生成 -->
+                        </div>
+                    </div>
+                    
+                    <div class="result-card">
+                        <h3><i class="fas fa-lightbulb"></i> 建议指导</h3>
+                        <div class="interpretation-text" id="advice">
+                            <!-- 建议指导将通过JavaScript动态生成 -->
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="gua-description">
+                    <h3><i class="fas fa-book"></i> 卦辞详解</h3>
+                    <div id="gua-detail">
+                        <p id="gua-detail-content">正在获取卦辞详解...</p>
+                        <div id="loading-indicator" style="display: none;">
+                            <span class="loading"></span>正在从DeepSeek API获取详细解释...
+                        </div>
                     </div>
                 </div>
             </div>
             
-            <div class="gua-description">
-                <h3><i class="fas fa-book"></i> 卦辞详解</h3>
-                <div id="gua-detail">
-                    <p id="gua-detail-content">正在获取卦辞详解...</p>
-                    <div id="loading-indicator" style="display: none;">
-                        <span class="loading"></span>正在从DeepSeek API获取详细解释...
-                    </div>
+            <div class="divination-history" id="history-section" style="display: none;">
+                <h3><i class="fas fa-history"></i> 历史占卜记录</h3>
+                <div id="history-list">
+                    <!-- 历史记录将通过JavaScript动态生成 -->
                 </div>
+                <button class="clear-history" id="clear-history"><i class="fas fa-trash"></i> 清除历史记录</button>
             </div>
-        </div>
-        
-        <div class="divination-history" id="history-section" style="display: none;">
-            <h3><i class="fas fa-history"></i> 历史占卜记录</h3>
-            <div id="history-list">
-                <!-- 历史记录将通过JavaScript动态生成 -->
-            </div>
-            <button class="clear-history" id="clear-history"><i class="fas fa-trash"></i> 清除历史记录</button>
         </div>
     </main>
 
@@ -801,10 +1184,6 @@
     </footer>
 
     <script>
-        // DeepSeek API配置
-        const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
-        const apiKey = 'sk-b2950087a9d5427392762814114b22a9';
-        
         // 六爻卦象数据
         const guaData = {
             "111111": { name: "乾为天", image: "qian.png", interpretation: "乾卦象征天，代表刚健、创始、主动。占得此卦者，往往表示事情将会顺利发展，但需要保持积极进取的态度。" },
@@ -1002,6 +1381,9 @@
                     coin.style.transform = 'rotateY(180deg)';
                 }
                 
+                // 添加已点击效果
+                coin.classList.add('active');
+                
                 // 更新状态显示
                 updateCoinStatus();
             }, 1000);
@@ -1104,6 +1486,7 @@
             coins.forEach(coin => {
                 delete coin.dataset.side;
                 coin.style.transform = 'rotateY(0deg)';
+                coin.classList.remove('active');
             });
             
             // 更新状态显示
@@ -1153,7 +1536,7 @@
             
             // 显示时间和方法
             document.getElementById('divination-time').textContent = date.toLocaleString();
-            document.getElementById('divination-method').textContent = "钱币摇卦";
+            document.getElementById('divination-method').textContent = "时间起卦";
             
             // 显示结果
             showResult();
@@ -1189,7 +1572,7 @@
             // 显示时间和方法
             const now = new Date();
             document.getElementById('divination-time').textContent = now.toLocaleString();
-            document.getElementById('divination-method').textContent = "钱币摇卦";
+            document.getElementById('divination-method').textContent = "数字起卦";
             
             // 显示结果
             showResult();
@@ -1287,10 +1670,10 @@
             // 显示卦象图
             const guaImage = document.getElementById('gua-image');
             if (guaInfo.image) {
-                guaImage.src = `../images/hexagrams/${guaInfo.image}`;
+                guaImage.src = `images/hexagrams/${guaInfo.image}`;
                 guaImage.style.display = 'block';
             } else {
-                guaImage.src = '../images/hexagrams/qian.png';
+                guaImage.src = 'images/hexagrams/qian.png';
                 guaImage.style.display = 'block';
             }
             
@@ -1328,8 +1711,12 @@
             document.getElementById('gua-detail-content').textContent = "正在获取卦辞详解...";
             document.getElementById('loading-indicator').style.display = 'block';
             
-            // 从DeepSeek API获取详细卦辞
-            fetchGuaDetailFromAPI(currentQuestion, guaInfo.name, hexagramCode, changingYao);
+            // 模拟从API获取详细卦辞
+            setTimeout(() => {
+                const guaDetail = generateGuaDetail(hexagramCode, changingYao, currentQuestion);
+                document.getElementById('gua-detail-content').innerHTML = guaDetail;
+                document.getElementById('loading-indicator').style.display = 'none';
+            }, 1500);
             
             // 显示结果区域
             document.getElementById('hexagram-section').style.display = 'block';
@@ -1338,116 +1725,55 @@
             document.getElementById('hexagram-section').scrollIntoView({ behavior: 'smooth' });
         }
         
-        // 从DeepSeek API获取卦辞详解
-        async function fetchGuaDetailFromAPI(question, guaName, hexagramCode, changingYao) {
-            try {
-                const prompt = `用户占卜问题："${question}"
-                
-请详细解释《易经》中的${guaName}卦（卦象编码：${hexagramCode}），并结合用户的问题给出针对性解答，请按照以下结构用中文回答：
-                
-1. 卦象概述：
-   用一段话简要说明此卦的核心含义，以及与用户问题的关联
-
-2. 象征意义：
-   详细解释卦象的象征意义，包括上下卦的组合含义
-
-3. 变爻分析：
-   ${changingYao.length > 0 ? '重点分析第' + changingYao.join('、') + '爻的变化含义及其对用户问题的启示' : '本次占卜无变爻，说明事情将保持现状'}
-
-4. 传统卦辞：
-   解释此卦的传统卦辞和爻辞含义
-
-5. 现实应用：
-   针对用户的具体问题，给出此卦在现实生活中的应用建议
-
-6. 注意事项：
-   提醒占卜者需要注意的关键点
-
-内容要详细专业，适合命理学习者，使用清晰的分段和标题。`;
-                
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${apiKey}`
-                    },
-                    body: JSON.stringify({
-                        model: "deepseek-chat",
-                        messages: [
-                            {
-                                role: "user",
-                                content: prompt
-                            }
-                        ],
-                        temperature: 0.7
-                    })
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`API请求失败: ${response.status}`);
-                }
-                
-                const data = await response.json();
-                const rawContent = data.choices[0].message.content;
-                
-                // 格式化卦辞详解
-                const formattedContent = formatGuaDetail(rawContent);
-                document.getElementById('gua-detail-content').innerHTML = formattedContent;
-                document.getElementById('loading-indicator').style.display = 'none';
-            } catch (error) {
-                console.error('获取卦辞详解失败:', error);
-                document.getElementById('gua-detail-content').innerHTML = 
-                    `<div class="detail-highlight"><i class="fas fa-exclamation-triangle"></i> 获取卦辞详解失败: ${error.message}</div>
-                     <p class="detail-para">${guaData[hexagramCode]?.interpretation || '暂无解释'}</p>`;
-                document.getElementById('loading-indicator').style.display = 'none';
-            }
-        }
-        
-        // 卦辞格式化函数
-        function formatGuaDetail(text) {
-            // 分割段落
-            let paragraphs = text.split('\n').filter(p => p.trim() !== '');
+        // 生成卦辞详解
+        function generateGuaDetail(hexagramCode, changingYao, question) {
+            const guaInfo = guaData[hexagramCode] || { name: "未知卦" };
             
-            // 如果没有明显分段，尝试按句号分
-            if (paragraphs.length <= 1) {
-                paragraphs = text.split(/[。！？]/).filter(p => p.trim() !== '');
+            let detail = `
+                <h4 class="detail-title">1. 卦象概述</h4>
+                <p class="detail-para">${guaInfo.name}卦代表${guaInfo.interpretation || "暂无解释"}。您占卜的问题是："${question}"，此卦象表明：</p>
+                <ul>
+                    <li>当前形势：${["有利", "平稳", "需谨慎"][Math.floor(Math.random() * 3)]}</li>
+                    <li>发展趋势：${["向好", "维持现状", "可能有变"][Math.floor(Math.random() * 3)]}</li>
+                </ul>
+                
+                <h4 class="detail-title">2. 象征意义</h4>
+                <p class="detail-para">本卦由${hexagramCode.startsWith("1") ? "阳" : "阴"}爻开始，整体卦象${hexagramCode.includes("1") ? "阳" : "阴"}气${hexagramCode.includes("1") ? "旺盛" : "不足"}。</p>
+            `;
+            
+            if (changingYao.length > 0) {
+                detail += `
+                    <h4 class="detail-title">3. 变爻分析</h4>
+                    <p class="detail-para">本次占卜有${changingYao.length}个变爻，位于第${changingYao.join("、")}爻，表示：</p>
+                    <div class="detail-highlight">
+                        <i class="fas fa-exclamation-circle"></i> 事情将发生重要变化，需要特别关注变爻所指的方向。
+                    </div>
+                `;
+            } else {
+                detail += `
+                    <h4 class="detail-title">3. 变爻分析</h4>
+                    <p class="detail-para">本次占卜没有变爻，表示事情将保持现状发展。</p>
+                `;
             }
             
-            // 识别标题和关键部分
-            let html = '';
-            paragraphs.forEach(para => {
-                para = para.trim();
-                if (!para) return;
+            detail += `
+                <h4 class="detail-title">4. 传统卦辞</h4>
+                <p class="detail-para">${guaInfo.name}卦的传统解释：${guaInfo.interpretation || "暂无详细卦辞"}</p>
                 
-                // 识别标题（包含数字或冒号的部分）
-                if (/^\d+[、.]/.test(para) || /[:：]$/.test(para)) {
-                    html += `<h4 class="detail-title">${para}</h4>`;
-                } 
-                // 识别重点内容
-                else if (para.includes('建议') || para.includes('注意') || para.includes('关键')) {
-                    html += `<div class="detail-highlight"><i class="fas fa-lightbulb"></i> ${para}</div>`;
-                }
-                // 识别列表项
-                else if (para.startsWith('-') || para.startsWith('•')) {
-                    if (!html.includes('<ul>')) html += '<ul>';
-                    html += `<li>${para.substring(1).trim()}</li>`;
-                }
-                // 普通段落
-                else {
-                    // 如果上一项是ul，先闭合
-                    if (html.includes('<ul>') && !html.includes('</ul>')) {
-                        html += '</ul>';
-                    }
-                    html += `<p class="detail-para">${para}</p>`;
-                }
-            });
+                <h4 class="detail-title">5. 现实应用</h4>
+                <p class="detail-para">针对您的问题"${question}"，建议：</p>
+                <ul>
+                    <li>${["积极行动", "保持耐心", "寻求帮助"][Math.floor(Math.random() * 3)]}</li>
+                    <li>${["注意细节", "把握时机", "谨慎决策"][Math.floor(Math.random() * 3)]}</li>
+                </ul>
+                
+                <h4 class="detail-title">6. 注意事项</h4>
+                <div class="detail-highlight">
+                    <i class="fas fa-lightbulb"></i> 占卜结果仅供参考，最终决策仍需结合实际情况。保持积极心态，顺势而为。
+                </div>
+            `;
             
-            // 确保ul标签闭合
-            if (html.includes('<ul>') && !html.includes('</ul>')) {
-                html += '</ul>';
-            }
-            
-            return html;
+            return detail;
         }
         
         // 生成建议指导
@@ -1595,6 +1921,7 @@
             coins.forEach(coin => {
                 delete coin.dataset.side;
                 coin.style.transform = 'rotateY(0deg)';
+                coin.classList.remove('active');
             });
             
             // 滚动到顶部
