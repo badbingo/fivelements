@@ -1974,12 +1974,12 @@ function getYaoChangeInterpretation(count, hexagramCode) {
 }
         
         // 从DeepSeek API获取卦辞详解
-async function fetchGuaDetailFromAPI(question, guaName, hexagramCode, changingYao) {
-    try {
-        const prompt = `用户占卜问题："${question}"
-        
+        async function fetchGuaDetailFromAPI(question, guaName, hexagramCode, changingYao) {
+            try {
+                const prompt = `用户占卜问题："${question}"
+                
 请详细解释《易经》中的${guaName}卦（卦象编码：${hexagramCode}），并结合用户的问题给出针对性解答，请按照以下结构用中文回答：
-        
+                
 1. 卦象概述：
    用一段话简要说明此卦的核心含义，以及与用户问题的关联
 
@@ -1998,91 +1998,92 @@ async function fetchGuaDetailFromAPI(question, guaName, hexagramCode, changingYa
 6. 注意事项：
    提醒占卜者需要注意的关键点
 
-请使用纯文本格式回答，不要使用Markdown符号（如#，*，-等）。内容要详细专业，适合命理学习者，使用清晰的分段。`;
+内容要详细专业，适合命理学习者，使用清晰的分段和标题。`;
+                
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: "deepseek-chat",
+                        messages: [
+                            {
+                                role: "user",
+                                content: prompt
+                            }
+                        ],
+                        temperature: 0.7
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`API请求失败: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                const rawContent = data.choices[0].message.content;
+                
+                // 格式化卦辞详解
+                const formattedContent = formatGuaDetail(rawContent);
+                document.getElementById('gua-detail-content').innerHTML = formattedContent;
+                document.getElementById('loading-indicator').style.display = 'none';
+            } catch (error) {
+                console.error('获取卦辞详解失败:', error);
+                document.getElementById('gua-detail-content').innerHTML = 
+                    `<div class="detail-highlight"><i class="fas fa-exclamation-triangle"></i> 获取卦辞详解失败: ${error.message}</div>
+                     <p class="detail-para">${guaData[hexagramCode]?.interpretation || '暂无解释'}</p>`;
+                document.getElementById('loading-indicator').style.display = 'none';
+            }
+        }
         
-        const response = await fetch(apiUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`
-            },
-            body: JSON.stringify({
-                model: "deepseek-chat",
-                messages: [
-                    {
-                        role: "user",
-                        content: prompt
+        // 卦辞格式化函数
+        function formatGuaDetail(text) {
+            // 分割段落
+            let paragraphs = text.split('\n').filter(p => p.trim() !== '');
+            
+            // 如果没有明显分段，尝试按句号分
+            if (paragraphs.length <= 1) {
+                paragraphs = text.split(/[。！？]/).filter(p => p.trim() !== '');
+            }
+            
+            // 识别标题和关键部分
+            let html = '';
+            paragraphs.forEach(para => {
+                para = para.trim();
+                if (!para) return;
+                
+                // 识别标题（包含数字或冒号的部分）
+                if (/^\d+[、.]/.test(para) || /[:：]$/.test(para)) {
+                    html += `<h4 class="detail-title">${para}</h4>`;
+                } 
+                // 识别重点内容
+                else if (para.includes('建议') || para.includes('注意') || para.includes('关键')) {
+                    html += `<div class="detail-highlight"><i class="fas fa-lightbulb"></i> ${para}</div>`;
+                }
+                // 识别列表项
+                else if (para.startsWith('-') || para.startsWith('•')) {
+                    if (!html.includes('<ul>')) html += '<ul>';
+                    html += `<li>${para.substring(1).trim()}</li>`;
+                }
+                // 普通段落
+                else {
+                    // 如果上一项是ul，先闭合
+                    if (html.includes('<ul>') && !html.includes('</ul>')) {
+                        html += '</ul>';
                     }
-                ],
-                temperature: 0.7
-            })
-        });
-        
-        if (!response.ok) {
-            throw new Error(`API请求失败: ${response.status}`);
+                    html += `<p class="detail-para">${para}</p>`;
+                }
+            });
+            
+            // 确保ul标签闭合
+            if (html.includes('<ul>') && !html.includes('</ul>')) {
+                html += '</ul>';
+            }
+            
+            return html;
         }
-        
-        const data = await response.json();
-        const rawContent = data.choices[0].message.content;
-        
-        // 清理内容中的符号
-        const cleanContent = cleanApiContent(rawContent);
-        document.getElementById('gua-detail-content').innerHTML = formatGuaDetail(cleanContent);
-        document.getElementById('loading-indicator').style.display = 'none';
-    } catch (error) {
-        console.error('获取卦辞详解失败:', error);
-        document.getElementById('gua-detail-content').innerHTML = 
-            `<div class="detail-highlight"><i class="fas fa-exclamation-triangle"></i> 获取卦辞详解失败: ${error.message}</div>
-             <p class="detail-para">${guaData[hexagramCode]?.interpretation || '暂无解释'}</p>`;
-        document.getElementById('loading-indicator').style.display = 'none';
-    }
-}
-
-// 清理API返回内容中的符号
-function cleanApiContent(text) {
-    // 移除Markdown符号
-    let cleanText = text.replace(/[#*\-_]/g, '');
-    
-    // 移除多余的空白行
-    cleanText = cleanText.replace(/\n\s*\n/g, '\n\n');
-    
-    // 移除列表标记
-    cleanText = cleanText.replace(/^\s*[\d、.•]\s*/gm, '');
-    
-    return cleanText.trim();
-}
-
-// 卦辞格式化函数（更新版）
-function formatGuaDetail(text) {
-    // 先清理内容
-    text = cleanApiContent(text);
-    
-    // 分割段落
-    let paragraphs = text.split('\n\n').filter(p => p.trim() !== '');
-    
-    let html = '';
-    paragraphs.forEach(para => {
-        para = para.trim();
-        if (!para) return;
-        
-        // 识别标题（包含"："的部分）
-        if (para.includes('：')) {
-            const [title, ...content] = para.split('：');
-            html += `<h4 class="detail-title">${title}：</h4>`;
-            html += `<p class="detail-para">${content.join('：')}</p>`;
-        } 
-        // 识别重点内容
-        else if (para.includes('建议') || para.includes('注意') || para.includes('关键')) {
-            html += `<div class="detail-highlight"><i class="fas fa-lightbulb"></i> ${para}</div>`;
-        }
-        // 普通段落
-        else {
-            html += `<p class="detail-para">${para}</p>`;
-        }
-    });
-    
-    return html;
-}
         
         // 保存卦象到历史记录
         function saveHexagram() {
