@@ -542,6 +542,142 @@
                 min-width: auto;
             }
         }
+
+        /* 卦象结果容器 */
+        .gua-result-container {
+            display: flex;
+            gap: 25px;
+            align-items: flex-start;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px dashed rgba(0,0,0,0.1);
+        }
+        
+        .gua-image-box {
+            position: relative;
+            flex-shrink: 0;
+            text-align: center;
+        }
+        
+        .gua-image {
+            width: 140px;
+            height: 140px;
+            object-fit: contain;
+            filter: drop-shadow(0 5px 15px rgba(0,0,0,0.3));
+            transition: all 0.5s ease;
+            border-radius: 8px;
+            background: white;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+        
+        .gua-image:hover {
+            transform: scale(1.1) rotate(5deg);
+        }
+        
+        .gua-name-banner {
+            position: absolute;
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 5px 20px;
+            border-radius: 20px;
+            font-size: 1rem;
+            font-weight: bold;
+            white-space: nowrap;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+            z-index: 2;
+        }
+        
+        .gua-text-content {
+            flex: 1;
+        }
+        
+        .gua-summary {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        
+        .gua-meta-info {
+            background: rgba(0,0,0,0.03);
+            padding: 12px;
+            border-radius: 8px;
+            border-left: 3px solid var(--primary-color);
+        }
+        
+        .gua-meta-info p {
+            margin: 8px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        /* 变爻分析样式 */
+        .changing-yao-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            color: var(--primary-color);
+        }
+        
+        .yao-item {
+            display: flex;
+            margin-bottom: 12px;
+            background: rgba(237, 28, 36, 0.05);
+            padding: 12px;
+            border-radius: 6px;
+        }
+        
+        .yao-position {
+            flex-shrink: 0;
+            width: 50px;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        
+        .yao-content {
+            flex: 1;
+        }
+        
+        .yao-change-meaning {
+            background: rgba(255, 235, 59, 0.2);
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .no-changing-yao {
+            background: rgba(0,0,0,0.05);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            color: #666;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .gua-result-container {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .gua-image {
+                width: 120px;
+                height: 120px;
+            }
+            
+            .gua-text-content {
+                width: 100%;
+            }
+        }
     </style>
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-2NHJXGKS0Y"></script>
@@ -1535,36 +1671,37 @@ function showResult() {
     currentHexagram.forEach(yao => {
         hexagramCode += yao.line === '111' ? '1' : '0';
     });
-    
+
     // 获取卦象信息
     const guaInfo = guaData[hexagramCode] || { 
         name: "未知卦", 
         image: "qian.png", 
         interpretation: "此卦象暂无详细解释。" 
     };
-    
+
     // 显示问题
     document.getElementById('question-display').textContent = currentQuestion;
-    
-    // 显示卦名
+
+    // 显示卦名（大标题保留）
     document.getElementById('gua-name').textContent = guaInfo.name;
-    
-    // 显示卦象图
-    const guaImage = document.getElementById('gua-image');
-    if (guaInfo.image) {
-        guaImage.src = `../images/hexagrams/${guaInfo.image}`;
-        guaImage.style.display = 'block';
-    } else {
-        guaImage.src = '../images/hexagrams/qian.png';
-        guaImage.style.display = 'block';
-    }
-    
-    // 显示卦象解析
+
+    // 显示卦象解析（包含卦象图）
     document.getElementById('gua-interpretation').innerHTML = `
-        <p>${guaInfo.interpretation}</p>
-        <p><strong>卦象编码：</strong>${hexagramCode}</p>
+        <div class="gua-result-container">
+            <div class="gua-image-box">
+                <img src="../images/hexagrams/${guaInfo.image || 'qian.png'}" alt="${guaInfo.name}" class="gua-image">
+                <div class="gua-name-banner">${guaInfo.name}</div>
+            </div>
+            <div class="gua-text-content">
+                <p class="gua-summary">${guaInfo.interpretation}</p>
+                <div class="gua-meta-info">
+                    <p><i class="fas fa-barcode"></i> <strong>卦象编码：</strong>${hexagramCode}</p>
+                    <p><i class="fas fa-layer-group"></i> <strong>卦象结构：</strong>${getGuaStructure(hexagramCode)}</p>
+                </div>
+            </div>
+        </div>
     `;
-    
+
     // 显示变爻分析
     let changingYao = [];
     currentHexagram.forEach((yao, index) => {
@@ -1572,19 +1709,36 @@ function showResult() {
             changingYao.push(index + 1);
         }
     });
-    
+
     let yaoAnalysis = '';
     if (changingYao.length > 0) {
-        yaoAnalysis = `<p><strong>变爻位置：</strong>第 ${changingYao.join('、')} 爻</p>`;
+        yaoAnalysis = `<div class="changing-yao-header">
+            <i class="fas fa-exchange-alt"></i> 
+            <h4>变爻分析（第 ${changingYao.join('、')} 爻）</h4>
+        </div>`;
+        
         changingYao.forEach(pos => {
             const yaoText = yaoData[hexagramCode] ? yaoData[hexagramCode][pos - 1] : "暂无爻辞";
-            yaoAnalysis += `<p><strong>第${pos}爻：</strong>${yaoText}</p>`;
+            yaoAnalysis += `
+                <div class="yao-item">
+                    <div class="yao-position">${getYaoPositionName(pos)}</div>
+                    <div class="yao-content">${yaoText}</div>
+                </div>
+            `;
         });
+        
+        yaoAnalysis += `<div class="yao-change-meaning">
+            <i class="fas fa-info-circle"></i> 
+            ${changingYao.length === 1 ? '此变爻表示' : '这些变爻共同表示'} 
+            ${getYaoChangeInterpretation(changingYao.length, hexagramCode)}
+        </div>`;
     } else {
-        yaoAnalysis = "<p>本次占卜没有变爻，表示事情将按现状发展。</p>";
+        yaoAnalysis = `<div class="no-changing-yao">
+            <i class="fas fa-info-circle"></i> 本次占卜没有变爻，表示事情将保持当前发展趋势
+        </div>`;
     }
     document.getElementById('yao-analysis').innerHTML = yaoAnalysis;
-    
+
     // 显示卦辞详解
     document.getElementById('gua-detail-content').textContent = "正在获取卦辞详解...";
     document.getElementById('loading-indicator').style.display = 'block';
@@ -1596,7 +1750,37 @@ function showResult() {
     document.getElementById('hexagram-section').style.display = 'block';
     
     // 滚动到结果区域
-    document.getElementById('hexagram-section').scrollIntoView({ behavior: 'smooth' });
+    setTimeout(() => {
+        document.getElementById('hexagram-section').scrollIntoView({ 
+            behavior: 'smooth' 
+        });
+    }, 300);
+}
+
+// 辅助函数：获取卦象结构描述
+function getGuaStructure(hexagramCode) {
+    const upper = hexagramCode.slice(0, 3);
+    const lower = hexagramCode.slice(3);
+    return `上${upper.replace(/0/g,'阴').replace(/1/g,'阳')}下${lower.replace(/0/g,'阴').replace(/1/g,'阳')}`;
+}
+
+// 辅助函数：获取爻位名称
+function getYaoPositionName(position) {
+    const names = ['初爻', '二爻', '三爻', '四爻', '五爻', '上爻'];
+    return names[position - 1] || `${position}爻`;
+}
+
+// 辅助函数：获取变爻解释
+function getYaoChangeInterpretation(count, hexagramCode) {
+    const interpretations = {
+        1: "事物发展将出现关键转折点",
+        2: "阴阳力量正在转换平衡",
+        3: "重大变革即将发生",
+        4: "多方面因素同时变化",
+        5: "整体格局将发生转变",
+        6: "乾坤颠倒，彻底变化"
+    };
+    return interpretations[count] || "卦象正在发生动态变化";
 }
         
         // 从DeepSeek API获取卦辞详解
