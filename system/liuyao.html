@@ -1302,6 +1302,14 @@
         
         // DOM加载完成后执行
 document.addEventListener('DOMContentLoaded', function() {
+    // 检查CryptoJS是否加载成功
+    if (typeof CryptoJS === 'undefined') {
+        console.error('CryptoJS库未加载，支付功能将不可用');
+        document.getElementById('pay-btn').disabled = true;
+        document.getElementById('pay-btn').innerHTML = '<i class="fas fa-exclamation-triangle"></i> 支付功能暂不可用';
+        return;
+    }
+
     // 支付配置
     const paymentConfig = {
         pid: '2025051013380915',
@@ -1326,7 +1334,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.body.appendChild(fullscreenLoading);
     
     // 初始化支付状态
-    let isPaid = localStorage.getItem('liuyao_paid') === 'true';
+    let isPaid = false;
     updatePaymentStatus();
     
     // 检查支付回调
@@ -1342,62 +1350,78 @@ document.addEventListener('DOMContentLoaded', function() {
             payBtn.style.display = 'none';
             questionInput.readOnly = false;
             questionInput.style.backgroundColor = '';
+            questionInput.placeholder = '请输入您要占卜的问题...';
         } else {
             paymentStatus.style.display = 'none';
             payBtn.style.display = 'block';
             questionInput.readOnly = true;
             questionInput.style.backgroundColor = '#f5f5f5';
             questionInput.placeholder = '请先支付1元解锁占卜功能';
+            questionInput.value = '';
         }
     }
     
     // 检查支付回调
     function checkPaymentReturn() {
-        const params = new URLSearchParams(window.location.search);
-        if (params.get('trade_status') === 'TRADE_SUCCESS') {
-            const paymentData = {
-                pid: params.get('pid'),
-                trade_no: params.get('trade_no'),
-                out_trade_no: params.get('out_trade_no'),
-                type: params.get('type'),
-                name: params.get('name'),
-                money: params.get('money'),
-                trade_status: params.get('trade_status'),
-                param: params.get('param'),
-                sign: params.get('sign'),
-                sign_type: params.get('sign_type')
-            };
+        try {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('trade_status') === 'TRADE_SUCCESS') {
+                const paymentData = {
+                    pid: params.get('pid'),
+                    trade_no: params.get('trade_no'),
+                    out_trade_no: params.get('out_trade_no'),
+                    type: params.get('type'),
+                    name: params.get('name'),
+                    money: params.get('money'),
+                    trade_status: params.get('trade_status'),
+                    param: params.get('param'),
+                    sign: params.get('sign'),
+                    sign_type: params.get('sign_type')
+                };
 
-            if (verifyPayment(paymentData)) {
-                isPaid = true;
-                localStorage.setItem('liuyao_paid', 'true');
-                updatePaymentStatus();
-                cleanUrl();
+                if (verifyPayment(paymentData)) {
+                    isPaid = true;
+                    updatePaymentStatus();
+                    cleanUrl();
+                    showToast('支付成功！您现在可以开始占卜了', 'success');
+                }
             }
+        } catch (error) {
+            console.error('支付回调处理错误:', error);
         }
     }
     
     // 生成签名
     function generateSign(params) {
-        const filtered = {};
-        Object.keys(params).forEach(k => {
-            if (params[k] !== '' && k !== 'sign' && k !== 'sign_type') {
-                filtered[k] = params[k];
-            }
-        });
-        
-        const signStr = Object.keys(filtered).sort()
-            .map(k => `${k}=${filtered[k]}`)
-            .join('&') + paymentConfig.key;
-        
-        return CryptoJS.MD5(signStr).toString();
+        try {
+            const filtered = {};
+            Object.keys(params).forEach(k => {
+                if (params[k] !== '' && k !== 'sign' && k !== 'sign_type') {
+                    filtered[k] = params[k];
+                }
+            });
+            
+            const signStr = Object.keys(filtered).sort()
+                .map(k => `${k}=${filtered[k]}`)
+                .join('&') + paymentConfig.key;
+            
+            return CryptoJS.MD5(signStr).toString();
+        } catch (error) {
+            console.error('生成签名错误:', error);
+            return '';
+        }
     }
     
     // 验证支付
     function verifyPayment(paymentData) {
-        const sign = paymentData.sign;
-        delete paymentData.sign;
-        return generateSign(paymentData) === sign;
+        try {
+            const sign = paymentData.sign;
+            delete paymentData.sign;
+            return generateSign(paymentData) === sign;
+        } catch (error) {
+            console.error('验证支付错误:', error);
+            return false;
+        }
     }
     
     // 生成订单号
@@ -1414,60 +1438,110 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 清理URL
     function cleanUrl() {
-        window.history.replaceState({}, document.title, window.location.pathname);
+        try {
+            window.history.replaceState({}, document.title, window.location.pathname);
+        } catch (error) {
+            console.error('清理URL错误:', error);
+        }
     }
     
     // 开始支付
     function startPayment() {
-        fullscreenLoading.style.display = 'flex';
-        
-        const paymentData = {
-            pid: paymentConfig.pid,
-            type: 'wxpay',
-            out_trade_no: generateOrderNo(),
-            notify_url: paymentConfig.returnUrl,
-            return_url: paymentConfig.returnUrl,
-            name: '六爻占卜服务费',
-            money: paymentConfig.amount,
-            param: 'liuyao_divination',
-            sign_type: 'MD5'
-        };
-        
-        paymentData.sign = generateSign(paymentData);
-        submitPaymentForm(paymentData);
+        try {
+            fullscreenLoading.style.display = 'flex';
+            
+            const paymentData = {
+                pid: paymentConfig.pid,
+                type: 'wxpay',
+                out_trade_no: generateOrderNo(),
+                notify_url: paymentConfig.returnUrl,
+                return_url: paymentConfig.returnUrl,
+                name: '六爻占卜服务费',
+                money: paymentConfig.amount,
+                param: 'liuyao_divination',
+                sign_type: 'MD5'
+            };
+            
+            paymentData.sign = generateSign(paymentData);
+            
+            if (!paymentData.sign) {
+                throw new Error('生成支付签名失败');
+            }
+            
+            submitPaymentForm(paymentData);
+        } catch (error) {
+            console.error('支付启动错误:', error);
+            fullscreenLoading.style.display = 'none';
+            showToast('支付启动失败，请稍后再试', 'error');
+        }
     }
     
     // 提交支付表单
     function submitPaymentForm(data) {
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = paymentConfig.apiUrl;
-        form.style.display = 'none';
+        try {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = paymentConfig.apiUrl;
+            form.style.display = 'none';
 
-        Object.entries(data).forEach(([key, value]) => {
-            const input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = key;
-            input.value = value;
-            form.appendChild(input);
-        });
+            Object.entries(data).forEach(([key, value]) => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = key;
+                input.value = value;
+                form.appendChild(input);
+            });
 
-        document.body.appendChild(form);
-        form.submit();
+            document.body.appendChild(form);
+            form.submit();
+        } catch (error) {
+            console.error('提交支付表单错误:', error);
+            fullscreenLoading.style.display = 'none';
+            showToast('支付提交失败，请稍后再试', 'error');
+        }
     }
     
-    // 在占卜表单提交时检查支付状态
+    // 显示Toast提示
+    function showToast(message, type = 'info') {
+        const toast = document.createElement('div');
+        toast.style.cssText = `
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 24px;
+            background-color: ${type === 'error' ? '#f44336' : type === 'success' ? '#4CAF50' : '#2196F3'};
+            color: white;
+            border-radius: 4px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            z-index: 10000;
+            animation: fadeIn 0.3s;
+        `;
+        toast.innerHTML = `<i class="fas ${type === 'error' ? 'fa-exclamation-circle' : type === 'success' ? 'fa-check-circle' : 'fa-info-circle'}"></i> ${message}`;
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.style.animation = 'fadeOut 0.3s';
+            setTimeout(() => {
+                document.body.removeChild(toast);
+            }, 300);
+        }, 3000);
+    }
+    
+    // 在占卜表单提交时处理支付状态
     document.getElementById('divination-form').addEventListener('submit', function(e) {
         if (!isPaid) {
             e.preventDefault();
-            alert('请先支付1元解锁占卜功能');
+            showToast('请先支付1元解锁占卜功能', 'error');
             return;
         }
         
-        // 每次占卜后重置支付状态
-        localStorage.removeItem('liuyao_paid');
-        isPaid = false;
-        updatePaymentStatus();
+        // 占卜完成后重置支付状态
+        setTimeout(() => {
+            isPaid = false;
+            updatePaymentStatus();
+            showToast('占卜已完成，如需再次占卜请重新支付', 'info');
+        }, 100);
     });
     
     // 初始化更好的随机数种子
