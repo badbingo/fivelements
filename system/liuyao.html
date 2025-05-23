@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="../css/style1.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/seedrandom/3.0.5/seedrandom.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <style>
         /* 六爻起卦专属样式 */
         .hexagram-container {
@@ -788,48 +787,6 @@
                 width: 100%;
             }
         }
-
-        /* 新增付费区域样式 */
-.payment-section {
-    margin: 20px 0;
-    padding: 15px;
-    background: rgba(255,255,255,0.8);
-    border-radius: 10px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-    border-left: 4px solid var(--primary-color);
-}
-
-.payment-card {
-    text-align: center;
-    padding: 15px;
-}
-
-.payment-card h4 {
-    color: var(--primary-color);
-    margin-bottom: 15px;
-}
-
-.payment-card p {
-    margin-bottom: 20px;
-    color: #666;
-}
-
-/* 支付成功提示 */
-.alert-success {
-    background-color: #d4edda;
-    color: #155724;
-    padding: 10px;
-    border-radius: 4px;
-    margin-top: 15px;
-    display: none;
-}
-
-/* 锁定状态样式 */
-input[readonly] {
-    background-color: #f5f5f5;
-    cursor: not-allowed;
-}
-        
     </style>
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-2NHJXGKS0Y"></script>
@@ -947,16 +904,16 @@ input[readonly] {
                 <p>请先专注思考您要占卜的问题，然后选择一种起卦方式开始占卜。注意：每个问题只能选择一种起卦方式。切勿同一个问题多次起卦。</p>
             </div>
 
-            <!-- 新增付费解锁区域 -->
-            <div class="payment-section">
-                <div class="payment-card">
-                    <h4><i class="fas fa-lock"></i> 付费解锁占卜功能</h4>
-                    <p>每次占卜需支付1元，付款成功后即可输入问题并开始占卜</p>
-                    <button id="pay-btn" class="btn btn-primary">
-                        <i class="fas fa-unlock"></i> 1元解锁占卜
+            <div class="payment-section" style="margin: 20px 0; padding: 15px; background: rgba(255,255,255,0.8); border-radius: 10px; border-left: 4px solid var(--primary-color);">
+                <h4><i class="fas fa-lock"></i> 付费解锁占卜功能 (1元/次)</h4>
+                <p>请先支付1元解锁占卜功能，付款成功后即可输入问题并进行占卜。</p>
+                <div class="form-group">
+                    <button id="pay-btn" class="btn btn-primary" style="margin-top: 10px;">
+                        <i class="fas fa-unlock"></i> 支付1元解锁占卜
                     </button>
-                    <div id="payment-success-alert" class="alert alert-success" style="display: none;">
-                        <i class="fas fa-check-circle"></i> 付款成功！您现在可以输入占卜问题
+                    <div id="payment-status" style="margin-top: 10px; display: none;">
+                        <i class="fas fa-check-circle" style="color: green;"></i> 
+                        <span>付款成功！您现在可以输入问题并进行占卜。</span>
                     </div>
                 </div>
             </div>
@@ -968,11 +925,11 @@ input[readonly] {
                 </div>
                 <form id="divination-form" class="elegant-form">
                     <div class="form-group">
-                    <label for="question"><i class="fas fa-pen"></i> 占卜问题</label>
-                    <div class="input-with-icon">
-                        <i class="fas fa-question"></i>
-                        <input type="text" id="question" name="question" placeholder="请先完成1元付费解锁..." readonly>
-                    </div>
+                        <label for="question"><i class="fas fa-pen"></i> 占卜问题</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-question"></i>
+                            <input type="text" id="question" name="question" placeholder="请输入您要占卜的问题..." required>
+                        </div>
                         <p class="hint-text">请清晰明确地描述您要占卜的问题，问题越具体，占卜结果越准确</p>
                     </div>
                     
@@ -1344,49 +1301,82 @@ input[readonly] {
         let history = JSON.parse(localStorage.getItem('divinationHistory')) || [];
         
         // DOM加载完成后执行
-// 在DOM加载完成后添加这部分代码
 document.addEventListener('DOMContentLoaded', function() {
     // 支付配置
-    const PAY_CONFIG = {
-        pid: '2025052313380915', // 替换为您的PID
-        key: 'UsXrSwn0wft5SeLB0LaQfecvJmpkS18T', // 替换为您的密钥
+    const paymentConfig = {
+        pid: '2025051013380915',
+        key: 'UsXrSwn0wft5SeLB0LaQfecvJmpkS18T',
         apiUrl: 'https://zpayz.cn/submit.php',
         returnUrl: window.location.href.split('?')[0],
-        amount: '0.01' // 1元占卜
+        amount: '1.00'
     };
-
-    // 支付按钮点击事件
-    document.getElementById('pay-btn').addEventListener('click', function() {
-        const paymentData = {
-            pid: PAY_CONFIG.pid,
-            type: 'wxpay', // 微信支付
-            out_trade_no: generateOrderNo(),
-            notify_url: PAY_CONFIG.returnUrl,
-            return_url: PAY_CONFIG.returnUrl,
-            name: '六爻占卜-1次',
-            money: PAY_CONFIG.amount,
-            sign_type: 'MD5'
-        };
-        
-        paymentData.sign = generateSign(paymentData);
-        submitPaymentForm(paymentData);
-    });
-
+    
+    // 获取DOM元素
+    const payBtn = document.getElementById('pay-btn');
+    const paymentStatus = document.getElementById('payment-status');
+    const questionInput = document.getElementById('question');
+    const fullscreenLoading = document.createElement('div');
+    fullscreenLoading.id = 'fullscreen-loading';
+    fullscreenLoading.style.cssText = `
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+        background: rgba(0,0,0,0.5); display: none; justify-content: center; 
+        align-items: center; z-index: 9999; color: white; font-size: 1.5rem;
+    `;
+    fullscreenLoading.innerHTML = '<div><i class="fas fa-spinner fa-spin"></i> 正在处理支付请求...</div>';
+    document.body.appendChild(fullscreenLoading);
+    
+    // 初始化支付状态
+    let isPaid = localStorage.getItem('liuyao_paid') === 'true';
+    updatePaymentStatus();
+    
     // 检查支付回调
     checkPaymentReturn();
-
-    // 生成订单号
-    function generateOrderNo() {
-        const now = new Date();
-        return `${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}` +
-               `${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}` +
-               `${Math.floor(Math.random()*9000)+1000}`;
+    
+    // 支付按钮点击事件
+    payBtn.addEventListener('click', startPayment);
+    
+    // 更新支付状态函数
+    function updatePaymentStatus() {
+        if (isPaid) {
+            paymentStatus.style.display = 'block';
+            payBtn.style.display = 'none';
+            questionInput.readOnly = false;
+            questionInput.style.backgroundColor = '';
+        } else {
+            paymentStatus.style.display = 'none';
+            payBtn.style.display = 'block';
+            questionInput.readOnly = true;
+            questionInput.style.backgroundColor = '#f5f5f5';
+            questionInput.placeholder = '请先支付1元解锁占卜功能';
+        }
     }
+    
+    // 检查支付回调
+    function checkPaymentReturn() {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('trade_status') === 'TRADE_SUCCESS') {
+            const paymentData = {
+                pid: params.get('pid'),
+                trade_no: params.get('trade_no'),
+                out_trade_no: params.get('out_trade_no'),
+                type: params.get('type'),
+                name: params.get('name'),
+                money: params.get('money'),
+                trade_status: params.get('trade_status'),
+                param: params.get('param'),
+                sign: params.get('sign'),
+                sign_type: params.get('sign_type')
+            };
 
-    function pad(num) {
-        return num < 10 ? `0${num}` : num;
+            if (verifyPayment(paymentData)) {
+                isPaid = true;
+                localStorage.setItem('liuyao_paid', 'true');
+                updatePaymentStatus();
+                cleanUrl();
+            }
+        }
     }
-
+    
     // 生成签名
     function generateSign(params) {
         const filtered = {};
@@ -1398,16 +1388,60 @@ document.addEventListener('DOMContentLoaded', function() {
         
         const signStr = Object.keys(filtered).sort()
             .map(k => `${k}=${filtered[k]}`)
-            .join('&') + PAY_CONFIG.key;
+            .join('&') + paymentConfig.key;
         
         return CryptoJS.MD5(signStr).toString();
     }
-
+    
+    // 验证支付
+    function verifyPayment(paymentData) {
+        const sign = paymentData.sign;
+        delete paymentData.sign;
+        return generateSign(paymentData) === sign;
+    }
+    
+    // 生成订单号
+    function generateOrderNo() {
+        const now = new Date();
+        return `${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}` +
+               `${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}` +
+               `${Math.floor(Math.random()*9000)+1000}`;
+    }
+    
+    function pad(num) {
+        return num < 10 ? `0${num}` : num;
+    }
+    
+    // 清理URL
+    function cleanUrl() {
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
+    
+    // 开始支付
+    function startPayment() {
+        fullscreenLoading.style.display = 'flex';
+        
+        const paymentData = {
+            pid: paymentConfig.pid,
+            type: 'wxpay',
+            out_trade_no: generateOrderNo(),
+            notify_url: paymentConfig.returnUrl,
+            return_url: paymentConfig.returnUrl,
+            name: '六爻占卜服务费',
+            money: paymentConfig.amount,
+            param: 'liuyao_divination',
+            sign_type: 'MD5'
+        };
+        
+        paymentData.sign = generateSign(paymentData);
+        submitPaymentForm(paymentData);
+    }
+    
     // 提交支付表单
     function submitPaymentForm(data) {
         const form = document.createElement('form');
         form.method = 'POST';
-        form.action = PAY_CONFIG.apiUrl;
+        form.action = paymentConfig.apiUrl;
         form.style.display = 'none';
 
         Object.entries(data).forEach(([key, value]) => {
@@ -1421,90 +1455,21 @@ document.addEventListener('DOMContentLoaded', function() {
         document.body.appendChild(form);
         form.submit();
     }
-
-    // 检查支付返回
-    function checkPaymentReturn() {
-        const params = new URLSearchParams(window.location.search);
-        if (params.get('trade_status') === 'TRADE_SUCCESS') {
-            const paymentData = {
-                pid: params.get('pid'),
-                trade_no: params.get('trade_no'),
-                out_trade_no: params.get('out_trade_no'),
-                type: params.get('type'),
-                name: params.get('name'),
-                money: params.get('money'),
-                trade_status: params.get('trade_status'),
-                sign: params.get('sign'),
-                sign_type: params.get('sign_type')
-            };
-
-            if (verifyPayment(paymentData)) {
-                handlePaymentSuccess();
-                cleanUrl();
-            }
+    
+    // 在占卜表单提交时检查支付状态
+    document.getElementById('divination-form').addEventListener('submit', function(e) {
+        if (!isPaid) {
+            e.preventDefault();
+            alert('请先支付1元解锁占卜功能');
+            return;
         }
-    }
-
-    // 验证支付
-    function verifyPayment(paymentData) {
-        const sign = paymentData.sign;
-        delete paymentData.sign;
-        return generateSign(paymentData) === sign;
-    }
-
-    // 处理支付成功
-    function handlePaymentSuccess() {
-        // 解锁问题输入框
-        const questionInput = document.getElementById('question');
-        questionInput.readOnly = false;
-        questionInput.placeholder = "请输入您要占卜的问题...";
-        questionInput.style.backgroundColor = '';
-        questionInput.style.cursor = '';
         
-        // 隐藏支付按钮，显示成功提示
-        document.getElementById('pay-btn').style.display = 'none';
-        document.getElementById('payment-success-alert').style.display = 'block';
-        
-        // 3秒后隐藏成功提示
-        setTimeout(() => {
-            document.getElementById('payment-success-alert').style.display = 'none';
-        }, 3000);
-        
-        // 存储支付状态到本地存储
-        localStorage.setItem('liuyao_paid', 'true');
-    }
-
-    // 清理URL参数
-    function cleanUrl() {
-        window.history.replaceState({}, document.title, window.location.pathname);
-    }
-
-    // 检查本地存储中的支付状态
-    if (localStorage.getItem('liuyao_paid') === 'true') {
-        handlePaymentSuccess();
-    }
-});
-
-// 在占卜表单提交时检查支付状态
-document.getElementById('divination-form').addEventListener('submit', function(e) {
-    if (!localStorage.getItem('liuyao_paid')) {
-        e.preventDefault();
-        alert('请先完成1元付费解锁占卜功能');
-        return false;
-    }
+        // 每次占卜后重置支付状态
+        localStorage.removeItem('liuyao_paid');
+        isPaid = false;
+        updatePaymentStatus();
+    });
     
-    // 每次起卦后清除支付状态，需要重新付费
-    localStorage.removeItem('liuyao_paid');
-    const questionInput = document.getElementById('question');
-    questionInput.readOnly = true;
-    questionInput.placeholder = "请先完成1元付费解锁...";
-    questionInput.style.backgroundColor = '#f5f5f5';
-    questionInput.style.cursor = 'not-allowed';
-    document.getElementById('pay-btn').style.display = 'block';
-    
-    return true;
-});
-        
     // 初始化更好的随机数种子
     if (window.crypto && window.crypto.getRandomValues) {
         const seed = window.crypto.getRandomValues(new Uint32Array(1))[0];
