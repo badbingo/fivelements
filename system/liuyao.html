@@ -662,6 +662,31 @@
             color: #666;
         }
         
+        /* 卦象SVG样式 */
+        .hexagram-svg {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 10px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            margin-bottom: 10px;
+        }
+        
+        .gua-image-box {
+            text-align: center;
+            margin-right: 20px;
+        }
+        
+        /* 变爻高亮样式 */
+        .changing-yao {
+            animation: yao-highlight 1.5s infinite;
+        }
+        
+        @keyframes yao-highlight {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { opacity: 0.6; }
+        }
+        
         /* 响应式设计 */
         @media (max-width: 768px) {
             .gua-result-container {
@@ -1686,10 +1711,10 @@ function showResult() {
     document.getElementById('gua-name').textContent = guaInfo.name;
 
     // 显示卦象解析（包含卦象图）
-    document.getElementById('gua-interpretation').innerHTML = `
+     document.getElementById('gua-interpretation').innerHTML = `
         <div class="gua-result-container">
             <div class="gua-image-box">
-                <img src="../images/hexagrams/${guaInfo.image || 'qian.png'}" alt="${guaInfo.name}" class="gua-image">
+                ${generateHexagramSvg(hexagramCode)}
                 <div class="gua-name-banner">${guaInfo.name}</div>
             </div>
             <div class="gua-text-content">
@@ -1756,7 +1781,58 @@ function showResult() {
         });
     }, 300);
 }
-
+        
+// 动态生成SVG卦象图
+function generateHexagramSvg(hexagramCode) {
+    const svgWidth = 120;
+    const svgHeight = 180;
+    const lineHeight = 25;
+    const lineSpacing = 10;
+    const startY = 20;
+    
+    let svgContent = '';
+    
+    // 从下往上绘制六爻（因为卦象是从下往上数的）
+    for (let i = 5; i >= 0; i--) {
+        const yPos = startY + (5 - i) * (lineHeight + lineSpacing);
+        const isYang = hexagramCode[i] === '1';
+        
+        if (isYang) {
+            // 阳爻（实线）
+            svgContent += `
+                <line x1="20" y1="${yPos}" x2="100" y2="${yPos}" 
+                      stroke="#000" stroke-width="6" stroke-linecap="round"/>
+            `;
+        } else {
+            // 阴爻（虚线，分两段）
+            svgContent += `
+                <line x1="20" y1="${yPos}" x2="60" y2="${yPos}" 
+                      stroke="#000" stroke-width="6" stroke-linecap="round"/>
+                <line x1="68" y1="${yPos}" x2="100" y2="${yPos}" 
+                      stroke="#000" stroke-width="6" stroke-linecap="round"/>
+            `;
+        }
+        
+        // 显示爻位（初、二、三...）
+        const yaoNames = ['初', '二', '三', '四', '五', '上'];
+        svgContent += `
+            <text x="105" y="${yPos + 5}" font-family="Arial" font-size="12" fill="#666">
+                ${yaoNames[5 - i]}爻
+            </text>
+        `;
+    }
+    
+    return `
+        <svg width="${svgWidth}" height="${svgHeight}" viewBox="0 0 ${svgWidth} ${svgHeight}" 
+             xmlns="http://www.w3.org/2000/svg" class="hexagram-svg">
+            ${svgContent}
+            <!-- 显示卦名（备用） -->
+            <text x="60" y="160" text-anchor="middle" font-family="SimSun, serif" 
+                  font-size="14" fill="#333">${guaData[hexagramCode]?.name || ''}</text>
+        </svg>
+    `;
+}
+        
 // 辅助函数：获取卦象结构描述
 function getGuaStructure(hexagramCode) {
     const upper = hexagramCode.slice(0, 3);
