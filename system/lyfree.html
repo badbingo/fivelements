@@ -1776,13 +1776,14 @@ function generateHexagramFromNumbers(upperNum, lowerNum, changingYaoPos) {
 function updateHexagramDisplay() {
     const hexagramDisplay = document.getElementById('hexagram-display');
     hexagramDisplay.innerHTML = '';
-    
-    // 从下往上显示已经摇出的爻
-    for (let i = 0; i < castCount; i++) {
+
+    // 从逻辑上爻（数组最后一项）开始渲染到初爻（数组第一项）
+    for (let i = currentHexagram.length - 1; i >= 0; i--) {
         const yao = currentHexagram[i];
         const lineDiv = document.createElement('div');
         lineDiv.className = 'hexagram-line';
-        
+
+        // 爻线绘制（保持不变）
         if (yao.line === '111') {
             lineDiv.classList.add('solid-line');
         } else {
@@ -1792,16 +1793,19 @@ function updateHexagramDisplay() {
                 <div class="broken-line-part"></div>
             `;
         }
-        
+
+        // 变爻高亮
         if (yao.changing) {
             lineDiv.classList.add('yao-change');
         }
-        
+
+        // 关键修改：爻位数字标签反向（6=上爻在最上方，1=初爻在最下方）
         const numberSpan = document.createElement('span');
         numberSpan.className = 'line-number';
-        numberSpan.textContent = 6 - i; // 上爻显示6，初爻显示1
+        numberSpan.textContent = 6 - i;  // 数组最后一项（i=5）显示6（上爻）
         lineDiv.appendChild(numberSpan);
-        
+
+        // 保持DOM插入顺序（先插入的在上方）
         hexagramDisplay.appendChild(lineDiv);
     }
 }
