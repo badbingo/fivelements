@@ -2061,7 +2061,7 @@ function castWithNumbers() {
 function generateHexagramFromNumbers(upperNum, lowerNum, changingYaoPos) {
     const hexagram = [];
     
-    // 生成基础卦象（上卦和下卦组合）
+    // 1. 先生成上卦（外卦，上爻→四爻）
     for (let i = 0; i < 3; i++) {
         hexagram.push({
             type: upperNum % 2 === 0 ? '8' : '7',
@@ -2070,6 +2070,7 @@ function generateHexagramFromNumbers(upperNum, lowerNum, changingYaoPos) {
         });
     }
     
+    // 2. 再生成下卦（内卦，三爻→初爻）
     for (let i = 0; i < 3; i++) {
         hexagram.push({
             type: lowerNum % 2 === 0 ? '8' : '7',
@@ -2078,9 +2079,9 @@ function generateHexagramFromNumbers(upperNum, lowerNum, changingYaoPos) {
         });
     }
     
-    // 设置变爻
+    // 3. 处理变爻（position从1=初爻开始计数）
     if (changingYaoPos >= 1 && changingYaoPos <= 6) {
-        const index = changingYaoPos - 1;
+        const index = 6 - changingYaoPos; // 初爻=数组[5]，上爻=数组[0]
         hexagram[index].changing = true;
         hexagram[index].type = hexagram[index].type === '7' ? '9' : '6';
         hexagram[index].line = hexagram[index].line === '111' ? '000' : '111';
@@ -2093,13 +2094,14 @@ function generateHexagramFromNumbers(upperNum, lowerNum, changingYaoPos) {
 function updateHexagramDisplay() {
     const hexagramDisplay = document.getElementById('hexagram-display');
     hexagramDisplay.innerHTML = '';
-    
-    // 从下往上显示已经摇出的爻
-    for (let i = 0; i < castCount; i++) {
+
+    // 从逻辑上爻（数组最后一项）开始渲染到初爻（数组第一项）
+    for (let i = currentHexagram.length - 1; i >= 0; i--) {
         const yao = currentHexagram[i];
         const lineDiv = document.createElement('div');
         lineDiv.className = 'hexagram-line';
-        
+
+        // 爻线绘制（保持不变）
         if (yao.line === '111') {
             lineDiv.classList.add('solid-line');
         } else {
@@ -2109,17 +2111,19 @@ function updateHexagramDisplay() {
                 <div class="broken-line-part"></div>
             `;
         }
-        
+
+        // 变爻高亮
         if (yao.changing) {
             lineDiv.classList.add('yao-change');
         }
-        
+
+        // 关键修改：爻位数字标签反向（6=上爻在最上方，1=初爻在最下方）
         const numberSpan = document.createElement('span');
         numberSpan.className = 'line-number';
-        numberSpan.textContent = i + 1;
+        numberSpan.textContent = 6 - i;  // 数组最后一项（i=5）显示6（上爻）
         lineDiv.appendChild(numberSpan);
-        
-        lineDiv.classList.add('casting-animation');
+
+        // 保持DOM插入顺序（先插入的在上方）
         hexagramDisplay.appendChild(lineDiv);
     }
 }
@@ -2236,7 +2240,7 @@ function generateHexagramSvg(hexagramCode) {
     
     // 从上往下绘制六爻（修改此处循环顺序）
     for (let i = 0; i < 6; i++) {
-        const yPos = 30 + i * spacing;
+        const yPos = 30 + (5 - i) * spacing; // 初爻在下
         const isYang = hexagramCode[i] === '1'; // 现在直接从数组开头读取
         
         if (isYang) {
