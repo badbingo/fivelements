@@ -1743,27 +1743,27 @@ function castWithNumbers() {
 function generateHexagramFromNumbers(upperNum, lowerNum, changingYaoPos) {
     const hexagram = [];
     
-    // 1. 先生成下卦（内卦，初爻→三爻）
+    // 1. 先生成上卦（外卦，上爻→四爻）
     for (let i = 0; i < 3; i++) {
         hexagram.push({
-            type: lowerNum % 2 === 0 ? '8' : '7',  // 修正：用lowerNum生成下卦
-            line: lowerNum % 2 === 0 ? '000' : '111',
-            changing: false
-        });
-    }
-    
-    // 2. 再生成上卦（外卦，四爻→上爻）
-    for (let i = 0; i < 3; i++) {
-        hexagram.push({
-            type: upperNum % 2 === 0 ? '8' : '7',  // 修正：用upperNum生成上卦
+            type: upperNum % 2 === 0 ? '8' : '7',
             line: upperNum % 2 === 0 ? '000' : '111',
             changing: false
         });
     }
     
-    // 3. 处理变爻（position从1开始计数，1=初爻）
+    // 2. 再生成下卦（内卦，三爻→初爻）
+    for (let i = 0; i < 3; i++) {
+        hexagram.push({
+            type: lowerNum % 2 === 0 ? '8' : '7',
+            line: lowerNum % 2 === 0 ? '000' : '111',
+            changing: false
+        });
+    }
+    
+    // 3. 处理变爻（position从1=初爻开始计数）
     if (changingYaoPos >= 1 && changingYaoPos <= 6) {
-        const index = changingYaoPos - 1; // 转换为数组索引
+        const index = 6 - changingYaoPos; // 初爻=数组[5]，上爻=数组[0]
         hexagram[index].changing = true;
         hexagram[index].type = hexagram[index].type === '7' ? '9' : '6';
         hexagram[index].line = hexagram[index].line === '111' ? '000' : '111';
@@ -1799,10 +1799,9 @@ function updateHexagramDisplay() {
         
         const numberSpan = document.createElement('span');
         numberSpan.className = 'line-number';
-        numberSpan.textContent = i + 1;
+        numberSpan.textContent = 6 - i; // 上爻显示6，初爻显示1
         lineDiv.appendChild(numberSpan);
         
-        lineDiv.classList.add('casting-animation');
         hexagramDisplay.appendChild(lineDiv);
     }
 }
