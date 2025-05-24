@@ -2232,26 +2232,25 @@ function showResult() {
 function generateHexagramSvg(hexagramCode) {
     const svgWidth = 120;
     const svgHeight = 180;
-    const lineHeight = 8;  // 爻线粗细
-    const spacing = 20;    // 爻间距
+    const lineHeight = 8;
+    const spacing = 20;
     
     let svgContent = '';
-    const yaoNames = ['上', '五', '四', '三', '二', '初']; // 爻位名称改为从上往下
+    const yaoNames = ['初', '二', '三', '四', '五', '上']; // 修正：从下往上命名
     
-    // 从上往下绘制六爻（修改此处循环顺序）
+    // 从下往上绘制（i=0=初爻，i=5=上爻）
     for (let i = 0; i < 6; i++) {
-        const yPos = 30 + (5 - i) * spacing; // 初爻在下
-        const isYang = hexagramCode[i] === '1'; // 现在直接从数组开头读取
+        const yPos = 30 + (5 - i) * spacing; // 初爻在底部（yPos最大）
+        const isYang = hexagramCode[i] === '1'; // hexagramCode[0]对应初爻
         
+        // 绘制爻线
         if (isYang) {
-            // 阳爻（实线）
             svgContent += `
                 <line x1="20" y1="${yPos}" x2="100" y2="${yPos}" 
                       stroke="#d4a017" stroke-width="${lineHeight}" 
                       stroke-linecap="round" class="yang-line"/>
             `;
         } else {
-            // 阴爻（两段虚线，间距加大）
             svgContent += `
                 <line x1="20" y1="${yPos}" x2="50" y2="${yPos}" 
                       stroke="#8e44ad" stroke-width="${lineHeight}" 
@@ -2262,9 +2261,9 @@ function generateHexagramSvg(hexagramCode) {
             `;
         }
         
-        // 爻位标注（位置不变，只改文字）
+        // 爻位标注（初爻在下，上爻在上）
         svgContent += `
-            <text x="105" y="${yPos+5}" class="yao-position">${yaoNames[i]}</text>
+            <text x="105" y="${yPos + 5}" class="yao-position">${yaoNames[i]}</text>
         `;
     }
     
