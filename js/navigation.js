@@ -1,409 +1,200 @@
-/**
- * navigation.js - 动态导航系统
- * 功能：
- * 1. 自动生成响应式导航栏
- * 2. 自动生成面包屑导航
- * 3. 桌面端/移动端适配
- * 4. 创意交互特效
- * 5. 性能优化
- */
-
-// 导航配置数据
-const NAV_DATA = [
-    {
-        title: "七步速成",
-        icon: "fa-home",
-        link: "seven.html",
-        active: isCurrentPage("seven.html")
-    },
-    {
-        title: "基础知识",
-        icon: "fa-book-open",
-        active: isCurrentSection("basics"),
-        submenu: [
-            { title: "八字介绍", link: "basics/bazi-process.html" },
-            { title: "八字排盘", link: "basics/bazi-chart.html" },
-            { title: "日元强弱分析", link: "basics/yen-strength.html" },
-            { title: "天干地支意象", link: "basics/elements.html" },
-            { title: "五行生克", link: "basics/wuxing.html" },
-            { title: "五行平衡", link: "basics/balance.html" },
-            { title: "十神关系", link: "basics/ten-gods.html" },
-            { title: "合冲破害", link: "basics/combinations.html" }
-        ]
-    },
-    {
-        title: "进阶知识",
-        icon: "fa-chart-line",
-        active: isCurrentSection("advanced"),
-        submenu: [
-            { title: "四大墓库", link: "advanced/tomb.html" },
-            { title: "性格分析", link: "advanced/personality.html" },
-            { title: "财运分析", link: "advanced/wealth.html" },
-            { title: "事业分析", link: "advanced/career.html" },
-            { title: "婚姻分析", link: "advanced/marriage.html" },
-            { title: "健康分析", link: "advanced/health.html" },
-            { title: "大运流年", link: "advanced/luck.html" },
-            { title: "重大灾祸", link: "advanced/disaster.html" }
-        ]
-    },
-    {
-        title: "学习工具",
-        icon: "fa-tools",
-        active: isCurrentSection("tools"),
-        submenu: [
-            { title: "八字计算器", link: "tools/calculator.html" },
-            { title: "速查表", link: "tools/reference.html" },
-            { title: "常见格局", link: "tools/common.html" },
-            { title: "特殊格局", link: "tools/special.html" },
-            { title: "八字试题", link: "tools/bazi-test.html" }
-        ]
-    },
-    {
-        title: "洞察天机",
-        icon: "fa-shapes",
-        active: isCurrentSection("system"),
-        submenu: [
-            { title: "机缘命理系统", link: "system/bazi.html" },
-            { title: "八字合婚系统", link: "system/hehun.html" },
-            { title: "六爻起卦", link: "system/liuyao.html" }
-        ]
-    },
-    {
-        title: "关于我们",
-        icon: "fa-info-circle",
-        link: "about.html",
-        active: isCurrentPage("about.html")
-    }
-];
-
-// 主初始化函数
+// 导航条功能
 document.addEventListener('DOMContentLoaded', function() {
-    initNavigation();
+    // 移动端菜单切换
+    const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
+    const mainNav = document.querySelector('.main-nav');
+    
+    if (mobileMenuBtn && mainNav) {
+        mobileMenuBtn.addEventListener('click', function() {
+            this.classList.toggle('active');
+            mainNav.classList.toggle('active');
+        });
+    }
+    
+    // 为导航项添加五行属性
+    const navItems = document.querySelectorAll('.nav-item');
+    const wuxingElements = ['wood', 'fire', 'earth', 'metal', 'water'];
+    
+    navItems.forEach((item, index) => {
+        // 跳过最后一个"关于我们"项
+        if (index < navItems.length - 1) {
+            const wuxingIndex = index % wuxingElements.length;
+            item.setAttribute('data-wuxing', wuxingElements[wuxingIndex]);
+            
+            // 为"在线批命"添加特殊类
+            if (item.querySelector('.nav-link').textContent.includes('在线批命')) {
+                item.classList.add('golden');
+            }
+        }
+    });
+    
+    // 创建五行背景元素
+    const navBackground = document.createElement('div');
+    navBackground.className = 'nav-background';
+    document.querySelector('.main-nav').prepend(navBackground);
+    
+    for (let i = 0; i < 5; i++) {
+        const element = document.createElement('div');
+        element.className = `wuxing-element ${wuxingElements[i]}`;
+        element.style.left = `${Math.random() * 80 + 10}%`;
+        element.style.top = `${Math.random() * 80 + 10}%`;
+        element.style.animationDelay = `${i * 2}s`;
+        navBackground.appendChild(element);
+    }
+    
+    // 当前页面高亮
+    const currentPath = window.location.pathname.split('/').pop() || 'index.html';
+    const navLinks = document.querySelectorAll('.nav-link');
+    
+    navLinks.forEach(link => {
+        const linkPath = link.getAttribute('href').split('/').pop();
+        if (currentPath === linkPath) {
+            link.classList.add('active');
+        }
+    });
+    
+    // 自动生成面包屑导航
+    generateBreadcrumbs();
 });
 
-/**
- * 初始化导航系统
- */
-function initNavigation() {
-    createHeader();
-    if (!isHomePage()) {
-        createBreadcrumb();
-    }
-    setupNavInteractions();
-    setupScrollEffects();
-    setupCursorEffects();
-    setupRippleEffects();
-}
-
-/**
- * 创建导航头部
- */
-function createHeader() {
-    const header = document.createElement('header');
-    header.className = 'main-header';
-    
-    header.innerHTML = `
-    <div class="header-container">
-        <div class="logo-container">
-            <a href="index.html" class="logo-link">
-                <div class="logo-text">
-                    <h1>麦<span class="ba-character">八</span>字</h1>
-                    <p class="slogan">我命由我不由天</p>
-                </div>
-            </a>
-        </div>
-        
-        <nav class="main-nav">
-            <ul class="nav-list">
-                ${generateNavItemsHTML()}
-            </ul>
-        </nav>
-        
-        <div class="mobile-menu-toggle">
-            <div class="hamburger">
-                <span></span>
-                <span></span>
-                <span></span>
-            </div>
-        </div>
-    </div>
-    `;
-    
-    document.body.insertBefore(header, document.body.firstChild);
-}
-
-/**
- * 生成导航项HTML
- */
-function generateNavItemsHTML() {
-    return NAV_DATA.map(item => {
-        const activeClass = item.active ? 'active' : '';
-        
-        if (item.submenu) {
-            return `
-            <li class="nav-item ${activeClass}">
-                <a href="#" class="nav-link">
-                    <i class="fas ${item.icon}"></i>
-                    <span>${item.title}</span>
-                    <i class="dropdown-arrow fas fa-angle-down"></i>
-                </a>
-                <ul class="submenu">
-                    ${item.submenu.map(subItem => `
-                    <li>
-                        <a href="${subItem.link}" class="submenu-link">
-                            ${subItem.title}
-                        </a>
-                    </li>
-                    `).join('')}
-                </ul>
-            </li>
-            `;
-        } else {
-            return `
-            <li class="nav-item ${activeClass}">
-                <a href="${item.link}" class="nav-link">
-                    <i class="fas ${item.icon}"></i>
-                    <span>${item.title}</span>
-                </a>
-            </li>
-            `;
-        }
-    }).join('');
-}
-
-/**
- * 创建面包屑导航
- */
-function createBreadcrumb() {
-    const pathSegments = getPathSegments();
-    if (pathSegments.length === 0) return;
-
+// 面包屑导航功能
+function generateBreadcrumbs() {
     const breadcrumbContainer = document.createElement('div');
-    breadcrumbContainer.className = 'breadcrumb-container';
+    breadcrumbContainer.className = 'breadcrumb-container container';
     
-    breadcrumbContainer.innerHTML = `
-    <nav class="breadcrumb-nav">
-        <ol class="breadcrumb-list">
-            <li class="breadcrumb-item">
-                <a href="/" class="breadcrumb-link">
-                    <i class="fas fa-home"></i> 首页
-                </a>
-            </li>
-            ${generateBreadcrumbItemsHTML(pathSegments)}
-        </ol>
-    </nav>
-    `;
+    const breadcrumb = document.createElement('ol');
+    breadcrumb.className = 'breadcrumb';
     
+    // 首页链接
+    const homeItem = createBreadcrumbItem('index.html', '首页', 'fas fa-home');
+    breadcrumb.appendChild(homeItem);
+    
+    // 获取当前页面路径
+    const path = window.location.pathname;
+    const pathSegments = path.split('/').filter(segment => segment);
+    
+    // 构建面包屑路径
+    let accumulatedPath = '';
+    pathSegments.forEach((segment, index) => {
+        accumulatedPath += `/${segment}`;
+        const pageName = getPageName(segment);
+        
+        if (index === pathSegments.length - 1) {
+            // 当前页面，不添加链接
+            const currentItem = createBreadcrumbItem('', pageName, getPageIcon(segment), true);
+            breadcrumb.appendChild(currentItem);
+        } else {
+            // 父级页面，添加链接
+            const item = createBreadcrumbItem(accumulatedPath, pageName, getPageIcon(segment));
+            breadcrumb.appendChild(item);
+        }
+    });
+    
+    breadcrumbContainer.appendChild(breadcrumb);
+    
+    // 将面包屑导航插入到页面中
     const mainContent = document.querySelector('main');
     if (mainContent) {
         mainContent.insertBefore(breadcrumbContainer, mainContent.firstChild);
     }
 }
 
-/**
- * 生成面包屑项HTML
- */
-function generateBreadcrumbItemsHTML(segments) {
-    let accumulatedPath = '';
-    return segments.map((segment, index) => {
-        accumulatedPath += `/${segment}`;
-        const isLast = index === segments.length - 1;
-        const name = formatBreadcrumbName(segment);
-        
-        return `
-        <li class="breadcrumb-item ${isLast ? 'active' : ''}">
-            ${isLast ? 
-                `<span>${name}</span>` : 
-                `<a href="${accumulatedPath}" class="breadcrumb-link">${name}</a>`
-            }
-        </li>
-        `;
-    }).join('');
-}
-
-/**
- * 设置导航交互
- */
-function setupNavInteractions() {
-    // 移动端菜单切换
-    const toggleBtn = document.querySelector('.mobile-menu-toggle');
-    const nav = document.querySelector('.main-nav');
+function createBreadcrumbItem(href, text, icon, isActive = false) {
+    const item = document.createElement('li');
+    item.className = 'breadcrumb-item' + (isActive ? ' active' : '');
     
-    toggleBtn?.addEventListener('click', (e) => {
-        e.stopPropagation();
-        nav.classList.toggle('active');
-        toggleBtn.classList.toggle('active');
-        document.body.classList.toggle('nav-open');
-    });
-
-    // 桌面端下拉菜单
-    if (window.innerWidth > 992) {
-        document.querySelectorAll('.nav-item').forEach(item => {
-            item.addEventListener('mouseenter', () => {
-                const submenu = item.querySelector('.submenu');
-                if (submenu) {
-                    submenu.style.transform = 'scaleY(1)';
-                    submenu.style.opacity = '1';
-                }
-            });
-            
-            item.addEventListener('mouseleave', () => {
-                const submenu = item.querySelector('.submenu');
-                if (submenu) {
-                    submenu.style.transform = 'scaleY(0)';
-                    submenu.style.opacity = '0';
-                }
-            });
-        });
-    } else {
-        // 移动端子菜单切换
-        document.querySelectorAll('.nav-item').forEach(item => {
-            if (item.querySelector('.submenu')) {
-                const link = item.querySelector('.nav-link');
-                link.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    item.classList.toggle('submenu-open');
-                });
-            }
-        });
+    const link = document.createElement('a');
+    link.className = 'breadcrumb-link';
+    if (!isActive) {
+        link.href = href;
     }
-
-    // 点击文档关闭菜单
-    document.addEventListener('click', () => {
-        document.querySelector('.main-nav')?.classList.remove('active');
-        document.querySelector('.mobile-menu-toggle')?.classList.remove('active');
-        document.body.classList.remove('nav-open');
-    });
-}
-
-/**
- * 设置滚动特效
- */
-function setupScrollEffects() {
-    const header = document.querySelector('.main-header');
-    let lastScroll = 0;
     
-    window.addEventListener('scroll', throttle(() => {
-        const currentScroll = window.scrollY;
-        
-        if (currentScroll > 10) {
-            header.style.boxShadow = '0 2px 15px rgba(0, 0, 0, 0.2)';
-            header.style.backdropFilter = 'blur(8px)';
-        } else {
-            header.style.boxShadow = 'none';
-            header.style.backdropFilter = 'none';
-        }
-        
-        lastScroll = currentScroll;
-    }, 16));
-}
-
-/**
- * 设置光标特效
- */
-function setupCursorEffects() {
-    const navLinks = document.querySelectorAll('.nav-link');
+    const iconElement = document.createElement('i');
+    iconElement.className = icon;
+    link.appendChild(iconElement);
     
-    navLinks.forEach(link => {
-        link.addEventListener('mousemove', (e) => {
-            const rect = link.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-            link.style.setProperty('--cursor-x', `${x}px`);
-            link.style.setProperty('--cursor-y', `${y}px`);
-        });
-    });
+    link.appendChild(document.createTextNode(text));
+    item.appendChild(link);
+    
+    return item;
 }
 
-/**
- * 设置波纹点击特效
- */
-function setupRippleEffects() {
-    document.addEventListener('click', function(e) {
-        const navLink = e.target.closest('.nav-link');
-        if (!navLink || navLink.href && !navLink.href.includes('#')) return;
-        
-        const ripple = document.createElement('span');
-        ripple.className = 'ripple-effect';
-        
-        const rect = navLink.getBoundingClientRect();
-        const size = Math.max(rect.width, rect.height);
-        const x = e.clientX - rect.left - size/2;
-        const y = e.clientY - rect.top - size/2;
-        
-        ripple.style.width = `${size}px`;
-        ripple.style.height = `${size}px`;
-        ripple.style.left = `${x}px`;
-        ripple.style.top = `${y}px`;
-        
-        navLink.appendChild(ripple);
-        
-        setTimeout(() => {
-            ripple.remove();
-        }, 800);
-    });
-}
-
-/**
- * 工具函数：判断是否是首页
- */
-function isHomePage() {
-    const path = window.location.pathname;
-    return path === '/' || path === '/index.html' || path === '';
-}
-
-/**
- * 工具函数：判断是否是当前页面
- */
-function isCurrentPage(pageName) {
-    return window.location.pathname.endsWith(pageName);
-}
-
-/**
- * 工具函数：判断是否是当前板块
- */
-function isCurrentSection(section) {
-    return window.location.pathname.includes(`${section}/`);
-}
-
-/**
- * 工具函数：获取路径分段
- */
-function getPathSegments() {
-    return window.location.pathname
-        .split('/')
-        .filter(segment => segment && segment !== 'index.html');
-}
-
-/**
- * 工具函数：格式化面包屑名称
- */
-function formatBreadcrumbName(path) {
-    return path.replace('.html', '')
-              .replace(/-/g, ' ')
-              .replace(/^\w/, c => c.toUpperCase());
-}
-
-/**
- * 工具函数：节流函数
- */
-function throttle(func, limit) {
-    let lastFunc;
-    let lastRan;
-    return function() {
-        const context = this;
-        const args = arguments;
-        if (!lastRan) {
-            func.apply(context, args);
-            lastRan = Date.now();
-        } else {
-            clearTimeout(lastFunc);
-            lastFunc = setTimeout(function() {
-                if ((Date.now() - lastRan) >= limit) {
-                    func.apply(context, args);
-                    lastRan = Date.now();
-                }
-            }, limit - (Date.now() - lastRan));
-        }
+function getPageName(path) {
+    const pageNames = {
+        'index.html': '首页',
+        'seven.html': '七步速成',
+        'basics': '基础知识',
+        'bazi-process.html': '八字介绍',
+        'bazi-chart.html': '八字排盘',
+        'yen-strength.html': '日元强弱',
+        'elements.html': '天干地支',
+        'wuxing.html': '五行生克',
+        'balance.html': '五行平衡',
+        'ten-gods.html': '十神关系',
+        'combinations.html': '合冲破害',
+        'advanced': '进阶知识',
+        'tomb.html': '四大墓库',
+        'personality.html': '性格分析',
+        'wealth.html': '财运分析',
+        'career.html': '事业分析',
+        'marriage.html': '婚姻分析',
+        'health.html': '健康分析',
+        'luck.html': '大运流年',
+        'disaster.html': '重大灾祸',
+        'tools': '学习工具',
+        'calculator.html': '八字计算器',
+        'reference.html': '速查表',
+        'common.html': '常见格局',
+        'special.html': '特殊格局',
+        'bazi-test.html': '八字试题',
+        'system': '洞察天机',
+        'bazi.html': '机缘命理',
+        'hehun.html': '八字合婚',
+        'liuyao.html': '六爻起卦',
+        'about.html': '关于我们'
     };
+    
+    // 移除.html后缀
+    const cleanPath = path.replace('.html', '');
+    return pageNames[cleanPath] || cleanPath;
+}
+
+function getPageIcon(path) {
+    const pageIcons = {
+        'index.html': 'fas fa-home',
+        'seven.html': 'fas fa-bolt',
+        'basics': 'fas fa-book-open',
+        'bazi-process.html': 'fas fa-info-circle',
+        'bazi-chart.html': 'fas fa-project-diagram',
+        'yen-strength.html': 'fas fa-balance-scale',
+        'elements.html': 'fas fa-yin-yang',
+        'wuxing.html': 'fas fa-atom',
+        'balance.html': 'fas fa-weight',
+        'ten-gods.html': 'fas fa-people-arrows',
+        'combinations.html': 'fas fa-link',
+        'advanced': 'fas fa-chart-line',
+        'tomb.html': 'fas fa-tombstone-alt',
+        'personality.html': 'fas fa-user',
+        'wealth.html': 'fas fa-money-bill-wave',
+        'career.html': 'fas fa-briefcase',
+        'marriage.html': 'fas fa-heart',
+        'health.html': 'fas fa-heartbeat',
+        'luck.html': 'fas fa-calendar-alt',
+        'disaster.html': 'fas fa-exclamation-triangle',
+        'tools': 'fas fa-tools',
+        'calculator.html': 'fas fa-calculator',
+        'reference.html': 'fas fa-book',
+        'common.html': 'fas fa-th-large',
+        'special.html': 'fas fa-star',
+        'bazi-test.html': 'fas fa-question-circle',
+        'system': 'fas fa-shapes',
+        'bazi.html': 'fas fa-chart-pie',
+        'hehun.html': 'fas fa-rings-wedding',
+        'liuyao.html': 'fas fa-dice',
+        'about.html': 'fas fa-info-circle'
+    };
+    
+    // 移除.html后缀
+    const cleanPath = path.replace('.html', '');
+    return pageIcons[cleanPath] || 'fas fa-circle';
 }
