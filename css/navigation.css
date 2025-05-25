@@ -227,9 +227,10 @@
 .dropdown-menu {
     position: absolute;
     top: 100%;
-    left: 50%;
-    transform: translateX(-50%) translateY(10px);
-    width: 220px;
+    left: 0;
+    transform: translateY(10px);
+    width: auto; /* 改为自动宽度 */
+    white-space: nowrap; /* 防止换行 */
     background: var(--nav-dropdown-bg);
     backdrop-filter: blur(10px);
     box-shadow: var(--nav-shadow);
@@ -239,12 +240,18 @@
     border-radius: 10px;
     overflow: hidden;
     z-index: 100;
+    display: flex; /* 添加flex布局 */
+    flex-direction: row; /* 横向排列 */
 }
 
 .nav-item:hover .dropdown-menu {
     opacity: 1;
     visibility: visible;
     transform: translateX(-50%) translateY(0);
+}
+
+.dropdown-menu li {
+    display: inline-block; /* 横向排列 */
 }
 
 .dropdown-link {
@@ -255,6 +262,17 @@
     transition: var(--nav-transition);
     position: relative;
     overflow: hidden;
+}
+/* 移动端保持纵向排列 */
+@media (max-width: 992px) {
+    .dropdown-menu {
+        flex-direction: column; /* 移动端保持纵向 */
+        width: 100%;
+    }
+    
+    .dropdown-menu li {
+        display: block;
+    }
 }
 
 .dropdown-link:hover {
