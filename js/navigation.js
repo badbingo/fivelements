@@ -156,12 +156,14 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==================== 面包屑生成 ====================
+    // 在createBreadcrumb函数中更新面包屑容器样式
     function createBreadcrumb() {
         const pathSegments = getPathSegments();
         if (pathSegments.length === 0) return;
-
+    
         const breadcrumbContainer = document.createElement('div');
         breadcrumbContainer.className = 'breadcrumb-container';
+        breadcrumbContainer.style.marginTop = '0'; // 确保没有额外margin
         
         breadcrumbContainer.innerHTML = `
         <nav class="breadcrumb-nav">
