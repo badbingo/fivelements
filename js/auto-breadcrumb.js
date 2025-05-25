@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 icon: '<i class="fas fa-tools"></i>'
             },
             'system': {
-                name: '命理系统',
+                name: '洞察天机',
                 clickable: false,
                 icon: '<i class="fas fa-shapes"></i>'
             },
@@ -65,8 +65,8 @@ document.addEventListener('DOMContentLoaded', function() {
             'bazi-test.html': { name: '八字试题' },
             
             /* ========== 命理系统子页面 ========== */
-            'bazi.html': { name: '机缘命理' },
-            'hehun.html': { name: '八字合婚' },
+            'bazi.html': { name: '机缘命理系统' },
+            'hehun.html': { name: '八字合婚系统' },
             'liuyao.html': { name: '六爻起卦' },
             
             /* ========== 其他独立页面 ========== */
