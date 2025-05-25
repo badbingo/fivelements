@@ -1,60 +1,62 @@
-/* navigation.css - 导航条样式 */
+/* =============== 导航条样式 =============== */
 .main-header {
-    background: linear-gradient(135deg, #2c3e50, #4a6491);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-    position: sticky;
+    background: rgba(255, 255, 255, 0.96);
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
+    position: fixed;
     top: 0;
+    left: 0;
+    right: 0;
     z-index: 1000;
-    transition: all 0.3s ease;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .header-container {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 15px 0;
-    max-width: 1200px;
+    max-width: 1280px;
     margin: 0 auto;
+    padding: 0 2rem;
+    height: 70px;
 }
 
-.logo-container {
-    display: flex;
-    align-items: center;
-}
-
+/* Logo样式 */
 .logo-link {
-    text-decoration: none;
-    color: #fff;
     display: flex;
     align-items: center;
+    text-decoration: none;
     transition: transform 0.3s ease;
 }
 
 .logo-link:hover {
-    transform: scale(1.05);
+    transform: translateY(-2px);
 }
 
 .logo-text h1 {
     margin: 0;
-    font-size: 28px;
+    font-size: 1.8rem;
     font-weight: 700;
-    letter-spacing: 1px;
+    color: #2c3e50;
+    letter-spacing: 0.5px;
 }
 
 .ba-character {
-    color: #f39c12;
-    font-size: 32px;
+    color: #e74c3c;
+    font-size: 2rem;
 }
 
 .slogan {
     margin: 0;
-    font-size: 12px;
-    opacity: 0.8;
+    font-size: 0.7rem;
+    color: #7f8c8d;
     letter-spacing: 1px;
 }
 
+/* 主导航 */
 .main-nav {
-    display: flex;
+    transition: all 0.3s ease;
 }
 
 .nav-list {
@@ -66,170 +68,237 @@
 
 .nav-item {
     position: relative;
-    margin-left: 20px;
+    margin: 0 0.5rem;
 }
 
 .nav-link {
-    color: #fff;
-    text-decoration: none;
-    font-size: 16px;
-    font-weight: 500;
     display: flex;
     align-items: center;
-    padding: 10px 15px;
-    border-radius: 5px;
+    padding: 0.8rem 1.2rem;
+    color: #34495e;
+    text-decoration: none;
+    font-weight: 500;
+    border-radius: 8px;
     transition: all 0.3s ease;
     position: relative;
-    overflow: hidden;
 }
 
-.nav-link::before {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 0;
-    height: 2px;
-    background-color: #f39c12;
-    transition: width 0.3s ease;
-}
-
-.nav-link:hover::before {
-    width: 100%;
+.nav-link i {
+    margin-right: 8px;
+    font-size: 1rem;
 }
 
 .nav-link:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-    transform: translateY(-2px);
+    color: #e74c3c;
+    background: rgba(231, 76, 60, 0.08);
 }
 
-.nav-link.active {
-    background-color: rgba(243, 156, 18, 0.2);
-    color: #f39c12;
+.nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 0;
+    height: 3px;
+    background: #e74c3c;
+    transform: translateX(-50%);
+    transition: width 0.3s ease;
 }
 
-.nav-link.active::before {
-    width: 100%;
+.nav-link:hover::after {
+    width: 60%;
 }
 
-.dropdown-icon {
-    margin-left: 5px;
-    font-size: 12px;
-    transition: transform 0.3s ease;
+.nav-item.active .nav-link {
+    color: #e74c3c;
+    font-weight: 600;
 }
 
-.dropdown-menu {
+.nav-item.active .nav-link::after {
+    width: 60%;
+}
+
+/* 下拉菜单 */
+.submenu {
     position: absolute;
     top: 100%;
     left: 0;
-    background-color: #fff;
-    border-radius: 5px;
+    min-width: 220px;
+    background: white;
+    border-radius: 8px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-    list-style: none;
-    padding: 10px 0;
-    margin: 0;
-    min-width: 200px;
+    padding: 0.5rem 0;
     opacity: 0;
     visibility: hidden;
     transform: translateY(10px);
     transition: all 0.3s ease;
-    z-index: 1000;
+    z-index: 100;
 }
 
-.dropdown-link {
-    color: #333;
-    text-decoration: none;
+.submenu-link {
     display: block;
-    padding: 8px 20px;
+    padding: 0.8rem 1.5rem;
+    color: #34495e;
+    text-decoration: none;
     transition: all 0.2s ease;
 }
 
-.dropdown-link:hover {
-    background-color: #f5f5f5;
-    color: #f39c12;
-    padding-left: 25px;
+.submenu-link:hover {
+    color: #e74c3c;
+    background: rgba(231, 76, 60, 0.05);
+    padding-left: 1.8rem;
 }
 
-.nav-item:hover .dropdown-menu {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0);
+.dropdown-arrow {
+    margin-left: 8px;
+    transition: transform 0.3s ease;
 }
 
-.nav-item:hover .dropdown-icon {
+.nav-item:hover .dropdown-arrow {
     transform: rotate(180deg);
 }
 
+/* 移动端菜单按钮 */
 .mobile-menu-toggle {
     display: none;
-    color: white;
-    font-size: 24px;
     cursor: pointer;
-    padding: 10px;
+    padding: 1rem;
 }
 
-/* 响应式设计 */
+.hamburger span {
+    display: block;
+    width: 25px;
+    height: 2px;
+    background: #2c3e50;
+    margin: 5px 0;
+    transition: all 0.3s ease;
+}
+
+.mobile-menu-toggle.active .hamburger span:nth-child(1) {
+    transform: translateY(7px) rotate(45deg);
+}
+
+.mobile-menu-toggle.active .hamburger span:nth-child(2) {
+    opacity: 0;
+}
+
+.mobile-menu-toggle.active .hamburger span:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg);
+}
+
+/* 滚动效果 */
+.main-header.scrolled {
+    height: 60px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.main-header.scrolled .logo-text h1 {
+    font-size: 1.6rem;
+}
+
+/* =============== 面包屑导航 =============== */
+.breadcrumb-container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 1rem 2rem;
+    padding-top: 90px;
+}
+
+.breadcrumb-nav {
+    display: flex;
+}
+
+.breadcrumb-list {
+    display: flex;
+    flex-wrap: wrap;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.breadcrumb-item {
+    display: flex;
+    align-items: center;
+    color: #7f8c8d;
+}
+
+.breadcrumb-item + .breadcrumb-item::before {
+    content: '/';
+    padding: 0 0.8rem;
+    color: #bdc3c7;
+}
+
+.breadcrumb-link {
+    color: #3498db;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.breadcrumb-link:hover {
+    color: #2980b9;
+    text-decoration: underline;
+}
+
+.breadcrumb-item.active {
+    color: #2c3e50;
+    font-weight: 500;
+}
+
+/* =============== 响应式设计 =============== */
 @media (max-width: 992px) {
     .header-container {
-        flex-direction: column;
-        padding: 15px;
-    }
-    
-    .mobile-menu-toggle {
-        display: block;
-        position: absolute;
-        left: 15px;
-        top: 15px;
-    }
-    
-    .logo-container {
-        margin-bottom: 15px;
+        padding: 0 1.5rem;
     }
     
     .main-nav {
-        width: 100%;
-        display: none;
+        position: fixed;
+        top: 70px;
+        left: 0;
+        right: 0;
+        background: white;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        clip-path: polygon(0 0, 100% 0, 100% 0, 0 0);
+        transition: clip-path 0.4s ease;
     }
     
     .main-nav.active {
-        display: block;
+        clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
     }
     
     .nav-list {
         flex-direction: column;
-        width: 100%;
+        padding: 1rem 0;
     }
     
     .nav-item {
-        margin: 5px 0;
+        margin: 0;
     }
     
-    .dropdown-menu {
+    .nav-link {
+        padding: 1rem 1.5rem;
+    }
+    
+    .submenu {
         position: static;
         opacity: 1;
         visibility: visible;
         transform: none;
-        display: none;
         box-shadow: none;
-        background-color: rgba(0, 0, 0, 0.1);
+        display: none;
+        padding: 0;
     }
     
-    .nav-item:hover .dropdown-menu {
+    .nav-item:hover .submenu {
         display: block;
     }
-}
-
-/* 滚动时导航栏变化 */
-.scrolled {
-    background-color: rgba(44, 62, 80, 0.95);
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    padding: 5px 0;
-}
-
-.scrolled .logo-text h1 {
-    font-size: 24px;
-}
-
-.scrolled .ba-character {
-    font-size: 28px;
+    
+    .mobile-menu-toggle {
+        display: block;
+    }
+    
+    .breadcrumb-container {
+        padding: 1rem 1.5rem;
+        padding-top: 80px;
+    }
 }
