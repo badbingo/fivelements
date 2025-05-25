@@ -199,10 +199,13 @@ function createNavigation() {
                 const dropdownLink = document.createElement('a');
                 dropdownLink.href = dropdownItem.href;
                 dropdownLink.className = 'dropdown-link';
-                if (window.location.pathname.endsWith(dropdownItem.href)) {
-                    dropdownLink.classList.add('active');
+                
+                // 如果文本长度≥6个字，添加long-text类
+                if (dropdownItem.text.length >= 6) {
+                    dropdownLink.classList.add('long-text');
                 }
-                dropdownLink.textContent = dropdownItem.text; // ✅ 直接使用纯文本，不添加图标
+                
+                dropdownLink.textContent = dropdownItem.text;
                 dropdownLi.appendChild(dropdownLink);
                 dropdownMenu.appendChild(dropdownLi);
             });
