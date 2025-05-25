@@ -190,7 +190,41 @@ function createNavigation() {
     document.body.insertBefore(header, document.body.firstChild);
 }
 
-// 创建面包屑导航
+// 更新面包屑导航中文映射
+const pathNameMap = {
+    'seven': '七步速成',
+    'basics': '基础知识',
+    'bazi-process': '八字介绍',
+    'bazi-chart': '八字排盘',
+    'yen-strength': '日元强弱',
+    'elements': '天干地支',
+    'wuxing': '五行生克',
+    'balance': '五行平衡',
+    'ten-gods': '十神关系',
+    'combinations': '合冲破害',
+    'advanced': '进阶知识',
+    'tomb': '四大墓库',
+    'personality': '性格分析',
+    'wealth': '财运分析',
+    'career': '事业分析',
+    'marriage': '婚姻分析',
+    'health': '健康分析',
+    'luck': '大运流年',
+    'disaster': '重大灾祸',
+    'tools': '学习工具',
+    'calculator': '八字计算器',
+    'reference': '速查表',
+    'common': '常见格局',
+    'special': '特殊格局',
+    'bazi-test': '八字试题',
+    'system': '命理系统',
+    'bazi': '八字排盘',
+    'hehun': '八字合婚',
+    'liuyao': '六爻起卦',
+    'about': '关于我们'
+};
+
+// 修改后的面包屑导航函数
 function createBreadcrumb() {
     const breadcrumbContainer = document.createElement('div');
     breadcrumbContainer.className = 'breadcrumb-container';
@@ -198,37 +232,37 @@ function createBreadcrumb() {
     const breadcrumb = document.createElement('div');
     breadcrumb.className = 'breadcrumb';
     
-    // 获取当前页面路径
-    const path = window.location.pathname.split('/').filter(Boolean);
-    let currentPath = '';
-    
     // 首页面包屑
     const homeItem = document.createElement('div');
     homeItem.className = 'breadcrumb-item';
     homeItem.innerHTML = `
         <a href="/"><i class="fas fa-home"></i> 首页</a>
-        <span class="breadcrumb-separator">/</span>
+        <span class="breadcrumb-separator"><i class="fas fa-chevron-right"></i></span>
     `;
     breadcrumb.appendChild(homeItem);
     
-    // 生成面包屑路径
+    // 获取当前路径并生成面包屑
+    const path = window.location.pathname.split('/').filter(Boolean);
+    let currentPath = '';
+    
     path.forEach((segment, index) => {
         currentPath += '/' + segment;
         const isLast = index === path.length - 1;
         
+        // 移除.html后缀
+        let key = segment.replace('.html', '');
+        // 获取中文名称，如果没有映射则使用原名称
+        let displayText = pathNameMap[key] || key;
+        
         const breadcrumbItem = document.createElement('div');
         breadcrumbItem.className = 'breadcrumb-item';
-        
-        // 格式化显示文本
-        let displayText = segment.replace('.html', '').replace(/-/g, ' ');
-        displayText = displayText.charAt(0).toUpperCase() + displayText.slice(1);
         
         if (isLast) {
             breadcrumbItem.innerHTML = `<span class="active">${displayText}</span>`;
         } else {
             breadcrumbItem.innerHTML = `
                 <a href="${currentPath}">${displayText}</a>
-                <span class="breadcrumb-separator">/</span>
+                <span class="breadcrumb-separator"><i class="fas fa-chevron-right"></i></span>
             `;
         }
         
