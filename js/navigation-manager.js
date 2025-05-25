@@ -3,9 +3,11 @@
  * 功能：
  * 1. 自动生成智能面包屑导航
  * 2. 动态渲染响应式主导航
- * 3. 支持多级下拉菜单
- * 4. 自动高亮当前页面
- * 5. 移动端适配
+ * 3. 移动端汉堡菜单
+ * 4. 多级下拉菜单支持
+ * 5. 当前页面高亮
+ * 6. SEO友好结构化数据
+ * 7. 平滑动画过渡
  */
 
 class NavigationManager {
@@ -46,6 +48,11 @@ class NavigationManager {
     
     // 移动端状态
     this.isMobile = window.innerWidth < this.config.mobileBreakpoint;
+    this.mobileMenuOpen = false;
+    
+    // DOM引用
+    this.mobileToggleBtn = null;
+    this.mobileOverlay = null;
   }
 
   // ================= 初始化 =================
@@ -54,10 +61,12 @@ class NavigationManager {
     this.renderNavbar();
     this.setupEventListeners();
     
-    // 响应式检测
-    window.addEventListener('resize', () => {
-      this.isMobile = window.innerWidth < this.config.mobileBreakpoint;
-    });
+    if (this.isMobile) {
+      this.setupMobileMenu();
+      this.setupMobileOverlay();
+    }
+    
+    window.addEventListener('resize', this.handleResize.bind(this));
   }
 
   // ================= 面包屑导航 =================
@@ -181,14 +190,12 @@ class NavigationManager {
       "@context": "https://schema.org",
       "@type": "BreadcrumbList",
       "itemListElement": [
-        // 首页项
         {
           "@type": "ListItem",
           "position": position++,
           "name": this.config.breadcrumb.home.text,
           "item": `${window.location.origin}${this.config.breadcrumb.home.url}`
         },
-        // 路径项
         ...segments.map(segment => {
           accumulatedPath += `/${segment}`;
           const { name } = this.getBreadcrumbSegmentInfo(segment);
@@ -212,10 +219,11 @@ class NavigationManager {
     navContainer.innerHTML = this.buildNavbarHTML(this.menuConfig);
     this.highlightCurrentNavItem();
     
-    // 移动端初始化
     if (this.isMobile) {
-      document.querySelector('.main-nav').classList.add('mobile-hidden');
+      this.addMobileCloseButton(navContainer);
     }
+    
+    this.setupDropdowns();
   }
 
   buildNavbarHTML(menuItems, level = 0) {
@@ -226,7 +234,8 @@ class NavigationManager {
       
       return `
         <li class="nav-item ${isActive || isParentActive ? this.config.activeClass : ''} 
-            ${hasChildren ? 'dropdown' : ''} ${level > 0 ? 'dropdown-item' : ''}">
+            ${hasChildren ? 'dropdown' : ''} ${level > 0 ? 'dropdown-item' : ''}"
+            data-level="${level}">
           <a href="${item.url || '#'}" class="nav-link" ${hasChildren ? 'aria-haspopup="true"' : ''}>
             ${item.icon || ''}
             <span class="nav-text">${item.text}</span>
@@ -269,32 +278,169 @@ class NavigationManager {
     });
   }
 
-  // ================= 事件监听 =================
-  setupEventListeners() {
-    // 移动端菜单切换
-    document.querySelector(`.${this.config.navbar.mobileToggleClass}`)?.addEventListener('click', () => {
-      document.querySelector('.main-nav').classList.toggle('mobile-hidden');
+  addMobileCloseButton(navContainer) {
+    const closeBtn = document.createElement('div');
+    closeBtn.className = 'mobile-close-btn';
+    closeBtn.innerHTML = this.config.navbar.closeIcon;
+    navContainer.insertBefore(closeBtn, navContainer.firstChild);
+    
+    closeBtn.addEventListener('click', () => {
+      this.closeMobileMenu();
+    });
+  }
+
+  // ================= 移动端功能 =================
+  setupMobileMenu() {
+    this.mobileToggleBtn = document.createElement('button');
+    this.mobileToggleBtn.className = `${this.config.navbar.mobileToggleClass} animated fadeIn`;
+    this.mobileToggleBtn.innerHTML = '<i class="fas fa-bars"></i>';
+    document.body.appendChild(this.mobileToggleBtn);
+    
+    this.mobileToggleBtn.addEventListener('click', () => {
+      this.toggleMobileMenu();
+    });
+  }
+
+  setupMobileOverlay() {
+    this.mobileOverlay = document.createElement('div');
+    this.mobileOverlay.className = 'mobile-overlay';
+    document.body.appendChild(this.mobileOverlay);
+    
+    this.mobileOverlay.addEventListener('click', () => {
+      this.closeMobileMenu();
+    });
+  }
+
+  toggleMobileMenu() {
+    const mainNav = document.querySelector('.main-nav');
+    mainNav.classList.toggle('mobile-show');
+    this.mobileOverlay.classList.toggle('show');
+    document.body.classList.toggle('no-scroll');
+    this.mobileMenuOpen = !this.mobileMenuOpen;
+    
+    // 按钮动画
+    if (this.mobileMenuOpen) {
+      this.mobileToggleBtn.innerHTML = '<i class="fas fa-times"></i>';
+      this.mobileToggleBtn.style.transform = 'rotate(180deg)';
+    } else {
+      this.mobileToggleBtn.innerHTML = '<i class="fas fa-bars"></i>';
+      this.mobileToggleBtn.style.transform = 'rotate(0)';
+    }
+  }
+
+  closeMobileMenu() {
+    document.querySelector('.main-nav').classList.remove('mobile-show');
+    this.mobileOverlay.classList.remove('show');
+    document.body.classList.remove('no-scroll');
+    this.mobileMenuOpen = false;
+    this.mobileToggleBtn.innerHTML = '<i class="fas fa-bars"></i>';
+    this.mobileToggleBtn.style.transform = 'rotate(0)';
+  }
+
+  // ================= 下拉菜单交互 =================
+  setupDropdowns() {
+    document.querySelectorAll('.nav-item').forEach(item => {
+      const dropdown = item.querySelector('.dropdown-menu');
+      if (!dropdown) return;
+      
+      const toggle = item.querySelector('.dropdown-toggle');
+      
+      if (!this.isMobile) {
+        // 桌面端悬停
+        item.addEventListener('mouseenter', () => {
+          this.openDropdown(item, dropdown, toggle);
+        });
+        
+        item.addEventListener('mouseleave', () => {
+          this.closeDropdown(item, dropdown, toggle);
+        });
+      } else {
+        // 移动端点击
+        toggle.style.display = 'block';
+        toggle.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (dropdown.style.maxHeight === '500px') {
+            this.closeDropdown(item, dropdown, toggle);
+          } else {
+            this.openDropdown(item, dropdown, toggle);
+          }
+        });
+      }
     });
     
-    // 下拉菜单交互
-    document.querySelectorAll('.dropdown-toggle').forEach(toggle => {
-      toggle.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const expanded = toggle.getAttribute('aria-expanded') === 'true';
-        toggle.setAttribute('aria-expanded', !expanded);
-        toggle.classList.toggle('expanded', !expanded);
-        toggle.nextElementSibling.classList.toggle('show');
-      });
-    });
-    
-    // 点击外部关闭菜单
+    // 点击外部关闭所有下拉
     document.addEventListener('click', (e) => {
       if (!e.target.closest('.dropdown')) {
-        document.querySelectorAll('.dropdown-menu').forEach(menu => {
-          menu.classList.remove('show');
-          menu.previousElementSibling.classList.remove('expanded');
-          menu.previousElementSibling.setAttribute('aria-expanded', 'false');
+        document.querySelectorAll('.dropdown-menu').forEach(dropdown => {
+          const item = dropdown.closest('.nav-item');
+          const toggle = item?.querySelector('.dropdown-toggle');
+          if (item && toggle) this.closeDropdown(item, dropdown, toggle);
         });
+      }
+    });
+  }
+
+  openDropdown(item, dropdown, toggle) {
+    if (this.isMobile) {
+      dropdown.style.maxHeight = '500px';
+    } else {
+      dropdown.style.opacity = '1';
+      dropdown.style.visibility = 'visible';
+      dropdown.style.transform = 'translateY(0)';
+    }
+    toggle.classList.add('expanded');
+    toggle.setAttribute('aria-expanded', 'true');
+  }
+
+  closeDropdown(item, dropdown, toggle) {
+    if (this.isMobile) {
+      dropdown.style.maxHeight = '0';
+    } else {
+      dropdown.style.opacity = '0';
+      dropdown.style.visibility = 'hidden';
+      dropdown.style.transform = 'translateY(10px)';
+    }
+    toggle.classList.remove('expanded');
+    toggle.setAttribute('aria-expanded', 'false');
+  }
+
+  // ================= 响应式处理 =================
+  handleResize() {
+    const wasMobile = this.isMobile;
+    this.isMobile = window.innerWidth < this.config.mobileBreakpoint;
+    
+    if (wasMobile !== this.isMobile) {
+      if (!this.isMobile && this.mobileMenuOpen) {
+        this.closeMobileMenu();
+      }
+      
+      // 清理移动端元素
+      if (!this.isMobile) {
+        this.cleanupMobileElements();
+      }
+      
+      // 重新渲染导航
+      this.renderNavbar();
+    }
+  }
+
+  cleanupMobileElements() {
+    if (this.mobileToggleBtn) {
+      this.mobileToggleBtn.remove();
+      this.mobileToggleBtn = null;
+    }
+    if (this.mobileOverlay) {
+      this.mobileOverlay.remove();
+      this.mobileOverlay = null;
+    }
+  }
+
+  // ================= 事件监听 =================
+  setupEventListeners() {
+    // 主导航点击事件委托
+    document.querySelector(this.config.navbar.containerSelector)?.addEventListener('click', (e) => {
+      if (this.isMobile && e.target.closest('.nav-link')) {
+        this.closeMobileMenu();
       }
     });
   }
@@ -348,54 +494,194 @@ class NavigationManager {
   }
 
   getFullMenuConfig() {
-    return [
-      {
-        text: '七步速成',
-        url: 'seven.html',
-        icon: '<i class="fas fa-home"></i>'
-      },
-      {
-        text: '基础知识',
-        icon: '<i class="fas fa-book-open"></i>',
-        children: [
-          { text: '八字介绍', url: 'basics/bazi-process.html' },
-          { text: '排盘方法', url: 'basics/bazi-chart.html' },
-          { text: '日元强弱', url: 'basics/yen-strength.html' },
-          { text: '天干地支', url: 'basics/elements.html' },
-          { text: '五行生克', url: 'basics/wuxing.html' },
-          { text: '十神关系', url: 'basics/ten-gods.html' }
-        ]
-      },
-      {
-        text: '进阶知识',
-        icon: '<i class="fas fa-chart-line"></i>',
-        children: [
-          { text: '性格分析', url: 'advanced/personality.html' },
-          { text: '财运分析', url: 'advanced/wealth.html' },
-          { text: '事业分析', url: 'advanced/career.html' },
-          { text: '婚姻分析', url: 'advanced/marriage.html' }
-        ]
-      },
-      {
-        text: '学习工具',
-        icon: '<i class="fas fa-tools"></i>',
-        children: [
-          { text: '八字计算器', url: 'tools/calculator.html' },
-          { text: '常见格局', url: 'tools/common.html' },
-          { text: '八字试题', url: 'tools/bazi-test.html' }
-        ]
-      },
-      {
-        text: '关于我们',
-        url: 'about.html',
-        icon: '<i class="fas fa-info-circle"></i>'
-      }
-    ];
-  }
+  return [
+    {
+      text: '七步速成',
+      url: 'seven.html',
+      icon: '<i class="fas fa-home"></i>'
+    },
+    {
+      text: '基础知识',
+      icon: '<i class="fas fa-book-open"></i>',
+      children: [
+        { 
+          text: '八字入门', 
+          url: 'basics/bazi-process.html',
+          icon: '<i class="fas fa-chevron-right"></i>' 
+        },
+        { 
+          text: '排盘方法', 
+          url: 'basics/bazi-chart.html',
+          icon: '<i class="fas fa-chevron-right"></i>' 
+        },
+        { 
+          text: '天干地支', 
+          url: 'basics/elements.html',
+          icon: '<i class="fas fa-chevron-right"></i>' 
+        },
+        { 
+          text: '五行生克', 
+          url: 'basics/wuxing.html',
+          icon: '<i class="fas fa-chevron-right"></i>' 
+        },
+        { 
+          text: '十神关系', 
+          url: 'basics/ten-gods.html',
+          icon: '<i class="fas fa-chevron-right"></i>' 
+        },
+        { 
+          text: '合冲破害', 
+          url: 'basics/combinations.html',
+          icon: '<i class="fas fa-chevron-right"></i>' 
+        }
+      ]
+    },
+    {
+      text: '进阶知识',
+      icon: '<i class="fas fa-chart-line"></i>',
+      children: [
+        { 
+          text: '性格分析', 
+          url: 'advanced/personality.html',
+          icon: '<i class="fas fa-user-tie"></i>' 
+        },
+        { 
+          text: '财运分析', 
+          url: 'advanced/wealth.html',
+          icon: '<i class="fas fa-coins"></i>' 
+        },
+        { 
+          text: '事业分析', 
+          url: 'advanced/career.html',
+          icon: '<i class="fas fa-briefcase"></i>' 
+        },
+        { 
+          text: '婚姻分析', 
+          url: 'advanced/marriage.html',
+          icon: '<i class="fas fa-heart"></i>' 
+        },
+        { 
+          text: '健康分析', 
+          url: 'advanced/health.html',
+          icon: '<i class="fas fa-heartbeat"></i>' 
+        },
+        { 
+          text: '大运流年', 
+          url: 'advanced/luck.html',
+          icon: '<i class="fas fa-calendar-alt"></i>' 
+        }
+      ]
+    },
+    {
+      text: '学习工具',
+      icon: '<i class="fas fa-tools"></i>',
+      children: [
+        { 
+          text: '八字计算器', 
+          url: 'tools/calculator.html',
+          icon: '<i class="fas fa-calculator"></i>' 
+        },
+        { 
+          text: '速查表', 
+          url: 'tools/reference.html',
+          icon: '<i class="fas fa-list-ul"></i>' 
+        },
+        { 
+          text: '常见格局', 
+          url: 'tools/common.html',
+          icon: '<i class="fas fa-project-diagram"></i>' 
+        },
+        { 
+          text: '特殊格局', 
+          url: 'tools/special.html',
+          icon: '<i class="fas fa-star"></i>' 
+        },
+        { 
+          text: '八字试题', 
+          url: 'tools/bazi-test.html',
+          icon: '<i class="fas fa-question-circle"></i>' 
+        }
+      ]
+    },
+    {
+      text: '命理系统',
+      icon: '<i class="fas fa-shapes"></i>',
+      children: [
+        { 
+          text: '八字排盘', 
+          url: 'system/bazi.html',
+          icon: '<i class="fas fa-chart-pie"></i>' 
+        },
+        { 
+          text: '八字合婚', 
+          url: 'system/hehun.html',
+          icon: '<i class="fas fa-people-arrows"></i>' 
+        },
+        { 
+          text: '六爻占卜', 
+          url: 'system/liuyao.html',
+          icon: '<i class="fas fa-question"></i>' 
+        },
+        { 
+          text: '奇门遁甲', 
+          url: 'system/qimen.html',
+          icon: '<i class="fas fa-chess-board"></i>' 
+        }
+      ]
+    },
+    {
+      text: '关于我们',
+      icon: '<i class="fas fa-info-circle"></i>',
+      children: [
+        { 
+          text: '团队介绍', 
+          url: 'about/team.html',
+          icon: '<i class="fas fa-users"></i>' 
+        },
+        { 
+          text: '发展历程', 
+          url: 'about/history.html',
+          icon: '<i class="fas fa-history"></i>' 
+        },
+        { 
+          text: '联系我们', 
+          url: 'about/contact.html',
+          icon: '<i class="fas fa-envelope"></i>' 
+        },
+        { 
+          text: '加入我们', 
+          url: 'about/join.html',
+          icon: '<i class="fas fa-user-plus"></i>' 
+        }
+      ]
+    },
+    {
+      text: '会员中心',
+      url: 'member/index.html',
+      icon: '<i class="fas fa-user"></i>',
+      authRequired: true, // 权限控制标记
+      children: [
+        { 
+          text: '我的资料', 
+          url: 'member/profile.html',
+          icon: '<i class="fas fa-id-card"></i>' 
+        },
+        { 
+          text: '学习记录', 
+          url: 'member/learning.html',
+          icon: '<i class="fas fa-book-reader"></i>' 
+        },
+        { 
+          text: '收藏夹', 
+          url: 'member/favorites.html',
+          icon: '<i class="fas fa-bookmark"></i>' 
+        },
+        { 
+          text: 'VIP会员', 
+          url: 'member/vip.html',
+          icon: '<i class="fas fa-crown"></i>' 
+        }
+      ]
+    }
+  ];
 }
-
-// ================= 初始化 =================
-document.addEventListener('DOMContentLoaded', () => {
-  const navManager = new NavigationManager();
-  navManager.init();
-});
