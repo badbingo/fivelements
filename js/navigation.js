@@ -12,37 +12,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // 滚动效果
     setupScrollEffects();
 });
-// 更新下拉菜单生成逻辑
-function createDropdownMenu(items, parentElement) {
-    const dropdownMenu = document.createElement('ul');
-    dropdownMenu.className = 'dropdown-menu';
-    
-    items.forEach(item => {
-        const dropdownLi = document.createElement('li');
-        const dropdownLink = document.createElement('a');
-        dropdownLink.href = item.href;
-        dropdownLink.className = 'dropdown-link';
-        
-        if (window.location.pathname.endsWith(item.href)) {
-            dropdownLink.classList.add('active');
-        }
-        
-        // 添加图标和文字
-        const icon = document.createElement('i');
-        icon.className = 'fas fa-circle';
-        
-        const text = document.createElement('span');
-        text.textContent = item.text;
-        
-        dropdownLink.appendChild(icon);
-        dropdownLink.appendChild(text);
-        dropdownLi.appendChild(dropdownLink);
-        dropdownMenu.appendChild(dropdownLi);
-    });
-    
-    parentElement.appendChild(dropdownMenu);
-    return dropdownMenu;
-}
+
 
 // 在导航项创建时调用
 if (item.dropdown) {
