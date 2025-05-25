@@ -94,7 +94,7 @@ function createNavigation() {
         {
             text: '七步速成',
             icon: 'fa-home',
-            href: 'seven.html',
+            href: '/seven.html',
             wuxing: 'fire'
         },
         {
@@ -156,7 +156,7 @@ function createNavigation() {
         {
             text: '关于我们',
             icon: 'fa-info-circle',
-            href: 'about.html',
+            href: '/about.html',
             wuxing: 'golden'
         }
     ];
@@ -268,38 +268,40 @@ function createBreadcrumb() {
     };
     
     path.forEach((segment, index) => {
-        currentPath += '/' + segment;
-        const isLast = index === path.length - 1;
-        
-        // 移除.html后缀
-        let key = segment.replace('.html', '');
-        // 获取中文名称，如果没有映射则使用原名称
-        let displayText = pathNameMap[key] || key;
-        
-        const breadcrumbItem = document.createElement('div');
-        breadcrumbItem.className = 'breadcrumb-item';
-        
-        // 检查是否是主目录
-        if (mainCategories[key]) {
-            breadcrumbItem.classList.add('no-link');
-            const category = mainCategories[key];
-            breadcrumbItem.innerHTML = `
-                <span>
-                    <i class="fas ${category.icon}"></i>${category.name}
-                </span>
-                ${!isLast ? `<span class="breadcrumb-separator"><i class="fas fa-chevron-right"></i></span>` : ''}
-            `;
-        } else if (isLast) {
-            breadcrumbItem.innerHTML = `<span class="active">${displayText}</span>`;
-        } else {
-            breadcrumbItem.innerHTML = `
-                <a href="${currentPath}">${displayText}</a>
-                <span class="breadcrumb-separator"><i class="fas fa-chevron-right"></i></span>
-            `;
-        }
-        
-        breadcrumb.appendChild(breadcrumbItem);
-    });
+    currentPath += '/' + segment;
+    const isLast = index === path.length - 1;
+    
+    // 移除.html后缀
+    let key = segment.replace('.html', '');
+    // 获取中文名称，如果没有映射则使用原名称
+    let displayText = pathNameMap[key] || key;
+    
+    const breadcrumbItem = document.createElement('div');
+    breadcrumbItem.className = 'breadcrumb-item';
+    
+    // 检查是否是主目录
+    if (mainCategories[key]) {
+        breadcrumbItem.classList.add('no-link');
+        const category = mainCategories[key];
+        breadcrumbItem.innerHTML = `
+            <span>
+                <i class="fas ${category.icon}"></i>${category.name}
+            </span>
+            ${!isLast ? `<span class="breadcrumb-separator"><i class="fas fa-chevron-right"></i></span>` : ''}
+        `;
+    } else if (isLast) {
+        breadcrumbItem.innerHTML = `<span class="active">${displayText}</span>`;
+    } else {
+        // 确保链接使用绝对路径
+        const linkPath = currentPath.startsWith('/') ? currentPath : '/' + currentPath;
+        breadcrumbItem.innerHTML = `
+            <a href="${linkPath}">${displayText}</a>
+            <span class="breadcrumb-separator"><i class="fas fa-chevron-right"></i></span>
+        `;
+    }
+    
+    breadcrumb.appendChild(breadcrumbItem);
+});
     
     breadcrumbContainer.appendChild(breadcrumb);
     
