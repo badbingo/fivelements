@@ -259,6 +259,14 @@ function createBreadcrumb() {
     const path = window.location.pathname.split('/').filter(Boolean);
     let currentPath = '';
     
+    // 主目录与图标映射
+    const mainCategories = {
+        'basics': { icon: 'fa-book-open', name: '基础知识' },
+        'advanced': { icon: 'fa-chart-line', name: '进阶知识' },
+        'tools': { icon: 'fa-tools', name: '学习工具' },
+        'system': { icon: 'fa-shapes', name: '洞察天机' }
+    };
+    
     path.forEach((segment, index) => {
         currentPath += '/' + segment;
         const isLast = index === path.length - 1;
@@ -271,7 +279,17 @@ function createBreadcrumb() {
         const breadcrumbItem = document.createElement('div');
         breadcrumbItem.className = 'breadcrumb-item';
         
-        if (isLast) {
+        // 检查是否是主目录
+        if (mainCategories[key]) {
+            breadcrumbItem.classList.add('no-link');
+            const category = mainCategories[key];
+            breadcrumbItem.innerHTML = `
+                <span>
+                    <i class="fas ${category.icon}"></i>${category.name}
+                </span>
+                ${!isLast ? `<span class="breadcrumb-separator"><i class="fas fa-chevron-right"></i></span>` : ''}
+            `;
+        } else if (isLast) {
             breadcrumbItem.innerHTML = `<span class="active">${displayText}</span>`;
         } else {
             breadcrumbItem.innerHTML = `
