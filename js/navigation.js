@@ -85,7 +85,20 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         setupEventListeners();
     }
-
+    // 添加光标跟随效果
+    const navLinks = document.querySelectorAll('.nav-link');
+    navLinks.forEach(link => {
+        link.addEventListener('mousemove', (e) => {
+            const x = e.offsetX;
+            const y = e.offsetY;
+            link.style.setProperty('--x', `${x}px`);
+            link.style.setProperty('--y', `${y}px`);
+        });
+    });
+    
+    // 移除滚动高度变化逻辑
+    // 保持header高度不变
+    }
     // ==================== 导航条生成 ====================
     function createHeader() {
         const header = document.createElement('header');
