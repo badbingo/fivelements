@@ -200,12 +200,16 @@ function createNavigation() {
                 dropdownLink.href = dropdownItem.href;
                 dropdownLink.className = 'dropdown-link';
                 
-                // 如果文本长度≥6个字，添加long-text类
+                // 根据文字长度添加类名
                 if (dropdownItem.text.length >= 6) {
                     dropdownLink.classList.add('long-text');
                 }
                 
-                dropdownLink.textContent = dropdownItem.text;
+                // 用span包裹文字以便精确控制
+                const textSpan = document.createElement('span');
+                textSpan.textContent = dropdownItem.text;
+                dropdownLink.appendChild(textSpan);
+                
                 dropdownLi.appendChild(dropdownLink);
                 dropdownMenu.appendChild(dropdownLi);
             });
