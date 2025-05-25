@@ -1,6 +1,253 @@
-// 导航条功能
+// 导航系统主功能
 document.addEventListener('DOMContentLoaded', function() {
+    // 创建导航栏
+    createNavigation();
+    
+    // 创建面包屑导航
+    createBreadcrumb();
+    
     // 移动端菜单切换
+    setupMobileMenu();
+    
+    // 滚动效果
+    setupScrollEffects();
+});
+
+// 创建导航栏
+function createNavigation() {
+    const header = document.createElement('header');
+    header.className = 'main-header';
+    
+    const container = document.createElement('div');
+    container.className = 'header-container';
+    
+    // 添加logo
+    const logoContainer = document.createElement('div');
+    logoContainer.className = 'logo-container';
+    
+    const logoLink = document.createElement('a');
+    logoLink.href = 'index.html';
+    logoLink.className = 'logo-link';
+    
+    const logoText = document.createElement('div');
+    logoText.className = 'logo-text';
+    logoText.innerHTML = `
+        <h1>麦<span class="ba-character">八</span>字</h1>
+        <p class="slogan">我命由我不由天</p>
+    `;
+    
+    logoLink.appendChild(logoText);
+    logoContainer.appendChild(logoLink);
+    container.appendChild(logoContainer);
+    
+    // 添加导航菜单
+    const mainNav = document.createElement('nav');
+    mainNav.className = 'main-nav';
+    
+    const navList = document.createElement('ul');
+    navList.className = 'nav-list';
+    
+    // 导航菜单项数据
+    const navItems = [
+        {
+            text: '七步速成',
+            icon: 'fa-home',
+            href: 'seven.html',
+            wuxing: 'fire'
+        },
+        {
+            text: '基础知识',
+            icon: 'fa-book-open',
+            href: '#',
+            wuxing: 'wood',
+            dropdown: [
+                { text: '八字介绍', href: 'basics/bazi-process.html' },
+                { text: '八字排盘', href: 'basics/bazi-chart.html' },
+                { text: '日元强弱分析', href: 'basics/yen-strength.html' },
+                { text: '天干地支意象', href: 'basics/elements.html' },
+                { text: '五行生克', href: 'basics/wuxing.html' },
+                { text: '五行平衡', href: 'basics/balance.html' },
+                { text: '十神关系', href: 'basics/ten-gods.html' },
+                { text: '合冲破害', href: 'basics/combinations.html' }
+            ]
+        },
+        {
+            text: '进阶知识',
+            icon: 'fa-chart-line',
+            href: '#',
+            wuxing: 'metal',
+            dropdown: [
+                { text: '四大墓库', href: 'advanced/tomb.html' },
+                { text: '性格分析', href: 'advanced/personality.html' },
+                { text: '财运分析', href: 'advanced/wealth.html' },
+                { text: '事业分析', href: 'advanced/career.html' },
+                { text: '婚姻分析', href: 'advanced/marriage.html' },
+                { text: '健康分析', href: 'advanced/health.html' },
+                { text: '大运流年', href: 'advanced/luck.html' },
+                { text: '重大灾祸', href: 'advanced/disaster.html' }
+            ]
+        },
+        {
+            text: '学习工具',
+            icon: 'fa-tools',
+            href: '#',
+            wuxing: 'earth',
+            dropdown: [
+                { text: '八字计算器', href: 'tools/calculator.html' },
+                { text: '速查表', href: 'tools/reference.html' },
+                { text: '常见格局', href: 'tools/common.html' },
+                { text: '特殊格局', href: 'tools/special.html' },
+                { text: '八字试题', href: 'tools/bazi-test.html' }
+            ]
+        },
+        {
+            text: '洞察天机',
+            icon: 'fa-shapes',
+            href: '#',
+            wuxing: 'water',
+            dropdown: [
+                { text: '机缘命理系统', href: 'system/bazi.html' },
+                { text: '八字合婚系统', href: 'system/hehun.html' },
+                { text: '六爻起卦', href: 'system/liuyao.html' }
+            ]
+        },
+        {
+            text: '关于我们',
+            icon: 'fa-info-circle',
+            href: 'about.html',
+            wuxing: 'golden'
+        }
+    ];
+    
+    // 生成导航菜单
+    navItems.forEach(item => {
+        const navItem = document.createElement('li');
+        navItem.className = 'nav-item';
+        if (item.wuxing === 'golden') {
+            navItem.classList.add('golden');
+        } else {
+            navItem.setAttribute('data-wuxing', item.wuxing);
+        }
+        
+        const navLink = document.createElement('a');
+        navLink.href = item.href;
+        navLink.className = 'nav-link';
+        if (window.location.pathname.endsWith(item.href)) {
+            navLink.classList.add('active');
+        }
+        navLink.innerHTML = `
+            <i class="fas ${item.icon}"></i>
+            <span class="nav-text">${item.text}</span>
+            <span class="nav-underline"></span>
+        `;
+        
+        navItem.appendChild(navLink);
+        
+        // 添加下拉菜单
+        if (item.dropdown) {
+            const dropdownIcon = document.createElement('i');
+            dropdownIcon.className = 'fas fa-chevron-down dropdown-icon';
+            navLink.appendChild(dropdownIcon);
+            
+            const dropdownMenu = document.createElement('ul');
+            dropdownMenu.className = 'dropdown-menu';
+            
+            item.dropdown.forEach(dropdownItem => {
+                const dropdownLi = document.createElement('li');
+                const dropdownLink = document.createElement('a');
+                dropdownLink.href = dropdownItem.href;
+                dropdownLink.className = 'dropdown-link';
+                if (window.location.pathname.endsWith(dropdownItem.href)) {
+                    dropdownLink.classList.add('active');
+                }
+                dropdownLink.innerHTML = `<i class="fas fa-circle"></i> ${dropdownItem.text}`;
+                
+                dropdownLi.appendChild(dropdownLink);
+                dropdownMenu.appendChild(dropdownLi);
+            });
+            
+            navItem.appendChild(dropdownMenu);
+        }
+        
+        navList.appendChild(navItem);
+    });
+    
+    // 移动端菜单按钮
+    const mobileMenuBtn = document.createElement('div');
+    mobileMenuBtn.className = 'mobile-menu-btn';
+    mobileMenuBtn.innerHTML = `
+        <span class="bar"></span>
+        <span class="bar"></span>
+        <span class="bar"></span>
+    `;
+    
+    mainNav.appendChild(navList);
+    container.appendChild(mobileMenuBtn);
+    container.appendChild(mainNav);
+    header.appendChild(container);
+    
+    // 添加到页面顶部
+    document.body.insertBefore(header, document.body.firstChild);
+}
+
+// 创建面包屑导航
+function createBreadcrumb() {
+    const breadcrumbContainer = document.createElement('div');
+    breadcrumbContainer.className = 'breadcrumb-container';
+    
+    const breadcrumb = document.createElement('div');
+    breadcrumb.className = 'breadcrumb';
+    
+    // 获取当前页面路径
+    const path = window.location.pathname.split('/').filter(Boolean);
+    let currentPath = '';
+    
+    // 首页面包屑
+    const homeItem = document.createElement('div');
+    homeItem.className = 'breadcrumb-item';
+    homeItem.innerHTML = `
+        <a href="/"><i class="fas fa-home"></i> 首页</a>
+        <span class="breadcrumb-separator">/</span>
+    `;
+    breadcrumb.appendChild(homeItem);
+    
+    // 生成面包屑路径
+    path.forEach((segment, index) => {
+        currentPath += '/' + segment;
+        const isLast = index === path.length - 1;
+        
+        const breadcrumbItem = document.createElement('div');
+        breadcrumbItem.className = 'breadcrumb-item';
+        
+        // 格式化显示文本
+        let displayText = segment.replace('.html', '').replace(/-/g, ' ');
+        displayText = displayText.charAt(0).toUpperCase() + displayText.slice(1);
+        
+        if (isLast) {
+            breadcrumbItem.innerHTML = `<span class="active">${displayText}</span>`;
+        } else {
+            breadcrumbItem.innerHTML = `
+                <a href="${currentPath}">${displayText}</a>
+                <span class="breadcrumb-separator">/</span>
+            `;
+        }
+        
+        breadcrumb.appendChild(breadcrumbItem);
+    });
+    
+    breadcrumbContainer.appendChild(breadcrumb);
+    
+    // 添加到页面中
+    const mainContent = document.querySelector('main') || document.querySelector('.content-container');
+    if (mainContent) {
+        document.body.insertBefore(breadcrumbContainer, mainContent);
+    } else {
+        document.body.appendChild(breadcrumbContainer);
+    }
+}
+
+// 设置移动端菜单
+function setupMobileMenu() {
     const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
     const mainNav = document.querySelector('.main-nav');
     
@@ -9,192 +256,43 @@ document.addEventListener('DOMContentLoaded', function() {
             this.classList.toggle('active');
             mainNav.classList.toggle('active');
         });
-    }
-    
-    // 为导航项添加五行属性
-    const navItems = document.querySelectorAll('.nav-item');
-    const wuxingElements = ['wood', 'fire', 'earth', 'metal', 'water'];
-    
-    navItems.forEach((item, index) => {
-        // 跳过最后一个"关于我们"项
-        if (index < navItems.length - 1) {
-            const wuxingIndex = index % wuxingElements.length;
-            item.setAttribute('data-wuxing', wuxingElements[wuxingIndex]);
-            
-            // 为"在线批命"添加特殊类
-            if (item.querySelector('.nav-link').textContent.includes('在线批命')) {
-                item.classList.add('golden');
-            }
-        }
-    });
-    
-    // 创建五行背景元素
-    const navBackground = document.createElement('div');
-    navBackground.className = 'nav-background';
-    document.querySelector('.main-nav').prepend(navBackground);
-    
-    for (let i = 0; i < 5; i++) {
-        const element = document.createElement('div');
-        element.className = `wuxing-element ${wuxingElements[i]}`;
-        element.style.left = `${Math.random() * 80 + 10}%`;
-        element.style.top = `${Math.random() * 80 + 10}%`;
-        element.style.animationDelay = `${i * 2}s`;
-        navBackground.appendChild(element);
-    }
-    
-    // 当前页面高亮
-    const currentPath = window.location.pathname.split('/').pop() || 'index.html';
-    const navLinks = document.querySelectorAll('.nav-link');
-    
-    navLinks.forEach(link => {
-        const linkPath = link.getAttribute('href').split('/').pop();
-        if (currentPath === linkPath) {
-            link.classList.add('active');
-        }
-    });
-    
-    // 自动生成面包屑导航
-    generateBreadcrumbs();
-});
-
-// 面包屑导航功能
-function generateBreadcrumbs() {
-    const breadcrumbContainer = document.createElement('div');
-    breadcrumbContainer.className = 'breadcrumb-container container';
-    
-    const breadcrumb = document.createElement('ol');
-    breadcrumb.className = 'breadcrumb';
-    
-    // 首页链接
-    const homeItem = createBreadcrumbItem('index.html', '首页', 'fas fa-home');
-    breadcrumb.appendChild(homeItem);
-    
-    // 获取当前页面路径
-    const path = window.location.pathname;
-    const pathSegments = path.split('/').filter(segment => segment);
-    
-    // 构建面包屑路径
-    let accumulatedPath = '';
-    pathSegments.forEach((segment, index) => {
-        accumulatedPath += `/${segment}`;
-        const pageName = getPageName(segment);
         
-        if (index === pathSegments.length - 1) {
-            // 当前页面，不添加链接
-            const currentItem = createBreadcrumbItem('', pageName, getPageIcon(segment), true);
-            breadcrumb.appendChild(currentItem);
+        // 处理下拉菜单点击
+        const navItems = document.querySelectorAll('.nav-item');
+        navItems.forEach(item => {
+            if (item.querySelector('.dropdown-menu')) {
+                const navLink = item.querySelector('.nav-link');
+                navLink.addEventListener('click', function(e) {
+                    if (window.innerWidth <= 992) {
+                        e.preventDefault();
+                        const dropdown = item.querySelector('.dropdown-menu');
+                        dropdown.classList.toggle('active');
+                    }
+                });
+            }
+        });
+    }
+}
+
+// 设置滚动效果
+function setupScrollEffects() {
+    // 滚动时改变导航栏样式
+    window.addEventListener('scroll', function() {
+        const header = document.querySelector('.main-header');
+        if (window.scrollY > 50) {
+            header.classList.add('scrolled');
         } else {
-            // 父级页面，添加链接
-            const item = createBreadcrumbItem(accumulatedPath, pageName, getPageIcon(segment));
-            breadcrumb.appendChild(item);
+            header.classList.remove('scrolled');
         }
     });
     
-    breadcrumbContainer.appendChild(breadcrumb);
-    
-    // 将面包屑导航插入到页面中
-    const mainContent = document.querySelector('main');
-    if (mainContent) {
-        mainContent.insertBefore(breadcrumbContainer, mainContent.firstChild);
-    }
-}
-
-function createBreadcrumbItem(href, text, icon, isActive = false) {
-    const item = document.createElement('li');
-    item.className = 'breadcrumb-item' + (isActive ? ' active' : '');
-    
-    const link = document.createElement('a');
-    link.className = 'breadcrumb-link';
-    if (!isActive) {
-        link.href = href;
-    }
-    
-    const iconElement = document.createElement('i');
-    iconElement.className = icon;
-    link.appendChild(iconElement);
-    
-    link.appendChild(document.createTextNode(text));
-    item.appendChild(link);
-    
-    return item;
-}
-
-function getPageName(path) {
-    const pageNames = {
-        'index.html': '首页',
-        'seven.html': '七步速成',
-        'basics': '基础知识',
-        'bazi-process.html': '八字介绍',
-        'bazi-chart.html': '八字排盘',
-        'yen-strength.html': '日元强弱',
-        'elements.html': '天干地支',
-        'wuxing.html': '五行生克',
-        'balance.html': '五行平衡',
-        'ten-gods.html': '十神关系',
-        'combinations.html': '合冲破害',
-        'advanced': '进阶知识',
-        'tomb.html': '四大墓库',
-        'personality.html': '性格分析',
-        'wealth.html': '财运分析',
-        'career.html': '事业分析',
-        'marriage.html': '婚姻分析',
-        'health.html': '健康分析',
-        'luck.html': '大运流年',
-        'disaster.html': '重大灾祸',
-        'tools': '学习工具',
-        'calculator.html': '八字计算器',
-        'reference.html': '速查表',
-        'common.html': '常见格局',
-        'special.html': '特殊格局',
-        'bazi-test.html': '八字试题',
-        'system': '洞察天机',
-        'bazi.html': '机缘命理',
-        'hehun.html': '八字合婚',
-        'liuyao.html': '六爻起卦',
-        'about.html': '关于我们'
-    };
-    
-    // 移除.html后缀
-    const cleanPath = path.replace('.html', '');
-    return pageNames[cleanPath] || cleanPath;
-}
-
-function getPageIcon(path) {
-    const pageIcons = {
-        'index.html': 'fas fa-home',
-        'seven.html': 'fas fa-bolt',
-        'basics': 'fas fa-book-open',
-        'bazi-process.html': 'fas fa-info-circle',
-        'bazi-chart.html': 'fas fa-project-diagram',
-        'yen-strength.html': 'fas fa-balance-scale',
-        'elements.html': 'fas fa-yin-yang',
-        'wuxing.html': 'fas fa-atom',
-        'balance.html': 'fas fa-weight',
-        'ten-gods.html': 'fas fa-people-arrows',
-        'combinations.html': 'fas fa-link',
-        'advanced': 'fas fa-chart-line',
-        'tomb.html': 'fas fa-tombstone-alt',
-        'personality.html': 'fas fa-user',
-        'wealth.html': 'fas fa-money-bill-wave',
-        'career.html': 'fas fa-briefcase',
-        'marriage.html': 'fas fa-heart',
-        'health.html': 'fas fa-heartbeat',
-        'luck.html': 'fas fa-calendar-alt',
-        'disaster.html': 'fas fa-exclamation-triangle',
-        'tools': 'fas fa-tools',
-        'calculator.html': 'fas fa-calculator',
-        'reference.html': 'fas fa-book',
-        'common.html': 'fas fa-th-large',
-        'special.html': 'fas fa-star',
-        'bazi-test.html': 'fas fa-question-circle',
-        'system': 'fas fa-shapes',
-        'bazi.html': 'fas fa-chart-pie',
-        'hehun.html': 'fas fa-rings-wedding',
-        'liuyao.html': 'fas fa-dice',
-        'about.html': 'fas fa-info-circle'
-    };
-    
-    // 移除.html后缀
-    const cleanPath = path.replace('.html', '');
-    return pageIcons[cleanPath] || 'fas fa-circle';
+    // 平滑滚动
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function(e) {
+            e.preventDefault();
+            document.querySelector(this.getAttribute('href')).scrollIntoView({
+                behavior: 'smooth'
+            });
+        });
+    });
 }
