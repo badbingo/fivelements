@@ -202,7 +202,7 @@ function createNavigation() {
                 if (window.location.pathname.endsWith(dropdownItem.href)) {
                     dropdownLink.classList.add('active');
                 }
-                dropdownLink.innerHTML = `<i class="fas fa-circle"></i> ${dropdownItem.text}`; // ❌ 这里会生成圆点
+                dropdownLink.textContent = dropdownItem.text; // ✅ 直接使用纯文本，不添加图标
                 dropdownLi.appendChild(dropdownLink);
                 dropdownMenu.appendChild(dropdownLi);
             });
