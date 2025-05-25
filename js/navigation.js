@@ -195,23 +195,25 @@ function createNavigation() {
             dropdownMenu.className = 'dropdown-menu';
             
             item.dropdown.forEach(dropdownItem => {
-                const li = document.createElement('li');
-                const link = document.createElement('a');
-                link.className = 'dropdown-link';
+                const dropdownLi = document.createElement('li');
+                const dropdownLink = document.createElement('a');
+                dropdownLink.href = dropdownItem.href;
+                dropdownLink.className = 'dropdown-link';
                 
-                // 核心技巧：用span包裹并添加换行控制
+                // 根据文字长度添加类名
+                if (dropdownItem.text.length >= 6) {
+                    dropdownLink.classList.add('long-text');
+                }
+                
+                // 用span包裹文字以便精确控制
                 const textSpan = document.createElement('span');
-                textSpan.style.display = 'inline-block';
-                textSpan.style.whiteSpace = 'nowrap';
+                textSpan.textContent = dropdownItem.text;
+                dropdownLink.appendChild(textSpan);
                 
-                // 将每个字符用零宽空格连接（完美控制竖排）
-                textSpan.textContent = Array.from(dropdownItem.text).join('\u200B');
-                
-                link.appendChild(textSpan);
-                li.appendChild(link);
-                dropdownMenu.appendChild(li);
+                dropdownLi.appendChild(dropdownLink);
+                dropdownMenu.appendChild(dropdownLi);
             });
-            
+                        
             navItem.appendChild(dropdownMenu);
         }
         
