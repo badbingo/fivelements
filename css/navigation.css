@@ -268,6 +268,8 @@
 .dropdown-link {
     writing-mode: vertical-rl;
     text-orientation: upright;
+    white-space: nowrap; /* 禁止换行 */
+    overflow: visible; /* 允许溢出 */
     font-size: 1.1rem;
     font-weight: 500;
     letter-spacing: 3px;
@@ -288,23 +290,33 @@
     line-height: 1.8; /* 更好的行高控制 */
 }
 
-/* 强制去除所有可能的竖线（终极解决方案） */
+/* ===== 强制清除所有可能的竖线 ===== */
+.dropdown-menu,
+.dropdown-menu *,
 .dropdown-menu li,
+.dropdown-menu a,
 .dropdown-link,
 .dropdown-link::before,
 .dropdown-link::after {
     border: none !important;
-    box-shadow: none !important;
     outline: none !important;
+    box-shadow: none !important;
+    background-image: none !important;
+}
+/* 额外防护（针对某些浏览器默认样式） */
+.dropdown-menu li + li {
+    border-left: none !important;
 }
 
 /* 6个字的特殊处理 */
 .dropdown-link.long-text {
-    min-height: 140px;
-    max-height: 160px;
-    font-size: 1rem; /* 稍小字号 */
-    letter-spacing: 2px; /* 稍紧字距 */
-    padding: 8px 4px; /* 更紧凑的padding */
+    letter-spacing: 1px; /* 缩小字距 */
+    padding: 0 4px; /* 减少左右间距 */
+    font-size: 0.95rem; /* 略小字号 */
+    height: 150px; /* 固定高度 */
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start; /* 顶部对齐 */
 }
 
 /* 去除圆点图标 */
@@ -315,7 +327,8 @@
 /* 确保文字完整显示 */
 .dropdown-link span {
     display: inline-block;
-    transform: translateY(-2px); /* 微调垂直位置 */
+    transform: translateY(5px); /* 微调位置 */
+    line-height: 1.2; /* 紧凑行高 */
 }
 
 /* 悬停效果 */
