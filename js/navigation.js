@@ -55,7 +55,7 @@ if (item.dropdown) {
     
     createDropdownMenu(item.dropdown, navItem);
 }
-// 创建导航栏
+// 创建导航栏（完整修复版 - 使用绝对路径）
 function createNavigation() {
     const header = document.createElement('header');
     header.className = 'main-header';
@@ -63,12 +63,12 @@ function createNavigation() {
     const container = document.createElement('div');
     container.className = 'header-container';
     
-    // 添加logo
+    // 1. 添加logo
     const logoContainer = document.createElement('div');
     logoContainer.className = 'logo-container';
     
     const logoLink = document.createElement('a');
-    logoLink.href = 'index.html';
+    logoLink.href = '/'; // 根目录首页
     logoLink.className = 'logo-link';
     
     const logoText = document.createElement('div');
@@ -82,14 +82,14 @@ function createNavigation() {
     logoContainer.appendChild(logoLink);
     container.appendChild(logoContainer);
     
-    // 添加导航菜单
+    // 2. 添加导航菜单
     const mainNav = document.createElement('nav');
     mainNav.className = 'main-nav';
     
     const navList = document.createElement('ul');
     navList.className = 'nav-list';
     
-    // 导航菜单项数据
+    // 导航菜单项数据（全部使用绝对路径）
     const navItems = [
         {
             text: '七步速成',
@@ -103,14 +103,14 @@ function createNavigation() {
             href: '#',
             wuxing: 'wood',
             dropdown: [
-                { text: '八字介绍', href: 'basics/bazi-process.html' },
-                { text: '八字排盘', href: 'basics/bazi-chart.html' },
-                { text: '日元强弱分析', href: 'basics/yen-strength.html' },
-                { text: '天干地支意象', href: 'basics/elements.html' },
-                { text: '五行生克', href: 'basics/wuxing.html' },
-                { text: '五行平衡', href: 'basics/balance.html' },
-                { text: '十神关系', href: 'basics/ten-gods.html' },
-                { text: '合冲破害', href: 'basics/combinations.html' }
+                { text: '八字介绍', href: '/basics/bazi-process.html' },
+                { text: '八字排盘', href: '/basics/bazi-chart.html' },
+                { text: '日元强弱分析', href: '/basics/yen-strength.html' },
+                { text: '天干地支意象', href: '/basics/elements.html' },
+                { text: '五行生克', href: '/basics/wuxing.html' },
+                { text: '五行平衡', href: '/basics/balance.html' },
+                { text: '十神关系', href: '/basics/ten-gods.html' },
+                { text: '合冲破害', href: '/basics/combinations.html' }
             ]
         },
         {
@@ -119,14 +119,14 @@ function createNavigation() {
             href: '#',
             wuxing: 'metal',
             dropdown: [
-                { text: '四大墓库', href: 'advanced/tomb.html' },
-                { text: '性格分析', href: 'advanced/personality.html' },
-                { text: '财运分析', href: 'advanced/wealth.html' },
-                { text: '事业分析', href: 'advanced/career.html' },
-                { text: '婚姻分析', href: 'advanced/marriage.html' },
-                { text: '健康分析', href: 'advanced/health.html' },
-                { text: '大运流年', href: 'advanced/luck.html' },
-                { text: '重大灾祸', href: 'advanced/disaster.html' }
+                { text: '四大墓库', href: '/advanced/tomb.html' },
+                { text: '性格分析', href: '/advanced/personality.html' },
+                { text: '财运分析', href: '/advanced/wealth.html' },
+                { text: '事业分析', href: '/advanced/career.html' },
+                { text: '婚姻分析', href: '/advanced/marriage.html' },
+                { text: '健康分析', href: '/advanced/health.html' },
+                { text: '大运流年', href: '/advanced/luck.html' },
+                { text: '重大灾祸', href: '/advanced/disaster.html' }
             ]
         },
         {
@@ -135,11 +135,11 @@ function createNavigation() {
             href: '#',
             wuxing: 'earth',
             dropdown: [
-                { text: '八字计算器', href: 'tools/calculator.html' },
-                { text: '速查表', href: 'tools/reference.html' },
-                { text: '常见格局', href: 'tools/common.html' },
-                { text: '特殊格局', href: 'tools/special.html' },
-                { text: '八字试题', href: 'tools/bazi-test.html' }
+                { text: '八字计算器', href: '/tools/calculator.html' },
+                { text: '速查表', href: '/tools/reference.html' },
+                { text: '常见格局', href: '/tools/common.html' },
+                { text: '特殊格局', href: '/tools/special.html' },
+                { text: '八字试题', href: '/tools/bazi-test.html' }
             ]
         },
         {
@@ -148,9 +148,9 @@ function createNavigation() {
             href: '#',
             wuxing: 'water',
             dropdown: [
-                { text: '机缘命理系统', href: 'system/bazi.html' },
-                { text: '八字合婚系统', href: 'system/hehun.html' },
-                { text: '六爻起卦', href: 'system/liuyao.html' }
+                { text: '八字排盘系统', href: '/system/bazi.html' },
+                { text: '八字合婚系统', href: '/system/hehun.html' },
+                { text: '六爻起卦', href: '/system/liuyao.html' }
             ]
         },
         {
@@ -161,7 +161,7 @@ function createNavigation() {
         }
     ];
     
-    // 生成导航菜单
+    // 3. 生成导航菜单
     navItems.forEach(item => {
         const navItem = document.createElement('li');
         navItem.className = 'nav-item';
@@ -174,9 +174,14 @@ function createNavigation() {
         const navLink = document.createElement('a');
         navLink.href = item.href;
         navLink.className = 'nav-link';
-        if (window.location.pathname.endsWith(item.href)) {
+        
+        // 设置当前活动菜单项
+        const currentPath = window.location.pathname;
+        if (currentPath === item.href || 
+            (item.dropdown && item.dropdown.some(sub => currentPath === sub.href))) {
             navLink.classList.add('active');
         }
+        
         navLink.innerHTML = `
             <i class="fas ${item.icon}"></i>
             <span class="nav-text">${item.text}</span>
@@ -185,7 +190,7 @@ function createNavigation() {
         
         navItem.appendChild(navLink);
         
-        // 添加下拉菜单
+        // 4. 添加下拉菜单
         if (item.dropdown) {
             const dropdownIcon = document.createElement('i');
             dropdownIcon.className = 'fas fa-chevron-down dropdown-icon';
@@ -197,8 +202,14 @@ function createNavigation() {
             item.dropdown.forEach(dropdownItem => {
                 const dropdownLi = document.createElement('li');
                 const dropdownLink = document.createElement('a');
-                dropdownLink.href = dropdownItem.href;
+                dropdownLink.href = dropdownItem.href; // 直接使用绝对路径
                 dropdownLink.className = 'dropdown-link';
+                
+                // 设置当前活动子菜单项
+                if (window.location.pathname === dropdownItem.href) {
+                    dropdownLink.classList.add('active');
+                    navLink.classList.add('active'); // 同时激活父菜单
+                }
                 
                 // 根据文字长度添加类名
                 if (dropdownItem.text.length >= 6) {
@@ -213,14 +224,14 @@ function createNavigation() {
                 dropdownLi.appendChild(dropdownLink);
                 dropdownMenu.appendChild(dropdownLi);
             });
-                        
+            
             navItem.appendChild(dropdownMenu);
         }
         
         navList.appendChild(navItem);
     });
     
-    // 移动端菜单按钮
+    // 5. 移动端菜单按钮
     const mobileMenuBtn = document.createElement('div');
     mobileMenuBtn.className = 'mobile-menu-btn';
     mobileMenuBtn.innerHTML = `
@@ -234,8 +245,11 @@ function createNavigation() {
     container.appendChild(mainNav);
     header.appendChild(container);
     
-    // 添加到页面顶部
+    // 6. 添加到页面顶部
     document.body.insertBefore(header, document.body.firstChild);
+    
+    // 7. 初始化移动端菜单交互
+    setupMobileMenu();
 }
 
 // 修改后的面包屑导航函数
