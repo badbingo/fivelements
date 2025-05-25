@@ -195,24 +195,28 @@ function createNavigation() {
             dropdownMenu.className = 'dropdown-menu';
             
             item.dropdown.forEach(dropdownItem => {
-            const dropdownLi = document.createElement('li');
-            dropdownLi.style.border = 'none'; // 强制去除li的边框
-            
-            const dropdownLink = document.createElement('a');
-            dropdownLink.href = dropdownItem.href;
-            dropdownLink.className = 'dropdown-link';
-            dropdownLink.style.border = 'none'; // 强制去除a标签边框
-            
-            // 添加文字容器（更精准控制对齐）
-            const textSpan = document.createElement('span');
-            textSpan.textContent = dropdownItem.text;
-            textSpan.style.display = 'inline-block';
-            textSpan.style.marginTop = '-3px'; // 微调顶部对齐
-            
-            dropdownLink.appendChild(textSpan);
-            dropdownLi.appendChild(dropdownLink);
-            dropdownMenu.appendChild(dropdownLi);
-        });
+                const li = document.createElement('li');
+                li.style.border = 'none'; // 强制清除边框
+                
+                const link = document.createElement('a');
+                link.className = 'dropdown-link';
+                link.style.border = 'none'; // 双重保险
+                
+                // 文字容器（解决折行核心）
+                const textSpan = document.createElement('span');
+                textSpan.textContent = dropdownItem.text.replace(/(.)/g, '$1 '); // 每个字加空格
+                textSpan.style.whiteSpace = 'nowrap';
+                
+                // 自动添加长文本类
+                if (dropdownItem.text.length >= 6) {
+                    link.classList.add('long-text');
+                    textSpan.style.letterSpacing = '1px';
+                }
+                
+                link.appendChild(textSpan);
+                li.appendChild(link);
+                dropdownMenu.appendChild(li);
+            });
             
             navItem.appendChild(dropdownMenu);
         }
