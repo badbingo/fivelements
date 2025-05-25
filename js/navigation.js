@@ -157,7 +157,7 @@ function createNavigation() {
             text: '关于我们',
             icon: 'fa-info-circle',
             href: '/about.html',
-            wuxing: 'golden'
+            wuxing: 'water'
         }
     ];
     
