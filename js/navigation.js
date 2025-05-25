@@ -196,22 +196,16 @@ function createNavigation() {
             
             item.dropdown.forEach(dropdownItem => {
                 const li = document.createElement('li');
-                li.style.border = 'none'; // 强制清除边框
-                
                 const link = document.createElement('a');
                 link.className = 'dropdown-link';
-                link.style.border = 'none'; // 双重保险
                 
-                // 文字容器（解决折行核心）
+                // 核心技巧：用span包裹并添加换行控制
                 const textSpan = document.createElement('span');
-                textSpan.textContent = dropdownItem.text.replace(/(.)/g, '$1 '); // 每个字加空格
+                textSpan.style.display = 'inline-block';
                 textSpan.style.whiteSpace = 'nowrap';
                 
-                // 自动添加长文本类
-                if (dropdownItem.text.length >= 6) {
-                    link.classList.add('long-text');
-                    textSpan.style.letterSpacing = '1px';
-                }
+                // 将每个字符用零宽空格连接（完美控制竖排）
+                textSpan.textContent = Array.from(dropdownItem.text).join('\u200B');
                 
                 link.appendChild(textSpan);
                 li.appendChild(link);
