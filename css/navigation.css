@@ -229,8 +229,9 @@
     top: 100%;
     left: 50%;
     transform: translateX(-50%) translateY(10px);
-    background: var(--nav-dropdown-bg);
-    backdrop-filter: blur(10px);
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(8px);
+    border: none !important; /* 强制去除边框 */
     border-radius: 8px;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
     opacity: 0;
@@ -248,6 +249,7 @@
 /* 为特定菜单调整 */
 .nav-item:nth-child(4) .dropdown-menu, /* 学习工具 */
 .nav-item:nth-child(5) .dropdown-menu { /* 洞察天机 */
+    align-items: flex-start !important;
     width: auto;
     left: 0;
     transform: translateX(0) translateY(10px);
@@ -275,23 +277,25 @@
     max-height: 140px; /* 最大高度 */
     min-width: 36px;
     display: flex;
-    justify-content: center;
+    justify-content: flex-start; /* 强制顶部对齐 */
     align-items: center;
     color: var(--nav-text-color);
     background: rgba(0, 0, 0, 0.3); /* 子项背景透明度 */
+    border: none !important; /* 强制去除边框 */
     border-radius: 4px;
     transition: all 0.2s ease;
     margin: 0;
     line-height: 1.8; /* 更好的行高控制 */
 }
 
-/* 强制去除所有可能的竖线 */
-.dropdown-link:before,
-.dropdown-link:after,
-.dropdown-menu li:before,
-.dropdown-menu li:after {
-    display: none !important;
-    content: none !important;
+/* 强制去除所有可能的竖线（终极解决方案） */
+.dropdown-menu li,
+.dropdown-link,
+.dropdown-link::before,
+.dropdown-link::after {
+    border: none !important;
+    box-shadow: none !important;
+    outline: none !important;
 }
 
 /* 6个字的特殊处理 */
