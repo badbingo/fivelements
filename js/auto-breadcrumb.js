@@ -1,53 +1,88 @@
 /**
- * 智能面包屑导航生成脚本 - 完整版
- * 功能：
- * 1. 自动识别URL生成导航
- * 2. 特定目录不可点击（基础知识/进阶知识/学习工具/命理系统）
- * 3. 中英文路径智能转换
- * 4. 自动适配移动端
- * 5. SEO友好结构
+ * 完整版自动面包屑导航 - 含全站中英文路径映射
+ * 最后更新：2023年12月
  */
-
 document.addEventListener('DOMContentLoaded', function() {
-    // ====================== 配置区域 ======================
+    // ====================== 完整路径配置 ======================
     const CONFIG = {
-        // 基础配置
         home: {
             icon: '<i class="fas fa-home"></i>',
             text: '首页',
             url: '/'
         },
-        
-        // 路径分隔符
         separator: '<span class="separator">/</span>',
-        
-        // 不可点击的目录（优先判断）
         nonClickableDirs: ['basics', 'advanced', 'tools', 'system'],
         
-        // 特殊路径映射（包含是否可点击的设置）
+        // 完整路径映射表（包含所有子目录）
         pathMap: {
-            // 不可点击目录
-            'basics':   { name: '基础知识', clickable: false, icon: '<i class="fas fa-book-open"></i>' },
-            'advanced': { name: '进阶知识', clickable: false, icon: '<i class="fas fa-chart-line"></i>' },
-            'tools':    { name: '学习工具', clickable: false, icon: '<i class="fas fa-tools"></i>' },
-            'system':   { name: '命理系统', clickable: false, icon: '<i class="fas fa-shapes"></i>' },
+            /* ========== 不可点击的父目录 ========== */
+            'basics': {
+                name: '基础知识',
+                clickable: false,
+                icon: '<i class="fas fa-book-open"></i>'
+            },
+            'advanced': {
+                name: '进阶知识',
+                clickable: false,
+                icon: '<i class="fas fa-chart-line"></i>'
+            },
+            'tools': {
+                name: '学习工具',
+                clickable: false,
+                icon: '<i class="fas fa-tools"></i>'
+            },
+            'system': {
+                name: '命理系统',
+                clickable: false,
+                icon: '<i class="fas fa-shapes"></i>'
+            },
             
-            // 可点击页面
-            'seven.html': { name: '七步速成', clickable: true },
-            'bazi-process.html': { name: '八字入门', clickable: true },
-            'calculator.html': { name: '计算工具', clickable: true }
+            /* ========== 基础知识子页面 ========== */
+            'bazi-process.html': { name: '八字介绍' },
+            'bazi-chart.html': { name: '排盘方法' },
+            'yen-strength.html': { name: '日元强弱' },
+            'elements.html': { name: '天干地支' },
+            'wuxing.html': { name: '五行生克' },
+            'balance.html': { name: '五行平衡' },
+            'ten-gods.html': { name: '十神关系' },
+            'combinations.html': { name: '合冲破害' },
+            
+            /* ========== 进阶知识子页面 ========== */
+            'tomb.html': { name: '四大墓库' },
+            'personality.html': { name: '性格分析' },
+            'wealth.html': { name: '财运分析' },
+            'career.html': { name: '事业分析' },
+            'marriage.html': { name: '婚姻分析' },
+            'health.html': { name: '健康分析' },
+            'luck.html': { name: '大运流年' },
+            'disaster.html': { name: '重大灾祸' },
+            
+            /* ========== 学习工具子页面 ========== */
+            'calculator.html': { name: '八字计算器' },
+            'reference.html': { name: '速查表' },
+            'common.html': { name: '常见格局' },
+            'special.html': { name: '特殊格局' },
+            'bazi-test.html': { name: '八字试题' },
+            
+            /* ========== 命理系统子页面 ========== */
+            'bazi.html': { name: '机缘命理' },
+            'hehun.html': { name: '八字合婚' },
+            'liuyao.html': { name: '六爻起卦' },
+            
+            /* ========== 其他独立页面 ========== */
+            'seven.html': { name: '七步速成' },
+            'about.html': { name: '关于我们' },
+            'contact.html': { name: '联系我们' }
         },
         
         // 智能术语转换（用于未配置的路径）
         termMap: {
             'bazi': '八字', 'wuxing': '五行', 'shensha': '神煞',
-            'dasha': '大运', 'liunian': '流年', 'hehun': '合婚'
+            'dasha': '大运', 'liunian': '流年', 'hehun': '合婚',
+            'liuyao': '六爻', 'ganzhi': '干支', 'nayin': '纳音',
+            'kongwang': '空亡', 'xun': '旬', 'qimen': '奇门'
         },
         
-        // 排除路径（不生成面包屑）
-        excludePaths: ['api', 'admin', 'assets'],
-        
-        // 样式类名
         classes: {
             container: 'auto-breadcrumb',
             home: 'breadcrumb-home',
@@ -57,7 +92,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 
-    // ====================== 核心函数 ======================
+    // ====================== 核心函数（保持不变） ======================
     function generateBreadcrumb() {
         const path = window.location.pathname;
         if (shouldExclude(path)) return;
@@ -72,9 +107,8 @@ document.addEventListener('DOMContentLoaded', function() {
         addSchemaMarkup(segments);
     }
 
-    // ====================== 工具函数 ======================
     function shouldExclude(path) {
-        return CONFIG.excludePaths.some(exclude => path.includes(exclude));
+        return ['api', 'admin', 'assets'].some(exclude => path.includes(exclude));
     }
 
     function getPathSegments(path) {
@@ -136,7 +170,6 @@ document.addEventListener('DOMContentLoaded', function() {
             };
         }
         
-        // 智能转换未配置的路径
         return {
             name: convertTechnicalTerms(cleanSegment),
             icon: '',
@@ -178,19 +211,15 @@ document.addEventListener('DOMContentLoaded', function() {
         let accumulatedPath = '';
         
         return [
-            // 首页项
             {
                 "@type": "ListItem",
                 "position": position++,
                 "name": CONFIG.home.text,
                 "item": `${window.location.origin}${CONFIG.home.url}`
             },
-            
-            // 路径项
             ...segments.map(segment => {
                 accumulatedPath += `/${segment}`;
                 const { name } = getSegmentInfo(segment);
-                
                 return {
                     "@type": "ListItem",
                     "position": position++,
@@ -201,6 +230,6 @@ document.addEventListener('DOMContentLoaded', function() {
         ];
     }
 
-    // ====================== 初始化 ======================
+    // 初始化
     generateBreadcrumb();
 });
