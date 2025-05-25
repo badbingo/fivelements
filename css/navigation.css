@@ -255,23 +255,37 @@
 }
 
 .dropdown-link {
-    color: var(--nav-text-color);
-    padding: 12px 20px;
-    display: block;
-    font-size: 0.85rem;
-    transition: var(--nav-transition);
-    position: relative;
-    overflow: hidden;
+    writing-mode: vertical-rl; /* 从右到左竖排 */
+    writing-mode: tb-rl; /* 兼容老版本浏览器 */
+    text-orientation: upright; /* 保持文字正立 */
+    letter-spacing: 5px; /* 调整字间距 */
+    padding: 15px 8px; /* 调整内边距 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 120px; /* 设置固定高度 */
 }
-/* 移动端保持纵向排列 */
+
+/* 调整图标位置 */
+.dropdown-link i {
+    margin-right: 0;
+    margin-bottom: 8px;
+    display: block;
+}
+
+/* 移动端保持横排 */
 @media (max-width: 992px) {
-    .dropdown-menu {
-        flex-direction: column; /* 移动端保持纵向 */
-        width: 100%;
+    .dropdown-link {
+        writing-mode: horizontal-tb;
+        height: auto;
+        padding: 12px 20px;
+        letter-spacing: normal;
     }
     
-    .dropdown-menu li {
-        display: block;
+    .dropdown-link i {
+        margin-right: 10px;
+        margin-bottom: 0;
+        display: inline-block;
     }
 }
 
