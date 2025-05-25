@@ -12,7 +12,46 @@ document.addEventListener('DOMContentLoaded', function() {
     // 滚动效果
     setupScrollEffects();
 });
+// 更新下拉菜单生成逻辑
+function createDropdownMenu(items, parentElement) {
+    const dropdownMenu = document.createElement('ul');
+    dropdownMenu.className = 'dropdown-menu';
+    
+    items.forEach(item => {
+        const dropdownLi = document.createElement('li');
+        const dropdownLink = document.createElement('a');
+        dropdownLink.href = item.href;
+        dropdownLink.className = 'dropdown-link';
+        
+        if (window.location.pathname.endsWith(item.href)) {
+            dropdownLink.classList.add('active');
+        }
+        
+        // 添加图标和文字
+        const icon = document.createElement('i');
+        icon.className = 'fas fa-circle';
+        
+        const text = document.createElement('span');
+        text.textContent = item.text;
+        
+        dropdownLink.appendChild(icon);
+        dropdownLink.appendChild(text);
+        dropdownLi.appendChild(dropdownLink);
+        dropdownMenu.appendChild(dropdownLi);
+    });
+    
+    parentElement.appendChild(dropdownMenu);
+    return dropdownMenu;
+}
 
+// 在导航项创建时调用
+if (item.dropdown) {
+    const dropdownIcon = document.createElement('i');
+    dropdownIcon.className = 'fas fa-chevron-down dropdown-icon';
+    navLink.appendChild(dropdownIcon);
+    
+    createDropdownMenu(item.dropdown, navItem);
+}
 // 创建导航栏
 function createNavigation() {
     const header = document.createElement('header');
@@ -171,63 +210,7 @@ function createNavigation() {
         
         navList.appendChild(navItem);
     });
-    // 更新下拉菜单生成逻辑
-function createDropdownMenu(items, parentElement) {
-    const dropdownMenu = document.createElement('ul');
-    dropdownMenu.className = 'dropdown-menu';
-    
-    items.forEach(item => {
-        const dropdownLi = document.createElement('li');
-        const dropdownLink = document.createElement('a');
-        dropdownLink.href = item.href;
-        dropdownLink.className = 'dropdown-link';
-        
-        if (window.location.pathname.endsWith(item.href)) {
-            dropdownLink.classList.add('active');
-        }
-        
-        // 添加图标和文字
-        const icon = document.createElement('i');
-        icon.className = 'fas fa-circle';
-        
-        const text = document.createElement('span');
-        text.textContent = item.text;
-        
-        dropdownLink.appendChild(icon);
-        dropdownLink.appendChild(text);
-        dropdownLi.appendChild(dropdownLink);
-        dropdownMenu.appendChild(dropdownLi);
-    });
-    
-    parentElement.appendChild(dropdownMenu);
-    return dropdownMenu;
-}
 
-// 在导航项创建时调用
-if (item.dropdown) {
-    const dropdownIcon = document.createElement('i');
-    dropdownIcon.className = 'fas fa-chevron-down dropdown-icon';
-    navLink.appendChild(dropdownIcon);
-    
-    createDropdownMenu(item.dropdown, navItem);
-}
-    // 移动端菜单按钮
-    const mobileMenuBtn = document.createElement('div');
-    mobileMenuBtn.className = 'mobile-menu-btn';
-    mobileMenuBtn.innerHTML = `
-        <span class="bar"></span>
-        <span class="bar"></span>
-        <span class="bar"></span>
-    `;
-    
-    mainNav.appendChild(navList);
-    container.appendChild(mobileMenuBtn);
-    container.appendChild(mainNav);
-    header.appendChild(container);
-    
-    // 添加到页面顶部
-    document.body.insertBefore(header, document.body.firstChild);
-}
 
 // 更新面包屑导航中文映射
 const pathNameMap = {
