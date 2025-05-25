@@ -125,14 +125,7 @@
 }
 
 .nav-underline {
-    position: absolute;
-    bottom: 15px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 0;
-    height: 2px;
-    background: currentColor;
-    transition: var(--nav-transition);
+    display: none;
 }
 
 .nav-link i {
@@ -140,12 +133,64 @@
     transition: var(--nav-transition);
 }
 
+/* 新的悬停效果 - 背景光晕 */
+.nav-link::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: radial-gradient(circle, currentColor 0%, transparent 70%);
+    transform: translate(-50%, -50%);
+    opacity: 0;
+    transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+    z-index: -1;
+}
+
+.nav-item:hover .nav-link::before {
+    width: 150px;
+    height: 150px;
+    opacity: 0.2;
+}
+
+/* 文字放大效果 */
+.nav-text {
+    transition: transform 0.3s ease, text-shadow 0.3s ease;
+}
+
+.nav-item:hover .nav-text {
+    transform: scale(1.15);
+    text-shadow: 0 0 8px currentColor;
+}
+
+/* 图标旋转效果 */
+.nav-link i {
+    transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.nav-item:hover .nav-link i {
+    transform: rotate(15deg) scale(1.2);
+}
+
+/* 面包屑导航中文样式 */
+.breadcrumb-item a {
+    font-family: 'Noto Serif SC', serif;
+}
 /* 五行对应的导航项颜色 */
 .nav-item[data-wuxing="wood"] .nav-link { color: #a5d6a7; }
 .nav-item[data-wuxing="fire"] .nav-link { color: #ef9a9a; }
 .nav-item[data-wuxing="earth"] .nav-link { color: #d7ccc8; }
 .nav-item[data-wuxing="metal"] .nav-link { color: #90caf9; }
 .nav-item[data-wuxing="water"] .nav-link { color: #80deea; }
+
+/* 更新五行颜色效果 */
+.nav-item[data-wuxing="wood"] .nav-link:hover { color: #8bc34a; }
+.nav-item[data-wuxing="fire"] .nav-link:hover { color: #ff5252; }
+.nav-item[data-wuxing="earth"] .nav-link:hover { color: #d4b483; }
+.nav-item[data-wuxing="metal"] .nav-link:hover { color: #42a5f5; }
+.nav-item[data-wuxing="water"] .nav-link:hover { color: #29b6f6; }
+.nav-item.golden .nav-link:hover { color: #ffd700; }
 
 /* 金色特殊项 */
 .nav-item.golden .nav-link { color: #FFD700; }
