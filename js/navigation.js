@@ -195,24 +195,24 @@ function createNavigation() {
             dropdownMenu.className = 'dropdown-menu';
             
             item.dropdown.forEach(dropdownItem => {
-                const dropdownLi = document.createElement('li');
-                const dropdownLink = document.createElement('a');
-                dropdownLink.href = dropdownItem.href;
-                dropdownLink.className = 'dropdown-link';
-                
-                // 根据文字长度添加类名
-                if (dropdownItem.text.length >= 6) {
-                    dropdownLink.classList.add('long-text');
-                }
-                
-                // 用span包裹文字以便精确控制
-                const textSpan = document.createElement('span');
-                textSpan.textContent = dropdownItem.text;
-                dropdownLink.appendChild(textSpan);
-                
-                dropdownLi.appendChild(dropdownLink);
-                dropdownMenu.appendChild(dropdownLi);
-            });
+            const dropdownLi = document.createElement('li');
+            dropdownLi.style.border = 'none'; // 强制去除li的边框
+            
+            const dropdownLink = document.createElement('a');
+            dropdownLink.href = dropdownItem.href;
+            dropdownLink.className = 'dropdown-link';
+            dropdownLink.style.border = 'none'; // 强制去除a标签边框
+            
+            // 添加文字容器（更精准控制对齐）
+            const textSpan = document.createElement('span');
+            textSpan.textContent = dropdownItem.text;
+            textSpan.style.display = 'inline-block';
+            textSpan.style.marginTop = '-3px'; // 微调顶部对齐
+            
+            dropdownLink.appendChild(textSpan);
+            dropdownLi.appendChild(dropdownLink);
+            dropdownMenu.appendChild(dropdownLi);
+        });
             
             navItem.appendChild(dropdownMenu);
         }
