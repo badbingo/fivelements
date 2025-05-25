@@ -202,8 +202,7 @@ function createNavigation() {
                 if (window.location.pathname.endsWith(dropdownItem.href)) {
                     dropdownLink.classList.add('active');
                 }
-                dropdownLink.innerHTML = `<i class="fas fa-circle"></i> ${dropdownItem.text}`;
-                
+                dropdownLink.innerHTML = `<i class="fas fa-circle"></i> ${dropdownItem.text}`; // ❌ 这里会生成圆点
                 dropdownLi.appendChild(dropdownLink);
                 dropdownMenu.appendChild(dropdownLi);
             });
