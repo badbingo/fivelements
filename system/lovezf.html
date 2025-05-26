@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>天机姻缘配对阵法</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&display=swap');
+        
+        :root {
+            --primary-color: #e83e8c;
+            --secondary-color: #6f42c1;
+            --text-color: #f8f9fa;
+            --bg-color: #121212;
+            --alt-bg-color: #1e1e1e;
+            --glow-color: rgba(232, 62, 140, 0.6);
+            --taoist-gold: #FFD700;
+            --taoist-red: #E53935;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Noto Serif SC', serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(111, 66, 193, 0.1) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(232, 62, 140, 0.1) 0%, transparent 20%);
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+        
+        h1 {
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            text-shadow: 0 0 10px var(--glow-color);
+            margin-bottom: 0.5rem;
+            letter-spacing: 2px;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            color: var(--secondary-color);
+            margin-bottom: 1rem;
+        }
+        
+        .divider {
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
+            margin: 1.5rem 0;
+            position: relative;
+        }
+        
+        .divider::before, .divider::after {
+            content: "✧";
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--primary-color);
+        }
+        
+        .divider::before {
+            left: 0;
+        }
+        
+        .divider::after {
+            right: 0;
+        }
+        
+        .form-section {
+            background-color: var(--alt-bg-color);
+            border-radius: 10px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(111, 66, 193, 0.3);
+        }
+        
+        h2 {
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+            text-align: center;
+            font-size: 1.8rem;
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1.2rem;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--secondary-color);
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 0.8rem;
+            background-color: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--secondary-color);
+            border-radius: 5px;
+            color: var(--text-color);
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 10px var(--glow-color);
+        }
+        
+        .btn {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 0.8rem 2rem;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(111, 66, 193, 0.4);
+            margin-top: 1rem;
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 7px 20px rgba(111, 66, 193, 0.6);
+        }
+        
+        .btn:active {
+            transform: translateY(1px);
+        }
+        
+        .btn-center {
+            display: block;
+            margin: 2rem auto 0;
+            text-align: center;
+        }
+        
+        .instructions {
+            background-color: rgba(30, 30, 30, 0.7);
+            border-left: 4px solid var(--primary-color);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border-radius: 0 5px 5px 0;
+        }
+        
+        .instructions h3 {
+            color: var(--secondary-color);
+            margin-bottom: 1rem;
+        }
+        
+        .instructions ol {
+            padding-left: 1.5rem;
+        }
+        
+        .instructions li {
+            margin-bottom: 0.8rem;
+            line-height: 1.6;
+        }
+        
+        /* 阵法显示区域 */
+        .ritual-area {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            z-index: 100;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+        
+        .ritual-container {
+            position: relative;
+            width: 80%;
+            max-width: 600px;
+        }
+        
+        .ritual-circle {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            margin: 0 auto;
+            border-radius: 50%;
+            background: radial-gradient(circle, transparent 40%, var(--alt-bg-color) 70%);
+            border: 2px solid var(--taoist-gold);
+            box-shadow: 0 0 30px var(--glow-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            animation: pulse 5s infinite alternate;
+        }
+        
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 30px var(--glow-color);
+            }
+            100% {
+                box-shadow: 0 0 60px var(--taoist-red);
+            }
+        }
+        
+        .ritual-symbol {
+            position: absolute;
+            font-size: 2rem;
+            color: var(--taoist-gold);
+            animation: float 3s infinite ease-in-out;
+            text-shadow: 0 0 5px var(--taoist-red);
+        }
+        
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0) rotate(0deg);
+            }
+            50% {
+                transform: translateY(-20px) rotate(10deg);
+            }
+        }
+        
+        .taoist-bagua {
+            position: absolute;
+            width: 80%;
+            height: 80%;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="none" stroke="%23FFD700" stroke-width="1"/><path d="M50,5 A45,45 0 0,1 95,50 A45,45 0 0,1 50,95 A45,45 0 0,1 5,50 A45,45 0 0,1 50,5 Z" fill="none" stroke="%23FFD700" stroke-width="1"/><circle cx="50" cy="20" r="5" fill="%23E53935"/><circle cx="80" cy="35" r="5" fill="%23E53935"/><circle cx="80" cy="65" r="5" fill="%23FFD700"/><circle cx="50" cy="80" r="5" fill="%23FFD700"/><circle cx="20" cy="65" r="5" fill="%23E53935"/><circle cx="20" cy="35" r="5" fill="%23FFD700"/></svg>');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            opacity: 0.8;
+            animation: rotate 60s linear infinite;
+        }
+        
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .names-display {
+            margin-top: 2rem;
+            font-size: 1.5rem;
+            color: var(--taoist-gold);
+            text-shadow: 0 0 10px var(--taoist-red);
+        }
+        
+        .incense-stick {
+            position: absolute;
+            bottom: 50px;
+            width: 8px;
+            height: 120px;
+            background: linear-gradient(to bottom, #8B4513, #A0522D);
+            border-radius: 4px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        .incense-smoke {
+            position: absolute;
+            bottom: 170px;
+            left: 50%;
+            width: 4px;
+            height: 0;
+            background: linear-gradient(to top, rgba(255, 255, 255, 0.8), transparent);
+            transform-origin: bottom center;
+            animation: smoke 3s linear forwards;
+            opacity: 0;
+        }
+        
+        @keyframes smoke {
+            0% {
+                height: 0;
+                opacity: 0;
+                transform: translateX(-50%) scale(0.5);
+            }
+            20% {
+                opacity: 0.8;
+            }
+            100% {
+                height: 200px;
+                opacity: 0;
+                transform: translateX(-50%) scale(2);
+                filter: blur(5px);
+            }
+        }
+        
+        .countdown {
+            font-size: 2rem;
+            margin-top: 2rem;
+            color: var(--taoist-gold);
+            font-family: monospace;
+        }
+        
+        .progress-container {
+            width: 80%;
+            max-width: 400px;
+            height: 20px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            margin: 1rem auto;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            width: 0;
+            background: linear-gradient(90deg, var(--secondary-color), var(--primary-color));
+            border-radius: 10px;
+            transition: width 1s linear;
+        }
+        
+        .ritual-message {
+            margin-top: 1rem;
+            font-size: 1.2rem;
+            color: var(--text-color);
+            opacity: 0;
+            animation: fadeIn 1s forwards 1s;
+        }
+        
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+            }
+        }
+        
+        .result-section {
+            display: none;
+            text-align: center;
+            margin-top: 2rem;
+            animation: fadeIn 1s forwards;
+        }
+        
+        .result-percentage {
+            font-size: 4rem;
+            color: var(--taoist-gold);
+            text-shadow: 0 0 20px var(--taoist-red);
+            margin: 1rem 0;
+            font-weight: bold;
+            animation: pulse 2s infinite;
+        }
+        
+        .result-message {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .floating-particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        .particle {
+            position: absolute;
+            background-color: var(--primary-color);
+            border-radius: 50%;
+            opacity: 0.6;
+            animation: float-particle linear infinite;
+        }
+        
+        @keyframes float-particle {
+            0% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.6;
+            }
+            100% {
+                transform: translateY(-100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+        
+        /* 全屏阵法启动特效 */
+        .fullscreen-effect {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, rgba(232, 62, 140, 0.2) 0%, rgba(0, 0, 0, 0.9) 70%);
+            z-index: 200;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .energy-circle {
+            position: absolute;
+            border-radius: 50%;
+            border: 2px solid var(--taoist-gold);
+            box-shadow: 0 0 30px var(--taoist-red);
+            animation: expand 3s ease-out forwards;
+            opacity: 0;
+        }
+        
+        @keyframes expand {
+            0% {
+                width: 10px;
+                height: 10px;
+                opacity: 0;
+            }
+            20% {
+                opacity: 0.8;
+            }
+            100% {
+                width: 150vw;
+                height: 150vw;
+                opacity: 0;
+            }
+        }
+        
+        .taoist-symbols {
+            position: absolute;
+            font-size: 3rem;
+            color: var(--taoist-gold);
+            text-shadow: 0 0 10px var(--taoist-red);
+            animation: float-symbols 5s infinite ease-in-out;
+        }
+        
+        @keyframes float-symbols {
+            0%, 100% {
+                transform: translate(0, 0) rotate(0deg);
+            }
+            25% {
+                transform: translate(50px, -30px) rotate(10deg);
+            }
+            50% {
+                transform: translate(0, -60px) rotate(0deg);
+            }
+            75% {
+                transform: translate(-50px, -30px) rotate(-10deg);
+            }
+        }
+        
+        .effect-message {
+            font-size: 2rem;
+            color: var(--taoist-gold);
+            text-align: center;
+            margin-top: 2rem;
+            opacity: 0;
+            animation: fadeIn 1s forwards 1s;
+            text-shadow: 0 0 10px var(--taoist-red);
+            z-index: 201;
+        }
+        
+        .warning {
+            color: #ffcc00;
+            font-size: 0.9rem;
+            margin-top: 2rem;
+            text-align: center;
+            border-top: 1px dashed #ffcc00;
+            padding-top: 1rem;
+        }
+        
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .ritual-circle {
+                width: 250px;
+                height: 250px;
+            }
+            
+            .effect-message {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="floating-particles" id="particles"></div>
+    
+    <div class="container">
+        <header>
+            <h1>天机姻缘配对阵法</h1>
+            <p class="subtitle">千年秘传 · 姻缘增幅 · 天作之合</p>
+            <div class="divider"></div>
+        </header>
+        
+        <div class="instructions">
+            <h3>阵法操作指南</h3>
+            <ol>
+                <li>请如实填写双方姓名及生辰八字，信息越准确，阵法效果越强</li>
+                <li>点击"启动阵法"按钮后，请保持虔诚心态</li>
+                <li>阵法启动后将进行3分钟的上香仪式，请勿关闭页面</li>
+                <li>仪式完成后，阵法将持续运转24小时</li>
+                <li>24小时后将显示姻缘增幅效果(100%-500%随机)</li>
+                <li>阵法期间，请保持正面思维，想象两人美好未来</li>
+            </ol>
+        </div>
+        
+        <div class="form-section">
+            <h2>姻缘信息输入</h2>
+            <div class="form-grid">
+                <div>
+                    <div class="form-group">
+                        <label for="name1">姓名（本人）</label>
+                        <input type="text" id="name1" placeholder="请输入您的姓名" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="birth1">出生日期（本人）</label>
+                        <input type="date" id="birth1" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="time1">出生时间（本人）</label>
+                        <input type="time" id="time1" required>
+                    </div>
+                </div>
+                
+                <div>
+                    <div class="form-group">
+                        <label for="name2">姓名（对方）</label>
+                        <input type="text" id="name2" placeholder="请输入对方姓名" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="birth2">出生日期（对方）</label>
+                        <input type="date" id="birth2" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="time2">出生时间（对方）</label>
+                        <input type="time" id="time2" required>
+                    </div>
+                </div>
+            </div>
+            
+            <button id="startRitual" class="btn btn-center">启动阵法</button>
+        </div>
+        
+        <p class="warning">
+            注意：此阵法为心理辅助工具，实际姻缘发展仍需双方共同努力。<br>
+            请勿过度依赖，保持理性心态，珍惜眼前人。
+        </p>
+    </div>
+    
+    <div class="ritual-area" id="ritualArea">
+        <div class="ritual-container">
+            <div class="ritual-circle" id="ritualCircle">
+                <div class="taoist-bagua"></div>
+                <span class="ritual-symbol">姻</span>
+                <span class="ritual-symbol">缘</span>
+                <span class="ritual-symbol">合</span>
+                <span class="ritual-symbol">道</span>
+                <span class="ritual-symbol">法</span>
+                <span class="ritual-symbol">自</span>
+                <span class="ritual-symbol">然</span>
+                <span class="ritual-symbol">❤</span>
+                <span class="ritual-symbol">☯</span>
+                <span class="ritual-symbol">☸</span>
+                <span class="ritual-symbol">卍</span>
+            </div>
+            <div class="incense-stick"></div>
+            <div class="names-display" id="namesDisplay"></div>
+            <div class="ritual-message" id="ritualMessage">上香仪式进行中，请保持虔诚心态...</div>
+            <div class="progress-container">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+            <div class="countdown" id="countdown">24:00:00</div>
+        </div>
+    </div>
+    
+    <!-- 全屏阵法启动特效 -->
+    <div class="fullscreen-effect" id="fullscreenEffect">
+        <div class="effect-message">天地姻缘，阵法已启！</div>
+    </div>
+    
+    <div class="result-section" id="resultSection">
+        <h2>姻缘配对阵法完成</h2>
+        <div class="result-message">恭喜！您与对方的姻缘缘分已成功增强</div>
+        <div class="result-percentage" id="resultPercentage">+0%</div>
+        <p>阵法已圆满结束，请珍惜这份难得的缘分</p>
+        <button id="restartBtn" class="btn">再次启动阵法</button>
+    </div>
+    
+    <script>
+        // 创建漂浮粒子
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            const particleCount = 30;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                
+                // 随机大小
+                const size = Math.random() * 8 + 2;
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                
+                // 随机位置
+                particle.style.left = `${Math.random() * 100}%`;
+                particle.style.bottom = `-${size}px`;
+                
+                // 随机动画时长
+                const duration = Math.random() * 20 + 10;
+                particle.style.animationDuration = `${duration}s`;
+                
+                // 随机延迟
+                particle.style.animationDelay = `${Math.random() * 10}s`;
+                
+                particlesContainer.appendChild(particle);
+            }
+        }
+        
+        // 启动阵法
+        document.getElementById('startRitual').addEventListener('click', function() {
+            const name1 = document.getElementById('name1').value;
+            const name2 = document.getElementById('name2').value;
+            
+            if (!name1 || !name2) {
+                alert('请输入双方姓名');
+                return;
+            }
+            
+            // 显示阵法区域
+            document.getElementById('ritualArea').style.display = 'flex';
+            document.getElementById('namesDisplay').textContent = `${name1} ❤ ${name2}`;
+            
+            // 开始上香仪式
+            startIncenseRitual();
+        });
+        
+        // 上香仪式
+        function startIncenseRitual() {
+            const ritualMessage = document.getElementById('ritualMessage');
+            const progressBar = document.getElementById('progressBar');
+            
+            // 创建烟雾效果
+            createSmoke();
+            
+            // 更新进度条
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += 0.56; // 3分钟约180秒，180/100=1.8秒每1%
+                progressBar.style.width = `${progress}%`;
+                
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    ritualMessage.textContent = "上香仪式完成，阵法已启动！";
+                    showFullscreenEffect();
+                    setTimeout(() => {
+                        start24HourCountdown();
+                    }, 3000);
+                }
+            }, 1000);
+        }
+        
+        // 全屏阵法启动特效
+        function showFullscreenEffect() {
+            const effectContainer = document.getElementById('fullscreenEffect');
+            effectContainer.style.display = 'flex';
+            
+            // 创建能量圈
+            for (let i = 0; i < 5; i++) {
+                setTimeout(() => {
+                    const circle = document.createElement('div');
+                    circle.classList.add('energy-circle');
+                    circle.style.animationDelay = `${i * 0.5}s`;
+                    effectContainer.appendChild(circle);
+                    
+                    // 移除能量圈
+                    setTimeout(() => {
+                        circle.remove();
+                    }, 3000);
+                }, i * 500);
+            }
+            
+            // 创建道教符号
+            const symbols = ['道', '法', '自', '然', '☯', '☸', '卍', '缘', '合'];
+            for (let i = 0; i < 15; i++) {
+                const symbol = document.createElement('div');
+                symbol.classList.add('taoist-symbols');
+                symbol.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+                symbol.style.left = `${Math.random() * 80 + 10}%`;
+                symbol.style.top = `${Math.random() * 80 + 10}%`;
+                symbol.style.animationDelay = `${Math.random() * 2}s`;
+                effectContainer.appendChild(symbol);
+            }
+            
+            // 3秒后隐藏特效
+            setTimeout(() => {
+                effectContainer.style.display = 'none';
+                // 移除所有符号
+                const symbols = document.querySelectorAll('.taoist-symbols');
+                symbols.forEach(s => s.remove());
+            }, 3000);
+        }
+        
+        // 创建烟雾效果
+        function createSmoke() {
+            for (let i = 0; i < 20; i++) {
+                setTimeout(() => {
+                    const smoke = document.createElement('div');
+                    smoke.classList.add('incense-smoke');
+                    document.querySelector('.ritual-container').appendChild(smoke);
+                    
+                    // 移除烟雾元素
+                    setTimeout(() => {
+                        smoke.remove();
+                    }, 3000);
+                }, i * 300);
+            }
+        }
+        
+        // 24小时倒计时
+        function start24HourCountdown() {
+            const countdownElement = document.getElementById('countdown');
+            let hours = 24;
+            let minutes = 0;
+            let seconds = 0;
+            
+            const countdown = setInterval(() => {
+                seconds--;
+                
+                if (seconds < 0) {
+                    seconds = 59;
+                    minutes--;
+                }
+                
+                if (minutes < 0) {
+                    minutes = 59;
+                    hours--;
+                }
+                
+                if (hours < 0) {
+                    clearInterval(countdown);
+                    showResult();
+                    return;
+                }
+                
+                countdownElement.textContent = 
+                    `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }, 1000);
+        }
+        
+        // 显示结果
+        function showResult() {
+            document.getElementById('ritualArea').style.display = 'none';
+            document.getElementById('resultSection').style.display = 'block';
+            
+            // 随机生成增幅百分比 (100%-500%)
+            const percentage = Math.floor(Math.random() * 401) + 100;
+            document.getElementById('resultPercentage').textContent = `+${percentage}%`;
+        }
+        
+        // 重新启动按钮
+        document.getElementById('restartBtn').addEventListener('click', function() {
+            document.getElementById('resultSection').style.display = 'none';
+            document.getElementById('name1').value = '';
+            document.getElementById('name2').value = '';
+            document.getElementById('birth1').value = '';
+            document.getElementById('birth2').value = '';
+            document.getElementById('time1').value = '';
+            document.getElementById('time2').value = '';
+            document.getElementById('progressBar').style.width = '0%';
+            document.getElementById('ritualMessage').textContent = '上香仪式进行中，请保持虔诚心态...';
+            document.getElementById('countdown').textContent = '24:00:00';
+            
+            window.scrollTo(0, 0);
+        });
+        
+        // 初始化
+        window.addEventListener('DOMContentLoaded', () => {
+            createParticles();
+            
+            // 设置今天为默认日期
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('birth1').value = today;
+            document.getElementById('birth2').value = today;
+        });
+    </script>
+</body>
+</html>
