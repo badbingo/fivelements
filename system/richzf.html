@@ -62,6 +62,7 @@
             text-align: left;
             line-height: 1.8;
             transition: all 0.5s ease;
+            position: relative;
         }
         
         .instructions.collapsed {
@@ -94,6 +95,25 @@
         
         .toggle-instructions:hover {
             text-shadow: 0 0 5px #f8d030;
+        }
+        
+        .expand-instructions {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            z-index: 20;
+            background: rgba(224, 192, 128, 0.2);
+            border: none;
+            color: #f8d030;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: 'Ma Shan Zheng', cursive;
+            display: none;
+        }
+        
+        .instructions.collapsed .expand-instructions {
+            display: block;
         }
         
         .instructions h2 {
@@ -537,6 +557,44 @@
             opacity: 0.2;
             z-index: 0;
         }
+        
+        .wealth-incantation {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(10, 10, 10, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid rgba(224, 192, 128, 0.3);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            max-width: 90%;
+            width: 600px;
+            text-align: center;
+            z-index: 11;
+            display: none;
+        }
+        
+        .wealth-incantation h3 {
+            color: #f8d030;
+            font-family: 'Ma Shan Zheng', cursive;
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+        }
+        
+        .wealth-incantation p {
+            margin: 10px 0;
+            line-height: 1.8;
+            font-size: 1.1rem;
+        }
+        
+        .wealth-incantation .hint {
+            font-style: italic;
+            color: #e0c080;
+            margin-top: 15px;
+            font-size: 1rem;
+        }
     </style>
 </head>
 <body>
@@ -583,6 +641,7 @@
                 "天罡所指，财源广进；七星连珠，富贵临门"
             </p>
             <button class="toggle-instructions" id="toggleInstructions">收起说明</button>
+            <button class="expand-instructions" id="expandInstructions">展开说明</button>
         </div>
         
         <div class="section form-section" id="formSection">
@@ -673,6 +732,19 @@
         <div class="timer" id="timer"></div>
     </div>
     
+    <div class="wealth-incantation" id="wealthIncantation">
+        <h3>聚财灵咒</h3>
+        <p>天清地灵，财炁共鸣</p>
+        <p>五方福德，速聚吾庭</p>
+        <p>招宝童子引路，利市仙官降临</p>
+        <p>北斗注禄，南斗增金</p>
+        <p>三茅真君护法，玄坛赵帅显灵</p>
+        <p>铜马驮宝至，金蟾吐珠明</p>
+        <p>财源如江海，利达通三界</p>
+        <p>吾奉太上老君急急如律令！</p>
+        <p class="hint">请在心中默念此灵咒</p>
+    </div>
+    
     <script>
         // 配置变量 - 可以修改这些值来调整测试时间
         const INCENSE_DURATION = 3 * 60; // 点香时间(秒) - 测试时可设置为更短时间
@@ -702,6 +774,13 @@
             const instructions = document.getElementById('instructions');
             instructions.classList.toggle('collapsed');
             this.textContent = instructions.classList.contains('collapsed') ? '展开说明' : '收起说明';
+        });
+        
+        // 展开说明按钮
+        document.getElementById('expandInstructions').addEventListener('click', function() {
+            const instructions = document.getElementById('instructions');
+            instructions.classList.remove('collapsed');
+            document.getElementById('toggleInstructions').textContent = '收起说明';
         });
         
         // 开始点香仪式
@@ -792,6 +871,11 @@
                 
                 timerElement.textContent = `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
                 
+                // 当倒计时剩余3分钟时显示聚财灵咒
+                if (seconds === 180) {
+                    showWealthIncantation();
+                }
+                
                 if (seconds <= 0) {
                     clearInterval(countdown);
                     incenseCeremonyComplete(name);
@@ -799,6 +883,17 @@
                 
                 seconds--;
             }, 1000);
+        }
+        
+        // 显示聚财灵咒
+        function showWealthIncantation() {
+            const incantation = document.getElementById('wealthIncantation');
+            incantation.style.display = 'block';
+            
+            // 3秒后自动隐藏
+            setTimeout(() => {
+                incantation.style.display = 'none';
+            }, 30000); // 30秒后自动隐藏
         }
         
         // 点香仪式完成
