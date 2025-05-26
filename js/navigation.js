@@ -64,7 +64,7 @@ function updateRecentPages() {
     }
     
     // 获取现有的最近访问记录
-    let recentPages = JSON.parse(localStorage.getItem('recentPages') || [];
+    let recentPages = JSON.parse(localStorage.getItem('recentPages') || '[]');
     
     // 如果当前页面已经在记录中，先移除它
     recentPages = recentPages.filter(page => page.path !== currentPath);
@@ -405,15 +405,6 @@ function createNavigation() {
         
         navList.appendChild(navItem);
     });
-    
-    // 5. 移动端菜单按钮
-    const mobileMenuBtn = document.createElement('div');
-    mobileMenuBtn.className = 'mobile-menu-btn';
-    mobileMenuBtn.innerHTML = `
-        <span class="bar"></span>
-        <span class="bar"></span>
-        <span class="bar"></span>
-    `;
     
     mainNav.appendChild(navList);
     container.appendChild(mobileMenuBtn);
