@@ -55,11 +55,6 @@ function updateRecentPages() {
     const currentPath = window.location.pathname;
     const currentTitle = document.title;
     
-    // 排除不需要记录的页面
-    if (currentPath === '/' || currentPath === '/index.html') {
-        return;
-    }
-    
     // 获取当前页面的显示名称
     let displayName = currentTitle;
     const pathSegments = currentPath.split('/').filter(Boolean);
@@ -71,17 +66,8 @@ function updateRecentPages() {
     // 获取现有的最近访问记录
     let recentPages = JSON.parse(localStorage.getItem('recentPages') || '[]');
     
-    // 验证并清理现有数据
-    recentPages = recentPages.filter(page => 
-        page && page.path && page.title && page.timestamp
-    );
-    
     // 如果当前页面已经在记录中，先移除它
-    recentPages = recentPages.filter(page => 
-        page.path !== currentPath && 
-        !page.path.includes('undefined') &&
-        !page.title.includes('undefined')
-    );
+    recentPages = recentPages.filter(page => page.path !== currentPath);
     
     // 添加当前页面到记录开头
     recentPages.unshift({
@@ -90,10 +76,12 @@ function updateRecentPages() {
         timestamp: Date.now()
     });
     
-    // 只保留最近5个有效记录
-    recentPages = recentPages.slice(0, 5);
+    // 只保留最近5个记录
+    if (recentPages.length > 5) {
+        recentPages = recentPages.slice(0, 5);
+    }
     
-    // 修复这里：移除多余括号
+    // 保存到本地存储
     localStorage.setItem('recentPages', JSON.stringify(recentPages));
 }
 
@@ -180,63 +168,45 @@ function createBreadcrumb() {
  * 添加最近访问部分
  */
 function addRecentPagesSection(container) {
-    const recentPages = JSON.parse(localStorage.getItem('recentPages') || '[]';
+    const recentPages = JSON.parse(localStorage.getItem('recentPages') || '[]');
     if (recentPages.length === 0) return;
     
-    // 过滤掉无效记录和当前页面
+    // 过滤掉当前页面
     const currentPath = window.location.pathname;
-    const filteredPages = recentPages.filter(page => 
-        page && 
-        page.path && 
-        page.title && 
-        page.path !== currentPath &&
-        !page.path.includes('undefined')
-    );
-    
+    const filteredPages = recentPages.filter(page => page.path !== currentPath);
     if (filteredPages.length === 0) return;
     
-    // 创建外层flex容器
-    const flexContainer = document.createElement('div');
-    flexContainer.className = 'breadcrumb-flex-container';
-    
-    // 将原有面包屑放入flex容器
-    const breadcrumb = container.querySelector('.breadcrumb');
-    container.insertBefore(flexContainer, breadcrumb);
-    flexContainer.appendChild(breadcrumb);
-    
-    // 创建最近浏览容器
     const recentContainer = document.createElement('div');
-    recentContainer.className = 'recent-pages-container right-aligned';
+    recentContainer.className = 'recent-pages-container';
     
-    const recentTitle = document.createElement('span');
+    const recentTitle = document.createElement('div');
     recentTitle.className = 'recent-title';
     recentTitle.textContent = '最近浏览:';
     recentContainer.appendChild(recentTitle);
     
-    const recentList = document.createElement('span');
+    const recentList = document.createElement('div');
     recentList.className = 'recent-pages-list';
     
     filteredPages.forEach((page, index) => {
-        if (!page.path || !page.title) return;
-        
         const recentItem = document.createElement('a');
         recentItem.href = page.path;
         recentItem.className = 'recent-page-item';
         recentItem.textContent = page.title;
-        recentItem.title = page.title;
+        recentItem.title = page.title; // 添加title属性用于鼠标悬停显示完整名称
         
-        recentList.appendChild(recentItem);
-        
+        // 添加分隔符（最后一个不加）
         if (index < filteredPages.length - 1) {
             const separator = document.createElement('span');
             separator.className = 'recent-separator';
             separator.textContent = '•';
             recentList.appendChild(separator);
         }
+        
+        recentList.appendChild(recentItem);
     });
     
     recentContainer.appendChild(recentList);
-    flexContainer.appendChild(recentContainer);
+    container.appendChild(recentContainer);
 }
 
 /**
