@@ -260,30 +260,7 @@ function createBreadcrumb() {
     const breadcrumb = document.createElement('div');
     breadcrumb.className = 'breadcrumb';
     
-    // 获取或初始化历史记录
-    let history = JSON.parse(localStorage.getItem('pageHistory') || [];
-    
-    // 当前页面信息
-    const currentPath = window.location.pathname;
-    const pageTitle = document.title || pathNameMap[currentPath.split('/').pop().replace('.html', '')] || '当前页面';
-    
-    // 如果当前页面不是历史记录中的最后一个，则添加到历史记录
-    if (history.length === 0 || history[history.length-1].path !== currentPath) {
-        history.push({
-            path: currentPath,
-            title: pageTitle,
-            timestamp: Date.now()
-        });
-        
-        // 只保留最近5条记录
-        if (history.length > 5) {
-            history = history.slice(-5);
-        }
-        
-        localStorage.setItem('pageHistory', JSON.stringify(history));
-    }
-    
-    // 添加首页链接
+    // 首页面包屑
     const homeItem = document.createElement('div');
     homeItem.className = 'breadcrumb-item';
     homeItem.innerHTML = `
@@ -292,42 +269,53 @@ function createBreadcrumb() {
     `;
     breadcrumb.appendChild(homeItem);
     
-    // 添加历史记录（最多显示4条，最后一条是当前页面）
-    const displayHistory = history.slice(-4); // 最多显示4条历史
+    // 获取当前路径并生成面包屑
+    const path = window.location.pathname.split('/').filter(Boolean);
+    let currentPath = '';
     
-    displayHistory.forEach((item, index) => {
-        const isLast = index === displayHistory.length - 1;
-        const breadcrumbItem = document.createElement('div');
-        breadcrumbItem.className = 'breadcrumb-item';
-        
-        if (isLast) {
-            breadcrumbItem.innerHTML = `
-                <span class="active">${item.title}</span>
-            `;
-        } else {
-            breadcrumbItem.innerHTML = `
-                <a href="${item.path}">${item.title}</a>
-                <span class="breadcrumb-separator"><i class="fas fa-chevron-right"></i></span>
-            `;
-        }
-        
-        breadcrumb.appendChild(breadcrumbItem);
-    });
+    // 主目录与图标映射
+    const mainCategories = {
+        'basics': { icon: 'fa-book-open', name: '基础知识' },
+        'advanced': { icon: 'fa-chart-line', name: '进阶知识' },
+        'tools': { icon: 'fa-tools', name: '学习工具' },
+        'system': { icon: 'fa-shapes', name: '洞察天机' }
+    };
     
-    // 添加"查看更多历史"按钮（如果有更多历史）
-    if (history.length > 4) {
-        const moreItem = document.createElement('div');
-        moreItem.className = 'breadcrumb-item more-history';
-        moreItem.innerHTML = `
-            <a href="#"><i class="fas fa-ellipsis-h"></i></a>
-            <div class="history-dropdown">
-                ${history.slice(0, -4).map(item => `
-                    <a href="${item.path}">${item.title}</a>
-                `).join('')}
-            </div>
+    path.forEach((segment, index) => {
+    currentPath += '/' + segment;
+    const isLast = index === path.length - 1;
+    
+    // 移除.html后缀
+    let key = segment.replace('.html', '');
+    // 获取中文名称，如果没有映射则使用原名称
+    let displayText = pathNameMap[key] || key;
+    
+    const breadcrumbItem = document.createElement('div');
+    breadcrumbItem.className = 'breadcrumb-item';
+    
+    // 检查是否是主目录
+    if (mainCategories[key]) {
+        breadcrumbItem.classList.add('no-link');
+        const category = mainCategories[key];
+        breadcrumbItem.innerHTML = `
+            <span>
+                <i class="fas ${category.icon}"></i>${category.name}
+            </span>
+            ${!isLast ? `<span class="breadcrumb-separator"><i class="fas fa-chevron-right"></i></span>` : ''}
         `;
-        breadcrumb.appendChild(moreItem);
+    } else if (isLast) {
+        breadcrumbItem.innerHTML = `<span class="active">${displayText}</span>`;
+    } else {
+        // 确保链接使用绝对路径
+        const linkPath = currentPath.startsWith('/') ? currentPath : '/' + currentPath;
+        breadcrumbItem.innerHTML = `
+            <a href="${linkPath}">${displayText}</a>
+            <span class="breadcrumb-separator"><i class="fas fa-chevron-right"></i></span>
+        `;
     }
+    
+    breadcrumb.appendChild(breadcrumbItem);
+});
     
     breadcrumbContainer.appendChild(breadcrumb);
     
@@ -337,15 +325,6 @@ function createBreadcrumb() {
         document.body.insertBefore(breadcrumbContainer, mainContent);
     } else {
         document.body.appendChild(breadcrumbContainer);
-    }
-    
-    // 点击"查看更多历史"时显示下拉菜单
-    const moreHistory = breadcrumbContainer.querySelector('.more-history');
-    if (moreHistory) {
-        moreHistory.addEventListener('click', function(e) {
-            e.preventDefault();
-            this.querySelector('.history-dropdown').classList.toggle('show');
-        });
     }
 }
 
