@@ -179,7 +179,7 @@ function addRecentPagesToFooter() {
     const footer = document.querySelector('footer');
     if (!footer) return;
     
-    // 创建最近浏览容器
+    // 创建最近浏览容器 - 移除了背景相关类名
     const recentContainer = document.createElement('div');
     recentContainer.className = 'recent-pages-footer';
     
