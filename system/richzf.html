@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>天罡聚财阵</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&display=swap');
+        
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #000;
+            color: #e0c080;
+            font-family: 'Noto Serif SC', serif;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-image: 
+                radial-gradient(circle at center, #111 0%, #000 70%),
+                url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><path d="M30,50 Q50,30 70,50 T90,50" fill="none" stroke="%23e0c080" stroke-width="0.2" opacity="0.1"/></svg>');
+        }
+        
+        .container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            text-align: center;
+            z-index: 10;
+            padding: 20px;
+            background-color: rgba(0, 0, 0, 0.7);
+            border-radius: 10px;
+            box-shadow: 0 0 30px rgba(224, 192, 128, 0.3);
+            border: 1px solid rgba(224, 192, 128, 0.2);
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 1.5rem;
+            text-shadow: 0 0 10px #f8d030, 0 0 20px #f8d030;
+            letter-spacing: 8px;
+            font-family: 'Ma Shan Zheng', cursive;
+            color: #f8d030;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 1.2rem;
+            color: #e0c080;
+        }
+        
+        input, select {
+            background-color: rgba(20, 20, 20, 0.8);
+            border: 1px solid #e0c080;
+            color: #e0c080;
+            padding: 0.6rem;
+            font-size: 1rem;
+            width: 220px;
+            text-align: center;
+            border-radius: 4px;
+            font-family: 'Noto Serif SC', serif;
+        }
+        
+        button {
+            background-color: #3a2c0f;
+            color: #f8d030;
+            border: 1px solid #e0c080;
+            padding: 0.8rem 2.5rem;
+            font-size: 1.2rem;
+            cursor: pointer;
+            border-radius: 4px;
+            margin: 1.5rem 0;
+            transition: all 0.3s;
+            font-family: 'Ma Shan Zheng', cursive;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        button:hover {
+            background-color: #4a3c1f;
+            box-shadow: 0 0 15px #f8d030;
+        }
+        
+        button::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(transparent, rgba(248, 208, 48, 0.1), transparent);
+            transform: rotate(30deg);
+            transition: all 0.3s;
+        }
+        
+        button:hover::after {
+            left: 100%;
+        }
+        
+        .circle {
+            position: absolute;
+            border-radius: 50%;
+            border: 1px solid rgba(224, 192, 128, 0.3);
+            pointer-events: none;
+        }
+        
+        .circle-1 {
+            width: 800px;
+            height: 800px;
+            animation: rotate 80s linear infinite;
+            border-color: rgba(248, 208, 48, 0.15);
+            box-shadow: 0 0 50px rgba(248, 208, 48, 0.1);
+        }
+        
+        .circle-2 {
+            width: 600px;
+            height: 600px;
+            animation: rotate-reverse 60s linear infinite;
+            border-color: rgba(224, 192, 128, 0.15);
+            box-shadow: 0 0 40px rgba(224, 192, 128, 0.1);
+        }
+        
+        .circle-3 {
+            width: 400px;
+            height: 400px;
+            animation: rotate 40s linear infinite;
+            border-color: rgba(248, 208, 48, 0.2);
+            box-shadow: 0 0 30px rgba(248, 208, 48, 0.15);
+        }
+        
+        .symbol {
+            position: absolute;
+            font-size: 2rem;
+            color: #f8d030;
+            text-shadow: 0 0 5px #f8d030;
+            animation: glow 3s ease-in-out infinite alternate;
+            pointer-events: none;
+        }
+        
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        @keyframes rotate-reverse {
+            from { transform: rotate(360deg); }
+            to { transform: rotate(0deg); }
+        }
+        
+        @keyframes glow {
+            from { opacity: 0.6; text-shadow: 0 0 5px #f8d030; }
+            to { opacity: 1; text-shadow: 0 0 15px #f8d030; }
+        }
+        
+        .matrix-container {
+            position: relative;
+            width: 500px;
+            height: 500px;
+            margin: 2rem auto;
+            display: none;
+        }
+        
+        .matrix {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="500" height="500"><circle cx="250" cy="250" r="240" fill="none" stroke="%23e0c080" stroke-width="1" stroke-opacity="0.3"/><circle cx="250" cy="250" r="180" fill="none" stroke="%23e0c080" stroke-width="1" stroke-opacity="0.3"/><circle cx="250" cy="250" r="120" fill="none" stroke="%23e0c080" stroke-width="1" stroke-opacity="0.3"/><circle cx="250" cy="250" r="60" fill="none" stroke="%23e0c080" stroke-width="1" stroke-opacity="0.3"/><line x1="250" y1="10" x2="250" y2="490" stroke="%23e0c080" stroke-width="1" stroke-opacity="0.3"/><line x1="10" y1="250" x2="490" y2="250" stroke="%23e0c080" stroke-width="1" stroke-opacity="0.3"/><line x1="70" y1="70" x2="430" y2="430" stroke="%23e0c080" stroke-width="1" stroke-opacity="0.3"/><line x1="430" y1="70" x2="70" y2="430" stroke="%23e0c080" stroke-width="1" stroke-opacity="0.3"/></svg>');
+            animation: rotate 120s linear infinite;
+        }
+        
+        .user-position {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background-color: rgba(248, 208, 48, 0.3);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 30px #f8d030;
+            animation: pulse 2s infinite;
+        }
+        
+        .user-name {
+            position: absolute;
+            color: #f8d030;
+            font-size: 1.3rem;
+            text-shadow: 0 0 8px #f8d030;
+            top: calc(50% + 40px);
+            left: 50%;
+            transform: translateX(-50%);
+            white-space: nowrap;
+            font-weight: bold;
+        }
+        
+        @keyframes pulse {
+            0% { transform: translate(-50%, -50%) scale(1); opacity: 0.7; box-shadow: 0 0 30px #f8d030; }
+            50% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; box-shadow: 0 0 50px #f8d030; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 0.7; box-shadow: 0 0 30px #f8d030; }
+        }
+        
+        .particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+        
+        .result {
+            margin-top: 2rem;
+            font-size: 1.2rem;
+            line-height: 1.6;
+            display: none;
+            max-width: 600px;
+            background-color: rgba(20, 20, 20, 0.7);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid rgba(224, 192, 128, 0.3);
+        }
+        
+        .blessing {
+            color: #f8d030;
+            font-size: 1.8rem;
+            margin: 1.5rem 0;
+            text-shadow: 0 0 10px #f8d030;
+            animation: glow 2s ease-in-out infinite alternate;
+            font-family: 'Ma Shan Zheng', cursive;
+            letter-spacing: 3px;
+        }
+        
+        .timer {
+            font-size: 2.5rem;
+            color: #f8d030;
+            margin: 1.5rem 0;
+            text-shadow: 0 0 10px #f8d030;
+            font-family: 'Ma Shan Zheng', cursive;
+            display: none;
+        }
+        
+        .incense-container {
+            display: none;
+            margin: 20px 0;
+        }
+        
+        .incense {
+            display: inline-block;
+            width: 30px;
+            height: 120px;
+            background: linear-gradient(to bottom, #8B4513, #A0522D);
+            margin: 0 20px;
+            position: relative;
+            border-radius: 3px;
+        }
+        
+        .incense::after {
+            content: '';
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 6px;
+            height: 30px;
+            background: linear-gradient(to bottom, #FFD700, #FFA500);
+            border-radius: 3px 3px 0 0;
+        }
+        
+        .incense::before {
+            content: '';
+            position: absolute;
+            top: -40px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 20px;
+            background: radial-gradient(ellipse at center, rgba(255,100,0,0.8) 0%, rgba(255,50,0,0) 70%);
+            border-radius: 50%;
+            animation: smoke 3s infinite ease-out;
+        }
+        
+        @keyframes smoke {
+            0% { transform: translateX(-50%) scale(0.8); opacity: 0.8; }
+            50% { transform: translateX(-50%) translateY(-20px) scale(1.2); opacity: 0.5; }
+            100% { transform: translateX(-50%) translateY(-40px) scale(1.5); opacity: 0; }
+        }
+        
+        .instructions {
+            background-color: rgba(20, 20, 20, 0.7);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid rgba(224, 192, 128, 0.3);
+            margin-bottom: 20px;
+            text-align: left;
+            display: none;
+        }
+        
+        .instructions h2 {
+            color: #f8d030;
+            font-family: 'Ma Shan Zheng', cursive;
+            border-bottom: 1px solid rgba(224, 192, 128, 0.3);
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+        
+        .instructions ol {
+            padding-left: 20px;
+        }
+        
+        .instructions li {
+            margin-bottom: 10px;
+        }
+        
+        .final-effect {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, rgba(248, 208, 48, 0.8) 0%, rgba(0,0,0,1) 70%);
+            z-index: 100;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            animation: finalGlow 5s ease-out;
+        }
+        
+        @keyframes finalGlow {
+            0% { background: rgba(0,0,0,0.9); }
+            20% { background: radial-gradient(circle at center, rgba(248, 208, 48, 0.9) 0%, rgba(0,0,0,1) 70%); }
+            80% { background: radial-gradient(circle at center, rgba(248, 208, 48, 0.9) 0%, rgba(0,0,0,1) 70%); }
+            100% { background: rgba(0,0,0,0.9); }
+        }
+        
+        .final-message {
+            color: #f8d030;
+            font-size: 3rem;
+            text-align: center;
+            text-shadow: 0 0 20px #f8d030;
+            font-family: 'Ma Shan Zheng', cursive;
+            margin-bottom: 30px;
+            opacity: 0;
+            animation: finalMessage 5s ease-out;
+        }
+        
+        @keyframes finalMessage {
+            0% { opacity: 0; transform: scale(0.5); }
+            20% { opacity: 1; transform: scale(1.1); }
+            30% { opacity: 1; transform: scale(1); }
+            80% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+        
+        .gold-coins {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 101;
+            display: none;
+        }
+        
+        .gold-coin {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="%23FFD700"/><circle cx="50" cy="50" r="40" fill="%23FFC000"/><text x="50" y="60" font-family="Arial" font-size="40" text-anchor="middle" fill="%23800000">財</text></svg>');
+            background-size: contain;
+            animation: coinFall linear;
+        }
+        
+        @keyframes coinFall {
+            to { transform: translateY(100vh); }
+        }
+        
+        .show-instructions {
+            background: none;
+            border: none;
+            color: #e0c080;
+            text-decoration: underline;
+            cursor: pointer;
+            font-size: 1rem;
+            margin: 10px 0;
+            font-family: 'Noto Serif SC', serif;
+        }
+        
+        .show-instructions:hover {
+            color: #f8d030;
+        }
+    </style>
+</head>
+<body>
+    <div class="particles" id="particles"></div>
+    <div class="gold-coins" id="goldCoins"></div>
+    
+    <div class="circle circle-1"></div>
+    <div class="circle circle-2"></div>
+    <div class="circle circle-3"></div>
+    
+    <div class="final-effect" id="finalEffect">
+        <div class="final-message">聚财阵法已生效！</div>
+        <div class="final-message" style="animation-delay: 0.5s;">您的财运提升500%！</div>
+    </div>
+    
+    <div class="container">
+        <h1>天罡聚财阵</h1>
+        
+        <button class="show-instructions" id="showInstructions">查看阵法使用说明</button>
+        
+        <div class="instructions" id="instructions">
+            <h2>天罡聚财阵法使用说明</h2>
+            <ol>
+                <li><strong>阵法起源</strong>：此阵法源于古代道家秘传，结合北斗七星与五行相生原理，能汇聚天地财气。</li>
+                <li><strong>神奇之处</strong>：阵法激活后，将形成持续24小时的能量场，调整您的财运磁场，吸引财富机遇。</li>
+                <li><strong>使用方法</strong>：
+                    <ul>
+                        <li>填写您的真实姓名和准确生辰信息</li>
+                        <li>准备三支香，点击"开始点香仪式"按钮</li>
+                        <li>在心中默念您的财富愿望</li>
+                        <li>保持网页开启24小时不关闭</li>
+                    </ul>
+                </li>
+                <li><strong>注意事项</strong>：
+                    <ul>
+                        <li>心诚则灵，请保持虔诚心态</li>
+                        <li>仪式期间请勿刷新或关闭页面</li>
+                        <li>最佳激活时间为辰时(7-9点)或酉时(17-19点)</li>
+                    </ul>
+                </li>
+            </ol>
+            <p style="text-align: center; font-style: italic; color: #f8d030;">"天罡所指，财源广进；七星连珠，富贵临门"</p>
+        </div>
+        
+        <div class="form-group">
+            <label for="name">请输入您的姓名</label>
+            <input type="text" id="name" placeholder="您的姓名">
+        </div>
+        
+        <div class="form-group">
+            <label for="year">请选择您的出生年份</label>
+            <select id="year">
+                <option value="">-- 选择年份 --</option>
+                <!-- 年份选项由JavaScript生成 -->
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="month">请选择您的出生月份</label>
+            <select id="month">
+                <option value="">-- 选择月份 --</option>
+                <option value="1">正月</option>
+                <option value="2">二月</option>
+                <option value="3">三月</option>
+                <option value="4">四月</option>
+                <option value="5">五月</option>
+                <option value="6">六月</option>
+                <option value="7">七月</option>
+                <option value="8">八月</option>
+                <option value="9">九月</option>
+                <option value="10">十月</option>
+                <option value="11">冬月</option>
+                <option value="12">腊月</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="day">请选择您的出生日期</label>
+            <select id="day">
+                <option value="">-- 选择日期 --</option>
+                <!-- 日期选项由JavaScript生成 -->
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="hour">请选择您的出生时辰</label>
+            <select id="hour">
+                <option value="">-- 选择时辰 --</option>
+                <option value="0">子时 (23:00-01:00)</option>
+                <option value="1">丑时 (01:00-03:00)</option>
+                <option value="2">寅时 (03:00-05:00)</option>
+                <option value="3">卯时 (05:00-07:00)</option>
+                <option value="4">辰时 (07:00-09:00)</option>
+                <option value="5">巳时 (09:00-11:00)</option>
+                <option value="6">午时 (11:00-13:00)</option>
+                <option value="7">未时 (13:00-15:00)</option>
+                <option value="8">申时 (15:00-17:00)</option>
+                <option value="9">酉时 (17:00-19:00)</option>
+                <option value="10">戌时 (19:00-21:00)</option>
+                <option value="11">亥时 (21:00-23:00)</option>
+            </select>
+        </div>
+        
+        <button id="startRitual">开始点香仪式</button>
+        
+        <div class="incense-container" id="incenseContainer">
+            <div class="incense"></div>
+            <div class="incense"></div>
+            <div class="incense"></div>
+        </div>
+        
+        <button id="activate" style="display: none;">激活聚财阵法</button>
+        
+        <div class="matrix-container" id="matrixContainer">
+            <div class="matrix"></div>
+            <div class="user-position"></div>
+            <div class="user-name" id="userNameDisplay"></div>
+        </div>
+        
+        <div class="timer" id="timer"></div>
+        
+        <div class="result" id="result">
+            <p>根据您的生辰八字，天罡聚财阵已为您开启！</p>
+            <p>您位于阵法的<span id="position">天枢</span>位，此位置对应<span id="element">金</span>元素，能增强您的<span id="luck">偏财</span>运势。</p>
+            <div class="blessing" id="blessing">财源广进 · 富贵吉祥</div>
+            <p>请保持此页面开启24小时，阵法将持续为您汇聚财气。倒计时结束后，您的财运将提升500%！</p>
+        </div>
+    </div>
+    
+    <script>
+        // 生成年份选项 (1900-当前年份)
+        const yearSelect = document.getElementById('year');
+        const currentYear = new Date().getFullYear();
+        for (let year = currentYear; year >= 1900; year--) {
+            const option = document.createElement('option');
+            option.value = year;
+            option.textContent = year;
+            yearSelect.appendChild(option);
+        }
+        
+        // 生成日期选项 (1-31)
+        const daySelect = document.getElementById('day');
+        for (let day = 1; day <= 31; day++) {
+            const option = document.createElement('option');
+            option.value = day;
+            option.textContent = day;
+            daySelect.appendChild(option);
+        }
+        
+        // 显示/隐藏使用说明
+        document.getElementById('showInstructions').addEventListener('click', function() {
+            const instructions = document.getElementById('instructions');
+            instructions.style.display = instructions.style.display === 'none' ? 'block' : 'none';
+        });
+        
+        // 开始点香仪式
+        document.getElementById('startRitual').addEventListener('click', function() {
+            const name = document.getElementById('name').value.trim();
+            const year = document.getElementById('year').value;
+            const month = document.getElementById('month').value;
+            const day = document.getElementById('day').value;
+            const hour = document.getElementById('hour').value;
+            
+            if (!name || !year || !month || !day || !hour) {
+                alert('请填写完整信息');
+                return;
+            }
+            
+            // 显示香炉
+            document.getElementById('incenseContainer').style.display = 'block';
+            this.style.display = 'none';
+            
+            // 3秒后显示激活按钮
+            setTimeout(() => {
+                document.getElementById('activate').style.display = 'inline-block';
+            }, 3000);
+        });
+        
+        // 激活阵法
+        document.getElementById('activate').addEventListener('click', function() {
+            const name = document.getElementById('name').value.trim();
+            
+            // 显示阵法
+            document.getElementById('matrixContainer').style.display = 'block';
+            document.getElementById('result').style.display = 'block';
+            document.getElementById('timer').style.display = 'block';
+            document.getElementById('userNameDisplay').textContent = name;
+            this.style.display = 'none';
+            
+            // 随机生成阵法结果
+            const positions = ['天枢', '天璇', '天玑', '天权', '玉衡', '开阳', '摇光'];
+            const elements = ['金', '木', '水', '火', '土'];
+            const luckTypes = ['正财', '偏财', '横财', '事业财', '贵人财'];
+            const blessings = [
+                '财源广进 · 富贵吉祥',
+                '招财进宝 · 福运亨通',
+                '金玉满堂 · 财运亨通',
+                '日进斗金 · 财源滚滚',
+                '八方来财 · 四季平安'
+            ];
+            
+            document.getElementById('position').textContent = positions[Math.floor(Math.random() * positions.length)];
+            document.getElementById('element').textContent = elements[Math.floor(Math.random() * elements.length)];
+            document.getElementById('luck').textContent = luckTypes[Math.floor(Math.random() * luckTypes.length)];
+            document.getElementById('blessing').textContent = blessings[Math.floor(Math.random() * blessings.length)];
+            
+            // 创建粒子效果
+            createParticles();
+            
+            // 创建阵法符号
+            createSymbols();
+            
+            // 开始24小时倒计时
+            startCountdown();
+        });
+        
+        // 创建粒子效果
+        function createParticles() {
+            const particles = document.getElementById('particles');
+            particles.innerHTML = '';
+            
+            for (let i = 0; i < 150; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'symbol';
+                particle.textContent = ['★', '☆', '✧', '✦', '✪', '✫', '✬', '✭', '✮', '✯'][Math.floor(Math.random() * 10)];
+                particle.style.left = `${Math.random() * 100}vw`;
+                particle.style.top = `${Math.random() * 100}vh`;
+                particle.style.animationDelay = `${Math.random() * 5}s`;
+                particle.style.fontSize = `${Math.random() * 1 + 1}rem`;
+                particles.appendChild(particle);
+            }
+        }
+        
+        // 创建阵法符号
+        function createSymbols() {
+            const container = document.querySelector('.container');
+            
+            // 清除旧符号
+            const oldSymbols = document.querySelectorAll('.symbol:not(.particles *)');
+            oldSymbols.forEach(symbol => symbol.remove());
+            
+            for (let i = 0; i < 12; i++) {
+                const symbol = document.createElement('div');
+                symbol.className = 'symbol';
+                symbol.textContent = ['䷀', '䷁', '䷂', '䷃', '䷄', '䷅', '䷆', '䷇', '䷈', '䷉', '䷊', '䷋'][i];
+                
+                // 将符号均匀分布在圆周上
+                const angle = (i / 12) * 2 * Math.PI;
+                const radius = 350;
+                const centerX = window.innerWidth / 2;
+                const centerY = window.innerHeight / 2;
+                
+                symbol.style.left = `${centerX + radius * Math.cos(angle) - 15}px`;
+                symbol.style.top = `${centerY + radius * Math.sin(angle) - 15}px`;
+                symbol.style.animationDelay = `${i * 0.2}s`;
+                
+                container.appendChild(symbol);
+            }
+        }
+        
+        // 24小时倒计时
+        function startCountdown() {
+            let hours = 24;
+            let minutes = 0;
+            let seconds = 0;
+            
+            const timerElement = document.getElementById('timer');
+            
+            const countdown = setInterval(() => {
+                if (seconds === 0) {
+                    if (minutes === 0) {
+                        if (hours === 0) {
+                            clearInterval(countdown);
+                            showFinalEffect();
+                            return;
+                        }
+                        hours--;
+                        minutes = 59;
+                    } else {
+                        minutes--;
+                    }
+                    seconds = 59;
+                } else {
+                    seconds--;
+                }
+                
+                timerElement.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }, 1000);
+        }
+        
+        // 显示最终效果
+        function showFinalEffect() {
+            const finalEffect = document.getElementById('finalEffect');
+            const goldCoins = document.getElementById('goldCoins');
+            
+            finalEffect.style.display = 'flex';
+            goldCoins.style.display = 'block';
+            
+            // 创建金币雨
+            createCoinRain();
+            
+            // 5秒后隐藏效果
+            setTimeout(() => {
+                finalEffect.style.display = 'none';
+                
+                // 更新结果信息
+                document.getElementById('result').innerHTML = `
+                    <h2 style="color: #f8d030; text-align: center;">天罡聚财阵已完成！</h2>
+                    <p style="text-align: center; font-size: 1.3rem;">恭喜您！您的财运已提升500%！</p>
+                    <div class="blessing">财神眷顾 · 富贵临门</div>
+                    <p>阵法能量已融入您的命理，未来三个月内将陆续显现效果：</p>
+                    <ul>
+                        <li>意外之财机会增加</li>
+                        <li>事业晋升机遇出现</li>
+                        <li>贵人运显著提升</li>
+                        <li>投资眼光更加精准</li>
+                    </ul>
+                    <p style="text-align: center; font-style: italic; margin-top: 20px;">感谢您诚心完成仪式，请保持积极心态迎接财运变化</p>
+                `;
+            }, 5000);
+        }
+        
+        // 创建金币雨
+        function createCoinRain() {
+            const goldCoins = document.getElementById('goldCoins');
+            goldCoins.innerHTML = '';
+            
+            for (let i = 0; i < 50; i++) {
+                setTimeout(() => {
+                    const coin = document.createElement('div');
+                    coin.className = 'gold-coin';
+                    coin.style.left = `${Math.random() * 100}vw`;
+                    coin.style.top = '-50px';
+                    coin.style.animationDuration = `${Math.random() * 2 + 1}s`;
+                    coin.style.animationDelay = `${Math.random() * 0.5}s`;
+                    goldCoins.appendChild(coin);
+                    
+                    // 动画结束后移除金币
+                    setTimeout(() => {
+                        coin.remove();
+                    }, 3000);
+                }, i * 100);
+            }
+        }
+    </script>
+</body>
+</html>
