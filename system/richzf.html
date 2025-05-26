@@ -949,39 +949,39 @@
         
         // 检查香是否熄灭
         function startExtinguishCheck() {
-            const incenses = [
-                document.getElementById('incense1'),
-                document.getElementById('incense2'),
-                document.getElementById('incense3')
-            ];
-            
-            let extinguishedCount = 0;
-            
-            const checkInterval = setInterval(() => {
-                incenses.forEach(incense => {
-                    if (incense.classList.contains('lit') {
-                        // 10%概率熄灭
-                        if (Math.random() < EXTINGUISH_PROBABILITY) {
-                            incense.classList.remove('lit');
-                            extinguishedCount++;
-                            
-                            // 更新进度信息
-                            document.getElementById('ritualProgress').textContent = 
-                                `警告：${extinguishedCount}/3 根香已熄灭`;
-                            
-                            // 播放音效
-                            playSound('extinguish');
-                            
-                            // 如果全部熄灭，阵法失败
-                            if (extinguishedCount === 3) {
-                                clearInterval(checkInterval);
-                                matrixFailed();
-                            }
-                        }
+    const incenses = [
+        document.getElementById('incense1'),
+        document.getElementById('incense2'),
+        document.getElementById('incense3')
+    ];
+    
+    let extinguishedCount = 0;
+    
+    const checkInterval = setInterval(() => {
+        incenses.forEach(incense => {
+            if (incense.classList.contains('lit')) {
+                // 10%概率熄灭
+                if (Math.random() < EXTINGUISH_PROBABILITY) {
+                    incense.classList.remove('lit');
+                    extinguishedCount++;
+                    
+                    // 更新进度信息
+                    document.getElementById('ritualProgress').textContent = 
+                        `警告：${extinguishedCount}/3 根香已熄灭`;
+                    
+                    // 播放音效
+                    playSound('extinguish');
+                    
+                    // 如果全部熄灭，阵法失败
+                    if (extinguishedCount === 3) {
+                        clearInterval(checkInterval);
+                        matrixFailed();
                     }
-                });
-            }, EXTINGUISH_CHECK_INTERVAL * 1000);
-        }
+                }
+            }
+        });
+    }, EXTINGUISH_CHECK_INTERVAL * 1000);
+}
         
         // 阵法失败
         function matrixFailed() {
