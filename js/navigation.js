@@ -77,8 +77,8 @@ function updateRecentPages() {
     });
     
     // 只保留最近5个记录
-    if (recentPages.length > 5) {
-        recentPages = recentPages.slice(0, 5);
+    if (recentPages.length > 6) {
+        recentPages = recentPages.slice(0, 6);
     }
     
     // 保存到本地存储
