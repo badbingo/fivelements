@@ -48,6 +48,11 @@
         
         .form-group {
             margin-bottom: 1.5rem;
+            display: none; /* 默认隐藏所有输入框 */
+        }
+        
+        #nameGroup {
+            display: block; /* 只显示姓名输入框 */
         }
         
         label {
@@ -301,7 +306,7 @@
             border: 1px solid rgba(224, 192, 128, 0.3);
             margin-bottom: 20px;
             text-align: left;
-            display: none;
+            display: block; /* 默认显示阵法说明 */
         }
         
         .instructions h2 {
@@ -384,18 +389,11 @@
         }
         
         .show-instructions {
-            background: none;
-            border: none;
-            color: #e0c080;
-            text-decoration: underline;
-            cursor: pointer;
-            font-size: 1rem;
-            margin: 10px 0;
-            font-family: 'Noto Serif SC', serif;
+            display: none; /* 隐藏查看说明按钮，因为默认已经显示 */
         }
         
-        .show-instructions:hover {
-            color: #f8d030;
+        .birth-info {
+            display: none; /* 隐藏出生信息部分 */
         }
     </style>
 </head>
@@ -415,8 +413,6 @@
     <div class="container">
         <h1>天罡聚财阵</h1>
         
-        <button class="show-instructions" id="showInstructions">查看阵法使用说明</button>
-        
         <div class="instructions" id="instructions">
             <h2>天罡聚财阵法使用说明</h2>
             <ol>
@@ -424,8 +420,8 @@
                 <li><strong>神奇之处</strong>：阵法激活后，将形成持续24小时的能量场，调整您的财运磁场，吸引财富机遇。</li>
                 <li><strong>使用方法</strong>：
                     <ul>
-                        <li>填写您的真实姓名和准确生辰信息</li>
-                        <li>准备三支香，点击"开始点香仪式"按钮</li>
+                        <li>填写您的真实姓名</li>
+                        <li>点击"开始点香仪式"按钮</li>
                         <li>在心中默念您的财富愿望</li>
                         <li>保持网页开启24小时不关闭</li>
                     </ul>
@@ -441,12 +437,12 @@
             <p style="text-align: center; font-style: italic; color: #f8d030;">"天罡所指，财源广进；七星连珠，富贵临门"</p>
         </div>
         
-        <div class="form-group">
+        <div class="form-group" id="nameGroup">
             <label for="name">请输入您的姓名</label>
             <input type="text" id="name" placeholder="您的姓名">
         </div>
         
-        <div class="form-group">
+        <div class="form-group birth-info">
             <label for="year">请选择您的出生年份</label>
             <select id="year">
                 <option value="">-- 选择年份 --</option>
@@ -454,7 +450,7 @@
             </select>
         </div>
         
-        <div class="form-group">
+        <div class="form-group birth-info">
             <label for="month">请选择您的出生月份</label>
             <select id="month">
                 <option value="">-- 选择月份 --</option>
@@ -473,7 +469,7 @@
             </select>
         </div>
         
-        <div class="form-group">
+        <div class="form-group birth-info">
             <label for="day">请选择您的出生日期</label>
             <select id="day">
                 <option value="">-- 选择日期 --</option>
@@ -481,7 +477,7 @@
             </select>
         </div>
         
-        <div class="form-group">
+        <div class="form-group birth-info">
             <label for="hour">请选择您的出生时辰</label>
             <select id="hour">
                 <option value="">-- 选择时辰 --</option>
@@ -507,8 +503,6 @@
             <div class="incense"></div>
             <div class="incense"></div>
         </div>
-        
-        <button id="activate" style="display: none;">激活聚财阵法</button>
         
         <div class="matrix-container" id="matrixContainer">
             <div class="matrix"></div>
@@ -546,22 +540,12 @@
             daySelect.appendChild(option);
         }
         
-        // 显示/隐藏使用说明
-        document.getElementById('showInstructions').addEventListener('click', function() {
-            const instructions = document.getElementById('instructions');
-            instructions.style.display = instructions.style.display === 'none' ? 'block' : 'none';
-        });
-        
         // 开始点香仪式
         document.getElementById('startRitual').addEventListener('click', function() {
             const name = document.getElementById('name').value.trim();
-            const year = document.getElementById('year').value;
-            const month = document.getElementById('month').value;
-            const day = document.getElementById('day').value;
-            const hour = document.getElementById('hour').value;
             
-            if (!name || !year || !month || !day || !hour) {
-                alert('请填写完整信息');
+            if (!name) {
+                alert('请输入您的姓名');
                 return;
             }
             
@@ -569,22 +553,43 @@
             document.getElementById('incenseContainer').style.display = 'block';
             this.style.display = 'none';
             
-            // 3秒后显示激活按钮
-            setTimeout(() => {
-                document.getElementById('activate').style.display = 'inline-block';
-            }, 3000);
+            // 开始3分钟倒计时
+            startIncenseCountdown();
         });
         
+        // 3分钟点香倒计时
+        function startIncenseCountdown() {
+            let minutes = 3; // 可以修改这个值来测试，比如改为0.1表示6秒
+            let seconds = 0;
+            
+            const timerElement = document.getElementById('timer');
+            timerElement.style.display = 'block';
+            
+            const countdown = setInterval(() => {
+                if (seconds === 0) {
+                    if (minutes === 0) {
+                        clearInterval(countdown);
+                        activateMatrix();
+                        return;
+                    }
+                    minutes--;
+                    seconds = 59;
+                } else {
+                    seconds--;
+                }
+                
+                timerElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }, 1000);
+        }
+        
         // 激活阵法
-        document.getElementById('activate').addEventListener('click', function() {
+        function activateMatrix() {
             const name = document.getElementById('name').value.trim();
             
             // 显示阵法
             document.getElementById('matrixContainer').style.display = 'block';
             document.getElementById('result').style.display = 'block';
-            document.getElementById('timer').style.display = 'block';
             document.getElementById('userNameDisplay').textContent = name;
-            this.style.display = 'none';
             
             // 随机生成阵法结果
             const positions = ['天枢', '天璇', '天玑', '天权', '玉衡', '开阳', '摇光'];
@@ -611,7 +616,7 @@
             
             // 开始24小时倒计时
             startCountdown();
-        });
+        }
         
         // 创建粒子效果
         function createParticles() {
@@ -659,7 +664,8 @@
         
         // 24小时倒计时
         function startCountdown() {
-            let hours = 24;
+            // 可以修改这里的值来测试，比如改为0.05表示3分钟
+            let hours = 24; 
             let minutes = 0;
             let seconds = 0;
             
