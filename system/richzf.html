@@ -56,6 +56,7 @@
             margin-bottom: 25px;
             border: 1px solid rgba(224, 192, 128, 0.3);
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            position: relative;
         }
         
         .instructions {
@@ -82,38 +83,16 @@
         }
         
         .toggle-instructions {
+            position: absolute;
+            top: 15px;
+            right: 15px;
             background: none;
             border: none;
             color: #f8d030;
-            font-family: 'Ma Shan Zheng', cursive;
-            font-size: 1rem;
+            font-size: 1.5rem;
             cursor: pointer;
-            margin-top: 10px;
-            padding: 5px 10px;
-            border-radius: 5px;
-        }
-        
-        .toggle-instructions:hover {
-            text-shadow: 0 0 5px #f8d030;
-        }
-        
-        .expand-instructions {
-            position: absolute;
-            bottom: 10px;
-            right: 10px;
+            padding: 5px;
             z-index: 20;
-            background: rgba(224, 192, 128, 0.2);
-            border: none;
-            color: #f8d030;
-            padding: 5px 10px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-family: 'Ma Shan Zheng', cursive;
-            display: none;
-        }
-        
-        .instructions.collapsed .expand-instructions {
-            display: block;
         }
         
         .instructions h2 {
@@ -123,6 +102,7 @@
             padding-bottom: 10px;
             margin-top: 0;
             text-align: center;
+            padding-right: 40px;
         }
         
         .instructions ol {
@@ -343,20 +323,19 @@
         
         .timer-container {
             position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
+            top: 20px;
+            right: 20px;
             z-index: 11;
             display: none;
         }
         
         .timer {
-            font-size: 3rem;
+            font-size: 2rem;
             color: #f8d030;
             text-shadow: 0 0 10px #f8d030;
             font-family: 'Ma Shan Zheng', cursive;
             background-color: rgba(10, 10, 10, 0.7);
-            padding: 20px 40px;
+            padding: 10px 20px;
             border-radius: 50px;
             display: inline-block;
             border: 1px solid rgba(224, 192, 128, 0.3);
@@ -560,7 +539,7 @@
         
         .wealth-incantation {
             position: fixed;
-            bottom: 20px;
+            top: 70px;
             left: 50%;
             transform: translateX(-50%);
             background-color: rgba(10, 10, 10, 0.8);
@@ -595,6 +574,34 @@
             margin-top: 15px;
             font-size: 1rem;
         }
+        
+        .failure-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(80, 10, 10, 0.9);
+            padding: 30px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 0, 0, 0.5);
+            box-shadow: 0 0 30px rgba(255, 0, 0, 0.5);
+            max-width: 80%;
+            text-align: center;
+            z-index: 100;
+            display: none;
+        }
+        
+        .failure-message h2 {
+            color: #f8d030;
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 2rem;
+            margin-top: 0;
+        }
+        
+        .failure-message p {
+            font-size: 1.2rem;
+            line-height: 1.6;
+        }
     </style>
 </head>
 <body>
@@ -613,11 +620,18 @@
         <div class="final-message" style="animation-delay: 0.5s;">临兵斗者皆阵列前行</div>
     </div>
     
+    <div class="failure-message" id="failureMessage">
+        <h2>阵法失败</h2>
+        <p>三根香全部熄灭，阵法能量已消散</p>
+        <p>请择日重新启动阵法</p>
+    </div>
+    
     <div class="container">
         <h1>天罡聚财阵</h1>
         
         <div class="section instructions" id="instructions">
             <h2>天罡聚财阵法使用说明</h2>
+            <button class="toggle-instructions" id="toggleInstructions">▼</button>
             <ol>
                 <li><strong>阵法起源</strong>：此阵法源于古代道家秘传，结合北斗七星与五行相生原理，能汇聚天地财气。</li>
                 <li><strong>神奇之处</strong>：阵法激活后，将形成持续24小时的能量场，调整您的财运磁场，吸引财富机遇。</li>
@@ -634,14 +648,13 @@
                         <li>心诚则灵，请保持虔诚心态</li>
                         <li>仪式期间请勿刷新或关闭页面</li>
                         <li>最佳激活时间为辰时(7-9点)或酉时(17-19点)</li>
+                        <li>阵法激活后，香有10%几率熄灭，三根香全部熄灭则阵法失败</li>
                     </ul>
                 </li>
             </ol>
             <p style="text-align: center; font-style: italic; color: #f8d030; margin-top: 20px;">
                 "天罡所指，财源广进；七星连珠，富贵临门"
             </p>
-            <button class="toggle-instructions" id="toggleInstructions">收起说明</button>
-            <button class="expand-instructions" id="expandInstructions">展开说明</button>
         </div>
         
         <div class="section form-section" id="formSection">
@@ -749,6 +762,8 @@
         // 配置变量 - 可以修改这些值来调整测试时间
         const INCENSE_DURATION = 3 * 60; // 点香时间(秒) - 测试时可设置为更短时间
         const MATRIX_DURATION = 24 * 60 * 60; // 阵法持续时间(秒) - 测试时可设置为更短时间
+        const EXTINGUISH_PROBABILITY = 0.1; // 每根香熄灭的概率(10%)
+        const EXTINGUISH_CHECK_INTERVAL = 10 * 60; // 检查香是否熄灭的间隔(秒)
         
         // 生成年份选项 (1900-当前年份)
         const yearSelect = document.getElementById('year');
@@ -773,14 +788,7 @@
         document.getElementById('toggleInstructions').addEventListener('click', function() {
             const instructions = document.getElementById('instructions');
             instructions.classList.toggle('collapsed');
-            this.textContent = instructions.classList.contains('collapsed') ? '展开说明' : '收起说明';
-        });
-        
-        // 展开说明按钮
-        document.getElementById('expandInstructions').addEventListener('click', function() {
-            const instructions = document.getElementById('instructions');
-            instructions.classList.remove('collapsed');
-            document.getElementById('toggleInstructions').textContent = '收起说明';
+            this.textContent = instructions.classList.contains('collapsed') ? '▶' : '▼';
         });
         
         // 开始点香仪式
@@ -801,7 +809,7 @@
             
             // 收起说明
             document.getElementById('instructions').classList.add('collapsed');
-            document.getElementById('toggleInstructions').textContent = '展开说明';
+            document.getElementById('toggleInstructions').textContent = '▶';
             
             // 显示进度信息
             const progressElement = document.getElementById('ritualProgress');
@@ -862,6 +870,10 @@
             const timerContainer = document.getElementById('timerContainer');
             timerContainer.style.display = 'block';
             
+            // 显示聚财灵咒
+            const incantation = document.getElementById('wealthIncantation');
+            incantation.style.display = 'block';
+            
             let seconds = INCENSE_DURATION;
             const timerElement = document.getElementById('timer');
             
@@ -870,11 +882,6 @@
                 const remainingSeconds = seconds % 60;
                 
                 timerElement.textContent = `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
-                
-                // 当倒计时剩余3分钟时显示聚财灵咒
-                if (seconds === 180) {
-                    showWealthIncantation();
-                }
                 
                 if (seconds <= 0) {
                     clearInterval(countdown);
@@ -885,21 +892,13 @@
             }, 1000);
         }
         
-        // 显示聚财灵咒
-        function showWealthIncantation() {
-            const incantation = document.getElementById('wealthIncantation');
-            incantation.style.display = 'block';
-            
-            // 3秒后自动隐藏
-            setTimeout(() => {
-                incantation.style.display = 'none';
-            }, 30000); // 30秒后自动隐藏
-        }
-        
         // 点香仪式完成
         function incenseCeremonyComplete(name) {
             // 隐藏倒计时
             document.getElementById('timerContainer').style.display = 'none';
+            
+            // 隐藏聚财灵咒
+            document.getElementById('wealthIncantation').style.display = 'none';
             
             // 更新进度信息
             document.getElementById('ritualProgress').textContent = '点香仪式完成，天罡聚财阵已激活！';
@@ -943,6 +942,64 @@
             
             // 开始24小时倒计时
             startMatrixCountdown();
+            
+            // 开始检查香是否熄灭
+            startExtinguishCheck();
+        }
+        
+        // 检查香是否熄灭
+        function startExtinguishCheck() {
+            const incenses = [
+                document.getElementById('incense1'),
+                document.getElementById('incense2'),
+                document.getElementById('incense3')
+            ];
+            
+            let extinguishedCount = 0;
+            
+            const checkInterval = setInterval(() => {
+                incenses.forEach(incense => {
+                    if (incense.classList.contains('lit') {
+                        // 10%概率熄灭
+                        if (Math.random() < EXTINGUISH_PROBABILITY) {
+                            incense.classList.remove('lit');
+                            extinguishedCount++;
+                            
+                            // 更新进度信息
+                            document.getElementById('ritualProgress').textContent = 
+                                `警告：${extinguishedCount}/3 根香已熄灭`;
+                            
+                            // 播放音效
+                            playSound('extinguish');
+                            
+                            // 如果全部熄灭，阵法失败
+                            if (extinguishedCount === 3) {
+                                clearInterval(checkInterval);
+                                matrixFailed();
+                            }
+                        }
+                    }
+                });
+            }, EXTINGUISH_CHECK_INTERVAL * 1000);
+        }
+        
+        // 阵法失败
+        function matrixFailed() {
+            // 显示失败信息
+            document.getElementById('failureMessage').style.display = 'block';
+            
+            // 隐藏其他元素
+            document.getElementById('matrixContainer').style.display = 'none';
+            document.getElementById('timerContainer').style.display = 'none';
+            document.getElementById('incenseContainer').style.display = 'none';
+            
+            // 更新进度信息
+            document.getElementById('ritualProgress').textContent = '阵法失败：三根香全部熄灭';
+            
+            // 5秒后自动刷新页面
+            setTimeout(() => {
+                location.reload();
+            }, 5000);
         }
         
         // 创建粒子效果
