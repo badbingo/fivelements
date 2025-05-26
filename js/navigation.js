@@ -354,7 +354,7 @@ function createNavigation() {
         navLink.href = item.href;
         navLink.className = 'nav-link';
         
-        // 修复这里：移除多余括号
+        // 设置当前活动菜单项
         const currentPath = window.location.pathname;
         if (currentPath === item.href || 
             (item.dropdown && item.dropdown.some(sub => currentPath === sub.href))) {
@@ -384,15 +384,18 @@ function createNavigation() {
                 dropdownLink.href = dropdownItem.href;
                 dropdownLink.className = 'dropdown-link';
                 
+                // 设置当前活动子菜单项
                 if (window.location.pathname === dropdownItem.href) {
                     dropdownLink.classList.add('active');
                     navLink.classList.add('active');
                 }
                 
+                // 根据文字长度添加类名
                 if (dropdownItem.text.length >= 6) {
                     dropdownLink.classList.add('long-text');
                 }
                 
+                // 用span包裹文字以便精确控制
                 const textSpan = document.createElement('span');
                 textSpan.textContent = dropdownItem.text;
                 dropdownLink.appendChild(textSpan);
@@ -409,7 +412,7 @@ function createNavigation() {
     
     mainNav.appendChild(navList);
     
-    // 5. 移动端菜单按钮
+    // 5. 移动端菜单按钮（修复了变量定义顺序问题）
     const mobileMenuBtn = document.createElement('div');
     mobileMenuBtn.className = 'mobile-menu-btn';
     mobileMenuBtn.innerHTML = `
