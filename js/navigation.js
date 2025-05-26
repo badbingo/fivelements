@@ -26,9 +26,9 @@ const pathNameMap = {
     'common': '常见格局',
     'special': '特殊格局',
     'bazi-test': '八字试题',
-    'system': '命理系统',
-    'bazi': '八字排盘',
-    'hehun': '八字合婚',
+    'system': '洞察天机',
+    'bazi': '机缘命理系统',
+    'hehun': '八字合婚系统',
     'liuyao': '六爻起卦',
     'about': '关于我们'
 };
