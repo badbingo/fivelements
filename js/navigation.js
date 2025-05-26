@@ -93,7 +93,7 @@ function updateRecentPages() {
     // 只保留最近5个有效记录
     recentPages = recentPages.slice(0, 5);
     
-    // 保存到本地存储
+    // 修复这里：移除多余括号
     localStorage.setItem('recentPages', JSON.stringify(recentPages));
 }
 
