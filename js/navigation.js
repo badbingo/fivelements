@@ -95,6 +95,9 @@ function createBreadcrumb() {
     const breadcrumbContainer = document.createElement('div');
     breadcrumbContainer.className = 'breadcrumb-container';
     
+    const breadcrumbWrapper = document.createElement('div');
+    breadcrumbWrapper.className = 'breadcrumb-wrapper'; // 新增包裹层
+    
     const breadcrumb = document.createElement('div');
     breadcrumb.className = 'breadcrumb';
     
@@ -155,20 +158,22 @@ function createBreadcrumb() {
         breadcrumb.appendChild(breadcrumbItem);
     });
     
-    breadcrumbContainer.appendChild(breadcrumb);
+    breadcrumbWrapper.appendChild(breadcrumb);
     
-    // 添加最近访问部分
-    addRecentPagesSection(breadcrumbContainer);
+    // 添加最近访问部分到同一行右侧
+    addRecentPagesSection(breadcrumbWrapper);
+    
+    breadcrumbContainer.appendChild(breadcrumbWrapper);
     
     // 添加到页面中
     insertBreadcrumbIntoDOM(breadcrumbContainer);
 }
 
 /**
- * 添加最近访问部分
+ * 添加最近访问部分到右侧
  */
-function addRecentPagesSection(container) {
-    const recentPages = JSON.parse(localStorage.getItem('recentPages') || '[]');
+function addRecentPagesSection(wrapper) {
+    const recentPages = JSON.parse(localStorage.getItem('recentPages') || '[]';
     if (recentPages.length === 0) return;
     
     // 过滤掉当前页面
@@ -179,7 +184,7 @@ function addRecentPagesSection(container) {
     const recentContainer = document.createElement('div');
     recentContainer.className = 'recent-pages-container';
     
-    const recentTitle = document.createElement('div');
+    const recentTitle = document.createElement('span');
     recentTitle.className = 'recent-title';
     recentTitle.textContent = '最近浏览:';
     recentContainer.appendChild(recentTitle);
@@ -192,7 +197,9 @@ function addRecentPagesSection(container) {
         recentItem.href = page.path;
         recentItem.className = 'recent-page-item';
         recentItem.textContent = page.title;
-        recentItem.title = page.title; // 添加title属性用于鼠标悬停显示完整名称
+        recentItem.title = page.title;
+        
+        recentList.appendChild(recentItem);
         
         // 添加分隔符（最后一个不加）
         if (index < filteredPages.length - 1) {
@@ -201,14 +208,11 @@ function addRecentPagesSection(container) {
             separator.textContent = '•';
             recentList.appendChild(separator);
         }
-        
-        recentList.appendChild(recentItem);
     });
     
     recentContainer.appendChild(recentList);
-    container.appendChild(recentContainer);
+    wrapper.appendChild(recentContainer);
 }
-
 /**
  * 将面包屑导航插入到DOM中
  */
