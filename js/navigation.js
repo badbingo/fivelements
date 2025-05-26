@@ -1,4 +1,5 @@
-// 更新面包屑导航中文映射
+// 面包屑导航完整版JS代码
+// 路径名称映射表
 const pathNameMap = {
     'seven': '七步速成',
     'basics': '基础知识',
@@ -32,12 +33,12 @@ const pathNameMap = {
     'about': '关于我们'
 };
 
-// 导航系统主功能
+// 主功能入口
 document.addEventListener('DOMContentLoaded', function() {
     // 创建导航栏
     createNavigation();
     
-    // 创建面包屑导航
+    // 创建面包屑导航和最近访问记录
     createBreadcrumb();
     
     // 移动端菜单切换
@@ -47,15 +48,189 @@ document.addEventListener('DOMContentLoaded', function() {
     setupScrollEffects();
 });
 
-// 在导航项创建时调用
-if (item.dropdown) {
-    const dropdownIcon = document.createElement('i');
-    dropdownIcon.className = 'fas fa-chevron-down dropdown-icon';
-    navLink.appendChild(dropdownIcon);
+/**
+ * 更新最近访问页面记录
+ */
+function updateRecentPages() {
+    const currentPath = window.location.pathname;
+    const currentTitle = document.title;
     
-    createDropdownMenu(item.dropdown, navItem);
+    // 获取当前页面的显示名称
+    let displayName = currentTitle;
+    const pathSegments = currentPath.split('/').filter(Boolean);
+    const lastSegment = pathSegments[pathSegments.length - 1].replace('.html', '');
+    if (pathNameMap[lastSegment]) {
+        displayName = pathNameMap[lastSegment];
+    }
+    
+    // 获取现有的最近访问记录
+    let recentPages = JSON.parse(localStorage.getItem('recentPages') || [];
+    
+    // 如果当前页面已经在记录中，先移除它
+    recentPages = recentPages.filter(page => page.path !== currentPath);
+    
+    // 添加当前页面到记录开头
+    recentPages.unshift({
+        path: currentPath,
+        title: displayName,
+        timestamp: Date.now()
+    });
+    
+    // 只保留最近5个记录
+    if (recentPages.length > 5) {
+        recentPages = recentPages.slice(0, 5);
+    }
+    
+    // 保存到本地存储
+    localStorage.setItem('recentPages', JSON.stringify(recentPages));
 }
-// 创建导航栏（完整修复版 - 使用绝对路径）
+
+/**
+ * 创建面包屑导航
+ */
+function createBreadcrumb() {
+    // 更新最近访问记录
+    updateRecentPages();
+    
+    const breadcrumbContainer = document.createElement('div');
+    breadcrumbContainer.className = 'breadcrumb-container';
+    
+    const breadcrumb = document.createElement('div');
+    breadcrumb.className = 'breadcrumb';
+    
+    // 首页面包屑
+    const homeItem = document.createElement('div');
+    homeItem.className = 'breadcrumb-item';
+    homeItem.innerHTML = `
+        <a href="/"><i class="fas fa-home"></i> 首页</a>
+        <span class="breadcrumb-separator"><i class="fas fa-chevron-right"></i></span>
+    `;
+    breadcrumb.appendChild(homeItem);
+    
+    // 获取当前路径并生成面包屑
+    const path = window.location.pathname.split('/').filter(Boolean);
+    let currentPath = '';
+    
+    // 主目录与图标映射
+    const mainCategories = {
+        'basics': { icon: 'fa-book-open', name: '基础知识' },
+        'advanced': { icon: 'fa-chart-line', name: '进阶知识' },
+        'tools': { icon: 'fa-tools', name: '学习工具' },
+        'system': { icon: 'fa-shapes', name: '洞察天机' }
+    };
+    
+    path.forEach((segment, index) => {
+        currentPath += '/' + segment;
+        const isLast = index === path.length - 1;
+        
+        // 移除.html后缀
+        let key = segment.replace('.html', '');
+        // 获取中文名称，如果没有映射则使用原名称
+        let displayText = pathNameMap[key] || key;
+        
+        const breadcrumbItem = document.createElement('div');
+        breadcrumbItem.className = 'breadcrumb-item';
+        
+        // 检查是否是主目录
+        if (mainCategories[key]) {
+            breadcrumbItem.classList.add('no-link');
+            const category = mainCategories[key];
+            breadcrumbItem.innerHTML = `
+                <span>
+                    <i class="fas ${category.icon}"></i>${category.name}
+                </span>
+                ${!isLast ? `<span class="breadcrumb-separator"><i class="fas fa-chevron-right"></i></span>` : ''}
+            `;
+        } else if (isLast) {
+            breadcrumbItem.innerHTML = `<span class="active">${displayText}</span>`;
+        } else {
+            // 确保链接使用绝对路径
+            const linkPath = currentPath.startsWith('/') ? currentPath : '/' + currentPath;
+            breadcrumbItem.innerHTML = `
+                <a href="${linkPath}">${displayText}</a>
+                <span class="breadcrumb-separator"><i class="fas fa-chevron-right"></i></span>
+            `;
+        }
+        
+        breadcrumb.appendChild(breadcrumbItem);
+    });
+    
+    breadcrumbContainer.appendChild(breadcrumb);
+    
+    // 添加最近访问部分
+    addRecentPagesSection(breadcrumbContainer);
+    
+    // 添加到页面中
+    insertBreadcrumbIntoDOM(breadcrumbContainer);
+}
+
+/**
+ * 添加最近访问部分
+ */
+function addRecentPagesSection(container) {
+    const recentPages = JSON.parse(localStorage.getItem('recentPages') || '[]');
+    if (recentPages.length === 0) return;
+    
+    // 过滤掉当前页面
+    const currentPath = window.location.pathname;
+    const filteredPages = recentPages.filter(page => page.path !== currentPath);
+    if (filteredPages.length === 0) return;
+    
+    const recentContainer = document.createElement('div');
+    recentContainer.className = 'recent-pages-container';
+    
+    const recentTitle = document.createElement('div');
+    recentTitle.className = 'recent-title';
+    recentTitle.textContent = '最近浏览:';
+    recentContainer.appendChild(recentTitle);
+    
+    const recentList = document.createElement('div');
+    recentList.className = 'recent-pages-list';
+    
+    filteredPages.forEach((page, index) => {
+        const recentItem = document.createElement('a');
+        recentItem.href = page.path;
+        recentItem.className = 'recent-page-item';
+        recentItem.textContent = page.title;
+        recentItem.title = page.title; // 添加title属性用于鼠标悬停显示完整名称
+        
+        // 添加分隔符（最后一个不加）
+        if (index < filteredPages.length - 1) {
+            const separator = document.createElement('span');
+            separator.className = 'recent-separator';
+            separator.textContent = '•';
+            recentList.appendChild(separator);
+        }
+        
+        recentList.appendChild(recentItem);
+    });
+    
+    recentContainer.appendChild(recentList);
+    container.appendChild(recentContainer);
+}
+
+/**
+ * 将面包屑导航插入到DOM中
+ */
+function insertBreadcrumbIntoDOM(breadcrumbContainer) {
+    // 尝试插入到main标签前
+    const mainContent = document.querySelector('main') || document.querySelector('.content-container');
+    if (mainContent) {
+        document.body.insertBefore(breadcrumbContainer, mainContent);
+    } 
+    // 如果没有找到main或.content-container，尝试插入到header之后
+    else if (document.querySelector('header')) {
+        document.querySelector('header').after(breadcrumbContainer);
+    } 
+    // 最后尝试插入到body的开头
+    else {
+        document.body.insertBefore(breadcrumbContainer, document.body.firstChild);
+    }
+}
+
+/**
+ * 创建导航栏
+ */
 function createNavigation() {
     const header = document.createElement('header');
     header.className = 'main-header';
@@ -68,7 +243,7 @@ function createNavigation() {
     logoContainer.className = 'logo-container';
     
     const logoLink = document.createElement('a');
-    logoLink.href = '/'; // 根目录首页
+    logoLink.href = '/';
     logoLink.className = 'logo-link';
     
     const logoText = document.createElement('div');
@@ -89,7 +264,7 @@ function createNavigation() {
     const navList = document.createElement('ul');
     navList.className = 'nav-list';
     
-    // 导航菜单项数据（全部使用绝对路径）
+    // 导航菜单项数据
     const navItems = [
         {
             text: '七步速成',
@@ -202,13 +377,13 @@ function createNavigation() {
             item.dropdown.forEach(dropdownItem => {
                 const dropdownLi = document.createElement('li');
                 const dropdownLink = document.createElement('a');
-                dropdownLink.href = dropdownItem.href; // 直接使用绝对路径
+                dropdownLink.href = dropdownItem.href;
                 dropdownLink.className = 'dropdown-link';
                 
                 // 设置当前活动子菜单项
                 if (window.location.pathname === dropdownItem.href) {
                     dropdownLink.classList.add('active');
-                    navLink.classList.add('active'); // 同时激活父菜单
+                    navLink.classList.add('active');
                 }
                 
                 // 根据文字长度添加类名
@@ -247,88 +422,11 @@ function createNavigation() {
     
     // 6. 添加到页面顶部
     document.body.insertBefore(header, document.body.firstChild);
-    
-    // 7. 初始化移动端菜单交互
-    setupMobileMenu();
 }
 
-// 修改后的面包屑导航函数
-function createBreadcrumb() {
-    const breadcrumbContainer = document.createElement('div');
-    breadcrumbContainer.className = 'breadcrumb-container';
-    
-    const breadcrumb = document.createElement('div');
-    breadcrumb.className = 'breadcrumb';
-    
-    // 首页面包屑
-    const homeItem = document.createElement('div');
-    homeItem.className = 'breadcrumb-item';
-    homeItem.innerHTML = `
-        <a href="/"><i class="fas fa-home"></i> 首页</a>
-        <span class="breadcrumb-separator"><i class="fas fa-chevron-right"></i></span>
-    `;
-    breadcrumb.appendChild(homeItem);
-    
-    // 获取当前路径并生成面包屑
-    const path = window.location.pathname.split('/').filter(Boolean);
-    let currentPath = '';
-    
-    // 主目录与图标映射
-    const mainCategories = {
-        'basics': { icon: 'fa-book-open', name: '基础知识' },
-        'advanced': { icon: 'fa-chart-line', name: '进阶知识' },
-        'tools': { icon: 'fa-tools', name: '学习工具' },
-        'system': { icon: 'fa-shapes', name: '洞察天机' }
-    };
-    
-    path.forEach((segment, index) => {
-    currentPath += '/' + segment;
-    const isLast = index === path.length - 1;
-    
-    // 移除.html后缀
-    let key = segment.replace('.html', '');
-    // 获取中文名称，如果没有映射则使用原名称
-    let displayText = pathNameMap[key] || key;
-    
-    const breadcrumbItem = document.createElement('div');
-    breadcrumbItem.className = 'breadcrumb-item';
-    
-    // 检查是否是主目录
-    if (mainCategories[key]) {
-        breadcrumbItem.classList.add('no-link');
-        const category = mainCategories[key];
-        breadcrumbItem.innerHTML = `
-            <span>
-                <i class="fas ${category.icon}"></i>${category.name}
-            </span>
-            ${!isLast ? `<span class="breadcrumb-separator"><i class="fas fa-chevron-right"></i></span>` : ''}
-        `;
-    } else if (isLast) {
-        breadcrumbItem.innerHTML = `<span class="active">${displayText}</span>`;
-    } else {
-        // 确保链接使用绝对路径
-        const linkPath = currentPath.startsWith('/') ? currentPath : '/' + currentPath;
-        breadcrumbItem.innerHTML = `
-            <a href="${linkPath}">${displayText}</a>
-            <span class="breadcrumb-separator"><i class="fas fa-chevron-right"></i></span>
-        `;
-    }
-    
-    breadcrumb.appendChild(breadcrumbItem);
-});
-    
-    breadcrumbContainer.appendChild(breadcrumb);
-    
-    // 添加到页面中
-    const mainContent = document.querySelector('main') || document.querySelector('.content-container');
-    if (mainContent) {
-        document.body.insertBefore(breadcrumbContainer, mainContent);
-    } else {
-        document.body.appendChild(breadcrumbContainer);
-    }
-}
-
-// 设置移动端菜单
+/**
+ * 设置移动端菜单
+ */
 function setupMobileMenu() {
     const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
     const mainNav = document.querySelector('.main-nav');
@@ -356,7 +454,9 @@ function setupMobileMenu() {
     }
 }
 
-// 设置滚动效果
+/**
+ * 设置滚动效果
+ */
 function setupScrollEffects() {
     // 滚动时改变导航栏样式
     window.addEventListener('scroll', function() {
