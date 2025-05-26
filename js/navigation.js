@@ -407,6 +407,16 @@ function createNavigation() {
     });
     
     mainNav.appendChild(navList);
+    
+    // 5. 移动端菜单按钮（修复了变量定义顺序问题）
+    const mobileMenuBtn = document.createElement('div');
+    mobileMenuBtn.className = 'mobile-menu-btn';
+    mobileMenuBtn.innerHTML = `
+        <span class="bar"></span>
+        <span class="bar"></span>
+        <span class="bar"></span>
+    `;
+    
     container.appendChild(mobileMenuBtn);
     container.appendChild(mainNav);
     header.appendChild(container);
