@@ -180,7 +180,7 @@ function createBreadcrumb() {
  * 添加最近访问部分
  */
 function addRecentPagesSection(container) {
-    const recentPages = JSON.parse(localStorage.getItem('recentPages') || '[]');
+    const recentPages = JSON.parse(localStorage.getItem('recentPages') || '[]';
     if (recentPages.length === 0) return;
     
     // 过滤掉无效记录和当前页面
@@ -195,9 +195,18 @@ function addRecentPagesSection(container) {
     
     if (filteredPages.length === 0) return;
     
-    // 创建最近浏览容器并修改样式为行内
+    // 创建外层flex容器
+    const flexContainer = document.createElement('div');
+    flexContainer.className = 'breadcrumb-flex-container';
+    
+    // 将原有面包屑放入flex容器
+    const breadcrumb = container.querySelector('.breadcrumb');
+    container.insertBefore(flexContainer, breadcrumb);
+    flexContainer.appendChild(breadcrumb);
+    
+    // 创建最近浏览容器
     const recentContainer = document.createElement('div');
-    recentContainer.className = 'recent-pages-container inline-recent';
+    recentContainer.className = 'recent-pages-container right-aligned';
     
     const recentTitle = document.createElement('span');
     recentTitle.className = 'recent-title';
@@ -208,7 +217,6 @@ function addRecentPagesSection(container) {
     recentList.className = 'recent-pages-list';
     
     filteredPages.forEach((page, index) => {
-        // 验证页面数据
         if (!page.path || !page.title) return;
         
         const recentItem = document.createElement('a');
@@ -219,7 +227,6 @@ function addRecentPagesSection(container) {
         
         recentList.appendChild(recentItem);
         
-        // 添加分隔符（最后一个不加）
         if (index < filteredPages.length - 1) {
             const separator = document.createElement('span');
             separator.className = 'recent-separator';
@@ -229,10 +236,7 @@ function addRecentPagesSection(container) {
     });
     
     recentContainer.appendChild(recentList);
-    
-    // 将最近浏览添加到面包屑容器的最右边
-    const breadcrumb = container.querySelector('.breadcrumb');
-    breadcrumb.appendChild(recentContainer);
+    flexContainer.appendChild(recentContainer);
 }
 
 /**
