@@ -157,17 +157,17 @@ function createBreadcrumb() {
     
     breadcrumbContainer.appendChild(breadcrumb);
     
-    // 添加最近访问部分
-    addRecentPagesSection(breadcrumbContainer);
-    
     // 添加到页面中
     insertBreadcrumbIntoDOM(breadcrumbContainer);
+    
+    // 添加最近访问部分到页面底部
+    addRecentPagesToFooter();
 }
 
 /**
- * 添加最近访问部分
+ * 将最近访问部分添加到页面底部
  */
-function addRecentPagesSection(container) {
+function addRecentPagesToFooter() {
     const recentPages = JSON.parse(localStorage.getItem('recentPages') || '[]');
     if (recentPages.length === 0) return;
     
@@ -176,8 +176,12 @@ function addRecentPagesSection(container) {
     const filteredPages = recentPages.filter(page => page.path !== currentPath);
     if (filteredPages.length === 0) return;
     
+    const footer = document.querySelector('footer');
+    if (!footer) return;
+    
+    // 创建最近浏览容器
     const recentContainer = document.createElement('div');
-    recentContainer.className = 'recent-pages-container';
+    recentContainer.className = 'recent-pages-footer';
     
     const recentTitle = document.createElement('div');
     recentTitle.className = 'recent-title';
@@ -192,21 +196,23 @@ function addRecentPagesSection(container) {
         recentItem.href = page.path;
         recentItem.className = 'recent-page-item';
         recentItem.textContent = page.title;
-        recentItem.title = page.title; // 添加title属性用于鼠标悬停显示完整名称
+        recentItem.title = page.title;
+        
+        recentList.appendChild(recentItem);
         
         // 添加分隔符（最后一个不加）
         if (index < filteredPages.length - 1) {
             const separator = document.createElement('span');
             separator.className = 'recent-separator';
-            separator.textContent = '•';
+            separator.textContent = '|';
             recentList.appendChild(separator);
         }
-        
-        recentList.appendChild(recentItem);
     });
     
     recentContainer.appendChild(recentList);
-    container.appendChild(recentContainer);
+    
+    // 插入到footer之前
+    footer.parentNode.insertBefore(recentContainer, footer);
 }
 
 /**
