@@ -55,6 +55,11 @@ function updateRecentPages() {
     const currentPath = window.location.pathname;
     const currentTitle = document.title;
     
+    // 排除不需要记录的页面
+    if (currentPath === '/' || currentPath === '/index.html') {
+        return;
+    }
+    
     // 获取当前页面的显示名称
     let displayName = currentTitle;
     const pathSegments = currentPath.split('/').filter(Boolean);
@@ -66,8 +71,17 @@ function updateRecentPages() {
     // 获取现有的最近访问记录
     let recentPages = JSON.parse(localStorage.getItem('recentPages') || '[]');
     
+    // 验证并清理现有数据
+    recentPages = recentPages.filter(page => 
+        page && page.path && page.title && page.timestamp
+    );
+    
     // 如果当前页面已经在记录中，先移除它
-    recentPages = recentPages.filter(page => page.path !== currentPath);
+    recentPages = recentPages.filter(page => 
+        page.path !== currentPath && 
+        !page.path.includes('undefined') &&
+        !page.title.includes('undefined')
+    );
     
     // 添加当前页面到记录开头
     recentPages.unshift({
@@ -76,10 +90,8 @@ function updateRecentPages() {
         timestamp: Date.now()
     });
     
-    // 只保留最近5个记录
-    if (recentPages.length > 5) {
-        recentPages = recentPages.slice(0, 5);
-    }
+    // 只保留最近5个有效记录
+    recentPages = recentPages.slice(0, 5);
     
     // 保存到本地存储
     localStorage.setItem('recentPages', JSON.stringify(recentPages));
@@ -171,28 +183,41 @@ function addRecentPagesSection(container) {
     const recentPages = JSON.parse(localStorage.getItem('recentPages') || '[]');
     if (recentPages.length === 0) return;
     
-    // 过滤掉当前页面
+    // 过滤掉无效记录和当前页面
     const currentPath = window.location.pathname;
-    const filteredPages = recentPages.filter(page => page.path !== currentPath);
+    const filteredPages = recentPages.filter(page => 
+        page && 
+        page.path && 
+        page.title && 
+        page.path !== currentPath &&
+        !page.path.includes('undefined')
+    );
+    
     if (filteredPages.length === 0) return;
     
+    // 创建最近浏览容器并修改样式为行内
     const recentContainer = document.createElement('div');
-    recentContainer.className = 'recent-pages-container';
+    recentContainer.className = 'recent-pages-container inline-recent';
     
-    const recentTitle = document.createElement('div');
+    const recentTitle = document.createElement('span');
     recentTitle.className = 'recent-title';
     recentTitle.textContent = '最近浏览:';
     recentContainer.appendChild(recentTitle);
     
-    const recentList = document.createElement('div');
+    const recentList = document.createElement('span');
     recentList.className = 'recent-pages-list';
     
     filteredPages.forEach((page, index) => {
+        // 验证页面数据
+        if (!page.path || !page.title) return;
+        
         const recentItem = document.createElement('a');
         recentItem.href = page.path;
         recentItem.className = 'recent-page-item';
         recentItem.textContent = page.title;
-        recentItem.title = page.title; // 添加title属性用于鼠标悬停显示完整名称
+        recentItem.title = page.title;
+        
+        recentList.appendChild(recentItem);
         
         // 添加分隔符（最后一个不加）
         if (index < filteredPages.length - 1) {
@@ -201,12 +226,13 @@ function addRecentPagesSection(container) {
             separator.textContent = '•';
             recentList.appendChild(separator);
         }
-        
-        recentList.appendChild(recentItem);
     });
     
     recentContainer.appendChild(recentList);
-    container.appendChild(recentContainer);
+    
+    // 将最近浏览添加到面包屑容器的最右边
+    const breadcrumb = container.querySelector('.breadcrumb');
+    breadcrumb.appendChild(recentContainer);
 }
 
 /**
