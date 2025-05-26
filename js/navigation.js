@@ -95,9 +95,6 @@ function createBreadcrumb() {
     const breadcrumbContainer = document.createElement('div');
     breadcrumbContainer.className = 'breadcrumb-container';
     
-    const breadcrumbWrapper = document.createElement('div');
-    breadcrumbWrapper.className = 'breadcrumb-wrapper'; // 新增包裹层
-    
     const breadcrumb = document.createElement('div');
     breadcrumb.className = 'breadcrumb';
     
@@ -158,22 +155,20 @@ function createBreadcrumb() {
         breadcrumb.appendChild(breadcrumbItem);
     });
     
-    breadcrumbWrapper.appendChild(breadcrumb);
+    breadcrumbContainer.appendChild(breadcrumb);
     
-    // 添加最近访问部分到同一行右侧
-    addRecentPagesSection(breadcrumbWrapper);
-    
-    breadcrumbContainer.appendChild(breadcrumbWrapper);
+    // 添加最近访问部分
+    addRecentPagesSection(breadcrumbContainer);
     
     // 添加到页面中
     insertBreadcrumbIntoDOM(breadcrumbContainer);
 }
 
 /**
- * 添加最近访问部分到右侧
+ * 添加最近访问部分
  */
-function addRecentPagesSection(wrapper) {
-    const recentPages = JSON.parse(localStorage.getItem('recentPages') || '[]';
+function addRecentPagesSection(container) {
+    const recentPages = JSON.parse(localStorage.getItem('recentPages') || '[]');
     if (recentPages.length === 0) return;
     
     // 过滤掉当前页面
@@ -184,7 +179,7 @@ function addRecentPagesSection(wrapper) {
     const recentContainer = document.createElement('div');
     recentContainer.className = 'recent-pages-container';
     
-    const recentTitle = document.createElement('span');
+    const recentTitle = document.createElement('div');
     recentTitle.className = 'recent-title';
     recentTitle.textContent = '最近浏览:';
     recentContainer.appendChild(recentTitle);
@@ -197,9 +192,7 @@ function addRecentPagesSection(wrapper) {
         recentItem.href = page.path;
         recentItem.className = 'recent-page-item';
         recentItem.textContent = page.title;
-        recentItem.title = page.title;
-        
-        recentList.appendChild(recentItem);
+        recentItem.title = page.title; // 添加title属性用于鼠标悬停显示完整名称
         
         // 添加分隔符（最后一个不加）
         if (index < filteredPages.length - 1) {
@@ -208,11 +201,14 @@ function addRecentPagesSection(wrapper) {
             separator.textContent = '•';
             recentList.appendChild(separator);
         }
+        
+        recentList.appendChild(recentItem);
     });
     
     recentContainer.appendChild(recentList);
-    wrapper.appendChild(recentContainer);
+    container.appendChild(recentContainer);
 }
+
 /**
  * 将面包屑导航插入到DOM中
  */
@@ -411,16 +407,6 @@ function createNavigation() {
     });
     
     mainNav.appendChild(navList);
-    
-    // 5. 移动端菜单按钮（修复了变量定义顺序问题）
-    const mobileMenuBtn = document.createElement('div');
-    mobileMenuBtn.className = 'mobile-menu-btn';
-    mobileMenuBtn.innerHTML = `
-        <span class="bar"></span>
-        <span class="bar"></span>
-        <span class="bar"></span>
-    `;
-    
     container.appendChild(mobileMenuBtn);
     container.appendChild(mainNav);
     header.appendChild(container);
