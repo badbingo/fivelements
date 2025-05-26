@@ -22,6 +22,12 @@
             background-image: 
                 radial-gradient(circle at center, #111 0%, #000 70%),
                 url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><path d="M30,50 Q50,30 70,50 T90,50" fill="none" stroke="%23e0c080" stroke-width="0.2" opacity="0.1"/></svg>');
+            animation: bgMove 60s linear infinite;
+        }
+        
+        @keyframes bgMove {
+            0% { background-position: 0 0, 0 0; }
+            100% { background-position: 100px 100px, 200px 200px; }
         }
         
         .container {
@@ -55,6 +61,39 @@
         .instructions {
             text-align: left;
             line-height: 1.8;
+            transition: all 0.5s ease;
+        }
+        
+        .instructions.collapsed {
+            height: 80px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .instructions.collapsed::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 30px;
+            background: linear-gradient(to bottom, transparent, rgba(10,10,10,0.9));
+        }
+        
+        .toggle-instructions {
+            background: none;
+            border: none;
+            color: #f8d030;
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-top: 10px;
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+        
+        .toggle-instructions:hover {
+            text-shadow: 0 0 5px #f8d030;
         }
         
         .instructions h2 {
@@ -284,21 +323,20 @@
         
         .timer-container {
             position: fixed;
-            bottom: 30px;
-            left: 0;
-            width: 100%;
-            text-align: center;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
             z-index: 11;
             display: none;
         }
         
         .timer {
-            font-size: 2.2rem;
+            font-size: 3rem;
             color: #f8d030;
             text-shadow: 0 0 10px #f8d030;
             font-family: 'Ma Shan Zheng', cursive;
             background-color: rgba(10, 10, 10, 0.7);
-            padding: 10px 30px;
+            padding: 20px 40px;
             border-radius: 50px;
             display: inline-block;
             border: 1px solid rgba(224, 192, 128, 0.3);
@@ -307,44 +345,55 @@
         
         .incense-container {
             position: fixed;
-            bottom: 100px;
-            left: 0;
-            width: 100%;
-            text-align: center;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
             z-index: 11;
             display: none;
         }
         
+        .incense-container.bottom {
+            top: auto;
+            bottom: 150px;
+            transform: translateX(-50%);
+        }
+        
         .incense {
             display: inline-block;
-            width: 40px;
+            width: 30px;
             height: 150px;
             background: linear-gradient(to bottom, #8B4513, #A0522D);
             margin: 0 25px;
             position: relative;
             border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
         }
         
-        .incense::after {
+        .incense:hover {
+            transform: translateY(-5px);
+        }
+        
+        .incense.lit::after {
+            content: '';
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 6px;
+            height: 30px;
+            background: linear-gradient(to bottom, #FFD700, #FFA500);
+            border-radius: 5px 5px 0 0;
+        }
+        
+        .incense.lit::before {
             content: '';
             position: absolute;
             top: -40px;
             left: 50%;
             transform: translateX(-50%);
-            width: 8px;
-            height: 40px;
-            background: linear-gradient(to bottom, #FFD700, #FFA500);
-            border-radius: 5px 5px 0 0;
-        }
-        
-        .incense::before {
-            content: '';
-            position: absolute;
-            top: -50px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 25px;
-            height: 25px;
+            width: 20px;
+            height: 20px;
             background: radial-gradient(ellipse at center, rgba(255,100,0,0.8) 0%, rgba(255,50,0,0) 70%);
             border-radius: 50%;
             animation: smoke 3s infinite ease-out;
@@ -450,6 +499,44 @@
             margin: 20px 0;
             color: #e0c080;
         }
+        
+        /* Taoist background elements */
+        .taoist-symbols {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.1;
+        }
+        
+        .taoist-symbol {
+            position: absolute;
+            font-size: 3rem;
+            color: #f8d030;
+            animation: float 15s infinite ease-in-out;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(5deg); }
+        }
+        
+        .bagua {
+            position: fixed;
+            width: 300px;
+            height: 300px;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><circle cx="100" cy="100" r="95" fill="none" stroke="%23e0c080" stroke-width="2" opacity="0.1"/><path d="M100,5 A95,95 0 0,1 100,195 A95,95 0 0,1 100,5 Z" fill="%23e0c080" opacity="0.05"/><path d="M100,5 A95,95 0 0,0 100,195 A95,95 0 0,0 100,5 Z" fill="%23e0c080" opacity="0.05"/><circle cx="100" cy="60" r="10" fill="%23e0c080" opacity="0.1"/><circle cx="100" cy="140" r="10" fill="%23e0c080" opacity="0.1"/></svg>');
+            background-size: contain;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation: rotate 200s linear infinite;
+            opacity: 0.2;
+            z-index: 0;
+        }
     </style>
 </head>
 <body>
@@ -460,15 +547,18 @@
     <div class="circle circle-2"></div>
     <div class="circle circle-3"></div>
     
+    <div class="bagua"></div>
+    <div class="taoist-symbols" id="taoistSymbols"></div>
+    
     <div class="final-effect" id="finalEffect">
         <div class="final-message">聚财阵法已生效！</div>
-        <div class="final-message" style="animation-delay: 0.5s;">您的财运提升500%！</div>
+        <div class="final-message" style="animation-delay: 0.5s;">临兵斗者皆阵列前行</div>
     </div>
     
     <div class="container">
         <h1>天罡聚财阵</h1>
         
-        <div class="section instructions">
+        <div class="section instructions" id="instructions">
             <h2>天罡聚财阵法使用说明</h2>
             <ol>
                 <li><strong>阵法起源</strong>：此阵法源于古代道家秘传，结合北斗七星与五行相生原理，能汇聚天地财气。</li>
@@ -492,6 +582,7 @@
             <p style="text-align: center; font-style: italic; color: #f8d030; margin-top: 20px;">
                 "天罡所指，财源广进；七星连珠，富贵临门"
             </p>
+            <button class="toggle-instructions" id="toggleInstructions">收起说明</button>
         </div>
         
         <div class="section form-section" id="formSection">
@@ -573,9 +664,9 @@
     </div>
     
     <div class="incense-container" id="incenseContainer">
-        <div class="incense"></div>
-        <div class="incense"></div>
-        <div class="incense"></div>
+        <div class="incense" id="incense1"></div>
+        <div class="incense" id="incense2"></div>
+        <div class="incense" id="incense3"></div>
     </div>
     
     <div class="timer-container" id="timerContainer">
@@ -606,6 +697,13 @@
             daySelect.appendChild(option);
         }
         
+        // 切换说明显示
+        document.getElementById('toggleInstructions').addEventListener('click', function() {
+            const instructions = document.getElementById('instructions');
+            instructions.classList.toggle('collapsed');
+            this.textContent = instructions.classList.contains('collapsed') ? '展开说明' : '收起说明';
+        });
+        
         // 开始点香仪式
         document.getElementById('startRitual').addEventListener('click', function() {
             const name = document.getElementById('name').value.trim();
@@ -622,48 +720,112 @@
             // 隐藏输入表单
             document.getElementById('formSection').classList.add('hidden');
             
+            // 收起说明
+            document.getElementById('instructions').classList.add('collapsed');
+            document.getElementById('toggleInstructions').textContent = '展开说明';
+            
             // 显示进度信息
             const progressElement = document.getElementById('ritualProgress');
-            progressElement.textContent = '仪式进行中，请保持虔诚心态...';
+            progressElement.textContent = '请点击每根香进行点燃...';
             
             // 显示香炉
-            document.getElementById('incenseContainer').style.display = 'block';
+            const incenseContainer = document.getElementById('incenseContainer');
+            incenseContainer.style.display = 'block';
             
-            // 开始3分钟点香倒计时
-            startIncenseCountdown(name);
+            // 设置香点击事件
+            setupIncenseClickHandlers(name);
         });
+        
+        // 设置香点击事件处理
+        function setupIncenseClickHandlers(name) {
+            const incenses = [
+                document.getElementById('incense1'),
+                document.getElementById('incense2'),
+                document.getElementById('incense3')
+            ];
+            
+            let litCount = 0;
+            
+            incenses.forEach((incense, index) => {
+                incense.addEventListener('click', function() {
+                    if (!this.classList.contains('lit')) {
+                        this.classList.add('lit');
+                        litCount++;
+                        
+                        // 更新进度信息
+                        document.getElementById('ritualProgress').textContent = 
+                            `已点燃 ${litCount}/3 根香${litCount < 3 ? '，请继续点击下一根' : ''}`;
+                        
+                        // 播放音效
+                        playSound('ignite');
+                        
+                        // 如果全部点燃，开始倒计时
+                        if (litCount === 3) {
+                            startIncenseCountdown(name);
+                        }
+                    }
+                });
+            });
+        }
+        
+        // 播放音效
+        function playSound(type) {
+            // 这里可以添加音效播放代码
+            // 实际使用时需要添加音频文件并创建Audio对象
+        }
         
         // 点香倒计时
         function startIncenseCountdown(name) {
+            // 更新进度信息
+            document.getElementById('ritualProgress').textContent = '香已全部点燃，仪式进行中...';
+            
+            // 显示倒计时
+            const timerContainer = document.getElementById('timerContainer');
+            timerContainer.style.display = 'block';
+            
             let seconds = INCENSE_DURATION;
-            const progressElement = document.getElementById('ritualProgress');
+            const timerElement = document.getElementById('timer');
             
             const countdown = setInterval(() => {
                 const minutes = Math.floor(seconds / 60);
                 const remainingSeconds = seconds % 60;
                 
-                progressElement.textContent = `点香仪式进行中... ${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+                timerElement.textContent = `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
                 
                 if (seconds <= 0) {
                     clearInterval(countdown);
-                    activateMatrix(name);
+                    incenseCeremonyComplete(name);
                 }
                 
                 seconds--;
             }, 1000);
         }
         
-        // 激活阵法
-        function activateMatrix(name) {
+        // 点香仪式完成
+        function incenseCeremonyComplete(name) {
+            // 隐藏倒计时
+            document.getElementById('timerContainer').style.display = 'none';
+            
             // 更新进度信息
             document.getElementById('ritualProgress').textContent = '点香仪式完成，天罡聚财阵已激活！';
             
+            // 将香移动到下方
+            const incenseContainer = document.getElementById('incenseContainer');
+            incenseContainer.classList.add('bottom');
+            
+            // 激活阵法
+            activateMatrix(name);
+        }
+        
+        // 激活阵法
+        function activateMatrix(name) {
             // 显示阵法
             document.getElementById('matrixContainer').style.display = 'block';
             document.getElementById('userNameDisplay').textContent = name;
             
-            // 显示倒计时
-            document.getElementById('timerContainer').style.display = 'block';
+            // 显示24小时倒计时
+            const timerContainer = document.getElementById('timerContainer');
+            timerContainer.style.display = 'block';
             
             // 创建粒子效果
             createParticles();
@@ -671,13 +833,16 @@
             // 创建阵法符号
             createSymbols();
             
+            // 创建道家符号背景
+            createTaoistSymbols();
+            
             // 随机生成祝福语
             const blessings = [
-                '财源广进 · 富贵吉祥',
-                '招财进宝 · 福运亨通',
-                '金玉满堂 · 财运亨通',
-                '日进斗金 · 财源滚滚',
-                '八方来财 · 四季平安'
+                '临兵斗者皆阵列前行',
+                '道法自然 · 天人合一',
+                '阴阳调和 · 五行相生',
+                '乾坤定位 · 八卦成列',
+                '太上台星 · 应变无停'
             ];
             document.getElementById('blessing').textContent = blessings[Math.floor(Math.random() * blessings.length)];
             
@@ -702,12 +867,32 @@
             }
         }
         
+        // 创建道家符号背景
+        function createTaoistSymbols() {
+            const container = document.getElementById('taoistSymbols');
+            container.innerHTML = '';
+            
+            const taoistChars = ['道', '德', '阴', '阳', '乾', '坤', '震', '巽', '坎', '离', '艮', '兑', '☯', '☰', '☱', '☲', '☳', '☴', '☵', '☶', '☷'];
+            
+            for (let i = 0; i < 30; i++) {
+                const symbol = document.createElement('div');
+                symbol.className = 'taoist-symbol';
+                symbol.textContent = taoistChars[Math.floor(Math.random() * taoistChars.length)];
+                symbol.style.left = `${Math.random() * 100}vw`;
+                symbol.style.top = `${Math.random() * 100}vh`;
+                symbol.style.fontSize = `${Math.random() * 2 + 2}rem`;
+                symbol.style.animationDuration = `${Math.random() * 10 + 10}s`;
+                symbol.style.animationDelay = `${Math.random() * 5}s`;
+                container.appendChild(symbol);
+            }
+        }
+        
         // 创建阵法符号
         function createSymbols() {
             const container = document.querySelector('.container');
             
             // 清除旧符号
-            const oldSymbols = document.querySelectorAll('.symbol:not(.particles *)');
+            const oldSymbols = document.querySelectorAll('.symbol:not(.particles *):not(.taoist-symbols *)');
             oldSymbols.forEach(symbol => symbol.remove());
             
             for (let i = 0; i < 12; i++) {
@@ -768,7 +953,7 @@
                 // 更新进度信息
                 document.getElementById('ritualProgress').innerHTML = `
                     <h2 style="color: #f8d030; text-align: center;">天罡聚财阵已完成！</h2>
-                    <p style="text-align: center; font-size: 1.3rem; color: #f8d030;">恭喜您！您的财运已提升500%！</p>
+                    <p style="text-align: center; font-size: 1.3rem; color: #f8d030;">临兵斗者皆阵列前行</p>
                     <p style="text-align: center; margin-top: 20px;">阵法能量已融入您的命理，未来三个月内将陆续显现效果</p>
                 `;
             }, 5000);
@@ -799,6 +984,7 @@
         
         // 初始化 - 创建一些初始粒子
         createParticles();
+        createTaoistSymbols();
     </script>
 </body>
 </html>
