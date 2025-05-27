@@ -1539,41 +1539,43 @@
         
         // 确认停止阵法
         document.getElementById('confirmStop').addEventListener('click', function() {
-            // 清除保存的进度
-            clearProgress();
-            
-            // 隐藏所有阵法相关元素
-            document.getElementById('ritualArea').style.display = 'none';
-            document.getElementById('fixedTitle').style.display = 'none';
-            document.getElementById('stopRitualBtn').style.display = 'none';
-            document.getElementById('confirmationDialog').style.display = 'none';
-            
-            // 显示输入界面
-            document.getElementById('mainContainer').style.display = 'block';
-            
-            // 重置所有状态
-            document.getElementById('progressBar').style.width = '0%';
-            document.getElementById('ritualMessage').textContent = '上香仪式进行中，请保持虔诚心态...';
-            document.getElementById('countdown').textContent = '24:00:00';
-            document.getElementById('incenseStick').classList.add('inactive');
-            
-            // 重置名字位置
-            document.getElementById('maleName').classList.add('inactive');
-            document.getElementById('femaleName').classList.add('inactive');
-            document.getElementById('maleName').classList.remove('stopped');
-            document.getElementById('femaleName').classList.remove('stopped');
-            document.getElementById('maleName').style.left = '';
-            document.getElementById('femaleName').style.right = '';
-            
-            // 移除停止消息
-            const stoppedMsgs = document.querySelectorAll('.stopped-message');
-            stoppedMsgs.forEach(msg => msg.remove());
-            
-            // 停止烟雾效果
-            clearInterval(smokeInterval);
-            
-            window.scrollTo(0, 0);
-        });
+    // 清除保存的进度
+    clearProgress();
+    
+    // 停止所有计时器
+    clearInterval(smokeInterval);
+    clearInterval(countdown); // 确保清除倒计时
+    
+    // 重置所有状态
+    document.getElementById('progressBar').style.width = '0%';
+    document.getElementById('ritualMessage').textContent = '上香仪式进行中，请保持虔诚心态...';
+    document.getElementById('countdown').textContent = '24:00:00';
+    document.getElementById('incenseStick').classList.add('inactive');
+    
+    // 重置名字位置
+    document.getElementById('maleName').classList.add('inactive');
+    document.getElementById('femaleName').classList.add('inactive');
+    document.getElementById('maleName').classList.remove('stopped');
+    document.getElementById('femaleName').classList.remove('stopped');
+    document.getElementById('maleName').style.left = '';
+    document.getElementById('femaleName').style.right = '';
+    
+    // 移除停止消息
+    const stoppedMsgs = document.querySelectorAll('.stopped-message');
+    stoppedMsgs.forEach(msg => msg.remove());
+    
+    // 隐藏所有阵法相关元素
+    document.getElementById('ritualArea').style.display = 'none';
+    document.getElementById('fixedTitle').style.display = 'none';
+    document.getElementById('stopRitualBtn').style.display = 'none';
+    document.getElementById('confirmationDialog').style.display = 'none';
+    
+    // 显示输入界面
+    document.getElementById('mainContainer').style.display = 'block';
+    
+    // 强制刷新页面以确保完全重置
+    window.location.reload(true);
+});
         
         // 取消停止阵法
         document.getElementById('cancelStop').addEventListener('click', function() {
