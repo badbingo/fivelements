@@ -587,6 +587,52 @@
             opacity: 0.2;
             z-index: 0;
         }
+
+        /* Progress bar styles */
+        .progress-container {
+            width: 100%;
+            max-width: 400px;
+            margin: 20px auto;
+            background-color: rgba(20, 20, 20, 0.8);
+            border-radius: 10px;
+            padding: 3px;
+            border: 1px solid rgba(224, 192, 128, 0.3);
+            display: none;
+        }
+
+        .progress-bar {
+            height: 20px;
+            background: linear-gradient(to right, #8B4513, #f8d030);
+            border-radius: 8px;
+            width: 0%;
+            transition: width 1s linear;
+        }
+
+        .ritual-status {
+            font-size: 1.3rem;
+            color: #f8d030;
+            margin: 10px 0;
+            text-align: center;
+        }
+
+        .ritual-complete {
+            font-size: 1.5rem;
+            color: #f8d030;
+            text-shadow: 0 0 10px #f8d030;
+            margin: 20px 0;
+            text-align: center;
+            display: none;
+            font-family: 'Ma Shan Zheng', cursive;
+        }
+
+        .matrix-countdown {
+            font-size: 2rem;
+            color: #f8d030;
+            text-shadow: 0 0 10px #f8d030;
+            margin: 20px 0;
+            text-align: center;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -709,6 +755,16 @@
         
         <div class="ritual-progress" id="ritualProgress"></div>
         
+        <div class="progress-container" id="progressContainer">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+        
+        <div class="ritual-status" id="ritualStatus"></div>
+        
+        <div class="ritual-complete" id="ritualComplete"></div>
+        
+        <div class="matrix-countdown" id="matrixCountdown"></div>
+        
         <div class="matrix-container" id="matrixContainer">
             <div class="user-info">
                 <div class="user-name" id="userNameDisplay"></div>
@@ -725,7 +781,6 @@
         <div class="incense" id="incense1"></div>
         <div class="incense" id="incense2"></div>
         <div class="incense" id="incense3"></div>
-        <div class="incense-timer" id="incenseTimer"></div>
     </div>
     
     <div class="wealth-incantation" id="wealthIncantation">
@@ -847,23 +902,25 @@
         // 点香倒计时
         function startIncenseCountdown(name) {
             // 更新进度信息
-            document.getElementById('ritualProgress').textContent = '香已全部点燃，仪式进行中...';
+            document.getElementById('ritualProgress').textContent = '';
+            document.getElementById('ritualStatus').textContent = '香已全部点燃，仪式进行中...';
             
-            // 显示倒计时
-            const timerElement = document.getElementById('incenseTimer');
-            timerElement.style.display = 'block';
+            // 显示进度条
+            const progressContainer = document.getElementById('progressContainer');
+            const progressBar = document.getElementById('progressBar');
+            progressContainer.style.display = 'block';
             
             // 显示聚财灵咒
             const incantation = document.getElementById('wealthIncantation');
             incantation.style.display = 'block';
             
             let seconds = INCENSE_DURATION;
+            let progress = 0;
+            const progressIncrement = 100 / INCENSE_DURATION;
             
             const countdown = setInterval(() => {
-                const minutes = Math.floor(seconds / 60);
-                const remainingSeconds = seconds % 60;
-                
-                timerElement.textContent = `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+                progress += progressIncrement;
+                progressBar.style.width = `${progress}%`;
                 
                 if (seconds <= 0) {
                     clearInterval(countdown);
@@ -879,12 +936,17 @@
             // 隐藏聚财灵咒
             document.getElementById('wealthIncantation').style.display = 'none';
             
-            // 更新进度信息
-            document.getElementById('ritualProgress').textContent = '点香仪式完成，天罡聚财阵已激活！';
+            // 隐藏进度条
+            document.getElementById('progressContainer').style.display = 'none';
             
-            // 将香移动到下方
-            const incenseContainer = document.getElementById('incenseContainer');
-            incenseContainer.classList.add('bottom');
+            // 显示完成信息
+            const ritualComplete = document.getElementById('ritualComplete');
+            ritualComplete.textContent = '点香仪式完成，天罡聚财阵已激活！';
+            ritualComplete.style.display = 'block';
+            
+            // 显示用户名字
+            const userNameDisplay = document.getElementById('userNameDisplay');
+            userNameDisplay.textContent = name;
             
             // 激活阵法
             activateMatrix(name);
@@ -894,7 +956,6 @@
         function activateMatrix(name) {
             // 显示阵法
             document.getElementById('matrixContainer').style.display = 'block';
-            document.getElementById('userNameDisplay').textContent = name;
             
             // 创建粒子效果
             createParticles();
@@ -920,6 +981,29 @@
             
             // 开始检查香是否熄灭
             startExtinguishCheck();
+            
+            // 显示24小时倒计时
+            const matrixCountdown = document.getElementById('matrixCountdown');
+            matrixCountdown.style.display = 'block';
+            
+            // 激活所有背景元素的动画
+            activateBackgroundAnimations();
+        }
+        
+        // 激活背景元素动画
+        function activateBackgroundAnimations() {
+            const circles = document.querySelectorAll('.circle');
+            circles.forEach(circle => {
+                circle.style.animationPlayState = 'running';
+            });
+            
+            const bagua = document.querySelector('.bagua');
+            bagua.style.animationPlayState = 'running';
+            
+            const taoistSymbols = document.querySelectorAll('.taoist-symbol');
+            taoistSymbols.forEach(symbol => {
+                symbol.style.animationPlayState = 'running';
+            });
         }
         
         // 检查香是否熄灭
@@ -966,6 +1050,8 @@
             // 隐藏其他元素
             document.getElementById('matrixContainer').style.display = 'none';
             document.getElementById('incenseContainer').style.display = 'none';
+            document.getElementById('matrixCountdown').style.display = 'none';
+            document.getElementById('ritualComplete').style.display = 'none';
             
             // 更新进度信息
             document.getElementById('ritualProgress').textContent = '阵法失败：三根香全部熄灭';
@@ -980,13 +1066,14 @@
         function startMatrixCountdown() {
             let seconds = MATRIX_DURATION;
             const timerElement = document.getElementById('matrixTimer');
+            const countdownElement = document.getElementById('matrixCountdown');
             
             const countdown = setInterval(() => {
                 const hours = Math.floor(seconds / 3600);
                 const minutes = Math.floor((seconds % 3600) / 60);
                 const remainingSeconds = seconds % 60;
                 
-                timerElement.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+                countdownElement.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
                 
                 if (seconds <= 0) {
                     clearInterval(countdown);
