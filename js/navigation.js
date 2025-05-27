@@ -1,7 +1,7 @@
 // 面包屑导航完整版JS代码
 // 路径名称映射表
 const pathNameMap = {
-    'seven': '七步速成',
+    'seven': '入门七步',
     'basics': '基础知识',
     'bazi-process': '八字介绍',
     'bazi-chart': '八字排盘',
@@ -273,7 +273,7 @@ function createNavigation() {
     // 导航菜单项数据
     const navItems = [
         {
-            text: '七步速成',
+            text: '入门七步',
             icon: 'fa-home',
             href: '/seven.html',
             wuxing: 'fire'
