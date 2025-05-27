@@ -1553,9 +1553,31 @@
         });
         
         // 确认停止按钮点击事件
-        document.getElementById('confirmStopBtn').addEventListener('click', function() {
+         document.getElementById('confirmStopBtn').addEventListener('click', function() {
             // 停止所有动画和计时器
             clearInterval(smokeInterval);
+            
+            // 重置所有阵法元素状态
+            document.getElementById('progressBar').style.width = '0%';
+            document.getElementById('countdown').textContent = '24:00:00';
+            document.getElementById('ritualMessage').textContent = '上香仪式进行中，请保持虔诚心态...';
+            document.getElementById('incenseStick').classList.add('inactive');
+            
+            // 重置名字位置和状态
+            document.getElementById('maleName').classList.add('inactive');
+            document.getElementById('femaleName').classList.add('inactive');
+            document.getElementById('maleName').classList.remove('stopped');
+            document.getElementById('femaleName').classList.remove('stopped');
+            document.getElementById('maleName').style.left = '';
+            document.getElementById('femaleName').style.right = '';
+            
+            // 移除停止消息
+            const stoppedMsgs = document.querySelectorAll('.stopped-message');
+            stoppedMsgs.forEach(msg => msg.remove());
+            
+            // 清除烟雾效果
+            const smokeElements = document.querySelectorAll('.incense-smoke');
+            smokeElements.forEach(smoke => smoke.remove());
             
             // 隐藏阵法区域和停止按钮
             document.getElementById('ritualArea').style.display = 'none';
@@ -1572,15 +1594,12 @@
             
             // 重置固定标题
             document.getElementById('fixedTitle').style.display = 'none';
+            
+            // 强制清除localStorage
+            localStorage.removeItem('yuanfenRitualProgress');
         });
-        
-        // 取消停止按钮点击事件
-        document.getElementById('cancelStopBtn').addEventListener('click', function() {
-            document.getElementById('confirmationDialog').style.display = 'none';
-        });
-        
-        // 初始化
-        let smokeInterval;
+
+        // 修改初始化部分，确保清除无效的进度
         window.addEventListener('DOMContentLoaded', () => {
             createParticles();
             
@@ -1592,61 +1611,71 @@
             // 检查是否有保存的进度
             const savedProgress = loadProgress();
             if (savedProgress) {
-                // 恢复表单数据
-                document.getElementById('name1').value = savedProgress.name1 || '';
-                document.getElementById('name2').value = savedProgress.name2 || '';
+                // 检查进度是否有效（包含必要字段）
+                const isValidProgress = savedProgress.stage && 
+                                      (savedProgress.stage === 'incense' || savedProgress.stage === 'countdown') &&
+                                      savedProgress.name1 && savedProgress.name2;
                 
-                // 根据进度阶段自动继续
-                if (savedProgress.stage === 'incense') {
-                    // 隐藏主界面
-                    document.getElementById('mainContainer').style.display = 'none';
+                if (isValidProgress) {
+                    // 恢复表单数据
+                    document.getElementById('name1').value = savedProgress.name1 || '';
+                    document.getElementById('name2').value = savedProgress.name2 || '';
                     
-                    // 显示固定标题
-                    document.getElementById('fixedTitle').style.display = 'block';
-                    
-                    // 显示阵法区域
-                    document.getElementById('ritualArea').style.display = 'flex';
-                    
-                    // 显示停止阵法按钮
-                    document.getElementById('stopRitualBtn').style.display = 'block';
-                    
-                    // 设置名字显示
-                    document.getElementById('maleName').textContent = savedProgress.name1;
-                    document.getElementById('femaleName').textContent = savedProgress.name2;
-                    document.getElementById('maleShadow').textContent = savedProgress.name1;
-                    document.getElementById('femaleShadow').textContent = savedProgress.name2;
-                    
-                    // 添加随机符号
-                    addRandomSymbols();
-                    
-                    // 继续仪式
-                    startIncenseRitual();
-                } else if (savedProgress.stage === 'countdown') {
-                    // 隐藏主界面
-                    document.getElementById('mainContainer').style.display = 'none';
-                    
-                    // 显示固定标题
-                    document.getElementById('fixedTitle').style.display = 'block';
-                    
-                    // 显示阵法区域
-                    document.getElementById('ritualArea').style.display = 'flex';
-                    
-                    // 显示停止阵法按钮
-                    document.getElementById('stopRitualBtn').style.display = 'block';
-                    
-                    // 设置名字显示
-                    document.getElementById('maleName').textContent = savedProgress.name1;
-                    document.getElementById('femaleName').textContent = savedProgress.name2;
-                    document.getElementById('maleShadow').textContent = savedProgress.name1;
-                    document.getElementById('femaleShadow').textContent = savedProgress.name2;
-                    
-                    // 添加随机符号
-                    addRandomSymbols();
-                    
-                    // 直接进入倒计时阶段
-                    document.getElementById('ritualMessage').textContent = "上香仪式完成，阵法已启动！";
-                    document.getElementById('incenseStick').classList.remove('inactive');
-                    start24HourCountdown(savedProgress);
+                    // 根据进度阶段自动继续
+                    if (savedProgress.stage === 'incense') {
+                        // 隐藏主界面
+                        document.getElementById('mainContainer').style.display = 'none';
+                        
+                        // 显示固定标题
+                        document.getElementById('fixedTitle').style.display = 'block';
+                        
+                        // 显示阵法区域
+                        document.getElementById('ritualArea').style.display = 'flex';
+                        
+                        // 显示停止阵法按钮
+                        document.getElementById('stopRitualBtn').style.display = 'block';
+                        
+                        // 设置名字显示
+                        document.getElementById('maleName').textContent = savedProgress.name1;
+                        document.getElementById('femaleName').textContent = savedProgress.name2;
+                        document.getElementById('maleShadow').textContent = savedProgress.name1;
+                        document.getElementById('femaleShadow').textContent = savedProgress.name2;
+                        
+                        // 添加随机符号
+                        addRandomSymbols();
+                        
+                        // 继续仪式
+                        startIncenseRitual();
+                    } else if (savedProgress.stage === 'countdown') {
+                        // 隐藏主界面
+                        document.getElementById('mainContainer').style.display = 'none';
+                        
+                        // 显示固定标题
+                        document.getElementById('fixedTitle').style.display = 'block';
+                        
+                        // 显示阵法区域
+                        document.getElementById('ritualArea').style.display = 'flex';
+                        
+                        // 显示停止阵法按钮
+                        document.getElementById('stopRitualBtn').style.display = 'block';
+                        
+                        // 设置名字显示
+                        document.getElementById('maleName').textContent = savedProgress.name1;
+                        document.getElementById('femaleName').textContent = savedProgress.name2;
+                        document.getElementById('maleShadow').textContent = savedProgress.name1;
+                        document.getElementById('femaleShadow').textContent = savedProgress.name2;
+                        
+                        // 添加随机符号
+                        addRandomSymbols();
+                        
+                        // 直接进入倒计时阶段
+                        document.getElementById('ritualMessage').textContent = "上香仪式完成，阵法已启动！";
+                        document.getElementById('incenseStick').classList.remove('inactive');
+                        start24HourCountdown(savedProgress);
+                    }
+                } else {
+                    // 无效的进度数据，清除它
+                    clearProgress();
                 }
             }
         });
