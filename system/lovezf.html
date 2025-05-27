@@ -1561,32 +1561,51 @@ function initNewRitual(name1, name2) {
         
         // 确认停止按钮点击事件
          document.getElementById('confirmStopBtn').addEventListener('click', function() {
-    // 1. 停止所有计时器
-    clearInterval(smokeInterval);
-    if (countdownInterval) clearInterval(countdownInterval);
-    
-    // 2. 强制清除所有存储
-    localStorage.removeItem('yuanfenRitualProgress');
-    
-    // 3. 重置所有状态变量
-    resetRitualVariables();
-    
-    // 4. 重置UI界面
-    resetRitualUI();
-    
-    // 5. 隐藏确认对话框
-    document.getElementById('confirmationDialog').style.display = 'none';
+    try {
+        // 1. 停止所有计时器
+        if (smokeInterval) clearInterval(smokeInterval);
+        if (countdownInterval) clearInterval(countdownInterval);
+        
+        // 2. 强制清除所有存储
+        localStorage.removeItem('yuanfenRitualProgress');
+        
+        // 3. 重置所有状态变量
+        smokeInterval = null;
+        countdownInterval = null;
+        maleStopped = false;
+        femaleStopped = false;
+        maleStoppedTime = 0;
+        femaleStoppedTime = 0;
+        
+        // 4. 重置UI界面
+        document.getElementById('progressBar').style.width = '0%';
+        document.getElementById('countdown').textContent = '24:00:00';
+        document.getElementById('ritualMessage').textContent = '上香仪式进行中，请保持虔诚心态...';
+        document.getElementById('incenseStick').classList.add('inactive');
+        
+        const maleName = document.getElementById('maleName');
+        const femaleName = document.getElementById('femaleName');
+        maleName.classList.add('inactive');
+        femaleName.classList.add('inactive');
+        maleName.classList.remove('stopped');
+        femaleName.classList.remove('stopped');
+        maleName.style.left = '';
+        femaleName.style.right = '';
+        
+        document.querySelectorAll('.incense-smoke').forEach(el => el.remove());
+        document.querySelectorAll('.stopped-message').forEach(el => el.remove());
+        
+        document.getElementById('ritualArea').style.display = 'none';
+        document.getElementById('stopRitualBtn').style.display = 'none';
+        document.getElementById('fixedTitle').style.display = 'none';
+        document.getElementById('mainContainer').style.display = 'block';
+        
+        // 5. 隐藏确认对话框
+        document.getElementById('confirmationDialog').style.display = 'none';
+    } catch (error) {
+        console.error('停止阵法时出错:', error);
+    }
 });
-
-// 重置所有计时器变量
-function resetRitualVariables() {
-    smokeInterval = null;
-    countdownInterval = null;
-    maleStopped = false;
-    femaleStopped = false;
-    maleStoppedTime = 0;
-    femaleStoppedTime = 0;
-}
 
 // 重置UI状态
 function resetRitualUI() {
