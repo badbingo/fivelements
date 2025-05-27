@@ -75,7 +75,7 @@
             text-align: center;
             margin-bottom: 2rem;
             position: relative;
-            margin-top: 40px; /* 主标题下移40px */
+            margin-top: 40px;
         }
         
         h1 {
@@ -91,7 +91,7 @@
             font-size: 1.2rem;
             color: var(--secondary-color);
             margin-bottom: 1rem;
-            margin-top: 10px; /* 副标题下移 */
+            margin-top: 10px;
         }
         
         .divider {
@@ -293,7 +293,6 @@
             position: absolute;
             color: var(--taoist-gold);
             text-shadow: 0 0 5px var(--taoist-red);
-            animation: float 20s infinite ease-in-out;
             opacity: 0.9;
             z-index: 2;
         }
@@ -338,13 +337,7 @@
             font-size: 1.2rem;
             color: var(--taoist-gold);
             text-shadow: 0 0 5px var(--taoist-red);
-            animation: rotate-slow 50s infinite linear;
             z-index: 3;
-        }
-        
-        @keyframes rotate-slow {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
         }
         
         .moving-names-container {
@@ -916,10 +909,6 @@
                 symbol.style.left = `calc(50% + ${x}px)`;
                 symbol.style.top = `calc(50% + ${y}px)`;
                 
-                // 随机动画延迟和持续时间
-                symbol.style.animationDelay = `${Math.random() * 5}s`;
-                symbol.style.animationDuration = `${15 + Math.random() * 10}s`;
-                
                 ritualCircle.appendChild(symbol);
             }
             
@@ -937,9 +926,6 @@
                 
                 symbol.style.left = `calc(50% + ${x}px)`;
                 symbol.style.top = `calc(50% + ${y}px)`;
-                
-                // 随机动画持续时间
-                symbol.style.animationDuration = `${40 + Math.random() * 20}s`;
                 
                 ritualCircle.appendChild(symbol);
             }
@@ -1156,6 +1142,28 @@
             let maleStoppedTime = 0;
             let femaleStoppedTime = 0;
             
+            // 创建白色名字投影
+            const maleProjection = document.createElement('div');
+            maleProjection.classList.add('name-display', 'male');
+            maleProjection.textContent = maleName.textContent;
+            maleProjection.style.opacity = '0.7';
+            maleProjection.style.color = 'white';
+            maleProjection.style.textShadow = 'none';
+            maleProjection.style.left = `${containerWidth * 0.1}px`;
+            maleProjection.style.pointerEvents = 'none';
+            
+            const femaleProjection = document.createElement('div');
+            femaleProjection.classList.add('name-display', 'female');
+            femaleProjection.textContent = femaleName.textContent;
+            femaleProjection.style.opacity = '0.7';
+            femaleProjection.style.color = 'white';
+            femaleProjection.style.textShadow = 'none';
+            femaleProjection.style.right = `${containerWidth * 0.1}px`;
+            femaleProjection.style.pointerEvents = 'none';
+            
+            document.getElementById('movingNamesContainer').appendChild(maleProjection);
+            document.getElementById('movingNamesContainer').appendChild(femaleProjection);
+            
             // 如果有保存的进度，恢复状态
             if (savedData) {
                 hours = savedData.hours;
@@ -1187,8 +1195,8 @@
             let malePosition = savedData ? savedData.malePosition : containerWidth * 0.1;
             let femalePosition = savedData ? savedData.femalePosition : containerWidth * 0.9;
             
-            // 计算移动速度 (5小时移动到中心)
-            const moveSpeed = (heartCenter - containerWidth * 0.1) / (5 * 60 * 60); // 每秒移动的像素
+            // 计算移动速度 (2小时移动到中心)
+            const moveSpeed = (heartCenter - containerWidth * 0.1) / (2 * 60 * 60); // 每秒移动的像素
             
             // 创建停止消息元素
             const maleStoppedMsg = document.createElement('div');
@@ -1285,14 +1293,14 @@
                     }
                 }
                 
-                // 如果停止超过2小时，自动解除
-                if (maleStopped && totalSeconds - maleStoppedTime > 2 * 60 * 60) {
+                // 如果停止超过1小时，自动解除
+                if (maleStopped && totalSeconds - maleStoppedTime > 1 * 60 * 60) {
                     maleStopped = false;
                     maleName.classList.remove('stopped');
                     maleStoppedMsg.classList.remove('show');
                 }
                 
-                if (femaleStopped && totalSeconds - femaleStoppedTime > 2 * 60 * 60) {
+                if (femaleStopped && totalSeconds - femaleStoppedTime > 1 * 60 * 60) {
                     femaleStopped = false;
                     femaleName.classList.remove('stopped');
                     femaleStoppedMsg.classList.remove('show');
@@ -1386,6 +1394,10 @@
             // 移除停止消息
             const stoppedMsgs = document.querySelectorAll('.stopped-message');
             stoppedMsgs.forEach(msg => msg.remove());
+            
+            // 移除名字投影
+            const projections = document.querySelectorAll('.name-display[style*="white"]');
+            projections.forEach(proj => proj.remove());
             
             // 清除保存的进度
             clearProgress();
