@@ -1106,38 +1106,45 @@
         
         // 启动阵法
         document.getElementById('startRitual').addEventListener('click', function() {
-            const name1 = document.getElementById('name1').value;
-            const name2 = document.getElementById('name2').value;
-            
-            if (!name1 || !name2) {
-                alert('请输入双方姓名');
-                return;
-            }
-            
-            // 隐藏输入界面和操作指南
-            document.getElementById('mainContainer').style.display = 'none';
-            
-            // 显示固定标题
-            document.getElementById('fixedTitle').style.display = 'block';
-            
-            // 显示阵法区域
-            document.getElementById('ritualArea').style.display = 'flex';
-            
-            // 显示停止阵法按钮
-            document.getElementById('stopRitualBtn').style.display = 'block';
-            
-            // 设置名字显示
-            document.getElementById('maleName').textContent = name1;
-            document.getElementById('femaleName').textContent = name2;
-            document.getElementById('maleShadow').textContent = name1;
-            document.getElementById('femaleShadow').textContent = name2;
-            
-            // 添加随机符号
-            addRandomSymbols();
-            
-            // 开始上香仪式
-            startIncenseRitual();
-        });
+    // 1. 确保先清除旧状态
+    resetRitualVariables();
+    
+    // 2. 获取新输入的名字
+    const name1 = document.getElementById('name1').value;
+    const name2 = document.getElementById('name2').value;
+    
+    if (!name1 || !name2) {
+        alert('请输入双方姓名');
+        return;
+    }
+    
+    // 3. 初始化新阵法
+    initNewRitual(name1, name2);
+});
+
+function initNewRitual(name1, name2) {
+    // 隐藏主界面
+    document.getElementById('mainContainer').style.display = 'none';
+    
+    // 显示固定标题
+    document.getElementById('fixedTitle').style.display = 'block';
+    
+    // 显示阵法区域
+    document.getElementById('ritualArea').style.display = 'flex';
+    
+    // 显示停止按钮
+    document.getElementById('stopRitualBtn').style.display = 'block';
+    
+    // 设置新名字
+    document.getElementById('maleName').textContent = name1;
+    document.getElementById('femaleName').textContent = name2;
+    document.getElementById('maleShadow').textContent = name1;
+    document.getElementById('femaleShadow').textContent = name2;
+    
+    // 初始化新阵法
+    addRandomSymbols();
+    startIncenseRitual();
+}
         
         // 上香仪式
         function startIncenseRitual() {
@@ -1398,11 +1405,13 @@
                 }
                 
                 if (hours < 0) {
-                    clearInterval(countdown);
+                    clearInterval(countdownInterval);
+                    localStorage.removeItem('yuanfenRitualProgress');
                     showResult();
-                    return;
                 }
-                
+            }, 1000);
+        }
+                        
                 countdownElement.textContent = 
                     `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
                 
@@ -1554,63 +1563,61 @@
          document.getElementById('confirmStopBtn').addEventListener('click', function() {
     // 1. 停止所有计时器
     clearInterval(smokeInterval);
+    if (countdownInterval) clearInterval(countdownInterval);
     
-    // 2. 强制清除 localStorage（确保进度被删除）
+    // 2. 强制清除所有存储
     localStorage.removeItem('yuanfenRitualProgress');
     
-    // 3. 隐藏阵法界面
-    document.getElementById('ritualArea').style.display = 'none';
-    document.getElementById('stopRitualBtn').style.display = 'none';
-    document.getElementById('fixedTitle').style.display = 'none';
+    // 3. 重置所有状态变量
+    resetRitualVariables();
     
-    // 4. 显示主界面
-    document.getElementById('mainContainer').style.display = 'block';
+    // 4. 重置UI界面
+    resetRitualUI();
     
     // 5. 隐藏确认对话框
     document.getElementById('confirmationDialog').style.display = 'none';
-    
-    // 6. 重置所有状态（但不影响 localStorage，因为已经手动清除了）
-    resetRitualState();
 });
 
-function resetRitualState() {
+// 重置所有计时器变量
+function resetRitualVariables() {
+    smokeInterval = null;
+    countdownInterval = null;
+    maleStopped = false;
+    femaleStopped = false;
+    maleStoppedTime = 0;
+    femaleStoppedTime = 0;
+}
+
+// 重置UI状态
+function resetRitualUI() {
     // 重置进度条
     document.getElementById('progressBar').style.width = '0%';
     document.getElementById('countdown').textContent = '24:00:00';
-    document.getElementById('ritualMessage').textContent = '上香仪式进行中，请保持虔诚心态...';
     
     // 重置香的状态
     document.getElementById('incenseStick').classList.add('inactive');
     
-    // 重置名字位置
-    document.getElementById('maleName').classList.add('inactive');
-    document.getElementById('femaleName').classList.add('inactive');
-    document.getElementById('maleName').classList.remove('stopped');
-    document.getElementById('femaleName').classList.remove('stopped');
-    document.getElementById('maleName').style.left = '';
-    document.getElementById('femaleName').style.right = '';
+    // 重置名字显示
+    const maleName = document.getElementById('maleName');
+    const femaleName = document.getElementById('femaleName');
     
-    // 移除所有烟雾效果
-    document.querySelectorAll('.incense-smoke').forEach(smoke => smoke.remove());
-    document.querySelectorAll('.stopped-message').forEach(msg => msg.remove());
+    maleName.classList.add('inactive');
+    femaleName.classList.add('inactive');
+    maleName.classList.remove('stopped');
+    femaleName.classList.remove('stopped');
+    maleName.style.left = '';
+    femaleName.style.right = '';
+    
+    // 清除烟雾和消息
+    document.querySelectorAll('.incense-smoke').forEach(el => el.remove());
+    document.querySelectorAll('.stopped-message').forEach(el => el.remove());
+    
+    // 切换界面显示
+    document.getElementById('ritualArea').style.display = 'none';
+    document.getElementById('stopRitualBtn').style.display = 'none';
+    document.getElementById('fixedTitle').style.display = 'none';
+    document.getElementById('mainContainer').style.display = 'block';
 }
-
-        // 修改初始化部分，确保清除无效的进度
-        window.addEventListener('DOMContentLoaded', () => {
-    createParticles();
-    
-    // 设置默认日期
-    const today = new Date().toISOString().split('T')[0];
-    document.getElementById('birth1').value = today;
-    document.getElementById('birth2').value = today;
-    
-    // 检查是否有保存的进度
-    const savedProgress = loadProgress();
-    if (savedProgress && savedProgress.name1 && savedProgress.name2) {
-        // 恢复阵法进度
-        restoreRitualProgress(savedProgress);
-    }
-});
 
 function restoreRitualProgress(savedProgress) {
     // 隐藏主界面
