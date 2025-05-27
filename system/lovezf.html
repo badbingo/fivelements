@@ -75,6 +75,7 @@
             text-align: center;
             margin-bottom: 2rem;
             position: relative;
+            margin-top: 40px; /* 主标题下移40px */
         }
         
         h1 {
@@ -90,6 +91,7 @@
             font-size: 1.2rem;
             color: var(--secondary-color);
             margin-bottom: 1rem;
+            margin-top: 10px; /* 副标题下移 */
         }
         
         .divider {
@@ -412,7 +414,7 @@
         
         .incense-stick {
             position: absolute;
-            bottom: 50px;
+            bottom: 120px;
             width: 8px;
             height: 120px;
             background: linear-gradient(to bottom, #8B4513, #A0522D);
@@ -432,7 +434,7 @@
         
         .incense-smoke {
             position: absolute;
-            bottom: 170px;
+            bottom: 240px;
             left: 50%;
             width: 4px;
             height: 0;
@@ -462,7 +464,7 @@
         
         .countdown {
             font-size: 2rem;
-            margin-top: 1rem;
+            margin-top: 0.5rem;
             color: var(--taoist-gold);
             font-family: monospace;
             z-index: 10;
@@ -474,7 +476,7 @@
             height: 20px;
             background-color: rgba(255, 255, 255, 0.1);
             border-radius: 10px;
-            margin: 1rem auto;
+            margin: 1rem auto 0;
             overflow: hidden;
             z-index: 10;
         }
@@ -767,6 +769,7 @@
                 <li>24小时后将显示姻缘增幅效果(100%-500%随机)</li>
                 <li>阵法期间，请保持正面思维，想象两人美好未来</li>
                 <li>当名字停止移动时，点击名字可解除停滞状态</li>
+                <li>刷新页面后会自动恢复上次进度</li>
             </ol>
         </div>
         
@@ -832,10 +835,10 @@
                 <div class="name-display female inactive" id="femaleName"></div>
             </div>
             
-            <div class="countdown" id="countdown">24:00:00</div>
             <div class="progress-container">
                 <div class="progress-bar" id="progressBar"></div>
             </div>
+            <div class="countdown" id="countdown">24:00:00</div>
             <div class="ritual-message" id="ritualMessage">上香仪式进行中，请保持虔诚心态...</div>
         </div>
     </div>
@@ -942,6 +945,22 @@
             }
         }
         
+        // 保存进度到localStorage
+        function saveProgress(data) {
+            localStorage.setItem('yuanfenRitualProgress', JSON.stringify(data));
+        }
+        
+        // 从localStorage加载进度
+        function loadProgress() {
+            const saved = localStorage.getItem('yuanfenRitualProgress');
+            return saved ? JSON.parse(saved) : null;
+        }
+        
+        // 清除保存的进度
+        function clearProgress() {
+            localStorage.removeItem('yuanfenRitualProgress');
+        }
+        
         // 启动阵法
         document.getElementById('startRitual').addEventListener('click', function() {
             const name1 = document.getElementById('name1').value;
@@ -975,17 +994,48 @@
             const progressBar = document.getElementById('progressBar');
             const incenseStick = document.getElementById('incenseStick');
             
-            // 香初始不可点击
-            incenseStick.classList.add('inactive');
+            // 检查是否有保存的进度
+            const savedProgress = loadProgress();
+            if (savedProgress && savedProgress.stage === 'incense') {
+                // 恢复上香仪式进度
+                progressBar.style.width = `${savedProgress.progress}%`;
+                
+                if (savedProgress.progress >= 100) {
+                    ritualMessage.textContent = "上香仪式完成，阵法已启动！";
+                    incenseStick.classList.remove('inactive');
+                    start24HourCountdown(savedProgress.countdownData);
+                } else {
+                    // 继续上香仪式
+                    continueIncenseRitual(savedProgress.progress);
+                }
+            } else {
+                // 开始新的上香仪式
+                incenseStick.classList.add('inactive');
+                continueIncenseRitual(0);
+            }
             
             // 创建持续烟雾效果
             startContinuousSmoke();
+        }
+        
+        // 继续上香仪式
+        function continueIncenseRitual(startProgress) {
+            const ritualMessage = document.getElementById('ritualMessage');
+            const progressBar = document.getElementById('progressBar');
+            const incenseStick = document.getElementById('incenseStick');
             
-            // 更新进度条
-            let progress = 0;
+            let progress = parseFloat(startProgress);
             const interval = setInterval(() => {
                 progress += 0.56; // 3分钟约180秒，180/100=1.8秒每1%
                 progressBar.style.width = `${progress}%`;
+                
+                // 保存进度
+                saveProgress({
+                    stage: 'incense',
+                    progress: progress,
+                    name1: document.getElementById('name1').value,
+                    name2: document.getElementById('name2').value
+                });
                 
                 if (progress >= 100) {
                     clearInterval(interval);
@@ -1090,7 +1140,7 @@
         }
         
         // 24小时倒计时
-        function start24HourCountdown() {
+        function start24HourCountdown(savedData) {
             const countdownElement = document.getElementById('countdown');
             const maleName = document.getElementById('maleName');
             const femaleName = document.getElementById('femaleName');
@@ -1106,13 +1156,36 @@
             let maleStoppedTime = 0;
             let femaleStoppedTime = 0;
             
+            // 如果有保存的进度，恢复状态
+            if (savedData) {
+                hours = savedData.hours;
+                minutes = savedData.minutes;
+                seconds = savedData.seconds;
+                totalSeconds = savedData.totalSeconds;
+                maleStopped = savedData.maleStopped;
+                femaleStopped = savedData.femaleStopped;
+                maleStoppedTime = savedData.maleStoppedTime;
+                femaleStoppedTime = savedData.femaleStoppedTime;
+                
+                // 恢复名字位置
+                maleName.style.left = `${savedData.malePosition}px`;
+                femaleName.style.right = `${containerWidth - savedData.femalePosition}px`;
+                
+                countdownElement.textContent = 
+                    `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            } else {
+                // 初始位置
+                maleName.style.left = `${containerWidth * 0.1}px`;
+                femaleName.style.right = `${containerWidth * 0.1}px`;
+            }
+            
             // 激活名字显示
             maleName.classList.remove('inactive');
             femaleName.classList.remove('inactive');
             
             // 初始位置
-            let malePosition = containerWidth * 0.1;
-            let femalePosition = containerWidth * 0.9;
+            let malePosition = savedData ? savedData.malePosition : containerWidth * 0.1;
+            let femalePosition = savedData ? savedData.femalePosition : containerWidth * 0.9;
             
             // 计算移动速度 (5小时移动到中心)
             const moveSpeed = (heartCenter - containerWidth * 0.1) / (5 * 60 * 60); // 每秒移动的像素
@@ -1127,6 +1200,19 @@
             femaleStoppedMsg.classList.add('stopped-message');
             femaleStoppedMsg.textContent = '缘分受阻，点击解除';
             femaleName.parentNode.appendChild(femaleStoppedMsg);
+            
+            // 恢复停止状态
+            if (maleStopped) {
+                maleName.classList.add('stopped');
+                maleStoppedMsg.style.left = `${malePosition}px`;
+                maleStoppedMsg.classList.add('show');
+            }
+            
+            if (femaleStopped) {
+                femaleName.classList.add('stopped');
+                femaleStoppedMsg.style.left = `${femalePosition}px`;
+                femaleStoppedMsg.classList.add('show');
+            }
             
             // 名字点击事件
             maleName.addEventListener('click', function() {
@@ -1212,6 +1298,23 @@
                     femaleStoppedMsg.classList.remove('show');
                 }
                 
+                // 保存进度
+                saveProgress({
+                    stage: 'countdown',
+                    hours: hours,
+                    minutes: minutes,
+                    seconds: seconds,
+                    totalSeconds: totalSeconds,
+                    maleStopped: maleStopped,
+                    femaleStopped: femaleStopped,
+                    maleStoppedTime: maleStoppedTime,
+                    femaleStoppedTime: femaleStoppedTime,
+                    malePosition: malePosition,
+                    femalePosition: femalePosition,
+                    name1: document.getElementById('name1').value,
+                    name2: document.getElementById('name2').value
+                });
+                
             }, 1000);
         }
         
@@ -1242,6 +1345,9 @@
             document.getElementById('ritualArea').style.display = 'none';
             document.getElementById('resultSection').style.display = 'block';
             document.getElementById('fixedTitle').style.display = 'none';
+            
+            // 清除保存的进度
+            clearProgress();
             
             // 随机生成增幅百分比 (100%-500%)
             const percentage = Math.floor(Math.random() * 401) + 100;
@@ -1274,10 +1380,15 @@
             document.getElementById('femaleName').classList.add('inactive');
             document.getElementById('maleName').classList.remove('stopped');
             document.getElementById('femaleName').classList.remove('stopped');
+            document.getElementById('maleName').style.left = '';
+            document.getElementById('femaleName').style.right = '';
             
             // 移除停止消息
             const stoppedMsgs = document.querySelectorAll('.stopped-message');
             stoppedMsgs.forEach(msg => msg.remove());
+            
+            // 清除保存的进度
+            clearProgress();
             
             window.scrollTo(0, 0);
         });
@@ -1291,6 +1402,60 @@
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('birth1').value = today;
             document.getElementById('birth2').value = today;
+            
+            // 检查是否有保存的进度
+            const savedProgress = loadProgress();
+            if (savedProgress) {
+                // 恢复表单数据
+                document.getElementById('name1').value = savedProgress.name1 || '';
+                document.getElementById('name2').value = savedProgress.name2 || '';
+                
+                // 根据进度阶段自动继续
+                if (savedProgress.stage === 'incense') {
+                    // 显示固定标题
+                    document.getElementById('fixedTitle').style.display = 'block';
+                    
+                    // 显示阵法区域
+                    document.getElementById('ritualArea').style.display = 'flex';
+                    
+                    // 设置名字显示
+                    document.getElementById('maleName').textContent = savedProgress.name1;
+                    document.getElementById('femaleName').textContent = savedProgress.name2;
+                    
+                    // 添加随机符号
+                    addRandomSymbols();
+                    
+                    // 继续仪式
+                    startIncenseRitual();
+                } else if (savedProgress.stage === 'countdown') {
+                    // 显示固定标题
+                    document.getElementById('fixedTitle').style.display = 'block';
+                    
+                    // 显示阵法区域
+                    document.getElementById('ritualArea').style.display = 'flex';
+                    
+                    // 设置名字显示
+                    document.getElementById('maleName').textContent = savedProgress.name1;
+                    document.getElementById('femaleName').textContent = savedProgress.name2;
+                    
+                    // 添加随机符号
+                    addRandomSymbols();
+                    
+                    // 直接进入倒计时阶段
+                    document.getElementById('ritualMessage').textContent = "上香仪式完成，阵法已启动！";
+                    document.getElementById('incenseStick').classList.remove('inactive');
+                    start24HourCountdown(savedProgress);
+                }
+            }
+        });
+        
+        // 在页面关闭前保存进度
+        window.addEventListener('beforeunload', function() {
+            const ritualArea = document.getElementById('ritualArea');
+            if (ritualArea.style.display === 'flex') {
+                // 如果阵法正在进行中，提示用户
+                return "阵法正在进行中，确定要离开吗？";
+            }
         });
     </script>
 </body>
