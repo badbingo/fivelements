@@ -270,8 +270,8 @@
             position: absolute;
             font-family: 'ZCOOL KuaiLe', cursive;
             font-size: 5rem;
-            color: var(--taoist-red);
-            text-shadow: 0 0 15px var(--taoist-gold);
+            color: var(--taoist-gold);
+            text-shadow: 0 0 15px var(--taoist-red);
             animation: breath 4s infinite ease-in-out;
             z-index: 5;
         }
@@ -280,12 +280,12 @@
             0%, 100% {
                 opacity: 0.7;
                 transform: scale(0.95);
-                text-shadow: 0 0 10px var(--taoist-gold);
+                text-shadow: 0 0 10px var(--taoist-red);
             }
             50% {
                 opacity: 1;
                 transform: scale(1.05);
-                text-shadow: 0 0 20px var(--taoist-gold);
+                text-shadow: 0 0 20px var(--taoist-red);
             }
         }
         
@@ -293,13 +293,9 @@
             position: absolute;
             color: var(--taoist-gold);
             text-shadow: 0 0 5px var(--taoist-red);
-            animation: float 20s infinite ease-in-out;
+            animation: float 20s infinite ease-in-out, rotate-slow 40s infinite linear;
             opacity: 0.9;
             z-index: 2;
-        }
-        
-        .ritual-symbol.rotating {
-            animation: float 20s infinite ease-in-out, rotate-slow 40s infinite linear;
         }
         
         .ritual-symbol.small {
@@ -321,16 +317,16 @@
         
         @keyframes float {
             0%, 100% {
-                transform: translate(0, 0);
+                transform: translate(0, 0) rotate(0deg);
             }
             25% {
-                transform: translate(10px, -5px);
+                transform: translate(10px, -5px) rotate(5deg);
             }
             50% {
-                transform: translate(0, -10px);
+                transform: translate(0, -10px) rotate(0deg);
             }
             75% {
-                transform: translate(-10px, -5px);
+                transform: translate(-10px, -5px) rotate(-5deg);
             }
         }
         
@@ -546,1121 +542,965 @@
             position: absolute;
             top: -30px;
             left: 50%;
-        transform: translateX(-50%);
-        font-size: 1rem;
-        color: var(--taoist-red);
-        text-shadow: 0 0 5px var(--taoist-gold);
-        opacity: 0;
-        transition: opacity 0.3s ease;
-        white-space: nowrap;
-    }
-    
-    .stopped-message.show {
-        opacity: 1;
-    }
-    
-    .result-section {
-        display: none;
-        text-align: center;
-        margin-top: 2rem;
-        animation: fadeIn 1s forwards;
-    }
-    
-    .result-percentage {
-        font-size: 4rem;
-        color: var(--taoist-gold);
-        text-shadow: 0 0 20px var(--taoist-red);
-        margin: 1rem 0;
-        font-weight: bold;
-        animation: pulse 2s infinite;
-    }
-    
-    .result-message {
-        font-size: 1.5rem;
-        margin-bottom: 1.5rem;
-    }
-    
-    .floating-particles {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        pointer-events: none;
-        z-index: -1;
-    }
-    
-    .particle {
-        position: absolute;
-        background-color: var(--primary-color);
-        border-radius: 50%;
-        opacity: 0.6;
-        animation: float-particle linear infinite;
-    }
-    
-    @keyframes float-particle {
-        0% {
-            transform: translateY(0) rotate(0deg);
+            transform: translateX(-50%);
+            font-size: 1rem;
+            color: var(--taoist-red);
+            text-shadow: 0 0 5px var(--taoist-gold);
             opacity: 0;
-        }
-        10% {
-            opacity: 0.6;
-        }
-        100% {
-            transform: translateY(-100vh) rotate(360deg);
-            opacity: 0;
-        }
-    }
-    
-    /* 全屏阵法启动特效 */
-    .fullscreen-effect {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: radial-gradient(circle at center, rgba(232, 62, 140, 0.2) 0%, rgba(0, 0, 0, 0.9) 70%);
-        z-index: 200;
-        display: none;
-        justify-content: center;
-        align-items: center;
-        flex-direction: column;
-        overflow: hidden;
-    }
-    
-    .energy-circle {
-        position: absolute;
-        border-radius: 50%;
-        border: 2px solid var(--taoist-gold);
-        box-shadow: 0 0 30px var(--taoist-red);
-        animation: expand 6s ease-out forwards;
-        opacity: 0;
-    }
-    
-    @keyframes expand {
-        0% {
-            width: 10px;
-            height: 10px;
-            opacity: 0;
-        }
-        20% {
-            opacity: 0.8;
-        }
-        100% {
-            width: 150vw;
-            height: 150vw;
-            opacity: 0;
-        }
-    }
-    
-    .taoist-symbols {
-        position: absolute;
-        color: var(--taoist-gold);
-        text-shadow: 0 0 10px var(--taoist-red);
-        animation: float-symbols 12s infinite ease-in-out;
-    }
-    
-    .taoist-symbols.small {
-        font-size: 1.5rem;
-        opacity: 0.7;
-    }
-    
-    .taoist-symbols.medium {
-        font-size: 2rem;
-    }
-    
-    .taoist-symbols.large {
-        font-size: 2.5rem;
-    }
-    
-    .taoist-symbols.xlarge {
-        font-size: 3rem;
-    }
-    
-    @keyframes float-symbols {
-        0%, 100% {
-            transform: translate(0, 0) rotate(0deg);
-        }
-        25% {
-            transform: translate(40px, -20px) rotate(5deg);
-        }
-        50% {
-            transform: translate(0, -40px) rotate(0deg);
-        }
-        75% {
-            transform: translate(-40px, -20px) rotate(-5deg);
-        }
-    }
-    
-    .effect-message {
-        font-size: 2rem;
-        color: var(--taoist-gold);
-        text-align: center;
-        margin-top: 2rem;
-        opacity: 0;
-        animation: fadeIn 1s forwards 1s;
-        text-shadow: 0 0 10px var(--taoist-red);
-        z-index: 201;
-    }
-    
-    /* 名字点击特效 */
-    .name-click-effect {
-        position: absolute;
-        width: 100px;
-        height: 100px;
-        border-radius: 50%;
-        background: radial-gradient(circle, var(--taoist-gold), transparent 70%);
-        opacity: 0;
-        transform: scale(0);
-        animation: click-effect 1.5s ease-out forwards;
-        z-index: 12;
-        pointer-events: none;
-    }
-    
-    @keyframes click-effect {
-        0% {
-            opacity: 0.8;
-            transform: scale(0);
-        }
-        100% {
-            opacity: 0;
-            transform: scale(3);
-        }
-    }
-    
-    .warning {
-        color: #ffcc00;
-        font-size: 0.9rem;
-        margin-top: 2rem;
-        text-align: center;
-        border-top: 1px dashed #ffcc00;
-        padding-top: 1rem;
-    }
-    
-    /* 停止阵法按钮 */
-    .stop-ritual-btn {
-        position: fixed;
-        bottom: 20px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: linear-gradient(135deg, var(--taoist-red), #8B0000);
-        color: white;
-        padding: 0.8rem 2rem;
-        border: none;
-        border-radius: 50px;
-        cursor: pointer;
-        font-size: 1.1rem;
-        font-weight: bold;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 15px rgba(139, 0, 0, 0.4);
-        z-index: 101;
-        display: none;
-    }
-    
-    .stop-ritual-btn:hover {
-        transform: translateX(-50%) translateY(-3px);
-        box-shadow: 0 7px 20px rgba(139, 0, 0, 0.6);
-    }
-    
-    .stop-ritual-btn:active {
-        transform: translateX(-50%) translateY(1px);
-    }
-    
-    /* 确认对话框 */
-    .confirmation-dialog {
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background-color: var(--alt-bg-color);
-        padding: 2rem;
-        border-radius: 10px;
-        box-shadow: 0 0 20px rgba(0, 0, 0, 0.7);
-        z-index: 1000;
-        text-align: center;
-        display: none;
-        max-width: 80%;
-        width: 400px;
-    }
-    
-    .confirmation-dialog p {
-        margin-bottom: 1.5rem;
-        font-size: 1.2rem;
-    }
-    
-    .dialog-buttons {
-        display: flex;
-        justify-content: center;
-        gap: 1rem;
-    }
-    
-    .dialog-btn {
-        padding: 0.6rem 1.5rem;
-        border: none;
-        border-radius: 50px;
-        cursor: pointer;
-        font-weight: bold;
-        transition: all 0.3s ease;
-    }
-    
-    .confirm-btn {
-        background-color: var(--taoist-red);
-        color: white;
-    }
-    
-    .cancel-btn {
-        background-color: var(--secondary-color);
-        color: white;
-    }
-    
-    @media (max-width: 768px) {
-        .form-grid {
-            grid-template-columns: 1fr;
+            transition: opacity 0.3s ease;
+            white-space: nowrap;
         }
         
-        h1 {
+        .stopped-message.show {
+            opacity: 1;
+        }
+        
+        .result-section {
+            display: none;
+            text-align: center;
+            margin-top: 2rem;
+            animation: fadeIn 1s forwards;
+        }
+        
+        .result-percentage {
+            font-size: 4rem;
+            color: var(--taoist-gold);
+            text-shadow: 0 0 20px var(--taoist-red);
+            margin: 1rem 0;
+            font-weight: bold;
+            animation: pulse 2s infinite;
+        }
+        
+        .result-message {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .floating-particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        .particle {
+            position: absolute;
+            background-color: var(--primary-color);
+            border-radius: 50%;
+            opacity: 0.6;
+            animation: float-particle linear infinite;
+        }
+        
+        @keyframes float-particle {
+            0% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.6;
+            }
+            100% {
+                transform: translateY(-100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+        
+        /* 全屏阵法启动特效 */
+        .fullscreen-effect {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, rgba(232, 62, 140, 0.2) 0%, rgba(0, 0, 0, 0.9) 70%);
+            z-index: 200;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .energy-circle {
+            position: absolute;
+            border-radius: 50%;
+            border: 2px solid var(--taoist-gold);
+            box-shadow: 0 0 30px var(--taoist-red);
+            animation: expand 6s ease-out forwards;
+            opacity: 0;
+        }
+        
+        @keyframes expand {
+            0% {
+                width: 10px;
+                height: 10px;
+                opacity: 0;
+            }
+            20% {
+                opacity: 0.8;
+            }
+            100% {
+                width: 150vw;
+                height: 150vw;
+                opacity: 0;
+            }
+        }
+        
+        .taoist-symbols {
+            position: absolute;
+            color: var(--taoist-gold);
+            text-shadow: 0 0 10px var(--taoist-red);
+            animation: float-symbols 12s infinite ease-in-out;
+        }
+        
+        .taoist-symbols.small {
+            font-size: 1.5rem;
+            opacity: 0.7;
+        }
+        
+        .taoist-symbols.medium {
             font-size: 2rem;
         }
         
-        .ritual-circle {
-            width: 250px;
-            height: 250px;
+        .taoist-symbols.large {
+            font-size: 2.5rem;
         }
         
-        .yuan-character {
-            font-size: 4rem;
+        .taoist-symbols.xlarge {
+            font-size: 3rem;
         }
         
-        .name-display {
-            font-size: 1.5rem;
-        }
-        
-        .name-display.male {
-            left: 5%;
-        }
-        
-        .name-display.female {
-            right: 5%;
+        @keyframes float-symbols {
+            0%, 100% {
+                transform: translate(0, 0) rotate(0deg);
+            }
+            25% {
+                transform: translate(40px, -20px) rotate(5deg);
+            }
+            50% {
+                transform: translate(0, -40px) rotate(0deg);
+            }
+            75% {
+                transform: translate(-40px, -20px) rotate(-5deg);
+            }
         }
         
         .effect-message {
-            font-size: 1.5rem;
+            font-size: 2rem;
+            color: var(--taoist-gold);
+            text-align: center;
+            margin-top: 2rem;
+            opacity: 0;
+            animation: fadeIn 1s forwards 1s;
+            text-shadow: 0 0 10px var(--taoist-red);
+            z-index: 201;
         }
         
-        .fixed-title h1 {
-            font-size: 1.5rem;
+        /* 名字点击特效 */
+        .name-click-effect {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: radial-gradient(circle, var(--taoist-gold), transparent 70%);
+            opacity: 0;
+            transform: scale(0);
+            animation: click-effect 1.5s ease-out forwards;
+            z-index: 12;
+            pointer-events: none;
         }
         
-        .fixed-title .subtitle {
+        @keyframes click-effect {
+            0% {
+                opacity: 0.8;
+                transform: scale(0);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(3);
+            }
+        }
+        
+        .warning {
+            color: #ffcc00;
             font-size: 0.9rem;
+            margin-top: 2rem;
+            text-align: center;
+            border-top: 1px dashed #ffcc00;
+            padding-top: 1rem;
         }
         
-        .confirmation-dialog {
-            width: 90%;
-            padding: 1.5rem;
-        }
-    }
-</style>
-</head> <body> <div class="floating-particles" id="particles"></div>
-<!-- 固定在顶部的标题 -->
-<div class="fixed-title" id="fixedTitle">
-    <h1>天机姻缘配对阵法</h1>
-    <p class="subtitle">千年秘传 · 姻缘增幅 · 天作之合</p>
-</div>
-
-<div class="container" id="mainContainer">
-    <header>
-        <h1>天机姻缘配对阵法</h1>
-        <p class="subtitle">千年秘传 · 姻缘增幅 · 天作之合</p>
-        <div class="divider"></div>
-    </header>
-    
-    <div class="instructions" id="instructions">
-        <h3>阵法操作指南</h3>
-        <ol>
-            <li>请如实填写双方姓名及生辰八字，信息越准确，阵法效果越强</li>
-            <li>点击"启动阵法"按钮后，请保持虔诚心态</li>
-            <li>阵法启动后将进行1分钟的上香仪式，请勿关闭页面</li>
-            <li>仪式完成后，阵法将持续运转24小时</li>
-            <li>24小时后将显示姻缘增幅效果(100%-500%随机)</li>
-            <li>阵法期间，请保持正面思维，想象两人美好未来</li>
-            <li>当名字停止移动时，点击名字可解除停滞状态</li>
-            <li>刷新页面后会自动恢复上次进度</li>
-        </ol>
-    </div>
-    
-    <div class="form-section" id="formSection">
-        <h2>姻缘信息输入</h2>
-        <div class="form-grid">
-            <div>
-                <div class="form-group">
-                    <label for="name1">姓名（本人）</label>
-                    <input type="text" id="name1" placeholder="请输入您的姓名" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="birth1">出生日期（本人）</label>
-                    <input type="date" id="birth1" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="time1">出生时间（本人）</label>
-                    <input type="time" id="time1" required>
-                </div>
-            </div>
-            
-            <div>
-                <div class="form-group">
-                    <label for="name2">姓名（对方）</label>
-                    <input type="text" id="name2" placeholder="请输入对方姓名" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="birth2">出生日期（对方）</label>
-                    <input type="date" id="birth2" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="time2">出生时间（对方）</label>
-                    <input type="time" id="time2" required>
-                </div>
-            </div>
-        </div>
-        
-        <button id="startRitual" class="btn btn-center">启动阵法</button>
-    </div>
-    
-    <p class="warning">
-        注意：此阵法为心理辅助工具，实际姻缘发展仍需双方共同努力。<br>
-        请勿过度依赖，保持理性心态，珍惜眼前人。
-    </p>
-</div>
-
-<div class="ritual-area" id="ritualArea">
-    <div class="ritual-container">
-        <div class="ritual-circle" id="ritualCircle">
-            <div class="taoist-bagua"></div>
-            <div class="yuan-character">缘</div>
-            <!-- 符号将通过JS动态添加 -->
-        </div>
-        <div class="incense-stick inactive" id="incenseStick"></div>
-        
-        <div class="moving-names-container" id="movingNamesContainer">
-            <div class="name-shadow male" id="maleShadow"></div>
-            <div class="name-shadow female" id="femaleShadow"></div>
-            <div class="name-display male inactive" id="maleName"></div>
-            <div class="heart-symbol">❤</div>
-            <div class="name-display female inactive" id="femaleName"></div>
-        </div>
-        
-        <div class="progress-container">
-            <div class="progress-bar" id="progressBar"></div>
-        </div>
-        <div class="countdown" id="countdown">24:00:00</div>
-        <div class="ritual-message" id="ritualMessage">上香仪式进行中，请保持虔诚心态...</div>
-    </div>
-</div>
-
-<!-- 全屏阵法启动特效 -->
-<div class="fullscreen-effect" id="fullscreenEffect">
-    <div class="effect-message">天地姻缘，阵法已启！</div>
-</div>
-
-<div class="result-section" id="resultSection">
-    <h2>姻缘配对阵法完成</h2>
-    <div class="result-message">恭喜！您与对方的姻缘缘分已成功增强</div>
-    <div class="result-percentage" id="resultPercentage">+0%</div>
-    <p>阵法已圆满结束，请珍惜这份难得的缘分</p>
-    <button id="restartBtn" class="btn">再次启动阵法</button>
-</div>
-
-<!-- 停止阵法按钮 -->
-<button class="stop-ritual-btn" id="stopRitualBtn">停止阵法</button>
-
-<!-- 确认对话框 -->
-<div class="confirmation-dialog" id="confirmationDialog">
-    <h3>确认停止阵法</h3>
-    <p>确定要停止当前运行的阵法吗？所有进度将不会被保存。</p>
-    <div class="dialog-buttons">
-        <button class="dialog-btn confirm-btn" id="confirmStopBtn">确认停止</button>
-        <button class="dialog-btn cancel-btn" id="cancelStopBtn">取消</button>
-    </div>
-</div>
-
-<script>
-    // 全局变量声明
-    let smokeInterval = null;
-    let countdownInterval = null;
-    let maleStopped = false;
-    let femaleStopped = false;
-    let maleStoppedTime = 0;
-    let femaleStoppedTime = 0;
-    
-    // 创建漂浮粒子
-    function createParticles() {
-        const particlesContainer = document.getElementById('particles');
-        const particleCount = 30;
-        
-        for (let i = 0; i < particleCount; i++) {
-            const particle = document.createElement('div');
-            particle.classList.add('particle');
-            
-            // 随机大小
-            const size = Math.random() * 8 + 2;
-            particle.style.width = `${size}px`;
-            particle.style.height = `${size}px`;
-            
-            // 随机位置
-            particle.style.left = `${Math.random() * 100}%`;
-            particle.style.bottom = `-${size}px`;
-            
-            // 随机动画时长
-            const duration = Math.random() * 20 + 10;
-            particle.style.animationDuration = `${duration}s`;
-            
-            // 随机延迟
-            particle.style.animationDelay = `${Math.random() * 10}s`;
-            
-            particlesContainer.appendChild(particle);
-        }
-    }
-    
-    // 添加随机符号到阵法圆圈
-    function addRandomSymbols() {
-        const ritualCircle = document.getElementById('ritualCircle');
-        const symbols = ['姻', '缘', '合', '道', '法', '自', '然', '❤', '☯', '☸', '卍', '天', '地', '乾', '坤', '阴', '阳', '生', '克', '化', '气', '神', '仙', '灵', '玄', '妙', '真'];
-        const baguaSymbols = ['☰', '☱', '☲', '☳', '☴', '☵', '☶', '☷'];
-        
-        // 清除现有符号
-        const existingSymbols = document.querySelectorAll('.ritual-symbol, .bagua-symbol');
-        existingSymbols.forEach(symbol => symbol.remove());
-        
-        // 添加普通符号 (15个)
-        for (let i = 0; i < 15; i++) {
-            const symbol = document.createElement('span');
-            
-            // 随机大小类别
-            const sizeClasses = ['small', 'medium', 'large', 'xlarge'];
-            const sizeClass = sizeClasses[Math.floor(Math.random() * sizeClasses.length)];
-            
-            symbol.classList.add('ritual-symbol', sizeClass);
-            
-            // 30%的几率添加旋转动画
-            if (Math.random() < 0.3) {
-                symbol.classList.add('rotating');
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
             }
             
-            symbol.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+            h1 {
+                font-size: 2rem;
+            }
             
-            // 随机位置
-            const angle = Math.random() * Math.PI * 2;
-            const radius = 80 + Math.random() * 50;
-            const x = Math.cos(angle) * radius;
-            const y = Math.sin(angle) * radius;
-        
-        symbol.style.left = `calc(50% + ${x}px)`;
-        symbol.style.top = `calc(50% + ${y}px)`;
-        
-        // 随机动画延迟和持续时间
-        symbol.style.animationDelay = `${Math.random() * 5}s`;
-        symbol.style.animationDuration = `${15 + Math.random() * 10}s`;
-        
-        ritualCircle.appendChild(symbol);
-    }
-    
-    // 添加八卦符号 (8个)
-    for (let i = 0; i < 8; i++) {
-        const symbol = document.createElement('span');
-        symbol.classList.add('bagua-symbol');
-        symbol.textContent = baguaSymbols[i];
-        
-        // 均匀分布
-        const angle = (i / 8) * Math.PI * 2;
-        const radius = 110;
-        const x = Math.cos(angle) * radius;
-        const y = Math.sin(angle) * radius;
-        
-        symbol.style.left = `calc(50% + ${x}px)`;
-        symbol.style.top = `calc(50% + ${y}px)`;
-        
-        // 随机动画持续时间
-        symbol.style.animationDuration = `${40 + Math.random() * 20}s`;
-        
-        ritualCircle.appendChild(symbol);
-    }
-}
-
-// 保存进度到localStorage
-function saveProgress(data) {
-    localStorage.setItem('yuanfenRitualProgress', JSON.stringify(data));
-}
-
-// 从localStorage加载进度
-function loadProgress() {
-    const saved = localStorage.getItem('yuanfenRitualProgress');
-    return saved ? JSON.parse(saved) : null;
-}
-
-// 清除保存的进度
-function clearProgress() {
-    localStorage.removeItem('yuanfenRitualProgress');
-}
-
-// 启动阵法
-document.getElementById('startRitual').addEventListener('click', function() {
-    const name1 = document.getElementById('name1').value;
-    const name2 = document.getElementById('name2').value;
-    
-    if (!name1 || !name2) {
-        alert('请输入双方姓名');
-        return;
-    }
-    
-    // 重置所有状态变量
-    smokeInterval = null;
-    countdownInterval = null;
-    maleStopped = false;
-    femaleStopped = false;
-    maleStoppedTime = 0;
-    femaleStoppedTime = 0;
-    
-    // 隐藏输入界面和操作指南
-    document.getElementById('mainContainer').style.display = 'none';
-    
-    // 显示固定标题
-    document.getElementById('fixedTitle').style.display = 'block';
-    
-    // 显示阵法区域
-    document.getElementById('ritualArea').style.display = 'flex';
-    
-    // 显示停止阵法按钮
-    document.getElementById('stopRitualBtn').style.display = 'block';
-    
-    // 设置名字显示
-    document.getElementById('maleName').textContent = name1;
-    document.getElementById('femaleName').textContent = name2;
-    document.getElementById('maleShadow').textContent = name1;
-    document.getElementById('femaleShadow').textContent = name2;
-    
-    // 添加随机符号
-    addRandomSymbols();
-    
-    // 开始上香仪式
-    startIncenseRitual();
-});
-
-// 上香仪式
-function startIncenseRitual() {
-    const ritualMessage = document.getElementById('ritualMessage');
-    const progressBar = document.getElementById('progressBar');
-    const incenseStick = document.getElementById('incenseStick');
-    
-    // 检查是否有保存的进度
-    const savedProgress = loadProgress();
-    if (savedProgress && savedProgress.stage === 'incense') {
-        // 恢复上香仪式进度
-        progressBar.style.width = `${savedProgress.progress}%`;
-        
-        if (savedProgress.progress >= 100) {
-            ritualMessage.textContent = "上香仪式完成，阵法已启动！";
-            incenseStick.classList.remove('inactive');
-            start24HourCountdown(savedProgress.countdownData);
-        } else {
-            // 继续上香仪式
-            continueIncenseRitual(savedProgress.progress);
+            .ritual-circle {
+                width: 250px;
+                height: 250px;
+            }
+            
+            .yuan-character {
+                font-size: 4rem;
+            }
+            
+            .name-display {
+                font-size: 1.5rem;
+            }
+            
+            .name-display.male {
+                left: 5%;
+            }
+            
+            .name-display.female {
+                right: 5%;
+            }
+            
+            .effect-message {
+                font-size: 1.5rem;
+            }
+            
+            .fixed-title h1 {
+                font-size: 1.5rem;
+            }
+            
+            .fixed-title .subtitle {
+                font-size: 0.9rem;
+            }
         }
-    } else {
-        // 开始新的上香仪式
-        incenseStick.classList.add('inactive');
-        continueIncenseRitual(0);
-    }
+    </style>
+</head>
+<body>
+    <div class="floating-particles" id="particles"></div>
     
-    // 创建持续烟雾效果
-    startContinuousSmoke();
-}
-
-// 继续上香仪式
-function continueIncenseRitual(startProgress) {
-    const ritualMessage = document.getElementById('ritualMessage');
-    const progressBar = document.getElementById('progressBar');
-    const incenseStick = document.getElementById('incenseStick');
+    <!-- 固定在顶部的标题 -->
+    <div class="fixed-title" id="fixedTitle">
+        <h1>天机姻缘配对阵法</h1>
+        <p class="subtitle">千年秘传 · 姻缘增幅 · 天作之合</p>
+    </div>
     
-    let progress = parseFloat(startProgress);
-    const interval = setInterval(() => {
-        progress += 1.666; // 1分钟=60秒，每秒增加 100/60 ≈ 1.666%
-        progressBar.style.width = `${progress}%`;
+    <div class="container">
+        <header>
+            <h1>天机姻缘配对阵法</h1>
+            <p class="subtitle">千年秘传 · 姻缘增幅 · 天作之合</p>
+            <div class="divider"></div>
+        </header>
         
-        // 保存进度
-        saveProgress({
-            stage: 'incense',
-            progress: progress,
-            name1: document.getElementById('name1').value,
-            name2: document.getElementById('name2').value
+        <div class="instructions">
+            <h3>阵法操作指南</h3>
+            <ol>
+                <li>请如实填写双方姓名及生辰八字，信息越准确，阵法效果越强</li>
+                <li>点击"启动阵法"按钮后，请保持虔诚心态</li>
+                <li>阵法启动后将进行3分钟的上香仪式，请勿关闭页面</li>
+                <li>仪式完成后，阵法将持续运转24小时</li>
+                <li>24小时后将显示姻缘增幅效果(100%-500%随机)</li>
+                <li>阵法期间，请保持正面思维，想象两人美好未来</li>
+                <li>当名字停止移动时，点击名字可解除停滞状态</li>
+                <li>刷新页面后会自动恢复上次进度</li>
+            </ol>
+        </div>
+        
+        <div class="form-section">
+            <h2>姻缘信息输入</h2>
+            <div class="form-grid">
+                <div>
+                    <div class="form-group">
+                        <label for="name1">姓名（本人）</label>
+                        <input type="text" id="name1" placeholder="请输入您的姓名" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="birth1">出生日期（本人）</label>
+                        <input type="date" id="birth1" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="time1">出生时间（本人）</label>
+                        <input type="time" id="time1" required>
+                    </div>
+                </div>
+                
+                <div>
+                    <div class="form-group">
+                        <label for="name2">姓名（对方）</label>
+                        <input type="text" id="name2" placeholder="请输入对方姓名" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="birth2">出生日期（对方）</label>
+                        <input type="date" id="birth2" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="time2">出生时间（对方）</label>
+                        <input type="time" id="time2" required>
+                    </div>
+                </div>
+            </div>
+            
+            <button id="startRitual" class="btn btn-center">启动阵法</button>
+        </div>
+        
+        <p class="warning">
+            注意：此阵法为心理辅助工具，实际姻缘发展仍需双方共同努力。<br>
+            请勿过度依赖，保持理性心态，珍惜眼前人。
+        </p>
+    </div>
+    
+    <div class="ritual-area" id="ritualArea">
+        <div class="ritual-container">
+            <div class="ritual-circle" id="ritualCircle">
+                <div class="taoist-bagua"></div>
+                <div class="yuan-character">缘</div>
+                <!-- 符号将通过JS动态添加 -->
+            </div>
+            <div class="incense-stick inactive" id="incenseStick"></div>
+            
+            <div class="moving-names-container" id="movingNamesContainer">
+                <div class="name-shadow male" id="maleShadow"></div>
+                <div class="name-shadow female" id="femaleShadow"></div>
+                <div class="name-display male inactive" id="maleName"></div>
+                <div class="heart-symbol">❤</div>
+                <div class="name-display female inactive" id="femaleName"></div>
+            </div>
+            
+            <div class="progress-container">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+            <div class="countdown" id="countdown">24:00:00</div>
+            <div class="ritual-message" id="ritualMessage">上香仪式进行中，请保持虔诚心态...</div>
+        </div>
+    </div>
+    
+    <!-- 全屏阵法启动特效 -->
+    <div class="fullscreen-effect" id="fullscreenEffect">
+        <div class="effect-message">天地姻缘，阵法已启！</div>
+    </div>
+    
+    <div class="result-section" id="resultSection">
+        <h2>姻缘配对阵法完成</h2>
+        <div class="result-message">恭喜！您与对方的姻缘缘分已成功增强</div>
+        <div class="result-percentage" id="resultPercentage">+0%</div>
+        <p>阵法已圆满结束，请珍惜这份难得的缘分</p>
+        <button id="restartBtn" class="btn">再次启动阵法</button>
+    </div>
+    
+    <script>
+        // 创建漂浮粒子
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            const particleCount = 30;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                
+                // 随机大小
+                const size = Math.random() * 8 + 2;
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                
+                // 随机位置
+                particle.style.left = `${Math.random() * 100}%`;
+                particle.style.bottom = `-${size}px`;
+                
+                // 随机动画时长
+                const duration = Math.random() * 20 + 10;
+                particle.style.animationDuration = `${duration}s`;
+                
+                // 随机延迟
+                particle.style.animationDelay = `${Math.random() * 10}s`;
+                
+                particlesContainer.appendChild(particle);
+            }
+        }
+        
+        // 添加随机符号到阵法圆圈
+        function addRandomSymbols() {
+            const ritualCircle = document.getElementById('ritualCircle');
+            const symbols = ['姻', '缘', '合', '道', '法', '自', '然', '❤', '☯', '☸', '卍', '天', '地', '乾', '坤', '阴', '阳', '生', '克', '化', '气', '神', '仙', '灵', '玄', '妙', '真'];
+            const baguaSymbols = ['☰', '☱', '☲', '☳', '☴', '☵', '☶', '☷'];
+            
+            // 清除现有符号
+            const existingSymbols = document.querySelectorAll('.ritual-symbol, .bagua-symbol');
+            existingSymbols.forEach(symbol => symbol.remove());
+            
+            // 添加普通符号 (15个)
+            for (let i = 0; i < 15; i++) {
+                const symbol = document.createElement('span');
+                
+                // 随机大小类别
+                const sizeClasses = ['small', 'medium', 'large', 'xlarge'];
+                const sizeClass = sizeClasses[Math.floor(Math.random() * sizeClasses.length)];
+                
+                symbol.classList.add('ritual-symbol', sizeClass);
+                symbol.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+                
+                // 随机位置
+                const angle = Math.random() * Math.PI * 2;
+                const radius = 80 + Math.random() * 50;
+                const x = Math.cos(angle) * radius;
+                const y = Math.sin(angle) * radius;
+                
+                symbol.style.left = `calc(50% + ${x}px)`;
+                symbol.style.top = `calc(50% + ${y}px)`;
+                
+                // 随机动画延迟和持续时间
+                symbol.style.animationDelay = `${Math.random() * 5}s`;
+                symbol.style.animationDuration = `${15 + Math.random() * 10}s`;
+                
+                ritualCircle.appendChild(symbol);
+            }
+            
+            // 添加八卦符号 (8个)
+            for (let i = 0; i < 8; i++) {
+                const symbol = document.createElement('span');
+                symbol.classList.add('bagua-symbol');
+                symbol.textContent = baguaSymbols[i];
+                
+                // 均匀分布
+                const angle = (i / 8) * Math.PI * 2;
+                const radius = 110;
+                const x = Math.cos(angle) * radius;
+                const y = Math.sin(angle) * radius;
+                
+                symbol.style.left = `calc(50% + ${x}px)`;
+                symbol.style.top = `calc(50% + ${y}px)`;
+                
+                // 随机动画持续时间
+                symbol.style.animationDuration = `${40 + Math.random() * 20}s`;
+                
+                ritualCircle.appendChild(symbol);
+            }
+        }
+        
+        // 保存进度到localStorage
+        function saveProgress(data) {
+            localStorage.setItem('yuanfenRitualProgress', JSON.stringify(data));
+        }
+        
+        // 从localStorage加载进度
+        function loadProgress() {
+            const saved = localStorage.getItem('yuanfenRitualProgress');
+            return saved ? JSON.parse(saved) : null;
+        }
+        
+        // 清除保存的进度
+        function clearProgress() {
+            localStorage.removeItem('yuanfenRitualProgress');
+        }
+        
+        // 启动阵法
+        document.getElementById('startRitual').addEventListener('click', function() {
+            const name1 = document.getElementById('name1').value;
+            const name2 = document.getElementById('name2').value;
+            
+            if (!name1 || !name2) {
+                alert('请输入双方姓名');
+                return;
+            }
+            
+            // 显示固定标题
+            document.getElementById('fixedTitle').style.display = 'block';
+            
+            // 显示阵法区域
+            document.getElementById('ritualArea').style.display = 'flex';
+            
+            // 设置名字显示
+            document.getElementById('maleName').textContent = name1;
+            document.getElementById('femaleName').textContent = name2;
+            document.getElementById('maleShadow').textContent = name1;
+            document.getElementById('femaleShadow').textContent = name2;
+            
+            // 添加随机符号
+            addRandomSymbols();
+            
+            // 开始上香仪式
+            startIncenseRitual();
         });
         
-        if (progress >= 100) {
-            clearInterval(interval);
-            ritualMessage.textContent = "上香仪式完成，阵法已启动！";
+        // 上香仪式
+        function startIncenseRitual() {
+            const ritualMessage = document.getElementById('ritualMessage');
+            const progressBar = document.getElementById('progressBar');
+            const incenseStick = document.getElementById('incenseStick');
             
-            // 激活香的点击功能
-            incenseStick.classList.remove('inactive');
+            // 检查是否有保存的进度
+            const savedProgress = loadProgress();
+            if (savedProgress && savedProgress.stage === 'incense') {
+                // 恢复上香仪式进度
+                progressBar.style.width = `${savedProgress.progress}%`;
+                
+                if (savedProgress.progress >= 100) {
+                    ritualMessage.textContent = "上香仪式完成，阵法已启动！";
+                    incenseStick.classList.remove('inactive');
+                    start24HourCountdown(savedProgress.countdownData);
+                } else {
+                    // 继续上香仪式
+                    continueIncenseRitual(savedProgress.progress);
+                }
+            } else {
+                // 开始新的上香仪式
+                incenseStick.classList.add('inactive');
+                continueIncenseRitual(0);
+            }
             
-            showFullscreenEffect(30000); // 30秒特效
+            // 创建持续烟雾效果
+            startContinuousSmoke();
+        }
+        
+        // 继续上香仪式
+        function continueIncenseRitual(startProgress) {
+            const ritualMessage = document.getElementById('ritualMessage');
+            const progressBar = document.getElementById('progressBar');
+            const incenseStick = document.getElementById('incenseStick');
+            
+            let progress = parseFloat(startProgress);
+            const interval = setInterval(() => {
+                progress += 0.56; // 3分钟约180秒，180/100=1.8秒每1%
+                progressBar.style.width = `${progress}%`;
+                
+                // 保存进度
+                saveProgress({
+                    stage: 'incense',
+                    progress: progress,
+                    name1: document.getElementById('name1').value,
+                    name2: document.getElementById('name2').value
+                });
+                
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    ritualMessage.textContent = "上香仪式完成，阵法已启动！";
+                    
+                    // 激活香的点击功能
+                    incenseStick.classList.remove('inactive');
+                    
+                    showFullscreenEffect(30000); // 30秒特效
+                    setTimeout(() => {
+                        start24HourCountdown();
+                    }, 30000);
+                }
+            }, 1000);
+        }
+        
+        // 持续烟雾效果
+        function startContinuousSmoke() {
+            // 先清除之前的烟雾
+            const existingSmoke = document.querySelectorAll('.incense-smoke');
+            existingSmoke.forEach(smoke => smoke.remove());
+            
+            // 创建新的烟雾
+            for (let i = 0; i < 20; i++) {
+                setTimeout(() => {
+                    createSingleSmoke();
+                }, i * 300);
+            }
+            
+            // 设置循环
+            smokeInterval = setInterval(() => {
+                createSingleSmoke();
+            }, 6000); // 每6秒创建一个新烟雾
+        }
+        
+        // 创建单个烟雾
+        function createSingleSmoke() {
+            const smoke = document.createElement('div');
+            smoke.classList.add('incense-smoke');
+            document.querySelector('.ritual-container').appendChild(smoke);
+            
+            // 移除烟雾元素
             setTimeout(() => {
-                start24HourCountdown();
-            }, 30000);
+                smoke.remove();
+            }, 3000);
         }
-    }, 1000);
-}
-
-// 持续烟雾效果
-function startContinuousSmoke() {
-    // 先清除之前的烟雾
-    const existingSmoke = document.querySelectorAll('.incense-smoke');
-    existingSmoke.forEach(smoke => smoke.remove());
-    
-    // 创建新的烟雾
-    for (let i = 0; i < 20; i++) {
-        setTimeout(() => {
-            createSingleSmoke();
-        }, i * 300);
-    }
-    
-    // 设置循环
-    smokeInterval = setInterval(() => {
-        createSingleSmoke();
-    }, 6000); // 每6秒创建一个新烟雾
-}
-
-// 创建单个烟雾
-function createSingleSmoke() {
-    const smoke = document.createElement('div');
-    smoke.classList.add('incense-smoke');
-    document.querySelector('.ritual-container').appendChild(smoke);
-    
-    // 移除烟雾元素
-    setTimeout(() => {
-        smoke.remove();
-    }, 3000);
-}
-
-// 全屏阵法启动特效
-function showFullscreenEffect(duration = 30000) {
-    const effectContainer = document.getElementById('fullscreenEffect');
-    effectContainer.style.display = 'flex';
-    
-    // 创建能量圈
-    for (let i = 0; i < 10; i++) {
-        setTimeout(() => {
-            const circle = document.createElement('div');
-            circle.classList.add('energy-circle');
-            circle.style.animationDelay = `${i * 0.5}s`;
-            effectContainer.appendChild(circle);
+        
+        // 全屏阵法启动特效
+        function showFullscreenEffect(duration = 30000) {
+            const effectContainer = document.getElementById('fullscreenEffect');
+            effectContainer.style.display = 'flex';
             
-            // 移除能量圈
+            // 创建能量圈
+            for (let i = 0; i < 10; i++) {
+                setTimeout(() => {
+                    const circle = document.createElement('div');
+                    circle.classList.add('energy-circle');
+                    circle.style.animationDelay = `${i * 0.5}s`;
+                    effectContainer.appendChild(circle);
+                    
+                    // 移除能量圈
+                    setTimeout(() => {
+                        circle.remove();
+                    }, 6000);
+                }, i * 500);
+            }
+            
+            // 创建道教符号
+            const symbols = ['道', '法', '自', '然', '☯', '☸', '卍', '缘', '合', '乾', '坤', '阴', '阳', '天', '地', '生', '克', '化', '气', '神', '仙', '灵', '玄', '妙', '真'];
+            const baguaSymbols = ['☰', '☱', '☲', '☳', '☴', '☵', '☶', '☷'];
+            
+            for (let i = 0; i < 40; i++) {
+                const symbol = document.createElement('div');
+                
+                // 随机大小类别
+                const sizeClasses = ['small', 'medium', 'large', 'xlarge'];
+                const sizeClass = sizeClasses[Math.floor(Math.random() * sizeClasses.length)];
+                
+                symbol.classList.add('taoist-symbols', sizeClass);
+                
+                // 随机选择普通符号或八卦符号
+                if (Math.random() > 0.3) {
+                    symbol.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+                } else {
+                    symbol.textContent = baguaSymbols[Math.floor(Math.random() * baguaSymbols.length)];
+                }
+                
+                symbol.style.left = `${Math.random() * 80 + 10}%`;
+                symbol.style.top = `${Math.random() * 80 + 10}%`;
+                symbol.style.animationDelay = `${Math.random() * 2}s`;
+                symbol.style.animationDuration = `${10 + Math.random() * 8}s`;
+                effectContainer.appendChild(symbol);
+            }
+            
+            // 持续时间后隐藏特效
             setTimeout(() => {
-                circle.remove();
-            }, 6000);
-        }, i * 500);
-    }
-    
-    // 创建道教符号
-    const symbols = ['道', '法', '自', '然', '☯', '☸', '卍', '缘', '合', '乾', '坤', '阴', '阳', '天', '地', '生', '克', '化', '气', '神', '仙', '灵', '玄', '妙', '真'];
-    const baguaSymbols = ['☰', '☱', '☲', '☳', '☴', '☵', '☶', '☷'];
-    
-    for (let i = 0; i < 40; i++) {
-        const symbol = document.createElement('div');
-        
-        // 随机大小类别
-        const sizeClasses = ['small', 'medium', 'large', 'xlarge'];
-        const sizeClass = sizeClasses[Math.floor(Math.random() * sizeClasses.length)];
-        
-        symbol.classList.add('taoist-symbols', sizeClass);
-        
-        // 随机选择普通符号或八卦符号
-        if (Math.random() > 0.3) {
-            symbol.textContent = symbols[Math.floor(Math.random() * symbols.length)];
-        } else {
-            symbol.textContent = baguaSymbols[Math.floor(Math.random() * baguaSymbols.length)];
+                effectContainer.style.display = 'none';
+                // 移除所有符号
+                const symbols = document.querySelectorAll('.taoist-symbols');
+                symbols.forEach(s => s.remove());
+            }, duration);
         }
         
-        symbol.style.left = `${Math.random() * 80 + 10}%`;
-        symbol.style.top = `${Math.random() * 80 + 10}%`;
-        symbol.style.animationDelay = `${Math.random() * 2}s`;
-        symbol.style.animationDuration = `${10 + Math.random() * 8}s`;
-        effectContainer.appendChild(symbol);
-    }
-    
-    // 持续时间后隐藏特效
-    setTimeout(() => {
-        effectContainer.style.display = 'none';
-        // 移除所有符号
-        const symbols = document.querySelectorAll('.taoist-symbols');
-        symbols.forEach(s => s.remove());
-    }, duration);
-}
-
-// 24小时倒计时
-function start24HourCountdown(savedData) {
-    const countdownElement = document.getElementById('countdown');
-    const maleName = document.getElementById('maleName');
-    const femaleName = document.getElementById('femaleName');
-    const maleShadow = document.getElementById('maleShadow');
-    const femaleShadow = document.getElementById('femaleShadow');
-    const containerWidth = document.getElementById('movingNamesContainer').offsetWidth;
-    const heartCenter = containerWidth / 2;
-    
-    let hours = 24;
-    let minutes = 0;
-    let seconds = 0;
-    let totalSeconds = 0;
-    let maleStopped = false;
-    let femaleStopped = false;
-    let maleStoppedTime = 0;
-    let femaleStoppedTime = 0;
-    
-    // 如果有保存的进度，恢复状态
-    if (savedData) {
-        hours = savedData.hours;
-        minutes = savedData.minutes;
-        seconds = savedData.seconds;
-        totalSeconds = savedData.totalSeconds;
-        maleStopped = savedData.maleStopped;
-        femaleStopped = savedData.femaleStopped;
-        maleStoppedTime = savedData.maleStoppedTime;
-        femaleStoppedTime = savedData.femaleStoppedTime;
-        
-        // 恢复名字位置
-        maleName.style.left = `${savedData.malePosition}px`;
-        femaleName.style.right = `${containerWidth - savedData.femalePosition}px`;
-        
-        countdownElement.textContent = 
-            `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-    } else {
-        // 初始位置
-        maleName.style.left = `${containerWidth * 0.1}px`;
-        femaleName.style.right = `${containerWidth * 0.1}px`;
-    }
-    
-    // 激活名字显示
-    maleName.classList.remove('inactive');
-    femaleName.classList.remove('inactive');
-    
-    // 初始位置
-    let malePosition = savedData ? savedData.malePosition : containerWidth * 0.1;
-    let femalePosition = savedData ? savedData.femalePosition : containerWidth * 0.9;
-    
-    // 计算移动速度 (2小时移动到中心)
-    const moveSpeed = (heartCenter - containerWidth * 0.1) / (2 * 60 * 60); // 每秒移动的像素
-    
-    // 创建停止消息元素
-    const maleStoppedMsg = document.createElement('div');
-    maleStoppedMsg.classList.add('stopped-message');
-    maleStoppedMsg.textContent = '缘分受阻，点击解除';
-    maleName.parentNode.appendChild(maleStoppedMsg);
-    
-    const femaleStoppedMsg = document.createElement('div');
-    femaleStoppedMsg.classList.add('stopped-message');
-    femaleStoppedMsg.textContent = '缘分受阻，点击解除';
-    femaleName.parentNode.appendChild(femaleStoppedMsg);
-    
-    // 恢复停止状态
-    if (maleStopped) {
-        maleName.classList.add('stopped');
-        maleStoppedMsg.style.left = `${malePosition}px`;
-        maleStoppedMsg.classList.add('show');
-    }
-    
-    if (femaleStopped) {
-        femaleName.classList.add('stopped');
-        femaleStoppedMsg.style.left = `${femalePosition}px`;
-        femaleStoppedMsg.classList.add('show');
-    }
-    
-    // 名字点击事件
-    maleName.addEventListener('click', function() {
-        if (maleStopped) {
-            createClickEffect(this);
-            maleStopped = false;
-            this.classList.remove('stopped');
-            maleStoppedMsg.classList.remove('show');
-        }
-    });
-    
-    femaleName.addEventListener('click', function() {
-        if (femaleStopped) {
-            createClickEffect(this);
-            femaleStopped = false;
-            this.classList.remove('stopped');
-            femaleStoppedMsg.classList.remove('show');
-        }
-    });
-    
-    countdownInterval = setInterval(() => {
-        seconds--;
-        totalSeconds++;
-        
-        if (seconds < 0) {
-            seconds = 59;
-            minutes--;
-        }
-        
-        if (minutes < 0) {
-            minutes = 59;
-            hours--;
-        }
-        
-        if (hours < 0) {
-            clearInterval(countdownInterval);
-            showResult();
-            return;
-        }
-        
-        countdownElement.textContent = 
-            `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-        
-        // 名字移动逻辑
-        if (!maleStopped && malePosition < heartCenter - 50) {
-            malePosition += moveSpeed;
-            maleName.style.left = `${malePosition}px`;
+        // 24小时倒计时
+        function start24HourCountdown(savedData) {
+            const countdownElement = document.getElementById('countdown');
+            const maleName = document.getElementById('maleName');
+            const femaleName = document.getElementById('femaleName');
+            const maleShadow = document.getElementById('maleShadow');
+            const femaleShadow = document.getElementById('femaleShadow');
+            const containerWidth = document.getElementById('movingNamesContainer').offsetWidth;
+            const heartCenter = containerWidth / 2;
             
-            // 10%几率停止
-            if (Math.random() < 0.000555) { // 大约每30分钟10%几率 (30*60*0.000555≈1)
-                maleStopped = true;
+            let hours = 24;
+            let minutes = 0;
+            let seconds = 0;
+            let totalSeconds = 0;
+            let maleStopped = false;
+            let femaleStopped = false;
+            let maleStoppedTime = 0;
+            let femaleStoppedTime = 0;
+            
+            // 如果有保存的进度，恢复状态
+            if (savedData) {
+                hours = savedData.hours;
+                minutes = savedData.minutes;
+                seconds = savedData.seconds;
+                totalSeconds = savedData.totalSeconds;
+                maleStopped = savedData.maleStopped;
+                femaleStopped = savedData.femaleStopped;
+                maleStoppedTime = savedData.maleStoppedTime;
+                femaleStoppedTime = savedData.femaleStoppedTime;
+                
+                // 恢复名字位置
+                maleName.style.left = `${savedData.malePosition}px`;
+                femaleName.style.right = `${containerWidth - savedData.femalePosition}px`;
+                
+                countdownElement.textContent = 
+                    `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            } else {
+                // 初始位置
+                maleName.style.left = `${containerWidth * 0.1}px`;
+                femaleName.style.right = `${containerWidth * 0.1}px`;
+            }
+            
+            // 激活名字显示
+            maleName.classList.remove('inactive');
+            femaleName.classList.remove('inactive');
+            
+            // 初始位置
+            let malePosition = savedData ? savedData.malePosition : containerWidth * 0.1;
+            let femalePosition = savedData ? savedData.femalePosition : containerWidth * 0.9;
+            
+            // 计算移动速度 (2小时移动到中心)
+            const moveSpeed = (heartCenter - containerWidth * 0.1) / (2 * 60 * 60); // 每秒移动的像素
+            
+            // 创建停止消息元素
+            const maleStoppedMsg = document.createElement('div');
+            maleStoppedMsg.classList.add('stopped-message');
+            maleStoppedMsg.textContent = '缘分受阻，点击解除';
+            maleName.parentNode.appendChild(maleStoppedMsg);
+            
+            const femaleStoppedMsg = document.createElement('div');
+            femaleStoppedMsg.classList.add('stopped-message');
+            femaleStoppedMsg.textContent = '缘分受阻，点击解除';
+            femaleName.parentNode.appendChild(femaleStoppedMsg);
+            
+            // 恢复停止状态
+            if (maleStopped) {
                 maleName.classList.add('stopped');
                 maleStoppedMsg.style.left = `${malePosition}px`;
                 maleStoppedMsg.classList.add('show');
-                maleStoppedTime = totalSeconds;
             }
-        }
-        
-        if (!femaleStopped && femalePosition > heartCenter + 50) {
-            femalePosition -= moveSpeed;
-            femaleName.style.right = `${containerWidth - femalePosition}px`;
             
-            // 10%几率停止
-            if (Math.random() < 0.000555) { // 大约每30分钟10%几率
-                femaleStopped = true;
+            if (femaleStopped) {
                 femaleName.classList.add('stopped');
                 femaleStoppedMsg.style.left = `${femalePosition}px`;
                 femaleStoppedMsg.classList.add('show');
-                femaleStoppedTime = totalSeconds;
             }
+            
+            // 名字点击事件
+            maleName.addEventListener('click', function() {
+                if (maleStopped) {
+                    createClickEffect(this);
+                    maleStopped = false;
+                    this.classList.remove('stopped');
+                    maleStoppedMsg.classList.remove('show');
+                }
+            });
+            
+            femaleName.addEventListener('click', function() {
+                if (femaleStopped) {
+                    createClickEffect(this);
+                    femaleStopped = false;
+                    this.classList.remove('stopped');
+                    femaleStoppedMsg.classList.remove('show');
+                }
+            });
+            
+            const countdown = setInterval(() => {
+                seconds--;
+                totalSeconds++;
+                
+                if (seconds < 0) {
+                    seconds = 59;
+                    minutes--;
+                }
+                
+                if (minutes < 0) {
+                    minutes = 59;
+                    hours--;
+                }
+                
+                if (hours < 0) {
+                    clearInterval(countdown);
+                    showResult();
+                    return;
+                }
+                
+                countdownElement.textContent = 
+                    `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                
+                // 名字移动逻辑
+                if (!maleStopped && malePosition < heartCenter - 50) {
+                    malePosition += moveSpeed;
+                    maleName.style.left = `${malePosition}px`;
+                    
+                    // 10%几率停止
+                    if (Math.random() < 0.000555) { // 大约每30分钟10%几率 (30*60*0.000555≈1)
+                        maleStopped = true;
+                        maleName.classList.add('stopped');
+                        maleStoppedMsg.style.left = `${malePosition}px`;
+                        maleStoppedMsg.classList.add('show');
+                        maleStoppedTime = totalSeconds;
+                    }
+                }
+                
+                if (!femaleStopped && femalePosition > heartCenter + 50) {
+                    femalePosition -= moveSpeed;
+                    femaleName.style.right = `${containerWidth - femalePosition}px`;
+                    
+                    // 10%几率停止
+                    if (Math.random() < 0.000555) { // 大约每30分钟10%几率
+                        femaleStopped = true;
+                        femaleName.classList.add('stopped');
+                        femaleStoppedMsg.style.left = `${femalePosition}px`;
+                        femaleStoppedMsg.classList.add('show');
+                        femaleStoppedTime = totalSeconds;
+                    }
+                }
+                
+                // 如果停止超过1小时，自动解除
+                if (maleStopped && totalSeconds - maleStoppedTime > 1 * 60 * 60) {
+                    maleStopped = false;
+                    maleName.classList.remove('stopped');
+                    maleStoppedMsg.classList.remove('show');
+                }
+                
+                if (femaleStopped && totalSeconds - femaleStoppedTime > 1 * 60 * 60) {
+                    femaleStopped = false;
+                    femaleName.classList.remove('stopped');
+                    femaleStoppedMsg.classList.remove('show');
+                }
+                
+                // 保存进度
+                saveProgress({
+                    stage: 'countdown',
+                    hours: hours,
+                    minutes: minutes,
+                    seconds: seconds,
+                    totalSeconds: totalSeconds,
+                    maleStopped: maleStopped,
+                    femaleStopped: femaleStopped,
+                    maleStoppedTime: maleStoppedTime,
+                    femaleStoppedTime: femaleStoppedTime,
+                    malePosition: malePosition,
+                    femalePosition: femalePosition,
+                    name1: document.getElementById('name1').value,
+                    name2: document.getElementById('name2').value
+                });
+                
+            }, 1000);
         }
         
-        // 如果停止超过1小时，自动解除
-        if (maleStopped && totalSeconds - maleStoppedTime > 1 * 60 * 60) {
-            maleStopped = false;
-            maleName.classList.remove('stopped');
-            maleStoppedMsg.classList.remove('show');
+        // 创建点击特效
+        function createClickEffect(element) {
+            const effect = document.createElement('div');
+            effect.classList.add('name-click-effect');
+            
+            const rect = element.getBoundingClientRect();
+            const containerRect = element.parentNode.getBoundingClientRect();
+            
+            effect.style.left = `${rect.left - containerRect.left + rect.width / 2 - 50}px`;
+            effect.style.top = `${rect.top - containerRect.top + rect.height / 2 - 50}px`;
+            
+            element.parentNode.appendChild(effect);
+            
+            // 移除特效元素
+            setTimeout(() => {
+                effect.remove();
+            }, 1500);
         }
         
-        if (femaleStopped && totalSeconds - femaleStoppedTime > 1 * 60 * 60) {
-            femaleStopped = false;
-            femaleName.classList.remove('stopped');
-            femaleStoppedMsg.classList.remove('show');
+        // 显示结果
+        function showResult() {
+            // 停止烟雾效果
+            clearInterval(smokeInterval);
+            
+            document.getElementById('ritualArea').style.display = 'none';
+            document.getElementById('resultSection').style.display = 'block';
+            document.getElementById('fixedTitle').style.display = 'none';
+            
+            // 清除保存的进度
+            clearProgress();
+            
+            // 随机生成增幅百分比 (100%-500%)
+            const percentage = Math.floor(Math.random() * 401) + 100;
+            document.getElementById('resultPercentage').textContent = `+${percentage}%`;
         }
         
-        // 保存进度
-        saveProgress({
-            stage: 'countdown',
-            hours: hours,
-            minutes: minutes,
-            seconds: seconds,
-            totalSeconds: totalSeconds,
-            maleStopped: maleStopped,
-            femaleStopped: femaleStopped,
-            maleStoppedTime: maleStoppedTime,
-            femaleStoppedTime: femaleStoppedTime,
-            malePosition: malePosition,
-            femalePosition: femalePosition,
-            name1: document.getElementById('name1').value,
-            name2: document.getElementById('name2').value
+        // 点击香触发特效
+        document.getElementById('incenseStick').addEventListener('click', function() {
+            if (!this.classList.contains('inactive')) {
+                showFullscreenEffect(30000); // 30秒特效
+            }
         });
         
-    }, 1000);
-}
-
-// 创建点击特效
-function createClickEffect(element) {
-    const effect = document.createElement('div');
-    effect.classList.add('name-click-effect');
-    
-    const rect = element.getBoundingClientRect();
-    const containerRect = element.parentNode.getBoundingClientRect();
-    
-    effect.style.left = `${rect.left - containerRect.left + rect.width / 2 - 50}px`;
-    effect.style.top = `${rect.top - containerRect.top + rect.height / 2 - 50}px`;
-    
-    element.parentNode.appendChild(effect);
-    
-    // 移除特效元素
-    setTimeout(() => {
-        effect.remove();
-    }, 1500);
-}
-
-// 显示结果
-function showResult() {
-    // 停止烟雾效果
-    clearInterval(smokeInterval);
-    
-    document.getElementById('ritualArea').style.display = 'none';
-    document.getElementById('resultSection').style.display = 'block';
-    document.getElementById('fixedTitle').style.display = 'none';
-    document.getElementById('stopRitualBtn').style.display = 'none';
-    
-    // 清除保存的进度
-    clearProgress();
-    
-    // 随机生成增幅百分比 (100%-500%)
-    const percentage = Math.floor(Math.random() * 401) + 100;
-    document.getElementById('resultPercentage').textContent = `+${percentage}%`;
-}
-
-// 点击香触发特效
-document.getElementById('incenseStick').addEventListener('click', function() {
-    if (!this.classList.contains('inactive')) {
-        showFullscreenEffect(30000); // 30秒特效
-    }
-});
-
-// 重新启动按钮
-document.getElementById('restartBtn').addEventListener('click', function() {
-    document.getElementById('resultSection').style.display = 'none';
-    document.getElementById('mainContainer').style.display = 'block';
-    document.getElementById('name1').value = '';
-    document.getElementById('name2').value = '';
-    document.getElementById('birth1').value = '';
-    document.getElementById('birth2').value = '';
-    document.getElementById('time1').value = '';
-    document.getElementById('time2').value = '';
-    document.getElementById('progressBar').style.width = '0%';
-    document.getElementById('ritualMessage').textContent = '上香仪式进行中，请保持虔诚心态...';
-    document.getElementById('countdown').textContent = '24:00:00';
-    document.getElementById('incenseStick').classList.add('inactive');
-    
-    // 重置名字位置和状态
-    const maleName = document.getElementById('maleName');
-    const femaleName = document.getElementById('femaleName');
-    maleName.classList.add('inactive');
-    femaleName.classList.add('inactive');
-    maleName.classList.remove('stopped');
-    femaleName.classList.remove('stopped');
-    maleName.style.left = '';
-    femaleName.style.right = '';
-    
-    // 移除所有烟雾效果
-    document.querySelectorAll('.incense-smoke').forEach(smoke => smoke.remove());
-    document.querySelectorAll('.stopped-message').forEach(msg => msg.remove());
-});
-
-// 停止阵法按钮
-document.getElementById('stopRitualBtn').addEventListener('click', function() {
-    document.getElementById('confirmationDialog').style.display = 'block';
-});
-
-// 确认停止按钮
-document.getElementById('confirmStopBtn').addEventListener('click', function() {
-    // 1. 停止所有计时器
-    clearInterval(smokeInterval);
-    clearInterval(countdownInterval);
-    
-    // 2. 清除本地存储
-    localStorage.removeItem('yuanfenRitualProgress');
-    
-    // 3. 重置所有状态
-    document.getElementById('progressBar').style.width = '0%';
-    document.getElementById('countdown').textContent = '24:00:00';
-    document.getElementById('ritualMessage').textContent = '上香仪式进行中，请保持虔诚心态...';
-    document.getElementById('incenseStick').classList.add('inactive');
-    
-    // 4. 重置名字位置和状态
-    const maleName = document.getElementById('maleName');
-    const femaleName = document.getElementById('femaleName');
-    maleName.classList.add('inactive');
-    femaleName.classList.add('inactive');
-    maleName.classList.remove('stopped');
-    femaleName.classList.remove('stopped');
-    maleName.style.left = '';
-    femaleName.style.right = '';
-    
-    // 5. 移除所有烟雾和消息
-    document.querySelectorAll('.incense-smoke').forEach(smoke => smoke.remove());
-    document.querySelectorAll('.stopped-message').forEach(msg => msg.remove());
-    
-    // 6. 隐藏阵法区域和停止按钮
-    document.getElementById('ritualArea').style.display = 'none';
-    document.getElementById('stopRitualBtn').style.display = 'none';
-    document.getElementById('fixedTitle').style.display = 'none';
-    
-    // 7. 显示主界面
-    document.getElementById('mainContainer').style.display = 'block';
-    
-    // 8. 隐藏确认对话框
-    document.getElementById('confirmationDialog').style.display = 'none';
-});
-
-// 取消停止按钮
-document.getElementById('cancelStopBtn').addEventListener('click', function() {
-    document.getElementById('confirmationDialog').style.display = 'none';
-});
-
-// 页面加载时检查是否有保存的进度
-window.addEventListener('DOMContentLoaded', () => {
-    createParticles();
-    
-    // 设置今天为默认日期
-    const today = new Date().toISOString().split('T')[0];
-    document.getElementById('birth1').value = today;
-    document.getElementById('birth2').value = today;
-    
-    // 检查是否有保存的进度
-    const savedProgress = loadProgress();
-    if (savedProgress) {
-        // 恢复表单数据
-        document.getElementById('name1').value = savedProgress.name1 || '';
-        document.getElementById('name2').value = savedProgress.name2 || '';
+        // 重新启动按钮
+        document.getElementById('restartBtn').addEventListener('click', function() {
+            document.getElementById('resultSection').style.display = 'none';
+            document.getElementById('name1').value = '';
+            document.getElementById('name2').value = '';
+            document.getElementById('birth1').value = '';
+            document.getElementById('birth2').value = '';
+            document.getElementById('time1').value = '';
+            document.getElementById('time2').value = '';
+            document.getElementById('progressBar').style.width = '0%';
+            document.getElementById('ritualMessage').textContent = '上香仪式进行中，请保持虔诚心态...';
+            document.getElementById('countdown').textContent = '24:00:00';
+            document.getElementById('incenseStick').classList.add('inactive');
+            
+            // 重置名字位置
+            document.getElementById('maleName').classList.add('inactive');
+            document.getElementById('femaleName').classList.add('inactive');
+            document.getElementById('maleName').classList.remove('stopped');
+            document.getElementById('femaleName').classList.remove('stopped');
+            document.getElementById('maleName').style.left = '';
+            document.getElementById('femaleName').style.right = '';
+            
+            // 移除停止消息
+            const stoppedMsgs = document.querySelectorAll('.stopped-message');
+            stoppedMsgs.forEach(msg => msg.remove());
+            
+            // 清除保存的进度
+            clearProgress();
+            
+            window.scrollTo(0, 0);
+        });
         
-        // 根据进度阶段自动继续
-        if (savedProgress.stage === 'incense') {
-            startIncenseRitual();
-        } else if (savedProgress.stage === 'countdown') {
-            startIncenseRitual();
-        }
-    }
-});
-
-// 初始化粒子效果
-function createParticles() {
-    const container = document.getElementById('particles');
-    const particleCount = 50;
-    
-    for (let i = 0; i < particleCount; i++) {
-        const particle = document.createElement('div');
-        particle.className = 'particle';
+        // 初始化
+        let smokeInterval;
+        window.addEventListener('DOMContentLoaded', () => {
+            createParticles();
+            
+            // 设置今天为默认日期
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('birth1').value = today;
+            document.getElementById('birth2').value = today;
+            
+            // 检查是否有保存的进度
+            const savedProgress = loadProgress();
+            if (savedProgress) {
+                // 恢复表单数据
+                document.getElementById('name1').value = savedProgress.name1 || '';
+                document.getElementById('name2').value = savedProgress.name2 || '';
+                
+                // 根据进度阶段自动继续
+                if (savedProgress.stage === 'incense') {
+                    // 显示固定标题
+                    document.getElementById('fixedTitle').style.display = 'block';
+                    
+                    // 显示阵法区域
+                    document.getElementById('ritualArea').style.display = 'flex';
+                    
+                    // 设置名字显示
+                    document.getElementById('maleName').textContent = savedProgress.name1;
+                    document.getElementById('femaleName').textContent = savedProgress.name2;
+                    document.getElementById('maleShadow').textContent = savedProgress.name1;
+                    document.getElementById('femaleShadow').textContent = savedProgress.name2;
+                    
+                    // 添加随机符号
+                    addRandomSymbols();
+                    
+                    // 继续仪式
+                    startIncenseRitual();
+                } else if (savedProgress.stage === 'countdown') {
+                    // 显示固定标题
+                    document.getElementById('fixedTitle').style.display = 'block';
+                    
+                    // 显示阵法区域
+                    document.getElementById('ritualArea').style.display = 'flex';
+                    
+                    // 设置名字显示
+                    document.getElementById('maleName').textContent = savedProgress.name1;
+                    document.getElementById('femaleName').textContent = savedProgress.name2;
+                    document.getElementById('maleShadow').textContent = savedProgress.name1;
+                    document.getElementById('femaleShadow').textContent = savedProgress.name2;
+                    
+                    // 添加随机符号
+                    addRandomSymbols();
+                    
+                    // 直接进入倒计时阶段
+                    document.getElementById('ritualMessage').textContent = "上香仪式完成，阵法已启动！";
+                    document.getElementById('incenseStick').classList.remove('inactive');
+                    start24HourCountdown(savedProgress);
+                }
+            }
+        });
         
-        // 随机大小
-        const size = Math.random() * 5 + 1;
-        particle.style.width = `${size}px`;
-        particle.style.height = `${size}px`;
-        
-        // 随机位置
-        particle.style.left = `${Math.random() * 100}%`;
-        particle.style.top = `${Math.random() * 100}%`;
-        
-        // 随机动画
-        const duration = Math.random() * 20 + 10;
-        particle.style.animationDuration = `${duration}s`;
-        particle.style.animationDelay = `${Math.random() * 5}s`;
-        
-        // 随机颜色
-        const colors = ['#E53935', '#8E24AA', '#3949AB', '#039BE5', '#00897B', '#7CB342', '#FDD835', '#FB8C00'];
-        const color = colors[Math.floor(Math.random() * colors.length)];
-        particle.style.backgroundColor = color;
-        
-        container.appendChild(particle);
-    }
-}
+        // 在页面关闭前保存进度
+        window.addEventListener('beforeunload', function() {
+            const ritualArea = document.getElementById('ritualArea');
+            if (ritualArea.style.display === 'flex') {
+                // 如果阵法正在进行中，提示用户
+                return "阵法正在进行中，确定要离开吗？";
+            }
+        });
+    </script>
+</body>
+</html>
