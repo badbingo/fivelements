@@ -6,6 +6,7 @@
     <title>天机姻缘配对阵法</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&display=swap');
         
         :root {
             --primary-color: #e83e8c;
@@ -263,12 +264,33 @@
             }
         }
         
+        .yuan-character {
+            position: absolute;
+            font-family: 'ZCOOL KuaiLe', cursive;
+            font-size: 5rem;
+            color: var(--taoist-gold);
+            text-shadow: 0 0 15px var(--taoist-red);
+            animation: flicker 3s infinite alternate;
+            z-index: 5;
+        }
+        
+        @keyframes flicker {
+            0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% {
+                opacity: 0.9;
+                text-shadow: 0 0 15px var(--taoist-red);
+            }
+            20%, 24%, 55% {
+                opacity: 0.6;
+                text-shadow: 0 0 5px var(--taoist-red);
+            }
+        }
+        
         .ritual-symbol {
             position: absolute;
             font-size: 1.8rem;
             color: var(--taoist-gold);
             text-shadow: 0 0 5px var(--taoist-red);
-            animation: float 10s infinite ease-in-out;
+            animation: float 15s infinite ease-in-out;
             opacity: 0.9;
         }
         
@@ -296,7 +318,7 @@
             background-repeat: no-repeat;
             background-position: center;
             opacity: 0.8;
-            animation: rotate 60s linear infinite;
+            animation: rotate 120s linear infinite;
         }
         
         @keyframes rotate {
@@ -322,6 +344,13 @@
             transform: translateX(-50%);
             cursor: pointer;
             z-index: 10;
+            transition: all 0.3s ease;
+        }
+        
+        .incense-stick.inactive {
+            opacity: 0.5;
+            cursor: default;
+            filter: grayscale(50%);
         }
         
         .incense-smoke {
@@ -466,7 +495,7 @@
             border-radius: 50%;
             border: 2px solid var(--taoist-gold);
             box-shadow: 0 0 30px var(--taoist-red);
-            animation: expand 3s ease-out forwards;
+            animation: expand 6s ease-out forwards;
             opacity: 0;
         }
         
@@ -491,7 +520,7 @@
             font-size: 3rem;
             color: var(--taoist-gold);
             text-shadow: 0 0 10px var(--taoist-red);
-            animation: float-symbols 5s infinite ease-in-out;
+            animation: float-symbols 8s infinite ease-in-out;
         }
         
         @keyframes float-symbols {
@@ -543,6 +572,10 @@
                 height: 250px;
             }
             
+            .yuan-character {
+                font-size: 4rem;
+            }
+            
             .effect-message {
                 font-size: 1.5rem;
             }
@@ -582,7 +615,7 @@
                 <li>仪式完成后，阵法将持续运转24小时</li>
                 <li>24小时后将显示姻缘增幅效果(100%-500%随机)</li>
                 <li>阵法期间，请保持正面思维，想象两人美好未来</li>
-                <li>点击香可再次触发阵法特效</li>
+                <li>阵法启动后，点击香可再次触发阵法特效</li>
             </ol>
         </div>
         
@@ -637,9 +670,10 @@
         <div class="ritual-container">
             <div class="ritual-circle" id="ritualCircle">
                 <div class="taoist-bagua"></div>
+                <div class="yuan-character">缘</div>
                 <!-- 符号将通过JS动态添加 -->
             </div>
-            <div class="incense-stick" id="incenseStick"></div>
+            <div class="incense-stick inactive" id="incenseStick"></div>
             <div class="names-display" id="namesDisplay"></div>
             <div class="ritual-message" id="ritualMessage">上香仪式进行中，请保持虔诚心态...</div>
             <div class="progress-container">
@@ -695,14 +729,14 @@
         // 添加随机符号到阵法圆圈
         function addRandomSymbols() {
             const ritualCircle = document.getElementById('ritualCircle');
-            const symbols = ['姻', '缘', '合', '道', '法', '自', '然', '❤', '☯', '☸', '卍', '天', '地', '乾', '坤', '阴', '阳'];
+            const symbols = ['姻', '缘', '合', '道', '法', '自', '然', '❤', '☯', '☸', '卍', '天', '地', '乾', '坤', '阴', '阳', '生', '克', '化', '气', '神', '仙', '灵', '玄', '妙', '真'];
             
             // 清除现有符号
             const existingSymbols = document.querySelectorAll('.ritual-symbol');
             existingSymbols.forEach(symbol => symbol.remove());
             
             // 添加新符号
-            for (let i = 0; i < 12; i++) {
+            for (let i = 0; i < 15; i++) {
                 const symbol = document.createElement('span');
                 symbol.classList.add('ritual-symbol');
                 symbol.textContent = symbols[Math.floor(Math.random() * symbols.length)];
@@ -716,8 +750,9 @@
                 symbol.style.left = `calc(50% + ${x}px)`;
                 symbol.style.top = `calc(50% + ${y}px)`;
                 
-                // 随机动画延迟
+                // 随机动画延迟和持续时间
                 symbol.style.animationDelay = `${Math.random() * 5}s`;
+                symbol.style.animationDuration = `${10 + Math.random() * 10}s`;
                 
                 ritualCircle.appendChild(symbol);
             }
@@ -751,6 +786,10 @@
         function startIncenseRitual() {
             const ritualMessage = document.getElementById('ritualMessage');
             const progressBar = document.getElementById('progressBar');
+            const incenseStick = document.getElementById('incenseStick');
+            
+            // 香初始不可点击
+            incenseStick.classList.add('inactive');
             
             // 创建持续烟雾效果
             startContinuousSmoke();
@@ -764,6 +803,10 @@
                 if (progress >= 100) {
                     clearInterval(interval);
                     ritualMessage.textContent = "上香仪式完成，阵法已启动！";
+                    
+                    // 激活香的点击功能
+                    incenseStick.classList.remove('inactive');
+                    
                     showFullscreenEffect(30000); // 30秒特效
                     setTimeout(() => {
                         start24HourCountdown();
@@ -819,19 +862,20 @@
                     // 移除能量圈
                     setTimeout(() => {
                         circle.remove();
-                    }, 3000);
+                    }, 6000);
                 }, i * 500);
             }
             
             // 创建道教符号
-            const symbols = ['道', '法', '自', '然', '☯', '☸', '卍', '缘', '合'];
-            for (let i = 0; i < 25; i++) {
+            const symbols = ['道', '法', '自', '然', '☯', '☸', '卍', '缘', '合', '乾', '坤', '阴', '阳', '天', '地', '生', '克', '化', '气', '神', '仙', '灵', '玄', '妙', '真'];
+            for (let i = 0; i < 30; i++) {
                 const symbol = document.createElement('div');
                 symbol.classList.add('taoist-symbols');
                 symbol.textContent = symbols[Math.floor(Math.random() * symbols.length)];
                 symbol.style.left = `${Math.random() * 80 + 10}%`;
                 symbol.style.top = `${Math.random() * 80 + 10}%`;
                 symbol.style.animationDelay = `${Math.random() * 2}s`;
+                symbol.style.animationDuration = `${8 + Math.random() * 4}s`;
                 effectContainer.appendChild(symbol);
             }
             
@@ -891,7 +935,9 @@
         
         // 点击香触发特效
         document.getElementById('incenseStick').addEventListener('click', function() {
-            showFullscreenEffect(30000); // 30秒特效
+            if (!this.classList.contains('inactive')) {
+                showFullscreenEffect(30000); // 30秒特效
+            }
         });
         
         // 重新启动按钮
@@ -906,6 +952,7 @@
             document.getElementById('progressBar').style.width = '0%';
             document.getElementById('ritualMessage').textContent = '上香仪式进行中，请保持虔诚心态...';
             document.getElementById('countdown').textContent = '24:00:00';
+            document.getElementById('incenseStick').classList.add('inactive');
             
             window.scrollTo(0, 0);
         });
