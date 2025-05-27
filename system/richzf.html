@@ -279,30 +279,6 @@
             animation: rotate 120s linear infinite;
         }
         
-        .user-info {
-            position: absolute;
-            top: 20px;
-            left: 0;
-            width: 100%;
-            text-align: center;
-            z-index: 11;
-        }
-        
-        .user-name {
-            color: #f8d030;
-            font-size: 1.8rem;
-            text-shadow: 0 0 8px #f8d030;
-            margin-bottom: 10px;
-            font-family: 'Ma Shan Zheng', cursive;
-        }
-        
-        .matrix-timer {
-            font-size: 1.5rem;
-            color: #f8d030;
-            text-shadow: 0 0 5px #f8d030;
-            margin-bottom: 20px;
-        }
-        
         .user-position {
             position: absolute;
             width: 60px;
@@ -513,22 +489,6 @@
             border: none;
         }
         
-        .blessing {
-            color: #f8d030;
-            font-size: 2rem;
-            margin: 2rem 0;
-            text-shadow: 0 0 10px #f8d030;
-            animation: glow 2s ease-in-out infinite alternate;
-            font-family: 'Ma Shan Zheng', cursive;
-            letter-spacing: 3px;
-        }
-        
-        .ritual-progress {
-            font-size: 1.2rem;
-            margin: 20px 0;
-            color: #e0c080;
-        }
-        
         .failure-message {
             position: fixed;
             top: 50%;
@@ -598,7 +558,7 @@
         /* Progress bar styles */
         .progress-container {
             position: fixed;
-            bottom: 120px;
+            bottom: 180px;
             left: 50%;
             transform: translateX(-50%);
             width: 80%;
@@ -622,7 +582,7 @@
 
         .ritual-status {
             position: fixed;
-            bottom: 160px;
+            bottom: 220px;
             left: 0;
             width: 100%;
             font-size: 1.5rem;
@@ -635,22 +595,37 @@
 
         .ritual-complete {
             position: fixed;
-            bottom: 180px;
+            bottom: 220px;
             left: 0;
             width: 100%;
-            font-size: 1.8rem;
+            font-size: 2rem;
             color: #f8d030;
-            text-shadow: 0 0 15px #f8d030;
-            margin: 20px 0;
+            text-shadow: 0 0 20px #f8d030;
             text-align: center;
             display: none;
             font-family: 'Ma Shan Zheng', cursive;
             z-index: 20;
+            line-height: 1.5;
         }
 
         .matrix-countdown {
             position: fixed;
-            bottom: 120px;
+            bottom: 160px;
+            left: 0;
+            width: 100%;
+            font-size: 3rem;
+            color: #f8d030;
+            text-shadow: 0 0 20px #f8d030;
+            text-align: center;
+            display: none;
+            z-index: 20;
+            font-family: 'Ma Shan Zheng', cursive;
+            line-height: 1.5;
+        }
+
+        .user-name-display {
+            position: fixed;
+            bottom: 200px;
             left: 0;
             width: 100%;
             font-size: 2.5rem;
@@ -658,22 +633,9 @@
             text-shadow: 0 0 15px #f8d030;
             text-align: center;
             display: none;
-            z-index: 20;
-            font-family: 'Ma Shan Zheng', cursive;
-        }
-
-        .user-name-display {
-            position: fixed;
-            bottom: 160px;
-            left: 0;
-            width: 100%;
-            font-size: 1.8rem;
-            color: #f8d030;
-            text-shadow: 0 0 10px #f8d030;
-            text-align: center;
-            display: none;
             font-family: 'Ma Shan Zheng', cursive;
             z-index: 20;
+            line-height: 1.5;
         }
 
         /* Mystical elements */
@@ -762,6 +724,61 @@
             opacity: 0;
             transition: opacity 2s;
         }
+
+        /* Enhanced effects */
+        .cosmic-rays {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 2s;
+        }
+
+        .cosmic-ray {
+            position: absolute;
+            width: 2px;
+            height: 100%;
+            background: linear-gradient(to bottom, transparent, rgba(248, 208, 48, 0.3), transparent);
+            animation: cosmicRayGlow 3s infinite ease-in-out;
+        }
+
+        @keyframes cosmicRayGlow {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.8; }
+        }
+
+        .sparkle {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #f8d030;
+            border-radius: 50%;
+            opacity: 0;
+            animation: sparkleAnim 2s infinite;
+        }
+
+        @keyframes sparkleAnim {
+            0%, 100% { opacity: 0; transform: scale(0.5); }
+            50% { opacity: 0.8; transform: scale(1.2); }
+        }
+
+        .energy-orb {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(248, 208, 48, 0.3) 0%, rgba(248, 208, 48, 0) 70%);
+            animation: orbPulse 4s infinite ease-in-out;
+        }
+
+        @keyframes orbPulse {
+            0%, 100% { transform: scale(1); opacity: 0.3; }
+            50% { transform: scale(1.2); opacity: 0.6; }
+        }
     </style>
 </head>
 <body>
@@ -782,6 +799,7 @@
     <div class="energy-beam" id="energyBeam"></div>
     <div class="energy-particles" id="energyParticles"></div>
     <div class="divine-light" id="divineLight"></div>
+    <div class="cosmic-rays" id="cosmicRays"></div>
     
     <div class="final-effect" id="finalEffect">
         <div class="final-message">聚财阵法已生效！</div>
@@ -905,15 +923,9 @@
         <div class="matrix-countdown" id="matrixCountdown"></div>
         
         <div class="matrix-container" id="matrixContainer">
-            <div class="user-info">
-                <div class="user-name" id="matrixUserName"></div>
-                <div class="matrix-timer" id="matrixTimer"></div>
-            </div>
             <div class="matrix"></div>
             <div class="user-position"></div>
         </div>
-        
-        <div class="blessing" id="blessing"></div>
     </div>
     
     <div class="incense-container" id="incenseContainer">
@@ -1097,6 +1109,24 @@
             circles.forEach(circle => {
                 circle.style.animationPlayState = 'running';
             });
+            
+            // 激活宇宙射线
+            document.getElementById('cosmicRays').style.opacity = '0.5';
+            createCosmicRays();
+        }
+        
+        // 创建宇宙射线
+        function createCosmicRays() {
+            const cosmicRays = document.getElementById('cosmicRays');
+            cosmicRays.innerHTML = '';
+            
+            for (let i = 0; i < 8; i++) {
+                const ray = document.createElement('div');
+                ray.className = 'cosmic-ray';
+                ray.style.left = `${Math.random() * 100}%`;
+                ray.style.animationDelay = `${Math.random() * 3}s`;
+                cosmicRays.appendChild(ray);
+            }
         }
         
         // 点香仪式完成
@@ -1155,13 +1185,39 @@
                     }, 7000);
                 }, i * 100);
             }
+            
+            // 创建闪光效果
+            createSparkles();
+        }
+        
+        // 创建闪光效果
+        function createSparkles() {
+            const container = document.querySelector('.container');
+            
+            for (let i = 0; i < 30; i++) {
+                const sparkle = document.createElement('div');
+                sparkle.className = 'sparkle';
+                sparkle.style.left = `${Math.random() * 100}%`;
+                sparkle.style.top = `${Math.random() * 100}%`;
+                sparkle.style.animationDelay = `${Math.random() * 2}s`;
+                container.appendChild(sparkle);
+            }
+            
+            // 创建能量球
+            for (let i = 0; i < 5; i++) {
+                const orb = document.createElement('div');
+                orb.className = 'energy-orb';
+                orb.style.left = `${Math.random() * 100}%`;
+                orb.style.top = `${Math.random() * 100}%`;
+                orb.style.animationDelay = `${Math.random() * 2}s`;
+                container.appendChild(orb);
+            }
         }
         
         // 激活阵法
         function activateMatrix(name) {
             // 显示阵法
             document.getElementById('matrixContainer').style.display = 'block';
-            document.getElementById('matrixUserName').textContent = name;
             
             // 创建粒子效果
             createParticles();
@@ -1171,16 +1227,6 @@
             
             // 创建道家符号背景
             createTaoistSymbols();
-            
-            // 随机生成祝福语
-            const blessings = [
-                '临兵斗者皆阵列前行',
-                '道法自然 · 天人合一',
-                '阴阳调和 · 五行相生',
-                '乾坤定位 · 八卦成列',
-                '太上台星 · 应变无停'
-            ];
-            document.getElementById('blessing').textContent = blessings[Math.floor(Math.random() * blessings.length)];
             
             // 开始24小时倒计时
             startMatrixCountdown();
@@ -1282,12 +1328,16 @@
             document.getElementById('energyBeam').style.opacity = '0';
             document.getElementById('divineLight').style.opacity = '0';
             document.getElementById('energyParticles').style.display = 'none';
+            document.getElementById('cosmicRays').style.opacity = '0';
+            
+            // 移除闪光效果
+            const sparkles = document.querySelectorAll('.sparkle, .energy-orb');
+            sparkles.forEach(sparkle => sparkle.remove());
         }
         
         // 24小时阵法倒计时
         function startMatrixCountdown() {
             let seconds = MATRIX_DURATION;
-            const timerElement = document.getElementById('matrixTimer');
             const countdownElement = document.getElementById('matrixCountdown');
             
             const countdown = setInterval(() => {
@@ -1296,7 +1346,6 @@
                 const remainingSeconds = seconds % 60;
                 
                 countdownElement.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
-                timerElement.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
                 
                 if (seconds <= 0) {
                     clearInterval(countdown);
