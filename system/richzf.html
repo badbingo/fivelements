@@ -818,35 +818,37 @@
         }
         
         /* Final completion message */
-        .completion-message {
+        .final-completion {
             position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: rgba(10, 10, 10, 0.9);
-            padding: 30px;
-            border-radius: 10px;
-            border: 1px solid rgba(224, 192, 128, 0.3);
-            box-shadow: 0 0 30px rgba(248, 208, 48, 0.5);
-            max-width: 80%;
-            text-align: center;
-            z-index: 100;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
             display: none;
         }
         
-        .completion-message h2 {
+        .final-completion h2 {
             color: #f8d030;
-            font-family: 'Noto Serif SC', serif;
-            font-size: 2.5rem;
-            margin-top: 0;
-            margin-bottom: 20px;
+            font-size: 3rem;
+            text-align: center;
+            margin-bottom: 30px;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            font-family: 'Noto Serif SC', serif;
         }
         
-        .completion-message p {
+        .final-completion p {
+            color: #e0c080;
             font-size: 1.5rem;
+            text-align: center;
+            max-width: 80%;
             line-height: 1.6;
-            margin-bottom: 15px;
+            margin-bottom: 40px;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
         }
     </style>
@@ -876,16 +878,15 @@
         <div class="final-message" style="animation-delay: 0.5s;">临兵斗者皆阵列前行</div>
     </div>
     
+    <div class="final-completion" id="finalCompletion">
+        <h2>恭喜你，天罡聚财阵已完成！</h2>
+        <p>临兵斗者皆阵列前行，阵法能量已融入您的命理，未来三个月内将陆续显示神奇效果。</p>
+    </div>
+    
     <div class="failure-message" id="failureMessage">
         <h2>阵法失败</h2>
         <p>三根香全部熄灭，阵法能量已消散</p>
         <p>请择日重新启动阵法</p>
-    </div>
-    
-    <div class="completion-message" id="completionMessage">
-        <h2>恭喜你，天罡聚财阵已完成！</h2>
-        <p>临兵斗者皆阵列前行</p>
-        <p>阵法能量已融入您的命理，未来三个月内将陆续显示神奇效果。</p>
     </div>
     
     <div class="container">
@@ -1210,6 +1211,12 @@
             });
         }
         
+        // 播放音效
+        function playSound(type) {
+            // 这里可以添加音效播放代码
+            // 实际使用时需要添加音频文件并创建Audio对象
+        }
+        
         // 点香倒计时
         function startIncenseCountdown(name) {
             // 更新进度信息
@@ -1347,6 +1354,20 @@
             createCosmicRays();
         }
         
+        // 创建宇宙射线
+        function createCosmicRays() {
+            const cosmicRays = document.getElementById('cosmicRays');
+            cosmicRays.innerHTML = '';
+            
+            for (let i = 0; i < 8; i++) {
+                const ray = document.createElement('div');
+                ray.className = 'cosmic-ray';
+                ray.style.left = `${Math.random() * 100}%`;
+                ray.style.animationDelay = `${Math.random() * 3}s`;
+                cosmicRays.appendChild(ray);
+            }
+        }
+        
         // 点香仪式完成
         function incenseCeremonyComplete(name) {
             // 隐藏聚财灵咒
@@ -1401,6 +1422,30 @@
             
             // 创建闪光效果
             createSparkles();
+        }
+        
+        // 创建闪光效果
+        function createSparkles() {
+            const container = document.querySelector('.container');
+            
+            for (let i = 0; i < 30; i++) {
+                const sparkle = document.createElement('div');
+                sparkle.className = 'sparkle';
+                sparkle.style.left = `${Math.random() * 100}%`;
+                sparkle.style.top = `${Math.random() * 100}%`;
+                sparkle.style.animationDelay = `${Math.random() * 2}s`;
+                container.appendChild(sparkle);
+            }
+            
+            // 创建能量球
+            for (let i = 0; i < 5; i++) {
+                const orb = document.createElement('div');
+                orb.className = 'energy-orb';
+                orb.style.left = `${Math.random() * 100}%`;
+                orb.style.top = `${Math.random() * 100}%`;
+                orb.style.animationDelay = `${Math.random() * 2}s`;
+                container.appendChild(orb);
+            }
         }
         
         // 激活阵法
@@ -1555,6 +1600,42 @@
             }, 5000);
         }
         
+        // 停止所有动画
+        function stopAllAnimations() {
+            // 停止神秘光芒
+            const lights = document.querySelectorAll('.mystical-light');
+            lights.forEach(light => {
+                light.style.opacity = '0';
+                light.style.animationPlayState = 'paused';
+            });
+            
+            // 停止八卦图
+            document.querySelector('.bagua').style.animationPlayState = 'paused';
+            
+            // 停止道家符号
+            const taoistSymbols = document.querySelectorAll('.taoist-symbol');
+            taoistSymbols.forEach(symbol => {
+                symbol.style.animationPlayState = 'paused';
+            });
+            
+            // 停止圆圈
+            const circles = document.querySelectorAll('.circle');
+            circles.forEach(circle => {
+                circle.style.animationPlayState = 'paused';
+            });
+            
+            // 隐藏能量效果
+            document.getElementById('energyBeam').style.height = '0';
+            document.getElementById('energyBeam').style.opacity = '0';
+            document.getElementById('divineLight').style.opacity = '0';
+            document.getElementById('energyParticles').style.display = 'none';
+            document.getElementById('cosmicRays').style.opacity = '0';
+            
+            // 移除闪光效果
+            const sparkles = document.querySelectorAll('.sparkle, .energy-orb');
+            sparkles.forEach(sparkle => sparkle.remove());
+        }
+        
         // 24小时阵法倒计时
         function startMatrixCountdown() {
             const startTime = Date.now();
@@ -1629,10 +1710,16 @@
             // 删除保存的进度
             localStorage.removeItem('wealthMatrixProgress');
             
-            // 5秒后显示完成消息
+            // 隐藏结束阵法按钮
+            document.getElementById('endRitualBtn').style.display = 'none';
+            
+            // 5秒后显示完成页面
             setTimeout(() => {
                 finalEffect.style.display = 'none';
-                document.getElementById('completionMessage').style.display = 'block';
+                goldCoins.style.display = 'none';
+                
+                // 显示完成页面
+                document.getElementById('finalCompletion').style.display = 'flex';
                 
                 // 隐藏其他元素
                 document.getElementById('matrixContainer').style.display = 'none';
@@ -1640,10 +1727,10 @@
                 document.getElementById('matrixCountdown').style.display = 'none';
                 document.getElementById('ritualComplete').style.display = 'none';
                 document.getElementById('userNameDisplay').style.display = 'none';
-                document.getElementById('ritualProgress').style.display = 'none';
+                document.getElementById('ritualProgress').textContent = '';
                 
-                // 保持结束阵法按钮显示
-                document.getElementById('endRitualBtn').style.display = 'block';
+                // 停止所有动画
+                stopAllAnimations();
             }, 5000);
         }
         
