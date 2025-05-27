@@ -293,6 +293,7 @@
             position: absolute;
             color: var(--taoist-gold);
             text-shadow: 0 0 5px var(--taoist-red);
+            animation: float 20s infinite ease-in-out, rotate-slow 40s infinite linear;
             opacity: 0.9;
             z-index: 2;
         }
@@ -312,6 +313,21 @@
         
         .ritual-symbol.xlarge {
             font-size: 2.5rem;
+        }
+        
+        @keyframes float {
+            0%, 100% {
+                transform: translate(0, 0) rotate(0deg);
+            }
+            25% {
+                transform: translate(10px, -5px) rotate(5deg);
+            }
+            50% {
+                transform: translate(0, -10px) rotate(0deg);
+            }
+            75% {
+                transform: translate(-10px, -5px) rotate(-5deg);
+            }
         }
         
         .taoist-bagua {
@@ -337,7 +353,13 @@
             font-size: 1.2rem;
             color: var(--taoist-gold);
             text-shadow: 0 0 5px var(--taoist-red);
+            animation: rotate-slow 50s infinite linear;
             z-index: 3;
+        }
+        
+        @keyframes rotate-slow {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
         }
         
         .moving-names-container {
@@ -395,6 +417,25 @@
         
         .name-display.inactive {
             cursor: default;
+        }
+        
+        .name-shadow {
+            position: absolute;
+            font-size: 1.8rem;
+            color: white;
+            opacity: 0.1;
+            z-index: 9;
+            pointer-events: none;
+        }
+        
+        .name-shadow.male {
+            left: 10%;
+            transform: translateX(-50%);
+        }
+        
+        .name-shadow.female {
+            right: 10%;
+            transform: translateX(50%);
         }
         
         .heart-symbol {
@@ -823,6 +864,8 @@
             <div class="incense-stick inactive" id="incenseStick"></div>
             
             <div class="moving-names-container" id="movingNamesContainer">
+                <div class="name-shadow male" id="maleShadow"></div>
+                <div class="name-shadow female" id="femaleShadow"></div>
                 <div class="name-display male inactive" id="maleName"></div>
                 <div class="heart-symbol">❤</div>
                 <div class="name-display female inactive" id="femaleName"></div>
@@ -909,6 +952,10 @@
                 symbol.style.left = `calc(50% + ${x}px)`;
                 symbol.style.top = `calc(50% + ${y}px)`;
                 
+                // 随机动画延迟和持续时间
+                symbol.style.animationDelay = `${Math.random() * 5}s`;
+                symbol.style.animationDuration = `${15 + Math.random() * 10}s`;
+                
                 ritualCircle.appendChild(symbol);
             }
             
@@ -926,6 +973,9 @@
                 
                 symbol.style.left = `calc(50% + ${x}px)`;
                 symbol.style.top = `calc(50% + ${y}px)`;
+                
+                // 随机动画持续时间
+                symbol.style.animationDuration = `${40 + Math.random() * 20}s`;
                 
                 ritualCircle.appendChild(symbol);
             }
@@ -966,6 +1016,8 @@
             // 设置名字显示
             document.getElementById('maleName').textContent = name1;
             document.getElementById('femaleName').textContent = name2;
+            document.getElementById('maleShadow').textContent = name1;
+            document.getElementById('femaleShadow').textContent = name2;
             
             // 添加随机符号
             addRandomSymbols();
@@ -1130,6 +1182,8 @@
             const countdownElement = document.getElementById('countdown');
             const maleName = document.getElementById('maleName');
             const femaleName = document.getElementById('femaleName');
+            const maleShadow = document.getElementById('maleShadow');
+            const femaleShadow = document.getElementById('femaleShadow');
             const containerWidth = document.getElementById('movingNamesContainer').offsetWidth;
             const heartCenter = containerWidth / 2;
             
@@ -1141,28 +1195,6 @@
             let femaleStopped = false;
             let maleStoppedTime = 0;
             let femaleStoppedTime = 0;
-            
-            // 创建白色名字投影
-            const maleProjection = document.createElement('div');
-            maleProjection.classList.add('name-display', 'male');
-            maleProjection.textContent = maleName.textContent;
-            maleProjection.style.opacity = '0.7';
-            maleProjection.style.color = 'white';
-            maleProjection.style.textShadow = 'none';
-            maleProjection.style.left = `${containerWidth * 0.1}px`;
-            maleProjection.style.pointerEvents = 'none';
-            
-            const femaleProjection = document.createElement('div');
-            femaleProjection.classList.add('name-display', 'female');
-            femaleProjection.textContent = femaleName.textContent;
-            femaleProjection.style.opacity = '0.7';
-            femaleProjection.style.color = 'white';
-            femaleProjection.style.textShadow = 'none';
-            femaleProjection.style.right = `${containerWidth * 0.1}px`;
-            femaleProjection.style.pointerEvents = 'none';
-            
-            document.getElementById('movingNamesContainer').appendChild(maleProjection);
-            document.getElementById('movingNamesContainer').appendChild(femaleProjection);
             
             // 如果有保存的进度，恢复状态
             if (savedData) {
@@ -1395,10 +1427,6 @@
             const stoppedMsgs = document.querySelectorAll('.stopped-message');
             stoppedMsgs.forEach(msg => msg.remove());
             
-            // 移除名字投影
-            const projections = document.querySelectorAll('.name-display[style*="white"]');
-            projections.forEach(proj => proj.remove());
-            
             // 清除保存的进度
             clearProgress();
             
@@ -1433,6 +1461,8 @@
                     // 设置名字显示
                     document.getElementById('maleName').textContent = savedProgress.name1;
                     document.getElementById('femaleName').textContent = savedProgress.name2;
+                    document.getElementById('maleShadow').textContent = savedProgress.name1;
+                    document.getElementById('femaleShadow').textContent = savedProgress.name2;
                     
                     // 添加随机符号
                     addRandomSymbols();
@@ -1449,6 +1479,8 @@
                     // 设置名字显示
                     document.getElementById('maleName').textContent = savedProgress.name1;
                     document.getElementById('femaleName').textContent = savedProgress.name2;
+                    document.getElementById('maleShadow').textContent = savedProgress.name1;
+                    document.getElementById('femaleShadow').textContent = savedProgress.name2;
                     
                     // 添加随机符号
                     addRandomSymbols();
