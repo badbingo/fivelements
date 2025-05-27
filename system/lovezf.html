@@ -313,21 +313,6 @@
             font-size: 2.5rem;
         }
         
-        @keyframes float {
-            0%, 100% {
-                transform: translate(0, 0) rotate(0deg) scale(1);
-            }
-            25% {
-                transform: translate(40px, -20px) rotate(5deg) scale(1.05);
-            }
-            50% {
-                transform: translate(0, -40px) rotate(0deg) scale(0.95);
-            }
-            75% {
-                transform: translate(-40px, -20px) rotate(-5deg) scale(1.03);
-            }
-        }
-        
         .taoist-bagua {
             position: absolute;
             width: 80%;
@@ -360,11 +345,68 @@
             to { transform: rotate(360deg); }
         }
         
-        .names-display {
+        .moving-names-container {
+            position: relative;
+            width: 100%;
+            height: 80px;
             margin-top: 2rem;
-            font-size: 1.5rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+        }
+        
+        .name-display {
+            position: absolute;
+            font-size: 1.8rem;
             color: var(--taoist-gold);
             text-shadow: 0 0 10px var(--taoist-red);
+            transition: all 0.5s ease;
+            cursor: pointer;
+            z-index: 11;
+        }
+        
+        .name-display.stopped {
+            color: var(--taoist-red);
+            text-shadow: 0 0 15px var(--taoist-gold);
+            animation: pulse-stopped 2s infinite;
+            cursor: pointer;
+        }
+        
+        @keyframes pulse-stopped {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.05);
+                opacity: 0.9;
+            }
+        }
+        
+        .name-display.male {
+            left: 10%;
+            transform: translateX(-50%);
+        }
+        
+        .name-display.female {
+            right: 10%;
+            transform: translateX(50%);
+        }
+        
+        .name-display.active {
+            cursor: pointer;
+        }
+        
+        .name-display.inactive {
+            cursor: default;
+        }
+        
+        .heart-symbol {
+            position: absolute;
+            font-size: 2rem;
+            color: var(--taoist-red);
+            text-shadow: 0 0 10px var(--taoist-gold);
             z-index: 10;
         }
         
@@ -420,7 +462,7 @@
         
         .countdown {
             font-size: 2rem;
-            margin-top: 2rem;
+            margin-top: 1rem;
             color: var(--taoist-gold);
             font-family: monospace;
             z-index: 10;
@@ -458,6 +500,23 @@
             to {
                 opacity: 1;
             }
+        }
+        
+        .stopped-message {
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 1rem;
+            color: var(--taoist-red);
+            text-shadow: 0 0 5px var(--taoist-gold);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            white-space: nowrap;
+        }
+        
+        .stopped-message.show {
+            opacity: 1;
         }
         
         .result-section {
@@ -604,6 +663,31 @@
             z-index: 201;
         }
         
+        /* 名字点击特效 */
+        .name-click-effect {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: radial-gradient(circle, var(--taoist-gold), transparent 70%);
+            opacity: 0;
+            transform: scale(0);
+            animation: click-effect 1.5s ease-out forwards;
+            z-index: 12;
+            pointer-events: none;
+        }
+        
+        @keyframes click-effect {
+            0% {
+                opacity: 0.8;
+                transform: scale(0);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(3);
+            }
+        }
+        
         .warning {
             color: #ffcc00;
             font-size: 0.9rem;
@@ -629,6 +713,18 @@
             
             .yuan-character {
                 font-size: 4rem;
+            }
+            
+            .name-display {
+                font-size: 1.5rem;
+            }
+            
+            .name-display.male {
+                left: 5%;
+            }
+            
+            .name-display.female {
+                right: 5%;
             }
             
             .effect-message {
@@ -670,7 +766,7 @@
                 <li>仪式完成后，阵法将持续运转24小时</li>
                 <li>24小时后将显示姻缘增幅效果(100%-500%随机)</li>
                 <li>阵法期间，请保持正面思维，想象两人美好未来</li>
-                <li>阵法启动后，点击香可再次触发阵法特效</li>
+                <li>当名字停止移动时，点击名字可解除停滞状态</li>
             </ol>
         </div>
         
@@ -729,12 +825,18 @@
                 <!-- 符号将通过JS动态添加 -->
             </div>
             <div class="incense-stick inactive" id="incenseStick"></div>
-            <div class="names-display" id="namesDisplay"></div>
-            <div class="ritual-message" id="ritualMessage">上香仪式进行中，请保持虔诚心态...</div>
+            
+            <div class="moving-names-container" id="movingNamesContainer">
+                <div class="name-display male inactive" id="maleName"></div>
+                <div class="heart-symbol">❤</div>
+                <div class="name-display female inactive" id="femaleName"></div>
+            </div>
+            
+            <div class="countdown" id="countdown">24:00:00</div>
             <div class="progress-container">
                 <div class="progress-bar" id="progressBar"></div>
             </div>
-            <div class="countdown" id="countdown">24:00:00</div>
+            <div class="ritual-message" id="ritualMessage">上香仪式进行中，请保持虔诚心态...</div>
         </div>
     </div>
     
@@ -855,7 +957,10 @@
             
             // 显示阵法区域
             document.getElementById('ritualArea').style.display = 'flex';
-            document.getElementById('namesDisplay').textContent = `${name1} ❤ ${name2}`;
+            
+            // 设置名字显示
+            document.getElementById('maleName').textContent = name1;
+            document.getElementById('femaleName').textContent = name2;
             
             // 添加随机符号
             addRandomSymbols();
@@ -987,12 +1092,64 @@
         // 24小时倒计时
         function start24HourCountdown() {
             const countdownElement = document.getElementById('countdown');
+            const maleName = document.getElementById('maleName');
+            const femaleName = document.getElementById('femaleName');
+            const containerWidth = document.getElementById('movingNamesContainer').offsetWidth;
+            const heartCenter = containerWidth / 2;
+            
             let hours = 24;
             let minutes = 0;
             let seconds = 0;
+            let totalSeconds = 0;
+            let maleStopped = false;
+            let femaleStopped = false;
+            let maleStoppedTime = 0;
+            let femaleStoppedTime = 0;
+            
+            // 激活名字显示
+            maleName.classList.remove('inactive');
+            femaleName.classList.remove('inactive');
+            
+            // 初始位置
+            let malePosition = containerWidth * 0.1;
+            let femalePosition = containerWidth * 0.9;
+            
+            // 计算移动速度 (5小时移动到中心)
+            const moveSpeed = (heartCenter - containerWidth * 0.1) / (5 * 60 * 60); // 每秒移动的像素
+            
+            // 创建停止消息元素
+            const maleStoppedMsg = document.createElement('div');
+            maleStoppedMsg.classList.add('stopped-message');
+            maleStoppedMsg.textContent = '缘分受阻，点击解除';
+            maleName.parentNode.appendChild(maleStoppedMsg);
+            
+            const femaleStoppedMsg = document.createElement('div');
+            femaleStoppedMsg.classList.add('stopped-message');
+            femaleStoppedMsg.textContent = '缘分受阻，点击解除';
+            femaleName.parentNode.appendChild(femaleStoppedMsg);
+            
+            // 名字点击事件
+            maleName.addEventListener('click', function() {
+                if (maleStopped) {
+                    createClickEffect(this);
+                    maleStopped = false;
+                    this.classList.remove('stopped');
+                    maleStoppedMsg.classList.remove('show');
+                }
+            });
+            
+            femaleName.addEventListener('click', function() {
+                if (femaleStopped) {
+                    createClickEffect(this);
+                    femaleStopped = false;
+                    this.classList.remove('stopped');
+                    femaleStoppedMsg.classList.remove('show');
+                }
+            });
             
             const countdown = setInterval(() => {
                 seconds--;
+                totalSeconds++;
                 
                 if (seconds < 0) {
                     seconds = 59;
@@ -1012,7 +1169,69 @@
                 
                 countdownElement.textContent = 
                     `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                
+                // 名字移动逻辑
+                if (!maleStopped && malePosition < heartCenter - 50) {
+                    malePosition += moveSpeed;
+                    maleName.style.left = `${malePosition}px`;
+                    
+                    // 10%几率停止
+                    if (Math.random() < 0.000555) { // 大约每30分钟10%几率 (30*60*0.000555≈1)
+                        maleStopped = true;
+                        maleName.classList.add('stopped');
+                        maleStoppedMsg.style.left = `${malePosition}px`;
+                        maleStoppedMsg.classList.add('show');
+                        maleStoppedTime = totalSeconds;
+                    }
+                }
+                
+                if (!femaleStopped && femalePosition > heartCenter + 50) {
+                    femalePosition -= moveSpeed;
+                    femaleName.style.right = `${containerWidth - femalePosition}px`;
+                    
+                    // 10%几率停止
+                    if (Math.random() < 0.000555) { // 大约每30分钟10%几率
+                        femaleStopped = true;
+                        femaleName.classList.add('stopped');
+                        femaleStoppedMsg.style.left = `${femalePosition}px`;
+                        femaleStoppedMsg.classList.add('show');
+                        femaleStoppedTime = totalSeconds;
+                    }
+                }
+                
+                // 如果停止超过2小时，自动解除
+                if (maleStopped && totalSeconds - maleStoppedTime > 2 * 60 * 60) {
+                    maleStopped = false;
+                    maleName.classList.remove('stopped');
+                    maleStoppedMsg.classList.remove('show');
+                }
+                
+                if (femaleStopped && totalSeconds - femaleStoppedTime > 2 * 60 * 60) {
+                    femaleStopped = false;
+                    femaleName.classList.remove('stopped');
+                    femaleStoppedMsg.classList.remove('show');
+                }
+                
             }, 1000);
+        }
+        
+        // 创建点击特效
+        function createClickEffect(element) {
+            const effect = document.createElement('div');
+            effect.classList.add('name-click-effect');
+            
+            const rect = element.getBoundingClientRect();
+            const containerRect = element.parentNode.getBoundingClientRect();
+            
+            effect.style.left = `${rect.left - containerRect.left + rect.width / 2 - 50}px`;
+            effect.style.top = `${rect.top - containerRect.top + rect.height / 2 - 50}px`;
+            
+            element.parentNode.appendChild(effect);
+            
+            // 移除特效元素
+            setTimeout(() => {
+                effect.remove();
+            }, 1500);
         }
         
         // 显示结果
@@ -1049,6 +1268,16 @@
             document.getElementById('ritualMessage').textContent = '上香仪式进行中，请保持虔诚心态...';
             document.getElementById('countdown').textContent = '24:00:00';
             document.getElementById('incenseStick').classList.add('inactive');
+            
+            // 重置名字位置
+            document.getElementById('maleName').classList.add('inactive');
+            document.getElementById('femaleName').classList.add('inactive');
+            document.getElementById('maleName').classList.remove('stopped');
+            document.getElementById('femaleName').classList.remove('stopped');
+            
+            // 移除停止消息
+            const stoppedMsgs = document.querySelectorAll('.stopped-message');
+            stoppedMsgs.forEach(msg => msg.remove());
             
             window.scrollTo(0, 0);
         });
