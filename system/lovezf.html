@@ -293,9 +293,13 @@
             position: absolute;
             color: var(--taoist-gold);
             text-shadow: 0 0 5px var(--taoist-red);
-            animation: float 20s infinite ease-in-out, rotate-slow 40s infinite linear;
+            animation: float 20s infinite ease-in-out;
             opacity: 0.9;
             z-index: 2;
+        }
+        
+        .ritual-symbol.rotating {
+            animation: float 20s infinite ease-in-out, rotate-slow 40s infinite linear;
         }
         
         .ritual-symbol.small {
@@ -317,16 +321,16 @@
         
         @keyframes float {
             0%, 100% {
-                transform: translate(0, 0) rotate(0deg);
+                transform: translate(0, 0);
             }
             25% {
-                transform: translate(10px, -5px) rotate(5deg);
+                transform: translate(10px, -5px);
             }
             50% {
-                transform: translate(0, -10px) rotate(0deg);
+                transform: translate(0, -10px);
             }
             75% {
-                transform: translate(-10px, -5px) rotate(-5deg);
+                transform: translate(-10px, -5px);
             }
         }
         
@@ -733,6 +737,84 @@
             padding-top: 1rem;
         }
         
+        /* 停止阵法按钮 */
+        .stop-ritual-btn {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, var(--taoist-red), #8B0000);
+            color: white;
+            padding: 0.8rem 2rem;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(139, 0, 0, 0.4);
+            z-index: 101;
+            display: none;
+        }
+        
+        .stop-ritual-btn:hover {
+            transform: translateX(-50%) translateY(-3px);
+            box-shadow: 0 7px 20px rgba(139, 0, 0, 0.6);
+        }
+        
+        .stop-ritual-btn:active {
+            transform: translateX(-50%) translateY(1px);
+        }
+        
+        /* 确认对话框 */
+        .confirmation-dialog {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: var(--alt-bg-color);
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            text-align: center;
+            display: none;
+            max-width: 80%;
+            width: 400px;
+        }
+        
+        .confirmation-dialog p {
+            margin-bottom: 1.5rem;
+            font-size: 1.2rem;
+        }
+        
+        .dialog-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+        }
+        
+        .dialog-btn {
+            padding: 0.6rem 1.5rem;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .confirm-btn {
+            background-color: var(--taoist-red);
+            color: white;
+        }
+        
+        .cancel-btn {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+        
         @media (max-width: 768px) {
             .form-grid {
                 grid-template-columns: 1fr;
@@ -774,6 +856,11 @@
             .fixed-title .subtitle {
                 font-size: 0.9rem;
             }
+            
+            .confirmation-dialog {
+                width: 90%;
+                padding: 1.5rem;
+            }
         }
     </style>
 </head>
@@ -786,14 +873,14 @@
         <p class="subtitle">千年秘传 · 姻缘增幅 · 天作之合</p>
     </div>
     
-    <div class="container">
+    <div class="container" id="mainContainer">
         <header>
             <h1>天机姻缘配对阵法</h1>
             <p class="subtitle">千年秘传 · 姻缘增幅 · 天作之合</p>
             <div class="divider"></div>
         </header>
         
-        <div class="instructions">
+        <div class="instructions" id="instructions">
             <h3>阵法操作指南</h3>
             <ol>
                 <li>请如实填写双方姓名及生辰八字，信息越准确，阵法效果越强</li>
@@ -807,7 +894,7 @@
             </ol>
         </div>
         
-        <div class="form-section">
+        <div class="form-section" id="formSection">
             <h2>姻缘信息输入</h2>
             <div class="form-grid">
                 <div>
@@ -892,6 +979,19 @@
         <button id="restartBtn" class="btn">再次启动阵法</button>
     </div>
     
+    <!-- 停止阵法按钮 -->
+    <button class="stop-ritual-btn" id="stopRitualBtn">停止阵法</button>
+    
+    <!-- 确认对话框 -->
+    <div class="confirmation-dialog" id="confirmationDialog">
+        <h3>确认停止阵法</h3>
+        <p>确定要停止当前运行的阵法吗？所有进度将不会被保存。</p>
+        <div class="dialog-buttons">
+            <button class="dialog-btn confirm-btn" id="confirmStopBtn">确认停止</button>
+            <button class="dialog-btn cancel-btn" id="cancelStopBtn">取消</button>
+        </div>
+    </div>
+    
     <script>
         // 创建漂浮粒子
         function createParticles() {
@@ -941,6 +1041,12 @@
                 const sizeClass = sizeClasses[Math.floor(Math.random() * sizeClasses.length)];
                 
                 symbol.classList.add('ritual-symbol', sizeClass);
+                
+                // 30%的几率添加旋转动画
+                if (Math.random() < 0.3) {
+                    symbol.classList.add('rotating');
+                }
+                
                 symbol.textContent = symbols[Math.floor(Math.random() * symbols.length)];
                 
                 // 随机位置
@@ -1007,11 +1113,17 @@
                 return;
             }
             
+            // 隐藏输入界面和操作指南
+            document.getElementById('mainContainer').style.display = 'none';
+            
             // 显示固定标题
             document.getElementById('fixedTitle').style.display = 'block';
             
             // 显示阵法区域
             document.getElementById('ritualArea').style.display = 'flex';
+            
+            // 显示停止阵法按钮
+            document.getElementById('stopRitualBtn').style.display = 'block';
             
             // 设置名字显示
             document.getElementById('maleName').textContent = name1;
@@ -1385,6 +1497,7 @@
             document.getElementById('ritualArea').style.display = 'none';
             document.getElementById('resultSection').style.display = 'block';
             document.getElementById('fixedTitle').style.display = 'none';
+            document.getElementById('stopRitualBtn').style.display = 'none';
             
             // 清除保存的进度
             clearProgress();
@@ -1404,6 +1517,7 @@
         // 重新启动按钮
         document.getElementById('restartBtn').addEventListener('click', function() {
             document.getElementById('resultSection').style.display = 'none';
+            document.getElementById('mainContainer').style.display = 'block';
             document.getElementById('name1').value = '';
             document.getElementById('name2').value = '';
             document.getElementById('birth1').value = '';
@@ -1433,6 +1547,38 @@
             window.scrollTo(0, 0);
         });
         
+        // 停止阵法按钮点击事件
+        document.getElementById('stopRitualBtn').addEventListener('click', function() {
+            document.getElementById('confirmationDialog').style.display = 'block';
+        });
+        
+        // 确认停止按钮点击事件
+        document.getElementById('confirmStopBtn').addEventListener('click', function() {
+            // 停止所有动画和计时器
+            clearInterval(smokeInterval);
+            
+            // 隐藏阵法区域和停止按钮
+            document.getElementById('ritualArea').style.display = 'none';
+            document.getElementById('stopRitualBtn').style.display = 'none';
+            
+            // 显示主界面
+            document.getElementById('mainContainer').style.display = 'block';
+            
+            // 清除保存的进度
+            clearProgress();
+            
+            // 隐藏确认对话框
+            document.getElementById('confirmationDialog').style.display = 'none';
+            
+            // 重置固定标题
+            document.getElementById('fixedTitle').style.display = 'none';
+        });
+        
+        // 取消停止按钮点击事件
+        document.getElementById('cancelStopBtn').addEventListener('click', function() {
+            document.getElementById('confirmationDialog').style.display = 'none';
+        });
+        
         // 初始化
         let smokeInterval;
         window.addEventListener('DOMContentLoaded', () => {
@@ -1452,11 +1598,17 @@
                 
                 // 根据进度阶段自动继续
                 if (savedProgress.stage === 'incense') {
+                    // 隐藏主界面
+                    document.getElementById('mainContainer').style.display = 'none';
+                    
                     // 显示固定标题
                     document.getElementById('fixedTitle').style.display = 'block';
                     
                     // 显示阵法区域
                     document.getElementById('ritualArea').style.display = 'flex';
+                    
+                    // 显示停止阵法按钮
+                    document.getElementById('stopRitualBtn').style.display = 'block';
                     
                     // 设置名字显示
                     document.getElementById('maleName').textContent = savedProgress.name1;
@@ -1470,11 +1622,17 @@
                     // 继续仪式
                     startIncenseRitual();
                 } else if (savedProgress.stage === 'countdown') {
+                    // 隐藏主界面
+                    document.getElementById('mainContainer').style.display = 'none';
+                    
                     // 显示固定标题
                     document.getElementById('fixedTitle').style.display = 'block';
                     
                     // 显示阵法区域
                     document.getElementById('ritualArea').style.display = 'flex';
+                    
+                    // 显示停止阵法按钮
+                    document.getElementById('stopRitualBtn').style.display = 'block';
                     
                     // 设置名字显示
                     document.getElementById('maleName').textContent = savedProgress.name1;
