@@ -38,6 +38,9 @@
             padding: 20px;
             text-align: center;
             z-index: 10;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
         
         h1 {
@@ -47,6 +50,8 @@
             letter-spacing: 8px;
             font-family: 'Ma Shan Zheng', cursive;
             color: #f8d030;
+            position: relative;
+            z-index: 20;
         }
         
         .section {
@@ -57,6 +62,7 @@
             border: 1px solid rgba(224, 192, 128, 0.3);
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
             position: relative;
+            z-index: 20;
         }
         
         .instructions {
@@ -194,6 +200,7 @@
             border: 1px solid rgba(224, 192, 128, 0.3);
             pointer-events: none;
             z-index: 1;
+            animation-play-state: paused;
         }
         
         .circle-1 {
@@ -566,7 +573,7 @@
             position: absolute;
             font-size: 3rem;
             color: #f8d030;
-            animation: float 15s infinite ease-in-out;
+            animation: float 15s infinite ease-in-out paused;
         }
         
         @keyframes float {
@@ -583,21 +590,25 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            animation: rotate 200s linear infinite;
+            animation: rotate 200s linear infinite paused;
             opacity: 0.2;
             z-index: 0;
         }
 
         /* Progress bar styles */
         .progress-container {
-            width: 100%;
-            max-width: 400px;
-            margin: 20px auto;
+            position: fixed;
+            bottom: 120px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            max-width: 500px;
             background-color: rgba(20, 20, 20, 0.8);
             border-radius: 10px;
             padding: 3px;
             border: 1px solid rgba(224, 192, 128, 0.3);
             display: none;
+            z-index: 20;
         }
 
         .progress-bar {
@@ -606,32 +617,150 @@
             border-radius: 8px;
             width: 0%;
             transition: width 1s linear;
+            box-shadow: 0 0 10px rgba(248, 208, 48, 0.5);
         }
 
         .ritual-status {
-            font-size: 1.3rem;
+            position: fixed;
+            bottom: 160px;
+            left: 0;
+            width: 100%;
+            font-size: 1.5rem;
             color: #f8d030;
-            margin: 10px 0;
             text-align: center;
+            z-index: 20;
+            text-shadow: 0 0 10px #f8d030;
+            display: none;
         }
 
         .ritual-complete {
-            font-size: 1.5rem;
+            position: fixed;
+            bottom: 180px;
+            left: 0;
+            width: 100%;
+            font-size: 1.8rem;
             color: #f8d030;
-            text-shadow: 0 0 10px #f8d030;
+            text-shadow: 0 0 15px #f8d030;
             margin: 20px 0;
             text-align: center;
             display: none;
             font-family: 'Ma Shan Zheng', cursive;
+            z-index: 20;
         }
 
         .matrix-countdown {
-            font-size: 2rem;
+            position: fixed;
+            bottom: 120px;
+            left: 0;
+            width: 100%;
+            font-size: 2.5rem;
             color: #f8d030;
-            text-shadow: 0 0 10px #f8d030;
-            margin: 20px 0;
+            text-shadow: 0 0 15px #f8d030;
             text-align: center;
             display: none;
+            z-index: 20;
+            font-family: 'Ma Shan Zheng', cursive;
+        }
+
+        .user-name-display {
+            position: fixed;
+            bottom: 160px;
+            left: 0;
+            width: 100%;
+            font-size: 1.8rem;
+            color: #f8d030;
+            text-shadow: 0 0 10px #f8d030;
+            text-align: center;
+            display: none;
+            font-family: 'Ma Shan Zheng', cursive;
+            z-index: 20;
+        }
+
+        /* Mystical elements */
+        .mystical-light {
+            position: fixed;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(248, 208, 48, 0.2) 0%, rgba(248, 208, 48, 0) 70%);
+            border-radius: 50%;
+            z-index: 0;
+            opacity: 0;
+            transition: opacity 2s;
+        }
+
+        .light-1 {
+            top: 20%;
+            left: 20%;
+            animation: floatLight 15s infinite ease-in-out paused;
+        }
+
+        .light-2 {
+            bottom: 20%;
+            right: 20%;
+            animation: floatLight 18s infinite ease-in-out paused 3s;
+        }
+
+        .light-3 {
+            top: 30%;
+            right: 15%;
+            animation: floatLight 20s infinite ease-in-out paused 5s;
+        }
+
+        @keyframes floatLight {
+            0%, 100% { transform: translate(0, 0); }
+            25% { transform: translate(20px, 10px); }
+            50% { transform: translate(-10px, 20px); }
+            75% { transform: translate(15px, -10px); }
+        }
+
+        .energy-beam {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            width: 10px;
+            height: 0;
+            background: linear-gradient(to top, rgba(248, 208, 48, 0.8), transparent);
+            transform: translateX(-50%);
+            z-index: 5;
+            opacity: 0;
+            transition: all 1s;
+        }
+
+        .energy-particles {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 4;
+            pointer-events: none;
+            display: none;
+        }
+
+        .energy-particle {
+            position: absolute;
+            width: 5px;
+            height: 5px;
+            background-color: #f8d030;
+            border-radius: 50%;
+            opacity: 0.6;
+            animation: energyRise linear;
+        }
+
+        @keyframes energyRise {
+            to { transform: translateY(-100vh); }
+        }
+
+        .divine-light {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, rgba(248, 208, 48, 0.1) 0%, rgba(0,0,0,0) 70%);
+            z-index: 3;
+            opacity: 0;
+            transition: opacity 2s;
         }
     </style>
 </head>
@@ -645,6 +774,14 @@
     
     <div class="bagua"></div>
     <div class="taoist-symbols" id="taoistSymbols"></div>
+    
+    <!-- Mystical elements -->
+    <div class="mystical-light light-1"></div>
+    <div class="mystical-light light-2"></div>
+    <div class="mystical-light light-3"></div>
+    <div class="energy-beam" id="energyBeam"></div>
+    <div class="energy-particles" id="energyParticles"></div>
+    <div class="divine-light" id="divineLight"></div>
     
     <div class="final-effect" id="finalEffect">
         <div class="final-message">聚财阵法已生效！</div>
@@ -763,11 +900,13 @@
         
         <div class="ritual-complete" id="ritualComplete"></div>
         
+        <div class="user-name-display" id="userNameDisplay"></div>
+        
         <div class="matrix-countdown" id="matrixCountdown"></div>
         
         <div class="matrix-container" id="matrixContainer">
             <div class="user-info">
-                <div class="user-name" id="userNameDisplay"></div>
+                <div class="user-name" id="matrixUserName"></div>
                 <div class="matrix-timer" id="matrixTimer"></div>
             </div>
             <div class="matrix"></div>
@@ -904,6 +1043,7 @@
             // 更新进度信息
             document.getElementById('ritualProgress').textContent = '';
             document.getElementById('ritualStatus').textContent = '香已全部点燃，仪式进行中...';
+            document.getElementById('ritualStatus').style.display = 'block';
             
             // 显示进度条
             const progressContainer = document.getElementById('progressContainer');
@@ -913,6 +1053,9 @@
             // 显示聚财灵咒
             const incantation = document.getElementById('wealthIncantation');
             incantation.style.display = 'block';
+            
+            // 激活背景元素
+            activateBackgroundElements();
             
             let seconds = INCENSE_DURATION;
             let progress = 0;
@@ -931,13 +1074,39 @@
             }, 1000);
         }
         
+        // 激活背景元素
+        function activateBackgroundElements() {
+            // 激活神秘光芒
+            const lights = document.querySelectorAll('.mystical-light');
+            lights.forEach(light => {
+                light.style.opacity = '0.5';
+                light.style.animationPlayState = 'running';
+            });
+            
+            // 激活八卦图
+            document.querySelector('.bagua').style.animationPlayState = 'running';
+            
+            // 激活道家符号
+            const taoistSymbols = document.querySelectorAll('.taoist-symbol');
+            taoistSymbols.forEach(symbol => {
+                symbol.style.animationPlayState = 'running';
+            });
+            
+            // 激活圆圈
+            const circles = document.querySelectorAll('.circle');
+            circles.forEach(circle => {
+                circle.style.animationPlayState = 'running';
+            });
+        }
+        
         // 点香仪式完成
         function incenseCeremonyComplete(name) {
             // 隐藏聚财灵咒
             document.getElementById('wealthIncantation').style.display = 'none';
             
-            // 隐藏进度条
+            // 隐藏进度条和状态
             document.getElementById('progressContainer').style.display = 'none';
+            document.getElementById('ritualStatus').style.display = 'none';
             
             // 显示完成信息
             const ritualComplete = document.getElementById('ritualComplete');
@@ -947,15 +1116,52 @@
             // 显示用户名字
             const userNameDisplay = document.getElementById('userNameDisplay');
             userNameDisplay.textContent = name;
+            userNameDisplay.style.display = 'block';
+            
+            // 激活能量效果
+            activateEnergyEffects();
             
             // 激活阵法
             activateMatrix(name);
+        }
+        
+        // 激活能量效果
+        function activateEnergyEffects() {
+            // 显示能量光束
+            const energyBeam = document.getElementById('energyBeam');
+            energyBeam.style.height = '100vh';
+            energyBeam.style.opacity = '0.6';
+            
+            // 显示神圣光芒
+            document.getElementById('divineLight').style.opacity = '0.3';
+            
+            // 创建能量粒子
+            const energyParticles = document.getElementById('energyParticles');
+            energyParticles.style.display = 'block';
+            
+            for (let i = 0; i < 100; i++) {
+                setTimeout(() => {
+                    const particle = document.createElement('div');
+                    particle.className = 'energy-particle';
+                    particle.style.left = `${Math.random() * 100}vw`;
+                    particle.style.bottom = '0';
+                    particle.style.animationDuration = `${Math.random() * 5 + 5}s`;
+                    particle.style.animationDelay = `${Math.random() * 2}s`;
+                    energyParticles.appendChild(particle);
+                    
+                    // 动画结束后移除粒子
+                    setTimeout(() => {
+                        particle.remove();
+                    }, 7000);
+                }, i * 100);
+            }
         }
         
         // 激活阵法
         function activateMatrix(name) {
             // 显示阵法
             document.getElementById('matrixContainer').style.display = 'block';
+            document.getElementById('matrixUserName').textContent = name;
             
             // 创建粒子效果
             createParticles();
@@ -985,25 +1191,6 @@
             // 显示24小时倒计时
             const matrixCountdown = document.getElementById('matrixCountdown');
             matrixCountdown.style.display = 'block';
-            
-            // 激活所有背景元素的动画
-            activateBackgroundAnimations();
-        }
-        
-        // 激活背景元素动画
-        function activateBackgroundAnimations() {
-            const circles = document.querySelectorAll('.circle');
-            circles.forEach(circle => {
-                circle.style.animationPlayState = 'running';
-            });
-            
-            const bagua = document.querySelector('.bagua');
-            bagua.style.animationPlayState = 'running';
-            
-            const taoistSymbols = document.querySelectorAll('.taoist-symbol');
-            taoistSymbols.forEach(symbol => {
-                symbol.style.animationPlayState = 'running';
-            });
         }
         
         // 检查香是否熄灭
@@ -1052,6 +1239,10 @@
             document.getElementById('incenseContainer').style.display = 'none';
             document.getElementById('matrixCountdown').style.display = 'none';
             document.getElementById('ritualComplete').style.display = 'none';
+            document.getElementById('userNameDisplay').style.display = 'none';
+            
+            // 停止所有动画
+            stopAllAnimations();
             
             // 更新进度信息
             document.getElementById('ritualProgress').textContent = '阵法失败：三根香全部熄灭';
@@ -1060,6 +1251,37 @@
             setTimeout(() => {
                 location.reload();
             }, 5000);
+        }
+        
+        // 停止所有动画
+        function stopAllAnimations() {
+            // 停止神秘光芒
+            const lights = document.querySelectorAll('.mystical-light');
+            lights.forEach(light => {
+                light.style.opacity = '0';
+                light.style.animationPlayState = 'paused';
+            });
+            
+            // 停止八卦图
+            document.querySelector('.bagua').style.animationPlayState = 'paused';
+            
+            // 停止道家符号
+            const taoistSymbols = document.querySelectorAll('.taoist-symbol');
+            taoistSymbols.forEach(symbol => {
+                symbol.style.animationPlayState = 'paused';
+            });
+            
+            // 停止圆圈
+            const circles = document.querySelectorAll('.circle');
+            circles.forEach(circle => {
+                circle.style.animationPlayState = 'paused';
+            });
+            
+            // 隐藏能量效果
+            document.getElementById('energyBeam').style.height = '0';
+            document.getElementById('energyBeam').style.opacity = '0';
+            document.getElementById('divineLight').style.opacity = '0';
+            document.getElementById('energyParticles').style.display = 'none';
         }
         
         // 24小时阵法倒计时
@@ -1074,6 +1296,7 @@
                 const remainingSeconds = seconds % 60;
                 
                 countdownElement.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+                timerElement.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
                 
                 if (seconds <= 0) {
                     clearInterval(countdown);
