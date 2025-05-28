@@ -329,7 +329,7 @@ function createNavigation() {
             href: '#',
             wuxing: 'water',
             dropdown: [
-                { text: '八字排盘系统', href: '/system/bazi.html' },
+                { text: '机缘命理系统', href: '/system/bazi.html' },
                 { text: '八字合婚系统', href: '/system/hehun.html' },
                 { text: '六爻起卦', href: '/system/liuyao.html' }
             ]
