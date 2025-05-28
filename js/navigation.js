@@ -30,6 +30,7 @@ const pathNameMap = {
     'bazi': '机缘命理系统',
     'hehun': '八字合婚系统',
     'liuyao': '六爻起卦',
+    'zf': '灵阵法门',
     'about': '关于我们'
 };
 
@@ -331,7 +332,8 @@ function createNavigation() {
             dropdown: [
                 { text: '机缘命理系统', href: '/system/bazi.html' },
                 { text: '八字合婚系统', href: '/system/hehun.html' },
-                { text: '六爻起卦', href: '/system/liuyao.html' }
+                { text: '六爻起卦', href: '/system/liuyao.html' },
+                { text: '灵阵法门', href: '/system/zf.html' }
             ]
         },
         {
