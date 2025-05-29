@@ -885,114 +885,136 @@
        document.addEventListener('DOMContentLoaded', function() {
     // ====================== 核心排盘计算 ======================
     class BaziCalculator {
-        static calculate(birthDate, birthTime, timezone, gender) {
-            // 这里应替换为实际的排盘算法（示例数据）
-            const lunarDate = this.getLunarDate(birthDate); // 需对接lunar.js
-            
-            return {
-                date: birthDate,
-                time: birthTime,
-                gender: gender,
-                pillars: {
-                    year: this.calculateYearPillar(birthDate),
-                    month: this.calculateMonthPillar(birthDate),
-                    day: this.calculateDayPillar(birthDate),
-                    hour: this.calculateHourPillar(birthDate, birthTime)
-                },
-                elements: this.calculateElementsBalance(birthDate),
-                specialPatterns: this.checkSpecialPatterns(birthDate)
-            };
-        }
-
-        // 示例计算方法（需根据实际算法完善）
-        static calculateDayPillar(date) {
-            // 实际应使用八字计算公式
-            return {
-                stem: "己",      // 天干
-                branch: "卯",     // 地支
-                wuxing: "earth", // 五行
-                tengod: "日元",   // 十神（日干特殊标记）
-                hiddenStems: ["乙", "丙", "戊"] // 藏干
-            };
-        }
-
-        static calculateElementsBalance() {
-            // 返回五行力量分布（示例）
-            return { wood: 2, fire: 3, earth: 4, metal: 1, water: 0 };
-        }
+    static calculate(birthDate, birthTime, timezone, gender) {
+        // 这里应替换为实际的排盘算法（示例数据）
+        const lunarDate = this.getLunarDate(birthDate); // 需对接lunar.js
+        
+        // 获取实际排盘数据
+        const realData = this.getRealBaziData(birthDate, birthTime);
+        
+        return {
+            ...realData,
+            date: birthDate,
+            time: birthTime,
+            gender: gender,
+            elements: this.calculateElementsBalance(realData.pillars),
+            specialPatterns: this.checkSpecialPatterns(realData.pillars)
+        };
     }
+
+    // 获取真实排盘数据（示例）
+    static getRealBaziData(date, time) {
+        return {
+            pillars: {
+                year: { stem: "甲", branch: "子", wuxing: "wood", tengod: "比肩" },
+                month: { stem: "乙", branch: "丑", wuxing: "earth", tengod: "劫财" },
+                day: { 
+                    stem: "己", 
+                    branch: "卯", 
+                    wuxing: "earth", 
+                    tengod: "日元",
+                    hiddenStems: ["乙", "丙", "戊"],
+                    positions: ["年干", "月干", "日干", "时干"]
+                },
+                hour: { stem: "丁", branch: "卯", wuxing: "fire", tengod: "伤官" }
+            },
+            voidList: ["戌亥", "戌亥", "戌亥", "戌亥"],
+            nayin: ["海中金", "海中金", "炉中火", "炉中火"]
+        };
+    }
+}
 
     // ====================== 学习内容生成器 ======================
     class BaziAnalysis {
-        static updateAll(baziData) {
-            this.updateBasicInfo(baziData);
-            this.updateStrengthAnalysis(baziData);
-            this.updateTengodAnalysis(baziData);
-            this.updateWuxingAnalysis(baziData);
-            this.updateSpecialPatterns(baziData);
-        }
-
-        static updateStrengthAnalysis(baziData) {
-            const dayMaster = baziData.pillars.day;
-            const strength = this.judgeStrength(baziData);
-
-            document.querySelector('#strength-content .analysis-result').innerHTML = `
+    static updateStrengthAnalysis(baziData) {
+        const dayMaster = baziData.pillars.day;
+        const strength = this.judgeStrength(baziData);
+        
+        // 使用实际排盘数据生成内容
+        const analysisHTML = `
+            <div class="analysis-result">
                 您的八字日主为<span class="wuxing-${dayMaster.wuxing}">${dayMaster.stem}${this.getWuxingChinese(dayMaster.wuxing)}</span>，
-                属于<strong>${strength}</strong>的命格。
-            `;
-
-            document.querySelector('#strength-content .analysis-detail').innerHTML = `
-                <p><strong>分析依据：</strong></p>
-                <ul>
-                    <li>日主${dayMaster.stem}${this.getWuxingChinese(dayMaster.wuxing)}生于${baziData.pillars.month.branch}月，${this.getMonthStrength(dayMaster, baziData.pillars.month)}</li>
-                    <li>年柱${baziData.pillars.year.stem}${baziData.pillars.year.branch}：${this.getPillarEffect(dayMaster, baziData.pillars.year)}</li>
-                    <li>日支${baziData.pillars.day.branch}：${this.getDayBranchEffect(dayMaster, baziData.pillars.day)}</li>
-                    <li>五行分布：${this.formatElements(baziData.elements)}</li>
-                </ul>
-                <p><strong>${strength}特点：</strong> ${this.getStrengthTraits(strength, dayMaster.wuxing)}</p>
-            `;
-        }
-
-        static judgeStrength(baziData) {
-            // 简化的身强身弱判断逻辑（实际应更复杂）
-            const day = baziData.pillars.day;
-            const elements = baziData.elements;
-            
-            if (day.wuxing === 'earth' && elements.earth >= 3) return "身强";
-            if (day.wuxing === 'wood' && elements.wood >= 3) return "身强";
-            // 其他五行判断...
-            
-            return "身弱";
-        }
+                综合分析五行生克关系，属于<strong>${strength}</strong>的命格。
+            </div>
+            <div class="analysis-detail">
+                ${this.generateStrengthDetails(baziData)}
+            </div>
+        `;
+        
+        document.getElementById('strength-content').querySelector('.analysis-card').innerHTML = `
+            <h4 class="analysis-title"><i class="fas fa-weight"></i> 身强身弱分析</h4>
+            ${analysisHTML}
+        `;
     }
+    
+    static generateStrengthDetails(baziData) {
+        const day = baziData.pillars.day;
+        const month = baziData.pillars.month;
+        
+        return `
+            <p><strong>分析依据：</strong></p>
+            <ul>
+                <li>日主${day.stem}${this.getWuxingChinese(day.wuxing)}生于${month.branch}月，
+                ${this.getSeasonStrength(day, month)}</li>
+                ${this.generatePillarAnalysis('年柱', baziData.pillars.year, day)}
+                ${this.generatePillarAnalysis('月柱', baziData.pillars.month, day)}
+                ${this.generatePillarAnalysis('日支', baziData.pillars.day, day)}
+                ${this.generatePillarAnalysis('时柱', baziData.pillars.hour, day)}
+            </ul>
+            <p><strong>${this.judgeStrength(baziData)}特点：</strong> 
+            ${this.getStrengthTraits(baziData)}</p>
+        `;
+    }
+    
+    static generatePillarAnalysis(label, pillar, dayMaster) {
+        return `<li>${label}${pillar.stem}${pillar.branch}：
+            ${this.getWuxingRelation(dayMaster.wuxing, pillar.wuxing)}，
+            十神为${pillar.tengod}</li>`;
+    }
+}
 
     // ====================== 事件处理 ======================
     document.getElementById('bazi-form').addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        // 1. 获取输入数据
-        const formData = {
-            date: document.getElementById('birth-date').value,
-            time: `${document.getElementById('birth-hour').value}:${document.getElementById('birth-minute').value}`,
-            timezone: document.getElementById('timezone').value,
-            gender: document.querySelector('input[name="gender"]:checked').value
-        };
+    e.preventDefault();
+    
+    // 获取输入数据
+    const formData = {
+        date: document.getElementById('birth-date').value,
+        hour: document.getElementById('birth-hour').value,
+        minute: document.getElementById('birth-minute').value,
+        timezone: document.getElementById('timezone').value,
+        gender: document.querySelector('input[name="gender"]:checked').value
+    };
 
-        // 2. 计算真实命盘
-        const realBaziData = BaziCalculator.calculate(
-            formData.date, 
-            formData.time, 
-            formData.timezone, 
-            formData.gender
-        );
+    // 计算真实命盘
+    const realBaziData = BaziCalculator.calculate(
+        formData.date, 
+        `${formData.hour}:${formData.minute}`,
+        formData.timezone,
+        formData.gender
+    );
 
-        // 3. 更新UI
-        updateBaziTableUI(realBaziData);
-        BaziAnalysis.updateAll(realBaziData);
-        
-        // 4. 显示结果
-        document.getElementById('result-section').style.display = 'block';
+    // 存储全局数据
+    window.currentBaziData = realBaziData;
+    
+    // 更新UI
+    updateBaziDisplay(realBaziData);
+    updateAllAnalysis(realBaziData);
+    
+    // 显示结果
+    document.getElementById('result-section').style.display = 'block';
+});
+
+function updateAllAnalysis(baziData) {
+    const analyzers = [
+        'strength', 'tengod', 'wuxing', 
+        'patterns', 'usegod', 'luck'
+    ];
+    
+    analyzers.forEach(type => {
+        BaziAnalysis[`update${type.charAt(0).toUpperCase() + type.slice(1)}Analysis`](baziData);
     });
+}
 
     // ====================== 工具函数 ======================
     function updateBaziTableUI(baziData) {
