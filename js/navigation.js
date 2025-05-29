@@ -1,4 +1,4 @@
-// 面包屑导航完整版JS代码
+// 面包屑导航完整版JS代码 - 修复移动端导航问题
 // 路径名称映射表
 const pathNameMap = {
     'seven': '入门七步',
@@ -47,7 +47,26 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 滚动效果
     setupScrollEffects();
+    
+    // 窗口大小改变时重新计算
+    window.addEventListener('resize', handleResize);
 });
+
+// 处理窗口大小变化
+function handleResize() {
+    if (window.innerWidth > 992) {
+        const mainNav = document.querySelector('.main-nav');
+        if (mainNav) {
+            mainNav.classList.remove('active');
+            document.querySelector('.mobile-menu-btn')?.classList.remove('active');
+            
+            // 确保所有下拉菜单在桌面模式下关闭
+            document.querySelectorAll('.dropdown-menu').forEach(menu => {
+                menu.classList.remove('active');
+            });
+        }
+    }
+}
 
 /**
  * 更新最近访问页面记录
@@ -441,9 +460,17 @@ function setupMobileMenu() {
     const mainNav = document.querySelector('.main-nav');
     
     if (mobileMenuBtn && mainNav) {
-        mobileMenuBtn.addEventListener('click', function() {
+        mobileMenuBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
             this.classList.toggle('active');
             mainNav.classList.toggle('active');
+            
+            // 如果关闭菜单，也关闭所有下拉菜单
+            if (!this.classList.contains('active')) {
+                document.querySelectorAll('.dropdown-menu').forEach(menu => {
+                    menu.classList.remove('active');
+                });
+            }
         });
         
         // 处理下拉菜单点击
@@ -454,9 +481,28 @@ function setupMobileMenu() {
                 navLink.addEventListener('click', function(e) {
                     if (window.innerWidth <= 992) {
                         e.preventDefault();
+                        e.stopPropagation();
                         const dropdown = item.querySelector('.dropdown-menu');
                         dropdown.classList.toggle('active');
+                        
+                        // 关闭其他打开的下拉菜单
+                        document.querySelectorAll('.dropdown-menu').forEach(otherMenu => {
+                            if (otherMenu !== dropdown) {
+                                otherMenu.classList.remove('active');
+                            }
+                        });
                     }
+                });
+            }
+        });
+        
+        // 点击文档其他位置关闭菜单
+        document.addEventListener('click', function(e) {
+            if (window.innerWidth <= 992 && !mainNav.contains(e.target) && !mobileMenuBtn.contains(e.target)) {
+                mobileMenuBtn.classList.remove('active');
+                mainNav.classList.remove('active');
+                document.querySelectorAll('.dropdown-menu').forEach(menu => {
+                    menu.classList.remove('active');
                 });
             }
         });
