@@ -4,25 +4,365 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>八字计算器 - 麦八字教学网</title>
-    <link rel="stylesheet" href="../css/style1.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="stylesheet" href="../css/navigation.css">
-    <script defer src="../js/navigation.js"></script>
-    
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-2NHJXGKS0Y"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-    
-      gtag('config', 'G-2NHJXGKS0Y');
-    </script>
     
     <style>
-        /* New CSS for interactive analysis features */
+        :root {
+            --primary-color: #ed1c24;
+            --secondary-color: #333;
+            --light-gray: #f5f5f5;
+            --dark-gray: #666;
+            --white: #fff;
+            --black: #000;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", "SimHei", sans-serif;
+        }
+        
+        body {
+            background-color: #f9f9f9;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .background-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.03);
+            z-index: -1;
+        }
+        
+        .content-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .content-title {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px 0;
+        }
+        
+        .content-title h1 {
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+        
+        .content-title p {
+            font-size: 1.1rem;
+            color: var(--dark-gray);
+        }
+        
+        .content-section {
+            background-color: var(--white);
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+        
+        .calculator-form {
+            background: linear-gradient(135deg, var(--primary-color), #c62828);
+            color: var(--white);
+            padding: 25px;
+        }
+        
+        .form-header h2 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .form-header p {
+            font-size: 0.95rem;
+            opacity: 0.9;
+        }
+        
+        .elegant-form {
+            margin-top: 20px;
+        }
+        
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            margin: 0 -15px;
+        }
+        
+        .form-group {
+            flex: 1;
+            min-width: 250px;
+            margin: 0 15px 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        
+        .input-with-icon, .select-with-icon {
+            position: relative;
+        }
+        
+        .input-with-icon i, .select-with-icon i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--dark-gray);
+        }
+        
+        .input-with-icon input {
+            width: 100%;
+            padding: 12px 15px 12px 40px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+        
+        .input-with-icon input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(237, 28, 36, 0.2);
+            outline: none;
+        }
+        
+        .select-with-icon select {
+            width: 100%;
+            padding: 12px 15px 12px 40px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+            appearance: none;
+            background-color: var(--white);
+            transition: all 0.3s;
+        }
+        
+        .select-with-icon select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(237, 28, 36, 0.2);
+            outline: none;
+        }
+        
+        .time-select-group {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .time-select-group .select-with-icon {
+            flex: 1;
+        }
+        
+        .gender-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 8px;
+        }
+        
+        .gender-option {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+        
+        .gender-option input {
+            display: none;
+        }
+        
+        .gender-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 8px;
+            background-color: rgba(255, 255, 255, 0.2);
+            transition: all 0.3s;
+        }
+        
+        .gender-option input:checked + .gender-icon {
+            background-color: var(--white);
+            color: var(--primary-color);
+        }
+        
+        .form-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+        }
+        
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background-color: var(--white);
+            color: var(--primary-color);
+        }
+        
+        .btn-primary:hover {
+            background-color: #f0f0f0;
+        }
+        
+        .btn-secondary {
+            background-color: transparent;
+            color: var(--white);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .btn-secondary:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .btn-action {
+            background-color: var(--light-gray);
+            color: var(--secondary-color);
+            padding: 8px 15px;
+            font-size: 0.9rem;
+        }
+        
+        .btn-action:hover {
+            background-color: #e0e0e0;
+        }
+        
+        /* Result Section Styles */
+        #result-section {
+            display: none;
+        }
+        
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .result-header h2 {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+        }
+        
+        .result-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .bazi-result {
+            padding: 20px;
+        }
+        
+        .basic-info-card {
+            background-color: var(--light-gray);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+        
+        .basic-info-card h3 {
+            margin-bottom: 15px;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+        }
+        
+        .info-item {
+            display: flex;
+        }
+        
+        .info-label {
+            font-weight: 600;
+            min-width: 80px;
+        }
+        
+        .bazi-table-container {
+            overflow-x: auto;
+            margin: 25px 0;
+        }
+        
+        .bazi-elegant-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            min-width: 800px;
+        }
+        
+        .bazi-elegant-table th {
+            background-color: var(--primary-color);
+            color: var(--white);
+            padding: 12px;
+            text-align: center;
+            font-weight: 600;
+        }
+        
+        .bazi-elegant-table td {
+            padding: 15px;
+            border: 1px solid #eee;
+            text-align: center;
+            vertical-align: middle;
+        }
+        
+        .bazi-elegant-table tr:nth-child(even) {
+            background-color: rgba(237, 28, 36, 0.03);
+        }
+        
+        .pillar-label {
+            font-weight: 600;
+            background-color: #f9f9f9;
+        }
+        
+        .ten-god {
+            font-size: 0.8rem;
+            color: var(--dark-gray);
+            display: block;
+            margin-top: 5px;
+        }
+        
+        /* Wuxing Color Classes */
+        .wuxing-wood { background-color: rgba(46, 125, 50, 0.1); }
+        .wuxing-fire { background-color: rgba(198, 40, 40, 0.1); }
+        .wuxing-earth { background-color: rgba(141, 110, 99, 0.1); }
+        .wuxing-metal { background-color: rgba(21, 101, 192, 0.1); }
+        .wuxing-water { background-color: rgba(2, 119, 189, 0.1); }
+        
+        /* Analysis Section Styles */
         .analysis-section {
             margin-top: 40px;
+        }
+        
+        .analysis-section h3 {
+            font-size: 1.3rem;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
         
         .analysis-tabs {
@@ -61,6 +401,12 @@
         
         .analysis-content.active {
             display: block;
+        }
+        
+        .analysis-content h4 {
+            font-size: 1.1rem;
+            margin: 15px 0;
+            color: var(--secondary-color);
         }
         
         .strength-meter {
@@ -244,8 +590,36 @@
             to { opacity: 1; transform: translateY(0); }
         }
         
+        /* Footer Styles */
+        .main-footer {
+            background-color: var(--secondary-color);
+            color: var(--white);
+            padding: 20px 0;
+            text-align: center;
+            margin-top: 40px;
+        }
+        
+        .main-footer .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        .main-footer p {
+            margin-bottom: 10px;
+        }
+        
         /* Responsive adjustments */
         @media (max-width: 768px) {
+            .form-row {
+                flex-direction: column;
+            }
+            
+            .form-group {
+                min-width: 100%;
+                margin: 0 0 20px 0;
+            }
+            
             .wuxing-balance {
                 flex-direction: column;
             }
@@ -257,6 +631,23 @@
             .analysis-tab {
                 padding: 10px 15px;
                 font-size: 0.8rem;
+            }
+            
+            .bazi-elegant-table td, 
+            .bazi-elegant-table th {
+                padding: 8px;
+                font-size: 0.9rem;
+            }
+            
+            .result-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+            
+            .result-actions {
+                width: 100%;
+                justify-content: flex-end;
             }
         }
     </style>
@@ -450,7 +841,7 @@
                     </table>
                 </div>
                 
-                <!-- New Interactive Analysis Section -->
+                <!-- Interactive Analysis Section -->
                 <div class="analysis-section">
                     <h3><i class="fas fa-chart-line"></i> 八字分析</h3>
                     
@@ -676,17 +1067,8 @@
             <p>传承经典命理文化，科学学习八字知识</p>
         </div>
     </footer>
-    <!-- 引入Lunar.js 1.7.2 -->
-    <script src="../js/lunar.js"></script>
-    
-    <script>
-        // 验证Lunar.js版本
-        if(typeof Lunar !== 'undefined' && Lunar.VERSION === '1.7.2') {
-            console.log('正确加载了LUNAR.JS 1.7.2版本');
-        } else {
-            console.error('LUNAR.JS版本不正确或未加载');
-        }
 
+    <script>
         // 交互分析功能
         document.addEventListener('DOMContentLoaded', function() {
             // 标签切换功能
@@ -993,8 +1375,243 @@
             return analysis;
         }
         
-        // 其他辅助函数和分析函数
-        // ...（根据实际需求实现更多分析功能）
+        // 分析十神
+        function analyzeTenGods(bazi) {
+            // 简化的十神分析
+            let analysis = `您的八字中`;
+            
+            // 统计十神数量
+            const tenGodCount = {
+                '比肩': 0,
+                '劫财': 0,
+                '食神': 0,
+                '伤官': 0,
+                '偏财': 0,
+                '正财': 0,
+                '七杀': 0,
+                '正官': 0,
+                '偏印': 0,
+                '正印': 0
+            };
+            
+            // 统计各柱十神
+            const pillars = [bazi.year, bazi.month, bazi.day, bazi.hour];
+            pillars.forEach(pillar => {
+                if(pillar.stemGod) tenGodCount[pillar.stemGod]++;
+                if(pillar.branchGod) tenGodCount[pillar.branchGod]++;
+                
+                if(pillar.hiddenGods && pillar.hiddenGods.length > 0) {
+                    pillar.hiddenGods.forEach(god => {
+                        if(god.tenGod) tenGodCount[god.tenGod]++;
+                    });
+                }
+            });
+            
+            // 生成分析文本
+            if(tenGodCount['正印'] > 0 || tenGodCount['偏印'] > 0) {
+                analysis += `印星较多（正印${tenGodCount['正印']}个，偏印${tenGodCount['偏印']}个），显示您可能学业运佳，容易得到长辈或贵人的帮助。`;
+            }
+            
+            if(tenGodCount['伤官'] > 0) {
+                analysis += `伤官透出，表示您可能有艺术才华或创意能力。`;
+            }
+            
+            if(tenGodCount['正官'] > 0) {
+                analysis += `正官出现${tenGodCount['正官'] > 1 ? '多次' : ''}，显示您能够将压力转化为动力。`;
+            }
+            
+            return {
+                count: tenGodCount,
+                analysis: analysis
+            };
+        }
+        
+        // 查找特殊组合
+        function findSpecialCombinations(bazi) {
+            const combinations = [];
+            
+            // 检查木火通明
+            if((bazi.year.stem === '甲' || bazi.year.stem === '乙') && 
+               (bazi.day.stem === '丙' || bazi.day.stem === '丁')) {
+                combinations.push({
+                    name: '木火通明',
+                    description: '年柱木生火，形成木火通明之象，主聪明才智，文章显达。'
+                });
+            }
+            
+            // 检查印绶护身
+            if((bazi.month.branch === '丑' && bazi.month.hiddenGods.some(g => g.tenGod === '正印')) || 
+               (bazi.hour.branch === '卯' && bazi.hour.branchGod === '正印')) {
+                combinations.push({
+                    name: '印绶护身',
+                    description: '印星有力，形成保护格局，主学业有成，得贵人扶持。'
+                });
+            }
+            
+            return combinations;
+        }
+        
+        // 更新特殊组合显示
+        function updateCombinationsDisplay(combinations) {
+            const container = document.getElementById('combinations-content');
+            let html = '<h4>特殊组合分析</h4>';
+            
+            if(combinations.length > 0) {
+                html += '<p>您的八字中存在以下特殊组合：</p>';
+                
+                combinations.forEach(comb => {
+                    html += `
+                        <div class="special-combination">
+                            <h4><i class="fas fa-star"></i> ${comb.name}</h4>
+                            <p>${comb.description}</p>
+                        </div>
+                    `;
+                });
+            } else {
+                html += '<p>您的八字中没有明显的特殊组合。</p>';
+            }
+            
+            container.innerHTML = html;
+        }
+        
+        // 确定用神忌神
+        function determineUsefulGods(bazi, wuxingCount, strength) {
+            const dayElement = getWuxingElement(bazi.day.stem);
+            const usefulGods = [];
+            const harmfulGods = [];
+            
+            // 简化的用神判断逻辑
+            if(strength.level === '身强') {
+                // 身强喜克泄耗
+                if(dayElement === 'wood') {
+                    usefulGods.push({element: 'metal', type: '用神', desc: '金克木'});
+                    usefulGods.push({element: 'fire', type: '喜神', desc: '木生火'});
+                    harmfulGods.push({element: 'water', type: '忌神', desc: '水生木'});
+                } else if(dayElement === 'fire') {
+                    usefulGods.push({element: 'water', type: '用神', desc: '水克火'});
+                    usefulGods.push({element: 'earth', type: '喜神', desc: '火生土'});
+                    harmfulGods.push({element: 'wood', type: '忌神', desc: '木生火'});
+                }
+                // 其他五行类似判断
+            } else {
+                // 身弱喜生扶
+                if(dayElement === 'wood') {
+                    usefulGods.push({element: 'water', type: '用神', desc: '水生木'});
+                    harmfulGods.push({element: 'metal', type: '忌神', desc: '金克木'});
+                } else if(dayElement === 'fire') {
+                    usefulGods.push({element: 'wood', type: '用神', desc: '木生火'});
+                    harmfulGods.push({element: 'water', type: '忌神', desc: '水克火'});
+                }
+                // 其他五行类似判断
+            }
+            
+            return {
+                useful: usefulGods,
+                harmful: harmfulGods
+            };
+        }
+        
+        // 更新用神忌神显示
+        function updateUsefulGodsDisplay(gods) {
+            const container = document.getElementById('useful-gods-content');
+            let html = '<h4>用神与忌神分析</h4>';
+            
+            html += '<p>根据您的八字分析，用神与忌神如下：</p>';
+            html += '<div class="god-analysis">';
+            
+            // 显示用神
+            gods.useful.forEach(god => {
+                html += `
+                    <div class="god-card useful">
+                        <div class="god-name">${getWuxingChineseName(god.element)}</div>
+                        <div class="god-type">${god.type}</div>
+                        <div class="god-desc">${god.desc}</div>
+                    </div>
+                `;
+            });
+            
+            // 显示忌神
+            gods.harmful.forEach(god => {
+                html += `
+                    <div class="god-card harmful">
+                        <div class="god-name">${getWuxingChineseName(god.element)}</div>
+                        <div class="god-type">${god.type}</div>
+                        <div class="god-desc">${god.desc}</div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            
+            // 生成用神建议
+            const elementAdvice = {
+                wood: '绿色、东方、木制品',
+                fire: '红色、南方、火属性物品',
+                earth: '黄色、中央、土属性物品',
+                metal: '白色、西方、金属制品',
+                water: '黑色、北方、水属性物品'
+            };
+            
+            let advice = '建议在生活中：';
+            gods.useful.forEach(god => {
+                advice += `多接触${elementAdvice[god.element]}来增强${god.type}；`;
+            });
+            
+            gods.harmful.forEach(god => {
+                advice += `减少接触${elementAdvice[god.element]}来避免${god.type}影响；`;
+            });
+            
+            html += `
+                <div class="analysis-note">
+                    <h4><i class="fas fa-lightbulb"></i> 用神建议</h4>
+                    <p>${advice}</p>
+                </div>
+            `;
+            
+            container.innerHTML = html;
+        }
+        
+        // 获取五行中文名
+        function getWuxingChineseName(element) {
+            const names = {
+                wood: '木',
+                fire: '火',
+                earth: '土',
+                metal: '金',
+                water: '水'
+            };
+            return names[element] || element;
+        }
+        
+        // 分析运势
+        function analyzeLuck(bazi, lunarDate) {
+            // 简化的运势分析
+            const currentYear = new Date().getFullYear();
+            const currentAge = currentYear - parseInt(bazi.year.stem.substring(0, 4));
+            
+            let analysis = `您当前处于${bazi.year.stem}年柱大运，`;
+            
+            if(currentAge < 10) {
+                analysis += '早年运势以学业和家庭环境为主。';
+            } else if(currentAge < 30) {
+                analysis += '青年时期是事业起步和人生规划的关键阶段。';
+            } else if(currentAge < 50) {
+                analysis += '中年时期是事业发展和家庭建设的黄金时期。';
+            } else {
+                analysis += '晚年运势以健康和家庭关系为主。';
+            }
+            
+            analysis += ` ${currentYear}年流年${lunarDate.getYearGanZhi()}，`;
+            
+            // 简化的流年建议
+            if(currentYear % 2 === 0) {
+                analysis += '整体运势平稳，适合稳步发展。';
+            } else {
+                analysis += '可能有变动机会，需注意把握时机。';
+            }
+            
+            return analysis;
+        }
         
         // 五行相生关系
         function isGeneratingWuxing(fromElement, toElement) {
