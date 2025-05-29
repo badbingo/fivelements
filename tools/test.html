@@ -1356,19 +1356,26 @@
     
     // 使用lunar.js进行排盘
     const date = new Date(birthDate);
-    const solar = Solar.fromDate(date);
+    // 添加时间部分
+    date.setHours(parseInt(birthHour), parseInt(birthMinute));
+    
+    // 检查Lunar库是否加载
+    if (typeof Lunar === 'undefined') {
+        console.error('Lunar.js library not loaded');
+        alert('计算功能依赖的库未正确加载，请刷新页面重试');
+        return;
+    }
+    
+    const solar = Lunar.Solar.fromDate(date);
     const lunar = solar.getLunar();
-    
-    // 设置时区
-    const time = `${birthHour}:${birthMinute}`;
-    
-    // 获取八字信息
-    const bazi = lunar.getEightChar();
     
     // 更新结果展示
     document.getElementById('result-date').textContent = `${date.getFullYear()}年${date.getMonth()+1}月${date.getDate()}日`;
-    document.getElementById('result-time').textContent = time;
+    document.getElementById('result-time').textContent = `${birthHour}:${birthMinute.padStart(2, '0')}`;
     document.getElementById('result-lunar').textContent = lunar.toString();
+    
+    // 获取八字信息
+    const bazi = lunar.getEightChar();
     
     // 更新八字表格
     document.getElementById('year-stem').innerHTML = `${bazi.getYearGan()}<br><span class="ten-god">(${bazi.getYearGanTenGod()})</span>`;
