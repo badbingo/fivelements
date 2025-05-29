@@ -66,7 +66,98 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     /* ========== 支付流程 ========== */
-    function startPayment() {
+    function showPaymentOptions() {
+        const maleName = maleNameInput.value.trim();
+        const femaleName = femaleNameInput.value.trim();
+        
+        if (!validateNames(maleName, femaleName)) return;
+
+        // 创建支付选择弹窗
+        const paymentModal = document.createElement('div');
+        paymentModal.className = 'payment-modal';
+        paymentModal.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        `;
+
+        const paymentContent = document.createElement('div');
+        paymentContent.style.cssText = `
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            width: 80%;
+            max-width: 400px;
+            text-align: center;
+        `;
+
+        const title = document.createElement('h3');
+        title.textContent = '选择支付方式';
+        title.style.marginBottom = '20px';
+
+        const wxpayBtn = document.createElement('button');
+        wxpayBtn.innerHTML = '<i class="fab fa-weixin"></i> 微信支付';
+        wxpayBtn.style.cssText = `
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            background-color: #07C160;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        `;
+        wxpayBtn.onclick = () => startPayment('wxpay');
+
+        const alipayBtn = document.createElement('button');
+        alipayBtn.innerHTML = '<i class="fab fa-alipay"></i> 支付宝支付';
+        alipayBtn.style.cssText = `
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            background-color: #1677FF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        `;
+        alipayBtn.onclick = () => startPayment('alipay');
+
+        const closeBtn = document.createElement('button');
+        closeBtn.textContent = '取消';
+        closeBtn.style.cssText = `
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background-color: #f5f5f5;
+            color: #333;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            cursor: pointer;
+        `;
+        closeBtn.onclick = () => document.body.removeChild(paymentModal);
+
+        paymentContent.appendChild(title);
+        paymentContent.appendChild(wxpayBtn);
+        paymentContent.appendChild(alipayBtn);
+        paymentContent.appendChild(closeBtn);
+        paymentModal.appendChild(paymentContent);
+        document.body.appendChild(paymentModal);
+    }
+
+    function startPayment(paymentType) {
         const maleName = maleNameInput.value.trim();
         const femaleName = femaleNameInput.value.trim();
         
@@ -76,7 +167,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const paymentData = {
             pid: CONFIG.pid,
-            type: 'wxpay',
+            type: paymentType, // 使用传入的支付类型
             out_trade_no: generateOrderNo(),
             notify_url: CONFIG.returnUrl,
             return_url: CONFIG.returnUrl,
@@ -109,6 +200,10 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // 5. 隐藏loading
         showFullscreenLoading(false);
+        
+        // 6. 移除支付选择弹窗（如果有）
+        const modal = document.querySelector('.payment-modal');
+        if (modal) document.body.removeChild(modal);
     }
 
     /* ========== 测算流程 ========== */
@@ -262,8 +357,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     /* ========== 事件监听 ========== */
     function setupEventListeners() {
-        // 支付按钮
-        payBtn.addEventListener('click', startPayment);
+        // 支付按钮 - 现在显示支付选择弹窗
+        payBtn.addEventListener('click', showPaymentOptions);
         
         // 测算按钮
         calculateBtn.addEventListener('click', startCalculation);
