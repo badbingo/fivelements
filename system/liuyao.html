@@ -507,6 +507,39 @@
         .clear-history:hover {
             background: rgba(237, 28, 36, 0.2);
         }
+
+        .payment-method-btn {
+                padding: 10px 15px;
+                background: rgba(255,255,255,0.7);
+                border: 1px solid #ddd;
+                border-radius: 5px;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+            
+            .payment-method-btn.active {
+                background: var(--primary-color);
+                color: white;
+                border-color: var(--primary-color);
+            }
+            
+            .payment-method-btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+            }
+            
+            #wxpay-btn.active {
+                background: #09bb07;
+                border-color: #09bb07;
+            }
+            
+            #alipay-btn.active {
+                background: #1677ff;
+                border-color: #1677ff;
+            }
         
         /* 响应式调整 */
         @media (max-width: 768px) {
@@ -827,6 +860,14 @@
                 <h4><i class="fas fa-lock"></i> 付费解锁占卜功能 (1元/次)</h4>
                 <p>请先支付1元解锁占卜功能，付款成功后即可输入问题并进行占卜。</p>
                 <div class="form-group">
+                    <div class="payment-methods" style="display: flex; gap: 10px; margin: 15px 0;">
+                        <button id="wxpay-btn" class="payment-method-btn active" data-type="wxpay">
+                            <i class="fab fa-weixin"></i> 微信支付
+                        </button>
+                        <button id="alipay-btn" class="payment-method-btn" data-type="alipay">
+                            <i class="fab fa-alipay"></i> 支付宝
+                        </button>
+                    </div>
                     <button id="pay-btn" class="btn btn-primary" style="margin-top: 10px;">
                         <i class="fas fa-unlock"></i> 支付1元解锁占卜
                     </button>
@@ -1221,22 +1262,26 @@
         
         // DOM加载完成后执行
 document.addEventListener('DOMContentLoaded', function() {
-    // 检查CryptoJS是否加载成功
-    if (typeof CryptoJS === 'undefined') {
-        console.error('CryptoJS库未加载，支付功能将不可用');
-        document.getElementById('pay-btn').disabled = true;
-        document.getElementById('pay-btn').innerHTML = '<i class="fas fa-exclamation-triangle"></i> 支付功能暂不可用';
-        return;
-    }
+            // 支付方式选择
+            const paymentMethodBtns = document.querySelectorAll('.payment-method-btn');
+            let currentPaymentMethod = 'wxpay'; // 默认微信支付
+            
+            paymentMethodBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    paymentMethodBtns.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentPaymentMethod = this.dataset.type;
+                });
+            });
 
-    // 支付配置
-    const paymentConfig = {
-        pid: '2025051013380915',
-        key: 'UsXrSwn0wft5SeLB0LaQfecvJmpkS18T',
-        apiUrl: 'https://zpayz.cn/submit.php',
-        returnUrl: window.location.href.split('?')[0],
-        amount: '1.00'
-    };
+            // 修改支付配置
+            const paymentConfig = {
+                pid: '2025051013380915',
+                key: 'UsXrSwn0wft5SeLB0LaQfecvJmpkS18T',
+                apiUrl: 'https://zpayz.cn/submit.php',
+                returnUrl: window.location.href.split('?')[0],
+                amount: '1.00'
+            };
     
     // 获取DOM元素
     const payBtn = document.getElementById('pay-btn');
@@ -1366,34 +1411,34 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 开始支付
     function startPayment() {
-        try {
-            fullscreenLoading.style.display = 'flex';
-            
-            const paymentData = {
-                pid: paymentConfig.pid,
-                type: 'wxpay',
-                out_trade_no: generateOrderNo(),
-                notify_url: paymentConfig.returnUrl,
-                return_url: paymentConfig.returnUrl,
-                name: '六爻占卜服务费',
-                money: paymentConfig.amount,
-                param: 'liuyao_divination',
-                sign_type: 'MD5'
-            };
-            
-            paymentData.sign = generateSign(paymentData);
-            
-            if (!paymentData.sign) {
-                throw new Error('生成支付签名失败');
+                try {
+                    fullscreenLoading.style.display = 'flex';
+                    
+                    const paymentData = {
+                        pid: paymentConfig.pid,
+                        type: currentPaymentMethod, // 使用当前选择的支付方式
+                        out_trade_no: generateOrderNo(),
+                        notify_url: paymentConfig.returnUrl,
+                        return_url: paymentConfig.returnUrl,
+                        name: '六爻占卜服务费',
+                        money: paymentConfig.amount,
+                        param: 'liuyao_divination',
+                        sign_type: 'MD5'
+                    };
+                    
+                    paymentData.sign = generateSign(paymentData);
+                    
+                    if (!paymentData.sign) {
+                        throw new Error('生成支付签名失败');
+                    }
+                    
+                    submitPaymentForm(paymentData);
+                } catch (error) {
+                    console.error('支付启动错误:', error);
+                    fullscreenLoading.style.display = 'none';
+                    showToast('支付启动失败，请稍后再试', 'error');
+                }
             }
-            
-            submitPaymentForm(paymentData);
-        } catch (error) {
-            console.error('支付启动错误:', error);
-            fullscreenLoading.style.display = 'none';
-            showToast('支付启动失败，请稍后再试', 'error');
-        }
-    }
     
     // 提交支付表单
     function submitPaymentForm(data) {
