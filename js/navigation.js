@@ -456,23 +456,21 @@ function setupMobileMenu() {
             }
         });
         
-        // 处理下拉菜单点击
+        // 处理下拉菜单点击 - 改为普通风格
         const navItems = document.querySelectorAll('.nav-item');
         navItems.forEach(item => {
             if (item.querySelector('.dropdown-menu')) {
                 const navLink = item.querySelector('.nav-link');
+                const dropdownIcon = navLink.querySelector('.dropdown-icon');
+                
+                // 点击菜单项切换下拉菜单
                 navLink.addEventListener('click', function(e) {
                     if (window.innerWidth <= 992) {
                         e.preventDefault();
                         const dropdown = item.querySelector('.dropdown-menu');
                         dropdown.classList.toggle('active');
-                        
-                        // 关闭其他打开的下拉菜单
-                        document.querySelectorAll('.dropdown-menu').forEach(menu => {
-                            if (menu !== dropdown) {
-                                menu.classList.remove('active');
-                            }
-                        });
+                        dropdownIcon.classList.toggle('fa-chevron-down');
+                        dropdownIcon.classList.toggle('fa-chevron-up');
                     }
                 });
             }
@@ -484,6 +482,15 @@ function setupMobileMenu() {
                 mainNav.classList.remove('active');
                 mobileMenuBtn.classList.remove('active');
                 document.body.style.overflow = '';
+                
+                // 关闭所有下拉菜单
+                document.querySelectorAll('.dropdown-menu').forEach(menu => {
+                    menu.classList.remove('active');
+                });
+                document.querySelectorAll('.dropdown-icon').forEach(icon => {
+                    icon.classList.remove('fa-chevron-up');
+                    icon.classList.add('fa-chevron-down');
+                });
             }
         });
     }
