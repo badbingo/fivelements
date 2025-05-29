@@ -441,19 +441,12 @@ function setupMobileMenu() {
     const mainNav = document.querySelector('.main-nav');
     
     if (mobileMenuBtn && mainNav) {
-        // 显示移动菜单按钮
         mobileMenuBtn.style.display = 'flex';
         
         mobileMenuBtn.addEventListener('click', function() {
             this.classList.toggle('active');
             mainNav.classList.toggle('active');
-            
-            // 防止滚动穿透
-            if (mainNav.classList.contains('active')) {
-                document.body.style.overflow = 'hidden';
-            } else {
-                document.body.style.overflow = '';
-            }
+            document.body.style.overflow = mainNav.classList.contains('active') ? 'hidden' : '';
         });
         
         // 处理下拉菜单点击 - 改为普通风格
@@ -484,14 +477,14 @@ function setupMobileMenu() {
                 document.body.style.overflow = '';
                 
                 // 关闭所有下拉菜单
-                document.querySelectorAll('.dropdown-menu').forEach(menu => {
-                    menu.classList.remove('active');
-                });
-                document.querySelectorAll('.dropdown-icon').forEach(icon => {
-                    icon.classList.remove('fa-chevron-up');
-                    icon.classList.add('fa-chevron-down');
-                });
-            }
+                document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                if (window.innerWidth <= 992 && !this.querySelector('.dropdown-icon')) {
+                    mainNav.classList.remove('active');
+                    mobileMenuBtn.classList.remove('active');
+                    document.body.style.overflow = '';
+                }
+            });
         });
     }
 }
