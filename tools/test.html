@@ -1355,9 +1355,9 @@
                 return;
             }
             
-            // 使用lunar.js计算八字
+            // 使用lunar.js 1.7.2计算八字
             const dateParts = birthDate.split('-');
-            const solarDate = new Solar(
+            const solarDate = Lunar.Solar.fromYmdHms(
                 parseInt(dateParts[0]),
                 parseInt(dateParts[1]),
                 parseInt(dateParts[2]),
@@ -1370,7 +1370,7 @@
             const bazi = lunarDate.getEightChar();
             
             // 更新八字排盘显示
-            updateBaziDisplay(bazi, solarDate, gender);
+            updateBaziDisplay(bazi, solarDate, gender, lunarDate);
             
             // 显示结果区域
             document.getElementById('result-section').style.display = 'block';
@@ -1383,7 +1383,7 @@
         });
 
         // 更新八字排盘显示
-        function updateBaziDisplay(bazi, solarDate, gender) {
+        function updateBaziDisplay(bazi, solarDate, gender, lunarDate) {
             // 更新基本信息
             document.getElementById('result-date').textContent = `${solarDate.getYear()}年${solarDate.getMonth()}月${solarDate.getDay()}日`;
             document.getElementById('result-time').textContent = `${solarDate.getHour()}:${solarDate.getMinute().toString().padStart(2, '0')}`;
@@ -1429,7 +1429,7 @@
         // 获取十神
         function getShiShen(ganOrZhi, dayGan) {
             const relation = LunarUtil.getShiShen(ganOrZhi, dayGan);
-            return ShiShenUtil.getName(relation);
+            return Lunar.ShiShenUtil.getName(relation);
         }
 
         // 格式化藏干
@@ -1465,16 +1465,22 @@
         function calculateWuxingPower(bazi) {
             // 这里实现五行力量计算逻辑
             // 返回一个包含五行百分比的对象 {wood: 25, fire: 35, earth: 15, metal: 10, water: 15}
+            return {
+                wood: 25,
+                fire: 35,
+                earth: 15,
+                metal: 10,
+                water: 15
+            };
         }
 
         // 计算身强身弱分数
         function calculateStrengthScore(bazi) {
             // 这里实现身强身弱评分逻辑
             // 返回一个-5到5之间的分数
+            return 0; // 示例值
         }
 
-        // [其他辅助函数保持不变]
-        
         // 初始化五行雷达图 - 基于实际五行力量
         function initWuxingChart(wuxingPower) {
             const ctx = document.getElementById('wuxing-chart').getContext('2d');
