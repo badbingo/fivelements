@@ -6,8 +6,6 @@
     <title>八字计算器 - 麦八字教学网</title>
     <link rel="stylesheet" href="../css/style1.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <script src="../js/lunar.js"></script>
-    <script src="../js/main1.js"></script>
     <link rel="stylesheet" href="../css/navigation.css">
     <script defer src="../js/navigation.js"></script>
     
@@ -17,7 +15,6 @@
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
-    
       gtag('config', 'G-2NHJXGKS0Y');
     </script>
     
@@ -25,40 +22,37 @@
         /* 新增互动学习区域样式 */
         .learning-section {
             margin-top: 40px;
-            background: rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(5px);
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            display: none;
         }
         
         .learning-tabs {
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid rgba(237, 28, 36, 0.2);
         }
         
         .learning-tab {
             padding: 12px 25px;
-            background: rgba(237, 28, 36, 0.1);
-            border-radius: 30px;
             cursor: pointer;
+            background: rgba(255,255,255,0.7);
+            margin-right: 5px;
+            border-radius: 8px 8px 0 0;
+            font-weight: 600;
+            color: #555;
             transition: all 0.3s ease;
-            font-weight: 500;
-            border: 1px solid rgba(237, 28, 36, 0.3);
-        }
-        
-        .learning-tab:hover {
-            background: rgba(237, 28, 36, 0.2);
-            transform: translateY(-3px);
+            border: 1px solid rgba(237, 28, 36, 0.1);
+            border-bottom: none;
         }
         
         .learning-tab.active {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            background: rgba(237, 28, 36, 0.8);
             color: white;
-            box-shadow: 0 5px 15px rgba(237, 28, 36, 0.3);
+            border-color: rgba(237, 28, 36, 0.8);
+        }
+        
+        .learning-tab:hover:not(.active) {
+            background: rgba(237, 28, 36, 0.1);
         }
         
         .learning-content {
@@ -71,21 +65,31 @@
         }
         
         .analysis-card {
-            background: rgba(255, 255, 255, 0.8);
-            border-radius: 15px;
+            background: rgba(255,255,255,0.8);
+            border-radius: 10px;
             padding: 25px;
-            margin-bottom: 20px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-            border: 1px solid rgba(237, 28, 36, 0.1);
+            margin-bottom: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            border-left: 4px solid var(--primary-color);
+            transition: all 0.3s ease;
+        }
+        
+        .analysis-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
         }
         
         .analysis-title {
             color: var(--primary-color);
             margin-bottom: 15px;
+            font-size: 1.3rem;
             display: flex;
             align-items: center;
-            gap: 10px;
-            font-size: 1.3rem;
+        }
+        
+        .analysis-title i {
+            margin-right: 10px;
+            font-size: 1.2em;
         }
         
         .analysis-result {
@@ -94,108 +98,195 @@
             margin-bottom: 15px;
             padding: 15px;
             background: rgba(237, 28, 36, 0.05);
-            border-radius: 10px;
-            border-left: 4px solid var(--primary-color);
+            border-radius: 8px;
+            border-left: 3px solid var(--primary-color);
         }
         
         .analysis-detail {
-            margin-top: 20px;
+            margin-top: 15px;
             padding: 15px;
             background: #f9f9f9;
-            border-radius: 10px;
+            border-radius: 8px;
             font-size: 0.95rem;
             line-height: 1.7;
-        }
-        
-        .highlight {
-            background: rgba(255, 235, 59, 0.3);
-            padding: 2px 5px;
-            border-radius: 3px;
+            color: #555;
         }
         
         .wuxing-balance {
             display: flex;
             justify-content: space-between;
             margin: 20px 0;
-            gap: 10px;
         }
         
         .wuxing-item {
             text-align: center;
             flex: 1;
+            padding: 10px;
         }
         
         .wuxing-bar {
-            height: 120px;
-            width: 30px;
+            height: 150px;
+            width: 40px;
+            margin: 0 auto;
             background: #f0f0f0;
-            margin: 0 auto 10px;
-            position: relative;
             border-radius: 5px;
+            position: relative;
             overflow: hidden;
         }
         
         .wuxing-fill {
             position: absolute;
             bottom: 0;
+            left: 0;
             width: 100%;
+            height: 0;
             transition: height 1s ease;
         }
         
-        .wood .wuxing-fill { background: #2e7d32; }
-        .fire .wuxing-fill { background: #c62828; }
-        .earth .wuxing-fill { background: #8d6e63; }
-        .metal .wuxing-fill { background: #1565c0; }
-        .water .wuxing-fill { background: #0277bd; }
+        .wuxing-wood .wuxing-fill { background: #2e7d32; }
+        .wuxing-fire .wuxing-fill { background: #c62828; }
+        .wuxing-earth .wuxing-fill { background: #8d6e63; }
+        .wuxing-metal .wuxing-fill { background: #1565c0; }
+        .wuxing-water .wuxing-fill { background: #0277bd; }
         
         .wuxing-label {
+            margin-top: 10px;
             font-weight: 600;
         }
         
-        .wuxing-value {
-            font-size: 0.9rem;
-            color: #666;
-        }
-        
-        .special-patterns {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        .special-combo {
+            display: flex;
+            flex-wrap: wrap;
             gap: 15px;
             margin-top: 20px;
         }
         
-        .pattern-card {
-            background: white;
-            border-radius: 10px;
+        .combo-item {
+            flex: 1;
+            min-width: 200px;
             padding: 15px;
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
-            border: 1px solid #eee;
+            background: rgba(237, 28, 36, 0.05);
+            border-radius: 8px;
+            border-left: 3px solid var(--primary-color);
             transition: all 0.3s ease;
         }
         
-        .pattern-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        .combo-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
         }
         
-        .pattern-name {
+        .combo-title {
             font-weight: 600;
             color: var(--primary-color);
             margin-bottom: 8px;
             display: flex;
             align-items: center;
-            gap: 8px;
         }
         
-        .pattern-desc {
+        .combo-title i {
+            margin-right: 8px;
+        }
+        
+        .combo-desc {
             font-size: 0.9rem;
-            color: #555;
             line-height: 1.6;
+            color: #555;
         }
         
-        .pattern-active {
-            background: rgba(237, 28, 36, 0.05);
-            border-color: rgba(237, 28, 36, 0.3);
+        .god-highlight {
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-weight: 600;
+        }
+        
+        .useful-god { background: rgba(46, 125, 50, 0.1); color: #2e7d32; }
+        .harmful-god { background: rgba(198, 40, 40, 0.1); color: #c62828; }
+        
+        .interactive-btn {
+            display: inline-block;
+            padding: 8px 15px;
+            background: rgba(237, 28, 36, 0.1);
+            color: var(--primary-color);
+            border-radius: 20px;
+            font-size: 0.9rem;
+            margin: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+        }
+        
+        .interactive-btn:hover {
+            background: rgba(237, 28, 36, 0.2);
+        }
+        
+        .interactive-btn.active {
+            background: var(--primary-color);
+            color: white;
+        }
+        
+        .element-tip {
+            position: relative;
+            cursor: help;
+            border-bottom: 1px dashed #999;
+        }
+        
+        .element-tip:hover::after {
+            content: attr(data-tip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.8rem;
+            white-space: nowrap;
+            z-index: 10;
+        }
+        
+        .ten-god-explanation {
+            margin-top: 20px;
+            border-top: 1px solid #eee;
+            padding-top: 15px;
+        }
+        
+        .ten-god-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .ten-god-card {
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .ten-god-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .ten-god-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .ten-god-name i {
+            margin-right: 8px;
+            color: var(--primary-color);
+        }
+        
+        .ten-god-desc {
+            font-size: 0.85rem;
+            line-height: 1.6;
+            color: #666;
         }
         
         .luck-table {
@@ -206,169 +297,61 @@
         
         .luck-table th {
             background: rgba(237, 28, 36, 0.1);
-            padding: 12px;
+            padding: 10px;
             text-align: center;
             font-weight: 600;
-            color: var(--primary-color);
         }
         
         .luck-table td {
-            padding: 12px;
-            text-align: center;
+            padding: 10px;
             border: 1px solid #eee;
+            text-align: center;
         }
         
-        .luck-current {
-            background: rgba(255, 235, 59, 0.3);
+        .luck-table tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+        
+        .current-luck {
+            background: rgba(237, 28, 36, 0.05) !important;
             font-weight: 600;
         }
         
-        .luck-good {
-            background: rgba(76, 175, 80, 0.1);
-            color: #2e7d32;
-        }
-        
-        .luck-bad {
-            background: rgba(244, 67, 54, 0.1);
-            color: #c62828;
-        }
-        
-        .interactive-hint {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            background: rgba(237, 28, 36, 0.05);
-            padding: 15px;
-            border-radius: 10px;
-            margin-top: 20px;
-            border-left: 4px solid var(--primary-color);
-        }
-        
-        .interactive-hint i {
-            color: var(--primary-color);
-            font-size: 1.5rem;
-        }
-        
-        .interactive-hint p {
-            margin: 0;
-            font-size: 0.95rem;
-            color: #555;
+        .luck-note {
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 10px;
         }
         
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
         
         /* 五行颜色类增强 */
-        .wuxing-wood { color: #2e7d32; font-weight: 600; background-color: rgba(46, 125, 50, 0.1); padding: 2px 5px; border-radius: 3px; }
-        .wuxing-fire { color: #c62828; font-weight: 600; background-color: rgba(198, 40, 40, 0.1); padding: 2px 5px; border-radius: 3px; }
-        .wuxing-earth { color: #8d6e63; font-weight: 600; background-color: rgba(141, 110, 99, 0.1); padding: 2px 5px; border-radius: 3px; }
-        .wuxing-metal { color: #1565c0; font-weight: 600; background-color: rgba(21, 101, 192, 0.1); padding: 2px 5px; border-radius: 3px; }
-        .wuxing-water { color: #0277bd; font-weight: 600; background-color: rgba(2, 119, 189, 0.1); padding: 2px 5px; border-radius: 3px; }
+        .wuxing-wood { color: #2e7d32; font-weight: 600; }
+        .wuxing-fire { color: #c62828; font-weight: 600; }
+        .wuxing-earth { color: #8d6e63; font-weight: 600; }
+        .wuxing-metal { color: #1565c0; font-weight: 600; }
+        .wuxing-water { color: #0277bd; font-weight: 600; }
+        
+        .wuxing-wood-bg { background: rgba(46, 125, 50, 0.1); }
+        .wuxing-fire-bg { background: rgba(198, 40, 40, 0.1); }
+        .wuxing-earth-bg { background: rgba(141, 110, 99, 0.1); }
+        .wuxing-metal-bg { background: rgba(21, 101, 192, 0.1); }
+        .wuxing-water-bg { background: rgba(2, 119, 189, 0.1); }
         
         /* 十神颜色类 */
-        .shen-bishang { color: #4a148c; background-color: rgba(74, 20, 140, 0.1); }
-        .shen-jiecai { color: #6a1b9a; background-color: rgba(106, 27, 154, 0.1); }
-        .shen-shishen { color: #ab47bc; background-color: rgba(171, 71, 188, 0.1); }
-        .shen-shangguan { color: #7b1fa2; background-color: rgba(123, 31, 162, 0.1); }
-        .shen-zhengyin { color: #4527a0; background-color: rgba(69, 39, 160, 0.1); }
-        .shen-pianyin { color: #5e35b1; background-color: rgba(94, 53, 177, 0.1); }
-        .shen-zhengguan { color: #283593; background-color: rgba(40, 53, 147, 0.1); }
-        .shen-qisha { color: #303f9f; background-color: rgba(48, 63, 159, 0.1); }
-        .shen-zhengcai { color: #0277bd; background-color: rgba(2, 119, 189, 0.1); }
-        .shen-piancai { color: #0288d1; background-color: rgba(2, 136, 209, 0.1); }
-        
-        /* 点击交互效果 */
-        .clickable-element {
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-        }
-        
-        .clickable-element:hover {
-            transform: scale(1.05);
-        }
-        
-        .clickable-element:active {
-            transform: scale(0.95);
-        }
-        
-        .clickable-element.active {
-            box-shadow: 0 0 0 3px rgba(237, 28, 36, 0.3);
-        }
-        
-        /* 教学提示框 */
-        .teaching-tip {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            background: white;
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            max-width: 350px;
-            z-index: 1000;
-            transform: translateY(20px);
-            opacity: 0;
-            transition: all 0.5s ease;
-            border-left: 5px solid var(--primary-color);
-        }
-        
-        .teaching-tip.show {
-            transform: translateY(0);
-            opacity: 1;
-        }
-        
-        .teaching-tip h4 {
-            margin-top: 0;
-            color: var(--primary-color);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .teaching-tip p {
-            margin-bottom: 0;
-            line-height: 1.6;
-        }
-        
-        .close-tip {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: none;
-            border: none;
-            font-size: 1.2rem;
-            cursor: pointer;
-            color: #999;
-        }
-        
-        /* 响应式调整 */
-        @media (max-width: 768px) {
-            .learning-tabs {
-                overflow-x: auto;
-                padding-bottom: 10px;
-                flex-wrap: nowrap;
-                justify-content: flex-start;
-            }
-            
-            .learning-tab {
-                flex-shrink: 0;
-            }
-            
-            .wuxing-balance {
-                flex-wrap: wrap;
-            }
-            
-            .wuxing-item {
-                flex: 0 0 calc(20% - 8px);
-            }
-            
-            .special-patterns {
-                grid-template-columns: 1fr;
-            }
-        }
+        .ten-god-bijian { color: #2e7d32; }
+        .ten-god-jiecai { color: #c62828; }
+        .ten-god-shishen { color: #1565c0; }
+        .ten-god-shangguan { color: #8d6e63; }
+        .ten-god-zhengyin { color: #0277bd; }
+        .ten-god-pianyin { color: #6a1b9a; }
+        .ten-god-zhengguan { color: #e65100; }
+        .ten-god-qisha { color: #bf360c; }
+        .ten-god-zhengcai { color: #4e342e; }
+        .ten-god-piancai { color: #3e2723; }
     </style>
 </head>
 <body>
@@ -377,7 +360,7 @@
     <main class="content-container">
         <div class="content-title">
             <h1>八字计算器</h1>
-            <p>输入您的出生信息，生成完整八字命盘并学习命理知识</p>
+            <p>输入您的出生信息，自动生成完整八字命盘并学习命理知识</p>
         </div>
 
         <div class="content-section">
@@ -562,304 +545,333 @@
             </div>
             
             <!-- 新增的互动学习区域 -->
-            <div class="learning-section">
-                <h3><i class="fas fa-graduation-cap"></i> 八字命盘分析学习</h3>
-                <p>点击下方标签，学习您八字命盘中的各种命理知识</p>
-                
+            <div class="learning-section" id="learning-section">
                 <div class="learning-tabs">
-                    <div class="learning-tab active" data-tab="strength">身强身弱分析</div>
+                    <div class="learning-tab active" data-tab="strength">身强身弱</div>
                     <div class="learning-tab" data-tab="tengod">十神分析</div>
-                    <div class="learning-tab" data-tab="wuxing">五行平衡分析</div>
-                    <div class="learning-tab" data-tab="patterns">特殊组合分析</div>
-                    <div class="learning-tab" data-tab="usegod">用神与忌神</div>
-                    <div class="learning-tab" data-tab="luck">命盘运势分析</div>
+                    <div class="learning-tab" data-tab="wuxing">五行平衡</div>
+                    <div class="learning-tab" data-tab="combo">特殊组合</div>
+                    <div class="learning-tab" data-tab="useful">用神忌神</div>
+                    <div class="learning-tab" data-tab="luck">运势分析</div>
                 </div>
                 
                 <div class="learning-content active" id="strength-content">
                     <div class="analysis-card">
-                        <h4 class="analysis-title"><i class="fas fa-weight"></i> 身强身弱分析</h4>
-                        <div class="analysis-result">
-                            您的八字日主为<span class="wuxing-fire">丙火</span>，综合分析五行生克关系，属于<strong>身强</strong>的命格。
+                        <div class="analysis-title"><i class="fas fa-weight"></i> 日主强弱分析</div>
+                        <div class="analysis-result" id="strength-result">
+                            您的日主为<span class="wuxing-fire">丙火</span>，生于<span id="strength-month">丑月</span>（冬季），得月令<span id="strength-season">不得令</span>。综合分析为<span id="strength-conclusion">身弱</span>。
                         </div>
                         <div class="analysis-detail">
                             <p><strong>分析依据：</strong></p>
-                            <ul>
-                                <li>日主<span class="wuxing-fire">丙火</span>生于<span class="wuxing-earth">丑月</span>（腊月），土旺火弱，先天不得令</li>
-                                <li>年柱<span class="wuxing-wood">甲子</span>、月柱<span class="wuxing-wood">乙丑</span>，木旺生火，得势</li>
-                                <li>日支<span class="wuxing-wood">寅木</span>为长生之地，时支<span class="wuxing-wood">卯木</span>为帝旺，地支根基强</li>
-                                <li>天干<span class="wuxing-wood">甲乙木</span>生<span class="wuxing-fire">丙丁火</span>，印星旺盛</li>
-                            </ul>
-                            <p><strong>身强特点：</strong> 精力充沛，自信果断，但需注意避免刚愎自用，适当调和为佳。</p>
+                            <p>1. <strong>得令情况：</strong> <span id="strength-season-detail">冬季水旺火弱，日主不得令</span></p>
+                            <p>2. <strong>得地情况：</strong> <span id="strength-land-detail">日支寅木为火之长生，时支卯木生火，得地有力</span></p>
+                            <p>3. <strong>得势情况：</strong> <span id="strength-support-detail">天干甲乙木生火，但地支水土克制，得势一般</span></p>
+                            <p>4. <strong>综合分析：</strong> <span id="strength-summary">日主丙火虽得木生但不得令，综合判断为身弱</span></p>
+                            
+                            <div class="ten-god-explanation">
+                                <p><strong>身强身弱影响：</strong></p>
+                                <p>身弱者通常需要印星（生我者）或比劫（同我者）来帮扶，喜行印比大运；身强者通常需要官杀（克我者）或食伤（我生者）来平衡，喜行财官大运。</p>
+                                
+                                <button class="interactive-btn" data-example="strong">查看身强案例</button>
+                                <button class="interactive-btn" data-example="weak">查看身弱案例</button>
+                                
+                                <div id="strength-example" style="display:none; margin-top:15px; padding:15px; background:#f5f5f5; border-radius:8px;">
+                                    <p><strong>案例说明：</strong></p>
+                                    <p id="strength-example-text"></p>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <div class="interactive-hint">
-                        <i class="fas fa-lightbulb"></i>
-                        <p><strong>学习提示：</strong> 点击八字表格中的天干地支，查看它们在身强身弱分析中的作用。</p>
                     </div>
                 </div>
                 
                 <div class="learning-content" id="tengod-content">
                     <div class="analysis-card">
-                        <h4 class="analysis-title"><i class="fas fa-chess"></i> 十神分析</h4>
+                        <div class="analysis-title"><i class="fas fa-chess"></i> 十神分布分析</div>
                         <div class="analysis-result">
-                            您的八字中十神分布如下：<span class="shen-bishang">比肩</span>、<span class="shen-jiecai">劫财</span>、<span class="shen-shishen">食神</span>、<span class="shen-shangguan">伤官</span>、<span class="shen-zhengyin">正印</span>、<span class="shen-pianyin">偏印</span>、<span class="shen-zhengguan">正官</span>、<span class="shen-qisha">七杀</span>、<span class="shen-zhengcai">正财</span>、<span class="shen-piancai">偏财</span>。
+                            您的命盘中十神分布如下：比肩2个，劫财2个，正印2个，偏印1个，正官1个，伤官1个。
                         </div>
                         <div class="analysis-detail">
-                            <p><strong>主要十神解析：</strong></p>
-                            <ul>
-                                <li><span class="shen-bishang">年干甲木比肩</span>：兄弟姐妹助力，独立自主，竞争意识强</li>
-                                <li><span class="shen-jiecai">月干乙木劫财</span>：朋友多但易有财务纠纷，需注意合作</li>
-                                <li><span class="shen-zhengyin">月支丑中癸水正印</span>：学业运佳，得长辈贵人扶持</li>
-                                <li><span class="shen-shangguan">时干丁火伤官</span>：才华横溢，创意丰富，但需注意言辞</li>
-                                <li><span class="shen-zhengguan">年支子水正官</span>：自律性强，有管理才能，事业稳定</li>
-                            </ul>
-                            <p><strong>十神互动：</strong> 点击八字表格中的十神名称，查看详细解释。</p>
-                        </div>
-                    </div>
-                    
-                    <div class="interactive-hint">
-                        <i class="fas fa-mouse-pointer"></i>
-                        <p><strong>互动学习：</strong> 点击下方十神卡片，了解它们在您命盘中的具体表现。</p>
-                    </div>
-                    
-                    <div class="special-patterns">
-                        <div class="pattern-card clickable-element" data-tengod="bishang">
-                            <div class="pattern-name"><i class="fas fa-people-arrows"></i> 比肩</div>
-                            <div class="pattern-desc">代表兄弟姐妹、朋友同事，象征竞争、独立与自我主张...</div>
-                        </div>
-                        <div class="pattern-card clickable-element" data-tengod="jiecai">
-                            <div class="pattern-name"><i class="fas fa-handshake"></i> 劫财</div>
-                            <div class="pattern-desc">代表竞争、破财、朋友关系，象征合作与竞争的平衡...</div>
-                        </div>
-                        <div class="pattern-card clickable-element" data-tengod="shishen">
-                            <div class="pattern-name"><i class="fas fa-utensils"></i> 食神</div>
-                            <div class="pattern-desc">代表才华、创造力、享乐，象征艺术天赋和生活享受...</div>
-                        </div>
-                        <div class="pattern-card clickable-element" data-tengod="shangguan">
-                            <div class="pattern-name"><i class="fas fa-paint-brush"></i> 伤官</div>
-                            <div class="pattern-desc">代表才华、反叛、自由，象征创新思维和表达能力...</div>
+                            <p><strong>十神含义解析：</strong></p>
+                            <div class="ten-god-grid">
+                                <div class="ten-god-card">
+                                    <div class="ten-god-name"><i class="fas fa-user-friends"></i> 比肩</div>
+                                    <div class="ten-god-desc">与日主相同五行阴阳，代表兄弟姐妹、朋友同事，主竞争、自立。</div>
+                                </div>
+                                <div class="ten-god-card">
+                                    <div class="ten-god-name"><i class="fas fa-users"></i> 劫财</div>
+                                    <div class="ten-god-desc">与日主相同五行不同阴阳，代表竞争、破财，也主胆识气魄。</div>
+                                </div>
+                                <div class="ten-god-card">
+                                    <div class="ten-god-name"><i class="fas fa-book"></i> 正印</div>
+                                    <div class="ten-god-desc">生我者阴阳相异，代表学问、贵人、长辈，主智慧仁慈。</div>
+                                </div>
+                                <div class="ten-god-card">
+                                    <div class="ten-god-name"><i class="fas fa-book-open"></i> 偏印</div>
+                                    <div class="ten-god-desc">生我者阴阳相同，代表特殊才能、宗教玄学，主孤僻思考。</div>
+                                </div>
+                                <div class="ten-god-card">
+                                    <div class="ten-god-name"><i class="fas fa-gavel"></i> 正官</div>
+                                    <div class="ten-god-desc">克我者阴阳相异，代表地位、名誉、法律，主责任约束。</div>
+                                </div>
+                                <div class="ten-god-card">
+                                    <div class="ten-god-name"><i class="fas fa-theater-masks"></i> 伤官</div>
+                                    <div class="ten-god-desc">我生者阴阳相异，代表才华、艺术、自由，主创新反叛。</div>
+                                </div>
+                            </div>
+                            
+                            <p style="margin-top:20px;"><strong>十神互动分析：</strong></p>
+                            <p>点击下方十神查看其在您命盘中的影响：</p>
+                            
+                            <div style="display:flex; flex-wrap:wrap; gap:10px; margin:15px 0;">
+                                <button class="interactive-btn ten-god-bijian" data-tengod="bijian">比肩</button>
+                                <button class="interactive-btn ten-god-jiecai" data-tengod="jiecai">劫财</button>
+                                <button class="interactive-btn ten-god-shishen" data-tengod="shishen">食神</button>
+                                <button class="interactive-btn ten-god-shangguan" data-tengod="shangguan">伤官</button>
+                                <button class="interactive-btn ten-god-zhengyin" data-tengod="zhengyin">正印</button>
+                                <button class="interactive-btn ten-god-pianyin" data-tengod="pianyin">偏印</button>
+                                <button class="interactive-btn ten-god-zhengguan" data-tengod="zhengguan">正官</button>
+                                <button class="interactive-btn ten-god-qisha" data-tengod="qisha">七杀</button>
+                                <button class="interactive-btn ten-god-zhengcai" data-tengod="zhengcai">正财</button>
+                                <button class="interactive-btn ten-god-piancai" data-tengod="piancai">偏财</button>
+                            </div>
+                            
+                            <div id="tengod-detail" style="padding:15px; background:#f5f5f5; border-radius:8px; display:none;">
+                                <p id="tengod-detail-text"></p>
+                            </div>
                         </div>
                     </div>
                 </div>
                 
                 <div class="learning-content" id="wuxing-content">
                     <div class="analysis-card">
-                        <h4 class="analysis-title"><i class="fas fa-balance-scale"></i> 五行平衡分析</h4>
+                        <div class="analysis-title"><i class="fas fa-balance-scale"></i> 五行平衡分析</div>
                         <div class="analysis-result">
-                            您的八字五行分布：<span class="wuxing-wood">木</span>旺，<span class="wuxing-fire">火</span>强，<span class="wuxing-earth">土</span>平，<span class="wuxing-metal">金</span>弱，<span class="wuxing-water">水</span>弱。
+                            您的命盘五行分布：木3个，火2个，土1个，金1个，水2个。五行较为平衡，<span class="wuxing-wood">木</span>稍旺。
                         </div>
-                        
-                        <div class="wuxing-balance">
-                            <div class="wuxing-item wood">
-                                <div class="wuxing-bar">
-                                    <div class="wuxing-fill" style="height: 80%"></div>
-                                </div>
-                                <div class="wuxing-label">木</div>
-                                <div class="wuxing-value">3.5/5</div>
-                            </div>
-                            <div class="wuxing-item fire">
-                                <div class="wuxing-bar">
-                                    <div class="wuxing-fill" style="height: 70%"></div>
-                                </div>
-                                <div class="wuxing-label">火</div>
-                                <div class="wuxing-value">3/5</div>
-                            </div>
-                            <div class="wuxing-item earth">
-                                <div class="wuxing-bar">
-                                    <div class="wuxing-fill" style="height: 40%"></div>
-                                </div>
-                                <div class="wuxing-label">土</div>
-                                <div class="wuxing-value">2/5</div>
-                            </div>
-                            <div class="wuxing-item metal">
-                                <div class="wuxing-bar">
-                                    <div class="wuxing-fill" style="height: 10%"></div>
-                                </div>
-                                <div class="wuxing-label">金</div>
-                                <div class="wuxing-value">0.5/5</div>
-                            </div>
-                            <div class="wuxing-item water">
-                                <div class="wuxing-bar">
-                                    <div class="wuxing-fill" style="height: 20%"></div>
-                                </div>
-                                <div class="wuxing-label">水</div>
-                                <div class="wuxing-value">1/5</div>
-                            </div>
-                        </div>
-                        
                         <div class="analysis-detail">
+                            <p><strong>五行分布图表：</strong></p>
+                            <div class="wuxing-balance">
+                                <div class="wuxing-item wuxing-wood">
+                                    <div class="wuxing-bar">
+                                        <div class="wuxing-fill" style="height:80%"></div>
+                                    </div>
+                                    <div class="wuxing-label">木</div>
+                                </div>
+                                <div class="wuxing-item wuxing-fire">
+                                    <div class="wuxing-bar">
+                                        <div class="wuxing-fill" style="height:60%"></div>
+                                    </div>
+                                    <div class="wuxing-label">火</div>
+                                </div>
+                                <div class="wuxing-item wuxing-earth">
+                                    <div class="wuxing-bar">
+                                        <div class="wuxing-fill" style="height:30%"></div>
+                                    </div>
+                                    <div class="wuxing-label">土</div>
+                                </div>
+                                <div class="wuxing-item wuxing-metal">
+                                    <div class="wuxing-bar">
+                                        <div class="wuxing-fill" style="height:20%"></div>
+                                    </div>
+                                    <div class="wuxing-label">金</div>
+                                </div>
+                                <div class="wuxing-item wuxing-water">
+                                    <div class="wuxing-bar">
+                                        <div class="wuxing-fill" style="height:50%"></div>
+                                    </div>
+                                    <div class="wuxing-label">水</div>
+                                </div>
+                            </div>
+                            
                             <p><strong>五行生克关系：</strong></p>
-                            <ul>
-                                <li><span class="wuxing-wood">木</span>旺生<span class="wuxing-fire">火</span>，导致火势过强</li>
-                                <li><span class="wuxing-fire">火</span>强克<span class="wuxing-metal">金</span>，金元素受损</li>
-                                <li><span class="wuxing-water">水</span>弱无法制<span class="wuxing-fire">火</span>，火势无制</li>
-                                <li><span class="wuxing-earth">土</span>被<span class="wuxing-wood">木</span>克制，力量不足</li>
-                            </ul>
-                            <p><strong>调和建议：</strong> 适当补充<span class="wuxing-metal">金</span>和<span class="wuxing-water">水</span>元素，可佩戴金属饰品，选择白色、黑色系衣物，居住环境可增加水景装饰。</p>
+                            <p>五行相生：木生火，火生土，土生金，金生水，水生木</p>
+                            <p>五行相克：木克土，土克水，水克火，火克金，金克木</p>
+                            
+                            <p style="margin-top:15px;"><strong>五行补益建议：</strong></p>
+                            <p>您的命盘<span class="wuxing-wood">木</span>元素较旺，可能需要适当补充<span class="wuxing-fire">火</span>或<span class="wuxing-earth">土</span>元素来平衡。</p>
+                            
+                            <div class="interactive-btn-group" style="margin-top:15px;">
+                                <button class="interactive-btn" data-wuxing="wood">木旺影响</button>
+                                <button class="interactive-btn" data-wuxing="fire">火旺影响</button>
+                                <button class="interactive-btn" data-wuxing="earth">土旺影响</button>
+                                <button class="interactive-btn" data-wuxing="metal">金旺影响</button>
+                                <button class="interactive-btn" data-wuxing="water">水旺影响</button>
+                            </div>
+                            
+                            <div id="wuxing-detail" style="margin-top:15px; padding:15px; background:#f5f5f5; border-radius:8px; display:none;">
+                                <p id="wuxing-detail-text"></p>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <div class="interactive-hint">
-                        <i class="fas fa-project-diagram"></i>
-                        <p><strong>互动学习：</strong> 点击五行柱状图，查看该五行在您命盘中的具体表现和生克关系。</p>
                     </div>
                 </div>
                 
-                <div class="learning-content" id="patterns-content">
+                <div class="learning-content" id="combo-content">
                     <div class="analysis-card">
-                        <h4 class="analysis-title"><i class="fas fa-star"></i> 特殊组合分析</h4>
+                        <div class="analysis-title"><i class="fas fa-star"></i> 特殊组合分析</div>
                         <div class="analysis-result">
-                            您的八字中存在以下特殊组合：<span class="highlight">木火通明</span>、<span class="highlight">印绶护身</span>。
+                            您的命盘中有以下特殊组合：<span class="wuxing-wood">木火通明</span>、<span class="wuxing-water">水土混杂</span>。
                         </div>
                         <div class="analysis-detail">
                             <p><strong>特殊组合解析：</strong></p>
-                            <ul>
-                                <li><strong>木火通明</strong>：<span class="wuxing-wood">甲乙木</span>生<span class="wuxing-fire">丙丁火</span>，象征智慧超群，文采斐然，适合从事文化、教育、创意类工作。</li>
-                                <li><strong>印绶护身</strong>：<span class="wuxing-water">癸水</span>正印藏于月支<span class="wuxing-earth">丑土</span>，代表有贵人暗中相助，学业运佳，晚年福厚。</li>
-                                <li><strong>寅卯辰会木</strong>：虽缺辰土，但<span class="wuxing-wood">寅卯</span>半会木局，增强木的力量，使性格仁慈但可能优柔寡断。</li>
-                            </ul>
-                            <p><strong>潜在问题：</strong> 火过旺无制，需注意心血管健康，避免急躁冲动。</p>
-                        </div>
-                    </div>
-                    
-                    <div class="interactive-hint">
-                        <i class="fas fa-search-plus"></i>
-                        <p><strong>探索发现：</strong> 点击下方特殊组合卡片，了解它们对您命运的具体影响。</p>
-                    </div>
-                    
-                    <div class="special-patterns">
-                        <div class="pattern-card pattern-active">
-                            <div class="pattern-name"><i class="fas fa-brain"></i> 木火通明</div>
-                            <div class="pattern-desc">木生火旺，智慧超群，文采斐然。您思维敏捷，学习能力强，适合从事文化教育、创意策划等工作。但需注意火旺可能导致性格急躁。</div>
-                        </div>
-                        <div class="pattern-card">
-                            <div class="pattern-name"><i class="fas fa-shield-alt"></i> 印绶护身</div>
-                            <div class="pattern-desc">正印藏支，贵人暗助。您一生中常有长辈贵人相助，尤其在学业和事业发展上。晚年福泽深厚，生活安稳。</div>
-                        </div>
-                        <div class="pattern-card">
-                            <div class="pattern-name"><i class="fas fa-tree"></i> 寅卯会木</div>
-                            <div class="pattern-desc">木气集结，仁慈心软。您性格温和，富有同情心，但可能因过于仁慈而错失机会。需学会适当坚持己见。</div>
-                        </div>
-                        <div class="pattern-card">
-                            <div class="pattern-name"><i class="fas fa-fire"></i> 火炎土燥</div>
-                            <div class="pattern-desc">火旺土焦，需水调和。您精力充沛但易急躁，需注意补充水元素平衡，多接触蓝色、黑色，保持心境平和。</div>
+                            <div class="special-combo">
+                                <div class="combo-item">
+                                    <div class="combo-title"><i class="fas fa-sun"></i> 木火通明</div>
+                                    <div class="combo-desc">年柱甲子、月柱乙丑形成木生火之势，主聪明才智，文章显达，但需注意火过旺则性格急躁。</div>
+                                </div>
+                                <div class="combo-item">
+                                    <div class="combo-title"><i class="fas fa-water"></i> 水土混杂</div>
+                                    <div class="combo-desc">月支丑土与时支卯木形成水土交战，主思虑过多，需注意消化系统健康。</div>
+                                </div>
+                                <div class="combo-item">
+                                    <div class="combo-title"><i class="fas fa-tree"></i> 双印护身</div>
+                                    <div class="combo-desc">月支丑中藏癸水正印，时支卯木为正印，形成印星护身，主得长辈助力，学业有成。</div>
+                                </div>
+                            </div>
+                            
+                            <p style="margin-top:20px;"><strong>了解更多特殊组合：</strong></p>
+                            <div class="interactive-btn-group" style="display:flex; flex-wrap:wrap; gap:10px;">
+                                <button class="interactive-btn" data-combo="guan">官印相生</button>
+                                <button class="interactive-btn" data-combo="cai">财官双美</button>
+                                <button class="interactive-btn" data-combo="shang">伤官佩印</button>
+                                <button class="interactive-btn" data-combo="yang">阳刃驾杀</button>
+                                <button class="interactive-btn" data-combo="shi">食神制杀</button>
+                            </div>
+                            
+                            <div id="combo-detail" style="margin-top:15px; padding:15px; background:#f5f5f5; border-radius:8px; display:none;">
+                                <p id="combo-detail-text"></p>
+                            </div>
                         </div>
                     </div>
                 </div>
                 
-                <div class="learning-content" id="usegod-content">
+                <div class="learning-content" id="useful-content">
                     <div class="analysis-card">
-                        <h4 class="analysis-title"><i class="fas fa-magic"></i> 用神与忌神分析</h4>
+                        <div class="analysis-title"><i class="fas fa-magic"></i> 用神与忌神分析</div>
                         <div class="analysis-result">
-                            您的八字用神为<span class="wuxing-water">水</span>，喜神为<span class="wuxing-metal">金</span>，忌神为<span class="wuxing-wood">木</span>和<span class="wuxing-fire">火</span>。
+                            根据您的命盘分析，<span class="god-highlight useful-god">用神</span>为<span class="wuxing-wood">木</span>和<span class="wuxing-fire">火</span>，<span class="god-highlight harmful-god">忌神</span>为<span class="wuxing-water">水</span>和<span class="wuxing-metal">金</span>。
                         </div>
                         <div class="analysis-detail">
-                            <p><strong>用神分析：</strong></p>
-                            <ul>
-                                <li><span class="wuxing-water">水</span>为调候用神：可制<span class="wuxing-fire">火</span>之炎上，平衡命局，增强智慧和灵活性</li>
-                                <li><span class="wuxing-metal">金</span>为喜神：可生<span class="wuxing-water">水</span>，同时耗<span class="wuxing-wood">木</span>之气，间接抑制<span class="wuxing-fire">火</span>势</li>
+                            <p><strong>用神解析：</strong></p>
+                            <p>用神是指对命主最有利的五行，能够补救命局不足，增强运势。您的命局<span class="wuxing-fire">丙火</span>日主身弱，最需要<span class="wuxing-wood">木</span>来生火，其次需要<span class="wuxing-fire">火</span>来助身。</p>
+                            
+                            <p><strong>忌神解析：</strong></p>
+                            <p>忌神是指对命主不利的五行，会削弱命局优势，带来不利影响。您的命局忌<span class="wuxing-water">水</span>来克火，忌<span class="wuxing-metal">金</span>来生水。</p>
+                            
+                            <div style="margin:20px 0;">
+                                <div style="display:flex; align-items:center; margin-bottom:10px;">
+                                    <span style="width:80px;">用神：</span>
+                                    <span class="god-highlight useful-god" style="padding:5px 10px; margin-right:5px;">木</span>
+                                    <span class="god-highlight useful-god" style="padding:5px 10px;">火</span>
+                                </div>
+                                <div style="display:flex; align-items:center;">
+                                    <span style="width:80px;">忌神：</span>
+                                    <span class="god-highlight harmful-god" style="padding:5px 10px; margin-right:5px;">水</span>
+                                    <span class="god-highlight harmful-god" style="padding:5px 10px; margin-right:5px;">金</span>
+                                    <span class="god-highlight harmful-god" style="padding:5px 10px;">土</span>
+                                </div>
+                            </div>
+                            
+                            <p><strong>用神应用建议：</strong></p>
+                            <ul style="padding-left:20px; margin-bottom:20px;">
+                                <li>选择<span class="wuxing-wood">木</span>属性行业：教育、文化、出版、园艺等</li>
+                                <li>选择<span class="wuxing-fire">火</span>属性颜色：红色、紫色等暖色系</li>
+                                <li>居住地宜选择东方（木）或南方（火）方位</li>
+                                <li>重要决策宜选择春季（木旺）或夏季（火旺）</li>
                             </ul>
                             
-                            <p><strong>忌神分析：</strong></p>
-                            <ul>
-                                <li><span class="wuxing-wood">木</span>为忌神：会生<span class="wuxing-fire">火</span>，加剧五行失衡</li>
-                                <li><span class="wuxing-fire">火</span>为忌神：日主已强，再加火势会导致性格急躁，易有冲突</li>
-                            </ul>
+                            <button class="interactive-btn" id="useful-example-btn">查看用神实际应用案例</button>
                             
-                            <p><strong>应用建议：</strong></p>
-                            <ul>
-                                <li>职业选择：适合<span class="wuxing-water">水</span>相关行业如物流、旅游、贸易，或<span class="wuxing-metal">金</span>相关行业如金融、法律、机械</li>
-                                <li>颜色搭配：多使用黑色、蓝色、白色、金色，少用绿色、红色</li>
-                                <li>方位选择：适合北方、西方发展，东方、南方不利</li>
-                                <li>人际关系：多与属鼠、猪、猴、鸡的人交往</li>
-                            </ul>
+                            <div id="useful-example" style="margin-top:15px; padding:15px; background:#f5f5f5; border-radius:8px; display:none;">
+                                <p><strong>用神实际应用：</strong></p>
+                                <p>1. <strong>职业选择：</strong> 木属性行业如教师、作家、设计师等，火属性行业如能源、餐饮、演艺等。</p>
+                                <p>2. <strong>人际关系：</strong> 多与属虎、兔（木）或蛇、马（火）的人交往，可获得更多助力。</p>
+                                <p>3. <strong>健康养生：</strong> 注意肝胆（木）和心脏（火）的保养，可多食用绿色蔬菜和红色食物。</p>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <div class="interactive-hint">
-                        <i class="fas fa-question-circle"></i>
-                        <p><strong>学习思考：</strong> 为什么水是我的用神？点击八字中的五行元素，查看它们在用神分析中的作用。</p>
                     </div>
                 </div>
                 
                 <div class="learning-content" id="luck-content">
                     <div class="analysis-card">
-                        <h4 class="analysis-title"><i class="fas fa-chart-line"></i> 命盘运势分析</h4>
+                        <div class="analysis-title"><i class="fas fa-chart-line"></i> 大运与流年分析</div>
                         <div class="analysis-result">
-                            您当前处于<span class="luck-good">庚辰大运(2020-2030)</span>，今年2025年为<span class="wuxing-wood">乙巳</span>年，流年与命盘形成<span class="highlight">木火相生</span>之势。
+                            您当前处于<span id="current-luck">丙寅</span>大运（2020-2030年），2025年流年为<span id="current-year">乙巳</span>年。
                         </div>
                         <div class="analysis-detail">
-                            <p><strong>大运分析：</strong></p>
+                            <p><strong>大运走势：</strong></p>
                             <table class="luck-table">
                                 <thead>
                                     <tr>
                                         <th>大运</th>
-                                        <th>年龄</th>
-                                        <th>年份</th>
-                                        <th>五行</th>
-                                        <th>吉凶</th>
+                                        <th>起止时间</th>
+                                        <th>天干地支</th>
+                                        <th>运势特点</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <tr>
-                                        <td>己卯</td>
-                                        <td>1-10</td>
-                                        <td>1985-1995</td>
-                                        <td>土木</td>
-                                        <td class="luck-good">吉</td>
+                                        <td>1-10岁</td>
+                                        <td>1984-1994</td>
+                                        <td>甲子</td>
+                                        <td>早年得父母关爱，学业顺利</td>
                                     </tr>
                                     <tr>
-                                        <td>庚辰</td>
-                                        <td>11-20</td>
-                                        <td>1995-2005</td>
-                                        <td>金土</td>
-                                        <td class="luck-good">吉</td>
+                                        <td>11-20岁</td>
+                                        <td>1994-2004</td>
+                                        <td>乙丑</td>
+                                        <td>青少年时期压力增大，需注意健康</td>
                                     </tr>
                                     <tr>
-                                        <td>辛巳</td>
-                                        <td>21-30</td>
-                                        <td>2005-2015</td>
-                                        <td>金火</td>
-                                        <td>平</td>
+                                        <td>21-30岁</td>
+                                        <td>2004-2014</td>
+                                        <td>丙寅</td>
+                                        <td>事业发展期，可得贵人提携</td>
                                     </tr>
-                                    <tr class="luck-current">
-                                        <td>壬午</td>
-                                        <td>31-40</td>
-                                        <td>2015-2025</td>
-                                        <td>水火</td>
-                                        <td class="luck-good">吉</td>
+                                    <tr class="current-luck">
+                                        <td>31-40岁</td>
+                                        <td>2014-2024</td>
+                                        <td>丁卯</td>
+                                        <td>财运上升期，但需防感情波动</td>
                                     </tr>
                                     <tr>
-                                        <td>癸未</td>
-                                        <td>41-50</td>
-                                        <td>2025-2035</td>
-                                        <td>水土</td>
-                                        <td class="luck-good">吉</td>
-                                    </tr>
-                                    <tr>
-                                        <td>甲申</td>
-                                        <td>51-60</td>
-                                        <td>2035-2045</td>
-                                        <td>木金</td>
-                                        <td class="luck-bad">凶</td>
+                                        <td>41-50岁</td>
+                                        <td>2024-2034</td>
+                                        <td>戊辰</td>
+                                        <td>事业稳定期，注意健康管理</td>
                                     </tr>
                                 </tbody>
                             </table>
                             
-                            <p><strong>2025年流年分析：</strong></p>
-                            <ul>
-                                <li>流年天干<span class="wuxing-wood">乙木</span>为劫财，需注意财务管理和人际关系</li>
-                                <li>流年地支<span class="wuxing-fire">巳火</span>与命局形成寅巳相刑，注意健康和口舌是非</li>
-                                <li>整体运势：事业有发展机会，但需稳扎稳打；财运起伏较大，不宜投机；感情需多沟通</li>
-                                <li>有利月份：金水旺的秋季和冬季（8月后）</li>
+                            <p class="luck-note">注：大运每10年一换，起运时间根据性别和出生时间计算。</p>
+                            
+                            <p style="margin-top:20px;"><strong>2025年流年分析：</strong></p>
+                            <p>2025年为<span class="wuxing-wood">乙巳</span>年，天干<span class="wuxing-wood">乙木</span>为印星，地支<span class="wuxing-fire">巳火</span>为比肩，整体运势：</p>
+                            <ul style="padding-left:20px; margin:10px 0;">
+                                <li>事业：有贵人相助，适合学习进修或开展新项目</li>
+                                <li>财运：正财稳定，偏财需谨慎</li>
+                                <li>健康：注意肝胆和眼睛保养</li>
+                                <li>感情：单身者有机会遇到正缘，已婚者需加强沟通</li>
                             </ul>
+                            
+                            <div style="margin-top:20px;">
+                                <button class="interactive-btn" id="luck-past-btn">查看过去三年运势</button>
+                                <button class="interactive-btn" id="luck-future-btn">查看未来三年运势</button>
+                                
+                                <div id="luck-past" style="margin-top:15px; padding:15px; background:#f5f5f5; border-radius:8px; display:none;">
+                                    <p><strong>过去三年运势回顾：</strong></p>
+                                    <p>2022年壬寅：变动较大的一年，可能有搬迁或工作调整</p>
+                                    <p>2023年癸卯：财运提升但压力增大，需注意健康</p>
+                                    <p>2024年甲辰：事业有突破，人际关系和谐</p>
+                                </div>
+                                
+                                <div id="luck-future" style="margin-top:15px; padding:15px; background:#f5f5f5; border-radius:8px; display:none;">
+                                    <p><strong>未来三年运势展望：</strong></p>
+                                    <p>2026年丙午：火旺之年，事业有突破但需防冲动决策</p>
+                                    <p>2027年丁未：财运平稳，适合长期投资</p>
+                                    <p>2028年戊申：金土之年，需注意健康和人际关系</p>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <div class="interactive-hint">
-                        <i class="fas fa-calendar-alt"></i>
-                        <p><strong>运势探索：</strong> 点击上方大运表格中的不同行，查看各个时期的详细运势分析。</p>
                     </div>
                 </div>
             </div>
@@ -872,177 +884,229 @@
             <p>传承经典命理文化，科学学习八字知识</p>
         </div>
     </footer>
-    
-    <!-- 教学提示框 -->
-    <div class="teaching-tip" id="teaching-tip">
-        <button class="close-tip">&times;</button>
-        <h4><i class="fas fa-lightbulb"></i> 学习提示</h4>
-        <p id="tip-content">点击八字表格中的元素，可以查看它们在命理分析中的具体作用和解释。</p>
-    </div>
+    <script src="../js/lunar.js"></script>
+    <script src="../js/main1.js"></script>
     
     <script>
-        // 互动学习功能脚本
-       document.addEventListener('DOMContentLoaded', function() {
-    // ====================== 核心排盘计算 ======================
-    class BaziCalculator {
-    static calculate(birthDate, birthTime, timezone, gender) {
-        // 这里应替换为实际的排盘算法（示例数据）
-        const lunarDate = this.getLunarDate(birthDate); // 需对接lunar.js
-        
-        // 获取实际排盘数据
-        const realData = this.getRealBaziData(birthDate, birthTime);
-        
-        return {
-            ...realData,
-            date: birthDate,
-            time: birthTime,
-            gender: gender,
-            elements: this.calculateElementsBalance(realData.pillars),
-            specialPatterns: this.checkSpecialPatterns(realData.pillars)
-        };
-    }
-
-    // 获取真实排盘数据（示例）
-    static getRealBaziData(date, time) {
-        return {
-            pillars: {
-                year: { stem: "甲", branch: "子", wuxing: "wood", tengod: "比肩" },
-                month: { stem: "乙", branch: "丑", wuxing: "earth", tengod: "劫财" },
-                day: { 
-                    stem: "己", 
-                    branch: "卯", 
-                    wuxing: "earth", 
-                    tengod: "日元",
-                    hiddenStems: ["乙", "丙", "戊"],
-                    positions: ["年干", "月干", "日干", "时干"]
-                },
-                hour: { stem: "丁", branch: "卯", wuxing: "fire", tengod: "伤官" }
-            },
-            voidList: ["戌亥", "戌亥", "戌亥", "戌亥"],
-            nayin: ["海中金", "海中金", "炉中火", "炉中火"]
-        };
-    }
-}
-
-    // ====================== 学习内容生成器 ======================
-    class BaziAnalysis {
-    static updateStrengthAnalysis(baziData) {
-        const dayMaster = baziData.pillars.day;
-        const strength = this.judgeStrength(baziData);
-        
-        // 使用实际排盘数据生成内容
-        const analysisHTML = `
-            <div class="analysis-result">
-                您的八字日主为<span class="wuxing-${dayMaster.wuxing}">${dayMaster.stem}${this.getWuxingChinese(dayMaster.wuxing)}</span>，
-                综合分析五行生克关系，属于<strong>${strength}</strong>的命格。
-            </div>
-            <div class="analysis-detail">
-                ${this.generateStrengthDetails(baziData)}
-            </div>
-        `;
-        
-        document.getElementById('strength-content').querySelector('.analysis-card').innerHTML = `
-            <h4 class="analysis-title"><i class="fas fa-weight"></i> 身强身弱分析</h4>
-            ${analysisHTML}
-        `;
-    }
-    
-    static generateStrengthDetails(baziData) {
-        const day = baziData.pillars.day;
-        const month = baziData.pillars.month;
-        
-        return `
-            <p><strong>分析依据：</strong></p>
-            <ul>
-                <li>日主${day.stem}${this.getWuxingChinese(day.wuxing)}生于${month.branch}月，
-                ${this.getSeasonStrength(day, month)}</li>
-                ${this.generatePillarAnalysis('年柱', baziData.pillars.year, day)}
-                ${this.generatePillarAnalysis('月柱', baziData.pillars.month, day)}
-                ${this.generatePillarAnalysis('日支', baziData.pillars.day, day)}
-                ${this.generatePillarAnalysis('时柱', baziData.pillars.hour, day)}
-            </ul>
-            <p><strong>${this.judgeStrength(baziData)}特点：</strong> 
-            ${this.getStrengthTraits(baziData)}</p>
-        `;
-    }
-    
-    static generatePillarAnalysis(label, pillar, dayMaster) {
-        return `<li>${label}${pillar.stem}${pillar.branch}：
-            ${this.getWuxingRelation(dayMaster.wuxing, pillar.wuxing)}，
-            十神为${pillar.tengod}</li>`;
-    }
-}
-
-    // ====================== 事件处理 ======================
-    document.getElementById('bazi-form').addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    // 获取输入数据
-    const formData = {
-        date: document.getElementById('birth-date').value,
-        hour: document.getElementById('birth-hour').value,
-        minute: document.getElementById('birth-minute').value,
-        timezone: document.getElementById('timezone').value,
-        gender: document.querySelector('input[name="gender"]:checked').value
-    };
-
-    // 计算真实命盘
-    const realBaziData = BaziCalculator.calculate(
-        formData.date, 
-        `${formData.hour}:${formData.minute}`,
-        formData.timezone,
-        formData.gender
-    );
-
-    // 存储全局数据
-    window.currentBaziData = realBaziData;
-    
-    // 更新UI
-    updateBaziDisplay(realBaziData);
-    updateAllAnalysis(realBaziData);
-    
-    // 显示结果
-    document.getElementById('result-section').style.display = 'block';
-});
-
-function updateAllAnalysis(baziData) {
-    const analyzers = [
-        'strength', 'tengod', 'wuxing', 
-        'patterns', 'usegod', 'luck'
-    ];
-    
-    analyzers.forEach(type => {
-        BaziAnalysis[`update${type.charAt(0).toUpperCase() + type.slice(1)}Analysis`](baziData);
-    });
-}
-
-    // ====================== 工具函数 ======================
-    function updateBaziTableUI(baziData) {
-        // 更新日柱（示例）
-        document.getElementById('day-stem').innerHTML = `
-            ${baziData.pillars.day.stem}<br>
-            <span class="ten-god">(${baziData.pillars.day.tengod})</span>
-        `;
-        document.getElementById('day-stem').className = `wuxing-${baziData.pillars.day.wuxing}`;
-        
-        // 更新其他柱...
-    }
-
-    // 五行中文名转换
-    function getWuxingChinese(wuxing) {
-        const map = { wood: '木', fire: '火', earth: '土', metal: '金', water: '水' };
-        return map[wuxing] || '';
-    }
-
-    // ====================== 初始化 ======================
-    // 示例：点击标签切换学习内容
-    document.querySelectorAll('.learning-tab').forEach(tab => {
-        tab.addEventListener('click', function() {
-            document.querySelectorAll('.learning-tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.learning-content').forEach(c => c.classList.remove('active'));
+        // 显示结果区域
+        document.getElementById('bazi-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            document.getElementById('result-section').style.display = 'block';
+            document.getElementById('learning-section').style.display = 'block';
             
-            this.classList.add('active');
-            document.getElementById(this.dataset.tab + '-content').classList.add('active');
+            // 滚动到结果区域
+            document.getElementById('result-section').scrollIntoView({ behavior: 'smooth' });
+            
+            // 这里应该调用实际的八字计算函数
+            // calculateBazi();
         });
-    });
-});
+        
+        // 标签切换功能
+        const tabs = document.querySelectorAll('.learning-tab');
+        tabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                // 移除所有active类
+                tabs.forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.learning-content').forEach(c => c.classList.remove('active'));
+                
+                // 添加当前active类
+                this.classList.add('active');
+                const tabId = this.getAttribute('data-tab');
+                document.getElementById(tabId + '-content').classList.add('active');
+            });
+        });
+        
+        // 身强身弱示例按钮
+        document.querySelectorAll('[data-example]').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const type = this.getAttribute('data-example');
+                const exampleBox = document.getElementById('strength-example');
+                const exampleText = document.getElementById('strength-example-text');
+                
+                if(type === 'strong') {
+                    exampleText.innerHTML = '<strong>身强案例：</strong>日主甲木生于寅月（春季木旺），地支三会木局，天干透出比肩，为典型身强命格。身强者通常精力充沛，自信果断，但需注意避免刚愎自用。喜用神为官杀（金）或食伤（火）来平衡。';
+                } else {
+                    exampleText.innerHTML = '<strong>身弱案例：</strong>日主癸水生于未月（夏季土旺），地支三土克水，天干无金生水，为典型身弱命格。身弱者通常敏感细腻，但易缺乏自信。喜用神为印星（金）或比劫（水）来帮扶。';
+                }
+                
+                exampleBox.style.display = 'block';
+            });
+        });
+        
+        // 十神详情按钮
+        document.querySelectorAll('[data-tengod]').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const tengod = this.getAttribute('data-tengod');
+                const detailBox = document.getElementById('tengod-detail');
+                const detailText = document.getElementById('tengod-detail-text');
+                
+                let description = '';
+                switch(tengod) {
+                    case 'bijian':
+                        description = '比肩在您的命盘中出现在年干和日支，代表您有较强的独立性和竞争意识，适合自主创业或需要团队合作的工作。';
+                        break;
+                    case 'jiecai':
+                        description = '劫财在月干和时干出现，表示您有较强的交际能力，但也需注意财务管理，避免因朋友或合作伙伴造成财务损失。';
+                        break;
+                    case 'shishen':
+                        description = '食神在您命盘中不明显，表示您可能不太擅长表达自己的才华，需要主动寻找展示机会。';
+                        break;
+                    case 'shangguan':
+                        description = '伤官在时干出现，代表您有艺术才华和创新思维，但需注意避免过于叛逆或挑剔。';
+                        break;
+                    case 'zhengyin':
+                        description = '正印在月支和时支出现，表示您有良好的学习能力和贵人运，适合从事教育、研究类工作。';
+                        break;
+                    case 'pianyin':
+                        description = '偏印在日支出现，代表您有特殊才能或对玄学有兴趣，但需注意避免过于孤僻。';
+                        break;
+                    case 'zhengguan':
+                        description = '正官在年支出现，表示您有责任感和组织能力，适合从事管理或公务员类工作。';
+                        break;
+                    case 'qisha':
+                        description = '七杀在您命盘中不明显，表示您面临的压力可能来自内部而非外部。';
+                        break;
+                    case 'zhengcai':
+                        description = '正财在月支藏干中出现，表示您有稳定的收入来源，适合从事金融、会计等职业。';
+                        break;
+                    case 'piancai':
+                        description = '偏财在您命盘中不明显，表示您不太适合高风险投资，应以稳健理财为主。';
+                        break;
+                }
+                
+                detailText.innerHTML = `<strong>${this.textContent}分析：</strong> ${description}`;
+                detailBox.style.display = 'block';
+            });
+        });
+        
+        // 五行详情按钮
+        document.querySelectorAll('[data-wuxing]').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const wuxing = this.getAttribute('data-wuxing');
+                const detailBox = document.getElementById('wuxing-detail');
+                const detailText = document.getElementById('wuxing-detail-text');
+                
+                let description = '';
+                switch(wuxing) {
+                    case 'wood':
+                        description = '木旺的人通常性格直爽，有领导才能，但容易固执。健康上需注意肝胆和筋骨。适合从事教育、文化等行业。';
+                        break;
+                    case 'fire':
+                        description = '火旺的人通常热情开朗，有创造力，但容易急躁。健康上需注意心脏和血液循环。适合从事能源、艺术等行业。';
+                        break;
+                    case 'earth':
+                        description = '土旺的人通常稳重可靠，有耐心，但容易保守。健康上需注意脾胃和皮肤。适合从事房地产、建筑等行业。';
+                        break;
+                    case 'metal':
+                        description = '金旺的人通常果断坚定，有原则性，但容易固执。健康上需注意呼吸系统和骨骼。适合从事金融、法律等行业。';
+                        break;
+                    case 'water':
+                        description = '水旺的人通常聪明机智，适应力强，但容易多虑。健康上需注意肾脏和泌尿系统。适合从事物流、旅游等行业。';
+                        break;
+                }
+                
+                detailText.innerHTML = `<strong>${this.textContent}分析：</strong> ${description}`;
+                detailBox.style.display = 'block';
+            });
+        });
+        
+        // 特殊组合详情按钮
+        document.querySelectorAll('[data-combo]').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const combo = this.getAttribute('data-combo');
+                const detailBox = document.getElementById('combo-detail');
+                const detailText = document.getElementById('combo-detail-text');
+                
+                let description = '';
+                switch(combo) {
+                    case 'guan':
+                        description = '官印相生：正官与正印同时出现，主学业有成，仕途顺利，为人正直有威信。';
+                        break;
+                    case 'cai':
+                        description = '财官双美：正财与正官配合得当，主富贵双全，事业稳定，家庭和睦。';
+                        break;
+                    case 'shang':
+                        description = '伤官佩印：伤官与印星配合，主才华横溢，能通过特殊才能获得成功。';
+                        break;
+                    case 'yang':
+                        description = '阳刃驾杀：日主极旺遇七杀，主大富大贵，但需防意外灾祸。';
+                        break;
+                    case 'shi':
+                        description = '食神制杀：食神制约七杀，主以智慧化解压力，适合从事技术或专业工作。';
+                        break;
+                }
+                
+                detailText.innerHTML = `<strong>${this.textContent}组合：</strong> ${description}`;
+                detailBox.style.display = 'block';
+            });
+        });
+        
+        // 运势按钮
+        document.getElementById('luck-past-btn').addEventListener('click', function() {
+            const pastDiv = document.getElementById('luck-past');
+            const futureDiv = document.getElementById('luck-future');
+            
+            if(pastDiv.style.display === 'none') {
+                pastDiv.style.display = 'block';
+                futureDiv.style.display = 'none';
+            } else {
+                pastDiv.style.display = 'none';
+            }
+        });
+        
+        document.getElementById('luck-future-btn').addEventListener('click', function() {
+            const pastDiv = document.getElementById('luck-past');
+            const futureDiv = document.getElementById('luck-future');
+            
+            if(futureDiv.style.display === 'none') {
+                futureDiv.style.display = 'block';
+                pastDiv.style.display = 'none';
+            } else {
+                futureDiv.style.display = 'none';
+            }
+        });
+        
+        // 用神示例按钮
+        document.getElementById('useful-example-btn').addEventListener('click', function() {
+            const exampleDiv = document.getElementById('useful-example');
+            
+            if(exampleDiv.style.display === 'none') {
+                exampleDiv.style.display = 'block';
+            } else {
+                exampleDiv.style.display = 'none';
+            }
+        });
+        
+        // 打印按钮
+        document.getElementById('print-btn').addEventListener('click', function() {
+            window.print();
+        });
+        
+        // 保存按钮
+        document.getElementById('save-btn').addEventListener('click', function() {
+            alert('八字命盘已保存（实际应用中这里会实现保存功能）');
+        });
+        
+        // 交互按钮悬停效果
+        document.querySelectorAll('.interactive-btn').forEach(btn => {
+            btn.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-2px)';
+                this.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
+            });
+            
+            btn.addEventListener('mouseleave', function() {
+                this.style.transform = '';
+                this.style.boxShadow = '';
+            });
+        });
+        
+        // 五行元素提示
+        document.querySelectorAll('.element-tip').forEach(el => {
+            el.addEventListener('mouseenter', function() {
+                const tip = this.getAttribute('data-tip');
+                // 实际应用中这里可以显示更精美的提示框
+            });
+        });
+    </script>
+</body>
+</html>
