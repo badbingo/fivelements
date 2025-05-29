@@ -1345,16 +1345,41 @@
     <script>
         // 表单提交处理
         document.getElementById('bazi-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            // 这里应该是实际的八字计算逻辑，示例中直接显示结果
-            document.getElementById('result-section').style.display = 'block';
-            
-            // 初始化互动模块
-            initInteractiveModules();
-            
-            // 滚动到结果区域
-            document.getElementById('result-section').scrollIntoView({ behavior: 'smooth' });
-        });
+    e.preventDefault();
+    
+    // 获取表单数据
+    const birthDate = document.getElementById('birth-date').value;
+    const birthHour = document.getElementById('birth-hour').value;
+    const birthMinute = document.getElementById('birth-minute').value;
+    const timezone = document.getElementById('timezone').value;
+    const gender = document.querySelector('input[name="gender"]:checked').value;
+    
+    // 使用lunar.js进行排盘
+    const date = new Date(birthDate);
+    const solar = Solar.fromDate(date);
+    const lunar = solar.getLunar();
+    
+    // 设置时区
+    const time = `${birthHour}:${birthMinute}`;
+    
+    // 获取八字信息
+    const bazi = lunar.getEightChar();
+    
+    // 更新结果展示
+    document.getElementById('result-date').textContent = `${date.getFullYear()}年${date.getMonth()+1}月${date.getDate()}日`;
+    document.getElementById('result-time').textContent = time;
+    document.getElementById('result-lunar').textContent = lunar.toString();
+    
+    // 更新八字表格
+    document.getElementById('year-stem').innerHTML = `${bazi.getYearGan()}<br><span class="ten-god">(${bazi.getYearGanTenGod()})</span>`;
+    document.getElementById('year-branch').innerHTML = `${bazi.getYearZhi()}<br><span class="ten-god">(${bazi.getYearZhiTenGod()})</span>`;
+    // 同理更新月柱、日柱、时柱...
+    
+    // 显示结果区域
+    document.getElementById('result-section').style.display = 'block';
+    initInteractiveModules();
+    document.getElementById('result-section').scrollIntoView({ behavior: 'smooth' });
+});
 
         // 初始化互动模块
         function initInteractiveModules() {
