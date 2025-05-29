@@ -441,50 +441,24 @@ function setupMobileMenu() {
     const mainNav = document.querySelector('.main-nav');
     
     if (mobileMenuBtn && mainNav) {
-        mobileMenuBtn.style.display = 'flex';
-        
         mobileMenuBtn.addEventListener('click', function() {
             this.classList.toggle('active');
             mainNav.classList.toggle('active');
-            document.body.style.overflow = mainNav.classList.contains('active') ? 'hidden' : '';
         });
         
-        // 处理下拉菜单点击 - 改为普通风格
+        // 处理下拉菜单点击
         const navItems = document.querySelectorAll('.nav-item');
         navItems.forEach(item => {
             if (item.querySelector('.dropdown-menu')) {
                 const navLink = item.querySelector('.nav-link');
-                const dropdownIcon = navLink.querySelector('.dropdown-icon');
-                
-                // 点击菜单项切换下拉菜单
                 navLink.addEventListener('click', function(e) {
                     if (window.innerWidth <= 992) {
                         e.preventDefault();
                         const dropdown = item.querySelector('.dropdown-menu');
                         dropdown.classList.toggle('active');
-                        dropdownIcon.classList.toggle('fa-chevron-down');
-                        dropdownIcon.classList.toggle('fa-chevron-up');
                     }
                 });
             }
-        });
-        
-        // 点击其他地方关闭菜单
-        document.addEventListener('click', function(e) {
-            if (!mainNav.contains(e.target) && !mobileMenuBtn.contains(e.target)) {
-                mainNav.classList.remove('active');
-                mobileMenuBtn.classList.remove('active');
-                document.body.style.overflow = '';
-                
-                // 关闭所有下拉菜单
-                document.querySelectorAll('.nav-link').forEach(link => {
-            link.addEventListener('click', function(e) {
-                if (window.innerWidth <= 992 && !this.querySelector('.dropdown-icon')) {
-                    mainNav.classList.remove('active');
-                    mobileMenuBtn.classList.remove('active');
-                    document.body.style.overflow = '';
-                }
-            });
         });
     }
 }
