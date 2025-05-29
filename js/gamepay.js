@@ -166,34 +166,37 @@ class PaymentSystem {
   // ============== 支付流程 ==============
   async processPayment() {
     try {
-      const userName = this.getUserName();
-      if (!userName) {
-        alert('请输入您的姓名');
-        this.elements.nameInput.focus();
-        return;
-      }
+        const userName = this.getUserName();
+        if (!userName) {
+            alert('请输入您的姓名');
+            this.elements.nameInput.focus();
+            return;
+        }
 
-      this.setProcessingState(true);
-      
-      const paymentData = {
-        pid: this.config.pid,
-        type: 'wxpay',
-        out_trade_no: this.generateOrderId(),
-        notify_url: location.href,
-        return_url: this.config.successRedirectUrl,
-        name: `支付-${this.getUserName()}`,
-        money: this.config.amount,
-        param: encodeURIComponent(this.getUserName()),
-        sign_type: 'MD5'
-      };
-      
-      paymentData.sign = this.generateSignature(paymentData);
-      this.submitPayment(paymentData);
-      
+        // 添加支付方式选择
+        const paymentType = confirm('请选择支付方式:\n\n确定 - 支付宝\n取消 - 微信支付') ? 'alipay' : 'wxpay';
+        
+        this.setProcessingState(true);
+        
+        const paymentData = {
+            pid: this.config.pid,
+            type: paymentType,  // 修改为动态选择的支付方式
+            out_trade_no: this.generateOrderId(),
+            notify_url: location.href,
+            return_url: this.config.successRedirectUrl,
+            name: `支付-${this.getUserName()}`,
+            money: this.config.amount,
+            param: encodeURIComponent(this.getUserName()),
+            sign_type: 'MD5'
+        };
+        
+        paymentData.sign = this.generateSignature(paymentData);
+        this.submitPayment(paymentData);
+        
     } catch (error) {
-      this.handlePaymentError(error);
+        this.handlePaymentError(error);
     }
-  }
+}
 
   // ============== 提交支付 ==============
   submitPayment(paymentData) {
@@ -385,23 +388,26 @@ function submitPaymentForm(paymentData) {
 
 // ==================== 暴露支付启动函数 ====================
 window.startPayment = function(userName) {
-  if (!userName || userName.trim() === '') {
-    alert('请输入有效的姓名');
-    return;
-  }
+    if (!userName || userName.trim() === '') {
+        alert('请输入有效的姓名');
+        return;
+    }
 
-  const paymentData = {
-    pid: PAYMENT_CONFIG.pid,
-    type: 'wxpay',
-    out_trade_no: generateOrderId(),
-    notify_url: location.href,
-    return_url: PAYMENT_CONFIG.successRedirectUrl,
-    name: `支付-${userName}`,
-    money: PAYMENT_CONFIG.amount,
-    param: encodeURIComponent(userName),
-    sign_type: 'MD5'
-  };
-  
-  paymentData.sign = generateSignature(paymentData);
-  submitPaymentForm(paymentData);
+    // 添加支付方式选择
+    const paymentType = confirm('请选择支付方式:\n\n确定 - 支付宝\n取消 - 微信支付') ? 'alipay' : 'wxpay';
+
+    const paymentData = {
+        pid: PAYMENT_CONFIG.pid,
+        type: paymentType,  // 修改为动态选择的支付方式
+        out_trade_no: generateOrderId(),
+        notify_url: location.href,
+        return_url: PAYMENT_CONFIG.successRedirectUrl,
+        name: `支付-${userName}`,
+        money: PAYMENT_CONFIG.amount,
+        param: encodeURIComponent(userName),
+        sign_type: 'MD5'
+    };
+    
+    paymentData.sign = generateSignature(paymentData);
+    submitPaymentForm(paymentData);
 };
