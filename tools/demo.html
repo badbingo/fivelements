@@ -883,15 +883,53 @@
     
     <script>
         // 互动学习功能脚本
-        document.addEventListener('DOMContentLoaded', function() {
-            // 显示结果区域
-            document.getElementById('bazi-form').addEventListener('submit', function(e) {
-                e.preventDefault();
-                document.getElementById('result-section').style.display = 'block';
-                setTimeout(function() {
-                    document.getElementById('result-section').scrollIntoView({ behavior: 'smooth' });
-                }, 100);
-            });
+       document.addEventListener('DOMContentLoaded', function() {
+        // ▼▼▼ 新增的排盘计算核心函数 ▼▼▼
+        function calculateBazi(birthData) {
+            // 这里实现实际的八字排盘算法
+            // 返回结构化的命盘数据对象
+            return {
+                date: birthData.date,
+                pillars: {
+                    year: { stem: "甲", branch: "子", wuxing: "water" },
+                    // 其他柱数据...
+                },
+                wuxingBalance: {
+                    wood: 35,
+                    fire: 30,
+                    // 其他五行数据...
+                }
+            };
+        }
+        
+        function updateLearningContent(baziData) {
+            // 动态更新学习区域内容
+            const dayStem = baziData.pillars.day.stem;
+            document.querySelector('#strength-content .analysis-result').innerHTML = 
+                `您的八字日主为<span class="wuxing-${baziData.pillars.day.wuxing}">${dayStem}</span>...`;
+        }
+        // ▲▲▲ 新增结束 ▲▲▲
+
+        // 现有的表单提交处理
+        document.getElementById('bazi-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // 获取输入数据（示例）
+            const birthData = {
+                date: document.getElementById('birth-date').value,
+                // 其他表单数据...
+            };
+            
+            // 计算命盘
+            const baziData = calculateBazi(birthData);
+            
+            // 更新学习内容
+            updateLearningContent(baziData);
+            
+            // 显示结果
+            document.getElementById('result-section').style.display = 'block';
+        });
+
             
             // 学习标签切换
             const tabs = document.querySelectorAll('.learning-tab');
