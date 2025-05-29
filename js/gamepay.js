@@ -174,7 +174,7 @@ class PaymentSystem {
         }
 
         // 添加支付方式选择
-        const paymentType = confirm('请选择支付方式:\n\n确定 - 支付宝\n取消 - 微信支付') ? 'alipay' : 'wxpay';
+        const paymentType = confirm('请选择支付方式:\n\n确定 - 支付宝（全球支付）\n取消 - 微信支付（仅限国内）') ? 'alipay' : 'wxpay';
         
         this.setProcessingState(true);
         
