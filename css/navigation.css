@@ -421,8 +421,18 @@
 
 /* =============== 响应式设计 =============== */
 @media (max-width: 992px) {
-    .mobile-menu-btn {
-        display: flex;
+    /* 移动端菜单容器 */
+    .main-nav {
+        position: fixed;
+        top: 70px;
+        left: 0;
+        right: 0;
+        background: #fff !important; /* 强制白色背景 */
+        max-height: calc(100vh - 70px);
+        overflow-y: auto;
+        clip-path: polygon(0 0, 100% 0, 100% 0, 0 0);
+        transition: clip-path 0.4s ease;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
     }
     
     .main-nav {
@@ -443,20 +453,21 @@
         clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
     }
     
+    /* 导航项样式 */
     .nav-list {
         flex-direction: column;
-        padding: 1rem 0;
+        padding: 0;
     }
     
     .nav-item {
         margin: 0;
-        width: 100%;
+        border-bottom: 1px solid #eee;
     }
     
     .nav-link {
-        padding: 1rem 1.5rem;
-        justify-content: flex-start;
-        flex-direction: row;
+        color: #333 !important; /* 黑色文字 */
+        padding: 15px 20px;
+        font-size: 16px;
     }
     
     .nav-text {
@@ -464,57 +475,52 @@
     }
 
     .dropdown-menu {
-        position: static;
-        display: none;
-        opacity: 1;
-        visibility: visible;
-        transform: none;
-        box-shadow: none;
-        background: transparent;
-        padding: 0;
+        position: static !important;
+        display: block !important;
+        background: #f8f8f8 !important;
+        padding: 0 !important;
+        box-shadow: none !important;
+        transform: none !important;
+        opacity: 1 !important;
+        visibility: visible !important;
         width: 100% !important;
-        flex-direction: column;
-        border: none;
-    }
-    
-    .dropdown-menu.active {
-        display: flex;
-    }
-    
-    .dropdown-menu li {
-        display: block;
-        width: 100%;
     }
     
     .dropdown-link {
+        color: #555 !important;
+        padding: 12px 30px !important;
         writing-mode: horizontal-tb !important;
         height: auto !important;
-        padding: 0.8rem 2.5rem !important;
         justify-content: flex-start !important;
-        background: transparent !important;
-        border-radius: 0 !important;
-        color: rgba(255, 255, 255, 0.8) !important;
-        font-size: 0.9rem !important;
         border-left: 3px solid transparent;
-        transition: all 0.3s ease;
+        font-size: 14px !important;
     }
     
     .dropdown-link:hover,
     .dropdown-link.active {
-        background: rgba(255, 255, 255, 0.1) !important;
-        color: #fff !important;
-        border-left: 3px solid var(--nav-primary-color);
+        color: #000 !important;
+        background: #eee !important;
+        border-left-color: var(--nav-primary-color);
     }
     
-    .dropdown-link span {
-        transform: none !important;
-    }
-    
-    /* 下拉图标样式 */
+    /* 移动端隐藏下拉图标 */
     .dropdown-icon {
-        margin-left: auto;
-        transition: transform 0.3s ease;
+        display: none;
     }
+    
+    /* 汉堡菜单动画 */
+    .mobile-menu-btn.active .bar:nth-child(1) {
+        transform: translateY(10px) rotate(45deg);
+    }
+    .mobile-menu-btn.active .bar:nth-child(2) {
+        opacity: 0;
+    }
+    .mobile-menu-btn.active .bar:nth-child(3) {
+        transform: translateY(-10px) rotate(-45deg);
+    }
+}
+    
+
     
     .dropdown-menu.active ~ .nav-link .dropdown-icon {
         transform: rotate(180deg);
