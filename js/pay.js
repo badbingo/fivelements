@@ -61,24 +61,18 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    function startPayment() {
-    const userName = elements.nameInput.value.trim();
-    if (!validateName(userName)) return;
-
+    function startPayment(paymentMethod) {
     showFullscreenLoading(true);
-
-    // 获取选择的支付方式
-    const paymentMethod = document.querySelector('input[name="payment-method"]:checked').value;
     
     const paymentData = {
         pid: CONFIG.pid,
-        type: paymentMethod, // 使用选择的支付方式
+        type: paymentMethod, // 使用传入的支付方式
         out_trade_no: generateOrderNo(),
         notify_url: CONFIG.returnUrl,
         return_url: CONFIG.returnUrl,
-        name: `八字测算-${userName.substring(0, 20)}`,
+        name: `八字测算-${elements.nameInput.value.trim().substring(0, 20)}`,
         money: CONFIG.amount,
-        param: encodeURIComponent(userName),
+        param: encodeURIComponent(elements.nameInput.value.trim()),
         sign_type: 'MD5'
     };
     
@@ -253,77 +247,54 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // ==================== 事件监听 ====================
     function setupEventListeners() {
-    // 支付按钮点击事件
+    // 支付按钮点击事件 - 显示支付方式弹窗
     elements.payBtn.addEventListener('click', function() {
         const userName = elements.nameInput.value.trim();
         if (!userName) {
             alert('请输入您的姓名');
             return;
         }
-        
-        // 显示支付方式选择
-        const paymentOptions = document.getElementById('payment-options');
-        if (paymentOptions.style.display === 'none' || !paymentOptions.style.display) {
-            paymentOptions.style.display = 'block';
-            return; // 第一次点击只显示支付选项，不直接支付
-        }
-        
-        // 第二次点击（已显示支付选项）开始支付流程
-        startPayment();
+        document.getElementById('payment-modal').style.display = 'flex';
     });
 
-    // 支付方式选择变化事件
-    const paymentMethods = document.querySelectorAll('input[name="payment-method"]');
-    paymentMethods.forEach(method => {
-        method.addEventListener('change', function() {
-            // 用户切换支付方式后，可以立即点击支付按钮
-            elements.payBtn.textContent = `使用${this.value === 'wxpay' ? '微信' : '支付宝'}支付`;
+    // 关闭模态框
+    document.querySelector('.close-modal').addEventListener('click', function() {
+        document.getElementById('payment-modal').style.display = 'none';
+    });
+
+    // 点击模态框外部关闭
+    document.getElementById('payment-modal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            this.style.display = 'none';
+        }
+    });
+
+    // 支付方式选择
+    document.querySelectorAll('.payment-method').forEach(method => {
+        method.addEventListener('click', function() {
+            const paymentMethod = this.getAttribute('data-method');
+            document.getElementById('payment-modal').style.display = 'none';
+            startPayment(paymentMethod);
         });
     });
 
     // 测算按钮点击事件
-    elements.calculateBtn.addEventListener('click', function() {
-        const userName = elements.nameInput.value.trim();
-        const gender = elements.genderSelect.value;
-        
-        if (!validateCalculationInputs(userName, gender)) {
-            return;
-        }
-        
-        executeQuantumCalculation(userName, gender);
-    });
+    elements.calculateBtn.addEventListener('click', startCalculation);
 
     // 重新测算按钮
     if (elements.recalculateBtn) {
-        elements.recalculateBtn.addEventListener('click', function() {
-            resetFormState();
-            // 隐藏支付选项
-            document.getElementById('payment-options').style.display = 'none';
-            // 恢复支付按钮文本
-            elements.payBtn.textContent = '请输入姓名，点击付款';
-        });
+        elements.recalculateBtn.addEventListener('click', resetFormState);
     }
 
     // 页面显示时检查状态
     window.addEventListener('pageshow', function() {
         if (elements.nameInput.readOnly && 
             elements.calculateBtn.style.display === 'block') {
-            // 保持锁定状态
             lockNameInput(elements.nameInput.value);
-            // 隐藏支付选项
-            document.getElementById('payment-options').style.display = 'none';
         }
     });
 
-    // 姓名输入框事件 - 当用户开始输入时隐藏支付选项
-    elements.nameInput.addEventListener('input', function() {
-        if (this.value.trim() === '') {
-            document.getElementById('payment-options').style.display = 'none';
-            elements.payBtn.textContent = '请输入姓名，点击付款';
-        }
-    });
-
-    // 防止移动端键盘弹出（安全措施）
+    // 防止移动端键盘弹出
     elements.nameInput.addEventListener('focus', function() {
         if (this.readOnly) {
             this.blur();
