@@ -444,7 +444,6 @@ function setupMobileMenu() {
         mobileMenuBtn.addEventListener('click', function() {
             this.classList.toggle('active');
             mainNav.classList.toggle('active');
-            document.body.classList.toggle('nav-open'); // 添加这个防止背景滚动
         });
         
         // 处理下拉菜单点击
@@ -455,7 +454,6 @@ function setupMobileMenu() {
                 navLink.addEventListener('click', function(e) {
                     if (window.innerWidth <= 992) {
                         e.preventDefault();
-                        e.stopPropagation();
                         const dropdown = item.querySelector('.dropdown-menu');
                         dropdown.classList.toggle('active');
                     }
@@ -464,6 +462,7 @@ function setupMobileMenu() {
         });
     }
 }
+
 /**
  * 设置滚动效果
  */
