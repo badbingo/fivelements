@@ -676,21 +676,26 @@
             <p>传承经典命理文化，科学学习八字知识</p>
         </div>
     </footer>
+    <!-- 引入Lunar.js 1.7.2 -->
     <script src="../js/lunar.js"></script>
-    <script src="../js/main1.js"></script>
     
     <script>
-        // 新增交互分析功能的JavaScript代码
+        // 验证Lunar.js版本
+        if(typeof Lunar !== 'undefined' && Lunar.VERSION === '1.7.2') {
+            console.log('正确加载了LUNAR.JS 1.7.2版本');
+        } else {
+            console.error('LUNAR.JS版本不正确或未加载');
+        }
+
+        // 交互分析功能
         document.addEventListener('DOMContentLoaded', function() {
             // 标签切换功能
             const tabs = document.querySelectorAll('.analysis-tab');
             tabs.forEach(tab => {
                 tab.addEventListener('click', function() {
-                    // 移除所有active类
                     document.querySelectorAll('.analysis-tab').forEach(t => t.classList.remove('active'));
                     document.querySelectorAll('.analysis-content').forEach(c => c.classList.remove('active'));
                     
-                    // 添加active类到当前标签
                     this.classList.add('active');
                     const tabId = this.getAttribute('data-tab');
                     document.getElementById(tabId + '-content').classList.add('active');
@@ -723,81 +728,301 @@
             const timezone = document.getElementById('timezone').value;
             const gender = document.querySelector('input[name="gender"]:checked').value;
             
-            // 这里应该是调用lunar.js进行实际计算的代码
-            // 以下是模拟数据，实际应用中应该使用真实计算
+            if(!birthDate || !birthHour || !birthMinute) {
+                alert('请填写完整的出生信息');
+                return;
+            }
             
-            // 显示结果区域
-            document.getElementById('result-section').style.display = 'block';
+            // 解析日期
+            const dateParts = birthDate.split('-');
+            const year = parseInt(dateParts[0]);
+            const month = parseInt(dateParts[1]);
+            const day = parseInt(dateParts[2]);
+            const hour = parseInt(birthHour);
+            const minute = parseInt(birthMinute);
             
-            // 填充基本信息
-            document.getElementById('result-date').textContent = birthDate;
-            document.getElementById('result-time').textContent = `${birthHour}:${birthMinute}`;
-            document.getElementById('result-lunar').textContent = '癸亥年腊月初八';
-            document.getElementById('result-zodiac').textContent = '鼠';
-            document.getElementById('result-minggong').textContent = '卯宫';
-            document.getElementById('result-shengong').textContent = '酉宫';
-            
-            // 填充八字表格
-            document.getElementById('year-stem').innerHTML = '甲<br><span class="ten-god">(比肩)</span>';
-            document.getElementById('month-stem').innerHTML = '乙<br><span class="ten-god">(劫财)</span>';
-            document.getElementById('day-stem').innerHTML = '丙<br><span class="ten-god">(日元)</span>';
-            document.getElementById('hour-stem').innerHTML = '丁<br><span class="ten-god">(伤官)</span>';
-            
-            document.getElementById('year-branch').innerHTML = '子<br><span class="ten-god">(正官)</span>';
-            document.getElementById('month-branch').innerHTML = '丑<br><span class="ten-god">(正印)</span>';
-            document.getElementById('day-branch').innerHTML = '寅<br><span class="ten-god">(偏印)</span>';
-            document.getElementById('hour-branch').innerHTML = '卯<br><span class="ten-god">(正印)</span>';
-            
-            document.getElementById('year-hidden-god').innerHTML = '癸<br><span class="ten-god">(正印)</span>';
-            document.getElementById('month-hidden-god').innerHTML = '己(正财)<br>癸(正印)<br>辛(正官)';
-            document.getElementById('day-hidden-god').innerHTML = '甲(比肩)<br>丙(劫财)<br>戊(食神)';
-            document.getElementById('hour-hidden-god').innerHTML = '乙<br><span class="ten-god">(劫财)</span>';
-            
-            document.getElementById('year-void').textContent = '戌亥';
-            document.getElementById('month-void').textContent = '戌亥';
-            document.getElementById('day-void').textContent = '戌亥';
-            document.getElementById('hour-void').textContent = '戌亥';
-            
-            document.getElementById('year-nayin').textContent = '海中金';
-            document.getElementById('month-nayin').textContent = '海中金';
-            document.getElementById('day-nayin').textContent = '炉中火';
-            document.getElementById('hour-nayin').textContent = '炉中火';
-            
-            // 更新分析部分
-            updateAnalysis();
-            
-            // 滚动到结果区域
-            document.getElementById('result-section').scrollIntoView({ behavior: 'smooth' });
+            try {
+                // 使用lunar.js计算八字
+                const solarDate = new Date(year, month-1, day, hour, minute);
+                const lunarDate = Lunar.fromDate(solarDate);
+                
+                // 计算八字四柱
+                const bazi = lunarDate.getBazi(hour, timezone);
+                
+                // 显示结果区域
+                document.getElementById('result-section').style.display = 'block';
+                
+                // 填充基本信息
+                document.getElementById('result-date').textContent = `${year}年${month}月${day}日`;
+                document.getElementById('result-time').textContent = `${hour}:${minute < 10 ? '0' + minute : minute}`;
+                document.getElementById('result-lunar').textContent = lunarDate.toString();
+                document.getElementById('result-zodiac').textContent = lunarDate.getYearShengXiao();
+                
+                // 填充八字表格
+                document.getElementById('year-stem').innerHTML = `${bazi.year.stem}<br><span class="ten-god">(${getTenGodName(bazi.year.stemGod)})</span>`;
+                document.getElementById('month-stem').innerHTML = `${bazi.month.stem}<br><span class="ten-god">(${getTenGodName(bazi.month.stemGod)})</span>`;
+                document.getElementById('day-stem').innerHTML = `${bazi.day.stem}<br><span class="ten-god">(日元)</span>`;
+                document.getElementById('hour-stem').innerHTML = `${bazi.hour.stem}<br><span class="ten-god">(${getTenGodName(bazi.hour.stemGod)})</span>`;
+                
+                document.getElementById('year-branch').innerHTML = `${bazi.year.branch}<br><span class="ten-god">(${getTenGodName(bazi.year.branchGod)})</span>`;
+                document.getElementById('month-branch').innerHTML = `${bazi.month.branch}<br><span class="ten-god">(${getTenGodName(bazi.month.branchGod)})</span>`;
+                document.getElementById('day-branch').innerHTML = `${bazi.day.branch}<br><span class="ten-god">(${getTenGodName(bazi.day.branchGod)})</span>`;
+                document.getElementById('hour-branch').innerHTML = `${bazi.hour.branch}<br><span class="ten-god">(${getTenGodName(bazi.hour.branchGod)})</span>`;
+                
+                // 填充藏干
+                document.getElementById('year-hidden-god').innerHTML = formatHiddenGods(bazi.year.hiddenGods);
+                document.getElementById('month-hidden-god').innerHTML = formatHiddenGods(bazi.month.hiddenGods);
+                document.getElementById('day-hidden-god').innerHTML = formatHiddenGods(bazi.day.hiddenGods);
+                document.getElementById('hour-hidden-god').innerHTML = formatHiddenGods(bazi.hour.hiddenGods);
+                
+                // 填充空亡
+                document.getElementById('year-void').textContent = bazi.year.void || '无';
+                document.getElementById('month-void').textContent = bazi.month.void || '无';
+                document.getElementById('day-void').textContent = bazi.day.void || '无';
+                document.getElementById('hour-void').textContent = bazi.hour.void || '无';
+                
+                // 填充纳音
+                document.getElementById('year-nayin').textContent = bazi.year.nayin || '未知';
+                document.getElementById('month-nayin').textContent = bazi.month.nayin || '未知';
+                document.getElementById('day-nayin').textContent = bazi.day.nayin || '未知';
+                document.getElementById('hour-nayin').textContent = bazi.hour.nayin || '未知';
+                
+                // 更新分析部分
+                updateAnalysis(bazi, lunarDate);
+                
+                // 滚动到结果区域
+                document.getElementById('result-section').scrollIntoView({ behavior: 'smooth' });
+                
+            } catch (e) {
+                console.error('八字计算错误:', e);
+                alert('八字计算出错，请检查输入信息是否正确');
+            }
+        }
+        
+        // 辅助函数：格式化藏干显示
+        function formatHiddenGods(hiddenGods) {
+            if(!hiddenGods || hiddenGods.length === 0) return '无';
+            return hiddenGods.map(god => `${god.stem}(${getTenGodName(god.tenGod)})`).join('<br>');
+        }
+        
+        // 辅助函数：获取十神名称
+        function getTenGodName(tenGod) {
+            const tenGodNames = {
+                '比肩': '比肩',
+                '劫财': '劫财',
+                '食神': '食神',
+                '伤官': '伤官',
+                '偏财': '偏财',
+                '正财': '正财',
+                '七杀': '七杀',
+                '正官': '正官',
+                '偏印': '偏印',
+                '正印': '正印'
+            };
+            return tenGodNames[tenGod] || tenGod;
         }
         
         // 更新分析数据
-        function updateAnalysis() {
+        function updateAnalysis(bazi, lunarDate) {
             // 日主强弱分析
-            document.getElementById('day-master-element').textContent = '丙火';
-            document.getElementById('strength-meter-fill').style.width = '65%';
-            document.getElementById('strength-label').textContent = '中等偏强';
-            document.getElementById('strength-analysis').textContent = '根据八字分析，您的日主丙火得月令丑土泄气，但得年支子水相克，时支卯木相生，整体属于中等偏强。身强之人通常精力充沛，行动力强，但需要注意火过旺可能导致性格急躁。';
+            const dayMaster = bazi.day.stem;
+            document.getElementById('day-master-element').textContent = dayMaster;
             
-            // 五行平衡
-            document.getElementById('wood-count').textContent = '3';
-            document.getElementById('fire-count').textContent = '2';
-            document.getElementById('earth-count').textContent = '1';
-            document.getElementById('metal-count').textContent = '1';
-            document.getElementById('water-count').textContent = '1';
-            document.getElementById('wuxing-analysis').textContent = '您的八字中木元素最为旺盛（3个），火元素次之（2个），土、金、水各1个。木旺生火，导致火势较旺，建议适当补充金、水元素以达到平衡。五行平衡有助于整体运势的和谐发展。';
+            // 计算日主强度
+            const strength = calculateDayMasterStrength(bazi);
+            document.getElementById('strength-meter-fill').style.width = `${strength.percentage}%`;
+            document.getElementById('strength-label').textContent = strength.level;
+            document.getElementById('strength-analysis').textContent = strength.analysis;
+            
+            // 五行计数
+            const wuxingCount = countWuxing(bazi);
+            
+            // 更新五行显示
+            document.getElementById('wood-count').textContent = wuxingCount.wood;
+            document.getElementById('fire-count').textContent = wuxingCount.fire;
+            document.getElementById('earth-count').textContent = wuxingCount.earth;
+            document.getElementById('metal-count').textContent = wuxingCount.metal;
+            document.getElementById('water-count').textContent = wuxingCount.water;
+            
+            // 五行分析
+            const wuxingAnalysis = generateWuxingAnalysis(wuxingCount, dayMaster);
+            document.getElementById('wuxing-analysis').textContent = wuxingAnalysis;
             
             // 十神分析
-            document.getElementById('tenshen-analysis').textContent = '您的八字中印星较多（正印2个，偏印1个），显示您可能学业运佳，容易得到长辈或贵人的帮助。伤官透出，表示您可能有艺术才华或创意能力。正官出现但被印星化解，显示您能够将压力转化为动力。';
+            const tenGodAnalysis = analyzeTenGods(bazi);
+            document.getElementById('tenshen-analysis').textContent = tenGodAnalysis.analysis;
             
             // 特殊组合
-            document.getElementById('combination-analysis').textContent = '您的八字中木火相生，形成"木火通明"的有利组合，有利于智力发展和文化成就。同时印星有力，形成保护格局，一生中容易得到长辈、老师的帮助和指导。';
+            const combinations = findSpecialCombinations(bazi);
+            updateCombinationsDisplay(combinations);
             
             // 用神忌神
-            document.getElementById('useful-gods-analysis').textContent = '您的八字以金为用神，水为喜神。建议在生活中多接触金属性的物品、颜色(白色、金色)和方位(西方)。可以适当增加水属性的元素，如黑色、蓝色，北方方位有利。减少木属性的过度影响，避免绿色过多。';
+            const usefulGods = determineUsefulGods(bazi, wuxingCount, strength);
+            updateUsefulGodsDisplay(usefulGods);
             
             // 运势分析
-            const currentYear = new Date().getFullYear();
-            document.getElementById('luck-analysis').textContent = `您当前处于辛丑大运(11-20岁)，金土运助用神，是人生关键成长期。${currentYear}年流年乙巳，木火旺盛，需注意情绪管理和健康保养。建议把握金水年份(如2026丙午年)的发展机会。`;
+            const luckAnalysis = analyzeLuck(bazi, lunarDate);
+            document.getElementById('luck-analysis').textContent = luckAnalysis;
+        }
+        
+        // 计算日主强度
+        function calculateDayMasterStrength(bazi) {
+            // 简化的强度计算逻辑
+            let strength = 50; // 基础值50%
+            
+            // 月令影响
+            const monthBranch = bazi.month.branch;
+            const dayStem = bazi.day.stem;
+            
+            // 根据五行生克关系调整强度
+            // 这里需要根据实际八字理论实现更精确的计算
+            if(isSameWuxing(dayStem, monthBranch)) {
+                strength += 20; // 得月令
+            } else if(isGeneratingWuxing(monthBranch, dayStem)) {
+                strength += 10; // 月令生
+            } else if(isOvercomingWuxing(monthBranch, dayStem)) {
+                strength -= 15; // 月令克
+            }
+            
+            // 其他柱的影响
+            // 这里可以添加更复杂的计算逻辑
+            
+            // 确保在0-100范围内
+            strength = Math.max(0, Math.min(100, strength));
+            
+            // 确定强度等级
+            let level, analysis;
+            if(strength > 70) {
+                level = '身强';
+                analysis = `您的日主${bazi.day.stem}得月令相助，八字身强。身强之人通常精力充沛，行动力强，能担财官，但需要注意避免过于刚强。`;
+            } else if(strength > 40) {
+                level = '中等偏强';
+                analysis = `您的日主${bazi.day.stem}力量中等偏强。这种八字通常性格平衡，适应能力强，但需要注意五行平衡。`;
+            } else if(strength > 30) {
+                level = '中等偏弱';
+                analysis = `您的日主${bazi.day.stem}力量中等偏弱。建议寻找生扶的五行作为用神，增强自身能量。`;
+            } else {
+                level = '身弱';
+                analysis = `您的日主${bazi.day.stem}力量较弱。身弱之人通常需要印比帮扶，建议多接触生扶日主的五行元素。`;
+            }
+            
+            return {
+                percentage: strength,
+                level: level,
+                analysis: analysis
+            };
+        }
+        
+        // 计算五行分布
+        function countWuxing(bazi) {
+            const wuxingCount = {
+                wood: 0,
+                fire: 0,
+                earth: 0,
+                metal: 0,
+                water: 0
+            };
+            
+            // 计算天干地支的五行
+            const pillars = [bazi.year, bazi.month, bazi.day, bazi.hour];
+            pillars.forEach(pillar => {
+                wuxingCount[getWuxingElement(pillar.stem)]++;
+                wuxingCount[getWuxingElement(pillar.branch)]++;
+                
+                // 计算藏干的五行
+                if(pillar.hiddenGods && pillar.hiddenGods.length > 0) {
+                    pillar.hiddenGods.forEach(god => {
+                        wuxingCount[getWuxingElement(god.stem)]++;
+                    });
+                }
+            });
+            
+            return wuxingCount;
+        }
+        
+        // 获取五行属性
+        function getWuxingElement(ganzhi) {
+            const woodStems = ['甲', '乙', '寅', '卯'];
+            const fireStems = ['丙', '丁', '巳', '午'];
+            const earthStems = ['戊', '己', '丑', '辰', '未', '戌'];
+            const metalStems = ['庚', '辛', '申', '酉'];
+            const waterStems = ['壬', '癸', '亥', '子'];
+            
+            if(woodStems.includes(ganzhi)) return 'wood';
+            if(fireStems.includes(ganzhi)) return 'fire';
+            if(earthStems.includes(ganzhi)) return 'earth';
+            if(metalStems.includes(ganzhi)) return 'metal';
+            if(waterStems.includes(ganzhi)) return 'water';
+            return 'earth'; // 默认
+        }
+        
+        // 生成五行分析
+        function generateWuxingAnalysis(wuxingCount, dayMaster) {
+            const dayElement = getWuxingElement(dayMaster);
+            const elementNames = {
+                wood: '木', fire: '火', earth: '土', metal: '金', water: '水'
+            };
+            
+            let analysis = `您的八字中`;
+            
+            // 找出最多的五行
+            let maxElement = 'wood';
+            let maxCount = wuxingCount.wood;
+            for(const element in wuxingCount) {
+                if(wuxingCount[element] > maxCount) {
+                    maxCount = wuxingCount[element];
+                    maxElement = element;
+                }
+            }
+            
+            analysis += `${elementNames[maxElement]}元素最为旺盛（${maxCount}个），`;
+            
+            // 分析日主与其他五行的关系
+            if(maxElement === dayElement) {
+                analysis += `与日主相同，增强了日主力量。`;
+            } else if(isGeneratingWuxing(maxElement, dayElement)) {
+                analysis += `生助日主${elementNames[dayElement]}，对日主有利。`;
+            } else if(isOvercomingWuxing(maxElement, dayElement)) {
+                analysis += `克制日主${elementNames[dayElement]}，可能对日主造成压力。`;
+            } else {
+                analysis += `与日主${elementNames[dayElement]}关系中性。`;
+            }
+            
+            analysis += `建议适当调整五行平衡，以达到命局和谐。`;
+            
+            return analysis;
+        }
+        
+        // 其他辅助函数和分析函数
+        // ...（根据实际需求实现更多分析功能）
+        
+        // 五行相生关系
+        function isGeneratingWuxing(fromElement, toElement) {
+            const generating = {
+                wood: ['fire'],
+                fire: ['earth'],
+                earth: ['metal'],
+                metal: ['water'],
+                water: ['wood']
+            };
+            return generating[fromElement] && generating[fromElement].includes(toElement);
+        }
+        
+        // 五行相克关系
+        function isOvercomingWuxing(fromElement, toElement) {
+            const overcoming = {
+                wood: ['earth'],
+                earth: ['water'],
+                water: ['fire'],
+                fire: ['metal'],
+                metal: ['wood']
+            };
+            return overcoming[fromElement] && overcoming[fromElement].includes(toElement);
+        }
+        
+        // 五行相同
+        function isSameWuxing(element1, element2) {
+            return getWuxingElement(element1) === getWuxingElement(element2);
         }
     </script>
 </body>
