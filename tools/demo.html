@@ -6,6 +6,8 @@
     <title>八字计算器 - 麦八字教学网</title>
     <link rel="stylesheet" href="../css/style1.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="../js/lunar.js"></script>
+    <script src="../js/main1.js"></script>
     <link rel="stylesheet" href="../css/navigation.css">
     <script defer src="../js/navigation.js"></script>
     
@@ -877,171 +879,148 @@
         <h4><i class="fas fa-lightbulb"></i> 学习提示</h4>
         <p id="tip-content">点击八字表格中的元素，可以查看它们在命理分析中的具体作用和解释。</p>
     </div>
-
-    <script src="../js/lunar.js"></script>
-    <script src="../js/main1.js"></script>
     
     <script>
         // 互动学习功能脚本
        document.addEventListener('DOMContentLoaded', function() {
-        // ▼▼▼ 新增的排盘计算核心函数 ▼▼▼
-        function calculateBazi(birthData) {
-            // 这里实现实际的八字排盘算法
-            // 返回结构化的命盘数据对象
+    // ====================== 核心排盘计算 ======================
+    class BaziCalculator {
+        static calculate(birthDate, birthTime, timezone, gender) {
+            // 这里应替换为实际的排盘算法（示例数据）
+            const lunarDate = this.getLunarDate(birthDate); // 需对接lunar.js
+            
             return {
-                date: birthData.date,
+                date: birthDate,
+                time: birthTime,
+                gender: gender,
                 pillars: {
-                    year: { stem: "甲", branch: "子", wuxing: "water" },
-                    // 其他柱数据...
+                    year: this.calculateYearPillar(birthDate),
+                    month: this.calculateMonthPillar(birthDate),
+                    day: this.calculateDayPillar(birthDate),
+                    hour: this.calculateHourPillar(birthDate, birthTime)
                 },
-                wuxingBalance: {
-                    wood: 35,
-                    fire: 30,
-                    // 其他五行数据...
-                }
+                elements: this.calculateElementsBalance(birthDate),
+                specialPatterns: this.checkSpecialPatterns(birthDate)
             };
         }
+
+        // 示例计算方法（需根据实际算法完善）
+        static calculateDayPillar(date) {
+            // 实际应使用八字计算公式
+            return {
+                stem: "己",      // 天干
+                branch: "卯",     // 地支
+                wuxing: "earth", // 五行
+                tengod: "日元",   // 十神（日干特殊标记）
+                hiddenStems: ["乙", "丙", "戊"] // 藏干
+            };
+        }
+
+        static calculateElementsBalance() {
+            // 返回五行力量分布（示例）
+            return { wood: 2, fire: 3, earth: 4, metal: 1, water: 0 };
+        }
+    }
+
+    // ====================== 学习内容生成器 ======================
+    class BaziAnalysis {
+        static updateAll(baziData) {
+            this.updateBasicInfo(baziData);
+            this.updateStrengthAnalysis(baziData);
+            this.updateTengodAnalysis(baziData);
+            this.updateWuxingAnalysis(baziData);
+            this.updateSpecialPatterns(baziData);
+        }
+
+        static updateStrengthAnalysis(baziData) {
+            const dayMaster = baziData.pillars.day;
+            const strength = this.judgeStrength(baziData);
+
+            document.querySelector('#strength-content .analysis-result').innerHTML = `
+                您的八字日主为<span class="wuxing-${dayMaster.wuxing}">${dayMaster.stem}${this.getWuxingChinese(dayMaster.wuxing)}</span>，
+                属于<strong>${strength}</strong>的命格。
+            `;
+
+            document.querySelector('#strength-content .analysis-detail').innerHTML = `
+                <p><strong>分析依据：</strong></p>
+                <ul>
+                    <li>日主${dayMaster.stem}${this.getWuxingChinese(dayMaster.wuxing)}生于${baziData.pillars.month.branch}月，${this.getMonthStrength(dayMaster, baziData.pillars.month)}</li>
+                    <li>年柱${baziData.pillars.year.stem}${baziData.pillars.year.branch}：${this.getPillarEffect(dayMaster, baziData.pillars.year)}</li>
+                    <li>日支${baziData.pillars.day.branch}：${this.getDayBranchEffect(dayMaster, baziData.pillars.day)}</li>
+                    <li>五行分布：${this.formatElements(baziData.elements)}</li>
+                </ul>
+                <p><strong>${strength}特点：</strong> ${this.getStrengthTraits(strength, dayMaster.wuxing)}</p>
+            `;
+        }
+
+        static judgeStrength(baziData) {
+            // 简化的身强身弱判断逻辑（实际应更复杂）
+            const day = baziData.pillars.day;
+            const elements = baziData.elements;
+            
+            if (day.wuxing === 'earth' && elements.earth >= 3) return "身强";
+            if (day.wuxing === 'wood' && elements.wood >= 3) return "身强";
+            // 其他五行判断...
+            
+            return "身弱";
+        }
+    }
+
+    // ====================== 事件处理 ======================
+    document.getElementById('bazi-form').addEventListener('submit', function(e) {
+        e.preventDefault();
         
-        function updateLearningContent(baziData) {
-            // 动态更新学习区域内容
-            const dayStem = baziData.pillars.day.stem;
-            document.querySelector('#strength-content .analysis-result').innerHTML = 
-                `您的八字日主为<span class="wuxing-${baziData.pillars.day.wuxing}">${dayStem}</span>...`;
-        }
-        // ▲▲▲ 新增结束 ▲▲▲
+        // 1. 获取输入数据
+        const formData = {
+            date: document.getElementById('birth-date').value,
+            time: `${document.getElementById('birth-hour').value}:${document.getElementById('birth-minute').value}`,
+            timezone: document.getElementById('timezone').value,
+            gender: document.querySelector('input[name="gender"]:checked').value
+        };
 
-        // 现有的表单提交处理
-        document.getElementById('bazi-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            // 获取输入数据（示例）
-            const birthData = {
-                date: document.getElementById('birth-date').value,
-                // 其他表单数据...
-            };
-            
-            // 计算命盘
-            const baziData = calculateBazi(birthData);
-            
-            // 更新学习内容
-            updateLearningContent(baziData);
-            
-            // 显示结果
-            document.getElementById('result-section').style.display = 'block';
-        });
+        // 2. 计算真实命盘
+        const realBaziData = BaziCalculator.calculate(
+            formData.date, 
+            formData.time, 
+            formData.timezone, 
+            formData.gender
+        );
 
+        // 3. 更新UI
+        updateBaziTableUI(realBaziData);
+        BaziAnalysis.updateAll(realBaziData);
+        
+        // 4. 显示结果
+        document.getElementById('result-section').style.display = 'block';
+    });
+
+    // ====================== 工具函数 ======================
+    function updateBaziTableUI(baziData) {
+        // 更新日柱（示例）
+        document.getElementById('day-stem').innerHTML = `
+            ${baziData.pillars.day.stem}<br>
+            <span class="ten-god">(${baziData.pillars.day.tengod})</span>
+        `;
+        document.getElementById('day-stem').className = `wuxing-${baziData.pillars.day.wuxing}`;
+        
+        // 更新其他柱...
+    }
+
+    // 五行中文名转换
+    function getWuxingChinese(wuxing) {
+        const map = { wood: '木', fire: '火', earth: '土', metal: '金', water: '水' };
+        return map[wuxing] || '';
+    }
+
+    // ====================== 初始化 ======================
+    // 示例：点击标签切换学习内容
+    document.querySelectorAll('.learning-tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+            document.querySelectorAll('.learning-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.learning-content').forEach(c => c.classList.remove('active'));
             
-            // 学习标签切换
-            const tabs = document.querySelectorAll('.learning-tab');
-            tabs.forEach(tab => {
-                tab.addEventListener('click', function() {
-                    // 移除所有active类
-                    tabs.forEach(t => t.classList.remove('active'));
-                    document.querySelectorAll('.learning-content').forEach(c => c.classList.remove('active'));
-                    
-                    // 添加当前active类
-                    this.classList.add('active');
-                    const tabId = this.getAttribute('data-tab');
-                    document.getElementById(tabId + '-content').classList.add('active');
-                });
-            });
-            
-            // 点击交互元素
-            const clickableElements = document.querySelectorAll('.clickable-element');
-            clickableElements.forEach(el => {
-                el.addEventListener('click', function() {
-                    // 移除所有active类
-                    clickableElements.forEach(e => e.classList.remove('active'));
-                    
-                    // 添加当前active类
-                    this.classList.add('active');
-                    
-                    // 根据数据类型显示不同提示
-                    const tengod = this.getAttribute('data-tengod');
-                    if(tengod) {
-                        showTeachingTip('您点击了' + getTenGodName(tengod) + '，这是八字中的一种十神关系...');
-                    }
-                });
-            });
-            
-            // 教学提示框控制
-            const teachingTip = document.getElementById('teaching-tip');
-            const closeTip = document.querySelector('.close-tip');
-            
-            closeTip.addEventListener('click', function() {
-                teachingTip.classList.remove('show');
-            });
-            
-            // 5秒后自动显示提示
-            setTimeout(() => {
-                teachingTip.classList.add('show');
-            }, 5000);
-            
-            // 点击八字表格元素
-            const baziElements = document.querySelectorAll('.bazi-elegant-table td');
-            baziElements.forEach(el => {
-                el.addEventListener('click', function() {
-                    const content = this.textContent.trim();
-                    if(content) {
-                        showTeachingTip('您点击了' + content + '，这是八字中的一个重要元素...');
-                    }
-                });
-            });
-            
-            // 点击五行柱状图
-            const wuxingItems = document.querySelectorAll('.wuxing-item');
-            wuxingItems.forEach(item => {
-                item.addEventListener('click', function() {
-                    const wuxing = this.querySelector('.wuxing-label').textContent;
-                    showTeachingTip('您点击了五行中的' + wuxing + '，它在您的命盘中...');
-                });
-            });
-            
-            // 点击大运表格行
-            const luckRows = document.querySelectorAll('.luck-table tbody tr');
-            luckRows.forEach(row => {
-                row.addEventListener('click', function() {
-                    const period = this.querySelector('td:first-child').textContent;
-                    showTeachingTip('您点击了' + period + '大运，这是您人生中的一个重要阶段...');
-                });
-            });
-            
-            // 辅助函数
-            function showTeachingTip(message) {
-                document.getElementById('tip-content').textContent = message;
-                teachingTip.classList.add('show');
-                
-                // 8秒后自动隐藏
-                setTimeout(() => {
-                    teachingTip.classList.remove('show');
-                }, 8000);
-            }
-            
-            function getTenGodName(key) {
-                const names = {
-                    'bishang': '比肩',
-                    'jiecai': '劫财',
-                    'shishen': '食神',
-                    'shangguan': '伤官',
-                    'zhengyin': '正印',
-                    'pianyin': '偏印',
-                    'zhengguan': '正官',
-                    'qisha': '七杀',
-                    'zhengcai': '正财',
-                    'piancai': '偏财'
-                };
-                return names[key] || '十神';
-            }
-            
-            // 打印和保存按钮
-            document.getElementById('print-btn').addEventListener('click', function() {
-                window.print();
-            });
-            
-            document.getElementById('save-btn').addEventListener('click', function() {
-                alert('八字命盘已保存（模拟功能）');
-            });
+            this.classList.add('active');
+            document.getElementById(this.dataset.tab + '-content').classList.add('active');
         });
-    </script>
-</body>
-</html>
+    });
+});
