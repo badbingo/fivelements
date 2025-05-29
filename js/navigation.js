@@ -441,9 +441,19 @@ function setupMobileMenu() {
     const mainNav = document.querySelector('.main-nav');
     
     if (mobileMenuBtn && mainNav) {
+        // 显示移动菜单按钮
+        mobileMenuBtn.style.display = 'flex';
+        
         mobileMenuBtn.addEventListener('click', function() {
             this.classList.toggle('active');
             mainNav.classList.toggle('active');
+            
+            // 防止滚动穿透
+            if (mainNav.classList.contains('active')) {
+                document.body.style.overflow = 'hidden';
+            } else {
+                document.body.style.overflow = '';
+            }
         });
         
         // 处理下拉菜单点击
@@ -456,8 +466,24 @@ function setupMobileMenu() {
                         e.preventDefault();
                         const dropdown = item.querySelector('.dropdown-menu');
                         dropdown.classList.toggle('active');
+                        
+                        // 关闭其他打开的下拉菜单
+                        document.querySelectorAll('.dropdown-menu').forEach(menu => {
+                            if (menu !== dropdown) {
+                                menu.classList.remove('active');
+                            }
+                        });
                     }
                 });
+            }
+        });
+        
+        // 点击其他地方关闭菜单
+        document.addEventListener('click', function(e) {
+            if (!mainNav.contains(e.target) && !mobileMenuBtn.contains(e.target)) {
+                mainNav.classList.remove('active');
+                mobileMenuBtn.classList.remove('active');
+                document.body.style.overflow = '';
             }
         });
     }
