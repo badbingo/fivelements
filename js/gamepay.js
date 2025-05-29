@@ -1,6 +1,7 @@
 /**
- * 终极支付解决方案 - gamepay.js v4.7
- * 修改版：移除支付状态检查，任何名字都可支付
+ * 终极支付解决方案 - gamepay.js v4.8
+ * 支持支付宝(alipay)和微信支付(wxpay)
+ * 优化支付方式选择界面
  */
 
 // ==================== 配置区 ====================
@@ -43,6 +44,9 @@ class PaymentSystem {
       initialized: false,
       processing: false
     };
+    
+    // 当前选择的支付方式
+    this.selectedPaymentType = null;
     
     // 启动系统
     this.safeInitialize();
@@ -98,7 +102,7 @@ class PaymentSystem {
       // 使用HTML表单的元素
       this.elements = {
         nameInput: document.getElementById('userName'),
-        payBtn: document.getElementById('submitPayment')
+        payOptions: document.querySelectorAll('.payment-option')
       };
     } else {
       // 否则创建默认支付表单
@@ -108,20 +112,20 @@ class PaymentSystem {
       
       this.elements = {
         nameInput: this.getElement(this.config.elements.nameInput, true),
-        payBtn: this.getElement(this.config.elements.payBtn, true)
+        payOptions: document.querySelectorAll('.payment-option')
       };
     }
 
     // 如果仍然找不到输入框，尝试手动绑定
-    if (!this.elements.nameInput || !this.elements.payBtn) {
+    if (!this.elements.nameInput || !this.elements.payOptions) {
       console.warn('无法自动检测支付表单，尝试手动绑定...');
       this.elements.nameInput = document.getElementById('userName');
-      this.elements.payBtn = document.getElementById('submitPayment');
+      this.elements.payOptions = document.querySelectorAll('.payment-option');
     }
 
     // 如果还是找不到，报错
-    if (!this.elements.nameInput || !this.elements.payBtn) {
-      throw new Error('无法找到支付表单的输入框或按钮！');
+    if (!this.elements.nameInput || !this.elements.payOptions) {
+      throw new Error('无法找到支付表单的输入框或支付选项！');
     }
   }
 
@@ -135,10 +139,20 @@ class PaymentSystem {
              placeholder="请输入姓名"
              style="width:100%; padding:10px; margin-bottom:15px; border:1px solid #ddd; border-radius:4px;">
       
-      <button id="${this.config.elements.payBtn}" 
-              style="width:100%; padding:12px; background:#07c160; color:white; border:none; border-radius:4px; font-size:16px;">
-        立即支付
-      </button>
+      <div class="payment-options" style="margin: 20px 0;">
+        <div class="payment-option" data-type="alipay" style="margin-bottom: 15px;">
+          <button class="payment-btn" style="background: #009fe8; color: white; width: 100%; padding: 12px; border: none; border-radius: 4px; cursor: pointer;">
+            <img src="https://zpayz.cn/static/img/alipay.png" alt="支付宝" style="height: 24px; vertical-align: middle; margin-right: 10px;">
+            支付宝支付（全球）
+          </button>
+        </div>
+        <div class="payment-option" data-type="wxpay">
+          <button class="payment-btn" style="background: #07c160; color: white; width: 100%; padding: 12px; border: none; border-radius: 4px; cursor: pointer;">
+            <img src="https://zpayz.cn/static/img/wxpay.png" alt="微信支付" style="height: 24px; vertical-align: middle; margin-right: 10px;">
+            微信支付（国内）
+          </button>
+        </div>
+      </div>
     `;
     
     document.body.appendChild(container);
@@ -155,48 +169,56 @@ class PaymentSystem {
 
   // ============== 事件绑定 ==============
   bindEvents() {
-    // 支付按钮事件
-    this.elements.payBtn.addEventListener('click', () => {
-      if (!this.state.processing) {
-        this.processPayment();
-      }
-    });
+    // 绑定支付选项点击事件
+    if (this.elements.payOptions && this.elements.payOptions.length > 0) {
+      this.elements.payOptions.forEach(option => {
+        option.addEventListener('click', (e) => {
+          // 防止事件冒泡
+          if (e.target.closest('.payment-option')) {
+            this.selectedPaymentType = option.getAttribute('data-type');
+            this.processPayment();
+          }
+        });
+      });
+    }
   }
 
   // ============== 支付流程 ==============
   async processPayment() {
     try {
-        const userName = this.getUserName();
-        if (!userName) {
-            alert('请输入您的姓名');
-            this.elements.nameInput.focus();
-            return;
-        }
+      const userName = this.getUserName();
+      if (!userName) {
+        alert('请输入您的姓名');
+        this.elements.nameInput.focus();
+        return;
+      }
 
-        // 添加支付方式选择
-        const paymentType = confirm('请选择支付方式:\n\n确定 - 支付宝（全球支付）\n取消 - 微信支付（仅限国内）') ? 'alipay' : 'wxpay';
-        
-        this.setProcessingState(true);
-        
-        const paymentData = {
-            pid: this.config.pid,
-            type: paymentType,  // 修改为动态选择的支付方式
-            out_trade_no: this.generateOrderId(),
-            notify_url: location.href,
-            return_url: this.config.successRedirectUrl,
-            name: `支付-${this.getUserName()}`,
-            money: this.config.amount,
-            param: encodeURIComponent(this.getUserName()),
-            sign_type: 'MD5'
-        };
-        
-        paymentData.sign = this.generateSignature(paymentData);
-        this.submitPayment(paymentData);
-        
+      if (!this.selectedPaymentType) {
+        alert('请选择支付方式');
+        return;
+      }
+
+      this.setProcessingState(true);
+      
+      const paymentData = {
+        pid: this.config.pid,
+        type: this.selectedPaymentType,
+        out_trade_no: this.generateOrderId(),
+        notify_url: location.href,
+        return_url: this.config.successRedirectUrl,
+        name: `支付-${this.getUserName()}`,
+        money: this.config.amount,
+        param: encodeURIComponent(this.getUserName()),
+        sign_type: 'MD5'
+      };
+      
+      paymentData.sign = this.generateSignature(paymentData);
+      this.submitPayment(paymentData);
+      
     } catch (error) {
-        this.handlePaymentError(error);
+      this.handlePaymentError(error);
     }
-}
+  }
 
   // ============== 提交支付 ==============
   submitPayment(paymentData) {
@@ -225,7 +247,9 @@ class PaymentSystem {
   // ============== UI控制 ==============
   updateButtonState() {
     // 总是显示支付按钮
-    this.elements.payBtn.style.display = 'block';
+    if (this.elements.payBtn) {
+      this.elements.payBtn.style.display = 'block';
+    }
   }
 
   // ============== 显示/隐藏Loading ==============
@@ -387,27 +411,29 @@ function submitPaymentForm(paymentData) {
 }
 
 // ==================== 暴露支付启动函数 ====================
-window.startPayment = function(userName) {
-    if (!userName || userName.trim() === '') {
-        alert('请输入有效的姓名');
-        return;
-    }
+window.startPayment = function(userName, paymentType = 'alipay') {
+  if (!userName || userName.trim() === '') {
+    alert('请输入有效的姓名');
+    return;
+  }
 
-    // 添加支付方式选择
-    const paymentType = confirm('请选择支付方式:\n\n确定 - 支付宝\n取消 - 微信支付') ? 'alipay' : 'wxpay';
+  if (!['alipay', 'wxpay'].includes(paymentType)) {
+    alert('请选择有效的支付方式');
+    return;
+  }
 
-    const paymentData = {
-        pid: PAYMENT_CONFIG.pid,
-        type: paymentType,  // 修改为动态选择的支付方式
-        out_trade_no: generateOrderId(),
-        notify_url: location.href,
-        return_url: PAYMENT_CONFIG.successRedirectUrl,
-        name: `支付-${userName}`,
-        money: PAYMENT_CONFIG.amount,
-        param: encodeURIComponent(userName),
-        sign_type: 'MD5'
-    };
-    
-    paymentData.sign = generateSignature(paymentData);
-    submitPaymentForm(paymentData);
+  const paymentData = {
+    pid: PAYMENT_CONFIG.pid,
+    type: paymentType,
+    out_trade_no: generateOrderId(),
+    notify_url: location.href,
+    return_url: PAYMENT_CONFIG.successRedirectUrl,
+    name: `支付-${userName}`,
+    money: PAYMENT_CONFIG.amount,
+    param: encodeURIComponent(userName),
+    sign_type: 'MD5'
+  };
+  
+  paymentData.sign = generateSignature(paymentData);
+  submitPaymentForm(paymentData);
 };
