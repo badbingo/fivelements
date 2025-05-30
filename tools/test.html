@@ -626,112 +626,110 @@
         
         // 八字计算函数
         function calculateBazi() {
-    // 获取表单数据
-    const birthDate = document.getElementById('birth-date').value;
-    const birthHour = document.getElementById('birth-hour').value;
-    const birthMinute = document.getElementById('birth-minute').value;
-    const timezone = document.getElementById('timezone').value;
-    const gender = document.querySelector('input[name="gender"]:checked').value;
-    
-    // 解析日期
-    const [year, month, day] = birthDate.split('-').map(Number);
-    const hour = parseInt(birthHour);
-    const minute = parseInt(birthMinute);
-    
-    // 使用lunar.js计算八字
-    const solarDate = new Date(year, month - 1, day, hour, minute);
-    const lunarDate = Lunar.fromDate(solarDate);
-    
-    // 获取八字信息 - 使用兼容的API方法
-    const bazi = lunarDate.getBaZi();
-    const yearGanZhi = bazi[0]; // 年柱
-    const monthGanZhi = bazi[1]; // 月柱
-    const dayGanZhi = bazi[2];  // 日柱
-    const hourGanZhi = bazi[3]; // 时柱
-    
-    // 更新基本信息
-    document.getElementById('result-date').textContent = 
-        `${year}年${month}月${day}日`;
-    document.getElementById('result-time').textContent = 
-        `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-    document.getElementById('result-lunar').textContent = 
-        `${lunarDate.getYearInGanZhi()}年${lunarDate.getMonthInChinese()}${lunarDate.getDayInChinese()}`;
-    document.getElementById('result-zodiac').textContent = 
-        lunarDate.getYearShengXiao();
-    
-    // 更新八字表格 - 使用更兼容的方式获取天干地支
-    document.getElementById('year-stem').innerHTML = 
-        `${yearGanZhi[0]}<br><span class="ten-god">(${getTenGodName(dayGanZhi[0], yearGanZhi[0])})</span>`;
-    document.getElementById('month-stem').innerHTML = 
-        `${monthGanZhi[0]}<br><span class="ten-god">(${getTenGodName(dayGanZhi[0], monthGanZhi[0])})</span>`;
-    document.getElementById('day-stem').innerHTML = 
-        `${dayGanZhi[0]}<br><span class="ten-god">(日元)</span>`;
-    document.getElementById('hour-stem').innerHTML = 
-        `${hourGanZhi[0]}<br><span class="ten-god">(${getTenGodName(dayGanZhi[0], hourGanZhi[0])})</span>`;
-    
-    document.getElementById('year-branch').innerHTML = 
-        `${yearGanZhi[1]}<br><span class="ten-god">(${getTenGodName(dayGanZhi[0], yearGanZhi[1])})</span>`;
-    document.getElementById('month-branch').innerHTML = 
-        `${monthGanZhi[1]}<br><span class="ten-god">(${getTenGodName(dayGanZhi[0], monthGanZhi[1])})</span>`;
-    document.getElementById('day-branch').innerHTML = 
-        `${dayGanZhi[1]}<br><span class="ten-god">(${getTenGodName(dayGanZhi[0], dayGanZhi[1])})</span>`;
-    document.getElementById('hour-branch').innerHTML = 
-        `${hourGanZhi[1]}<br><span class="ten-god">(${getTenGodName(dayGanZhi[0], hourGanZhi[1])})</span>`;
-    
-    // 获取藏干信息
-    const hiddenStems = getHiddenStems(lunarDate);
-    
-    // 更新藏干
-    document.getElementById('year-hidden-god').innerHTML = 
-        formatHiddenGods(hiddenStems.year, dayGanZhi[0]);
-    document.getElementById('month-hidden-god').innerHTML = 
-        formatHiddenGods(hiddenStems.month, dayGanZhi[0]);
-    document.getElementById('day-hidden-god').innerHTML = 
-        formatHiddenGods(hiddenStems.day, dayGanZhi[0]);
-    document.getElementById('hour-hidden-god').innerHTML = 
-        formatHiddenGods(hiddenStems.hour, dayGanZhi[0]);
-    
-    // 更新空亡和纳音
-    document.getElementById('year-void').textContent = getVoidInfo(yearGanZhi[1]);
-    document.getElementById('month-void').textContent = getVoidInfo(monthGanZhi[1]);
-    document.getElementById('day-void').textContent = getVoidInfo(dayGanZhi[1]);
-    document.getElementById('hour-void').textContent = getVoidInfo(hourGanZhi[1]);
-    
-    document.getElementById('year-nayin').textContent = getNaYin(yearGanZhi);
-    document.getElementById('month-nayin').textContent = getNaYin(monthGanZhi);
-    document.getElementById('day-nayin').textContent = getNaYin(dayGanZhi);
-    document.getElementById('hour-nayin').textContent = getNaYin(hourGanZhi);
-    
-    // 显示结果区域
-    document.getElementById('result-section').style.display = 'block';
-    
-    // 生成分析内容
-    generateAnalysis(lunarDate, gender, {
-        yearGanZhi, monthGanZhi, dayGanZhi, hourGanZhi,
-        hiddenStems
-    });
-    
-    // 滚动到结果区域
-    document.getElementById('result-section').scrollIntoView({ behavior: 'smooth' });
+    try {
+        // 获取表单数据
+        const birthDate = document.getElementById('birth-date').value;
+        const birthHour = document.getElementById('birth-hour').value;
+        const birthMinute = document.getElementById('birth-minute').value;
+        const timezone = document.getElementById('timezone').value;
+        const gender = document.querySelector('input[name="gender"]:checked').value;
+
+        // 验证输入
+        if (!birthDate || birthHour === "" || birthMinute === "") {
+            alert("请填写完整的出生信息");
+            return;
+        }
+
+        // 解析日期
+        const [year, month, day] = birthDate.split('-').map(Number);
+        const hour = parseInt(birthHour);
+        const minute = parseInt(birthMinute);
+
+        // 使用 lunar.js 1.7.2 计算八字
+        const solarDate = new Date(year, month - 1, day, hour, minute);
+        const lunar = Lunar.fromDate(solarDate);
+        
+        // 获取八字四柱
+        const baZi = lunar.getBaZi();
+        const [yearGanZhi, monthGanZhi, dayGanZhi, hourGanZhi] = baZi;
+        
+        // 日干（日元）
+        const dayGan = dayGanZhi.substring(0, 1);
+        
+        // 更新基本信息
+        document.getElementById('result-date').textContent = 
+            `${year}年${month}月${day}日`;
+        document.getElementById('result-time').textContent = 
+            `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+        document.getElementById('result-lunar').textContent = 
+            `${lunar.getYearInGanZhi()}年${lunar.getMonthInChinese()}${lunar.getDayInChinese()}`;
+        document.getElementById('result-zodiac').textContent = 
+            lunar.getYearShengXiao();
+
+        // 更新八字表格
+        updatePillar('year', yearGanZhi, dayGan, lunar);
+        updatePillar('month', monthGanZhi, dayGan, lunar);
+        updatePillar('day', dayGanZhi, dayGan, lunar);
+        updatePillar('hour', hourGanZhi, dayGan, lunar);
+
+        // 显示结果区域
+        document.getElementById('result-section').style.display = 'block';
+
+        // 生成分析内容
+        generateAnalysis(lunar, gender, {
+            yearGanZhi, monthGanZhi, dayGanZhi, hourGanZhi,
+            dayGan
+        });
+
+        // 滚动到结果区域
+        document.getElementById('result-section').scrollIntoView({ behavior: 'smooth' });
+
+    } catch (error) {
+        console.error("计算八字出错:", error);
+        alert("计算八字时出错，请检查输入是否正确");
+    }
 }
 
-// 辅助函数：获取十神名称
-function getTenGodName(dayGan, targetGanOrZhi) {
+// 更新四柱信息
+function updatePillar(type, ganZhi, dayGan, lunar) {
+    const gan = ganZhi.substring(0, 1);
+    const zhi = ganZhi.substring(1);
+    
+    // 更新天干
+    document.getElementById(`${type}-stem`).innerHTML = 
+        `${gan}<br><span class="ten-god">(${getTenGod(dayGan, gan)})</span>`;
+    
+    // 更新地支
+    document.getElementById(`${type}-branch`).innerHTML = 
+        `${zhi}<br><span class="ten-god">(${getTenGod(dayGan, zhi)})</span>`;
+    
+    // 更新藏干
+    const hiddenStems = getHiddenStems(zhi, dayGan);
+    document.getElementById(`${type}-hidden-god`).innerHTML = hiddenStems;
+    
+    // 更新空亡
+    document.getElementById(`${type}-void`).textContent = getVoid(zhi);
+    
+    // 更新纳音
+    document.getElementById(`${type}-nayin`).textContent = getNaYin(ganZhi);
+}
+
+// 获取十神关系 (兼容 lunar.js 1.7.2)
+function getTenGod(dayGan, target) {
     const ganList = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
     const zhiList = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
     
-    // 如果是地支，先转换为藏干中的主气
-    if (zhiList.includes(targetGanOrZhi)) {
-        const zhiIndex = zhiList.indexOf(targetGanOrZhi);
-        const mainQi = ['癸', '己', '甲', '乙', '戊', '丙', '丁', '己', '庚', '辛', '戊', '癸'][zhiIndex];
-        targetGanOrZhi = mainQi;
+    // 如果是地支，获取其主气天干
+    if (zhiList.includes(target)) {
+        const mainQi = getMainQi(target);
+        target = mainQi;
     }
     
+    // 不在天干列表中则返回未知
+    if (!ganList.includes(target)) return '未知';
+    
     const dayIndex = ganList.indexOf(dayGan);
-    const targetIndex = ganList.indexOf(targetGanOrZhi);
-    
-    if (targetIndex === -1) return '未知';
-    
+    const targetIndex = ganList.indexOf(target);
     const diff = (targetIndex - dayIndex + 10) % 10;
     
     const tenGods = [
@@ -743,9 +741,18 @@ function getTenGodName(dayGan, targetGanOrZhi) {
     return tenGods[diff];
 }
 
-// 辅助函数：获取藏干
-function getHiddenStems(lunarDate) {
-    const branch = lunarDate.getZhi();
+// 获取地支主气 (兼容 lunar.js 1.7.2)
+function getMainQi(zhi) {
+    const mainQiMap = {
+        '子': '癸', '丑': '己', '寅': '甲', '卯': '乙',
+        '辰': '戊', '巳': '丙', '午': '丁', '未': '己',
+        '申': '庚', '酉': '辛', '戌': '戊', '亥': '壬'
+    };
+    return mainQiMap[zhi] || '';
+}
+
+// 获取藏干 (兼容 lunar.js 1.7.2)
+function getHiddenStems(zhi, dayGan) {
     const hiddenStemsMap = {
         '子': ['癸'],
         '丑': ['己', '癸', '辛'],
@@ -761,33 +768,26 @@ function getHiddenStems(lunarDate) {
         '亥': ['壬', '甲']
     };
     
-    return {
-        year: hiddenStemsMap[lunarDate.getYearZhi()] || [],
-        month: hiddenStemsMap[lunarDate.getMonthZhi()] || [],
-        day: hiddenStemsMap[lunarDate.getDayZhi()] || [],
-        hour: hiddenStemsMap[lunarDate.getHourZhi()] || []
-    };
-}
-
-// 辅助函数：格式化藏干显示
-function formatHiddenGods(hiddenStems, dayGan) {
-    return hiddenStems.map(stem => 
-        `${stem}(${getTenGodName(dayGan, stem)})`
+    const stems = hiddenStemsMap[zhi] || [];
+    return stems.map(stem => 
+        `${stem}(${getTenGod(dayGan, stem)})`
     ).join('<br>');
 }
 
-// 辅助函数：获取空亡信息
-function getVoidInfo(branch) {
+// 获取空亡 (兼容 lunar.js 1.7.2)
+function getVoid(zhi) {
     const branchOrder = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
-    const branchIndex = branchOrder.indexOf(branch);
+    const branchIndex = branchOrder.indexOf(zhi);
     const voidIndex1 = (branchIndex + 10) % 12;
     const voidIndex2 = (branchIndex + 11) % 12;
     return branchOrder[voidIndex1] + branchOrder[voidIndex2];
 }
 
-// 辅助函数：获取纳音
+// 获取纳音五行 (兼容 lunar.js 1.7.2)
 function getNaYin(ganZhi) {
-    const [gan, zhi] = ganZhi;
+    const gan = ganZhi.substring(0, 1);
+    const zhi = ganZhi.substring(1);
+    
     const ganIndex = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'].indexOf(gan);
     const zhiIndex = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'].indexOf(zhi);
     
@@ -801,29 +801,28 @@ function getNaYin(ganZhi) {
     
     return naYinList[Math.floor(ganIndex / 2)][zhiIndex];
 }
-        
-        // 生成分析内容
-        function generateAnalysis(lunarDate, gender) {
-            // 身强身弱分析
-            const strengthAnalysis = document.getElementById('strength-analysis');
-            strengthAnalysis.innerHTML = `
-                <p>根据您的八字分析，日主<strong>${lunarDate.getDayGan()}</strong>在${lunarDate.getMonthZhi()}月出生，${getStrengthAnalysis(lunarDate)}</p>
-                <p>综合分析，您的八字属于<strong class="wuxing-${getElementClass(lunarDate.getDayGan())}">${getStrengthLevel(lunarDate)}</strong>。</p>
-                <div class="analysis-grid">
-                    <div class="analysis-item">
-                        <div class="analysis-item-title"><i class="fas fa-leaf"></i> 得令情况</div>
-                        <div class="analysis-item-content">${getSeasonStrength(lunarDate)}</div>
-                    </div>
-                    <div class="analysis-item">
-                        <div class="analysis-item-title"><i class="fas fa-water"></i> 得地情况</div>
-                        <div class="analysis-item-content">${getLandStrength(lunarDate)}</div>
-                    </div>
-                    <div class="analysis-item">
-                        <div class="analysis-item-title"><i class="fas fa-users"></i> 得势情况</div>
-                        <div class="analysis-item-content">${getSupportStrength(lunarDate)}</div>
-                    </div>
-                </div>
-            `;
+
+// 生成分析内容 (兼容 lunar.js 1.7.2)
+function generateAnalysis(lunar, gender, {yearGanZhi, monthGanZhi, dayGanZhi, hourGanZhi, dayGan}) {
+    // 身强身弱分析
+    document.getElementById('strength-analysis').innerHTML = `
+        <p>根据您的八字分析，日主<strong>${dayGan}</strong>在${monthGanZhi.substring(1)}月出生，${getStrengthAnalysis(lunar, dayGan)}</p>
+        <p>综合分析，您的八字属于<strong class="wuxing-${getElementClass(dayGan)}">${getStrengthLevel(lunar, dayGan)}</strong>。</p>
+        <div class="analysis-grid">
+            <div class="analysis-item">
+                <div class="analysis-item-title"><i class="fas fa-leaf"></i> 得令情况</div>
+                <div class="analysis-item-content">${getSeasonStrength(lunar, dayGan)}</div>
+            </div>
+            <div class="analysis-item">
+                <div class="analysis-item-title"><i class="fas fa-water"></i> 得地情况</div>
+                <div class="analysis-item-content">${getLandStrength(yearGanZhi, monthGanZhi, dayGanZhi, hourGanZhi, dayGan)}</div>
+            </div>
+            <div class="analysis-item">
+                <div class="analysis-item-title"><i class="fas fa-users"></i> 得势情况</div>
+                <div class="analysis-item-content">${getSupportStrength(yearGanZhi, monthGanZhi, dayGanZhi, hourGanZhi, dayGan)}</div>
+            </div>
+        </div>
+    `;
             
             // 十神关系分析
             const tenGodAnalysis = document.getElementById('ten-god-analysis');
