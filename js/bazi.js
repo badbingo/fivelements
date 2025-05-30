@@ -2792,68 +2792,84 @@ function hasHe(branches, branch1, branch2) {
         };
     }
 
+    // 修改后的calculateLuckStartingTime函数
 function calculateLuckStartingTime(lunar, gender) {
-  // 节气表保持不变
-  const JIE_QI_DATES = { /* 同原数据 */ };
+    // 节气近似公历日期（误差±1天不影响年柱计算）
+    const JIE_QI_DATES = {
+        '立春': [2,4], '雨水': [2,19], '惊蛰': [3,6], '春分': [3,21],
+        '清明': [4,5], '谷雨': [4,20], '立夏': [5,6], '小满': [5,21],
+        '芒种': [6,6], '夏至': [6,21], '小暑': [7,7], '大暑': [7,23],
+        '立秋': [8,8], '处暑': [8,23], '白露': [9,8], '秋分': [9,23],
+        '寒露': [10,8], '霜降': [10,23], '立冬': [11,7], '小雪': [11,22],
+        '大雪': [12,7], '冬至': [12,22], '小寒': [1,6], '大寒': [1,20]
+    };
 
-  // 改进的节气搜索函数
-  function findNearestJieQi(birthDate, isForward) {
-    const year = birthDate.getFullYear();
-    let nearest = null;
-    let minDiff = Infinity;
+    // 获取最近的节气（向前/向后）
+    function findNearestJieQi(birthDate, isForward) {
+        const year = birthDate.getFullYear();
+        let nearest = null;
+        let minDiff = Infinity;
 
-    // 扩展搜索范围到相邻两年
-    for (let y = year - 1; y <= year + 1; y++) {
-      Object.entries(JIE_QI_DATES).forEach(([name, [month, day]]) => {
-        const jieQiDate = new Date(y, month - 1, day);
-        const diff = jieQiDate - birthDate;
-        
-        if (isForward && diff > 0 && diff < minDiff) {
-          minDiff = diff;
-          nearest = jieQiDate;
-        } else if (!isForward && diff < 0 && -diff < minDiff) {
-          minDiff = -diff;
-          nearest = jieQiDate;
+        Object.entries(JIE_QI_DATES).forEach(([name, [month, day]]) => {
+            const jieQiDate = new Date(year, month - 1, day);
+            const diff = jieQiDate - birthDate;
+
+            if (isForward && diff > 0 && diff < minDiff) {
+                minDiff = diff;
+                nearest = jieQiDate;
+            } else if (!isForward && diff < 0 && -diff < minDiff) {
+                minDiff = -diff;
+                nearest = jieQiDate;
+            }
+        });
+
+        // 跨年处理
+        if (!nearest) {
+            const nextYear = isForward ? year + 1 : year - 1;
+            const jieQiDate = new Date(nextYear, 
+                isForward ? 0 : 11, // 立春(2月)或大雪(12月)
+                isForward ? JIE_QI_DATES['立春'][1] : JIE_QI_DATES['大雪'][1]);
+            return jieQiDate;
         }
-      });
+        return nearest;
     }
 
-    // 保底逻辑
-    return nearest || new Date(isForward ? year + 1 : year - 1, 0, 1);
-  }
+    try {
+        // 1. 确定出生日期
+        const birthDate = new Date(
+            lunar.getSolar().getYear(),
+            lunar.getSolar().getMonth() - 1,
+            lunar.getSolar().getDay(),
+            lunar.getSolar().getHour(),
+            lunar.getSolar().getMinute()
+        );
 
-  try {
-    // 出生日期获取（保持原逻辑）
-    const birthDate = new Date(/* 同原逻辑 */);
+        // 2. 判断顺排/逆排
+        const yearGan = lunar.getYearGan();
+        const isYangYear = ['甲', '丙', '戊', '庚', '壬'].includes(yearGan);
+        const isForward = (isYangYear && gender === 'male') || 
+                         (!isYangYear && gender === 'female');
 
-    // 判断顺排/逆排（保持原逻辑）
-    const yearGan = lunar.getYearGan();
-    const isYangYear = ['甲', '丙', '戊', '庚', '壬'].includes(yearGan);
-    const isForward = (isYangYear && gender === 'male') || 
-                     (!isYangYear && gender === 'female');
+        // 3. 找到关键节气
+        const targetJieQi = findNearestJieQi(birthDate, isForward);
+        
+        // 4. 计算精确时间差（毫秒）
+        const diffMs = Math.abs(targetJieQi - birthDate);
+        const diffDays = diffMs / (1000 * 60 * 60 * 24);
 
-    // 获取关键节气
-    const targetJieQi = findNearestJieQi(birthDate, isForward);
-    
-    // 精确时间差计算（毫秒）
-    const diffMs = isForward 
-      ? targetJieQi - birthDate 
-      : birthDate - targetJieQi;
-    
-    // 传统历法换算
-    const totalHours = diffMs / (1000 * 60 * 60);
-    const luckDays = totalHours / 48; // 24小时=120传统天
-    const years = Math.floor(luckDays / 3);
-    const remainderDays = (luckDays % 3) * 10;
-    const months = Math.floor(remainderDays / 30) * 4;
-    const days = Math.floor(remainderDays % 30);
+        // 5. 转换为起运时间（3天=1年）
+        const years = Math.floor(diffDays / 3);
+        const remainingDays = diffDays % 3;
+        const months = Math.floor(remainingDays * 4); // 1天≈4个月
+        const days = Math.floor((remainingDays * 4 - months) * 30);
+        const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
 
-    return `${years}岁${months}个月${days}天起运`;
+        return `${years}岁${months}个月${days}天${Math.round(hours)}小时起运`;
 
-  } catch (e) {
-    console.error('计算异常:', e);
-    return '无法计算起运时间';
-  }
+    } catch (e) {
+        console.error('计算异常:', e);
+        return '无法计算起运时间';
+    }
 }
 
     // 判断从强从弱 - 修改后的函数
