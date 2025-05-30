@@ -2794,15 +2794,54 @@ function hasHe(branches, branch1, branch2) {
 
     // 修改后的calculateLuckStartingTime函数
 function calculateLuckStartingTime(lunar, gender) {
+    // 节气近似公历日期（误差±1天不影响年柱计算）
+    const JIE_QI_DATES = {
+        '立春': [2,4], '雨水': [2,19], '惊蛰': [3,6], '春分': [3,21],
+        '清明': [4,5], '谷雨': [4,20], '立夏': [5,6], '小满': [5,21],
+        '芒种': [6,6], '夏至': [6,21], '小暑': [7,7], '大暑': [7,23],
+        '立秋': [8,8], '处暑': [8,23], '白露': [9,8], '秋分': [9,23],
+        '寒露': [10,8], '霜降': [10,23], '立冬': [11,7], '小雪': [11,22],
+        '大雪': [12,7], '冬至': [12,22], '小寒': [1,6], '大寒': [1,20]
+    };
+
+    // 获取最近的节气（向前/向后）
+    function findNearestJieQi(birthDate, isForward) {
+        const year = birthDate.getFullYear();
+        let nearest = null;
+        let minDiff = Infinity;
+
+        Object.entries(JIE_QI_DATES).forEach(([name, [month, day]]) => {
+            const jieQiDate = new Date(year, month - 1, day);
+            const diff = jieQiDate - birthDate;
+
+            if (isForward && diff > 0 && diff < minDiff) {
+                minDiff = diff;
+                nearest = jieQiDate;
+            } else if (!isForward && diff < 0 && -diff < minDiff) {
+                minDiff = -diff;
+                nearest = jieQiDate;
+            }
+        });
+
+        // 跨年处理
+        if (!nearest) {
+            const nextYear = isForward ? year + 1 : year - 1;
+            const jieQiDate = new Date(nextYear, 
+                isForward ? 0 : 11, // 立春(2月)或大雪(12月)
+                isForward ? JIE_QI_DATES['立春'][1] : JIE_QI_DATES['大雪'][1]);
+            return jieQiDate;
+        }
+        return nearest;
+    }
+
     try {
-        // 1. 获取出生日期和时间
-        const birthSolar = lunar.getSolar();
+        // 1. 确定出生日期
         const birthDate = new Date(
-            birthSolar.getYear(),
-            birthSolar.getMonth() - 1,
-            birthSolar.getDay(),
-            birthSolar.getHour(),
-            birthSolar.getMinute()
+            lunar.getSolar().getYear(),
+            lunar.getSolar().getMonth() - 1,
+            lunar.getSolar().getDay(),
+            lunar.getSolar().getHour(),
+            lunar.getSolar().getMinute()
         );
 
         // 2. 判断顺排/逆排
@@ -2812,191 +2851,25 @@ function calculateLuckStartingTime(lunar, gender) {
                          (!isYangYear && gender === 'female');
 
         // 3. 找到关键节气
-        const targetJieQi = findTargetJieQi(birthDate, isForward);
-        if (!targetJieQi) {
-            console.error('找不到目标节气');
-            return '未知起运时间';
-        }
-
-        // 4. 计算精确时间差（天）
-        const diffDays = calculateDaysDiff(birthDate, targetJieQi);
-        if (isNaN(diffDays)) {
-            console.error('计算天数差失败:', diffDays);
-            return '未知起运时间';
-        }
+        const targetJieQi = findNearestJieQi(birthDate, isForward);
+        
+        // 4. 计算精确时间差（毫秒）
+        const diffMs = Math.abs(targetJieQi - birthDate);
+        const diffDays = diffMs / (1000 * 60 * 60 * 24);
 
         // 5. 转换为起运时间（3天=1年）
-        return convertDaysToLuckTime(diffDays);
-    } catch (error) {
-        console.error('计算起运时间出错:', error);
-        return '未知起运时间';
+        const years = Math.floor(diffDays / 3);
+        const remainingDays = diffDays % 3;
+        const months = Math.floor(remainingDays * 4); // 1天≈4个月
+        const days = Math.floor((remainingDays * 4 - months) * 30);
+        const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+
+        return `${years}岁${months}个月${days}天${Math.round(hours)}小时起运`;
+
+    } catch (e) {
+        console.error('计算异常:', e);
+        return '无法计算起运时间';
     }
-}
-
-
-// 辅助函数：找到目标节气
-function findTargetJieQi(birthDate, isForward) {
-    const birthYear = birthDate.getFullYear();
-    const jieQiName = isForward ? '立春' : '大寒';
-    const lunar = Lunar.fromDate(birthDate); // 确保 Lunar 库已正确初始化
-    const jieQiDate = lunar.getJieQi(jieQiName);
-
-    if (!jieQiDate || !(jieQiDate instanceof Date)) {
-        // 备选方案：手动计算节气（如使用 solarTerms 库）
-        console.warn('农历库返回无效节气，尝试备选方案');
-        return fallbackCalculateJieQi(birthYear, jieQiName);
-    }
-    return jieQiDate;
-}
-
-
-// 辅助函数：计算天数差
-function calculateDaysDiff(startDate, endDate) {
-    // 确保传入的是有效的Date对象
-    if (!(startDate instanceof Date)) {
-        startDate = new Date(startDate);
-    }
-    if (!(endDate instanceof Date)) {
-        endDate = new Date(endDate);
-    }
-
-    const diffMs = endDate - startDate;
-    const diffDays = diffMs / (1000 * 60 * 60 * 24);
-    
-    return Math.abs(Math.round(diffDays)); // 取绝对值并四舍五入
-}
-
-// 辅助函数：转换为起运时间
-function convertDaysToLuckTime(days) {
-    if (isNaN(days)) {
-        console.error('无效的天数:', days);
-        return '未知起运时间';
-    }
-    
-    const years = Math.floor(days / 3);
-    const remainingDays = days % 3;
-    const months = Math.floor(remainingDays * 4); // 1天≈4个月
-    const daysRemain = Math.floor((remainingDays * 4 - months) * 30);
-    
-    // 处理刚好是整数年的情况
-    if (months === 0 && daysRemain === 0) {
-        return `${years}岁起运`;
-    }
-    
-    // 处理月份和天数
-    let result = `${years}岁`;
-    if (months > 0) {
-        result += `${months}个月`;
-    }
-    if (daysRemain > 0) {
-        result += `${daysRemain}天`;
-    }
-    result += '起运';
-    
-    return result;
-}
-
-// 修改后的determineStrengthType函数
-function determineStrengthType(pillars) {
-    // 1. 计算日主五行
-    const dayStem = pillars.dayStem;
-    const dayElement = getElementIndex(dayStem);
-    
-    // 2. 计算生扶和克泄耗的力量
-    const { support, weaken } = calculateSupportWeaken(pillars, dayElement);
-    
-    // 3. 检查特殊格局
-    if (isCongStrong(support, weaken, dayElement, pillars)) {
-        return "从强";
-    }
-    if (isCongWeak(support, weaken, dayElement, pillars)) {
-        return "从弱";
-    }
-    
-    // 4. 普通格局判断
-    return support > weaken ? "身强" : "身弱";
-}
-
-// 辅助函数：计算生扶和克泄耗力量
-function calculateSupportWeaken(pillars, dayElement) {
-    let support = 0, weaken = 0;
-    
-    // 天干力量计算
-    const stems = [pillars.yearStem, pillars.monthStem, pillars.hourStem];
-    stems.forEach(stem => {
-        const elem = getElementIndex(stem);
-        if (elem === dayElement) support += 1.5; // 比劫
-        else if (elem === (dayElement + 4) % 5) support += 1;   // 印
-        else if (elem === (dayElement + 3) % 5) weaken += 1;    // 官杀
-        else if (elem === (dayElement + 2) % 5) weaken += 1.5; // 财
-        else if (elem === (dayElement + 1) % 5) weaken += 1.2; // 食伤
-    });
-
-    // 地支力量计算（含藏干）
-    const branches = [pillars.yearBranch, pillars.monthBranch, pillars.dayBranch, pillars.hourBranch];
-    branches.forEach((branch, idx) => {
-        const hiddenStems = getHiddenStems(branch);
-        hiddenStems.split('').forEach((stem, i) => {
-            const elem = getElementIndex(stem);
-            const weight = [0.6, 0.3, 0.1][i] || 0; // 主气0.6，中气0.3，余气0.1
-            
-            if (elem === dayElement) support += weight * 3;
-            else if (elem === (dayElement + 4) % 5) support += weight * 2;
-            else if (elem === (dayElement + 3) % 5) weaken += weight * 2;
-            else if (elem === (dayElement + 2) % 5) weaken += weight * 3;
-            else if (elem === (dayElement + 1) % 5) weaken += weight * 2;
-        });
-        
-        // 月令加倍权重
-        if (idx === 1) {
-            support *= 2;
-            weaken *= 2;
-        }
-    });
-
-    return {
-        support: Math.round(support * 10), // 放大10倍便于比较
-        weaken: Math.round(weaken * 10)
-    };
-}
-
-// 辅助函数：判断从强格
-function isCongStrong(support, weaken, dayElement, pillars) {
-    // 1. 生扶力量极强（80分以上）
-    const isStrongEnough = support >= 80;
-    
-    // 2. 克泄耗力量很弱（不超过20分）
-    const isWeakenEnough = weaken <= 20;
-    
-    // 3. 月令是印比或得令
-    const monthBranch = pillars.monthBranch;
-    const monthElement = getElementIndex(monthBranch);
-    const isSeasonMatch = monthElement === dayElement || 
-                         monthElement === (dayElement + 4) % 5;
-    
-    return isStrongEnough && isWeakenEnough && isSeasonMatch;
-}
-
-// 辅助函数：判断从弱格
-function isCongWeak(support, weaken, dayElement, pillars) {
-    // 1. 生扶力量很弱（不超过20分）
-    const isSupportWeak = support <= 20;
-    
-    // 2. 克泄耗力量极强（80分以上）
-    const isWeakenStrong = weaken >= 80;
-    
-    // 3. 月令是财官食伤或不得令
-    const monthBranch = pillars.monthBranch;
-    const monthElement = getElementIndex(monthBranch);
-    const isSeasonNotMatch = monthElement !== dayElement && 
-                            monthElement !== (dayElement + 4) % 5;
-    
-    // 4. 检查是否有根（地支藏干有日主）
-    const hasRoot = [pillars.yearBranch, pillars.monthBranch, 
-                    pillars.dayBranch, pillars.hourBranch]
-        .some(branch => getHiddenStems(branch).includes(dayStem));
-    
-    return isSupportWeak && isWeakenStrong && isSeasonNotMatch && !hasRoot;
 }
 
     // 判断从强从弱 - 修改后的函数
