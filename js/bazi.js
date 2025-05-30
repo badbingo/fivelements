@@ -2801,7 +2801,7 @@ function calculateLuckStartingTime(lunar, gender) {
                      (!isYangYear && gender === 'female');
 
     // 2. 精确计算时间差（分钟）
-    const birthDate = new Date(2020-01-01);
+    const birthDate = new Date();
     const targetSolar = isForward ? 
         findNextJieQi(birthDate) : 
         findPrevJieQi(birthDate);
