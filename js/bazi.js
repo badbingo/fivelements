@@ -2794,28 +2794,33 @@ function hasHe(branches, branch1, branch2) {
 
     // 修改后的calculateLuckStartingTime函数
 function calculateLuckStartingTime(lunar, gender) {
-    // 获取精确节气时间（使用lunar.js内置数据）
-    function getExactJieQiTime(jieQiName, date) {
-        try {
-            // 使用lunar.js获取指定日期的节气对象
-            const jieQi = Lunar.fromDate(date).getJieQiTable();
-            return jieQi[jieQiName];
-        } catch (e) {
-            // 回退方案：使用近似日期
-            const APPROX_DATES = {
-                '小寒': [1, 6], '大寒': [1, 20], '立春': [2, 4], '雨水': [2, 19],
-                '惊蛰': [3, 6], '春分': [3, 21], '清明': [4, 5], '谷雨': [4, 20],
-                '立夏': [5, 6], '小满': [5, 21], '芒种': [6, 6], '夏至': [6, 21],
-                '小暑': [7, 7], '大暑': [7, 23], '立秋': [8, 8], '处暑': [8, 23],
-                '白露': [9, 8], '秋分': [9, 23], '寒露': [10, 8], '霜降': [10, 23],
-                '立冬': [11, 7], '小雪': [11, 22], '大雪': [12, 7], '冬至': [12, 22]
-            };
-            const [month, day] = APPROX_DATES[jieQiName] || [1, 1];
-            return new Date(date.getFullYear(), month - 1, day, 12, 0, 0);
+    // 获取精确节气时间（兼容lunar.js 1.7.2）
+    function getExactJieQiTime(year, name) {
+        // 使用lunar.js的节气计算方法
+        const solar = Solar.fromYmd(year, 6, 1); // 使用年中作为参考点
+        const lunarObj = solar.getLunar();
+        const jieQiTable = lunarObj.getJieQiTable();
+        
+        // 查找指定节气
+        const jieQi = jieQiTable[name];
+        if (jieQi) {
+            return jieQi;
         }
+        
+        // 备用方案：使用近似日期
+        const APPROX_DATES = {
+            '小寒': [1, 6], '大寒': [1, 20], '立春': [2, 4], '雨水': [2, 19],
+            '惊蛰': [3, 6], '春分': [3, 21], '清明': [4, 5], '谷雨': [4, 20],
+            '立夏': [5, 6], '小满': [5, 21], '芒种': [6, 6], '夏至': [6, 21],
+            '小暑': [7, 7], '大暑': [7, 23], '立秋': [8, 8], '处暑': [8, 23],
+            '白露': [9, 8], '秋分': [9, 23], '寒露': [10, 8], '霜降': [10, 23],
+            '立冬': [11, 7], '小雪': [11, 22], '大雪': [12, 7], '冬至': [12, 22]
+        };
+        const [month, day] = APPROX_DATES[name] || [1, 1];
+        return new Date(year, month - 1, day, 12, 0, 0);
     }
 
-    // 查找最近节气（使用lunar.js精确数据）
+    // 查找最近节气（兼容lunar.js 1.7.2）
     function findNearestJieQi(birthDate, isForward) {
         const ALL_JIE_QI = [
             '小寒', '大寒', '立春', '雨水', '惊蛰', '春分',
@@ -2830,10 +2835,9 @@ function calculateLuckStartingTime(lunar, gender) {
         // 检查三年内的节气
         for (let yearOffset = -1; yearOffset <= 1; yearOffset++) {
             const year = birthDate.getFullYear() + yearOffset;
-            const testDate = new Date(year, birthDate.getMonth(), birthDate.getDate());
             
             for (const name of ALL_JIE_QI) {
-                const jieQiTime = getExactJieQiTime(name, testDate);
+                const jieQiTime = getExactJieQiTime(year, name);
                 if (!jieQiTime) continue;
                 
                 const diff = jieQiTime - birthDate;
@@ -2868,9 +2872,17 @@ function calculateLuckStartingTime(lunar, gender) {
     }
 
     try {
-        // 1. 获取精确出生时间（直接使用lunar对象）
-        const birthDate = lunar.getSolar().toDate();
-        
+        // 1. 获取精确出生时间（兼容lunar.js 1.7.2）
+        const solar = lunar.getSolar();
+        const birthDate = new Date(
+            solar.getYear(),
+            solar.getMonth() - 1, // JavaScript月份从0开始
+            solar.getDay(),
+            solar.getHour(),
+            solar.getMinute(),
+            solar.getSecond() || 0
+        );
+
         // 2. 判断顺排/逆排
         const yearGan = lunar.getYearGan();
         const isYangYear = ['甲', '丙', '戊', '庚', '壬'].includes(yearGan);
