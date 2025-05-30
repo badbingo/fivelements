@@ -1006,28 +1006,26 @@ ${getWealthSuggestions(score)}
 
     // 保存个人资料
     function saveProfile(birthData) {
-    const profiles = JSON.parse(localStorage.getItem('baziProfiles') || '[]');
-    const existingIndex = profiles.findIndex(p => 
-        p.date === birthData.date && 
-        p.time === birthData.time && 
-        p.gender === birthData.gender
-    );
-    
-    // 保存时包含时区
-    const profileToSave = {
-        ...birthData,
-        timezone: birthData.timezone || 8 // 确保有时区
-    };
-    
-    if (existingIndex >= 0) {
-        profiles[existingIndex] = profileToSave;
-    } else {
-        profiles.push(profileToSave);
+        const profiles = JSON.parse(localStorage.getItem('baziProfiles') || '[]');
+        const existingIndex = profiles.findIndex(function(p) {
+            return p.date === birthData.date && 
+                   p.time === birthData.time && 
+                   p.gender === birthData.gender;
+        });
+        
+        if (existingIndex >= 0) {
+            profiles[existingIndex] = birthData;
+        } else {
+            profiles.push(birthData);
+        }
+        
+        if (profiles.length > 8) {
+            profiles.shift();
+        }
+        
+        localStorage.setItem('baziProfiles', JSON.stringify(profiles));
+        loadSavedProfiles();
     }
-    
-    localStorage.setItem('baziProfiles', JSON.stringify(profiles));
-    loadSavedProfiles();
-}
 
     // 重置所有内容
     function resetAllContent() {
@@ -1396,30 +1394,54 @@ function displaySectionContent(section, result, contentElement) {
 }
     // 计算八字
     async function calculateBazi(e) {
-    if (e) e.preventDefault();
-    
-    // 新增时区获取
-    const timezone = parseInt(document.getElementById('birth-timezone').value) || 8; // 默认UTC+8
-    
-    // 确保其他必填字段
+    if (e) {
+        e.preventDefault();
+    }
+    resetAllContent();
+        
+    // 隐藏指南部分
+    document.getElementById('guide-section').style.display = 'none';
+        
     const name = document.getElementById('name').value;
     const birthDate = document.getElementById('birth-date').value;
-    const birthTime = document.getElementById('birth-time').value;
+    const birthTime = birthTimeInput.value;
     const gender = document.getElementById('gender').value;
-
+    
     if (!birthDate || !birthTime || !gender) {
         alert('请填写完整的出生信息');
         return;
     }
-
-    // 构建数据对象时包含时区
-    const birthData = { 
-        name, 
-        date: birthDate,
-        time: birthTime,
-        timezone, // 关键添加
-        gender 
-    };
+        
+        const dateParts = birthDate.split('-');
+        const year = parseInt(dateParts[0]);
+        const month = parseInt(dateParts[1]);
+        const day = parseInt(dateParts[2]);
+        
+        if (!isValidDate(year, month, day)) {
+            alert('请输入有效的出生日期');
+            return;
+        }
+        
+        if (month === 2) {
+            const maxDays = isLeapYear(year) ? 29 : 28;
+            if (day > maxDays) {
+                alert(`${year}年2月只有${maxDays}天`);
+                return;
+            }
+        }
+        
+        const monthsWith30Days = [4, 6, 9, 11];
+        if (monthsWith30Days.includes(month) && day > 30) {
+            alert(`${month}月只有30天`);
+            return;
+        }
+        
+        birthData = { 
+            name, 
+            date: birthDate,
+            time: birthTime, 
+            gender: gender
+        };
         
         saveProfile(birthData);
         calculateBtn.disabled = true;
@@ -1667,70 +1689,83 @@ function displaySectionContent(section, result, contentElement) {
 
     // 计算本命局五行能量（包括天干、地支、藏干，并考虑合化刑冲）
     function calculateNatalElements(baziInfo) {
-    // 0. 提取时区（默认UTC+8）
-    const timezone = baziInfo.timezone !== undefined ? baziInfo.timezone : 8;
-    const [year, month, day] = baziInfo.date.split('-').map(Number);
-    let [hours, minutes] = baziInfo.time.split(':').map(Number);
+        // 五行对应索引：木(0)、火(1)、土(2)、金(3)、水(4)
+        const elements = [0, 0, 0, 0, 0];
+        
+        // 天干五行映射
+        const stemElements = {
+            '甲': 0, '乙': 0,  // 木
+            '丙': 1, '丁': 1,  // 火
+            '戊': 2, '己': 2,  // 土
+            '庚': 3, '辛': 3,  // 金
+            '壬': 4, '癸': 4   // 水
+        };
+        
+        // 地支主气五行映射
+        const branchMainElements = {
+            '寅': 0, '卯': 0,  // 木
+            '午': 1, '巳': 1,  // 火
+            '辰': 2, '戌': 2, '丑': 2, '未': 2,  // 土
+            '申': 3, '酉': 3,  // 金
+            '子': 4, '亥': 4   // 水
+        };
+        
+        // 藏干五行映射（与天干相同）
+        const hiddenStemsElements = stemElements;
+        
+        // 1. 计算天干五行能量（每个天干1分）
+        const stems = [
+            baziInfo.yearStem,
+            baziInfo.monthStem,
+            baziInfo.dayStem,
+            baziInfo.hourStem
+        ];
+        stems.forEach(stem => {
+            if (stemElements[stem] !== undefined) {
+                elements[stemElements[stem]] += 1;
+            }
+        });
+        
+        // 2. 计算地支主气五行能量（每个地支主气2分）
+        const branches = [
+            baziInfo.yearBranch,
+            baziInfo.monthBranch,
+            baziInfo.dayBranch,
+            baziInfo.hourBranch
+        ];
+        branches.forEach(branch => {
+            if (branchMainElements[branch] !== undefined) {
+                elements[branchMainElements[branch]] += 2;
+            }
+        });
+        
+        // 3. 计算藏干五行能量（每个藏干1分）
+        const hiddenStems = [
+            baziInfo.yearHiddenStems,
+            baziInfo.monthHiddenStems,
+            baziInfo.dayHiddenStems,
+            baziInfo.hourHiddenStems
+        ];
+        hiddenStems.forEach(hidden => {
+            if (hidden) {
+                for (let i = 0; i < hidden.length; i++) {
+                    const char = hidden[i];
+                    if (hiddenStemsElements[char] !== undefined) {
+                        elements[hiddenStemsElements[char]] += 1;
+                    }
+                }
+            }
+        });
+        
+        // 4. 考虑合化对五行能量的影响
+        const combinedElements = applyCombinationEffects(elements, stems, branches);
+        
+        // 5. 考虑刑冲对五行能量的影响
+        const finalElements = applyConflictEffects(combinedElements, branches);
+        
+        return finalElements;
+    }
 
-    // 1. 时区校正（将本地时间转换为UTC+8标准时间）
-    let [hours, minutes] = baziInfo.time.split(':').map(Number);
-    hours = (hours + (8 - timezone)) % 24;
-    if (hours < 0) hours += 24;
-
-    // 2. 重新确定时辰地支（基于校正后的小时）
-    const correctedHourBranch = getHourBranch(hours);
-    
-    // 3. 五行能量数组 [木,火,土,金,水]
-    const elements = [0, 0, 0, 0, 0]; 
-
-    // 4. 天干五行映射（保持不变）
-    const stemElements = {
-        '甲':0, '乙':0, '丙':1, '丁':1, '戊':2, 
-        '己':2, '庚':3, '辛':3, '壬':4, '癸':4
-    };
-
-    // 5. 地支五行映射（主气）
-    const branchMainElements = {
-        '寅':0, '卯':0, '午':1, '巳':1, 
-        '辰':2, '戌':2, '丑':2, '未':2,
-        '申':3, '酉':3, '子':4, '亥':4
-    };
-
-    // 6. 应用时区校正后的时辰地支
-    const pillars = {
-        year: { stem: baziInfo.yearStem, branch: baziInfo.yearBranch },
-        month: { stem: baziInfo.monthStem, branch: baziInfo.monthBranch },
-        day: { stem: baziInfo.dayStem, branch: baziInfo.dayBranch },
-        hour: { stem: baziInfo.hourStem, branch: correctedHourBranch } // 关键修改
-    };
-
-    // 7. 计算天干能量（1分/干）
-    Object.values(pillars).forEach(pillar => {
-        elements[stemElements[pillar.stem]] += 1;
-    });
-
-    // 8. 计算地支主气能量（2分/支）
-    Object.values(pillars).forEach(pillar => {
-        elements[branchMainElements[pillar.branch]] += 2;
-    });
-
-    // 9. 藏干处理（需考虑时区校正后的地支）
-    const hiddenStemsMap = {
-        '子':'癸', '丑':'己癸辛', '寅':'甲丙戊', '卯':'乙',
-        '辰':'戊乙癸', '巳':'丙庚戊', '午':'丁己', '未':'己丁乙',
-        '申':'庚壬戊', '酉':'辛', '戌':'戊辛丁', '亥':'壬甲'
-    };
-
-    Object.values(pillars).forEach(pillar => {
-        const hiddenStems = hiddenStemsMap[pillar.branch] || '';
-        for (const stem of hiddenStems) {
-            elements[stemElements[stem]] += 1; // 藏干1分/干
-        }
-    });
-
-    // 10. 返回时区校正后的五行能量
-    return elements;
-}
     // 应用合化对五行能量的影响
     function applyCombinationEffects(elements, stems, branches, dayStem) {
     // 参数说明：
@@ -3204,29 +3239,24 @@ function determineStrengthType(pillars) {
 
     // 加载个人资料
     function loadProfile(profile) {
-    // 1. 基础信息加载（保持不变）
     document.getElementById('name').value = profile.name || '';
-    document.getElementById('birth-date').value = profile.date || '';
-    document.getElementById('birth-time').value = profile.time || '';
-    document.getElementById('gender').value = profile.gender || 'male'; // 默认值
-
-    // 2. 时区处理（关键修改）
-    const timezoneInput = document.getElementById('birth-timezone');
-    if (timezoneInput) {
-        // 优先使用profile中的时区，其次用旧数据的隐含时区，最后默认UTC+8
-        timezoneInput.value = 
-            profile.timezone !== undefined ? profile.timezone : 
-            (profile._tz ? profile._tz : 8); // _tz是旧数据的兼容字段
-    }
-
-    // 3. 自动触发计算（需传递完整参数）
-    calculateBazi(null, { 
-        name: profile.name,
-        date: profile.date,
-        time: profile.time,
-        timezone: profile.timezone !== undefined ? profile.timezone : 8, // 确保有时区
-        gender: profile.gender
+    document.getElementById('birth-date').value = profile.date;
+    document.getElementById('birth-time').value = profile.time;
+    document.getElementById('gender').value = profile.gender;
+    const hour = parseInt(profile.time.split(':')[0]);
+    timePeriodOptions.forEach(function(opt) {
+        opt.classList.remove('selected');
     });
+    const selectedOption = document.querySelector(`.time-period-option[data-hour="${hour}"]`);
+    if (selectedOption) {
+        selectedOption.classList.add('selected');
+        birthTimeInput.value = profile.time;
+    }
+    
+    // 自动触发计算
+    setTimeout(() => {
+        calculateBtn.click();
+    }, 100);
 }
 
     // 显示基础信息
@@ -3334,22 +3364,9 @@ function determineStrengthType(pillars) {
     }
 
     // 获取八字分析
-    async function getBaziAnalysis(section, birthData) {
-    // 1. 提取时区（默认为UTC+8中国时区）
-    const timezone = birthData.timezone || 8; 
-    
-    // 2. 构建请求参数（包含时区）
-    const requestParams = {
-        name: birthData.name,
-        birthDate: birthData.date,
-        birthTime: birthData.time,
-        timezone: timezone, // 关键时区参数
-        gender: birthData.gender,
-        analysisType: section
-    };
-
-    // 3. 生成缓存键（时区作为缓存因子）
-    const cacheKey = `${birthData.date}:${birthData.time}:${timezone}:${birthData.gender}:${section}`;
+    async function getBaziAnalysis(section, data) {
+    // 生成缓存键
+    const cacheKey = `${generateBaziHashKey(data)}:${section}`;
     
     // 检查缓存
     const cachedResponse = baziCache.get(cacheKey);
