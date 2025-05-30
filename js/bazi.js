@@ -2814,19 +2814,25 @@ function calculateLuckStartingTime(lunar, gender) {
             const jieQiDate = new Date(year, month - 1, day);
             const diff = jieQiDate - birthDate;
 
-            if (!isForward) {
-        const prevJieQi = lunar.getPrevJieQi(); // 确保获取的是上一个节气
-        daysDiff = Math.abs(birthDate - prevJieQi.getSolar()) / (1000*60*60*24);
-    }
-    
-    // 计算起运时间（3天=1年）
-    const years = Math.floor(daysDiff / 3);
-    const months = Math.floor((daysDiff % 3) * 4);
-    const days = Math.floor(((daysDiff % 3) * 4 - months) * 30);
-    
-    return `${years}年${months}个月${days}天起运`;
-}
+            if (isForward && diff > 0 && diff < minDiff) {
+                minDiff = diff;
+                nearest = jieQiDate;
+            } else if (!isForward && diff < 0 && -diff < minDiff) {
+                minDiff = -diff;
+                nearest = jieQiDate;
+            }
+        });
 
+        // 跨年处理
+        if (!nearest) {
+            const nextYear = isForward ? year + 1 : year - 1;
+            const jieQiDate = new Date(nextYear, 
+                isForward ? 0 : 11, // 立春(2月)或大雪(12月)
+                isForward ? JIE_QI_DATES['立春'][1] : JIE_QI_DATES['大雪'][1]);
+            return jieQiDate;
+        }
+        return nearest;
+    }
 
     try {
         // 1. 确定出生日期
