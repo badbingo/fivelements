@@ -2794,31 +2794,45 @@ function hasHe(branches, branch1, branch2) {
 
     // 修改后的calculateLuckStartingTime函数
 function calculateLuckStartingTime(lunar, gender) {
-    // 1. 获取出生日期和时间
-    const birthSolar = lunar.getSolar();
-    const birthDate = new Date(
-        birthSolar.getYear(),
-        birthSolar.getMonth() - 1,
-        birthSolar.getDay(),
-        birthSolar.getHour(),
-        birthSolar.getMinute()
-    );
+    try {
+        // 1. 获取出生日期和时间
+        const birthSolar = lunar.getSolar();
+        const birthDate = new Date(
+            birthSolar.getYear(),
+            birthSolar.getMonth() - 1,
+            birthSolar.getDay(),
+            birthSolar.getHour(),
+            birthSolar.getMinute()
+        );
 
-    // 2. 判断顺排/逆排
-    const yearGan = lunar.getYearGan();
-    const isYangYear = ['甲', '丙', '戊', '庚', '壬'].includes(yearGan);
-    const isForward = (isYangYear && gender === 'male') || 
-                     (!isYangYear && gender === 'female');
+        // 2. 判断顺排/逆排
+        const yearGan = lunar.getYearGan();
+        const isYangYear = ['甲', '丙', '戊', '庚', '壬'].includes(yearGan);
+        const isForward = (isYangYear && gender === 'male') || 
+                         (!isYangYear && gender === 'female');
 
-    // 3. 找到关键节气
-    const targetJieQi = findTargetJieQi(birthDate, isForward);
-    
-    // 4. 计算精确时间差（天）
-    const diffDays = calculateDaysDiff(birthDate, targetJieQi);
-    
-    // 5. 转换为起运时间（3天=1年）
-    return convertDaysToLuckTime(diffDays);
+        // 3. 找到关键节气
+        const targetJieQi = findTargetJieQi(birthDate, isForward);
+        if (!targetJieQi) {
+            console.error('找不到目标节气');
+            return '未知起运时间';
+        }
+
+        // 4. 计算精确时间差（天）
+        const diffDays = calculateDaysDiff(birthDate, targetJieQi);
+        if (isNaN(diffDays)) {
+            console.error('计算天数差失败:', diffDays);
+            return '未知起运时间';
+        }
+
+        // 5. 转换为起运时间（3天=1年）
+        return convertDaysToLuckTime(diffDays);
+    } catch (error) {
+        console.error('计算起运时间出错:', error);
+        return '未知起运时间';
+    }
 }
+
 
 // 辅助函数：找到目标节气
 function findTargetJieQi(birthDate, isForward) {
@@ -2836,28 +2850,35 @@ function findTargetJieQi(birthDate, isForward) {
     if (isForward) {
         // 从立春开始找下一个节气
         for (let i = 0; i < JIE_QI_LIST.length; i++) {
-            const jieQi = Lunar.fromYmdHms(birthYear, 1, 1, 0, 0, 0).getJieQi(JIE_QI_LIST[i]);
-            if (jieQi && new Date(jieQi) > birthDate) {
-                targetJieQi = new Date(jieQi);
+            const jieQiName = JIE_QI_LIST[i];
+            const jieQiDate = Lunar.fromYmdHms(birthYear, 1, 1, 0, 0, 0).getJieQi(jieQiName);
+            
+            // 确保jieQiDate是有效的日期对象
+            if (jieQiDate && new Date(jieQiDate) > birthDate) {
+                targetJieQi = new Date(jieQiDate);
                 break;
             }
         }
         // 如果今年没找到，找明年立春
         if (!targetJieQi) {
-            targetJieQi = new Date(Lunar.fromYmdHms(birthYear + 1, 1, 1, 0, 0, 0).getJieQi('立春'));
+            const nextYearJieQi = Lunar.fromYmdHms(birthYear + 1, 1, 1, 0, 0, 0).getJieQi('立春');
+            targetJieQi = new Date(nextYearJieQi);
         }
     } else {
         // 逆排找上一个节气
         for (let i = JIE_QI_LIST.length - 1; i >= 0; i--) {
-            const jieQi = Lunar.fromYmdHms(birthYear, 1, 1, 0, 0, 0).getJieQi(JIE_QI_LIST[i]);
-            if (jieQi && new Date(jieQi) < birthDate) {
-                targetJieQi = new Date(jieQi);
+            const jieQiName = JIE_QI_LIST[i];
+            const jieQiDate = Lunar.fromYmdHms(birthYear, 1, 1, 0, 0, 0).getJieQi(jieQiName);
+            
+            if (jieQiDate && new Date(jieQiDate) < birthDate) {
+                targetJieQi = new Date(jieQiDate);
                 break;
             }
         }
         // 如果今年没找到，找去年大雪
         if (!targetJieQi) {
-            targetJieQi = new Date(Lunar.fromYmdHms(birthYear - 1, 1, 1, 0, 0, 0).getJieQi('大雪'));
+            const lastYearJieQi = Lunar.fromYmdHms(birthYear - 1, 1, 1, 0, 0, 0).getJieQi('大雪');
+            targetJieQi = new Date(lastYearJieQi);
         }
     }
     
@@ -2865,19 +2886,30 @@ function findTargetJieQi(birthDate, isForward) {
 }
 
 // 辅助函数：计算天数差
-function calculateDaysDiff(birthDate, targetDate) {
-    const diffMs = Math.abs(targetDate - birthDate);
-    return diffMs / (1000 * 60 * 60 * 24); // 转换为天数
+function calculateDaysDiff(startDate, endDate) {
+    // 确保传入的是有效的Date对象
+    if (!(startDate instanceof Date) startDate = new Date(startDate);
+    if (!(endDate instanceof Date) endDate = new Date(endDate);
+    
+    const diffMs = endDate - startDate;
+    const diffDays = diffMs / (1000 * 60 * 60 * 24);
+    
+    return Math.abs(Math.round(diffDays)); // 取绝对值并四舍五入
 }
 
 // 辅助函数：转换为起运时间
 function convertDaysToLuckTime(days) {
+    if (isNaN(days) {
+        console.error('无效的天数:', days);
+        return '未知起运时间';
+    }
+    
     const years = Math.floor(days / 3);
     const remainingDays = days % 3;
     const months = Math.floor(remainingDays * 4); // 1天≈4个月
     const daysRemain = Math.floor((remainingDays * 4 - months) * 30);
     
-    // 处理特殊情况：刚好是整数年
+    // 处理刚好是整数年的情况
     if (months === 0 && daysRemain === 0) {
         return `${years}岁起运`;
     }
