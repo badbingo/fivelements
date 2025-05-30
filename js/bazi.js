@@ -2794,8 +2794,19 @@ function hasHe(branches, branch1, branch2) {
 
     // 修改后的calculateLuckStartingTime函数
 function calculateLuckStartingTime(lunar, gender) {
+    // 确保lunar对象有效
+    if (!lunar || !lunar.getSolar) return "6岁起运";
+    
     try {
         const solar = lunar.getSolar();
+        const birthDate = solar.toDate();
+        
+        // 验证日期有效性
+        if (!(birthDate instanceof Date) || isNaN(birthDate.getTime())) {
+            return "6岁起运";
+        }
+
+        // 获取年柱天干地支
         const yearGan = lunar.getYearGan();
         const yearZhi = lunar.getYearZhi();
         
@@ -2803,93 +2814,112 @@ function calculateLuckStartingTime(lunar, gender) {
         const isYangYear = ['甲', '丙', '戊', '庚', '壬'].includes(yearGan);
         const isMale = gender === 'male';
         
-        // 阴年女性应逆排
-        const isReverse = (!isYangYear && !isMale) || (isYangYear && isMale);
+        // 排盘方向：阳年男性顺排，阴年女性顺排；其他逆排
+        const isForward = (isYangYear && isMale) || (!isYangYear && !isMale);
         
-        // 获取当前月份的地支
-        const monthZhi = lunar.getMonthZhi();
+        // 获取节气（关键修正点）
+        const targetJieQi = isForward ? 
+            findNextJieQi(birthDate) : 
+            findPrevJieQi(birthDate);
         
-        // 查找上一个节气（逆排）或下一个节气（顺排）
-        const targetJieQi = isReverse ? 
-            findPrevJieQi(solar.toDate()) : 
-            findNextJieQi(solar.toDate());
-        
-        // 计算时间差（毫秒）
-        const diffMs = Math.abs(targetJieQi - solar.toDate());
-        
-        // 转换为天数（3天=1岁）
-        const diffDays = diffMs / (1000 * 60 * 60 * 24);
-        const years = Math.floor(diffDays / 3);
-        const remainingDays = diffDays % 3;
-        const months = Math.floor(remainingDays * 4); // 0.25个月/天
-        
-        // 处理临界情况（出生在节气当天）
-        if (diffDays < 1) {
-            return "3岁起运"; // 默认最小值
+        // 验证节气有效性
+        if (!targetJieQi || !(targetJieQi instanceof Date)) {
+            return "6岁起运";
         }
+
+        // 计算时间差（天数）
+        const diffMs = Math.abs(targetJieQi - birthDate);
+        const diffDays = diffMs / (1000 * 60 * 60 * 24);
         
-        return `${years}岁${months}个月起运`;
+        // 3天=1岁，1天=4个月
+        const years = Math.floor(diffDays / 3);
+        const months = Math.round((diffDays % 3) * 4);
+        
+        // 处理最小值（至少1岁起运）
+        const minYears = Math.max(1, years);
+        
+        // 返回格式化结果
+        if (months > 0) {
+            return `${minYears}岁${months}个月起运`;
+        }
+        return `${minYears}岁起运`;
         
     } catch (e) {
-        console.error("起运时间计算失败:", e);
-        return "3岁起运"; // 默认值
+        console.error("起运时间计算异常:", e);
+        return "6岁起运"; // 默认值调整为6岁
     }
 }
 
-// 查找上一个节气（修正版）
-function findPrevJieQi(date) {
-    const solar = Solar.fromDate(date);
-    const lunar = solar.getLunar();
-    const jieQiMap = lunar.getJieQiTable();
-    
-    // 按时间倒序排列节气
-    const jieQiList = Object.entries(jieQiMap)
-        .map(([name, solar]) => ({ name, solar }))
-        .sort((a, b) => b.solar.toYmdHms().localeCompare(a.solar.toYmdHms()));
-    
-    // 找到第一个早于出生日期的节气
-    for (const jieQi of jieQiList) {
-        const jieQiDate = jieQi.solar.toDate();
-        if (jieQiDate < date) {
-            return jieQiDate;
-        }
-    }
-    
-    // 如果当年没找到，返回上一年的大寒
-    const prevYear = solar.getYear() - 1;
-    return Solar.fromYmdHms(prevYear, 1, 20, 0, 0, 0)
-        .getLunar()
-        .getJieQi("大寒")
-        .getSolar()
-        .toDate();
-}
-
-// 查找下一个节气（修正版）
+// 精确查找下一个节气
 function findNextJieQi(date) {
-    const solar = Solar.fromDate(date);
-    const lunar = solar.getLunar();
-    const jieQiMap = lunar.getJieQiTable();
-    
-    // 按时间正序排列节气
-    const jieQiList = Object.entries(jieQiMap)
-        .map(([name, solar]) => ({ name, solar }))
-        .sort((a, b) => a.solar.toYmdHms().localeCompare(b.solar.toYmdHms()));
-    
-    // 找到第一个晚于出生日期的节气
-    for (const jieQi of jieQiList) {
-        const jieQiDate = jieQi.solar.toDate();
-        if (jieQiDate > date) {
-            return jieQiDate;
+    try {
+        const solar = Solar.fromDate(date);
+        const lunar = solar.getLunar();
+        const jieQiMap = lunar.getJieQiTable();
+        
+        // 转换为数组并排序
+        const jieQiList = Object.entries(jieQiMap)
+            .map(([name, solar]) => ({ 
+                name, 
+                date: solar.toDate() 
+            }))
+            .sort((a, b) => a.date - b.date);
+        
+        // 找到第一个未来的节气
+        for (const jieQi of jieQiList) {
+            if (jieQi.date > date) {
+                return jieQi.date;
+            }
         }
+        
+        // 跨年处理：返回下一年立春
+        const nextYear = date.getFullYear() + 1;
+        return Solar.fromYmdHms(nextYear, 2, 4, 0, 0, 0)
+            .getLunar()
+            .getJieQi("立春")
+            .getSolar()
+            .toDate();
+        
+    } catch (e) {
+        console.error("查找下一个节气失败:", e);
+        return null;
     }
-    
-    // 如果当年没找到，返回下一年的立春
-    const nextYear = solar.getYear() + 1;
-    return Solar.fromYmdHms(nextYear, 2, 4, 0, 0, 0)
-        .getLunar()
-        .getJieQi("立春")
-        .getSolar()
-        .toDate();
+}
+
+// 精确查找上一个节气
+function findPrevJieQi(date) {
+    try {
+        const solar = Solar.fromDate(date);
+        const lunar = solar.getLunar();
+        const jieQiMap = lunar.getJieQiTable();
+        
+        // 转换为数组并倒序排序
+        const jieQiList = Object.entries(jieQiMap)
+            .map(([name, solar]) => ({ 
+                name, 
+                date: solar.toDate() 
+            }))
+            .sort((a, b) => b.date - a.date);
+        
+        // 找到第一个过去的节气
+        for (const jieQi of jieQiList) {
+            if (jieQi.date < date) {
+                return jieQi.date;
+            }
+        }
+        
+        // 跨年处理：返回上一年大寒
+        const prevYear = date.getFullYear() - 1;
+        return Solar.fromYmdHms(prevYear, 1, 20, 0, 0, 0)
+            .getLunar()
+            .getJieQi("大寒")
+            .getSolar()
+            .toDate();
+        
+    } catch (e) {
+        console.error("查找上一个节气失败:", e);
+        return null;
+    }
 }
 
     // 判断从强从弱 - 修改后的函数
