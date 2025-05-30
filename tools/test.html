@@ -1409,68 +1409,110 @@
     }
     
     function getCurrentDecadeLuck(lunar, gender) {
-        // 简化版，实际应根据起运时间计算
-        const currentAge = new Date().getFullYear() - lunar.getYear();
-        const startAge = gender === 'male' ? 1 : 0; // 简化起运时间
-        const decadeIndex = Math.floor((currentAge - startAge) / 10);
-        
-        const decadeGanZhi = [
-            '甲子', '乙丑', '丙寅', '丁卯', '戊辰', '己巳', '庚午', '辛未', '壬申', '癸酉'
-        ][decadeIndex % 10];
-        
-        const startYear = lunar.getYear() + startAge + decadeIndex * 10;
-        const endYear = startYear + 10;
-        
-        return {
-            ganZhi: decadeGanZhi,
-            years: `${startYear}-${endYear}年`
-        };
+    const baZi = lunar.getBaZi();
+    const yearGan = baZi[0].substring(0, 1);
+    const monthGanZhi = baZi[1];
+    
+    // 1. 确定顺排还是逆排
+    const isYangYear = isYangGan(yearGan);
+    const isShunPai = (isYangYear && gender === 'male') || (!isYangYear && gender === 'female');
+    
+    // 2. 计算起运年龄（精确到天）
+    const birthDate = lunar.getSolarDate();
+    const jieQi = lunar.getJieQi(); // 需要获取节气数据
+    
+    // 找出出生后的下一个换月节气（顺排）或上一个换月节气（逆排）
+    let nextJieQi = findRelevantJieQi(birthDate, jieQi, isShunPai);
+    
+    // 计算起运时间（3天=1年，1天=4个月，1时辰=10天）
+    const daysBetween = Math.abs(nextJieQi.date - birthDate) / (1000 * 60 * 60 * 24);
+    const startAge = daysBetween / 3; // 精确到年
+    
+    // 3. 生成大运列表（从月柱开始顺排或逆排）
+    const decadeGanZhiList = generateDaYunList(monthGanZhi, isShunPai);
+    
+    // 4. 找出当前大运
+    const currentAge = new Date().getFullYear() - birthDate.getFullYear();
+    const decadeIndex = Math.floor((currentAge - startAge) / 10);
+    const currentDaYun = decadeGanZhiList[decadeIndex % decadeGanZhiList.length];
+    
+    return {
+        ganZhi: currentDaYun,
+        years: `${Math.floor(startAge + decadeIndex * 10)}-${Math.floor(startAge + (decadeIndex + 1) * 10)}岁`,
+        startAge: startAge.toFixed(2)
+    };
+}
+
+// 辅助函数：生成大运列表
+function generateDaYunList(monthGanZhi, isShunPai) {
+    const ganZhiList = [
+        '甲子', '乙丑', '丙寅', '丁卯', '戊辰', '己巳', '庚午', '辛未', '壬申', '癸酉',
+        '甲戌', '乙亥', '丙子', '丁丑', '戊寅', '己卯', '庚辰', '辛巳', '壬午', '癸未',
+        '甲申', '乙酉', '丙戌', '丁亥', '戊子', '己丑', '庚寅', '辛卯', '壬辰', '癸巳',
+        '甲午', '乙未', '丙申', '丁酉', '戊戌', '己亥', '庚子', '辛丑', '壬寅', '癸卯',
+        '甲辰', '乙巳', '丙午', '丁未', '戊申', '己酉', '庚戌', '辛亥', '壬子', '癸丑',
+        '甲寅', '乙卯', '丙辰', '丁巳', '戊午', '己未', '庚申', '辛酉', '壬戌', '癸亥'
+    ];
+    
+    const startIndex = ganZhiList.indexOf(monthGanZhi);
+    const result = [];
+    
+    for (let i = 0; i < 10; i++) {
+        const offset = isShunPai ? i + 1 : -i - 1;
+        const index = (startIndex + offset + 60) % 60;
+        result.push(ganZhiList[index]);
     }
     
-    function getDecadeLuckSummary(lunar, gender) {
-        const startAge = gender === 'male' ? 1 : 0;
-        let summary = `您的大运走势如下（${gender === 'male' ? '男命顺排' : '女命逆排'}），每十年一个大运：<br>`;
-        
-        const decadeGanZhiList = [
-            '甲子', '乙丑', '丙寅', '丁卯', '戊辰', '己巳', '庚午', '辛未', '壬申', '癸酉'
-        ];
-        
-        for (let i = 0; i < 8; i++) {
-            const startYear = lunar.getYear() + startAge + i * 10;
-            const endYear = startYear + 10;
-            summary += `${startYear}-${endYear}年：${decadeGanZhiList[i % 10]}运<br>`;
-        }
-        
-        return summary;
+    return result;
+}
+
+// 修改后的运势总结函数
+function getDecadeLuckSummary(lunar, gender) {
+    const baZi = lunar.getBaZi();
+    const yearGan = baZi[0].substring(0, 1);
+    const isShunPai = (isYangGan(yearGan) && gender === 'male') || 
+                      (!isYangGan(yearGan) && gender === 'female');
+    
+    const daYunList = generateDaYunList(baZi[1], isShunPai);
+    const startAge = getCurrentDecadeLuck(lunar, gender).startAge;
+    
+    let summary = `您的大运走势如下（${isShunPai ? '顺排' : '逆排'}），起运时间：${startAge}岁<br>`;
+    
+    for (let i = 0; i < 8; i++) {
+        const start = parseFloat(startAge) + i * 10;
+        summary += `${start.toFixed(0)}-${(start + 10).toFixed(0)}岁：${daYunList[i]}运<br>`;
     }
     
-    function generateDecadeLuckTimeline(lunar, gender) {
-        const startAge = gender === 'male' ? 1 : 0;
-        const decadeGanZhiList = [
-            '甲子', '乙丑', '丙寅', '丁卯', '戊辰', '己巳', '庚午', '辛未', '壬申', '癸酉'
-        ];
+    return summary;
+}
+
+// 修改后的时间线生成函数
+function generateDecadeLuckTimeline(lunar, gender) {
+    const daYunInfo = getCurrentDecadeLuck(lunar, gender);
+    const daYunList = generateDaYunList(lunar.getBaZi()[1], 
+        (isYangGan(lunar.getBaZi()[0].substring(0, 1)) && gender === 'male') || 
+        (!isYangGan(lunar.getBaZi()[0].substring(0, 1)) && gender === 'female'));
+    
+    let timelineHTML = '';
+    const startAge = parseFloat(daYunInfo.startAge);
+    
+    for (let i = 0; i < 5; i++) {
+        const ganZhi = daYunList[i];
+        const start = startAge + i * 10;
         
-        let timelineHTML = '';
-        
-        for (let i = 0; i < 5; i++) {
-            const startYear = lunar.getYear() + startAge + i * 10;
-            const endYear = startYear + 10;
-            const ganZhi = decadeGanZhiList[i % 10];
-            const wuxing1 = getWuxingByGan(ganZhi[0]);
-            const wuxing2 = getWuxingByGan(ganZhi[1]);
-            
-            timelineHTML += `
-                <div class="timeline-item">
-                    <div class="timeline-year">${startYear}-${endYear}年 (${ganZhi}运)</div>
-                    <div class="timeline-content">
-                        ${wuxing1}${wuxing2}大运，${getDecadeLuckAnalysis(ganZhi)}
-                    </div>
+        timelineHTML += `
+            <div class="timeline-item">
+                <div class="timeline-year">${start.toFixed(0)}-${(start + 10).toFixed(0)}岁 (${ganZhi}运)</div>
+                <div class="timeline-content">
+                    ${getWuxingByGan(ganZhi[0])}${getWuxingByGan(ganZhi[1])}大运，
+                    ${getDecadeLuckAnalysis(ganZhi)}
                 </div>
-            `;
-        }
-        
-        return timelineHTML;
+            </div>
+        `;
     }
+    
+    return timelineHTML;
+}
     
     function getDecadeLuckAnalysis(ganZhi) {
         const gan = ganZhi[0];
@@ -1733,7 +1775,25 @@
         
         return gan[(ganIndex + 10) % 10] + zhi[(zhiIndex + 12) % 12];
     }
+            
+    // 新增工具函数：判断天干阴阳
+    function isYangGan(gan) {
+        return ['甲', '丙', '戊', '庚', '壬'].includes(gan);
+    }
     
+    // 新增工具函数：获取月柱的60甲子索引
+    function getMonthGanZhiIndex(monthGanZhi) {
+        const ganZhiList = [
+            '甲子', '乙丑', '丙寅', '丁卯', '戊辰', '己巳', '庚午', '辛未', '壬申', '癸酉',
+            '甲戌', '乙亥', '丙子', '丁丑', '戊寅', '己卯', '庚辰', '辛巳', '壬午', '癸未',
+            '甲申', '乙酉', '丙戌', '丁亥', '戊子', '己丑', '庚寅', '辛卯', '壬辰', '癸巳',
+            '甲午', '乙未', '丙申', '丁酉', '戊戌', '己亥', '庚子', '辛丑', '壬寅', '癸卯',
+            '甲辰', '乙巳', '丙午', '丁未', '戊申', '己酉', '庚戌', '辛亥', '壬子', '癸丑',
+            '甲寅', '乙卯', '丙辰', '丁巳', '戊午', '己未', '庚申', '辛酉', '壬戌', '癸亥'
+        ];
+        return ganZhiList.indexOf(monthGanZhi);
+    }
+            
     // 天干五行
     function getWuxingByGan(gan) {
         const map = {
