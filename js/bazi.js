@@ -2794,81 +2794,116 @@ function hasHe(branches, branch1, branch2) {
 
     // 修改后的calculateLuckStartingTime函数
 function calculateLuckStartingTime(lunar, gender) {
-    // 节气近似公历日期（误差±1天不影响年柱计算）
-    const JIE_QI_DATES = {
-        '立春': [2,4], '雨水': [2,19], '惊蛰': [3,6], '春分': [3,21],
-        '清明': [4,5], '谷雨': [4,20], '立夏': [5,6], '小满': [5,21],
-        '芒种': [6,6], '夏至': [6,21], '小暑': [7,7], '大暑': [7,23],
-        '立秋': [8,8], '处暑': [8,23], '白露': [9,8], '秋分': [9,23],
-        '寒露': [10,8], '霜降': [10,23], '立冬': [11,7], '小雪': [11,22],
-        '大雪': [12,7], '冬至': [12,22], '小寒': [1,6], '大寒': [1,20]
-    };
-
-    // 获取最近的节气（向前/向后）
-    function findNearestJieQi(birthDate, isForward) {
-        const year = birthDate.getFullYear();
-        let nearest = null;
-        let minDiff = Infinity;
-
-        Object.entries(JIE_QI_DATES).forEach(([name, [month, day]]) => {
-            const jieQiDate = new Date(year, month - 1, day);
-            const diff = jieQiDate - birthDate;
-
-            if (isForward && diff > 0 && diff < minDiff) {
-                minDiff = diff;
-                nearest = jieQiDate;
-            } else if (!isForward && diff < 0 && -diff < minDiff) {
-                minDiff = -diff;
-                nearest = jieQiDate;
-            }
-        });
-
-        // 跨年处理
-        if (!nearest) {
-            const nextYear = isForward ? year + 1 : year - 1;
-            const jieQiDate = new Date(nextYear, 
-                isForward ? 0 : 11, // 立春(2月)或大雪(12月)
-                isForward ? JIE_QI_DATES['立春'][1] : JIE_QI_DATES['大雪'][1]);
-            return jieQiDate;
-        }
-        return nearest;
-    }
-
     try {
-        // 1. 确定出生日期
+        // 1. 获取出生日期和时间
+        const birthSolar = lunar.getSolar();
         const birthDate = new Date(
-            lunar.getSolar().getYear(),
-            lunar.getSolar().getMonth() - 1,
-            lunar.getSolar().getDay(),
-            lunar.getSolar().getHour(),
-            lunar.getSolar().getMinute()
+            birthSolar.getYear(),
+            birthSolar.getMonth() - 1,
+            birthSolar.getDay(),
+            birthSolar.getHour(),
+            birthSolar.getMinute()
         );
-
+        
         // 2. 判断顺排/逆排
         const yearGan = lunar.getYearGan();
         const isYangYear = ['甲', '丙', '戊', '庚', '壬'].includes(yearGan);
         const isForward = (isYangYear && gender === 'male') || 
                          (!isYangYear && gender === 'female');
-
-        // 3. 找到关键节气
-        const targetJieQi = findNearestJieQi(birthDate, isForward);
         
-        // 4. 计算精确时间差（毫秒）
-        const diffMs = Math.abs(targetJieQi - birthDate);
+        // 3. 获取所有节气信息
+        const jieQiList = [
+            '立春', '雨水', '惊蛰', '春分', '清明', '谷雨',
+            '立夏', '小满', '芒种', '夏至', '小暑', '大暑',
+            '立秋', '处暑', '白露', '秋分', '寒露', '霜降',
+            '立冬', '小雪', '大雪', '冬至', '小寒', '大寒'
+        ];
+        
+        // 4. 找到正确的换月节气
+        let targetJieQi = null;
+        if (isForward) {
+            // 顺排：找下一个换月节气
+            for (let i = 0; i < jieQiList.length; i++) {
+                const jq = lunar.getJieQi(jieQiList[i]);
+                if (!jq) continue;
+                
+                const jqDate = new Date(
+                    jq.getSolar().getYear(),
+                    jq.getSolar().getMonth() - 1,
+                    jq.getSolar().getDay(),
+                    jq.getSolar().getHour(),
+                    jq.getSolar().getMinute()
+                );
+                
+                if (jqDate > birthDate) {
+                    targetJieQi = jq;
+                    break;
+                }
+            }
+            
+            // 如果没找到（年末出生），找下一年的立春
+            if (!targetJieQi) {
+                const nextYearLunar = Solar.fromYmdHms(
+                    birthSolar.getYear() + 1, 1, 1, 0, 0, 0
+                ).getLunar();
+                targetJieQi = nextYearLunar.getJieQi('立春');
+            }
+        } else {
+            // 逆排：找上一个换月节气
+            for (let i = jieQiList.length - 1; i >= 0; i--) {
+                const jq = lunar.getJieQi(jieQiList[i]);
+                if (!jq) continue;
+                
+                const jqDate = new Date(
+                    jq.getSolar().getYear(),
+                    jq.getSolar().getMonth() - 1,
+                    jq.getSolar().getDay(),
+                    jq.getSolar().getHour(),
+                    jq.getSolar().getMinute()
+                );
+                
+                if (jqDate < birthDate) {
+                    targetJieQi = jq;
+                    break;
+                }
+            }
+            
+            // 如果没找到（年初出生），找上一年的冬至
+            if (!targetJieQi) {
+                const prevYearLunar = Solar.fromYmdHms(
+                    birthSolar.getYear() - 1, 12, 31, 23, 59, 59
+                ).getLunar();
+                targetJieQi = prevYearLunar.getJieQi('冬至');
+            }
+        }
+        
+        // 5. 计算精确时间差
+        if (!targetJieQi) return "无法计算起运时间";
+        
+        const targetSolar = targetJieQi.getSolar();
+        const targetDate = new Date(
+            targetSolar.getYear(),
+            targetSolar.getMonth() - 1,
+            targetSolar.getDay(),
+            targetSolar.getHour(),
+            targetSolar.getMinute()
+        );
+        
+        const diffMs = Math.abs(targetDate - birthDate);
         const diffDays = diffMs / (1000 * 60 * 60 * 24);
-
-        // 5. 转换为起运时间（3天=1年）
+        
+        // 6. 转换为起运时间（3天=1年）
         const years = Math.floor(diffDays / 3);
         const remainingDays = diffDays % 3;
         const months = Math.floor(remainingDays * 4); // 1天≈4个月
         const days = Math.floor((remainingDays * 4 - months) * 30);
         const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-
+        
         return `${years}岁${months}个月${days}天${Math.round(hours)}小时起运`;
-
+        
     } catch (e) {
-        console.error('计算异常:', e);
-        return '无法计算起运时间';
+        console.error('计算起运时间异常:', e);
+        return "无法计算起运时间";
     }
 }
 
