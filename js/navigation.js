@@ -416,7 +416,7 @@ function createNavigation() {
     
     mainNav.appendChild(navList);
     
-    // 5. 移动端菜单按钮
+    // 5. 移动端菜单按钮（修复了变量定义顺序问题）
     const mobileMenuBtn = document.createElement('div');
     mobileMenuBtn.className = 'mobile-menu-btn';
     mobileMenuBtn.innerHTML = `
@@ -441,17 +441,9 @@ function setupMobileMenu() {
     const mainNav = document.querySelector('.main-nav');
     
     if (mobileMenuBtn && mainNav) {
-        mobileMenuBtn.addEventListener('click', function(e) {
-            e.stopPropagation();
+        mobileMenuBtn.addEventListener('click', function() {
             this.classList.toggle('active');
             mainNav.classList.toggle('active');
-            
-            // 关闭所有打开的下拉菜单
-            if (!mainNav.classList.contains('active')) {
-                document.querySelectorAll('.dropdown-menu').forEach(menu => {
-                    menu.classList.remove('active');
-                });
-            }
         });
         
         // 处理下拉菜单点击
@@ -464,25 +456,7 @@ function setupMobileMenu() {
                         e.preventDefault();
                         const dropdown = item.querySelector('.dropdown-menu');
                         dropdown.classList.toggle('active');
-                        
-                        // 关闭其他打开的下拉菜单
-                        document.querySelectorAll('.dropdown-menu').forEach(menu => {
-                            if (menu !== dropdown) {
-                                menu.classList.remove('active');
-                            }
-                        });
                     }
-                });
-            }
-        });
-        
-        // 点击文档其他区域关闭菜单
-        document.addEventListener('click', function(e) {
-            if (!mainNav.contains(e.target) && !mobileMenuBtn.contains(e.target)) {
-                mobileMenuBtn.classList.remove('active');
-                mainNav.classList.remove('active');
-                document.querySelectorAll('.dropdown-menu').forEach(menu => {
-                    menu.classList.remove('active');
                 });
             }
         });
@@ -507,12 +481,9 @@ function setupScrollEffects() {
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function(e) {
             e.preventDefault();
-            const target = document.querySelector(this.getAttribute('href'));
-            if (target) {
-                target.scrollIntoView({
-                    behavior: 'smooth'
-                });
-            }
+            document.querySelector(this.getAttribute('href')).scrollIntoView({
+                behavior: 'smooth'
+            });
         });
     });
 }
