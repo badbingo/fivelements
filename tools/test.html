@@ -875,65 +875,65 @@
 
     // 身强身弱分析
     function getStrengthAnalysis(lunar) {
-        const baZi = lunar.getBaZi();
-        const dayGan = baZi[2].substring(0, 1);
-        const monthZhi = baZi[1].substring(1);
-        
-        // 判断得令情况
-        const seasonStrength = getSeasonStrength(dayGan, monthZhi);
-        
-        // 判断得地情况
-        const landStrength = getLandStrength(baZi, dayGan);
-        
-        // 判断得势情况
-        const supportStrength = getSupportStrength(baZi, dayGan);
-        
-        // 综合判断
-        if (seasonStrength === '得令' && landStrength >= 2 && supportStrength >= 2) {
-            return "身强";
-        } else if (seasonStrength === '不得令' && landStrength <= 1 && supportStrength <= 1) {
-            return "身弱";
-        } else {
-            return "中和偏" + (seasonStrength === '得令' ? '强' : '弱');
-        }
+    const baZi = lunar.getBaZi();
+    const dayGan = baZi[2].substring(0, 1);
+    const monthZhi = baZi[1].substring(1);
+    
+    // 判断得令情况
+    const seasonStrength = getSeasonStrength(dayGan, monthZhi);
+    
+    // 判断得地情况
+    const landStrength = getLandStrength(baZi, dayGan);
+    
+    // 判断得势情况
+    const supportStrength = getSupportStrength(baZi, dayGan);
+    
+    // 综合判断 - 修复了这里的条件语句括号
+    if (seasonStrength === '得令' && landStrength >= 2 && supportStrength >= 2) {
+        return "身强";
+    } else if (seasonStrength === '不得令' && landStrength <= 1 && supportStrength <= 1) {
+        return "身弱";
+    } else {
+        return "中和偏" + (seasonStrength === '得令' ? '强' : '弱');
     }
+}
     
     function getSeasonStrength(dayGan, monthZhi) {
-        // 季节五行映射
-        const seasonWuxing = {
-            '寅': '木', '卯': '木', '辰': '土', // 春
-            '巳': '火', '午': '火', '未': '土', // 夏
-            '申': '金', '酉': '金', '戌': '土', // 秋
-            '亥': '水', '子': '水', '丑': '土'  // 冬
-        };
-        
-        // 天干五行映射
-        const ganWuxing = {
-            '甲': '木', '乙': '木', '丙': '火', '丁': '火',
-            '戊': '土', '己': '土', '庚': '金', '辛': '金',
-            '壬': '水', '癸': '水'
-        };
-        
-        const monthWuxing = seasonWuxing[monthZhi];
-        const dayWuxing = ganWuxing[dayGan];
-        
-        if (!monthWuxing || !dayWuxing) return '未知';
-        
-        // 判断得令情况
-        if (monthWuxing === dayWuxing) {
-            return '得令';
-        } else if (
-            (dayWuxing === '木' && monthWuxing === '水') ||
-            (dayWuxing === '火' && monthWuxing === '木') ||
-            (dayWuxing === '土' && monthWuxing === '火') ||
-            (dayWuxing === '金' && monthWuxing === '土') ||
-            (dayWuxing === '水' && monthWuxing === '金')
-        ) {
-            return '相生';
-        } else {
-            return '不得令';
-        }
+    // 季节五行映射
+    const seasonWuxing = {
+        '寅': '木', '卯': '木', '辰': '土', // 春
+        '巳': '火', '午': '火', '未': '土', // 夏
+        '申': '金', '酉': '金', '戌': '土', // 秋
+        '亥': '水', '子': '水', '丑': '土'  // 冬
+    };
+    
+    // 天干五行映射
+    const ganWuxing = {
+        '甲': '木', '乙': '木', '丙': '火', '丁': '火',
+        '戊': '土', '己': '土', '庚': '金', '辛': '金',
+        '壬': '水', '癸': '水'
+    };
+    
+    const monthWuxing = seasonWuxing[monthZhi];
+    const dayWuxing = ganWuxing[dayGan];
+    
+    if (!monthWuxing || !dayWuxing) return '未知';
+    
+    // 判断得令情况 - 修复了这里的条件语句括号
+    if (monthWuxing === dayWuxing) {
+        return '得令';
+    } else if (
+        (dayWuxing === '木' && monthWuxing === '水') ||
+        (dayWuxing === '火' && monthWuxing === '木') ||
+        (dayWuxing === '土' && monthWuxing === '火') ||
+        (dayWuxing === '金' && monthWuxing === '土') ||
+        (dayWuxing === '水' && monthWuxing === '金')
+    ) {
+        return '相生';
+    } else {
+        return '不得令';
     }
+}
     
     function getLandStrength(baZi, dayGan) {
         // 地支藏干中是否有日主同五行
