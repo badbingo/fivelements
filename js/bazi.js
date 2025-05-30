@@ -2888,9 +2888,13 @@ function findTargetJieQi(birthDate, isForward) {
 // 辅助函数：计算天数差
 function calculateDaysDiff(startDate, endDate) {
     // 确保传入的是有效的Date对象
-    if (!(startDate instanceof Date) startDate = new Date(startDate);
-    if (!(endDate instanceof Date) endDate = new Date(endDate);
-    
+    if (!(startDate instanceof Date)) {
+        startDate = new Date(startDate);
+    }
+    if (!(endDate instanceof Date)) {
+        endDate = new Date(endDate);
+    }
+
     const diffMs = endDate - startDate;
     const diffDays = diffMs / (1000 * 60 * 60 * 24);
     
