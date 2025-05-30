@@ -2828,17 +2828,6 @@ function calculateLuckStartingTime(lunar, gender) {
 }
 
 
-        // 跨年处理
-        if (!nearest) {
-            const nextYear = isForward ? year + 1 : year - 1;
-            const jieQiDate = new Date(nextYear, 
-                isForward ? 0 : 11, // 立春(2月)或大雪(12月)
-                isForward ? JIE_QI_DATES['立春'][1] : JIE_QI_DATES['大雪'][1]);
-            return jieQiDate;
-        }
-        return nearest;
-    }
-
     try {
         // 1. 确定出生日期
         const birthDate = new Date(
