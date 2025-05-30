@@ -1618,22 +1618,34 @@ function generateDecadeLuckTimeline(lunar, gender) {
     }
     
     function generateNextYearsLuck(lunar) {
-        const currentYear = new Date().getFullYear();
-        let yearsHTML = '';
+    const currentYear = new Date().getFullYear();
+    let yearsHTML = '';
+    
+    for (let i = 0; i < 5; i++) {
+        const year = currentYear + i;
+        const ganZhi = getYearGanZhi(year);
         
-        for (let i = 0; i < 5; i++) {
-            const year = currentYear + i;
-            const ganZhi = getYearGanZhi(year);
+        // 确保ganZhi有效
+        if (!ganZhi || ganZhi.length < 2) {
             yearsHTML += `
                 <div class="analysis-item">
-                    <div class="analysis-item-title">${year}年 (${ganZhi})</div>
-                    <div class="analysis-item-content">${getYearLuckAnalysis(ganZhi)}</div>
+                    <div class="analysis-item-title">${year}年</div>
+                    <div class="analysis-item-content">运势平稳</div>
                 </div>
             `;
+            continue;
         }
         
-        return yearsHTML;
+        yearsHTML += `
+            <div class="analysis-item">
+                <div class="analysis-item-title">${year}年 (${ganZhi})</div>
+                <div class="analysis-item-content">${getYearLuckAnalysis(ganZhi)}</div>
+            </div>
+        `;
     }
+    
+    return yearsHTML;
+}
 
     // 八字学习建议
     function getLearningSuggestions(wuxingCount) {
@@ -1769,20 +1781,24 @@ function generateDecadeLuckTimeline(lunar, gender) {
 
     // 获取年干支
     function getYearGanZhi(year) {
-        const gan = ["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"];
-        const zhi = ["子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"];
-        
-        // 以2000年(庚辰年)为基准
-        const baseYear = 2000;
-        const baseIndex = 6; // 庚
-        const baseZhiIndex = 4; // 辰
-        
-        const diff = year - baseYear;
-        const ganIndex = (baseIndex + diff) % 10;
-        const zhiIndex = (baseZhiIndex + diff) % 12;
-        
-        return gan[(ganIndex + 10) % 10] + zhi[(zhiIndex + 12) % 12];
+    const gan = ["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"];
+    const zhi = ["子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"];
+    
+    if (typeof year !== 'number' || year < 1900 || year > 2100) {
+        return "未知";
     }
+    
+    // 以2000年(庚辰年)为基准
+    const baseYear = 2000;
+    const baseIndex = 6; // 庚
+    const baseZhiIndex = 4; // 辰
+    
+    const diff = year - baseYear;
+    const ganIndex = (baseIndex + diff) % 10;
+    const zhiIndex = (baseZhiIndex + diff) % 12;
+    
+    return gan[(ganIndex + 10) % 10] + zhi[(zhiIndex + 12) % 12];
+}
             
     // 新增工具函数：判断天干阴阳
     // 判断天干阴阳（新增）
