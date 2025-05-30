@@ -2836,54 +2836,19 @@ function calculateLuckStartingTime(lunar, gender) {
 
 // 辅助函数：找到目标节气
 function findTargetJieQi(birthDate, isForward) {
-    const JIE_QI_LIST = [
-        '立春', '雨水', '惊蛰', '春分', '清明', '谷雨',
-        '立夏', '小满', '芒种', '夏至', '小暑', '大暑',
-        '立秋', '处暑', '白露', '秋分', '寒露', '霜降',
-        '立冬', '小雪', '大雪', '冬至', '小寒', '大寒'
-    ];
-    
     const birthYear = birthDate.getFullYear();
-    let targetJieQi = null;
-    
-    // 顺排找下一个节气，逆排找上一个节气
-    if (isForward) {
-        // 从立春开始找下一个节气
-        for (let i = 0; i < JIE_QI_LIST.length; i++) {
-            const jieQiName = JIE_QI_LIST[i];
-            const jieQiDate = Lunar.fromYmdHms(birthYear, 1, 1, 0, 0, 0).getJieQi(jieQiName);
-            
-            // 确保jieQiDate是有效的日期对象
-            if (jieQiDate && new Date(jieQiDate) > birthDate) {
-                targetJieQi = new Date(jieQiDate);
-                break;
-            }
-        }
-        // 如果今年没找到，找明年立春
-        if (!targetJieQi) {
-            const nextYearJieQi = Lunar.fromYmdHms(birthYear + 1, 1, 1, 0, 0, 0).getJieQi('立春');
-            targetJieQi = new Date(nextYearJieQi);
-        }
-    } else {
-        // 逆排找上一个节气
-        for (let i = JIE_QI_LIST.length - 1; i >= 0; i--) {
-            const jieQiName = JIE_QI_LIST[i];
-            const jieQiDate = Lunar.fromYmdHms(birthYear, 1, 1, 0, 0, 0).getJieQi(jieQiName);
-            
-            if (jieQiDate && new Date(jieQiDate) < birthDate) {
-                targetJieQi = new Date(jieQiDate);
-                break;
-            }
-        }
-        // 如果今年没找到，找去年大雪
-        if (!targetJieQi) {
-            const lastYearJieQi = Lunar.fromYmdHms(birthYear - 1, 1, 1, 0, 0, 0).getJieQi('大雪');
-            targetJieQi = new Date(lastYearJieQi);
-        }
+    const jieQiName = isForward ? '立春' : '大寒';
+    const lunar = Lunar.fromDate(birthDate); // 确保 Lunar 库已正确初始化
+    const jieQiDate = lunar.getJieQi(jieQiName);
+
+    if (!jieQiDate || !(jieQiDate instanceof Date)) {
+        // 备选方案：手动计算节气（如使用 solarTerms 库）
+        console.warn('农历库返回无效节气，尝试备选方案');
+        return fallbackCalculateJieQi(birthYear, jieQiName);
     }
-    
-    return targetJieQi;
+    return jieQiDate;
 }
+
 
 // 辅助函数：计算天数差
 function calculateDaysDiff(startDate, endDate) {
