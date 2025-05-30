@@ -806,7 +806,7 @@
         `;
         
         // 命盘运势分析
-        document.getElementById('current-luck-analysis').innerHTML = getCurrentDecadeLuck(lunar, gender);
+        document.getElementById('current-luck-analysis').innerHTML = formatCurrentLuck(getCurrentDecadeLuck(lunar, gender));
         document.getElementById('decade-luck-analysis').innerHTML = `
             <p>${getDecadeLuckSummary(lunar, gender)}</p>
             ${generateDecadeLuckTimeline(lunar, gender)}
@@ -1438,7 +1438,21 @@
         startAge
     };
 }
-
+            
+// 新增 formatCurrentLuck() 函数：
+function formatCurrentLuck(currentLuck) {
+    if (!currentLuck) return "无法获取当前运势信息";
+    
+    return `
+        <div class="timeline-item">
+            <div class="timeline-year">${currentLuck.years} (${currentLuck.ganZhi}运)</div>
+            <div class="timeline-content">
+                ${getDecadeLuckAnalysis(currentLuck.ganZhi)}
+            </div>
+        </div>
+    `;
+}
+            
 // 辅助函数：生成大运列表
 function generateDaYunList(monthGanZhi, isShunPai) {
     const ganZhiList = [
