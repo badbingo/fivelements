@@ -850,9 +850,28 @@
 
     // 身强身弱分析
     function getStrengthAnalysis(lunar) {
-        // 这里应该有更复杂的逻辑判断身强身弱
-        return "得令但不得地，整体偏弱";
+    const baZi = lunar.getBaZi();
+    const dayGan = baZi[2].substring(0, 1);
+    const monthZhi = baZi[1].substring(1);
+    
+    // 判断得令情况
+    const seasonStrength = getSeasonStrength(dayGan, monthZhi);
+    
+    // 判断得地情况
+    const landStrength = getLandStrength(baZi, dayGan);
+    
+    // 判断得势情况
+    const supportStrength = getSupportStrength(baZi, dayGan);
+    
+    // 综合判断
+    if (seasonStrength === '得令' && landStrength >= 2 && supportStrength >= 2) {
+        return "身强";
+    } else if (seasonStrength === '不得令' && landStrength <= 1 && supportStrength <= 1) {
+        return "身弱";
+    } else {
+        return "中和偏" + (seasonStrength === '得令' ? '强' : '弱');
     }
+}
     
     function getSeasonStrength(lunar) {
         // 判断得令情况
@@ -871,32 +890,50 @@
 
     // 十神分析
     function generateTenGodAnalysis(lunar) {
-        // 生成十神分析
-        return `
-            <div class="analysis-grid">
-                <div class="analysis-item">
-                    <div class="analysis-item-title"><i class="fas fa-user-friends"></i> 比劫</div>
-                    <div class="analysis-item-content">比肩1个，劫财2个，表示您有较强的独立性和竞争意识</div>
-                </div>
-                <div class="analysis-item">
-                    <div class="analysis-item-title"><i class="fas fa-yin-yang"></i> 食伤</div>
-                    <div class="analysis-item-content">食神1个，伤官1个，显示您有创造力和表达能力</div>
-                </div>
-                <div class="analysis-item">
-                    <div class="analysis-item-title"><i class="fas fa-money-bill-wave"></i> 财星</div>
-                    <div class="analysis-item-content">正财1个，偏财0个，财运稳定但需努力</div>
-                </div>
-                <div class="analysis-item">
-                    <div class="analysis-item-title"><i class="fas fa-gavel"></i> 官杀</div>
-                    <div class="analysis-item-content">正官1个，七杀0个，事业上有贵人但也有压力</div>
-                </div>
-                <div class="analysis-item">
-                    <div class="analysis-item-title"><i class="fas fa-book"></i> 印星</div>
-                    <div class="analysis-item-content">正印2个，偏印1个，学习能力强，易得长辈帮助</div>
+    const baZi = lunar.getBaZi();
+    const dayGan = baZi[2].substring(0, 1);
+    
+    // 统计十神数量
+    const tenGodCount = {
+        '比肩': 0, '劫财': 0, '食神': 0, '伤官': 0,
+        '偏财': 0, '正财': 0, '七杀': 0, '正官': 0,
+        '偏印': 0, '正印': 0
+    };
+    
+    // 统计天干十神
+    baZi.forEach(ganZhi => {
+        const gan = ganZhi.substring(0, 1);
+        const tenGod = getTenGod(dayGan, gan);
+        tenGodCount[tenGod]++;
+    });
+    
+    // 统计地支十神
+    baZi.forEach(ganZhi => {
+        const zhi = ganZhi.substring(1);
+        const tenGod = getTenGod(dayGan, zhi);
+        tenGodCount[tenGod]++;
+        
+        // 统计藏干十神
+        const hiddenStems = getHiddenStems(zhi);
+        hiddenStems.forEach(stem => {
+            const hiddenTenGod = getTenGod(dayGan, stem);
+            tenGodCount[hiddenTenGod]++;
+        });
+    });
+    
+    // 生成分析HTML
+    return `
+        <div class="analysis-grid">
+            <div class="analysis-item">
+                <div class="analysis-item-title"><i class="fas fa-user-friends"></i> 比劫</div>
+                <div class="analysis-item-content">
+                    比肩${tenGodCount['比肩']}个，劫财${tenGodCount['劫财']}个
                 </div>
             </div>
-        `;
-    }
+            <!-- 其他十神分析项 -->
+        </div>
+    `;
+}
     
     function getTenGodSummary(lunar) {
         // 十神总结
@@ -931,7 +968,44 @@
             </div>
         `;
     }
+
+    // 添加五行统计函数
+function countWuxingElements(lunar) {
+    const baZi = lunar.getBaZi();
+    const wuxingCount = { 木: 0, 火: 0, 土: 0, 金: 0, 水: 0 };
     
+    // 天干五行映射
+    const ganWuxing = {
+        '甲': '木', '乙': '木', '丙': '火', '丁': '火',
+        '戊': '土', '己': '土', '庚': '金', '辛': '金',
+        '壬': '水', '癸': '水'
+    };
+    
+    // 地支五行映射
+    const zhiWuxing = {
+        '寅': '木', '卯': '木', '午': '火', '巳': '火',
+        '辰': '土', '戌': '土', '丑': '土', '未': '土',
+        '申': '金', '酉': '金', '子': '水', '亥': '水'
+    };
+    
+    // 统计天干五行
+    baZi.forEach(ganZhi => {
+        const gan = ganZhi.substring(0, 1);
+        const zhi = ganZhi.substring(1);
+        
+        if (ganWuxing[gan]) wuxingCount[ganWuxing[gan]]++;
+        if (zhiWuxing[zhi]) wuxingCount[zhiWuxing[zhi]]++;
+        
+        // 统计藏干五行
+        const hiddenStems = getHiddenStems(zhi);
+        hiddenStems.forEach(stem => {
+            if (ganWuxing[stem]) wuxingCount[ganWuxing[stem]]++;
+        });
+    });
+    
+    return wuxingCount;
+}
+            
     function getWuxingImbalanceAnalysis(lunar) {
         // 五行不平衡分析
         return "您的八字中木元素偏旺，土、金、水元素偏弱，建议在生活中多关注这些元素的平衡。";
@@ -1079,30 +1153,31 @@
     /* ==================== 工具函数 ==================== */
 
     // 十神计算
-    function getTenGod(dayGan, target) {
-        const ganList = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
-        
-        // 如果是地支，获取其主气天干
-        if (!ganList.includes(target)) {
-            target = getMainQi(target);
-            if (!target) return '未知';
-        }
-        
-        const dayIndex = ganList.indexOf(dayGan);
-        const targetIndex = ganList.indexOf(target);
-        
-        if (dayIndex === -1 || targetIndex === -1) return '未知';
-        
-        const diff = (targetIndex - dayIndex + 10) % 10;
-        
-        const tenGods = [
-            '比肩', '劫财', '偏印', '正印', 
-            '七杀', '正官', '偏财', '正财', 
-            '食神', '伤官'
-        ];
-        
-        return tenGods[diff] || '未知';
+   function getTenGod(dayGan, target) {
+    const ganList = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
+    
+    // 如果是地支，获取其主气天干
+    if (!ganList.includes(target)) {
+        target = getMainQi(target);
+        if (!target) return '未知';
     }
+    
+    const dayIndex = ganList.indexOf(dayGan);
+    const targetIndex = ganList.indexOf(target);
+    
+    if (dayIndex === -1 || targetIndex === -1) return '未知';
+    
+    const diff = (targetIndex - dayIndex + 10) % 10;
+    
+    // 修正十神顺序
+    const tenGods = [
+        '比肩', '劫财', '食神', '伤官', 
+        '偏财', '正财', '七杀', '正官', 
+        '偏印', '正印'
+    ];
+    
+    return tenGods[diff] || '未知';
+}
 
     // 地支主气
     function getMainQi(zhi) {
