@@ -2794,38 +2794,49 @@ function hasHe(branches, branch1, branch2) {
 
     // 修改后的calculateLuckStartingTime函数
 function calculateLuckStartingTime(lunar, gender) {
-    // 1. 确定顺排/逆排
-    const yearGan = lunar.getYearGan();
-    const isYangYear = ['甲','丙','戊','庚','壬'].includes(yearGan);
-    const isForward = (isYangYear && gender === 'male') || 
-                     (!isYangYear && gender === 'female');
-
-    // 2. 精确计算时间差（分钟）
-    const birthDate = new Date();
-    const targetSolar = isForward ? 
-        findNextJieQi(birthDate) : 
-        findPrevJieQi(birthDate);
+    // 节气映射（略）
     
-    const diffMs = Math.abs(targetSolar - birthDate);
-    const diffMinutes = diffMs / (1000 * 60);
+    // 精确获取节气时间
+    const jieQi = lunar.getJieQi(jieQiName);
+    const jieQiSolar = jieQi.getSolar();
+    const targetJieQiDate = new Date(
+        jieQiSolar.getYear(), 
+        jieQiSolar.getMonth()-1, 
+        jieQiSolar.getDay(),
+        jieQiSolar.getHour(),
+        jieQiSolar.getMinute()
+    );
 
-    // 3. 新公式：3天=1年 → 4320分钟=1年
-    const totalYears = diffMinutes / (3 * 24 * 60);
+    // 出生时间
+    const birthSolar = lunar.getSolar();
+    const birthDate = new Date(
+        birthSolar.getYear(),
+        birthSolar.getMonth()-1,
+        birthSolar.getDay(),
+        birthSolar.getHour(),
+        birthSolar.getMinute()
+    );
+
+    // 计算时间差
+    const diffMs = Math.abs(targetJieQiDate - birthDate);
+    const diffDays = diffMs / (1000 * 60 * 60 * 24);
+
+    // === 修正后的转换逻辑 ===
+    const totalYears = diffDays / 3;
     const years = Math.floor(totalYears);
-    const fraction = totalYears - years;
+    const remainingYears = totalYears - years;
     
-    // 4. 小数部分转月/日/小时
-    const months = fraction * 12;
-    const fullMonths = Math.floor(months);
-    const fractionMonths = months - fullMonths;
+    const totalMonths = remainingYears * 12;
+    const months = Math.floor(totalMonths);
+    const remainingMonths = totalMonths - months;
     
-    const days = fractionMonths * 30.44; // 平均月天数
-    const fullDays = Math.floor(days);
-    const fractionDays = days - fullDays;
+    const totalDays = remainingMonths * 30;
+    const days = Math.floor(totalDays);
+    const remainingDays = totalDays - days;
     
-    const hours = Math.floor(fractionDays * 24);
+    const hours = Math.round(remainingDays * 24);
 
-    return `${years}岁${fullMonths}个月${fullDays}天${hours}小时起运`;
+    return `${years}岁${months}个月${days}天${hours}小时起运`;
 }
 
     // 判断从强从弱 - 修改后的函数
