@@ -2804,108 +2804,78 @@ function calculateLuckStartingTime(lunar, gender) {
             birthSolar.getHour(),
             birthSolar.getMinute()
         );
-        
+
         // 2. 判断顺排/逆排
         const yearGan = lunar.getYearGan();
         const isYangYear = ['甲', '丙', '戊', '庚', '壬'].includes(yearGan);
         const isForward = (isYangYear && gender === 'male') || 
                          (!isYangYear && gender === 'female');
-        
-        // 3. 获取所有节气信息
-        const jieQiList = [
-            '立春', '雨水', '惊蛰', '春分', '清明', '谷雨',
-            '立夏', '小满', '芒种', '夏至', '小暑', '大暑',
-            '立秋', '处暑', '白露', '秋分', '寒露', '霜降',
-            '立冬', '小雪', '大雪', '冬至', '小寒', '大寒'
-        ];
-        
-        // 4. 找到正确的换月节气
+
+        // 3. 获取正确的节气（关键修正点）
+        const jieQiList = lunar.getJieQiList();
         let targetJieQi = null;
+        
         if (isForward) {
-            // 顺排：找下一个换月节气
+            // 顺排：找出生后第一个节气（可能跨年）
             for (let i = 0; i < jieQiList.length; i++) {
-                const jq = lunar.getJieQi(jieQiList[i]);
-                if (!jq) continue;
-                
-                const jqDate = new Date(
-                    jq.getSolar().getYear(),
-                    jq.getSolar().getMonth() - 1,
-                    jq.getSolar().getDay(),
-                    jq.getSolar().getHour(),
-                    jq.getSolar().getMinute()
-                );
-                
-                if (jqDate > birthDate) {
+                const jq = jieQiList[i];
+                if (jq.getSolar().toYmd() > birthSolar.toYmd()) {
                     targetJieQi = jq;
                     break;
                 }
             }
-            
-            // 如果没找到（年末出生），找下一年的立春
+            // 如果当年没有找到，取次年立春
             if (!targetJieQi) {
-                const nextYearLunar = Solar.fromYmdHms(
-                    birthSolar.getYear() + 1, 1, 1, 0, 0, 0
-                ).getLunar();
-                targetJieQi = nextYearLunar.getJieQi('立春');
+                targetJieQi = Solar.fromYmd(birthSolar.getYear() + 1, 2, 4).getLunar().getJieQi('立春');
             }
         } else {
-            // 逆排：找上一个换月节气
+            // 逆排：找出生前最后一个节气（可能跨年）
             for (let i = jieQiList.length - 1; i >= 0; i--) {
-                const jq = lunar.getJieQi(jieQiList[i]);
-                if (!jq) continue;
-                
-                const jqDate = new Date(
-                    jq.getSolar().getYear(),
-                    jq.getSolar().getMonth() - 1,
-                    jq.getSolar().getDay(),
-                    jq.getSolar().getHour(),
-                    jq.getSolar().getMinute()
-                );
-                
-                if (jqDate < birthDate) {
+                const jq = jieQiList[i];
+                if (jq.getSolar().toYmd() < birthSolar.toYmd()) {
                     targetJieQi = jq;
                     break;
                 }
             }
-            
-            // 如果没找到（年初出生），找上一年的冬至
+            // 如果当年没有找到，取上年大寒
             if (!targetJieQi) {
-                const prevYearLunar = Solar.fromYmdHms(
-                    birthSolar.getYear() - 1, 12, 31, 23, 59, 59
-                ).getLunar();
-                targetJieQi = prevYearLunar.getJieQi('冬至');
+                targetJieQi = Solar.fromYmd(birthSolar.getYear() - 1, 1, 20).getLunar().getJieQi('大寒');
             }
         }
-        
-        // 5. 计算精确时间差
-        if (!targetJieQi) return "无法计算起运时间";
+
+        // 4. 计算精确时间差
+        if (!targetJieQi || !targetJieQi.getSolar) {
+            throw new Error('无法获取目标节气');
+        }
         
         const targetSolar = targetJieQi.getSolar();
-        const targetDate = new Date(
-            targetSolar.getYear(),
-            targetSolar.getMonth() - 1,
-            targetSolar.getDay(),
-            targetSolar.getHour(),
-            targetSolar.getMinute()
-        );
+        const diffMs = Math.abs(targetSolar.toDate().getTime() - birthDate.getTime());
         
-        const diffMs = Math.abs(targetDate - birthDate);
-        const diffDays = diffMs / (1000 * 60 * 60 * 24);
-        
-        // 6. 转换为起运时间（3天=1年）
-        const years = Math.floor(diffDays / 3);
-        const remainingDays = diffDays % 3;
+        // 5. 转换为起运时间（3天=1年）
+        const totalDays = diffMs / (1000 * 60 * 60 * 24);
+        const years = Math.floor(totalDays / 3);
+        const remainingDays = totalDays % 3;
         const months = Math.floor(remainingDays * 4); // 1天≈4个月
         const days = Math.floor((remainingDays * 4 - months) * 30);
-        const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
         
-        return `${years}岁${months}个月${days}天${Math.round(hours)}小时起运`;
+        // 6. 格式化输出
+        let result = `${years}岁`;
+        if (months > 0 || days > 0) {
+            result += `${months}个月`;
+            if (days > 0) {
+                result += `${days}天`;
+            }
+        }
+        result += '起运';
         
+        return result;
+
     } catch (e) {
-        console.error('计算起运时间异常:', e);
-        return "无法计算起运时间";
+        console.error('起运时间计算异常:', e);
+        return '起运时间计算异常';
     }
 }
+
 
     // 判断从强从弱 - 修改后的函数
 function determineStrengthType(pillars) {
