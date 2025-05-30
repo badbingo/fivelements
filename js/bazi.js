@@ -2837,27 +2837,27 @@ function findTargetJieQi(birthDate, isForward) {
         // 从立春开始找下一个节气
         for (let i = 0; i < JIE_QI_LIST.length; i++) {
             const jieQi = Lunar.fromYmdHms(birthYear, 1, 1, 0, 0, 0).getJieQi(JIE_QI_LIST[i]);
-            if (jieQi && jieQi.getSolar().getTime() > birthDate.getTime()) {
-                targetJieQi = jieQi.getSolar();
+            if (jieQi && new Date(jieQi) > birthDate) {
+                targetJieQi = new Date(jieQi);
                 break;
             }
         }
         // 如果今年没找到，找明年立春
         if (!targetJieQi) {
-            targetJieQi = Lunar.fromYmdHms(birthYear + 1, 1, 1, 0, 0, 0).getJieQi('立春').getSolar();
+            targetJieQi = new Date(Lunar.fromYmdHms(birthYear + 1, 1, 1, 0, 0, 0).getJieQi('立春'));
         }
     } else {
         // 逆排找上一个节气
         for (let i = JIE_QI_LIST.length - 1; i >= 0; i--) {
             const jieQi = Lunar.fromYmdHms(birthYear, 1, 1, 0, 0, 0).getJieQi(JIE_QI_LIST[i]);
-            if (jieQi && jieQi.getSolar().getTime() < birthDate.getTime()) {
-                targetJieQi = jieQi.getSolar();
+            if (jieQi && new Date(jieQi) < birthDate) {
+                targetJieQi = new Date(jieQi);
                 break;
             }
         }
         // 如果今年没找到，找去年大雪
         if (!targetJieQi) {
-            targetJieQi = Lunar.fromYmdHms(birthYear - 1, 1, 1, 0, 0, 0).getJieQi('大雪').getSolar();
+            targetJieQi = new Date(Lunar.fromYmdHms(birthYear - 1, 1, 1, 0, 0, 0).getJieQi('大雪'));
         }
     }
     
