@@ -2881,19 +2881,6 @@ function calculateLuckStartingTime(lunar, gender) {
     return `${years}年${months}个月${daysRemain}天${hoursRemain}小时起运`;
 }
 
-// 在calculateBaziLocally函数中调用
-function calculateBaziLocally(birthData) {
-    // ... 其他代码
-    
-    // 计算起运时间
-    const luckStartingTime = calculateLuckStartingTime(lunar, birthData.gender);
-    
-    return {
-        // ... 其他属性
-        luckStartingTime
-    };
-}
-
     // 判断从强从弱 - 修改后的函数
 function determineStrengthType(pillars) {
     // ============== 工具函数 ============== //
