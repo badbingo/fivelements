@@ -226,26 +226,17 @@
 
 /* 下拉菜单 */
 .dropdown-menu {
-    position: absolute;
-    top: 100%;
-    left: 50%;
-    transform: translateX(-50%) translateY(10px);
-    background: rgba(0, 0, 0, 0.7);
-    backdrop-filter: blur(8px);
-    border: none !important; /* 强制去除边框 */
-    border-radius: 8px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-    opacity: 0;
-    visibility: hidden;
-    transition: all 0.3s ease;
-    display: flex;
-    flex-direction: row;
-    padding: 15px 12px; /* 调整内边距 */
-    gap: 12px; /* 增加间距 */
-    align-items: flex-start; /* 强制顶部对齐 */
-    z-index: 1000;
-    width: max-content;
-}
+        position: static;
+        display: none;
+        opacity: 1;
+        visibility: visible;
+        transform: none;
+        background: transparent;
+        box-shadow: none;
+        padding: 0;
+        width: 100%;
+        margin-top: 5px;
+    }
 
 /* 为特定菜单调整 */
 .nav-item:nth-child(4) .dropdown-menu, /* 学习工具 */
@@ -262,31 +253,49 @@
     transform: translateX(-50%) translateY(0);
 }
 
-.dropdown-menu li {
-    display: inline-block; /* 横向排列 */
-}
-
-.dropdown-link {
-    writing-mode: vertical-rl;
-    text-orientation: upright;
-    font-size: 1.1rem;
-    font-weight: 500;
-    letter-spacing: 3px;
-    padding: 15px 8px; /* 增加内边距 */
-    height: auto;
-    min-height: 140px; /* 增加最小高度 */
-    max-height: 160px; /* 增加最大高度 */
-    min-width: 44px; /* 增加最小宽度 */
-    display: flex;
-    justify-content: center;
-    align-items: center; 
-    color: var(--nav-text-color);
-    background: rgba(0, 0, 0, 0.3);
-    border-radius: 6px; /* 增加圆角 */
-    transition: all 0.2s ease;
-    margin: 2px; /* 增加外边距 */
-    line-height: 1.8;
-    box-sizing: border-box; /* 确保padding不影响总尺寸 */
+.dropdown-menu.active {
+        display: block;
+    }
+    
+    .dropdown-menu li {
+        display: block;
+        margin: 5px 0;
+    }
+    
+    .dropdown-link {
+        writing-mode: horizontal-tb;
+        height: auto;
+        min-height: auto;
+        padding: 12px 15px 12px 45px;
+        justify-content: flex-start;
+        background: rgba(255, 255, 255, 0.1);
+        font-size: 0.95rem;
+    }
+    .dropdown-icon {
+        margin-left: auto;
+        transition: transform 0.3s ease;
+    }
+    
+    .dropdown-menu.active + .nav-link .dropdown-icon {
+        transform: rotate(180deg);
+    }
+    
+    .mobile-menu-btn.active .bar:nth-child(1) {
+        transform: translateY(10px) rotate(45deg);
+    }
+    
+    .mobile-menu-btn.active .bar:nth-child(2) {
+        opacity: 0;
+    }
+    
+    .mobile-menu-btn.active .bar:nth-child(3) {
+        transform: translateY(-10px) rotate(-45deg);
+    }
+    
+    .breadcrumb-container {
+        padding: 1rem 1.5rem;
+        margin-top: 60px;
+    }
 }
 
 /* 去除所有导航链接的下划线 */
@@ -425,32 +434,60 @@
         padding: 0 1.5rem;
     }
     
+    .mobile-menu-btn {
+        display: flex;
+    }
+    
     .main-nav {
         position: fixed;
-        top: 70px;
+        top: 0;
         left: 0;
         right: 0;
-        background: white;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-        clip-path: polygon(0 0, 100% 0, 100% 0, 0 0);
-        transition: clip-path 0.4s ease;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.95);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        clip-path: circle(0% at 100% 0);
+        transition: clip-path 0.6s ease-in-out;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        padding-top: 80px;
+        overflow-y: auto;
     }
     
     .main-nav.active {
-        clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+        clip-path: circle(150% at 100% 0);
     }
     
     .nav-list {
         flex-direction: column;
         padding: 1rem 0;
+        width: 90%;
+        max-width: 400px;
+        margin: 0 auto;
     }
     
     .nav-item {
-        margin: 0;
+        margin: 5px 0;
+        width: 100%;
     }
     
     .nav-link {
-        padding: 1rem 1.5rem;
+        padding: 15px 20px;
+        font-size: 1.1rem;
+        flex-direction: row;
+        justify-content: flex-start;
+    }
+    
+    .nav-link i {
+        margin-right: 15px;
+        font-size: 1.3em;
+    }
+    
+    .nav-text {
+        margin-top: 0;
     }
     
     .submenu {
