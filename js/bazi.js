@@ -2793,52 +2793,106 @@ function hasHe(branches, branch1, branch2) {
     }
 
     // 修改后的calculateLuckStartingTime函数
-function calculateLuckStartingTime(lunar, gender) {
-    // 节气映射（略）
+function findNextJieQi(date) {
+    const solar = Solar.fromDate(date);
+    const lunar = solar.getLunar();
+    const jieQiList = Object.entries(lunar.getJieQiList())
+        .map(([name, solar]) => ({ name, solar }))
+        .sort((a, b) => a.solar.toYmdHms().localeCompare(b.solar.toYmdHms()));
     
-    // 精确获取节气时间
-    const jieQi = lunar.getJieQi(jieQiName);
-    const jieQiSolar = jieQi.getSolar();
-    const targetJieQiDate = new Date(
-        jieQiSolar.getYear(), 
-        jieQiSolar.getMonth()-1, 
-        jieQiSolar.getDay(),
-        jieQiSolar.getHour(),
-        jieQiSolar.getMinute()
-    );
-
-    // 出生时间
-    const birthSolar = lunar.getSolar();
-    const birthDate = new Date(
-        birthSolar.getYear(),
-        birthSolar.getMonth()-1,
-        birthSolar.getDay(),
-        birthSolar.getHour(),
-        birthSolar.getMinute()
-    );
-
-    // 计算时间差
-    const diffMs = Math.abs(targetJieQiDate - birthDate);
-    const diffDays = diffMs / (1000 * 60 * 60 * 24);
-
-    // === 修正后的转换逻辑 ===
-    const totalYears = diffDays / 3;
-    const years = Math.floor(totalYears);
-    const remainingYears = totalYears - years;
+    for (const jieQi of jieQiList) {
+        const jieQiDate = new Date(
+            jieQi.solar.getYear(),
+            jieQi.solar.getMonth() - 1,
+            jieQi.solar.getDay(),
+            jieQi.solar.getHour(),
+            jieQi.solar.getMinute(),
+            jieQi.solar.getSecond()
+        );
+        
+        if (jieQiDate > date) {
+            return jieQiDate;
+        }
+    }
     
-    const totalMonths = remainingYears * 12;
-    const months = Math.floor(totalMonths);
-    const remainingMonths = totalMonths - months;
-    
-    const totalDays = remainingMonths * 30;
-    const days = Math.floor(totalDays);
-    const remainingDays = totalDays - days;
-    
-    const hours = Math.round(remainingDays * 24);
-
-    return `${years}岁${months}个月${days}天${hours}小时起运`;
+    // 如果当年没找到，返回下一年立春
+    return Solar.fromYmdHms(date.getFullYear() + 1, 2, 4, 0, 0, 0).getLunar().getJieQi("立春").getSolar().toDate();
 }
 
+function findPrevJieQi(date) {
+    const solar = Solar.fromDate(date);
+    const lunar = solar.getLunar();
+    const jieQiList = Object.entries(lunar.getJieQiList())
+        .map(([name, solar]) => ({ name, solar }))
+        .sort((a, b) => b.solar.toYmdHms().localeCompare(a.solar.toYmdHms()));
+    
+    for (const jieQi of jieQiList) {
+        const jieQiDate = new Date(
+            jieQi.solar.getYear(),
+            jieQi.solar.getMonth() - 1,
+            jieQi.solar.getDay(),
+            jieQi.solar.getHour(),
+            jieQi.solar.getMinute(),
+            jieQi.solar.getSecond()
+        );
+        
+        if (jieQiDate < date) {
+            return jieQiDate;
+        }
+    }
+    
+    // 如果当年没找到，返回上一年大寒
+    return Solar.fromYmdHms(date.getFullYear() - 1, 1, 20, 0, 0, 0).getLunar().getJieQi("大寒").getSolar().toDate();
+}
+
+// 优化起运时间计算函数
+function calculateLuckStartingTime(lunar, gender) {
+    const birthDate = lunar.getSolar().toDate();
+    const yearGan = lunar.getYearGan();
+    
+    const isYangYear = ["甲", "丙", "戊", "庚", "壬"].includes(yearGan);
+    const isForward = (isYangYear && gender === "male") || (!isYangYear && gender === "female");
+    
+    // 找到目标节气
+    const targetDate = isForward ? findNextJieQi(birthDate) : findPrevJieQi(birthDate);
+    
+    // 计算时间差（分钟）
+    const diffMs = Math.abs(targetDate - birthDate);
+    const diffMinutes = diffMs / (1000 * 60);
+    
+    // 转换规则：3天 = 1年 → 4320分钟 = 1年
+    const totalYears = diffMinutes / (3 * 24 * 60);
+    const years = Math.floor(totalYears);
+    const months = Math.floor((totalYears - years) * 12);
+    
+    return `${years}岁${months}个月起运`;
+}
+
+// 修改身强身弱判断函数
+function determineStrengthType(pillars) {
+    // 简化实现 - 在实际应用中应有更复杂的逻辑
+    const dayStem = pillars.dayStem;
+    const stems = [pillars.yearStem, pillars.monthStem, pillars.hourStem];
+    const branches = [pillars.yearBranch, pillars.monthBranch, pillars.dayBranch, pillars.hourBranch];
+    
+    let sameElementCount = 0;
+    const elementMap = {
+        '甲':0, '乙':0, '丙':1, '丁':1, '戊':2, '己':2, '庚':3, '辛':3, '壬':4, '癸':4,
+        '寅':0, '卯':0, '午':1, '巳':1, '辰':2, '戌':2, '丑':2, '未':2, '申':3, '酉':3, '子':4, '亥':4
+    };
+    
+    const dayElement = elementMap[dayStem];
+    
+    // 统计同类五行数量
+    [...stems, ...branches].forEach(item => {
+        if (elementMap[item] === dayElement) sameElementCount++;
+    });
+    
+    // 简化判断逻辑
+    if (sameElementCount >= 5) return "从强";
+    if (sameElementCount <= 1) return "从弱";
+    return sameElementCount >= 3 ? "身强" : "身弱";
+}
     // 判断从强从弱 - 修改后的函数
 function determineStrengthType(pillars) {
     // ============== 工具函数 ============== //
