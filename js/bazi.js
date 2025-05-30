@@ -2794,128 +2794,30 @@ function hasHe(branches, branch1, branch2) {
 
     // 修改后的calculateLuckStartingTime函数
 function calculateLuckStartingTime(lunar, gender) {
-    // 获取精确节气时间（兼容lunar.js 1.7.2）
-    function getExactJieQiTime(year, name) {
-        // 使用lunar.js的节气计算方法
-        const solar = Solar.fromYmd(year, 6, 1); // 使用年中作为参考点
-        const lunarObj = solar.getLunar();
-        const jieQiTable = lunarObj.getJieQiTable();
-        
-        // 查找指定节气
-        const jieQiSolar = jieQiTable[name];
-        if (jieQiSolar) {
-            // 将Solar对象转换为Date对象
-            return new Date(
-                jieQiSolar.getYear(),
-                jieQiSolar.getMonth() - 1, // 月份0-11
-                jieQiSolar.getDay(),
-                jieQiSolar.getHour(),
-                jieQiSolar.getMinute(),
-                jieQiSolar.getSecond()
-            );
-        }
-        
-        // 备用方案：使用近似日期
-        const APPROX_DATES = {
-            '小寒': [1, 6], '大寒': [1, 20], '立春': [2, 4], '雨水': [2, 19],
-            '惊蛰': [3, 6], '春分': [3, 21], '清明': [4, 5], '谷雨': [4, 20],
-            '立夏': [5, 6], '小满': [5, 21], '芒种': [6, 6], '夏至': [6, 21],
-            '小暑': [7, 7], '大暑': [7, 23], '立秋': [8, 8], '处暑': [8, 23],
-            '白露': [9, 8], '秋分': [9, 23], '寒露': [10, 8], '霜降': [10, 23],
-            '立冬': [11, 7], '小雪': [11, 22], '大雪': [12, 7], '冬至': [12, 22]
-        };
-        const [month, day] = APPROX_DATES[name] || [1, 1];
-        return new Date(year, month - 1, day, 12, 0, 0);
-    }
-
-    // 查找最近节气（兼容lunar.js 1.7.2）
-    function findNearestJieQi(birthDate, isForward) {
-        const ALL_JIE_QI = [
-            '小寒', '大寒', '立春', '雨水', '惊蛰', '春分',
-            '清明', '谷雨', '立夏', '小满', '芒种', '夏至',
-            '小暑', '大暑', '立秋', '处暑', '白露', '秋分',
-            '寒露', '霜降', '立冬', '小雪', '大雪', '冬至'
-        ];
-
-        let nearest = null;
-        let minDiff = isForward ? Infinity : -Infinity;
-
-        // 检查三年内的节气
-        for (let yearOffset = -1; yearOffset <= 1; yearOffset++) {
-            const year = birthDate.getFullYear() + yearOffset;
-            
-            for (const name of ALL_JIE_QI) {
-                const jieQiTime = getExactJieQiTime(year, name);
-                if (!jieQiTime) continue;
-                
-                const diff = jieQiTime - birthDate;
-                
-                if (isForward && diff > 0 && diff < minDiff) {
-                    minDiff = diff;
-                    nearest = jieQiTime;
-                } else if (!isForward && diff < 0 && diff > minDiff) {
-                    minDiff = diff;
-                    nearest = jieQiTime;
-                }
-            }
-        }
-
-        return nearest;
-    }
-
-    // 传统命理精确转换
-    function convertToYearMonthDay(totalDays) {
-        // 1. 计算总时辰数（1天=12时辰）
-        const totalShichen = totalDays * 12;
-        
-        // 2. 计算年数（3天=1年→36时辰=1岁）
-        const years = Math.floor(totalShichen / 36);
-        const remainingShichen = totalShichen % 36;
-        
-        // 3. 计算月数（3时辰=1个月）
-        const months = Math.floor(remainingShichen / 3);
-        const days = Math.round((remainingShichen % 3) * 10); // 1时辰=10天
-        
-        return { years, months, days };
-    }
-
     try {
-        // 1. 获取精确出生时间（兼容lunar.js 1.7.2）
+        // 直接使用lunar.js的专业起运计算方法
         const solar = lunar.getSolar();
-        const birthDate = new Date(
-            solar.getYear(),
-            solar.getMonth() - 1, // JavaScript月份从0开始
-            solar.getDay(),
-            solar.getHour(),
-            solar.getMinute(),
-            solar.getSecond() || 0
-        );
-
-        // 2. 判断顺排/逆排
-        const yearGan = lunar.getYearGan();
-        const isYangYear = ['甲', '丙', '戊', '庚', '壬'].includes(yearGan);
-        const isForward = (isYangYear && gender === 'male') || 
-                         (!isYangYear && gender === 'female');
-
-        // 3. 获取精确节气时间
-        const jieQiTime = findNearestJieQi(birthDate, isForward);
-        if (!jieQiTime) throw new Error('找不到节气时间');
+        const birthDate = `${solar.getYear()}-${solar.getMonth()}-${solar.getDay()} ${solar.getHour()}:${solar.getMinute()}`;
         
-        // 4. 计算时间差（毫秒）
-        const diffMs = isForward ? 
-            (jieQiTime - birthDate) : 
-            (birthDate - jieQiTime);
+        // 获取年柱
+        const yearGanZhi = lunar.getYearInGanZhi();
         
-        // 5. 转换为天数（含小数）
-        const totalDays = diffMs / (1000 * 60 * 60 * 24);
+        // 判断阴阳年
+        const yangYears = ['甲', '丙', '戊', '庚', '壬'];
+        const isYang = yangYears.includes(yearGanZhi.substring(0, 1));
         
-        // 6. 传统命理转换
-        const { years, months, days } = convertToYearMonthDay(totalDays);
+        // 获取顺逆
+        const direction = (isYang && gender === 'male') || 
+                         (!isYang && gender === 'female') ? 1 : -1;
         
-        return `${years}岁${months}个月${days}天起运`;
-
+        // 使用lunar.js专业方法计算起运时间
+        const yun = lunar.getYun(direction);
+        
+        // 返回格式: 7年11个月8天20小时
+        return `命主于出生后 ${yun.getYear()} 年 ${yun.getMonth()} 个月 ${yun.getDay()} 天 ${yun.getHour()} 小时起运`;
+        
     } catch (e) {
-        console.error('起运时间计算错误:', e);
+        console.error('起运计算错误:', e);
         return '无法计算起运时间';
     }
 }
