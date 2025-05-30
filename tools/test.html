@@ -1560,30 +1560,42 @@ function generateDecadeLuckTimeline(lunar, gender) {
     }
     
     function getYearLuckAnalysis(yearGanZhi) {
-        const gan = yearGanZhi[0];
-        const zhi = yearGanZhi[1];
-        const ganWuxing = getWuxingByGan(gan);
-        const zhiWuxing = getWuxingByGan(zhi);
-        
-        const effects = {
-            '甲': "创新变革之年", '乙': "柔和渐进之年",
-            '丙': "热情活跃之年", '丁': "细致谨慎之年",
-            '戊': "务实稳定之年", '己': "包容调整之年",
-            '庚': "果断决绝之年", '辛': "精致完善之年",
-            '壬': "流动变化之年", '癸': "智慧潜藏之年"
-        };
-        
-        const zhiEffects = {
-            '子': "水旺智慧", '丑': "土旺务实",
-            '寅': "木旺新生", '卯': "木旺发展",
-            '辰': "土旺积累", '巳': "火旺热情",
-            '午': "火旺行动", '未': "土旺收获",
-            '申': "金旺变革", '酉': "金旺决断",
-            '戌': "土旺沉淀", '亥': "水旺流动"
-        };
-        
-        return `${effects[gan]}，${zhiEffects[zhi]}。${ganWuxing}${zhiWuxing}流年，${getYearLuckCombination(ganWuxing, zhiWuxing)}`;
+    // 检查是否有效干支
+    if (!yearGanZhi || typeof yearGanZhi !== 'string' || yearGanZhi.length < 2) {
+        return "运势平稳"; // 直接返回默认值，避免undefined
     }
+
+    const gan = yearGanZhi[0];
+    const zhi = yearGanZhi[1];
+    
+    // 检查天干地支是否有效
+    const validGan = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'].includes(gan);
+    const validZhi = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'].includes(zhi);
+    
+    if (!validGan || !validZhi) {
+        return "运势平稳"; // 如果干支无效，返回默认值
+    }
+
+    // 正常分析逻辑
+    const ganEffect = {
+        '甲': "创新变革", '乙': "柔和渐进",
+        '丙': "热情活跃", '丁': "细致谨慎",
+        '戊': "务实稳定", '己': "包容调整",
+        '庚': "果断决绝", '辛': "精致完善",
+        '壬': "流动变化", '癸': "智慧潜藏"
+    }[gan] || "平稳发展";
+
+    const zhiEffect = {
+        '子': "智慧之年", '丑': "务实之年",
+        '寅': "开拓之年", '卯': "成长之年",
+        '辰': "积累之年", '巳': "行动之年",
+        '午': "冲刺之年", '未': "收获之年",
+        '申': "变革之年", '酉': "决断之年",
+        '戌': "沉淀之年", '亥': "机遇之年"
+    }[zhi] || "平稳之年";
+
+    return `${ganEffect}，${zhiEffect}。整体运势平稳，建议稳中求进。`;
+}
     
     function getYearLuckCombination(ganWuxing, zhiWuxing) {
         const combinations = {
@@ -1617,36 +1629,29 @@ function generateDecadeLuckTimeline(lunar, gender) {
         return combinations[`${ganWuxing}${zhiWuxing}`] || "运势平稳";
     }
     
-    function generateNextYearsLuck(lunar) {
+    function generateNextYearsLuck() {
     const currentYear = new Date().getFullYear();
-    let yearsHTML = '';
-    
+    let html = '';
+
     for (let i = 0; i < 5; i++) {
         const year = currentYear + i;
-        const ganZhi = getYearGanZhi(year);
+        const ganZhi = getYearGanZhi(year) || "未知"; // 确保不返回undefined
         
-        // 确保ganZhi有效
-        if (!ganZhi || ganZhi.length < 2) {
-            yearsHTML += `
-                <div class="analysis-item">
-                    <div class="analysis-item-title">${year}年</div>
-                    <div class="analysis-item-content">运势平稳</div>
-                </div>
-            `;
-            continue;
-        }
-        
-        yearsHTML += `
+        // 如果干支无效，直接显示"运势平稳"
+        const analysis = (ganZhi === "未知") 
+            ? "运势平稳" 
+            : getYearLuckAnalysis(ganZhi);
+
+        html += `
             <div class="analysis-item">
-                <div class="analysis-item-title">${year}年 (${ganZhi})</div>
-                <div class="analysis-item-content">${getYearLuckAnalysis(ganZhi)}</div>
+                <div class="analysis-item-title">${year}年 ${ganZhi}</div>
+                <div class="analysis-item-content">${analysis}</div>
             </div>
         `;
     }
-    
-    return yearsHTML;
-}
 
+    return html;
+}
     // 八字学习建议
     function getLearningSuggestions(wuxingCount) {
         const weakElements = Object.entries(wuxingCount)
@@ -1781,23 +1786,23 @@ function generateDecadeLuckTimeline(lunar, gender) {
 
     // 获取年干支
     function getYearGanZhi(year) {
-    const gan = ["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"];
-    const zhi = ["子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"];
+    const ganList = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
+    const zhiList = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
     
-    if (typeof year !== 'number' || year < 1900 || year > 2100) {
-        return "未知";
-    }
+    // 以2020年（庚子年）为基准
+    const baseYear = 2020;
+    const baseGanIndex = 6; // 庚
+    const baseZhiIndex = 0; // 子
     
-    // 以2000年(庚辰年)为基准
-    const baseYear = 2000;
-    const baseIndex = 6; // 庚
-    const baseZhiIndex = 4; // 辰
+    // 计算偏移量
+    const offset = year - baseYear;
+    const ganIndex = (baseGanIndex + offset) % 10;
+    const zhiIndex = (baseZhiIndex + offset) % 12;
     
-    const diff = year - baseYear;
-    const ganIndex = (baseIndex + diff) % 10;
-    const zhiIndex = (baseZhiIndex + diff) % 12;
-    
-    return gan[(ganIndex + 10) % 10] + zhi[(zhiIndex + 12) % 12];
+    // 返回干支组合，确保不越界
+    return (ganIndex >= 0 && zhiIndex >= 0) 
+        ? ganList[ganIndex] + zhiList[zhiIndex] 
+        : "未知";
 }
             
     // 新增工具函数：判断天干阴阳
