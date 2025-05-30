@@ -2826,7 +2826,7 @@ function calculateLuckStartingTime(lunar, gender) {
     
     return `${years}年${months}个月${days}天起运`;
 }
-        });
+
 
         // 跨年处理
         if (!nearest) {
