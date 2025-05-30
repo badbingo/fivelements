@@ -2793,92 +2793,158 @@ function hasHe(branches, branch1, branch2) {
     }
 
     // 修改后的calculateLuckStartingTime函数
-function calculateLuckStartingTime(lunar, gender) {
-    // 1. 输入验证
-    if (!lunar || !lunar.getSolar) {
-        console.error('Invalid lunar object');
-        return defaultLuckTime();
+function calculateAccurateLuckTime(lunar, gender) {
+    // 强化输入验证
+    if (!lunar || typeof lunar.getSolar !== 'function') {
+        console.error('无效的农历对象', lunar);
+        return formatResult(6, 0);
     }
 
     try {
-        // 2. 获取出生日期（兼容不同八字库版本）
-        const solar = lunar.getSolar();
-        const birthDate = new Date(
-            solar.getFullYear ? solar.getFullYear() : solar.getYear(),
-            (solar.getMonth ? solar.getMonth() : solar.getMonth() - 1),
-            solar.getDate ? solar.getDate() : solar.getDay(),
-            solar.getHour ? solar.getHour() : 0,
-            solar.getMinute ? solar.getMinute() : 0,
-            solar.getSecond ? solar.getSecond() : 0
-        );
-
-        // 3. 确定排法方向
-        const yearGan = lunar.getYearGan();
-        const isYang = ['甲', '丙', '戊', '庚', '壬'].includes(yearGan);
-        const isForward = (isYang && gender === 'male') || (!isYang && gender === 'female');
-
-        // 4. 获取关键节气时间
-        const jieQiDate = getJieQiDate(lunar, birthDate, isForward);
-        if (!jieQiDate) return defaultLuckTime();
-
-        // 5. 计算天数差
-        const diffDays = Math.round(Math.abs(jieQiDate - birthDate) / (1000 * 60 * 60 * 24));
-
-        // 6. 转换为起运时间（3天=1年）
-        const years = Math.floor(diffDays / 3);
-        const months = Math.floor((diffDays % 3) * 4);
-
-        // 7. 结果校验
-        if (years > 15) { // 超过15岁视为异常
-            console.warn('Abnormal result detected:', years);
-            return defaultLuckTime();
+        // 1. 获取精确的出生时间（增强兼容性）
+        const birthDate = getBirthDate(lunar);
+        if (!(birthDate instanceof Date)) {
+            console.error('出生日期转换失败', birthDate);
+            return formatResult(6, 0);
         }
 
-        // 8. 格式化输出
-        return formatLuckTime(years, months);
+        // 2. 确定排法方向（加强判断逻辑）
+        const isForward = shouldCountForward(lunar, gender);
+        console.debug('排法方向:', isForward ? '顺排' : '逆排');
+
+        // 3. 获取关键节气时间（双重保障）
+        const jieQiDate = getJieQiDate(lunar, birthDate, isForward);
+        if (!jieQiDate) {
+            console.error('节气获取失败');
+            return formatResult(6, 0);
+        }
+
+        // 4. 计算精确天数差（添加边界检查）
+        const diffDays = getDayDifference(birthDate, jieQiDate);
+        if (diffDays > 1000) { // 超过1000天视为异常
+            console.error('异常天数差:', diffDays);
+            return formatResult(6, 0);
+        }
+
+        // 5. 转换为起运时间
+        return convertDaysToAge(diffDays);
+
     } catch (e) {
-        console.error('Error in luck time calculation:', e);
-        return defaultLuckTime();
+        console.error('起运计算异常:', e);
+        return formatResult(6, 0);
     }
 }
 
-// 辅助函数
+// ========== 增强版工具函数 ========== //
+
+/** 获取出生日期（支持多版本八字库） */
+function getBirthDate(lunar) {
+    const solar = lunar.getSolar();
+    // 处理不同库的API差异
+    const year = solar.getFullYear?.() ?? solar.getYear();
+    const month = (solar.getMonth?.() ?? solar.getMonth()) - 1;
+    const day = solar.getDate?.() ?? solar.getDay();
+    const hour = solar.getHour?.() ?? 0;
+    const minute = solar.getMinute?.() ?? 0;
+    
+    // 日期有效性验证
+    if (isNaN(year) throw new Error('无效年份');
+    return new Date(year, month, day, hour, minute);
+}
+
+/** 判断排法方向（加强逻辑） */
+function shouldCountForward(lunar, gender) {
+    // 处理不同库的年干获取方式
+    const yearGan = typeof lunar.getYearGan === 'function' ? 
+                   lunar.getYearGan() : 
+                   lunar.yearGan;
+    
+    // 扩展的阳干列表（兼容不同写法）
+    const yangGan = ['甲', '丙', '戊', '庚', '壬', '㈠', '㈢', '㈤', '㈦', '㈨'];
+    const isYang = yangGan.includes(yearGan);
+    
+    // 性别参数标准化
+    const isMale = String(gender).toLowerCase().includes('male');
+    
+    return (isYang && isMale) || (!isYang && !isMale);
+}
+
+/** 获取节气时间（核心修复） */
 function getJieQiDate(lunar, birthDate, isForward) {
-    try {
-        const jieQiName = isForward ? '立春' : '大寒';
-        const jieQi = lunar.getJieQi ? lunar.getJieQi(jieQiName) : null;
-        
-        if (jieQi && jieQi.getSolar) {
-            const solar = jieQi.getSolar();
-            return new Date(
-                solar.getFullYear ? solar.getFullYear() : solar.getYear(),
-                (solar.getMonth ? solar.getMonth() : solar.getMonth() - 1),
-                solar.getDate ? solar.getDate() : solar.getDay(),
-                solar.getHour ? solar.getHour() : 0,
-                solar.getMinute ? solar.getMinute() : 0,
-                solar.getSecond ? solar.getSecond() : 0
-            );
+    const jieQiName = isForward ? '立春' : '大寒';
+    let jieQiDate;
+    
+    // 方案1：使用库方法获取精确节气
+    if (typeof lunar.getJieQi === 'function') {
+        try {
+            const jieQi = lunar.getJieQi(jieQiName);
+            if (jieQi && typeof jieQi.getSolar === 'function') {
+                const solar = jieQi.getSolar();
+                jieQiDate = new Date(
+                    solar.getFullYear?.() ?? solar.getYear(),
+                    (solar.getMonth?.() ?? solar.getMonth()) - 1,
+                    solar.getDate?.() ?? solar.getDay(),
+                    solar.getHour?.() ?? 0,
+                    solar.getMinute?.() ?? 0
+                );
+                
+                // 验证节气方向
+                const isValid = isForward ? 
+                    jieQiDate > birthDate : 
+                    jieQiDate < birthDate;
+                if (isValid) return jieQiDate;
+            }
+        } catch (e) {
+            console.warn('精确节气获取失败:', e);
         }
-    } catch (e) {
-        console.warn('Failed to get precise jieqi:', e);
     }
     
-    // 保底方案
+    // 方案2：智能估算（处理跨年）
     const year = birthDate.getFullYear();
-    return isForward 
-        ? new Date(year + (birthDate.getMonth() < 1 ? 0 : 1), 1, 4) // 次年立春
-        : new Date(year - (birthDate.getMonth() > 0 ? 1 : 0), 0, 20); // 前年大寒
+    const month = birthDate.getMonth();
+    
+    if (isForward) {
+        // 顺排找下一个立春（2月4日左右）
+        const baseDate = new Date(year, 1, 4);
+        return baseDate > birthDate ? baseDate : new Date(year + 1, 1, 4);
+    } else {
+        // 逆排找前一个大寒（1月20日左右）
+        const baseDate = new Date(year, 0, 20);
+        return baseDate < birthDate ? baseDate : new Date(year - 1, 0, 20);
+    }
 }
 
-function formatLuckTime(years, months) {
-    const parts = [];
-    if (years > 0) parts.push(`${years}岁`);
-    if (months > 0) parts.push(`${months}个月`);
-    return parts.length > 0 ? `${parts.join('')}起运` : '约6岁起运';
+/** 计算天数差（精确到天） */
+function getDayDifference(date1, date2) {
+    const timeDiff = Math.abs(date2 - date1);
+    return Math.round(timeDiff / (1000 * 60 * 60 * 24));
 }
 
-function defaultLuckTime() {
-    return '约6岁起运';
+/** 天数转起运年龄 */
+function convertDaysToAge(days) {
+    // 标准换算：3天=1年，剩余天数按月计算（1天≈4个月）
+    const years = Math.floor(days / 3);
+    const months = Math.round((days % 3) * 4);
+    
+    // 结果校验（正常范围0-12岁）
+    if (years > 12) {
+        console.warn('异常计算结果:', years, '岁');
+        return formatResult(6, 0);
+    }
+    
+    return formatResult(years, months);
+}
+
+/** 格式化输出 */
+function formatResult(years, months) {
+    if (years >= 1) {
+        return months > 0 ? 
+            `${years}岁${months}个月起运` : 
+            `${years}岁起运`;
+    }
+    return months > 0 ? 
+        `${months}个月起运` : 
+        '出生即起运';
 }
 
     // 判断从强从弱 - 修改后的函数
