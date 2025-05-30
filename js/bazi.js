@@ -2850,9 +2850,11 @@ function findNextJieQi(date) {
     const solar = Solar.fromDate(date);
     const lunar = solar.getLunar();
     const jieQiList = Object.entries(lunar.getJieQiList())
-        .map(([name, solar]) => ({ name, solar }))
-        .sort((a, b) => a.solar.getYear() * 10000 + a.solar.getMonth() * 100 + a.solar.getDay() - 
-                         b.solar.getYear() * 10000 - b.solar.getMonth() * 100 - b.solar.getDay()));
+    .map(([name, solar]) => ({ name, solar }))
+    .sort((a, b) => (
+        (a.solar.getYear() * 10000 + a.solar.getMonth() * 100 + a.solar.getDay()) -
+        (b.solar.getYear() * 10000 + b.solar.getMonth() * 100 + b.solar.getDay())
+    ));
     
     for (const jieQi of jieQiList) {
         const jieQiDate = new Date(
