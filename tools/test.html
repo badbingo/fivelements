@@ -578,7 +578,6 @@
     </footer>
     
     <script src="../js/lunar.js"></script>
-    <script src="../js/main1.js"></script>
     
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -745,9 +744,14 @@
 
     // 填充所有分析部分
     function fillAnalysisSections(lunar, gender) {
+    const baZi = lunar.getBaZi();
+    const dayGan = baZi[2].substring(0, 1);
+    const wuxingCount = countWuxingElements(lunar);
         // 身强身弱分析
         document.getElementById('strength-analysis').innerHTML = `
             <p><strong>身强身弱：</strong>${getStrengthAnalysis(lunar)}</p>
+            ${generateStrengthDetails(lunar)}
+        `;    
             <div class="analysis-grid">
                 <div class="analysis-item">
                     <div class="analysis-item-title"><i class="fas fa-cloud-sun"></i> 得令情况</div>
@@ -942,32 +946,30 @@
 
     // 五行平衡分析
     function generateWuxingBalance(lunar) {
-        // 生成五行平衡分析
-        return `
-            <div class="analysis-grid">
-                <div class="analysis-item">
-                    <div class="analysis-item-title"><i class="fas fa-tree wuxing-wood"></i> 木</div>
-                    <div class="analysis-item-content">3个，偏旺</div>
-                </div>
-                <div class="analysis-item">
-                    <div class="analysis-item-title"><i class="fas fa-fire wuxing-fire"></i> 火</div>
-                    <div class="analysis-item-content">2个，适中</div>
-                </div>
-                <div class="analysis-item">
-                    <div class="analysis-item-title"><i class="fas fa-mountain wuxing-earth"></i> 土</div>
-                    <div class="analysis-item-content">1个，偏弱</div>
-                </div>
-                <div class="analysis-item">
-                    <div class="analysis-item-title"><i class="fas fa-coins wuxing-metal"></i> 金</div>
-                    <div class="analysis-item-content">1个，偏弱</div>
-                </div>
-                <div class="analysis-item">
-                    <div class="analysis-item-title"><i class="fas fa-tint wuxing-water"></i> 水</div>
-                    <div class="analysis-item-content">1个，偏弱</div>
-                </div>
-            </div>
-        `;
-    }
+    const wuxingCount = countWuxingElements(lunar);
+    const total = Object.values(wuxingCount).reduce((a, b) => a + b, 0);
+    
+    return `
+        <div class="analysis-grid">
+            ${Object.entries(wuxingCount).map(([element, count]) => {
+                const percentage = ((count / total) * 100).toFixed(1);
+                let strength = '';
+                if (percentage > 30) strength = '偏旺';
+                else if (percentage > 15) strength = '适中';
+                else strength = '偏弱';
+                
+                return `
+                    <div class="analysis-item">
+                        <div class="analysis-item-title">
+                            <i class="fas fa-${getElementIcon(element)} wuxing-${getElementClass(element)}"></i> ${element}
+                        </div>
+                        <div class="analysis-item-content">${count}个 (${percentage}%), ${strength}</div>
+                    </div>
+                `;
+            }).join('')}
+        </div>
+    `;
+}
 
     // 添加五行统计函数
 function countWuxingElements(lunar) {
