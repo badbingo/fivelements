@@ -1006,26 +1006,28 @@ ${getWealthSuggestions(score)}
 
     // 保存个人资料
     function saveProfile(birthData) {
-        const profiles = JSON.parse(localStorage.getItem('baziProfiles') || '[]');
-        const existingIndex = profiles.findIndex(function(p) {
-            return p.date === birthData.date && 
-                   p.time === birthData.time && 
-                   p.gender === birthData.gender;
-        });
-        
-        if (existingIndex >= 0) {
-            profiles[existingIndex] = birthData;
-        } else {
-            profiles.push(birthData);
-        }
-        
-        if (profiles.length > 8) {
-            profiles.shift();
-        }
-        
-        localStorage.setItem('baziProfiles', JSON.stringify(profiles));
-        loadSavedProfiles();
+    const profiles = JSON.parse(localStorage.getItem('baziProfiles') || '[]');
+    const existingIndex = profiles.findIndex(p => 
+        p.date === birthData.date && 
+        p.time === birthData.time && 
+        p.gender === birthData.gender
+    );
+    
+    // 保存时包含时区
+    const profileToSave = {
+        ...birthData,
+        timezone: birthData.timezone || 8 // 确保有时区
+    };
+    
+    if (existingIndex >= 0) {
+        profiles[existingIndex] = profileToSave;
+    } else {
+        profiles.push(profileToSave);
     }
+    
+    localStorage.setItem('baziProfiles', JSON.stringify(profiles));
+    loadSavedProfiles();
+}
 
     // 重置所有内容
     function resetAllContent() {
@@ -1394,55 +1396,30 @@ function displaySectionContent(section, result, contentElement) {
 }
     // 计算八字
     async function calculateBazi(e) {
-    if (e) {
-        e.preventDefault();
-    }
-    resetAllContent();
-        
-    // 隐藏指南部分
-    document.getElementById('guide-section').style.display = 'none';
-        
+    if (e) e.preventDefault();
+    
+    // 新增时区获取
+    const timezone = parseInt(document.getElementById('birth-timezone').value) || 8; // 默认UTC+8
+    
+    // 确保其他必填字段
     const name = document.getElementById('name').value;
     const birthDate = document.getElementById('birth-date').value;
-    const birthTime = birthTimeInput.value;
+    const birthTime = document.getElementById('birth-time').value;
     const gender = document.getElementById('gender').value;
-    
+
     if (!birthDate || !birthTime || !gender) {
         alert('请填写完整的出生信息');
         return;
     }
-        
-        const dateParts = birthDate.split('-');
-        const year = parseInt(dateParts[0]);
-        const month = parseInt(dateParts[1]);
-        const day = parseInt(dateParts[2]);
-        
-        if (!isValidDate(year, month, day)) {
-            alert('请输入有效的出生日期');
-            return;
-        }
-        
-        if (month === 2) {
-            const maxDays = isLeapYear(year) ? 29 : 28;
-            if (day > maxDays) {
-                alert(`${year}年2月只有${maxDays}天`);
-                return;
-            }
-        }
-        
-        const monthsWith30Days = [4, 6, 9, 11];
-        if (monthsWith30Days.includes(month) && day > 30) {
-            alert(`${month}月只有30天`);
-            return;
-        }
-        
-        birthData = { 
-            name, 
-            date: birthDate,
-            time: birthTime, 
-            timezone, // 新增时区字段
-            gender: gender
-        };
+
+    // 构建数据对象时包含时区
+    const birthData = { 
+        name, 
+        date: birthDate,
+        time: birthTime,
+        timezone, // 关键添加
+        gender 
+    };
         
         saveProfile(birthData);
         calculateBtn.disabled = true;
@@ -1691,12 +1668,13 @@ function displaySectionContent(section, result, contentElement) {
     // 计算本命局五行能量（包括天干、地支、藏干，并考虑合化刑冲）
     function calculateNatalElements(baziInfo) {
     // 0. 提取时区（默认UTC+8）
-    const timezone = baziInfo.timezone || 8; 
+    const timezone = baziInfo.timezone !== undefined ? baziInfo.timezone : 8;
     const [year, month, day] = baziInfo.date.split('-').map(Number);
     let [hours, minutes] = baziInfo.time.split(':').map(Number);
 
     // 1. 时区校正（将本地时间转换为UTC+8标准时间）
-    hours = (hours + (8 - timezone)) % 24; // 中国时区是UTC+8
+    let [hours, minutes] = baziInfo.time.split(':').map(Number);
+    hours = (hours + (8 - timezone)) % 24;
     if (hours < 0) hours += 24;
 
     // 2. 重新确定时辰地支（基于校正后的小时）
@@ -3226,24 +3204,29 @@ function determineStrengthType(pillars) {
 
     // 加载个人资料
     function loadProfile(profile) {
+    // 1. 基础信息加载（保持不变）
     document.getElementById('name').value = profile.name || '';
-    document.getElementById('birth-date').value = profile.date;
-    document.getElementById('birth-time').value = profile.time;
-    document.getElementById('gender').value = profile.gender;
-    const hour = parseInt(profile.time.split(':')[0]);
-    timePeriodOptions.forEach(function(opt) {
-        opt.classList.remove('selected');
-    });
-    const selectedOption = document.querySelector(`.time-period-option[data-hour="${hour}"]`);
-    if (selectedOption) {
-        selectedOption.classList.add('selected');
-        birthTimeInput.value = profile.time;
+    document.getElementById('birth-date').value = profile.date || '';
+    document.getElementById('birth-time').value = profile.time || '';
+    document.getElementById('gender').value = profile.gender || 'male'; // 默认值
+
+    // 2. 时区处理（关键修改）
+    const timezoneInput = document.getElementById('birth-timezone');
+    if (timezoneInput) {
+        // 优先使用profile中的时区，其次用旧数据的隐含时区，最后默认UTC+8
+        timezoneInput.value = 
+            profile.timezone !== undefined ? profile.timezone : 
+            (profile._tz ? profile._tz : 8); // _tz是旧数据的兼容字段
     }
-    
-    // 自动触发计算
-    setTimeout(() => {
-        calculateBtn.click();
-    }, 100);
+
+    // 3. 自动触发计算（需传递完整参数）
+    calculateBazi(null, { 
+        name: profile.name,
+        date: profile.date,
+        time: profile.time,
+        timezone: profile.timezone !== undefined ? profile.timezone : 8, // 确保有时区
+        gender: profile.gender
+    });
 }
 
     // 显示基础信息
