@@ -2802,9 +2802,17 @@ function calculateLuckStartingTime(lunar, gender) {
         const jieQiTable = lunarObj.getJieQiTable();
         
         // 查找指定节气
-        const jieQi = jieQiTable[name];
-        if (jieQi) {
-            return jieQi;
+        const jieQiSolar = jieQiTable[name];
+        if (jieQiSolar) {
+            // 将Solar对象转换为Date对象
+            return new Date(
+                jieQiSolar.getYear(),
+                jieQiSolar.getMonth() - 1, // 月份0-11
+                jieQiSolar.getDay(),
+                jieQiSolar.getHour(),
+                jieQiSolar.getMinute(),
+                jieQiSolar.getSecond()
+            );
         }
         
         // 备用方案：使用近似日期
