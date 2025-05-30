@@ -2903,7 +2903,7 @@ function calculateDaysDiff(startDate, endDate) {
 
 // 辅助函数：转换为起运时间
 function convertDaysToLuckTime(days) {
-    if (isNaN(days) {
+    if (isNaN(days)) {
         console.error('无效的天数:', days);
         return '未知起运时间';
     }
