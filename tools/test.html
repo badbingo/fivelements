@@ -8,7 +8,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="../css/navigation.css">
     <script defer src="../js/navigation.js"></script>
-    <script src="../js/lunar.js"></script>
     
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-2NHJXGKS0Y"></script>
@@ -297,8 +296,8 @@
         <div class="content-section">
             <div class="calculator-form">
                 <div class="form-header">
-                    <h2><i class="fas fa-user-circle"></i> 基本信息输入</h2>
-                    <p>请填写您的出生信息以生成八字命盘</p>
+                    <h2 style="color: white;"><i class="fas fa-user-circle"></i> 基本信息输入</h2>
+                    <p style="color: white;">请填写您的出生信息以生成八字命盘</p>
                 </div>
                 <form id="bazi-form" class="elegant-form">
                     <div class="form-row">
@@ -475,30 +474,40 @@
                 </div>
             </div>
             
-            <!-- 分析部分 -->
+            <!-- 新增的分析部分 -->
             <div class="analysis-card">
                 <h3><i class="fas fa-balance-scale"></i> 身强身弱分析</h3>
-                <div class="analysis-content" id="strength-analysis"></div>
+                <div class="analysis-content" id="strength-analysis">
+                    <!-- 这里将通过JavaScript动态生成内容 -->
+                </div>
             </div>
             
             <div class="analysis-card">
                 <h3><i class="fas fa-project-diagram"></i> 十神关系分析</h3>
-                <div class="analysis-content" id="ten-god-analysis"></div>
+                <div class="analysis-content" id="ten-god-analysis">
+                    <!-- 这里将通过JavaScript动态生成内容 -->
+                </div>
             </div>
             
             <div class="analysis-card">
                 <h3><i class="fas fa-yin-yang"></i> 五行平衡分析</h3>
                 <div class="analysis-content">
-                    <div id="wuxing-balance-analysis"></div>
+                    <div id="wuxing-balance-analysis">
+                        <!-- 这里将通过JavaScript动态生成内容 -->
+                    </div>
                     <div class="wuxing-chart-container">
-                        <div class="wuxing-chart" id="wuxing-chart"></div>
+                        <div class="wuxing-chart" id="wuxing-chart">
+                            <!-- 五行图表将通过JavaScript生成 -->
+                        </div>
                     </div>
                 </div>
             </div>
             
             <div class="analysis-card">
                 <h3><i class="fas fa-star"></i> 特殊组合分析</h3>
-                <div class="analysis-content" id="special-combo-analysis"></div>
+                <div class="analysis-content" id="special-combo-analysis">
+                    <!-- 这里将通过JavaScript动态生成内容 -->
+                </div>
             </div>
             
             <div class="analysis-card">
@@ -507,11 +516,15 @@
                     <div class="analysis-grid">
                         <div class="analysis-item">
                             <div class="analysis-item-title"><i class="fas fa-heart"></i> 喜用神</div>
-                            <div class="analysis-item-content" id="useful-gods"></div>
+                            <div class="analysis-item-content" id="useful-gods">
+                                <!-- 这里将通过JavaScript动态生成内容 -->
+                            </div>
                         </div>
                         <div class="analysis-item">
                             <div class="analysis-item-title"><i class="fas fa-times-circle"></i> 忌神</div>
-                            <div class="analysis-item-content" id="harmful-gods"></div>
+                            <div class="analysis-item-content" id="harmful-gods">
+                                <!-- 这里将通过JavaScript动态生成内容 -->
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -528,15 +541,21 @@
                         </div>
                         
                         <div class="tab-content active" id="luck-current">
-                            <div id="current-luck-analysis"></div>
+                            <div id="current-luck-analysis">
+                                <!-- 当前运势内容 -->
+                            </div>
                         </div>
                         
                         <div class="tab-content" id="luck-decade">
-                            <div id="decade-luck-analysis"></div>
+                            <div id="decade-luck-analysis">
+                                <!-- 大运走势内容 -->
+                            </div>
                         </div>
                         
                         <div class="tab-content" id="luck-year">
-                            <div id="year-luck-analysis"></div>
+                            <div id="year-luck-analysis">
+                                <!-- 流年分析内容 -->
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -544,7 +563,9 @@
             
             <div class="analysis-card">
                 <h3><i class="fas fa-graduation-cap"></i> 八字学习建议</h3>
-                <div class="analysis-content" id="learning-suggestions"></div>
+                <div class="analysis-content" id="learning-suggestions">
+                    <!-- 这里将通过JavaScript动态生成内容 -->
+                </div>
             </div>
         </div>
     </main>
@@ -556,1286 +577,11 @@
         </div>
     </footer>
     
+    <script src="../js/lunar.js"></script>
+    <script src="../js/main1.js"></script>
+    
     <script>
-        // 八字计算主函数
-        function calculateBazi() {
-            try {
-                // 1. 获取并验证输入数据
-                const birthDate = document.getElementById('birth-date').value;
-                const birthHour = document.getElementById('birth-hour').value;
-                const birthMinute = document.getElementById('birth-minute').value;
-                const timezone = document.getElementById('timezone').value;
-                const gender = document.querySelector('input[name="gender"]:checked').value;
-
-                // 验证必填字段
-                if (!birthDate || birthHour === "" || birthMinute === "") {
-                    throw new Error("请填写完整的出生日期和时间");
-                }
-
-                // 2. 解析日期和时间
-                const dateParts = birthDate.split('-');
-                if (dateParts.length !== 3) {
-                    throw new Error("日期格式不正确，请使用YYYY-MM-DD格式");
-                }
-
-                const year = parseInt(dateParts[0]);
-                const month = parseInt(dateParts[1]);
-                const day = parseInt(dateParts[2]);
-                const hour = parseInt(birthHour);
-                const minute = parseInt(birthMinute);
-
-                // 验证日期有效性
-                if (isNaN(year) || isNaN(month) || isNaN(day) || 
-                    isNaN(hour) || isNaN(minute)) {
-                    throw new Error("请输入有效的数字");
-                }
-
-                if (year < 1900 || year > 2100) {
-                    throw new Error("年份应在1900-2100之间");
-                }
-
-                if (month < 1 || month > 12) {
-                    throw new Error("月份应在1-12之间");
-                }
-
-                if (day < 1 || day > 31) {
-                    throw new Error("日期应在1-31之间");
-                }
-
-                if (hour < 0 || hour > 23) {
-                    throw new Error("小时应在0-23之间");
-                }
-
-                if (minute < 0 || minute > 59) {
-                    throw new Error("分钟应在0-59之间");
-                }
-
-                // 3. 创建日期对象（考虑时区）
-                const solarDate = new Date(year, month - 1, day, hour, minute);
-                
-                // 验证创建的日期是否有效
-                if (isNaN(solarDate.getTime())) {
-                    throw new Error("无效的日期，请检查输入");
-                }
-
-                // 4. 使用lunar.js计算
-                const lunar = {
-                    getYear: () => year,
-                    getMonth: () => month,
-                    getDay: () => day,
-                    getYearInGanZhi: () => "甲子",
-                    getMonthInChinese: () => "正月",
-                    getDayInChinese: () => "初一",
-                    getYearShengXiao: () => "鼠",
-                    getBaZi: () => ["甲子", "乙丑", "丙寅", "丁卯"]
-                };
-
-                const baZi = lunar.getBaZi();
-                if (!baZi || baZi.length !== 4) {
-                    throw new Error("八字计算失败");
-                }
-
-                // 5. 显示结果
-                displayBaziResult(lunar, baZi, {
-                    solarDate,
-                    gender,
-                    timezone
-                });
-
-                // 6. 执行所有分析
-                performAllAnalyses(lunar, baZi, gender);
-
-            } catch (error) {
-                console.error("八字计算错误:", error);
-                alert(error.message || "计算八字时出错，请检查输入是否正确");
-            }
-        }
-
-        // 显示八字结果
-        function displayBaziResult(lunar, baZi, options) {
-            const [yearGanZhi, monthGanZhi, dayGanZhi, hourGanZhi] = baZi;
-            const dayGan = dayGanZhi.substring(0, 1);
-            
-            // 显示基本信息
-            document.getElementById('result-date').textContent = 
-                `${options.solarDate.getFullYear()}年${options.solarDate.getMonth() + 1}月${options.solarDate.getDate()}日`;
-            document.getElementById('result-time').textContent = 
-                `${options.solarDate.getHours().toString().padStart(2, '0')}:${options.solarDate.getMinutes().toString().padStart(2, '0')}`;
-            document.getElementById('result-lunar').textContent = 
-                `${lunar.getYearInGanZhi()}年${lunar.getMonthInChinese()}${lunar.getDayInChinese()}`;
-            document.getElementById('result-zodiac').textContent = 
-                lunar.getYearShengXiao();
-
-            // 更新四柱信息
-            updatePillarInfo('year', yearGanZhi, dayGan, lunar);
-            updatePillarInfo('month', monthGanZhi, dayGan, lunar);
-            updatePillarInfo('day', dayGanZhi, dayGan, lunar);
-            updatePillarInfo('hour', hourGanZhi, dayGan, lunar);
-
-            // 显示结果区域
-            document.getElementById('result-section').style.display = 'block';
-        }
-
-        // 更新单个柱的信息
-        function updatePillarInfo(type, ganZhi, dayGan, lunar) {
-            const gan = ganZhi.substring(0, 1);
-            const zhi = ganZhi.substring(1);
-            
-            // 天干
-            document.getElementById(`${type}-stem`).innerHTML = 
-                `${gan}<br><span class="ten-god">(${getTenGod(dayGan, gan)})</span>`;
-            
-            // 地支
-            document.getElementById(`${type}-branch`).innerHTML = 
-                `${zhi}<br><span class="ten-god">(${getTenGod(dayGan, zhi)})</span>`;
-            
-            // 藏干
-            const hiddenStems = getHiddenStems(zhi).map(stem => 
-                `${stem}(${getTenGod(dayGan, stem)})`
-            ).join('<br>');
-            document.getElementById(`${type}-hidden-god`).innerHTML = hiddenStems;
-            
-            // 空亡
-            document.getElementById(`${type}-void`).textContent = getVoid(zhi);
-            
-            // 纳音
-            document.getElementById(`${type}-nayin`).textContent = getNaYin(ganZhi);
-        }
-
-        // 十神计算
-        function getTenGod(dayGan, target) {
-            const ganList = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
-            
-            // 如果是地支，获取其主气天干
-            if (!ganList.includes(target)) {
-                target = getMainQi(target);
-                if (!target) return '未知';
-            }
-            
-            const dayIndex = ganList.indexOf(dayGan);
-            const targetIndex = ganList.indexOf(target);
-            
-            if (dayIndex === -1 || targetIndex === -1) return '未知';
-            
-            const diff = (targetIndex - dayIndex + 10) % 10;
-            
-            const tenGods = [
-                '比肩', '劫财', '偏印', '正印', 
-                '七杀', '正官', '偏财', '正财', 
-                '食神', '伤官'
-            ];
-            
-            return tenGods[diff] || '未知';
-        }
-
-        // 地支主气
-        function getMainQi(zhi) {
-            const qiMap = {
-                '子': '癸', '丑': '己', '寅': '甲', '卯': '乙',
-                '辰': '戊', '巳': '丙', '午': '丁', '未': '己',
-                '申': '庚', '酉': '辛', '戌': '戊', '亥': '壬'
-            };
-            return qiMap[zhi] || null;
-        }
-
-        // 藏干
-        function getHiddenStems(zhi) {
-            const hiddenMap = {
-                '子': ['癸'],
-                '丑': ['己', '癸', '辛'],
-                '寅': ['甲', '丙', '戊'],
-                '卯': ['乙'],
-                '辰': ['戊', '乙', '癸'],
-                '巳': ['丙', '戊', '庚'],
-                '午': ['丁', '己'],
-                '未': ['己', '丁', '乙'],
-                '申': ['庚', '壬', '戊'],
-                '酉': ['辛'],
-                '戌': ['戊', '辛', '丁'],
-                '亥': ['壬', '甲']
-            };
-            return hiddenMap[zhi] || [];
-        }
-
-        // 空亡计算
-        function getVoid(zhi) {
-            const branchOrder = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
-            const index = branchOrder.indexOf(zhi);
-            if (index === -1) return '';
-            
-            const void1 = (index + 10) % 12;
-            const void2 = (index + 11) % 12;
-            return branchOrder[void1] + branchOrder[void2];
-        }
-
-        // 纳音五行
-        function getNaYin(ganZhi) {
-            const gan = ganZhi.substring(0, 1);
-            const zhi = ganZhi.substring(1);
-            
-            const ganIndex = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'].indexOf(gan);
-            const zhiIndex = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'].indexOf(zhi);
-            
-            if (ganIndex === -1 || zhiIndex === -1) return '';
-            
-            const naYinTable = [
-                ['海中金', '海中金', '炉中火', '炉中火', '大林木', '大林木', '路旁土', '路旁土', '剑锋金', '剑锋金', '山头火', '山头火'],
-                ['涧下水', '涧下水', '城头土', '城头土', '白蜡金', '白蜡金', '杨柳木', '杨柳木', '泉中水', '泉中水', '屋上土', '屋上土'],
-                ['霹雳火', '霹雳火', '松柏木', '松柏木', '长流水', '长流水', '砂中金', '砂中金', '山下火', '山下火', '平地木', '平地木'],
-                ['壁上土', '壁上土', '金箔金', '金箔金', '覆灯火', '覆灯火', '天河水', '天河水', '大驿土', '大驿土', '钗钏金', '钗钏金'],
-                ['桑柘木', '桑柘木', '大溪水', '大溪水', '沙中土', '沙中土', '天上火', '天上火', '石榴木', '石榴木', '大海水', '大海水']
-            ];
-            
-            return naYinTable[Math.floor(ganIndex / 2)][zhiIndex] || '';
-        }
-
-        // 执行所有分析
-        function performAllAnalyses(lunar, baZi, gender) {
-            const [yearGanZhi, monthGanZhi, dayGanZhi, hourGanZhi] = baZi;
-            const dayGan = dayGanZhi.substring(0, 1);
-            
-            // 1. 身强身弱分析
-            const strengthResult = analyzeStrength(lunar, baZi);
-            document.getElementById('strength-analysis').innerHTML = `
-                <p><strong>综合分析：</strong>${strengthResult.overall}</p>
-                <div class="analysis-grid">
-                    <div class="analysis-item">
-                        <div class="analysis-item-title"><i class="fas fa-cloud-sun"></i> 得令情况</div>
-                        <div class="analysis-item-content">${strengthResult.season}</div>
-                    </div>
-                    <div class="analysis-item">
-                        <div class="analysis-item-title"><i class="fas fa-mountain"></i> 得地情况</div>
-                        <div class="analysis-item-content">${strengthResult.land}</div>
-                    </div>
-                    <div class="analysis-item">
-                        <div class="analysis-item-title"><i class="fas fa-users"></i> 得势情况</div>
-                        <div class="analysis-item-content">${strengthResult.support}</div>
-                    </div>
-                </div>
-                <p><strong>结论：</strong>${strengthResult.conclusion}</p>
-            `;
-            
-            // 2. 十神关系分析
-            const tenGodResult = analyzeTenGods(baZi, dayGan);
-            document.getElementById('ten-god-analysis').innerHTML = `
-                ${tenGodResult.summary}
-                <div class="analysis-grid">
-                    ${tenGodResult.details}
-                </div>
-            `;
-            
-            // 3. 五行平衡分析
-            const wuxingResult = analyzeWuxingBalance(baZi);
-            document.getElementById('wuxing-balance-analysis').innerHTML = `
-                <p>${wuxingResult.summary}</p>
-                <div class="analysis-grid">
-                    ${wuxingResult.details}
-                </div>
-            `;
-            generateWuxingChart(wuxingResult.counts);
-            
-            // 4. 特殊组合分析
-            const specialCombos = analyzeSpecialCombinations(baZi);
-            document.getElementById('special-combo-analysis').innerHTML = `
-                <p>${specialCombos}</p>
-            `;
-            
-            // 5. 用神与忌神分析
-            const godAnalysis = analyzeUsefulHarmfulGods(strengthResult.level, baZi, dayGan);
-            document.getElementById('useful-gods').innerHTML = `
-                ${godAnalysis.useful.map(god => `<span class="god-tag useful-god">${god}</span>`).join('')}
-                <p>${godAnalysis.usefulAnalysis}</p>
-            `;
-            document.getElementById('harmful-gods').innerHTML = `
-                ${godAnalysis.harmful.map(god => `<span class="god-tag harmful-god">${god}</span>`).join('')}
-                <p>${godAnalysis.harmfulAnalysis}</p>
-            `;
-            
-            // 6. 命盘运势分析
-            const luckAnalysis = analyzeLuck(lunar, baZi, gender);
-            document.getElementById('current-luck-analysis').innerHTML = luckAnalysis.current;
-            document.getElementById('decade-luck-analysis').innerHTML = luckAnalysis.decade;
-            document.getElementById('year-luck-analysis').innerHTML = luckAnalysis.year;
-            
-            // 7. 学习建议
-            const learningTips = provideLearningTips(strengthResult.level, wuxingResult.imbalance);
-            document.getElementById('learning-suggestions').innerHTML = `
-                <p>${learningTips.suggestions}</p>
-                <div class="analysis-grid">
-                    <div class="analysis-item">
-                        <div class="analysis-item-title"><i class="fas fa-book"></i> 推荐学习重点</div>
-                        <div class="analysis-item-content">${learningTips.topics}</div>
-                    </div>
-                    <div class="analysis-item">
-                        <div class="analysis-item-title"><i class="fas fa-lightbulb"></i> 学习技巧</div>
-                        <div class="analysis-item-content">${learningTips.tips}</div>
-                    </div>
-                </div>
-            `;
-        }
-
-        // 1. 身强身弱分析
-        function analyzeStrength(lunar, baZi) {
-            const [yearGanZhi, monthGanZhi, dayGanZhi, hourGanZhi] = baZi;
-            const dayGan = dayGanZhi.substring(0, 1);
-            const monthBranch = monthGanZhi.substring(1);
-            
-            // 1.1 得令分析（月令）
-            const seasonStrength = getSeasonStrength(dayGan, monthBranch);
-            
-            // 1.2 得地分析（地支藏干）
-            const landStrength = getLandStrength(dayGan, baZi);
-            
-            // 1.3 得势分析（天干比劫）
-            const supportStrength = getSupportStrength(dayGan, baZi);
-            
-            // 综合判断身强身弱
-            let overall, conclusion, level;
-            
-            // 简单评分系统（实际应用需要更复杂的算法）
-            let score = 0;
-            if (seasonStrength.includes("得令")) score += 2;
-            else if (seasonStrength.includes("不得令")) score -= 1;
-            
-            if (landStrength.includes("强根")) score += 1.5;
-            else if (landStrength.includes("微根")) score += 0.5;
-            else if (landStrength.includes("无根")) score -= 1;
-            
-            if (supportStrength.includes("多")) score += 1.5;
-            else if (supportStrength.includes("少")) score += 0.5;
-            else if (supportStrength.includes("无")) score -= 1;
-            
-            if (score >= 3) {
-                level = "身强";
-                overall = "日主得令得地且有帮扶，属于身强格局";
-                conclusion = "能担财官，适合从事管理、领导类工作，喜财官食伤，忌比劫印星";
-            } else if (score >= 1) {
-                level = "偏强";
-                overall = "日主有一定根基和帮扶，属于偏强格局";
-                conclusion = "能担一定财官，但大运流年变化会影响格局，需综合分析";
-            } else if (score >= -1) {
-                level = "中和";
-                overall = "日主力量中和，需结合大运流年判断";
-                conclusion = "格局较为平衡，行运对命局影响较大，需具体分析";
-            } else if (score >= -3) {
-                level = "偏弱";
-                overall = "日主不得令或根基不足，属于偏弱格局";
-                conclusion = "需印比帮扶，适合团队合作，喜印星比劫，忌财官食伤";
-            } else {
-                level = "身弱";
-                overall = "日主失令无根且无助，属于身弱格局";
-                conclusion = "需大运流年印比帮扶，适合专业技术类工作，忌财官";
-            }
-            
-            return {
-                overall,
-                season: seasonStrength,
-                land: landStrength,
-                support: supportStrength,
-                conclusion,
-                level
-            };
-        }
-
-        function getSeasonStrength(dayGan, monthBranch) {
-            // 五行旺相休囚死关系
-            const wuxingOrder = ["木", "火", "土", "金", "水"];
-            const seasonMap = {
-                '寅': '木', '卯': '木', '辰': '土',
-                '巳': '火', '午': '火', '未': '土',
-                '申': '金', '酉': '金', '戌': '土',
-                '亥': '水', '子': '水', '丑': '土'
-            };
-            
-            const ganToWuxing = {
-                '甲': '木', '乙': '木',
-                '丙': '火', '丁': '火',
-                '戊': '土', '己': '土',
-                '庚': '金', '辛': '金',
-                '壬': '水', '癸': '水'
-            };
-            
-            const monthWuxing = seasonMap[monthBranch];
-            const dayWuxing = ganToWuxing[dayGan];
-            
-            if (!monthWuxing || !dayWuxing) return "无法判断得令情况";
-            
-            // 同五行即为得令
-            if (monthWuxing === dayWuxing) {
-                return "日主生于当令之月，得令而强";
-            }
-            
-            // 判断月令对日主的生克关系
-            const monthIdx = wuxingOrder.indexOf(monthWuxing);
-            const dayIdx = wuxingOrder.indexOf(dayWuxing);
-            
-            // 月令生助日主（印）
-            if ((monthIdx + 1) % 5 === dayIdx || (monthIdx + 2) % 5 === dayIdx) {
-                return "日主得月令生助，次得令";
-            }
-            
-            // 月令克制日主（官杀）
-            if ((monthIdx + 3) % 5 === dayIdx || (monthIdx + 4) % 5 === dayIdx) {
-                return "日主被月令克制，不得令而弱";
-            }
-            
-            // 日主生月令（食伤）
-            if ((dayIdx + 1) % 5 === monthIdx || (dayIdx + 2) % 5 === monthIdx) {
-                return "日主泄气于月令，不得令";
-            }
-            
-            // 日主克月令（财）
-            if ((dayIdx + 3) % 5 === monthIdx || (dayIdx + 4) % 5 === monthIdx) {
-                return "日主克月令，耗力不得令";
-            }
-            
-            return "无法判断得令情况";
-        }
-
-        function getLandStrength(dayGan, baZi) {
-            const roots = {
-                '甲': ['寅', '卯', '辰', '未'],
-                '乙': ['寅', '卯', '辰', '未'],
-                '丙': ['巳', '午', '未', '戌'],
-                '丁': ['巳', '午', '未', '戌'],
-                '戊': ['辰', '戌', '丑', '未', '巳', '午'],
-                '己': ['辰', '戌', '丑', '未', '巳', '午'],
-                '庚': ['申', '酉', '戌', '丑'],
-                '辛': ['申', '酉', '戌', '丑'],
-                '壬': ['亥', '子', '丑', '辰'],
-                '癸': ['亥', '子', '丑', '辰']
-            };
-            
-            let rootCount = 0;
-            const rootTypes = [];
-            
-            // 检查地支中的根
-            baZi.forEach(ganZhi => {
-                const branch = ganZhi.substring(1);
-                if (roots[dayGan].includes(branch)) {
-                    rootCount++;
-                    rootTypes.push(branch);
-                }
-                
-                // 检查藏干中的根
-                const hiddenStems = getHiddenStems(branch);
-                hiddenStems.forEach(stem => {
-                    if (stem === dayGan) {
-                        rootCount += 0.5; // 藏干算半个根
-                        rootTypes.push(`${branch}藏${stem}`);
-                    }
-                });
-            });
-            
-            if (rootCount >= 2) {
-                return `地支有${rootTypes.join('、')}等${rootCount}个根气，得地而强`;
-            } else if (rootCount >= 1) {
-                return `地支有${rootTypes.join('、')}等${rootCount}个根气，得地一般`;
-            } else if (rootCount > 0) {
-                return `地支有微弱根气${rootTypes.join('、')}，得地不足`;
-            } else {
-                return "地支无根气，不得地";
-            }
-        }
-
-        function getSupportStrength(dayGan, baZi) {
-            const sameStems = [dayGan]; // 比肩
-            let oppositeStems = []; // 劫财
-            
-            // 根据阴阳确定劫财
-            const ganYinYang = {
-                '甲': '阳', '乙': '阴',
-                '丙': '阳', '丁': '阴',
-                '戊': '阳', '己': '阴',
-                '庚': '阳', '辛': '阴',
-                '壬': '阳', '癸': '阴'
-            };
-            
-            for (const gan in ganYinYang) {
-                if (ganYinYang[gan] !== ganYinYang[dayGan] && 
-                    getTenGod(dayGan, gan) === '劫财') {
-                    oppositeStems.push(gan);
-                }
-            }
-            
-            let supportCount = 0;
-            const supportTypes = [];
-            
-            baZi.forEach(ganZhi => {
-                const stem = ganZhi.substring(0, 1);
-                
-                // 比肩
-                if (sameStems.includes(stem)) {
-                    supportCount++;
-                    supportTypes.push(`${stem}(比肩)`);
-                }
-                
-                // 劫财
-                if (oppositeStems.includes(stem)) {
-                    supportCount++;
-                    supportTypes.push(`${stem}(劫财)`);
-                }
-            });
-            
-            if (supportCount >= 3) {
-                return `天干有${supportTypes.join('、')}等${supportCount}个帮扶，得势而强`;
-            } else if (supportCount >= 1) {
-                return `天干有${supportTypes.join('、')}等${supportCount}个帮扶，得势一般`;
-            } else {
-                return "天干无助，不得势";
-            }
-        }
-
-        // 2. 十神关系分析
-        function analyzeTenGods(baZi, dayGan) {
-            const tenGodCounts = {
-                '比肩': 0, '劫财': 0,
-                '食神': 0, '伤官': 0,
-                '偏财': 0, '正财': 0,
-                '七杀': 0, '正官': 0,
-                '偏印': 0, '正印': 0
-            };
-            
-            // 统计十神数量
-            baZi.forEach(ganZhi => {
-                // 天干
-                const stem = ganZhi.substring(0, 1);
-                const tenGod = getTenGod(dayGan, stem);
-                tenGodCounts[tenGod]++;
-                
-                // 地支藏干
-                const branch = ganZhi.substring(1);
-                const hiddenStems = getHiddenStems(branch);
-                hiddenStems.forEach(stem => {
-                    const hiddenTenGod = getTenGod(dayGan, stem);
-                    tenGodCounts[hiddenTenGod] += 0.5; // 藏干权重减半
-                });
-            });
-            
-            // 生成分析结果
-            let summary = "十神代表不同的人际关系和能力特质，分析如下：";
-            
-            const details = Object.entries(tenGodCounts)
-                .filter(([_, count]) => count > 0)
-                .map(([tenGod, count]) => {
-                    let analysis = "";
-                    
-                    switch(tenGod) {
-                        case '比肩':
-                            analysis = `独立自主，竞争意识${count >= 2 ? '强' : '一般'}`;
-                            break;
-                        case '劫财':
-                            analysis = `人际关系${count >= 2 ? '复杂' : '正常'}，需注意合作与竞争`;
-                            break;
-                        case '食神':
-                            analysis = `创造力${count >= 1 ? '强' : '一般'}，艺术天赋${count >= 2 ? '突出' : '普通'}`;
-                            break;
-                        case '伤官':
-                            analysis = `表达能力${count >= 1 ? '强' : '一般'}，${count >= 2 ? '需注意言行' : '沟通顺畅'}`;
-                            break;
-                        case '偏财':
-                            analysis = `偏财运${count >= 1 ? '不错' : '一般'}，投资理财${count >= 2 ? '有机会' : '需谨慎'}`;
-                            break;
-                        case '正财':
-                            analysis = `正财运${count >= 1 ? '稳定' : '普通'}，理财能力${count >= 2 ? '强' : '一般'}`;
-                            break;
-                        case '七杀':
-                            analysis = `事业压力${count >= 1 ? '大' : '正常'}，${count >= 2 ? '需注意健康' : '能应对挑战'}`;
-                            break;
-                        case '正官':
-                            analysis = `事业运${count >= 1 ? '佳' : '一般'}，${count >= 2 ? '易得贵人' : '需自己努力'}`;
-                            break;
-                        case '偏印':
-                            analysis = `学习能力${count >= 1 ? '强' : '一般'}，${count >= 2 ? '多才多艺' : '专注某一领域'}`;
-                            break;
-                        case '正印':
-                            analysis = `学业运${count >= 1 ? '好' : '普通'}，${count >= 2 ? '易得长辈帮助' : '需自己努力'}`;
-                            break;
-                    }
-                    
-                    return `
-                        <div class="analysis-item">
-                            <div class="analysis-item-title"><i class="fas fa-${getTenGodIcon(tenGod)}"></i> ${tenGod}</div>
-                            <div class="analysis-item-content">${count}个，${analysis}</div>
-                        </div>
-                    `;
-                }).join('');
-            
-            // 十神格局总结
-            let pattern = "";
-            if (tenGodCounts['正官'] >= 2 && tenGodCounts['正印'] >= 1) {
-                pattern = "官印相生格，适合公务员、教育等稳定职业";
-            } else if (tenGodCounts['偏财'] >= 2 && tenGodCounts['食神'] >= 1) {
-                pattern = "食神生财格，适合商业、艺术等创造性工作";
-            } else if (tenGodCounts['七杀'] >= 2 && tenGodCounts['偏印'] >= 1) {
-                pattern = "杀印相生格，适合武职、技术等挑战性工作";
-            } else if (tenGodCounts['伤官'] >= 2 && tenGodCounts['正财'] >= 1) {
-                pattern = "伤官生财格，适合销售、演艺等表现性工作";
-            } else {
-                pattern = "普通格局，需结合五行和大运分析";
-            }
-            
-            summary += `综合分析，您的八字属于${pattern}。`;
-            
-            return {
-                summary,
-                details
-            };
-        }
-
-        function getTenGodIcon(tenGod) {
-            const iconMap = {
-                '比肩': 'user-friends',
-                '劫财': 'users',
-                '食神': 'utensils',
-                '伤官': 'comment-alt',
-                '偏财': 'money-bill-wave',
-                '正财': 'money-bill-alt',
-                '七杀': 'gavel',
-                '正官': 'user-tie',
-                '偏印': 'book',
-                '正印': 'book-open'
-            };
-            return iconMap[tenGod] || 'question-circle';
-        }
-
-        // 3. 五行平衡分析
-        function analyzeWuxingBalance(baZi) {
-            const wuxingCounts = {
-                '木': 0, '火': 0, '土': 0, '金': 0, '水': 0
-            };
-            
-            // 统计五行数量
-            baZi.forEach(ganZhi => {
-                // 天干
-                const stem = ganZhi.substring(0, 1);
-                const stemWuxing = getWuxingFromGan(stem);
-                wuxingCounts[stemWuxing]++;
-                
-                // 地支
-                const branch = ganZhi.substring(1);
-                const branchWuxing = getWuxingFromZhi(branch);
-                wuxingCounts[branchWuxing]++;
-                
-                // 藏干
-                const hiddenStems = getHiddenStems(branch);
-                hiddenStems.forEach(stem => {
-                    const hiddenWuxing = getWuxingFromGan(stem);
-                    wuxingCounts[hiddenWuxing] += 0.3; // 藏干权重更低
-                });
-            });
-            
-            // 计算五行平衡度
-            const total = Object.values(wuxingCounts).reduce((a, b) => a + b, 0);
-            const average = total / 5;
-            let imbalance = 0;
-            
-            Object.values(wuxingCounts).forEach(count => {
-                imbalance += Math.abs(count - average);
-            });
-            
-            const imbalanceLevel = imbalance / total;
-            let imbalanceDesc = "";
-            
-            if (imbalanceLevel < 0.2) {
-                imbalanceDesc = "五行较为平衡，各元素分布均匀";
-            } else if (imbalanceLevel < 0.4) {
-                imbalanceDesc = "五行略有偏颇，某些元素稍多或稍少";
-            } else if (imbalanceLevel < 0.6) {
-                imbalanceDesc = "五行明显不平衡，某些元素过多或过少";
-            } else {
-                imbalanceDesc = "五行严重失衡，某些元素极多或极少";
-            }
-            
-            // 生成分析结果
-            const details = Object.entries(wuxingCounts)
-                .map(([wuxing, count]) => {
-                    let status = "";
-                    const percent = (count / total * 100).toFixed(1);
-                    
-                    if (count > average * 1.5) {
-                        status = "过旺";
-                    } else if (count > average * 1.2) {
-                        status = "偏旺";
-                    } else if (count > average * 0.8) {
-                        status = "适中";
-                    } else if (count > average * 0.5) {
-                        status = "偏弱";
-                    } else {
-                        status = "过弱";
-                    }
-                    
-                    return `
-                        <div class="analysis-item">
-                            <div class="analysis-item-title"><i class="fas fa-${getWuxingIcon(wuxing)} wuxing-${wuxing.toLowerCase()}"></i> ${wuxing}</div>
-                            <div class="analysis-item-content">${count.toFixed(1)} (${percent}%)，${status}</div>
-                        </div>
-                    `;
-                }).join('');
-            
-            // 五行生克分析
-            let wuxingAnalysis = imbalanceDesc + "。";
-            
-            // 找出最旺和最弱的五行
-            let maxWuxing = "", maxCount = 0;
-            let minWuxing = "", minCount = Infinity;
-            
-            for (const [wuxing, count] of Object.entries(wuxingCounts)) {
-                if (count > maxCount) {
-                    maxCount = count;
-                    maxWuxing = wuxing;
-                }
-                if (count < minCount) {
-                    minCount = count;
-                    minWuxing = wuxing;
-                }
-            }
-            
-            wuxingAnalysis += `其中${maxWuxing}元素最旺(${maxCount.toFixed(1)})，${minWuxing}元素最弱(${minCount.toFixed(1)})。`;
-            
-            // 五行相生相克建议
-            const wuxingOrder = ["木", "火", "土", "金", "水"];
-            const maxIdx = wuxingOrder.indexOf(maxWuxing);
-            const minIdx = wuxingOrder.indexOf(minWuxing);
-            
-            // 最旺五行所克的五行
-            const controlledIdx = (maxIdx + 3) % 5;
-            const controlledWuxing = wuxingOrder[controlledIdx];
-            
-            // 最弱五行被什么生
-            const motherIdx = (minIdx - 1 + 5) % 5;
-            const motherWuxing = wuxingOrder[motherIdx];
-            
-            wuxingAnalysis += ` ${maxWuxing}旺会克制${controlledWuxing}，建议加强${motherWuxing}来生扶${minWuxing}。`;
-            
-            return {
-                counts: wuxingCounts,
-                summary: wuxingAnalysis,
-                details,
-                imbalance: imbalanceLevel
-            };
-        }
-
-        function getWuxingFromGan(gan) {
-            const ganToWuxing = {
-                '甲': '木', '乙': '木',
-                '丙': '火', '丁': '火',
-                '戊': '土', '己': '土',
-                '庚': '金', '辛': '金',
-                '壬': '水', '癸': '水'
-            };
-            return ganToWuxing[gan] || '';
-        }
-
-        function getWuxingFromZhi(zhi) {
-            const zhiToWuxing = {
-                '寅': '木', '卯': '木',
-                '巳': '火', '午': '火',
-                '辰': '土', '戌': '土', '丑': '土', '未': '土',
-                '申': '金', '酉': '金',
-                '亥': '水', '子': '水'
-            };
-            return zhiToWuxing[zhi] || '';
-        }
-
-        function getWuxingIcon(wuxing) {
-            const iconMap = {
-                '木': 'tree',
-                '火': 'fire',
-                '土': 'mountain',
-                '金': 'coins',
-                '水': 'tint'
-            };
-            return iconMap[wuxing] || 'question-circle';
-        }
-
-        // 4. 特殊组合分析
-        function analyzeSpecialCombinations(baZi) {
-            const branches = baZi.map(ganZhi => ganZhi.substring(1));
-            const stems = baZi.map(ganZhi => ganZhi.substring(0, 1));
-            
-            let combinations = [];
-            
-            // 检查三合局
-            const sanhe = [
-                ['申', '子', '辰'], // 水局
-                ['亥', '卯', '未'], // 木局
-                ['寅', '午', '戌'], // 火局
-                ['巳', '酉', '丑']  // 金局
-            ];
-            
-            sanhe.forEach(he => {
-                const count = he.filter(zhi => branches.includes(zhi)).length;
-                if (count >= 2) {
-                    const wuxing = getWuxingFromZhi(he[0]);
-                    combinations.push(`有${he.join('')}三合${wuxing}局趋势(${count}/3)`);
-                }
-            });
-            
-            // 检查三会局
-            const sanhui = [
-                ['寅', '卯', '辰'], // 东方木
-                ['巳', '午', '未'], // 南方火
-                ['申', '酉', '戌'], // 西方金
-                ['亥', '子', '丑']  // 北方水
-            ];
-            
-            sanhui.forEach(hui => {
-                const count = hui.filter(zhi => branches.includes(zhi)).length;
-                if (count >= 2) {
-                    const wuxing = getWuxingFromZhi(hui[0]);
-                    combinations.push(`有${hui.join('')}三会${wuxing}方趋势(${count}/3)`);
-                }
-            });
-            
-            // 检查六合
-            const liuhe = {
-                '子': '丑', '丑': '子',
-                '寅': '亥', '亥': '寅',
-                '卯': '戌', '戌': '卯',
-                '辰': '酉', '酉': '辰',
-                '巳': '申', '申': '巳',
-                '午': '未', '未': '午'
-            };
-            
-            const foundHe = [];
-            branches.forEach(zhi => {
-                if (liuhe[zhi] && branches.includes(liuhe[zhi]) && !foundHe.includes(zhi)) {
-                    combinations.push(`${zhi}与${liuhe[zhi]}六合`);
-                    foundHe.push(liuhe[zhi]);
-                }
-            });
-            
-            // 检查冲
-            const chong = {
-                '子': '午', '午': '子',
-                '丑': '未', '未': '丑',
-                '寅': '申', '申': '寅',
-                '卯': '酉', '酉': '卯',
-                '辰': '戌', '戌': '辰',
-                '巳': '亥', '亥': '巳'
-            };
-            
-            branches.forEach(zhi => {
-                if (chong[zhi] && branches.includes(chong[zhi])) {
-                    combinations.push(`${zhi}冲${chong[zhi]}`);
-                }
-            });
-            
-            // 检查刑
-            const xingGroups = [
-                ['寅', '巳', '申'], // 无恩之刑
-                ['丑', '戌', '未'], // 恃势之刑
-                ['子', '卯'],       // 无礼之刑
-                ['辰', '午', '酉', '亥'] // 自刑
-            ];
-            
-            xingGroups.forEach(group => {
-                const count = group.filter(zhi => branches.includes(zhi)).length;
-                if (count >= 2) {
-                    combinations.push(`有${group.join('')}相刑趋势(${count}/${group.length})`);
-                }
-            });
-            
-            // 检查天干五合
-            const wuhe = {
-                '甲': '己', '己': '甲',
-                '乙': '庚', '庚': '乙',
-                '丙': '辛', '辛': '丙',
-                '丁': '壬', '壬': '丁',
-                '戊': '癸', '癸': '戊'
-            };
-            
-            stems.forEach(gan => {
-                if (wuhe[gan] && stems.includes(wuhe[gan])) {
-                    combinations.push(`${gan}与${wuhe[gan]}天干五合`);
-                }
-            });
-            
-            if (combinations.length === 0) {
-                return "您的八字中没有明显的特殊组合，属于普通格局。";
-            } else {
-                return `您的八字中有以下特殊组合：${combinations.join('，')}。这些组合会影响五行力量的分布和十神的作用关系。`;
-            }
-        }
-
-        // 5. 用神与忌神分析
-        function analyzeUsefulHarmfulGods(strengthLevel, baZi, dayGan) {
-            let usefulGods = [], harmfulGods = [];
-            let usefulAnalysis = "", harmfulAnalysis = "";
-            
-            const dayWuxing = getWuxingFromGan(dayGan);
-            const wuxingOrder = ["木", "火", "土", "金", "水"];
-            const dayIdx = wuxingOrder.indexOf(dayWuxing);
-            
-            if (strengthLevel.includes("强")) {
-                // 身强喜克泄耗
-                usefulGods.push("财星"); // 我克
-                usefulGods.push("食伤"); // 我生
-                usefulGods.push("官杀"); // 克我
-                
-                // 忌生扶
-                harmfulGods.push("比劫"); // 同我
-                harmfulGods.push("印星"); // 生我
-                
-                usefulAnalysis = "身强喜克泄耗，财星(正偏财)、食伤(食神伤官)、官杀(正官七杀)为用神，能平衡日主过旺的能量。";
-                harmfulAnalysis = "比劫(比肩劫财)和印星(正偏印)会进一步增强日主力量，不利于平衡，故为忌神。";
-            } else if (strengthLevel.includes("弱")) {
-                // 身弱喜生扶
-                usefulGods.push("比劫"); // 同我
-                usefulGods.push("印星"); // 生我
-                
-                // 忌克泄耗
-                harmfulGods.push("财星"); // 我克
-                harmfulGods.push("食伤"); // 我生
-                harmfulGods.push("官杀"); // 克我
-                
-                usefulAnalysis = "身弱喜生扶，比劫(比肩劫财)和印星(正偏印)为用神，能增强日主力量。";
-                harmfulAnalysis = "财星(正偏财)、食伤(食神伤官)、官杀(正官七杀)会进一步消耗日主能量，故为忌神。";
-            } else {
-                // 中和
-                usefulGods.push("调候用神");
-                harmfulGods.push("破坏平衡者");
-                
-                usefulAnalysis = "日主中和，需根据季节调候取用神，寒则暖之，热则凉之，燥则润之，湿则燥之。";
-                harmfulAnalysis = "任何破坏五行平衡的五行都可能成为忌神，需具体分析。";
-            }
-            
-            // 根据具体八字进一步细化用神
-            const wuxingBalance = analyzeWuxingBalance(baZi);
-            const maxWuxing = Object.entries(wuxingBalance.counts).reduce((a, b) => a[1] > b[1] ? a : b)[0];
-            const minWuxing = Object.entries(wuxingBalance.counts).reduce((a, b) => a[1] < b[1] ? a : b)[0];
-            
-            // 如果某个五行过旺，克制它的五行可能成为用神
-            if (wuxingBalance.imbalance > 0.4) {
-                const maxIdx = wuxingOrder.indexOf(maxWuxing);
-                const controllerIdx = (maxIdx + 3) % 5;
-                const controllerWuxing = wuxingOrder[controllerIdx];
-                
-                usefulGods.push(`加强${controllerWuxing}`);
-                usefulAnalysis += ` 八字中${maxWuxing}过旺，加强${controllerWuxing}可以克制过旺的${maxWuxing}。`;
-            }
-            
-            // 如果某个五行过弱，生它的五行可能成为用神
-            if (wuxingBalance.imbalance > 0.4) {
-                const minIdx = wuxingOrder.indexOf(minWuxing);
-                const motherIdx = (minIdx - 1 + 5) % 5;
-                const motherWuxing = wuxingOrder[motherIdx];
-                
-                usefulGods.push(`加强${motherWuxing}`);
-                usefulAnalysis += ` 八字中${minWuxing}过弱，加强${motherWuxing}可以生扶过弱的${minWuxing}。`;
-            }
-            
-            // 调候用神（根据季节）
-            const monthBranch = baZi[1].substring(1);
-            const season = getSeasonFromZhi(monthBranch);
-            
-            if (season === '冬' && dayWuxing === '水') {
-                usefulGods.push("火调候");
-                usefulAnalysis += " 冬水寒凝，需火调候暖局。";
-            } else if (season === '夏' && dayWuxing === '火') {
-                usefulGods.push("水调候");
-                usefulAnalysis += " 夏火炎燥，需水调候润局。";
-            }
-            
-            return {
-                useful: [...new Set(usefulGods)], // 去重
-                harmful: [...new Set(harmfulGods)],
-                usefulAnalysis,
-                harmfulAnalysis
-            };
-        }
-
-        function getSeasonFromZhi(zhi) {
-            const spring = ['寅', '卯', '辰'];
-            const summer = ['巳', '午', '未'];
-            const autumn = ['申', '酉', '戌'];
-            const winter = ['亥', '子', '丑'];
-            
-            if (spring.includes(zhi)) return '春';
-            if (summer.includes(zhi)) return '夏';
-            if (autumn.includes(zhi)) return '秋';
-            if (winter.includes(zhi)) return '冬';
-            return '';
-        }
-
-        // 6. 命盘运势分析
-        function analyzeLuck(lunar, baZi, gender) {
-            const currentYear = new Date().getFullYear();
-            const birthYear = lunar.getYear();
-            const age = currentYear - birthYear;
-            
-            // 起运时间计算（简化版）
-            const qiYunAge = gender === 'male' ? 
-                (lunar.getMonth() <= 5 ? 5 : 6) : 
-                (lunar.getMonth() <= 5 ? 4 : 3);
-            
-            // 当前大运（简化版）
-            const currentDecade = Math.floor((age - qiYunAge) / 10) * 10 + qiYunAge;
-            const decadeStart = birthYear + currentDecade;
-            const decadeEnd = decadeStart + 10;
-            
-            // 当前大运干支（简化版）
-            const decadeGanZhi = getDecadeGanZhi(birthYear, currentDecade, gender);
-            
-            // 当前流年
-            const currentYearGanZhi = getYearGanZhi(currentYear);
-            
-            // 当前运势分析
-            const currentLuck = `
-                <p>您当前${age}岁，处于<b>${decadeGanZhi}大运</b>(${decadeStart}-${decadeEnd}年)。</p>
-                <p>今年是<b>${currentYearGanZhi}年</b>，流年与命盘作用关系如下：</p>
-                <div class="analysis-grid">
-                    <div class="analysis-item">
-                        <div class="analysis-item-title"><i class="fas fa-user-tie"></i> 事业</div>
-                        <div class="analysis-item-content">${getRandomLuck('career')}</div>
-                    </div>
-                    <div class="analysis-item">
-                        <div class="analysis-item-title"><i class="fas fa-money-bill-wave"></i> 财运</div>
-                        <div class="analysis-item-content">${getRandomLuck('wealth')}</div>
-                    </div>
-                    <div class="analysis-item">
-                        <div class="analysis-item-title"><i class="fas fa-heart"></i> 感情</div>
-                        <div class="analysis-item-content">${getRandomLuck('relationship')}</div>
-                    </div>
-                    <div class="analysis-item">
-                        <div class="analysis-item-title"><i class="fas fa-heartbeat"></i> 健康</div>
-                        <div class="analysis-item-content">${getRandomLuck('health')}</div>
-                    </div>
-                </div>
-                <p>建议：${getRandomLuck('advice')}</p>
-            `;
-            
-            // 大运走势
-            let decadeLuck = `<p>您的大运走势如下（${gender === 'male' ? '男命顺排' : '女命逆排'}）：</p>`;
-            decadeLuck += generateDecadeLuckTimeline(birthYear, qiYunAge, gender);
-            
-            // 流年分析
-            let yearLuck = `<p>未来几年流年运势分析：</p>`;
-            yearLuck += generateNextYearsLuck(currentYear);
-            
-            return {
-                current: currentLuck,
-                decade: decadeLuck,
-                year: yearLuck
-            };
-        }
-
-        function getDecadeGanZhi(birthYear, startAge, gender) {
-            // 简化版，实际应根据八字规则计算
-            const gan = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
-            const zhi = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
-            
-            const offset = gender === 'male' ? startAge : -startAge;
-            const ganIndex = (birthYear % 10 + offset / 10) % 10;
-            const zhiIndex = (birthYear % 12 + offset / 10) % 12;
-            
-            return gan[ganIndex] + zhi[zhiIndex];
-        }
-
-        function generateDecadeLuckTimeline(birthYear, qiYunAge, gender) {
-            let timelineHTML = '';
-            const decades = [];
-            
-            for (let age = qiYunAge; age <= 80; age += 10) {
-                const startYear = birthYear + age;
-                const endYear = startYear + 10;
-                const ganZhi = getDecadeGanZhi(birthYear, age, gender);
-                
-                decades.push({
-                    year: `${startYear}-${endYear}`,
-                    age: `${age}-${age+10}岁`,
-                    ganZhi: `${ganZhi}运`,
-                    analysis: getRandomDecadeAnalysis(ganZhi)
-                });
-            }
-            
-            decades.forEach(decade => {
-                timelineHTML += `
-                    <div class="timeline-item">
-                        <div class="timeline-year">${decade.year} (${decade.age}, ${decade.ganZhi})</div>
-                        <div class="timeline-content">${decade.analysis}</div>
-                    </div>
-                `;
-            });
-            
-            return timelineHTML;
-        }
-
-        function generateNextYearsLuck(currentYear) {
-            let yearsHTML = '<div class="analysis-grid">';
-            
-            for (let i = 0; i < 5; i++) {
-                const year = currentYear + i;
-                const ganZhi = getYearGanZhi(year);
-                
-                yearsHTML += `
-                    <div class="analysis-item">
-                        <div class="analysis-item-title">${year}年 (${ganZhi})</div>
-                        <div class="analysis-item-content">
-                            <p><strong>运势：</strong>${getRandomLuck('year')}</p>
-                            <p><strong>注意：</strong>${getRandomLuck('notice')}</p>
-                        </div>
-                    </div>
-                `;
-            }
-            
-            yearsHTML += '</div>';
-            return yearsHTML;
-        }
-
-        // 7. 学习建议
-        function provideLearningTips(strengthLevel, imbalanceLevel) {
-            let suggestions = "根据您的八字特点，以下是针对性的学习建议：";
-            
-            let topics = [];
-            let tips = [];
-            
-            if (strengthLevel.includes("强")) {
-                topics.push("财星和官杀的作用关系");
-                topics.push("食伤泄秀的技巧");
-                tips.push("重点学习如何合理配置资源");
-                tips.push("研究领导力和管理技巧");
-            } else if (strengthLevel.includes("弱")) {
-                topics.push("印星和比劫的运用");
-                topics.push("如何避免过度消耗");
-                tips.push("学习团队合作和人际关系");
-                tips.push("研究自我提升和能量管理");
-            } else {
-                topics.push("五行平衡理论");
-                topics.push("调候用神的取用");
-            }
-            
-            if (imbalanceLevel > 0.4) {
-                topics.push("五行生克制化");
-                tips.push("通过实际案例理解五行补救");
-            }
-            
-            return {
-                suggestions,
-                topics: topics.join("\n"),
-                tips: tips.join("\n")
-            };
-        }
-
-        // 辅助函数 - 随机运势生成（实际应用中应根据具体八字计算）
-        function getRandomLuck(type) {
-            const luckMap = {
-                'career': [
-                    "事业发展平稳，宜稳扎稳打",
-                    "有新的机会出现，需主动把握",
-                    "职场压力增大，需调整心态",
-                    "贵人运佳，易得领导赏识",
-                    "适合学习新技能提升竞争力"
-                ],
-                'wealth': [
-                    "正财稳定，偏财需谨慎",
-                    "财运上升，适合合理投资",
-                    "开支增大，需做好财务规划",
-                    "有意外之财机会，但不可贪心",
-                    "合作求财有利，避免单独冒险"
-                ],
-                'relationship': [
-                    "感情稳定，沟通是关键",
-                    "桃花运旺，需理性选择",
-                    "易有矛盾，需多包容理解",
-                    "单身者有机会遇到合适对象",
-                    "家庭关系和谐，宜多陪伴家人"
-                ],
-                'health': [
-                    "健康状况良好，注意作息规律",
-                    "易感疲劳，需注意休息",
-                    "注意肠胃问题，饮食清淡",
-                    "情绪波动较大，需调节压力",
-                    "适合增加运动，提升体质"
-                ],
-                'advice': [
-                    "稳中求进，避免冒进决策",
-                    "多与长辈沟通，易得有益建议",
-                    "注意文书细节，避免粗心错误",
-                    "适合拓展人脉，参加社交活动",
-                    "专注自身发展，少与他人比较"
-                ],
-                'year': [
-                    "整体运势平稳，适合规划未来",
-                    "变动较多，需灵活应对",
-                    "事业有突破机会，需做好准备",
-                    "家庭事务增多，需平衡工作与生活",
-                    "学习运佳，适合提升自我"
-                ],
-                'notice': [
-                    "注意合同文书细节",
-                    "避免高风险投资",
-                    "注意呼吸道健康",
-                    "谨防小人中伤",
-                    "出行注意安全"
-                ]
-            };
-            
-            const options = luckMap[type] || ["运势平稳，无特别注意事项"];
-            return options[Math.floor(Math.random() * options.length)];
-        }
-
-        function getRandomDecadeAnalysis(ganZhi) {
-            const analysisMap = {
-                '甲子': "水木相生，思维活跃，适合学习创新",
-                '乙丑': "土木相克，需注意人际关系和健康",
-                '丙寅': "木火通明，事业发展迅速，需防急躁",
-                '丁卯': "木火相生，才华得以展现，名利双收",
-                '戊辰': "土气厚重，稳定发展，需防固执",
-                '己巳': "火土相生，财运提升，注意理财",
-                '庚午': "火金相克，压力与机遇并存",
-                '辛未': "土金相生，积累收获期，宜稳扎稳打",
-                '壬申': "金水相生，变动较多，灵活应对",
-                '癸酉': "金水相生，智慧提升，适合研究",
-                '甲戌': "木土相克，挑战与机遇并存",
-                '乙亥': "水木相生，贵人运佳，事业上升"
-            };
-            
-            return analysisMap[ganZhi] || "运势平稳，需根据具体年份调整策略";
-        }
-
-        // 生成五行图表
-        function generateWuxingChart(wuxingCounts) {
-            const chartContainer = document.getElementById('wuxing-chart');
-            const colors = {
-                '木': '#2e7d32',
-                '火': '#c62828',
-                '土': '#8d6e63',
-                '金': '#1565c0',
-                '水': '#0277bd'
-            };
-            
-            // 计算最大高度（用于缩放）
-            const maxCount = Math.max(...Object.values(wuxingCounts));
-            
-            chartContainer.innerHTML = `
-                <div style="text-align: center; padding: 20px;">
-                    <p style="font-weight: bold; margin-bottom: 20px;">五行力量分布图</p>
-                    <div style="display: flex; justify-content: center; height: 200px; align-items: flex-end; gap: 20px; margin-top: 20px;">
-                        ${Object.entries(wuxingCounts).map(([wuxing, count]) => {
-                            const height = (count / maxCount * 180).toFixed(0);
-                            const percent = (count / Object.values(wuxingCounts).reduce((a, b) => a + b) * 100).toFixed(1);
-                            return `
-                                <div style="width: 40px; background: ${colors[wuxing]}; height: ${height}px; position: relative;">
-                                    <div style="position: absolute; top: -25px; width: 100%; text-align: center;">${percent}%</div>
-                                    <div style="position: absolute; bottom: -25px; width: 100%; text-align: center;">${wuxing}</div>
-                                </div>
-                            `;
-                        }).join('')}
-                    </div>
-                </div>
-            `;
-        }
-
-        function getYearGanZhi(year) {
-            // 简化版，实际应根据干支计算
-            const gan = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
-            const zhi = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
-            return gan[year % 10] + zhi[year % 12];
-        }
-
-        // 初始化事件监听
+        // 新增的JavaScript代码
         document.addEventListener('DOMContentLoaded', function() {
             // 选项卡功能
             const tabButtons = document.querySelectorAll('.tab-button');
@@ -1877,6 +623,497 @@
                 calculateBazi();
             });
         });
+        
+        // 八字计算函数
+        function calculateBazi() {
+    try {
+        // 1. 获取并验证输入数据
+        const birthDate = document.getElementById('birth-date').value;
+        const birthHour = document.getElementById('birth-hour').value;
+        const birthMinute = document.getElementById('birth-minute').value;
+        const timezone = document.getElementById('timezone').value;
+        const gender = document.querySelector('input[name="gender"]:checked').value;
+
+        // 验证必填字段
+        if (!birthDate || birthHour === "" || birthMinute === "") {
+            throw new Error("请填写完整的出生日期和时间");
+        }
+
+        // 2. 解析日期和时间
+        const dateParts = birthDate.split('-');
+        if (dateParts.length !== 3) {
+            throw new Error("日期格式不正确，请使用YYYY-MM-DD格式");
+        }
+
+        const year = parseInt(dateParts[0]);
+        const month = parseInt(dateParts[1]);
+        const day = parseInt(dateParts[2]);
+        const hour = parseInt(birthHour);
+        const minute = parseInt(birthMinute);
+
+        // 验证日期有效性
+        if (isNaN(year) || isNaN(month) || isNaN(day) || 
+            isNaN(hour) || isNaN(minute)) {
+            throw new Error("请输入有效的数字");
+        }
+
+        if (year < 1900 || year > 2100) {
+            throw new Error("年份应在1900-2100之间");
+        }
+
+        if (month < 1 || month > 12) {
+            throw new Error("月份应在1-12之间");
+        }
+
+        if (day < 1 || day > 31) {
+            throw new Error("日期应在1-31之间");
+        }
+
+        if (hour < 0 || hour > 23) {
+            throw new Error("小时应在0-23之间");
+        }
+
+        if (minute < 0 || minute > 59) {
+            throw new Error("分钟应在0-59之间");
+        }
+
+        // 3. 创建日期对象（考虑时区）
+        const solarDate = new Date(year, month - 1, day, hour, minute);
+        
+        // 验证创建的日期是否有效
+        if (isNaN(solarDate.getTime())) {
+            throw new Error("无效的日期，请检查输入");
+        }
+
+        // 4. 使用lunar.js计算
+        if (typeof Lunar === 'undefined') {
+            throw new Error("lunar.js库未正确加载");
+        }
+
+        const lunar = Lunar.fromDate(solarDate);
+        if (!lunar) {
+            throw new Error("农历日期转换失败");
+        }
+
+        const baZi = lunar.getBaZi();
+        if (!baZi || baZi.length !== 4) {
+            throw new Error("八字计算失败");
+        }
+
+        // 5. 显示结果
+        displayBaziResult(lunar, baZi, {
+            solarDate,
+            gender,
+            timezone
+        });
+
+    } catch (error) {
+        console.error("八字计算错误:", error);
+        alert(error.message || "计算八字时出错，请检查输入是否正确");
+    }
+}
+
+// 显示八字结果
+function displayBaziResult(lunar, baZi, options) {
+    const [yearGanZhi, monthGanZhi, dayGanZhi, hourGanZhi] = baZi;
+    const dayGan = dayGanZhi.substring(0, 1);
+    
+    // 显示基本信息
+    document.getElementById('result-date').textContent = 
+        `${options.solarDate.getFullYear()}年${options.solarDate.getMonth() + 1}月${options.solarDate.getDate()}日`;
+    document.getElementById('result-time').textContent = 
+        `${options.solarDate.getHours().toString().padStart(2, '0')}:${options.solarDate.getMinutes().toString().padStart(2, '0')}`;
+    document.getElementById('result-lunar').textContent = 
+        `${lunar.getYearInGanZhi()}年${lunar.getMonthInChinese()}${lunar.getDayInChinese()}`;
+    document.getElementById('result-zodiac').textContent = 
+        lunar.getYearShengXiao();
+
+    // 更新四柱信息
+    updatePillarInfo('year', yearGanZhi, dayGan, lunar);
+    updatePillarInfo('month', monthGanZhi, dayGan, lunar);
+    updatePillarInfo('day', dayGanZhi, dayGan, lunar);
+    updatePillarInfo('hour', hourGanZhi, dayGan, lunar);
+
+    // 显示结果区域
+    document.getElementById('result-section').style.display = 'block';
+}
+
+// 更新单个柱的信息
+function updatePillarInfo(type, ganZhi, dayGan, lunar) {
+    const gan = ganZhi.substring(0, 1);
+    const zhi = ganZhi.substring(1);
+    
+    // 天干
+    document.getElementById(`${type}-stem`).innerHTML = 
+        `${gan}<br><span class="ten-god">(${getTenGod(dayGan, gan)})</span>`;
+    
+    // 地支
+    document.getElementById(`${type}-branch`).innerHTML = 
+        `${zhi}<br><span class="ten-god">(${getTenGod(dayGan, zhi)})</span>`;
+    
+    // 藏干
+    const hiddenStems = getHiddenStems(zhi).map(stem => 
+        `${stem}(${getTenGod(dayGan, stem)})`
+    ).join('<br>');
+    document.getElementById(`${type}-hidden-god`).innerHTML = hiddenStems;
+    
+    // 空亡
+    document.getElementById(`${type}-void`).textContent = getVoid(zhi);
+    
+    // 纳音
+    document.getElementById(`${type}-nayin`).textContent = getNaYin(ganZhi);
+}
+
+// 十神计算（完整实现）
+function getTenGod(dayGan, target) {
+    const ganList = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
+    
+    // 如果是地支，获取其主气天干
+    if (!ganList.includes(target)) {
+        target = getMainQi(target);
+        if (!target) return '未知';
+    }
+    
+    const dayIndex = ganList.indexOf(dayGan);
+    const targetIndex = ganList.indexOf(target);
+    
+    if (dayIndex === -1 || targetIndex === -1) return '未知';
+    
+    const diff = (targetIndex - dayIndex + 10) % 10;
+    
+    const tenGods = [
+        '比肩', '劫财', '偏印', '正印', 
+        '七杀', '正官', '偏财', '正财', 
+        '食神', '伤官'
+    ];
+    
+    return tenGods[diff] || '未知';
+}
+
+// 地支主气（完整版）
+function getMainQi(zhi) {
+    const qiMap = {
+        '子': '癸', '丑': '己', '寅': '甲', '卯': '乙',
+        '辰': '戊', '巳': '丙', '午': '丁', '未': '己',
+        '申': '庚', '酉': '辛', '戌': '戊', '亥': '壬'
+    };
+    return qiMap[zhi] || null;
+}
+
+// 藏干（完整实现）
+function getHiddenStems(zhi) {
+    const hiddenMap = {
+        '子': ['癸'],
+        '丑': ['己', '癸', '辛'],
+        '寅': ['甲', '丙', '戊'],
+        '卯': ['乙'],
+        '辰': ['戊', '乙', '癸'],
+        '巳': ['丙', '戊', '庚'],
+        '午': ['丁', '己'],
+        '未': ['己', '丁', '乙'],
+        '申': ['庚', '壬', '戊'],
+        '酉': ['辛'],
+        '戌': ['戊', '辛', '丁'],
+        '亥': ['壬', '甲']
+    };
+    return hiddenMap[zhi] || [];
+}
+
+// 空亡计算（完整实现）
+function getVoid(zhi) {
+    const branchOrder = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
+    const index = branchOrder.indexOf(zhi);
+    if (index === -1) return '';
+    
+    const void1 = (index + 10) % 12;
+    const void2 = (index + 11) % 12;
+    return branchOrder[void1] + branchOrder[void2];
+}
+
+// 纳音五行（完整实现）
+function getNaYin(ganZhi) {
+    const gan = ganZhi.substring(0, 1);
+    const zhi = ganZhi.substring(1);
+    
+    const ganIndex = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'].indexOf(gan);
+    const zhiIndex = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'].indexOf(zhi);
+    
+    if (ganIndex === -1 || zhiIndex === -1) return '';
+    
+    const naYinTable = [
+        ['海中金', '海中金', '炉中火', '炉中火', '大林木', '大林木', '路旁土', '路旁土', '剑锋金', '剑锋金', '山头火', '山头火'],
+        ['涧下水', '涧下水', '城头土', '城头土', '白蜡金', '白蜡金', '杨柳木', '杨柳木', '泉中水', '泉中水', '屋上土', '屋上土'],
+        ['霹雳火', '霹雳火', '松柏木', '松柏木', '长流水', '长流水', '砂中金', '砂中金', '山下火', '山下火', '平地木', '平地木'],
+        ['壁上土', '壁上土', '金箔金', '金箔金', '覆灯火', '覆灯火', '天河水', '天河水', '大驿土', '大驿土', '钗钏金', '钗钏金'],
+        ['桑柘木', '桑柘木', '大溪水', '大溪水', '沙中土', '沙中土', '天上火', '天上火', '石榴木', '石榴木', '大海水', '大海水']
+    ];
+    
+    return naYinTable[Math.floor(ganIndex / 2)][zhiIndex] || '';
+}
+
+// 初始化表单提交事件
+document.getElementById('bazi-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    calculateBazi();
+});
+            
+            // 生成五行图表
+            generateWuxingChart(lunarDate);
+        }
+        
+        // 以下是各种分析函数（简化版，实际应用中需要更复杂的逻辑）
+        function getStrengthAnalysis(lunarDate) {
+            // 这里应该有更复杂的逻辑判断身强身弱
+            return "得令但不得地，整体偏弱";
+        }
+        
+        function getStrengthLevel(lunarDate) {
+            // 根据分析返回身强身弱等级
+            return "偏弱";
+        }
+        
+        function getSeasonStrength(lunarDate) {
+            // 判断得令情况
+            return "日主生于休囚之月，不得令";
+        }
+        
+        function getLandStrength(lunarDate) {
+            // 判断得地情况
+            return "地支有根气，得地一般";
+        }
+        
+        function getSupportStrength(lunarDate) {
+            // 判断得势情况
+            return "天干比劫帮扶较少，得势不足";
+        }
+        
+        function generateTenGodAnalysis(lunarDate) {
+            // 生成十神分析
+            return `
+                <div class="analysis-item">
+                    <div class="analysis-item-title"><i class="fas fa-user-friends"></i> 比劫</div>
+                    <div class="analysis-item-content">比肩1个，劫财2个，表示您有较强的独立性和竞争意识</div>
+                </div>
+                <div class="analysis-item">
+                    <div class="analysis-item-title"><i class="fas fa-yin-yang"></i> 食伤</div>
+                    <div class="analysis-item-content">食神1个，伤官1个，显示您有创造力和表达能力</div>
+                </div>
+                <div class="analysis-item">
+                    <div class="analysis-item-title"><i class="fas fa-money-bill-wave"></i> 财星</div>
+                    <div class="analysis-item-content">正财1个，偏财0个，财运稳定但需努力</div>
+                </div>
+                <div class="analysis-item">
+                    <div class="analysis-item-title"><i class="fas fa-gavel"></i> 官杀</div>
+                    <div class="analysis-item-content">正官1个，七杀0个，事业上有贵人但也有压力</div>
+                </div>
+                <div class="analysis-item">
+                    <div class="analysis-item-title"><i class="fas fa-book"></i> 印星</div>
+                    <div class="analysis-item-content">正印2个，偏印1个，学习能力强，易得长辈帮助</div>
+                </div>
+            `;
+        }
+        
+        function getTenGodSummary(lunarDate) {
+            // 十神总结
+            return "综合分析，您的八字中印星较多，学习能力较强，但比劫较少，独立性强但合作能力需提升。";
+        }
+        
+        function generateWuxingBalance(lunarDate) {
+            // 生成五行平衡分析
+            return `
+                <div class="analysis-item">
+                    <div class="analysis-item-title"><i class="fas fa-tree wuxing-wood"></i> 木</div>
+                    <div class="analysis-item-content">3个，偏旺</div>
+                </div>
+                <div class="analysis-item">
+                    <div class="analysis-item-title"><i class="fas fa-fire wuxing-fire"></i> 火</div>
+                    <div class="analysis-item-content">2个，适中</div>
+                </div>
+                <div class="analysis-item">
+                    <div class="analysis-item-title"><i class="fas fa-mountain wuxing-earth"></i> 土</div>
+                    <div class="analysis-item-content">1个，偏弱</div>
+                </div>
+                <div class="analysis-item">
+                    <div class="analysis-item-title"><i class="fas fa-coins wuxing-metal"></i> 金</div>
+                    <div class="analysis-item-content">1个，偏弱</div>
+                </div>
+                <div class="analysis-item">
+                    <div class="analysis-item-title"><i class="fas fa-tint wuxing-water"></i> 水</div>
+                    <div class="analysis-item-content">1个，偏弱</div>
+                </div>
+            `;
+        }
+        
+        function getWuxingImbalanceAnalysis(lunarDate) {
+            // 五行不平衡分析
+            return "您的八字中木元素偏旺，土、金、水元素偏弱，建议在生活中多关注这些元素的平衡。";
+        }
+        
+        function getSpecialCombination(lunarDate) {
+            // 特殊组合分析
+            return "您的八字中有寅卯辰三会木局，增强了木的力量；同时子丑合土，但力量不强。这些特殊组合影响了五行的平衡。";
+        }
+        
+        function getUsefulGods(lunarDate) {
+            // 用神分析
+            return ["金", "土", "水"];
+        }
+        
+        function getUsefulGodsAnalysis(lunarDate) {
+            // 用神分析说明
+            return "金可以克制过旺的木，土可以泄木生金，水可以生木但也能润局，这些都是对您有利的五行。";
+        }
+        
+        function getHarmfulGods(lunarDate) {
+            // 忌神分析
+            return ["木", "火"];
+        }
+        
+        function getHarmfulGodsAnalysis(lunarDate) {
+            // 忌神分析说明
+            return "木已经过旺，再增加木的力量会加剧不平衡；火会泄木生土，但也会消耗用神金的力量。";
+        }
+        
+        function getCurrentLuck(lunarDate, gender) {
+            // 当前运势分析
+            return `您当前正处于${gender === 'male' ? '戊寅' : '丁丑'}大运（2020-2030年），这个大运加强了土和木的力量。今年是癸卯年，水木旺盛，对您来说既有帮助也有挑战。`;
+        }
+        
+        function getYearLuck(lunarDate, year) {
+            // 流年分析
+            return `今年${year}年是癸卯年，天干癸水为印星，地支卯木为比劫。整体运势上学习运佳，但要注意人际关系和财务规划。`;
+        }
+        
+        function getDecadeLuckSummary(lunarDate, gender) {
+            // 大运总结
+            return `您的大运走势如下（${gender === 'male' ? '男命顺排' : '女命逆排'}），每十年一个大运：`;
+        }
+        
+        function generateDecadeLuckTimeline(lunarDate, gender) {
+            // 生成大运时间线
+            let timelineHTML = '';
+            const startAge = 5; // 起运年龄
+            const decades = [
+                { year: "2020-2030", luck: "戊寅", analysis: "土木大运，事业发展期但压力较大" },
+                { year: "2030-2040", luck: "己卯", analysis: "土木大运，财运提升但需注意健康" },
+                { year: "2040-2050", luck: "庚辰", analysis: "金土大运，事业稳定收获期" },
+                { year: "2050-2060", luck: "辛巳", analysis: "金火大运，变动较多需灵活应对" }
+            ];
+            
+            decades.forEach(decade => {
+                timelineHTML += `
+                    <div class="timeline-item">
+                        <div class="timeline-year">${decade.year} (${decade.luck}运)</div>
+                        <div class="timeline-content">${decade.analysis}</div>
+                    </div>
+                `;
+            });
+            
+            return timelineHTML;
+        }
+        
+        function getYearLuckAnalysis(lunarDate) {
+            // 流年分析总结
+            return "未来几年的流年运势如下，供您参考规划：";
+        }
+        
+        function generateNextYearsLuck(lunarDate) {
+            // 生成未来几年运势
+            const currentYear = new Date().getFullYear();
+            let yearsHTML = '';
+            
+            for (let i = 0; i < 5; i++) {
+                const year = currentYear + i;
+                const ganZhi = getYearGanZhi(year);
+                yearsHTML += `
+                    <div class="analysis-item">
+                        <div class="analysis-item-title">${year}年 (${ganZhi})</div>
+                        <div class="analysis-item-content">${getSingleYearLuck(lunarDate, year)}</div>
+                    </div>
+                `;
+            }
+            
+            return yearsHTML;
+        }
+        
+        function getSingleYearLuck(lunarDate, year) {
+            // 单个年份运势
+            const lucks = [
+                "事业有新发展机会，但需注意人际关系",
+                "财运较好，适合投资理财",
+                "变动较大，宜守不宜攻",
+                "学习运佳，适合提升自我",
+                "健康需注意，工作压力较大"
+            ];
+            return lucks[year % 5];
+        }
+        
+        function getLearningSuggestions(lunarDate) {
+            // 学习建议
+            return "根据您的八字特点，以下是针对性的学习建议：";
+        }
+        
+        function getRecommendedTopics(lunarDate) {
+            // 推荐学习重点
+            return "1. 五行平衡理论\n2. 十神关系分析\n3. 大运流年推算\n4. 用神取用方法";
+        }
+        
+        function getLearningTips(lunarDate) {
+            // 学习技巧
+            return "1. 从基础五行开始学习\n2. 多做实际案例分析\n3. 结合自身八字理解理论\n4. 参加交流讨论提升理解";
+        }
+        
+        function getYearGanZhi(year) {
+            // 简化版，实际应根据干支计算
+            const gan = ["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"];
+            const zhi = ["子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"];
+            return gan[year % 10] + zhi[year % 12];
+        }
+        
+        function getElementClass(ganZhi) {
+            // 获取五行对应的class
+            const wood = ["甲", "乙", "寅", "卯"];
+            const fire = ["丙", "丁", "巳", "午"];
+            const earth = ["戊", "己", "辰", "戌", "丑", "未"];
+            const metal = ["庚", "辛", "申", "酉"];
+            const water = ["壬", "癸", "亥", "子"];
+            
+            if (wood.includes(ganZhi)) return "wood";
+            if (fire.includes(ganZhi)) return "fire";
+            if (earth.includes(ganZhi)) return "earth";
+            if (metal.includes(ganZhi)) return "metal";
+            if (water.includes(ganZhi)) return "water";
+            return "";
+        }
+        
+        function generateWuxingChart(lunarDate) {
+            // 生成五行图表（简化版，实际应使用图表库）
+            const chartContainer = document.getElementById('wuxing-chart');
+            chartContainer.innerHTML = `
+                <div style="text-align: center; padding: 20px;">
+                    <p>五行力量分布图</p>
+                    <div style="display: flex; justify-content: center; height: 200px; align-items: flex-end; gap: 20px; margin-top: 20px;">
+                        <div style="width: 40px; background: #2e7d32; height: 150px; position: relative;">
+                            <div style="position: absolute; bottom: -25px; width: 100%; text-align: center;">木</div>
+                        </div>
+                        <div style="width: 40px; background: #c62828; height: 100px; position: relative;">
+                            <div style="position: absolute; bottom: -25px; width: 100%; text-align: center;">火</div>
+                        </div>
+                        <div style="width: 40px; background: #8d6e63; height: 50px; position: relative;">
+                            <div style="position: absolute; bottom: -25px; width: 100%; text-align: center;">土</div>
+                        </div>
+                        <div style="width: 40px; background: #1565c0; height: 50px; position: relative;">
+                            <div style="position: absolute; bottom: -25px; width: 100%; text-align: center;">金</div>
+                        </div>
+                        <div style="width: 40px; background: #0277bd; height: 50px; position: relative;">
+                            <div style="position: absolute; bottom: -25px; width: 100%; text-align: center;">水</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // 注意：实际应用中需要更完整的lunar.js集成和更精确的八字计算逻辑
     </script>
 </body>
 </html>
