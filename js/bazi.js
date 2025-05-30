@@ -2793,321 +2793,85 @@ function hasHe(branches, branch1, branch2) {
     }
 
     // 修改后的calculateLuckStartingTime函数
-function findNextJieQi(date) {
-    const solar = Solar.fromDate(date);
-    const lunar = solar.getLunar();
-    const jieQiList = Object.entries(lunar.getJieQiList())
-        .map(([name, solar]) => ({ name, solar }))
-        .sort((a, b) => a.solar.toYmdHms().localeCompare(b.solar.toYmdHms()));
-    
-    for (const jieQi of jieQiList) {
-        const jieQiDate = new Date(
-            jieQi.solar.getYear(),
-            jieQi.solar.getMonth() - 1,
-            jieQi.solar.getDay(),
-            jieQi.solar.getHour(),
-            jieQi.solar.getMinute(),
-            jieQi.solar.getSecond()
-        );
-        
-        if (jieQiDate > date) {
-            return jieQiDate;
-        }
-    }
-    
-    // 如果当年没找到，返回下一年立春
-    return Solar.fromYmdHms(date.getFullYear() + 1, 2, 4, 0, 0, 0).getLunar().getJieQi("立春").getSolar().toDate();
-}
-
-function findPrevJieQi(date) {
-    const solar = Solar.fromDate(date);
-    const lunar = solar.getLunar();
-    const jieQiList = Object.entries(lunar.getJieQiList())
-        .map(([name, solar]) => ({ name, solar }))
-        .sort((a, b) => b.solar.toYmdHms().localeCompare(a.solar.toYmdHms()));
-    
-    for (const jieQi of jieQiList) {
-        const jieQiDate = new Date(
-            jieQi.solar.getYear(),
-            jieQi.solar.getMonth() - 1,
-            jieQi.solar.getDay(),
-            jieQi.solar.getHour(),
-            jieQi.solar.getMinute(),
-            jieQi.solar.getSecond()
-        );
-        
-        if (jieQiDate < date) {
-            return jieQiDate;
-        }
-    }
-    
-    // 如果当年没找到，返回上一年大寒
-    return Solar.fromYmdHms(date.getFullYear() - 1, 1, 20, 0, 0, 0).getLunar().getJieQi("大寒").getSolar().toDate();
-}
-
-// 优化起运时间计算函数
-function findNextJieQi(date) {
-    try {
-        const solar = Solar.fromYmdHms(
-            date.getFullYear(), 
-            date.getMonth() + 1, 
-            date.getDate(),
-            date.getHours(),
-            date.getMinutes(),
-            date.getSeconds()
-        );
-        const lunar = solar.getLunar();
-        
-        // 获取所有节气（1.7.2版本兼容方式）
-        const jieQiMap = lunar.getJieQiTable();
-        const jieQiList = [];
-        
-        // 将节气转换为可排序的数组
-        for (const name in jieQiMap) {
-            if (jieQiMap.hasOwnProperty(name)) {
-                const jieQiSolar = jieQiMap[name];
-                jieQiList.push({
-                    name: name,
-                    year: jieQiSolar.getYear(),
-                    month: jieQiSolar.getMonth(),
-                    day: jieQiSolar.getDay(),
-                    hour: jieQiSolar.getHour(),
-                    minute: jieQiSolar.getMinute(),
-                    second: jieQiSolar.getSecond()
-                });
-            }
-        }
-        
-        // 按日期排序
-        jieQiList.sort((a, b) => {
-            return (a.year * 10000 + a.month * 100 + a.day) - 
-                   (b.year * 10000 + b.month * 100 + b.day);
-        });
-        
-        // 查找下一个节气
-        for (const jieQi of jieQiList) {
-            const jieQiDate = new Date(
-                jieQi.year,
-                jieQi.month - 1, // JavaScript月份从0开始
-                jieQi.day,
-                jieQi.hour,
-                jieQi.minute,
-                jieQi.second
-            );
-            
-            if (jieQiDate > date) {
-                return jieQiDate;
-            }
-        }
-        
-        // 如果当年没找到，返回下一年立春
-        const nextYearSolar = Solar.fromYmdHms(
-            date.getFullYear() + 1, 
-            2, 
-            4, 
-            0, 
-            0, 
-            0
-        );
-        const nextYearJieQi = nextYearSolar.getLunar().getJieQiTable()["立春"];
-        return new Date(
-            nextYearJieQi.getYear(),
-            nextYearJieQi.getMonth() - 1,
-            nextYearJieQi.getDay(),
-            nextYearJieQi.getHour(),
-            nextYearJieQi.getMinute(),
-            nextYearJieQi.getSecond()
-        );
-    } catch (e) {
-        console.error("节气查找失败:", e);
-        // 默认返回3岁起运
-        return new Date(date.getFullYear() + 3, date.getMonth(), date.getDate());
-    }
-}
-
-// 修复后的起运时间计算函数
 function calculateLuckStartingTime(lunar, gender) {
-    try {
-        // 获取出生日期的Solar对象
-        const birthSolar = lunar.getSolar();
-        
-        // 手动创建出生日期对象
-        const birthDate = new Date(
-            birthSolar.getYear(),
-            birthSolar.getMonth() - 1, // JavaScript月份从0开始
-            birthSolar.getDay(),
-            birthSolar.getHour(),
-            birthSolar.getMinute(),
-            birthSolar.getSecond()
-        );
-        
-        const yearGan = lunar.getYearGan();
-        const isYangYear = ["甲", "丙", "戊", "庚", "壬"].includes(yearGan);
-        const isForward = (isYangYear && gender === "male") || (!isYangYear && gender === "female");
-        
-        // 找到目标节气
-        const targetDate = isForward ? findNextJieQi(birthDate) : findPrevJieQi(birthDate);
-        
-        // 计算时间差（分钟）
-        const diffMs = Math.abs(targetDate - birthDate);
-        const diffMinutes = diffMs / (1000 * 60);
-        
-        // 转换规则：3天 = 1年 → 4320分钟 = 1年
-        const totalYears = diffMinutes / (3 * 24 * 60);
-        const years = Math.floor(totalYears);
-        const months = Math.floor((totalYears - years) * 12);
-        
-        return `${years}岁${months}个月起运`;
-    } catch (e) {
-        console.error("起运时间计算失败:", e);
-        return "6岁起运"; // 默认值
-    }
-}
+    // 节气近似公历日期（误差±1天不影响年柱计算）
+    const JIE_QI_DATES = {
+        '立春': [2,4], '雨水': [2,19], '惊蛰': [3,6], '春分': [3,21],
+        '清明': [4,5], '谷雨': [4,20], '立夏': [5,6], '小满': [5,21],
+        '芒种': [6,6], '夏至': [6,21], '小暑': [7,7], '大暑': [7,23],
+        '立秋': [8,8], '处暑': [8,23], '白露': [9,8], '秋分': [9,23],
+        '寒露': [10,8], '霜降': [10,23], '立冬': [11,7], '小雪': [11,22],
+        '大雪': [12,7], '冬至': [12,22], '小寒': [1,6], '大寒': [1,20]
+    };
 
-// 修复后的findPrevJieQi函数
-function findPrevJieQi(date) {
-    try {
-        const solar = Solar.fromYmdHms(
-            date.getFullYear(), 
-            date.getMonth() + 1, 
-            date.getDate(),
-            date.getHours(),
-            date.getMinutes(),
-            date.getSeconds()
-        );
-        const lunar = solar.getLunar();
-        
-        // 获取所有节气（1.7.2版本兼容方式）
-        const jieQiMap = lunar.getJieQiTable();
-        const jieQiList = [];
-        
-        // 将节气转换为可排序的数组
-        for (const name in jieQiMap) {
-            if (jieQiMap.hasOwnProperty(name)) {
-                const jieQiSolar = jieQiMap[name];
-                jieQiList.push({
-                    name: name,
-                    year: jieQiSolar.getYear(),
-                    month: jieQiSolar.getMonth(),
-                    day: jieQiSolar.getDay(),
-                    hour: jieQiSolar.getHour(),
-                    minute: jieQiSolar.getMinute(),
-                    second: jieQiSolar.getSecond()
-                });
+    // 获取最近的节气（向前/向后）
+    function findNearestJieQi(birthDate, isForward) {
+        const year = birthDate.getFullYear();
+        let nearest = null;
+        let minDiff = Infinity;
+
+        Object.entries(JIE_QI_DATES).forEach(([name, [month, day]]) => {
+            const jieQiDate = new Date(year, month - 1, day);
+            const diff = jieQiDate - birthDate;
+
+            if (isForward && diff > 0 && diff < minDiff) {
+                minDiff = diff;
+                nearest = jieQiDate;
+            } else if (!isForward && diff < 0 && -diff < minDiff) {
+                minDiff = -diff;
+                nearest = jieQiDate;
             }
-        }
-        
-        // 按日期降序排序
-        jieQiList.sort((a, b) => {
-            return (b.year * 10000 + b.month * 100 + b.day) - 
-                   (a.year * 10000 + a.month * 100 + a.day);
         });
-        
-        // 查找上一个节气
-        for (const jieQi of jieQiList) {
-            const jieQiDate = new Date(
-                jieQi.year,
-                jieQi.month - 1, // JavaScript月份从0开始
-                jieQi.day,
-                jieQi.hour,
-                jieQi.minute,
-                jieQi.second
-            );
-            
-            if (jieQiDate < date) {
-                return jieQiDate;
-            }
+
+        // 跨年处理
+        if (!nearest) {
+            const nextYear = isForward ? year + 1 : year - 1;
+            const jieQiDate = new Date(nextYear, 
+                isForward ? 0 : 11, // 立春(2月)或大雪(12月)
+                isForward ? JIE_QI_DATES['立春'][1] : JIE_QI_DATES['大雪'][1]);
+            return jieQiDate;
         }
+        return nearest;
+    }
+
+    try {
+        // 1. 确定出生日期
+        const birthDate = new Date(
+            lunar.getSolar().getYear(),
+            lunar.getSolar().getMonth() - 1,
+            lunar.getSolar().getDay(),
+            lunar.getSolar().getHour(),
+            lunar.getSolar().getMinute()
+        );
+
+        // 2. 判断顺排/逆排
+        const yearGan = lunar.getYearGan();
+        const isYangYear = ['甲', '丙', '戊', '庚', '壬'].includes(yearGan);
+        const isForward = (isYangYear && gender === 'male') || 
+                         (!isYangYear && gender === 'female');
+
+        // 3. 找到关键节气
+        const targetJieQi = findNearestJieQi(birthDate, isForward);
         
-        // 如果当年没找到，返回上一年大寒
-        const prevYearSolar = Solar.fromYmdHms(
-            date.getFullYear() - 1, 
-            1, 
-            20, 
-            0, 
-            0, 
-            0
-        );
-        const prevYearJieQi = prevYearSolar.getLunar().getJieQiTable()["大寒"];
-        return new Date(
-            prevYearJieQi.getYear(),
-            prevYearJieQi.getMonth() - 1,
-            prevYearJieQi.getDay(),
-            prevYearJieQi.getHour(),
-            prevYearJieQi.getMinute(),
-            prevYearJieQi.getSecond()
-        );
+        // 4. 计算精确时间差（毫秒）
+        const diffMs = Math.abs(targetJieQi - birthDate);
+        const diffDays = diffMs / (1000 * 60 * 60 * 24);
+
+        // 5. 转换为起运时间（3天=1年）
+        const years = Math.floor(diffDays / 3);
+        const remainingDays = diffDays % 3;
+        const months = Math.floor(remainingDays * 4); // 1天≈4个月
+        const days = Math.floor((remainingDays * 4 - months) * 30);
+        const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+
+        return `${years}岁${months}个月${days}天${Math.round(hours)}小时起运`;
+
     } catch (e) {
-        console.error("查找上一个节气失败:", e);
-        // 默认返回3岁起运
-        return new Date(date.getFullYear() - 1, date.getMonth(), date.getDate());
+        console.error('计算异常:', e);
+        return '无法计算起运时间';
     }
 }
 
-// 修复后的身强身弱判断函数
-function determineStrengthType(pillars) {
-    // 使用Solar对象的getter方法获取日期组件
-    const dayStem = pillars.dayStem;
-    const stems = [pillars.yearStem, pillars.monthStem, pillars.hourStem];
-    const branches = [pillars.yearBranch, pillars.monthBranch, pillars.dayBranch, pillars.hourBranch];
-    
-    // 元素映射表
-    const elementMap = {
-        '甲':0, '乙':0, '丙':1, '丁':1, '戊':2, '己':2, 
-        '庚':3, '辛':3, '壬':4, '癸':4,
-        '寅':0, '卯':0, '午':1, '巳':1, 
-        '辰':2, '戌':2, '丑':2, '未':2, 
-        '申':3, '酉':3, '子':4, '亥':4
-    };
-    
-    const dayElement = elementMap[dayStem];
-    let sameElementCount = 0;
-    
-    // 统计天干中的同类元素
-    stems.forEach(stem => {
-        if (elementMap[stem] === dayElement) {
-            sameElementCount++;
-        }
-    });
-    
-    // 统计地支中的同类元素
-    branches.forEach(branch => {
-        if (elementMap[branch] === dayElement) {
-            sameElementCount++;
-        }
-    });
-    
-    // 判断身强身弱
-    if (sameElementCount >= 5) return "从强";
-    if (sameElementCount <= 1) return "从弱";
-    return sameElementCount >= 3 ? "身强" : "身弱";
-}
-
-// 修改身强身弱判断函数
-function determineStrengthType(pillars) {
-    // 简化实现 - 在实际应用中应有更复杂的逻辑
-    const dayStem = pillars.dayStem;
-    const stems = [pillars.yearStem, pillars.monthStem, pillars.hourStem];
-    const branches = [pillars.yearBranch, pillars.monthBranch, pillars.dayBranch, pillars.hourBranch];
-    
-    let sameElementCount = 0;
-    const elementMap = {
-        '甲':0, '乙':0, '丙':1, '丁':1, '戊':2, '己':2, '庚':3, '辛':3, '壬':4, '癸':4,
-        '寅':0, '卯':0, '午':1, '巳':1, '辰':2, '戌':2, '丑':2, '未':2, '申':3, '酉':3, '子':4, '亥':4
-    };
-    
-    const dayElement = elementMap[dayStem];
-    
-    // 统计同类五行数量
-    [...stems, ...branches].forEach(item => {
-        if (elementMap[item] === dayElement) sameElementCount++;
-    });
-    
-    // 简化判断逻辑
-    if (sameElementCount >= 5) return "从强";
-    if (sameElementCount <= 1) return "从弱";
-    return sameElementCount >= 3 ? "身强" : "身弱";
-}
     // 判断从强从弱 - 修改后的函数
 function determineStrengthType(pillars) {
     // ============== 工具函数 ============== //
