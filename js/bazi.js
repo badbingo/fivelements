@@ -2846,10 +2846,58 @@ function findPrevJieQi(date) {
 }
 
 // 优化起运时间计算函数
-function calculateLuckStartingTime(lunar, gender) {
-    const birthDate = lunar.getSolar().toDate();
-    const yearGan = lunar.getYearGan();
+function findNextJieQi(date) {
+    const solar = Solar.fromDate(date);
+    const lunar = solar.getLunar();
+    const jieQiList = Object.entries(lunar.getJieQiList())
+        .map(([name, solar]) => ({ name, solar }))
+        .sort((a, b) => a.solar.getYear() * 10000 + a.solar.getMonth() * 100 + a.solar.getDay() - 
+                         b.solar.getYear() * 10000 - b.solar.getMonth() * 100 - b.solar.getDay()));
     
+    for (const jieQi of jieQiList) {
+        const jieQiDate = new Date(
+            jieQi.solar.getYear(),
+            jieQi.solar.getMonth() - 1, // JavaScript月份从0开始
+            jieQi.solar.getDay(),
+            jieQi.solar.getHour(),
+            jieQi.solar.getMinute(),
+            jieQi.solar.getSecond()
+        );
+        
+        if (jieQiDate > date) {
+            return jieQiDate;
+        }
+    }
+    
+    // 如果当年没找到，返回下一年立春
+    const nextYearSolar = Solar.fromYmdHms(date.getFullYear() + 1, 2, 4, 0, 0, 0);
+    const nextYearJieQi = nextYearSolar.getLunar().getJieQi("立春").getSolar();
+    return new Date(
+        nextYearJieQi.getYear(),
+        nextYearJieQi.getMonth() - 1,
+        nextYearJieQi.getDay(),
+        nextYearJieQi.getHour(),
+        nextYearJieQi.getMinute(),
+        nextYearJieQi.getSecond()
+    );
+}
+
+// 修复后的起运时间计算函数
+function calculateLuckStartingTime(lunar, gender) {
+    // 获取出生日期的Solar对象
+    const birthSolar = lunar.getSolar();
+    
+    // 手动创建出生日期对象
+    const birthDate = new Date(
+        birthSolar.getYear(),
+        birthSolar.getMonth() - 1, // JavaScript月份从0开始
+        birthSolar.getDay(),
+        birthSolar.getHour(),
+        birthSolar.getMinute(),
+        birthSolar.getSecond()
+    );
+    
+    const yearGan = lunar.getYearGan();
     const isYangYear = ["甲", "丙", "戊", "庚", "壬"].includes(yearGan);
     const isForward = (isYangYear && gender === "male") || (!isYangYear && gender === "female");
     
@@ -2866,6 +2914,45 @@ function calculateLuckStartingTime(lunar, gender) {
     const months = Math.floor((totalYears - years) * 12);
     
     return `${years}岁${months}个月起运`;
+}
+
+// 修复后的身强身弱判断函数
+function determineStrengthType(pillars) {
+    // 使用Solar对象的getter方法获取日期组件
+    const dayStem = pillars.dayStem;
+    const stems = [pillars.yearStem, pillars.monthStem, pillars.hourStem];
+    const branches = [pillars.yearBranch, pillars.monthBranch, pillars.dayBranch, pillars.hourBranch];
+    
+    // 元素映射表
+    const elementMap = {
+        '甲':0, '乙':0, '丙':1, '丁':1, '戊':2, '己':2, 
+        '庚':3, '辛':3, '壬':4, '癸':4,
+        '寅':0, '卯':0, '午':1, '巳':1, 
+        '辰':2, '戌':2, '丑':2, '未':2, 
+        '申':3, '酉':3, '子':4, '亥':4
+    };
+    
+    const dayElement = elementMap[dayStem];
+    let sameElementCount = 0;
+    
+    // 统计天干中的同类元素
+    stems.forEach(stem => {
+        if (elementMap[stem] === dayElement) {
+            sameElementCount++;
+        }
+    });
+    
+    // 统计地支中的同类元素
+    branches.forEach(branch => {
+        if (elementMap[branch] === dayElement) {
+            sameElementCount++;
+        }
+    });
+    
+    // 判断身强身弱
+    if (sameElementCount >= 5) return "从强";
+    if (sameElementCount <= 1) return "从弱";
+    return sameElementCount >= 3 ? "身强" : "身弱";
 }
 
 // 修改身强身弱判断函数
