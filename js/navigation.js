@@ -21,7 +21,7 @@ const pathNameMap = {
     'luck': '大运流年',
     'disaster': '重大灾祸',
     'tools': '学习工具',
-    'calculator': '八字计算器',
+    'calculator': '八字模拟器',
     'reference': '速查表',
     'common': '常见格局',
     'special': '特殊格局',
@@ -317,7 +317,7 @@ function createNavigation() {
             href: '#',
             wuxing: 'earth',
             dropdown: [
-                { text: '八字计算器', href: '/tools/calculator.html' },
+                { text: '八字模拟器', href: '/tools/calculator.html' },
                 { text: '速查表', href: '/tools/reference.html' },
                 { text: '常见格局', href: '/tools/common.html' },
                 { text: '特殊格局', href: '/tools/special.html' },
