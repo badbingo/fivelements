@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', function() {
         key: 'UsXrSwn0wft5SeLB0LaQfecvJmpkS18T',
         apiUrl: 'https://zpayz.cn/submit.php',
         returnUrl: window.location.href.split('?')[0],
-        amount: '0.01'
+        amount: '40.00'
     };
 
     // DOM元素
@@ -103,7 +103,7 @@ document.addEventListener('DOMContentLoaded', function() {
         title.style.marginBottom = '20px';
 
         const wxpayBtn = document.createElement('button');
-        wxpayBtn.innerHTML = '<i class="fab fa-weixin"></i> 微信支付';
+        wxpayBtn.innerHTML = '<i class="fab fa-weixin"></i> 微信支付（仅限国内）';
         wxpayBtn.style.cssText = `
             display: block;
             width: 100%;
@@ -119,7 +119,7 @@ document.addEventListener('DOMContentLoaded', function() {
         wxpayBtn.onclick = () => startPayment('wxpay');
 
         const alipayBtn = document.createElement('button');
-        alipayBtn.innerHTML = '<i class="fab fa-alipay"></i> 支付宝支付';
+        alipayBtn.innerHTML = '<i class="fab fa-alipay"></i> 支付宝支付（全球支付）';
         alipayBtn.style.cssText = `
             display: block;
             width: 100%;
