@@ -1,302 +1,1006 @@
-
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>批八字流程 - 麦八字教学网</title>
-    <link rel="stylesheet" href="../css/newstyle.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="stylesheet" href="../css/navigation.css">
-    <script defer src="../js/navigation.js"></script>
-    
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-2NHJXGKS0Y"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-    
-      gtag('config', 'G-2NHJXGKS0Y');
-    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
+        }
+        
+        :root {
+            --primary-color: #c62828;
+            --accent-color: #2e7d32;
+            --text-color: #333;
+            --light-bg: #f9f6f0;
+            --card-bg: rgba(255, 255, 255, 0.85);
+            --shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            color: var(--text-color);
+            line-height: 1.7;
+            overflow-x: hidden;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            background-attachment: fixed;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+        
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: -1;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* Header Styles */
+        header {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .logo i {
+            font-size: 2.5rem;
+            color: var(--primary-color);
+        }
+        
+        .logo h1 {
+            color: white;
+            font-size: 1.8rem;
+            letter-spacing: 1px;
+        }
+        
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 30px;
+        }
+        
+        nav a {
+            color: rgba(255, 255, 255, 0.85);
+            text-decoration: none;
+            font-size: 1.1rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            padding: 8px 12px;
+            border-radius: 5px;
+        }
+        
+        nav a:hover, nav a.active {
+            color: white;
+            background: rgba(198, 40, 40, 0.2);
+        }
+        
+        /* Main Content */
+        main {
+            padding: 60px 0 100px;
+        }
+        
+        .page-header {
+            text-align: center;
+            margin-bottom: 50px;
+            padding: 30px;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 15px;
+            color: white;
+        }
+        
+        .page-header h1 {
+            font-size: 2.8rem;
+            margin-bottom: 15px;
+            color: var(--primary-color);
+        }
+        
+        .page-header p {
+            font-size: 1.3rem;
+            max-width: 800px;
+            margin: 0 auto;
+            color: rgba(255, 255, 255, 0.9);
+        }
+        
+        .knowledge-section {
+            margin-bottom: 60px;
+        }
+        
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--primary-color);
+        }
+        
+        .section-header i {
+            font-size: 2rem;
+            color: var(--primary-color);
+            background: rgba(198, 40, 40, 0.1);
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .section-header h2 {
+            font-size: 2rem;
+            color: white;
+        }
+        
+        /* Knowledge Cards */
+        .knowledge-card {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 35px;
+            margin-bottom: 35px;
+            box-shadow: var(--shadow);
+            border-left: 4px solid var(--primary-color);
+            transition: transform 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+        
+        .knowledge-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+        }
+        
+        .knowledge-card h3 {
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .knowledge-card h3 i {
+            color: var(--accent-color);
+            font-size: 1.5rem;
+        }
+        
+        .knowledge-card p {
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+            color: #444;
+        }
+        
+        .knowledge-card ul, .knowledge-card ol {
+            padding-left: 30px;
+            margin: 20px 0;
+        }
+        
+        .knowledge-card li {
+            margin-bottom: 12px;
+            font-size: 1.1rem;
+        }
+        
+        .card-content {
+            line-height: 1.8;
+        }
+        
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+            margin-top: 25px;
+        }
+        
+        .card-item {
+            background: rgba(255, 255, 255, 0.7);
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 3px solid var(--accent-color);
+        }
+        
+        .card-item h4 {
+            color: var(--accent-color);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.3rem;
+        }
+        
+        /* Timeline */
+        .timeline {
+            position: relative;
+            max-width: 900px;
+            margin: 40px auto;
+        }
+        
+        .timeline::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 100%;
+            background: var(--primary-color);
+        }
+        
+        .timeline-item {
+            position: relative;
+            width: 50%;
+            padding: 30px 40px;
+        }
+        
+        .timeline-item:nth-child(odd) {
+            left: 0;
+            padding-right: 70px;
+        }
+        
+        .timeline-item:nth-child(even) {
+            left: 50%;
+            padding-left: 70px;
+        }
+        
+        .timeline-content {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: var(--shadow);
+            position: relative;
+        }
+        
+        .timeline-content::before {
+            content: '';
+            position: absolute;
+            top: 40px;
+            width: 30px;
+            height: 4px;
+            background: var(--primary-color);
+        }
+        
+        .timeline-item:nth-child(odd) .timeline-content::before {
+            right: -30px;
+        }
+        
+        .timeline-item:nth-child(even) .timeline-content::before {
+            left: -30px;
+        }
+        
+        .timeline-year {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+        }
+        
+        .timeline-circle {
+            position: absolute;
+            top: 40px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--accent-color);
+            border: 4px solid var(--primary-color);
+        }
+        
+        .timeline-item:nth-child(odd) .timeline-circle {
+            right: -8px;
+        }
+        
+        .timeline-item:nth-child(even) .timeline-circle {
+            left: -8px;
+        }
+        
+        /* Table Styles */
+        .styled-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+            font-size: 1.1rem;
+            min-width: 600px;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+        
+        .styled-table thead tr {
+            background-color: var(--primary-color);
+            color: white;
+            text-align: left;
+            font-weight: bold;
+        }
+        
+        .styled-table th,
+        .styled-table td {
+            padding: 15px 20px;
+        }
+        
+        .styled-table tbody tr {
+            border-bottom: 1px solid #ddd;
+            background: rgba(255, 255, 255, 0.8);
+        }
+        
+        .styled-table tbody tr:nth-of-type(even) {
+            background: rgba(245, 245, 245, 0.8);
+        }
+        
+        .styled-table tbody tr:last-of-type {
+            border-bottom: 3px solid var(--primary-color);
+        }
+        
+        /* Footer */
+        footer {
+            background: rgba(0, 0, 0, 0.85);
+            color: rgba(255, 255, 255, 0.8);
+            padding: 40px 0;
+            text-align: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .footer-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .footer-content p {
+            margin: 10px 0;
+            font-size: 1.1rem;
+        }
+        
+        .footer-content p:first-child {
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            color: white;
+        }
+        
+        /* Responsive */
+        @media (max-width: 992px) {
+            .timeline::before {
+                left: 30px;
+            }
+            
+            .timeline-item {
+                width: 100%;
+                padding-left: 70px;
+                padding-right: 0;
+                left: 0 !important;
+            }
+            
+            .timeline-item:nth-child(even) {
+                padding-left: 70px;
+            }
+            
+            .timeline-item:nth-child(odd) .timeline-content::before,
+            .timeline-item:nth-child(even) .timeline-content::before {
+                left: -30px;
+                right: auto;
+            }
+            
+            .timeline-item:nth-child(odd) .timeline-circle,
+            .timeline-item:nth-child(even) .timeline-circle {
+                left: 22px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            nav ul {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .page-header h1 {
+                font-size: 2.2rem;
+            }
+            
+            .section-header h2 {
+                font-size: 1.8rem;
+            }
+            
+            .knowledge-card {
+                padding: 25px;
+            }
+        }
+        
+        /* New Styles for this page */
+        .wuxing-elements {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+        
+        .wuxing-element {
+            text-align: center;
+            width: 120px;
+            padding: 20px 10px;
+            border-radius: 10px;
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .wuxing-wood {
+            background: linear-gradient(135deg, #2e7d32, #4caf50);
+        }
+        
+        .wuxing-fire {
+            background: linear-gradient(135deg, #c62828, #f44336);
+        }
+        
+        .wuxing-earth {
+            background: linear-gradient(135deg, #8d6e63, #a1887f);
+        }
+        
+        .wuxing-metal {
+            background: linear-gradient(135deg, #1565c0, #2196f3);
+        }
+        
+        .wuxing-water {
+            background: linear-gradient(135deg, #0277bd, #29b6f6);
+        }
+        
+        .quote-box {
+            background: rgba(46, 125, 50, 0.1);
+            border-left: 4px solid var(--accent-color);
+            padding: 25px;
+            margin: 30px 0;
+            border-radius: 0 10px 10px 0;
+        }
+        
+        .quote-box p {
+            font-style: italic;
+            font-size: 1.2rem;
+            color: #2e7d32;
+            margin-bottom: 15px;
+        }
+        
+        .quote-author {
+            text-align: right;
+            font-weight: bold;
+            color: #2e7d32;
+        }
+        
+        .bazi-example {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+        
+        .bazi-pillar {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            min-width: 120px;
+        }
+        
+        .pillar-title {
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: var(--primary-color);
+            font-size: 1.1rem;
+        }
+        
+        .heavenly-stem {
+            font-size: 2.2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .earthly-branch {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--accent-color);
+        }
+        
+        .element-label {
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .learning-path {
+            counter-reset: step-counter;
+            margin: 40px 0;
+        }
+        
+        .path-step {
+            position: relative;
+            padding-left: 80px;
+            margin-bottom: 40px;
+        }
+        
+        .path-step::before {
+            counter-increment: step-counter;
+            content: counter(step-counter);
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 60px;
+            height: 60px;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            font-weight: bold;
+        }
+        
+        .path-step h4 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: var(--primary-color);
+        }
+        
+        .example-box {
+            background: rgba(198, 40, 40, 0.05);
+            border-radius: 10px;
+            padding: 25px;
+            margin: 30px 0;
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .note-box {
+            padding: 20px;
+            border-radius: 10px;
+            margin: 25px 0;
+        }
+        
+        .note-box.important {
+            background: rgba(255, 243, 224, 0.8);
+            border-left: 4px solid #ff9800;
+        }
+        
+        .step-box {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+        
+        .step {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .step-number {
+            min-width: 50px;
+            height: 50px;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        
+        .step-content h3 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+        }
+    </style>
 </head>
 <body>
-    <div class="background-overlay"></div>
+    <header>
+        <div class="container header-content">
+            <div class="logo">
+                <i class="fas fa-yin-yang"></i>
+                <h1>麦八字教学网</h1>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="#" class="active"><i class="fas fa-home"></i> 首页</a></li>
+                    <li><a href="#"><i class="fas fa-book"></i> 八字教程</a></li>
+                    <li><a href="#"><i class="fas fa-calculator"></i> 排盘工具</a></li>
+                    <li><a href="#"><i class="fas fa-user-friends"></i> 命理咨询</a></li>
+                    <li><a href="#"><i class="fas fa-envelope"></i> 联系我们</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
 
-    <main class="content-container">
-        <div class="content-title">
-            <h1>八字介绍</h1>
-            <p>系统掌握八字命理分析的标准化流程与进阶技巧</p>
+    <main class="container">
+        <div class="page-header">
+            <h1><i class="fas fa-star-and-crescent"></i> 八字命理系统介绍</h1>
+            <p>探索千年智慧，解密命运密码——系统掌握八字命理分析的标准化流程与进阶技巧</p>
         </div>
 
-        <div class="content-section">
-            <h2><i class="fas fa-question-circle"></i> 什么是八字</h2>
-            <p>八字，又称四柱命理，是中国传统命理学的重要组成部分，起源于唐朝，成熟于宋朝。它以一个人出生的年、月、日、时四个时间点的天干地支（共八个字）为基础，通过分析这八个字之间的五行生克关系来预测人的命运走势。</p>
-            
-            <p>八字命理学的核心理论认为，人出生时的天体运行位置和地球磁场状态会影响一个人的先天禀赋和人生轨迹。这种影响通过阴阳五行（金、木、水、火、土）的相互作用表现出来，形成每个人独特的命理格局。</p>
-        </div>
-
-        <div class="content-section">
-            <h2><i class="fas fa-history"></i> 八字的历史发展</h2>
-            <p>八字命理学有着悠久的历史传承：</p>
-            
-            <div class="timeline">
-                <div class="timeline-item left">
-                    <div class="timeline-content">
-                        <h3><i class="fas fa-seedling"></i> 萌芽时期（汉代）</h3>
-                        <p>八字雏形可追溯至汉代，当时已有以出生年份判断命运的方法，但尚未形成完整的八字体系。</p>
+        <div class="knowledge-section">
+            <div class="section-header">
+                <i class="fas fa-question-circle"></i>
+                <h2>什么是八字</h2>
+            </div>
+            <div class="knowledge-card">
+                <div class="card-content">
+                    <p>八字，又称四柱命理，是中国传统命理学的重要组成部分，起源于唐朝，成熟于宋朝。它以一个人出生的年、月、日、时四个时间点的天干地支（共八个字）为基础，通过分析这八个字之间的五行生克关系来预测人的命运走势。</p>
+                    
+                    <p>八字命理学的核心理论认为，人出生时的天体运行位置和地球磁场状态会影响一个人的先天禀赋和人生轨迹。这种影响通过阴阳五行（金、木、水、火、土）的相互作用表现出来，形成每个人独特的命理格局。</p>
+                    
+                    <div class="wuxing-elements">
+                        <div class="wuxing-element wuxing-wood">木</div>
+                        <div class="wuxing-element wuxing-fire">火</div>
+                        <div class="wuxing-element wuxing-earth">土</div>
+                        <div class="wuxing-element wuxing-metal">金</div>
+                        <div class="wuxing-element wuxing-water">水</div>
                     </div>
-                </div>
-                <div class="timeline-item right">
-                    <div class="timeline-content">
-                        <h3><i class="fas fa-book"></i> 形成时期（唐代）</h3>
-                        <p>唐代李虚中创立了三柱（年、月、日）推命法，被认为是八字命理学的奠基人。</p>
-                    </div>
-                </div>
-                <div class="timeline-item left">
-                    <div class="timeline-content">
-                        <h3><i class="fas fa-star"></i> 成熟时期（宋代）</h3>
-                        <p>宋代徐子平将三柱发展为四柱（加入时柱），并完善了十神、用神等核心概念，八字体系基本定型。</p>
-                    </div>
-                </div>
-                <div class="timeline-item right">
-                    <div class="timeline-content">
-                        <h3><i class="fas fa-pen-fancy"></i> 发展时期（明清）</h3>
-                        <p>明清时期出现了《渊海子平》《三命通会》《滴天髓》等经典著作，八字理论更加系统化。</p>
-                    </div>
-                </div>
-                <div class="timeline-item left">
-                    <div class="timeline-content">
-                        <h3><i class="fas fa-globe"></i> 现代时期</h3>
-                        <p>现代八字研究结合心理学、统计学等学科，使传统命理学更加科学化和实用化。</p>
+                    
+                    <div class="quote-box">
+                        <p>"天干地支，阴阳五行，蕴藏宇宙运行之道；八字四柱，生克制化，揭示人生起伏之机。"</p>
+                        <div class="quote-author">——《渊海子平》</div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="content-section">
-            <h2><i class="fas fa-brain"></i> 八字为何能分析人生轨迹</h2>
-            <p>八字命理学能够分析人生轨迹的原理主要体现在以下几个方面：</p>
-            
-            <div class="card-grid">
-                <div class="card">
-                    <h3 class="card-title"><i class="fas fa-atom"></i> 天人合一理念</h3>
-                    <p>八字理论基于"天人合一"的哲学思想，认为人与宇宙是一个有机整体，出生时的宇宙能量状态会影响人的一生。</p>
-                </div>
-                <div class="card">
-                    <h3 class="card-title"><i class="fas fa-balance-scale"></i> 五行生克关系</h3>
-                    <p>通过分析八字中金木水火土五行的旺衰、生克、制化关系，可以判断一个人的性格特征、优劣势和适应能力。</p>
-                </div>
-                <div class="card">
-                    <h3 class="card-title"><i class="fas fa-chart-line"></i> 时间周期规律</h3>
-                    <p>大运和流年系统反映了人生不同阶段的能量变化，可以预测各时期的运势起伏和重要转折点。</p>
-                </div>
-                <div class="card">
-                    <h3 class="card-title"><i class="fas fa-project-diagram"></i> 系统关联性</h3>
-                    <p>八字中的十神关系揭示了人与周围环境（六亲、事业、财富等）的互动模式，反映了人生各方面的潜在发展趋势。</p>
-                </div>
+        <div class="knowledge-section">
+            <div class="section-header">
+                <i class="fas fa-history"></i>
+                <h2>八字的历史发展</h2>
             </div>
-            
-            <div class="note-box important">
-                <p><strong>科学视角：</strong>现代研究表明，出生季节和时间确实会影响人的生理特征和心理倾向，这与八字理论中的五行旺衰概念有一定相关性。八字分析实际上是一种复杂的人生预测模型，通过长期观察统计形成的经验体系。</p>
-            </div>
-        </div>
-
-        <div class="content-section">
-            <h2><i class="fas fa-list-ol"></i> 一、批八字标准流程</h2>
-            <p>批八字是一项严谨的系统工程，需要遵循科学的分析步骤，以下是专业命理师的标准分析流程：</p>
-            
-            <div class="timeline">
-                <div class="timeline-item left">
-                    <div class="timeline-content">
-                        <h3><i class="fas fa-table"></i> 1. 精准排盘</h3>
-                        <p>使用专业排盘工具准确排出年柱、月柱、日柱和时柱，确保八字信息无误。特别注意节气转换和真太阳时校正。</p>
+            <div class="knowledge-card">
+                <div class="timeline">
+                    <div class="timeline-item left">
+                        <div class="timeline-circle"></div>
+                        <div class="timeline-content">
+                            <h3><i class="fas fa-seedling"></i> 萌芽时期（汉代）</h3>
+                            <p>八字雏形可追溯至汉代，当时已有以出生年份判断命运的方法，但尚未形成完整的八字体系。</p>
+                        </div>
                     </div>
-                </div>
-                <div class="timeline-item right">
-                    <div class="timeline-content">
-                        <h3><i class="fas fa-balance-scale"></i> 2. 日元强弱分析</h3>
-                        <p>综合分析月令、地支藏干、天干透出、生扶克制等因素，精确判断日元强弱状态（身强、身弱或中和）。</p>
+                    <div class="timeline-item right">
+                        <div class="timeline-circle"></div>
+                        <div class="timeline-content">
+                            <h3><i class="fas fa-book"></i> 形成时期（唐代）</h3>
+                            <p>唐代李虚中创立了三柱（年、月、日）推命法，被认为是八字命理学的奠基人。</p>
+                        </div>
                     </div>
-                </div>
-                <div class="timeline-item left">
-                    <div class="timeline-content">
-                        <h3><i class="fas fa-star"></i> 3. 取用神与忌神</h3>
-                        <p>根据日元强弱和八字结构，确定喜用神（补益八字的五行）和忌神（损害八字的五行）。</p>
+                    <div class="timeline-item left">
+                        <div class="timeline-circle"></div>
+                        <div class="timeline-content">
+                            <h3><i class="fas fa-star"></i> 成熟时期（宋代）</h3>
+                            <p>宋代徐子平将三柱发展为四柱（加入时柱），并完善了十神、用神等核心概念，八字体系基本定型。</p>
+                        </div>
                     </div>
-                </div>
-                <div class="timeline-item right">
-                    <div class="timeline-content">
-                        <h3><i class="fas fa-chess-queen"></i> 4. 格局判定</h3>
-                        <p>分析八字组合形成的特殊格局（如正官格、七杀格、食神制杀等），判断命局层次和人生轨迹。</p>
+                    <div class="timeline-item right">
+                        <div class="timeline-circle"></div>
+                        <div class="timeline-content">
+                            <h3><i class="fas fa-pen-fancy"></i> 发展时期（明清）</h3>
+                            <p>明清时期出现了《渊海子平》《三命通会》《滴天髓》等经典著作，八字理论更加系统化。</p>
+                        </div>
                     </div>
-                </div>
-                <div class="timeline-item left">
-                    <div class="timeline-content">
-                        <h3><i class="fas fa-chart-line"></i> 5. 大运流年分析</h3>
-                        <p>排定大运走势，结合流年变化，分析人生各阶段的运势起伏和关键节点。</p>
-                    </div>
-                </div>
-                <div class="timeline-item right">
-                    <div class="timeline-content">
-                        <h3><i class="fas fa-user-tie"></i> 6. 六亲与事业分析</h3>
-                        <p>通过十神关系分析父母、配偶、子女等六亲缘分，以及事业发展方向和财富格局。</p>
-                    </div>
-                </div>
-                <div class="timeline-item left">
-                    <div class="timeline-content">
-                        <h3><i class="fas fa-heartbeat"></i> 7. 健康与灾厄</h3>
-                        <p>根据五行生克和刑冲合害，判断潜在健康问题和灾厄年份，提供预防建议。</p>
-                    </div>
-                </div>
-                <div class="timeline-item right">
-                    <div class="timeline-content">
-                        <h3><i class="fas fa-lightbulb"></i> 8. 综合论断与建议</h3>
-                        <p>整合所有分析要素，给出人生发展建议，包括职业选择、方位宜忌、颜色搭配等调理方案。</p>
+                    <div class="timeline-item left">
+                        <div class="timeline-circle"></div>
+                        <div class="timeline-content">
+                            <h3><i class="fas fa-globe"></i> 现代时期</h3>
+                            <p>现代八字研究结合心理学、统计学等学科，使传统命理学更加科学化和实用化。</p>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="content-section">
-            <h2><i class="fas fa-chess-board"></i> 二、八字核心格局体系</h2>
-            <p>八字格局分为正格、变格和特殊格局三大类，以下是传统命理学的核心格局分类：</p>
-            
-            <div class="card-grid">
-                <div class="card">
-                    <h3 class="card-title"><i class="fas fa-atlas"></i> 正官格</h3>
-                    <p>官星为用而有力，主贵气、事业成就。典型特征：正直负责，管理能力强，适合公务员、企业管理等职业。</p>
-                </div>
-                <div class="card">
-                    <h3 class="card-title"><i class="fas fa-shield-alt"></i> 七杀格</h3>
-                    <p>七杀有制化为权，主魄力、成就。典型特征：果断勇敢，竞争力强，适合军警、外科医生等高压职业。</p>
-                </div>
-                <div class="card">
-                    <h3 class="card-title"><i class="fas fa-yin-yang"></i> 印绶格</h3>
-                    <p>印星为用而有力，主学识、名望。典型特征：智慧内敛，研究能力强，适合教育、学术、文化行业。</p>
-                </div>
-                <div class="card">
-                    <h3 class="card-title"><i class="fas fa-paint-brush"></i> 食神格</h3>
-                    <p>食神吐秀，主才华、艺术。典型特征：创意丰富，表达能力佳，适合艺术、设计、演艺等行业。</p>
-                </div>
-                <div class="card">
-                    <h3 class="card-title"><i class="fas fa-lightbulb"></i> 伤官格</h3>
-                    <p>伤官配印或伤官生财，主聪明、技艺。典型特征：思维敏捷，创新能力强，适合技术研发、自由职业。</p>
-                </div>
-                <div class="card">
-                    <h3 class="card-title"><i class="fas fa-coins"></i> 财格</h3>
-                    <p>财星有源且为用，主财富、经营。典型特征：理财能力强，商业嗅觉敏锐，适合金融、贸易、实业。</p>
-                </div>
-                <div class="card">
-                    <h3 class="card-title"><i class="fas fa-fist-raised"></i> 阳刃格</h3>
-                    <p>阳刃驾杀或阳刃用官，主武贵、魄力。典型特征：胆识过人，执行力强，适合军警、体育、工程领域。</p>
-                </div>
-                <div class="card">
-                    <h3 class="card-title"><i class="fas fa-water"></i> 从格</h3>
-                    <p>从强或从弱，主特殊成就。典型特征：人生大起大落，能在特定领域取得非凡成就，需顺势而为。</p>
-                </div>
+        <div class="knowledge-section">
+            <div class="section-header">
+                <i class="fas fa-brain"></i>
+                <h2>八字为何能分析人生轨迹</h2>
             </div>
-            
-            <div class="note-box important">
-                <p><strong>专业提示：</strong>实际分析中需注意"有格先论格，无格方论用"的原则，同时要辨别真假格局，结合大运走势综合判断格局成败。</p>
-            </div>
-        </div>
-
-        <div class="content-section">
-            <h2><i class="fas fa-balance-scale-right"></i> 三、八字平衡四大维度</h2>
-            <p>一个理想的八字需要在以下四个维度达到动态平衡，这是判断命局优劣的核心标准：</p>
-            
-            <div class="table-container">
-                <table class="bazi-simple-table">
-                    <thead>
-                        <tr>
-                            <th>平衡维度</th>
-                            <th>分析要点</th>
-                            <th>命理影响</th>
-                            <th>调理方法</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><strong>阴阳平衡</strong></td>
-                            <td>天干地支阴阳属性分布</td>
-                            <td>决定性格刚柔与运势稳定性</td>
-                            <td>通过方位、颜色调整</td>
-                        </tr>
-                        <tr>
-                            <td><strong>五行平衡</strong></td>
-                            <td>金木水火土生克制化</td>
-                            <td>影响身体健康与事业顺畅度</td>
-                            <td>补益用神五行</td>
-                        </tr>
-                        <tr>
-                            <td><strong>寒暖燥湿</strong></td>
-                            <td>八字整体温度湿度</td>
-                            <td>关系情绪稳定与决策能力</td>
-                            <td>调节居住环境</td>
-                        </tr>
-                        <tr>
-                            <td><strong>动静平衡</strong></td>
-                            <td>天干地支动静配合</td>
-                            <td>影响执行力与机遇把握</td>
-                            <td>调整作息习惯</td>
-                        </tr>
-                        <tr>
-                            <td><strong>十神平衡</strong></td>
-                            <td>十神力量分布</td>
-                            <td>决定六亲关系与社会成就</td>
-                            <td>强化用神十神</td>
-                        </tr>
-                    </tbody>
-                </table>
+            <div class="knowledge-card">
+                <div class="card-grid">
+                    <div class="card-item">
+                        <h4><i class="fas fa-atom"></i> 天人合一理念</h4>
+                        <p>八字理论基于"天人合一"的哲学思想，认为人与宇宙是一个有机整体，出生时的宇宙能量状态会影响人的一生。</p>
+                    </div>
+                    <div class="card-item">
+                        <h4><i class="fas fa-balance-scale"></i> 五行生克关系</h4>
+                        <p>通过分析八字中金木水火土五行的旺衰、生克、制化关系，可以判断一个人的性格特征、优劣势和适应能力。</p>
+                    </div>
+                    <div class="card-item">
+                        <h4><i class="fas fa-chart-line"></i> 时间周期规律</h4>
+                        <p>大运和流年系统反映了人生不同阶段的能量变化，可以预测各时期的运势起伏和重要转折点。</p>
+                    </div>
+                    <div class="card-item">
+                        <h4><i class="fas fa-project-diagram"></i> 系统关联性</h4>
+                        <p>八字中的十神关系揭示了人与周围环境（六亲、事业、财富等）的互动模式，反映了人生各方面的潜在发展趋势。</p>
+                    </div>
+                </div>
+                
+                <div class="note-box important">
+                    <p><strong>科学视角：</strong>现代研究表明，出生季节和时间确实会影响人的生理特征和心理倾向，这与八字理论中的五行旺衰概念有一定相关性。八字分析实际上是一种复杂的人生预测模型，通过长期观察统计形成的经验体系。</p>
+                </div>
+                
+                <div class="bazi-example">
+                    <div class="bazi-pillar">
+                        <div class="pillar-title">年柱</div>
+                        <div class="heavenly-stem">癸</div>
+                        <div class="earthly-branch">亥</div>
+                        <div class="element-label">水水</div>
+                    </div>
+                    <div class="bazi-pillar">
+                        <div class="pillar-title">月柱</div>
+                        <div class="heavenly-stem">癸</div>
+                        <div class="earthly-branch">亥</div>
+                        <div class="element-label">水水</div>
+                    </div>
+                    <div class="bazi-pillar">
+                        <div class="pillar-title">日柱</div>
+                        <div class="heavenly-stem">癸</div>
+                        <div class="earthly-branch">丑</div>
+                        <div class="element-label">水土</div>
+                    </div>
+                    <div class="bazi-pillar">
+                        <div class="pillar-title">时柱</div>
+                        <div class="heavenly-stem">乙</div>
+                        <div class="earthly-branch">卯</div>
+                        <div class="element-label">木木</div>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <div class="content-section">
-            <h2><i class="fas fa-graduation-cap"></i> 四、成为八字专家的学习路径</h2>
-            <p>系统学习八字命理需要循序渐进，以下是专业命理师的成长路径：</p>
-            
-            <div class="step-box">
-                <div class="step">
-                    <div class="step-number">1</div>
-                    <div class="step-content">
-                        <h3>基础筑基阶段（6-12个月）</h3>
+        <div class="knowledge-section">
+            <div class="section-header">
+                <i class="fas fa-list-ol"></i>
+                <h2>批八字标准流程</h2>
+            </div>
+            <div class="knowledge-card">
+                <p>批八字是一项严谨的系统工程，需要遵循科学的分析步骤，以下是专业命理师的标准分析流程：</p>
+                
+                <div class="step-box">
+                    <div class="step">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <h3>精准排盘</h3>
+                            <p>使用专业排盘工具准确排出年柱、月柱、日柱和时柱，确保八字信息无误。特别注意节气转换和真太阳时校正。</p>
+                        </div>
+                    </div>
+                    
+                    <div class="step">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <h3>日元强弱分析</h3>
+                            <p>综合分析月令、地支藏干、天干透出、生扶克制等因素，精确判断日元强弱状态（身强、身弱或中和）。</p>
+                        </div>
+                    </div>
+                    
+                    <div class="step">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <h3>取用神与忌神</h3>
+                            <p>根据日元强弱和八字结构，确定喜用神（补益八字的五行）和忌神（损害八字的五行）。</p>
+                        </div>
+                    </div>
+                    
+                    <div class="step">
+                        <div class="step-number">4</div>
+                        <div class="step-content">
+                            <h3>格局判定</h3>
+                            <p>分析八字组合形成的特殊格局（如正官格、七杀格、食神制杀等），判断命局层次和人生轨迹。</p>
+                        </div>
+                    </div>
+                    
+                    <div class="step">
+                        <div class="step-number">5</div>
+                        <div class="step-content">
+                            <h3>大运流年分析</h3>
+                            <p>排定大运走势，结合流年变化，分析人生各阶段的运势起伏和关键节点。</p>
+                        </div>
+                    </div>
+                    
+                    <div class="step">
+                        <div class="step-number">6</div>
+                        <div class="step-content">
+                            <h3>六亲与事业分析</h3>
+                            <p>通过十神关系分析父母、配偶、子女等六亲缘分，以及事业发展方向和财富格局。</p>
+                        </div>
+                    </div>
+                    
+                    <div class="step">
+                        <div class="step-number">7</div>
+                        <div class="step-content">
+                            <h3>健康与灾厄</h3>
+                            <p>根据五行生克和刑冲合害，判断潜在健康问题和灾厄年份，提供预防建议。</p>
+                        </div>
+                    </div>
+                    
+                    <div class="step">
+                        <div class="step-number">8</div>
+                        <div class="step-content">
+                            <h3>综合论断与建议</h3>
+                            <p>整合所有分析要素，给出人生发展建议，包括职业选择、方位宜忌、颜色搭配等调理方案。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="knowledge-section">
+            <div class="section-header">
+                <i class="fas fa-chess-board"></i>
+                <h2>八字核心格局体系</h2>
+            </div>
+            <div class="knowledge-card">
+                <p>八字格局分为正格、变格和特殊格局三大类，以下是传统命理学的核心格局分类：</p>
+                
+                <div class="card-grid">
+                    <div class="card-item">
+                        <h4><i class="fas fa-atlas"></i> 正官格</h4>
+                        <p>官星为用而有力，主贵气、事业成就。典型特征：正直负责，管理能力强，适合公务员、企业管理等职业。</p>
+                    </div>
+                    <div class="card-item">
+                        <h4><i class="fas fa-shield-alt"></i> 七杀格</h4>
+                        <p>七杀有制化为权，主魄力、成就。典型特征：果断勇敢，竞争力强，适合军警、外科医生等高压职业。</p>
+                    </div>
+                    <div class="card-item">
+                        <h4><i class="fas fa-yin-yang"></i> 印绶格</h4>
+                        <p>印星为用而有力，主学识、名望。典型特征：智慧内敛，研究能力强，适合教育、学术、文化行业。</p>
+                    </div>
+                    <div class="card-item">
+                        <h4><i class="fas fa-paint-brush"></i> 食神格</h4>
+                        <p>食神吐秀，主才华、艺术。典型特征：创意丰富，表达能力佳，适合艺术、设计、演艺等行业。</p>
+                    </div>
+                    <div class="card-item">
+                        <h4><i class="fas fa-lightbulb"></i> 伤官格</h4>
+                        <p>伤官配印或伤官生财，主聪明、技艺。典型特征：思维敏捷，创新能力强，适合技术研发、自由职业。</p>
+                    </div>
+                    <div class="card-item">
+                        <h4><i class="fas fa-coins"></i> 财格</h4>
+                        <p>财星有源且为用，主财富、经营。典型特征：理财能力强，商业嗅觉敏锐，适合金融、贸易、实业。</p>
+                    </div>
+                    <div class="card-item">
+                        <h4><i class="fas fa-fist-raised"></i> 阳刃格</h4>
+                        <p>阳刃驾杀或阳刃用官，主武贵、魄力。典型特征：胆识过人，执行力强，适合军警、体育、工程领域。</p>
+                    </div>
+                    <div class="card-item">
+                        <h4><i class="fas fa-water"></i> 从格</h4>
+                        <p>从强或从弱，主特殊成就。典型特征：人生大起大落，能在特定领域取得非凡成就，需顺势而为。</p>
+                    </div>
+                </div>
+                
+                <div class="note-box important">
+                    <p><strong>专业提示：</strong>实际分析中需注意"有格先论格，无格方论用"的原则，同时要辨别真假格局，结合大运走势综合判断格局成败。</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="knowledge-section">
+            <div class="section-header">
+                <i class="fas fa-balance-scale-right"></i>
+                <h2>八字平衡四大维度</h2>
+            </div>
+            <div class="knowledge-card">
+                <p>一个理想的八字需要在以下四个维度达到动态平衡，这是判断命局优劣的核心标准：</p>
+                
+                <div class="table-container">
+                    <table class="styled-table">
+                        <thead>
+                            <tr>
+                                <th>平衡维度</th>
+                                <th>分析要点</th>
+                                <th>命理影响</th>
+                                <th>调理方法</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>阴阳平衡</strong></td>
+                                <td>天干地支阴阳属性分布</td>
+                                <td>决定性格刚柔与运势稳定性</td>
+                                <td>通过方位、颜色调整</td>
+                            </tr>
+                            <tr>
+                                <td><strong>五行平衡</strong></td>
+                                <td>金木水火土生克制化</td>
+                                <td>影响身体健康与事业顺畅度</td>
+                                <td>补益用神五行</td>
+                            </tr>
+                            <tr>
+                                <td><strong>寒暖燥湿</strong></td>
+                                <td>八字整体温度湿度</td>
+                                <td>关系情绪稳定与决策能力</td>
+                                <td>调节居住环境</td>
+                            </tr>
+                            <tr>
+                                <td><strong>动静平衡</strong></td>
+                                <td>天干地支动静配合</td>
+                                <td>影响执行力与机遇把握</td>
+                                <td>调整作息习惯</td>
+                            </tr>
+                            <tr>
+                                <td><strong>十神平衡</strong></td>
+                                <td>十神力量分布</td>
+                                <td>决定六亲关系与社会成就</td>
+                                <td>强化用神十神</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="knowledge-section">
+            <div class="section-header">
+                <i class="fas fa-graduation-cap"></i>
+                <h2>成为八字专家的学习路径</h2>
+            </div>
+            <div class="knowledge-card">
+                <p>系统学习八字命理需要循序渐进，以下是专业命理师的成长路径：</p>
+                
+                <div class="learning-path">
+                    <div class="path-step">
+                        <h4>基础筑基阶段（6-12个月）</h4>
                         <ul>
                             <li>熟练掌握天干地支、五行生克、十神关系等核心概念</li>
                             <li>学习精确排盘方法，包括节气转换、真太阳时计算</li>
                             <li>掌握六十甲子纳音、神煞等辅助系统</li>
                         </ul>
                     </div>
-                </div>
-                
-                <div class="step">
-                    <div class="step-number">2</div>
-                    <div class="step-content">
-                        <h3>分析能力培养（1-2年）</h3>
+                    
+                    <div class="path-step">
+                        <h4>分析能力培养（1-2年）</h4>
                         <ul>
                             <li>系统学习日元强弱判断的八大要素</li>
                             <li>掌握取用神的原则和方法（扶抑、调候、通关等）</li>
                             <li>熟练分析八字格局和组合（三合、六合、刑冲等）</li>
                         </ul>
                     </div>
-                </div>
-                
-                <div class="step">
-                    <div class="step-number">3</div>
-                    <div class="step-content">
-                        <h3>实战应用阶段（2-3年）</h3>
+                    
+                    <div class="path-step">
+                        <h4>实战应用阶段（2-3年）</h4>
                         <ul>
                             <li>大量分析真实命例，积累断事经验</li>
                             <li>学习大运流年与命局的互动关系</li>
                             <li>掌握六亲、事业、婚姻、健康等专项分析</li>
                         </ul>
                     </div>
-                </div>
-                
-                <div class="step">
-                    <div class="step-number">4</div>
-                    <div class="step-content">
-                        <h3>精进提升阶段（持续）</h3>
+                    
+                    <div class="path-step">
+                        <h4>精进提升阶段（持续）</h4>
                         <ul>
                             <li>研究古籍经典（《渊海子平》《三命通会》等）</li>
                             <li>对比不同流派技法（书房派、江湖派等）</li>
@@ -304,66 +1008,47 @@
                         </ul>
                     </div>
                 </div>
-            </div>
-            
-            <div class="example-box detailed">
-                <h4><i class="fas fa-user-edit"></i> 案例分析：乾造 癸亥 癸亥 癸丑 乙卯</h4>
-                <p><strong>分析步骤：</strong></p>
-                <ol>
-                    <li><strong>五行分布：</strong>水极旺（4癸+2亥水），木相（乙卯），土弱（丑），金火全无</li>
-                    <li><strong>日元强弱：</strong>癸水生于亥月得令，地支亥亥丑全为水势，日主极强</li>
-                    <li><strong>取用神：</strong>水旺木浮，首取土制水为用，次取火调候，忌金水</li>
-                    <li><strong>格局判定：</strong>建禄格身强无制，时柱食神吐秀，为技艺成名之命</li>
-                    <li><strong>大运走势：</strong>早年壬戌、辛酉金水运不利，中年火土运发迹</li>
-                    <li><strong>性格特征：</strong>聪明但固执，适应力强但情绪波动大</li>
-                    <li><strong>事业建议：</strong>适合流动性强、需要创意的职业，如艺术、贸易、咨询等</li>
-                </ol>
-            </div>
-        </div>
-
-        <div class="content-section">
-            <h2><i class="fas fa-book"></i> 五、推荐学习资源</h2>
-            <p>以下是系统学习八字命理的经典教材和工具：</p>
-            
-            <div class="resource-grid">
-                <div class="resource-card book">
-                    <h4><i class="fas fa-book-open"></i> 经典古籍</h4>
-                    <ul>
-                        <li>《渊海子平》 - 徐子平</li>
-                        <li>《三命通会》 - 万民英</li>
-                        <li>《滴天髓》 - 刘伯温</li>
-                        <li>《子平真诠》 - 沈孝瞻</li>
-                    </ul>
-                </div>
                 
-                <div class="resource-card course">
-                    <h4><i class="fas fa-video"></i> 现代教材</h4>
-                    <ul>
-                        <li>《八字预测学》 - 邵伟华</li>
-                        <li>《命理精论》 - 胡一鸣</li>
-                        <li>《子平八字入门》 - 梁湘润</li>
-                        <li>《八字实战讲义》 - 李居明</li>
-                    </ul>
-                </div>
-                
-                <div class="resource-card tool">
-                    <h4><i class="fas fa-tools"></i> 实用工具</h4>
-                    <ul>
-                        <li>专业排盘软件（如文墨天机）</li>
-                        <li>万年历工具（包含节气转换）</li>
-                        <li>十神速查表</li>
-                        <li>五行生克关系图</li>
-                    </ul>
+                <div class="example-box">
+                    <h4><i class="fas fa-user-edit"></i> 案例分析：乾造 癸亥 癸亥 癸丑 乙卯</h4>
+                    <p><strong>分析步骤：</strong></p>
+                    <ol>
+                        <li><strong>五行分布：</strong>水极旺（4癸+2亥水），木相（乙卯），土弱（丑），金火全无</li>
+                        <li><strong>日元强弱：</strong>癸水生于亥月得令，地支亥亥丑全为水势，日主极强</li>
+                        <li><strong>取用神：</strong>水旺木浮，首取土制水为用，次取火调候，忌金水</li>
+                        <li><strong>格局判定：</strong>建禄格身强无制，时柱食神吐秀，为技艺成名之命</li>
+                        <li><strong>大运走势：</strong>早年壬戌、辛酉金水运不利，中年火土运发迹</li>
+                        <li><strong>性格特征：</strong>聪明但固执，适应力强但情绪波动大</li>
+                        <li><strong>事业建议：</strong>适合流动性强、需要创意的职业，如艺术、贸易、咨询等</li>
+                    </ol>
                 </div>
             </div>
         </div>
     </main>
 
-    <footer class="main-footer">
-        <div class="container">
+    <footer>
+        <div class="container footer-content">
             <p>&copy; 2025 麦八字教学网. 保留所有权利.</p>
             <p>传承经典命理文化，科学学习八字知识</p>
+            <p>联系电话: 138-XXXX-XXXX | 邮箱: contact@maibazi.com</p>
         </div>
     </footer>
+
+    <script>
+        // 简单滚动动画效果
+        document.querySelectorAll('nav a').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href');
+                if(targetId !== '#') {
+                    const targetElement = document.querySelector(targetId);
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 80,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+    </script>
 </body>
 </html>
