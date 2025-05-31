@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>八字模拟器 - 麦八字教学网</title>
+    <title>八字学习模拟器 - 麦八字教学网</title>
     <link rel="stylesheet" href="../css/style1.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="../css/navigation.css">
@@ -289,7 +289,7 @@
     
     <main class="content-container">
         <div class="content-title">
-            <h1>八字模拟器</h1>
+            <h1>八字学习模拟器</h1>
             <p>输入您的出生信息，自动生成完整八字命盘及详细分析</p>
         </div>
 
@@ -765,32 +765,37 @@
             <div class="analysis-grid">
                 <div class="analysis-item">
                     <div class="analysis-item-title"><i class="fas fa-cloud-sun"></i> 得令情况</div>
-                    <div class="analysis-item-content">${getSeasonStrength(dayGan, baZi[1].substring(1))}</div>
+                    <div class="analysis-item-title">${getSeasonStrength(dayGan, baZi[1].substring(1))}</div>
+                    <li><strong>得令（季节助力）：</strong>月令是总司令，在八字里面能量最强（占全局40%的能量），对命局的影响力也最大。首先，先看月令（巳火）是否升助日主（乙木）。木是生火的，所以月令不是生助日主的，不得令。</li><br>
                 </div>
                 <div class="analysis-item">
                     <div class="analysis-item-title"><i class="fas fa-mountain"></i> 得地情况</div>
-                    <div class="analysis-item-content">${getLandStrength(baZi, dayGan)}</div>
+                    <div class="analysis-item-title">${getLandStrength(baZi, dayGan)}</div>
+                    <li><strong>得地（根基支持）：</strong>看日主（乙木）在地支中是否有"根"（相同五行）。地支是午火，酉金和申金，所以日主不“得地”。</li><br>
                 </div>
                 <div class="analysis-item">
                     <div class="analysis-item-title"><i class="fas fa-users"></i> 得势情况</div>
-                    <div class="analysis-item-content">${getSupportStrength(baZi, dayGan)}</div>
+                    <div class="analysis-item-title">${getSupportStrength(baZi, dayGan)}</div>
+                    <li><strong>得势（同伴帮助）：</strong>这里是看日主（乙木）在天干是否有同五行帮手（如甲木见乙木）。八字里天干为庚金，辛金，甲木，其中甲木是和日主（乙木）相同五行，所以日主得势。</li><br>
                 </div>
             </div>
-        `;
+            `;
         
         // 十神关系分析
         document.getElementById('ten-god-analysis').innerHTML = `
             ${generateTenGodAnalysis(lunar)}
-            <p>${getTenGodSummary(lunar)}</p>
+            <br><p>${getTenGodSummary(lunar)}</p>
+            <p>分析十神就是在分析命主与世界的关系——我与金钱、亲人、丈夫、事业、性格、贵人、流年的互动方式与结果。十神是八字分析中最重要的概念之一，它描述了你与周围人事物的关系。所有批八字，看流年运势都离不开对十神的解读。</p>
         `;
         
         // 五行平衡分析
         document.getElementById('wuxing-balance-analysis').innerHTML = `
             ${generateWuxingBalance(wuxingCount)}
-            <p>${getWuxingImbalanceAnalysis(wuxingCount)}</p>
+            <br><p>${getWuxingImbalanceAnalysis(wuxingCount)}</p>
+            <p>五行平衡就像一副人体的中药方：过多过少都会失调。只有调配得当，命局才能通畅顺利。</p>
         `;
         generateWuxingChart(wuxingCount);
-        
+
         // 特殊组合分析
         document.getElementById('special-combo-analysis').innerHTML = getSpecialCombination(baZi);
         
@@ -831,6 +836,10 @@
                     <div class="analysis-item-content">${getLearningTips(wuxingCount).replace(/\n/g, '<br>')}</div>
                 </div>
             </div>
+            <div class="cta-buttons" style="text-align: center; margin-top: 30px;">
+               <a href="../system/bazi.html" class="cta-button primary">立即体验机缘命理系统</a>
+            </div>
+        </div>
         `;
     }
 
