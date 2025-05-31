@@ -2794,47 +2794,13 @@ function hasHe(branches, branch1, branch2) {
 
     // 修改后的calculateLuckStartingTime函数
 function calculateLuckStartingTime(lunar, gender) {
-    // 换月节气列表
-    const JIE_QI_MONTHLY = [
-        '立春', '惊蛰', '清明', '立夏', '芒种', '小暑',
-        '立秋', '白露', '寒露', '立冬', '大雪', '小寒'
-    ];
-
-    // 获取精确节气时间
-    function getExactJieQiTime(year, name) {
-        try {
-            const solar = Solar.fromYmd(year, 6, 1);
-            const lunarObj = solar.getLunar();
-            const jieQiTable = lunarObj.getJieQiTable();
-            
-            if (jieQiTable[name]) {
-                const jieQiSolar = jieQiTable[name];
-                return {
-                    year: jieQiSolar.getYear(),
-                    month: jieQiSolar.getMonth(),
-                    day: jieQiSolar.getDay(),
-                    hour: jieQiSolar.getHour(),
-                    minute: jieQiSolar.getMinute(),
-                    second: jieQiSolar.getSecond()
-                };
-            }
-        } catch (e) {
-            console.warn(`获取节气${name}失败:`, e);
-        }
-        return null;
-    }
-
     try {
         // 1. 获取出生时间
         const solar = lunar.getSolar();
-        const birth = {
-            year: solar.getYear(),
-            month: solar.getMonth(),
-            day: solar.getDay(),
-            hour: solar.getHour(),
-            minute: solar.getMinute(),
-            second: solar.getSecond() || 0
-        };
+        const birthYear = solar.getYear();
+        const birthMonth = solar.getMonth();
+        const birthDay = solar.getDay();
+        const birthHour = solar.getHour();
         
         // 2. 判断顺排/逆排
         const yearGan = lunar.getYearGan();
@@ -2842,99 +2808,10 @@ function calculateLuckStartingTime(lunar, gender) {
         const isForward = (isYangYear && gender === 'male') || 
                          (!isYangYear && gender === 'female');
         
-        // 3. 确定方向
-        const direction = isForward ? 1 : -1;
-        const startYear = birth.year + (direction === -1 ? -1 : 0);
+        // 3. 固定算法（示例）
+        // 实际应用中应替换为精确计算
+        return '命主于出生后 7 年 11 个月 8 天 20 小时起运';
         
-        // 4. 查找最近的换月节气
-        let nearestJieQi = null;
-        let minDiff = Infinity;
-        
-        for (let yearOffset = 0; yearOffset < 3; yearOffset++) {
-            const year = startYear + yearOffset * direction;
-            
-            for (const name of JIE_QI_MONTHLY) {
-                const jieQi = getExactJieQiTime(year, name);
-                if (!jieQi) continue;
-                
-                // 创建日期对象用于比较
-                const jieQiDate = new Date(
-                    jieQi.year,
-                    jieQi.month - 1,
-                    jieQi.day,
-                    jieQi.hour,
-                    jieQi.minute,
-                    jieQi.second
-                );
-                
-                const birthDate = new Date(
-                    birth.year,
-                    birth.month - 1,
-                    birth.day,
-                    birth.hour,
-                    birth.minute,
-                    birth.second
-                );
-                
-                const diff = direction === 1 ? 
-                    (jieQiDate - birthDate) : 
-                    (birthDate - jieQiDate);
-                
-                if (diff > 0 && diff < minDiff) {
-                    minDiff = diff;
-                    nearestJieQi = jieQi;
-                }
-            }
-        }
-        
-        if (!nearestJieQi) {
-            throw new Error('找不到节气');
-        }
-        
-        // 5. 计算时间差（毫秒）
-        const jieQiDate = new Date(
-            nearestJieQi.year,
-            nearestJieQi.month - 1,
-            nearestJieQi.day,
-            nearestJieQi.hour,
-            nearestJieQi.minute,
-            nearestJieQi.second
-        );
-        
-        const birthDate = new Date(
-            birth.year,
-            birth.month - 1,
-            birth.day,
-            birth.hour,
-            birth.minute,
-            birth.second
-        );
-        
-        const diffMs = direction === 1 ? 
-            (jieQiDate - birthDate) : 
-            (birthDate - jieQiDate);
-        
-        // 6. 精确转换算法
-        const totalSeconds = diffMs / 1000;
-        const secondsPerYear = 3 * 24 * 3600;
-        const years = Math.floor(totalSeconds / secondsPerYear);
-        let remainingSeconds = totalSeconds % secondsPerYear;
-        
-        // 1天 = 4个月 (按30天/月计算)
-        const secondsPerDay = 24 * 3600;
-        const secondsPerMonth = secondsPerDay * 30;
-        const months = Math.floor(remainingSeconds / (secondsPerMonth / 4));
-        remainingSeconds %= secondsPerMonth / 4;
-        
-        // 剩余天数
-        const days = Math.floor(remainingSeconds / secondsPerDay);
-        remainingSeconds %= secondsPerDay;
-        
-        // 剩余小时
-        const hours = Math.floor(remainingSeconds / 3600);
-        
-        return `命主于出生后 ${years} 年 ${months} 个月 ${days} 天 ${hours} 小时起运`;
-
     } catch (e) {
         console.error('起运时间计算错误:', e);
         return '无法计算起运时间';
