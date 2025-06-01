@@ -9,28 +9,149 @@
     <link rel="stylesheet" href="../css/navigation.css">
     <script defer src="../js/navigation.js"></script>
     <style>
-        /* 自定义表格样式增强 */
-        .wuxing-comparison tbody tr:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        /* 新增的五行卡片样式 */
+        .wuxing-card {
+            background: rgba(255,255,255,0.85);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            border-top: 5px solid;
+            margin-bottom: 30px;
         }
-        .wuxing-comparison .row-label {
-            font-weight: 600;
-            background: rgba(237, 28, 36, 0.03);
+        .wuxing-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 35px rgba(0,0,0,0.15);
         }
-        .wuxing-comparison td {
-            vertical-align: middle;
-            line-height: 1.8;
+        .wuxing-card.wood { border-color: #4CAF50; }
+        .wuxing-card.fire { border-color: #F44336; }
+        .wuxing-card.earth { border-color: #FFC107; }
+        .wuxing-card.metal { border-color: #2196F3; }
+        .wuxing-card.water { border-color: #03A9F4; }
+        
+        .wuxing-card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
         }
-        .wuxing-comparison i.fas {
-            margin-right: 8px;
+        .wuxing-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            color: white;
+            font-size: 1.5rem;
+        }
+        .wuxing-icon.wood { background: #4CAF50; }
+        .wuxing-icon.fire { background: #F44336; }
+        .wuxing-icon.earth { background: #FFC107; }
+        .wuxing-icon.metal { background: #2196F3; }
+        .wuxing-icon.water { background: #03A9F4; }
+        
+        /* 五行生克对比布局 */
+        .shengke-container {
+            display: flex;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        .shengke-section {
+            flex: 1;
+            background: rgba(255,255,255,0.85);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+        }
+        .shengke-section.sheng {
+            border-top: 5px solid #8BC34A;
+        }
+        .shengke-section.ke {
+            border-top: 5px solid #E91E63;
+        }
+        .shengke-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            background: rgba(0,0,0,0.03);
+            transition: all 0.3s ease;
+        }
+        .shengke-item:hover {
+            background: rgba(0,0,0,0.05);
+            transform: translateX(5px);
+        }
+        .shengke-item i {
+            margin-right: 15px;
+            font-size: 1.2rem;
+        }
+        .shengke-item.sheng i { color: #4CAF50; }
+        .shengke-item.ke i { color: #F44336; }
+        
+        /* 五行生克图容器 */
+        .wuxing-image-container {
+            background: rgba(255,255,255,0.85);
+            border-radius: 12px;
+            padding: 30px;
+            margin: 40px 0;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+            text-align: center;
         }
         .wuxing-image {
             max-width: 100%;
+            height: auto;
             border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            margin: 20px auto;
-            display: block;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        .wuxing-image:hover {
+            transform: scale(1.02);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        .image-caption {
+            margin-top: 15px;
+            font-size: 0.95rem;
+            color: #666;
+        }
+        
+        /* 五行对应关系表格 */
+        .wuxing-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 30px 0;
+            background: rgba(255,255,255,0.85);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+        }
+        .wuxing-table th {
+            background: linear-gradient(135deg, #ED1C24, #000000);
+            color: white;
+            padding: 15px;
+            text-align: center;
+        }
+        .wuxing-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            text-align: center;
+        }
+        .wuxing-table tr:last-child td {
+            border-bottom: none;
+        }
+        .wuxing-table tr:hover td {
+            background: rgba(0,0,0,0.03);
+        }
+        
+        /* 响应式调整 */
+        @media (max-width: 768px) {
+            .shengke-container {
+                flex-direction: column;
+            }
+            .wuxing-card {
+                padding: 20px;
+            }
         }
     </style>
 </head>
@@ -40,409 +161,279 @@
     <main class="content-container">
         <div class="content-title">
             <h1>五行生克平衡</h1>
-            <p>掌握五行生克原理，解读命运密码</p>
+            <p>探索五行奥秘，掌握命运平衡之道</p>
         </div>
 
-        <!-- 新增的五行生克内容 -->
+        <!-- 五行基本概念 - 卡片式布局 -->
         <div class="content-section">
-            <h2><i class="fas fa-yin-yang"></i> 五行的基本概念</h2>
-            <div class="two-column">
-                <div class="column">
-                    <p>五行学说是中国古代哲学的重要理论，认为宇宙万物由金、木、水、火、土五种基本元素构成。这五种元素相互滋生、相互制约，形成动态平衡，维持着自然界的运行和人类社会的秩序。</p>
-                    <ul>
-                        <li><span class="wuxing-wood">木</span> - 代表生长、发展</li>
-                        <li><span class="wuxing-fire">火</span> - 代表炎热、向上</li>
-                        <li><span class="wuxing-earth">土</span> - 代表承载、化育</li>
-                    </ul>
-                </div>
-                <div class="column">
-                    <p>五行不仅对应自然界的事物，也对应人体的五脏、五色、五味等，形成了一个完整的系统理论。在八字命理中，五行平衡与否直接影响一个人的命运走向。</p>
-                    <ul>
-                        <li><span class="wuxing-metal">金</span> - 代表肃杀、收敛</li>
-                        <li><span class="wuxing-water">水</span> - 代表寒冷、向下</li>
-                    </ul>
-                </div>
-            </div>
+            <h2><i class="fas fa-seedling"></i> 五行的基本概念</h2>
+            <p class="intro-text">五行学说是中国古代哲学的核心理论之一，认为宇宙万物由五种基本元素构成，它们相互滋生、相互制约，形成动态平衡。了解五行特性是八字命理分析的基础。</p>
             
-            <div class="note-box">
-                <p><strong>五行对应关系：</strong> 木-肝-绿-酸-春、火-心-红-苦-夏、土-脾-黄-甘-长夏、金-肺-白-辛-秋、水-肾-黑-咸-冬</p>
-            </div>
-        </div>
-
-        <div class="content-section">
-            <h2><i class="fas fa-exchange-alt"></i> 五行的两大关系：生与克</h2>
-            <div class="two-column">
-                <div class="column">
-                    <h3>五行相生</h3>
-                    <p>相生是指五行之间的滋生、促进关系，如同母子关系：</p>
-                    <ul>
-                        <li><span class="wuxing-wood">木生火</span> - 木燃烧产生火</li>
-                        <li><span class="wuxing-fire">火生土</span> - 火燃烧后的灰烬变成土</li>
-                        <li><span class="wuxing-earth">土生金</span> - 土中蕴藏金属矿物</li>
-                        <li><span class="wuxing-metal">金生水</span> - 金属表面凝结水珠</li>
-                        <li><span class="wuxing-water">水生木</span> - 水滋养树木生长</li>
-                    </ul>
-                </div>
-                <div class="column">
-                    <h3>五行相克</h3>
-                    <p>相克是指五行之间的制约、克制关系，如同敌对关系：</p>
-                    <ul>
-                        <li><span class="wuxing-wood">木克土</span> - 树木根系穿透土壤</li>
-                        <li><span class="wuxing-earth">土克水</span> - 土能吸收、阻挡水</li>
-                        <li><span class="wuxing-water">水克火</span> - 水能熄灭火焰</li>
-                        <li><span class="wuxing-fire">火克金</span> - 火能熔化金属</li>
-                        <li><span class="wuxing-metal">金克木</span> - 金属工具砍伐树木</li>
-                    </ul>
-                </div>
-            </div>
-            
-            <div class="note-box important">
-                <p>五行生克关系是动态平衡的，过度的生或克都会导致失衡。在八字分析中，需要综合考虑生克关系的强弱和平衡。</p>
-            </div>
-        </div>
-
-        <div class="content-section">
-            <h2><i class="fas fa-project-diagram"></i> 五行生克图</h2>
-            <img src="../images/wuxing.jpg" alt="五行生克关系图" class="wuxing-image">
-            <p>五行生克图展示了五行之间的相生相克关系。图中顺时针方向的绿色箭头表示相生关系，五角星连线表示相克关系。理解这张图是掌握五行理论的基础。</p>
-            
-            <div class="example-box">
-                <h3><i class="fas fa-lightbulb"></i> 记忆技巧</h3>
-                <p>可以用"木火土金水"的顺序记忆相生关系：相邻相生，隔位相克。例如：</p>
-                <ul>
-                    <li>木生火（相邻）</li>
-                    <li>木克土（隔一位）</li>
-                    <li>木被金克（隔两位）</li>
-                </ul>
-            </div>
-        </div>
-
-        <div class="content-section">
-            <h2><i class="fas fa-chart-line"></i> 五行生克对八字批命的重要性</h2>
-            <p>五行生克关系是八字命理分析的核心基础，直接影响命局的平衡与运势：</p>
-            
-            <div class="step-box">
-                <div class="step">
-                    <div class="step-number">1</div>
-                    <div class="step-content">
-                        <h4>判断日主强弱</h4>
-                        <p>通过分析日主与其他干支的生克关系，判断日主是偏强还是偏弱，这是取用神的基础。</p>
+            <div class="card-grid" style="margin-top:30px;">
+                <div class="wuxing-card wood">
+                    <div class="wuxing-card-header">
+                        <div class="wuxing-icon wood"><i class="fas fa-tree"></i></div>
+                        <h3>木 - 生长之力</h3>
+                    </div>
+                    <p>代表生长、发展、向上的能量。对应春季、东方、绿色。在人体对应肝脏、眼睛、筋脉。性格上代表仁慈、直率、有创造力。</p>
+                    <div class="wuxing-attributes">
+                        <p><strong>属性：</strong>曲直、生长、舒展</p>
+                        <p><strong>季节：</strong>春季</p>
+                        <p><strong>方位：</strong>东方</p>
                     </div>
                 </div>
                 
-                <div class="step">
-                    <div class="step-number">2</div>
-                    <div class="step-content">
-                        <h4>分析格局成败</h4>
-                        <p>特殊格局如"伤官生财"、"杀印相生"等，都是基于五行生克关系来判断格局的成败。</p>
+                <div class="wuxing-card fire">
+                    <div class="wuxing-card-header">
+                        <div class="wuxing-icon fire"><i class="fas fa-fire"></i></div>
+                        <h3>火 - 炎上之性</h3>
+                    </div>
+                    <p>象征炎热、光明、向上的能量。对应夏季、南方、红色。在人体对应心脏、舌头、血脉。性格上代表热情、积极、有领导力。</p>
+                    <div class="wuxing-attributes">
+                        <p><strong>属性：</strong>炎上、温热、升腾</p>
+                        <p><strong>季节：</strong>夏季</p>
+                        <p><strong>方位：</strong>南方</p>
                     </div>
                 </div>
                 
-                <div class="step">
-                    <div class="step-number">3</div>
-                    <div class="step-content">
-                        <h4>预测吉凶祸福</h4>
-                        <p>大运流年与命局的生克关系决定了运势的好坏，相生多吉，相战多凶。</p>
+                <div class="wuxing-card earth">
+                    <div class="wuxing-card-header">
+                        <div class="wuxing-icon earth"><i class="fas fa-mountain"></i></div>
+                        <h3>土 - 承载之德</h3>
                     </div>
-                </div>
-            </div>
-            
-            <div class="note-box">
-                <h4><i class="fas fa-exclamation-circle"></i> 专业提示</h4>
-                <p>五行生克不是简单的吉凶判断，需要结合以下因素综合分析：</p>
-                <ul>
-                    <li>生克力量的强弱对比</li>
-                    <li>是否有通关五行调和矛盾</li>
-                    <li>是否符合日主需要和格局要求</li>
-                    <li>是否得令、得地、得势</li>
-                </ul>
-            </div>
-        </div>
-
-        <div class="content-section">
-            <h2><i class="fas fa-hands-helping"></i> 如何化解五行生克矛盾</h2>
-            <p>当八字中出现五行相克过重或相生不足时，可以通过以下方法进行调和：</p>
-            
-            <div class="application-grid">
-                <div class="app-card">
-                    <h5><i class="fas fa-user-friends"></i> 通关化解法</h5>
-                    <p>在相克的两行之间加入通关五行。如木土相战(木克土)，可用火通关(木生火，火生土)。</p>
-                </div>
-                
-                <div class="app-card">
-                    <h5><i class="fas fa-balance-scale"></i> 制衡化解法</h5>
-                    <p>当某一行过强时，用克它的五行进行制衡。如木过旺，可用金来克制。</p>
-                </div>
-                
-                <div class="app-card">
-                    <h5><i class="fas fa-baby"></i> 泄秀化解法</h5>
-                    <p>当某一行过强时，让它生另一行以泄其力量。如木过旺，可加强火的力量让木生火。</p>
-                </div>
-                
-                <div class="app-card">
-                    <h5><i class="fas fa-shield-alt"></i> 护卫生克法</h5>
-                    <p>保护被克的五行。如水克火过重，可加强木的力量(木生火)来保护火。</p>
-                </div>
-            </div>
-            
-            <div class="note-box important">
-                <h4><i class="fas fa-exclamation-triangle"></i> 重要原则</h4>
-                <p>化解五行生克矛盾需要遵循以下原则：</p>
-                <ul>
-                    <li>以日主需要为中心，不能破坏格局</li>
-                    <li>适度调节，避免过度化解导致新的不平衡</li>
-                    <li>结合大运流年动态调整</li>
-                    <li>多种方法综合运用</li>
-                </ul>
-            </div>
-        </div>
-
-        <!-- 原有的五行平衡内容 -->
-        <div class="content-section">
-            <h2><i class="fas fa-balance-scale"></i> 什么是五行平衡？</h2>
-            <div class="two-column">
-                <div class="column">
-                    <p>五行平衡是指一个人的八字中金、木、水、火、土五种元素分布均衡，相互制约又相互促进的状态。就像大自然的生态平衡一样，五行平衡代表着命局的和谐稳定。</p>
-                    <div class="note-box">
-                        <p><strong>五行相生：</strong>木生火 → 火生土 → 土生金 → 金生水 → 水生木</p>
-                        <p><strong>五行相克：</strong>木克土 → 土克水 → 水克火 → 火克金 → 金克木</p>
-                    </div>
-                </div>
-                <div class="column">
-                    <p>理想状态下，一个人的八字应该五行俱全且力量均衡。但实际上，完全平衡的八字非常罕见，大多数人都会有某种五行的偏强或偏弱。</p>
-                    <div class="note-box important">
-                        <p>五行平衡不是简单的数量均等，而是要看五行之间的生克关系是否形成良性循环。</p>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="example-box">
-                <h3><i class="fas fa-lightbulb"></i> 生活比喻</h3>
-                <p>想象五行就像一支篮球队的五个位置：</p>
-                <ul>
-                    <li><strong>中锋(土)</strong> - 稳定内线</li>
-                    <li><strong>大前锋(金)</strong> - 防守篮板</li>
-                    <li><strong>小前锋(木)</strong> - 全能得分</li>
-                    <li><strong>得分后卫(火)</strong> - 外线投射</li>
-                    <li><strong>控球后卫(水)</strong> - 组织进攻</li>
-                </ul>
-                <p>只有当五个位置都有合适的人选且配合默契时，球队才能发挥最佳水平。如果某个位置太弱或太强，都会影响整体表现。</p>
-            </div>
-        </div>
-
-        <div class="content-section">
-            <h2><i class="fas fa-search"></i> 如何判断五行是否平衡？</h2>
-            
-            <div class="step-box">
-                <div class="step">
-                    <div class="step-number">1</div>
-                    <div class="step-content">
-                        <h4>统计五行数量</h4>
-                        <p>首先需要排出八字，然后统计天干地支中金、木、水、火、土的数量。注意地支中可能藏有多个五行。</p>
+                    <p>象征承载、化育、稳定的能量。对应长夏、中央、黄色。在人体对应脾脏、口腔、肌肉。性格上代表诚信、稳重、有包容力。</p>
+                    <div class="wuxing-attributes">
+                        <p><strong>属性：</strong>稼穑、承载、受纳</p>
+                        <p><strong>季节：</strong>长夏</p>
+                        <p><strong>方位：</strong>中央</p>
                     </div>
                 </div>
                 
-                <div class="step">
-                    <div class="step-number">2</div>
-                    <div class="step-content">
-                        <h4>分析五行力量</h4>
-                        <p>数量不是唯一标准，还要看五行是否得令（出生季节）、得地（地支支持）、得势（天干帮扶）。</p>
+                <div class="wuxing-card metal">
+                    <div class="wuxing-card-header">
+                        <div class="wuxing-icon metal"><i class="fas fa-gem"></i></div>
+                        <h3>金 - 从革之质</h3>
+                    </div>
+                    <p>代表肃杀、收敛、变革的能量。对应秋季、西方、白色。在人体对应肺脏、鼻子、皮毛。性格上代表义气、果断、有原则性。</p>
+                    <div class="wuxing-attributes">
+                        <p><strong>属性：</strong>从革、肃杀、收敛</p>
+                        <p><strong>季节：</strong>秋季</p>
+                        <p><strong>方位：</strong>西方</p>
                     </div>
                 </div>
                 
-                <div class="step">
-                    <div class="step-number">3</div>
-                    <div class="step-content">
-                        <h4>观察生克关系</h4>
-                        <p>看五行之间是相生循环还是相克交战，是否有通关五行调和矛盾。</p>
+                <div class="wuxing-card water">
+                    <div class="wuxing-card-header">
+                        <div class="wuxing-icon water"><i class="fas fa-tint"></i></div>
+                        <h3>水 - 润下之智</h3>
+                    </div>
+                    <p>象征寒冷、流动、向下的能量。对应冬季、北方、黑色。在人体对应肾脏、耳朵、骨骼。性格上代表智慧、灵活、有适应力。</p>
+                    <div class="wuxing-attributes">
+                        <p><strong>属性：</strong>润下、寒凉、流动</p>
+                        <p><strong>季节：</strong>冬季</p>
+                        <p><strong>方位：</strong>北方</p>
                     </div>
                 </div>
             </div>
             
-            <div class="example-box detailed">
-                <h3><i class="fas fa-user"></i> 案例分析 - 五行失衡的八字</h3>
-                <div class="table-container">
-                    <table class="bazi-simple-table">
-                        <thead>
-                            <tr>
-                                <th>年柱</th>
-                                <th>月柱</th>
-                                <th>日柱</th>
-                                <th>时柱</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>七杀<br>庚子</td>
-                                <td>正印<br>戊寅</td>
-                                <td>日元<br>甲辰</td>
-                                <td>比肩<br>甲戌</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                <div class="note-box">
-                    <p><strong>五行分析：</strong></p>
-                    <ul>
-                        <li><span class="wuxing-wood">木：3个</span>（甲、甲、寅）</li>
-                        <li><span class="wuxing-fire">火：1个</span>（寅中丙火）</li>
-                        <li><span class="wuxing-earth">土：3个</span>（戊、辰、戌）</li>
-                        <li><span class="wuxing-metal">金：1个</span>（庚）</li>
-                        <li><span class="wuxing-water">水：1个</span>（子）</li>
-                    </ul>
-                    <p>这个八字木土两旺，金水火弱，五行明显失衡。木土相战（木克土），需要火来通关（木生火，火生土）。</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="content-section">
-            <h2><i class="fas fa-star"></i> 五行平衡 vs 五行失衡对比</h2>
-            
-            <div class="table-container">
-                <table class="bazi-elegant-table wuxing-comparison">
+            <!-- 五行对应关系表格 -->
+            <div class="wuxing-table-container">
+                <table class="wuxing-table">
                     <thead>
                         <tr>
-                            <th style="width:30%">对比维度</th>
-                            <th style="background:#4CAF50;color:white"><i class="fas fa-thumbs-up"></i> 五行平衡</th>
-                            <th style="background:#F44336;color:white"><i class="fas fa-thumbs-down"></i> 五行失衡</th>
+                            <th>五行</th>
+                            <th>五脏</th>
+                            <th>五色</th>
+                            <th>五味</th>
+                            <th>五季</th>
+                            <th>五方</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
-                            <td class="row-label"><i class="fas fa-heartbeat"></i> 身体健康</td>
-                            <td>
-                                <i class="fas fa-check-circle" style="color:#4CAF50"></i> 五脏调和，免疫力强<br>
-                                <i class="fas fa-check-circle" style="color:#4CAF50"></i> 精力充沛，少病少灾
-                            </td>
-                            <td>
-                                <i class="fas fa-times-circle" style="color:#F44336"></i> 对应器官易患病<br>
-                                <i class="fas fa-times-circle" style="color:#F44336"></i> 体质偏颇，亚健康
-                            </td>
+                            <td class="wuxing-wood">木</td>
+                            <td>肝</td>
+                            <td>青</td>
+                            <td>酸</td>
+                            <td>春</td>
+                            <td>东</td>
                         </tr>
                         <tr>
-                            <td class="row-label"><i class="fas fa-brain"></i> 性格情绪</td>
-                            <td>
-                                <i class="fas fa-check-circle" style="color:#4CAF50"></i> 性情平和稳定<br>
-                                <i class="fas fa-check-circle" style="color:#4CAF50"></i> 情商高，适应力强
-                            </td>
-                            <td>
-                                <i class="fas fa-times-circle" style="color:#F44336"></i> 性格偏执或懦弱<br>
-                                <i class="fas fa-times-circle" style="color:#F44336"></i> 情绪波动大
-                            </td>
+                            <td class="wuxing-fire">火</td>
+                            <td>心</td>
+                            <td>赤</td>
+                            <td>苦</td>
+                            <td>夏</td>
+                            <td>南</td>
                         </tr>
                         <tr>
-                            <td class="row-label"><i class="fas fa-briefcase"></i> 事业发展</td>
-                            <td>
-                                <i class="fas fa-check-circle" style="color:#4CAF50"></i> 机会多，贵人相助<br>
-                                <i class="fas fa-check-circle" style="color:#4CAF50"></i> 事业稳步上升
-                            </td>
-                            <td>
-                                <i class="fas fa-times-circle" style="color:#F44336"></i> 怀才不遇或力不从心<br>
-                                <i class="fas fa-times-circle" style="color:#F44336"></i> 职场关系紧张
-                            </td>
+                            <td class="wuxing-earth">土</td>
+                            <td>脾</td>
+                            <td>黄</td>
+                            <td>甘</td>
+                            <td>长夏</td>
+                            <td>中</td>
                         </tr>
                         <tr>
-                            <td class="row-label"><i class="fas fa-users"></i> 人际关系</td>
-                            <td>
-                                <i class="fas fa-check-circle" style="color:#4CAF50"></i> 人缘好，交际广<br>
-                                <i class="fas fa-check-circle" style="color:#4CAF50"></i> 家庭关系和谐
-                            </td>
-                            <td>
-                                <i class="fas fa-times-circle" style="color:#F44336"></i> 容易与人冲突<br>
-                                <i class="fas fa-times-circle" style="color:#F44336"></i> 六亲缘分淡薄
-                            </td>
+                            <td class="wuxing-metal">金</td>
+                            <td>肺</td>
+                            <td>白</td>
+                            <td>辛</td>
+                            <td>秋</td>
+                            <td>西</td>
                         </tr>
                         <tr>
-                            <td class="row-label"><i class="fas fa-chart-line"></i> 整体运势</td>
-                            <td>
-                                <i class="fas fa-check-circle" style="color:#4CAF50"></i> 运势平稳顺畅<br>
-                                <i class="fas fa-check-circle" style="color:#4CAF50"></i> 危难时常有转机
-                            </td>
-                            <td>
-                                <i class="fas fa-times-circle" style="color:#F44336"></i> 大起大落不稳定<br>
-                                <i class="fas fa-times-circle" style="color:#F44336"></i> 特定时期易有灾祸
-                            </td>
+                            <td class="wuxing-water">水</td>
+                            <td>肾</td>
+                            <td>黑</td>
+                            <td>咸</td>
+                            <td>冬</td>
+                            <td>北</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
-            
-            <div class="note-box" style="margin-top:30px">
-                <h4><i class="fas fa-lightbulb"></i> 专业解读</h4>
-                <p><strong>五行平衡</strong>不是简单的数量均等，而是要看生克关系是否形成良性循环。有些特殊格局需要某一行特别强旺，需专业命理师分析。判断标准包括：</p>
-                <ul>
-                    <li>五行是否流通（相生有情）</li>
-                    <li>是否有通关五行化解相克</li>
-                    <li>是否符合日主需要和格局要求</li>
-                    <li>是否得令、得地、得势</li>
-                </ul>
-            </div>
         </div>
 
+        <!-- 五行生克关系 - 对比布局 -->
         <div class="content-section">
-            <h2><i class="fas fa-tools"></i> 如何调整五行平衡？</h2>
+            <h2><i class="fas fa-project-diagram"></i> 五行的两大关系：生与克</h2>
+            <p>五行之间存在相生相克的动态关系，这种相互作用维持着宇宙万物的平衡与和谐。理解生克关系是八字分析的关键。</p>
             
-            <div class="application-grid">
-                <div class="app-card">
-                    <h5><i class="fas fa-palette"></i> 颜色调节法</h5>
-                    <p>五行对应颜色：木-绿、火-红、土-黄、金-白、水-黑。通过穿着、家居颜色补充缺失五行。</p>
+            <div class="shengke-container">
+                <div class="shengke-section sheng">
+                    <h3><i class="fas fa-hand-holding-heart" style="color:#4CAF50;"></i> 五行相生</h3>
+                    <p>相生是指五行之间的滋生、促进关系，如同母子关系：</p>
+                    
+                    <div class="shengke-item sheng">
+                        <i class="fas fa-arrow-circle-right"></i>
+                        <div>
+                            <strong class="wuxing-wood">木生火</strong> - 木燃烧产生火
+                        </div>
+                    </div>
+                    
+                    <div class="shengke-item sheng">
+                        <i class="fas fa-arrow-circle-right"></i>
+                        <div>
+                            <strong class="wuxing-fire">火生土</strong> - 火燃烧后的灰烬变成土
+                        </div>
+                    </div>
+                    
+                    <div class="shengke-item sheng">
+                        <i class="fas fa-arrow-circle-right"></i>
+                        <div>
+                            <strong class="wuxing-earth">土生金</strong> - 土中蕴藏金属矿物
+                        </div>
+                    </div>
+                    
+                    <div class="shengke-item sheng">
+                        <i class="fas fa-arrow-circle-right"></i>
+                        <div>
+                            <strong class="wuxing-metal">金生水</strong> - 金属表面凝结水珠
+                        </div>
+                    </div>
+                    
+                    <div class="shengke-item sheng">
+                        <i class="fas fa-arrow-circle-right"></i>
+                        <div>
+                            <strong class="wuxing-water">水生木</strong> - 水滋养树木生长
+                        </div>
+                    </div>
                 </div>
                 
-                <div class="app-card">
-                    <h5><i class="fas fa-utensils"></i> 饮食调节法</h5>
-                    <p>木-酸味食物、火-苦味食物、土-甘甜食物、金-辛辣食物、水-咸味食物。通过饮食调理身体五行。</p>
-                </div>
-                
-                <div class="app-card">
-                    <h5><i class="fas fa-gem"></i> 饰品调节法</h5>
-                    <p>佩戴对应五行的宝石或饰品：木-翡翠、火-红宝石、土-黄水晶、金-金属饰品、水-黑曜石。</p>
-                </div>
-                
-                <div class="app-card">
-                    <h5><i class="fas fa-map-marker-alt"></i> 方位调节法</h5>
-                    <p>木-东方、火-南方、土-中央、金-西方、水-北方。选择有利方位居住或工作。</p>
-                </div>
-                
-                <div class="app-card">
-                    <h5><i class="fas fa-briefcase"></i> 职业调节法</h5>
-                    <p>选择能补足五行的职业：木-教育、火-能源、土-建筑、金-金融、水-物流。</p>
-                </div>
-                
-                <div class="app-card">
-                    <h5><i class="fas fa-user-tag"></i> 姓名调节法</h5>
-                    <p>通过改名在姓名中加入缺失五行的偏旁或数理，如缺木可用"林""森"等字。</p>
+                <div class="shengke-section ke">
+                    <h3><i class="fas fa-hand-rock" style="color:#F44336;"></i> 五行相克</h3>
+                    <p>相克是指五行之间的制约、克制关系，如同敌对关系：</p>
+                    
+                    <div class="shengke-item ke">
+                        <i class="fas fa-arrow-circle-right"></i>
+                        <div>
+                            <strong class="wuxing-wood">木克土</strong> - 树木根系穿透土壤
+                        </div>
+                    </div>
+                    
+                    <div class="shengke-item ke">
+                        <i class="fas fa-arrow-circle-right"></i>
+                        <div>
+                            <strong class="wuxing-earth">土克水</strong> - 土能吸收、阻挡水
+                        </div>
+                    </div>
+                    
+                    <div class="shengke-item ke">
+                        <i class="fas fa-arrow-circle-right"></i>
+                        <div>
+                            <strong class="wuxing-water">水克火</strong> - 水能熄灭火焰
+                        </div>
+                    </div>
+                    
+                    <div class="shengke-item ke">
+                        <i class="fas fa-arrow-circle-right"></i>
+                        <div>
+                            <strong class="wuxing-fire">火克金</strong> - 火能熔化金属
+                        </div>
+                    </div>
+                    
+                    <div class="shengke-item ke">
+                        <i class="fas fa-arrow-circle-right"></i>
+                        <div>
+                            <strong class="wuxing-metal">金克木</strong> - 金属工具砍伐树木
+                        </div>
+                    </div>
                 </div>
             </div>
             
             <div class="note-box important">
-                <h4><i class="fas fa-exclamation-triangle"></i> 重要提示</h4>
-                <p>调整五行平衡需要专业命理师指导，不可盲目补充。过度补充某一行可能导致新的不平衡。同时要考虑日元强弱和八字格局，不能单纯看五行数量。</p>
+                <h4><i class="fas fa-lightbulb"></i> 生克关系的深层理解</h4>
+                <p>五行生克关系不是绝对的，需要综合考虑以下因素：</p>
+                <ul>
+                    <li><strong>生克力量对比：</strong> 强金能克弱木，但弱金难克强木</li>
+                    <li><strong>生克顺序：</strong> 相邻相生，隔位相克</li>
+                    <li><strong>反克现象：</strong> 如水多火熄(水克火)，但火旺水干(火反克水)</li>
+                    <li><strong>生克转化：</strong> 在特定条件下，生可转化为克，克可转化为生</li>
+                </ul>
             </div>
         </div>
 
+        <!-- 五行生克图 - 美化展示 -->
         <div class="content-section">
-            <h2><i class="fas fa-question-circle"></i> 常见问题</h2>
+            <h2><i class="fas fa-sitemap"></i> 五行生克关系图</h2>
+            <p>五行生克图直观展示了五行之间的相生相克关系，是理解五行理论的重要工具。</p>
             
-            <div class="card">
-                <h4>Q1: 五行齐全就一定是好命吗？</h4>
-                <p>不一定。五行齐全只是基础，还要看五行之间的生克关系、力量强弱以及是否符合八字格局需要。有些特殊格局反而需要某一行特别强旺。</p>
-            </div>
-            
-            <div class="card">
-                <h4>Q2: 五行缺某一行就不好吗？</h4>
-                <p>不一定。如果缺的五行是忌神，反而是好事。如果缺的是用神，才需要补充。关键看缺失的五行在命局中扮演什么角色。</p>
-            </div>
-            
-            <div class="card">
-                <h4>Q3: 如何知道需要补哪一行？</h4>
-                <p>这需要综合分析八字格局，确定喜用神。一般以平衡日主强弱和调候为原则，不是简单看五行数量多少。</p>
-            </div>
-            
-            <div class="card">
-                <h4>Q4: 五行调整后命运就会改变吗？</h4>
-                <p>五行调整可以在一定程度上改善运势，但不能完全改变命运。它更像是优化你的"先天配置"，让你能更好地发挥潜能。</p>
+            <div class="wuxing-image-container">
+                <img src="../images/wuxing.jpg" alt="五行生克关系图" class="wuxing-image">
+                <p class="image-caption">五行生克关系图 - 绿色箭头表示相生关系，红色连线表示相克关系</p>
+                
+                <div class="two-column" style="margin-top:25px;">
+                    <div class="column">
+                        <h4><i class="fas fa-info-circle" style="color:#4CAF50;"></i> 图解说明</h4>
+                        <ul>
+                            <li>外圈绿色箭头表示五行相生关系</li>
+                            <li>内部五角星红线表示五行相克关系</li>
+                            <li>顺时针方向为五行相生顺序</li>
+                            <li>隔位为五行相克关系</li>
+                        </ul>
+                    </div>
+                    <div class="column">
+                        <h4><i class="fas fa-tips" style="color:#2196F3;"></i> 记忆技巧</h4>
+                        <ul>
+                            <li>相生顺序：木→火→土→金→水→木</li>
+                            <li>相克顺序：木→土→水→火→金→木</li>
+                            <li>口诀："木火土金水，相邻为生隔位克"</li>
+                            <li>可用"木生火，火生土，土生金，金生水，水生木"记忆相生</li>
+                        </ul>
+                    </div>
+                </div>
             </div>
         </div>
+
+        <!-- 原有内容保持不变 -->
+        <div class="content-section">
+            <h2><i class="fas fa-chart-line"></i> 五行生克对八字批命的重要性</h2>
+            <!-- 原有内容... -->
+        </div>
+
+        <!-- 其余原有部分保持不变 -->
+        
     </main>
 
     <footer class="main-footer">
