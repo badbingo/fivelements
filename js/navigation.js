@@ -7,8 +7,8 @@ const pathNameMap = {
     'bazi-chart': '八字排盘',
     'yen-strength': '日元强弱',
     'elements': '天干地支',
-    'wuxing': '五行生克',
-    'balance': '五行平衡',
+    'wuxing': '五行生克平衡',
+    'balance': '旺相休囚死',
     'ten-gods': '十神关系',
     'combinations': '合冲破害',
     'advanced': '进阶知识',
@@ -289,8 +289,8 @@ function createNavigation() {
                 { text: '八字排盘', href: '/basics/bazi-chart.html' },
                 { text: '日元强弱分析', href: '/basics/yen-strength.html' },
                 { text: '天干地支意象', href: '/basics/elements.html' },
-                { text: '五行生克', href: '/basics/wuxing.html' },
-                { text: '五行平衡', href: '/basics/balance.html' },
+                { text: '五行生克平衡', href: '/basics/wuxing.html' },
+                { text: '旺相休囚死', href: '/basics/balance.html' },
                 { text: '十神关系', href: '/basics/ten-gods.html' },
                 { text: '合冲破害', href: '/basics/combinations.html' }
             ]
