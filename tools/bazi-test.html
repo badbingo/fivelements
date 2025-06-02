@@ -260,7 +260,7 @@
             },
             {
                 question: "八字分析中\"用神\"是指？",
-                options: ["命局中最需要的五行", "命局中最旺的五行", "命局中克日主的五行"],
+                options: ["命局中最需要的五行", "命局中最旺的五行", "命局中生扶日主的五行"],
                 answer: "A",
                 category: "综合应用"
             },
@@ -537,31 +537,38 @@
         
         // 按类别渲染题目卡片
         Object.entries(questionsByCategory).forEach(([category, questions]) => {
-            const sectionCard = document.createElement('div');
-            sectionCard.className = 'card quiz-section-card';
+            // 创建分类卡片容器
+            const categoryCard = document.createElement('div');
+            categoryCard.className = 'card category-card';
             
-            const sectionTitle = document.createElement('h3');
-            sectionTitle.className = 'card-title';
-            sectionTitle.innerHTML = `<i class="fas ${getCategoryIcon(category)}"></i> ${category}`;
-            sectionCard.appendChild(sectionTitle);
+            // 分类标题
+            const categoryHeader = document.createElement('div');
+            categoryHeader.className = 'category-header';
+            categoryHeader.innerHTML = `
+                <h3><i class="fas ${getCategoryIcon(category)}"></i> ${category}</h3>
+            `;
+            categoryCard.appendChild(categoryHeader);
             
-            const sectionContent = document.createElement('div');
-            sectionContent.className = 'card-content';
+            // 题目卡片容器
+            const questionsWrapper = document.createElement('div');
+            questionsWrapper.className = 'questions-wrapper';
             
             questions.forEach(q => {
+                // 为每道题创建独立卡片
                 const questionCard = document.createElement('div');
-                questionCard.className = 'question-card';
+                questionCard.className = 'card question-card';
                 
-                const questionHeader = document.createElement('div');
-                questionHeader.className = 'question-header';
-                questionHeader.innerHTML = `
-                    <span class="question-number">${q.displayNumber}</span>
+                // 题目编号和内容
+                const questionContent = document.createElement('div');
+                questionContent.className = 'question-content';
+                questionContent.innerHTML = `
+                    <div class="question-number">${q.displayNumber}</div>
                     <h4>${q.question}</h4>
                 `;
-                questionCard.appendChild(questionHeader);
                 
-                const optionsGrid = document.createElement('div');
-                optionsGrid.className = 'options-grid';
+                // 选项容器
+                const optionsContainer = document.createElement('div');
+                optionsContainer.className = 'options-container';
                 
                 q.options.forEach((option, i) => {
                     const optionLetter = String.fromCharCode(65 + i);
@@ -569,17 +576,19 @@
                     optionItem.className = 'option-item';
                     optionItem.innerHTML = `
                         <input type="radio" name="q${q.displayNumber}" value="${optionLetter}">
-                        <span class="option-letter">${optionLetter}</span> ${option}
+                        <span class="option-letter">${optionLetter}.</span>
+                        <span class="option-text">${option}</span>
                     `;
-                    optionsGrid.appendChild(optionItem);
+                    optionsContainer.appendChild(optionItem);
                 });
                 
-                questionCard.appendChild(optionsGrid);
-                sectionContent.appendChild(questionCard);
+                questionCard.appendChild(questionContent);
+                questionCard.appendChild(optionsContainer);
+                questionsWrapper.appendChild(questionCard);
             });
             
-            sectionCard.appendChild(sectionContent);
-            questionsContainer.appendChild(sectionCard);
+            categoryCard.appendChild(questionsWrapper);
+            questionsContainer.appendChild(categoryCard);
         });
         
         // 生成答案表格
