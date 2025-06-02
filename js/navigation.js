@@ -17,6 +17,7 @@ const pathNameMap = {
     'wealth': '财运分析',
     'career': '事业分析',
     'marriage': '婚姻分析',
+    'children': '子女分析',
     'health': '健康分析',
     'luck': '大运流年',
     'disaster': '重大灾祸',
@@ -306,6 +307,7 @@ function createNavigation() {
                 { text: '财运分析', href: '/advanced/wealth.html' },
                 { text: '事业分析', href: '/advanced/career.html' },
                 { text: '婚姻分析', href: '/advanced/marriage.html' },
+                { text: '子女分析', href: '/advanced/children.html' },
                 { text: '健康分析', href: '/advanced/health.html' },
                 { text: '大运流年', href: '/advanced/luck.html' },
                 { text: '重大灾祸', href: '/advanced/disaster.html' }
