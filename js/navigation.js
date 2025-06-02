@@ -1,3 +1,4 @@
+// 面包屑导航完整版JS代码
 // 路径名称映射表
 const pathNameMap = {
     'seven': '入门七步',
@@ -96,7 +97,6 @@ function createBreadcrumb() {
     const breadcrumbContainer = document.createElement('div');
     breadcrumbContainer.className = 'breadcrumb-container';
     
-    // 创建面包屑部分
     const breadcrumb = document.createElement('div');
     breadcrumb.className = 'breadcrumb';
     
@@ -159,47 +159,62 @@ function createBreadcrumb() {
     
     breadcrumbContainer.appendChild(breadcrumb);
     
-    // 创建最近浏览部分并添加到面包屑容器右侧
-    const recentPages = JSON.parse(localStorage.getItem('recentPages') || [];
-    const currentPath = window.location.pathname;
-    const filteredPages = recentPages.filter(page => page.path !== currentPath);
-    
-    if (filteredPages.length > 0) {
-        const recentContainer = document.createElement('div');
-        recentContainer.className = 'recent-pages-container';
-        
-        const recentTitle = document.createElement('span');
-        recentTitle.className = 'recent-title';
-        recentTitle.textContent = '最近浏览:';
-        recentContainer.appendChild(recentTitle);
-        
-        const recentList = document.createElement('div');
-        recentList.className = 'recent-pages-list';
-        
-        filteredPages.forEach((page, index) => {
-            const recentItem = document.createElement('a');
-            recentItem.href = page.path;
-            recentItem.className = 'recent-page-item';
-            recentItem.textContent = page.title;
-            recentItem.title = page.title;
-            
-            recentList.appendChild(recentItem);
-            
-            // 添加分隔符（最后一个不加）
-            if (index < filteredPages.length - 1) {
-                const separator = document.createElement('span');
-                separator.className = 'recent-separator';
-                separator.textContent = '|';
-                recentList.appendChild(separator);
-            }
-        });
-        
-        recentContainer.appendChild(recentList);
-        breadcrumbContainer.appendChild(recentContainer);
-    }
-    
     // 添加到页面中
     insertBreadcrumbIntoDOM(breadcrumbContainer);
+    
+    // 添加最近访问部分到页面底部
+    addRecentPagesToFooter();
+}
+
+/**
+ * 将最近访问部分添加到页面底部
+ */
+function addRecentPagesToFooter() {
+    const recentPages = JSON.parse(localStorage.getItem('recentPages') || '[]');
+    if (recentPages.length === 0) return;
+    
+    // 过滤掉当前页面
+    const currentPath = window.location.pathname;
+    const filteredPages = recentPages.filter(page => page.path !== currentPath);
+    if (filteredPages.length === 0) return;
+    
+    const footer = document.querySelector('footer');
+    if (!footer) return;
+    
+    // 创建最近浏览容器 - 移除了背景相关类名
+    const recentContainer = document.createElement('div');
+    recentContainer.className = 'recent-pages-footer';
+    
+    const recentTitle = document.createElement('div');
+    recentTitle.className = 'recent-title';
+    recentTitle.textContent = '最近浏览:';
+    recentContainer.appendChild(recentTitle);
+    
+    const recentList = document.createElement('div');
+    recentList.className = 'recent-pages-list';
+    
+    filteredPages.forEach((page, index) => {
+        const recentItem = document.createElement('a');
+        recentItem.href = page.path;
+        recentItem.className = 'recent-page-item';
+        recentItem.textContent = page.title;
+        recentItem.title = page.title;
+        
+        recentList.appendChild(recentItem);
+        
+        // 添加分隔符（最后一个不加）
+        if (index < filteredPages.length - 1) {
+            const separator = document.createElement('span');
+            separator.className = 'recent-separator';
+            separator.textContent = '|';
+            recentList.appendChild(separator);
+        }
+    });
+    
+    recentContainer.appendChild(recentList);
+    
+    // 插入到footer之前
+    footer.parentNode.insertBefore(recentContainer, footer);
 }
 
 /**
@@ -403,7 +418,7 @@ function createNavigation() {
     
     mainNav.appendChild(navList);
     
-    // 5. 移动端菜单按钮
+    // 5. 移动端菜单按钮（修复了变量定义顺序问题）
     const mobileMenuBtn = document.createElement('div');
     mobileMenuBtn.className = 'mobile-menu-btn';
     mobileMenuBtn.innerHTML = `
