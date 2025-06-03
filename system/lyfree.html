@@ -855,7 +855,7 @@
 
         <div class="content-section">
             <div class="instruction-card">
-                <h4><i class="fas fa-info-circle"></i> 六爻占卜简介1</h4>
+                <h4><i class="fas fa-info-circle"></i> 六爻占卜简介</h4>
                 <p>六爻占卜是中国古代《易经》预测方法之一，通过六次投掷钱币或其它方式得到一个六爻卦象，根据卦象变化解读事物发展趋势。本系统提供三种起卦方式：</p>
                 <ol>
                     <li><strong>钱币摇卦</strong> - 传统三枚钱币方法，最正统的起卦方式</li>
@@ -1606,7 +1606,117 @@
         }
     }
 
-    // 其他函数保持不变（castWithTime, castWithNumbers等）...
+    // 使用时间起卦
+function castWithTime() {
+    const question = document.getElementById('question').value.trim();
+    if (!question) {
+        alert('请输入占卜问题');
+        return;
+    }
+    
+    currentQuestion = question;
+    
+    let dateTime = document.getElementById('time').value;
+    if (!dateTime) {
+        const now = new Date();
+        dateTime = now.toISOString().slice(0, 16);
+    }
+    
+    // 时间起卦算法
+    const date = new Date(dateTime);
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    const hour = date.getHours();
+    const minute = date.getMinutes();
+    
+    // 计算上卦和下卦的数字
+    const upperNum = (year + month + day) % 8 || 8;
+    const lowerNum = (hour + minute) % 8 || 8;
+    const changingYaoPos = (year + month + day + hour + minute) % 6 || 6;
+    
+    // 根据数字生成卦象
+    currentHexagram = generateHexagramFromNumbers(upperNum, lowerNum, changingYaoPos);
+    castCount = 6;
+    
+    // 显示时间和方法
+    document.getElementById('divination-time').textContent = date.toLocaleString();
+    document.getElementById('divination-method').textContent = "时间起卦";
+    
+    // 显示结果
+    showResult();
+}
+
+// 使用数字起卦
+function castWithNumbers() {
+    const question = document.getElementById('question').value.trim();
+    if (!question) {
+        alert('请输入占卜问题');
+        return;
+    }
+    
+    currentQuestion = question;
+    
+    const num1 = parseInt(document.getElementById('number1').value);
+    const num2 = parseInt(document.getElementById('number2').value);
+    
+    if (!num1 || !num2 || num1 < 1 || num1 > 999 || num2 < 1 || num2 > 999) {
+        alert('请输入有效的1-999之间的数字');
+        return;
+    }
+    
+    // 数字起卦算法
+    const upperNum = num1 % 8 || 8;
+    const lowerNum = num2 % 8 || 8;
+    const changingYaoPos = (num1 + num2) % 6 || 6;
+    
+    // 根据数字生成卦象
+    currentHexagram = generateHexagramFromNumbers(upperNum, lowerNum, changingYaoPos);
+    castCount = 6;
+    
+    // 显示时间和方法
+    const now = new Date();
+    document.getElementById('divination-time').textContent = now.toLocaleString();
+    document.getElementById('divination-method').textContent = "数字起卦";
+    
+    // 显示结果
+    showResult();
+}
+
+// 根据数字生成卦象
+function generateHexagramFromNumbers(upperNum, lowerNum, changingYaoPos) {
+    const hexagram = [];
+    
+    // 1. 先生成下卦（内卦，初爻→三爻）→ 数组[0]到[2]
+    for (let i = 0; i < 3; i++) {
+        hexagram.push({
+            type: lowerNum % 2 === 0 ? '8' : '7',
+            line: lowerNum % 2 === 0 ? '000' : '111',
+            changing: false,
+            position: i + 1 // 明确记录爻位（1=初爻）
+        });
+    }
+    
+    // 2. 再生成上卦（外卦，四爻→上爻）→ 数组[3]到[5]
+    for (let i = 0; i < 3; i++) {
+        hexagram.push({
+            type: upperNum % 2 === 0 ? '8' : '7',
+            line: upperNum % 2 === 0 ? '000' : '111',
+            changing: false,
+            position: i + 4 // 明确记录爻位（4=四爻）
+        });
+    }
+    
+    // 3. 处理变爻（position从1=初爻开始计数）
+    if (changingYaoPos >= 1 && changingYaoPos <= 6) {
+        const index = changingYaoPos - 1; // 初爻=数组[0]，上爻=数组[5]
+        hexagram[index].changing = true;
+        hexagram[index].type = hexagram[index].type === '7' ? '9' : '6';
+        hexagram[index].line = hexagram[index].line === '111' ? '000' : '111';
+    }
+    
+    return hexagram; // 顺序：[初爻,二爻,三爻,四爻,五爻,上爻]
+}
     
     // 更新卦象显示
     function updateHexagramDisplay() {
