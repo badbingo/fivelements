@@ -910,7 +910,7 @@
 
         <div class="content-section">
             <div class="instruction-card">
-                <h4><i class="fas fa-info-circle"></i> 六爻占卜简介</h4>
+                <h4><i class="fas fa-info-circle"></i> 六爻占卜简介1</h4>
                 <p>六爻占卜是中国古代《易经》中的重要预测方法，通过六次投掷钱币或其他方式，生成一个完整的六爻卦象。根据卦象的本卦、变卦与动爻变化，可推演事物的发展趋势与吉凶。本系统提供三种起卦方式，助您洞察未来，择吉避凶。：</p>
                 <ol>
                     <li><strong>钱币摇卦</strong> - 传统三枚铜钱六次投掷，是最经典、最具仪式感的起卦方式。</li>
@@ -1851,7 +1851,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.body.appendChild(fullscreenLoading);
     
     // 初始化支付状态
-    let isPaid = false;
+    let isPaid = localStorage.getItem('liuyao_paid') === 'true' || false;
     updatePaymentStatus();
     
     // 检查支付回调
@@ -1896,11 +1896,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     sign_type: params.get('sign_type')
                 };
 
+                // 在支付成功回调中保存状态
                 if (verifyPayment(paymentData)) {
                     isPaid = true;
+                    localStorage.setItem('liuyao_paid', 'true'); // 保存支付状态
                     updatePaymentStatus();
-                    cleanUrl();
-                    showToast('支付成功！您现在可以开始占卜了', 'success');
                 }
             }
         } catch (error) {
@@ -2120,8 +2120,16 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // 重置按钮
-    document.getElementById('reset-btn').addEventListener('click', function() {
+    // 重置按钮事件 - 解锁所有硬币
+        document.getElementById('reset-btn').addEventListener('click', function() {
+            resetAllStates();
+        });
+        
+        // 新占卜按钮事件
+        document.getElementById('new-divination').addEventListener('click', function() {
+            resetAllStates();
+        });
+    
     // 重置所有状态
     resetAllStates();
     // 强制刷新页面
@@ -2178,54 +2186,58 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('time').value = timeStr;
 });
         
-// 添加重置所有状态的函数
-function resetAllStates() {
-    // 重置支付状态
-    isPaid = false;
-    localStorage.removeItem('liuyao_paid');
-    
-    // 重置占卜状态
-    currentHexagram = [];
-    castCount = 0;
-    
-    // 重置UI显示
-    document.getElementById('hexagram-display').innerHTML = '';
-    document.getElementById('hexagram-section').style.display = 'none';
-    document.getElementById('cast-count').textContent = '0';
-    document.getElementById('cast-status').textContent = '准备开始，请点击钱币确定正反面';
-    
-    // 重置钱币状态
-    const coins = document.querySelectorAll('.coin');
-    coins.forEach(coin => {
-        delete coin.dataset.side;
-        coin.style.transform = 'rotateY(0deg)';
-        coin.classList.remove('selected', 'locked');
-    });
-    
-    // 重置问题输入框
-    document.getElementById('question').value = '';
-}
+// 重置所有状态函数
+        function resetAllStates() {
+            // 重置占卜状态
+            currentHexagram = [];
+            castCount = 0;
+            
+            // 更新UI显示
+            document.getElementById('hexagram-display').innerHTML = '';
+            document.getElementById('hexagram-section').style.display = 'none';
+            document.getElementById('cast-count').textContent = '0';
+            document.getElementById('cast-status').textContent = '准备开始，请点击钱币确定正反面';
+            
+            // 解锁所有硬币
+            const coins = document.querySelectorAll('.coin');
+            coins.forEach(coin => {
+                delete coin.dataset.side;
+                coin.style.transform = 'rotateY(0deg)';
+                coin.classList.remove('selected', 'locked');
+            });
+            
+            // 重置问题输入框
+            document.getElementById('question').value = '';
+        }
+        
+        // 修改表单提交事件 - 不再重置支付状态
+        document.getElementById('divination-form').addEventListener('submit', function(e) {
+            if (!isPaid) {
+                e.preventDefault();
+                showToast('请先支付1元解锁占卜功能', 'error');
+                return;
+            }
         
  // 修改支付状态更新函数
 function updatePaymentStatus() {
-    const questionInput = document.getElementById('question');
-    const payBtn = document.getElementById('pay-btn');
-    const paymentStatus = document.getElementById('payment-status');
-    
-    if (isPaid) {
-        paymentStatus.style.display = 'block';
-        payBtn.style.display = 'none';
-        questionInput.readOnly = false;
-        questionInput.style.backgroundColor = '';
-        questionInput.placeholder = '请输入您要占卜的问题...';
-    } else {
-        paymentStatus.style.display = 'none';
-        payBtn.style.display = 'block';
-        questionInput.readOnly = true;
-        questionInput.style.backgroundColor = '#f5f5f5';
-        questionInput.placeholder = '请先支付1元解锁占卜功能';
-    }
-}
+            const questionInput = document.getElementById('question');
+            const payBtn = document.getElementById('pay-btn');
+            const paymentStatus = document.getElementById('payment-status');
+            
+            if (isPaid) {
+                paymentStatus.style.display = 'block';
+                payBtn.style.display = 'none';
+                questionInput.readOnly = false;
+                questionInput.style.backgroundColor = '';
+                questionInput.placeholder = '请输入您要占卜的问题...';
+            } else {
+                paymentStatus.style.display = 'none';
+                payBtn.style.display = 'block';
+                questionInput.readOnly = true;
+                questionInput.style.backgroundColor = '#f5f5f5';
+                questionInput.placeholder = '请先支付1元解锁占卜功能';
+            }
+        }
 
         // 安全随机数生成函数
         function getSecureRandom() {
@@ -2385,11 +2397,9 @@ function updatePaymentStatus() {
             let headCount = 0;
             
             coins.forEach(coin => {
-                if (!coin.dataset.side) {
-                    allCoinsSet = false;
-                } else if (coin.dataset.side === 'head') {
-                    headCount++;
-                }
+                delete coin.dataset.side;
+                coin.style.transform = 'rotateY(0deg)';
+                coin.classList.remove('selected', 'locked'); // 解锁硬币
             });
             
             if (!allCoinsSet) {
