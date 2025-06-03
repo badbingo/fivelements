@@ -833,63 +833,6 @@
             font-size: 12px;
             fill: #5a3921;
         }
-
-        #true-hexagram-display {
-    display: flex;
-    flex-direction: column-reverse; /* 关键：使DOM顺序与显示顺序相反 */
-    align-items: center;
-    gap: 10px;
-    margin: 20px auto;
-    width: 150px;
-}
-
-.true-yao {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    width: 100%;
-}
-
-.yao-line {
-    height: 20px;
-    flex-grow: 1;
-    position: relative;
-}
-
-.yang {
-    background: linear-gradient(to right, #000 0%, #000 100%);
-    background-size: 100% 3px;
-    background-repeat: no-repeat;
-    background-position: center;
-}
-
-.yin {
-    background: linear-gradient(to right, 
-        #000 0%, #000 40%, 
-        transparent 40%, transparent 60%,
-        #000 60%, #000 100%);
-    background-size: 100% 3px;
-    background-repeat: no-repeat;
-    background-position: center;
-}
-
-.changing {
-    box-shadow: 0 0 0 2px #f00;
-}
-
-.change-marker {
-    position: absolute;
-    right: -15px;
-    color: #f00;
-    font-weight: bold;
-}
-
-.yao-position {
-    width: 40px;
-    font-size: 12px;
-    color: #666;
-}
-        
     </style>
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-2NHJXGKS0Y"></script>
@@ -1758,134 +1701,75 @@ function castWithNumbers() {
 }
 
 // 根据数字生成卦象
-function generateTrueHexagram(upperNum, lowerNum, changingPos) {
-    // 确保输入是整数
-    upperNum = parseInt(upperNum) || 0;
-    lowerNum = parseInt(lowerNum) || 0;
-    
-    // 正确的爻位顺序：从初爻到上爻
+function generateHexagramFromNumbers(upperNum, lowerNum, changingYaoPos) {
     const hexagram = [];
     
-    // 生成下卦（内卦）：初爻→三爻
+    // 1. 先生成上卦（外卦，上爻→四爻）
     for (let i = 0; i < 3; i++) {
-        hexagram.push(createTrueYao(lowerNum, i+1));
+        hexagram.push({
+            type: upperNum % 2 === 0 ? '8' : '7',
+            line: upperNum % 2 === 0 ? '000' : '111',
+            changing: false
+        });
     }
     
-    // 生成上卦（外卦）：四爻→上爻
+    // 2. 再生成下卦（内卦，三爻→初爻）
     for (let i = 0; i < 3; i++) {
-        hexagram.push(createTrueYao(upperNum, i+4));
+        hexagram.push({
+            type: lowerNum % 2 === 0 ? '8' : '7',
+            line: lowerNum % 2 === 0 ? '000' : '111',
+            changing: false
+        });
     }
     
-    // 处理变爻（1=初爻，6=上爻）
-    if (changingPos >= 1 && changingPos <= 6) {
-        const idx = changingPos - 1;
-        hexagram[idx] = transformYao(hexagram[idx]);
+    // 3. 处理变爻（position从1=初爻开始计数）
+    if (changingYaoPos >= 1 && changingYaoPos <= 6) {
+        const index = 6 - changingYaoPos; // 初爻=数组[5]，上爻=数组[0]
+        hexagram[index].changing = true;
+        hexagram[index].type = hexagram[index].type === '7' ? '9' : '6';
+        hexagram[index].line = hexagram[index].line === '111' ? '000' : '111';
     }
     
     return hexagram;
 }
 
-function createTrueYao(number, position) {
-    // 根据数字奇偶确定阴阳（奇数为阳，偶数为阴）
-    const isYang = number % 2 !== 0;
-    
-    // 根据爻位确定爻的类型（7=少阳，8=少阴，9=老阳，6=老阴）
-    let type;
-    if (position === 3 || position === 6) { // 三爻和上爻特殊处理
-        type = isYang ? '9' : '6'; // 三爻和上爻默认就是变爻
-    } else {
-        type = isYang ? '7' : '8';
-    }
-    
-    return {
-        type: type,
-        line: isYang ? '111' : '000',
-        changing: (type === '9' || type === '6'),
-        position: position // 明确记录爻位
-    };
-}
-
-function transformYao(yao) {
-    // 阳变阴，阴变阳
-    const newType = yao.type === '7' ? '9' : 
-                   yao.type === '8' ? '6' :
-                   yao.type === '9' ? '7' : '8';
-    
-    return {
-        type: newType,
-        line: yao.line === '111' ? '000' : '111',
-        changing: !yao.changing,
-        position: yao.position
-    };
-}
-
 // 更新卦象显示
-function displayTrueHexagram(hexagram) {
-    const container = document.getElementById('true-hexagram-display');
-    container.innerHTML = '';
-    
-    if (!hexagram || hexagram.length !== 6) {
-        container.innerHTML = '<div class="error">卦象数据错误</div>';
-        return;
-    }
+function updateHexagramDisplay() {
+    const hexagramDisplay = document.getElementById('hexagram-display');
+    hexagramDisplay.innerHTML = '';
 
-    // 创建从下往上的卦象显示
-    const fragment = document.createDocumentFragment();
-    
-    // 注意：这里需要从初爻(数组[0])到上爻(数组[5])依次添加
-    for (let i = 0; i < 6; i++) {
-        const yao = hexagram[i];
-        const yaoElement = createTrueYaoElement(yao);
-        fragment.appendChild(yaoElement);
-    }
-    
-    // 关键：用CSS确保显示顺序正确
-    container.style.display = 'flex';
-    container.style.flexDirection = 'column-reverse';
-    container.appendChild(fragment);
-}
-
-function createTrueYaoElement(yao) {
-    const div = document.createElement('div');
-    div.className = 'true-yao';
-    
-    // 爻线
-    const line = document.createElement('div');
-    line.className = `yao-line ${yao.line === '111' ? 'yang' : 'yin'}`;
-    
-    // 如果是变爻，添加特殊标记
-    if (yao.changing) {
-        line.classList.add('changing');
-        const marker = document.createElement('div');
-        marker.className = 'change-marker';
-        marker.textContent = yao.type === '9' ? '○' : '×';
-        line.appendChild(marker);
-    }
-    
-    // 爻位标识
-    const pos = document.createElement('div');
-    pos.className = 'yao-position';
-    pos.textContent = getYaoPositionName(yao.position);
-    
-    div.appendChild(line);
-    div.appendChild(pos);
-    return div;
-}
-
-function getYaoPositionName(pos) {
-    const names = {
-        1: '初爻', 2: '二爻', 3: '三爻',
-        4: '四爻', 5: '五爻', 6: '上爻'
-    };
-    return names[pos] || `${pos}爻`;
-}
-
-// 辅助函数：获取爻位名称
-function getPositionName(pos) {
-    const names = ['初爻', '二爻', '三爻', '四爻', '五爻', '上爻'];
-    return names[pos - 1] || pos + '爻';
-}
+    // 正确的绘制顺序：从初爻（数组[0])到上爻（数组[5])
+    for (let i = 0; i < currentHexagram.length; i++) {
+        const yao = currentHexagram[i];
+        const lineDiv = document.createElement('div');
+        lineDiv.className = 'hexagram-line';
         
+        // 爻线绘制
+        if (yao.line === '111') {
+            lineDiv.classList.add('solid-line');
+        } else {
+            lineDiv.classList.add('broken-line');
+            lineDiv.innerHTML = `
+                <div class="broken-line-part"></div>
+                <div class="broken-line-part"></div>
+            `;
+        }
+        
+        // 变爻高亮
+        if (yao.changing) {
+            lineDiv.classList.add('yao-change');
+        }
+        
+        // 爻位标注（1=初爻，6=上爻）
+        const numberSpan = document.createElement('span');
+        numberSpan.className = 'line-number';
+        numberSpan.textContent = i + 1;
+        lineDiv.appendChild(numberSpan);
+        
+        hexagramDisplay.appendChild(lineDiv);
+    }
+}
+
 function generateHexagramSvg(hexagramCode) {
     const svgWidth = 150;  // 增加宽度
     const svgHeight = 220; // 增加高度
@@ -1907,7 +1791,8 @@ function generateHexagramSvg(hexagramCode) {
     
     // 从下往上绘制（i=0=初爻，i=5=上爻）
     for (let i = 0; i < 6; i++) {
-        const yPos = 180 - (5 - i) * spacing; // 调整y坐标计算
+        // 初爻在底部（y=180），上爻在顶部（y=30）
+        const yPos = 180 - i * spacing;
         const isYang = hexagramCode[i] === '1';
         const isChanging = changingYaoPositions.includes(i);
         
@@ -1974,8 +1859,8 @@ function getGuaStructure(hexagramCode) {
 
 // 需要更新的爻位判断函数
 function getYaoPositionName(position) {
-    // 位置顺序改为从下往上（1=初爻，6=上爻）
-    const names = ['初爻', '二爻', '三爻', '四爻', '五爻', '上爻'];
+    // 位置顺序改为从上往下（1=上爻，6=初爻）
+    const names = ['上爻', '五爻', '四爻', '三爻', '二爻', '初爻'];
     return names[position - 1] || `${position}爻`;
 }
 
