@@ -804,6 +804,35 @@
                 grid-template-columns: 1fr; /* 移动设备上单列显示 */
             }
         }
+
+        .hexagram-svg {
+            display: block;
+            margin: 0 auto 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .hexagram-svg:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        
+        .yang-line {
+            stroke: #8B4513; /* 阳爻改为深棕色 */
+            stroke-linecap: round;
+        }
+        
+        .yin-line {
+            stroke: #5a3921; /* 阴爻改为深褐色 */
+            stroke-linecap: round;
+        }
+        
+        .yao-position {
+            font-family: "SimSun", serif;
+            font-size: 12px;
+            fill: #5a3921;
+        }
     </style>
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-2NHJXGKS0Y"></script>
@@ -1051,7 +1080,7 @@
                 <div class="result-card">
                     <h3><i class="fas fa-info-circle"></i> 卦象解析</h3>
                     <div id="gua-image-container">
-                        <img src="../images/hexagrams/qian.png" alt="卦象图" class="gua-image" id="gua-image">
+                        <!-- SVG卦象将在这里动态生成 -->
                     </div>
                     <div class="interpretation-text" id="gua-interpretation">
                         <!-- 卦象解析将通过JavaScript动态生成 -->
@@ -1110,70 +1139,70 @@
         
         // 六爻卦象数据 - 完整64卦
         const guaData = {
-            "111111": { name: "乾为天", image: "qian.png", interpretation: "乾卦象征天，代表刚健、创始、主动。占得此卦者，往往表示事情将会顺利发展，但需要保持积极进取的态度。" },
-            "000000": { name: "坤为地", image: "kun.png", interpretation: "坤卦象征地，代表柔顺、包容、被动。占得此卦者，宜以柔克刚，顺应时势，不宜强求。" },
-            "100010": { name: "水雷屯", image: "tun.png", interpretation: "屯卦象征万物初生，充满艰难。占得此卦者，表示事情刚开始，会遇到困难，需要耐心和毅力。" },
-            "010001": { name: "山水蒙", image: "meng.png", interpretation: "蒙卦象征启蒙、教育。占得此卦者，表示需要学习或指导，事情尚在萌芽阶段，不可急躁。" },
-            "111010": { name: "水天需", image: "xu.png", interpretation: "需卦象征等待。占得此卦者，表示时机未到，需要耐心等待，不可贸然行动。" },
-            "010111": { name: "天水讼", image: "song.png", interpretation: "讼卦象征争讼、纠纷。占得此卦者，表示可能会有争执，宜以和为贵，避免冲突。" },
-            "010000": { name: "地水师", image: "shi.png", interpretation: "师卦象征军队、战争。占得此卦者，表示需要团结众人，有组织地行动，方能成功。" },
-            "000010": { name: "水地比", image: "bi.png", interpretation: "比卦象征亲近、团结。占得此卦者，表示宜与人合作，互相帮助，共同发展。" },
-            "111011": { name: "风天小畜", image: "xiaochu.png", interpretation: "小畜卦象征小有积蓄。占得此卦者，表示会有小的收获，但大发展尚需时日。" },
-            "110111": { name: "天泽履", image: "lv.png", interpretation: "履卦象征谨慎行事。占得此卦者，表示需要小心谨慎，按规矩办事，方能平安顺利。" },
-            "101111": { name: "天火同人", image: "tongren.png", interpretation: "同人卦象征志同道合。占得此卦者，表示宜与人合作，共同发展。" },
-            "111101": { name: "火天大有", image: "dayou.png", interpretation: "大有卦象征大丰收。占得此卦者，表示将有大收获，但需谨慎守成。" },
-            "100000": { name: "地雷复", image: "fu.png", interpretation: "复卦象征回复、循环。占得此卦者，表示事物将进入一个新的循环周期。" },
-            "000001": { name: "山地剥", image: "bo.png", interpretation: "剥卦象征剥落、衰落。占得此卦者，表示事物将经历一个衰退期，需谨慎应对。" },
-            "100111": { name: "火雷噬嗑", image: "shihe.png", interpretation: "噬嗑卦象征咬合、克服困难。占得此卦者，表示需要通过努力克服障碍。" },
-            "111001": { name: "山雷颐", image: "yi.png", interpretation: "颐卦象征颐养、修养。占得此卦者，表示宜静养身心，不宜妄动。" },
-            "110000": { name: "泽雷随", image: "sui.png", interpretation: "随卦象征随从、顺应。占得此卦者，表示宜随顺时势，不宜强求。" },
-            "000011": { name: "山风蛊", image: "gu.png", interpretation: "蛊卦象征腐败、革新。占得此卦者，表示需要除旧布新，改革弊端。" },
-            "110001": { name: "地泽临", image: "lin.png", interpretation: "临卦象征临近、督导。占得此卦者，表示需要亲临指导，密切关注。" },
-            "100011": { name: "风地观", image: "guan.png", interpretation: "观卦象征观察、审视。占得此卦者，表示需要冷静观察，审时度势。" },
-            "101000": { name: "火雷噬嗑", image: "shihe.png", interpretation: "噬嗑卦象征咬合、克服困难。占得此卦者，表示需要通过努力克服障碍。" },
-            "000101": { name: "山火贲", image: "bi.png", interpretation: "贲卦象征装饰、美化。占得此卦者，表示需要注重外表修饰，但不可过分。" },
+            "111111": { name: "乾为天", interpretation: "乾卦象征天，代表刚健、创始、主动。占得此卦者，往往表示事情将会顺利发展，但需要保持积极进取的态度。" },
+            "000000": { name: "坤为地", interpretation: "坤卦象征地，代表柔顺、包容、被动。占得此卦者，宜以柔克刚，顺应时势，不宜强求。" },
+            "100010": { name: "水雷屯", interpretation: "屯卦象征万物初生，充满艰难。占得此卦者，表示事情刚开始，会遇到困难，需要耐心和毅力。" },
+            "010001": { name: "山水蒙", interpretation: "蒙卦象征启蒙、教育。占得此卦者，表示需要学习或指导，事情尚在萌芽阶段，不可急躁。" },
+            "111010": { name: "水天需", interpretation: "需卦象征等待。占得此卦者，表示时机未到，需要耐心等待，不可贸然行动。" },
+            "010111": { name: "天水讼", interpretation: "讼卦象征争讼、纠纷。占得此卦者，表示可能会有争执，宜以和为贵，避免冲突。" },
+            "010000": { name: "地水师", interpretation: "师卦象征军队、战争。占得此卦者，表示需要团结众人，有组织地行动，方能成功。" },
+            "000010": { name: "水地比", interpretation: "比卦象征亲近、团结。占得此卦者，表示宜与人合作，互相帮助，共同发展。" },
+            "111011": { name: "风天小畜", interpretation: "小畜卦象征小有积蓄。占得此卦者，表示会有小的收获，但大发展尚需时日。" },
+            "110111": { name: "天泽履", interpretation: "履卦象征谨慎行事。占得此卦者，表示需要小心谨慎，按规矩办事，方能平安顺利。" },
+            "101111": { name: "天火同人", interpretation: "同人卦象征志同道合。占得此卦者，表示宜与人合作，共同发展。" },
+            "111101": { name: "火天大有", interpretation: "大有卦象征大丰收。占得此卦者，表示将有大收获，但需谨慎守成。" },
+            "100000": { name: "地雷复", interpretation: "复卦象征回复、循环。占得此卦者，表示事物将进入一个新的循环周期。" },
+            "000001": { name: "山地剥", interpretation: "剥卦象征剥落、衰落。占得此卦者，表示事物将经历一个衰退期，需谨慎应对。" },
+            "100111": { name: "火雷噬嗑", interpretation: "噬嗑卦象征咬合、克服困难。占得此卦者，表示需要通过努力克服障碍。" },
+            "111001": { name: "山雷颐", interpretation: "颐卦象征颐养、修养。占得此卦者，表示宜静养身心，不宜妄动。" },
+            "110000": { name: "泽雷随", interpretation: "随卦象征随从、顺应。占得此卦者，表示宜随顺时势，不宜强求。" },
+            "000011": { name: "山风蛊", interpretation: "蛊卦象征腐败、革新。占得此卦者，表示需要除旧布新，改革弊端。" },
+            "110001": { name: "地泽临", interpretation: "临卦象征临近、督导。占得此卦者，表示需要亲临指导，密切关注。" },
+            "100011": { name: "风地观", interpretation: "观卦象征观察、审视。占得此卦者，表示需要冷静观察，审时度势。" },
+            "101000": { name: "火雷噬嗑", interpretation: "噬嗑卦象征咬合、克服困难。占得此卦者，表示需要通过努力克服障碍。" },
+            "000101": { name: "山火贲", interpretation: "贲卦象征装饰、美化。占得此卦者，表示需要注重外表修饰，但不可过分。" },
             "100001": { name: "山地剥", image: "bo.png", interpretation: "剥卦象征剥落、衰落。占得此卦者，表示事物将经历一个衰退期，需谨慎应对。" },
-            "011111": { name: "地雷复", image: "fu.png", interpretation: "复卦象征回复、循环。占得此卦者，表示事物将进入一个新的循环周期。" },
-            "100101": { name: "天雷无妄", image: "wuwang.png", interpretation: "无妄卦象征不妄为、顺其自然。占得此卦者，表示应顺其自然，不可妄为。" },
-            "101001": { name: "山天大畜", image: "dachu.png", interpretation: "大畜卦象征大量积蓄。占得此卦者，表示将有大的积累和收获。" },
-            "100111": { name: "山雷颐", image: "yi.png", interpretation: "颐卦象征颐养、修养。占得此卦者，表示宜静养身心，不宜妄动。" },
-            "110001": { name: "泽风大过", image: "daguo.png", interpretation: "大过卦象征大的过度。占得此卦者，表示事物发展已超过常规，需要特别谨慎。" },
-            "010010": { name: "坎为水", image: "kan.png", interpretation: "坎卦象征水、险陷。占得此卦者，表示将面临险境，需要谨慎行事。" },
-            "101101": { name: "离为火", image: "li.png", interpretation: "离卦象征火、光明。占得此卦者，表示将获得光明和智慧，但需防止过火。" },
-            "110010": { name: "泽山咸", image: "xian.png", interpretation: "咸卦象征感应、交流。占得此卦者，表示人与人之间将有良好的感应和交流。" },
-            "010110": { name: "雷风恒", image: "heng.png", interpretation: "恒卦象征恒久、持久。占得此卦者，表示需要持之以恒，方能成功。" },
-            "001011": { name: "天山遁", image: "dun.png", interpretation: "遁卦象征退避、隐退。占得此卦者，表示宜暂时退避，不宜强进。" },
-            "110100": { name: "雷天大壮", image: "dazhuang.png", interpretation: "大壮卦象征强盛、壮大。占得此卦者，表示力量强大，但需防止过刚。" },
-            "001101": { name: "火地晋", image: "jin.png", interpretation: "晋卦象征前进、晋升。占得此卦者，表示将有进步和发展。" },
-            "101100": { name: "地火明夷", image: "mingyi.png", interpretation: "明夷卦象征光明受损。占得此卦者，表示将面临困境，需要韬光养晦。" },
-            "101011": { name: "风火家人", image: "jiaren.png", interpretation: "家人卦象征家庭、亲情。占得此卦者，表示家庭和睦，亲情浓厚。" },
-            "110101": { name: "火泽睽", image: "kui.png", interpretation: "睽卦象征背离、分离。占得此卦者，表示人际关系可能出现隔阂和矛盾。" },
-            "001010": { name: "水山蹇", image: "jian.png", interpretation: "蹇卦象征艰难、险阻。占得此卦者，表示将面临艰难险阻，需要谨慎应对。" },
-            "010100": { name: "雷水解", image: "xie.png", interpretation: "解卦象征解除、解脱。占得此卦者，表示困难将得到解决。" },
-            "100110": { name: "山泽损", image: "sun.png", interpretation: "损卦象征损失、减损。占得此卦者，表示将有所损失，但可能是必要的。" },
-            "011001": { name: "风雷益", image: "yi.png", interpretation: "益卦象征增益、受益。占得此卦者，表示将有所收获和增益。" },
-            "111110": { name: "泽天夬", image: "guai.png", interpretation: "夬卦象征决断、裁决。占得此卦者，表示需要果断决策，不可犹豫。" },
-            "011111": { name: "天风姤", image: "gou.png", interpretation: "姤卦象征相遇、邂逅。占得此卦者，表示将有意外相遇或机遇。" },
-            "000110": { name: "泽地萃", image: "cui.png", interpretation: "萃卦象征聚集、会合。占得此卦者，表示将有聚会或合作机会。" },
-            "011000": { name: "地风升", image: "sheng.png", interpretation: "升卦象征上升、进步。占得此卦者，表示将有上升和发展的机会。" },
-            "010110": { name: "泽水困", image: "kun.png", interpretation: "困卦象征困境、束缚。占得此卦者，表示将面临困境，需要忍耐。" },
-            "011010": { name: "水风井", image: "jing.png", interpretation: "井卦象征水井、源泉。占得此卦者，表示将获得稳定的资源和帮助。" },
-            "101110": { name: "泽火革", image: "ge.png", interpretation: "革卦象征变革、革新。占得此卦者，表示将面临重大变革。" },
-            "011101": { name: "火风鼎", image: "ding.png", interpretation: "鼎卦象征鼎器、稳固。占得此卦者，表示基础稳固，可以有所作为。" },
-            "100011": { name: "震为雷", image: "zhen.png", interpretation: "震卦象征雷、震动。占得此卦者，表示将面临震动和变化。" },
-            "110000": { name: "艮为山", image: "gen.png", interpretation: "艮卦象征山、静止。占得此卦者，表示宜静不宜动，需要停止前进。" },
-            "001001": { name: "风山渐", image: "jian.png", interpretation: "渐卦象征渐进、逐步发展。占得此卦者，表示需要循序渐进，不可急躁。" },
-            "100100": { name: "雷泽归妹", image: "guimei.png", interpretation: "归妹卦象征嫁娶、结合。占得此卦者，表示将有结合或合作的机会。" },
-            "101111": { name: "雷火丰", image: "feng.png", interpretation: "丰卦象征丰盛、繁荣。占得此卦者，表示将获得丰盛的成果。" },
-            "111101": { name: "火山旅", image: "lv.png", interpretation: "旅卦象征旅行、漂泊。占得此卦者，表示将面临变动或旅行。" },
-            "001110": { name: "巽为风", image: "xun.png", interpretation: "巽卦象征风、顺从。占得此卦者，表示宜顺从时势，不可强求。" },
-            "011100": { name: "兑为泽", image: "dui.png", interpretation: "兑卦象征泽、喜悦。占得此卦者，表示将有喜悦和顺利。" },
-            "001111": { name: "风水涣", image: "huan.png", interpretation: "涣卦象征涣散、分散。占得此卦者，表示将面临分散和涣散的局面。" },
-            "111100": { name: "水泽节", image: "jie.png", interpretation: "节卦象征节制、节约。占得此卦者，表示需要节制和约束。" },
-            "110011": { name: "风泽中孚", image: "zhongfu.png", interpretation: "中孚卦象征诚信、信任。占得此卦者，表示诚信为本，可获得信任。" },
-            "001100": { name: "雷山小过", image: "xiaoguo.png", interpretation: "小过卦象征小的过度。占得此卦者，表示将有小的过失或过度。" },
-            "101010": { name: "水火既济", image: "jiji.png", interpretation: "既济卦象征完成、成功。占得此卦者，表示事情将顺利完成。" },
-            "010101": { name: "火水未济", image: "weiji.png", interpretation: "未济卦象征未完成、未成功。占得此卦者，表示事情尚未完成，需要继续努力。" }
+            "011111": { name: "地雷复", interpretation: "复卦象征回复、循环。占得此卦者，表示事物将进入一个新的循环周期。" },
+            "100101": { name: "天雷无妄", interpretation: "无妄卦象征不妄为、顺其自然。占得此卦者，表示应顺其自然，不可妄为。" },
+            "101001": { name: "山天大畜", interpretation: "大畜卦象征大量积蓄。占得此卦者，表示将有大的积累和收获。" },
+            "100111": { name: "山雷颐", interpretation: "颐卦象征颐养、修养。占得此卦者，表示宜静养身心，不宜妄动。" },
+            "110001": { name: "泽风大过", interpretation: "大过卦象征大的过度。占得此卦者，表示事物发展已超过常规，需要特别谨慎。" },
+            "010010": { name: "坎为水", interpretation: "坎卦象征水、险陷。占得此卦者，表示将面临险境，需要谨慎行事。" },
+            "101101": { name: "离为火", interpretation: "离卦象征火、光明。占得此卦者，表示将获得光明和智慧，但需防止过火。" },
+            "110010": { name: "泽山咸", interpretation: "咸卦象征感应、交流。占得此卦者，表示人与人之间将有良好的感应和交流。" },
+            "010110": { name: "雷风恒", interpretation: "恒卦象征恒久、持久。占得此卦者，表示需要持之以恒，方能成功。" },
+            "001011": { name: "天山遁", interpretation: "遁卦象征退避、隐退。占得此卦者，表示宜暂时退避，不宜强进。" },
+            "110100": { name: "雷天大壮", interpretation: "大壮卦象征强盛、壮大。占得此卦者，表示力量强大，但需防止过刚。" },
+            "001101": { name: "火地晋", interpretation: "晋卦象征前进、晋升。占得此卦者，表示将有进步和发展。" },
+            "101100": { name: "地火明夷", interpretation: "明夷卦象征光明受损。占得此卦者，表示将面临困境，需要韬光养晦。" },
+            "101011": { name: "风火家人", interpretation: "家人卦象征家庭、亲情。占得此卦者，表示家庭和睦，亲情浓厚。" },
+            "110101": { name: "火泽睽", interpretation: "睽卦象征背离、分离。占得此卦者，表示人际关系可能出现隔阂和矛盾。" },
+            "001010": { name: "水山蹇", interpretation: "蹇卦象征艰难、险阻。占得此卦者，表示将面临艰难险阻，需要谨慎应对。" },
+            "010100": { name: "雷水解", interpretation: "解卦象征解除、解脱。占得此卦者，表示困难将得到解决。" },
+            "100110": { name: "山泽损", interpretation: "损卦象征损失、减损。占得此卦者，表示将有所损失，但可能是必要的。" },
+            "011001": { name: "风雷益", interpretation: "益卦象征增益、受益。占得此卦者，表示将有所收获和增益。" },
+            "111110": { name: "泽天夬", interpretation: "夬卦象征决断、裁决。占得此卦者，表示需要果断决策，不可犹豫。" },
+            "011111": { name: "天风姤", interpretation: "姤卦象征相遇、邂逅。占得此卦者，表示将有意外相遇或机遇。" },
+            "000110": { name: "泽地萃", interpretation: "萃卦象征聚集、会合。占得此卦者，表示将有聚会或合作机会。" },
+            "011000": { name: "地风升", interpretation: "升卦象征上升、进步。占得此卦者，表示将有上升和发展的机会。" },
+            "010110": { name: "泽水困", interpretation: "困卦象征困境、束缚。占得此卦者，表示将面临困境，需要忍耐。" },
+            "011010": { name: "水风井", interpretation: "井卦象征水井、源泉。占得此卦者，表示将获得稳定的资源和帮助。" },
+            "101110": { name: "泽火革", interpretation: "革卦象征变革、革新。占得此卦者，表示将面临重大变革。" },
+            "011101": { name: "火风鼎", interpretation: "鼎卦象征鼎器、稳固。占得此卦者，表示基础稳固，可以有所作为。" },
+            "100011": { name: "震为雷", interpretation: "震卦象征雷、震动。占得此卦者，表示将面临震动和变化。" },
+            "110000": { name: "艮为山", interpretation: "艮卦象征山、静止。占得此卦者，表示宜静不宜动，需要停止前进。" },
+            "001001": { name: "风山渐", interpretation: "渐卦象征渐进、逐步发展。占得此卦者，表示需要循序渐进，不可急躁。" },
+            "100100": { name: "雷泽归妹", interpretation: "归妹卦象征嫁娶、结合。占得此卦者，表示将有结合或合作的机会。" },
+            "101111": { name: "雷火丰", interpretation: "丰卦象征丰盛、繁荣。占得此卦者，表示将获得丰盛的成果。" },
+            "111101": { name: "火山旅", interpretation: "旅卦象征旅行、漂泊。占得此卦者，表示将面临变动或旅行。" },
+            "001110": { name: "巽为风", interpretation: "巽卦象征风、顺从。占得此卦者，表示宜顺从时势，不可强求。" },
+            "011100": { name: "兑为泽", interpretation: "兑卦象征泽、喜悦。占得此卦者，表示将有喜悦和顺利。" },
+            "001111": { name: "风水涣", interpretation: "涣卦象征涣散、分散。占得此卦者，表示将面临分散和涣散的局面。" },
+            "111100": { name: "水泽节", interpretation: "节卦象征节制、节约。占得此卦者，表示需要节制和约束。" },
+            "110011": { name: "风泽中孚", interpretation: "中孚卦象征诚信、信任。占得此卦者，表示诚信为本，可获得信任。" },
+            "001100": { name: "雷山小过", interpretation: "小过卦象征小的过度。占得此卦者，表示将有小的过失或过度。" },
+            "101010": { name: "水火既济", interpretation: "既济卦象征完成、成功。占得此卦者，表示事情将顺利完成。" },
+            "010101": { name: "火水未济", interpretation: "未济卦象征未完成、未成功。占得此卦者，表示事情尚未完成，需要继续努力。" }
         };
         
         // 爻辞数据
@@ -1742,48 +1771,79 @@ function updateHexagramDisplay() {
 }
 
 function generateHexagramSvg(hexagramCode) {
-    const svgWidth = 120;
-    const svgHeight = 180;
-    const lineHeight = 8;
-    const spacing = 20;
+    const svgWidth = 150;  // 增加宽度
+    const svgHeight = 220; // 增加高度
+    const lineHeight = 10; // 加粗爻线
+    const spacing = 25;    // 增加间距
+    const lineColor = '#5a3921'; // 爻线颜色改为深棕色
+    const bgColor = '#f8f3e6';   // 背景色改为米黄色
     
     let svgContent = '';
     const positionNames = ['初', '二', '三', '四', '五', '上'];
+    const changingYaoPositions = [];
+    
+    // 找出变爻位置
+    currentHexagram.forEach((yao, index) => {
+        if (yao.changing) {
+            changingYaoPositions.push(5 - index); // SVG是从上往下绘制
+        }
+    });
     
     // 从下往上绘制（i=0=初爻，i=5=上爻）
     for (let i = 0; i < 6; i++) {
-        // 初爻在底部（y=150），上爻在顶部（y=30）
-        const yPos = 150 - i * spacing;
+        // 初爻在底部（y=180），上爻在顶部（y=30）
+        const yPos = 180 - i * spacing;
         const isYang = hexagramCode[i] === '1';
+        const isChanging = changingYaoPositions.includes(i);
+        
+        // 变爻添加特殊标记
+        if (isChanging) {
+            svgContent += `
+                <circle cx="60" cy="${yPos}" r="15" fill="rgba(255,215,0,0.2)" />
+            `;
+        }
         
         // 绘制爻线
         if (isYang) {
             svgContent += `
-                <line x1="20" y1="${yPos}" x2="100" y2="${yPos}" 
-                      stroke="#d4a017" stroke-width="${lineHeight}" 
+                <line x1="30" y1="${yPos}" x2="120" y2="${yPos}" 
+                      stroke="${lineColor}" stroke-width="${lineHeight}" 
                       stroke-linecap="round" class="yang-line"/>
             `;
         } else {
             svgContent += `
-                <line x1="20" y1="${yPos}" x2="50" y2="${yPos}" 
-                      stroke="#8e44ad" stroke-width="${lineHeight}" 
+                <line x1="30" y1="${yPos}" x2="75" y2="${yPos}" 
+                      stroke="${lineColor}" stroke-width="${lineHeight}" 
                       stroke-linecap="round" class="yin-line"/>
-                <line x1="70" y1="${yPos}" x2="100" y2="${yPos}" 
-                      stroke="#8e44ad" stroke-width="${lineHeight}" 
+                <line x1="90" y1="${yPos}" x2="120" y2="${yPos}" 
+                      stroke="${lineColor}" stroke-width="${lineHeight}" 
                       stroke-linecap="round" class="yin-line"/>
             `;
         }
         
         // 爻位标注（初爻在底部，上爻在顶部）
         svgContent += `
-            <text x="105" y="${yPos + 5}" class="yao-position">${positionNames[i]}</text>
+            <text x="125" y="${yPos + 5}" class="yao-position" 
+                  font-family="SimSun, serif" font-size="12" fill="#666">
+                ${positionNames[i]}
+            </text>
         `;
     }
     
+    // 添加卦名标注
+    const guaName = guaData[hexagramCode]?.name || "未知卦";
+    svgContent += `
+        <text x="75" y="210" text-anchor="middle" 
+              font-family="SimSun, serif" font-size="14" font-weight="bold" fill="#8B4513">
+            ${guaName}
+        </text>
+    `;
+    
     return `
-        <svg width="${svgWidth}" height="${svgHeight}" viewBox="0 0 120 180" 
+        <svg width="${svgWidth}" height="${svgHeight}" viewBox="0 0 150 220" 
              xmlns="http://www.w3.org/2000/svg" class="hexagram-svg">
-            <rect width="100%" height="100%" rx="8" fill="#f9f9f9"/>
+            <rect width="100%" height="100%" rx="10" fill="${bgColor}" 
+                  stroke="#d4a017" stroke-width="2"/>
             ${svgContent}
         </svg>
     `;
@@ -1834,15 +1894,14 @@ function showResult() {
     // 获取卦象数据
     const guaInfo = guaData[hexagramCode] || { 
         name: "未知卦", 
-        image: "default.png", 
         interpretation: "暂无解释" 
     };
     
     // 显示卦名
     document.getElementById('gua-name').textContent = guaInfo.name;
     
-    // 显示卦象图片
-    document.getElementById('gua-image').src = `../images/hexagrams/${guaInfo.image}`;
+    // 动态生成SVG卦象图
+    document.getElementById('gua-image-container').innerHTML = generateHexagramSvg(hexagramCode);
     
     // 显示卦象解释
     document.getElementById('gua-interpretation').innerHTML = `
