@@ -1126,6 +1126,16 @@
         // DeepSeek API配置
         const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
         const apiKey = 'sk-b2950087a9d5427392762814114b22a9';
+
+        // 新增：安全的随机数生成函数
+        function getSecureRandom() {
+            if(window.crypto && window.crypto.getRandomValues) {
+                const buf = new Uint32Array(1);
+                window.crypto.getRandomValues(buf);
+                return buf[0] / 4294967295; // 转换为0~1之间的浮点数
+            }
+            return Math.random(); // 兼容不支持crypto的旧浏览器
+        }
         
         // 六爻卦象数据 - 完整64卦
         const guaData = {
@@ -1241,372 +1251,408 @@
         };
         
         // 全局变量
-    let currentHexagram = [];
-    let currentQuestion = "";
-    let currentMethod = "coin";
-    let castCount = 0;
-    let history = JSON.parse(localStorage.getItem('divinationHistory')) || [];
-    
-    // DOM加载完成后执行
-    document.addEventListener('DOMContentLoaded', function() {
-        // 初始化方法切换
-        const methodBtns = document.querySelectorAll('.method-btn');
-        methodBtns.forEach(btn => {
-            btn.addEventListener('click', function() {
-                methodBtns.forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
-                currentMethod = this.dataset.method;
-                
-                document.querySelectorAll('.method-section').forEach(section => {
-                    section.classList.remove('active');
-                });
-                document.getElementById(`${currentMethod}-method`).classList.add('active');
-                
-                // 重置状态
-                resetDivination();
+        let currentHexagram = [];
+        let currentQuestion = "";
+        let currentMethod = "coin";
+        let castCount = 0;
+        let history = JSON.parse(localStorage.getItem('divinationHistory')) || [];
+        
+        // DOM加载完成后执行
+document.addEventListener('DOMContentLoaded', function() {
+            // 初始化更好的随机数
+            if (window.crypto && window.crypto.getRandomValues) {
+                const seed = window.crypto.getRandomValues(new Uint32Array(1))[0];
+                Math.seedrandom(seed.toString());
+            }
+    // 初始化方法切换
+    const methodBtns = document.querySelectorAll('.method-btn');
+    methodBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            methodBtns.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            currentMethod = this.dataset.method;
+            
+            document.querySelectorAll('.method-section').forEach(section => {
+                section.classList.remove('active');
             });
+            document.getElementById(`${currentMethod}-method`).classList.add('active');
+            
+            // 重置状态
+            resetDivination();
         });
-        
-        // 钱币点击事件
-        const coins = document.querySelectorAll('.coin');
-        coins.forEach(coin => {
-            coin.addEventListener('click', function() {
-                // 只有当钱币未被锁定且当前轮次未完成时才允许点击
-                if (!this.classList.contains('locked') && castCount < 6) {
-                    flipCoin(this);
-                    // 锁定钱币
-                    this.classList.add('locked');
-                }
-            });
-        });
-        
-        // 自动摇卦按钮
-        document.getElementById('auto-cast-btn').addEventListener('click', function() {
-            if (currentMethod === 'coin' && castCount < 6) {
-                autoCastCoins();
-            }
-        });
-        
-        // 摇卦按钮
-        document.getElementById('cast-btn').addEventListener('click', function() {
-            if (currentMethod === 'coin') {
-                castWithCoins();
-            }
-        });
-        
-        // 时间起卦按钮
-        document.getElementById('time-cast-btn').addEventListener('click', function() {
-            if (currentMethod === 'time') {
-                castWithTime();
-            }
-        });
-        
-        // 数字起卦按钮
-        document.getElementById('number-cast-btn').addEventListener('click', function() {
-            if (currentMethod === 'number') {
-                castWithNumbers();
-            }
-        });
-        
-        // 重置按钮
-        document.getElementById('reset-btn').addEventListener('click', resetDivination);
-        
-        // 新占卜按钮
-        document.getElementById('new-divination').addEventListener('click', resetDivination);
-        
-        // 保存卦象按钮
-        document.getElementById('save-hexagram').addEventListener('click', saveHexagram);
-        
-        // 清除历史记录按钮
-        document.getElementById('clear-history').addEventListener('click', clearHistory);
-        
-        // 如果有历史记录，显示历史部分
-        if (history.length > 0) {
-            document.getElementById('history-section').style.display = 'block';
-            renderHistory();
-        }
-        
-        // 表单提交
-        document.getElementById('divination-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            if (currentMethod === 'coin') {
-                castWithCoins();
-            } else if (currentMethod === 'time') {
-                castWithTime();
-            } else if (currentMethod === 'number') {
-                castWithNumbers();
-            }
-        });
-        
-        // 初始化时间输入框为当前时间
-        const now = new Date();
-        const timeStr = now.toISOString().slice(0, 16);
-        document.getElementById('time').value = timeStr;
     });
-
-    // 自动摇卦函数
-    function autoCastCoins() {
-        // 先验证是否输入了占卜问题
-        const question = document.getElementById('question').value.trim();
-        if (!question) {
-            alert('请先输入您的占卜问题');
-            return;
+    
+    // 钱币点击事件 - 改进后的版本
+    const coins = document.querySelectorAll('.coin');
+    coins.forEach(coin => {
+        coin.addEventListener('click', function() {
+            // 只有当钱币未被锁定且当前轮次未完成时才允许点击
+            if (!this.classList.contains('locked') && castCount < 6) {
+                flipCoin(this);
+                // 锁定钱币
+                this.classList.add('locked');
+            }
+        });
+    });
+    
+    // 自动摇卦按钮
+    document.getElementById('auto-cast-btn').addEventListener('click', function() {
+        if (currentMethod === 'coin' && castCount < 6) {
+            autoCastCoins();
         }
-
-        if (castCount >= 6) {
-            alert('六次摇卦已完成，请查看结果或重置');
-            return;
+    });
+    
+    // 摇卦按钮
+    document.getElementById('cast-btn').addEventListener('click', function() {
+        if (currentMethod === 'coin') {
+            castWithCoins();
+        }
+    });
+    
+    // 时间起卦按钮
+    document.getElementById('time-cast-btn').addEventListener('click', function() {
+        if (currentMethod === 'time') {
+            castWithTime();
+        }
+    });
+    
+    // 数字起卦按钮
+    document.getElementById('number-cast-btn').addEventListener('click', function() {
+        if (currentMethod === 'number') {
+            castWithNumbers();
+        }
+    });
+    
+    // 重置按钮
+    document.getElementById('reset-btn').addEventListener('click', resetDivination);
+    
+    // 新占卜按钮
+    document.getElementById('new-divination').addEventListener('click', resetDivination);
+    
+    // 保存卦象按钮
+    document.getElementById('save-hexagram').addEventListener('click', saveHexagram);
+    
+    // 清除历史记录按钮
+    document.getElementById('clear-history').addEventListener('click', clearHistory);
+    
+    // 如果有历史记录，显示历史部分
+    if (history.length > 0) {
+        document.getElementById('history-section').style.display = 'block';
+        renderHistory();
+    }
+    
+    // 表单提交
+    document.getElementById('divination-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        if (currentMethod === 'coin') {
+            castWithCoins();
+        } else if (currentMethod === 'time') {
+            castWithTime();
+        } else if (currentMethod === 'number') {
+            castWithNumbers();
+        }
+    });
+    
+    // 初始化时间输入框为当前时间
+    const now = new Date();
+    const timeStr = now.toISOString().slice(0, 16);
+    document.getElementById('time').value = timeStr;
+});
+        
+ // 增强的随机函数
+        function getSecureRandom() {
+            if (window.crypto && window.crypto.getRandomValues) {
+                const buf = new Uint32Array(1);
+                window.crypto.getRandomValues(buf);
+                return buf[0] / 4294967295;
+            }
+            return Math.random();
         }
         
-        // 禁用按钮防止重复点击
-        const autoCastBtn = document.getElementById('auto-cast-btn');
-        const castBtn = document.getElementById('cast-btn');
-        const resetBtn = document.getElementById('reset-btn');
-        autoCastBtn.disabled = true;
-        castBtn.disabled = true;
-        resetBtn.disabled = true;
-        autoCastBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 自动摇卦中...';
+// 自动摇卦函数 - 改进版，模拟手动摇卦过程
+function autoCastCoins() {
+    // 先验证是否输入了占卜问题
+    const question = document.getElementById('question').value.trim();
+    if (!question) {
+        alert('请先输入您的占卜问题');
+        return;
+    }
 
-        // 如果是第一次摇卦，记录问题
-        if (castCount === 0) {
-            currentQuestion = question;
-            const now = new Date();
-            document.getElementById('divination-time').textContent = now.toLocaleString();
-            document.getElementById('divination-method').textContent = "钱币摇卦";
+    if (castCount >= 6) {
+        alert('六次摇卦已完成，请查看结果或重置');
+        return;
+    }
+    
+    // 禁用按钮防止重复点击
+    const autoCastBtn = document.getElementById('auto-cast-btn');
+    const castBtn = document.getElementById('cast-btn');
+    const resetBtn = document.getElementById('reset-btn');
+    autoCastBtn.disabled = true;
+    castBtn.disabled = true;
+    resetBtn.disabled = true;
+    autoCastBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 自动摇卦中...';
+
+    // 如果是第一次摇卦，记录问题
+    if (castCount === 0) {
+        currentQuestion = question;
+        const now = new Date();
+        document.getElementById('divination-time').textContent = now.toLocaleString();
+        document.getElementById('divination-method').textContent = "钱币摇卦";
+    }
+
+    // 快速完成6次摇卦
+    function autoCastFull() {
+        if (castCount >= 6) {
+            // 全部完成后恢复按钮状态
+            autoCastBtn.disabled = false;
+            castBtn.disabled = false;
+            resetBtn.disabled = false;
+            autoCastBtn.innerHTML = '<i class="fas fa-bolt"></i> 自动摇卦';
+            
+            // 自动滚动到结果区域
+            setTimeout(() => {
+                document.getElementById('hexagram-section').scrollIntoView({ 
+                    behavior: 'smooth' 
+                });
+            }, 500);
+            return;
         }
 
-        // 快速完成6次摇卦
-        function autoCastFull() {
-            if (castCount >= 6) {
-                // 全部完成后恢复按钮状态
-                autoCastBtn.disabled = false;
-                castBtn.disabled = false;
-                resetBtn.disabled = false;
-                autoCastBtn.innerHTML = '<i class="fas fa-bolt"></i> 自动摇卦';
-                
-                // 自动滚动到结果区域
+        const coins = document.querySelectorAll('.coin');
+        let currentCoinIndex = 0;
+        
+        // 超快速摇动单个钱币（200ms完成）
+        function quickFlipCoin(coin, callback) {
+            coin.classList.add('quick-flipping');
+            setTimeout(() => {
+                coin.classList.remove('quick-flipping');
+                // 使用更高质量的随机数生成方法
+                const isHead = window.crypto.getRandomValues(new Uint32Array(1))[0] / 4294967295 > 0.5;
+                coin.dataset.side = isHead ? 'head' : 'tail';
+                coin.style.transform = isHead ? 'rotateY(0deg)' : 'rotateY(180deg)';
+                coin.classList.add('selected', 'locked');
+                if (callback) callback();
+            }, 200);
+        }
+        // 依次快速摇三个钱币
+        function flipNextQuickCoin() {
+            if (currentCoinIndex >= coins.length) {
+                // 三个钱币都摇完后，自动记录结果
                 setTimeout(() => {
-                    document.getElementById('hexagram-section').scrollIntoView({ 
-                        behavior: 'smooth' 
-                    });
-                }, 500);
+                    castWithCoins();
+                    // 继续下一次摇卦（间隔200ms）
+                    setTimeout(autoCastFull, 200);
+                }, 200);
                 return;
             }
-
-            const coins = document.querySelectorAll('.coin');
-            let currentCoinIndex = 0;
             
-            // 超快速摇动单个钱币（200ms完成）
-            function quickFlipCoin(coin, callback) {
-                coin.classList.add('quick-flipping');
-                setTimeout(() => {
-                    coin.classList.remove('quick-flipping');
-                    // 使用更高质量的随机数生成方法
-                    const isHead = Math.random() > 0.5;
-                    coin.dataset.side = isHead ? 'head' : 'tail';
-                    coin.style.transform = isHead ? 'rotateY(0deg)' : 'rotateY(180deg)';
-                    coin.classList.add('selected', 'locked');
-                    if (callback) callback();
-                }, 200);
-            }
-            // 依次快速摇三个钱币
-            function flipNextQuickCoin() {
-                if (currentCoinIndex >= coins.length) {
-                    // 三个钱币都摇完后，自动记录结果
-                    setTimeout(() => {
-                        castWithCoins();
-                        // 继续下一次摇卦（间隔200ms）
-                        setTimeout(autoCastFull, 200);
-                    }, 200);
-                    return;
-                }
-                
-                const coin = coins[currentCoinIndex];
-                if (!coin.classList.contains('locked')) {
-                    // 显示当前正在摇的硬币
-                    coin.classList.add('highlight-coin');
-                    quickFlipCoin(coin, () => {
-                        coin.classList.remove('highlight-coin');
-                        currentCoinIndex++;
-                        flipNextQuickCoin();
-                    });
-                } else {
+            const coin = coins[currentCoinIndex];
+            if (!coin.classList.contains('locked')) {
+                // 显示当前正在摇的硬币
+                coin.classList.add('highlight-coin');
+                quickFlipCoin(coin, () => {
+                    coin.classList.remove('highlight-coin');
                     currentCoinIndex++;
                     flipNextQuickCoin();
-                }
-            }
-            
-            // 更新状态显示
-            document.getElementById('cast-status').textContent = 
-                `正在自动进行第 ${castCount + 1} 次摇卦...`;
-            
-            flipNextQuickCoin();
-        }
-        
-        autoCastFull();
-    }
-
-    // 改进的钱币翻转动画，增加回调函数
-    function flipCoin(coin, callback) {
-        coin.classList.add('flipping');
-        setTimeout(() => {
-            coin.classList.remove('flipping');
-            // 随机决定是正面还是反面
-            const isHead = Math.random() > 0.5;
-            if (isHead) {
-                coin.dataset.side = 'head';
-                coin.style.transform = 'rotateY(0deg)';
+                });
             } else {
-                coin.dataset.side = 'tail';
-                coin.style.transform = 'rotateY(180deg)';
+                currentCoinIndex++;
+                flipNextQuickCoin();
             }
-            
-            // 添加选中效果并锁定
-            coin.classList.add('selected');
-            coin.classList.add('locked');
-            
-            // 更新状态显示
-            updateCoinStatus();
-            
-            // 执行回调函数
-            if (callback) callback();
-        }, 1000);
-    }
-
-    // 更新钱币状态显示
-    function updateCoinStatus() {
-        const coins = document.querySelectorAll('.coin');
-        let allCoinsSet = true;
-        let headCount = 0;
-        
-        coins.forEach(coin => {
-            if (!coin.dataset.side) {
-                allCoinsSet = false;
-            } else if (coin.dataset.side === 'head') {
-                headCount++;
-            }
-        });
-        
-        if (allCoinsSet) {
-            let statusText = "";
-            switch (headCount) {
-                case 0: statusText = "三枚反面：老阴（变爻）"; break;
-                case 1: statusText = "一枚正面：少阴（不变）"; break;
-                case 2: statusText = "两枚正面：少阳（不变）"; break;
-                case 3: statusText = "三枚正面：老阳（变爻）"; break;
-            }
-            document.getElementById('cast-status').textContent = statusText;
-        } else {
-            document.getElementById('cast-status').textContent = `请点击所有钱币确定正反面（已点击 ${countSetCoins()} / 3）`;
         }
-    }
-
-    // 计算已设置的钱币数量
-    function countSetCoins() {
-        const coins = document.querySelectorAll('.coin');
-        let count = 0;
-        coins.forEach(coin => {
-            if (coin.dataset.side) {
-                count++;
-            }
-        });
-        return count;
-    }
-
-    // 使用钱币摇卦 - 修复概率问题
-    function castWithCoins() {
-        const question = document.getElementById('question').value.trim();
-        if (!question) {
-            alert('请输入占卜问题');
-            return;
-        }
-        
-        // 第一次摇卦时设置问题
-        if (castCount === 0) {
-            currentQuestion = question;
-            // 设置占卜时间和方法
-            const now = new Date();
-            document.getElementById('divination-time').textContent = now.toLocaleString();
-            document.getElementById('divination-method').textContent = "钱币摇卦";
-        }
-        
-        const coins = document.querySelectorAll('.coin');
-        let allCoinsSet = true;
-        let headCount = 0;
-        
-        coins.forEach(coin => {
-            if (!coin.dataset.side) {
-                allCoinsSet = false;
-            } else if (coin.dataset.side === 'head') {
-                headCount++;
-            }
-        });
-        
-        if (!allCoinsSet) {
-            alert('请先点击所有钱币确定正反面');
-            return;
-        }
-        
-        // 修复概率问题 - 严格按照传统规则
-        let yao;
-        switch (headCount) {
-            case 0: // 三个反面 - 老阴
-                yao = { 
-                    type: '6', 
-                    line: '000', 
-                    changing: true 
-                };
-                break;
-            case 1: // 一个正面 - 少阴
-                yao = { 
-                    type: '8', 
-                    line: '000', 
-                    changing: false 
-                };
-                break;
-            case 2: // 两个正面 - 少阳
-                yao = { 
-                    type: '7', 
-                    line: '111', 
-                    changing: false 
-                };
-                break;
-            case 3: // 三个正面 - 老阳
-                yao = { 
-                    type: '9', 
-                    line: '111', 
-                    changing: true 
-                };
-                break;
-        }
-        
-        currentHexagram.push(yao);
-        castCount++;
-        
-        // 更新摇卦次数显示
-        document.getElementById('cast-count').textContent = castCount;
-        
-        // 重置钱币状态（解锁并清除状态）
-        coins.forEach(coin => {
-            delete coin.dataset.side;
-            coin.style.transform = 'rotateY(0deg)';
-            coin.classList.remove('selected');
-            coin.classList.remove('locked'); // 解锁钱币
-        });
         
         // 更新状态显示
-        document.getElementById('cast-status').textContent = `第 ${castCount} 次摇卦完成，请继续点击钱币`;
+        document.getElementById('cast-status').textContent = 
+            `正在自动进行第 ${castCount + 1} 次摇卦...`;
         
-        // 更新UI
-        updateHexagramDisplay();
-        
-        // 如果已经摇了6次，显示结果
-        if (castCount === 6) {
-            showResult();
-        }
+        flipNextQuickCoin();
     }
+    
+    autoCastFull();
+}
 
-    // 使用时间起卦
+// 改进的钱币翻转动画，增加回调函数
+function flipCoin(coin, callback) {
+    coin.classList.add('flipping');
+    setTimeout(() => {
+        coin.classList.remove('flipping');
+        // 随机决定是正面还是反面
+        const isHead = Math.random() > 0.5;
+        if (isHead) {
+            coin.dataset.side = 'head';
+            coin.style.transform = 'rotateY(0deg)';
+        } else {
+            coin.dataset.side = 'tail';
+            coin.style.transform = 'rotateY(180deg)';
+        }
+        
+        // 添加选中效果并锁定
+        coin.classList.add('selected');
+        coin.classList.add('locked');
+        
+        // 更新状态显示
+        updateCoinStatus();
+        
+        // 执行回调函数
+        if (callback) callback();
+    }, 1000);
+}
+
+// 更新钱币状态显示
+function updateCoinStatus() {
+    const coins = document.querySelectorAll('.coin');
+    let allCoinsSet = true;
+    let headCount = 0;
+    
+    coins.forEach(coin => {
+        if (!coin.dataset.side) {
+            allCoinsSet = false;
+        } else if (coin.dataset.side === 'head') {
+            headCount++;
+        }
+    });
+    
+    if (allCoinsSet) {
+        let statusText = "";
+        switch (headCount) {
+            case 0: statusText = "三枚反面：老阴（变爻）"; break;
+            case 1: statusText = "一枚正面：少阴（不变）"; break;
+            case 2: statusText = "两枚正面：少阳（不变）"; break;
+            case 3: statusText = "三枚正面：老阳（变爻）"; break;
+        }
+        document.getElementById('cast-status').textContent = statusText;
+    } else {
+        document.getElementById('cast-status').textContent = `请点击所有钱币确定正反面（已点击 ${countSetCoins()} / 3）`;
+    }
+}
+
+// 计算已设置的钱币数量
+function countSetCoins() {
+    const coins = document.querySelectorAll('.coin');
+    let count = 0;
+    coins.forEach(coin => {
+        if (coin.dataset.side) {
+            count++;
+        }
+    });
+    return count;
+}
+
+// 使用钱币摇卦 - 改进后的版本
+function castWithCoins() {
+    const question = document.getElementById('question').value.trim();
+    if (!question) {
+        alert('请输入占卜问题');
+        return;
+    }
+    
+    // 第一次摇卦时设置问题
+    if (castCount === 0) {
+        currentQuestion = question;
+        // 设置占卜时间和方法
+        const now = new Date();
+        document.getElementById('divination-time').textContent = now.toLocaleString();
+        document.getElementById('divination-method').textContent = "钱币摇卦";
+    }
+    
+    const coins = document.querySelectorAll('.coin');
+    let allCoinsSet = true;
+    let headCount = 0;
+    
+    coins.forEach(coin => {
+        if (!coin.dataset.side) {
+            allCoinsSet = false;
+        } else if (coin.dataset.side === 'head') {
+            headCount++;
+        }
+    });
+    
+    if (!allCoinsSet) {
+        alert('请先点击所有钱币确定正反面');
+        return;
+    }
+    
+    // 确定爻的性质
+    / 确定爻的性质（使用独立随机因子）
+            let yaoType;
+            let changing;
+            const randomFactor = getSecureRandom();
+            
+            switch (headCount) {
+                case 0: // 三个反面
+                    yaoType = randomFactor > 0.15 ? '6' : '8';
+                    changing = randomFactor > 0.15;
+                    break;
+                case 1: // 一个正面
+                    if (randomFactor > 0.75) {
+                        yaoType = '9';
+                        changing = true;
+                    } else if (randomFactor > 0.45) {
+                        yaoType = '6';
+                        changing = true;
+                    } else if (randomFactor > 0.2) {
+                        yaoType = '8';
+                        changing = false;
+                    } else {
+                        yaoType = '7';
+                        changing = false;
+                    }
+                    break;
+                case 2: // 两个正面
+                    if (randomFactor > 0.75) {
+                        yaoType = '9';
+                        changing = true;
+                    } else if (randomFactor > 0.5) {
+                        yaoType = '7';
+                        changing = false;
+                    } else if (randomFactor > 0.25) {
+                        yaoType = '8';
+                        changing = false;
+                    } else {
+                        yaoType = '6';
+                        changing = true;
+                    }
+                    break;
+                case 3: // 三个正面
+                    yaoType = randomFactor > 0.15 ? '9' : '7';
+                    changing = randomFactor > 0.15;
+                    break;
+            }
+            
+            const yao = {
+                type: yaoType,
+                line: (yaoType === '7' || yaoType === '9') ? '111' : '000',
+                changing: changing
+            };
+    }
+    
+    currentHexagram.push(yao);
+    castCount++;
+    
+    // 更新摇卦次数显示
+    document.getElementById('cast-count').textContent = castCount;
+    
+    // 重置钱币状态（解锁并清除状态）
+    coins.forEach(coin => {
+        delete coin.dataset.side;
+        coin.style.transform = 'rotateY(0deg)';
+        coin.classList.remove('selected');
+        coin.classList.remove('locked'); // 解锁钱币
+    });
+    
+    // 更新状态显示
+    document.getElementById('cast-status').textContent = `第 ${castCount} 次摇卦完成，请继续点击钱币`;
+    
+    // 更新UI
+    updateHexagramDisplay();
+    
+    // 如果已经摇了6次，显示结果
+    if (castCount === 6) {
+        showResult();
+    }
+}
+
+// 使用时间起卦
 function castWithTime() {
     const question = document.getElementById('question').value.trim();
     if (!question) {
@@ -1717,185 +1763,505 @@ function generateHexagramFromNumbers(upperNum, lowerNum, changingYaoPos) {
     
     return hexagram; // 顺序：[初爻,二爻,三爻,四爻,五爻,上爻]
 }
+
+// 更新卦象显示
+function updateHexagramDisplay() {
+    const hexagramDisplay = document.getElementById('hexagram-display');
+    hexagramDisplay.innerHTML = '';
+    
+    // 确保数据存在
+    if (!currentHexagram || currentHexagram.length !== 6) {
+        hexagramDisplay.innerHTML = '<div>卦象数据错误</div>';
+        return;
+    }
+
+    // 关键：用flex反向显示实现从下往上排列
+    hexagramDisplay.style.display = 'flex';
+    hexagramDisplay.style.flexDirection = 'column-reverse';
+    
+    // 正序处理数组（i=0=初爻 → i=5=上爻）
+    for (let i = 0; i < 6; i++) {
+        const yao = currentHexagram[i];
+        const lineDiv = document.createElement('div');
+        lineDiv.className = 'hexagram-line';
+        
+        // 绘制爻线
+        if (yao.line === '111') {
+            lineDiv.classList.add('solid-line');
+        } else {
+            lineDiv.classList.add('broken-line');
+            lineDiv.innerHTML = `
+                <div class="broken-line-part"></div>
+                <div class="broken-line-part"></div>
+            `;
+        }
+        
+        // 标记变爻
+        if (yao.changing) {
+            lineDiv.classList.add('yao-change');
+        }
+        
+        // 添加爻位标识
+        const numberSpan = document.createElement('span');
+        numberSpan.className = 'line-number';
+        numberSpan.textContent = getPositionName(yao.position || (i + 1));
+        lineDiv.appendChild(numberSpan);
+        
+        hexagramDisplay.appendChild(lineDiv);
+    }
+}
+
+// 辅助函数：获取传统爻位名称
+function getPositionName(pos) {
+    const names = ['初爻', '二爻', '三爻', '四爻', '五爻', '上爻'];
+    return names[pos - 1] || pos;
+}
+
+function generateHexagramSvg(hexagramCode) {
+    const svgWidth = 150;  // 增加宽度
+    const svgHeight = 220; // 增加高度
+    const lineHeight = 10; // 加粗爻线
+    const spacing = 25;    // 增加间距
+    const lineColor = '#5a3921'; // 爻线颜色改为深棕色
+    const bgColor = '#f8f3e6';   // 背景色改为米黄色
+    
+    let svgContent = '';
+    const positionNames = ['初', '二', '三', '四', '五', '上'];
+    const changingYaoPositions = [];
+    
+    // 找出变爻位置
+    currentHexagram.forEach((yao, index) => {
+        if (yao.changing) {
+            changingYaoPositions.push(5 - index); // SVG是从上往下绘制
+        }
+    });
+    
+    // 从下往上绘制（i=0=初爻，i=5=上爻）
+    for (let i = 0; i < 6; i++) {
+        // 初爻在底部（y=180），上爻在顶部（y=30）
+        const yPos = 180 - i * spacing;
+        const isYang = hexagramCode[i] === '1';
+        const isChanging = changingYaoPositions.includes(i);
+        
+        // 变爻添加特殊标记
+        if (isChanging) {
+            svgContent += `
+                <circle cx="60" cy="${yPos}" r="15" fill="rgba(255,215,0,0.2)" />
+            `;
+        }
+        
+        // 绘制爻线
+        if (isYang) {
+            svgContent += `
+                <line x1="30" y1="${yPos}" x2="120" y2="${yPos}" 
+                      stroke="${lineColor}" stroke-width="${lineHeight}" 
+                      stroke-linecap="round" class="yang-line"/>
+            `;
+        } else {
+            svgContent += `
+                <line x1="30" y1="${yPos}" x2="75" y2="${yPos}" 
+                      stroke="${lineColor}" stroke-width="${lineHeight}" 
+                      stroke-linecap="round" class="yin-line"/>
+                <line x1="90" y1="${yPos}" x2="120" y2="${yPos}" 
+                      stroke="${lineColor}" stroke-width="${lineHeight}" 
+                      stroke-linecap="round" class="yin-line"/>
+            `;
+        }
+        
+        // 爻位标注（初爻在底部，上爻在顶部）
+        svgContent += `
+            <text x="125" y="${yPos + 5}" class="yao-position" 
+                  font-family="SimSun, serif" font-size="12" fill="#666">
+                ${positionNames[i]}
+            </text>
+        `;
+    }
+    
+    // 添加卦名标注
+    const guaName = guaData[hexagramCode]?.name || "未知卦";
+    svgContent += `
+        <text x="75" y="210" text-anchor="middle" 
+              font-family="SimSun, serif" font-size="14" font-weight="bold" fill="#8B4513">
+            ${guaName}
+        </text>
+    `;
+    
+    return `
+        <svg width="${svgWidth}" height="${svgHeight}" viewBox="0 0 150 220" 
+             xmlns="http://www.w3.org/2000/svg" class="hexagram-svg">
+            <rect width="100%" height="100%" rx="10" fill="${bgColor}" 
+                  stroke="#d4a017" stroke-width="2"/>
+            ${svgContent}
+        </svg>
+    `;
+}
+
+// 需要同步修改的辅助函数（确保卦象编码顺序正确）
+function getGuaStructure(hexagramCode) {
+    // 上卦改为前3爻，下卦改为后3爻
+    const upper = hexagramCode.slice(0, 3);
+    const lower = hexagramCode.slice(3);
+    return `上卦：${upper.replace(/0/g,'阴').replace(/1/g,'阳')}，下卦：${lower.replace(/0/g,'阴').replace(/1/g,'阳')}`;
+}
+
+// 需要更新的爻位判断函数
+function getYaoPositionName(position) {
+    // 位置顺序改为从上往下（1=上爻，6=初爻）
+    const names = ['上爻', '五爻', '四爻', '三爻', '二爻', '初爻'];
+    return names[position - 1] || `${position}爻`;
+}
+
+// 辅助函数：获取变爻解释
+function getYaoChangeInterpretation(count, hexagramCode) {
+    const interpretations = {
+        1: "事物发展将出现关键转折点",
+        2: "阴阳力量正在转换平衡",
+        3: "重大变革即将发生",
+        4: "多方面因素同时变化",
+        5: "整体格局将发生转变",
+        6: "乾坤颠倒，彻底变化"
+    };
+    return interpretations[count] || "卦象正在发生动态变化";
+}
+        
+        // 显示结果 - 需要添加到代码中
+function showResult() {
+    // 显示结果区域
+    document.getElementById('hexagram-section').style.display = 'block';
     
     // 更新卦象显示
-    function updateHexagramDisplay() {
-        const hexagramDisplay = document.getElementById('hexagram-display');
-        hexagramDisplay.innerHTML = '';
-        
-        // 确保数据存在
-        if (!currentHexagram || currentHexagram.length !== 6) {
-            hexagramDisplay.innerHTML = '<div>卦象数据错误</div>';
-            return;
-        }
-
-        // 关键：用flex反向显示实现从下往上排列
-        hexagramDisplay.style.display = 'flex';
-        hexagramDisplay.style.flexDirection = 'column-reverse';
-        
-        // 正序处理数组（i=0=初爻 → i=5=上爻）
-        for (let i = 0; i < 6; i++) {
-            const yao = currentHexagram[i];
-            const lineDiv = document.createElement('div');
-            lineDiv.className = 'hexagram-line';
-            
-            // 绘制爻线
-            if (yao.line === '111') {
-                lineDiv.classList.add('solid-line');
-            } else {
-                lineDiv.classList.add('broken-line');
-                lineDiv.innerHTML = `
-                    <div class="broken-line-part"></div>
-                    <div class="broken-line-part"></div>
-                `;
-            }
-            
-            // 标记变爻
-            if (yao.changing) {
-                lineDiv.classList.add('yao-change');
-            }
-            
-            // 添加爻位标识
-            const numberSpan = document.createElement('span');
-            numberSpan.className = 'line-number';
-            numberSpan.textContent = getPositionName(yao.position || (i + 1));
-            lineDiv.appendChild(numberSpan);
-            
-            hexagramDisplay.appendChild(lineDiv);
-        }
-    }
-
-    // 辅助函数：获取传统爻位名称
-    function getPositionName(pos) {
-        const names = ['初爻', '二爻', '三爻', '四爻', '五爻', '上爻'];
-        return names[pos - 1] || pos;
-    }
-
-    // 其他函数保持不变（generateHexagramSvg, showResult等）...
+    updateHexagramDisplay();
     
-    // 保存卦象到历史记录
-    function saveHexagram() {
-        if (currentHexagram.length === 0) return;
-        
-        // 生成卦象编码
-        let hexagramCode = '';
-        currentHexagram.forEach(yao => {
-            hexagramCode += yao.line === '111' ? '1' : '0';
-        });
-        
-        const guaInfo = guaData[hexagramCode] || { name: "未知卦" };
-        
-        // 创建历史记录
-        const record = {
-            question: currentQuestion,
-            hexagram: hexagramCode,
-            name: guaInfo.name,
-            time: new Date().toLocaleString(),
-            method: currentMethod
-        };
-        
-        // 添加到历史记录
-        history.unshift(record);
-        
-        // 保存到本地存储
-        localStorage.setItem('divinationHistory', JSON.stringify(history));
-        
-        // 更新历史显示
-        renderHistory();
-        
-        // 显示历史部分
-        document.getElementById('history-section').style.display = 'block';
-        
-        alert('卦象已保存到历史记录');
-    }
+    // 生成卦象编码
+    let hexagramCode = '';
+            currentHexagram.forEach(yao => {
+                // 阳爻: 7和9，阴爻: 6和8
+                hexagramCode += (yao.type === '7' || yao.type === '9') ? '1' : '0';
+            });
     
-    // 渲染历史记录
-    function renderHistory() {
-        const historyList = document.getElementById('history-list');
-        historyList.innerHTML = '';
-        
-        if (history.length === 0) {
-            historyList.innerHTML = '<p>暂无历史记录</p>';
-            return;
+    // 获取卦象数据
+    const guaInfo = guaData[hexagramCode] || { 
+        name: "未知卦", 
+        interpretation: "暂无解释" 
+    };
+    
+    // 显示卦名
+    document.getElementById('gua-name').textContent = guaInfo.name;
+    
+    // 动态生成SVG卦象图
+    document.getElementById('gua-image-container').innerHTML = generateHexagramSvg(hexagramCode);
+    
+    // 显示卦象解释
+    document.getElementById('gua-interpretation').innerHTML = `
+        <p>${guaInfo.interpretation}</p>
+        <div class="gua-structure">
+            <i class="fas fa-project-diagram"></i> ${getGuaStructure(hexagramCode)}
+        </div>
+    `;
+    
+    // 显示问题
+    document.getElementById('question-display').textContent = currentQuestion;
+    
+    // 处理变爻分析
+    const changingYao = [];
+    currentHexagram.forEach((yao, index) => {
+        if (yao.changing) {
+            changingYao.push(6 - index); // 转换为爻位（1=初爻，6=上爻）
         }
+    });
+    
+    let yaoAnalysisHtml = '';
+    if (changingYao.length > 0) {
+        yaoAnalysisHtml += `
+            <div class="changing-yao-header">
+                <i class="fas fa-exchange-alt"></i>
+                <h4>本次占卜有 ${changingYao.length} 个变爻：第 ${changingYao.join('、')} 爻</h4>
+            </div>
+            <p>${getYaoChangeInterpretation(changingYao.length, hexagramCode)}</p>
+        `;
         
-        history.forEach((record, index) => {
-            const item = document.createElement('div');
-            item.className = 'history-item';
-            item.innerHTML = `
-                <span class="history-gua">${record.name} (${record.method})</span>
-                <span class="history-date">${record.time}</span>
+        changingYao.forEach(pos => {
+            const index = 6 - pos; // 转换为数组索引
+            const yao = currentHexagram[index];
+            yaoAnalysisHtml += `
+                <div class="yao-item">
+                    <div class="yao-position">${getYaoPositionName(pos)}</div>
+                    <div class="yao-content">
+                        <p>${yaoChangeData[yao.type] || '未知变化'}</p>
+                        ${yaoData[hexagramCode] && yaoData[hexagramCode][index] ? 
+                         `<p class="yao-text">${yaoData[hexagramCode][index]}</p>` : ''}
+                    </div>
+                </div>
             `;
-            
-            item.addEventListener('click', function() {
-                loadHistoryRecord(index);
-            });
-            
-            historyList.appendChild(item);
         });
+        
+        yaoAnalysisHtml += `
+            <div class="yao-change-meaning">
+                <i class="fas fa-info-circle"></i>
+                <p>变爻表示事物发展中的动态变化，需要特别关注这些爻位的含义。</p>
+            </div>
+        `;
+    } else {
+        yaoAnalysisHtml = `
+            <div class="no-changing-yao">
+                <i class="fas fa-info-circle"></i>
+                <p>本次占卜没有变爻，表示事情将保持现状发展。</p>
+            </div>
+        `;
     }
     
-    // 加载历史记录
-    function loadHistoryRecord(index) {
-        if (index < 0 || index >= history.length) return;
+    document.getElementById('yao-analysis').innerHTML = yaoAnalysisHtml;
+    
+    // 显示加载指示器并获取卦辞详解
+    document.getElementById('gua-detail-content').textContent = "正在获取卦辞详解...";
+    document.getElementById('loading-indicator').style.display = 'block';
+    
+    // 从API获取卦辞详解
+    fetchGuaDetailFromAPI(currentQuestion, guaInfo.name, hexagramCode, changingYao);
+    
+    // 滚动到结果区域
+    setTimeout(() => {
+        document.getElementById('hexagram-section').scrollIntoView({ 
+            behavior: 'smooth' 
+        });
+    }, 500);
+}
+
+        // 从DeepSeek API获取卦辞详解
+        async function fetchGuaDetailFromAPI(question, guaName, hexagramCode, changingYao) {
+            try {
+                const prompt = `用户占卜问题："${question}"
+                
+请详细解释《易经》中的${guaName}卦（卦象编码：${hexagramCode}），并结合用户的问题给出针对性解答，请按照以下结构用中文回答：
+                
+1. 卦象概述：
+   用一段话简要说明此卦的核心含义，以及与用户问题的关联
+
+2. 象征意义：
+   详细解释卦象的象征意义，包括上下卦的组合含义
+
+3. 变爻分析：
+   ${changingYao.length > 0 ? '重点分析第' + changingYao.join('、') + '爻的变化含义及其对用户问题的启示' : '本次占卜无变爻，说明事情将保持现状'}
+
+4. 传统卦辞：
+   解释此卦的传统卦辞和爻辞含义
+
+5. 问题解答：
+   针对用户的问题，详细分析此卦对问题的解答
+
+6. 注意事项：
+   提醒占卜者需要注意的关键点
+
+请使用纯文本格式回答，不要使用Markdown符号（如#，*，-等）。内容要详细专业，适合命理学习者，使用清晰的分段。`;
+                
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: "deepseek-chat",
+                        messages: [
+                            {
+                                role: "user",
+                                content: prompt
+                            }
+                        ],
+                        temperature: 0.7
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`API请求失败: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                const rawContent = data.choices[0].message.content;
+                
+                // 格式化卦辞详解
+                const formattedContent = formatGuaDetail(rawContent);
+                document.getElementById('gua-detail-content').innerHTML = formattedContent;
+                document.getElementById('loading-indicator').style.display = 'none';
+            } catch (error) {
+                console.error('获取卦辞详解失败:', error);
+                document.getElementById('gua-detail-content').innerHTML = 
+                    `<div class="detail-highlight"><i class="fas fa-exclamation-triangle"></i> 获取卦辞详解失败: ${error.message}</div>
+                     <p class="detail-para">${guaData[hexagramCode]?.interpretation || '暂无解释'}</p>`;
+                document.getElementById('loading-indicator').style.display = 'none';
+            }
+        }
         
-        const record = history[index];
-        currentQuestion = record.question;
-        currentMethod = record.method;
+        // 卦辞格式化函数
+        function formatGuaDetail(text) {
+            // 分割段落
+            let paragraphs = text.split('\n').filter(p => p.trim() !== '');
+            
+            // 如果没有明显分段，尝试按句号分
+            if (paragraphs.length <= 1) {
+                paragraphs = text.split(/[。！？]/).filter(p => p.trim() !== '');
+            }
+            
+            // 识别标题和关键部分
+            let html = '';
+            paragraphs.forEach(para => {
+                para = para.trim();
+                if (!para) return;
+                
+                // 识别标题（包含数字或冒号的部分）
+                if (/^\d+[、.]/.test(para) || /[:：]$/.test(para)) {
+                    html += `<h4 class="detail-title">${para}</h4>`;
+                } 
+                // 识别重点内容
+                else if (para.includes('建议') || para.includes('注意') || para.includes('关键')) {
+                    html += `<div class="detail-highlight"><i class="fas fa-lightbulb"></i> ${para}</div>`;
+                }
+                // 识别列表项
+                else if (para.startsWith('-') || para.startsWith('•')) {
+                    if (!html.includes('<ul>')) html += '<ul>';
+                    html += `<li>${para.substring(1).trim()}</li>`;
+                }
+                // 普通段落
+                else {
+                    // 如果上一项是ul，先闭合
+                    if (html.includes('<ul>') && !html.includes('</ul>')) {
+                        html += '</ul>';
+                    }
+                    html += `<p class="detail-para">${para}</p>`;
+                }
+            });
+            
+            // 确保ul标签闭合
+            if (html.includes('<ul>') && !html.includes('</ul>')) {
+                html += '</ul>';
+            }
+            
+            return html;
+        }
         
-        // 根据卦象编码重建卦象
-        currentHexagram = [];
-        for (let i = 0; i < record.hexagram.length; i++) {
-            const char = record.hexagram[i];
-            currentHexagram.push({
-                type: char === '1' ? '7' : '8',
-                line: char === '1' ? '111' : '000',
-                changing: false
+        // 保存卦象到历史记录
+        function saveHexagram() {
+            if (currentHexagram.length === 0) return;
+            
+            // 生成卦象编码
+            let hexagramCode = '';
+            currentHexagram.forEach(yao => {
+                hexagramCode += yao.line === '111' ? '1' : '0';
+            });
+            
+            const guaInfo = guaData[hexagramCode] || { name: "未知卦" };
+            
+            // 创建历史记录
+            const record = {
+                question: currentQuestion,
+                hexagram: hexagramCode,
+                name: guaInfo.name,
+                time: new Date().toLocaleString(),
+                method: currentMethod
+            };
+            
+            // 添加到历史记录
+            history.unshift(record);
+            
+            // 保存到本地存储
+            localStorage.setItem('divinationHistory', JSON.stringify(history));
+            
+            // 更新历史显示
+            renderHistory();
+            
+            // 显示历史部分
+            document.getElementById('history-section').style.display = 'block';
+            
+            alert('卦象已保存到历史记录');
+        }
+        
+        // 渲染历史记录
+        function renderHistory() {
+            const historyList = document.getElementById('history-list');
+            historyList.innerHTML = '';
+            
+            if (history.length === 0) {
+                historyList.innerHTML = '<p>暂无历史记录</p>';
+                return;
+            }
+            
+            history.forEach((record, index) => {
+                const item = document.createElement('div');
+                item.className = 'history-item';
+                item.innerHTML = `
+                    <span class="history-gua">${record.name} (${record.method})</span>
+                    <span class="history-date">${record.time}</span>
+                `;
+                
+                item.addEventListener('click', function() {
+                    loadHistoryRecord(index);
+                });
+                
+                historyList.appendChild(item);
             });
         }
         
-        castCount = 6;
-        
-        // 显示方法
-        document.getElementById('divination-method').textContent = record.method + "起卦";
-        
-        // 显示结果
-        updateHexagramDisplay();
-        showResult();
-        
-        // 滚动到结果区域
-        document.getElementById('hexagram-section').scrollIntoView({ behavior: 'smooth' });
-    }
-    
-    // 清除历史记录
-    function clearHistory() {
-        if (confirm('确定要清除所有历史记录吗？')) {
-            history = [];
-            localStorage.removeItem('divinationHistory');
-            document.getElementById('history-section').style.display = 'none';
+        // 加载历史记录
+        function loadHistoryRecord(index) {
+            if (index < 0 || index >= history.length) return;
+            
+            const record = history[index];
+            currentQuestion = record.question;
+            currentMethod = record.method;
+            
+            // 根据卦象编码重建卦象
+            currentHexagram = [];
+            for (let i = 0; i < record.hexagram.length; i++) {
+                const char = record.hexagram[i];
+                currentHexagram.push({
+                    type: char === '1' ? '7' : '8',
+                    line: char === '1' ? '111' : '000',
+                    changing: false
+                });
+            }
+            
+            castCount = 6;
+            
+            // 显示方法
+            document.getElementById('divination-method').textContent = record.method + "起卦";
+            
+            // 显示结果
+            updateHexagramDisplay();
+            showResult();
+            
+            // 滚动到结果区域
+            document.getElementById('hexagram-section').scrollIntoView({ behavior: 'smooth' });
         }
-    }
-    
-    // 重置占卜
-    function resetDivination() {
-        currentHexagram = [];
-        castCount = 0;
-        document.getElementById('hexagram-display').innerHTML = '';
-        document.getElementById('hexagram-section').style.display = 'none';
-        document.getElementById('cast-count').textContent = '0';
-        document.getElementById('cast-status').textContent = '准备开始，请点击钱币确定正反面';
         
-        // 重置钱币
-        const coins = document.querySelectorAll('.coin');
-        coins.forEach(coin => {
-            delete coin.dataset.side;
-            coin.style.transform = 'rotateY(0deg)';
-            coin.classList.remove('selected');
-        });
+        // 清除历史记录
+        function clearHistory() {
+            if (confirm('确定要清除所有历史记录吗？')) {
+                history = [];
+                localStorage.removeItem('divinationHistory');
+                document.getElementById('history-section').style.display = 'none';
+            }
+        }
         
-        // 滚动到顶部
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-</script>
+        // 重置占卜
+        function resetDivination() {
+            currentHexagram = [];
+            castCount = 0;
+            document.getElementById('hexagram-display').innerHTML = '';
+            document.getElementById('hexagram-section').style.display = 'none';
+            document.getElementById('cast-count').textContent = '0';
+            document.getElementById('cast-status').textContent = '准备开始，请点击钱币确定正反面';
+            
+            // 重置钱币
+            const coins = document.querySelectorAll('.coin');
+            coins.forEach(coin => {
+                delete coin.dataset.side;
+                coin.style.transform = 'rotateY(0deg)';
+                coin.classList.remove('selected');
+            });
+            
+            // 滚动到顶部
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    </script>
 </body>
 </html>
