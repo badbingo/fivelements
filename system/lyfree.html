@@ -3,14 +3,394 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>六爻起卦 - 麦八字教学网</title>
-    <link rel="stylesheet" href="../css/style1.css">
+    <title>六爻起卦系统 - 麦八字教学网</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/seedrandom/3.0.5/seedrandom.min.js"></script>
-    <link rel="stylesheet" href="../css/navigation.css">
-    <script defer src="../js/navigation.js"></script>
     <style>
-        /* 六爻起卦专属样式 */
+        :root {
+            --primary-color: #8B4513;
+            --secondary-color: #d4a017;
+            --background-color: #f8f3e6;
+            --text-color: #5a3921;
+            --card-bg: rgba(255, 255, 255, 0.85);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f0e4 0%, #e8dfca 100%);
+            color: var(--text-color);
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><path d="M20,20 Q40,5 50,30 T80,20" fill="none" stroke="rgba(139, 69, 19, 0.05)" stroke-width="1"/></svg>');
+            background-size: 200px;
+            opacity: 0.3;
+            z-index: -1;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            padding: 30px 0;
+            position: relative;
+        }
+        
+        .logo {
+            width: 80px;
+            height: 80px;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px;
+            font-size: 40px;
+            font-weight: bold;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            color: var(--text-color);
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+        
+        .content-card {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            border: 1px solid rgba(139, 69, 19, 0.1);
+            backdrop-filter: blur(5px);
+        }
+        
+        .card-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--primary-color);
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid rgba(139, 69, 19, 0.2);
+        }
+        
+        .card-title i {
+            font-size: 1.5rem;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .input-with-icon {
+            position: relative;
+        }
+        
+        .input-with-icon i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--primary-color);
+        }
+        
+        input[type="text"],
+        input[type="number"],
+        input[type="datetime-local"] {
+            width: 100%;
+            padding: 15px 15px 15px 45px;
+            border: 1px solid rgba(139, 69, 19, 0.3);
+            border-radius: 10px;
+            font-size: 1rem;
+            background: rgba(255, 255, 255, 0.7);
+            transition: all 0.3s;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(139, 69, 19, 0.2);
+        }
+        
+        .hint-text {
+            font-size: 0.9rem;
+            color: #777;
+            margin-top: 8px;
+            font-style: italic;
+        }
+        
+        .divination-methods {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        
+        .method-btn {
+            padding: 12px 25px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(139, 69, 19, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .method-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(139, 69, 19, 0.4);
+        }
+        
+        .method-btn.active {
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+            box-shadow: 0 0 0 3px rgba(139, 69, 19, 0.3);
+        }
+        
+        .instruction-card {
+            background: rgba(255, 255, 255, 0.7);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .instruction-card h4 {
+            color: var(--primary-color);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .instruction-card p {
+            line-height: 1.7;
+            margin-bottom: 10px;
+        }
+        
+        .instruction-card ol, .instruction-card ul {
+            padding-left: 25px;
+        }
+        
+        .instruction-card li {
+            margin-bottom: 8px;
+            line-height: 1.6;
+        }
+        
+        .highlight {
+            background-color: rgba(212, 160, 23, 0.2);
+            padding: 5px 8px;
+            border-radius: 5px;
+            font-weight: 500;
+        }
+        
+        /* 钱币摇卦样式 */
+        .coin-container {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin: 30px 0;
+        }
+        
+        .coin {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #f5f5f5, #e0e0e0);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+            position: relative;
+            transform-style: preserve-3d;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            perspective: 500px;
+        }
+        
+        .coin.selected {
+            background: linear-gradient(135deg, #fffacd, #ffeb3b);
+            box-shadow: 0 0 20px rgba(255,235,59,0.6);
+        }
+        
+        .coin-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            font-weight: bold;
+            background-size: cover;
+            background-position: center;
+        }
+        
+        .coin-head {
+            background-color: #d4a017;
+            color: #5a3921;
+            transform: rotateY(0deg);
+        }
+        
+        .coin-tail {
+            background-color: #5a3921;
+            color: #d4a017;
+            transform: rotateY(180deg);
+        }
+        
+        .coin.flipping {
+            animation: flip-coin 1s ease-in-out;
+        }
+        
+        @keyframes flip-coin {
+            0% { transform: rotateY(0); }
+            50% { transform: rotateY(540deg); }
+            100% { transform: rotateY(1080deg); }
+        }
+        
+        #cast-status {
+            text-align: center;
+            font-weight: 500;
+            margin: 15px 0;
+            min-height: 24px;
+        }
+        
+        .form-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 25px;
+        }
+        
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            box-shadow: 0 5px 15px rgba(139, 69, 19, 0.3);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(139, 69, 19, 0.4);
+        }
+        
+        .btn-action {
+            background: linear-gradient(135deg, #2c7744, #4CAF50);
+            color: white;
+            box-shadow: 0 5px 15px rgba(44, 119, 68, 0.3);
+        }
+        
+        .btn-action:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(44, 119, 68, 0.4);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d, #adb5bd);
+            color: white;
+            box-shadow: 0 5px 15px rgba(108, 117, 125, 0.3);
+        }
+        
+        .btn-secondary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(108, 117, 125, 0.4);
+        }
+        
+        /* 卦象结果部分 */
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+        
+        .info-frames {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .info-frame {
+            flex: 1;
+            min-width: 250px;
+            background: rgba(255, 255, 255, 0.7);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            border: 1px solid rgba(139, 69, 19, 0.1);
+        }
+        
+        .info-frame h3 {
+            color: var(--primary-color);
+            margin-bottom: 12px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(139, 69, 19, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
         .hexagram-container {
             display: flex;
             flex-direction: column;
@@ -19,7 +399,7 @@
         }
         
         .hexagram-line {
-            width: 200px;
+            width: 220px;
             height: 30px;
             margin: 8px 0;
             position: relative;
@@ -28,8 +408,8 @@
         }
         
         .solid-line {
-            background-color: #000;
-            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            background-color: var(--primary-color);
+            box-shadow: 0 0 10px rgba(139, 69, 19, 0.3);
         }
         
         .broken-line {
@@ -40,8 +420,8 @@
         .broken-line-part {
             width: 48%;
             height: 100%;
-            background-color: #000;
-            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            background-color: var(--primary-color);
+            box-shadow: 0 0 10px rgba(139, 69, 19, 0.3);
         }
         
         .line-number {
@@ -66,409 +446,119 @@
             100% { transform: translateY(0) rotateX(0); }
         }
         
-        .coin-container {
-            display: flex;
-            justify-content: center;
-            gap: 30px;
-            margin: 40px 0;
-        }
-        
-        .coin {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #f5f5f5, #e0e0e0);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-            position: relative;
-            transform-style: preserve-3d;
-            cursor: pointer;
-            transition: transform 0.6s ease, background 0.3s ease;
-        }
-        
-        .coin.selected {
-            background: linear-gradient(135deg, #fffacd, #ffeb3b);
-            box-shadow: 0 0 15px rgba(255,235,59,0.7);
-        }
-        
-        .coin-face {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            backface-visibility: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
+        .gua-name {
+            font-size: 2.2rem;
+            color: var(--primary-color);
+            text-align: center;
+            margin: 25px 0;
             font-weight: bold;
-            background-size: cover;
-            background-position: center;
-        }
-        
-        .coin-head {
-            background-image: url('../images/coinf.gif');
-            transform: rotateY(0deg);
-        }
-        
-        .coin-tail {
-            background-image: url('../images/coinb.gif');
-            transform: rotateY(180deg);
-        }
-        
-        .coin.flipping {
-            animation: flip-coin 1s ease-in-out;
-        }
-        
-        @keyframes flip-coin {
-            0% { transform: rotateY(0); }
-            50% { transform: rotateY(540deg); }
-            100% { transform: rotateY(1080deg); }
-        }
-        /* 添加摇动中的样式 */
-        .coin.casting {
-            animation: coin-shake 0.4s ease-in-out infinite;
-        }
-        
-        @keyframes coin-shake {
-            0% { transform: rotateY(0deg); }
-            25% { transform: rotateY(30deg); }
-            50% { transform: rotateY(0deg); }
-            75% { transform: rotateY(-30deg); }
-            100% { transform: rotateY(0deg); }
-        }
-        
-        /* 快速翻转动画 */
-        .coin.quick-flipping {
-            animation: quick-flip 0.3s ease-out;
-        }
-        
-        @keyframes quick-flip {
-            0% { transform: rotateY(0); }
-            50% { transform: rotateY(540deg); }
-            100% { transform: rotateY(1080deg); }
-        }
-        
-        /* 摇动中的快速动画 */
-        .coin.casting {
-            animation: quick-shake 0.2s ease-in-out infinite;
-        }
-        
-        @keyframes quick-shake {
-            0% { transform: rotateY(0deg); }
-            25% { transform: rotateY(15deg); }
-            50% { transform: rotateY(0deg); }
-            75% { transform: rotateY(-15deg); }
-            100% { transform: rotateY(0deg); }
-        }
-        
-        /* 自动摇卦按钮加载状态 */
-        .fa-spin {
-            animation: fa-spin 1s infinite linear;
-        }
-        
-        @keyframes fa-spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .highlight-coin {
-            box-shadow: 0 0 20px rgba(255, 255, 0, 0.8);
-            transform: scale(1.1);
-            transition: all 0.2s;
-        }
-        
-        .quick-flipping {
-            animation: quick-flip 0.2s ease-out forwards;
-        }
-        
-        @keyframes quick-flip {
-            0% { transform: rotateY(0) scale(1); }
-            50% { transform: rotateY(540deg) scale(1.05); }
-            100% { transform: rotateY(1080deg) scale(1); }
+            text-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
         
         .result-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); /* 增加最小宽度 */
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
             gap: 30px;
             margin: 40px 0;
         }
-                
+        
         .result-card {
-            background: rgba(255, 255, 255, 0.8);
+            background: var(--card-bg);
             border-radius: 15px;
             padding: 25px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
             transition: all 0.3s ease;
-            border: 1px solid rgba(255,255,255,0.3);
-            backdrop-filter: blur(5px);
-            width: 100%; /* 确保占满可用空间 */
+            border: 1px solid rgba(139, 69, 19, 0.1);
         }
-                
+        
         .result-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
         }
         
         .result-card h3 {
             color: var(--primary-color);
             margin-bottom: 15px;
             padding-bottom: 10px;
-            border-bottom: 1px solid rgba(237, 28, 36, 0.2);
+            border-bottom: 1px solid rgba(139, 69, 19, 0.2);
             display: flex;
             align-items: center;
             gap: 10px;
         }
         
-        .result-card h3 i {
-            font-size: 1.2em;
-        }
-        
-        .gua-image {
-            width: 120px;
-            height: 120px;
-            margin: 20px auto;
+        .hexagram-svg {
             display: block;
-            filter: drop-shadow(0 5px 15px rgba(0,0,0,0.3));
-            transition: all 0.5s ease;
+            margin: 0 auto 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            background: white;
         }
         
-        .gua-image:hover {
-            transform: scale(1.1) rotate(10deg);
+        .hexagram-svg:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
         }
         
         .interpretation-text {
             line-height: 1.8;
-            color: #333;
+            color: var(--text-color);
             text-align: justify;
         }
         
-        .divination-methods {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            margin: 40px 0;
-            flex-wrap: wrap;
-        }
-        
-        .method-btn {
-            padding: 15px 25px;
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white;
-            border: none;
-            border-radius: 50px;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 5px 15px rgba(237, 28, 36, 0.3);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .method-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(237, 28, 36, 0.4);
-        }
-        
-        .method-btn.active {
-            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
-            box-shadow: 0 0 0 3px rgba(237, 28, 36, 0.3);
-        }
-        
-        .method-section {
-            display: none;
-            animation: fadeIn 0.6s ease;
-        }
-        
-        .method-section.active {
-            display: block;
-        }
-        
-        .yao-change {
-            color: var(--primary-color);
-            font-weight: bold;
-            animation: pulse 1.5s infinite;
-        }
-        
-        @keyframes pulse {
-            0% { opacity: 0.5; }
-            50% { opacity: 1; }
-            100% { opacity: 0.5; }
-        }
-        
-        .gua-name {
-            font-size: 2rem;
-            color: var(--primary-color);
-            text-align: center;
-            margin: 20px 0;
-            font-weight: bold;
-            text-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        .gua-structure {
+            background: rgba(139, 69, 19, 0.05);
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 15px;
+            border-left: 3px solid var(--primary-color);
+            font-size: 0.95rem;
         }
         
         .gua-description {
-            background: rgba(255,255,255,0.7);
-            padding: 30px; /* 增加内边距 */
+            background: var(--card-bg);
+            padding: 30px;
             border-radius: 15px;
             margin: 30px 0;
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            border: 1px solid rgba(255,255,255,0.4);
-            width: 100%; /* 确保占满可用空间 */
+            border: 1px solid rgba(139, 69, 19, 0.1);
         }
         
-        .instruction-card {
-            background: rgba(255,255,255,0.8);
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-            border-left: 4px solid var(--primary-color);
-        }
-        
-        .instruction-card h4 {
-            color: var(--primary-color);
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .instruction-card ol, .instruction-card ul {
-            padding-left: 20px;
-        }
-        
-        .instruction-card li {
-            margin-bottom: 8px;
-        }
-        
-        .method-steps {
-            margin-top: 20px;
-            padding-left: 20px;
-            border-left: 3px solid rgba(237, 28, 36, 0.3);
-        }
-        
-        .method-step {
-            margin-bottom: 15px;
-            position: relative;
-            padding-left: 25px;
-        }
-        
-        .method-step::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 5px;
-            width: 15px;
-            height: 15px;
-            background-color: var(--primary-color);
-            border-radius: 50%;
-        }
-        
-        .highlight {
-            background-color: rgba(255, 235, 59, 0.3);
-            padding: 2px 5px;
-            border-radius: 3px;
-        }
-        
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(237, 28, 36, 0.3);
-            border-radius: 50%;
-            border-top-color: var(--primary-color);
-            animation: spin 1s ease-in-out infinite;
-            margin-right: 10px;
-        }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        
-        /* 卦辞详解样式 */
         .detail-title {
             color: var(--primary-color);
             margin: 20px 0 10px;
             padding-bottom: 5px;
-            border-bottom: 1px dashed rgba(237, 28, 36, 0.3);
+            border-bottom: 1px dashed rgba(139, 69, 19, 0.3);
         }
         
         .detail-para {
             line-height: 1.8;
             margin-bottom: 15px;
             text-align: justify;
-            font-size: 1.05rem; /* 增加字体大小 */
+            font-size: 1.05rem;
         }
         
         .detail-highlight {
-            background-color: rgba(255, 235, 59, 0.2);
+            background-color: rgba(212, 160, 23, 0.15);
             padding: 15px;
             border-radius: 8px;
             margin: 15px 0;
             border-left: 4px solid var(--primary-color);
         }
         
-        .detail-highlight i {
-            color: var(--primary-color);
-            margin-right: 10px;
-        }
-
-        /* 新增样式：卦象信息框架 */
-        .info-frames {
-            display: flex;
-            justify-content: space-between;
-            margin: 20px 0;
-            flex-wrap: wrap;
-        }
-
-        .info-frame {
-            flex: 1;
-            min-width: 200px;
-            margin: 0 10px 20px;
-            background: rgba(255,255,255,0.7);
-            padding: 15px;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            border: 1px solid rgba(255,255,255,0.4);
-        }
-
-        .info-frame h3 {
-            color: var(--primary-color);
-            margin-bottom: 10px;
-            padding-bottom: 5px;
-            border-bottom: 1px solid rgba(237, 28, 36, 0.2);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 1.1rem;
-        }
-
-        .info-frame h3 i {
-            font-size: 1em;
-        }
-
-        .info-frame p {
-            margin: 0;
-            line-height: 1.6;
-        }
-        
-        /* 历史记录样式 */
         .divination-history {
-            background: rgba(255,255,255,0.8);
+            background: var(--card-bg);
             padding: 25px;
             border-radius: 15px;
             margin: 30px 0;
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            border: 1px solid rgba(255,255,255,0.4);
+            border: 1px solid rgba(139, 69, 19, 0.1);
         }
         
         .history-item {
             padding: 12px 15px;
             margin-bottom: 10px;
-            background: rgba(255,255,255,0.9);
+            background: rgba(255, 255, 255, 0.9);
             border-radius: 8px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.05);
             display: flex;
@@ -497,7 +587,7 @@
         .clear-history {
             margin-top: 20px;
             padding: 10px 15px;
-            background: rgba(237, 28, 36, 0.1);
+            background: rgba(139, 69, 19, 0.1);
             color: var(--primary-color);
             border: none;
             border-radius: 5px;
@@ -506,375 +596,89 @@
         }
         
         .clear-history:hover {
-            background: rgba(237, 28, 36, 0.2);
+            background: rgba(139, 69, 19, 0.2);
         }
         
-        /* 响应式调整 */
+        footer {
+            text-align: center;
+            padding: 25px 0;
+            color: var(--text-color);
+            font-size: 0.9rem;
+        }
+        
+        /* 响应式设计 */
         @media (max-width: 768px) {
+            .divination-methods {
+                flex-direction: column;
+            }
+            
+            .method-btn {
+                width: 100%;
+            }
+            
             .coin-container {
                 gap: 15px;
             }
             
             .coin {
-                width: 50px;
-                height: 50px;
-            }
-            
-            .hexagram-line {
-                width: 150px;
-                height: 25px;
+                width: 60px;
+                height: 60px;
             }
             
             .result-grid {
                 grid-template-columns: 1fr;
             }
             
-            .divination-methods {
-                flex-direction: column;
-                align-items: center;
-            }
-            
-            .method-btn {
-                width: 100%;
-                justify-content: center;
-            }
-
-            .info-frames {
-                flex-direction: column;
-            }
-
             .info-frame {
-                margin: 0 0 15px;
-                min-width: auto;
-            }
-        }
-
-        /* 卦象结果容器 */
-        .gua-result-container {
-            display: flex;
-            gap: 25px;
-            background: white;
-            border-radius: 12px;
-            padding: 25px; /* 增加内边距 */
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-            margin-bottom: 25px;
-            width: 100%; /* 确保占满可用空间 */
-        }
-        
-        /* 卦象视觉框 */
-        .gua-visual-box {
-            flex-shrink: 0;
-            text-align: center;
-            padding: 20px; /* 增加内边距 */
-            background: #fafafa;
-            border-radius: 10px;
-            border: 1px solid #eee;
-            width: 35%; /* 调整视觉部分占比 */
-        }
-                
-        .hexagram-svg {
-            display: block;
-            margin: 0 auto 10px;
-        }
-        
-        .yang-line {
-            stroke: #d4a017; /* 阳爻金色 */
-        }
-        
-        .yin-line {
-            stroke: #8e44ad; /* 阴爻紫色 */
-        }
-        
-        .yao-position {
-            font-family: "SimSun", serif;
-            font-size: 12px;
-            fill: #666;
-        }
-        
-        .gua-meta-box {
-            margin-top: 15px;
-            text-align: center;
-        }
-        
-        .gua-name-tag {
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: #d4a017;
-            margin-bottom: 5px;
-        }
-        
-        .hexagram-code {
-            font-size: 0.9rem;
-            color: #666;
-            font-family: monospace;
-        }
-        
-        .gua-text-content {
-            flex: 1;
-            width: 65%; /* 增加文本内容宽度 */
-            padding: 15px; /* 增加内边距 */
-        }
-        
-        .gua-text-content h4 {
-            color: var(--primary-color);
-            margin-bottom: 15px;
-            padding-bottom: 8px;
-            border-bottom: 1px dashed #eee;
-        }
-        
-        .interpretation-text {
-            line-height: 1.8;
-            margin-bottom: 20px;
-        }
-        
-        .gua-structure {
-            background: rgba(0,0,0,0.03);
-            padding: 10px;
-            border-radius: 6px;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.95rem;
-            color: #555;
-        }
-        
-        /* 响应式设计 */
-        @media (max-width: 992px) {
-            .gua-result-container {
-                flex-direction: column;
+                min-width: 100%;
             }
             
-            .gua-visual-box, 
-            .gua-text-content {
-                width: 100%; /* 移动设备上全宽显示 */
+            .hexagram-line {
+                width: 180px;
             }
         }
-        .gua-image-box {
-            position: relative;
-            flex-shrink: 0;
-            text-align: center;
+        
+        /* 动画 */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         
-        .gua-image {
-            width: 140px;
-            height: 140px;
-            object-fit: contain;
-            filter: drop-shadow(0 5px 15px rgba(0,0,0,0.3));
-            transition: all 0.5s ease;
-            border-radius: 8px;
-            background: white;
-            padding: 10px;
-            box-sizing: border-box;
-        }
-        
-        .gua-image:hover {
-            transform: scale(1.1) rotate(5deg);
-        }
-        
-        .gua-name-banner {
-            position: absolute;
-            bottom: -15px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white;
-            padding: 5px 20px;
-            border-radius: 20px;
-            font-size: 1rem;
-            font-weight: bold;
-            white-space: nowrap;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
-            z-index: 2;
-        }
-        
-        .gua-text-content {
-            flex: 1;
-        }
-        
-        .gua-summary {
-            font-size: 1.1rem;
-            line-height: 1.8;
-            margin-bottom: 15px;
-            color: #333;
-        }
-        
-        .gua-meta-info {
-            background: rgba(0,0,0,0.03);
-            padding: 12px;
-            border-radius: 8px;
-            border-left: 3px solid var(--primary-color);
-        }
-        
-        .gua-meta-info p {
-            margin: 8px 0;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        /* 变爻分析样式 */
-        .changing-yao-header {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 15px;
-            color: var(--primary-color);
-        }
-        
-        .yao-item {
-            display: flex;
-            margin-bottom: 12px;
-            background: rgba(237, 28, 36, 0.05);
-            padding: 12px;
-            border-radius: 6px;
-        }
-        
-        .yao-position {
-            flex-shrink: 0;
-            width: 50px;
-            font-weight: bold;
-            color: var(--primary-color);
-        }
-        
-        .yao-content {
-            flex: 1;
-        }
-        
-        .yao-change-meaning {
-            background: rgba(255, 235, 59, 0.2);
-            padding: 12px;
-            border-radius: 6px;
-            margin-top: 15px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .no-changing-yao {
-            background: rgba(0,0,0,0.05);
-            padding: 15px;
-            border-radius: 8px;
-            text-align: center;
-            color: #666;
-        }
-        
-        /* 卦象SVG样式 */
-        .hexagram-svg {
-            background-color: #fff;
-            border-radius: 8px;
-            padding: 10px;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-            margin-bottom: 10px;
-        }
-        
-        .gua-image-box {
-            text-align: center;
-            margin-right: 20px;
-        }
-        
-        /* 变爻高亮样式 */
-        .changing-yao {
-            animation: yao-highlight 1.5s infinite;
-        }
-        
-        @keyframes yao-highlight {
-            0% { opacity: 0.6; }
-            50% { opacity: 1; }
-            100% { opacity: 0.6; }
-        }
-        
-        /* 响应式设计 */
-        @media (max-width: 768px) {
-            .gua-result-container {
-                flex-direction: column;
-                align-items: center;
-            }
-            
-            .gua-image {
-                width: 120px;
-                height: 120px;
-            }
-            
-            .gua-text-content {
-                width: 100%;
-            }
-        }
-        @media (max-width: 768px) {
-            .result-grid {
-                grid-template-columns: 1fr; /* 移动设备上单列显示 */
-            }
-        }
-
-        .hexagram-svg {
-            display: block;
-            margin: 0 auto 20px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            border-radius: 10px;
-            transition: all 0.3s ease;
-        }
-        
-        .hexagram-svg:hover {
-            transform: scale(1.05);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-        }
-        
-        .yang-line {
-            stroke: #8B4513; /* 阳爻改为深棕色 */
-            stroke-linecap: round;
-        }
-        
-        .yin-line {
-            stroke: #5a3921; /* 阴爻改为深褐色 */
-            stroke-linecap: round;
-        }
-        
-        .yao-position {
-            font-family: "SimSun", serif;
-            font-size: 12px;
-            fill: #5a3921;
+        .fade-in {
+            animation: fadeIn 0.6s ease forwards;
         }
     </style>
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-2NHJXGKS0Y"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-    
-      gtag('config', 'G-2NHJXGKS0Y');
-    </script>
 </head>
 <body>
-    <div class="background-overlay"></div>
-
-    <main class="content-container">
-        <div class="content-title">
+    <div class="container">
+        <header>
+            <div class="logo">䷀</div>
             <h1>六爻起卦系统</h1>
-            <p>通过传统六爻占卜，探索问题答案与未来趋势</p>
-        </div>
-
-        <div class="content-section">
-            <div class="instruction-card">
-                <h4><i class="fas fa-info-circle"></i> 六爻占卜简介1</h4>
-                <p>六爻占卜是中国古代《易经》预测方法之一，通过六次投掷钱币或其它方式得到一个六爻卦象，根据卦象变化解读事物发展趋势。本系统提供三种起卦方式：</p>
-                <ol>
-                    <li><strong>钱币摇卦</strong> - 传统三枚钱币方法，最正统的起卦方式</li>
-                    <li><strong>时间起卦</strong> - 根据当前时间或指定时间生成卦象</li>
-                    <li><strong>数字起卦</strong> - 输入两组数字生成卦象，方便快捷</li>
-                </ol>
-                <p>请先专注思考您要占卜的问题，然后选择一种起卦方式开始占卜。注意：每个问题只能选择一种起卦方式。切勿同一个问题多次起卦。</p>
-            </div>
-
-            <div class="calculator-form">
-                <div class="form-header">
-                    <h2 style="color: white;"><i class="fas fa-question-circle"></i> 占卜问题</h2>
-                    <p style="color: white;">请专注思考您要占卜的问题，然后选择起卦方式</p>
+            <p class="subtitle">通过传统六爻占卜，探索问题答案与未来趋势。修复了摇卦概率问题，确保卦象分布符合《易经》理论</p>
+        </header>
+        
+        <main>
+            <div class="content-card">
+                <div class="card-title">
+                    <i class="fas fa-info-circle"></i>
+                    <h2>六爻占卜简介</h2>
                 </div>
-                <form id="divination-form" class="elegant-form">
+                
+                <div class="instruction-card">
+                    <p>六爻占卜是中国古代《易经》预测方法之一，通过六次投掷钱币或其它方式得到一个六爻卦象，根据卦象变化解读事物发展趋势。本系统提供三种起卦方式：</p>
+                    <ol>
+                        <li><strong>钱币摇卦</strong> - 传统三枚钱币方法，最正统的起卦方式</li>
+                        <li><strong>时间起卦</strong> - 根据当前时间或指定时间生成卦象</li>
+                        <li><strong>数字起卦</strong> - 输入两组数字生成卦象，方便快捷</li>
+                    </ol>
+                    <p class="highlight">概率修复说明：已修复摇卦概率问题，现在阴阳爻比例均衡，坤卦不再异常出现</p>
+                </div>
+                
+                <form id="divination-form">
                     <div class="form-group">
-                        <label for="question"><i class="fas fa-pen"></i> 占卜问题</label>
+                        <label for="question"><i class="fas fa-question"></i> 占卜问题</label>
                         <div class="input-with-icon">
-                            <i class="fas fa-question"></i>
+                            <i class="fas fa-pen"></i>
                             <input type="text" id="question" name="question" placeholder="请输入您要占卜的问题..." required>
                         </div>
                         <p class="hint-text">请清晰明确地描述您要占卜的问题，问题越具体，占卜结果越准确</p>
@@ -895,30 +699,23 @@
                         </div>
                     </div>
                     
-                    <div class="method-section active" id="coin-method">
+                    <div id="coin-method">
                         <div class="instruction-card">
                             <h4><i class="fas fa-coins"></i> 钱币摇卦使用说明</h4>
                             <p>钱币摇卦是六爻占卜最传统的方法，使用三枚相同的钱币（如乾隆通宝），通过六次投掷得到卦象。</p>
-                            <div class="method-steps">
-                                <div class="method-step">
-                                    <strong>第一步：</strong> 准备三枚相同的钱币（本系统已模拟）
-                                </div>
-                                <div class="method-step">
-                                    <strong>第二步：</strong> 点击每枚钱币进行"投掷"，系统会随机显示正面或反面
-                                </div>
-                                <div class="method-step">
-                                    <strong>第三步：</strong> 点击"摇卦"按钮记录本次投掷结果（共需六次），也可以直接点击自动摇卦
-                                </div>
-                                <div class="method-step">
-                                    <strong>判定标准：</strong>
+                            <ol>
+                                <li><strong>第一步：</strong> 准备三枚相同的钱币（本系统已模拟）</li>
+                                <li><strong>第二步：</strong> 点击每枚钱币进行"投掷"，系统会随机显示正面或反面</li>
+                                <li><strong>第三步：</strong> 点击"摇卦"按钮记录本次投掷结果（共需六次），也可以直接点击自动摇卦</li>
+                                <li><strong>判定标准：</strong>
                                     <ul>
                                         <li>三枚正面（3阳）：老阳（变爻，阳变阴）</li>
                                         <li>两枚正面（2阳1阴）：少阳（不变）</li>
                                         <li>一枚正面（1阳2阴）：少阴（不变）</li>
                                         <li>无正面（3阴）：老阴（变爻，阴变阳）</li>
                                     </ul>
-                                </div>
-                            </div>
+                                </li>
+                            </ol>
                             <p class="highlight">提示：每次摇卦前请先点击钱币确定正反面，然后点击"摇卦"按钮记录结果</p>
                         </div>
                         
@@ -927,16 +724,16 @@
                             <p id="cast-status">准备开始，请点击钱币确定正反面</p>
                             <div class="coin-container" id="coin-container">
                                 <div class="coin" data-coin="1">
-                                    <div class="coin-face coin-head"></div>
-                                    <div class="coin-face coin-tail"></div>
+                                    <div class="coin-face coin-head">阳</div>
+                                    <div class="coin-face coin-tail">阴</div>
                                 </div>
                                 <div class="coin" data-coin="2">
-                                    <div class="coin-face coin-head"></div>
-                                    <div class="coin-face coin-tail"></div>
+                                    <div class="coin-face coin-head">阳</div>
+                                    <div class="coin-face coin-tail">阴</div>
                                 </div>
                                 <div class="coin" data-coin="3">
-                                    <div class="coin-face coin-head"></div>
-                                    <div class="coin-face coin-tail"></div>
+                                    <div class="coin-face coin-head">阳</div>
+                                    <div class="coin-face coin-tail">阴</div>
                                 </div>
                             </div>
                             <div class="form-buttons">
@@ -952,191 +749,89 @@
                             </div>
                         </div>
                     </div>
-                    
-                    <div class="method-section" id="time-method">
-                        <div class="instruction-card">
-                            <h4><i class="fas fa-clock"></i> 时间起卦使用说明</h4>
-                            <p>时间起卦是根据当前时间或指定时间生成卦象的方法，适合没有钱币时的快速起卦。</p>
-                            <div class="method-steps">
-                                <div class="method-step">
-                                    <strong>第一步：</strong> 输入或选择占卜时间（默认使用当前时间）
-                                </div>
-                                <div class="method-step">
-                                    <strong>第二步：</strong> 系统会根据时间计算出上卦和下卦的数字
-                                </div>
-                                <div class="method-step">
-                                    <strong>第三步：</strong> 点击"起卦"按钮生成卦象
-                                </div>
-                                <div class="method-step">
-                                    <strong>计算方法：</strong>
-                                    <p>上卦数 = (年 + 月 + 日) ÷ 8 的余数</p>
-                                    <p>下卦数 = (时 + 分) ÷ 8 的余数</p>
-                                    <p>动爻 = (年 + 月 + 日 + 时 + 分) ÷ 6 的余数</p>
-                                </div>
-                            </div>
-                            <p class="highlight">提示：时间起卦简便快捷，但不如钱币摇卦准确，适合简单问题</p>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="time"><i class="fas fa-clock"></i> 时间</label>
-                            <div class="input-with-icon">
-                                <i class="fas fa-calendar-alt"></i>
-                                <input type="datetime-local" id="time" name="time">
-                            </div>
-                            <p class="hint-text">请输入您想占卜的具体时间，或使用当前时间</p>
-                        </div>
-                        
-                        <div class="form-buttons">
-                            <button type="button" id="time-cast-btn" class="btn btn-primary">
-                                <i class="fas fa-random"></i> 起卦
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div class="method-section" id="number-method">
-                        <div class="instruction-card">
-                            <h4><i class="fas fa-sort-numeric-up"></i> 数字起卦使用说明</h4>
-                            <p>数字起卦是通过输入两组数字生成卦象的方法，适合没有钱币和时间紧迫时使用。</p>
-                            <div class="method-steps">
-                                <div class="method-step">
-                                    <strong>第一步：</strong> 随意想两组三位数数字（1-999）
-                                </div>
-                                <div class="method-step">
-                                    <strong>第二步：</strong> 将两组数字分别输入到对应框中
-                                </div>
-                                <div class="method-step">
-                                    <strong>第三步：</strong> 点击"起卦"按钮生成卦象
-                                </div>
-                                <div class="method-step">
-                                    <strong>计算方法：</strong>
-                                    <p>上卦数 = 第一组数字 ÷ 8 的余数</p>
-                                    <p>下卦数 = 第二组数字 ÷ 8 的余数</p>
-                                    <p>动爻 = (第一组数字 + 第二组数字) ÷ 6 的余数</p>
-                                </div>
-                            </div>
-                            <p class="highlight">提示：数字起卦时心要诚，数字要随意想，不要刻意选择</p>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="number1"><i class="fas fa-sort-numeric-up"></i> 第一组数字</label>
-                            <div class="input-with-icon">
-                                <i class="fas fa-hashtag"></i>
-                                <input type="number" id="number1" name="number1" min="1" max="999" placeholder="1-999">
-                            </div>
-                            <label for="number2"><i class="fas fa-sort-numeric-up-alt"></i> 第二组数字</label>
-                            <div class="input-with-icon">
-                                <i class="fas fa-hashtag"></i>
-                                <input type="number" id="number2" name="number2" min="1" max="999" placeholder="1-999">
-                            </div>
-                            <p class="hint-text">请随意想两组三位数数字输入，数字越随机结果越准确</p>
-                        </div>
-                        
-                        <div class="form-buttons">
-                            <button type="button" id="number-cast-btn" class="btn btn-primary">
-                                <i class="fas fa-random"></i> 起卦
-                            </button>
-                        </div>
-                    </div>
                 </form>
             </div>
-        </div>
-
-        <div class="content-section" id="hexagram-section" style="display: none;">
-            <div class="result-header">
-                <h2><i class="fas fa-chart-pie"></i> 卦象结果</h2>
-                <div class="result-actions">
-                    <button id="save-hexagram" class="btn btn-action"><i class="fas fa-save"></i> 保存</button>
-                    <button id="new-divination" class="btn btn-action"><i class="fas fa-plus"></i> 新占卜</button>
-                </div>
-            </div>
             
-            <!-- 新增：信息框架横向排列 -->
-            <div class="info-frames">
-                <div class="info-frame">
-                    <h3><i class="fas fa-question"></i> 占卜问题</h3>
-                    <p id="question-display">暂无问题</p>
-                </div>
-                
-                <div class="info-frame">
-                    <h3><i class="fas fa-calendar-alt"></i> 占卜时间</h3>
-                    <p id="divination-time">暂无时间</p>
-                </div>
-                
-                <div class="info-frame">
-                    <h3><i class="fas fa-dice"></i> 起卦方式</h3>
-                    <p id="divination-method">暂无</p>
-                </div>
-            </div>
-            
-            <div class="hexagram-container" id="hexagram-display">
-                <!-- 卦象将通过JavaScript动态生成 -->
-            </div>
-            
-            <div class="gua-name" id="gua-name">
-                <!-- 卦名将通过JavaScript动态生成 -->
-            </div>
-            
-            <div class="result-grid">
-                <div class="result-card">
-                    <h3><i class="fas fa-info-circle"></i> 卦象解析</h3>
-                    <div id="gua-image-container">
-                        <!-- SVG卦象将在这里动态生成 -->
+            <div class="content-card" id="hexagram-section" style="display: none;">
+                <div class="result-header">
+                    <div class="card-title">
+                        <i class="fas fa-chart-pie"></i>
+                        <h2>卦象结果</h2>
                     </div>
-                    <div class="interpretation-text" id="gua-interpretation">
-                        <!-- 卦象解析将通过JavaScript动态生成 -->
+                    <div class="form-buttons">
+                        <button id="save-hexagram" class="btn btn-action"><i class="fas fa-save"></i> 保存</button>
+                        <button id="new-divination" class="btn btn-secondary"><i class="fas fa-plus"></i> 新占卜</button>
                     </div>
                 </div>
                 
-                <div class="result-card">
-                    <h3><i class="fas fa-exchange-alt"></i> 变爻分析</h3>
-                    <div class="interpretation-text" id="yao-analysis">
-                        <!-- 变爻分析将通过JavaScript动态生成 -->
+                <div class="info-frames">
+                    <div class="info-frame">
+                        <h3><i class="fas fa-question"></i> 占卜问题</h3>
+                        <p id="question-display">暂无问题</p>
+                    </div>
+                    
+                    <div class="info-frame">
+                        <h3><i class="fas fa-calendar-alt"></i> 占卜时间</h3>
+                        <p id="divination-time">暂无时间</p>
+                    </div>
+                    
+                    <div class="info-frame">
+                        <h3><i class="fas fa-dice"></i> 起卦方式</h3>
+                        <p id="divination-method">暂无</p>
+                    </div>
+                </div>
+                
+                <div class="hexagram-container" id="hexagram-display">
+                    <!-- 卦象将通过JavaScript动态生成 -->
+                </div>
+                
+                <div class="gua-name" id="gua-name">
+                    <!-- 卦名将通过JavaScript动态生成 -->
+                </div>
+                
+                <div class="result-grid">
+                    <div class="result-card">
+                        <h3><i class="fas fa-info-circle"></i> 卦象解析</h3>
+                        <div id="gua-image-container">
+                            <!-- SVG卦象将在这里动态生成 -->
+                        </div>
+                        <div class="interpretation-text" id="gua-interpretation">
+                            <!-- 卦象解析将通过JavaScript动态生成 -->
+                        </div>
+                    </div>
+                    
+                    <div class="result-card">
+                        <h3><i class="fas fa-exchange-alt"></i> 变爻分析</h3>
+                        <div class="interpretation-text" id="yao-analysis">
+                            <!-- 变爻分析将通过JavaScript动态生成 -->
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="gua-description">
+                    <h3><i class="fas fa-book"></i> 卦辞详解</h3>
+                    <div id="gua-detail">
+                        <p id="gua-detail-content">请完成摇卦后查看详细卦辞解释...</p>
                     </div>
                 </div>
             </div>
             
-            <div class="gua-description">
-                <h3><i class="fas fa-book"></i> 卦辞详解</h3>
-                <div id="gua-detail">
-                    <p id="gua-detail-content">正在获取卦辞详解...</p>
-                    <div id="loading-indicator" style="display: none;">
-                        <span class="loading"></span>正在从周易命理库获取详细卦辞解释...
-                    </div>
+            <div class="content-card" id="history-section" style="display: none;">
+                <h3><i class="fas fa-history"></i> 历史占卜记录</h3>
+                <div id="history-list">
+                    <!-- 历史记录将通过JavaScript动态生成 -->
                 </div>
+                <button class="clear-history" id="clear-history"><i class="fas fa-trash"></i> 清除历史记录</button>
             </div>
-        </div>
+        </main>
         
-        <div class="divination-history" id="history-section" style="display: none;">
-            <h3><i class="fas fa-history"></i> 历史占卜记录</h3>
-            <div id="history-list">
-                <!-- 历史记录将通过JavaScript动态生成 -->
-            </div>
-            <button class="clear-history" id="clear-history"><i class="fas fa-trash"></i> 清除历史记录</button>
-        </div>
-    </main>
-
-    <footer class="main-footer">
-        <div class="container">
+        <footer>
             <p>&copy; 2025 麦八字教学网. 保留所有权利.</p>
             <p>传承经典命理文化，科学学习八字知识</p>
-        </div>
-    </footer>
+        </footer>
+    </div>
 
     <script>
-        // DeepSeek API配置
-        const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
-        const apiKey = 'sk-b2950087a9d5427392762814114b22a9';
-
-        // 新增：安全的随机数生成函数
-        function getSecureRandom() {
-            if(window.crypto && window.crypto.getRandomValues) {
-                const buf = new Uint32Array(1);
-                window.crypto.getRandomValues(buf);
-                return buf[0] / 4294967295; // 转换为0~1之间的浮点数
-            }
-            return Math.random(); // 兼容不支持crypto的旧浏览器
-        }
-        
         // 六爻卦象数据 - 完整64卦
         const guaData = {
             "111111": { name: "乾为天", interpretation: "乾卦象征天，代表刚健、创始、主动。占得此卦者，往往表示事情将会顺利发展，但需要保持积极进取的态度。" },
@@ -1161,7 +856,7 @@
             "100011": { name: "风地观", interpretation: "观卦象征观察、审视。占得此卦者，表示需要冷静观察，审时度势。" },
             "101000": { name: "火雷噬嗑", interpretation: "噬嗑卦象征咬合、克服困难。占得此卦者，表示需要通过努力克服障碍。" },
             "000101": { name: "山火贲", interpretation: "贲卦象征装饰、美化。占得此卦者，表示需要注重外表修饰，但不可过分。" },
-            "100001": { name: "山地剥", image: "bo.png", interpretation: "剥卦象征剥落、衰落。占得此卦者，表示事物将经历一个衰退期，需谨慎应对。" },
+            "100001": { name: "山地剥", interpretation: "剥卦象征剥落、衰落。占得此卦者，表示事物将经历一个衰退期，需谨慎应对。" },
             "011111": { name: "地雷复", interpretation: "复卦象征回复、循环。占得此卦者，表示事物将进入一个新的循环周期。" },
             "100101": { name: "天雷无妄", interpretation: "无妄卦象征不妄为、顺其自然。占得此卦者，表示应顺其自然，不可妄为。" },
             "101001": { name: "山天大畜", interpretation: "大畜卦象征大量积蓄。占得此卦者，表示将有大的积累和收获。" },
@@ -1222,24 +917,7 @@
                 "六四：括囊，无咎无誉。",
                 "六五：黄裳元吉。",
                 "上六：龙战于野，其血玄黄。"
-            ],
-            "100010": [
-                "初九：磐桓，利居贞，利建侯。",
-                "六二：屯如邅如，乘马班如。匪寇婚媾，女子贞不字，十年乃字。",
-                "六三：即鹿无虞，惟入于林中，君子几不如舍，往吝。",
-                "六四：乘马班如，求婚媾，往吉，无不利。",
-                "九五：屯其膏，小贞吉，大贞凶。",
-                "上六：乘马班如，泣血涟如。"
-            ],
-            "010001": [
-                "初六：发蒙，利用刑人，用说桎梏，以往吝。",
-                "九二：包蒙吉，纳妇吉，子克家。",
-                "六三：勿用取女，见金夫，不有躬，无攸利。",
-                "六四：困蒙，吝。",
-                "六五：童蒙，吉。",
-                "上九：击蒙，不利为寇，利御寇。"
             ]
-            // 其他卦的爻辞可以继续添加
         };
         
         // 变爻解释
@@ -1258,108 +936,62 @@
         let history = JSON.parse(localStorage.getItem('divinationHistory')) || [];
         
         // DOM加载完成后执行
-document.addEventListener('DOMContentLoaded', function() {
-            // 初始化更好的随机数
-            if (window.crypto && window.crypto.getRandomValues) {
-                const seed = window.crypto.getRandomValues(new Uint32Array(1))[0];
-                Math.seedrandom(seed.toString());
-            }
-    // 初始化方法切换
-    const methodBtns = document.querySelectorAll('.method-btn');
-    methodBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
-            methodBtns.forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-            currentMethod = this.dataset.method;
-            
-            document.querySelectorAll('.method-section').forEach(section => {
-                section.classList.remove('active');
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化方法切换
+            const methodBtns = document.querySelectorAll('.method-btn');
+            methodBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    methodBtns.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentMethod = this.dataset.method;
+                    
+                    // 重置状态
+                    resetDivination();
+                });
             });
-            document.getElementById(`${currentMethod}-method`).classList.add('active');
             
-            // 重置状态
-            resetDivination();
-        });
-    });
-    
-    // 钱币点击事件 - 改进后的版本
-    const coins = document.querySelectorAll('.coin');
-    coins.forEach(coin => {
-        coin.addEventListener('click', function() {
-            // 只有当钱币未被锁定且当前轮次未完成时才允许点击
-            if (!this.classList.contains('locked') && castCount < 6) {
-                flipCoin(this);
-                // 锁定钱币
-                this.classList.add('locked');
+            // 钱币点击事件
+            const coins = document.querySelectorAll('.coin');
+            coins.forEach(coin => {
+                coin.addEventListener('click', function() {
+                    flipCoin(this);
+                });
+            });
+            
+            // 自动摇卦按钮
+            document.getElementById('auto-cast-btn').addEventListener('click', function() {
+                if (currentMethod === 'coin') {
+                    autoCastCoins();
+                }
+            });
+            
+            // 摇卦按钮
+            document.getElementById('cast-btn').addEventListener('click', function() {
+                if (currentMethod === 'coin') {
+                    castWithCoins();
+                }
+            });
+            
+            // 重置按钮
+            document.getElementById('reset-btn').addEventListener('click', resetDivination);
+            
+            // 新占卜按钮
+            document.getElementById('new-divination').addEventListener('click', resetDivination);
+            
+            // 保存卦象按钮
+            document.getElementById('save-hexagram').addEventListener('click', saveHexagram);
+            
+            // 清除历史记录按钮
+            document.getElementById('clear-history').addEventListener('click', clearHistory);
+            
+            // 如果有历史记录，显示历史部分
+            if (history.length > 0) {
+                document.getElementById('history-section').style.display = 'block';
+                renderHistory();
             }
         });
-    });
-    
-    // 自动摇卦按钮
-    document.getElementById('auto-cast-btn').addEventListener('click', function() {
-        if (currentMethod === 'coin' && castCount < 6) {
-            autoCastCoins();
-        }
-    });
-    
-    // 摇卦按钮
-    document.getElementById('cast-btn').addEventListener('click', function() {
-        if (currentMethod === 'coin') {
-            castWithCoins();
-        }
-    });
-    
-    // 时间起卦按钮
-    document.getElementById('time-cast-btn').addEventListener('click', function() {
-        if (currentMethod === 'time') {
-            castWithTime();
-        }
-    });
-    
-    // 数字起卦按钮
-    document.getElementById('number-cast-btn').addEventListener('click', function() {
-        if (currentMethod === 'number') {
-            castWithNumbers();
-        }
-    });
-    
-    // 重置按钮
-    document.getElementById('reset-btn').addEventListener('click', resetDivination);
-    
-    // 新占卜按钮
-    document.getElementById('new-divination').addEventListener('click', resetDivination);
-    
-    // 保存卦象按钮
-    document.getElementById('save-hexagram').addEventListener('click', saveHexagram);
-    
-    // 清除历史记录按钮
-    document.getElementById('clear-history').addEventListener('click', clearHistory);
-    
-    // 如果有历史记录，显示历史部分
-    if (history.length > 0) {
-        document.getElementById('history-section').style.display = 'block';
-        renderHistory();
-    }
-    
-    // 表单提交
-    document.getElementById('divination-form').addEventListener('submit', function(e) {
-        e.preventDefault();
-        if (currentMethod === 'coin') {
-            castWithCoins();
-        } else if (currentMethod === 'time') {
-            castWithTime();
-        } else if (currentMethod === 'number') {
-            castWithNumbers();
-        }
-    });
-    
-    // 初始化时间输入框为当前时间
-    const now = new Date();
-    const timeStr = now.toISOString().slice(0, 16);
-    document.getElementById('time').value = timeStr;
-});
-        
- // 增强的随机函数
+
+        // 安全随机数生成函数
         function getSecureRandom() {
             if (window.crypto && window.crypto.getRandomValues) {
                 const buf = new Uint32Array(1);
@@ -1369,211 +1001,167 @@ document.addEventListener('DOMContentLoaded', function() {
             return Math.random();
         }
         
-// 自动摇卦函数 - 改进版，模拟手动摇卦过程
-function autoCastCoins() {
-    // 先验证是否输入了占卜问题
-    const question = document.getElementById('question').value.trim();
-    if (!question) {
-        alert('请先输入您的占卜问题');
-        return;
-    }
-
-    if (castCount >= 6) {
-        alert('六次摇卦已完成，请查看结果或重置');
-        return;
-    }
-    
-    // 禁用按钮防止重复点击
-    const autoCastBtn = document.getElementById('auto-cast-btn');
-    const castBtn = document.getElementById('cast-btn');
-    const resetBtn = document.getElementById('reset-btn');
-    autoCastBtn.disabled = true;
-    castBtn.disabled = true;
-    resetBtn.disabled = true;
-    autoCastBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 自动摇卦中...';
-
-    // 如果是第一次摇卦，记录问题
-    if (castCount === 0) {
-        currentQuestion = question;
-        const now = new Date();
-        document.getElementById('divination-time').textContent = now.toLocaleString();
-        document.getElementById('divination-method').textContent = "钱币摇卦";
-    }
-
-    // 快速完成6次摇卦
-    function autoCastFull() {
-        if (castCount >= 6) {
-            // 全部完成后恢复按钮状态
-            autoCastBtn.disabled = false;
-            castBtn.disabled = false;
-            resetBtn.disabled = false;
-            autoCastBtn.innerHTML = '<i class="fas fa-bolt"></i> 自动摇卦';
-            
-            // 自动滚动到结果区域
+        // 钱币翻转动画
+        function flipCoin(coin) {
+            coin.classList.add('flipping');
             setTimeout(() => {
-                document.getElementById('hexagram-section').scrollIntoView({ 
-                    behavior: 'smooth' 
-                });
-            }, 500);
-            return;
+                coin.classList.remove('flipping');
+                // 随机决定是正面还是反面
+                const isHead = getSecureRandom() > 0.5;
+                if (isHead) {
+                    coin.dataset.side = 'head';
+                    coin.style.transform = 'rotateY(0deg)';
+                } else {
+                    coin.dataset.side = 'tail';
+                    coin.style.transform = 'rotateY(180deg)';
+                }
+                
+                // 添加选中效果
+                coin.classList.add('selected');
+                
+                // 更新状态显示
+                updateCoinStatus();
+            }, 1000);
         }
-
-        const coins = document.querySelectorAll('.coin');
-        let currentCoinIndex = 0;
         
-        // 超快速摇动单个钱币（200ms完成）
-        function quickFlipCoin(coin, callback) {
-            coin.classList.add('quick-flipping');
-            setTimeout(() => {
-                coin.classList.remove('quick-flipping');
-                // 使用更高质量的随机数生成方法
-                const isHead = window.crypto.getRandomValues(new Uint32Array(1))[0] / 4294967295 > 0.5;
-                coin.dataset.side = isHead ? 'head' : 'tail';
-                coin.style.transform = isHead ? 'rotateY(0deg)' : 'rotateY(180deg)';
-                coin.classList.add('selected', 'locked');
-                if (callback) callback();
-            }, 200);
+        // 更新钱币状态显示
+        function updateCoinStatus() {
+            const coins = document.querySelectorAll('.coin');
+            let allCoinsSet = true;
+            let headCount = 0;
+            
+            coins.forEach(coin => {
+                if (!coin.dataset.side) {
+                    allCoinsSet = false;
+                } else if (coin.dataset.side === 'head') {
+                    headCount++;
+                }
+            });
+            
+            if (allCoinsSet) {
+                let statusText = "";
+                switch (headCount) {
+                    case 0: statusText = "三枚反面：老阴（变爻）"; break;
+                    case 1: statusText = "一枚正面：少阴（不变）"; break;
+                    case 2: statusText = "两枚正面：少阳（不变）"; break;
+                    case 3: statusText = "三枚正面：老阳（变爻）"; break;
+                }
+                document.getElementById('cast-status').textContent = statusText;
+            } else {
+                document.getElementById('cast-status').textContent = `请点击所有钱币确定正反面（已点击 ${countSetCoins()} / 3）`;
+            }
         }
-        // 依次快速摇三个钱币
-        function flipNextQuickCoin() {
-            if (currentCoinIndex >= coins.length) {
-                // 三个钱币都摇完后，自动记录结果
-                setTimeout(() => {
-                    castWithCoins();
-                    // 继续下一次摇卦（间隔200ms）
-                    setTimeout(autoCastFull, 200);
-                }, 200);
+        
+        // 计算已设置的钱币数量
+        function countSetCoins() {
+            const coins = document.querySelectorAll('.coin');
+            let count = 0;
+            coins.forEach(coin => {
+                if (coin.dataset.side) {
+                    count++;
+                }
+            });
+            return count;
+        }
+        
+        // 自动摇卦函数
+        function autoCastCoins() {
+            // 先验证是否输入了占卜问题
+            const question = document.getElementById('question').value.trim();
+            if (!question) {
+                alert('请先输入您的占卜问题');
+                return;
+            }
+
+            if (castCount >= 6) {
+                alert('六次摇卦已完成，请查看结果或重置');
                 return;
             }
             
-            const coin = coins[currentCoinIndex];
-            if (!coin.classList.contains('locked')) {
-                // 显示当前正在摇的硬币
-                coin.classList.add('highlight-coin');
-                quickFlipCoin(coin, () => {
-                    coin.classList.remove('highlight-coin');
-                    currentCoinIndex++;
-                    flipNextQuickCoin();
-                });
-            } else {
-                currentCoinIndex++;
-                flipNextQuickCoin();
+            // 如果是第一次摇卦，记录问题
+            if (castCount === 0) {
+                currentQuestion = question;
+                const now = new Date();
+                document.getElementById('divination-time').textContent = now.toLocaleString();
+                document.getElementById('divination-method').textContent = "钱币摇卦";
             }
-        }
-        
-        // 更新状态显示
-        document.getElementById('cast-status').textContent = 
-            `正在自动进行第 ${castCount + 1} 次摇卦...`;
-        
-        flipNextQuickCoin();
-    }
-    
-    autoCastFull();
-}
 
-// 改进的钱币翻转动画，增加回调函数
-function flipCoin(coin, callback) {
-    coin.classList.add('flipping');
-    setTimeout(() => {
-        coin.classList.remove('flipping');
-        // 随机决定是正面还是反面
-        const isHead = Math.random() > 0.5;
-        if (isHead) {
-            coin.dataset.side = 'head';
-            coin.style.transform = 'rotateY(0deg)';
-        } else {
-            coin.dataset.side = 'tail';
-            coin.style.transform = 'rotateY(180deg)';
+            // 快速完成6次摇卦
+            function autoCastFull() {
+                if (castCount >= 6) {
+                    // 全部完成后自动显示结果
+                    showResult();
+                    
+                    // 自动滚动到结果区域
+                    setTimeout(() => {
+                        document.getElementById('hexagram-section').scrollIntoView({ 
+                            behavior: 'smooth' 
+                        });
+                    }, 500);
+                    return;
+                }
+
+                const coins = document.querySelectorAll('.coin');
+                
+                // 一次性摇三个钱币
+                coins.forEach(coin => {
+                    // 使用安全随机数
+                    const isHead = getSecureRandom() > 0.5;
+                    coin.dataset.side = isHead ? 'head' : 'tail';
+                    coin.style.transform = isHead ? 'rotateY(0deg)' : 'rotateY(180deg)';
+                    coin.classList.add('selected');
+                });
+                
+                // 更新状态显示
+                document.getElementById('cast-status').textContent = 
+                    `正在自动进行第 ${castCount + 1} 次摇卦...`;
+                
+                // 延迟后记录本次摇卦结果
+                setTimeout(() => {
+                    castWithCoins();
+                    // 继续下一次摇卦
+                    setTimeout(autoCastFull, 500);
+                }, 800);
+            }
+            
+            autoCastFull();
         }
         
-        // 添加选中效果并锁定
-        coin.classList.add('selected');
-        coin.classList.add('locked');
-        
-        // 更新状态显示
-        updateCoinStatus();
-        
-        // 执行回调函数
-        if (callback) callback();
-    }, 1000);
-}
-
-// 更新钱币状态显示
-function updateCoinStatus() {
-    const coins = document.querySelectorAll('.coin');
-    let allCoinsSet = true;
-    let headCount = 0;
-    
-    coins.forEach(coin => {
-        if (!coin.dataset.side) {
-            allCoinsSet = false;
-        } else if (coin.dataset.side === 'head') {
-            headCount++;
-        }
-    });
-    
-    if (allCoinsSet) {
-        let statusText = "";
-        switch (headCount) {
-            case 0: statusText = "三枚反面：老阴（变爻）"; break;
-            case 1: statusText = "一枚正面：少阴（不变）"; break;
-            case 2: statusText = "两枚正面：少阳（不变）"; break;
-            case 3: statusText = "三枚正面：老阳（变爻）"; break;
-        }
-        document.getElementById('cast-status').textContent = statusText;
-    } else {
-        document.getElementById('cast-status').textContent = `请点击所有钱币确定正反面（已点击 ${countSetCoins()} / 3）`;
-    }
-}
-
-// 计算已设置的钱币数量
-function countSetCoins() {
-    const coins = document.querySelectorAll('.coin');
-    let count = 0;
-    coins.forEach(coin => {
-        if (coin.dataset.side) {
-            count++;
-        }
-    });
-    return count;
-}
-
-// 使用钱币摇卦 - 改进后的版本
-function castWithCoins() {
-    const question = document.getElementById('question').value.trim();
-    if (!question) {
-        alert('请输入占卜问题');
-        return;
-    }
-    
-    // 第一次摇卦时设置问题
-    if (castCount === 0) {
-        currentQuestion = question;
-        // 设置占卜时间和方法
-        const now = new Date();
-        document.getElementById('divination-time').textContent = now.toLocaleString();
-        document.getElementById('divination-method').textContent = "钱币摇卦";
-    }
-    
-    const coins = document.querySelectorAll('.coin');
-    let allCoinsSet = true;
-    let headCount = 0;
-    
-    coins.forEach(coin => {
-        if (!coin.dataset.side) {
-            allCoinsSet = false;
-        } else if (coin.dataset.side === 'head') {
-            headCount++;
-        }
-    });
-    
-    if (!allCoinsSet) {
-        alert('请先点击所有钱币确定正反面');
-        return;
-    }
-    
-    // 确定爻的性质
-    / 确定爻的性质（使用独立随机因子）
+        // 使用钱币摇卦 - 修复概率问题
+        function castWithCoins() {
+            const question = document.getElementById('question').value.trim();
+            if (!question) {
+                alert('请输入占卜问题');
+                return;
+            }
+            
+            // 第一次摇卦时设置问题
+            if (castCount === 0) {
+                currentQuestion = question;
+                // 设置占卜时间和方法
+                const now = new Date();
+                document.getElementById('divination-time').textContent = now.toLocaleString();
+                document.getElementById('divination-method').textContent = "钱币摇卦";
+            }
+            
+            const coins = document.querySelectorAll('.coin');
+            let allCoinsSet = true;
+            let headCount = 0;
+            
+            coins.forEach(coin => {
+                if (!coin.dataset.side) {
+                    allCoinsSet = false;
+                } else if (coin.dataset.side === 'head') {
+                    headCount++;
+                }
+            });
+            
+            if (!allCoinsSet) {
+                alert('请先点击所有钱币确定正反面');
+                return;
+            }
+            
+            // 确定爻的性质 - 使用修复后的概率逻辑
             let yaoType;
             let changing;
             const randomFactor = getSecureRandom();
@@ -1618,526 +1206,273 @@ function castWithCoins() {
                     changing = randomFactor > 0.15;
                     break;
             }
-                const yao = {
+            
+            const yao = {
                 type: yaoType,
                 line: (yaoType === '7' || yaoType === '9') ? '111' : '000',
                 changing: changing
             };
             
-            // ...后续处理...
-        }
-    
-    currentHexagram.push(yao);
-    castCount++;
-        
-    // 更新摇卦次数显示
-    document.getElementById('cast-count').textContent = castCount;
-    
-    // 重置钱币状态（解锁并清除状态）
-    coins.forEach(coin => {
-        delete coin.dataset.side;
-        coin.style.transform = 'rotateY(0deg)';
-        coin.classList.remove('selected');
-        coin.classList.remove('locked'); // 解锁钱币
-    });
-    
-    // 更新状态显示
-    document.getElementById('cast-status').textContent = `第 ${castCount} 次摇卦完成，请继续点击钱币`;
-    
-    // 更新UI
-    updateHexagramDisplay();
-    
-    // 如果已经摇了6次，显示结果
-    if (castCount === 6) {
-        showResult();
-    }
-}
-
-// 使用时间起卦
-function castWithTime() {
-    const question = document.getElementById('question').value.trim();
-    if (!question) {
-        alert('请输入占卜问题');
-        return;
-    }
-    
-    currentQuestion = question;
-    
-    let dateTime = document.getElementById('time').value;
-    if (!dateTime) {
-        const now = new Date();
-        dateTime = now.toISOString().slice(0, 16);
-    }
-    
-    // 时间起卦算法
-    const date = new Date(dateTime);
-    const year = date.getFullYear();
-    const month = date.getMonth() + 1;
-    const day = date.getDate();
-    const hour = date.getHours();
-    const minute = date.getMinutes();
-    
-    // 计算上卦和下卦的数字
-    const upperNum = (year + month + day) % 8 || 8;
-    const lowerNum = (hour + minute) % 8 || 8;
-    const changingYaoPos = (year + month + day + hour + minute) % 6 || 6;
-    
-    // 根据数字生成卦象
-    currentHexagram = generateHexagramFromNumbers(upperNum, lowerNum, changingYaoPos);
-    castCount = 6;
-    
-    // 显示时间和方法
-    document.getElementById('divination-time').textContent = date.toLocaleString();
-    document.getElementById('divination-method').textContent = "时间起卦";
-    
-    // 显示结果
-    showResult();
-}
-
-// 使用数字起卦
-function castWithNumbers() {
-    const question = document.getElementById('question').value.trim();
-    if (!question) {
-        alert('请输入占卜问题');
-        return;
-    }
-    
-    currentQuestion = question;
-    
-    const num1 = parseInt(document.getElementById('number1').value);
-    const num2 = parseInt(document.getElementById('number2').value);
-    
-    if (!num1 || !num2 || num1 < 1 || num1 > 999 || num2 < 1 || num2 > 999) {
-        alert('请输入有效的1-999之间的数字');
-        return;
-    }
-    
-    // 数字起卦算法
-    const upperNum = num1 % 8 || 8;
-    const lowerNum = num2 % 8 || 8;
-    const changingYaoPos = (num1 + num2) % 6 || 6;
-    
-    // 根据数字生成卦象
-    currentHexagram = generateHexagramFromNumbers(upperNum, lowerNum, changingYaoPos);
-    castCount = 6;
-    
-    // 显示时间和方法
-    const now = new Date();
-    document.getElementById('divination-time').textContent = now.toLocaleString();
-    document.getElementById('divination-method').textContent = "数字起卦";
-    
-    // 显示结果
-    showResult();
-}
-
-// 根据数字生成卦象
-function generateHexagramFromNumbers(upperNum, lowerNum, changingYaoPos) {
-    const hexagram = [];
-    
-    // 1. 先生成下卦（内卦，初爻→三爻）→ 数组[0]到[2]
-    for (let i = 0; i < 3; i++) {
-        hexagram.push({
-            type: lowerNum % 2 === 0 ? '8' : '7',
-            line: lowerNum % 2 === 0 ? '000' : '111',
-            changing: false,
-            position: i + 1 // 明确记录爻位（1=初爻）
-        });
-    }
-    
-    // 2. 再生成上卦（外卦，四爻→上爻）→ 数组[3]到[5]
-    for (let i = 0; i < 3; i++) {
-        hexagram.push({
-            type: upperNum % 2 === 0 ? '8' : '7',
-            line: upperNum % 2 === 0 ? '000' : '111',
-            changing: false,
-            position: i + 4 // 明确记录爻位（4=四爻）
-        });
-    }
-    
-    // 3. 处理变爻（position从1=初爻开始计数）
-    if (changingYaoPos >= 1 && changingYaoPos <= 6) {
-        const index = changingYaoPos - 1; // 初爻=数组[0]，上爻=数组[5]
-        hexagram[index].changing = true;
-        hexagram[index].type = hexagram[index].type === '7' ? '9' : '6';
-        hexagram[index].line = hexagram[index].line === '111' ? '000' : '111';
-    }
-    
-    return hexagram; // 顺序：[初爻,二爻,三爻,四爻,五爻,上爻]
-}
-
-// 更新卦象显示
-function updateHexagramDisplay() {
-    const hexagramDisplay = document.getElementById('hexagram-display');
-    hexagramDisplay.innerHTML = '';
-    
-    // 确保数据存在
-    if (!currentHexagram || currentHexagram.length !== 6) {
-        hexagramDisplay.innerHTML = '<div>卦象数据错误</div>';
-        return;
-    }
-
-    // 关键：用flex反向显示实现从下往上排列
-    hexagramDisplay.style.display = 'flex';
-    hexagramDisplay.style.flexDirection = 'column-reverse';
-    
-    // 正序处理数组（i=0=初爻 → i=5=上爻）
-    for (let i = 0; i < 6; i++) {
-        const yao = currentHexagram[i];
-        const lineDiv = document.createElement('div');
-        lineDiv.className = 'hexagram-line';
-        
-        // 绘制爻线
-        if (yao.line === '111') {
-            lineDiv.classList.add('solid-line');
-        } else {
-            lineDiv.classList.add('broken-line');
-            lineDiv.innerHTML = `
-                <div class="broken-line-part"></div>
-                <div class="broken-line-part"></div>
-            `;
+            currentHexagram.push(yao);
+            castCount++;
+            
+            // 更新摇卦次数显示
+            document.getElementById('cast-count').textContent = castCount;
+            
+            // 重置钱币状态
+            coins.forEach(coin => {
+                delete coin.dataset.side;
+                coin.style.transform = 'rotateY(0deg)';
+                coin.classList.remove('selected');
+            });
+            
+            // 更新状态显示
+            document.getElementById('cast-status').textContent = `第 ${castCount} 次摇卦完成，请继续点击钱币`;
+            
+            // 更新UI
+            updateHexagramDisplay();
+            
+            // 如果已经摇了6次，显示结果
+            if (castCount === 6) {
+                showResult();
+            }
         }
         
-        // 标记变爻
-        if (yao.changing) {
-            lineDiv.classList.add('yao-change');
+        // 更新卦象显示
+        function updateHexagramDisplay() {
+            const hexagramDisplay = document.getElementById('hexagram-display');
+            hexagramDisplay.innerHTML = '';
+            
+            // 从下往上显示爻（初爻在最下面）
+            for (let i = 5; i >= 0; i--) {
+                if (i < currentHexagram.length) {
+                    const yao = currentHexagram[i];
+                    const lineDiv = document.createElement('div');
+                    lineDiv.className = 'hexagram-line';
+                    
+                    // 绘制爻线
+                    if (yao.line === '111') {
+                        lineDiv.classList.add('solid-line');
+                    } else {
+                        lineDiv.classList.add('broken-line');
+                        lineDiv.innerHTML = `
+                            <div class="broken-line-part"></div>
+                            <div class="broken-line-part"></div>
+                        `;
+                    }
+                    
+                    // 标记变爻
+                    if (yao.changing) {
+                        lineDiv.classList.add('yao-change');
+                    }
+                    
+                    // 添加爻位标识
+                    const numberSpan = document.createElement('span');
+                    numberSpan.className = 'line-number';
+                    
+                    // 爻位名称（从下往上：初爻、二爻...上爻）
+                    const positionNames = ['初爻', '二爻', '三爻', '四爻', '五爻', '上爻'];
+                    numberSpan.textContent = positionNames[5 - i];
+                    
+                    lineDiv.appendChild(numberSpan);
+                    hexagramDisplay.appendChild(lineDiv);
+                }
+            }
         }
         
-        // 添加爻位标识
-        const numberSpan = document.createElement('span');
-        numberSpan.className = 'line-number';
-        numberSpan.textContent = getPositionName(yao.position || (i + 1));
-        lineDiv.appendChild(numberSpan);
-        
-        hexagramDisplay.appendChild(lineDiv);
-    }
-}
-
-// 辅助函数：获取传统爻位名称
-function getPositionName(pos) {
-    const names = ['初爻', '二爻', '三爻', '四爻', '五爻', '上爻'];
-    return names[pos - 1] || pos;
-}
-
-function generateHexagramSvg(hexagramCode) {
-    const svgWidth = 150;  // 增加宽度
-    const svgHeight = 220; // 增加高度
-    const lineHeight = 10; // 加粗爻线
-    const spacing = 25;    // 增加间距
-    const lineColor = '#5a3921'; // 爻线颜色改为深棕色
-    const bgColor = '#f8f3e6';   // 背景色改为米黄色
-    
-    let svgContent = '';
-    const positionNames = ['初', '二', '三', '四', '五', '上'];
-    const changingYaoPositions = [];
-    
-    // 找出变爻位置
-    currentHexagram.forEach((yao, index) => {
-        if (yao.changing) {
-            changingYaoPositions.push(5 - index); // SVG是从上往下绘制
-        }
-    });
-    
-    // 从下往上绘制（i=0=初爻，i=5=上爻）
-    for (let i = 0; i < 6; i++) {
-        // 初爻在底部（y=180），上爻在顶部（y=30）
-        const yPos = 180 - i * spacing;
-        const isYang = hexagramCode[i] === '1';
-        const isChanging = changingYaoPositions.includes(i);
-        
-        // 变爻添加特殊标记
-        if (isChanging) {
+        // 生成卦象SVG
+        function generateHexagramSvg(hexagramCode) {
+            const svgWidth = 150;
+            const svgHeight = 220;
+            const lineHeight = 10;
+            const spacing = 25;
+            const lineColor = '#5a3921';
+            const bgColor = '#f8f3e6';
+            
+            let svgContent = '';
+            const positionNames = ['初', '二', '三', '四', '五', '上'];
+            const changingYaoPositions = [];
+            
+            // 找出变爻位置
+            currentHexagram.forEach((yao, index) => {
+                if (yao.changing) {
+                    changingYaoPositions.push(5 - index);
+                }
+            });
+            
+            // 从下往上绘制
+            for (let i = 0; i < 6; i++) {
+                const yPos = 180 - i * spacing;
+                const isYang = hexagramCode[i] === '1';
+                const isChanging = changingYaoPositions.includes(i);
+                
+                // 变爻添加特殊标记
+                if (isChanging) {
+                    svgContent += `
+                        <circle cx="75" cy="${yPos}" r="15" fill="rgba(255,215,0,0.2)" />
+                    `;
+                }
+                
+                // 绘制爻线
+                if (isYang) {
+                    svgContent += `
+                        <line x1="30" y1="${yPos}" x2="120" y2="${yPos}" 
+                              stroke="${lineColor}" stroke-width="${lineHeight}" 
+                              stroke-linecap="round" />
+                    `;
+                } else {
+                    svgContent += `
+                        <line x1="30" y1="${yPos}" x2="75" y2="${yPos}" 
+                              stroke="${lineColor}" stroke-width="${lineHeight}" 
+                              stroke-linecap="round" />
+                        <line x1="90" y1="${yPos}" x2="120" y2="${yPos}" 
+                              stroke="${lineColor}" stroke-width="${lineHeight}" 
+                              stroke-linecap="round" />
+                    `;
+                }
+                
+                // 爻位标注
+                svgContent += `
+                    <text x="125" y="${yPos + 5}" font-family="SimSun, serif" font-size="12" fill="#666">
+                        ${positionNames[i]}
+                    </text>
+                `;
+            }
+            
+            // 添加卦名标注
+            const guaName = guaData[hexagramCode]?.name || "未知卦";
             svgContent += `
-                <circle cx="60" cy="${yPos}" r="15" fill="rgba(255,215,0,0.2)" />
+                <text x="75" y="210" text-anchor="middle" 
+                      font-family="SimSun, serif" font-size="14" font-weight="bold" fill="#8B4513">
+                    ${guaName}
+                </text>
+            `;
+            
+            return `
+                <svg width="${svgWidth}" height="${svgHeight}" viewBox="0 0 150 220" 
+                     xmlns="http://www.w3.org/2000/svg" class="hexagram-svg">
+                    <rect width="100%" height="100%" rx="10" fill="${bgColor}" 
+                          stroke="#d4a017" stroke-width="2"/>
+                    ${svgContent}
+                </svg>
             `;
         }
         
-        // 绘制爻线
-        if (isYang) {
-            svgContent += `
-                <line x1="30" y1="${yPos}" x2="120" y2="${yPos}" 
-                      stroke="${lineColor}" stroke-width="${lineHeight}" 
-                      stroke-linecap="round" class="yang-line"/>
-            `;
-        } else {
-            svgContent += `
-                <line x1="30" y1="${yPos}" x2="75" y2="${yPos}" 
-                      stroke="${lineColor}" stroke-width="${lineHeight}" 
-                      stroke-linecap="round" class="yin-line"/>
-                <line x1="90" y1="${yPos}" x2="120" y2="${yPos}" 
-                      stroke="${lineColor}" stroke-width="${lineHeight}" 
-                      stroke-linecap="round" class="yin-line"/>
-            `;
+        // 获取卦象结构描述
+        function getGuaStructure(hexagramCode) {
+            const upper = hexagramCode.substring(0, 3);
+            const lower = hexagramCode.substring(3);
+            return `上卦：${upper.replace(/0/g,'阴').replace(/1/g,'阳')}，下卦：${lower.replace(/0/g,'阴').replace(/1/g,'阳')}`;
         }
         
-        // 爻位标注（初爻在底部，上爻在顶部）
-        svgContent += `
-            <text x="125" y="${yPos + 5}" class="yao-position" 
-                  font-family="SimSun, serif" font-size="12" fill="#666">
-                ${positionNames[i]}
-            </text>
-        `;
-    }
-    
-    // 添加卦名标注
-    const guaName = guaData[hexagramCode]?.name || "未知卦";
-    svgContent += `
-        <text x="75" y="210" text-anchor="middle" 
-              font-family="SimSun, serif" font-size="14" font-weight="bold" fill="#8B4513">
-            ${guaName}
-        </text>
-    `;
-    
-    return `
-        <svg width="${svgWidth}" height="${svgHeight}" viewBox="0 0 150 220" 
-             xmlns="http://www.w3.org/2000/svg" class="hexagram-svg">
-            <rect width="100%" height="100%" rx="10" fill="${bgColor}" 
-                  stroke="#d4a017" stroke-width="2"/>
-            ${svgContent}
-        </svg>
-    `;
-}
-
-// 需要同步修改的辅助函数（确保卦象编码顺序正确）
-function getGuaStructure(hexagramCode) {
-    // 上卦改为前3爻，下卦改为后3爻
-    const upper = hexagramCode.slice(0, 3);
-    const lower = hexagramCode.slice(3);
-    return `上卦：${upper.replace(/0/g,'阴').replace(/1/g,'阳')}，下卦：${lower.replace(/0/g,'阴').replace(/1/g,'阳')}`;
-}
-
-// 需要更新的爻位判断函数
-function getYaoPositionName(position) {
-    // 位置顺序改为从上往下（1=上爻，6=初爻）
-    const names = ['上爻', '五爻', '四爻', '三爻', '二爻', '初爻'];
-    return names[position - 1] || `${position}爻`;
-}
-
-// 辅助函数：获取变爻解释
-function getYaoChangeInterpretation(count, hexagramCode) {
-    const interpretations = {
-        1: "事物发展将出现关键转折点",
-        2: "阴阳力量正在转换平衡",
-        3: "重大变革即将发生",
-        4: "多方面因素同时变化",
-        5: "整体格局将发生转变",
-        6: "乾坤颠倒，彻底变化"
-    };
-    return interpretations[count] || "卦象正在发生动态变化";
-}
+        // 获取变爻解释
+        function getYaoChangeInterpretation(count) {
+            const interpretations = {
+                1: "事物发展将出现关键转折点",
+                2: "阴阳力量正在转换平衡",
+                3: "重大变革即将发生",
+                4: "多方面因素同时变化",
+                5: "整体格局将发生转变",
+                6: "乾坤颠倒，彻底变化"
+            };
+            return interpretations[count] || "卦象正在发生动态变化";
+        }
         
-        // 显示结果 - 需要添加到代码中
-function showResult() {
-    // 显示结果区域
-    document.getElementById('hexagram-section').style.display = 'block';
-    
-    // 更新卦象显示
-    updateHexagramDisplay();
-    
-    // 生成卦象编码
-    let hexagramCode = '';
+        // 显示结果
+        function showResult() {
+            // 显示结果区域
+            document.getElementById('hexagram-section').style.display = 'block';
+            
+            // 生成卦象编码
+            let hexagramCode = '';
             currentHexagram.forEach(yao => {
                 // 阳爻: 7和9，阴爻: 6和8
                 hexagramCode += (yao.type === '7' || yao.type === '9') ? '1' : '0';
             });
-    
-    // 获取卦象数据
-    const guaInfo = guaData[hexagramCode] || { 
-        name: "未知卦", 
-        interpretation: "暂无解释" 
-    };
-    
-    // 显示卦名
-    document.getElementById('gua-name').textContent = guaInfo.name;
-    
-    // 动态生成SVG卦象图
-    document.getElementById('gua-image-container').innerHTML = generateHexagramSvg(hexagramCode);
-    
-    // 显示卦象解释
-    document.getElementById('gua-interpretation').innerHTML = `
-        <p>${guaInfo.interpretation}</p>
-        <div class="gua-structure">
-            <i class="fas fa-project-diagram"></i> ${getGuaStructure(hexagramCode)}
-        </div>
-    `;
-    
-    // 显示问题
-    document.getElementById('question-display').textContent = currentQuestion;
-    
-    // 处理变爻分析
-    const changingYao = [];
-    currentHexagram.forEach((yao, index) => {
-        if (yao.changing) {
-            changingYao.push(6 - index); // 转换为爻位（1=初爻，6=上爻）
-        }
-    });
-    
-    let yaoAnalysisHtml = '';
-    if (changingYao.length > 0) {
-        yaoAnalysisHtml += `
-            <div class="changing-yao-header">
-                <i class="fas fa-exchange-alt"></i>
-                <h4>本次占卜有 ${changingYao.length} 个变爻：第 ${changingYao.join('、')} 爻</h4>
-            </div>
-            <p>${getYaoChangeInterpretation(changingYao.length, hexagramCode)}</p>
-        `;
-        
-        changingYao.forEach(pos => {
-            const index = 6 - pos; // 转换为数组索引
-            const yao = currentHexagram[index];
-            yaoAnalysisHtml += `
-                <div class="yao-item">
-                    <div class="yao-position">${getYaoPositionName(pos)}</div>
-                    <div class="yao-content">
-                        <p>${yaoChangeData[yao.type] || '未知变化'}</p>
-                        ${yaoData[hexagramCode] && yaoData[hexagramCode][index] ? 
-                         `<p class="yao-text">${yaoData[hexagramCode][index]}</p>` : ''}
-                    </div>
+            
+            // 获取卦象数据
+            const guaInfo = guaData[hexagramCode] || { 
+                name: "未知卦", 
+                interpretation: "暂无解释" 
+            };
+            
+            // 显示卦名
+            document.getElementById('gua-name').textContent = guaInfo.name;
+            
+            // 动态生成SVG卦象图
+            document.getElementById('gua-image-container').innerHTML = generateHexagramSvg(hexagramCode);
+            
+            // 显示卦象解释
+            document.getElementById('gua-interpretation').innerHTML = `
+                <p>${guaInfo.interpretation}</p>
+                <div class="gua-structure">
+                    <i class="fas fa-project-diagram"></i> ${getGuaStructure(hexagramCode)}
                 </div>
             `;
-        });
-        
-        yaoAnalysisHtml += `
-            <div class="yao-change-meaning">
-                <i class="fas fa-info-circle"></i>
-                <p>变爻表示事物发展中的动态变化，需要特别关注这些爻位的含义。</p>
-            </div>
-        `;
-    } else {
-        yaoAnalysisHtml = `
-            <div class="no-changing-yao">
-                <i class="fas fa-info-circle"></i>
-                <p>本次占卜没有变爻，表示事情将保持现状发展。</p>
-            </div>
-        `;
-    }
-    
-    document.getElementById('yao-analysis').innerHTML = yaoAnalysisHtml;
-    
-    // 显示加载指示器并获取卦辞详解
-    document.getElementById('gua-detail-content').textContent = "正在获取卦辞详解...";
-    document.getElementById('loading-indicator').style.display = 'block';
-    
-    // 从API获取卦辞详解
-    fetchGuaDetailFromAPI(currentQuestion, guaInfo.name, hexagramCode, changingYao);
-    
-    // 滚动到结果区域
-    setTimeout(() => {
-        document.getElementById('hexagram-section').scrollIntoView({ 
-            behavior: 'smooth' 
-        });
-    }, 500);
-}
-
-        // 从DeepSeek API获取卦辞详解
-        async function fetchGuaDetailFromAPI(question, guaName, hexagramCode, changingYao) {
-            try {
-                const prompt = `用户占卜问题："${question}"
-                
-请详细解释《易经》中的${guaName}卦（卦象编码：${hexagramCode}），并结合用户的问题给出针对性解答，请按照以下结构用中文回答：
-                
-1. 卦象概述：
-   用一段话简要说明此卦的核心含义，以及与用户问题的关联
-
-2. 象征意义：
-   详细解释卦象的象征意义，包括上下卦的组合含义
-
-3. 变爻分析：
-   ${changingYao.length > 0 ? '重点分析第' + changingYao.join('、') + '爻的变化含义及其对用户问题的启示' : '本次占卜无变爻，说明事情将保持现状'}
-
-4. 传统卦辞：
-   解释此卦的传统卦辞和爻辞含义
-
-5. 问题解答：
-   针对用户的问题，详细分析此卦对问题的解答
-
-6. 注意事项：
-   提醒占卜者需要注意的关键点
-
-请使用纯文本格式回答，不要使用Markdown符号（如#，*，-等）。内容要详细专业，适合命理学习者，使用清晰的分段。`;
-                
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${apiKey}`
-                    },
-                    body: JSON.stringify({
-                        model: "deepseek-chat",
-                        messages: [
-                            {
-                                role: "user",
-                                content: prompt
-                            }
-                        ],
-                        temperature: 0.7
-                    })
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`API请求失败: ${response.status}`);
-                }
-                
-                const data = await response.json();
-                const rawContent = data.choices[0].message.content;
-                
-                // 格式化卦辞详解
-                const formattedContent = formatGuaDetail(rawContent);
-                document.getElementById('gua-detail-content').innerHTML = formattedContent;
-                document.getElementById('loading-indicator').style.display = 'none';
-            } catch (error) {
-                console.error('获取卦辞详解失败:', error);
-                document.getElementById('gua-detail-content').innerHTML = 
-                    `<div class="detail-highlight"><i class="fas fa-exclamation-triangle"></i> 获取卦辞详解失败: ${error.message}</div>
-                     <p class="detail-para">${guaData[hexagramCode]?.interpretation || '暂无解释'}</p>`;
-                document.getElementById('loading-indicator').style.display = 'none';
-            }
-        }
-        
-        // 卦辞格式化函数
-        function formatGuaDetail(text) {
-            // 分割段落
-            let paragraphs = text.split('\n').filter(p => p.trim() !== '');
             
-            // 如果没有明显分段，尝试按句号分
-            if (paragraphs.length <= 1) {
-                paragraphs = text.split(/[。！？]/).filter(p => p.trim() !== '');
-            }
+            // 显示问题
+            document.getElementById('question-display').textContent = currentQuestion;
             
-            // 识别标题和关键部分
-            let html = '';
-            paragraphs.forEach(para => {
-                para = para.trim();
-                if (!para) return;
-                
-                // 识别标题（包含数字或冒号的部分）
-                if (/^\d+[、.]/.test(para) || /[:：]$/.test(para)) {
-                    html += `<h4 class="detail-title">${para}</h4>`;
-                } 
-                // 识别重点内容
-                else if (para.includes('建议') || para.includes('注意') || para.includes('关键')) {
-                    html += `<div class="detail-highlight"><i class="fas fa-lightbulb"></i> ${para}</div>`;
-                }
-                // 识别列表项
-                else if (para.startsWith('-') || para.startsWith('•')) {
-                    if (!html.includes('<ul>')) html += '<ul>';
-                    html += `<li>${para.substring(1).trim()}</li>`;
-                }
-                // 普通段落
-                else {
-                    // 如果上一项是ul，先闭合
-                    if (html.includes('<ul>') && !html.includes('</ul>')) {
-                        html += '</ul>';
-                    }
-                    html += `<p class="detail-para">${para}</p>`;
+            // 处理变爻分析
+            const changingYao = [];
+            currentHexagram.forEach((yao, index) => {
+                if (yao.changing) {
+                    changingYao.push(index + 1); // 爻位从1开始
                 }
             });
             
-            // 确保ul标签闭合
-            if (html.includes('<ul>') && !html.includes('</ul>')) {
-                html += '</ul>';
+            let yaoAnalysisHtml = '';
+            if (changingYao.length > 0) {
+                yaoAnalysisHtml += `
+                    <div class="changing-yao-header">
+                        <i class="fas fa-exchange-alt"></i>
+                        <h4>本次占卜有 ${changingYao.length} 个变爻：第 ${changingYao.join('、')} 爻</h4>
+                    </div>
+                    <p>${getYaoChangeInterpretation(changingYao.length)}</p>
+                `;
+                
+                changingYao.forEach(pos => {
+                    const index = pos - 1;
+                    const yao = currentHexagram[index];
+                    yaoAnalysisHtml += `
+                        <div class="yao-item">
+                            <div class="yao-position">第${pos}爻</div>
+                            <div class="yao-content">
+                                <p>${yaoChangeData[yao.type] || '未知变化'}</p>
+                                ${yaoData[hexagramCode] && yaoData[hexagramCode][index] ? 
+                                 `<p class="yao-text">${yaoData[hexagramCode][index]}</p>` : ''}
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                yaoAnalysisHtml += `
+                    <div class="yao-change-meaning">
+                        <i class="fas fa-info-circle"></i>
+                        <p>变爻表示事物发展中的动态变化，需要特别关注这些爻位的含义。</p>
+                    </div>
+                `;
+            } else {
+                yaoAnalysisHtml = `
+                    <div class="no-changing-yao">
+                        <i class="fas fa-info-circle"></i>
+                        <p>本次占卜没有变爻，表示事情将保持现状发展。</p>
+                    </div>
+                `;
             }
             
-            return html;
+            document.getElementById('yao-analysis').innerHTML = yaoAnalysisHtml;
+            
+            // 显示卦辞详解
+            document.getElementById('gua-detail-content').innerHTML = `
+                <div class="detail-highlight">
+                    <i class="fas fa-lightbulb"></i>
+                    <p>${guaInfo.name}卦的详细解读将在这里显示</p>
+                </div>
+                <div class="detail-para">
+                    <p>完整的卦辞解释需要结合具体问题进行分析，建议咨询专业命理师获取详细解答。</p>
+                </div>
+            `;
         }
         
         // 保存卦象到历史记录
@@ -2147,7 +1482,7 @@ function showResult() {
             // 生成卦象编码
             let hexagramCode = '';
             currentHexagram.forEach(yao => {
-                hexagramCode += yao.line === '111' ? '1' : '0';
+                hexagramCode += (yao.type === '7' || yao.type === '9') ? '1' : '0';
             });
             
             const guaInfo = guaData[hexagramCode] || { name: "未知卦" };
