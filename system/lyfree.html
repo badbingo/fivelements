@@ -855,7 +855,7 @@
 
         <div class="content-section">
             <div class="instruction-card">
-                <h4><i class="fas fa-info-circle"></i> 六爻占卜简介</h4>
+                <h4><i class="fas fa-info-circle"></i> 六爻占卜简介1</h4>
                 <p>六爻占卜是中国古代《易经》预测方法之一，通过六次投掷钱币或其它方式得到一个六爻卦象，根据卦象变化解读事物发展趋势。本系统提供三种起卦方式：</p>
                 <ol>
                     <li><strong>钱币摇卦</strong> - 传统三枚钱币方法，最正统的起卦方式</li>
@@ -1704,80 +1704,91 @@ function castWithNumbers() {
 function generateHexagramFromNumbers(upperNum, lowerNum, changingYaoPos) {
     const hexagram = [];
     
-    // 1. 下卦（内卦）：初爻→三爻 → 数组[0]到[2]
+    // 下卦（内卦）：初爻→三爻（数组索引0-2）
     for (let i = 0; i < 3; i++) {
-        hexagram.push({
-            type: lowerNum % 2 === 0 ? '8' : '7',
-            line: lowerNum % 2 === 0 ? '000' : '111',
-            changing: false
-        });
+        hexagram.push(createYao(lowerNum, false));
     }
     
-    // 2. 上卦（外卦）：四爻→上爻 → 数组[3]到[5]
+    // 上卦（外卦）：四爻→上爻（数组索引3-5）
     for (let i = 0; i < 3; i++) {
-        hexagram.push({
-            type: upperNum % 2 === 0 ? '8' : '7',
-            line: upperNum % 2 === 0 ? '000' : '111',
-            changing: false
-        });
+        hexagram.push(createYao(upperNum, false));
     }
     
-    // 3. 变爻处理（position=1是初爻=数组[0]）
+    // 处理变爻（position从1=初爻开始）
     if (changingYaoPos >= 1 && changingYaoPos <= 6) {
-        const index = changingYaoPos - 1; 
-        hexagram[index].changing = true;
-        hexagram[index].type = hexagram[index].type === '7' ? '9' : '6';
-        hexagram[index].line = hexagram[index].line === '111' ? '000' : '111';
+        const index = changingYaoPos - 1; // 转换为数组索引
+        hexagram[index] = reverseYao(hexagram[index]);
     }
     
-    return hexagram; // 数组顺序：[初爻,二爻,三爻,四爻,五爻,上爻]
+    return hexagram;
+}
+
+// 辅助函数：根据数字创建爻
+function createYao(number, isChanging) {
+    const isYang = number % 2 !== 0;
+    return {
+        type: isYang ? '7' : '8',
+        line: isYang ? '111' : '000',
+        changing: isChanging
+    };
+}
+
+// 辅助函数：反转爻属性（阳变阴/阴变阳）
+function reverseYao(yao) {
+    return {
+        type: yao.type === '7' ? '9' : '6',
+        line: yao.line === '111' ? '000' : '111',
+        changing: true
+    };
 }
 
 // 更新卦象显示
 function updateHexagramDisplay() {
-    const hexagramDisplay = document.getElementById('hexagram-display');
-    hexagramDisplay.innerHTML = '';
-
+    const container = document.getElementById('hexagram-display');
+    container.innerHTML = '';
+    
     if (!currentHexagram || currentHexagram.length !== 6) {
-        console.error('Invalid hexagram data:', currentHexagram);
-        hexagramDisplay.innerHTML = '<div class="error">卦象数据不完整</div>';
+        container.innerHTML = '<div class="error">卦象数据异常</div>';
         return;
     }
 
-    // 正序显示（i=0=初爻在下，i=5=上爻在上）
+    // 创建从下往上的卦象（初爻先添加，上爻最后添加）
+    const fragment = document.createDocumentFragment();
+    
+    // 正序处理（i=0=初爻 → i=5=上爻）
     for (let i = 0; i < 6; i++) {
         const yao = currentHexagram[i];
-        
-        if (!yao) {
-            console.error(`Missing yao at position ${i}`);
-            continue;
-        }
-
-        const lineDiv = document.createElement('div');
-        lineDiv.className = 'hexagram-line';
-        
-        if (yao.line === '111') {
-            lineDiv.classList.add('solid-line');
-        } else {
-            lineDiv.classList.add('broken-line');
-            lineDiv.innerHTML = `
-                <div class="broken-line-part"></div>
-                <div class="broken-line-part"></div>
-            `;
-        }
-        
-        if (yao.changing) {
-            lineDiv.classList.add('yao-change');
-        }
-        
-        const numberSpan = document.createElement('span');
-        numberSpan.className = 'line-number';
-        numberSpan.textContent = i + 1; // 直接显示位置（1-6）
-        lineDiv.appendChild(numberSpan);
-        
-        // 添加到DOM（新爻加在现有内容的后面，即上方）
-        hexagramDisplay.appendChild(lineDiv);
+        const lineDiv = createYaoElement(yao, i + 1);
+        fragment.appendChild(lineDiv);
     }
+    
+    // 用flex反向显示确保初爻在下
+    container.style.display = 'flex';
+    container.style.flexDirection = 'column-reverse';
+    container.appendChild(fragment);
+}
+
+// 辅助函数：创建单个爻的DOM元素
+function createYaoElement(yao, position) {
+    const lineDiv = document.createElement('div');
+    lineDiv.className = `hexagram-line ${yao.line === '111' ? 'solid' : 'broken'}`;
+    
+    if (yao.changing) {
+        lineDiv.classList.add('changing');
+    }
+    
+    const posSpan = document.createElement('span');
+    posSpan.className = 'yao-position';
+    posSpan.textContent = getPositionName(position);
+    lineDiv.appendChild(posSpan);
+    
+    return lineDiv;
+}
+
+// 辅助函数：获取爻位名称
+function getPositionName(pos) {
+    const names = ['初爻', '二爻', '三爻', '四爻', '五爻', '上爻'];
+    return names[pos - 1] || pos + '爻';
 }
         
 function generateHexagramSvg(hexagramCode) {
