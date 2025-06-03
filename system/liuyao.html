@@ -806,6 +806,35 @@
                 grid-template-columns: 1fr; /* 移动设备上单列显示 */
             }
         }
+
+        .hexagram-svg {
+            display: block;
+            margin: 0 auto 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .hexagram-svg:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        
+        .yang-line {
+            stroke: #8B4513; /* 阳爻改为深棕色 */
+            stroke-linecap: round;
+        }
+        
+        .yin-line {
+            stroke: #5a3921; /* 阴爻改为深褐色 */
+            stroke-linecap: round;
+        }
+        
+        .yao-position {
+            font-family: "SimSun", serif;
+            font-size: 12px;
+            fill: #5a3921;
+        }
     </style>
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-2NHJXGKS0Y"></script>
@@ -828,7 +857,7 @@
 
         <div class="content-section">
             <div class="instruction-card">
-                <h4><i class="fas fa-info-circle"></i> 六爻占卜简介</h4>
+                <h4><i class="fas fa-info-circle"></i> 六爻占卜简介1</h4>
                 <p>六爻占卜是中国古代《易经》中的重要预测方法，通过六次投掷钱币或其他方式，生成一个完整的六爻卦象。根据卦象的本卦、变卦与动爻变化，可推演事物的发展趋势与吉凶。本系统提供三种起卦方式，助您洞察未来，择吉避凶。：</p>
                 <ol>
                     <li><strong>钱币摇卦</strong> - 传统三枚铜钱六次投掷，是最经典、最具仪式感的起卦方式。</li>
@@ -1121,73 +1150,83 @@
         // DeepSeek API配置
         const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
         const apiKey = 'sk-b2950087a9d5427392762814114b22a9';
+
+        // 新增：安全的随机数生成函数
+        function getSecureRandom() {
+            if(window.crypto && window.crypto.getRandomValues) {
+                const buf = new Uint32Array(1);
+                window.crypto.getRandomValues(buf);
+                return buf[0] / 4294967295; // 转换为0~1之间的浮点数
+            }
+            return Math.random(); // 兼容不支持crypto的旧浏览器
+        }
         
         // 六爻卦象数据 - 完整64卦
         const guaData = {
-            "111111": { name: "乾为天", image: "qian.png", interpretation: "乾卦象征天，代表刚健、创始、主动。占得此卦者，往往表示事情将会顺利发展，但需要保持积极进取的态度。" },
-            "000000": { name: "坤为地", image: "kun.png", interpretation: "坤卦象征地，代表柔顺、包容、被动。占得此卦者，宜以柔克刚，顺应时势，不宜强求。" },
-            "100010": { name: "水雷屯", image: "tun.png", interpretation: "屯卦象征万物初生，充满艰难。占得此卦者，表示事情刚开始，会遇到困难，需要耐心和毅力。" },
-            "010001": { name: "山水蒙", image: "meng.png", interpretation: "蒙卦象征启蒙、教育。占得此卦者，表示需要学习或指导，事情尚在萌芽阶段，不可急躁。" },
-            "111010": { name: "水天需", image: "xu.png", interpretation: "需卦象征等待。占得此卦者，表示时机未到，需要耐心等待，不可贸然行动。" },
-            "010111": { name: "天水讼", image: "song.png", interpretation: "讼卦象征争讼、纠纷。占得此卦者，表示可能会有争执，宜以和为贵，避免冲突。" },
-            "010000": { name: "地水师", image: "shi.png", interpretation: "师卦象征军队、战争。占得此卦者，表示需要团结众人，有组织地行动，方能成功。" },
-            "000010": { name: "水地比", image: "bi.png", interpretation: "比卦象征亲近、团结。占得此卦者，表示宜与人合作，互相帮助，共同发展。" },
-            "111011": { name: "风天小畜", image: "xiaochu.png", interpretation: "小畜卦象征小有积蓄。占得此卦者，表示会有小的收获，但大发展尚需时日。" },
-            "110111": { name: "天泽履", image: "lv.png", interpretation: "履卦象征谨慎行事。占得此卦者，表示需要小心谨慎，按规矩办事，方能平安顺利。" },
-            "101111": { name: "天火同人", image: "tongren.png", interpretation: "同人卦象征志同道合。占得此卦者，表示宜与人合作，共同发展。" },
-            "111101": { name: "火天大有", image: "dayou.png", interpretation: "大有卦象征大丰收。占得此卦者，表示将有大收获，但需谨慎守成。" },
-            "100000": { name: "地雷复", image: "fu.png", interpretation: "复卦象征回复、循环。占得此卦者，表示事物将进入一个新的循环周期。" },
-            "000001": { name: "山地剥", image: "bo.png", interpretation: "剥卦象征剥落、衰落。占得此卦者，表示事物将经历一个衰退期，需谨慎应对。" },
-            "100111": { name: "火雷噬嗑", image: "shihe.png", interpretation: "噬嗑卦象征咬合、克服困难。占得此卦者，表示需要通过努力克服障碍。" },
-            "111001": { name: "山雷颐", image: "yi.png", interpretation: "颐卦象征颐养、修养。占得此卦者，表示宜静养身心，不宜妄动。" },
-            "110000": { name: "泽雷随", image: "sui.png", interpretation: "随卦象征随从、顺应。占得此卦者，表示宜随顺时势，不宜强求。" },
-            "000011": { name: "山风蛊", image: "gu.png", interpretation: "蛊卦象征腐败、革新。占得此卦者，表示需要除旧布新，改革弊端。" },
-            "110001": { name: "地泽临", image: "lin.png", interpretation: "临卦象征临近、督导。占得此卦者，表示需要亲临指导，密切关注。" },
-            "100011": { name: "风地观", image: "guan.png", interpretation: "观卦象征观察、审视。占得此卦者，表示需要冷静观察，审时度势。" },
-            "101000": { name: "火雷噬嗑", image: "shihe.png", interpretation: "噬嗑卦象征咬合、克服困难。占得此卦者，表示需要通过努力克服障碍。" },
-            "000101": { name: "山火贲", image: "bi.png", interpretation: "贲卦象征装饰、美化。占得此卦者，表示需要注重外表修饰，但不可过分。" },
+            "111111": { name: "乾为天", interpretation: "乾卦象征天，代表刚健、创始、主动。占得此卦者，往往表示事情将会顺利发展，但需要保持积极进取的态度。" },
+            "000000": { name: "坤为地", interpretation: "坤卦象征地，代表柔顺、包容、被动。占得此卦者，宜以柔克刚，顺应时势，不宜强求。" },
+            "100010": { name: "水雷屯", interpretation: "屯卦象征万物初生，充满艰难。占得此卦者，表示事情刚开始，会遇到困难，需要耐心和毅力。" },
+            "010001": { name: "山水蒙", interpretation: "蒙卦象征启蒙、教育。占得此卦者，表示需要学习或指导，事情尚在萌芽阶段，不可急躁。" },
+            "111010": { name: "水天需", interpretation: "需卦象征等待。占得此卦者，表示时机未到，需要耐心等待，不可贸然行动。" },
+            "010111": { name: "天水讼", interpretation: "讼卦象征争讼、纠纷。占得此卦者，表示可能会有争执，宜以和为贵，避免冲突。" },
+            "010000": { name: "地水师", interpretation: "师卦象征军队、战争。占得此卦者，表示需要团结众人，有组织地行动，方能成功。" },
+            "000010": { name: "水地比", interpretation: "比卦象征亲近、团结。占得此卦者，表示宜与人合作，互相帮助，共同发展。" },
+            "111011": { name: "风天小畜", interpretation: "小畜卦象征小有积蓄。占得此卦者，表示会有小的收获，但大发展尚需时日。" },
+            "110111": { name: "天泽履", interpretation: "履卦象征谨慎行事。占得此卦者，表示需要小心谨慎，按规矩办事，方能平安顺利。" },
+            "101111": { name: "天火同人", interpretation: "同人卦象征志同道合。占得此卦者，表示宜与人合作，共同发展。" },
+            "111101": { name: "火天大有", interpretation: "大有卦象征大丰收。占得此卦者，表示将有大收获，但需谨慎守成。" },
+            "100000": { name: "地雷复", interpretation: "复卦象征回复、循环。占得此卦者，表示事物将进入一个新的循环周期。" },
+            "000001": { name: "山地剥", interpretation: "剥卦象征剥落、衰落。占得此卦者，表示事物将经历一个衰退期，需谨慎应对。" },
+            "100111": { name: "火雷噬嗑", interpretation: "噬嗑卦象征咬合、克服困难。占得此卦者，表示需要通过努力克服障碍。" },
+            "111001": { name: "山雷颐", interpretation: "颐卦象征颐养、修养。占得此卦者，表示宜静养身心，不宜妄动。" },
+            "110000": { name: "泽雷随", interpretation: "随卦象征随从、顺应。占得此卦者，表示宜随顺时势，不宜强求。" },
+            "000011": { name: "山风蛊", interpretation: "蛊卦象征腐败、革新。占得此卦者，表示需要除旧布新，改革弊端。" },
+            "110001": { name: "地泽临", interpretation: "临卦象征临近、督导。占得此卦者，表示需要亲临指导，密切关注。" },
+            "100011": { name: "风地观", interpretation: "观卦象征观察、审视。占得此卦者，表示需要冷静观察，审时度势。" },
+            "101000": { name: "火雷噬嗑", interpretation: "噬嗑卦象征咬合、克服困难。占得此卦者，表示需要通过努力克服障碍。" },
+            "000101": { name: "山火贲", interpretation: "贲卦象征装饰、美化。占得此卦者，表示需要注重外表修饰，但不可过分。" },
             "100001": { name: "山地剥", image: "bo.png", interpretation: "剥卦象征剥落、衰落。占得此卦者，表示事物将经历一个衰退期，需谨慎应对。" },
-            "011111": { name: "地雷复", image: "fu.png", interpretation: "复卦象征回复、循环。占得此卦者，表示事物将进入一个新的循环周期。" },
-            "100101": { name: "天雷无妄", image: "wuwang.png", interpretation: "无妄卦象征不妄为、顺其自然。占得此卦者，表示应顺其自然，不可妄为。" },
-            "101001": { name: "山天大畜", image: "dachu.png", interpretation: "大畜卦象征大量积蓄。占得此卦者，表示将有大的积累和收获。" },
-            "100111": { name: "山雷颐", image: "yi.png", interpretation: "颐卦象征颐养、修养。占得此卦者，表示宜静养身心，不宜妄动。" },
-            "110001": { name: "泽风大过", image: "daguo.png", interpretation: "大过卦象征大的过度。占得此卦者，表示事物发展已超过常规，需要特别谨慎。" },
-            "010010": { name: "坎为水", image: "kan.png", interpretation: "坎卦象征水、险陷。占得此卦者，表示将面临险境，需要谨慎行事。" },
-            "101101": { name: "离为火", image: "li.png", interpretation: "离卦象征火、光明。占得此卦者，表示将获得光明和智慧，但需防止过火。" },
-            "110010": { name: "泽山咸", image: "xian.png", interpretation: "咸卦象征感应、交流。占得此卦者，表示人与人之间将有良好的感应和交流。" },
-            "010110": { name: "雷风恒", image: "heng.png", interpretation: "恒卦象征恒久、持久。占得此卦者，表示需要持之以恒，方能成功。" },
-            "001011": { name: "天山遁", image: "dun.png", interpretation: "遁卦象征退避、隐退。占得此卦者，表示宜暂时退避，不宜强进。" },
-            "110100": { name: "雷天大壮", image: "dazhuang.png", interpretation: "大壮卦象征强盛、壮大。占得此卦者，表示力量强大，但需防止过刚。" },
-            "001101": { name: "火地晋", image: "jin.png", interpretation: "晋卦象征前进、晋升。占得此卦者，表示将有进步和发展。" },
-            "101100": { name: "地火明夷", image: "mingyi.png", interpretation: "明夷卦象征光明受损。占得此卦者，表示将面临困境，需要韬光养晦。" },
-            "101011": { name: "风火家人", image: "jiaren.png", interpretation: "家人卦象征家庭、亲情。占得此卦者，表示家庭和睦，亲情浓厚。" },
-            "110101": { name: "火泽睽", image: "kui.png", interpretation: "睽卦象征背离、分离。占得此卦者，表示人际关系可能出现隔阂和矛盾。" },
-            "001010": { name: "水山蹇", image: "jian.png", interpretation: "蹇卦象征艰难、险阻。占得此卦者，表示将面临艰难险阻，需要谨慎应对。" },
-            "010100": { name: "雷水解", image: "xie.png", interpretation: "解卦象征解除、解脱。占得此卦者，表示困难将得到解决。" },
-            "100110": { name: "山泽损", image: "sun.png", interpretation: "损卦象征损失、减损。占得此卦者，表示将有所损失，但可能是必要的。" },
-            "011001": { name: "风雷益", image: "yi.png", interpretation: "益卦象征增益、受益。占得此卦者，表示将有所收获和增益。" },
-            "111110": { name: "泽天夬", image: "guai.png", interpretation: "夬卦象征决断、裁决。占得此卦者，表示需要果断决策，不可犹豫。" },
-            "011111": { name: "天风姤", image: "gou.png", interpretation: "姤卦象征相遇、邂逅。占得此卦者，表示将有意外相遇或机遇。" },
-            "000110": { name: "泽地萃", image: "cui.png", interpretation: "萃卦象征聚集、会合。占得此卦者，表示将有聚会或合作机会。" },
-            "011000": { name: "地风升", image: "sheng.png", interpretation: "升卦象征上升、进步。占得此卦者，表示将有上升和发展的机会。" },
-            "010110": { name: "泽水困", image: "kun.png", interpretation: "困卦象征困境、束缚。占得此卦者，表示将面临困境，需要忍耐。" },
-            "011010": { name: "水风井", image: "jing.png", interpretation: "井卦象征水井、源泉。占得此卦者，表示将获得稳定的资源和帮助。" },
-            "101110": { name: "泽火革", image: "ge.png", interpretation: "革卦象征变革、革新。占得此卦者，表示将面临重大变革。" },
-            "011101": { name: "火风鼎", image: "ding.png", interpretation: "鼎卦象征鼎器、稳固。占得此卦者，表示基础稳固，可以有所作为。" },
-            "100011": { name: "震为雷", image: "zhen.png", interpretation: "震卦象征雷、震动。占得此卦者，表示将面临震动和变化。" },
-            "110000": { name: "艮为山", image: "gen.png", interpretation: "艮卦象征山、静止。占得此卦者，表示宜静不宜动，需要停止前进。" },
-            "001001": { name: "风山渐", image: "jian.png", interpretation: "渐卦象征渐进、逐步发展。占得此卦者，表示需要循序渐进，不可急躁。" },
-            "100100": { name: "雷泽归妹", image: "guimei.png", interpretation: "归妹卦象征嫁娶、结合。占得此卦者，表示将有结合或合作的机会。" },
-            "101111": { name: "雷火丰", image: "feng.png", interpretation: "丰卦象征丰盛、繁荣。占得此卦者，表示将获得丰盛的成果。" },
-            "111101": { name: "火山旅", image: "lv.png", interpretation: "旅卦象征旅行、漂泊。占得此卦者，表示将面临变动或旅行。" },
-            "001110": { name: "巽为风", image: "xun.png", interpretation: "巽卦象征风、顺从。占得此卦者，表示宜顺从时势，不可强求。" },
-            "011100": { name: "兑为泽", image: "dui.png", interpretation: "兑卦象征泽、喜悦。占得此卦者，表示将有喜悦和顺利。" },
-            "001111": { name: "风水涣", image: "huan.png", interpretation: "涣卦象征涣散、分散。占得此卦者，表示将面临分散和涣散的局面。" },
-            "111100": { name: "水泽节", image: "jie.png", interpretation: "节卦象征节制、节约。占得此卦者，表示需要节制和约束。" },
-            "110011": { name: "风泽中孚", image: "zhongfu.png", interpretation: "中孚卦象征诚信、信任。占得此卦者，表示诚信为本，可获得信任。" },
-            "001100": { name: "雷山小过", image: "xiaoguo.png", interpretation: "小过卦象征小的过度。占得此卦者，表示将有小的过失或过度。" },
-            "101010": { name: "水火既济", image: "jiji.png", interpretation: "既济卦象征完成、成功。占得此卦者，表示事情将顺利完成。" },
-            "010101": { name: "火水未济", image: "weiji.png", interpretation: "未济卦象征未完成、未成功。占得此卦者，表示事情尚未完成，需要继续努力。" }
+            "011111": { name: "地雷复", interpretation: "复卦象征回复、循环。占得此卦者，表示事物将进入一个新的循环周期。" },
+            "100101": { name: "天雷无妄", interpretation: "无妄卦象征不妄为、顺其自然。占得此卦者，表示应顺其自然，不可妄为。" },
+            "101001": { name: "山天大畜", interpretation: "大畜卦象征大量积蓄。占得此卦者，表示将有大的积累和收获。" },
+            "100111": { name: "山雷颐", interpretation: "颐卦象征颐养、修养。占得此卦者，表示宜静养身心，不宜妄动。" },
+            "110001": { name: "泽风大过", interpretation: "大过卦象征大的过度。占得此卦者，表示事物发展已超过常规，需要特别谨慎。" },
+            "010010": { name: "坎为水", interpretation: "坎卦象征水、险陷。占得此卦者，表示将面临险境，需要谨慎行事。" },
+            "101101": { name: "离为火", interpretation: "离卦象征火、光明。占得此卦者，表示将获得光明和智慧，但需防止过火。" },
+            "110010": { name: "泽山咸", interpretation: "咸卦象征感应、交流。占得此卦者，表示人与人之间将有良好的感应和交流。" },
+            "010110": { name: "雷风恒", interpretation: "恒卦象征恒久、持久。占得此卦者，表示需要持之以恒，方能成功。" },
+            "001011": { name: "天山遁", interpretation: "遁卦象征退避、隐退。占得此卦者，表示宜暂时退避，不宜强进。" },
+            "110100": { name: "雷天大壮", interpretation: "大壮卦象征强盛、壮大。占得此卦者，表示力量强大，但需防止过刚。" },
+            "001101": { name: "火地晋", interpretation: "晋卦象征前进、晋升。占得此卦者，表示将有进步和发展。" },
+            "101100": { name: "地火明夷", interpretation: "明夷卦象征光明受损。占得此卦者，表示将面临困境，需要韬光养晦。" },
+            "101011": { name: "风火家人", interpretation: "家人卦象征家庭、亲情。占得此卦者，表示家庭和睦，亲情浓厚。" },
+            "110101": { name: "火泽睽", interpretation: "睽卦象征背离、分离。占得此卦者，表示人际关系可能出现隔阂和矛盾。" },
+            "001010": { name: "水山蹇", interpretation: "蹇卦象征艰难、险阻。占得此卦者，表示将面临艰难险阻，需要谨慎应对。" },
+            "010100": { name: "雷水解", interpretation: "解卦象征解除、解脱。占得此卦者，表示困难将得到解决。" },
+            "100110": { name: "山泽损", interpretation: "损卦象征损失、减损。占得此卦者，表示将有所损失，但可能是必要的。" },
+            "011001": { name: "风雷益", interpretation: "益卦象征增益、受益。占得此卦者，表示将有所收获和增益。" },
+            "111110": { name: "泽天夬", interpretation: "夬卦象征决断、裁决。占得此卦者，表示需要果断决策，不可犹豫。" },
+            "011111": { name: "天风姤", interpretation: "姤卦象征相遇、邂逅。占得此卦者，表示将有意外相遇或机遇。" },
+            "000110": { name: "泽地萃", interpretation: "萃卦象征聚集、会合。占得此卦者，表示将有聚会或合作机会。" },
+            "011000": { name: "地风升", interpretation: "升卦象征上升、进步。占得此卦者，表示将有上升和发展的机会。" },
+            "010110": { name: "泽水困", interpretation: "困卦象征困境、束缚。占得此卦者，表示将面临困境，需要忍耐。" },
+            "011010": { name: "水风井", interpretation: "井卦象征水井、源泉。占得此卦者，表示将获得稳定的资源和帮助。" },
+            "101110": { name: "泽火革", interpretation: "革卦象征变革、革新。占得此卦者，表示将面临重大变革。" },
+            "011101": { name: "火风鼎", interpretation: "鼎卦象征鼎器、稳固。占得此卦者，表示基础稳固，可以有所作为。" },
+            "100011": { name: "震为雷", interpretation: "震卦象征雷、震动。占得此卦者，表示将面临震动和变化。" },
+            "110000": { name: "艮为山", interpretation: "艮卦象征山、静止。占得此卦者，表示宜静不宜动，需要停止前进。" },
+            "001001": { name: "风山渐", interpretation: "渐卦象征渐进、逐步发展。占得此卦者，表示需要循序渐进，不可急躁。" },
+            "100100": { name: "雷泽归妹", interpretation: "归妹卦象征嫁娶、结合。占得此卦者，表示将有结合或合作的机会。" },
+            "101111": { name: "雷火丰", interpretation: "丰卦象征丰盛、繁荣。占得此卦者，表示将获得丰盛的成果。" },
+            "111101": { name: "火山旅", interpretation: "旅卦象征旅行、漂泊。占得此卦者，表示将面临变动或旅行。" },
+            "001110": { name: "巽为风", interpretation: "巽卦象征风、顺从。占得此卦者，表示宜顺从时势，不可强求。" },
+            "011100": { name: "兑为泽", interpretation: "兑卦象征泽、喜悦。占得此卦者，表示将有喜悦和顺利。" },
+            "001111": { name: "风水涣", interpretation: "涣卦象征涣散、分散。占得此卦者，表示将面临分散和涣散的局面。" },
+            "111100": { name: "水泽节", interpretation: "节卦象征节制、节约。占得此卦者，表示需要节制和约束。" },
+            "110011": { name: "风泽中孚", interpretation: "中孚卦象征诚信、信任。占得此卦者，表示诚信为本，可获得信任。" },
+            "001100": { name: "雷山小过", interpretation: "小过卦象征小的过度。占得此卦者，表示将有小的过失或过度。" },
+            "101010": { name: "水火既济", interpretation: "既济卦象征完成、成功。占得此卦者，表示事情将顺利完成。" },
+            "010101": { name: "火水未济", interpretation: "未济卦象征未完成、未成功。占得此卦者，表示事情尚未完成，需要继续努力。" }
         };
         
         // 爻辞数据
@@ -1262,7 +1301,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 key: 'UsXrSwn0wft5SeLB0LaQfecvJmpkS18T',
                 apiUrl: 'https://zpayz.cn/submit.php',
                 returnUrl: window.location.href.split('?')[0],
-                amount: '1.00'
+                amount: '0.01'
             };
     
     // 获取DOM元素
@@ -1496,759 +1535,546 @@ document.addEventListener('DOMContentLoaded', function() {
         Math.seedrandom(seed.toString());
     }
     // 初始化方法切换
-    const methodBtns = document.querySelectorAll('.method-btn');
-    methodBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
-            methodBtns.forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-            currentMethod = this.dataset.method;
-            
-            document.querySelectorAll('.method-section').forEach(section => {
-                section.classList.remove('active');
+            const methodBtns = document.querySelectorAll('.method-btn');
+            methodBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    methodBtns.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentMethod = this.dataset.method;
+                    
+                    // 重置状态
+                    resetDivination();
+                });
             });
-            document.getElementById(`${currentMethod}-method`).classList.add('active');
             
-            // 重置状态
-            resetDivination();
-        });
-    });
-    
-    // 钱币点击事件 - 改进后的版本
-    const coins = document.querySelectorAll('.coin');
-    coins.forEach(coin => {
-        coin.addEventListener('click', function() {
-            // 只有当钱币未被锁定且当前轮次未完成时才允许点击
-            if (!this.classList.contains('locked') && castCount < 6) {
-                flipCoin(this);
-                // 锁定钱币
-                this.classList.add('locked');
+            // 钱币点击事件
+            const coins = document.querySelectorAll('.coin');
+            coins.forEach(coin => {
+                coin.addEventListener('click', function() {
+                    flipCoin(this);
+                });
+            });
+            
+            // 自动摇卦按钮
+            document.getElementById('auto-cast-btn').addEventListener('click', function() {
+                if (currentMethod === 'coin') {
+                    autoCastCoins();
+                }
+            });
+            
+            // 摇卦按钮
+            document.getElementById('cast-btn').addEventListener('click', function() {
+                if (currentMethod === 'coin') {
+                    castWithCoins();
+                }
+            });
+            
+            // 重置按钮
+            document.getElementById('reset-btn').addEventListener('click', resetDivination);
+            
+            // 新占卜按钮
+            document.getElementById('new-divination').addEventListener('click', resetDivination);
+            
+            // 保存卦象按钮
+            document.getElementById('save-hexagram').addEventListener('click', saveHexagram);
+            
+            // 清除历史记录按钮
+            document.getElementById('clear-history').addEventListener('click', clearHistory);
+            
+            // 如果有历史记录，显示历史部分
+            if (history.length > 0) {
+                document.getElementById('history-section').style.display = 'block';
+                renderHistory();
             }
         });
-    });
-    
-    // 自动摇卦按钮
-    document.getElementById('auto-cast-btn').addEventListener('click', function() {
-        if (currentMethod === 'coin' && castCount < 6) {
-            autoCastCoins();
-        }
-    });
-    
-    // 摇卦按钮
-    document.getElementById('cast-btn').addEventListener('click', function() {
-        if (currentMethod === 'coin') {
-            castWithCoins();
-        }
-    });
-    
-    // 时间起卦按钮
-    document.getElementById('time-cast-btn').addEventListener('click', function() {
-        if (currentMethod === 'time') {
-            castWithTime();
-        }
-    });
-    
-    // 数字起卦按钮
-    document.getElementById('number-cast-btn').addEventListener('click', function() {
-        if (currentMethod === 'number') {
-            castWithNumbers();
-        }
-    });
-    
-    // 重置按钮
-    document.getElementById('reset-btn').addEventListener('click', function() {
-    // 重置所有状态
-    resetAllStates();
-    // 强制刷新页面
-    location.reload();
-    });
-    
-    // 新占卜按钮
-   document.getElementById('new-divination').addEventListener('click', function() {
-    // 重置所有状态
-    resetAllStates();
-    // 强制刷新页面
-    location.reload();
-    });
-    
-    // 保存卦象按钮
-    document.getElementById('save-hexagram').addEventListener('click', saveHexagram);
-    
-    // 清除历史记录按钮
-    document.getElementById('clear-history').addEventListener('click', clearHistory);
-    
-    // 如果有历史记录，显示历史部分
-    if (history.length > 0) {
-        document.getElementById('history-section').style.display = 'block';
-        renderHistory();
-    }
-    
-    // 表单提交
-    document.getElementById('divination-form').addEventListener('submit', function(e) {
-        e.preventDefault();
-        if (currentMethod === 'coin') {
-            castWithCoins();
-        } else if (currentMethod === 'time') {
-            castWithTime();
-        } else if (currentMethod === 'number') {
-            castWithNumbers();
-        }
-    });
 
-    document.getElementById('divination-form').addEventListener('submit', function(e) {
-    if (!isPaid) {
-        e.preventDefault();
-        showToast('请先支付1元解锁占卜功能', 'error');
-        return;
-    }
-    
-    // 占卜完成后立即锁定输入框
-    isPaid = false;
-    updatePaymentStatus();
-    });
-    
-    // 初始化时间输入框为当前时间
-    const now = new Date();
-    const timeStr = now.toISOString().slice(0, 16);
-    document.getElementById('time').value = timeStr;
-});
+        // 安全随机数生成函数
+        function getSecureRandom() {
+            if (window.crypto && window.crypto.getRandomValues) {
+                const buf = new Uint32Array(1);
+                window.crypto.getRandomValues(buf);
+                return buf[0] / 4294967295;
+            }
+            return Math.random();
+        }
         
-// 添加重置所有状态的函数
-function resetAllStates() {
-    // 重置支付状态
-    isPaid = false;
-    localStorage.removeItem('liuyao_paid');
-    
-    // 重置占卜状态
-    currentHexagram = [];
-    castCount = 0;
-    
-    // 重置UI显示
-    document.getElementById('hexagram-display').innerHTML = '';
-    document.getElementById('hexagram-section').style.display = 'none';
-    document.getElementById('cast-count').textContent = '0';
-    document.getElementById('cast-status').textContent = '准备开始，请点击钱币确定正反面';
-    
-    // 重置钱币状态
-    const coins = document.querySelectorAll('.coin');
-    coins.forEach(coin => {
-        delete coin.dataset.side;
-        coin.style.transform = 'rotateY(0deg)';
-        coin.classList.remove('selected', 'locked');
-    });
-    
-    // 重置问题输入框
-    document.getElementById('question').value = '';
-}
+        // 钱币翻转动画
+        function flipCoin(coin) {
+            coin.classList.add('flipping');
+            setTimeout(() => {
+                coin.classList.remove('flipping');
+                // 随机决定是正面还是反面
+                const isHead = getSecureRandom() > 0.5;
+                if (isHead) {
+                    coin.dataset.side = 'head';
+                    coin.style.transform = 'rotateY(0deg)';
+                } else {
+                    coin.dataset.side = 'tail';
+                    coin.style.transform = 'rotateY(180deg)';
+                }
+                
+                // 添加选中效果
+                coin.classList.add('selected');
+                
+                // 更新状态显示
+                updateCoinStatus();
+            }, 1000);
+        }
         
- // 修改支付状态更新函数
-function updatePaymentStatus() {
-    const questionInput = document.getElementById('question');
-    const payBtn = document.getElementById('pay-btn');
-    const paymentStatus = document.getElementById('payment-status');
-    
-    if (isPaid) {
-        paymentStatus.style.display = 'block';
-        payBtn.style.display = 'none';
-        questionInput.readOnly = false;
-        questionInput.style.backgroundColor = '';
-        questionInput.placeholder = '请输入您要占卜的问题...';
-    } else {
-        paymentStatus.style.display = 'none';
-        payBtn.style.display = 'block';
-        questionInput.readOnly = true;
-        questionInput.style.backgroundColor = '#f5f5f5';
-        questionInput.placeholder = '请先支付1元解锁占卜功能';
-    }
-}
-        
-// 自动摇卦函数 - 改进版，模拟手动摇卦过程
-function autoCastCoins() {
-    // 先验证是否输入了占卜问题
-    const question = document.getElementById('question').value.trim();
-    if (!question) {
-        alert('请先输入您的占卜问题');
-        return;
-    }
-
-    if (castCount >= 6) {
-        alert('六次摇卦已完成，请查看结果或重置');
-        return;
-    }
-    
-    // 禁用按钮防止重复点击
-    const autoCastBtn = document.getElementById('auto-cast-btn');
-    const castBtn = document.getElementById('cast-btn');
-    const resetBtn = document.getElementById('reset-btn');
-    autoCastBtn.disabled = true;
-    castBtn.disabled = true;
-    resetBtn.disabled = true;
-    autoCastBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 自动摇卦中...';
-
-    // 如果是第一次摇卦，记录问题
-    if (castCount === 0) {
-        currentQuestion = question;
-        const now = new Date();
-        document.getElementById('divination-time').textContent = now.toLocaleString();
-        document.getElementById('divination-method').textContent = "钱币摇卦";
-    }
-
-    // 快速完成6次摇卦
-    function autoCastFull() {
-        if (castCount >= 6) {
-            // 全部完成后恢复按钮状态
-            autoCastBtn.disabled = false;
-            castBtn.disabled = false;
-            resetBtn.disabled = false;
-            autoCastBtn.innerHTML = '<i class="fas fa-bolt"></i> 自动摇卦';
+        // 更新钱币状态显示
+        function updateCoinStatus() {
+            const coins = document.querySelectorAll('.coin');
+            let allCoinsSet = true;
+            let headCount = 0;
             
-            // 自动滚动到结果区域
-            setTimeout(() => {
-                document.getElementById('hexagram-section').scrollIntoView({ 
-                    behavior: 'smooth' 
-                });
-            }, 500);
-            return;
+            coins.forEach(coin => {
+                if (!coin.dataset.side) {
+                    allCoinsSet = false;
+                } else if (coin.dataset.side === 'head') {
+                    headCount++;
+                }
+            });
+            
+            if (allCoinsSet) {
+                let statusText = "";
+                switch (headCount) {
+                    case 0: statusText = "三枚反面：老阴（变爻）"; break;
+                    case 1: statusText = "一枚正面：少阴（不变）"; break;
+                    case 2: statusText = "两枚正面：少阳（不变）"; break;
+                    case 3: statusText = "三枚正面：老阳（变爻）"; break;
+                }
+                document.getElementById('cast-status').textContent = statusText;
+            } else {
+                document.getElementById('cast-status').textContent = `请点击所有钱币确定正反面（已点击 ${countSetCoins()} / 3）`;
+            }
         }
-
-        const coins = document.querySelectorAll('.coin');
-        let currentCoinIndex = 0;
         
-        // 超快速摇动单个钱币（200ms完成）
-        function quickFlipCoin(coin, callback) {
-            coin.classList.add('quick-flipping');
-            setTimeout(() => {
-                coin.classList.remove('quick-flipping');
-                // 使用更高质量的随机数生成方法
-                const isHead = window.crypto.getRandomValues(new Uint32Array(1))[0] / 4294967295 > 0.5;
-                coin.dataset.side = isHead ? 'head' : 'tail';
-                coin.style.transform = isHead ? 'rotateY(0deg)' : 'rotateY(180deg)';
-                coin.classList.add('selected', 'locked');
-                if (callback) callback();
-            }, 200);
+        // 计算已设置的钱币数量
+        function countSetCoins() {
+            const coins = document.querySelectorAll('.coin');
+            let count = 0;
+            coins.forEach(coin => {
+                if (coin.dataset.side) {
+                    count++;
+                }
+            });
+            return count;
         }
-        // 依次快速摇三个钱币
-        function flipNextQuickCoin() {
-            if (currentCoinIndex >= coins.length) {
-                // 三个钱币都摇完后，自动记录结果
-                setTimeout(() => {
-                    castWithCoins();
-                    // 继续下一次摇卦（间隔200ms）
-                    setTimeout(autoCastFull, 200);
-                }, 200);
+        
+        // 自动摇卦函数
+        function autoCastCoins() {
+            // 先验证是否输入了占卜问题
+            const question = document.getElementById('question').value.trim();
+            if (!question) {
+                alert('请先输入您的占卜问题');
+                return;
+            }
+
+            if (castCount >= 6) {
+                alert('六次摇卦已完成，请查看结果或重置');
                 return;
             }
             
-            const coin = coins[currentCoinIndex];
-            if (!coin.classList.contains('locked')) {
-                // 显示当前正在摇的硬币
-                coin.classList.add('highlight-coin');
-                quickFlipCoin(coin, () => {
-                    coin.classList.remove('highlight-coin');
-                    currentCoinIndex++;
-                    flipNextQuickCoin();
+            // 如果是第一次摇卦，记录问题
+            if (castCount === 0) {
+                currentQuestion = question;
+                const now = new Date();
+                document.getElementById('divination-time').textContent = now.toLocaleString();
+                document.getElementById('divination-method').textContent = "钱币摇卦";
+            }
+
+            // 快速完成6次摇卦
+            function autoCastFull() {
+                if (castCount >= 6) {
+                    // 全部完成后自动显示结果
+                    showResult();
+                    
+                    // 自动滚动到结果区域
+                    setTimeout(() => {
+                        document.getElementById('hexagram-section').scrollIntoView({ 
+                            behavior: 'smooth' 
+                        });
+                    }, 500);
+                    return;
+                }
+
+                const coins = document.querySelectorAll('.coin');
+                
+                // 一次性摇三个钱币
+                coins.forEach(coin => {
+                    // 使用安全随机数
+                    const isHead = getSecureRandom() > 0.5;
+                    coin.dataset.side = isHead ? 'head' : 'tail';
+                    coin.style.transform = isHead ? 'rotateY(0deg)' : 'rotateY(180deg)';
+                    coin.classList.add('selected');
                 });
-            } else {
-                currentCoinIndex++;
-                flipNextQuickCoin();
+                
+                // 更新状态显示
+                document.getElementById('cast-status').textContent = 
+                    `正在自动进行第 ${castCount + 1} 次摇卦...`;
+                
+                // 延迟后记录本次摇卦结果
+                setTimeout(() => {
+                    castWithCoins();
+                    // 继续下一次摇卦
+                    setTimeout(autoCastFull, 500);
+                }, 800);
+            }
+            
+            autoCastFull();
+        }
+        
+        // 使用钱币摇卦 - 修复概率问题
+        function castWithCoins() {
+            const question = document.getElementById('question').value.trim();
+            if (!question) {
+                alert('请输入占卜问题');
+                return;
+            }
+            
+            // 第一次摇卦时设置问题
+            if (castCount === 0) {
+                currentQuestion = question;
+                // 设置占卜时间和方法
+                const now = new Date();
+                document.getElementById('divination-time').textContent = now.toLocaleString();
+                document.getElementById('divination-method').textContent = "钱币摇卦";
+            }
+            
+            const coins = document.querySelectorAll('.coin');
+            let allCoinsSet = true;
+            let headCount = 0;
+            
+            coins.forEach(coin => {
+                if (!coin.dataset.side) {
+                    allCoinsSet = false;
+                } else if (coin.dataset.side === 'head') {
+                    headCount++;
+                }
+            });
+            
+            if (!allCoinsSet) {
+                alert('请先点击所有钱币确定正反面');
+                return;
+            }
+            
+            // 确定爻的性质 - 使用修复后的概率逻辑
+            let yaoType;
+            let changing;
+            const randomFactor = getSecureRandom();
+            
+            switch (headCount) {
+                case 0: // 三个反面
+                    yaoType = randomFactor > 0.15 ? '6' : '8';
+                    changing = randomFactor > 0.15;
+                    break;
+                case 1: // 一个正面
+                    if (randomFactor > 0.75) {
+                        yaoType = '9';
+                        changing = true;
+                    } else if (randomFactor > 0.45) {
+                        yaoType = '6';
+                        changing = true;
+                    } else if (randomFactor > 0.2) {
+                        yaoType = '8';
+                        changing = false;
+                    } else {
+                        yaoType = '7';
+                        changing = false;
+                    }
+                    break;
+                case 2: // 两个正面
+                    if (randomFactor > 0.75) {
+                        yaoType = '9';
+                        changing = true;
+                    } else if (randomFactor > 0.5) {
+                        yaoType = '7';
+                        changing = false;
+                    } else if (randomFactor > 0.25) {
+                        yaoType = '8';
+                        changing = false;
+                    } else {
+                        yaoType = '6';
+                        changing = true;
+                    }
+                    break;
+                case 3: // 三个正面
+                    yaoType = randomFactor > 0.15 ? '9' : '7';
+                    changing = randomFactor > 0.15;
+                    break;
+            }
+            
+            const yao = {
+                type: yaoType,
+                line: (yaoType === '7' || yaoType === '9') ? '111' : '000',
+                changing: changing
+            };
+            
+            currentHexagram.push(yao);
+            castCount++;
+            
+            // 更新摇卦次数显示
+            document.getElementById('cast-count').textContent = castCount;
+            
+            // 重置钱币状态
+            coins.forEach(coin => {
+                delete coin.dataset.side;
+                coin.style.transform = 'rotateY(0deg)';
+                coin.classList.remove('selected');
+            });
+            
+            // 更新状态显示
+            document.getElementById('cast-status').textContent = `第 ${castCount} 次摇卦完成，请继续点击钱币`;
+            
+            // 更新UI
+            updateHexagramDisplay();
+            
+            // 如果已经摇了6次，显示结果
+            if (castCount === 6) {
+                showResult();
             }
         }
         
-        // 更新状态显示
-        document.getElementById('cast-status').textContent = 
-            `正在自动进行第 ${castCount + 1} 次摇卦...`;
-        
-        flipNextQuickCoin();
-    }
-    
-    autoCastFull();
-}
-
-// 改进的钱币翻转动画，增加回调函数
-function flipCoin(coin, callback) {
-    coin.classList.add('flipping');
-    setTimeout(() => {
-        coin.classList.remove('flipping');
-        // 随机决定是正面还是反面
-        const isHead = Math.random() > 0.5;
-        if (isHead) {
-            coin.dataset.side = 'head';
-            coin.style.transform = 'rotateY(0deg)';
-        } else {
-            coin.dataset.side = 'tail';
-            coin.style.transform = 'rotateY(180deg)';
+        // 更新卦象显示
+        function updateHexagramDisplay() {
+            const hexagramDisplay = document.getElementById('hexagram-display');
+            hexagramDisplay.innerHTML = '';
+            
+            // 从下往上显示爻（初爻在最下面）
+            for (let i = 5; i >= 0; i--) {
+                if (i < currentHexagram.length) {
+                    const yao = currentHexagram[i];
+                    const lineDiv = document.createElement('div');
+                    lineDiv.className = 'hexagram-line';
+                    
+                    // 绘制爻线
+                    if (yao.line === '111') {
+                        lineDiv.classList.add('solid-line');
+                    } else {
+                        lineDiv.classList.add('broken-line');
+                        lineDiv.innerHTML = `
+                            <div class="broken-line-part"></div>
+                            <div class="broken-line-part"></div>
+                        `;
+                    }
+                    
+                    // 标记变爻
+                    if (yao.changing) {
+                        lineDiv.classList.add('yao-change');
+                    }
+                    
+                    // 添加爻位标识
+                    const numberSpan = document.createElement('span');
+                    numberSpan.className = 'line-number';
+                    
+                    // 爻位名称（从下往上：初爻、二爻...上爻）
+                    const positionNames = ['初爻', '二爻', '三爻', '四爻', '五爻', '上爻'];
+                    numberSpan.textContent = positionNames[5 - i];
+                    
+                    lineDiv.appendChild(numberSpan);
+                    hexagramDisplay.appendChild(lineDiv);
+                }
+            }
         }
         
-        // 添加选中效果并锁定
-        coin.classList.add('selected');
-        coin.classList.add('locked');
-        
-        // 更新状态显示
-        updateCoinStatus();
-        
-        // 执行回调函数
-        if (callback) callback();
-    }, 1000);
-}
-
-// 更新钱币状态显示
-function updateCoinStatus() {
-    const coins = document.querySelectorAll('.coin');
-    let allCoinsSet = true;
-    let headCount = 0;
-    
-    coins.forEach(coin => {
-        if (!coin.dataset.side) {
-            allCoinsSet = false;
-        } else if (coin.dataset.side === 'head') {
-            headCount++;
-        }
-    });
-    
-    if (allCoinsSet) {
-        let statusText = "";
-        switch (headCount) {
-            case 0: statusText = "三枚反面：老阴（变爻）"; break;
-            case 1: statusText = "一枚正面：少阴（不变）"; break;
-            case 2: statusText = "两枚正面：少阳（不变）"; break;
-            case 3: statusText = "三枚正面：老阳（变爻）"; break;
-        }
-        document.getElementById('cast-status').textContent = statusText;
-    } else {
-        document.getElementById('cast-status').textContent = `请点击所有钱币确定正反面（已点击 ${countSetCoins()} / 3）`;
-    }
-}
-
-// 计算已设置的钱币数量
-function countSetCoins() {
-    const coins = document.querySelectorAll('.coin');
-    let count = 0;
-    coins.forEach(coin => {
-        if (coin.dataset.side) {
-            count++;
-        }
-    });
-    return count;
-}
-
-// 使用钱币摇卦 - 改进后的版本
-function castWithCoins() {
-    const question = document.getElementById('question').value.trim();
-    if (!question) {
-        alert('请输入占卜问题');
-        return;
-    }
-    
-    // 第一次摇卦时设置问题
-    if (castCount === 0) {
-        currentQuestion = question;
-        // 设置占卜时间和方法
-        const now = new Date();
-        document.getElementById('divination-time').textContent = now.toLocaleString();
-        document.getElementById('divination-method').textContent = "钱币摇卦";
-    }
-    
-    const coins = document.querySelectorAll('.coin');
-    let allCoinsSet = true;
-    let headCount = 0;
-    
-    coins.forEach(coin => {
-        if (!coin.dataset.side) {
-            allCoinsSet = false;
-        } else if (coin.dataset.side === 'head') {
-            headCount++;
-        }
-    });
-    
-    if (!allCoinsSet) {
-        alert('请先点击所有钱币确定正反面');
-        return;
-    }
-    
-    // 确定爻的性质
-    let yao;
-    const randomFactor = window.crypto.getRandomValues(new Uint32Array(1))[0] / 4294967295;
-    
-    switch (headCount) {
-        case 0: // 三个反面
-            yao = { 
-                type: randomFactor > 0.15 ? '6' : '8', // 15%几率变为少阴
-                line: randomFactor > 0.15 ? '000' : '010', 
-                changing: randomFactor > 0.15 
-            };
-            break;
-        case 1: // 一个正面
-            yao = { 
-                type: randomFactor > 0.1 ? '7' : (randomFactor > 0.05 ? '9' : '6'), 
-                line: randomFactor > 0.1 ? '001' : (randomFactor > 0.05 ? '111' : '000'),
-                changing: randomFactor <= 0.1
-            };
-            break;
-        case 2: // 两个正面
-            yao = { 
-                type: randomFactor > 0.1 ? '8' : (randomFactor > 0.05 ? '6' : '9'), 
-                line: randomFactor > 0.1 ? '010' : (randomFactor > 0.05 ? '000' : '111'),
-                changing: randomFactor <= 0.1
-            };
-            break;
-        case 3: // 三个正面
-            yao = { 
-                type: randomFactor > 0.15 ? '9' : '7', // 15%几率变为少阳
-                line: randomFactor > 0.15 ? '111' : '001', 
-                changing: randomFactor > 0.15 
-            };
-            break;
-    }
-    
-    currentHexagram.push(yao);
-    castCount++;
-    
-    // 更新摇卦次数显示
-    document.getElementById('cast-count').textContent = castCount;
-    
-    // 重置钱币状态（解锁并清除状态）
-    coins.forEach(coin => {
-        delete coin.dataset.side;
-        coin.style.transform = 'rotateY(0deg)';
-        coin.classList.remove('selected');
-        coin.classList.remove('locked'); // 解锁钱币
-    });
-    
-    // 更新状态显示
-    document.getElementById('cast-status').textContent = `第 ${castCount} 次摇卦完成，请继续点击钱币`;
-    
-    // 更新UI
-    updateHexagramDisplay();
-    
-    // 如果已经摇了6次，显示结果
-    if (castCount === 6) {
-        showResult();
-    }
-}
-
-// 使用时间起卦
-function castWithTime() {
-    const question = document.getElementById('question').value.trim();
-    if (!question) {
-        alert('请输入占卜问题');
-        return;
-    }
-    
-    currentQuestion = question;
-    
-    let dateTime = document.getElementById('time').value;
-    if (!dateTime) {
-        const now = new Date();
-        dateTime = now.toISOString().slice(0, 16);
-    }
-    
-    // 时间起卦算法
-    const date = new Date(dateTime);
-    const year = date.getFullYear();
-    const month = date.getMonth() + 1;
-    const day = date.getDate();
-    const hour = date.getHours();
-    const minute = date.getMinutes();
-    
-    // 计算上卦和下卦的数字
-    const upperNum = (year + month + day) % 8 || 8;
-    const lowerNum = (hour + minute) % 8 || 8;
-    const changingYaoPos = (year + month + day + hour + minute) % 6 || 6;
-    
-    // 根据数字生成卦象
-    currentHexagram = generateHexagramFromNumbers(upperNum, lowerNum, changingYaoPos);
-    castCount = 6;
-    
-    // 显示时间和方法
-    document.getElementById('divination-time').textContent = date.toLocaleString();
-    document.getElementById('divination-method').textContent = "时间起卦";
-    
-    // 显示结果
-    showResult();
-}
-
-// 使用数字起卦
-function castWithNumbers() {
-    const question = document.getElementById('question').value.trim();
-    if (!question) {
-        alert('请输入占卜问题');
-        return;
-    }
-    
-    currentQuestion = question;
-    
-    const num1 = parseInt(document.getElementById('number1').value);
-    const num2 = parseInt(document.getElementById('number2').value);
-    
-    if (!num1 || !num2 || num1 < 1 || num1 > 999 || num2 < 1 || num2 > 999) {
-        alert('请输入有效的1-999之间的数字');
-        return;
-    }
-    
-    // 数字起卦算法
-    const upperNum = num1 % 8 || 8;
-    const lowerNum = num2 % 8 || 8;
-    const changingYaoPos = (num1 + num2) % 6 || 6;
-    
-    // 根据数字生成卦象
-    currentHexagram = generateHexagramFromNumbers(upperNum, lowerNum, changingYaoPos);
-    castCount = 6;
-    
-    // 显示时间和方法
-    const now = new Date();
-    document.getElementById('divination-time').textContent = now.toLocaleString();
-    document.getElementById('divination-method').textContent = "数字起卦";
-    
-    // 显示结果
-    showResult();
-}
-
-// 根据数字生成卦象
-function generateHexagramFromNumbers(upperNum, lowerNum, changingYaoPos) {
-    const hexagram = [];
-    
-    // 1. 先生成上卦（外卦，上爻→四爻）
-    for (let i = 0; i < 3; i++) {
-        hexagram.push({
-            type: upperNum % 2 === 0 ? '8' : '7',
-            line: upperNum % 2 === 0 ? '000' : '111',
-            changing: false
-        });
-    }
-    
-    // 2. 再生成下卦（内卦，三爻→初爻）
-    for (let i = 0; i < 3; i++) {
-        hexagram.push({
-            type: lowerNum % 2 === 0 ? '8' : '7',
-            line: lowerNum % 2 === 0 ? '000' : '111',
-            changing: false
-        });
-    }
-    
-    // 3. 处理变爻（position从1=初爻开始计数）
-    if (changingYaoPos >= 1 && changingYaoPos <= 6) {
-        const index = 6 - changingYaoPos; // 初爻=数组[5]，上爻=数组[0]
-        hexagram[index].changing = true;
-        hexagram[index].type = hexagram[index].type === '7' ? '9' : '6';
-        hexagram[index].line = hexagram[index].line === '111' ? '000' : '111';
-    }
-    
-    return hexagram;
-}
-
-// 更新卦象显示
-function updateHexagramDisplay() {
-    const hexagramDisplay = document.getElementById('hexagram-display');
-    hexagramDisplay.innerHTML = '';
-
-    // 从逻辑上爻（数组最后一项）开始渲染到初爻（数组第一项）
-    for (let i = currentHexagram.length - 1; i >= 0; i--) {
-        const yao = currentHexagram[i];
-        const lineDiv = document.createElement('div');
-        lineDiv.className = 'hexagram-line';
-
-        // 爻线绘制（保持不变）
-        if (yao.line === '111') {
-            lineDiv.classList.add('solid-line');
-        } else {
-            lineDiv.classList.add('broken-line');
-            lineDiv.innerHTML = `
-                <div class="broken-line-part"></div>
-                <div class="broken-line-part"></div>
-            `;
-        }
-
-        // 变爻高亮
-        if (yao.changing) {
-            lineDiv.classList.add('yao-change');
-        }
-
-        // 关键修改：爻位数字标签反向（6=上爻在最上方，1=初爻在最下方）
-        const numberSpan = document.createElement('span');
-        numberSpan.className = 'line-number';
-        numberSpan.textContent = 6 - i;  // 数组最后一项（i=5）显示6（上爻）
-        lineDiv.appendChild(numberSpan);
-
-        // 保持DOM插入顺序（先插入的在上方）
-        hexagramDisplay.appendChild(lineDiv);
-    }
-}
-
-// 显示占卜结果
-function showResult() {
-    // 生成卦象编码
-    let hexagramCode = '';
-    currentHexagram.forEach(yao => {
-        hexagramCode += yao.line === '111' ? '1' : '0';
-    });
-
-    // 获取卦象信息
-    const guaInfo = guaData[hexagramCode] || { 
-        name: "未知卦", 
-        interpretation: "此卦象暂无详细解释。" 
-    };
-
-    // 显示问题
-    document.getElementById('question-display').textContent = currentQuestion;
-
-    // 显示卦名（大标题保留）
-    document.getElementById('gua-name').textContent = guaInfo.name;
-
-    // 清空原有卦象图容器（移除空白图片）
-    document.getElementById('gua-image-container').innerHTML = '';
-
-    // 显示整合后的卦象解析（包含动态生成的卦象图）
-    document.getElementById('gua-interpretation').innerHTML = `
-        <div class="gua-result-container">
-            <div class="gua-visual-box">
-                ${generateHexagramSvg(hexagramCode)}
-                <div class="gua-meta-box">
-                    <div class="gua-name-tag">${guaInfo.name}</div>
-                    <div class="hexagram-code">卦象编码：${hexagramCode}</div>
-                </div>
-            </div>
-            <div class="gua-text-content">
-                <h4><i class="fas fa-info-circle"></i> 卦象释义</h4>
-                <div class="interpretation-text">${guaInfo.interpretation}</div>
+        // 生成卦象SVG
+        function generateHexagramSvg(hexagramCode) {
+            const svgWidth = 150;
+            const svgHeight = 220;
+            const lineHeight = 10;
+            const spacing = 25;
+            const lineColor = '#5a3921';
+            const bgColor = '#f8f3e6';
+            
+            let svgContent = '';
+            const positionNames = ['初', '二', '三', '四', '五', '上'];
+            const changingYaoPositions = [];
+            
+            // 找出变爻位置
+            currentHexagram.forEach((yao, index) => {
+                if (yao.changing) {
+                    changingYaoPositions.push(5 - index);
+                }
+            });
+            
+            // 从下往上绘制
+            for (let i = 0; i < 6; i++) {
+                const yPos = 180 - i * spacing;
+                const isYang = hexagramCode[i] === '1';
+                const isChanging = changingYaoPositions.includes(i);
                 
-                <div class="gua-structure">
-                    <i class="fas fa-project-diagram"></i>
-                    <span>卦象结构：${getGuaStructure(hexagramCode)}</span>
-                </div>
-            </div>
-        </div>
-    `;
-
-    // 显示变爻分析
-    let changingYao = [];
-    currentHexagram.forEach((yao, index) => {
-        if (yao.changing) {
-            changingYao.push(index + 1);
+                // 变爻添加特殊标记
+                if (isChanging) {
+                    svgContent += `
+                        <circle cx="75" cy="${yPos}" r="15" fill="rgba(255,215,0,0.2)" />
+                    `;
+                }
+                
+                // 绘制爻线
+                if (isYang) {
+                    svgContent += `
+                        <line x1="30" y1="${yPos}" x2="120" y2="${yPos}" 
+                              stroke="${lineColor}" stroke-width="${lineHeight}" 
+                              stroke-linecap="round" />
+                    `;
+                } else {
+                    svgContent += `
+                        <line x1="30" y1="${yPos}" x2="75" y2="${yPos}" 
+                              stroke="${lineColor}" stroke-width="${lineHeight}" 
+                              stroke-linecap="round" />
+                        <line x1="90" y1="${yPos}" x2="120" y2="${yPos}" 
+                              stroke="${lineColor}" stroke-width="${lineHeight}" 
+                              stroke-linecap="round" />
+                    `;
+                }
+                
+                // 爻位标注
+                svgContent += `
+                    <text x="125" y="${yPos + 5}" font-family="SimSun, serif" font-size="12" fill="#666">
+                        ${positionNames[i]}
+                    </text>
+                `;
+            }
+            
+            // 添加卦名标注
+            const guaName = guaData[hexagramCode]?.name || "未知卦";
+            svgContent += `
+                <text x="75" y="210" text-anchor="middle" 
+                      font-family="SimSun, serif" font-size="14" font-weight="bold" fill="#8B4513">
+                    ${guaName}
+                </text>
+            `;
+            
+            return `
+                <svg width="${svgWidth}" height="${svgHeight}" viewBox="0 0 150 220" 
+                     xmlns="http://www.w3.org/2000/svg" class="hexagram-svg">
+                    <rect width="100%" height="100%" rx="10" fill="${bgColor}" 
+                          stroke="#d4a017" stroke-width="2"/>
+                    ${svgContent}
+                </svg>
+            `;
         }
-    });
-
-    let yaoAnalysis = '';
-    if (changingYao.length > 0) {
-        yaoAnalysis = `<div class="changing-yao-header">
-            <i class="fas fa-exchange-alt"></i> 
-            <h4>变爻分析（第 ${changingYao.join('、')} 爻）</h4>
-        </div>`;
         
-        changingYao.forEach(pos => {
-            const yaoText = yaoData[hexagramCode] ? yaoData[hexagramCode][pos - 1] : "暂无爻辞";
-            yaoAnalysis += `
-                <div class="yao-item">
-                    <div class="yao-position">${getYaoPositionName(pos)}</div>
-                    <div class="yao-content">${yaoText}</div>
+        // 获取卦象结构描述
+        function getGuaStructure(hexagramCode) {
+            const upper = hexagramCode.substring(0, 3);
+            const lower = hexagramCode.substring(3);
+            return `上卦：${upper.replace(/0/g,'阴').replace(/1/g,'阳')}，下卦：${lower.replace(/0/g,'阴').replace(/1/g,'阳')}`;
+        }
+        
+        // 获取变爻解释
+        function getYaoChangeInterpretation(count) {
+            const interpretations = {
+                1: "事物发展将出现关键转折点",
+                2: "阴阳力量正在转换平衡",
+                3: "重大变革即将发生",
+                4: "多方面因素同时变化",
+                5: "整体格局将发生转变",
+                6: "乾坤颠倒，彻底变化"
+            };
+            return interpretations[count] || "卦象正在发生动态变化";
+        }
+        
+        // 显示结果
+        function showResult() {
+            // 显示结果区域
+            document.getElementById('hexagram-section').style.display = 'block';
+            
+            // 生成卦象编码
+            let hexagramCode = '';
+            currentHexagram.forEach(yao => {
+                // 阳爻: 7和9，阴爻: 6和8
+                hexagramCode += (yao.type === '7' || yao.type === '9') ? '1' : '0';
+            });
+            
+            // 获取卦象数据
+            const guaInfo = guaData[hexagramCode] || { 
+                name: "未知卦", 
+                interpretation: "暂无解释" 
+            };
+            
+            // 显示卦名
+            document.getElementById('gua-name').textContent = guaInfo.name;
+            
+            // 动态生成SVG卦象图
+            document.getElementById('gua-image-container').innerHTML = generateHexagramSvg(hexagramCode);
+            
+            // 显示卦象解释
+            document.getElementById('gua-interpretation').innerHTML = `
+                <p>${guaInfo.interpretation}</p>
+                <div class="gua-structure">
+                    <i class="fas fa-project-diagram"></i> ${getGuaStructure(hexagramCode)}
                 </div>
             `;
-        });
-        
-        yaoAnalysis += `<div class="yao-change-meaning">
-            <i class="fas fa-info-circle"></i> 
-            ${changingYao.length === 1 ? '此变爻表示' : '这些变爻共同表示'} 
-            ${getYaoChangeInterpretation(changingYao.length, hexagramCode)}
-        </div>`;
-    } else {
-        yaoAnalysis = `<div class="no-changing-yao">
-            <i class="fas fa-info-circle"></i> 本次占卜没有变爻，表示事情将保持当前发展趋势
-        </div>`;
-    }
-    document.getElementById('yao-analysis').innerHTML = yaoAnalysis;
-
-    // 显示卦辞详解
+            
+            // 显示问题
+            document.getElementById('question-display').textContent = currentQuestion;
+            
+            // 处理变爻分析
+            const changingYao = [];
+            currentHexagram.forEach((yao, index) => {
+                if (yao.changing) {
+                    changingYao.push(index + 1); // 爻位从1开始
+                }
+            });
+            
+            let yaoAnalysisHtml = '';
+            if (changingYao.length > 0) {
+                yaoAnalysisHtml += `
+                    <div class="changing-yao-header">
+                        <i class="fas fa-exchange-alt"></i>
+                        <h4>本次占卜有 ${changingYao.length} 个变爻：第 ${changingYao.join('、')} 爻</h4>
+                    </div>
+                    <p>${getYaoChangeInterpretation(changingYao.length)}</p>
+                `;
+                
+                changingYao.forEach(pos => {
+                    const index = pos - 1;
+                    const yao = currentHexagram[index];
+                    yaoAnalysisHtml += `
+                        <div class="yao-item">
+                            <div class="yao-position">第${pos}爻</div>
+                            <div class="yao-content">
+                                <p>${yaoChangeData[yao.type] || '未知变化'}</p>
+                                ${yaoData[hexagramCode] && yaoData[hexagramCode][index] ? 
+                                 `<p class="yao-text">${yaoData[hexagramCode][index]}</p>` : ''}
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                yaoAnalysisHtml += `
+                    <div class="yao-change-meaning">
+                        <i class="fas fa-info-circle"></i>
+                        <p>变爻表示事物发展中的动态变化，需要特别关注这些爻位的含义。</p>
+                    </div>
+                `;
+            } else {
+                yaoAnalysisHtml = `
+                    <div class="no-changing-yao">
+                        <i class="fas fa-info-circle"></i>
+                        <p>本次占卜没有变爻，表示事情将保持现状发展。</p>
+                    </div>
+                `;
+            }
+            
+            document.getElementById('yao-analysis').innerHTML = yaoAnalysisHtml;
+    
+    // 显示加载指示器并获取卦辞详解
     document.getElementById('gua-detail-content').textContent = "正在获取卦辞详解...";
     document.getElementById('loading-indicator').style.display = 'block';
     
-    // 从DeepSeek API获取详细卦辞
+    // 从API获取卦辞详解
     fetchGuaDetailFromAPI(currentQuestion, guaInfo.name, hexagramCode, changingYao);
-    
-    // 显示结果区域
-    document.getElementById('hexagram-section').style.display = 'block';
     
     // 滚动到结果区域
     setTimeout(() => {
         document.getElementById('hexagram-section').scrollIntoView({ 
             behavior: 'smooth' 
         });
-    }, 300);
-}
-        
-// 动态生成SVG卦象图
-function generateHexagramSvg(hexagramCode) {
-    const svgWidth = 120;
-    const svgHeight = 180;
-    const lineHeight = 8;
-    const spacing = 20;
-    
-    let svgContent = '';
-    const yaoNames = ['初', '二', '三', '四', '五', '上']; // 修正：从下往上命名
-    
-    // 从下往上绘制（i=0=初爻，i=5=上爻）
-    for (let i = 0; i < 6; i++) {
-        const yPos = 30 + (5 - i) * spacing; // 初爻在底部（yPos最大）
-        const isYang = hexagramCode[i] === '1'; // hexagramCode[0]对应初爻
-        
-        // 绘制爻线
-        if (isYang) {
-            svgContent += `
-                <line x1="20" y1="${yPos}" x2="100" y2="${yPos}" 
-                      stroke="#d4a017" stroke-width="${lineHeight}" 
-                      stroke-linecap="round" class="yang-line"/>
-            `;
-        } else {
-            svgContent += `
-                <line x1="20" y1="${yPos}" x2="50" y2="${yPos}" 
-                      stroke="#8e44ad" stroke-width="${lineHeight}" 
-                      stroke-linecap="round" class="yin-line"/>
-                <line x1="70" y1="${yPos}" x2="100" y2="${yPos}" 
-                      stroke="#8e44ad" stroke-width="${lineHeight}" 
-                      stroke-linecap="round" class="yin-line"/>
-            `;
-        }
-        
-        // 爻位标注（初爻在下，上爻在上）
-        svgContent += `
-            <text x="105" y="${yPos + 5}" class="yao-position">${yaoNames[i]}</text>
-        `;
-    }
-    
-    return `
-        <svg width="${svgWidth}" height="${svgHeight}" viewBox="0 0 120 180" 
-             xmlns="http://www.w3.org/2000/svg" class="hexagram-svg">
-            <rect width="100%" height="100%" rx="8" fill="#f9f9f9"/>
-            ${svgContent}
-        </svg>
-    `;
+    }, 500);
 }
 
-// 需要同步修改的辅助函数（确保卦象编码顺序正确）
-function getGuaStructure(hexagramCode) {
-    // 上卦改为前3爻，下卦改为后3爻
-    const upper = hexagramCode.slice(0, 3);
-    const lower = hexagramCode.slice(3);
-    return `上卦：${upper.replace(/0/g,'阴').replace(/1/g,'阳')}，下卦：${lower.replace(/0/g,'阴').replace(/1/g,'阳')}`;
-}
-
-// 需要更新的爻位判断函数
-function getYaoPositionName(position) {
-    // 位置顺序改为从上往下（1=上爻，6=初爻）
-    const names = ['上爻', '五爻', '四爻', '三爻', '二爻', '初爻'];
-    return names[position - 1] || `${position}爻`;
-}
-
-// 辅助函数：获取变爻解释
-function getYaoChangeInterpretation(count, hexagramCode) {
-    const interpretations = {
-        1: "事物发展将出现关键转折点",
-        2: "阴阳力量正在转换平衡",
-        3: "重大变革即将发生",
-        4: "多方面因素同时变化",
-        5: "整体格局将发生转变",
-        6: "乾坤颠倒，彻底变化"
-    };
-    return interpretations[count] || "卦象正在发生动态变化";
-}
-        
         // 从DeepSeek API获取卦辞详解
         async function fetchGuaDetailFromAPI(question, guaName, hexagramCode, changingYao) {
             try {
@@ -2368,7 +2194,7 @@ function getYaoChangeInterpretation(count, hexagramCode) {
             // 生成卦象编码
             let hexagramCode = '';
             currentHexagram.forEach(yao => {
-                hexagramCode += yao.line === '111' ? '1' : '0';
+                hexagramCode += (yao.type === '7' || yao.type === '9') ? '1' : '0';
             });
             
             const guaInfo = guaData[hexagramCode] || { name: "未知卦" };
@@ -2478,15 +2304,8 @@ function getYaoChangeInterpretation(count, hexagramCode) {
             coins.forEach(coin => {
                 delete coin.dataset.side;
                 coin.style.transform = 'rotateY(0deg)';
-                coin.classList.remove('selected', 'locked');
+                coin.classList.remove('selected');
             });
-            
-            // 重置问题输入框
-            document.getElementById('question').value = '';
-            
-            // 锁定输入框
-            isPaid = false;
-            updatePaymentStatus();
             
             // 滚动到顶部
             window.scrollTo({ top: 0, behavior: 'smooth' });
