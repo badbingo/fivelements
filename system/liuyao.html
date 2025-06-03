@@ -806,88 +806,6 @@
                 grid-template-columns: 1fr; /* 移动设备上单列显示 */
             }
         }
-
-        .hexagram-svg {
-            display: block;
-            margin: 0 auto 20px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            border-radius: 10px;
-            transition: all 0.3s ease;
-        }
-        
-        .hexagram-svg:hover {
-            transform: scale(1.05);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-        }
-        
-        .yang-line {
-            stroke: #8B4513; /* 阳爻改为深棕色 */
-            stroke-linecap: round;
-        }
-        
-        .yin-line {
-            stroke: #5a3921; /* 阴爻改为深褐色 */
-            stroke-linecap: round;
-        }
-        
-        .yao-position {
-            font-family: "SimSun", serif;
-            font-size: 12px;
-            fill: #5a3921;
-        }
-
-        /* 添加支付按钮样式 */
-        .payment-method-btn {
-            padding: 12px 20px;
-            background-color: #f5f5f5;
-            border: 1px solid #ddd;
-            border-radius: 30px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 14px;
-            transition: all 0.3s ease;
-            color: #333;
-        }
-        
-        .payment-method-btn:hover {
-            background-color: #e9e9e9;
-            transform: translateY(-2px);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        
-        .payment-method-btn.active {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 10px rgba(237, 28, 36, 0.3);
-        }
-        
-        /* 支付按钮图标样式 */
-        .payment-method-btn i {
-            font-size: 18px;
-        }
-        
-        /* 微信支付按钮特定样式 */
-        #wxpay-btn i {
-            color: #09bb07;
-        }
-        
-        /* 支付宝按钮特定样式 */
-        #alipay-btn i {
-            color: #1677ff;
-        }
-        
-        /* 支付按钮容器调整 */
-        .payment-methods {
-            display: flex;
-            justify-content: center;
-            gap: 15px; /* 增加按钮间距 */
-            margin: 20px 0; /* 增加上下边距 */
-            flex-wrap: wrap; /* 小屏幕自动换行 */
-        }
-        
     </style>
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-2NHJXGKS0Y"></script>
@@ -1203,86 +1121,76 @@
         // DeepSeek API配置
         const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
         const apiKey = 'sk-b2950087a9d5427392762814114b22a9';
-
-        // 新增：安全的随机数生成函数
-        function getSecureRandom() {
-            if(window.crypto && window.crypto.getRandomValues) {
-                const buf = new Uint32Array(1);
-                window.crypto.getRandomValues(buf);
-                return buf[0] / 4294967295; // 转换为0~1之间的浮点数
-            }
-            return Math.random(); // 兼容不支持crypto的旧浏览器
-        }
         
         // 六爻卦象数据 - 完整64卦
         const guaData = {
-            "111111": { name: "乾为天", interpretation: "乾卦象征天，代表刚健、创始、主动。占得此卦者，往往表示事情将会顺利发展，但需要保持积极进取的态度。" },
-            "000000": { name: "坤为地", interpretation: "坤卦象征地，代表柔顺、包容、被动。占得此卦者，宜以柔克刚，顺应时势，不宜强求。" },
-            "100010": { name: "水雷屯", interpretation: "屯卦象征万物初生，充满艰难。占得此卦者，表示事情刚开始，会遇到困难，需要耐心和毅力。" },
-            "010001": { name: "山水蒙", interpretation: "蒙卦象征启蒙、教育。占得此卦者，表示需要学习或指导，事情尚在萌芽阶段，不可急躁。" },
-            "111010": { name: "水天需", interpretation: "需卦象征等待。占得此卦者，表示时机未到，需要耐心等待，不可贸然行动。" },
-            "010111": { name: "天水讼", interpretation: "讼卦象征争讼、纠纷。占得此卦者，表示可能会有争执，宜以和为贵，避免冲突。" },
-            "010000": { name: "地水师", interpretation: "师卦象征军队、战争。占得此卦者，表示需要团结众人，有组织地行动，方能成功。" },
-            "000010": { name: "水地比", interpretation: "比卦象征亲近、团结。占得此卦者，表示宜与人合作，互相帮助，共同发展。" },
-            "111011": { name: "风天小畜", interpretation: "小畜卦象征小有积蓄。占得此卦者，表示会有小的收获，但大发展尚需时日。" },
-            "110111": { name: "天泽履", interpretation: "履卦象征谨慎行事。占得此卦者，表示需要小心谨慎，按规矩办事，方能平安顺利。" },
-            "101111": { name: "天火同人", interpretation: "同人卦象征志同道合。占得此卦者，表示宜与人合作，共同发展。" },
-            "111101": { name: "火天大有", interpretation: "大有卦象征大丰收。占得此卦者，表示将有大收获，但需谨慎守成。" },
-            "100000": { name: "地雷复", interpretation: "复卦象征回复、循环。占得此卦者，表示事物将进入一个新的循环周期。" },
-            "000001": { name: "山地剥", interpretation: "剥卦象征剥落、衰落。占得此卦者，表示事物将经历一个衰退期，需谨慎应对。" },
-            "100111": { name: "火雷噬嗑", interpretation: "噬嗑卦象征咬合、克服困难。占得此卦者，表示需要通过努力克服障碍。" },
-            "111001": { name: "山雷颐", interpretation: "颐卦象征颐养、修养。占得此卦者，表示宜静养身心，不宜妄动。" },
-            "110000": { name: "泽雷随", interpretation: "随卦象征随从、顺应。占得此卦者，表示宜随顺时势，不宜强求。" },
-            "000011": { name: "山风蛊", interpretation: "蛊卦象征腐败、革新。占得此卦者，表示需要除旧布新，改革弊端。" },
-            "110001": { name: "地泽临", interpretation: "临卦象征临近、督导。占得此卦者，表示需要亲临指导，密切关注。" },
-            "100011": { name: "风地观", interpretation: "观卦象征观察、审视。占得此卦者，表示需要冷静观察，审时度势。" },
-            "101000": { name: "火雷噬嗑", interpretation: "噬嗑卦象征咬合、克服困难。占得此卦者，表示需要通过努力克服障碍。" },
-            "000101": { name: "山火贲", interpretation: "贲卦象征装饰、美化。占得此卦者，表示需要注重外表修饰，但不可过分。" },
+            "111111": { name: "乾为天", image: "qian.png", interpretation: "乾卦象征天，代表刚健、创始、主动。占得此卦者，往往表示事情将会顺利发展，但需要保持积极进取的态度。" },
+            "000000": { name: "坤为地", image: "kun.png", interpretation: "坤卦象征地，代表柔顺、包容、被动。占得此卦者，宜以柔克刚，顺应时势，不宜强求。" },
+            "100010": { name: "水雷屯", image: "tun.png", interpretation: "屯卦象征万物初生，充满艰难。占得此卦者，表示事情刚开始，会遇到困难，需要耐心和毅力。" },
+            "010001": { name: "山水蒙", image: "meng.png", interpretation: "蒙卦象征启蒙、教育。占得此卦者，表示需要学习或指导，事情尚在萌芽阶段，不可急躁。" },
+            "111010": { name: "水天需", image: "xu.png", interpretation: "需卦象征等待。占得此卦者，表示时机未到，需要耐心等待，不可贸然行动。" },
+            "010111": { name: "天水讼", image: "song.png", interpretation: "讼卦象征争讼、纠纷。占得此卦者，表示可能会有争执，宜以和为贵，避免冲突。" },
+            "010000": { name: "地水师", image: "shi.png", interpretation: "师卦象征军队、战争。占得此卦者，表示需要团结众人，有组织地行动，方能成功。" },
+            "000010": { name: "水地比", image: "bi.png", interpretation: "比卦象征亲近、团结。占得此卦者，表示宜与人合作，互相帮助，共同发展。" },
+            "111011": { name: "风天小畜", image: "xiaochu.png", interpretation: "小畜卦象征小有积蓄。占得此卦者，表示会有小的收获，但大发展尚需时日。" },
+            "110111": { name: "天泽履", image: "lv.png", interpretation: "履卦象征谨慎行事。占得此卦者，表示需要小心谨慎，按规矩办事，方能平安顺利。" },
+            "101111": { name: "天火同人", image: "tongren.png", interpretation: "同人卦象征志同道合。占得此卦者，表示宜与人合作，共同发展。" },
+            "111101": { name: "火天大有", image: "dayou.png", interpretation: "大有卦象征大丰收。占得此卦者，表示将有大收获，但需谨慎守成。" },
+            "100000": { name: "地雷复", image: "fu.png", interpretation: "复卦象征回复、循环。占得此卦者，表示事物将进入一个新的循环周期。" },
+            "000001": { name: "山地剥", image: "bo.png", interpretation: "剥卦象征剥落、衰落。占得此卦者，表示事物将经历一个衰退期，需谨慎应对。" },
+            "100111": { name: "火雷噬嗑", image: "shihe.png", interpretation: "噬嗑卦象征咬合、克服困难。占得此卦者，表示需要通过努力克服障碍。" },
+            "111001": { name: "山雷颐", image: "yi.png", interpretation: "颐卦象征颐养、修养。占得此卦者，表示宜静养身心，不宜妄动。" },
+            "110000": { name: "泽雷随", image: "sui.png", interpretation: "随卦象征随从、顺应。占得此卦者，表示宜随顺时势，不宜强求。" },
+            "000011": { name: "山风蛊", image: "gu.png", interpretation: "蛊卦象征腐败、革新。占得此卦者，表示需要除旧布新，改革弊端。" },
+            "110001": { name: "地泽临", image: "lin.png", interpretation: "临卦象征临近、督导。占得此卦者，表示需要亲临指导，密切关注。" },
+            "100011": { name: "风地观", image: "guan.png", interpretation: "观卦象征观察、审视。占得此卦者，表示需要冷静观察，审时度势。" },
+            "101000": { name: "火雷噬嗑", image: "shihe.png", interpretation: "噬嗑卦象征咬合、克服困难。占得此卦者，表示需要通过努力克服障碍。" },
+            "000101": { name: "山火贲", image: "bi.png", interpretation: "贲卦象征装饰、美化。占得此卦者，表示需要注重外表修饰，但不可过分。" },
             "100001": { name: "山地剥", image: "bo.png", interpretation: "剥卦象征剥落、衰落。占得此卦者，表示事物将经历一个衰退期，需谨慎应对。" },
-            "011111": { name: "地雷复", interpretation: "复卦象征回复、循环。占得此卦者，表示事物将进入一个新的循环周期。" },
-            "100101": { name: "天雷无妄", interpretation: "无妄卦象征不妄为、顺其自然。占得此卦者，表示应顺其自然，不可妄为。" },
-            "101001": { name: "山天大畜", interpretation: "大畜卦象征大量积蓄。占得此卦者，表示将有大的积累和收获。" },
-            "100111": { name: "山雷颐", interpretation: "颐卦象征颐养、修养。占得此卦者，表示宜静养身心，不宜妄动。" },
-            "110001": { name: "泽风大过", interpretation: "大过卦象征大的过度。占得此卦者，表示事物发展已超过常规，需要特别谨慎。" },
-            "010010": { name: "坎为水", interpretation: "坎卦象征水、险陷。占得此卦者，表示将面临险境，需要谨慎行事。" },
-            "101101": { name: "离为火", interpretation: "离卦象征火、光明。占得此卦者，表示将获得光明和智慧，但需防止过火。" },
-            "110010": { name: "泽山咸", interpretation: "咸卦象征感应、交流。占得此卦者，表示人与人之间将有良好的感应和交流。" },
-            "010110": { name: "雷风恒", interpretation: "恒卦象征恒久、持久。占得此卦者，表示需要持之以恒，方能成功。" },
-            "001011": { name: "天山遁", interpretation: "遁卦象征退避、隐退。占得此卦者，表示宜暂时退避，不宜强进。" },
-            "110100": { name: "雷天大壮", interpretation: "大壮卦象征强盛、壮大。占得此卦者，表示力量强大，但需防止过刚。" },
-            "001101": { name: "火地晋", interpretation: "晋卦象征前进、晋升。占得此卦者，表示将有进步和发展。" },
-            "101100": { name: "地火明夷", interpretation: "明夷卦象征光明受损。占得此卦者，表示将面临困境，需要韬光养晦。" },
-            "101011": { name: "风火家人", interpretation: "家人卦象征家庭、亲情。占得此卦者，表示家庭和睦，亲情浓厚。" },
-            "110101": { name: "火泽睽", interpretation: "睽卦象征背离、分离。占得此卦者，表示人际关系可能出现隔阂和矛盾。" },
-            "001010": { name: "水山蹇", interpretation: "蹇卦象征艰难、险阻。占得此卦者，表示将面临艰难险阻，需要谨慎应对。" },
-            "010100": { name: "雷水解", interpretation: "解卦象征解除、解脱。占得此卦者，表示困难将得到解决。" },
-            "100110": { name: "山泽损", interpretation: "损卦象征损失、减损。占得此卦者，表示将有所损失，但可能是必要的。" },
-            "011001": { name: "风雷益", interpretation: "益卦象征增益、受益。占得此卦者，表示将有所收获和增益。" },
-            "111110": { name: "泽天夬", interpretation: "夬卦象征决断、裁决。占得此卦者，表示需要果断决策，不可犹豫。" },
-            "011111": { name: "天风姤", interpretation: "姤卦象征相遇、邂逅。占得此卦者，表示将有意外相遇或机遇。" },
-            "000110": { name: "泽地萃", interpretation: "萃卦象征聚集、会合。占得此卦者，表示将有聚会或合作机会。" },
-            "011000": { name: "地风升", interpretation: "升卦象征上升、进步。占得此卦者，表示将有上升和发展的机会。" },
-            "010110": { name: "泽水困", interpretation: "困卦象征困境、束缚。占得此卦者，表示将面临困境，需要忍耐。" },
-            "011010": { name: "水风井", interpretation: "井卦象征水井、源泉。占得此卦者，表示将获得稳定的资源和帮助。" },
-            "101110": { name: "泽火革", interpretation: "革卦象征变革、革新。占得此卦者，表示将面临重大变革。" },
-            "011101": { name: "火风鼎", interpretation: "鼎卦象征鼎器、稳固。占得此卦者，表示基础稳固，可以有所作为。" },
-            "100011": { name: "震为雷", interpretation: "震卦象征雷、震动。占得此卦者，表示将面临震动和变化。" },
-            "110000": { name: "艮为山", interpretation: "艮卦象征山、静止。占得此卦者，表示宜静不宜动，需要停止前进。" },
-            "001001": { name: "风山渐", interpretation: "渐卦象征渐进、逐步发展。占得此卦者，表示需要循序渐进，不可急躁。" },
-            "100100": { name: "雷泽归妹", interpretation: "归妹卦象征嫁娶、结合。占得此卦者，表示将有结合或合作的机会。" },
-            "101111": { name: "雷火丰", interpretation: "丰卦象征丰盛、繁荣。占得此卦者，表示将获得丰盛的成果。" },
-            "111101": { name: "火山旅", interpretation: "旅卦象征旅行、漂泊。占得此卦者，表示将面临变动或旅行。" },
-            "001110": { name: "巽为风", interpretation: "巽卦象征风、顺从。占得此卦者，表示宜顺从时势，不可强求。" },
-            "011100": { name: "兑为泽", interpretation: "兑卦象征泽、喜悦。占得此卦者，表示将有喜悦和顺利。" },
-            "001111": { name: "风水涣", interpretation: "涣卦象征涣散、分散。占得此卦者，表示将面临分散和涣散的局面。" },
-            "111100": { name: "水泽节", interpretation: "节卦象征节制、节约。占得此卦者，表示需要节制和约束。" },
-            "110011": { name: "风泽中孚", interpretation: "中孚卦象征诚信、信任。占得此卦者，表示诚信为本，可获得信任。" },
-            "001100": { name: "雷山小过", interpretation: "小过卦象征小的过度。占得此卦者，表示将有小的过失或过度。" },
-            "101010": { name: "水火既济", interpretation: "既济卦象征完成、成功。占得此卦者，表示事情将顺利完成。" },
-            "010101": { name: "火水未济", interpretation: "未济卦象征未完成、未成功。占得此卦者，表示事情尚未完成，需要继续努力。" }
+            "011111": { name: "地雷复", image: "fu.png", interpretation: "复卦象征回复、循环。占得此卦者，表示事物将进入一个新的循环周期。" },
+            "100101": { name: "天雷无妄", image: "wuwang.png", interpretation: "无妄卦象征不妄为、顺其自然。占得此卦者，表示应顺其自然，不可妄为。" },
+            "101001": { name: "山天大畜", image: "dachu.png", interpretation: "大畜卦象征大量积蓄。占得此卦者，表示将有大的积累和收获。" },
+            "100111": { name: "山雷颐", image: "yi.png", interpretation: "颐卦象征颐养、修养。占得此卦者，表示宜静养身心，不宜妄动。" },
+            "110001": { name: "泽风大过", image: "daguo.png", interpretation: "大过卦象征大的过度。占得此卦者，表示事物发展已超过常规，需要特别谨慎。" },
+            "010010": { name: "坎为水", image: "kan.png", interpretation: "坎卦象征水、险陷。占得此卦者，表示将面临险境，需要谨慎行事。" },
+            "101101": { name: "离为火", image: "li.png", interpretation: "离卦象征火、光明。占得此卦者，表示将获得光明和智慧，但需防止过火。" },
+            "110010": { name: "泽山咸", image: "xian.png", interpretation: "咸卦象征感应、交流。占得此卦者，表示人与人之间将有良好的感应和交流。" },
+            "010110": { name: "雷风恒", image: "heng.png", interpretation: "恒卦象征恒久、持久。占得此卦者，表示需要持之以恒，方能成功。" },
+            "001011": { name: "天山遁", image: "dun.png", interpretation: "遁卦象征退避、隐退。占得此卦者，表示宜暂时退避，不宜强进。" },
+            "110100": { name: "雷天大壮", image: "dazhuang.png", interpretation: "大壮卦象征强盛、壮大。占得此卦者，表示力量强大，但需防止过刚。" },
+            "001101": { name: "火地晋", image: "jin.png", interpretation: "晋卦象征前进、晋升。占得此卦者，表示将有进步和发展。" },
+            "101100": { name: "地火明夷", image: "mingyi.png", interpretation: "明夷卦象征光明受损。占得此卦者，表示将面临困境，需要韬光养晦。" },
+            "101011": { name: "风火家人", image: "jiaren.png", interpretation: "家人卦象征家庭、亲情。占得此卦者，表示家庭和睦，亲情浓厚。" },
+            "110101": { name: "火泽睽", image: "kui.png", interpretation: "睽卦象征背离、分离。占得此卦者，表示人际关系可能出现隔阂和矛盾。" },
+            "001010": { name: "水山蹇", image: "jian.png", interpretation: "蹇卦象征艰难、险阻。占得此卦者，表示将面临艰难险阻，需要谨慎应对。" },
+            "010100": { name: "雷水解", image: "xie.png", interpretation: "解卦象征解除、解脱。占得此卦者，表示困难将得到解决。" },
+            "100110": { name: "山泽损", image: "sun.png", interpretation: "损卦象征损失、减损。占得此卦者，表示将有所损失，但可能是必要的。" },
+            "011001": { name: "风雷益", image: "yi.png", interpretation: "益卦象征增益、受益。占得此卦者，表示将有所收获和增益。" },
+            "111110": { name: "泽天夬", image: "guai.png", interpretation: "夬卦象征决断、裁决。占得此卦者，表示需要果断决策，不可犹豫。" },
+            "011111": { name: "天风姤", image: "gou.png", interpretation: "姤卦象征相遇、邂逅。占得此卦者，表示将有意外相遇或机遇。" },
+            "000110": { name: "泽地萃", image: "cui.png", interpretation: "萃卦象征聚集、会合。占得此卦者，表示将有聚会或合作机会。" },
+            "011000": { name: "地风升", image: "sheng.png", interpretation: "升卦象征上升、进步。占得此卦者，表示将有上升和发展的机会。" },
+            "010110": { name: "泽水困", image: "kun.png", interpretation: "困卦象征困境、束缚。占得此卦者，表示将面临困境，需要忍耐。" },
+            "011010": { name: "水风井", image: "jing.png", interpretation: "井卦象征水井、源泉。占得此卦者，表示将获得稳定的资源和帮助。" },
+            "101110": { name: "泽火革", image: "ge.png", interpretation: "革卦象征变革、革新。占得此卦者，表示将面临重大变革。" },
+            "011101": { name: "火风鼎", image: "ding.png", interpretation: "鼎卦象征鼎器、稳固。占得此卦者，表示基础稳固，可以有所作为。" },
+            "100011": { name: "震为雷", image: "zhen.png", interpretation: "震卦象征雷、震动。占得此卦者，表示将面临震动和变化。" },
+            "110000": { name: "艮为山", image: "gen.png", interpretation: "艮卦象征山、静止。占得此卦者，表示宜静不宜动，需要停止前进。" },
+            "001001": { name: "风山渐", image: "jian.png", interpretation: "渐卦象征渐进、逐步发展。占得此卦者，表示需要循序渐进，不可急躁。" },
+            "100100": { name: "雷泽归妹", image: "guimei.png", interpretation: "归妹卦象征嫁娶、结合。占得此卦者，表示将有结合或合作的机会。" },
+            "101111": { name: "雷火丰", image: "feng.png", interpretation: "丰卦象征丰盛、繁荣。占得此卦者，表示将获得丰盛的成果。" },
+            "111101": { name: "火山旅", image: "lv.png", interpretation: "旅卦象征旅行、漂泊。占得此卦者，表示将面临变动或旅行。" },
+            "001110": { name: "巽为风", image: "xun.png", interpretation: "巽卦象征风、顺从。占得此卦者，表示宜顺从时势，不可强求。" },
+            "011100": { name: "兑为泽", image: "dui.png", interpretation: "兑卦象征泽、喜悦。占得此卦者，表示将有喜悦和顺利。" },
+            "001111": { name: "风水涣", image: "huan.png", interpretation: "涣卦象征涣散、分散。占得此卦者，表示将面临分散和涣散的局面。" },
+            "111100": { name: "水泽节", image: "jie.png", interpretation: "节卦象征节制、节约。占得此卦者，表示需要节制和约束。" },
+            "110011": { name: "风泽中孚", image: "zhongfu.png", interpretation: "中孚卦象征诚信、信任。占得此卦者，表示诚信为本，可获得信任。" },
+            "001100": { name: "雷山小过", image: "xiaoguo.png", interpretation: "小过卦象征小的过度。占得此卦者，表示将有小的过失或过度。" },
+            "101010": { name: "水火既济", image: "jiji.png", interpretation: "既济卦象征完成、成功。占得此卦者，表示事情将顺利完成。" },
+            "010101": { name: "火水未济", image: "weiji.png", interpretation: "未济卦象征未完成、未成功。占得此卦者，表示事情尚未完成，需要继续努力。" }
         };
         
-        // 完整的64卦爻辞数据
+        // 爻辞数据
         const yaoData = {
             "111111": [
                 "初九：潜龙勿用。",
@@ -1315,487 +1223,8 @@
                 "六四：困蒙，吝。",
                 "六五：童蒙，吉。",
                 "上九：击蒙，不利为寇，利御寇。"
-            ],
-            "111010": [
-                "初九：需于郊，利用恒，无咎。",
-                "九二：需于沙，小有言，终吉。",
-                "九三：需于泥，致寇至。",
-                "六四：需于血，出自穴。",
-                "九五：需于酒食，贞吉。",
-                "上六：入于穴，有不速之客三人来，敬之终吉。"
-            ],
-            "010111": [
-                "初六：不永所事，小有言，终吉。",
-                "九二：不克讼，归而逋，其邑人三百户，无眚。",
-                "六三：食旧德，贞厉，终吉。或从王事，无成。",
-                "九四：不克讼，复即命，渝安贞，吉。",
-                "九五：讼，元吉。",
-                "上九：或锡之鞶带，终朝三褫之。"
-            ],
-            "010000": [
-                "初六：师出以律，否臧凶。",
-                "九二：在师中，吉，无咎，王三锡命。",
-                "六三：师或舆尸，凶。",
-                "六四：师左次，无咎。",
-                "六五：田有禽，利执言，无咎。长子帅师，弟子舆尸，贞凶。",
-                "上六：大君有命，开国承家，小人勿用。"
-            ],
-            "000010": [
-                "初六：有孚比之，无咎。有孚盈缶，终来有它，吉。",
-                "六二：比之自内，贞吉。",
-                "六三：比之匪人。",
-                "六四：外比之，贞吉。",
-                "九五：显比，王用三驱，失前禽。邑人不诫，吉。",
-                "上六：比之无首，凶。"
-            ],
-            "111011": [
-                "初九：复自道，何其咎，吉。",
-                "九二：牵复，吉。",
-                "九三：舆说辐，夫妻反目。",
-                "六四：有孚，血去惕出，无咎。",
-                "九五：有孚挛如，富以其邻。",
-                "上九：既雨既处，尚德载，妇贞厉。月几望，君子征凶。"
-            ],
-            "110111": [
-                "初九：素履，往无咎。",
-                "九二：履道坦坦，幽人贞吉。",
-                "六三：眇能视，跛能履，履虎尾，咥人，凶。武人为于大君。",
-                "九四：履虎尾，愬愬终吉。",
-                "九五：夬履，贞厉。",
-                "上九：视履考祥，其旋元吉。"
-            ],
-            "101111": [
-                "初九：同人于门，无咎。",
-                "六二：同人于宗，吝。",
-                "九三：伏戎于莽，升其高陵，三岁不兴。",
-                "九四：乘其墉，弗克攻，吉。",
-                "九五：同人，先号啕而后笑。大师克相遇。",
-                "上九：同人于郊，无悔。"
-            ],
-            "111101": [
-                "初九：无交害，匪咎，艰则无咎。",
-                "九二：大车以载，有攸往，无咎。",
-                "九三：公用亨于天子，小人弗克。",
-                "九四：匪其彭，无咎。",
-                "六五：厥孚交如，威如，吉。",
-                "上九：自天佑之，吉无不利。"
-            ],
-            "100000": [
-                "初九：不远复，无祗悔，元吉。",
-                "六二：休复，吉。",
-                "六三：频复，厉无咎。",
-                "六四：中行独复。",
-                "六五：敦复，无悔。",
-                "上六：迷复，凶，有灾眚。用行师，终有大败，以其国君凶。至于十年不克征。"
-            ],
-            "000001": [
-                "初六：剥床以足，蔑贞凶。",
-                "六二：剥床以辨，蔑贞凶。",
-                "六三：剥之，无咎。",
-                "六四：剥床以肤，凶。",
-                "六五：贯鱼以宫人宠，无不利。",
-                "上九：硕果不食，君子得舆，小人剥庐。"
-            ],
-            "100111": [
-                "初九：无妄，往吉。",
-                "六二：不耕获，不菑畲，则利有攸往。",
-                "六三：无妄之灾，或系之牛，行人之得，邑人之灾。",
-                "九四：可贞，无咎。",
-                "九五：无妄之疾，勿药有喜。",
-                "上九：无妄，行有眚，无攸利。"
-            ],
-            "111001": [
-                "初九：舍尔灵龟，观我朵颐，凶。",
-                "六二：颠颐，拂经于丘颐，征凶。",
-                "六三：拂颐，贞凶，十年勿用，无攸利。",
-                "六四：颠颐，吉。虎视眈眈，其欲逐逐，无咎。",
-                "六五：拂经，居贞吉，不可涉大川。",
-                "上九：由颐，厉吉，利涉大川。"
-            ],
-            "110000": [
-                "初九：官有渝，贞吉。出门交有功。",
-                "六二：系小子，失丈夫。",
-                "六三：系丈夫，失小子。随有求得，利居贞。",
-                "九四：随有获，贞凶。有孚在道，以明，何咎。",
-                "九五：孚于嘉，吉。",
-                "上六：拘系之，乃从维之。王用亨于西山。"
-            ],
-            "000011": [
-                "初六：干父之蛊，有子，考无咎，厉终吉。",
-                "九二：干母之蛊，不可贞。",
-                "九三：干父之蛊，小有悔，无大咎。",
-                "六四：裕父之蛊，往见吝。",
-                "六五：干父之蛊，用誉。",
-                "上九：不事王侯，高尚其事。"
-            ],
-            "110001": [
-                "初九：咸临，贞吉。",
-                "九二：咸临，吉无不利。",
-                "六三：甘临，无攸利。既忧之，无咎。",
-                "六四：至临，无咎。",
-                "六五：知临，大君之宜，吉。",
-                "上六：敦临，吉无咎。"
-            ],
-            "100011": [
-                "初六：童观，小人无咎，君子吝。",
-                "六二：窥观，利女贞。",
-                "六三：观我生，进退。",
-                "六四：观国之光，利用宾于王。",
-                "九五：观我生，君子无咎。",
-                "上九：观其生，君子无咎。"
-            ],
-            "101000": [
-                "初九：有厉利已。",
-                "六二：噬肤灭鼻，无咎。",
-                "六三：噬腊肉，遇毒。小吝，无咎。",
-                "九四：噬干胏，得金矢。利艰贞，吉。",
-                "六五：噬干肉，得黄金。贞厉，无咎。",
-                "上九：何校灭耳，凶。"
-            ],
-            "000101": [
-                "初九：贲其趾，舍车而徒。",
-                "六二：贲其须。",
-                "九三：贲如濡如，永贞吉。",
-                "六四：贲如皤如，白马翰如，匪寇婚媾。",
-                "六五：贲于丘园，束帛戋戋，吝，终吉。",
-                "上九：白贲，无咎。"
-            ],
-            "100001": [
-                "初六：剥床以足，蔑贞凶。",
-                "六二：剥床以辨，蔑贞凶。",
-                "六三：剥之，无咎。",
-                "六四：剥床以肤，凶。",
-                "六五：贯鱼以宫人宠，无不利。",
-                "上九：硕果不食，君子得舆，小人剥庐。"
-            ],
-            "011111": [
-                "初九：不远复，无祗悔，元吉。",
-                "六二：休复，吉。",
-                "六三：频复，厉无咎。",
-                "六四：中行独复。",
-                "六五：敦复，无悔。",
-                "上六：迷复，凶，有灾眚。用行师，终有大败，以其国君凶。至于十年不克征。"
-            ],
-            "100101": [
-                "初九：无妄，往吉。",
-                "六二：不耕获，不菑畲，则利有攸往。",
-                "六三：无妄之灾，或系之牛，行人之得，邑人之灾。",
-                "九四：可贞，无咎。",
-                "九五：无妄之疾，勿药有喜。",
-                "上九：无妄，行有眚，无攸利。"
-            ],
-            "101001": [
-                "初九：有厉利已。",
-                "九二：舆说輹。",
-                "九三：良马逐，利艰贞。曰闲舆卫，利有攸往。",
-                "六四：童牛之牿，元吉。",
-                "六五：豶豕之牙，吉。",
-                "上九：何天之衢，亨。"
-            ],
-            "100111": [
-                "初九：舍尔灵龟，观我朵颐，凶。",
-                "六二：颠颐，拂经于丘颐，征凶。",
-                "六三：拂颐，贞凶，十年勿用，无攸利。",
-                "六四：颠颐，吉。虎视眈眈，其欲逐逐，无咎。",
-                "六五：拂经，居贞吉，不可涉大川。",
-                "上九：由颐，厉吉，利涉大川。"
-            ],
-            "110001": [
-                "初六：藉用白茅，无咎。",
-                "九二：枯杨生稊，老夫得其女妻，无不利。",
-                "九三：栋桡，凶。",
-                "九四：栋隆，吉。有它吝。",
-                "九五：枯杨生华，老妇得其士夫，无咎无誉。",
-                "上六：过涉灭顶，凶，无咎。"
-            ],
-            "010010": [
-                "初六：习坎，入于坎窞，凶。",
-                "九二：坎有险，求小得。",
-                "六三：来之坎坎，险且枕，入于坎窞，勿用。",
-                "六四：樽酒簋贰，用缶，纳约自牖，终无咎。",
-                "九五：坎不盈，祗既平，无咎。",
-                "上六：系用徽纆，寘于丛棘，三岁不得，凶。"
-            ],
-            "101101": [
-                "初九：履错然，敬之无咎。",
-                "六二：黄离，元吉。",
-                "九三：日昃之离，不鼓缶而歌，则大耋之嗟，凶。",
-                "九四：突如其来如，焚如，死如，弃如。",
-                "六五：出涕沱若，戚嗟若，吉。",
-                "上九：王用出征，有嘉折首，获匪其丑，无咎。"
-            ],
-            "110010": [
-                "初六：咸其拇。",
-                "六二：咸其腓，凶，居吉。",
-                "九三：咸其股，执其随，往吝。",
-                "九四：贞吉悔亡，憧憧往来，朋从尔思。",
-                "九五：咸其脢，无悔。",
-                "上六：咸其辅颊舌。"
-            ],
-            "010110": [
-                "初六：浚恒，贞凶，无攸利。",
-                "九二：悔亡。",
-                "九三：不恒其德，或承之羞，贞吝。",
-                "九四：田无禽。",
-                "六五：恒其德，贞。妇人吉，夫子凶。",
-                "上六：振恒，凶。"
-            ],
-            "001011": [
-                "初六：遁尾，厉，勿用有攸往。",
-                "六二：执之用黄牛之革，莫之胜说。",
-                "九三：系遁，有疾厉，畜臣妾吉。",
-                "九四：好遁，君子吉，小人否。",
-                "九五：嘉遁，贞吉。",
-                "上九：肥遁，无不利。"
-            ],
-            "110100": [
-                "初九：壮于趾，征凶，有孚。",
-                "九二：贞吉。",
-                "九三：小人用壮，君子用罔，贞厉。羝羊触藩，羸其角。",
-                "九四：贞吉悔亡，藩决不羸，壮于大舆之輹。",
-                "六五：丧羊于易，无悔。",
-                "上六：羝羊触藩，不能退，不能遂，无攸利，艰则吉。"
-            ],
-            "001101": [
-                "初六：晋如摧如，贞吉。罔孚，裕无咎。",
-                "六二：晋如愁如，贞吉。受兹介福，于其王母。",
-                "六三：众允，悔亡。",
-                "九四：晋如鼫鼠，贞厉。",
-                "六五：悔亡，失得勿恤，往吉无不利。",
-                "上九：晋其角，维用伐邑，厉吉无咎，贞吝。"
-            ],
-            "101100": [
-                "初九：明夷于飞，垂其翼。君子于行，三日不食。有攸往，主人有言。",
-                "六二：明夷，夷于左股，用拯马壮，吉。",
-                "九三：明夷于南狩，得其大首，不可疾贞。",
-                "六四：入于左腹，获明夷之心，于出门庭。",
-                "六五：箕子之明夷，利贞。",
-                "上六：不明晦，初登于天，后入于地。"
-            ],
-            "101011": [
-                "初九：闲有家，悔亡。",
-                "六二：无攸遂，在中馈，贞吉。",
-                "九三：家人嗃嗃，悔厉吉。妇子嘻嘻，终吝。",
-                "六四：富家，大吉。",
-                "九五：王假有家，勿恤吉。",
-                "上九：有孚威如，终吉。"
-            ],
-            "110101": [
-                "初九：悔亡，丧马勿逐，自复。见恶人无咎。",
-                "九二：遇主于巷，无咎。",
-                "六三：见舆曳，其牛掣，其人天且劓，无初有终。",
-                "九四：睽孤，遇元夫，交孚，厉无咎。",
-                "六五：悔亡，厥宗噬肤，往何咎。",
-                "上九：睽孤，见豕负涂，载鬼一车，先张之弧，后说之弧，匪寇婚媾，往遇雨则吉。"
-            ],
-            "001010": [
-                "初六：往蹇来誉。",
-                "六二：王臣蹇蹇，匪躬之故。",
-                "九三：往蹇来反。",
-                "六四：往蹇来连。",
-                "九五：大蹇朋来。",
-                "上六：往蹇来硕，吉，利见大人。"
-            ],
-            "010100": [
-                "初六：无咎。",
-                "九二：田获三狐，得黄矢，贞吉。",
-                "六三：负且乘，致寇至，贞吝。",
-                "九四：解而拇，朋至斯孚。",
-                "六五：君子维有解，吉。有孚于小人。",
-                "上六：公用射隼于高墉之上，获之，无不利。"
-            ],
-            "100110": [
-                "初九：已事遄往，无咎，酌损之。",
-                "九二：利贞，征凶，弗损益之。",
-                "六三：三人行，则损一人。一人行，则得其友。",
-                "六四：损其疾，使遄有喜，无咎。",
-                "六五：或益之十朋之龟，弗克违，元吉。",
-                "上九：弗损益之，无咎，贞吉，利有攸往，得臣无家。"
-            ],
-            "011001": [
-                "初九：利用为大作，元吉，无咎。",
-                "六二：或益之十朋之龟，弗克违，永贞吉。王用享于帝，吉。",
-                "六三：益之用凶事，无咎。有孚中行，告公用圭。",
-                "六四：中行，告公从。利用为依迁国。",
-                "九五：有孚惠心，勿问元吉。有孚惠我德。",
-                "上九：莫益之，或击之，立心勿恒，凶。"
-            ],
-            "111110": [
-                "初九：壮于前趾，往不胜为咎。",
-                "九二：惕号，莫夜有戎，勿恤。",
-                "九三：壮于頄，有凶。君子夬夬，独行遇雨，若濡有愠，无咎。",
-                "九四：臀无肤，其行次且。牵羊悔亡，闻言不信。",
-                "九五：苋陆夬夬，中行无咎。",
-                "上六：无号，终有凶。"
-            ],
-            "011111": [
-                "初六：系于金柅，贞吉。有攸往，见凶，羸豕踟躅。",
-                "九二：包有鱼，无咎，不利宾。",
-                "九三：臀无肤，其行次且，厉，无大咎。",
-                "九四：包无鱼，起凶。",
-                "九五：以杞包瓜，含章，有陨自天。",
-                "上九：姤其角，吝，无咎。"
-            ],
-            "000110": [
-                "初六：有孚不终，乃乱乃萃，若号一握为笑，勿恤，往无咎。",
-                "六二：引吉，无咎，孚乃利用禴。",
-                "六三：萃如嗟如，无攸利，往无咎，小吝。",
-                "九四：大吉，无咎。",
-                "九五：萃有位，无咎。匪孚，元永贞，悔亡。",
-                "上六：赍咨涕洟，无咎。"
-            ],
-            "011000": [
-                "初六：允升，大吉。",
-                "九二：孚乃利用禴，无咎。",
-                "九三：升虚邑。",
-                "六四：王用亨于岐山，吉无咎。",
-                "六五：贞吉，升阶。",
-                "上六：冥升，利于不息之贞。"
-            ],
-            "010110": [
-                "初六：臀困于株木，入于幽谷，三岁不觌。",
-                "九二：困于酒食，朱绂方来，利用享祀，征凶，无咎。",
-                "六三：困于石，据于蒺藜，入于其宫，不见其妻，凶。",
-                "九四：来徐徐，困于金车，吝，有终。",
-                "九五：劓刖，困于赤绂，乃徐有说，利用祭祀。",
-                "上六：困于葛藟，于臲卼，曰动悔。有悔，征吉。"
-            ],
-            "011010": [
-                "初六：井泥不食，旧井无禽。",
-                "九二：井谷射鲋，瓮敝漏。",
-                "九三：井渫不食，为我心恻，可用汲，王明，并受其福。",
-                "六四：井甃，无咎。",
-                "九五：井冽，寒泉食。",
-                "上六：井收勿幕，有孚元吉。"
-            ],
-            "101110": [
-                "初九：巩用黄牛之革。",
-                "六二：己日乃革之，征吉，无咎。",
-                "九三：征凶，贞厉。革言三就，有孚。",
-                "九四：悔亡，有孚改命，吉。",
-                "九五：大人虎变，未占有孚。",
-                "上六：君子豹变，小人革面，征凶，居贞吉。"
-            ],
-            "011101": [
-                "初六：鼎颠趾，利出否，得妾以其子，无咎。",
-                "九二：鼎有实，我仇有疾，不我能即，吉。",
-                "九三：鼎耳革，其行塞，雉膏不食，方雨亏悔，终吉。",
-                "九四：鼎折足，覆公餗，其形渥，凶。",
-                "六五：鼎黄耳金铉，利贞。",
-                "上九：鼎玉铉，大吉，无不利。"
-            ],
-            "100011": [
-                "初九：震来虩虩，后笑言哑哑，吉。",
-                "六二：震来厉，亿丧贝，跻于九陵，勿逐，七日得。",
-                "六三：震苏苏，震行无眚。",
-                "九四：震遂泥。",
-                "六五：震往来厉，亿无丧，有事。",
-                "上六：震索索，视矍矍，征凶。震不于其躬，于其邻，无咎。婚媾有言。"
-            ],
-            "110000": [
-                "初六：艮其趾，无咎，利永贞。",
-                "六二：艮其腓，不拯其随，其心不快。",
-                "九三：艮其限，列其夤，厉薰心。",
-                "六四：艮其身，无咎。",
-                "六五：艮其辅，言有序，悔亡。",
-                "上九：敦艮，吉。"
-            ],
-            "001001": [
-                "初六：鸿渐于干，小子厉，有言，无咎。",
-                "六二：鸿渐于磐，饮食衎衎，吉。",
-                "九三：鸿渐于陆，夫征不复，妇孕不育，凶。利御寇。",
-                "六四：鸿渐于木，或得其桷，无咎。",
-                "九五：鸿渐于陵，妇三岁不孕，终莫之胜，吉。",
-                "上九：鸿渐于逵，其羽可用为仪，吉。"
-            ],
-            "100100": [
-                "初九：归妹以娣，跛能履，征吉。",
-                "九二：眇能视，利幽人之贞。",
-                "六三：归妹以须，反归以娣。",
-                "九四：归妹愆期，迟归有时。",
-                "六五：帝乙归妹，其君之袂，不如其娣之袂良。月几望，吉。",
-                "上六：女承筐无实，士刲羊无血，无攸利。"
-            ],
-            "101111": [
-                "初九：遇其配主，虽旬无咎，往有尚。",
-                "六二：丰其蔀，日中见斗，往得疑疾，有孚发若，吉。",
-                "九三：丰其沛，日中见沬，折其右肱，无咎。",
-                "九四：丰其蔀，日中见斗，遇其夷主，吉。",
-                "六五：来章，有庆誉，吉。",
-                "上六：丰其屋，蔀其家，窥其户，阒其无人，三岁不觌，凶。"
-            ],
-            "111101": [
-                "初六：旅琐琐，斯其所取灾。",
-                "六二：旅即次，怀其资，得童仆贞。",
-                "九三：旅焚其次，丧其童仆，贞厉。",
-                "九四：旅于处，得其资斧，我心不快。",
-                "六五：射雉一矢亡，终以誉命。",
-                "上九：鸟焚其巢，旅人先笑后号啕。丧牛于易，凶。"
-            ],
-            "001110": [
-                "初六：进退，利武人之贞。",
-                "九二：巽在床下，用史巫纷若，吉无咎。",
-                "九三：频巽，吝。",
-                "六四：悔亡，田获三品。",
-                "九五：贞吉悔亡，无不利。无初有终，先庚三日，后庚三日，吉。",
-                "上九：巽在床下，丧其资斧，贞凶。"
-            ],
-            "011100": [
-                "初九：和兑，吉。",
-                "九二：孚兑，吉，悔亡。",
-                "六三：来兑，凶。",
-                "九四：商兑未宁，介疾有喜。",
-                "九五：孚于剥，有厉。",
-                "上六：引兑。"
-            ],
-            "001111": [
-                "初六：用拯马壮，吉。",
-                "九二：涣奔其机，悔亡。",
-                "六三：涣其躬，无悔。",
-                "六四：涣其群，元吉。涣有丘，匪夷所思。",
-                "九五：涣汗其大号，涣王居，无咎。",
-                "上九：涣其血，去逖出，无咎。"
-            ],
-            "111100": [
-                "初九：不出户庭，无咎。",
-                "九二：不出门庭，凶。",
-                "六三：不节若，则嗟若，无咎。",
-                "六四：安节，亨。",
-                "九五：甘节，吉，往有尚。",
-                "上六：苦节，贞凶，悔亡。"
-            ],
-            "110011": [
-                "初九：虞吉，有它不燕。",
-                "九二：鸣鹤在阴，其子和之，我有好爵，吾与尔靡之。",
-                "六三：得敌，或鼓或罢，或泣或歌。",
-                "六四：月几望，马匹亡，无咎。",
-                "九五：有孚挛如，无咎。",
-                "上九：翰音登于天，贞凶。"
-            ],
-            "001100": [
-                "初六：飞鸟以凶。",
-                "六二：过其祖，遇其妣。不及其君，遇其臣，无咎。",
-                "九三：弗过防之，从或戕之，凶。",
-                "九四：无咎，弗过遇之。往厉必戒，勿用永贞。",
-                "六五：密云不雨，自我西郊，公弋取彼在穴。",
-                "上六：弗遇过之，飞鸟离之，凶，是谓灾眚。"
-            ],
-            "101010": [
-                "初九：曳其轮，濡其尾，无咎。",
-                "六二：妇丧其茀，勿逐，七日得。",
-                "九三：高宗伐鬼方，三年克之，小人勿用。",
-                "六四：繻有衣袽，终日戒。",
-                "九五：东邻杀牛，不如西邻之禴祭，实受其福。",
-                "上六：濡其首，厉。"
-            ],
-            "010101": [
-                "初六：濡其尾，吝。",
-                "九二：曳其轮，贞吉。",
-                "六三：未济，征凶，利涉大川。",
-                "九四：贞吉，悔亡，震用伐鬼方，三年有赏于大国。",
-                "六五：贞吉，无悔，君子之光，有孚吉。",
-                "上九：有孚于饮酒，无咎，濡其首，有孚失是。"
             ]
+            // 其他卦的爻辞可以继续添加
         };
         
         // 变爻解释
@@ -1807,39 +1236,265 @@
         };
         
         // 全局变量
-let currentHexagram = [];
-let currentQuestion = "";
-let currentMethod = "coin";
-let castCount = 0;
-let history = JSON.parse(localStorage.getItem('divinationHistory')) || [];
-let isPaid = localStorage.getItem('liuyao_paid') === 'true' || false;
-
-// 支付配置
-const paymentConfig = {
-    pid: '2025051013380915',
-    key: 'UsXrSwn0wft5SeLB0LaQfecvJmpkS18T',
-    apiUrl: 'https://zpayz.cn/submit.php',
-    returnUrl: window.location.href.split('?')[0],
-    amount: '0.01'
-};
-
-// DOM加载完成后执行
+        let currentHexagram = [];
+        let currentQuestion = "";
+        let currentMethod = "coin";
+        let castCount = 0;
+        let history = JSON.parse(localStorage.getItem('divinationHistory')) || [];
+        
+        // DOM加载完成后执行
 document.addEventListener('DOMContentLoaded', function() {
-    // 初始化UI状态
+            // 支付方式选择
+            const paymentMethodBtns = document.querySelectorAll('.payment-method-btn');
+            let currentPaymentMethod = 'wxpay'; // 默认微信支付
+            
+            paymentMethodBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    paymentMethodBtns.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentPaymentMethod = this.dataset.type;
+                });
+            });
+
+            // 修改支付配置
+            const paymentConfig = {
+                pid: '2025051013380915',
+                key: 'UsXrSwn0wft5SeLB0LaQfecvJmpkS18T',
+                apiUrl: 'https://zpayz.cn/submit.php',
+                returnUrl: window.location.href.split('?')[0],
+                amount: '1.00'
+            };
+    
+    // 获取DOM元素
+    const payBtn = document.getElementById('pay-btn');
+    const paymentStatus = document.getElementById('payment-status');
+    const questionInput = document.getElementById('question');
+    const fullscreenLoading = document.createElement('div');
+    fullscreenLoading.id = 'fullscreen-loading';
+    fullscreenLoading.style.cssText = `
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+        background: rgba(0,0,0,0.5); display: none; justify-content: center; 
+        align-items: center; z-index: 9999; color: white; font-size: 1.5rem;
+    `;
+    fullscreenLoading.innerHTML = '<div><i class="fas fa-spinner fa-spin"></i> 正在处理支付请求...</div>';
+    document.body.appendChild(fullscreenLoading);
+    
+    // 初始化支付状态
+    let isPaid = false;
     updatePaymentStatus();
     
-    // 支付方式选择
-    const paymentMethodBtns = document.querySelectorAll('.payment-method-btn');
-    let currentPaymentMethod = 'wxpay';
+    // 检查支付回调
+    checkPaymentReturn();
     
-    paymentMethodBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
-            paymentMethodBtns.forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-            currentPaymentMethod = this.dataset.type;
-        });
-    });
+    // 支付按钮点击事件
+    payBtn.addEventListener('click', startPayment);
+    
+    // 更新支付状态函数
+    function updatePaymentStatus() {
+        if (isPaid) {
+            paymentStatus.style.display = 'block';
+            payBtn.style.display = 'none';
+            questionInput.readOnly = false;
+            questionInput.style.backgroundColor = '';
+            questionInput.placeholder = '请输入您要占卜的问题...';
+        } else {
+            paymentStatus.style.display = 'none';
+            payBtn.style.display = 'block';
+            questionInput.readOnly = true;
+            questionInput.style.backgroundColor = '#f5f5f5';
+            questionInput.placeholder = '请先支付1元解锁占卜功能';
+            questionInput.value = '';
+        }
+    }
+    
+    // 检查支付回调
+    function checkPaymentReturn() {
+        try {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('trade_status') === 'TRADE_SUCCESS') {
+                const paymentData = {
+                    pid: params.get('pid'),
+                    trade_no: params.get('trade_no'),
+                    out_trade_no: params.get('out_trade_no'),
+                    type: params.get('type'),
+                    name: params.get('name'),
+                    money: params.get('money'),
+                    trade_status: params.get('trade_status'),
+                    param: params.get('param'),
+                    sign: params.get('sign'),
+                    sign_type: params.get('sign_type')
+                };
 
+                if (verifyPayment(paymentData)) {
+                    isPaid = true;
+                    updatePaymentStatus();
+                    cleanUrl();
+                    showToast('支付成功！您现在可以开始占卜了', 'success');
+                }
+            }
+        } catch (error) {
+            console.error('支付回调处理错误:', error);
+        }
+    }
+    
+    // 生成签名
+    function generateSign(params) {
+        try {
+            const filtered = {};
+            Object.keys(params).forEach(k => {
+                if (params[k] !== '' && k !== 'sign' && k !== 'sign_type') {
+                    filtered[k] = params[k];
+                }
+            });
+            
+            const signStr = Object.keys(filtered).sort()
+                .map(k => `${k}=${filtered[k]}`)
+                .join('&') + paymentConfig.key;
+            
+            return CryptoJS.MD5(signStr).toString();
+        } catch (error) {
+            console.error('生成签名错误:', error);
+            return '';
+        }
+    }
+    
+    // 验证支付
+    function verifyPayment(paymentData) {
+        try {
+            const sign = paymentData.sign;
+            delete paymentData.sign;
+            return generateSign(paymentData) === sign;
+        } catch (error) {
+            console.error('验证支付错误:', error);
+            return false;
+        }
+    }
+    
+    // 生成订单号
+    function generateOrderNo() {
+        const now = new Date();
+        return `${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}` +
+               `${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}` +
+               `${Math.floor(Math.random()*9000)+1000}`;
+    }
+    
+    function pad(num) {
+        return num < 10 ? `0${num}` : num;
+    }
+    
+    // 清理URL
+    function cleanUrl() {
+        try {
+            window.history.replaceState({}, document.title, window.location.pathname);
+        } catch (error) {
+            console.error('清理URL错误:', error);
+        }
+    }
+    
+    // 开始支付
+    function startPayment() {
+                try {
+                    fullscreenLoading.style.display = 'flex';
+                    
+                    const paymentData = {
+                        pid: paymentConfig.pid,
+                        type: currentPaymentMethod, // 使用当前选择的支付方式
+                        out_trade_no: generateOrderNo(),
+                        notify_url: paymentConfig.returnUrl,
+                        return_url: paymentConfig.returnUrl,
+                        name: '六爻占卜服务费',
+                        money: paymentConfig.amount,
+                        param: 'liuyao_divination',
+                        sign_type: 'MD5'
+                    };
+                    
+                    paymentData.sign = generateSign(paymentData);
+                    
+                    if (!paymentData.sign) {
+                        throw new Error('生成支付签名失败');
+                    }
+                    
+                    submitPaymentForm(paymentData);
+                } catch (error) {
+                    console.error('支付启动错误:', error);
+                    fullscreenLoading.style.display = 'none';
+                    showToast('支付启动失败，请稍后再试', 'error');
+                }
+            }
+    
+    // 提交支付表单
+    function submitPaymentForm(data) {
+        try {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = paymentConfig.apiUrl;
+            form.style.display = 'none';
+
+            Object.entries(data).forEach(([key, value]) => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = key;
+                input.value = value;
+                form.appendChild(input);
+            });
+
+            document.body.appendChild(form);
+            form.submit();
+        } catch (error) {
+            console.error('提交支付表单错误:', error);
+            fullscreenLoading.style.display = 'none';
+            showToast('支付提交失败，请稍后再试', 'error');
+        }
+    }
+    
+    // 显示Toast提示
+    function showToast(message, type = 'info') {
+        const toast = document.createElement('div');
+        toast.style.cssText = `
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 24px;
+            background-color: ${type === 'error' ? '#f44336' : type === 'success' ? '#4CAF50' : '#2196F3'};
+            color: white;
+            border-radius: 4px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            z-index: 10000;
+            animation: fadeIn 0.3s;
+        `;
+        toast.innerHTML = `<i class="fas ${type === 'error' ? 'fa-exclamation-circle' : type === 'success' ? 'fa-check-circle' : 'fa-info-circle'}"></i> ${message}`;
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.style.animation = 'fadeOut 0.3s';
+            setTimeout(() => {
+                document.body.removeChild(toast);
+            }, 300);
+        }, 3000);
+    }
+    
+    // 在占卜表单提交时处理支付状态
+    document.getElementById('divination-form').addEventListener('submit', function(e) {
+        if (!isPaid) {
+            e.preventDefault();
+            showToast('请先支付1元解锁占卜功能', 'error');
+            return;
+        }
+        
+        // 占卜完成后重置支付状态
+        setTimeout(() => {
+            isPaid = false;
+            updatePaymentStatus();
+            showToast('占卜已完成，如需再次占卜请重新支付', 'info');
+        }, 100);
+    });
+    
+    // 初始化更好的随机数种子
+    if (window.crypto && window.crypto.getRandomValues) {
+        const seed = window.crypto.getRandomValues(new Uint32Array(1))[0];
+        Math.seedrandom(seed.toString());
+    }
     // 初始化方法切换
     const methodBtns = document.querySelectorAll('.method-btn');
     methodBtns.forEach(btn => {
@@ -1847,46 +1502,145 @@ document.addEventListener('DOMContentLoaded', function() {
             methodBtns.forEach(b => b.classList.remove('active'));
             this.classList.add('active');
             currentMethod = this.dataset.method;
+            
+            document.querySelectorAll('.method-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            document.getElementById(`${currentMethod}-method`).classList.add('active');
+            
+            // 重置状态
             resetDivination();
         });
     });
     
-    // 钱币点击事件
+    // 钱币点击事件 - 改进后的版本
     const coins = document.querySelectorAll('.coin');
     coins.forEach(coin => {
         coin.addEventListener('click', function() {
-            if (!this.classList.contains('locked') {
+            // 只有当钱币未被锁定且当前轮次未完成时才允许点击
+            if (!this.classList.contains('locked') && castCount < 6) {
                 flipCoin(this);
+                // 锁定钱币
+                this.classList.add('locked');
             }
         });
     });
     
-    // 按钮事件绑定
-    document.getElementById('auto-cast-btn').addEventListener('click', autoCastCoins);
-    document.getElementById('cast-btn').addEventListener('click', castWithCoins);
-    document.getElementById('time-cast-btn').addEventListener('click', castWithTime);
-    document.getElementById('number-cast-btn').addEventListener('click', castWithNumbers);
-    document.getElementById('reset-btn').addEventListener('click', resetAllStates);
-    document.getElementById('new-divination').addEventListener('click', resetAllStates);
+    // 自动摇卦按钮
+    document.getElementById('auto-cast-btn').addEventListener('click', function() {
+        if (currentMethod === 'coin' && castCount < 6) {
+            autoCastCoins();
+        }
+    });
+    
+    // 摇卦按钮
+    document.getElementById('cast-btn').addEventListener('click', function() {
+        if (currentMethod === 'coin') {
+            castWithCoins();
+        }
+    });
+    
+    // 时间起卦按钮
+    document.getElementById('time-cast-btn').addEventListener('click', function() {
+        if (currentMethod === 'time') {
+            castWithTime();
+        }
+    });
+    
+    // 数字起卦按钮
+    document.getElementById('number-cast-btn').addEventListener('click', function() {
+        if (currentMethod === 'number') {
+            castWithNumbers();
+        }
+    });
+    
+    // 重置按钮
+    document.getElementById('reset-btn').addEventListener('click', function() {
+    // 重置所有状态
+    resetAllStates();
+    // 强制刷新页面
+    location.reload();
+    });
+    
+    // 新占卜按钮
+   document.getElementById('new-divination').addEventListener('click', function() {
+    // 重置所有状态
+    resetAllStates();
+    // 强制刷新页面
+    location.reload();
+    });
+    
+    // 保存卦象按钮
     document.getElementById('save-hexagram').addEventListener('click', saveHexagram);
+    
+    // 清除历史记录按钮
     document.getElementById('clear-history').addEventListener('click', clearHistory);
-    document.getElementById('pay-btn').addEventListener('click', startPayment);
     
-    // 初始化时间输入框
-    const now = new Date();
-    document.getElementById('time').value = now.toISOString().slice(0, 16);
-    
-    // 显示历史记录
+    // 如果有历史记录，显示历史部分
     if (history.length > 0) {
         document.getElementById('history-section').style.display = 'block';
         renderHistory();
     }
     
-    // 检查支付回调
-    checkPaymentReturn();
-});
+    // 表单提交
+    document.getElementById('divination-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        if (currentMethod === 'coin') {
+            castWithCoins();
+        } else if (currentMethod === 'time') {
+            castWithTime();
+        } else if (currentMethod === 'number') {
+            castWithNumbers();
+        }
+    });
 
-// === 支付相关函数 ===
+    document.getElementById('divination-form').addEventListener('submit', function(e) {
+    if (!isPaid) {
+        e.preventDefault();
+        showToast('请先支付1元解锁占卜功能', 'error');
+        return;
+    }
+    
+    // 占卜完成后立即锁定输入框
+    isPaid = false;
+    updatePaymentStatus();
+    });
+    
+    // 初始化时间输入框为当前时间
+    const now = new Date();
+    const timeStr = now.toISOString().slice(0, 16);
+    document.getElementById('time').value = timeStr;
+});
+        
+// 添加重置所有状态的函数
+function resetAllStates() {
+    // 重置支付状态
+    isPaid = false;
+    localStorage.removeItem('liuyao_paid');
+    
+    // 重置占卜状态
+    currentHexagram = [];
+    castCount = 0;
+    
+    // 重置UI显示
+    document.getElementById('hexagram-display').innerHTML = '';
+    document.getElementById('hexagram-section').style.display = 'none';
+    document.getElementById('cast-count').textContent = '0';
+    document.getElementById('cast-status').textContent = '准备开始，请点击钱币确定正反面';
+    
+    // 重置钱币状态
+    const coins = document.querySelectorAll('.coin');
+    coins.forEach(coin => {
+        delete coin.dataset.side;
+        coin.style.transform = 'rotateY(0deg)';
+        coin.classList.remove('selected', 'locked');
+    });
+    
+    // 重置问题输入框
+    document.getElementById('question').value = '';
+}
+        
+ // 修改支付状态更新函数
 function updatePaymentStatus() {
     const questionInput = document.getElementById('question');
     const payBtn = document.getElementById('pay-btn');
@@ -1906,154 +1660,137 @@ function updatePaymentStatus() {
         questionInput.placeholder = '请先支付1元解锁占卜功能';
     }
 }
+        
+// 自动摇卦函数 - 改进版，模拟手动摇卦过程
+function autoCastCoins() {
+    // 先验证是否输入了占卜问题
+    const question = document.getElementById('question').value.trim();
+    if (!question) {
+        alert('请先输入您的占卜问题');
+        return;
+    }
 
-function checkPaymentReturn() {
-    try {
-        const params = new URLSearchParams(window.location.search);
-        if (params.get('trade_status') === 'TRADE_SUCCESS') {
-            const paymentData = {
-                pid: params.get('pid'),
-                trade_no: params.get('trade_no'),
-                out_trade_no: params.get('out_trade_no'),
-                type: params.get('type'),
-                name: params.get('name'),
-                money: params.get('money'),
-                trade_status: params.get('trade_status'),
-                param: params.get('param'),
-                sign: params.get('sign'),
-                sign_type: params.get('sign_type')
-            };
+    if (castCount >= 6) {
+        alert('六次摇卦已完成，请查看结果或重置');
+        return;
+    }
+    
+    // 禁用按钮防止重复点击
+    const autoCastBtn = document.getElementById('auto-cast-btn');
+    const castBtn = document.getElementById('cast-btn');
+    const resetBtn = document.getElementById('reset-btn');
+    autoCastBtn.disabled = true;
+    castBtn.disabled = true;
+    resetBtn.disabled = true;
+    autoCastBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 自动摇卦中...';
 
-            if (verifyPayment(paymentData)) {
-                isPaid = true;
-                localStorage.setItem('liuyao_paid', 'true');
-                updatePaymentStatus();
-                cleanUrl();
-                showToast('支付成功！您现在可以开始占卜了', 'success');
+    // 如果是第一次摇卦，记录问题
+    if (castCount === 0) {
+        currentQuestion = question;
+        const now = new Date();
+        document.getElementById('divination-time').textContent = now.toLocaleString();
+        document.getElementById('divination-method').textContent = "钱币摇卦";
+    }
+
+    // 快速完成6次摇卦
+    function autoCastFull() {
+        if (castCount >= 6) {
+            // 全部完成后恢复按钮状态
+            autoCastBtn.disabled = false;
+            castBtn.disabled = false;
+            resetBtn.disabled = false;
+            autoCastBtn.innerHTML = '<i class="fas fa-bolt"></i> 自动摇卦';
+            
+            // 自动滚动到结果区域
+            setTimeout(() => {
+                document.getElementById('hexagram-section').scrollIntoView({ 
+                    behavior: 'smooth' 
+                });
+            }, 500);
+            return;
+        }
+
+        const coins = document.querySelectorAll('.coin');
+        let currentCoinIndex = 0;
+        
+        // 超快速摇动单个钱币（200ms完成）
+        function quickFlipCoin(coin, callback) {
+            coin.classList.add('quick-flipping');
+            setTimeout(() => {
+                coin.classList.remove('quick-flipping');
+                // 使用更高质量的随机数生成方法
+                const isHead = window.crypto.getRandomValues(new Uint32Array(1))[0] / 4294967295 > 0.5;
+                coin.dataset.side = isHead ? 'head' : 'tail';
+                coin.style.transform = isHead ? 'rotateY(0deg)' : 'rotateY(180deg)';
+                coin.classList.add('selected', 'locked');
+                if (callback) callback();
+            }, 200);
+        }
+        // 依次快速摇三个钱币
+        function flipNextQuickCoin() {
+            if (currentCoinIndex >= coins.length) {
+                // 三个钱币都摇完后，自动记录结果
+                setTimeout(() => {
+                    castWithCoins();
+                    // 继续下一次摇卦（间隔200ms）
+                    setTimeout(autoCastFull, 200);
+                }, 200);
+                return;
+            }
+            
+            const coin = coins[currentCoinIndex];
+            if (!coin.classList.contains('locked')) {
+                // 显示当前正在摇的硬币
+                coin.classList.add('highlight-coin');
+                quickFlipCoin(coin, () => {
+                    coin.classList.remove('highlight-coin');
+                    currentCoinIndex++;
+                    flipNextQuickCoin();
+                });
+            } else {
+                currentCoinIndex++;
+                flipNextQuickCoin();
             }
         }
-    } catch (error) {
-        console.error('支付回调处理错误:', error);
-    }
-}
-
-function generateSign(params) {
-    try {
-        const filtered = {};
-        Object.keys(params).forEach(k => {
-            if (params[k] !== '' && k !== 'sign' && k !== 'sign_type') {
-                filtered[k] = params[k];
-            }
-        });
         
-        const signStr = Object.keys(filtered).sort()
-            .map(k => `${k}=${filtered[k]}`)
-            .join('&') + paymentConfig.key;
+        // 更新状态显示
+        document.getElementById('cast-status').textContent = 
+            `正在自动进行第 ${castCount + 1} 次摇卦...`;
         
-        return CryptoJS.MD5(signStr).toString();
-    } catch (error) {
-        console.error('生成签名错误:', error);
-        return '';
+        flipNextQuickCoin();
     }
+    
+    autoCastFull();
 }
 
-function verifyPayment(paymentData) {
-    try {
-        const sign = paymentData.sign;
-        delete paymentData.sign;
-        return generateSign(paymentData) === sign;
-    } catch (error) {
-        console.error('验证支付错误:', error);
-        return false;
-    }
-}
-
-function generateOrderNo() {
-    const now = new Date();
-    return `${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}` +
-           `${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}` +
-           `${Math.floor(Math.random()*9000)+1000}`;
-}
-
-function pad(num) {
-    return num < 10 ? `0${num}` : num;
-}
-
-function cleanUrl() {
-    try {
-        window.history.replaceState({}, document.title, window.location.pathname);
-    } catch (error) {
-        console.error('清理URL错误:', error);
-    }
-}
-
-function startPayment() {
-    try {
-        showFullscreenLoading();
-        
-        const paymentData = {
-            pid: paymentConfig.pid,
-            type: currentPaymentMethod,
-            out_trade_no: generateOrderNo(),
-            notify_url: paymentConfig.returnUrl,
-            return_url: paymentConfig.returnUrl,
-            name: '六爻占卜服务费',
-            money: paymentConfig.amount,
-            param: 'liuyao_divination',
-            sign_type: 'MD5'
-        };
-        
-        paymentData.sign = generateSign(paymentData);
-        
-        if (!paymentData.sign) {
-            throw new Error('生成支付签名失败');
-        }
-        
-        submitPaymentForm(paymentData);
-    } catch (error) {
-        console.error('支付启动错误:', error);
-        hideFullscreenLoading();
-        showToast('支付启动失败，请稍后再试', 'error');
-    }
-}
-
-function submitPaymentForm(data) {
-    try {
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = paymentConfig.apiUrl;
-        form.style.display = 'none';
-
-        Object.entries(data).forEach(([key, value]) => {
-            const input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = key;
-            input.value = value;
-            form.appendChild(input);
-        });
-
-        document.body.appendChild(form);
-        form.submit();
-    } catch (error) {
-        console.error('提交支付表单错误:', error);
-        hideFullscreenLoading();
-        showToast('支付提交失败，请稍后再试', 'error');
-    }
-}
-
-// === 占卜核心功能 ===
-function flipCoin(coin) {
-    coin.classList.add('flipping', 'locked');
+// 改进的钱币翻转动画，增加回调函数
+function flipCoin(coin, callback) {
+    coin.classList.add('flipping');
     setTimeout(() => {
         coin.classList.remove('flipping');
-        const isHead = getSecureRandom() > 0.5;
-        coin.dataset.side = isHead ? 'head' : 'tail';
-        coin.style.transform = isHead ? 'rotateY(0deg)' : 'rotateY(180deg)';
+        // 随机决定是正面还是反面
+        const isHead = Math.random() > 0.5;
+        if (isHead) {
+            coin.dataset.side = 'head';
+            coin.style.transform = 'rotateY(0deg)';
+        } else {
+            coin.dataset.side = 'tail';
+            coin.style.transform = 'rotateY(180deg)';
+        }
+        
+        // 添加选中效果并锁定
         coin.classList.add('selected');
+        coin.classList.add('locked');
+        
+        // 更新状态显示
         updateCoinStatus();
+        
+        // 执行回调函数
+        if (callback) callback();
     }, 1000);
 }
 
+// 更新钱币状态显示
 function updateCoinStatus() {
     const coins = document.querySelectorAll('.coin');
     let allCoinsSet = true;
@@ -2081,6 +1818,7 @@ function updateCoinStatus() {
     }
 }
 
+// 计算已设置的钱币数量
 function countSetCoins() {
     const coins = document.querySelectorAll('.coin');
     let count = 0;
@@ -2092,62 +1830,20 @@ function countSetCoins() {
     return count;
 }
 
-function autoCastCoins() {
-    const question = document.getElementById('question').value.trim();
-    if (!question) {
-        showToast('请先输入您的占卜问题', 'error');
-        return;
-    }
-
-    if (castCount >= 6) {
-        showToast('六次摇卦已完成，请查看结果或重置', 'info');
-        return;
-    }
-    
-    if (castCount === 0) {
-        currentQuestion = question;
-        document.getElementById('divination-time').textContent = new Date().toLocaleString();
-        document.getElementById('divination-method').textContent = "钱币摇卦";
-    }
-
-    function autoCastFull() {
-        if (castCount >= 6) {
-            showResult();
-            setTimeout(() => {
-                document.getElementById('hexagram-section').scrollIntoView({ behavior: 'smooth' });
-            }, 500);
-            return;
-        }
-
-        const coins = document.querySelectorAll('.coin');
-        coins.forEach(coin => {
-            const isHead = getSecureRandom() > 0.5;
-            coin.dataset.side = isHead ? 'head' : 'tail';
-            coin.style.transform = isHead ? 'rotateY(0deg)' : 'rotateY(180deg)';
-            coin.classList.add('selected');
-        });
-        
-        document.getElementById('cast-status').textContent = `正在自动进行第 ${castCount + 1} 次摇卦...`;
-        
-        setTimeout(() => {
-            castWithCoins();
-            setTimeout(autoCastFull, 500);
-        }, 800);
-    }
-    
-    autoCastFull();
-}
-
+// 使用钱币摇卦 - 改进后的版本
 function castWithCoins() {
     const question = document.getElementById('question').value.trim();
     if (!question) {
-        showToast('请输入占卜问题', 'error');
+        alert('请输入占卜问题');
         return;
     }
     
+    // 第一次摇卦时设置问题
     if (castCount === 0) {
         currentQuestion = question;
-        document.getElementById('divination-time').textContent = new Date().toLocaleString();
+        // 设置占卜时间和方法
+        const now = new Date();
+        document.getElementById('divination-time').textContent = now.toLocaleString();
         document.getElementById('divination-method').textContent = "钱币摇卦";
     }
     
@@ -2164,214 +1860,384 @@ function castWithCoins() {
     });
     
     if (!allCoinsSet) {
-        showToast('请先点击所有钱币确定正反面', 'error');
+        alert('请先点击所有钱币确定正反面');
         return;
     }
     
-    let yaoType;
-    let changing;
-    const randomFactor = getSecureRandom();
+    // 确定爻的性质
+    let yao;
+    const randomFactor = window.crypto.getRandomValues(new Uint32Array(1))[0] / 4294967295;
     
     switch (headCount) {
-        case 0: 
-            yaoType = randomFactor > 0.15 ? '6' : '8';
-            changing = randomFactor > 0.15;
+        case 0: // 三个反面
+            yao = { 
+                type: randomFactor > 0.15 ? '6' : '8', // 15%几率变为少阴
+                line: randomFactor > 0.15 ? '000' : '010', 
+                changing: randomFactor > 0.15 
+            };
             break;
-        case 1:
-            if (randomFactor > 0.75) {
-                yaoType = '9';
-                changing = true;
-            } else if (randomFactor > 0.45) {
-                yaoType = '6';
-                changing = true;
-            } else if (randomFactor > 0.2) {
-                yaoType = '8';
-                changing = false;
-            } else {
-                yaoType = '7';
-                changing = false;
-            }
+        case 1: // 一个正面
+            yao = { 
+                type: randomFactor > 0.1 ? '7' : (randomFactor > 0.05 ? '9' : '6'), 
+                line: randomFactor > 0.1 ? '001' : (randomFactor > 0.05 ? '111' : '000'),
+                changing: randomFactor <= 0.1
+            };
             break;
-        case 2:
-            if (randomFactor > 0.75) {
-                yaoType = '9';
-                changing = true;
-            } else if (randomFactor > 0.5) {
-                yaoType = '7';
-                changing = false;
-            } else if (randomFactor > 0.25) {
-                yaoType = '8';
-                changing = false;
-            } else {
-                yaoType = '6';
-                changing = true;
-            }
+        case 2: // 两个正面
+            yao = { 
+                type: randomFactor > 0.1 ? '8' : (randomFactor > 0.05 ? '6' : '9'), 
+                line: randomFactor > 0.1 ? '010' : (randomFactor > 0.05 ? '000' : '111'),
+                changing: randomFactor <= 0.1
+            };
             break;
-        case 3:
-            yaoType = randomFactor > 0.15 ? '9' : '7';
-            changing = randomFactor > 0.15;
+        case 3: // 三个正面
+            yao = { 
+                type: randomFactor > 0.15 ? '9' : '7', // 15%几率变为少阳
+                line: randomFactor > 0.15 ? '111' : '001', 
+                changing: randomFactor > 0.15 
+            };
             break;
     }
     
-    const yao = {
-        type: yaoType,
-        line: (yaoType === '7' || yaoType === '9') ? '111' : '000',
-        changing: changing
-    };
-    
     currentHexagram.push(yao);
     castCount++;
+    
+    // 更新摇卦次数显示
     document.getElementById('cast-count').textContent = castCount;
     
-    // 重置并解锁钱币
+    // 重置钱币状态（解锁并清除状态）
     coins.forEach(coin => {
         delete coin.dataset.side;
         coin.style.transform = 'rotateY(0deg)';
-        coin.classList.remove('selected', 'locked');
+        coin.classList.remove('selected');
+        coin.classList.remove('locked'); // 解锁钱币
     });
     
+    // 更新状态显示
     document.getElementById('cast-status').textContent = `第 ${castCount} 次摇卦完成，请继续点击钱币`;
+    
+    // 更新UI
     updateHexagramDisplay();
     
+    // 如果已经摇了6次，显示结果
     if (castCount === 6) {
         showResult();
     }
 }
 
+// 使用时间起卦
+function castWithTime() {
+    const question = document.getElementById('question').value.trim();
+    if (!question) {
+        alert('请输入占卜问题');
+        return;
+    }
+    
+    currentQuestion = question;
+    
+    let dateTime = document.getElementById('time').value;
+    if (!dateTime) {
+        const now = new Date();
+        dateTime = now.toISOString().slice(0, 16);
+    }
+    
+    // 时间起卦算法
+    const date = new Date(dateTime);
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    const hour = date.getHours();
+    const minute = date.getMinutes();
+    
+    // 计算上卦和下卦的数字
+    const upperNum = (year + month + day) % 8 || 8;
+    const lowerNum = (hour + minute) % 8 || 8;
+    const changingYaoPos = (year + month + day + hour + minute) % 6 || 6;
+    
+    // 根据数字生成卦象
+    currentHexagram = generateHexagramFromNumbers(upperNum, lowerNum, changingYaoPos);
+    castCount = 6;
+    
+    // 显示时间和方法
+    document.getElementById('divination-time').textContent = date.toLocaleString();
+    document.getElementById('divination-method').textContent = "时间起卦";
+    
+    // 显示结果
+    showResult();
+}
+
+// 使用数字起卦
+function castWithNumbers() {
+    const question = document.getElementById('question').value.trim();
+    if (!question) {
+        alert('请输入占卜问题');
+        return;
+    }
+    
+    currentQuestion = question;
+    
+    const num1 = parseInt(document.getElementById('number1').value);
+    const num2 = parseInt(document.getElementById('number2').value);
+    
+    if (!num1 || !num2 || num1 < 1 || num1 > 999 || num2 < 1 || num2 > 999) {
+        alert('请输入有效的1-999之间的数字');
+        return;
+    }
+    
+    // 数字起卦算法
+    const upperNum = num1 % 8 || 8;
+    const lowerNum = num2 % 8 || 8;
+    const changingYaoPos = (num1 + num2) % 6 || 6;
+    
+    // 根据数字生成卦象
+    currentHexagram = generateHexagramFromNumbers(upperNum, lowerNum, changingYaoPos);
+    castCount = 6;
+    
+    // 显示时间和方法
+    const now = new Date();
+    document.getElementById('divination-time').textContent = now.toLocaleString();
+    document.getElementById('divination-method').textContent = "数字起卦";
+    
+    // 显示结果
+    showResult();
+}
+
+// 根据数字生成卦象
+function generateHexagramFromNumbers(upperNum, lowerNum, changingYaoPos) {
+    const hexagram = [];
+    
+    // 1. 先生成上卦（外卦，上爻→四爻）
+    for (let i = 0; i < 3; i++) {
+        hexagram.push({
+            type: upperNum % 2 === 0 ? '8' : '7',
+            line: upperNum % 2 === 0 ? '000' : '111',
+            changing: false
+        });
+    }
+    
+    // 2. 再生成下卦（内卦，三爻→初爻）
+    for (let i = 0; i < 3; i++) {
+        hexagram.push({
+            type: lowerNum % 2 === 0 ? '8' : '7',
+            line: lowerNum % 2 === 0 ? '000' : '111',
+            changing: false
+        });
+    }
+    
+    // 3. 处理变爻（position从1=初爻开始计数）
+    if (changingYaoPos >= 1 && changingYaoPos <= 6) {
+        const index = 6 - changingYaoPos; // 初爻=数组[5]，上爻=数组[0]
+        hexagram[index].changing = true;
+        hexagram[index].type = hexagram[index].type === '7' ? '9' : '6';
+        hexagram[index].line = hexagram[index].line === '111' ? '000' : '111';
+    }
+    
+    return hexagram;
+}
+
+// 更新卦象显示
 function updateHexagramDisplay() {
     const hexagramDisplay = document.getElementById('hexagram-display');
     hexagramDisplay.innerHTML = '';
-    
-    for (let i = 5; i >= 0; i--) {
-        if (i < currentHexagram.length) {
-            const yao = currentHexagram[i];
-            const lineDiv = document.createElement('div');
-            lineDiv.className = 'hexagram-line';
-            
-            if (yao.line === '111') {
-                lineDiv.classList.add('solid-line');
-            } else {
-                lineDiv.classList.add('broken-line');
-                lineDiv.innerHTML = `
-                    <div class="broken-line-part"></div>
-                    <div class="broken-line-part"></div>
-                `;
-            }
-            
-            if (yao.changing) {
-                lineDiv.classList.add('yao-change');
-            }
-            
-            const numberSpan = document.createElement('span');
-            numberSpan.className = 'line-number';
-            const positionNames = ['初爻', '二爻', '三爻', '四爻', '五爻', '上爻'];
-            numberSpan.textContent = positionNames[5 - i];
-            lineDiv.appendChild(numberSpan);
-            hexagramDisplay.appendChild(lineDiv);
+
+    // 从逻辑上爻（数组最后一项）开始渲染到初爻（数组第一项）
+    for (let i = currentHexagram.length - 1; i >= 0; i--) {
+        const yao = currentHexagram[i];
+        const lineDiv = document.createElement('div');
+        lineDiv.className = 'hexagram-line';
+
+        // 爻线绘制（保持不变）
+        if (yao.line === '111') {
+            lineDiv.classList.add('solid-line');
+        } else {
+            lineDiv.classList.add('broken-line');
+            lineDiv.innerHTML = `
+                <div class="broken-line-part"></div>
+                <div class="broken-line-part"></div>
+            `;
         }
+
+        // 变爻高亮
+        if (yao.changing) {
+            lineDiv.classList.add('yao-change');
+        }
+
+        // 关键修改：爻位数字标签反向（6=上爻在最上方，1=初爻在最下方）
+        const numberSpan = document.createElement('span');
+        numberSpan.className = 'line-number';
+        numberSpan.textContent = 6 - i;  // 数组最后一项（i=5）显示6（上爻）
+        lineDiv.appendChild(numberSpan);
+
+        // 保持DOM插入顺序（先插入的在上方）
+        hexagramDisplay.appendChild(lineDiv);
     }
 }
 
+// 显示占卜结果
 function showResult() {
-    document.getElementById('hexagram-section').style.display = 'block';
-    
+    // 生成卦象编码
     let hexagramCode = '';
     currentHexagram.forEach(yao => {
-        hexagramCode += (yao.type === '7' || yaoType === '9') ? '1' : '0';
+        hexagramCode += yao.line === '111' ? '1' : '0';
     });
-    
-    const guaInfo = guaData[hexagramCode] || { name: "未知卦", interpretation: "暂无解释" };
+
+    // 获取卦象信息
+    const guaInfo = guaData[hexagramCode] || { 
+        name: "未知卦", 
+        interpretation: "此卦象暂无详细解释。" 
+    };
+
+    // 显示问题
+    document.getElementById('question-display').textContent = currentQuestion;
+
+    // 显示卦名（大标题保留）
     document.getElementById('gua-name').textContent = guaInfo.name;
-    document.getElementById('gua-image-container').innerHTML = generateHexagramSvg(hexagramCode);
-    
+
+    // 清空原有卦象图容器（移除空白图片）
+    document.getElementById('gua-image-container').innerHTML = '';
+
+    // 显示整合后的卦象解析（包含动态生成的卦象图）
     document.getElementById('gua-interpretation').innerHTML = `
-        <p>${guaInfo.interpretation}</p>
-        <div class="gua-structure">
-            <i class="fas fa-project-diagram"></i> ${getGuaStructure(hexagramCode)}
+        <div class="gua-result-container">
+            <div class="gua-visual-box">
+                ${generateHexagramSvg(hexagramCode)}
+                <div class="gua-meta-box">
+                    <div class="gua-name-tag">${guaInfo.name}</div>
+                    <div class="hexagram-code">卦象编码：${hexagramCode}</div>
+                </div>
+            </div>
+            <div class="gua-text-content">
+                <h4><i class="fas fa-info-circle"></i> 卦象释义</h4>
+                <div class="interpretation-text">${guaInfo.interpretation}</div>
+                
+                <div class="gua-structure">
+                    <i class="fas fa-project-diagram"></i>
+                    <span>卦象结构：${getGuaStructure(hexagramCode)}</span>
+                </div>
+            </div>
         </div>
     `;
-    
-    document.getElementById('question-display').textContent = currentQuestion;
-    
-    const changingYao = [];
+
+    // 显示变爻分析
+    let changingYao = [];
     currentHexagram.forEach((yao, index) => {
         if (yao.changing) {
             changingYao.push(index + 1);
         }
     });
-    
-    let yaoAnalysisHtml = '';
+
+    let yaoAnalysis = '';
     if (changingYao.length > 0) {
-        yaoAnalysisHtml += `
-            <div class="changing-yao-header">
-                <i class="fas fa-exchange-alt"></i>
-                <h4>本次占卜有 ${changingYao.length} 个变爻：第 ${changingYao.join('、')} 爻</h4>
-            </div>
-            <p>${getYaoChangeInterpretation(changingYao.length)}</p>
-        `;
+        yaoAnalysis = `<div class="changing-yao-header">
+            <i class="fas fa-exchange-alt"></i> 
+            <h4>变爻分析（第 ${changingYao.join('、')} 爻）</h4>
+        </div>`;
         
         changingYao.forEach(pos => {
-            const index = pos - 1;
-            const yao = currentHexagram[index];
-            yaoAnalysisHtml += `
+            const yaoText = yaoData[hexagramCode] ? yaoData[hexagramCode][pos - 1] : "暂无爻辞";
+            yaoAnalysis += `
                 <div class="yao-item">
-                    <div class="yao-position">第${pos}爻</div>
-                    <div class="yao-content">
-                        <p>${yaoChangeData[yao.type] || '未知变化'}</p>
-                        ${yaoData[hexagramCode] && yaoData[hexagramCode][index] ? 
-                         `<p class="yao-text">${yaoData[hexagramCode][index]}</p>` : ''}
-                    </div>
+                    <div class="yao-position">${getYaoPositionName(pos)}</div>
+                    <div class="yao-content">${yaoText}</div>
                 </div>
             `;
         });
         
-        yaoAnalysisHtml += `
-            <div class="yao-change-meaning">
-                <i class="fas fa-info-circle"></i>
-                <p>变爻表示事物发展中的动态变化，需要特别关注这些爻位的含义。</p>
-            </div>
-        `;
+        yaoAnalysis += `<div class="yao-change-meaning">
+            <i class="fas fa-info-circle"></i> 
+            ${changingYao.length === 1 ? '此变爻表示' : '这些变爻共同表示'} 
+            ${getYaoChangeInterpretation(changingYao.length, hexagramCode)}
+        </div>`;
     } else {
-        yaoAnalysisHtml = `
-            <div class="no-changing-yao">
-                <i class="fas fa-info-circle"></i>
-                <p>本次占卜没有变爻，表示事情将保持现状发展。</p>
-            </div>
-        `;
+        yaoAnalysis = `<div class="no-changing-yao">
+            <i class="fas fa-info-circle"></i> 本次占卜没有变爻，表示事情将保持当前发展趋势
+        </div>`;
     }
-    
-    document.getElementById('yao-analysis').innerHTML = yaoAnalysisHtml;
+    document.getElementById('yao-analysis').innerHTML = yaoAnalysis;
+
+    // 显示卦辞详解
     document.getElementById('gua-detail-content').textContent = "正在获取卦辞详解...";
     document.getElementById('loading-indicator').style.display = 'block';
     
+    // 从DeepSeek API获取详细卦辞
     fetchGuaDetailFromAPI(currentQuestion, guaInfo.name, hexagramCode, changingYao);
     
+    // 显示结果区域
+    document.getElementById('hexagram-section').style.display = 'block';
+    
+    // 滚动到结果区域
     setTimeout(() => {
-        document.getElementById('hexagram-section').scrollIntoView({ behavior: 'smooth' });
-    }, 500);
+        document.getElementById('hexagram-section').scrollIntoView({ 
+            behavior: 'smooth' 
+        });
+    }, 300);
 }
-
-// === 辅助函数 ===
-function getSecureRandom() {
-    if (window.crypto && window.crypto.getRandomValues) {
-        const buf = new Uint32Array(1);
-        window.crypto.getRandomValues(buf);
-        return buf[0] / 4294967295;
-    }
-    return Math.random();
-}
-
+        
+// 动态生成SVG卦象图
 function generateHexagramSvg(hexagramCode) {
-    // ... (保持原有的SVG生成代码不变)
+    const svgWidth = 120;
+    const svgHeight = 180;
+    const lineHeight = 8;
+    const spacing = 20;
+    
+    let svgContent = '';
+    const yaoNames = ['初', '二', '三', '四', '五', '上']; // 修正：从下往上命名
+    
+    // 从下往上绘制（i=0=初爻，i=5=上爻）
+    for (let i = 0; i < 6; i++) {
+        const yPos = 30 + (5 - i) * spacing; // 初爻在底部（yPos最大）
+        const isYang = hexagramCode[i] === '1'; // hexagramCode[0]对应初爻
+        
+        // 绘制爻线
+        if (isYang) {
+            svgContent += `
+                <line x1="20" y1="${yPos}" x2="100" y2="${yPos}" 
+                      stroke="#d4a017" stroke-width="${lineHeight}" 
+                      stroke-linecap="round" class="yang-line"/>
+            `;
+        } else {
+            svgContent += `
+                <line x1="20" y1="${yPos}" x2="50" y2="${yPos}" 
+                      stroke="#8e44ad" stroke-width="${lineHeight}" 
+                      stroke-linecap="round" class="yin-line"/>
+                <line x1="70" y1="${yPos}" x2="100" y2="${yPos}" 
+                      stroke="#8e44ad" stroke-width="${lineHeight}" 
+                      stroke-linecap="round" class="yin-line"/>
+            `;
+        }
+        
+        // 爻位标注（初爻在下，上爻在上）
+        svgContent += `
+            <text x="105" y="${yPos + 5}" class="yao-position">${yaoNames[i]}</text>
+        `;
+    }
+    
+    return `
+        <svg width="${svgWidth}" height="${svgHeight}" viewBox="0 0 120 180" 
+             xmlns="http://www.w3.org/2000/svg" class="hexagram-svg">
+            <rect width="100%" height="100%" rx="8" fill="#f9f9f9"/>
+            ${svgContent}
+        </svg>
+    `;
 }
 
+// 需要同步修改的辅助函数（确保卦象编码顺序正确）
 function getGuaStructure(hexagramCode) {
-    const upper = hexagramCode.substring(0, 3);
-    const lower = hexagramCode.substring(3);
+    // 上卦改为前3爻，下卦改为后3爻
+    const upper = hexagramCode.slice(0, 3);
+    const lower = hexagramCode.slice(3);
     return `上卦：${upper.replace(/0/g,'阴').replace(/1/g,'阳')}，下卦：${lower.replace(/0/g,'阴').replace(/1/g,'阳')}`;
 }
 
-function getYaoChangeInterpretation(count) {
+// 需要更新的爻位判断函数
+function getYaoPositionName(position) {
+    // 位置顺序改为从上往下（1=上爻，6=初爻）
+    const names = ['上爻', '五爻', '四爻', '三爻', '二爻', '初爻'];
+    return names[position - 1] || `${position}爻`;
+}
+
+// 辅助函数：获取变爻解释
+function getYaoChangeInterpretation(count, hexagramCode) {
     const interpretations = {
         1: "事物发展将出现关键转折点",
         2: "阴阳力量正在转换平衡",
@@ -2382,13 +2248,14 @@ function getYaoChangeInterpretation(count) {
     };
     return interpretations[count] || "卦象正在发生动态变化";
 }
-
-async function fetchGuaDetailFromAPI(question, guaName, hexagramCode, changingYao) {
-    try {
-        const prompt = `用户占卜问题："${question}"
         
+        // 从DeepSeek API获取卦辞详解
+        async function fetchGuaDetailFromAPI(question, guaName, hexagramCode, changingYao) {
+            try {
+                const prompt = `用户占卜问题："${question}"
+                
 请详细解释《易经》中的${guaName}卦（卦象编码：${hexagramCode}），并结合用户的问题给出针对性解答，请按照以下结构用中文回答：
-        
+                
 1. 卦象概述：
    用一段话简要说明此卦的核心含义，以及与用户问题的关联
 
@@ -2408,225 +2275,222 @@ async function fetchGuaDetailFromAPI(question, guaName, hexagramCode, changingYa
    提醒占卜者需要注意的关键点
 
 请使用纯文本格式回答，不要使用Markdown符号（如#，*，-等）。内容要详细专业，适合命理学习者，使用清晰的分段。`;
-        
-        const response = await fetch(apiUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`
-            },
-            body: JSON.stringify({
-                model: "deepseek-chat",
-                messages: [
-                    {
-                        role: "user",
-                        content: prompt
-                    }
-                ],
-                temperature: 0.7
-            })
-        });
-        
-        if (!response.ok) {
-            throw new Error(`API请求失败: ${response.status}`);
+                
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: "deepseek-chat",
+                        messages: [
+                            {
+                                role: "user",
+                                content: prompt
+                            }
+                        ],
+                        temperature: 0.7
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`API请求失败: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                const rawContent = data.choices[0].message.content;
+                
+                // 格式化卦辞详解
+                const formattedContent = formatGuaDetail(rawContent);
+                document.getElementById('gua-detail-content').innerHTML = formattedContent;
+                document.getElementById('loading-indicator').style.display = 'none';
+            } catch (error) {
+                console.error('获取卦辞详解失败:', error);
+                document.getElementById('gua-detail-content').innerHTML = 
+                    `<div class="detail-highlight"><i class="fas fa-exclamation-triangle"></i> 获取卦辞详解失败: ${error.message}</div>
+                     <p class="detail-para">${guaData[hexagramCode]?.interpretation || '暂无解释'}</p>`;
+                document.getElementById('loading-indicator').style.display = 'none';
+            }
         }
         
-        const data = await response.json();
-        const formattedContent = formatGuaDetail(data.choices[0].message.content);
-        document.getElementById('gua-detail-content').innerHTML = formattedContent;
-    } catch (error) {
-        console.error('获取卦辞详解失败:', error);
-        document.getElementById('gua-detail-content').innerHTML = 
-            `<div class="detail-highlight"><i class="fas fa-exclamation-triangle"></i> 获取卦辞详解失败: ${error.message}</div>
-             <p class="detail-para">${guaData[hexagramCode]?.interpretation || '暂无解释'}</p>`;
-    } finally {
-        document.getElementById('loading-indicator').style.display = 'none';
-    }
-}
-
-function formatGuaDetail(text) {
-    let paragraphs = text.split('\n').filter(p => p.trim() !== '');
-    if (paragraphs.length <= 1) {
-        paragraphs = text.split(/[。！？]/).filter(p => p.trim() !== '');
-    }
-    
-    let html = '';
-    paragraphs.forEach(para => {
-        para = para.trim();
-        if (!para) return;
-        
-        if (/^\d+[、.]/.test(para) || /[:：]$/.test(para)) {
-            html += `<h4 class="detail-title">${para}</h4>`;
-        } else if (para.includes('建议') || para.includes('注意') || para.includes('关键')) {
-            html += `<div class="detail-highlight"><i class="fas fa-lightbulb"></i> ${para}</div>`;
-        } else if (para.startsWith('-') || para.startsWith('•')) {
-            if (!html.includes('<ul>')) html += '<ul>';
-            html += `<li>${para.substring(1).trim()}</li>`;
-        } else {
+        // 卦辞格式化函数
+        function formatGuaDetail(text) {
+            // 分割段落
+            let paragraphs = text.split('\n').filter(p => p.trim() !== '');
+            
+            // 如果没有明显分段，尝试按句号分
+            if (paragraphs.length <= 1) {
+                paragraphs = text.split(/[。！？]/).filter(p => p.trim() !== '');
+            }
+            
+            // 识别标题和关键部分
+            let html = '';
+            paragraphs.forEach(para => {
+                para = para.trim();
+                if (!para) return;
+                
+                // 识别标题（包含数字或冒号的部分）
+                if (/^\d+[、.]/.test(para) || /[:：]$/.test(para)) {
+                    html += `<h4 class="detail-title">${para}</h4>`;
+                } 
+                // 识别重点内容
+                else if (para.includes('建议') || para.includes('注意') || para.includes('关键')) {
+                    html += `<div class="detail-highlight"><i class="fas fa-lightbulb"></i> ${para}</div>`;
+                }
+                // 识别列表项
+                else if (para.startsWith('-') || para.startsWith('•')) {
+                    if (!html.includes('<ul>')) html += '<ul>';
+                    html += `<li>${para.substring(1).trim()}</li>`;
+                }
+                // 普通段落
+                else {
+                    // 如果上一项是ul，先闭合
+                    if (html.includes('<ul>') && !html.includes('</ul>')) {
+                        html += '</ul>';
+                    }
+                    html += `<p class="detail-para">${para}</p>`;
+                }
+            });
+            
+            // 确保ul标签闭合
             if (html.includes('<ul>') && !html.includes('</ul>')) {
                 html += '</ul>';
             }
-            html += `<p class="detail-para">${para}</p>`;
+            
+            return html;
         }
-    });
-    
-    if (html.includes('<ul>') && !html.includes('</ul>')) {
-        html += '</ul>';
-    }
-    
-    return html;
-}
-
-// === 历史记录功能 ===
-function saveHexagram() {
-    if (currentHexagram.length === 0) return;
-    
-    let hexagramCode = '';
-    currentHexagram.forEach(yao => {
-        hexagramCode += (yao.type === '7' || yao.type === '9') ? '1' : '0';
-    });
-    
-    const guaInfo = guaData[hexagramCode] || { name: "未知卦" };
-    
-    const record = {
-        question: currentQuestion,
-        hexagram: hexagramCode,
-        name: guaInfo.name,
-        time: new Date().toLocaleString(),
-        method: currentMethod
-    };
-    
-    history.unshift(record);
-    localStorage.setItem('divinationHistory', JSON.stringify(history));
-    renderHistory();
-    document.getElementById('history-section').style.display = 'block';
-    showToast('卦象已保存到历史记录', 'success');
-}
-
-function renderHistory() {
-    const historyList = document.getElementById('history-list');
-    historyList.innerHTML = '';
-    
-    if (history.length === 0) {
-        historyList.innerHTML = '<p>暂无历史记录</p>';
-        return;
-    }
-    
-    history.forEach((record, index) => {
-        const item = document.createElement('div');
-        item.className = 'history-item';
-        item.innerHTML = `
-            <span class="history-gua">${record.name} (${record.method})</span>
-            <span class="history-date">${record.time}</span>
-        `;
         
-        item.addEventListener('click', () => loadHistoryRecord(index));
-        historyList.appendChild(item);
-    });
-}
-
-function loadHistoryRecord(index) {
-    if (index < 0 || index >= history.length) return;
-    
-    const record = history[index];
-    currentQuestion = record.question;
-    currentMethod = record.method;
-    
-    currentHexagram = [];
-    for (let i = 0; i < record.hexagram.length; i++) {
-        const char = record.hexagram[i];
-        currentHexagram.push({
-            type: char === '1' ? '7' : '8',
-            line: char === '1' ? '111' : '000',
-            changing: false
-        });
-    }
-    
-    castCount = 6;
-    document.getElementById('divination-method').textContent = record.method + "起卦";
-    updateHexagramDisplay();
-    showResult();
-    document.getElementById('hexagram-section').scrollIntoView({ behavior: 'smooth' });
-}
-
-function clearHistory() {
-    if (confirm('确定要清除所有历史记录吗？')) {
-        history = [];
-        localStorage.removeItem('divinationHistory');
-        document.getElementById('history-section').style.display = 'none';
-        showToast('历史记录已清除', 'info');
-    }
-}
-
-// === 重置功能 ===
-function resetAllStates() {
-    currentHexagram = [];
-    castCount = 0;
-    document.getElementById('hexagram-display').innerHTML = '';
-    document.getElementById('hexagram-section').style.display = 'none';
-    document.getElementById('cast-count').textContent = '0';
-    document.getElementById('cast-status').textContent = '准备开始，请点击钱币确定正反面';
-    
-    const coins = document.querySelectorAll('.coin');
-    coins.forEach(coin => {
-        delete coin.dataset.side;
-        coin.style.transform = 'rotateY(0deg)';
-        coin.classList.remove('selected', 'locked');
-    });
-    
-    document.getElementById('question').value = '';
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-function resetDivination() {
-    resetAllStates();
-}
-
-// === UI辅助函数 ===
-function showToast(message, type = 'info') {
-    const toast = document.createElement('div');
-    toast.style.cssText = `
-        position: fixed;
-        bottom: 20px;
-        left: 50%;
-        transform: translateX(-50%);
-        padding: 12px 24px;
-        background-color: ${type === 'error' ? '#f44336' : type === 'success' ? '#4CAF50' : '#2196F3'};
-        color: white;
-        border-radius: 4px;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        z-index: 10000;
-        animation: fadeIn 0.3s;
-    `;
-    toast.innerHTML = `<i class="fas ${type === 'error' ? 'fa-exclamation-circle' : type === 'success' ? 'fa-check-circle' : 'fa-info-circle'}"></i> ${message}`;
-    document.body.appendChild(toast);
-    
-    setTimeout(() => {
-        toast.style.animation = 'fadeOut 0.3s';
-        setTimeout(() => {
-            document.body.removeChild(toast);
-        }, 300);
-    }, 3000);
-}
-
-function showFullscreenLoading() {
-    const loading = document.createElement('div');
-    loading.id = 'fullscreen-loading';
-    loading.style.cssText = `
-        position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-        background: rgba(0,0,0,0.5); display: flex; justify-content: center; 
-        align-items: center; z-index: 9999; color: white; font-size: 1.5rem;
-    `;
-    loading.innerHTML = '<div><i class="fas fa-spinner fa-spin"></i> 正在处理支付请求...</div>';
-    document.body.appendChild(loading);
-}
-
-function hideFullscreenLoading() {
-    const loading = document.getElementById('fullscreen-loading');
-    if (loading) {
-        document.body.removeChild(loading);
-    }
-}
+        // 保存卦象到历史记录
+        function saveHexagram() {
+            if (currentHexagram.length === 0) return;
+            
+            // 生成卦象编码
+            let hexagramCode = '';
+            currentHexagram.forEach(yao => {
+                hexagramCode += yao.line === '111' ? '1' : '0';
+            });
+            
+            const guaInfo = guaData[hexagramCode] || { name: "未知卦" };
+            
+            // 创建历史记录
+            const record = {
+                question: currentQuestion,
+                hexagram: hexagramCode,
+                name: guaInfo.name,
+                time: new Date().toLocaleString(),
+                method: currentMethod
+            };
+            
+            // 添加到历史记录
+            history.unshift(record);
+            
+            // 保存到本地存储
+            localStorage.setItem('divinationHistory', JSON.stringify(history));
+            
+            // 更新历史显示
+            renderHistory();
+            
+            // 显示历史部分
+            document.getElementById('history-section').style.display = 'block';
+            
+            alert('卦象已保存到历史记录');
+        }
+        
+        // 渲染历史记录
+        function renderHistory() {
+            const historyList = document.getElementById('history-list');
+            historyList.innerHTML = '';
+            
+            if (history.length === 0) {
+                historyList.innerHTML = '<p>暂无历史记录</p>';
+                return;
+            }
+            
+            history.forEach((record, index) => {
+                const item = document.createElement('div');
+                item.className = 'history-item';
+                item.innerHTML = `
+                    <span class="history-gua">${record.name} (${record.method})</span>
+                    <span class="history-date">${record.time}</span>
+                `;
+                
+                item.addEventListener('click', function() {
+                    loadHistoryRecord(index);
+                });
+                
+                historyList.appendChild(item);
+            });
+        }
+        
+        // 加载历史记录
+        function loadHistoryRecord(index) {
+            if (index < 0 || index >= history.length) return;
+            
+            const record = history[index];
+            currentQuestion = record.question;
+            currentMethod = record.method;
+            
+            // 根据卦象编码重建卦象
+            currentHexagram = [];
+            for (let i = 0; i < record.hexagram.length; i++) {
+                const char = record.hexagram[i];
+                currentHexagram.push({
+                    type: char === '1' ? '7' : '8',
+                    line: char === '1' ? '111' : '000',
+                    changing: false
+                });
+            }
+            
+            castCount = 6;
+            
+            // 显示方法
+            document.getElementById('divination-method').textContent = record.method + "起卦";
+            
+            // 显示结果
+            updateHexagramDisplay();
+            showResult();
+            
+            // 滚动到结果区域
+            document.getElementById('hexagram-section').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        // 清除历史记录
+        function clearHistory() {
+            if (confirm('确定要清除所有历史记录吗？')) {
+                history = [];
+                localStorage.removeItem('divinationHistory');
+                document.getElementById('history-section').style.display = 'none';
+            }
+        }
+        
+        // 重置占卜
+        function resetDivination() {
+            currentHexagram = [];
+            castCount = 0;
+            document.getElementById('hexagram-display').innerHTML = '';
+            document.getElementById('hexagram-section').style.display = 'none';
+            document.getElementById('cast-count').textContent = '0';
+            document.getElementById('cast-status').textContent = '准备开始，请点击钱币确定正反面';
+            
+            // 重置钱币
+            const coins = document.querySelectorAll('.coin');
+            coins.forEach(coin => {
+                delete coin.dataset.side;
+                coin.style.transform = 'rotateY(0deg)';
+                coin.classList.remove('selected', 'locked');
+            });
+            
+            // 重置问题输入框
+            document.getElementById('question').value = '';
+            
+            // 锁定输入框
+            isPaid = false;
+            updatePaymentStatus();
+            
+            // 滚动到顶部
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
     </script>
 </body>
 </html>
