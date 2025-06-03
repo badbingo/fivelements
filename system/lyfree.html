@@ -826,7 +826,7 @@
 
         <div class="content-section">
             <div class="instruction-card">
-                <h4><i class="fas fa-info-circle"></i> 六爻占卜简介</h4>
+                <h4><i class="fas fa-info-circle"></i> 六爻占卜简介2</h4>
                 <p>六爻占卜是中国古代《易经》预测方法之一，通过六次投掷钱币或其它方式得到一个六爻卦象，根据卦象变化解读事物发展趋势。本系统提供三种起卦方式：</p>
                 <ol>
                     <li><strong>钱币摇卦</strong> - 传统三枚钱币方法，最正统的起卦方式</li>
@@ -1817,6 +1817,109 @@ function getYaoChangeInterpretation(count, hexagramCode) {
     return interpretations[count] || "卦象正在发生动态变化";
 }
         
+        // 显示结果 - 需要添加到代码中
+function showResult() {
+    // 显示结果区域
+    document.getElementById('hexagram-section').style.display = 'block';
+    
+    // 更新卦象显示
+    updateHexagramDisplay();
+    
+    // 生成卦象编码
+    let hexagramCode = '';
+    currentHexagram.forEach(yao => {
+        hexagramCode += yao.line === '111' ? '1' : '0';
+    });
+    
+    // 获取卦象数据
+    const guaInfo = guaData[hexagramCode] || { 
+        name: "未知卦", 
+        image: "default.png", 
+        interpretation: "暂无解释" 
+    };
+    
+    // 显示卦名
+    document.getElementById('gua-name').textContent = guaInfo.name;
+    
+    // 显示卦象图片
+    document.getElementById('gua-image').src = `../images/hexagrams/${guaInfo.image}`;
+    
+    // 显示卦象解释
+    document.getElementById('gua-interpretation').innerHTML = `
+        <p>${guaInfo.interpretation}</p>
+        <div class="gua-structure">
+            <i class="fas fa-project-diagram"></i> ${getGuaStructure(hexagramCode)}
+        </div>
+    `;
+    
+    // 显示问题
+    document.getElementById('question-display').textContent = currentQuestion;
+    
+    // 处理变爻分析
+    const changingYao = [];
+    currentHexagram.forEach((yao, index) => {
+        if (yao.changing) {
+            changingYao.push(6 - index); // 转换为爻位（1=初爻，6=上爻）
+        }
+    });
+    
+    let yaoAnalysisHtml = '';
+    if (changingYao.length > 0) {
+        yaoAnalysisHtml += `
+            <div class="changing-yao-header">
+                <i class="fas fa-exchange-alt"></i>
+                <h4>本次占卜有 ${changingYao.length} 个变爻：第 ${changingYao.join('、')} 爻</h4>
+            </div>
+            <p>${getYaoChangeInterpretation(changingYao.length, hexagramCode)}</p>
+        `;
+        
+        changingYao.forEach(pos => {
+            const index = 6 - pos; // 转换为数组索引
+            const yao = currentHexagram[index];
+            yaoAnalysisHtml += `
+                <div class="yao-item">
+                    <div class="yao-position">${getYaoPositionName(pos)}</div>
+                    <div class="yao-content">
+                        <p>${yaoChangeData[yao.type] || '未知变化'}</p>
+                        ${yaoData[hexagramCode] && yaoData[hexagramCode][index] ? 
+                         `<p class="yao-text">${yaoData[hexagramCode][index]}</p>` : ''}
+                    </div>
+                </div>
+            `;
+        });
+        
+        yaoAnalysisHtml += `
+            <div class="yao-change-meaning">
+                <i class="fas fa-info-circle"></i>
+                <p>变爻表示事物发展中的动态变化，需要特别关注这些爻位的含义。</p>
+            </div>
+        `;
+    } else {
+        yaoAnalysisHtml = `
+            <div class="no-changing-yao">
+                <i class="fas fa-info-circle"></i>
+                <p>本次占卜没有变爻，表示事情将保持现状发展。</p>
+            </div>
+        `;
+    }
+    
+    document.getElementById('yao-analysis').innerHTML = yaoAnalysisHtml;
+    
+    // 显示加载指示器并获取卦辞详解
+    document.getElementById('gua-detail-content').textContent = "正在获取卦辞详解...";
+    document.getElementById('loading-indicator').style.display = 'block';
+    
+    // 从API获取卦辞详解
+    fetchGuaDetailFromAPI(currentQuestion, guaInfo.name, hexagramCode, changingYao);
+    
+    // 滚动到结果区域
+    setTimeout(() => {
+        document.getElementById('hexagram-section').scrollIntoView({ 
+            behavior: 'smooth' 
+        });
+    }, 500);
+}
+
         // 从DeepSeek API获取卦辞详解
         async function fetchGuaDetailFromAPI(question, guaName, hexagramCode, changingYao) {
             try {
