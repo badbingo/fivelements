@@ -910,7 +910,7 @@
 
         <div class="content-section">
             <div class="instruction-card">
-                <h4><i class="fas fa-info-circle"></i> 六爻占卜简介</h4>
+                <h4><i class="fas fa-info-circle"></i> 六爻占卜简介1</h4>
                 <p>六爻占卜是中国古代《易经》中的重要预测方法，通过六次投掷钱币或其他方式，生成一个完整的六爻卦象。根据卦象的本卦、变卦与动爻变化，可推演事物的发展趋势与吉凶。本系统提供三种起卦方式，助您洞察未来，择吉避凶。：</p>
                 <ol>
                     <li><strong>钱币摇卦</strong> - 传统三枚铜钱六次投掷，是最经典、最具仪式感的起卦方式。</li>
@@ -2062,6 +2062,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const coins = document.querySelectorAll('.coin');
     coins.forEach(coin => {
         coin.addEventListener('click', function() {
+            if (!isPaid) {
+                showToast('请先支付1元解锁占卜功能', 'error');
+                return;
+            }
+            
             // 只有当钱币未被锁定且当前轮次未完成时才允许点击
             if (!this.classList.contains('locked') && castCount < 6) {
                 flipCoin(this);
@@ -2095,7 +2100,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // 时间起卦按钮
+    // 时间起卦按钮 - 修复后的版本
     document.getElementById('time-cast-btn').addEventListener('click', function() {
         if (!isPaid) {
             showToast('请先支付1元解锁占卜功能', 'error');
@@ -2107,7 +2112,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // 数字起卦按钮
+    // 数字起卦按钮 - 修复后的版本
     document.getElementById('number-cast-btn').addEventListener('click', function() {
         if (!isPaid) {
             showToast('请先支付1元解锁占卜功能', 'error');
@@ -2123,16 +2128,12 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('reset-btn').addEventListener('click', function() {
         // 重置所有状态
         resetAllStates();
-        // 强制刷新页面
-        location.reload();
     });
     
     // 新占卜按钮
     document.getElementById('new-divination').addEventListener('click', function() {
         // 重置所有状态
         resetAllStates();
-        // 强制刷新页面
-        location.reload();
     });
     
     // 保存卦象按钮
@@ -2172,10 +2173,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // 添加重置所有状态的函数
 function resetAllStates() {
-    // 重置支付状态
-    isPaid = false;
-    localStorage.removeItem('liuyao_paid');
-    
     // 重置占卜状态
     currentHexagram = [];
     castCount = 0;
@@ -2440,7 +2437,7 @@ function castWithCoins() {
     }
 }
 
-// 时间起卦
+// 时间起卦 - 修复后的版本
 function castWithTime() {
     const question = document.getElementById('question').value.trim();
     if (!question) {
@@ -2471,20 +2468,19 @@ function castWithTime() {
     const minute = time.getMinutes();
     
     // 上卦数 = (年 + 月 + 日) ÷ 8 的余数
-    const upperNum = (year + month + day) % 8;
+    const upperNum = (year + month + day) % 8 || 8;
     // 下卦数 = (时 + 分) ÷ 8 的余数
-    const lowerNum = (hour + minute) % 8;
+    const lowerNum = (hour + minute) % 8 || 8;
     // 动爻 = (年 + 月 + 日 + 时 + 分) ÷ 6 的余数
-    const changingYao = (year + month + day + hour + minute) % 6;
+    const changingYao = (year + month + day + hour + minute) % 6 || 6;
     
     // 生成卦象
     currentHexagram = [];
     for (let i = 0; i < 6; i++) {
-        const isChanging = i === changingYao;
-        // 随机生成爻的类型
-        const randomNum = getSecureRandom();
-        let yaoType;
+        const isChanging = (i === (changingYao - 1)); // 动爻从0开始计算
         
+        // 确定爻的类型 (1-8对应不同的卦)
+        let yaoType;
         if (i < 3) { // 上卦
             yaoType = (upperNum >> (2 - i)) & 1 ? '7' : '8';
         } else { // 下卦
@@ -2511,7 +2507,7 @@ function castWithTime() {
     showResult();
 }
 
-// 数字起卦
+// 数字起卦 - 修复后的版本
 function castWithNumbers() {
     const question = document.getElementById('question').value.trim();
     if (!question) {
@@ -2525,13 +2521,13 @@ function castWithNumbers() {
     const number1 = parseInt(document.getElementById('number1').value);
     const number2 = parseInt(document.getElementById('number2').value);
     
-    if (isNaN(number1)) {
-        alert('请输入第一组数字');
+    if (isNaN(number1) || number1 < 1 || number1 > 999) {
+        alert('请输入有效的第一组数字(1-999)');
         return;
     }
     
-    if (isNaN(number2)) {
-        alert('请输入第二组数字');
+    if (isNaN(number2) || number2 < 1 || number2 > 999) {
+        alert('请输入有效的第二组数字(1-999)');
         return;
     }
     
@@ -2542,20 +2538,19 @@ function castWithNumbers() {
     
     // 计算卦象
     // 上卦数 = 第一组数字 ÷ 8 的余数
-    const upperNum = number1 % 8;
+    const upperNum = number1 % 8 || 8;
     // 下卦数 = 第二组数字 ÷ 8 的余数
-    const lowerNum = number2 % 8;
+    const lowerNum = number2 % 8 || 8;
     // 动爻 = (第一组数字 + 第二组数字) ÷ 6 的余数
-    const changingYao = (number1 + number2) % 6;
+    const changingYao = (number1 + number2) % 6 || 6;
     
     // 生成卦象
     currentHexagram = [];
     for (let i = 0; i < 6; i++) {
-        const isChanging = i === changingYao;
-        // 随机生成爻的类型
-        const randomNum = getSecureRandom();
-        let yaoType;
+        const isChanging = (i === (changingYao - 1)); // 动爻从0开始计算
         
+        // 确定爻的类型 (1-8对应不同的卦)
+        let yaoType;
         if (i < 3) { // 上卦
             yaoType = (upperNum >> (2 - i)) & 1 ? '7' : '8';
         } else { // 下卦
