@@ -833,6 +833,63 @@
             font-size: 12px;
             fill: #5a3921;
         }
+
+        #true-hexagram-display {
+    display: flex;
+    flex-direction: column-reverse; /* 关键：使DOM顺序与显示顺序相反 */
+    align-items: center;
+    gap: 10px;
+    margin: 20px auto;
+    width: 150px;
+}
+
+.true-yao {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    width: 100%;
+}
+
+.yao-line {
+    height: 20px;
+    flex-grow: 1;
+    position: relative;
+}
+
+.yang {
+    background: linear-gradient(to right, #000 0%, #000 100%);
+    background-size: 100% 3px;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+.yin {
+    background: linear-gradient(to right, 
+        #000 0%, #000 40%, 
+        transparent 40%, transparent 60%,
+        #000 60%, #000 100%);
+    background-size: 100% 3px;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+.changing {
+    box-shadow: 0 0 0 2px #f00;
+}
+
+.change-marker {
+    position: absolute;
+    right: -15px;
+    color: #f00;
+    font-weight: bold;
+}
+
+.yao-position {
+    width: 40px;
+    font-size: 12px;
+    color: #666;
+}
+        
     </style>
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-2NHJXGKS0Y"></script>
@@ -855,7 +912,7 @@
 
         <div class="content-section">
             <div class="instruction-card">
-                <h4><i class="fas fa-info-circle"></i> 六爻占卜简介1</h4>
+                <h4><i class="fas fa-info-circle"></i> 六爻占卜简介</h4>
                 <p>六爻占卜是中国古代《易经》预测方法之一，通过六次投掷钱币或其它方式得到一个六爻卦象，根据卦象变化解读事物发展趋势。本系统提供三种起卦方式：</p>
                 <ol>
                     <li><strong>钱币摇卦</strong> - 传统三枚钱币方法，最正统的起卦方式</li>
@@ -1701,88 +1758,126 @@ function castWithNumbers() {
 }
 
 // 根据数字生成卦象
-function generateHexagramFromNumbers(upperNum, lowerNum, changingYaoPos) {
+function generateTrueHexagram(upperNum, lowerNum, changingPos) {
+    // 确保输入是整数
+    upperNum = parseInt(upperNum) || 0;
+    lowerNum = parseInt(lowerNum) || 0;
+    
+    // 正确的爻位顺序：从初爻到上爻
     const hexagram = [];
     
-    // 下卦（内卦）：初爻→三爻（数组索引0-2）
+    // 生成下卦（内卦）：初爻→三爻
     for (let i = 0; i < 3; i++) {
-        hexagram.push(createYao(lowerNum, false));
+        hexagram.push(createTrueYao(lowerNum, i+1));
     }
     
-    // 上卦（外卦）：四爻→上爻（数组索引3-5）
+    // 生成上卦（外卦）：四爻→上爻
     for (let i = 0; i < 3; i++) {
-        hexagram.push(createYao(upperNum, false));
+        hexagram.push(createTrueYao(upperNum, i+4));
     }
     
-    // 处理变爻（position从1=初爻开始）
-    if (changingYaoPos >= 1 && changingYaoPos <= 6) {
-        const index = changingYaoPos - 1; // 转换为数组索引
-        hexagram[index] = reverseYao(hexagram[index]);
+    // 处理变爻（1=初爻，6=上爻）
+    if (changingPos >= 1 && changingPos <= 6) {
+        const idx = changingPos - 1;
+        hexagram[idx] = transformYao(hexagram[idx]);
     }
     
     return hexagram;
 }
 
-// 辅助函数：根据数字创建爻
-function createYao(number, isChanging) {
+function createTrueYao(number, position) {
+    // 根据数字奇偶确定阴阳（奇数为阳，偶数为阴）
     const isYang = number % 2 !== 0;
+    
+    // 根据爻位确定爻的类型（7=少阳，8=少阴，9=老阳，6=老阴）
+    let type;
+    if (position === 3 || position === 6) { // 三爻和上爻特殊处理
+        type = isYang ? '9' : '6'; // 三爻和上爻默认就是变爻
+    } else {
+        type = isYang ? '7' : '8';
+    }
+    
     return {
-        type: isYang ? '7' : '8',
+        type: type,
         line: isYang ? '111' : '000',
-        changing: isChanging
+        changing: (type === '9' || type === '6'),
+        position: position // 明确记录爻位
     };
 }
 
-// 辅助函数：反转爻属性（阳变阴/阴变阳）
-function reverseYao(yao) {
+function transformYao(yao) {
+    // 阳变阴，阴变阳
+    const newType = yao.type === '7' ? '9' : 
+                   yao.type === '8' ? '6' :
+                   yao.type === '9' ? '7' : '8';
+    
     return {
-        type: yao.type === '7' ? '9' : '6',
+        type: newType,
         line: yao.line === '111' ? '000' : '111',
-        changing: true
+        changing: !yao.changing,
+        position: yao.position
     };
 }
 
 // 更新卦象显示
-function updateHexagramDisplay() {
-    const container = document.getElementById('hexagram-display');
+function displayTrueHexagram(hexagram) {
+    const container = document.getElementById('true-hexagram-display');
     container.innerHTML = '';
     
-    if (!currentHexagram || currentHexagram.length !== 6) {
-        container.innerHTML = '<div class="error">卦象数据异常</div>';
+    if (!hexagram || hexagram.length !== 6) {
+        container.innerHTML = '<div class="error">卦象数据错误</div>';
         return;
     }
 
-    // 创建从下往上的卦象（初爻先添加，上爻最后添加）
+    // 创建从下往上的卦象显示
     const fragment = document.createDocumentFragment();
     
-    // 正序处理（i=0=初爻 → i=5=上爻）
+    // 注意：这里需要从初爻(数组[0])到上爻(数组[5])依次添加
     for (let i = 0; i < 6; i++) {
-        const yao = currentHexagram[i];
-        const lineDiv = createYaoElement(yao, i + 1);
-        fragment.appendChild(lineDiv);
+        const yao = hexagram[i];
+        const yaoElement = createTrueYaoElement(yao);
+        fragment.appendChild(yaoElement);
     }
     
-    // 用flex反向显示确保初爻在下
+    // 关键：用CSS确保显示顺序正确
     container.style.display = 'flex';
     container.style.flexDirection = 'column-reverse';
     container.appendChild(fragment);
 }
 
-// 辅助函数：创建单个爻的DOM元素
-function createYaoElement(yao, position) {
-    const lineDiv = document.createElement('div');
-    lineDiv.className = `hexagram-line ${yao.line === '111' ? 'solid' : 'broken'}`;
+function createTrueYaoElement(yao) {
+    const div = document.createElement('div');
+    div.className = 'true-yao';
     
+    // 爻线
+    const line = document.createElement('div');
+    line.className = `yao-line ${yao.line === '111' ? 'yang' : 'yin'}`;
+    
+    // 如果是变爻，添加特殊标记
     if (yao.changing) {
-        lineDiv.classList.add('changing');
+        line.classList.add('changing');
+        const marker = document.createElement('div');
+        marker.className = 'change-marker';
+        marker.textContent = yao.type === '9' ? '○' : '×';
+        line.appendChild(marker);
     }
     
-    const posSpan = document.createElement('span');
-    posSpan.className = 'yao-position';
-    posSpan.textContent = getPositionName(position);
-    lineDiv.appendChild(posSpan);
+    // 爻位标识
+    const pos = document.createElement('div');
+    pos.className = 'yao-position';
+    pos.textContent = getYaoPositionName(yao.position);
     
-    return lineDiv;
+    div.appendChild(line);
+    div.appendChild(pos);
+    return div;
+}
+
+function getYaoPositionName(pos) {
+    const names = {
+        1: '初爻', 2: '二爻', 3: '三爻',
+        4: '四爻', 5: '五爻', 6: '上爻'
+    };
+    return names[pos] || `${pos}爻`;
 }
 
 // 辅助函数：获取爻位名称
