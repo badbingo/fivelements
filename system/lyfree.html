@@ -855,7 +855,7 @@
 
         <div class="content-section">
             <div class="instruction-card">
-                <h4><i class="fas fa-info-circle"></i> 六爻占卜简介</h4>
+                <h4><i class="fas fa-info-circle"></i> 六爻占卜简介1</h4>
                 <p>六爻占卜是中国古代《易经》预测方法之一，通过六次投掷钱币或其它方式得到一个六爻卦象，根据卦象变化解读事物发展趋势。本系统提供三种起卦方式：</p>
                 <ol>
                     <li><strong>钱币摇卦</strong> - 传统三枚钱币方法，最正统的起卦方式</li>
@@ -1704,16 +1704,7 @@ function castWithNumbers() {
 function generateHexagramFromNumbers(upperNum, lowerNum, changingYaoPos) {
     const hexagram = [];
     
-    // 1. 先生成上卦（外卦，上爻→四爻）
-    for (let i = 0; i < 3; i++) {
-        hexagram.push({
-            type: upperNum % 2 === 0 ? '8' : '7',
-            line: upperNum % 2 === 0 ? '000' : '111',
-            changing: false
-        });
-    }
-    
-    // 2. 再生成下卦（内卦，三爻→初爻）
+    // 1. 先生成下卦（内卦，初爻→三爻）
     for (let i = 0; i < 3; i++) {
         hexagram.push({
             type: lowerNum % 2 === 0 ? '8' : '7',
@@ -1722,9 +1713,18 @@ function generateHexagramFromNumbers(upperNum, lowerNum, changingYaoPos) {
         });
     }
     
+    // 2. 再生成上卦（外卦，四爻→上爻）
+    for (let i = 0; i < 3; i++) {
+        hexagram.push({
+            type: upperNum % 2 === 0 ? '8' : '7',
+            line: upperNum % 2 === 0 ? '000' : '111',
+            changing: false
+        });
+    }
+    
     // 3. 处理变爻（position从1=初爻开始计数）
     if (changingYaoPos >= 1 && changingYaoPos <= 6) {
-        const index = 6 - changingYaoPos; // 初爻=数组[5]，上爻=数组[0]
+        const index = changingYaoPos - 1; // 初爻=数组[0]，上爻=数组[5]
         hexagram[index].changing = true;
         hexagram[index].type = hexagram[index].type === '7' ? '9' : '6';
         hexagram[index].line = hexagram[index].line === '111' ? '000' : '111';
