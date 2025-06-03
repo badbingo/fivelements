@@ -1094,9 +1094,9 @@
     </footer>
 
     <script>
-        // DeepSeek API配置
+        // DeepSeek API配置sk-b2950087a9d5427392762814114b22a9
         const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
-        const apiKey = 'sk-b2950087a9d5427392762814114b22a9';
+        const apiKey = '';
 
         // 新增：安全的随机数生成函数
         function getSecureRandom() {
@@ -1709,13 +1709,13 @@ function updateHexagramDisplay() {
     const hexagramDisplay = document.getElementById('hexagram-display');
     hexagramDisplay.innerHTML = '';
 
-    // 从逻辑上爻（数组最后一项）开始渲染到初爻（数组第一项）
-    for (let i = currentHexagram.length - 1; i >= 0; i--) {
+    // 正确的绘制顺序：从初爻（数组[0])到上爻（数组[5])
+    for (let i = 0; i < currentHexagram.length; i++) {
         const yao = currentHexagram[i];
         const lineDiv = document.createElement('div');
         lineDiv.className = 'hexagram-line';
-
-        // 爻线绘制（保持不变）
+        
+        // 爻线绘制
         if (yao.line === '111') {
             lineDiv.classList.add('solid-line');
         } else {
@@ -1725,124 +1725,22 @@ function updateHexagramDisplay() {
                 <div class="broken-line-part"></div>
             `;
         }
-
+        
         // 变爻高亮
         if (yao.changing) {
             lineDiv.classList.add('yao-change');
         }
-
-        // 关键修改：爻位数字标签反向（6=上爻在最上方，1=初爻在最下方）
+        
+        // 爻位标注（1=初爻，6=上爻）
         const numberSpan = document.createElement('span');
         numberSpan.className = 'line-number';
-        numberSpan.textContent = 6 - i;  // 数组最后一项（i=5）显示6（上爻）
+        numberSpan.textContent = i + 1;
         lineDiv.appendChild(numberSpan);
-
-        // 保持DOM插入顺序（先插入的在上方）
+        
         hexagramDisplay.appendChild(lineDiv);
     }
 }
 
-// 显示占卜结果
-function showResult() {
-    // 生成卦象编码
-    let hexagramCode = '';
-    currentHexagram.forEach(yao => {
-        hexagramCode += yao.line === '111' ? '1' : '0';
-    });
-
-    // 获取卦象信息
-    const guaInfo = guaData[hexagramCode] || { 
-        name: "未知卦", 
-        interpretation: "此卦象暂无详细解释。" 
-    };
-
-    // 显示问题
-    document.getElementById('question-display').textContent = currentQuestion;
-
-    // 显示卦名（大标题保留）
-    document.getElementById('gua-name').textContent = guaInfo.name;
-
-    // 清空原有卦象图容器（移除空白图片）
-    document.getElementById('gua-image-container').innerHTML = '';
-
-    // 显示整合后的卦象解析（包含动态生成的卦象图）
-    document.getElementById('gua-interpretation').innerHTML = `
-        <div class="gua-result-container">
-            <div class="gua-visual-box">
-                ${generateHexagramSvg(hexagramCode)}
-                <div class="gua-meta-box">
-                    <div class="gua-name-tag">${guaInfo.name}</div>
-                    <div class="hexagram-code">卦象编码：${hexagramCode}</div>
-                </div>
-            </div>
-            <div class="gua-text-content">
-                <h4><i class="fas fa-info-circle"></i> 卦象释义</h4>
-                <div class="interpretation-text">${guaInfo.interpretation}</div>
-                
-                <div class="gua-structure">
-                    <i class="fas fa-project-diagram"></i>
-                    <span>卦象结构：${getGuaStructure(hexagramCode)}</span>
-                </div>
-            </div>
-        </div>
-    `;
-
-    // 显示变爻分析
-    let changingYao = [];
-    currentHexagram.forEach((yao, index) => {
-        if (yao.changing) {
-            changingYao.push(index + 1);
-        }
-    });
-
-    let yaoAnalysis = '';
-    if (changingYao.length > 0) {
-        yaoAnalysis = `<div class="changing-yao-header">
-            <i class="fas fa-exchange-alt"></i> 
-            <h4>变爻分析（第 ${changingYao.join('、')} 爻）</h4>
-        </div>`;
-        
-        changingYao.forEach(pos => {
-            const yaoText = yaoData[hexagramCode] ? yaoData[hexagramCode][pos - 1] : "暂无爻辞";
-            yaoAnalysis += `
-                <div class="yao-item">
-                    <div class="yao-position">${getYaoPositionName(pos)}</div>
-                    <div class="yao-content">${yaoText}</div>
-                </div>
-            `;
-        });
-        
-        yaoAnalysis += `<div class="yao-change-meaning">
-            <i class="fas fa-info-circle"></i> 
-            ${changingYao.length === 1 ? '此变爻表示' : '这些变爻共同表示'} 
-            ${getYaoChangeInterpretation(changingYao.length, hexagramCode)}
-        </div>`;
-    } else {
-        yaoAnalysis = `<div class="no-changing-yao">
-            <i class="fas fa-info-circle"></i> 本次占卜没有变爻，表示事情将保持当前发展趋势
-        </div>`;
-    }
-    document.getElementById('yao-analysis').innerHTML = yaoAnalysis;
-
-    // 显示卦辞详解
-    document.getElementById('gua-detail-content').textContent = "正在获取卦辞详解...";
-    document.getElementById('loading-indicator').style.display = 'block';
-    
-    // 从DeepSeek API获取详细卦辞
-    fetchGuaDetailFromAPI(currentQuestion, guaInfo.name, hexagramCode, changingYao);
-    
-    // 显示结果区域
-    document.getElementById('hexagram-section').style.display = 'block';
-    
-    // 滚动到结果区域
-    setTimeout(() => {
-        document.getElementById('hexagram-section').scrollIntoView({ 
-            behavior: 'smooth' 
-        });
-    }, 300);
-}
-        
-// 动态生成SVG卦象图
 function generateHexagramSvg(hexagramCode) {
     const svgWidth = 120;
     const svgHeight = 180;
@@ -1850,12 +1748,13 @@ function generateHexagramSvg(hexagramCode) {
     const spacing = 20;
     
     let svgContent = '';
-    const yaoNames = ['初', '二', '三', '四', '五', '上']; // 修正：从下往上命名
+    const positionNames = ['初', '二', '三', '四', '五', '上'];
     
     // 从下往上绘制（i=0=初爻，i=5=上爻）
     for (let i = 0; i < 6; i++) {
-        const yPos = 30 + (5 - i) * spacing; // 初爻在底部（yPos最大）
-        const isYang = hexagramCode[i] === '1'; // hexagramCode[0]对应初爻
+        // 初爻在底部（y=150），上爻在顶部（y=30）
+        const yPos = 150 - i * spacing;
+        const isYang = hexagramCode[i] === '1';
         
         // 绘制爻线
         if (isYang) {
@@ -1875,9 +1774,9 @@ function generateHexagramSvg(hexagramCode) {
             `;
         }
         
-        // 爻位标注（初爻在下，上爻在上）
+        // 爻位标注（初爻在底部，上爻在顶部）
         svgContent += `
-            <text x="105" y="${yPos + 5}" class="yao-position">${yaoNames[i]}</text>
+            <text x="105" y="${yPos + 5}" class="yao-position">${positionNames[i]}</text>
         `;
     }
     
