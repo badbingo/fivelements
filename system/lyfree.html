@@ -855,7 +855,7 @@
 
         <div class="content-section">
             <div class="instruction-card">
-                <h4><i class="fas fa-info-circle"></i> 六爻占卜简介1</h4>
+                <h4><i class="fas fa-info-circle"></i> 六爻占卜简介</h4>
                 <p>六爻占卜是中国古代《易经》预测方法之一，通过六次投掷钱币或其它方式得到一个六爻卦象，根据卦象变化解读事物发展趋势。本系统提供三种起卦方式：</p>
                 <ol>
                     <li><strong>钱币摇卦</strong> - 传统三枚钱币方法，最正统的起卦方式</li>
@@ -1739,14 +1739,24 @@ function generateHexagramFromNumbers(upperNum, lowerNum, changingYaoPos) {
 function updateHexagramDisplay() {
     const hexagramDisplay = document.getElementById('hexagram-display');
     hexagramDisplay.innerHTML = '';
+    
+    // 确保数据存在
+    if (!currentHexagram || currentHexagram.length !== 6) {
+        hexagramDisplay.innerHTML = '<div>卦象数据错误</div>';
+        return;
+    }
 
-    // 正确的绘制顺序：从初爻（数组[0])到上爻（数组[5])
-    for (let i = 0; i < currentHexagram.length; i++) {
+    // 关键：用flex反向显示实现从下往上排列
+    hexagramDisplay.style.display = 'flex';
+    hexagramDisplay.style.flexDirection = 'column-reverse';
+    
+    // 正序处理数组（i=0=初爻 → i=5=上爻）
+    for (let i = 0; i < 6; i++) {
         const yao = currentHexagram[i];
         const lineDiv = document.createElement('div');
         lineDiv.className = 'hexagram-line';
         
-        // 爻线绘制
+        // 绘制爻线
         if (yao.line === '111') {
             lineDiv.classList.add('solid-line');
         } else {
@@ -1757,19 +1767,25 @@ function updateHexagramDisplay() {
             `;
         }
         
-        // 变爻高亮
+        // 标记变爻
         if (yao.changing) {
             lineDiv.classList.add('yao-change');
         }
         
-        // 爻位标注（1=初爻，6=上爻）
+        // 添加爻位标识
         const numberSpan = document.createElement('span');
         numberSpan.className = 'line-number';
-        numberSpan.textContent = i + 1;
+        numberSpan.textContent = getPositionName(yao.position || (i + 1));
         lineDiv.appendChild(numberSpan);
         
         hexagramDisplay.appendChild(lineDiv);
     }
+}
+
+// 辅助函数：获取传统爻位名称
+function getPositionName(pos) {
+    const names = ['初爻', '二爻', '三爻', '四爻', '五爻', '上爻'];
+    return names[pos - 1] || pos;
 }
 
 function generateHexagramSvg(hexagramCode) {
