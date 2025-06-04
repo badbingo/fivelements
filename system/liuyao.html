@@ -879,7 +879,7 @@
 
         <div class="content-section">
             <div class="instruction-card">
-                <h4><i class="fas fa-info-circle"></i> 六爻占卜简介</h4>
+                <h4><i class="fas fa-info-circle"></i> 六爻占卜简介1</h4>
                 <p>六爻占卜是中国古代《易经》中的重要预测方法，通过六次投掷钱币或其他方式，生成一个完整的六爻卦象。根据卦象的本卦、变卦与动爻变化，可推演事物的发展趋势与吉凶。本系统提供三种起卦方式，助您洞察未来，择吉避凶。：</p>
                 <ol>
                     <li><strong>钱币摇卦</strong> - 传统三枚铜钱六次投掷，是最经典、最具仪式感的起卦方式。</li>
@@ -2074,12 +2074,7 @@
             const coins = document.querySelectorAll('.coin');
             coins.forEach(coin => {
                 coin.addEventListener('click', function() {
-                    // 确保在占卜过程中且未完成6次摇卦
-                    if (isPaid && castCount < 6 && !this.classList.contains('locked')) {
-                        flipCoin(this);
-                    } else if (!isPaid) {
-                        showToast('请先支付1元解锁占卜功能', 'error');
-                    }
+                    flipCoin(this);
                 });
             });
             
@@ -2285,31 +2280,37 @@
                 
                 // 依次快速摇三个钱币
                 function flipCoin(coin) {
-                // 确保硬币没有被锁定
-                if (coin.classList.contains('locked')) return;
-                
-                // 添加翻转动画
-                coin.classList.add('quick-flipping');
-                
-                // 随机决定正反面
-                const isHead = Math.random() > 0.5;
-                
-                setTimeout(() => {
-                    coin.classList.remove('quick-flipping');
-                    
-                    // 设置硬币状态
-                    coin.dataset.side = isHead ? 'head' : 'tail';
-                    coin.style.transform = isHead ? 'rotateY(0deg)' : 'rotateY(180deg)';
-                    
-                    // 标记为已选择和锁定
-                    coin.classList.add('selected', 'locked');
-                    
-                    // 更新状态显示
-                    document.getElementById('cast-status').textContent = 
-                        `第 ${castCount + 1} 次摇卦：已选择硬币 ${coin.dataset.coin}（${isHead ? '正面' : '反面'}）`;
-                    
-                }, 300);
+            // 确保硬币没有被锁定
+            if (coin.classList.contains('locked')) return;
+            
+            // 检查支付状态
+            if (!isPaid) {
+                showToast('请先支付1元解锁占卜功能', 'error');
+                return;
             }
+            
+            // 添加翻转动画
+            coin.classList.add('quick-flipping');
+            
+            // 随机决定正反面
+            const isHead = Math.random() > 0.5;
+            
+            setTimeout(() => {
+                coin.classList.remove('quick-flipping');
+                
+                // 设置硬币状态
+                coin.dataset.side = isHead ? 'head' : 'tail';
+                coin.style.transform = isHead ? 'rotateY(0deg)' : 'rotateY(180deg)';
+                
+                // 标记为已选择和锁定
+                coin.classList.add('selected', 'locked');
+                
+                // 更新状态显示
+                document.getElementById('cast-status').textContent = 
+                    `第 ${castCount + 1} 次摇卦：已选择硬币 ${coin.dataset.coin}（${isHead ? '正面' : '反面'}）`;
+                
+            }, 300);
+        }
 
         // 使用钱币摇卦
         function castWithCoins() {
