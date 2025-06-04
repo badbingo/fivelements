@@ -879,7 +879,7 @@
 
         <div class="content-section">
             <div class="instruction-card">
-                <h4><i class="fas fa-info-circle"></i> 六爻占卜简介1</h4>
+                <h4><i class="fas fa-info-circle"></i> 六爻占卜简介</h4>
                 <p>六爻占卜是中国古代《易经》中的重要预测方法，通过六次投掷钱币或其他方式，生成一个完整的六爻卦象。根据卦象的本卦、变卦与动爻变化，可推演事物的发展趋势与吉凶。本系统提供三种起卦方式，助您洞察未来，择吉避凶。：</p>
                 <ol>
                     <li><strong>钱币摇卦</strong> - 传统三枚铜钱六次投掷，是最经典、最具仪式感的起卦方式。</li>
@@ -1766,287 +1766,657 @@
         };
         
         // 全局变量
-        let currentHexagram = [];
-        let currentQuestion = "";
-        let currentMethod = "coin";
-        let castCount = 0;
-        let history = JSON.parse(localStorage.getItem('divinationHistory')) || [];
-        let isPaid = false; // 支付状态标志
+let currentHexagram = [];
+let currentQuestion = "";
+let currentMethod = "coin";
+let castCount = 0;
+let history = JSON.parse(localStorage.getItem('divinationHistory')) || [];
+let isPaid = false; // 支付状态标志
 
-        // DOM加载完成后执行
-        document.addEventListener('DOMContentLoaded', function() {
-            // 1. 先定义所有函数
-            function checkPaymentStatus() { /* ... */ }
-            
-            function updatePaymentStatus() {
-                // 正确获取元素
-                const paymentStatus = document.getElementById('payment-status');
-                const payBtn = document.getElementById('pay-btn');
-                const questionInput = document.getElementById('question');
-                
-                if (isPaid) {
-                    paymentStatus.style.display = 'block';
-                    // ...其他逻辑
-                } else {
-                    // ...其他逻辑
-                }
-            }
-            // 初始化支付状态
-            checkPaymentStatus();
-            updatePaymentStatus();
-            
-            // 支付方式选择
-            const paymentMethodBtns = document.querySelectorAll('.payment-method-btn');
-            let currentPaymentMethod = 'wxpay';
-            
-            paymentMethodBtns.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    paymentMethodBtns.forEach(b => b.classList.remove('active'));
-                    this.classList.add('active');
-                    currentPaymentMethod = this.dataset.type;
-                });
-            });
-
-            // 修改支付配置
-            const paymentConfig = {
-                pid: '2025051013380915',
-                key: 'UsXrSwn0wft5SeLB0LaQfecvJmpkS18T',
-                apiUrl: 'https://zpayz.cn/submit.php',
-                returnUrl: window.location.href.split('?')[0],
-                amount: '0.01'
-            };
+// DOM加载完成后执行
+document.addEventListener('DOMContentLoaded', function() {
+    // 初始化支付状态
+    updatePaymentStatus();
     
-            // 获取DOM元素
-            const payBtn = document.getElementById('pay-btn');
-            const paymentStatus = document.getElementById('payment-status');
-            const questionInput = document.getElementById('question');
+    // 支付方式选择
+    const paymentMethodBtns = document.querySelectorAll('.payment-method-btn');
+    let currentPaymentMethod = 'wxpay';
+    
+    paymentMethodBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            paymentMethodBtns.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            currentPaymentMethod = this.dataset.type;
+        });
+    });
+
+    // 支付按钮点击事件
+    document.getElementById('pay-btn').addEventListener('click', startPayment);
+    
+    // 初始化方法切换
+    const methodBtns = document.querySelectorAll('.method-btn');
+    methodBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            methodBtns.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            currentMethod = this.dataset.method;
             
-            // 支付按钮点击事件
-            payBtn.addEventListener('click', startPayment);
-            
-            // 检查支付回调
-            checkPaymentReturn();
-            
-            // 更新支付状态函数
-            function updatePaymentStatus() {
-            const paymentStatus = document.getElementById('payment-status');
-            const payBtn = document.getElementById('pay-btn');
-            const questionInput = document.getElementById('question');
-            
-            if (isPaid) {
-                paymentStatus.style.display = 'block';
-                payBtn.style.display = 'none';
-                questionInput.readOnly = false;
-                questionInput.style.backgroundColor = '';
-                questionInput.placeholder = '请输入您要占卜的问题...';
+            document.querySelectorAll('.method-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            document.getElementById(`${currentMethod}-method`).classList.add('active');
+        });
+    });
+    
+    // 钱币点击事件
+    const coins = document.querySelectorAll('.coin');
+    coins.forEach(coin => {
+        coin.addEventListener('click', function() {
+            flipCoin(this);
+        });
+    });
+    
+    // 自动摇卦按钮
+    document.getElementById('auto-cast-btn').addEventListener('click', function() {
+        if (currentMethod === 'coin') {
+            autoCastCoins();
+        }
+    });
+    
+    // 摇卦按钮
+    document.getElementById('cast-btn').addEventListener('click', function() {
+        if (currentMethod === 'coin') {
+            castWithCoins();
+        }
+    });
+    
+    // 时间起卦按钮
+    document.getElementById('time-cast-btn').addEventListener('click', function() {
+        if (currentMethod === 'time') {
+            castWithTime();
+        }
+    });
+    
+    // 数字起卦按钮
+    document.getElementById('number-cast-btn').addEventListener('click', function() {
+        if (currentMethod === 'number') {
+            castWithNumbers();
+        }
+    });
+    
+    // 重置按钮
+    document.getElementById('reset-btn').addEventListener('click', function() {
+        resetDivination();
+    });
+    
+    // 新占卜按钮
+    document.getElementById('new-divination').addEventListener('click', function() {
+        resetDivination();
+    });
+    
+    // 保存卦象按钮
+    document.getElementById('save-hexagram').addEventListener('click', saveHexagram);
+    
+    // 清除历史记录按钮
+    document.getElementById('clear-history').addEventListener('click', clearHistory);
+    
+    // 如果有历史记录，显示历史部分
+    if (history.length > 0) {
+        document.getElementById('history-section').style.display = 'block';
+        renderHistory();
+    }
+    
+    // 表单提交
+    document.getElementById('divination-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // 检查支付状态
+        if (!isPaid) {
+            showToast('请先支付1元解锁占卜功能', 'error');
+            return;
+        }
+        
+        // 根据方法执行占卜
+        if (currentMethod === 'coin') {
+            castWithCoins();
+        } else if (currentMethod === 'time') {
+            castWithTime();
+        } else if (currentMethod === 'number') {
+            castWithNumbers();
+        }
+    });
+    
+    // 初始化时间输入框为当前时间
+    const now = new Date();
+    const timeStr = now.toISOString().slice(0, 16);
+    document.getElementById('time').value = timeStr;
+});
+
+// 更新支付状态函数
+function updatePaymentStatus() {
+    const paymentStatus = document.getElementById('payment-status');
+    const payBtn = document.getElementById('pay-btn');
+    const questionInput = document.getElementById('question');
+    
+    if (isPaid) {
+        paymentStatus.style.display = 'block';
+        payBtn.style.display = 'none';
+        questionInput.readOnly = false;
+        questionInput.style.backgroundColor = '';
+        questionInput.placeholder = '请输入您要占卜的问题...';
+    } else {
+        paymentStatus.style.display = 'none';
+        payBtn.style.display = 'block';
+        questionInput.readOnly = true;
+        questionInput.style.backgroundColor = '#f5f5f5';
+        questionInput.placeholder = '请先支付1元解锁占卜功能';
+        questionInput.value = '';
+    }
+}
+
+// 开始支付
+function startPayment() {
+    // 这里简化支付流程，实际应用中应调用支付API
+    // 模拟支付成功
+    isPaid = true;
+    updatePaymentStatus();
+    showToast('支付成功！您现在可以输入问题并进行占卜', 'success');
+}
+
+// 钱币翻转函数
+function flipCoin(coin) {
+    if (!isPaid) {
+        showToast('请先支付1元解锁占卜功能', 'error');
+        return;
+    }
+    
+    if (coin.classList.contains('locked')) {
+        return;
+    }
+    
+    coin.classList.add('highlight-coin', 'quick-flipping');
+    
+    setTimeout(() => {
+        const isHead = Math.random() > 0.5;
+        coin.dataset.side = isHead ? 'head' : 'tail';
+        coin.style.transform = isHead ? 'rotateY(0deg)' : 'rotateY(180deg)';
+        coin.classList.add('selected');
+        
+        setTimeout(() => {
+            coin.classList.remove('quick-flipping', 'highlight-coin');
+        }, 300);
+    }, 10);
+}
+
+// 自动摇卦函数
+function autoCastCoins() {
+    // 检查支付状态
+    if (!isPaid) {
+        showToast('请先支付1元解锁占卜功能', 'error');
+        return;
+    }
+    
+    // 验证是否输入了占卜问题
+    const question = document.getElementById('question').value.trim();
+    if (!question) {
+        showToast('请先输入您的占卜问题', 'error');
+        return;
+    }
+
+    if (castCount >= 6) {
+        showToast('六次摇卦已完成，请查看结果或重置', 'info');
+        return;
+    }
+    
+    // 如果是第一次摇卦，记录问题
+    if (castCount === 0) {
+        currentQuestion = question;
+        const now = new Date();
+        document.getElementById('divination-time').textContent = now.toLocaleString();
+        document.getElementById('divination-method').textContent = "钱币摇卦";
+    }
+
+    // 快速完成6次摇卦
+    function autoCastFull() {
+        if (castCount >= 6) {
+            // 自动滚动到结果区域
+            setTimeout(() => {
+                document.getElementById('hexagram-section').scrollIntoView({ 
+                    behavior: 'smooth' 
+                });
+            }, 500);
+            return;
+        }
+
+        const coins = document.querySelectorAll('.coin');
+        let currentCoinIndex = 0;
+        
+        // 快速摇动单个钱币
+        function quickFlipCoin(coin, callback) {
+            coin.classList.add('quick-flipping');
+            setTimeout(() => {
+                coin.classList.remove('quick-flipping');
+                const isHead = Math.random() > 0.5;
+                coin.dataset.side = isHead ? 'head' : 'tail';
+                coin.style.transform = isHead ? 'rotateY(0deg)' : 'rotateY(180deg)';
+                coin.classList.add('selected', 'locked');
+                if (callback) callback();
+            }, 200);
+        }
+        
+        // 依次快速摇三个钱币
+        function flipNextCoin() {
+            if (currentCoinIndex < coins.length) {
+                quickFlipCoin(coins[currentCoinIndex], () => {
+                    currentCoinIndex++;
+                    flipNextCoin();
+                });
             } else {
-                paymentStatus.style.display = 'none';
-                payBtn.style.display = 'block';
-                questionInput.readOnly = true;
-                questionInput.style.backgroundColor = '#f5f5f5';
-                questionInput.placeholder = '请先支付1元解锁占卜功能';
-                questionInput.value = '';
+                // 三个硬币都摇完后记录结果
+                setTimeout(() => {
+                    castWithCoins();
+                    autoCastFull();
+                }, 300);
             }
         }
-                            
-            // 检查支付状态
-            function checkPaymentStatus() {
-                try {
-                    // 检查URL参数
-                    const params = new URLSearchParams(window.location.search);
-                    if (params.get('trade_status') === 'TRADE_SUCCESS') {
-                        const paymentData = {
-                            pid: params.get('pid'),
-                            trade_no: params.get('trade_no'),
-                            out_trade_no: params.get('out_trade_no'),
-                            type: params.get('type'),
-                            name: params.get('name'),
-                            money: params.get('money'),
-                            trade_status: params.get('trade_status'),
-                            param: params.get('param'),
-                            sign: params.get('sign'),
-                            sign_type: params.get('sign_type')
-                        };
-
-                        if (verifyPayment(paymentData)) {
-                            isPaid = true;
-                            localStorage.setItem('liuyao_paid', 'true');
-                            cleanUrl();
-                        }
-                    }
-                    
-                    // 检查本地存储
-                    if (localStorage.getItem('liuyao_paid') === 'true') {
-                        isPaid = true;
-                    }
-                } catch (error) {
-                    console.error('支付状态检查错误:', error);
-                }
-            }
-            
-            // 验证支付
-            function verifyPayment(paymentData) {
-                try {
-                    const sign = paymentData.sign;
-                    delete paymentData.sign;
-                    return generateSign(paymentData) === sign;
-                } catch (error) {
-                    console.error('验证支付错误:', error);
-                    return false;
-                }
-            }
-            
-            // 生成签名
-            function generateSign(params) {
-                try {
-                    const filtered = {};
-                    Object.keys(params).forEach(k => {
-                        if (params[k] !== '' && k !== 'sign' && k !== 'sign_type') {
-                            filtered[k] = params[k];
-                        }
-                    });
-                    
-                    const signStr = Object.keys(filtered).sort()
-                        .map(k => `${k}=${filtered[k]}`)
-                        .join('&') + paymentConfig.key;
-                    
-                    return CryptoJS.MD5(signStr).toString();
-                } catch (error) {
-                    console.error('生成签名错误:', error);
-                    return '';
-                }
-            }
-            
-            // 清理URL
-            function cleanUrl() {
-                try {
-                    window.history.replaceState({}, document.title, window.location.pathname);
-                } catch (error) {
-                    console.error('清理URL错误:', error);
-                }
-            }
-            
-            // 开始支付
-            function startPayment() {
-                try {
-                    const paymentData = {
-                        pid: paymentConfig.pid,
-                        type: currentPaymentMethod,
-                        out_trade_no: generateOrderNo(),
-                        notify_url: paymentConfig.returnUrl,
-                        return_url: paymentConfig.returnUrl,
-                        name: '六爻占卜服务费',
-                        money: paymentConfig.amount,
-                        param: 'liuyao_divination',
-                        sign_type: 'MD5'
-                    };
-                    
-                    paymentData.sign = generateSign(paymentData);
-                    
-                    if (!paymentData.sign) {
-                        throw new Error('生成支付签名失败');
-                    }
-                    
-                    submitPaymentForm(paymentData);
-                } catch (error) {
-                    console.error('支付启动错误:', error);
-                    showToast('支付启动失败，请稍后再试', 'error');
-                }
-            }
+        
+        flipNextCoin();
+    }
     
-            // 提交支付表单
-            function submitPaymentForm(data) {
-                try {
-                    const form = document.createElement('form');
-                    form.method = 'POST';
-                    form.action = paymentConfig.apiUrl;
-                    form.style.display = 'none';
+    autoCastFull();
+}
 
-                    Object.entries(data).forEach(([key, value]) => {
-                        const input = document.createElement('input');
-                        input.type = 'hidden';
-                        input.name = key;
-                        input.value = value;
-                        form.appendChild(input);
-                    });
+// 使用钱币摇卦
+function castWithCoins() {
+    const question = document.getElementById('question').value.trim();
+    if (!question) {
+        showToast('请输入占卜问题', 'error');
+        return;
+    }
+    
+    // 第一次摇卦时设置问题
+    if (castCount === 0) {
+        currentQuestion = question;
+        // 设置占卜时间和方法
+        const now = new Date();
+        document.getElementById('divination-time').textContent = now.toLocaleString();
+        document.getElementById('divination-method').textContent = "钱币摇卦";
+    }
+    
+    const coins = document.querySelectorAll('.coin');
+    let allCoinsSet = true;
+    let headCount = 0;
+    
+    coins.forEach(coin => {
+        if (!coin.dataset.side) {
+            allCoinsSet = false;
+        } else if (coin.dataset.side === 'head') {
+            headCount++;
+        }
+    });
+    
+    if (!allCoinsSet) {
+        showToast('请先点击所有钱币确定正反面', 'error');
+        return;
+    }
+    
+    // 确定爻的性质
+    let yao;
+    const randomFactor = Math.random();
+    
+    switch (headCount) {
+        case 0: // 三个反面
+            yao = { 
+                type: randomFactor > 0.15 ? '6' : '8',
+                line: randomFactor > 0.15 ? '000' : '010', 
+                changing: randomFactor > 0.15 
+            };
+            break;
+        case 1: // 一个正面
+            yao = { 
+                type: randomFactor > 0.1 ? '7' : (randomFactor > 0.05 ? '9' : '6'), 
+                line: randomFactor > 0.1 ? '001' : (randomFactor > 0.05 ? '111' : '000'),
+                changing: randomFactor <= 0.1
+            };
+            break;
+        case 2: // 两个正面
+            yao = { 
+                type: randomFactor > 0.1 ? '8' : (randomFactor > 0.05 ? '6' : '9'), 
+                line: randomFactor > 0.1 ? '010' : (randomFactor > 0.05 ? '000' : '111'),
+                changing: randomFactor <= 0.1
+            };
+            break;
+        case 3: // 三个正面
+            yao = { 
+                type: randomFactor > 0.15 ? '9' : '7',
+                line: randomFactor > 0.15 ? '111' : '001', 
+                changing: randomFactor > 0.15 
+            };
+            break;
+    }
+    
+    currentHexagram.push(yao);
+    castCount++;
+    
+    // 更新摇卦次数显示
+    document.getElementById('cast-count').textContent = castCount;
+    
+    // 重置钱币状态（解锁并清除状态）
+    coins.forEach(coin => {
+        delete coin.dataset.side;
+        coin.style.transform = 'rotateY(0deg)';
+        coin.classList.remove('selected');
+        coin.classList.remove('locked');
+    });
+    
+    // 更新状态显示
+    document.getElementById('cast-status').textContent = `第 ${castCount} 次摇卦完成，请继续点击钱币`;
+    
+    // 更新UI
+    updateHexagramDisplay();
+    
+    // 如果已经摇了6次，显示结果
+    if (castCount === 6) {
+        showResult();
+    }
+}
 
-                    document.body.appendChild(form);
-                    form.submit();
-                } catch (error) {
-                    console.error('提交支付表单错误:', error);
-                    showToast('支付提交失败，请稍后再试', 'error');
-                }
-            }
-            
-            // 生成订单号
-            function generateOrderNo() {
-                const now = new Date();
-                return `${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}` +
-                       `${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}` +
-                       `${Math.floor(Math.random()*9000)+1000}`;
-            }
-            
-            function pad(num) {
-                return num < 10 ? `0${num}` : num;
-            }
-            
-            // 检查支付回调
-            function checkPaymentReturn() {
-                try {
-                    const params = new URLSearchParams(window.location.search);
-                    if (params.get('trade_status') === 'TRADE_SUCCESS') {
-                        const paymentData = {
-                            pid: params.get('pid'),
-                            trade_no: params.get('trade_no'),
-                            out_trade_no: params.get('out_trade_no'),
-                            type: params.get('type'),
-                            name: params.get('name'),
-                            money: params.get('money'),
-                            trade_status: params.get('trade_status'),
-                            param: params.get('param'),
-                            sign: params.get('sign'),
-                            sign_type: params.get('sign_type')
-                        };
+// 使用时间起卦
+function castWithTime() {
+    const question = document.getElementById('question').value.trim();
+    if (!question) {
+        showToast('请输入占卜问题', 'error');
+        return;
+    }
+    
+    currentQuestion = question;
+    
+    let dateTime = document.getElementById('time').value;
+    if (!dateTime) {
+        const now = new Date();
+        dateTime = now.toISOString().slice(0, 16);
+    }
+    
+    // 时间起卦算法
+    const date = new Date(dateTime);
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    const hour = date.getHours();
+    const minute = date.getMinutes();
+    
+    // 计算上卦和下卦的数字
+    const upperNum = (year + month + day) % 8 || 8;
+    const lowerNum = (hour + minute) % 8 || 8;
+    const changingYaoPos = (year + month + day + hour + minute) % 6 || 6;
+    
+    // 根据数字生成卦象
+    currentHexagram = generateHexagramFromNumbers(upperNum, lowerNum, changingYaoPos);
+    castCount = 6;
+    
+    // 显示时间和方法
+    document.getElementById('divination-time').textContent = date.toLocaleString();
+    document.getElementById('divination-method').textContent = "时间起卦";
+    
+    // 显示结果
+    showResult();
+}
 
-                        if (verifyPayment(paymentData)) {
-                            isPaid = true;
-                            localStorage.setItem('liuyao_paid', 'true');
-                            updatePaymentStatus();
-                            cleanUrl();
-                            showToast('支付成功！您现在可以开始占卜了', 'success');
-                        }
-                    }
-                } catch (error) {
-                    console.error('支付回调处理错误:', error);
-                }
-            }
-            
-            // 显示Toast提示
-            function showToast(message, type = 'info') {
-                const toast = document.createElement('div');
-                toast.style.cssText = `
-                    position: fixed;
-                    bottom: 20px;
-                    left: 50%;
-                    transform: translateX(-50%);
-                    padding: 12px 24px;
-                    background-color: ${type === 'error' ? '#f44336' : type === 'success' ? '#4CAF50' : '#2196F3'};
-                    color: white;
-                    border-radius: 4px;
-                    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-                    z-index: 10000;
-                    animation: fadeIn 0.3s;
-                `;
-                toast.innerHTML = `<i class="fas ${type === 'error' ? 'fa-exclamation-circle' : type === 'success' ? 'fa-check-circle' : 'fa-info-circle'}"></i> ${message}`;
-                document.body.appendChild(toast);
+// 使用数字起卦
+function castWithNumbers() {
+    const question = document.getElementById('question').value.trim();
+    if (!question) {
+        showToast('请输入占卜问题', 'error');
+        return;
+    }
+    
+    currentQuestion = question;
+    
+    const num1 = parseInt(document.getElementById('number1').value);
+    const num2 = parseInt(document.getElementById('number2').value);
+    
+    if (!num1 || !num2 || num1 < 1 || num1 > 999 || num2 < 1 || num2 > 999) {
+        showToast('请输入有效的1-999之间的数字', 'error');
+        return;
+    }
+    
+    // 数字起卦算法
+    const upperNum = num1 % 8 || 8;
+    const lowerNum = num2 % 8 || 8;
+    const changingYaoPos = (num1 + num2) % 6 || 6;
+    
+    // 根据数字生成卦象
+    currentHexagram = generateHexagramFromNumbers(upperNum, lowerNum, changingYaoPos);
+    castCount = 6;
+    
+    // 显示时间和方法
+    const now = new Date();
+    document.getElementById('divination-time').textContent = now.toLocaleString();
+    document.getElementById('divination-method').textContent = "数字起卦";
+    
+    // 显示结果
+    showResult();
+}
+
+// 根据数字生成卦象
+function generateHexagramFromNumbers(upperNum, lowerNum, changingYaoPos) {
+    const hexagram = [];
+    
+    // 1. 先生成上卦（外卦，上爻→四爻）
+    for (let i = 0; i < 3; i++) {
+        hexagram.push({
+            type: upperNum % 2 === 0 ? '8' : '7',
+            line: upperNum % 2 === 0 ? '000' : '111',
+            changing: false
+        });
+    }
+    
+    // 2. 再生成下卦（内卦，三爻→初爻）
+    for (let i = 0; i < 3; i++) {
+        hexagram.push({
+            type: lowerNum % 2 === 0 ? '8' : '7',
+            line: lowerNum % 2 === 0 ? '000' : '111',
+            changing: false
+        });
+    }
+    
+    // 3. 处理变爻（position从1=初爻开始计数）
+    if (changingYaoPos >= 1 && changingYaoPos <= 6) {
+        const index = 6 - changingYaoPos; // 初爻=数组[5]，上爻=数组[0]
+        hexagram[index].changing = true;
+        hexagram[index].type = hexagram[index].type === '7' ? '9' : '6';
+        hexagram[index].line = hexagram[index].line === '111' ? '000' : '111';
+    }
+    
+    return hexagram;
+}
+
+// 更新卦象显示
+function updateHexagramDisplay() {
+    const hexagramDisplay = document.getElementById('hexagram-display');
+    hexagramDisplay.innerHTML = '';
+
+    // 从逻辑上爻（数组最后一项）开始渲染到初爻（数组第一项）
+    for (let i = currentHexagram.length - 1; i >= 0; i--) {
+        const yao = currentHexagram[i];
+        const lineDiv = document.createElement('div');
+        lineDiv.className = 'hexagram-line';
+
+        // 爻线绘制
+        if (yao.line === '111') {
+            lineDiv.classList.add('solid-line');
+        } else {
+            lineDiv.classList.add('broken-line');
+            lineDiv.innerHTML = `
+                <div class="broken-line-part"></div>
+                <div class="broken-line-part"></div>
+            `;
+        }
+
+        // 变爻高亮
+        if (yao.changing) {
+            lineDiv.classList.add('yao-change');
+        }
+
+        // 关键修改：爻位数字标签反向（6=上爻在最上方，1=初爻在最下方）
+        const numberSpan = document.createElement('span');
+        numberSpan.className = 'line-number';
+        numberSpan.textContent = 6 - i;  // 数组最后一项（i=5）显示6（上爻）
+        lineDiv.appendChild(numberSpan);
+
+        // 保持DOM插入顺序（先插入的在上方）
+        hexagramDisplay.appendChild(lineDiv);
+    }
+}
+
+// 显示占卜结果
+function showResult() {
+    // 生成卦象编码
+    let hexagramCode = '';
+    currentHexagram.forEach(yao => {
+        hexagramCode += yao.line === '111' ? '1' : '0';
+    });
+
+    // 获取卦象信息
+    const guaInfo = guaData[hexagramCode] || { 
+        name: "未知卦", 
+        interpretation: "此卦象暂无详细解释。" 
+    };
+
+    // 显示问题
+    document.getElementById('question-display').textContent = currentQuestion;
+
+    // 显示卦名
+    document.getElementById('gua-name').textContent = guaInfo.name;
+
+    // 清空原有卦象图容器
+    document.getElementById('gua-image-container').innerHTML = '';
+
+    // 显示整合后的卦象解析
+    document.getElementById('gua-interpretation').innerHTML = `
+        <div class="gua-result-container">
+            <div class="gua-visual-box">
+                ${generateHexagramSvg(hexagramCode)}
+                <div class="gua-meta-box">
+                    <div class="gua-name-tag">${guaInfo.name}</div>
+                    <div class="hexagram-code">卦象编码：${hexagramCode}</div>
+                </div>
+            </div>
+            <div class="gua-text-content">
+                <h4><i class="fas fa-info-circle"></i> 卦象释义</h4>
+                <div class="interpretation-text">${guaInfo.interpretation}</div>
                 
-                setTimeout(() => {
-                    toast.style.animation = 'fadeOut 0.3s';
-                    setTimeout(() => {
-                        document.body.removeChild(toast);
-                    }, 300);
-                }, 3000);
-            }
+                <div class="gua-structure">
+                    <i class="fas fa-project-diagram"></i>
+                    <span>卦象结构：${getGuaStructure(hexagramCode)}</span>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // 显示变爻分析
+    let changingYao = [];
+    currentHexagram.forEach((yao, index) => {
+        if (yao.changing) {
+            changingYao.push(index + 1);
+        }
+    });
+
+    let yaoAnalysis = '';
+    if (changingYao.length > 0) {
+        yaoAnalysis = `<div class="changing-yao-header">
+            <i class="fas fa-exchange-alt"></i> 
+            <h4>变爻分析（第 ${changingYao.join('、')} 爻）</h4>
+        </div>`;
+        
+        changingYao.forEach(pos => {
+            const yaoText = yaoData[hexagramCode] ? yaoData[hexagramCode][pos - 1] : "暂无爻辞";
+            yaoAnalysis += `
+                <div class="yao-item">
+                    <div class="yao-position">${getYaoPositionName(pos)}</div>
+                    <div class="yao-content">${yaoText}</div>
+                </div>
+            `;
+        });
+        
+        yaoAnalysis += `<div class="yao-change-meaning">
+            <i class="fas fa-info-circle"></i> 
+            ${changingYao.length === 1 ? '此变爻表示' : '这些变爻共同表示'} 
+            ${getYaoChangeInterpretation(changingYao.length, hexagramCode)}
+        </div>`;
+    } else {
+        yaoAnalysis = `<div class="no-changing-yao">
+            <i class="fas fa-info-circle"></i> 本次占卜没有变爻，表示事情将保持当前发展趋势
+        </div>`;
+    }
+    document.getElementById('yao-analysis').innerHTML = yaoAnalysis;
+
+    // 显示卦辞详解
+    document.getElementById('gua-detail-content').textContent = "正在获取卦辞详解...";
+    document.getElementById('loading-indicator').style.display = 'block';
+    
+    // 显示结果区域
+    document.getElementById('hexagram-section').style.display = 'block';
+    
+    // 滚动到结果区域
+    setTimeout(() => {
+        document.getElementById('hexagram-section').scrollIntoView({ 
+            behavior: 'smooth' 
+        });
+    }, 300);
+    
+    // 关键修改：在显示结果后重置支付状态
+    isPaid = false;
+    updatePaymentStatus();
+}
+
+// 重置占卜状态
+function resetDivination() {
+    currentHexagram = [];
+    castCount = 0;
+    document.getElementById('hexagram-display').innerHTML = '';
+    document.getElementById('hexagram-section').style.display = 'none';
+    document.getElementById('cast-count').textContent = '0';
+    document.getElementById('cast-status').textContent = '准备开始，请点击钱币确定正反面';
+    
+    // 重置钱币状态
+    const coins = document.querySelectorAll('.coin');
+    coins.forEach(coin => {
+        delete coin.dataset.side;
+        coin.style.transform = 'rotateY(0deg)';
+        coin.classList.remove('selected', 'locked');
+    });
+    
+    // 更新支付状态（但不清除支付状态，因为支付状态由showResult重置）
+    updatePaymentStatus();
+}
+
+// 显示Toast提示
+function showToast(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 12px 24px;
+        background-color: ${type === 'error' ? '#f44336' : type === 'success' ? '#4CAF50' : '#2196F3'};
+        color: white;
+        border-radius: 4px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        z-index: 10000;
+        animation: fadeIn 0.3s;
+    `;
+    toast.innerHTML = `<i class="fas ${type === 'error' ? 'fa-exclamation-circle' : type === 'success' ? 'fa-check-circle' : 'fa-info-circle'}"></i> ${message}`;
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.style.animation = 'fadeOut 0.3s';
+        setTimeout(() => {
+            document.body.removeChild(toast);
+        }, 300);
+    }, 3000);
+}
             
             // 初始化方法切换
             const methodBtns = document.querySelectorAll('.method-btn');
