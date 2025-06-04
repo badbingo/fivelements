@@ -882,7 +882,7 @@
 
         <div class="content-section">
             <div class="instruction-card">
-                <h4><i class="fas fa-info-circle"></i> 六爻占卜简介</h4>
+                <h4><i class="fas fa-info-circle"></i> 六爻占卜简介1</h4>
                 <p>六爻占卜是中国古代《易经》中的重要预测方法，通过六次投掷钱币或其他方式，生成一个完整的六爻卦象。根据卦象的本卦、变卦与动爻变化，可推演事物的发展趋势与吉凶。本系统提供三种起卦方式，助您洞察未来，择吉避凶。：</p>
                 <ol>
                     <li><strong>钱币摇卦</strong> - 传统三枚铜钱六次投掷，是最经典、最具仪式感的起卦方式。</li>
@@ -1795,7 +1795,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 key: 'UsXrSwn0wft5SeLB0LaQfecvJmpkS18T',
                 apiUrl: 'https://zpayz.cn/submit.php',
                 returnUrl: window.location.href.split('?')[0],
-                amount: '1.00'
+                amount: '0.01'
             };
     
     // 获取DOM元素
@@ -1814,6 +1814,10 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 初始化支付状态
     let isPaid = false;
+    updatePaymentStatus();
+
+    // 检查本地存储中的支付状态
+    isPaid = localStorage.getItem('liuyao_paid') === 'true';
     updatePaymentStatus();
     
     // 检查支付回调
@@ -1857,9 +1861,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     sign: params.get('sign'),
                     sign_type: params.get('sign_type')
                 };
-
+    
                 if (verifyPayment(paymentData)) {
                     isPaid = true;
+                    localStorage.setItem('liuyao_paid', 'true'); // 持久化支付状态
                     updatePaymentStatus();
                     cleanUrl();
                     showToast('支付成功！您现在可以开始占卜了', 'success');
@@ -1869,7 +1874,7 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('支付回调处理错误:', error);
         }
     }
-    
+        
     // 生成签名
     function generateSign(params) {
         try {
@@ -2135,10 +2140,11 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // 占卜完成后立即锁定输入框
-    isPaid = false;
-    updatePaymentStatus();
+        isPaid = false;
+        localStorage.removeItem('liuyao_paid');
+        updatePaymentStatus();
     });
-    
+        
     // 初始化时间输入框为当前时间
     const now = new Date();
     const timeStr = now.toISOString().slice(0, 16);
@@ -2539,16 +2545,8 @@ function castWithNumbers() {
 function generateHexagramFromNumbers(upperNum, lowerNum, changingYaoPos) {
     const hexagram = [];
     
-    // 1. 先生成上卦（外卦，上爻→四爻）
-    for (let i = 0; i < 3; i++) {
-        hexagram.push({
-            type: upperNum % 2 === 0 ? '8' : '7',
-            line: upperNum % 2 === 0 ? '000' : '111',
-            changing: false
-        });
-    }
-    
-    // 2. 再生成下卦（内卦，三爻→初爻）
+    // 修复：先下卦（初爻→三爻），后上卦（四爻→上爻）
+    // 1. 生成下卦（内卦，初爻→三爻）
     for (let i = 0; i < 3; i++) {
         hexagram.push({
             type: lowerNum % 2 === 0 ? '8' : '7',
@@ -2557,9 +2555,18 @@ function generateHexagramFromNumbers(upperNum, lowerNum, changingYaoPos) {
         });
     }
     
-    // 3. 处理变爻（position从1=初爻开始计数）
+    // 2. 生成上卦（外卦，四爻→上爻）
+    for (let i = 0; i < 3; i++) {
+        hexagram.push({
+            type: upperNum % 2 === 0 ? '8' : '7',
+            line: upperNum % 2 === 0 ? '000' : '111',
+            changing: false
+        });
+    }
+    
+    // 3. 修正变爻位置（position从1=初爻开始计数）
     if (changingYaoPos >= 1 && changingYaoPos <= 6) {
-        const index = 6 - changingYaoPos; // 初爻=数组[5]，上爻=数组[0]
+        const index = changingYaoPos - 1; // 直接对应数组索引
         hexagram[index].changing = true;
         hexagram[index].type = hexagram[index].type === '7' ? '9' : '6';
         hexagram[index].line = hexagram[index].line === '111' ? '000' : '111';
@@ -2573,13 +2580,13 @@ function updateHexagramDisplay() {
     const hexagramDisplay = document.getElementById('hexagram-display');
     hexagramDisplay.innerHTML = '';
 
-    // 从逻辑上爻（数组最后一项）开始渲染到初爻（数组第一项）
-    for (let i = currentHexagram.length - 1; i >= 0; i--) {
+    // 从初爻（数组第0项，最下方）到上爻（数组第5项，最上方）渲染
+    for (let i = 0; i < currentHexagram.length; i++) {
         const yao = currentHexagram[i];
         const lineDiv = document.createElement('div');
         lineDiv.className = 'hexagram-line';
 
-        // 爻线绘制（保持不变）
+        // 爻线绘制（阳爻为实线，阴爻为虚线）
         if (yao.line === '111') {
             lineDiv.classList.add('solid-line');
         } else {
@@ -2595,13 +2602,13 @@ function updateHexagramDisplay() {
             lineDiv.classList.add('yao-change');
         }
 
-        // 关键修改：爻位数字标签反向（6=上爻在最上方，1=初爻在最下方）
+        // 爻位标注（1=初爻在最下方，6=上爻在最上方）
         const numberSpan = document.createElement('span');
         numberSpan.className = 'line-number';
-        numberSpan.textContent = 6 - i;  // 数组最后一项（i=5）显示6（上爻）
+        numberSpan.textContent = i + 1; // 1=初爻，6=上爻
         lineDiv.appendChild(numberSpan);
 
-        // 保持DOM插入顺序（先插入的在上方）
+        // 将爻线添加到卦象容器（从下往上排列）
         hexagramDisplay.appendChild(lineDiv);
     }
 }
