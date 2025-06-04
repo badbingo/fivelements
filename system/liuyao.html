@@ -1813,11 +1813,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.body.appendChild(fullscreenLoading);
     
     // 初始化支付状态
-    let isPaid = localStorage.getItem('liuyao_payment_status') === 'paid';
-    updatePaymentStatus();
-
-    // 检查本地存储中的支付状态
-    isPaid = localStorage.getItem('liuyao_paid') === 'true';
+    let isPaid = false;
     updatePaymentStatus();
     
     // 检查支付回调
@@ -1861,10 +1857,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     sign: params.get('sign'),
                     sign_type: params.get('sign_type')
                 };
-    
+
                 if (verifyPayment(paymentData)) {
                     isPaid = true;
-                    localStorage.setItem('liuyao_paid', 'true'); // 持久化支付状态
                     updatePaymentStatus();
                     cleanUrl();
                     showToast('支付成功！您现在可以开始占卜了', 'success');
@@ -1874,7 +1869,7 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('支付回调处理错误:', error);
         }
     }
-        
+    
     // 生成签名
     function generateSign(params) {
         try {
@@ -2014,17 +2009,19 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 在占卜表单提交时处理支付状态
     document.getElementById('divination-form').addEventListener('submit', function(e) {
-    if (!isPaid) {
-        e.preventDefault();
-        showToast('请先支付1元解锁占卜功能', 'error');
-        return;
-    }
-    
-    // 占卜完成后立即重置支付状态
-    isPaid = false;
-    localStorage.removeItem('liuyao_payment_status');
-    updatePaymentStatus();
-});
+        if (!isPaid) {
+            e.preventDefault();
+            showToast('请先支付1元解锁占卜功能', 'error');
+            return;
+        }
+        
+        // 占卜完成后重置支付状态
+        setTimeout(() => {
+            isPaid = false;
+            updatePaymentStatus();
+            showToast('占卜已完成，如需再次占卜请重新支付', 'info');
+        }, 100);
+    });
     
     // 初始化更好的随机数种子
     if (window.crypto && window.crypto.getRandomValues) {
@@ -2138,11 +2135,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // 占卜完成后立即锁定输入框
-        isPaid = false;
-        localStorage.removeItem('liuyao_paid');
-        updatePaymentStatus();
+    isPaid = false;
+    updatePaymentStatus();
     });
-        
+    
     // 初始化时间输入框为当前时间
     const now = new Date();
     const timeStr = now.toISOString().slice(0, 16);
