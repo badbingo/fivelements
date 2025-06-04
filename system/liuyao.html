@@ -879,7 +879,7 @@
 
         <div class="content-section">
             <div class="instruction-card">
-                <h4><i class="fas fa-info-circle"></i> 六爻占卜简介</h4>
+                <h4><i class="fas fa-info-circle"></i> 六爻占卜简介1</h4>
                 <p>六爻占卜是中国古代《易经》中的重要预测方法，通过六次投掷钱币或其他方式，生成一个完整的六爻卦象。根据卦象的本卦、变卦与动爻变化，可推演事物的发展趋势与吉凶。本系统提供三种起卦方式，助您洞察未来，择吉避凶。：</p>
                 <ol>
                     <li><strong>钱币摇卦</strong> - 传统三枚铜钱六次投掷，是最经典、最具仪式感的起卦方式。</li>
@@ -2159,54 +2159,53 @@
         
         // 添加重置所有状态的函数
         function resetAllStates() {
-            try {
-                // 重置支付状态
-                isPaid = false;
-                localStorage.removeItem('liuyao_paid');
-                
-                // 重置占卜状态
-                currentHexagram = [];
-                castCount = 0;
-                currentQuestion = "";
-                
-                // 重置UI显示
-                document.getElementById('hexagram-display').innerHTML = '';
-                document.getElementById('hexagram-section').style.display = 'none';
-                document.getElementById('cast-count').textContent = '0';
-                document.getElementById('cast-status').textContent = '准备开始，请点击钱币确定正反面';
-                
-                // 重置钱币状态
-                const coins = document.querySelectorAll('.coin');
-                coins.forEach(coin => {
-                    delete coin.dataset.side;
-                    coin.style.transform = 'rotateY(0deg)';
-                    coin.classList.remove('selected', 'locked', 'quick-flipping', 'highlight-coin');
-                });
-                
-                // 重置问题输入框
-                const questionInput = document.getElementById('question');
-                questionInput.value = '';
-                questionInput.readOnly = true;
-                questionInput.style.backgroundColor = '#f5f5f5';
-                questionInput.placeholder = '请先支付1元解锁占卜功能';
-                
-                // 重置支付按钮显示
-                document.getElementById('payment-status').style.display = 'none';
-                document.getElementById('pay-btn').style.display = 'block';
-                
-                // 滚动到顶部
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-                
-                showToast('已重置所有状态，请重新支付后开始占卜', 'info');
-            } catch (error) {
-                console.error('重置状态出错:', error);
-                showToast('重置失败，请刷新页面', 'error');
-            }
-            updatePaymentStatus();
-            } catch (error) {
-                console.error('重置状态出错:', error);
-            }
-        }
+    try {
+        // 重置支付状态
+        isPaid = false;
+        localStorage.removeItem('liuyao_paid');
+        
+        // 重置占卜状态
+        currentHexagram = [];
+        castCount = 0;
+        currentQuestion = "";
+        
+        // 重置UI显示
+        document.getElementById('hexagram-display').innerHTML = '';
+        document.getElementById('hexagram-section').style.display = 'none';
+        document.getElementById('cast-count').textContent = '0';
+        document.getElementById('cast-status').textContent = '准备开始，请点击钱币确定正反面';
+        
+        // 重置钱币状态
+        const coins = document.querySelectorAll('.coin');
+        coins.forEach(coin => {
+            delete coin.dataset.side;
+            coin.style.transform = 'rotateY(0deg)';
+            coin.classList.remove('selected', 'locked', 'quick-flipping', 'highlight-coin');
+        });
+        
+        // 重置问题输入框
+        const questionInput = document.getElementById('question');
+        questionInput.value = '';
+        questionInput.readOnly = true;
+        questionInput.style.backgroundColor = '#f5f5f5';
+        questionInput.placeholder = '请先支付1元解锁占卜功能';
+        
+        // 重置支付按钮显示
+        document.getElementById('payment-status').style.display = 'none';
+        document.getElementById('pay-btn').style.display = 'block';
+        
+        // 滚动到顶部
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        
+        showToast('已重置所有状态，请重新支付后开始占卜', 'info');
+        
+        // 确保在 try 块内部调用
+        updatePaymentStatus();
+    } catch (error) {
+        console.error('重置状态出错:', error);
+        showToast('重置失败，请刷新页面', 'error');
+    }
+}
         
         // 重置占卜状态但不重置支付状态
         function resetDivination(resetPayment = false) {
