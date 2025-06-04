@@ -2267,6 +2267,31 @@
 
         const coins = document.querySelectorAll('.coin');
         let currentCoinIndex = 0;
+
+        // 修复钱币点击事件
+        function flipCoin(coin) {
+            if (!isPaid) {
+                showToast('请先支付1元解锁占卜功能', 'error');
+                return;
+            }
+            
+            if (coin.classList.contains('locked')) {
+                return;
+            }
+            
+            coin.classList.add('highlight-coin', 'quick-flipping');
+            
+            setTimeout(() => {
+                const isHead = Math.random() > 0.5;
+                coin.dataset.side = isHead ? 'head' : 'tail';
+                coin.style.transform = isHead ? 'rotateY(0deg)' : 'rotateY(180deg)';
+                coin.classList.add('selected');
+                
+                setTimeout(() => {
+                    coin.classList.remove('quick-flipping', 'highlight-coin');
+                }, 300);
+            }, 10);
+        }
         
         // 快速摇动单个钱币
         function quickFlipCoin(coin, callback) {
