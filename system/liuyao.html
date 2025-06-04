@@ -1765,19 +1765,19 @@
             "6": "老阴，阴爻变阳爻"
         };
         
-        // 全局变量
+        // Global variables
 let currentHexagram = [];
 let currentQuestion = "";
 let currentMethod = "coin";
 let castCount = 0;
 let history = JSON.parse(localStorage.getItem('divinationHistory')) || [];
-let isPaid = false; // 支付状态
+let isPaid = false; // Payment status
 
-// DOM加载完成后执行
+// DOM ready
 document.addEventListener('DOMContentLoaded', function() {
-    // 支付方式选择
+    // Payment method selection
     const paymentMethodBtns = document.querySelectorAll('.payment-method-btn');
-    let currentPaymentMethod = 'wxpay'; // 默认微信支付
+    let currentPaymentMethod = 'wxpay'; // Default to WeChat Pay
     
     paymentMethodBtns.forEach(btn => {
         btn.addEventListener('click', function() {
@@ -1787,7 +1787,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // 修改支付配置
+    // Payment configuration
     const paymentConfig = {
         pid: '2025051013380915',
         key: 'UsXrSwn0wft5SeLB0LaQfecvJmpkS18T',
@@ -1796,21 +1796,21 @@ document.addEventListener('DOMContentLoaded', function() {
         amount: '0.01'
     };
 
-    // 获取DOM元素
+    // DOM elements
     const payBtn = document.getElementById('pay-btn');
     const paymentStatus = document.getElementById('payment-status');
     const questionInput = document.getElementById('question');
     
-    // 初始化支付状态
+    // Initialize payment status
     updatePaymentStatus();
     
-    // 检查支付回调
+    // Check payment callback
     checkPaymentReturn();
     
-    // 支付按钮点击事件
+    // Payment button click
     payBtn.addEventListener('click', startPayment);
     
-    // 更新支付状态函数
+    // Update payment status
     function updatePaymentStatus() {
         if (isPaid) {
             paymentStatus.style.display = 'block';
@@ -1828,7 +1828,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // 检查支付回调
+    // Check payment return
     function checkPaymentReturn() {
         try {
             const params = new URLSearchParams(window.location.search);
@@ -1858,7 +1858,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // 生成签名
+    // Generate signature
     function generateSign(params) {
         try {
             const filtered = {};
@@ -1879,7 +1879,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // 验证支付
+    // Verify payment
     function verifyPayment(paymentData) {
         try {
             const sign = paymentData.sign;
@@ -1891,7 +1891,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // 生成订单号
+    // Generate order number
     function generateOrderNo() {
         const now = new Date();
         return `${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}` +
@@ -1903,7 +1903,7 @@ document.addEventListener('DOMContentLoaded', function() {
         return num < 10 ? `0${num}` : num;
     }
     
-    // 清理URL
+    // Clean URL
     function cleanUrl() {
         try {
             window.history.replaceState({}, document.title, window.location.pathname);
@@ -1912,7 +1912,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // 开始支付
+    // Start payment
     function startPayment() {
         try {
             const fullscreenLoading = document.createElement('div');
@@ -1927,7 +1927,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             const paymentData = {
                 pid: paymentConfig.pid,
-                type: currentPaymentMethod, // 使用当前选择的支付方式
+                type: currentPaymentMethod,
                 out_trade_no: generateOrderNo(),
                 notify_url: paymentConfig.returnUrl,
                 return_url: paymentConfig.returnUrl,
@@ -1950,7 +1950,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // 提交支付表单
+    // Submit payment form
     function submitPaymentForm(data) {
         try {
             const form = document.createElement('form');
@@ -1974,7 +1974,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // 显示Toast提示
+    // Show toast message
     function showToast(message, type = 'info') {
         const toast = document.createElement('div');
         toast.style.cssText = `
@@ -2001,7 +2001,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 3000);
     }
 
-    // 在占卜方法按钮点击时检查支付状态
+    // Check payment status when switching methods
     document.querySelectorAll('.method-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             if (!isPaid) {
@@ -2012,7 +2012,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // 在占卜表单提交时处理支付状态
+    // Handle form submission with payment check
     document.getElementById('divination-form').addEventListener('submit', function(e) {
         if (!isPaid) {
             e.preventDefault();
@@ -2021,7 +2021,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // 新占卜按钮点击事件 - 重置支付状态
+    // New divination button - reset payment status
     document.getElementById('new-divination').addEventListener('click', function() {
         isPaid = false;
         updatePaymentStatus();
@@ -3012,7 +3012,7 @@ function getYaoChangeInterpretation(count, hexagramCode) {
         document.getElementById('cast-count').textContent = '0';
         document.getElementById('cast-status').textContent = '准备开始，请点击钱币确定正反面';
         
-        // 重置钱币
+        // Reset coins
         const coins = document.querySelectorAll('.coin');
         coins.forEach(coin => {
             delete coin.dataset.side;
@@ -3020,10 +3020,10 @@ function getYaoChangeInterpretation(count, hexagramCode) {
             coin.classList.remove('selected', 'locked');
         });
         
-        // 重置问题输入框
+        // Reset question input
         document.getElementById('question').value = '';
         
-        // 滚动到顶部
+        // Scroll to top
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 });
