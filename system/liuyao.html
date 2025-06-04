@@ -1775,6 +1775,22 @@
 
         // DOM加载完成后执行
         document.addEventListener('DOMContentLoaded', function() {
+            // 1. 先定义所有函数
+            function checkPaymentStatus() { /* ... */ }
+            
+            function updatePaymentStatus() {
+                // 正确获取元素
+                const paymentStatus = document.getElementById('payment-status');
+                const payBtn = document.getElementById('pay-btn');
+                const questionInput = document.getElementById('question');
+                
+                if (isPaid) {
+                    paymentStatus.style.display = 'block';
+                    // ...其他逻辑
+                } else {
+                    // ...其他逻辑
+                }
+            }
             // 初始化支付状态
             checkPaymentStatus();
             updatePaymentStatus();
@@ -1827,8 +1843,37 @@
                     questionInput.placeholder = '请先支付1元解锁占卜功能';
                     questionInput.value = '';
                 }
-            }
-            
+            }function updatePaymentStatus() {
+                    // 1. 获取所有需要的DOM元素
+                    const paymentStatus = document.getElementById('payment-status');
+                    const payBtn = document.getElementById('pay-btn');
+                    const questionInput = document.getElementById('question');
+                    
+                    // 2. 添加空值检查 - 确保元素存在
+                    if (!paymentStatus || !payBtn || !questionInput) {
+                        console.error("支付状态元素未找到");
+                        return; // 如果元素不存在则直接返回
+                    }
+                    
+                    // 3. 根据支付状态更新UI
+                    if (isPaid) {
+                        // 已支付状态
+                        paymentStatus.style.display = 'block';
+                        payBtn.style.display = 'none';
+                        questionInput.readOnly = false;
+                        questionInput.style.backgroundColor = '';
+                        questionInput.placeholder = '请输入您要占卜的问题...';
+                    } else {
+                        // 未支付状态
+                        paymentStatus.style.display = 'none';
+                        payBtn.style.display = 'block';
+                        questionInput.readOnly = true;
+                        questionInput.style.backgroundColor = '#f5f5f5';
+                        questionInput.placeholder = '请先支付1元解锁占卜功能';
+                        questionInput.value = '';
+                    }
+                }
+                            
             // 检查支付状态
             function checkPaymentStatus() {
                 try {
