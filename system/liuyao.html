@@ -882,7 +882,7 @@
 
         <div class="content-section">
             <div class="instruction-card">
-                <h4><i class="fas fa-info-circle"></i> 六爻占卜简介</h4>
+                <h4><i class="fas fa-info-circle"></i> 六爻占卜简介1</h4>
                 <p>六爻占卜是中国古代《易经》中的重要预测方法，通过六次投掷钱币或其他方式，生成一个完整的六爻卦象。根据卦象的本卦、变卦与动爻变化，可推演事物的发展趋势与吉凶。本系统提供三种起卦方式，助您洞察未来，择吉避凶。：</p>
                 <ol>
                     <li><strong>钱币摇卦</strong> - 传统三枚铜钱六次投掷，是最经典、最具仪式感的起卦方式。</li>
@@ -2374,7 +2374,6 @@ function castWithCoins() {
     // 第一次摇卦时设置问题
     if (castCount === 0) {
         currentQuestion = question;
-        // 设置占卜时间和方法
         const now = new Date();
         document.getElementById('divination-time').textContent = now.toLocaleString();
         document.getElementById('divination-method').textContent = "钱币摇卦";
@@ -2397,62 +2396,51 @@ function castWithCoins() {
         return;
     }
     
-    // 确定爻的性质
+    // 精确的爻性质判断
     let yao;
-    const randomFactor = window.crypto.getRandomValues(new Uint32Array(1))[0] / 4294967295;
-    
-    switch (headCount) {
-        case 0: // 三个反面
-            yao = { 
-                type: randomFactor > 0.15 ? '6' : '8', // 15%几率变为少阴
-                line: randomFactor > 0.15 ? '000' : '010', 
-                changing: randomFactor > 0.15 
-            };
-            break;
-        case 1: // 一个正面
-            yao = { 
-                type: randomFactor > 0.1 ? '7' : (randomFactor > 0.05 ? '9' : '6'), 
-                line: randomFactor > 0.1 ? '001' : (randomFactor > 0.05 ? '111' : '000'),
-                changing: randomFactor <= 0.1
-            };
-            break;
-        case 2: // 两个正面
-            yao = { 
-                type: randomFactor > 0.1 ? '8' : (randomFactor > 0.05 ? '6' : '9'), 
-                line: randomFactor > 0.1 ? '010' : (randomFactor > 0.05 ? '000' : '111'),
-                changing: randomFactor <= 0.1
-            };
-            break;
-        case 3: // 三个正面
-            yao = { 
-                type: randomFactor > 0.15 ? '9' : '7', // 15%几率变为少阳
-                line: randomFactor > 0.15 ? '111' : '001', 
-                changing: randomFactor > 0.15 
-            };
-            break;
+    if (headCount === 0) { // 三反面 - 老阴(变爻)
+        yao = { 
+            type: '6',
+            line: '000',
+            changing: true
+        };
+    } else if (headCount === 1) { // 一正面 - 少阴(不变)
+        yao = { 
+            type: '7',
+            line: '001',
+            changing: false
+        };
+    } else if (headCount === 2) { // 两正面 - 少阳(不变)
+        yao = { 
+            type: '8',
+            line: '010',
+            changing: false
+        };
+    } else if (headCount === 3) { // 三正面 - 老阳(变爻)
+        yao = { 
+            type: '9',
+            line: '111',
+            changing: true
+        };
     }
     
     currentHexagram.push(yao);
     castCount++;
     
-    // 更新摇卦次数显示
+    // 更新UI
     document.getElementById('cast-count').textContent = castCount;
     
-    // 重置钱币状态（解锁并清除状态）
+    // 重置钱币状态
     coins.forEach(coin => {
         delete coin.dataset.side;
         coin.style.transform = 'rotateY(0deg)';
         coin.classList.remove('selected');
-        coin.classList.remove('locked'); // 解锁钱币
+        coin.classList.remove('locked');
     });
     
-    // 更新状态显示
     document.getElementById('cast-status').textContent = `第 ${castCount} 次摇卦完成，请继续点击钱币`;
-    
-    // 更新UI
     updateHexagramDisplay();
     
-    // 如果已经摇了6次，显示结果
     if (castCount === 6) {
         showResult();
     }
