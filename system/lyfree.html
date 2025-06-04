@@ -2170,8 +2170,8 @@ function generateHexagramFromNumbers(upperNum, lowerNum, changingYao) {
     const upperCode = trigrams[upperNum];
     const lowerCode = trigrams[lowerNum];
     
-    // 组合成六爻卦象
-    const hexagramCode = upperCode + lowerCode;
+    // 修正：将上下卦顺序调换，因为易经卦象是上卦在上（显示时在下面），下卦在下（显示时在上面）
+    const hexagramCode = lowerCode + upperCode;
     
     // 生成六爻数据
     currentHexagram = [];
@@ -2191,7 +2191,7 @@ function generateHexagramFromNumbers(upperNum, lowerNum, changingYao) {
     showResult();
 }
 
-// 更新卦象显示
+// 更新卦象显示（保持不变）
 function updateHexagramDisplay() {
     const hexagramDisplay = document.getElementById('hexagram-display');
     hexagramDisplay.innerHTML = '';
@@ -2232,6 +2232,7 @@ function updateHexagramDisplay() {
         }
     }
 }
+
 
 // 生成卦象SVG
 function generateHexagramSvg(hexagramCode) {
