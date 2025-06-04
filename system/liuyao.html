@@ -882,7 +882,7 @@
 
         <div class="content-section">
             <div class="instruction-card">
-                <h4><i class="fas fa-info-circle"></i> 六爻占卜简介</h4>
+                <h4><i class="fas fa-info-circle"></i> 六爻占卜简介1</h4>
                 <p>六爻占卜是中国古代《易经》中的重要预测方法，通过六次投掷钱币或其他方式，生成一个完整的六爻卦象。根据卦象的本卦、变卦与动爻变化，可推演事物的发展趋势与吉凶。本系统提供三种起卦方式，助您洞察未来，择吉避凶。：</p>
                 <ol>
                     <li><strong>钱币摇卦</strong> - 传统三枚铜钱六次投掷，是最经典、最具仪式感的起卦方式。</li>
@@ -1777,6 +1777,10 @@
         
         // DOM加载完成后执行
 document.addEventListener('DOMContentLoaded', function() {
+    
+        // 检查本地存储中的支付状态
+        let isPaid = localStorage.getItem('liuyao_paid') === 'true' || false;
+
             // 支付方式选择
             const paymentMethodBtns = document.querySelectorAll('.payment-method-btn');
             let currentPaymentMethod = 'wxpay'; // 默认微信支付
@@ -1824,51 +1828,55 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 更新支付状态函数
     function updatePaymentStatus() {
-        if (isPaid) {
-            paymentStatus.style.display = 'block';
-            payBtn.style.display = 'none';
-            questionInput.readOnly = false;
-            questionInput.style.backgroundColor = '';
-            questionInput.placeholder = '请输入您要占卜的问题...';
-        } else {
-            paymentStatus.style.display = 'none';
-            payBtn.style.display = 'block';
-            questionInput.readOnly = true;
-            questionInput.style.backgroundColor = '#f5f5f5';
-            questionInput.placeholder = '请先支付1元解锁占卜功能';
-            questionInput.value = '';
-        }
+    const questionInput = document.getElementById('question');
+    const payBtn = document.getElementById('pay-btn');
+    const paymentStatus = document.getElementById('payment-status');
+    
+    if (isPaid) {
+        paymentStatus.style.display = 'block';
+        payBtn.style.display = 'none';
+        questionInput.readOnly = false;
+        questionInput.style.backgroundColor = '';
+        questionInput.placeholder = '请输入您要占卜的问题...';
+    } else {
+        paymentStatus.style.display = 'none';
+        payBtn.style.display = 'block';
+        questionInput.readOnly = true;
+        questionInput.style.backgroundColor = '#f5f5f5';
+        questionInput.placeholder = '请先支付1元解锁占卜功能';
     }
+}
     
     // 检查支付回调
     function checkPaymentReturn() {
-        try {
-            const params = new URLSearchParams(window.location.search);
-            if (params.get('trade_status') === 'TRADE_SUCCESS') {
-                const paymentData = {
-                    pid: params.get('pid'),
-                    trade_no: params.get('trade_no'),
-                    out_trade_no: params.get('out_trade_no'),
-                    type: params.get('type'),
-                    name: params.get('name'),
-                    money: params.get('money'),
-                    trade_status: params.get('trade_status'),
-                    param: params.get('param'),
-                    sign: params.get('sign'),
-                    sign_type: params.get('sign_type')
-                };
+    try {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('trade_status') === 'TRADE_SUCCESS') {
+            const paymentData = {
+                pid: params.get('pid'),
+                trade_no: params.get('trade_no'),
+                out_trade_no: params.get('out_trade_no'),
+                type: params.get('type'),
+                name: params.get('name'),
+                money: params.get('money'),
+                trade_status: params.get('trade_status'),
+                param: params.get('param'),
+                sign: params.get('sign'),
+                sign_type: params.get('sign_type')
+            };
 
-                if (verifyPayment(paymentData)) {
-                    isPaid = true;
-                    updatePaymentStatus();
-                    cleanUrl();
-                    showToast('支付成功！您现在可以开始占卜了', 'success');
-                }
+            if (verifyPayment(paymentData)) {
+                isPaid = true;
+                localStorage.setItem('liuyao_paid', 'true'); // 存储支付状态
+                updatePaymentStatus();
+                cleanUrl();
+                showToast('支付成功！您现在可以开始占卜了', 'success');
             }
-        } catch (error) {
-            console.error('支付回调处理错误:', error);
         }
+    } catch (error) {
+        console.error('支付回调处理错误:', error);
     }
+}
     
     // 生成签名
     function generateSign(params) {
@@ -2009,19 +2017,27 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 在占卜表单提交时处理支付状态
     document.getElementById('divination-form').addEventListener('submit', function(e) {
-        if (!isPaid) {
-            e.preventDefault();
-            showToast('请先支付1元解锁占卜功能', 'error');
-            return;
-        }
-        
-        // 占卜完成后重置支付状态
-        setTimeout(() => {
-            isPaid = false;
-            updatePaymentStatus();
-            showToast('占卜已完成，如需再次占卜请重新支付', 'info');
-        }, 100);
-    });
+    e.preventDefault();
+    
+    if (!isPaid) {
+        showToast('请先支付1元解锁占卜功能', 'error');
+        return;
+    }
+    
+    // 根据当前方法调用相应函数
+    if (currentMethod === 'coin') {
+        castWithCoins();
+    } else if (currentMethod === 'time') {
+        castWithTime();
+    } else if (currentMethod === 'number') {
+        castWithNumbers();
+    }
+    
+    // 占卜完成后锁定输入框
+    isPaid = false;
+    localStorage.removeItem('liuyao_paid');
+    updatePaymentStatus();
+});
     
     // 初始化更好的随机数种子
     if (window.crypto && window.crypto.getRandomValues) {
@@ -2365,6 +2381,18 @@ function countSetCoins() {
 
 // 使用钱币摇卦 - 改进后的版本
 function castWithCoins() {
+    // 检查支付状态
+    if (!isPaid) {
+        showToast('请先支付1元解锁占卜功能', 'error');
+        return;
+    }
+    
+    // 重置支付状态
+    isPaid = false;
+    localStorage.removeItem('liuyao_paid');
+    updatePaymentStatus();
+    
+    // 原有代码...
     const question = document.getElementById('question').value.trim();
     if (!question) {
         alert('请输入占卜问题');
