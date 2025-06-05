@@ -1,4 +1,4 @@
-不知是否有效
+六爻收费版6-4-25
 
 <!DOCTYPE html>
 <html lang="zh-CN">
@@ -883,7 +883,7 @@
 
         <div class="content-section">
             <div class="instruction-card">
-                <h4><i class="fas fa-info-circle"></i> 六爻占卜简介1</h4>
+                <h4><i class="fas fa-info-circle"></i> 六爻占卜简介</h4>
                 <p>六爻占卜是中国古代《易经》中的重要预测方法，通过六次投掷钱币或其他方式，生成一个完整的六爻卦象。根据卦象的本卦、变卦与动爻变化，可推演事物的发展趋势与吉凶。本系统提供三种起卦方式，助您洞察未来，择吉避凶。：</p>
                 <ol>
                     <li><strong>钱币摇卦</strong> - 传统三枚铜钱六次投掷，是最经典、最具仪式感的起卦方式。</li>
@@ -1840,22 +1840,6 @@ document.addEventListener('DOMContentLoaded', function() {
             questionInput.value = '';
         }
     }
-
-    // 检查支付状态的通用函数
-    function checkPaymentBeforeDivination() {
-        if (!isPaid) {
-            showToast('请先支付1元解锁占卜功能', 'error');
-            return false;
-        }
-        
-        const question = document.getElementById('question').value.trim();
-        if (!question) {
-            showToast('请输入占卜问题', 'error');
-            return false;
-        }
-        
-        return true;
-    }
     
     // 检查支付回调
     function checkPaymentReturn() {
@@ -2026,10 +2010,12 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 在占卜表单提交时处理支付状态
     document.getElementById('divination-form').addEventListener('submit', function(e) {
-        e.preventDefault();
-        // 移除了支付检查，改为在各个起卦方法中检查
-    });
-            
+        if (!isPaid) {
+            e.preventDefault();
+            showToast('请先支付1元解锁占卜功能', 'error');
+            return;
+        }
+        
         // 占卜完成后重置支付状态
         setTimeout(() => {
             isPaid = false;
@@ -2063,13 +2049,14 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 钱币点击事件 - 改进后的版本
     const coins = document.querySelectorAll('.coin');
-        coins.forEach(coin => {
+    coins.forEach(coin => {
         coin.addEventListener('click', function() {
-            if (!isPaid) {
-                showToast('请先支付1元解锁占卜功能', 'error');
-                return;
+            // 只有当钱币未被锁定且当前轮次未完成时才允许点击
+            if (!this.classList.contains('locked') && castCount < 6) {
+                flipCoin(this);
+                // 锁定钱币
+                this.classList.add('locked');
             }
-            // 原有逻辑...
         });
     });
     
@@ -2157,7 +2144,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const now = new Date();
     const timeStr = now.toISOString().slice(0, 16);
     document.getElementById('time').value = timeStr;
-
+});
         
 // 添加重置所有状态的函数
 function resetAllStates() {
@@ -2210,8 +2197,6 @@ function updatePaymentStatus() {
         
 // 自动摇卦函数 - 改进版，模拟手动摇卦过程
 function autoCastCoins() {
-    if (!checkPaymentBeforeDivination()) return;
-    
     // 先验证是否输入了占卜问题
     const question = document.getElementById('question').value.trim();
     if (!question) {
@@ -2381,8 +2366,6 @@ function countSetCoins() {
 
 // 使用钱币摇卦 - 改进后的版本
 function castWithCoins() {
-    if (!checkPaymentBeforeDivination()) return;
-    
     const question = document.getElementById('question').value.trim();
     if (!question) {
         alert('请输入占卜问题');
@@ -2466,8 +2449,6 @@ function castWithCoins() {
 
 // 使用时间起卦
 function castWithTime() {
-    if (!checkPaymentBeforeDivination()) return;
-    
     const question = document.getElementById('question').value.trim();
     if (!question) {
         alert('请输入占卜问题');
@@ -2509,8 +2490,6 @@ function castWithTime() {
 
 // 使用数字起卦
 function castWithNumbers() {
-    if (!checkPaymentBeforeDivination()) return;
-    
     const question = document.getElementById('question').value.trim();
     if (!question) {
         alert('请输入占卜问题');
@@ -2721,10 +2700,10 @@ function showResult() {
     
     // 滚动到结果区域
     setTimeout(() => {
-        isPaid = false;
-        updatePaymentStatus();
-        showToast('占卜已完成，如需再次占卜请重新支付', 'info');
-    }, 100);
+        document.getElementById('hexagram-section').scrollIntoView({ 
+            behavior: 'smooth' 
+        });
+    }, 300);
 }
         
 // 动态生成SVG卦象图
