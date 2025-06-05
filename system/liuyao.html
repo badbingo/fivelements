@@ -883,7 +883,7 @@
 
         <div class="content-section">
             <div class="instruction-card">
-                <h4><i class="fas fa-info-circle"></i> 六爻占卜简介</h4>
+                <h4><i class="fas fa-info-circle"></i> 六爻占卜简介1</h4>
                 <p>六爻占卜是中国古代《易经》中的重要预测方法，通过六次投掷钱币或其他方式，生成一个完整的六爻卦象。根据卦象的本卦、变卦与动爻变化，可推演事物的发展趋势与吉凶。本系统提供三种起卦方式，助您洞察未来，择吉避凶。：</p>
                 <ol>
                     <li><strong>钱币摇卦</strong> - 传统三枚铜钱六次投掷，是最经典、最具仪式感的起卦方式。</li>
@@ -1770,24 +1770,31 @@
         };
         
         // 全局变量
-let isPaid = localStorage.getItem('liuyao_paid') === 'true' || false;
-let currentHexagram = [];
-let currentQuestion = "";
-let currentMethod = "coin";
-let castCount = 0;
-let history = JSON.parse(localStorage.getItem('divinationHistory')) || [];
+let isPaid;
+let currentHexagram;
+let currentQuestion;
+let currentMethod;
+let castCount;
+let history;
 
 // DOM加载完成后执行
 document.addEventListener('DOMContentLoaded', function() {
-
-    // Initialize payment status
+    // Initialize variables
+    isPaid = localStorage.getItem('liuyao_paid') === 'true' || false;
+    currentHexagram = [];
+    currentQuestion = "";
+    currentMethod = "coin";
+    castCount = 0;
+    history = JSON.parse(localStorage.getItem('divinationHistory')) || [];
+    
+    // Now safe to call functions that use these variables
     updatePaymentStatus();
     
-    // Check payment return
+    // Rest of your initialization code...
     checkPaymentReturn();
     
     // Pay button click event
-    payBtn.addEventListener('click', startPayment);
+    document.getElementById('pay-btn').addEventListener('click', startPayment);
     
     // 支付方式选择
     const paymentMethodBtns = document.querySelectorAll('.payment-method-btn');
