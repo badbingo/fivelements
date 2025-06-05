@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -882,7 +881,7 @@
 
         <div class="content-section">
             <div class="instruction-card">
-                <h4><i class="fas fa-info-circle"></i> 六爻占卜简介2</h4>
+                <h4><i class="fas fa-info-circle"></i> 六爻占卜简介</h4>
                 <p>六爻占卜是中国古代《易经》中的重要预测方法，通过六次投掷钱币或其他方式，生成一个完整的六爻卦象。根据卦象的本卦、变卦与动爻变化，可推演事物的发展趋势与吉凶。本系统提供三种起卦方式，助您洞察未来，择吉避凶。：</p>
                 <ol>
                     <li><strong>钱币摇卦</strong> - 传统三枚铜钱六次投掷，是最经典、最具仪式感的起卦方式。</li>
@@ -1770,42 +1769,35 @@
         };
         
         // 全局变量
-let currentHexagram = [];
-let currentQuestion = "";
-let currentMethod = "coin";
-let castCount = 0;
-let history = JSON.parse(localStorage.getItem('divinationHistory')) || [];
-let paidMethods = { coin: false, time: false, number: false }; // 跟踪每种方法的支付状态
-
-// DOM加载完成后执行
+        let currentHexagram = [];
+        let currentQuestion = "";
+        let currentMethod = "coin";
+        let castCount = 0;
+        let history = JSON.parse(localStorage.getItem('divinationHistory')) || [];
+        
+        // DOM加载完成后执行
 document.addEventListener('DOMContentLoaded', function() {
-    // 从本地存储加载支付状态
-    const savedPaidMethods = localStorage.getItem('paidMethods');
-    if (savedPaidMethods) {
-        paidMethods = JSON.parse(savedPaidMethods);
-    }
-    
-    // 支付方式选择
-    const paymentMethodBtns = document.querySelectorAll('.payment-method-btn');
-    let currentPaymentMethod = 'wxpay'; // 默认微信支付
-    
-    paymentMethodBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
-            paymentMethodBtns.forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-            currentPaymentMethod = this.dataset.type;
-        });
-    });
+            // 支付方式选择
+            const paymentMethodBtns = document.querySelectorAll('.payment-method-btn');
+            let currentPaymentMethod = 'wxpay'; // 默认微信支付
+            
+            paymentMethodBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    paymentMethodBtns.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentPaymentMethod = this.dataset.type;
+                });
+            });
 
-    // 修改支付配置
-    const paymentConfig = {
-        pid: '2025051013380915',
-        key: 'UsXrSwn0wft5SeLB0LaQfecvJmpkS18T',
-        apiUrl: 'https://zpayz.cn/submit.php',
-        returnUrl: window.location.href.split('?')[0],
-        amount: '0.01'
-    };
-
+            // 修改支付配置
+            const paymentConfig = {
+                pid: '2025051013380915',
+                key: 'UsXrSwn0wft5SeLB0LaQfecvJmpkS18T',
+                apiUrl: 'https://zpayz.cn/submit.php',
+                returnUrl: window.location.href.split('?')[0],
+                amount: '0.01'
+            };
+    
     // 获取DOM元素
     const payBtn = document.getElementById('pay-btn');
     const paymentStatus = document.getElementById('payment-status');
@@ -1821,6 +1813,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.body.appendChild(fullscreenLoading);
     
     // 初始化支付状态
+    let isPaid = false;
     updatePaymentStatus();
     
     // 检查支付回调
@@ -1831,8 +1824,6 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 更新支付状态函数
     function updatePaymentStatus() {
-        const isPaid = paidMethods[currentMethod];
-        
         if (isPaid) {
             paymentStatus.style.display = 'block';
             payBtn.style.display = 'none';
@@ -1868,20 +1859,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 };
 
                 if (verifyPayment(paymentData)) {
-                    // 从param中提取支付的方法
-                    const methodParam = paymentData.param.split('_')[2];
-                    if (methodParam && ['coin', 'time', 'number'].includes(methodParam)) {
-                        paidMethods[methodParam] = true;
-                        localStorage.setItem('paidMethods', JSON.stringify(paidMethods));
-                        
-                        // 设置当前方法为支付的方法
-                        currentMethod = methodParam;
-                        activateMethodUI(currentMethod);
-                        
-                        // 重置占卜状态
-                        resetDivination();
-                    }
-                    
+                    isPaid = true;
                     updatePaymentStatus();
                     cleanUrl();
                     showToast('支付成功！您现在可以开始占卜了', 'success');
@@ -1890,25 +1868,6 @@ document.addEventListener('DOMContentLoaded', function() {
         } catch (error) {
             console.error('支付回调处理错误:', error);
         }
-    }
-    
-    // 激活指定方法的UI
-    function activateMethodUI(method) {
-        // 更新方法按钮的激活状态
-        methodBtns.forEach(btn => {
-            btn.classList.remove('active');
-            if (btn.dataset.method === method) {
-                btn.classList.add('active');
-            }
-        });
-        
-        // 显示对应方法的UI部分
-        document.querySelectorAll('.method-section').forEach(section => {
-            section.classList.remove('active');
-            if (section.id === `${method}-method`) {
-                section.classList.add('active');
-            }
-        });
     }
     
     // 生成签名
@@ -1967,34 +1926,34 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 开始支付
     function startPayment() {
-        try {
-            fullscreenLoading.style.display = 'flex';
-            
-            const paymentData = {
-                pid: paymentConfig.pid,
-                type: currentPaymentMethod, // 使用当前选择的支付方式
-                out_trade_no: generateOrderNo(),
-                notify_url: paymentConfig.returnUrl,
-                return_url: paymentConfig.returnUrl,
-                name: '六爻占卜服务费',
-                money: paymentConfig.amount,
-                param: `liuyao_divination_${currentMethod}`, // 包含当前方法
-                sign_type: 'MD5'
-            };
-            
-            paymentData.sign = generateSign(paymentData);
-            
-            if (!paymentData.sign) {
-                throw new Error('生成支付签名失败');
+                try {
+                    fullscreenLoading.style.display = 'flex';
+                    
+                    const paymentData = {
+                        pid: paymentConfig.pid,
+                        type: currentPaymentMethod, // 使用当前选择的支付方式
+                        out_trade_no: generateOrderNo(),
+                        notify_url: paymentConfig.returnUrl,
+                        return_url: paymentConfig.returnUrl,
+                        name: '六爻占卜服务费',
+                        money: paymentConfig.amount,
+                        param: 'liuyao_divination',
+                        sign_type: 'MD5'
+                    };
+                    
+                    paymentData.sign = generateSign(paymentData);
+                    
+                    if (!paymentData.sign) {
+                        throw new Error('生成支付签名失败');
+                    }
+                    
+                    submitPaymentForm(paymentData);
+                } catch (error) {
+                    console.error('支付启动错误:', error);
+                    fullscreenLoading.style.display = 'none';
+                    showToast('支付启动失败，请稍后再试', 'error');
+                }
             }
-            
-            submitPaymentForm(paymentData);
-        } catch (error) {
-            console.error('支付启动错误:', error);
-            fullscreenLoading.style.display = 'none';
-            showToast('支付启动失败，请稍后再试', 'error');
-        }
-    }
     
     // 提交支付表单
     function submitPaymentForm(data) {
@@ -2050,16 +2009,15 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 在占卜表单提交时处理支付状态
     document.getElementById('divination-form').addEventListener('submit', function(e) {
-        if (!paidMethods[currentMethod]) {
+        if (!isPaid) {
             e.preventDefault();
             showToast('请先支付1元解锁占卜功能', 'error');
             return;
         }
         
-        // 占卜完成后重置当前方法的支付状态
+        // 占卜完成后重置支付状态
         setTimeout(() => {
-            paidMethods[currentMethod] = false;
-            localStorage.setItem('paidMethods', JSON.stringify(paidMethods));
+            isPaid = false;
             updatePaymentStatus();
             showToast('占卜已完成，如需再次占卜请重新支付', 'info');
         }, 100);
@@ -2070,46 +2028,23 @@ document.addEventListener('DOMContentLoaded', function() {
         const seed = window.crypto.getRandomValues(new Uint32Array(1))[0];
         Math.seedrandom(seed.toString());
     }
-    
     // 初始化方法切换
     const methodBtns = document.querySelectorAll('.method-btn');
     methodBtns.forEach(btn => {
         btn.addEventListener('click', function() {
-            const selectedMethod = this.dataset.method;
-            
-            // 如果切换方法且新方法未支付
-            if (selectedMethod !== currentMethod && !paidMethods[selectedMethod]) {
-                showToast(`请先支付1元解锁${getMethodName(selectedMethod)}功能`, 'error');
-                return;
-            }
-            
-            // 如果切换方法且已支付
             methodBtns.forEach(b => b.classList.remove('active'));
             this.classList.add('active');
-            currentMethod = selectedMethod;
+            currentMethod = this.dataset.method;
             
             document.querySelectorAll('.method-section').forEach(section => {
                 section.classList.remove('active');
             });
             document.getElementById(`${currentMethod}-method`).classList.add('active');
             
-            // 更新支付状态显示
-            updatePaymentStatus();
-            
             // 重置状态
             resetDivination();
         });
     });
-    
-    // 获取方法名称
-    function getMethodName(method) {
-        switch(method) {
-            case 'coin': return '钱币摇卦';
-            case 'time': return '时间起卦';
-            case 'number': return '数字起卦';
-            default: return '占卜';
-        }
-    }
     
     // 钱币点击事件 - 改进后的版本
     const coins = document.querySelectorAll('.coin');
@@ -2154,18 +2089,18 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 重置按钮
     document.getElementById('reset-btn').addEventListener('click', function() {
-        // 重置所有状态
-        resetAllStates();
-        // 强制刷新页面
-        location.reload();
+    // 重置所有状态
+    resetAllStates();
+    // 强制刷新页面
+    location.reload();
     });
     
     // 新占卜按钮
    document.getElementById('new-divination').addEventListener('click', function() {
-        // 重置所有状态
-        resetAllStates();
-        // 强制刷新页面
-        location.reload();
+    // 重置所有状态
+    resetAllStates();
+    // 强制刷新页面
+    location.reload();
     });
     
     // 保存卦象按钮
@@ -2193,15 +2128,15 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     document.getElementById('divination-form').addEventListener('submit', function(e) {
-        if (!paidMethods[currentMethod]) {
-            e.preventDefault();
-            showToast('请先支付1元解锁占卜功能', 'error');
-            return;
-        }
-        
-        // 占卜完成后立即锁定输入框
-        paidMethods[currentMethod] = false;
-        updatePaymentStatus();
+    if (!isPaid) {
+        e.preventDefault();
+        showToast('请先支付1元解锁占卜功能', 'error');
+        return;
+    }
+    
+    // 占卜完成后立即锁定输入框
+    isPaid = false;
+    updatePaymentStatus();
     });
     
     // 初始化时间输入框为当前时间
@@ -2210,8 +2145,12 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('time').value = timeStr;
 });
         
- // 添加重置所有状态的函数
+// 添加重置所有状态的函数
 function resetAllStates() {
+    // 重置支付状态
+    isPaid = false;
+    localStorage.removeItem('liuyao_paid');
+    
     // 重置占卜状态
     currentHexagram = [];
     castCount = 0;
@@ -2234,13 +2173,13 @@ function resetAllStates() {
     document.getElementById('question').value = '';
 }
         
-// 修改支付状态更新函数
+ // 修改支付状态更新函数
 function updatePaymentStatus() {
     const questionInput = document.getElementById('question');
     const payBtn = document.getElementById('pay-btn');
     const paymentStatus = document.getElementById('payment-status');
     
-    if (paidMethods[currentMethod]) {
+    if (isPaid) {
         paymentStatus.style.display = 'block';
         payBtn.style.display = 'none';
         questionInput.readOnly = false;
@@ -2992,29 +2931,29 @@ function getYaoChangeInterpretation(count, hexagramCode) {
         
         // 渲染历史记录
         function renderHistory() {
-    const historyList = document.getElementById('history-list');
-    historyList.innerHTML = '';
-
-    if (history.length === 0) {
-        historyList.innerHTML = '<p>暂无历史记录</p>';
-        return;
-    }
-
-    history.forEach((record, index) => {
-        const item = document.createElement('div');
-        item.className = 'history-item';
-        item.innerHTML = `
-            <span class="history-gua">${record.name} (${record.method})</span>
-            <span class="history-date">${record.time}</span>
-        `;
-
-        item.addEventListener('click', function () {
-            loadHistoryRecord(index);
-        });
-
-        historyList.appendChild(item);
-    });
-}
+            const historyList = document.getElementById('history-list');
+            historyList.innerHTML = '';
+            
+            if (history.length === 0) {
+                historyList.innerHTML = '<p>暂无历史记录</p>';
+                return;
+            }
+            
+            history.forEach((record, index) => {
+                const item = document.createElement('div');
+                item.className = 'history-item';
+                item.innerHTML = `
+                    <span class="history-gua">${record.name} (${record.method})</span>
+                    <span class="history-date">${record.time}</span>
+                `;
+                
+                item.addEventListener('click', function() {
+                    loadHistoryRecord(index);
+                });
+                
+                historyList.appendChild(item);
+            });
+        }
         
         // 加载历史记录
         function loadHistoryRecord(index) {
@@ -3077,7 +3016,8 @@ function getYaoChangeInterpretation(count, hexagramCode) {
             // 重置问题输入框
             document.getElementById('question').value = '';
             
-            // 更新支付状态显示
+            // 锁定输入框
+            isPaid = false;
             updatePaymentStatus();
             
             // 滚动到顶部
