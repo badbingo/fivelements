@@ -1,3 +1,5 @@
+不知是否有效
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -881,7 +883,7 @@
 
         <div class="content-section">
             <div class="instruction-card">
-                <h4><i class="fas fa-info-circle"></i> 六爻占卜简介</h4>
+                <h4><i class="fas fa-info-circle"></i> 六爻占卜简介1</h4>
                 <p>六爻占卜是中国古代《易经》中的重要预测方法，通过六次投掷钱币或其他方式，生成一个完整的六爻卦象。根据卦象的本卦、变卦与动爻变化，可推演事物的发展趋势与吉凶。本系统提供三种起卦方式，助您洞察未来，择吉避凶。：</p>
                 <ol>
                     <li><strong>钱币摇卦</strong> - 传统三枚铜钱六次投掷，是最经典、最具仪式感的起卦方式。</li>
@@ -2061,60 +2063,29 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 钱币点击事件 - 改进后的版本
     const coins = document.querySelectorAll('.coin');
-coins.forEach(coin => {
-    coin.addEventListener('click', function() {
-        // 1. 检查支付状态
-        if (!isPaid) {
-            showToast('请先支付1元解锁占卜功能', 'error');
-            return;
-        }
-        
-        // 2. 检查是否已完成6次摇卦
-        if (castCount >= 6) {
-            showToast('六次摇卦已完成，请查看结果或重置', 'info');
-            return;
-        }
-        
-        // 3. 检查钱币是否已被锁定
-        if (this.classList.contains('locked')) {
-            return;
-        }
-        
-        // 4. 执行钱币翻转动画
-        this.classList.add('flipping');
-        
-        // 5. 动画完成后设置结果
-        setTimeout(() => {
-            this.classList.remove('flipping');
-            
-            // 随机决定是正面还是反面（使用更安全的随机数生成方式）
-            const isHead = window.crypto.getRandomValues(new Uint32Array(1))[0] / 4294967295 > 0.5;
-            
-            if (isHead) {
-                this.dataset.side = 'head';
-                this.style.transform = 'rotateY(0deg)';
-            } else {
-                this.dataset.side = 'tail';
-                this.style.transform = 'rotateY(180deg)';
+        coins.forEach(coin => {
+        coin.addEventListener('click', function() {
+            if (!isPaid) {
+                showToast('请先支付1元解锁占卜功能', 'error');
+                return;
             }
-            
-            // 添加选中效果并锁定
-            this.classList.add('selected', 'locked');
-            
-            // 更新状态显示
-            updateCoinStatus();
-            
-            // 自动检查是否可以记录结果（如果所有硬币都已选择）
-            const coins = document.querySelectorAll('.coin');
-            const allCoinsSet = Array.from(coins).every(coin => coin.dataset.side);
-            
-            if (allCoinsSet && castCount < 6) {
-                // 自动记录结果（可选功能）
-                // castWithCoins();
-            }
-        }, 1000);
+            // 原有逻辑...
+        });
     });
-});
+    
+    // 自动摇卦按钮
+    document.getElementById('auto-cast-btn').addEventListener('click', function() {
+        if (currentMethod === 'coin' && castCount < 6) {
+            autoCastCoins();
+        }
+    });
+    
+    // 摇卦按钮
+    document.getElementById('cast-btn').addEventListener('click', function() {
+        if (currentMethod === 'coin') {
+            castWithCoins();
+        }
+    });
     
     // 时间起卦按钮
     document.getElementById('time-cast-btn').addEventListener('click', function() {
@@ -2394,38 +2365,6 @@ function updateCoinStatus() {
     } else {
         document.getElementById('cast-status').textContent = `请点击所有钱币确定正反面（已点击 ${countSetCoins()} / 3）`;
     }
-}function updateCoinStatus() {
-    const coins = document.querySelectorAll('.coin');
-    let allCoinsSet = true;
-    let headCount = 0;
-    
-    coins.forEach(coin => {
-        if (!coin.dataset.side) {
-            allCoinsSet = false;
-        } else if (coin.dataset.side === 'head') {
-            headCount++;
-        }
-    });
-    
-    if (allCoinsSet) {
-        let statusText = "";
-        switch (headCount) {
-            case 0: statusText = "三枚反面：老阴（变爻）"; break;
-            case 1: statusText = "一枚正面：少阴（不变）"; break;
-            case 2: statusText = "两枚正面：少阳（不变）"; break;
-            case 3: statusText = "三枚正面：老阳（变爻）"; break;
-        }
-        document.getElementById('cast-status').textContent = statusText;
-        
-        // 自动启用摇卦按钮
-        document.getElementById('cast-btn').disabled = false;
-    } else {
-        document.getElementById('cast-status').textContent = 
-            `请点击所有钱币确定正反面（已点击 ${countSetCoins()} / 3）`;
-        
-        // 禁用摇卦按钮直到所有硬币都选择完毕
-        document.getElementById('cast-btn').disabled = true;
-    }
 }
 
 // 计算已设置的钱币数量
@@ -2439,7 +2378,6 @@ function countSetCoins() {
     });
     return count;
 }
-
 
 // 使用钱币摇卦 - 改进后的版本
 function castWithCoins() {
