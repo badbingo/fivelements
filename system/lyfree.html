@@ -1124,8 +1124,8 @@
 
     <script>
         // DeepSeek API配置
-        const apiUrl = 'https://openrouter.ai/api/v1';
-        const apiKey = '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';
+        const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
+        const apiKey = 'sk-b2950087a9d5427392762814114b22a9';
 
         // 新增：安全的随机数生成函数
         function getSecureRandom() {
@@ -2459,82 +2459,44 @@ async function fetchGuaDetailFromAPI(question, guaName, hexagramCode, changingYa
 
 请使用纯文本格式回答，不要使用Markdown符号（如#，*，-等）。内容要详细专业，适合命理学习者，使用清晰的分段。`;
         
-        document.getElementById('loading-indicator').style.display = 'block';
-        
-        const response = await fetch(apiUrl + '/chat/completions', {
+        const response = await fetch(apiUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`,
-                'HTTP-Referer': window.location.href,
-                'X-Title': '六爻占卜系统'
+                'Authorization': `Bearer ${apiKey}`
             },
             body: JSON.stringify({
-                model: "deepseek/deepseek-chat-v3-0324:free",
-                messages: [{ role: "user", content: prompt }],
+                model: "deepseek-chat",
+                messages: [
+                    {
+                        role: "user",
+                        content: prompt
+                    }
+                ],
                 temperature: 0.7
             })
         });
         
         if (!response.ok) {
-            // 尝试获取错误详情
-            let errorDetail = await response.text();
-            try {
-                const errorData = await response.json();
-                errorDetail = errorData.error?.message || JSON.stringify(errorData);
-            } catch (e) {}
-            
-            throw new Error(`API请求失败 (${response.status}): ${errorDetail}`);
-        }
-        
-        // 确保响应是JSON格式
-        const contentType = response.headers.get('content-type');
-        if (!contentType || !contentType.includes('application/json')) {
-            const text = await response.text();
-            throw new Error(`API返回了非JSON响应: ${text.substring(0, 100)}...`);
+            throw new Error(`API请求失败: ${response.status}`);
         }
         
         const data = await response.json();
+        const rawContent = data.choices[0].message.content;
         
-        // ... 其余代码 ...
+        // 格式化卦辞详解
+        const formattedContent = formatGuaDetail(rawContent);
+        document.getElementById('gua-detail-content').innerHTML = formattedContent;
+        document.getElementById('loading-indicator').style.display = 'none';
     } catch (error) {
         console.error('获取卦辞详解失败:', error);
-        // 显示更友好的错误信息
-        document.getElementById('gua-detail-content').innerHTML = `
-            <div class="detail-highlight">
-                <i class="fas fa-exclamation-triangle"></i> 
-                获取卦辞详解失败: ${escapeHtml(error.message)}
-                <p>将显示本地卦辞解释...</p>
-            </div>
-            ${getLocalGuaDetail(hexagramCode)}`;
-    } finally {
+        document.getElementById('gua-detail-content').innerHTML = 
+            `<div class="detail-highlight"><i class="fas fa-exclamation-triangle"></i> 获取卦辞详解失败: ${error.message}</div>
+             <p class="detail-para">${guaData[hexagramCode]?.interpretation || '暂无解释'}</p>`;
         document.getElementById('loading-indicator').style.display = 'none';
     }
 }
 
-// 辅助函数：获取本地卦辞
-function getLocalGuaDetail(hexagramCode) {
-    if (!guaData[hexagramCode]) return '<p>暂无本地解释</p>';
-    
-    let html = `<p class="detail-para">${guaData[hexagramCode].interpretation}</p>`;
-    
-    if (yaoData[hexagramCode]) {
-        html += `<h4 class="detail-title">爻辞解释:</h4><ul>`;
-        yaoData[hexagramCode].forEach(yao => {
-            html += `<li>${yao}</li>`;
-        });
-        html += `</ul>`;
-    }
-    
-    return html;
-}
-
-// 辅助函数：转义HTML
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
 // 卦辞格式化函数
 function formatGuaDetail(text) {
     // 分割段落
