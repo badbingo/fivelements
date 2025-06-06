@@ -855,7 +855,7 @@
 
         <div class="content-section">
             <div class="instruction-card">
-                <h4><i class="fas fa-info-circle"></i> 六爻占卜简介1</h4>
+                <h4><i class="fas fa-info-circle"></i> 六爻占卜简介</h4>
                 <p>六爻占卜是中国古代《易经》预测方法之一，通过六次投掷钱币或其它方式得到一个六爻卦象，根据卦象变化解读事物发展趋势。本系统提供三种起卦方式：</p>
                 <ol>
                     <li><strong>钱币摇卦</strong> - 传统三枚钱币方法，最正统的起卦方式</li>
@@ -2461,68 +2461,79 @@ async function fetchGuaDetailFromAPI(question, guaName, hexagramCode, changingYa
         
         document.getElementById('loading-indicator').style.display = 'block';
         
-        const response = await fetch(apiUrl + '/chat/completions', {  // 添加完整端点路径
+        const response = await fetch(apiUrl + '/chat/completions', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${apiKey}`,
-                'HTTP-Referer': window.location.href,  // 添加推荐来源
-                'X-Title': '六爻占卜系统'  // 添加应用标题
+                'HTTP-Referer': window.location.href,
+                'X-Title': '六爻占卜系统'
             },
             body: JSON.stringify({
                 model: "deepseek/deepseek-chat-v3-0324:free",
-                messages: [
-                    {
-                        role: "user",
-                        content: prompt
-                    }
-                ],
+                messages: [{ role: "user", content: prompt }],
                 temperature: 0.7
             })
         });
         
         if (!response.ok) {
-            const errorData = await response.text();
-            throw new Error(`API请求失败: ${response.status} - ${errorData}`);
+            // 尝试获取错误详情
+            let errorDetail = await response.text();
+            try {
+                const errorData = await response.json();
+                errorDetail = errorData.error?.message || JSON.stringify(errorData);
+            } catch (e) {}
+            
+            throw new Error(`API请求失败 (${response.status}): ${errorDetail}`);
+        }
+        
+        // 确保响应是JSON格式
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            const text = await response.text();
+            throw new Error(`API返回了非JSON响应: ${text.substring(0, 100)}...`);
         }
         
         const data = await response.json();
         
-        // 更健壮的响应解析
-        if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-            throw new Error('API返回了无效的响应结构');
-        }
-        
-        const rawContent = data.choices[0].message.content;
-        
-        // 格式化卦辞详解
-        const formattedContent = formatGuaDetail(rawContent);
-        document.getElementById('gua-detail-content').innerHTML = formattedContent;
-        
+        // ... 其余代码 ...
     } catch (error) {
         console.error('获取卦辞详解失败:', error);
-        document.getElementById('gua-detail-content').innerHTML = 
-            `<div class="detail-highlight">
+        // 显示更友好的错误信息
+        document.getElementById('gua-detail-content').innerHTML = `
+            <div class="detail-highlight">
                 <i class="fas fa-exclamation-triangle"></i> 
-                获取卦辞详解失败: ${error.message}
+                获取卦辞详解失败: ${escapeHtml(error.message)}
                 <p>将显示本地卦辞解释...</p>
-             </div>
-             <p class="detail-para">${guaData[hexagramCode]?.interpretation || '暂无解释'}</p>`;
-        
-        // 作为后备方案，使用本地存储的卦辞解释
-        if (guaData[hexagramCode] && yaoData[hexagramCode]) {
-            let localContent = `<h4 class="detail-title">本地卦辞解释:</h4>`;
-            localContent += `<p class="detail-para">${guaData[hexagramCode].interpretation}</p>`;
-            localContent += `<h4 class="detail-title">爻辞:</h4><ul>`;
-            yaoData[hexagramCode].forEach(yao => {
-                localContent += `<li>${yao}</li>`;
-            });
-            localContent += `</ul>`;
-            document.getElementById('gua-detail-content').innerHTML += localContent;
-        }
+            </div>
+            ${getLocalGuaDetail(hexagramCode)}`;
     } finally {
         document.getElementById('loading-indicator').style.display = 'none';
     }
+}
+
+// 辅助函数：获取本地卦辞
+function getLocalGuaDetail(hexagramCode) {
+    if (!guaData[hexagramCode]) return '<p>暂无本地解释</p>';
+    
+    let html = `<p class="detail-para">${guaData[hexagramCode].interpretation}</p>`;
+    
+    if (yaoData[hexagramCode]) {
+        html += `<h4 class="detail-title">爻辞解释:</h4><ul>`;
+        yaoData[hexagramCode].forEach(yao => {
+            html += `<li>${yao}</li>`;
+        });
+        html += `</ul>`;
+    }
+    
+    return html;
+}
+
+// 辅助函数：转义HTML
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }
 // 卦辞格式化函数
 function formatGuaDetail(text) {
