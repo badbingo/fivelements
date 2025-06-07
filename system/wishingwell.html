@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="命缘池 - 八字能量许愿系统，汇聚众生愿力，助你梦想成真">
+    <meta name="keywords" content="命缘池,许愿,八字,加持,还愿,能量池">
+    <title>命缘池 - 八字能量许愿系统</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/style1.css">
+    <link rel="stylesheet" href="../css/mingyuan.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+    
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-2NHJXGKS0Y"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-2NHJXGKS0Y');
+    </script>
+</head>
+<body>
+    <div id="particles-js"></div>
+    <div class="background-overlay"></div>
+    
+    <main class="content-container mingyuan-container">
+        <section class="content-title">
+            <h1>命缘池</h1>
+            <p>以八字为引，聚众生愿力，助你梦想成真</p>
+        </section>
+
+        <!-- 命缘池介绍 -->
+        <section class="full-width-section">
+            <div class="section-header">
+                <i class="fas fa-hand-holding-water"></i>
+                <h2>缘起</h2>
+            </div>
+            
+            <div class="card">
+                <div class="mingyuan-intro">
+                    <div class="intro-text">
+                        <p>命缘池源自古老道家"愿力汇聚"之法，结合八字命理能量学，创造出一个集体意识能量场。</p>
+                        <p>当您在此投入愿望，您的八字信息将成为独特的能量标识，而众人的加持则如同涟漪，层层扩散，增强愿望的共振频率。</p>
+                        <p>每5次加持，愿望能量将提升一个等级，30天内若达成所愿，请务必还愿以完成能量循环。</p>
+                    </div>
+                    <div class="intro-image">
+                        <div class="energy-chart">
+                            <canvas id="energyChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="wish-levels">
+                    <h3><i class="fas fa-signal"></i> 愿望能量等级</h3>
+                    <div class="level-bars">
+                        <div class="level-bar" data-level="1">
+                            <div class="bar-fill"></div>
+                            <span>初愿 (0-4加持)</span>
+                        </div>
+                        <div class="level-bar" data-level="2">
+                            <div class="bar-fill"></div>
+                            <span>小成 (5-9加持)</span>
+                        </div>
+                        <div class="level-bar" data-level="3">
+                            <div class="bar-fill"></div>
+                            <span>中成 (10-14加持)</span>
+                        </div>
+                        <div class="level-bar" data-level="4">
+                            <div class="bar-fill"></div>
+                            <span>大成 (15-19加持)</span>
+                        </div>
+                        <div class="level-bar" data-level="5">
+                            <div class="bar-fill"></div>
+                            <span>圆满 (20+加持)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 许愿表单 -->
+        <section class="full-width-section">
+            <div class="section-header">
+                <i class="fas fa-magic"></i>
+                <h2>投入愿望</h2>
+            </div>
+            
+            <div class="card">
+                <form id="wishForm" class="mingyuan-form">
+                    <div class="form-group">
+                        <label for="bazi"><i class="fas fa-user-astronaut"></i> 您的八字</label>
+                        <input type="text" id="bazi" placeholder="例：甲子 乙丑 丙寅 丁卯" required>
+                        <p class="form-hint">请输入准确的八字信息，这是愿望的能量标识</p>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="wishContent"><i class="fas fa-star"></i> 愿望内容</label>
+                        <textarea id="wishContent" rows="4" placeholder="写下您真诚的愿望..." required></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label><i class="fas fa-eye"></i> 愿望可见性</label>
+                        <div class="radio-group">
+                            <label class="radio-option">
+                                <input type="radio" name="visibility" value="public" checked>
+                                <span class="radio-custom"></span>
+                                <span class="radio-label">公开愿望</span>
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="visibility" value="private">
+                                <span class="radio-custom"></span>
+                                <span class="radio-label">隐藏愿望</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="wishType"><i class="fas fa-tags"></i> 愿望类型</label>
+                        <select id="wishType">
+                            <option value="love">姻缘感情</option>
+                            <option value="wealth">财富事业</option>
+                            <option value="health">健康平安</option>
+                            <option value="study">学业成长</option>
+                            <option value="family">家庭和睦</option>
+                            <option value="other">其他愿望</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-mingyuan">
+                            <i class="fas fa-paper-plane"></i> 投入命缘池
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <!-- 愿望池展示 -->
+        <section class="full-width-section">
+            <div class="section-header">
+                <i class="fas fa-water"></i>
+                <h2>愿望池</h2>
+                <div class="filter-controls">
+                    <select id="wishFilter">
+                        <option value="all">全部愿望</option>
+                        <option value="love">姻缘感情</option>
+                        <option value="wealth">财富事业</option>
+                        <option value="health">健康平安</option>
+                        <option value="study">学业成长</option>
+                        <option value="family">家庭和睦</option>
+                    </select>
+                    <select id="sortFilter">
+                        <option value="newest">最新愿望</option>
+                        <option value="oldest">最早愿望</option>
+                        <option value="most">最多加持</option>
+                        <option value="least">最少加持</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="wish-pool">
+                <!-- 愿望卡片将通过JavaScript动态加载 -->
+                <div class="wish-loading">
+                    <div class="loader"></div>
+                    <p>正在连接命缘池能量场...</p>
+                </div>
+            </div>
+            
+            <div class="pagination">
+                <button id="prevPage" disabled><i class="fas fa-chevron-left"></i></button>
+                <span id="pageInfo">第 1 页</span>
+                <button id="nextPage"><i class="fas fa-chevron-right"></i></button>
+            </div>
+        </section>
+
+        <!-- 能量统计 -->
+        <section class="full-width-section">
+            <div class="section-header">
+                <i class="fas fa-chart-line"></i>
+                <h2>能量统计</h2>
+            </div>
+            
+            <div class="card-grid">
+                <div class="card hover-card">
+                    <div class="card-title">
+                        <i class="fas fa-bolt" style="color: #f39c12;"></i> 今日能量
+                    </div>
+                    <div class="card-content">
+                        <div class="stat-card">
+                            <div class="stat-value" id="todayWishes">0</div>
+                            <div class="stat-label">新增愿望</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="todayBlessings">0</div>
+                            <div class="stat-label">加持次数</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="todayFulfilled">0</div>
+                            <div class="stat-label">还愿次数</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card hover-card">
+                    <div class="card-title">
+                        <i class="fas fa-chart-pie" style="color: #e84393;"></i> 愿望分布
+                    </div>
+                    <div class="card-content">
+                        <div class="wish-chart">
+                            <canvas id="wishTypeChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 使用说明 -->
+        <section class="full-width-section">
+            <div class="section-header">
+                <i class="fas fa-book"></i>
+                <h2>诚心须知</h2>
+            </div>
+            
+            <div class="card">
+                <div class="note-box important">
+                    <h4><i class="fas fa-lightbulb"></i> 心诚则灵</h4>
+                    <ul>
+                        <li>请确保八字信息准确无误，这是愿望的能量标识</li>
+                        <li>愿望内容需真诚具体，避免模糊或负面表述</li>
+                        <li>加持他人愿望时，请保持善念，能量会回馈于你</li>
+                        <li>愿望达成后请及时还愿，完成能量循环</li>
+                        <li>每个愿望有效期为30天，到期后自动从池中移除</li>
+                    </ul>
+                    
+                    <div class="disclaimer-box">
+                        <h4><i class="fas fa-info-circle"></i> 重要说明</h4>
+                        <p>命缘池是一个集体能量场，您的愿望实现程度取决于多种因素：愿望的合理性、您的实际行动、以及集体能量的共振强度。请保持理性期待，将命缘池作为辅助工具而非唯一依赖。</p>
+                        <blockquote>
+                            《道德经》云："天道无亲，常与善人"。命缘池的能量运作遵循自然法则，多行善事能增强愿望实现的几率。
+                        </blockquote>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="main-footer">
+        <div class="container">
+            <p>&copy; 2025 命缘池. 保留所有权利.</p>
+            <p>汇聚善念，共振美好</p>
+        </div>
+    </footer>
+
+    <!-- 愿望卡片模板 -->
+    <template id="wishCardTemplate">
+        <div class="wish-card" data-id="" data-level="1" data-type="">
+            <div class="wish-header">
+                <span class="wish-type"></span>
+                <span class="wish-time">剩余<span class="days-left">30</span>天</span>
+            </div>
+            <div class="wish-content">
+                <p class="wish-text"></p>
+                <p class="wish-hidden">愿望已隐藏</p>
+            </div>
+            <div class="wish-meta">
+                <div class="wish-bazi">
+                    <i class="fas fa-user-secret"></i> <span class="bazi-text"></span>
+                </div>
+                <div class="wish-stats">
+                    <span class="bless-count">0</span> 次加持
+                </div>
+            </div>
+            <div class="wish-actions">
+                <button class="btn-bless">
+                    <i class="fas fa-hands-helping"></i> 加持
+                </button>
+                <button class="btn-fulfill">
+                    <i class="fas fa-hand-holding-heart"></i> 还愿
+                </button>
+            </div>
+            <div class="wish-energy">
+                <div class="energy-level" data-level="1"></div>
+            </div>
+        </div>
+    </template>
+
+    <!-- 还愿模态框 -->
+    <div id="fulfillModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h3><i class="fas fa-hand-holding-heart"></i> 感恩还愿</h3>
+            <p>您的愿望已经实现，请选择还愿金额以完成能量循环：</p>
+            <div class="fulfill-options">
+                <button class="fulfill-option" data-amount="5">5元</button>
+                <button class="fulfill-option" data-amount="10">10元</button>
+                <button class="fulfill-option" data-amount="20">20元</button>
+                <button class="fulfill-option" data-amount="50">50元</button>
+            </div>
+            <p class="fulfill-note">还愿金额将用于维护命缘池系统及慈善捐赠</p>
+        </div>
+    </div>
+
+    <script src="../js/navigation.js"></script>
+    <script src="../js/mingyuan.js"></script>
+</body>
+</html>
