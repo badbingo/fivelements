@@ -10,620 +10,947 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="../css/style1.css">
-    <link rel="stylesheet" href="../css/mingyuan.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
     
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-2NHJXGKS0Y"></script>
     <script>
-      /* 命缘池专属样式 */
-.mingyuan-container {
-    background: rgba(10, 10, 20, 0.7);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: #e0e0e0;
-}
-
-.mingyuan-container .content-title h1 {
-    background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
-    text-shadow: 0 2px 10px rgba(106, 17, 203, 0.5);
-    font-family: 'Noto Serif SC', serif;
-    clip-path: polygon(
-        0 0,
-        100% 0,
-        95% 50%,
-        100% 100%,
-        5% 100%,
-        0 50%
-    );
-}
-
-.mingyuan-container .content-title p {
-    color: #b8c2cc;
-}
-
-.mingyuan-intro {
-    display: flex;
-    gap: 30px;
-    align-items: center;
-}
-
-.mingyuan-intro .intro-text {
-    flex: 1;
-    font-size: 1.1rem;
-    line-height: 1.8;
-}
-
-.mingyuan-intro .intro-text p {
-    margin-bottom: 20px;
-}
-
-.mingyuan-intro .intro-image {
-    flex: 0 0 400px;
-}
-
-.energy-chart {
-    background: rgba(0, 0, 0, 0.3);
-    border-radius: 10px;
-    padding: 20px;
-    height: 250px;
-}
-
-.wish-levels {
-    margin-top: 40px;
-}
-
-.wish-levels h3 {
-    color: #6a11cb;
-    margin-bottom: 20px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.level-bars {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-.level-bar {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-}
-
-.level-bar .bar-fill {
-    height: 20px;
-    width: 0;
-    background: linear-gradient(90deg, #6a11cb, #2575fc);
-    border-radius: 10px;
-    position: relative;
-    overflow: hidden;
-    transition: width 1s ease;
-}
-
-.level-bar .bar-fill::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(90deg, 
-        rgba(255,255,255,0.1) 0%, 
-        rgba(255,255,255,0.3) 50%, 
-        rgba(255,255,255,0.1) 100%);
-    animation: shine 2s infinite;
-}
-
-@keyframes shine {
-    0% { transform: translateX(-100%); }
-    100% { transform: translateX(100%); }
-}
-
-.level-bar[data-level="1"] .bar-fill { width: 20%; }
-.level-bar[data-level="2"] .bar-fill { width: 40%; }
-.level-bar[data-level="3"] .bar-fill { width: 60%; }
-.level-bar[data-level="4"] .bar-fill { width: 80%; }
-.level-bar[data-level="5"] .bar-fill { width: 100%; }
-
-.level-bar span {
-    min-width: 120px;
-    color: #b8c2cc;
-}
-
-.mingyuan-form {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 30px;
-}
-
-.mingyuan-form .form-group {
-    margin-bottom: 25px;
-}
-
-.mingyuan-form label {
-    display: block;
-    margin-bottom: 10px;
-    color: #b8c2cc;
-    font-size: 1rem;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.mingyuan-form input[type="text"],
-.mingyuan-form textarea,
-.mingyuan-form select {
-    width: 100%;
-    padding: 12px 15px;
-    background: rgba(0, 0, 0, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 6px;
-    color: #e0e0e0;
-    font-size: 1rem;
-    transition: all 0.3s ease;
-}
-
-.mingyuan-form textarea {
-    min-height: 120px;
-    resize: vertical;
-}
-
-.mingyuan-form input[type="text"]:focus,
-.mingyuan-form textarea:focus,
-.mingyuan-form select:focus {
-    outline: none;
-    border-color: #6a11cb;
-    box-shadow: 0 0 0 2px rgba(106, 17, 203, 0.3);
-}
-
-.mingyuan-form .form-hint {
-    font-size: 0.85rem;
-    color: #8a94a6;
-    margin-top: 8px;
-}
-
-.radio-group {
-    display: flex;
-    gap: 20px;
-}
-
-.radio-option {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    cursor: pointer;
-}
-
-.radio-custom {
-    width: 18px;
-    height: 18px;
-    border: 2px solid #6a11cb;
-    border-radius: 50%;
-    display: inline-block;
-    position: relative;
-}
-
-.radio-option input[type="radio"] {
-    display: none;
-}
-
-.radio-option input[type="radio"]:checked + .radio-custom::after {
-    content: '';
-    position: absolute;
-    top: 2px;
-    left: 2px;
-    width: 10px;
-    height: 10px;
-    background: #6a11cb;
-    border-radius: 50%;
-}
-
-.form-actions {
-    grid-column: 1 / -1;
-    text-align: center;
-    margin-top: 20px;
-}
-
-.btn-mingyuan {
-    background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
-    color: white;
-    border: none;
-    padding: 15px 40px;
-    font-size: 1.1rem;
-    border-radius: 50px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(106, 17, 203, 0.3);
-}
-
-.btn-mingyuan:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 25px rgba(106, 17, 203, 0.4);
-}
-
-.filter-controls {
-    display: flex;
-    gap: 15px;
-    margin-left: auto;
-}
-
-.filter-controls select {
-    background: rgba(0, 0, 0, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: #e0e0e0;
-    padding: 8px 15px;
-    border-radius: 6px;
-}
-
-.wish-pool {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 25px;
-    margin-top: 30px;
-}
-
-.wish-card {
-    background: rgba(20, 20, 30, 0.7);
-    border-radius: 10px;
-    padding: 20px;
-    position: relative;
-    overflow: hidden;
-    transition: all 0.3s ease;
-    border: 1px solid rgba(106, 17, 203, 0.3);
-}
-
-.wish-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 30px rgba(106, 17, 203, 0.2);
-    border-color: rgba(106, 17, 203, 0.6);
-}
-
-.wish-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(135deg, rgba(106, 17, 203, 0.1) 0%, rgba(37, 117, 252, 0.05) 100%);
-    z-index: -1;
-}
-
-.wish-header {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 15px;
-    font-size: 0.9rem;
-}
-
-.wish-type {
-    background: rgba(106, 17, 203, 0.2);
-    padding: 3px 10px;
-    border-radius: 20px;
-    color: #b8c2cc;
-}
-
-.wish-time {
-    color: #8a94a6;
-}
-
-.wish-content {
-    margin-bottom: 20px;
-    min-height: 80px;
-}
-
-.wish-text {
-    line-height: 1.6;
-    color: #e0e0e0;
-}
-
-.wish-hidden {
-    color: #8a94a6;
-    font-style: italic;
-    display: none;
-}
-
-.wish-card[data-visibility="private"] .wish-text {
-    display: none;
-}
-
-.wish-card[data-visibility="private"] .wish-hidden {
-    display: block;
-}
-
-.wish-meta {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
-    font-size: 0.9rem;
-    color: #8a94a6;
-}
-
-.wish-bazi {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-}
-
-.wish-stats {
-    color: #b8c2cc;
-}
-
-.wish-actions {
-    display: flex;
-    gap: 10px;
-}
-
-.btn-bless, .btn-fulfill {
-    flex: 1;
-    padding: 10px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-}
-
-.btn-bless {
-    background: rgba(106, 17, 203, 0.3);
-    color: #b8c2cc;
-}
-
-.btn-bless:hover {
-    background: rgba(106, 17, 203, 0.5);
-    color: white;
-}
-
-.btn-fulfill {
-    background: rgba(37, 117, 252, 0.3);
-    color: #b8c2cc;
-    display: none;
-}
-
-.wish-card[data-owner="true"] .btn-fulfill {
-    display: flex;
-}
-
-.btn-fulfill:hover {
-    background: rgba(37, 117, 252, 0.5);
-    color: white;
-}
-
-.wish-energy {
-    margin-top: 15px;
-    height: 6px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 3px;
-    overflow: hidden;
-}
-
-.energy-level {
-    height: 100%;
-    width: 0;
-    background: linear-gradient(90deg, #6a11cb, #2575fc);
-    transition: width 0.5s ease;
-}
-
-.wish-card[data-level="1"] .energy-level { width: 20%; }
-.wish-card[data-level="2"] .energy-level { width: 40%; }
-.wish-card[data-level="3"] .energy-level { width: 60%; }
-.wish-card[data-level="4"] .energy-level { width: 80%; }
-.wish-card[data-level="5"] .energy-level { width: 100%; }
-
-.wish-loading {
-    grid-column: 1 / -1;
-    text-align: center;
-    padding: 50px;
-    color: #8a94a6;
-}
-
-.loader {
-    width: 40px;
-    height: 40px;
-    border: 4px solid rgba(106, 17, 203, 0.2);
-    border-top: 4px solid #6a11cb;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin: 0 auto 20px;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-.pagination {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 20px;
-    margin-top: 40px;
-}
-
-.pagination button {
-    background: rgba(106, 17, 203, 0.3);
-    border: none;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    color: #b8c2cc;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.pagination button:hover {
-    background: rgba(106, 17, 203, 0.5);
-    color: white;
-}
-
-.pagination button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-#pageInfo {
-    color: #b8c2cc;
-}
-
-.stat-card {
-    text-align: center;
-    padding: 20px;
-    background: rgba(0, 0, 0, 0.3);
-    border-radius: 10px;
-    margin-bottom: 15px;
-}
-
-.stat-value {
-    font-size: 2.5rem;
-    font-weight: bold;
-    background: linear-gradient(135deg, #6a11cb, #2575fc);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    margin-bottom: 5px;
-}
-
-.stat-label {
-    color: #8a94a6;
-    font-size: 0.9rem;
-}
-
-.wish-chart {
-    height: 250px;
-}
-
-.modal {
-    display: none;
-    position: fixed;
-    z-index: 1000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.7);
-    backdrop-filter: blur(5px);
-}
-
-.modal-content {
-    background: rgba(20, 20, 30, 0.95);
-    margin: 10% auto;
-    padding: 30px;
-    border-radius: 10px;
-    max-width: 500px;
-    position: relative;
-    border: 1px solid rgba(106, 17, 203, 0.5);
-    box-shadow: 0 5px 30px rgba(106, 17, 203, 0.3);
-}
-
-.close-modal {
-    position: absolute;
-    top: 15px;
-    right: 20px;
-    font-size: 1.5rem;
-    color: #8a94a6;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.close-modal:hover {
-    color: white;
-}
-
-.modal-content h3 {
-    color: #6a11cb;
-    margin-bottom: 20px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.fulfill-options {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 15px;
-    margin: 25px 0;
-}
-
-.fulfill-option {
-    padding: 15px;
-    background: rgba(106, 17, 203, 0.2);
-    border: 1px solid rgba(106, 17, 203, 0.3);
-    border-radius: 6px;
-    color: #b8c2cc;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    text-align: center;
-    font-size: 1.1rem;
-}
-
-.fulfill-option:hover {
-    background: rgba(106, 17, 203, 0.4);
-    color: white;
-    transform: translateY(-3px);
-}
-
-.fulfill-note {
-    font-size: 0.9rem;
-    color: #8a94a6;
-    text-align: center;
-}
-
-/* 粒子背景样式 */
-#particles-js {
-    position: fixed;
-    width: 100%;
-    height: 100%;
-    top: 0;
-    left: 0;
-    z-index: -2;
-}
-
-/* 响应式设计 */
-@media (max-width: 992px) {
-    .mingyuan-intro {
-        flex-direction: column;
-    }
-    
-    .mingyuan-intro .intro-image {
-        flex: 1;
-        width: 100%;
-    }
-    
-    .mingyuan-form {
-        grid-template-columns: 1fr;
-    }
-}
-
-@media (max-width: 768px) {
-    .wish-pool {
-        grid-template-columns: 1fr;
-    }
-    
-    .filter-controls {
-        margin-top: 15px;
-        width: 100%;
-        justify-content: space-between;
-    }
-    
-    .fulfill-options {
-        grid-template-columns: 1fr;
-    }
-}
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-2NHJXGKS0Y');
+    </script>
+    <style>
+        /* 命缘池专属样式 */
+        :root {
+            --primary-color: #6a11cb;
+            --secondary-color: #2575fc;
+            --text-color: #e0e0e0;
+            --text-light: #b8c2cc;
+            --text-dark: #8a94a6;
+            --bg-dark: rgba(10, 10, 20, 0.7);
+            --bg-light: rgba(20, 20, 30, 0.7);
+            --border-color: rgba(106, 17, 203, 0.3);
+        }
+
+        /* 基础样式 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Serif SC', serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: #0a0a14;
+            position: relative;
+            min-height: 100vh;
+        }
+
+        #particles-js {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: -1;
+        }
+
+        .background-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, rgba(106, 17, 203, 0.1) 0%, rgba(10, 10, 20, 0.9) 100%);
+            z-index: -1;
+        }
+
+        /* 内容容器 */
+        .content-container {
+            max-width: 1200px;
+            margin: 30px auto 80px;
+            padding: 50px 60px;
+            background: var(--bg-dark);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-color);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .content-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(106, 17, 203, 0.1) 0%, rgba(37, 117, 252, 0.05) 100%);
+            z-index: -1;
+        }
+
+        /* 标题样式 */
+        .content-title {
+            text-align: center;
+            margin-bottom: 60px;
+            position: relative;
+        }
+
+        .content-title h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: white;
+            padding: 20px 50px;
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            text-shadow: 0 2px 10px rgba(106, 17, 203, 0.5);
+            clip-path: polygon(
+                0 0,
+                100% 0,
+                95% 50%,
+                100% 100%,
+                5% 100%,
+                0 50%
+            );
+            margin-bottom: 20px;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .content-title h1:hover {
+            transform: translateY(-5px) rotate(1deg);
+            box-shadow: 0 15px 40px rgba(106, 17, 203, 0.4);
+        }
+
+        .content-title p {
+            color: var(--text-light);
+            font-size: 1.2rem;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.8;
+            position: relative;
+            padding: 15px 0;
+        }
+
+        .content-title p::before,
+        .content-title p::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 2px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+        }
+
+        .content-title p::before {
+            top: 0;
+        }
+
+        .content-title p::after {
+            bottom: 0;
+        }
+
+        /* 分区标题 */
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .section-header i {
+            font-size: 1.8rem;
+            color: var(--primary-color);
+        }
+
+        .section-header h2 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--text-color);
+            position: relative;
+            padding-bottom: 10px;
+        }
+
+        .section-header h2::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 50px;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            border-radius: 3px;
+        }
+
+        /* 卡片布局 */
+        .card {
+            background: var(--bg-light);
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border-color);
+            backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--text-color);
+            margin-bottom: 20px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 0;
+            width: 40px;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            transition: all 0.3s ease;
+        }
+
+        .card:hover .card-title::after {
+            width: 80px;
+        }
+
+        .card-content {
+            padding: 20px 0;
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        /* 命缘池介绍部分 */
+        .mingyuan-intro {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+        }
+
+        .mingyuan-intro .intro-text {
+            flex: 1;
+            font-size: 1.1rem;
+            line-height: 1.8;
+        }
+
+        .mingyuan-intro .intro-text p {
+            margin-bottom: 20px;
+        }
+
+        .mingyuan-intro .intro-image {
+            flex: 0 0 400px;
+        }
+
+        .energy-chart {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+            height: 250px;
+        }
+
+        /* 愿望等级指示器 */
+        .wish-levels {
+            margin-top: 40px;
+        }
+
+        .wish-levels h3 {
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .level-bars {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .level-bar {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .level-bar .bar-fill {
+            height: 20px;
+            width: 0;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+            transition: width 1s ease;
+        }
+
+        .level-bar .bar-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, 
+                rgba(255,255,255,0.1) 0%, 
+                rgba(255,255,255,0.3) 50%, 
+                rgba(255,255,255,0.1) 100%);
+            animation: shine 2s infinite;
+        }
+
+        @keyframes shine {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .level-bar[data-level="1"] .bar-fill { width: 20%; }
+        .level-bar[data-level="2"] .bar-fill { width: 40%; }
+        .level-bar[data-level="3"] .bar-fill { width: 60%; }
+        .level-bar[data-level="4"] .bar-fill { width: 80%; }
+        .level-bar[data-level="5"] .bar-fill { width: 100%; }
+
+        .level-bar span {
+            min-width: 120px;
+            color: var(--text-light);
+        }
+
+        /* 许愿表单 */
+        .mingyuan-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .mingyuan-form .form-group {
+            margin-bottom: 25px;
+        }
+
+        .mingyuan-form label {
+            display: block;
+            margin-bottom: 10px;
+            color: var(--text-light);
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .mingyuan-form input[type="text"],
+        .mingyuan-form textarea,
+        .mingyuan-form select {
+            width: 100%;
+            padding: 12px 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            color: var(--text-color);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .mingyuan-form textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .mingyuan-form input[type="text"]:focus,
+        .mingyuan-form textarea:focus,
+        .mingyuan-form select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(106, 17, 203, 0.3);
+        }
+
+        .mingyuan-form .form-hint {
+            font-size: 0.85rem;
+            color: var(--text-dark);
+            margin-top: 8px;
+        }
+
+        /* 单选按钮组 */
+        .radio-group {
+            display: flex;
+            gap: 20px;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .radio-custom {
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--primary-color);
+            border-radius: 50%;
+            display: inline-block;
+            position: relative;
+        }
+
+        .radio-option input[type="radio"] {
+            display: none;
+        }
+
+        .radio-option input[type="radio"]:checked + .radio-custom::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 10px;
+            height: 10px;
+            background: var(--primary-color);
+            border-radius: 50%;
+        }
+
+        /* 表单操作按钮 */
+        .form-actions {
+            grid-column: 1 / -1;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .btn-mingyuan {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.1rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(106, 17, 203, 0.3);
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-mingyuan:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(106, 17, 203, 0.4);
+        }
+
+        /* 愿望池筛选控件 */
+        .filter-controls {
+            display: flex;
+            gap: 15px;
+            margin-left: auto;
+        }
+
+        .filter-controls select {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-color);
+            padding: 8px 15px;
+            border-radius: 6px;
+            font-family: inherit;
+        }
+
+        /* 愿望池展示 */
+        .wish-pool {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+
+        /* 愿望卡片 */
+        .wish-card {
+            background: var(--bg-light);
+            border-radius: 10px;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .wish-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(106, 17, 203, 0.2);
+            border-color: rgba(106, 17, 203, 0.6);
+        }
+
+        .wish-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(106, 17, 203, 0.1) 0%, rgba(37, 117, 252, 0.05) 100%);
+            z-index: -1;
+        }
+
+        /* 愿望卡片动画 */
+        .wish-card.level-up {
+            animation: levelUp 1s ease;
+        }
+
+        @keyframes levelUp {
+            0% { transform: translateY(0) scale(1); box-shadow: 0 0 0 rgba(106, 17, 203, 0); }
+            50% { transform: translateY(-10px) scale(1.05); box-shadow: 0 0 20px rgba(106, 17, 203, 0.5); }
+            100% { transform: translateY(0) scale(1); box-shadow: 0 10px 30px rgba(106, 17, 203, 0.2); }
+        }
+
+        .wish-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+        }
+
+        .wish-type {
+            background: rgba(106, 17, 203, 0.2);
+            padding: 3px 10px;
+            border-radius: 20px;
+            color: var(--text-light);
+        }
+
+        .wish-time {
+            color: var(--text-dark);
+        }
+
+        .wish-content {
+            margin-bottom: 20px;
+            min-height: 80px;
+            flex: 1;
+        }
+
+        .wish-text {
+            line-height: 1.6;
+            color: var(--text-color);
+        }
+
+        .wish-hidden {
+            color: var(--text-dark);
+            font-style: italic;
+            display: none;
+        }
+
+        .wish-card[data-visibility="private"] .wish-text {
+            display: none;
+        }
+
+        .wish-card[data-visibility="private"] .wish-hidden {
+            display: block;
+        }
+
+        .wish-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+            color: var(--text-dark);
+        }
+
+        .wish-bazi {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .wish-stats {
+            color: var(--text-light);
+        }
+
+        .wish-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-bless, .btn-fulfill {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 0.95rem;
+        }
+
+        .btn-bless {
+            background: rgba(106, 17, 203, 0.3);
+            color: var(--text-light);
+        }
+
+        .btn-bless:hover {
+            background: rgba(106, 17, 203, 0.5);
+            color: white;
+        }
+
+        .btn-fulfill {
+            background: rgba(37, 117, 252, 0.3);
+            color: var(--text-light);
+            display: none;
+        }
+
+        .wish-card[data-owner="true"] .btn-fulfill {
+            display: flex;
+        }
+
+        .btn-fulfill:hover {
+            background: rgba(37, 117, 252, 0.5);
+            color: white;
+        }
+
+        /* 愿望能量条 */
+        .wish-energy {
+            margin-top: 15px;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .energy-level {
+            height: 100%;
+            width: 0;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            transition: width 0.5s ease;
+        }
+
+        .wish-card[data-level="1"] .energy-level { width: 20%; }
+        .wish-card[data-level="2"] .energy-level { width: 40%; }
+        .wish-card[data-level="3"] .energy-level { width: 60%; }
+        .wish-card[data-level="4"] .energy-level { width: 80%; }
+        .wish-card[data-level="5"] .energy-level { width: 100%; }
+
+        /* 加载状态 */
+        .wish-loading {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 50px;
+            color: var(--text-dark);
+        }
+
+        .loader {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(106, 17, 203, 0.2);
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* 分页控件 */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            margin-top: 40px;
+        }
+
+        .pagination button {
+            background: rgba(106, 17, 203, 0.3);
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            color: var(--text-light);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .pagination button:hover {
+            background: rgba(106, 17, 203, 0.5);
+            color: white;
+        }
+
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        #pageInfo {
+            color: var(--text-light);
+        }
+
+        /* 统计卡片 */
+        .stat-card {
+            text-align: center;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: var(--text-dark);
+            font-size: 0.9rem;
+        }
+
+        .wish-chart {
+            height: 250px;
+        }
+
+        /* 模态框 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: var(--bg-light);
+            margin: 10% auto;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 500px;
+            position: relative;
+            border: 1px solid rgba(106, 17, 203, 0.5);
+            box-shadow: 0 5px 30px rgba(106, 17, 203, 0.3);
+            animation: modalFadeIn 0.3s ease;
+        }
+
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 1.5rem;
+            color: var(--text-dark);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .close-modal:hover {
+            color: white;
+        }
+
+        .modal-content h3 {
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* 还愿选项 */
+        .fulfill-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin: 25px 0;
+        }
+
+        .fulfill-option {
+            padding: 15px;
+            background: rgba(106, 17, 203, 0.2);
+            border: 1px solid rgba(106, 17, 203, 0.3);
+            border-radius: 6px;
+            color: var(--text-light);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            font-size: 1.1rem;
+        }
+
+        .fulfill-option:hover {
+            background: rgba(106, 17, 203, 0.4);
+            color: white;
+            transform: translateY(-3px);
+        }
+
+        .fulfill-note {
+            font-size: 0.9rem;
+            color: var(--text-dark);
+            text-align: center;
+        }
+
+        /* 页脚 */
+        .main-footer {
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.9));
+            color: var(--text-light);
+            padding: 50px 0 30px;
+            text-align: center;
+            box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .main-footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml;utf8,<svg width="20" height="20" xmlns="http://www.w3.org/2000/svg"><circle cx="2" cy="2" r="1" fill="rgba(106,17,203,0.3)"/></svg>') repeat;
+            opacity: 0.05;
+            z-index: 0;
+        }
+
+        .main-footer .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .main-footer p {
+            margin-bottom: 15px;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 0.95rem;
+        }
+
+        .copyright {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 992px) {
+            .content-container {
+                padding: 40px;
+            }
+            
+            .mingyuan-intro {
+                flex-direction: column;
+            }
+            
+            .mingyuan-intro .intro-image {
+                flex: 1;
+                width: 100%;
+            }
+            
+            .mingyuan-form {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .content-container {
+                padding: 30px;
+                margin: 20px auto;
+                border-radius: 15px;
+            }
+            
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .wish-pool {
+                grid-template-columns: 1fr;
+            }
+            
+            .filter-controls {
+                margin-top: 15px;
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .fulfill-options {
+                grid-template-columns: 1fr;
+            }
+            
+            .section-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .section-header h2 {
+                font-size: 1.5rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .content-container {
+                padding: 20px;
+                margin: 10px auto;
+                border-radius: 10px;
+            }
+            
+            .content-title h1 {
+                font-size: 1.8rem;
+                padding: 15px 30px;
+            }
+            
+            .content-title p {
+                font-size: 1rem;
+            }
+            
+            .radio-group {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .modal-content {
+                margin: 20% auto;
+                width: 90%;
+            }
+        }
     </style>
 </head>
 <body>
     <div id="particles-js"></div>
     <div class="background-overlay"></div>
     
-    <main class="content-container mingyuan-container">
+    <main class="content-container">
         <section class="content-title">
             <h1>命缘池</h1>
             <p>以八字为引，聚众生愿力，助你梦想成真</p>
@@ -727,7 +1054,7 @@
                     </div>
                     
                     <div class="form-actions">
-                        <button type="submit" class="btn btn-mingyuan">
+                        <button type="submit" class="btn-mingyuan">
                             <i class="fas fa-paper-plane"></i> 投入命缘池
                         </button>
                     </div>
@@ -853,7 +1180,7 @@
 
     <!-- 愿望卡片模板 -->
     <template id="wishCardTemplate">
-        <div class="wish-card" data-id="" data-level="1" data-type="">
+        <div class="wish-card" data-id="" data-level="1" data-type="" data-visibility="public">
             <div class="wish-header">
                 <span class="wish-type"></span>
                 <span class="wish-time">剩余<span class="days-left">30</span>天</span>
@@ -900,295 +1227,502 @@
         </div>
     </div>
 
-    <script src="../js/navigation.js"></script>
     <script>
-// 处理CORS
-const corsHeaders = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
-};
-
-// 处理OPTIONS请求
-const handleOptions = (request) => {
-    if (request.headers.get('Origin') !== null &&
-        request.headers.get('Access-Control-Request-Method') !== null &&
-        request.headers.get('Access-Control-Request-Headers') !== null) {
-        return new Response(null, {
-            headers: corsHeaders
-        });
-    } else {
-        return new Response(null, {
-            headers: {
-                'Allow': 'GET, POST, PUT, DELETE, OPTIONS',
-            }
-        });
-    }
-};
-
-// 主处理函数
-async function handleRequest(request) {
-    if (request.method === 'OPTIONS') {
-        return handleOptions(request);
-    }
-
-    const url = new URL(request.url);
-    const path = url.pathname;
-    const params = url.searchParams;
-
-    try {
-        // 获取愿望列表
-        if (path === '/api/wishes' && request.method === 'GET') {
-            const page = parseInt(params.get('page')) || 1;
-            const limit = parseInt(params.get('limit')) || 9;
-            const filter = params.get('filter') || 'all';
-            const sort = params.get('sort') || 'newest';
-            
-            // 从KV获取所有愿望
-            const wishes = await getWishesFromKV();
-            
-            // 应用筛选
-            let filteredWishes = [...wishes];
-            if (filter !== 'all') {
-                filteredWishes = filteredWishes.filter(wish => wish.type === filter);
-            }
-            
-            // 应用排序
-            switch (sort) {
-                case 'newest':
-                    filteredWishes.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-                    break;
-                case 'oldest':
-                    filteredWishes.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
-                    break;
-                case 'most':
-                    filteredWishes.sort((a, b) => b.blessings - a.blessings);
-                    break;
-                case 'least':
-                    filteredWishes.sort((a, b) => a.blessings - b.blessings);
-                    break;
-            }
-            
-            // 分页
-            const startIdx = (page - 1) * limit;
-            const paginatedWishes = filteredWishes.slice(startIdx, startIdx + limit);
-            
-            return new Response(JSON.stringify({
-                success: true,
-                data: paginatedWishes,
-                total: filteredWishes.length,
-                page,
-                totalPages: Math.ceil(filteredWishes.length / limit)
-            }), {
-                headers: {
-                    ...corsHeaders,
-                    'Content-Type': 'application/json'
-                }
-            });
-        }
-        
-        // 添加新愿望
-        if (path === '/api/wishes' && request.method === 'POST') {
-            const data = await request.json();
-            
-            // 验证数据
-            if (!data.bazi || !data.content || !data.type) {
-                return new Response(JSON.stringify({
-                    success: false,
-                    message: '缺少必要字段'
-                }), {
-                    status: 400,
-                    headers: {
-                        ...corsHeaders,
-                        'Content-Type': 'application/json'
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化粒子背景
+            particlesJS('particles-js', {
+                particles: {
+                    number: { value: 80, density: { enable: true, value_area: 800 } },
+                    color: { value: "#6a11cb" },
+                    shape: { type: "circle" },
+                    opacity: { value: 0.5, random: true },
+                    size: { value: 3, random: true },
+                    line_linked: { enable: true, distance: 150, color: "#6a11cb", opacity: 0.3, width: 1 },
+                    move: { enable: true, speed: 2, direction: "none", random: true, straight: false, out_mode: "out" }
+                },
+                interactivity: {
+                    detect_on: "canvas",
+                    events: {
+                        onhover: { enable: true, mode: "repulse" },
+                        onclick: { enable: true, mode: "push" }
                     }
-                });
-            }
-            
-            // 创建新愿望
-            const newWish = {
-                id: `wish-${Date.now()}`,
-                bazi: data.bazi,
-                content: data.content,
-                type: data.type,
-                visibility: data.visibility || 'public',
-                blessings: 0,
-                level: 1,
-                createdAt: new Date().toISOString(),
-                daysLeft: 30,
-                userId: data.userId || null // 如果有用户系统
-            };
-            
-            // 保存到KV
-            await saveWishToKV(newWish);
-            
-            return new Response(JSON.stringify({
-                success: true,
-                data: newWish
-            }), {
-                headers: {
-                    ...corsHeaders,
-                    'Content-Type': 'application/json'
                 }
             });
-        }
-        
-        // 加持愿望
-        if (path.startsWith('/api/wishes/') && request.method === 'PUT') {
-            const wishId = path.split('/')[3];
-            
-            // 从KV获取愿望
-            const wish = await getWishFromKV(wishId);
-            
-            if (!wish) {
-                return new Response(JSON.stringify({
-                    success: false,
-                    message: '愿望不存在'
-                }), {
-                    status: 404,
-                    headers: {
-                        ...corsHeaders,
-                        'Content-Type': 'application/json'
-                    }
-                });
-            }
-            
-            // 更新加持次数
-            wish.blessings++;
-            
-            // 检查是否需要升级
-            const newLevel = Math.floor(wish.blessings / 5) + 1;
-            if (newLevel > wish.level && newLevel <= 5) {
-                wish.level = newLevel;
-            }
-            
-            // 更新KV
-            await saveWishToKV(wish);
-            
-            return new Response(JSON.stringify({
-                success: true,
-                data: wish
-            }), {
-                headers: {
-                    ...corsHeaders,
-                    'Content-Type': 'application/json'
-                }
-            });
-        }
-        
-        // 还愿
-        if (path.startsWith('/api/wishes/') && request.method === 'DELETE') {
-            const wishId = path.split('/')[3];
-            
-            // 从KV删除愿望
-            await deleteWishFromKV(wishId);
-            
-            return new Response(JSON.stringify({
-                success: true,
-                message: '还愿成功'
-            }), {
-                headers: {
-                    ...corsHeaders,
-                    'Content-Type': 'application/json'
-                }
-            });
-        }
-        
-        // 获取统计信息
-        if (path === '/api/stats' && request.method === 'GET') {
-            const wishes = await getWishesFromKV();
-            const today = new Date().toISOString().split('T')[0];
-            
-            // 今日新增愿望
-            const todayWishes = wishes.filter(wish => 
-                wish.createdAt.split('T')[0] === today
-            ).length;
-            
-            // 今日加持次数（模拟）
-            const todayBlessings = wishes.reduce((acc, wish) => {
-                // 这里应该有更精确的记录方式
-                return acc + (wish.blessings > 0 && wish.createdAt.split('T')[0] === today ? 1 : 0);
-            }, 0);
-            
-            // 愿望类型分布
-            const typeDistribution = wishes.reduce((acc, wish) => {
-                acc[wish.type] = (acc[wish.type] || 0) + 1;
-                return acc;
-            }, {});
-            
-            return new Response(JSON.stringify({
-                success: true,
+
+            // 初始化图表
+            const energyCtx = document.getElementById('energyChart').getContext('2d');
+            const energyChart = new Chart(energyCtx, {
+                type: 'line',
                 data: {
-                    todayWishes,
-                    todayBlessings,
-                    totalWishes: wishes.length,
-                    typeDistribution
-                }
-            }), {
-                headers: {
-                    ...corsHeaders,
-                    'Content-Type': 'application/json'
+                    labels: ['1日', '5日', '10日', '15日', '20日', '25日', '30日'],
+                    datasets: [{
+                        label: '愿望能量增长曲线',
+                        data: [20, 45, 60, 75, 85, 95, 100],
+                        borderColor: '#6a11cb',
+                        backgroundColor: 'rgba(106, 17, 203, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: { 
+                            beginAtZero: true, 
+                            grid: { color: 'rgba(255,255,255,0.1)' },
+                            ticks: { color: '#b8c2cc' }
+                        },
+                        x: { 
+                            grid: { color: 'rgba(255,255,255,0.1)' },
+                            ticks: { color: '#b8c2cc' }
+                        }
+                    }
                 }
             });
-        }
-        
-        return new Response(JSON.stringify({
-            success: false,
-            message: '未找到路由'
-        }), {
-            status: 404,
-            headers: {
-                ...corsHeaders,
-                'Content-Type': 'application/json'
+
+            const typeCtx = document.getElementById('wishTypeChart').getContext('2d');
+            const typeChart = new Chart(typeCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['姻缘感情', '财富事业', '健康平安', '学业成长', '家庭和睦', '其他愿望'],
+                    datasets: [{
+                        data: [25, 30, 15, 10, 12, 8],
+                        backgroundColor: [
+                            'rgba(232, 67, 147, 0.7)',
+                            'rgba(243, 156, 18, 0.7)',
+                            'rgba(46, 204, 113, 0.7)',
+                            'rgba(52, 152, 219, 0.7)',
+                            'rgba(155, 89, 182, 0.7)',
+                            'rgba(149, 165, 166, 0.7)'
+                        ],
+                        borderColor: 'rgba(20, 20, 30, 0.8)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { 
+                            position: 'right', 
+                            labels: { 
+                                color: '#b8c2cc',
+                                font: {
+                                    family: "'Noto Serif SC', serif"
+                                }
+                            } 
+                        }
+                    }
+                }
+            });
+
+            // 愿望数据
+            let wishes = [];
+            let currentPage = 1;
+            const wishesPerPage = 9;
+            
+            // 初始化模拟数据
+            function initMockData() {
+                const types = ['love', 'wealth', 'health', 'study', 'family', 'other'];
+                const typeNames = {
+                    love: '姻缘感情',
+                    wealth: '财富事业',
+                    health: '健康平安',
+                    study: '学业成长',
+                    family: '家庭和睦',
+                    other: '其他愿望'
+                };
+                
+                for (let i = 1; i <= 27; i++) {
+                    const type = types[Math.floor(Math.random() * types.length)];
+                    const level = Math.floor(Math.random() * 5) + 1;
+                    const blessings = (level - 1) * 5 + Math.floor(Math.random() * 5);
+                    const daysLeft = 30 - Math.floor(Math.random() * 30);
+                    
+                    wishes.push({
+                        id: `wish-${i}`,
+                        bazi: `八字样例 ${i}`,
+                        content: `这是一个关于${typeNames[type]}的愿望示例内容，希望这个愿望能够实现。`,
+                        type: type,
+                        typeName: typeNames[type],
+                        visibility: Math.random() > 0.3 ? 'public' : 'private',
+                        blessings: blessings,
+                        level: level,
+                        createdAt: new Date(Date.now() - (Math.random() * 30 * 24 * 60 * 60 * 1000)),
+                        daysLeft: daysLeft,
+                        isOwner: i === 1 // 模拟第一个愿望是当前用户的
+                    });
+                }
             }
-        });
-    } catch (error) {
-        return new Response(JSON.stringify({
-            success: false,
-            message: '服务器错误',
-            error: error.message
-        }), {
-            status: 500,
-            headers: {
-                ...corsHeaders,
-                'Content-Type': 'application/json'
+            
+            // 渲染愿望卡片
+            function renderWishes() {
+                const wishPool = document.querySelector('.wish-pool');
+                wishPool.innerHTML = '';
+                
+                const filter = document.getElementById('wishFilter').value;
+                const sort = document.getElementById('sortFilter').value;
+                
+                let filteredWishes = [...wishes];
+                
+                // 应用筛选
+                if (filter !== 'all') {
+                    filteredWishes = filteredWishes.filter(wish => wish.type === filter);
+                }
+                
+                // 应用排序
+                switch (sort) {
+                    case 'newest':
+                        filteredWishes.sort((a, b) => b.createdAt - a.createdAt);
+                        break;
+                    case 'oldest':
+                        filteredWishes.sort((a, b) => a.createdAt - b.createdAt);
+                        break;
+                    case 'most':
+                        filteredWishes.sort((a, b) => b.blessings - a.blessings);
+                        break;
+                    case 'least':
+                        filteredWishes.sort((a, b) => a.blessings - b.blessings);
+                        break;
+                }
+                
+                // 分页
+                const startIdx = (currentPage - 1) * wishesPerPage;
+                const paginatedWishes = filteredWishes.slice(startIdx, startIdx + wishesPerPage);
+                
+                if (paginatedWishes.length === 0) {
+                    wishPool.innerHTML = '<div class="wish-loading"><p>没有找到符合条件的愿望</p></div>';
+                    return;
+                }
+                
+                const template = document.getElementById('wishCardTemplate');
+                
+                paginatedWishes.forEach(wish => {
+                    const card = template.content.cloneNode(true);
+                    const wishCard = card.querySelector('.wish-card');
+                    
+                    wishCard.setAttribute('data-id', wish.id);
+                    wishCard.setAttribute('data-level', wish.level);
+                    wishCard.setAttribute('data-type', wish.type);
+                    wishCard.setAttribute('data-visibility', wish.visibility);
+                    if (wish.isOwner) wishCard.setAttribute('data-owner', 'true');
+                    
+                    card.querySelector('.wish-type').textContent = wish.typeName;
+                    card.querySelector('.days-left').textContent = wish.daysLeft;
+                    card.querySelector('.wish-text').textContent = wish.content;
+                    card.querySelector('.bazi-text').textContent = wish.bazi;
+                    card.querySelector('.bless-count').textContent = wish.blessings;
+                    card.querySelector('.energy-level').style.width = `${wish.level * 20}%`;
+                    
+                    wishPool.appendChild(card);
+                });
+                
+                // 更新分页信息
+                updatePagination(filteredWishes.length);
             }
+            
+            // 更新分页控件
+            function updatePagination(totalWishes) {
+                const totalPages = Math.ceil(totalWishes / wishesPerPage);
+                document.getElementById('pageInfo').textContent = `第 ${currentPage} 页 / 共 ${totalPages} 页`;
+                
+                document.getElementById('prevPage').disabled = currentPage === 1;
+                document.getElementById('nextPage').disabled = currentPage === totalPages || totalPages === 0;
+            }
+            
+            // 处理许愿表单提交
+            document.getElementById('wishForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const bazi = document.getElementById('bazi').value.trim();
+                const content = document.getElementById('wishContent').value.trim();
+                const visibility = document.querySelector('input[name="visibility"]:checked').value;
+                const type = document.getElementById('wishType').value;
+                const typeNames = {
+                    love: '姻缘感情',
+                    wealth: '财富事业',
+                    health: '健康平安',
+                    study: '学业成长',
+                    family: '家庭和睦',
+                    other: '其他愿望'
+                };
+                
+                if (!bazi || !content) {
+                    alert('请填写完整的八字和愿望内容');
+                    return;
+                }
+                
+                // 模拟添加到愿望池
+                const newWish = {
+                    id: `wish-${Date.now()}`,
+                    bazi: bazi,
+                    content: content,
+                    type: type,
+                    typeName: typeNames[type],
+                    visibility: visibility,
+                    blessings: 0,
+                    level: 1,
+                    createdAt: new Date(),
+                    daysLeft: 30,
+                    isOwner: true
+                };
+                
+                wishes.unshift(newWish);
+                currentPage = 1;
+                renderWishes();
+                updateStats();
+                
+                // 重置表单
+                this.reset();
+                
+                // 显示成功消息
+                showSuccessMessage('您的愿望已成功投入命缘池！');
+            });
+            
+            // 显示成功消息
+            function showSuccessMessage(message) {
+                const toast = document.createElement('div');
+                toast.className = 'success-toast';
+                toast.textContent = message;
+                document.body.appendChild(toast);
+                
+                setTimeout(() => {
+                    toast.classList.add('show');
+                    setTimeout(() => {
+                        toast.classList.remove('show');
+                        setTimeout(() => {
+                            document.body.removeChild(toast);
+                        }, 300);
+                    }, 3000);
+                }, 100);
+            }
+            
+            // 处理加持按钮点击
+            document.addEventListener('click', function(e) {
+                if (e.target.classList.contains('btn-bless') || e.target.closest('.btn-bless')) {
+                    const btn = e.target.classList.contains('btn-bless') ? e.target : e.target.closest('.btn-bless');
+                    const wishCard = btn.closest('.wish-card');
+                    const wishId = wishCard.getAttribute('data-id');
+                    
+                    // 模拟加持
+                    const wish = wishes.find(w => w.id === wishId);
+                    if (wish) {
+                        wish.blessings++;
+                        
+                        // 每5次加持提升一个等级
+                        const newLevel = Math.floor(wish.blessings / 5) + 1;
+                        if (newLevel > wish.level && newLevel <= 5) {
+                            wish.level = newLevel;
+                            wishCard.setAttribute('data-level', newLevel);
+                            wishCard.querySelector('.energy-level').style.width = `${newLevel * 20}%`;
+                            
+                            // 显示升级动画
+                            wishCard.classList.add('level-up');
+                            setTimeout(() => wishCard.classList.remove('level-up'), 1000);
+                            
+                            // 显示升级消息
+                            showSuccessMessage(`愿望能量提升至${getLevelName(newLevel)}！`);
+                        }
+                        
+                        wishCard.querySelector('.bless-count').textContent = wish.blessings;
+                        btn.disabled = true;
+                        btn.innerHTML = '<i class="fas fa-check"></i> 已加持';
+                        
+                        // 更新统计
+                        updateStats();
+                    }
+                }
+                
+                // 处理还愿按钮点击
+                if (e.target.classList.contains('btn-fulfill') || e.target.closest('.btn-fulfill')) {
+                    const modal = document.getElementById('fulfillModal');
+                    modal.style.display = 'block';
+                }
+            });
+            
+            // 获取等级名称
+            function getLevelName(level) {
+                const levels = {
+                    1: '初愿',
+                    2: '小成',
+                    3: '中成',
+                    4: '大成',
+                    5: '圆满'
+                };
+                return levels[level] || '';
+            }
+            
+            // 处理还愿模态框
+            document.querySelector('.close-modal').addEventListener('click', function() {
+                document.getElementById('fulfillModal').style.display = 'none';
+            });
+            
+            // 点击模态框外部关闭
+            window.addEventListener('click', function(e) {
+                if (e.target === document.getElementById('fulfillModal')) {
+                    document.getElementById('fulfillModal').style.display = 'none';
+                }
+            });
+            
+            document.querySelectorAll('.fulfill-option').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const amount = this.getAttribute('data-amount');
+                    showSuccessMessage(`感谢您的还愿！已成功还愿${amount}元。`);
+                    document.getElementById('fulfillModal').style.display = 'none';
+                    
+                    // 在实际应用中，这里应该调用支付接口
+                    // 支付成功后，从愿望池中移除该愿望
+                    const wishCard = document.querySelector('.wish-card[data-owner="true"]');
+                    if (wishCard) {
+                        const wishId = wishCard.getAttribute('data-id');
+                        wishes = wishes.filter(w => w.id !== wishId);
+                        renderWishes();
+                        updateStats();
+                    }
+                });
+            });
+            
+            // 处理分页
+            document.getElementById('prevPage').addEventListener('click', function() {
+                if (currentPage > 1) {
+                    currentPage--;
+                    renderWishes();
+                }
+            });
+            
+            document.getElementById('nextPage').addEventListener('click', function() {
+                const filter = document.getElementById('wishFilter').value;
+                let filteredWishes = filter === 'all' ? wishes : wishes.filter(wish => wish.type === filter);
+                const totalPages = Math.ceil(filteredWishes.length / wishesPerPage);
+                
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    renderWishes();
+                }
+            });
+            
+            // 处理筛选变化
+            document.getElementById('wishFilter').addEventListener('change', function() {
+                currentPage = 1;
+                renderWishes();
+            });
+            
+            document.getElementById('sortFilter').addEventListener('change', function() {
+                renderWishes();
+            });
+            
+            // 更新统计信息
+            function updateStats() {
+                // 今日日期
+                const today = new Date().toDateString();
+                
+                // 今日新增愿望
+                const todayWishes = wishes.filter(wish => 
+                    new Date(wish.createdAt).toDateString() === today
+                ).length;
+                
+                // 模拟今日加持和还愿数据
+                const todayBlessings = wishes.reduce((acc, wish) => {
+                    // 简单模拟：假设每个愿望今天被加持1-3次
+                    return acc + (new Date(wish.createdAt).toDateString() === today ? Math.floor(Math.random() * 3) + 1 : 0);
+                }, 0);
+                
+                const todayFulfilled = Math.floor(Math.random() * 3);
+                
+                document.getElementById('todayWishes').textContent = todayWishes;
+                document.getElementById('todayBlessings').textContent = todayBlessings;
+                document.getElementById('todayFulfilled').textContent = todayFulfilled;
+                
+                // 更新饼图数据
+                const typeData = {
+                    love: 0,
+                    wealth: 0,
+                    health: 0,
+                    study: 0,
+                    family: 0,
+                    other: 0
+                };
+                
+                wishes.forEach(wish => {
+                    typeData[wish.type]++;
+                });
+                
+                typeChart.data.datasets[0].data = [
+                    typeData.love,
+                    typeData.wealth,
+                    typeData.health,
+                    typeData.study,
+                    typeData.family,
+                    typeData.other
+                ];
+                
+                typeChart.update();
+            }
+            
+            // 初始化
+            initMockData();
+            renderWishes();
+            updateStats();
+            
+            // 添加成功消息样式
+            const style = document.createElement('style');
+            style.textContent = `
+                .success-toast {
+                    position: fixed;
+                    bottom: 20px;
+                    left: 50%;
+                    transform: translateX(-50%) translateY(100px);
+                    background: rgba(106, 17, 203, 0.9);
+                    color: white;
+                    padding: 12px 24px;
+                    border-radius: 50px;
+                    box-shadow: 0 5px 20px rgba(106, 17, 203, 0.5);
+                    z-index: 1000;
+                    opacity: 0;
+                    transition: all 0.3s ease;
+                }
+                
+                .success-toast.show {
+                    transform: translateX(-50%) translateY(0);
+                    opacity: 1;
+                }
+            `;
+            document.head.appendChild(style);
+            
+            // 模拟愿望过期
+            setInterval(() => {
+                // 每天减少剩余天数
+                let needsUpdate = false;
+                
+                wishes.forEach(wish => {
+                    if (wish.daysLeft > 0) {
+                        wish.daysLeft--;
+                        needsUpdate = true;
+                    }
+                });
+                
+                // 移除已过期的愿望
+                const expiredCount = wishes.filter(wish => wish.daysLeft <= 0).length;
+                if (expiredCount > 0) {
+                    wishes = wishes.filter(wish => wish.daysLeft > 0);
+                    needsUpdate = true;
+                    
+                    // 显示过期消息
+                    if (expiredCount > 0) {
+                        showSuccessMessage(`${expiredCount}个愿望因到期已从命缘池移除`);
+                    }
+                }
+                
+                // 如果需要更新则重新渲染
+                if (needsUpdate) {
+                    renderWishes();
+                    updateStats();
+                }
+            }, 10 * 1000); // 实际应用中应该使用服务器时间，这里为了演示缩短为10秒
         });
-    }
-}
-
-// KV操作辅助函数
-async function getWishesFromKV() {
-    const list = await MINGYUAN_KV.list();
-    const wishes = [];
-    
-    for (const key of list.keys) {
-        if (key.name.startsWith('wish-')) {
-            const wish = await MINGYUAN_KV.get(key.name, 'json');
-            if (wish) wishes.push(wish);
-        }
-    }
-    
-    return wishes;
-}
-
-async function getWishFromKV(wishId) {
-    return await MINGYUAN_KV.get(wishId, 'json');
-}
-
-async function saveWishToKV(wish) {
-    await MINGYUAN_KV.put(wish.id, JSON.stringify(wish));
-}
-
-async function deleteWishFromKV(wishId) {
-    await MINGYUAN_KV.delete(wishId);
-}
-
-// Worker入口
-addEventListener('fetch', (event) => {
-    event.respondWith(handleRequest(event.request));
-});
-
-</script>
+    </script>
 </body>
 </html>
