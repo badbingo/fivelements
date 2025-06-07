@@ -902,7 +902,292 @@
 
     <script src="../js/navigation.js"></script>
     <script>
+// 处理CORS
+const corsHeaders = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+};
 
+// 处理OPTIONS请求
+const handleOptions = (request) => {
+    if (request.headers.get('Origin') !== null &&
+        request.headers.get('Access-Control-Request-Method') !== null &&
+        request.headers.get('Access-Control-Request-Headers') !== null) {
+        return new Response(null, {
+            headers: corsHeaders
+        });
+    } else {
+        return new Response(null, {
+            headers: {
+                'Allow': 'GET, POST, PUT, DELETE, OPTIONS',
+            }
+        });
+    }
+};
+
+// 主处理函数
+async function handleRequest(request) {
+    if (request.method === 'OPTIONS') {
+        return handleOptions(request);
+    }
+
+    const url = new URL(request.url);
+    const path = url.pathname;
+    const params = url.searchParams;
+
+    try {
+        // 获取愿望列表
+        if (path === '/api/wishes' && request.method === 'GET') {
+            const page = parseInt(params.get('page')) || 1;
+            const limit = parseInt(params.get('limit')) || 9;
+            const filter = params.get('filter') || 'all';
+            const sort = params.get('sort') || 'newest';
+            
+            // 从KV获取所有愿望
+            const wishes = await getWishesFromKV();
+            
+            // 应用筛选
+            let filteredWishes = [...wishes];
+            if (filter !== 'all') {
+                filteredWishes = filteredWishes.filter(wish => wish.type === filter);
+            }
+            
+            // 应用排序
+            switch (sort) {
+                case 'newest':
+                    filteredWishes.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                    break;
+                case 'oldest':
+                    filteredWishes.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+                    break;
+                case 'most':
+                    filteredWishes.sort((a, b) => b.blessings - a.blessings);
+                    break;
+                case 'least':
+                    filteredWishes.sort((a, b) => a.blessings - b.blessings);
+                    break;
+            }
+            
+            // 分页
+            const startIdx = (page - 1) * limit;
+            const paginatedWishes = filteredWishes.slice(startIdx, startIdx + limit);
+            
+            return new Response(JSON.stringify({
+                success: true,
+                data: paginatedWishes,
+                total: filteredWishes.length,
+                page,
+                totalPages: Math.ceil(filteredWishes.length / limit)
+            }), {
+                headers: {
+                    ...corsHeaders,
+                    'Content-Type': 'application/json'
+                }
+            });
+        }
+        
+        // 添加新愿望
+        if (path === '/api/wishes' && request.method === 'POST') {
+            const data = await request.json();
+            
+            // 验证数据
+            if (!data.bazi || !data.content || !data.type) {
+                return new Response(JSON.stringify({
+                    success: false,
+                    message: '缺少必要字段'
+                }), {
+                    status: 400,
+                    headers: {
+                        ...corsHeaders,
+                        'Content-Type': 'application/json'
+                    }
+                });
+            }
+            
+            // 创建新愿望
+            const newWish = {
+                id: `wish-${Date.now()}`,
+                bazi: data.bazi,
+                content: data.content,
+                type: data.type,
+                visibility: data.visibility || 'public',
+                blessings: 0,
+                level: 1,
+                createdAt: new Date().toISOString(),
+                daysLeft: 30,
+                userId: data.userId || null // 如果有用户系统
+            };
+            
+            // 保存到KV
+            await saveWishToKV(newWish);
+            
+            return new Response(JSON.stringify({
+                success: true,
+                data: newWish
+            }), {
+                headers: {
+                    ...corsHeaders,
+                    'Content-Type': 'application/json'
+                }
+            });
+        }
+        
+        // 加持愿望
+        if (path.startsWith('/api/wishes/') && request.method === 'PUT') {
+            const wishId = path.split('/')[3];
+            
+            // 从KV获取愿望
+            const wish = await getWishFromKV(wishId);
+            
+            if (!wish) {
+                return new Response(JSON.stringify({
+                    success: false,
+                    message: '愿望不存在'
+                }), {
+                    status: 404,
+                    headers: {
+                        ...corsHeaders,
+                        'Content-Type': 'application/json'
+                    }
+                });
+            }
+            
+            // 更新加持次数
+            wish.blessings++;
+            
+            // 检查是否需要升级
+            const newLevel = Math.floor(wish.blessings / 5) + 1;
+            if (newLevel > wish.level && newLevel <= 5) {
+                wish.level = newLevel;
+            }
+            
+            // 更新KV
+            await saveWishToKV(wish);
+            
+            return new Response(JSON.stringify({
+                success: true,
+                data: wish
+            }), {
+                headers: {
+                    ...corsHeaders,
+                    'Content-Type': 'application/json'
+                }
+            });
+        }
+        
+        // 还愿
+        if (path.startsWith('/api/wishes/') && request.method === 'DELETE') {
+            const wishId = path.split('/')[3];
+            
+            // 从KV删除愿望
+            await deleteWishFromKV(wishId);
+            
+            return new Response(JSON.stringify({
+                success: true,
+                message: '还愿成功'
+            }), {
+                headers: {
+                    ...corsHeaders,
+                    'Content-Type': 'application/json'
+                }
+            });
+        }
+        
+        // 获取统计信息
+        if (path === '/api/stats' && request.method === 'GET') {
+            const wishes = await getWishesFromKV();
+            const today = new Date().toISOString().split('T')[0];
+            
+            // 今日新增愿望
+            const todayWishes = wishes.filter(wish => 
+                wish.createdAt.split('T')[0] === today
+            ).length;
+            
+            // 今日加持次数（模拟）
+            const todayBlessings = wishes.reduce((acc, wish) => {
+                // 这里应该有更精确的记录方式
+                return acc + (wish.blessings > 0 && wish.createdAt.split('T')[0] === today ? 1 : 0);
+            }, 0);
+            
+            // 愿望类型分布
+            const typeDistribution = wishes.reduce((acc, wish) => {
+                acc[wish.type] = (acc[wish.type] || 0) + 1;
+                return acc;
+            }, {});
+            
+            return new Response(JSON.stringify({
+                success: true,
+                data: {
+                    todayWishes,
+                    todayBlessings,
+                    totalWishes: wishes.length,
+                    typeDistribution
+                }
+            }), {
+                headers: {
+                    ...corsHeaders,
+                    'Content-Type': 'application/json'
+                }
+            });
+        }
+        
+        return new Response(JSON.stringify({
+            success: false,
+            message: '未找到路由'
+        }), {
+            status: 404,
+            headers: {
+                ...corsHeaders,
+                'Content-Type': 'application/json'
+            }
+        });
+    } catch (error) {
+        return new Response(JSON.stringify({
+            success: false,
+            message: '服务器错误',
+            error: error.message
+        }), {
+            status: 500,
+            headers: {
+                ...corsHeaders,
+                'Content-Type': 'application/json'
+            }
+        });
+    }
+}
+
+// KV操作辅助函数
+async function getWishesFromKV() {
+    const list = await MINGYUAN_KV.list();
+    const wishes = [];
+    
+    for (const key of list.keys) {
+        if (key.name.startsWith('wish-')) {
+            const wish = await MINGYUAN_KV.get(key.name, 'json');
+            if (wish) wishes.push(wish);
+        }
+    }
+    
+    return wishes;
+}
+
+async function getWishFromKV(wishId) {
+    return await MINGYUAN_KV.get(wishId, 'json');
+}
+
+async function saveWishToKV(wish) {
+    await MINGYUAN_KV.put(wish.id, JSON.stringify(wish));
+}
+
+async function deleteWishFromKV(wishId) {
+    await MINGYUAN_KV.delete(wishId);
+}
+
+// Worker入口
+addEventListener('fetch', (event) => {
+    event.respondWith(handleRequest(event.request));
+});
 
 </script>
 </body>
