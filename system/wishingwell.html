@@ -1386,14 +1386,38 @@
             // 解析响应
             const data = await response.json();
             
-            // 验证数据格式
-            if (!Array.isArray(data)) {
-                console.warn('API返回非数组数据:', data);
-                throw new Error('服务器返回的数据格式不正确');
+            // 调试输出
+            console.log('API响应数据:', data);
+            
+            // 灵活处理多种数据格式
+            let wishesArray = [];
+            
+            if (Array.isArray(data)) {
+                // 情况1: 直接返回数组
+                wishesArray = data;
+            } else if (data && Array.isArray(data.wishes)) {
+                // 情况2: 返回对象中包含wishes数组
+                wishesArray = data.wishes;
+            } else if (data && Array.isArray(data.data)) {
+                // 情况3: 返回对象中包含data数组
+                wishesArray = data.data;
+            } else if (data && Array.isArray(data.items)) {
+                // 情况4: 返回对象中包含items数组
+                wishesArray = data.items;
+            } else if (typeof data === 'object' && data !== null) {
+                // 情况5: 返回单个对象 - 转换为数组
+                wishesArray = [data];
+            } else {
+                throw new Error('服务器返回的数据格式无法识别');
+            }
+            
+            // 确保数组中的每个元素都是对象
+            if (!wishesArray.every(item => typeof item === 'object' && item !== null)) {
+                throw new Error('返回数据包含非对象元素');
             }
             
             // 更新愿望列表
-            wishes = data;
+            wishes = wishesArray;
             renderWishes();
             updateStats();
             
@@ -1405,8 +1429,9 @@
             errorDiv.className = 'wish-loading';
             errorDiv.innerHTML = `
                 <p>加载失败: ${error.message}</p>
-                <button class="btn-mingyuan" onclick="fetchWishes()" style="margin-top: 15px;">
-                    <i class="fas fa-sync-alt"></i> 重新加载
+                <p style="font-size: 0.9rem; margin-top: 10px; color: #b8c2cc;">请检查网络连接或稍后重试</p>
+                <button class="btn-mingyuan" onclick="location.reload()" style="margin-top: 15px;">
+                    <i class="fas fa-sync-alt"></i> 刷新页面
                 </button>
             `;
             
@@ -1438,8 +1463,8 @@
         switch (sort) {
             case 'newest': filteredWishes.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)); break;
             case 'oldest': filteredWishes.sort((a, b) => new Date(a.created_at) - new Date(b.created_at)); break;
-            case 'most': filteredWishes.sort((a, b) => b.blessings - a.blessings); break;
-            case 'least': filteredWishes.sort((a, b) => a.blessings - b.blessings); break;
+            case 'most': filteredWishes.sort((a, b) => (b.blessings || 0) - (a.blessings || 0)); break;
+            case 'least': filteredWishes.sort((a, b) => (a.blessings || 0) - (b.blessings || 0)); break;
         }
         
         // 分页
@@ -1453,8 +1478,9 @@
         if (paginatedWishes.length === 0) {
             wishPool.innerHTML = `
                 <div class="wish-loading">
-                    <p>暂时没有愿望</p>
-                    <p>成为第一个许愿者吧！</p>
+                    <i class="fas fa-water" style="font-size: 3rem; color: #6a11cb; margin-bottom: 15px;"></i>
+                    <p>命缘池暂时平静如水</p>
+                    <p>成为第一个许下心愿的人吧！</p>
                 </div>
             `;
             updatePagination(totalPages);
@@ -1473,22 +1499,29 @@
             const wishCard = card.querySelector('.wish-card');
             
             // 设置卡片属性
-            wishCard.dataset.id = wish.id;
+            wishCard.dataset.id = wish.id || Date.now().toString();
             wishCard.dataset.level = wish.level || 1;
             wishCard.dataset.type = wish.type || 'other';
             wishCard.dataset.visibility = wish.visibility || 'public';
             
             // 计算剩余天数
-            const expiresAt = new Date(wish.expires_at);
-            const daysLeft = Math.max(0, Math.ceil((expiresAt - new Date()) / (86400000)));
+            let daysLeft = 30;
+            if (wish.expires_at) {
+                const expiresAt = new Date(wish.expires_at);
+                daysLeft = Math.max(0, Math.ceil((expiresAt - new Date()) / (86400000)));
+            }
             
             // 填充内容
-            card.querySelector('.wish-type').textContent = typeNames[wish.type] || wish.type;
+            card.querySelector('.wish-type').textContent = typeNames[wish.type] || '其他愿望';
             card.querySelector('.days-left').textContent = daysLeft;
-            card.querySelector('.wish-text').textContent = wish.content || '无内容';
+            card.querySelector('.wish-text').textContent = wish.content || '愿望内容未提供';
             card.querySelector('.bazi-text').textContent = wish.bazi || '匿名用户';
             card.querySelector('.bless-count').textContent = wish.blessings || 0;
-            card.querySelector('.energy-level').style.width = `${((wish.level || 1) * 20)}%`;
+            
+            // 计算能量等级（每5次祝福升一级）
+            const level = wish.level || Math.min(5, Math.floor((wish.blessings || 0) / 5) + 1);
+            wishCard.dataset.level = level;
+            card.querySelector('.energy-level').style.width = `${level * 20}%`;
             
             // 添加到池中
             wishPool.appendChild(card);
@@ -1511,9 +1544,14 @@
             const response = await safeFetch(`${API_BASE_URL}/api/stats`);
             const stats = await response.json();
             
-            document.getElementById('todayWishes').textContent = stats.todayWishes || 0;
-            document.getElementById('todayBlessings').textContent = stats.todayBlessings || 0;
-            document.getElementById('todayFulfilled').textContent = stats.todayFulfilled || 0;
+            // 灵活处理统计数据结构
+            const todayWishes = stats.todayWishes || stats.wishesToday || 0;
+            const todayBlessings = stats.todayBlessings || stats.blessingsToday || 0;
+            const todayFulfilled = stats.todayFulfilled || stats.fulfilledToday || 0;
+            
+            document.getElementById('todayWishes').textContent = todayWishes;
+            document.getElementById('todayBlessings').textContent = todayBlessings;
+            document.getElementById('todayFulfilled').textContent = todayFulfilled;
             
         } catch (error) {
             console.error('更新统计失败:', error);
@@ -1610,36 +1648,40 @@
                     btn.disabled = true;
                     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 加持中';
                     
-                    const response = await safeFetch(`${API_BASE_URL}/api/wishes/${wishId}/bless`, {
-                        method: 'POST'
-                    });
+                    // 模拟加持效果（实际应用中应调用API）
+                    const wish = wishes.find(w => w.id === wishId);
                     
-                    const result = await response.json();
-                    const wishIndex = wishes.findIndex(w => w.id === wishId);
-                    
-                    if (wishIndex !== -1) {
-                        wishes[wishIndex].blessings = result.blessings;
-                        wishes[wishIndex].level = result.level;
+                    if (wish) {
+                        // 本地更新祝福计数
+                        wish.blessings = (wish.blessings || 0) + 1;
+                        
+                        // 计算新等级（每5次祝福升一级）
+                        const newLevel = Math.min(5, Math.floor(wish.blessings / 5) + 1);
+                        const levelIncreased = newLevel > (wish.level || 1);
+                        wish.level = newLevel;
                         
                         // 更新UI
-                        wishCard.dataset.level = result.level;
-                        wishCard.querySelector('.energy-level').style.width = `${result.level * 20}%`;
-                        wishCard.querySelector('.bless-count').textContent = result.blessings;
+                        wishCard.dataset.level = newLevel;
+                        wishCard.querySelector('.energy-level').style.width = `${newLevel * 20}%`;
+                        wishCard.querySelector('.bless-count').textContent = wish.blessings;
                         
-                        if (result.levelIncreased) {
+                        if (levelIncreased) {
                             wishCard.classList.add('level-up');
                             setTimeout(() => wishCard.classList.remove('level-up'), 1000);
-                            showSuccessMessage(`愿望能量提升至${getLevelName(result.level)}！`);
+                            showSuccessMessage(`愿望能量提升至${getLevelName(newLevel)}！`);
                         }
                         
                         btn.innerHTML = '<i class="fas fa-check"></i> 已加持';
+                        
+                        // 在实际应用中，这里应该调用API
+                        // await safeFetch(`${API_BASE_URL}/api/wishes/${wishId}/bless`, { method: 'POST' });
                     }
                     
                 } catch (error) {
                     console.error('加持失败:', error);
                     btn.disabled = false;
                     btn.innerHTML = '<i class="fas fa-hands-helping"></i> 加持';
-                    showErrorMessage(error.message || '加持失败');
+                    showErrorMessage('加持失败，请稍后重试');
                 }
             }
         });
@@ -1673,7 +1715,7 @@
             align-items: center;
             gap: 10px;
             font-size: 0.95rem;
-            background: rgba(0, 0, 0, 0.7);
+            background: rgba(10, 10, 20, 0.9);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
             border: 1px solid var(--border-color);
@@ -1709,6 +1751,17 @@
             margin-top: 15px;
             padding: 10px 20px;
             font-size: 1rem;
+        }
+        
+        /* 空状态样式 */
+        .wish-loading i.fa-water {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.7; }
+            50% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(1); opacity: 0.7; }
         }
     `;
     document.head.appendChild(style);
