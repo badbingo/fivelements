@@ -1,16 +1,36 @@
 <!DOCTYPE html>
 <html>
 <body>
-  <button onclick="testConnection()">测试连接</button>
+  <h1>API连接测试</h1>
+  <button onclick="testGET()">测试GET请求</button>
+  <button onclick="testPOST()">测试POST请求</button>
+  <pre id="output">点击按钮开始测试...</pre>
+
   <script>
-    async function testConnection() {
-      const API = "https://bazi-backend.owenjass.workers.dev/api/wishes";
+    const API_URL = "https://bazi-backend.owenjass.workers.dev/api/wishes";
+    const output = document.getElementById('output');
+
+    async function testGET() {
       try {
-        const res = await fetch(API);
-        alert(`连接成功! 状态码: ${res.status}`);
-        console.log(await res.json());
+        output.textContent = "发送GET请求中...";
+        const res = await fetch(API_URL);
+        output.textContent = `GET响应: ${res.status}\nHeaders:\n${[...res.headers].map(h => `${h[0]}: ${h[1]}`).join('\n')}`;
       } catch (err) {
-        alert(`连接失败: ${err.message}`);
+        output.textContent = `GET失败: ${err}`;
+      }
+    }
+
+    async function testPOST() {
+      try {
+        output.textContent = "发送POST请求中...";
+        const res = await fetch(API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ test: true })
+        });
+        output.textContent = `POST响应: ${res.status}\n${await res.text()}`;
+      } catch (err) {
+        output.textContent = `POST失败: ${err}`;
       }
     }
   </script>
