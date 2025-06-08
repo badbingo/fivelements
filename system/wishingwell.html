@@ -1254,124 +1254,278 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-    // 配置常量
-    const API_BASE = 'https://bazi-backend.owenjass.workers.dev';
-    const WISHES_PER_PAGE = 9;
-    
-    // 状态管理
-    let wishes = [];
-    let currentPage = 1;
-    let isLoading = false;
+       /**
+ * 命缘池前端核心代码
+ * 版本: 1.2.0
+ * 功能: 愿望提交、展示、加持、还愿全流程
+ */
 
-    // DOM元素
-    const dom = {
+document.addEventListener('DOMContentLoaded', function() {
+    // ==================== 配置常量 ====================
+    const CONFIG = {
+        API_BASE: '/api', // 生产环境API基础路径
+        LOCAL_API: 'http://localhost:8787/api', // 开发环境API
+        WISHES_PER_PAGE: 9,
+        MAX_RETRIES: 3,
+        RETRY_DELAY: 1000,
+        REQUEST_TIMEOUT: 5000
+    };
+
+    // ==================== 状态管理 ====================
+    const STATE = {
+        wishes: [],
+        currentPage: 1,
+        isLoading: false,
+        isOnline: navigator.onLine,
+        userToken: localStorage.getItem('wishing_token') || null,
+        wishTypeMap: {
+            love: '姻缘感情',
+            wealth: '财富事业',
+            health: '健康平安',
+            study: '学业成长',
+            family: '家庭和睦',
+            other: '其他愿望'
+        }
+    };
+
+    // ==================== DOM元素缓存 ====================
+    const DOM = {
+        // 表单元素
         wishForm: document.getElementById('wishForm'),
+        nameInput: document.getElementById('name'),
+        birthdayInput: document.getElementById('birthday'),
+        birthtimeSelect: document.getElementById('birthtime'),
+        contentTextarea: document.getElementById('wishContent'),
+        typeSelect: document.getElementById('wishType'),
+        visibilityRadios: document.querySelectorAll('input[name="visibility"]'),
+        
+        // 愿望池元素
         wishPool: document.querySelector('.wish-pool'),
-        prevPage: document.getElementById('prevPage'),
-        nextPage: document.getElementById('nextPage'),
+        wishTemplate: document.getElementById('wishCardTemplate'),
+        
+        // 分页控制
+        prevPageBtn: document.getElementById('prevPage'),
+        nextPageBtn: document.getElementById('nextPage'),
         pageInfo: document.getElementById('pageInfo'),
+        
+        // 筛选控制
         wishFilter: document.getElementById('wishFilter'),
         sortFilter: document.getElementById('sortFilter'),
+        
+        // 统计元素
         todayWishes: document.getElementById('todayWishes'),
         todayBlessings: document.getElementById('todayBlessings'),
         todayFulfilled: document.getElementById('todayFulfilled'),
-        fulfillModal: document.getElementById('fulfillModal')
+        
+        // 模态框
+        fulfillModal: document.getElementById('fulfillModal'),
+        closeModalBtn: document.querySelector('.close-modal'),
+        fulfillOptions: document.querySelectorAll('.fulfill-option')
     };
 
-    // 初始化函数
+    // ==================== 核心功能模块 ====================
+
+    /**
+     * 初始化应用
+     */
     async function init() {
         try {
             setLoading(true);
-            await loadWishes();
             setupEventListeners();
-            updateUI();
+            checkNetworkStatus();
+            
+            // 尝试从本地缓存加载数据
+            const cachedWishes = loadFromCache();
+            if (cachedWishes.length > 0) {
+                STATE.wishes = cachedWishes;
+                updateUI();
+            }
+            
+            // 从服务器获取最新数据
+            await loadWishes();
+            updateStats();
+            
+            // 初始化图表
+            initCharts();
         } catch (error) {
-            showError('初始化失败: ' + error.message);
+            showError(`初始化失败: ${error.message}`);
+            console.error('初始化错误:', error);
         } finally {
             setLoading(false);
         }
     }
 
-    // 数据加载
+    /**
+     * 从服务器加载愿望数据
+     */
     async function loadWishes() {
         try {
-            const response = await fetchWithRetry(`${API_BASE}/query?limit=100`);
-            if (!response.ok) throw new Error('获取愿望失败');
+            const response = await fetchWithRetry(`${getApiBase()}/wishes?limit=200`);
+            const result = await parseResponse(response);
             
-            const result = await response.json();
-            if (result.success) {
-                wishes = result.data.map(wish => ({
-                    ...wish,
-                    createdAt: new Date(wish.created_at),
-                    daysLeft: calculateDaysLeft(wish.created_at)
-                }));
-            } else {
-                throw new Error(result.message || '获取愿望数据错误');
+            if (result.error) {
+                throw new Error(result.error);
             }
+            
+            // 处理并缓存数据
+            STATE.wishes = processWishData(result.data);
+            saveToCache(STATE.wishes);
+            
+            return STATE.wishes;
         } catch (error) {
-            console.error('加载愿望数据失败:', error);
-            throw error;
+            console.error('加载愿望失败:', error);
+            throw new Error(`获取愿望数据失败: ${error.message}`);
         }
     }
 
-    // 核心功能函数
+    /**
+     * 处理愿望数据
+     */
+    function processWishData(wishes) {
+        return wishes.map(wish => ({
+            ...wish,
+            id: wish.id || wish._id, // 兼容不同后端
+            createdAt: new Date(wish.created_at || wish.createdAt),
+            daysLeft: calculateDaysLeft(wish.created_at || wish.createdAt),
+            blessings: wish.blessings || 0,
+            level: Math.min(5, Math.floor((wish.blessings || 0) / 5) + 1,
+            isOwner: wish.user_id === STATE.userToken // 简单所有权检查
+        }));
+    }
+
+    /**
+     * 提交新愿望
+     */
     async function submitWish(formData) {
+        validateFormData(formData);
+        
+        const payload = {
+            name: formData.name.trim(),
+            birth_time: formatBirthTime(formData.birthday, formData.birthtime),
+            content: formData.content.trim().substring(0, 200),
+            wish_type: formData.type || 'other',
+            visibility: formData.visibility || 'public',
+            bazi: calculateBazi(formData.birthday, formData.birthtime),
+            solar_date: new Date().toISOString().split('T')[0],
+            device_id: getDeviceId() // 用于识别用户
+        };
+
         try {
-            const bazi = calculateBazi(formData.birthday, formData.birthtime);
-            if (bazi.includes('错误')) {
-                throw new Error('八字计算失败');
-            }
-
-            const payload = {
-                name: formData.name,
-                birth_time: `${formData.birthday} ${formData.birthtime}`,
-                bazi: bazi,
-                content: formData.content,
-                wish_type: formData.type,
-                visibility: formData.visibility,
-                solar_date: formData.birthday.replace(/-/g, '') // 存储为YYYYMMDD数字格式
-            };
-
-            const response = await fetchWithRetry(`${API_BASE}/insert`, {
+            const response = await fetchWithRetry(`${getApiBase()}/wishes`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': STATE.userToken ? `Bearer ${STATE.userToken}` : ''
+                },
                 body: JSON.stringify(payload)
             });
-
-            const result = await response.json();
-            if (!result.success) {
-                throw new Error(result.message || '提交失败');
+            
+            const result = await parseResponse(response);
+            
+            if (result.error) {
+                throw new Error(result.error);
             }
-
-            return result;
+            
+            // 更新本地状态
+            const newWish = processWishData([result.data])[0];
+            STATE.wishes.unshift(newWish);
+            saveToCache(STATE.wishes);
+            
+            return newWish;
         } catch (error) {
             console.error('提交愿望失败:', error);
             throw error;
         }
     }
 
+    /**
+     * 加持愿望
+     */
     async function blessWish(wishId) {
         try {
-            const response = await fetchWithRetry(`${API_BASE}/bless`, {
+            const response = await fetchWithRetry(`${getApiBase()}/wishes/${wishId}/bless`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ wish_id: wishId })
+                headers: {
+                    'Authorization': STATE.userToken ? `Bearer ${STATE.userToken}` : ''
+                }
             });
-
-            const result = await response.json();
-            if (!result.success) {
-                throw new Error(result.message || '加持失败');
+            
+            const result = await parseResponse(response);
+            
+            if (result.error) {
+                throw new Error(result.error);
             }
-
-            return result;
+            
+            // 更新本地数据
+            const index = STATE.wishes.findIndex(w => w.id === wishId);
+            if (index !== -1) {
+                STATE.wishes[index].blessings = result.data.blessings;
+                STATE.wishes[index].level = Math.min(5, Math.floor(result.data.blessings / 5) + 1);
+                saveToCache(STATE.wishes);
+            }
+            
+            return result.data;
         } catch (error) {
-            console.error('加持愿望失败:', error);
+            console.error('加持失败:', error);
             throw error;
         }
     }
 
-    // 工具函数
+    // ==================== 工具函数 ====================
+
+    /**
+     * 智能获取API基础URL
+     */
+    function getApiBase() {
+        return window.location.hostname === 'localhost' ? CONFIG.LOCAL_API : CONFIG.API_BASE;
+    }
+
+    /**
+     * 带重试的fetch请求
+     */
+    async function fetchWithRetry(url, options = {}, retries = CONFIG.MAX_RETRIES) {
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), CONFIG.REQUEST_TIMEOUT);
+            
+            const response = await fetch(url, {
+                ...options,
+                signal: controller.signal
+            });
+            
+            clearTimeout(timeoutId);
+            
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => null);
+                throw new Error(errorData?.message || `HTTP ${response.status}`);
+            }
+            
+            return response;
+        } catch (error) {
+            if (retries > 0) {
+                await new Promise(resolve => setTimeout(resolve, CONFIG.RETRY_DELAY));
+                return fetchWithRetry(url, options, retries - 1);
+            }
+            throw error;
+        }
+    }
+
+    /**
+     * 解析API响应
+     */
+    async function parseResponse(response) {
+        const contentType = response.headers.get('content-type');
+        
+        if (!contentType || !contentType.includes('application/json')) {
+            throw new Error('无效的响应格式');
+        }
+        
+        return response.json();
+    }
+
+    /**
+     * 计算八字
+     */
     function calculateBazi(birthday, birthtime) {
         try {
             if (!birthday || !birthtime) return '缺少日期信息';
@@ -1380,269 +1534,254 @@
             const hour = parseInt(hourStr);
             const date = new Date(birthday);
             
-            if (isNaN(date.getTime())) return '无效日期格式';
+            if (isNaN(date.getTime())) return '无效日期';
             if (isNaN(hour) || hour < 0 || hour > 23) return '无效时辰';
             
             date.setHours(hour);
             
-            // 确保lunar.js已加载
-            if (typeof Lunar === 'undefined') {
-                console.warn('lunar.js未加载，使用模拟八字');
-                return '庚子 壬午 丙寅 戊戌'; // 模拟数据
+            // 使用lunar.js计算八字
+            if (typeof Lunar !== 'undefined') {
+                const lunar = Lunar.fromDate(date);
+                const bazi = lunar.getEightChar();
+                return `${bazi.getYear()} ${bazi.getMonth()} ${bazi.getDay()} ${bazi.getTime()}`;
             }
             
-            const lunar = Lunar.fromDate(date);
-            const bazi = lunar.getEightChar();
-            return `${bazi.getYear()} ${bazi.getMonth()} ${bazi.getDay()} ${bazi.getTime()}`;
+            return '庚子 壬午 丙寅 戊戌'; // 模拟数据
         } catch (error) {
             console.error('八字计算错误:', error);
             return '计算错误';
         }
     }
 
-    function calculateDaysLeft(createdAt) {
-        const createdDate = new Date(createdAt);
-        const expiryDate = new Date(createdDate);
-        expiryDate.setDate(expiryDate.getDate() + 30);
-        
-        const diffDays = Math.ceil((expiryDate - new Date()) / (1000 * 60 * 60 * 24));
-        return Math.max(0, diffDays);
-    }
+    // ==================== UI更新模块 ====================
 
-    async function fetchWithRetry(url, options = {}, retries = 3) {
-        try {
-            const response = await fetch(url, options);
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            return response;
-        } catch (error) {
-            if (retries > 0) {
-                await new Promise(resolve => setTimeout(resolve, 1000 * (4 - retries)));
-                return fetchWithRetry(url, options, retries - 1);
-            }
-            throw error;
-        }
-    }
-
-    // UI更新函数
-    function updateUI() {
-        renderWishes();
-        updatePagination();
-        updateStats();
-    }
-
+    /**
+     * 渲染愿望列表
+     */
     function renderWishes() {
-        dom.wishPool.innerHTML = '';
+        DOM.wishPool.innerHTML = '';
         
-        const filtered = filterAndSortWishes();
-        const paginated = paginateWishes(filtered);
+        const filteredWishes = filterAndSortWishes();
+        const paginatedWishes = paginateWishes(filteredWishes);
         
-        if (paginated.length === 0) {
-            dom.wishPool.innerHTML = `
+        if (paginatedWishes.length === 0) {
+            DOM.wishPool.innerHTML = `
                 <div class="wish-loading">
-                    <p>${wishes.length === 0 ? '命缘池暂无愿望' : '没有符合条件的愿望'}</p>
+                    <p>${STATE.wishes.length === 0 ? '命缘池暂无愿望' : '没有符合条件的愿望'}</p>
                 </div>
             `;
             return;
         }
         
-        const template = document.getElementById('wishCardTemplate');
-        const typeNames = {
-            love: '姻缘感情',
-            wealth: '财富事业',
-            health: '健康平安',
-            study: '学业成长',
-            family: '家庭和睦',
-            other: '其他愿望'
-        };
-        
-        paginated.forEach(wish => {
-            const card = template.content.cloneNode(true);
+        paginatedWishes.forEach(wish => {
+            const card = DOM.wishTemplate.content.cloneNode(true);
             const wishCard = card.querySelector('.wish-card');
             
+            // 设置卡片属性
             wishCard.dataset.id = wish.id;
-            wishCard.dataset.level = Math.min(5, Math.floor((wish.blessings || 0) / 5) + 1);
+            wishCard.dataset.level = wish.level;
             wishCard.dataset.type = wish.wish_type;
             wishCard.dataset.visibility = wish.visibility;
+            if (wish.isOwner) wishCard.dataset.owner = "true";
             
-            card.querySelector('.wish-type').textContent = typeNames[wish.wish_type] || '其他';
+            // 填充内容
+            card.querySelector('.wish-type').textContent = STATE.wishTypeMap[wish.wish_type] || '其他';
             card.querySelector('.days-left').textContent = wish.daysLeft;
             card.querySelector('.wish-text').textContent = wish.content;
             card.querySelector('.bazi-text').textContent = wish.bazi;
-            card.querySelector('.bless-count').textContent = wish.blessings || 0;
+            card.querySelector('.bless-count').textContent = wish.blessings;
             
+            // 设置能量条
             const energyLevel = card.querySelector('.energy-level');
-            energyLevel.style.width = `${wishCard.dataset.level * 20}%`;
+            energyLevel.style.width = `${wish.level * 20}%`;
             
-            dom.wishPool.appendChild(card);
+            // 添加事件监听
+            const blessBtn = card.querySelector('.btn-bless');
+            blessBtn.addEventListener('click', () => handleBless(wish.id));
+            
+            const fulfillBtn = card.querySelector('.btn-fulfill');
+            if (fulfillBtn) {
+                fulfillBtn.addEventListener('click', () => showFulfillModal(wish.id));
+            }
+            
+            DOM.wishPool.appendChild(card);
         });
     }
 
-    function filterAndSortWishes() {
-        const filter = dom.wishFilter.value;
-        const sort = dom.sortFilter.value;
-        
-        let filtered = [...wishes];
-        
-        // 筛选
-        if (filter !== 'all') {
-            filtered = filtered.filter(w => w.wish_type === filter);
-        }
-        
-        // 排序
-        switch (sort) {
-            case 'newest':
-                filtered.sort((a, b) => b.createdAt - a.createdAt);
-                break;
-            case 'oldest':
-                filtered.sort((a, b) => a.createdAt - b.createdAt);
-                break;
-            case 'most':
-                filtered.sort((a, b) => (b.blessings || 0) - (a.blessings || 0));
-                break;
-            case 'least':
-                filtered.sort((a, b) => (a.blessings || 0) - (b.blessings || 0));
-                break;
-        }
-        
-        return filtered;
-    }
-
-    function paginateWishes(wishList) {
-        const start = (currentPage - 1) * WISHES_PER_PAGE;
-        return wishList.slice(start, start + WISHES_PER_PAGE);
-    }
-
+    /**
+     * 更新分页UI
+     */
     function updatePagination() {
-        const filtered = filterAndSortWishes();
-        const totalPages = Math.ceil(filtered.length / WISHES_PER_PAGE);
+        const filteredWishes = filterAndSortWishes();
+        const totalPages = Math.ceil(filteredWishes.length / CONFIG.WISHES_PER_PAGE);
         
-        dom.pageInfo.textContent = `第 ${currentPage} 页 / 共 ${totalPages} 页`;
-        dom.prevPage.disabled = currentPage <= 1;
-        dom.nextPage.disabled = currentPage >= totalPages || totalPages === 0;
+        DOM.pageInfo.textContent = `第 ${STATE.currentPage} 页 / 共 ${totalPages} 页`;
+        DOM.prevPageBtn.disabled = STATE.currentPage <= 1;
+        DOM.nextPageBtn.disabled = STATE.currentPage >= totalPages || totalPages === 0;
     }
 
+    /**
+     * 更新统计信息
+     */
     function updateStats() {
         const today = new Date().toDateString();
         
-        const todayWishes = wishes.filter(w => 
+        const todayWishes = STATE.wishes.filter(w => 
             new Date(w.createdAt).toDateString() === today
         ).length;
         
-        const todayBlessings = wishes.reduce((sum, w) => 
+        const todayBlessings = STATE.wishes.reduce((sum, w) => 
             sum + (w.blessings || 0), 0);
         
-        dom.todayWishes.textContent = todayWishes;
-        dom.todayBlessings.textContent = todayBlessings;
-        dom.todayFulfilled.textContent = 'N/A'; // 需要后端支持
+        DOM.todayWishes.textContent = todayWishes;
+        DOM.todayBlessings.textContent = todayBlessings;
+        
+        // 需要后端支持的数据
+        if (STATE.stats) {
+            DOM.todayFulfilled.textContent = STATE.stats.todayFulfilled || '0';
+        }
     }
 
-    // 事件处理
+    // ==================== 事件处理 ====================
+
+    /**
+     * 设置事件监听
+     */
     function setupEventListeners() {
         // 表单提交
-        dom.wishForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const formData = {
-                name: document.getElementById('name').value.trim(),
-                birthday: document.getElementById('birthday').value,
-                birthtime: document.getElementById('birthtime').value,
-                content: document.getElementById('wishContent').value.trim(),
-                type: document.getElementById('wishType').value,
-                visibility: document.querySelector('input[name="visibility"]:checked').value
-            };
-            
-            if (!validateForm(formData)) return;
-            
-            try {
-                setLoading(true);
-                const result = await submitWish(formData);
-                
-                if (result.success) {
-                    showSuccess('愿望已成功投入命缘池！');
-                    dom.wishForm.reset();
-                    await loadWishes();
-                    currentPage = 1;
-                    updateUI();
-                }
-            } catch (error) {
-                showError(error.message || '提交愿望失败');
-            } finally {
-                setLoading(false);
-            }
-        });
-        
-        // 加持愿望
-        dom.wishPool.addEventListener('click', async (e) => {
-            const blessBtn = e.target.closest('.btn-bless');
-            if (!blessBtn) return;
-            
-            const wishCard = blessBtn.closest('.wish-card');
-            const wishId = wishCard.dataset.id;
-            
-            try {
-                setLoading(true);
-                const result = await blessWish(wishId);
-                
-                if (result.success) {
-                    showSuccess('加持成功！');
-                    await loadWishes();
-                    updateUI();
-                    
-                    // 视觉反馈
-                    wishCard.classList.add('level-up');
-                    setTimeout(() => wishCard.classList.remove('level-up'), 1000);
-                }
-            } catch (error) {
-                showError(error.message || '加持失败');
-            } finally {
-                setLoading(false);
-            }
-        });
+        DOM.wishForm.addEventListener('submit', handleSubmit);
         
         // 分页控制
-        dom.prevPage.addEventListener('click', () => {
-            if (currentPage > 1) {
-                currentPage--;
+        DOM.prevPageBtn.addEventListener('click', () => {
+            if (STATE.currentPage > 1) {
+                STATE.currentPage--;
                 updateUI();
             }
         });
         
-        dom.nextPage.addEventListener('click', () => {
-            const filtered = filterAndSortWishes();
-            const totalPages = Math.ceil(filtered.length / WISHES_PER_PAGE);
+        DOM.nextPageBtn.addEventListener('click', () => {
+            const filteredWishes = filterAndSortWishes();
+            const totalPages = Math.ceil(filteredWishes.length / CONFIG.WISHES_PER_PAGE);
             
-            if (currentPage < totalPages) {
-                currentPage++;
+            if (STATE.currentPage < totalPages) {
+                STATE.currentPage++;
                 updateUI();
             }
         });
         
         // 筛选控制
-        dom.wishFilter.addEventListener('change', () => {
-            currentPage = 1;
+        DOM.wishFilter.addEventListener('change', () => {
+            STATE.currentPage = 1;
             updateUI();
         });
         
-        dom.sortFilter.addEventListener('change', updateUI);
+        DOM.sortFilter.addEventListener('change', updateUI);
+        
+        // 网络状态监测
+        window.addEventListener('online', () => {
+            STATE.isOnline = true;
+            showToast('网络已恢复', 'success');
+            syncOfflineActions();
+        });
+        
+        window.addEventListener('offline', () => {
+            STATE.isOnline = false;
+            showToast('网络连接已断开，部分功能受限', 'warning');
+        });
+        
+        // 模态框控制
+        DOM.closeModalBtn.addEventListener('click', hideFulfillModal);
+        DOM.fulfillOptions.forEach(option => {
+            option.addEventListener('click', handleFulfill);
+        });
     }
 
-    // 辅助函数
-    function validateForm(data) {
-        if (!data.name || !data.birthday || !data.birthtime || !data.content) {
-            showError('请填写所有必填字段');
-            return false;
-        }
+    /**
+     * 处理表单提交
+     */
+    async function handleSubmit(e) {
+        e.preventDefault();
         
-        if (new Date(data.birthday) > new Date()) {
-            showError('出生日期不能晚于今天');
-            return false;
-        }
+        const formData = {
+            name: DOM.nameInput.value.trim(),
+            birthday: DOM.birthdayInput.value,
+            birthtime: DOM.birthtimeSelect.value,
+            content: DOM.contentTextarea.value.trim(),
+            type: DOM.typeSelect.value,
+            visibility: document.querySelector('input[name="visibility"]:checked').value
+        };
         
-        return true;
+        try {
+            setLoading(true);
+            const newWish = await submitWish(formData);
+            
+            showToast('愿望已成功投入命缘池！', 'success');
+            DOM.wishForm.reset();
+            
+            // 重置分页并更新UI
+            STATE.currentPage = 1;
+            updateUI();
+        } catch (error) {
+            showToast(error.message || '提交愿望失败', 'error');
+            console.error('提交错误:', error);
+        } finally {
+            setLoading(false);
+        }
     }
 
+    /**
+     * 处理加持愿望
+     */
+    async function handleBless(wishId) {
+        try {
+            setLoading(true);
+            await blessWish(wishId);
+            
+            showToast('加持成功！', 'success');
+            updateUI();
+            
+            // 视觉反馈
+            const wishCard = document.querySelector(`.wish-card[data-id="${wishId}"]`);
+            if (wishCard) {
+                wishCard.classList.add('level-up');
+                setTimeout(() => wishCard.classList.remove('level-up'), 1000);
+            }
+        } catch (error) {
+            showToast(error.message || '加持失败', 'error');
+            console.error('加持错误:', error);
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    // ==================== 辅助函数 ====================
+
+    /**
+     * 显示Toast通知
+     */
+    function showToast(message, type = 'info') {
+        const toast = document.createElement('div');
+        toast.className = `toast-message ${type}`;
+        toast.innerHTML = `
+            <i class="fas fa-${type === 'success' ? 'check-circle' : 
+                              type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+            ${message}
+        `;
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }, 100);
+    }
+
+    /**
+     * 设置加载状态
+     */
     function setLoading(state) {
-        isLoading = state;
+        STATE.isLoading = state;
         document.querySelectorAll('button').forEach(btn => {
             btn.disabled = state;
         });
@@ -1653,96 +1792,17 @@
         }
     }
 
-    function showSuccess(message) {
-        const toast = document.createElement('div');
-        toast.className = 'toast-message success';
-        toast.innerHTML = `<i class="fas fa-check-circle"></i> ${message}`;
-        document.body.appendChild(toast);
-        
-        setTimeout(() => {
-            toast.classList.add('show');
-            setTimeout(() => {
-                toast.remove();
-            }, 3000);
-        }, 100);
+    /**
+     * 更新整个UI
+     */
+    function updateUI() {
+        renderWishes();
+        updatePagination();
+        updateStats();
     }
 
-    function showError(message) {
-        const toast = document.createElement('div');
-        toast.className = 'toast-message error';
-        toast.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${message}`;
-        document.body.appendChild(toast);
-        
-        setTimeout(() => {
-            toast.classList.add('show');
-            setTimeout(() => {
-                toast.remove();
-            }, 3000);
-        }, 100);
-    }
-
-    // 初始化
+    // ==================== 初始化 ====================
     init();
-
-    // 添加CSS样式
-    const style = document.createElement('style');
-    style.textContent = `
-        .toast-message {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%) translateY(100px);
-            padding: 12px 24px;
-            border-radius: 50px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
-            z-index: 1000;
-            opacity: 0;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-family: 'Noto Serif SC', serif;
-        }
-        
-        .toast-message.show {
-            transform: translateX(-50%) translateY(0);
-            opacity: 1;
-        }
-        
-        .toast-message.success {
-            background: rgba(46, 204, 113, 0.9);
-            color: white;
-        }
-        
-        .toast-message.error {
-            background: rgba(231, 76, 60, 0.9);
-            color: white;
-        }
-        
-        .wish-loading {
-            grid-column: 1 / -1;
-            text-align: center;
-            padding: 50px;
-            color: #8a94a6;
-        }
-        
-        .loader {
-            width: 40px;
-            height: 40px;
-            border: 4px solid rgba(106, 17, 203, 0.2);
-            border-top: 4px solid var(--primary-color);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-    `;
-    document.head.appendChild(style);
-});
     </script>
 </body>
 </html>
