@@ -1461,47 +1461,46 @@
             
             // 处理许愿表单提交
             document.getElementById('wishForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const name = document.getElementById('name').value.trim();
-            const birthday = document.getElementById('birthday').value;
-            const birthtime = document.getElementById('birthtime').value;
-            const content = document.getElementById('wishContent').value.trim();
-            const visibility = document.querySelector('input[name="visibility"]:checked').value;
-            const type = document.getElementById('wishType').value;
-            const typeNames = {
-                love: '姻缘感情',
-                wealth: '财富事业',
-                health: '健康平安',
-                study: '学业成长',
-                family: '家庭和睦',
-                other: '其他愿望'
-            };
-            
-            if (!name || !birthday || !birthtime || !content) {
-                alert('请填写完整的个人信息和愿望内容');
-                return;
-            }
-            
-            // 将出生日期和时间转换为八字
-            // 这里需要实际实现八字计算逻辑，以下为示例
-            const bazi = calculateBazi(birthday, birthtime);
-            
-            // 模拟添加到愿望池
-            const newWish = {
-                id: `wish-${Date.now()}`,
-                name: name,
-                bazi: bazi,
-                content: content,
-                type: type,
-                typeName: typeNames[type],
-                visibility: visibility,
-                blessings: 0,
-                level: 1,
-                createdAt: new Date(),
-                daysLeft: 30,
-                isOwner: true
-            };
+                e.preventDefault();
+                
+                const name = document.getElementById('name').value.trim();
+                const birthday = document.getElementById('birthday').value;
+                const birthtime = document.getElementById('birthtime').value;
+                const content = document.getElementById('wishContent').value.trim();
+                const visibility = document.querySelector('input[name="visibility"]:checked').value;
+                const type = document.getElementById('wishType').value;
+                const typeNames = {
+                    love: '姻缘感情',
+                    wealth: '财富事业',
+                    health: '健康平安',
+                    study: '学业成长',
+                    family: '家庭和睦',
+                    other: '其他愿望'
+                };
+                
+                if (!name || !birthday || !birthtime || !content) {
+                    alert('请填写完整的个人信息和愿望内容');
+                    return;
+                }
+                
+                // 将出生日期和时间转换为八字
+                const bazi = calculateBazi(birthday, birthtime);
+                
+                // 模拟添加到愿望池
+                const newWish = {
+                    id: `wish-${Date.now()}`,
+                    name: name,
+                    bazi: bazi,
+                    content: content,
+                    type: type,
+                    typeName: typeNames[type],
+                    visibility: visibility,
+                    blessings: 0,
+                    level: 1,
+                    createdAt: new Date(),
+                    daysLeft: 30,
+                    isOwner: true
+                };
                 
                 wishes.unshift(newWish);
                 currentPage = 1;
@@ -1515,12 +1514,33 @@
                 showSuccessMessage('您的愿望已成功投入命缘池！');
             });
 
-            // 示例八字计算函数（实际应用中需要完整的八字计算逻辑）
+            // 使用lunar.js计算八字
             function calculateBazi(birthday, birthtime) {
-                // 这里应该是实际的八字计算逻辑
-                // 示例仅返回固定值
-                return "甲子 乙丑 丙寅 丁卯";
+                // 解析日期
+                const dateParts = birthday.split('-');
+                const year = parseInt(dateParts[0]);
+                const month = parseInt(dateParts[1]);
+                const day = parseInt(dateParts[2]);
+                
+                // 解析时辰
+                const timeParts = birthtime.split('-');
+                const hour = parseInt(timeParts[0]);
+                
+                // 创建农历日期对象
+                const lunar = Lunar.fromYmdHms(year, month, day, hour, 0, 0);
+                
+                // 获取八字信息
+                const bazi = lunar.getEightChar();
+                
+                // 组合八字
+                const yearGanZhi = bazi.getYear();
+                const monthGanZhi = bazi.getMonth();
+                const dayGanZhi = bazi.getDay();
+                const hourGanZhi = bazi.getTime();
+                
+                return `${yearGanZhi.getGan()}${yearGanZhi.getZhi()} ${monthGanZhi.getGan()}${monthGanZhi.getZhi()} ${dayGanZhi.getGan()}${dayGanZhi.getZhi()} ${hourGanZhi.getGan()}${hourGanZhi.getZhi()}`;
             }
+            
             // 显示成功消息
             function showSuccessMessage(message) {
                 const toast = document.createElement('div');
