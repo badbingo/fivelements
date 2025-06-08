@@ -1516,29 +1516,35 @@
 
             // 使用lunar.js计算八字
             function calculateBazi(birthday, birthtime) {
-                // 解析日期
-                const dateParts = birthday.split('-');
-                const year = parseInt(dateParts[0]);
-                const month = parseInt(dateParts[1]);
-                const day = parseInt(dateParts[2]);
-                
-                // 解析时辰
-                const timeParts = birthtime.split('-');
-                const hour = parseInt(timeParts[0]);
-                
-                // 创建农历日期对象
-                const lunar = Lunar.fromYmdHms(year, month, day, hour, 0, 0);
-                
-                // 获取八字信息
-                const bazi = lunar.getEightChar();
-                
-                // 组合八字
-                const yearGanZhi = bazi.getYear();
-                const monthGanZhi = bazi.getMonth();
-                const dayGanZhi = bazi.getDay();
-                const hourGanZhi = bazi.getTime();
-                
-                return `${yearGanZhi.getGan()}${yearGanZhi.getZhi()} ${monthGanZhi.getGan()}${monthGanZhi.getZhi()} ${dayGanZhi.getGan()}${dayGanZhi.getZhi()} ${hourGanZhi.getGan()}${hourGanZhi.getZhi()}`;
+                try {
+                    // 解析日期
+                    const dateParts = birthday.split('-');
+                    const year = parseInt(dateParts[0]);
+                    const month = parseInt(dateParts[1]);
+                    const day = parseInt(dateParts[2]);
+                    
+                    // 解析时辰
+                    const timeParts = birthtime.split('-');
+                    const hour = parseInt(timeParts[0]);
+                    
+                    // 创建农历日期对象
+                    const solar = Solar.fromYmdHms(year, month, day, hour, 0, 0);
+                    const lunar = Lunar.fromSolar(solar);
+                    
+                    // 获取八字信息
+                    const bazi = lunar.getEightChar();
+                    
+                    // 组合八字
+                    const yearGanZhi = bazi.getYear();
+                    const monthGanZhi = bazi.getMonth();
+                    const dayGanZhi = bazi.getDay();
+                    const hourGanZhi = bazi.getTime();
+                    
+                    return `${yearGanZhi.getGan()}${yearGanZhi.getZhi()} ${monthGanZhi.getGan()}${monthGanZhi.getZhi()} ${dayGanZhi.getGan()}${dayGanZhi.getZhi()} ${hourGanZhi.getGan()}${hourGanZhi.getZhi()}`;
+                } catch (e) {
+                    console.error("八字计算错误:", e);
+                    return "八字计算错误";
+                }
             }
             
             // 显示成功消息
