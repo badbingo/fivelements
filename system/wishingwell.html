@@ -1350,26 +1350,20 @@
     let currentPage = 1;
     const wishesPerPage = 9;
     let currentUserId = null; // 当前用户ID
-    
+
+    // 生产环境
+    const API_BASE_URL = "https://bazi-backend.owenjass.workers.dev";
+            
     // 从服务器获取愿望列表
     async function fetchWishes() {
-        try {
-            const response = await fetch('/api/wishes');
-            if (!response.ok) throw new Error('获取愿望列表失败');
-            const data = await response.json();
-            wishes = data.wishes;
-            currentUserId = data.currentUserId; // 假设服务器返回当前用户ID
-            renderWishes();
-            updateStats();
-        } catch (error) {
-            console.error('Error:', error);
-            document.querySelector('.wish-pool').innerHTML = `
-                <div class="wish-loading">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <p>连接命缘池失败，请刷新重试</p>
-                </div>
-            `;
-        }
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/wishes`);
+        if (!response.ok) throw new Error(await response.text());
+        return await response.json();
+      } catch (error) {
+        console.error("Fetch error:", error);
+        showErrorMessage("连接命缘池失败，请稍后重试");
+      }
     }
     
     // 渲染愿望卡片
