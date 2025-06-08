@@ -1355,16 +1355,27 @@
     const API_BASE_URL = "https://bazi-backend.owenjass.workers.dev";
             
     // 从服务器获取愿望列表
-    async function fetchWishes() {
-      try {
-        const response = await fetch(`${API_BASE_URL}/api/wishes`);
-        if (!response.ok) throw new Error(await response.text());
-        return await response.json();
-      } catch (error) {
-        console.error("Fetch error:", error);
-        showErrorMessage("连接命缘池失败，请稍后重试");
-      }
+    async function submitWish(wishData) {
+  try {
+    const response = await fetch('https://bazi-backend.owenjass.workers.dev/api/wishes', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(wishData)
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json(); // 尝试获取后端返回的具体错误
+      throw new Error(errorData.error || '提交失败');
     }
+
+    return await response.json();
+  } catch (error) {
+    console.error('提交愿望失败:', error);
+    throw new Error('提交愿望失败，请稍后重试'); // 这里触发您的错误提示
+  }
+}
     
     // 渲染愿望卡片
     function renderWishes() {
