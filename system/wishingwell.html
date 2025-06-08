@@ -1382,16 +1382,16 @@ document.addEventListener('DOMContentLoaded', function() {
      * 处理愿望数据
      */
     function processWishData(wishes) {
-        return wishes.map(wish => ({
-            ...wish,
-            id: wish.id || wish._id, // 兼容不同后端
-            createdAt: new Date(wish.created_at || wish.createdAt),
-            daysLeft: calculateDaysLeft(wish.created_at || wish.createdAt),
-            blessings: wish.blessings || 0,
-            level: Math.min(5, Math.floor((wish.blessings || 0) / 5) + 1,
-            isOwner: wish.user_id === STATE.userToken // 简单所有权检查
-        }));
-    }
+    return wishes.map(wish => ({
+        ...wish,
+        id: wish.id || wish._id, // 兼容不同后端
+        createdAt: new Date(wish.created_at || wish.createdAt),
+        daysLeft: calculateDaysLeft(wish.created_at || wish.createdAt),
+        blessings: wish.blessings || 0,
+        level: Math.min(5, Math.floor((wish.blessings || 0) / 5) + 1),
+        isOwner: wish.user_id === STATE.userToken // 简单所有权检查
+    }));
+}
 
     /**
      * 提交新愿望
@@ -1803,6 +1803,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // ==================== 初始化 ====================
     init();
+
     </script>
 </body>
 </html>
