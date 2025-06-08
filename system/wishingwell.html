@@ -1368,7 +1368,30 @@
             wishPool.innerHTML = `<div class="wish-loading"><p>加载失败: ${error.message}</p></div>`;
         }
     }
-    
+            
+    // 修改所有fetch请求如下
+async function safeFetch(url, options = {}) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 10000); // 10秒超时
+
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+    return response;
+  } catch (err) {
+    clearTimeout(timeoutId);
+    throw new Error(`请求超时或中断: ${err.message}`);
+  }
+}
+            
+
+// 使用示例
+safeFetch("https://bazi-backend.owenjass.workers.dev/api/wishes")
+  .then(res => res.json())
+  .catch(err => console.error(err));
     // 渲染愿望列表
     function renderWishes() {
         const filter = document.getElementById('wishFilter').value;
