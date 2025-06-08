@@ -1362,18 +1362,31 @@
               }
             }
             
-            // 提交新愿望
+            // 修改所有fetch调用为真实端点
             async function submitWish(wishData) {
               try {
-                const response = await fetch('https://your-worker-domain.com/api/wishes', {
+                const response = await fetch('https://bazi-backend.owenjass.workers.dev/insert', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify(wishData)
+                  body: JSON.stringify({
+                    name: wishData.user_name,
+                    birth_time: `${wishData.birth_date} ${wishData.birth_time}`,
+                    bazi: wishData.bazi,
+                    content: wishData.content,
+                    wish_type: wishData.type,
+                    visibility: wishData.visibility
+                  })
                 });
+                
+                if (!response.ok) {
+                  const error = await response.json();
+                  throw new Error(error.message || '提交失败');
+                }
+                
                 return await response.json();
               } catch (err) {
                 console.error('提交愿望错误:', err);
-                return { success: false };
+                return { success: false, error: err.message };
               }
             }
             
@@ -1527,87 +1540,36 @@
             }
             
             // 处理许愿表单提交
-            document.getElementById('wishForm').addEventListener('submit', function(e) {
-                e.preventDefault();
-                
-                const name = document.getElementById('name').value.trim();
-                const birthday = document.getElementById('birthday').value;
-                const birthtime = document.getElementById('birthtime').value;
-                const content = document.getElementById('wishContent').value.trim();
-                const visibility = document.querySelector('input[name="visibility"]:checked').value;
-                const type = document.getElementById('wishType').value;
-                const typeNames = {
-                    love: '姻缘感情',
-                    wealth: '财富事业',
-                    health: '健康平安',
-                    study: '学业成长',
-                    family: '家庭和睦',
-                    other: '其他愿望'
-                };
-                
-                if (!name || !birthday || !birthtime || !content) {
-                    alert('请填写完整的个人信息和愿望内容');
-                    return;
-                }
-                
-                // 将出生日期和时间转换为八字
-                const bazi = calculateBazi(birthday, birthtime);
-                
-                // 模拟添加到愿望池
-                const newWish = {
-                    id: `wish-${Date.now()}`,
-                    name: name,
-                    bazi: bazi,
-                    content: content,
-                    type: type,
-                    typeName: typeNames[type],
-                    visibility: visibility,
-                    blessings: 0,
-                    level: 1,
-                    createdAt: new Date(),
-                    daysLeft: 30,
-                    isOwner: true
-                };
-                
-                wishes.unshift(newWish);
-                currentPage = 1;
-                renderWishes();
-                updateStats();
-                
-                // 重置表单
-                this.reset();
-                
-                // 显示成功消息
-                showSuccessMessage('您的愿望已成功投入命缘池！');
+            document.getElementById('wishForm').addEventListener('submit', async function(e) {
+              e.preventDefault();
+              
+              const formData = {
+                name: document.getElementById('name').value.trim(),
+                birthday: document.getElementById('birthday').value,
+                birthtime: document.getElementById('birthtime').value,
+                content: document.getElementById('wishContent').value.trim(),
+                type: document.getElementById('wishType').value,
+                visibility: document.querySelector('input[name="visibility"]:checked').value
+              };
+            
+              // 验证必填字段
+              if (!formData.name || !formData.birthday || !formData.birthtime || !formData.content) {
+                return showError('请填写所有必填字段');
+              }
+            
+              // 验证日期有效性
+              if (new Date(formData.birthday) > new Date()) {
+                return showError('出生日期不能晚于今天');
+              }
+            
+              // 提交数据
+              const result = await submitWish(formData);
+              if (result.success) {
+                // 成功处理...
+              } else {
+                showError(result.error || '提交失败，请稍后重试');
+              }
             });
-
-            // 使用lunar.js计算八字
-            function calculateBazi(birthday, birthtime) {
-        try {
-            // 解析日期
-            const dateParts = birthday.split('-');
-            const year = parseInt(dateParts[0]);
-            const month = parseInt(dateParts[1]);
-            const day = parseInt(dateParts[2]);
-            
-            // 解析时辰
-            const timeParts = birthtime.split('-');
-            const hour = parseInt(timeParts[0]);
-            
-            // 创建阳历日期对象
-            const solar = Solar.fromYmdHms(year, month, day, hour, 0, 0);
-            const lunar = Lunar.fromSolar(solar);
-            
-            // 获取八字信息
-            const bazi = lunar.getEightChar();
-            
-            // 组合八字
-            return `${bazi.getYear()} ${bazi.getMonth()} ${bazi.getDay()} ${bazi.getTime()}`;
-        } catch (e) {
-            console.error("八字计算错误:", e);
-            return "八字计算错误";
-        }
-    }
             
             // 显示成功消息
             function showSuccessMessage(message) {
