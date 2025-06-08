@@ -1006,24 +1006,49 @@
         </section>
 
         <!-- 许愿表单 -->
-        <section class="full-width-section">
-            <div class="section-header">
-                <i class="fas fa-magic"></i>
-                <h2>投入愿望</h2>
+<section class="full-width-section">
+    <div class="section-header">
+        <i class="fas fa-magic"></i>
+        <h2>投入愿望</h2>
+    </div>
+    
+    <div class="card">
+        <form id="wishForm" class="mingyuan-form">
+            <div class="form-group">
+                <label for="name"><i class="fas fa-user"></i> 您的姓名</label>
+                <input type="text" id="name" placeholder="请输入您的真实姓名" required>
             </div>
             
-            <div class="card">
-                <form id="wishForm" class="mingyuan-form">
-                    <div class="form-group">
-                        <label for="bazi"><i class="fas fa-user-astronaut"></i> 您的八字</label>
-                        <input type="text" id="bazi" placeholder="例：甲子 乙丑 丙寅 丁卯" required>
-                        <p class="form-hint">请输入准确的八字信息，这是愿望的能量标识</p>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="wishContent"><i class="fas fa-star"></i> 愿望内容</label>
-                        <textarea id="wishContent" rows="4" placeholder="写下您真诚的愿望..." required></textarea>
-                    </div>
+            <div class="form-group">
+                <label for="birthday"><i class="fas fa-calendar-alt"></i> 出生日期</label>
+                <input type="date" id="birthday" required>
+                <p class="form-hint">请选择您的出生年月日</p>
+            </div>
+            
+            <div class="form-group">
+                <label for="birthtime"><i class="fas fa-clock"></i> 出生时间</label>
+                <select id="birthtime" required>
+                    <option value="">请选择出生时辰</option>
+                    <option value="23-1">子时 (23:00-1:00)</option>
+                    <option value="1-3">丑时 (1:00-3:00)</option>
+                    <option value="3-5">寅时 (3:00-5:00)</option>
+                    <option value="5-7">卯时 (5:00-7:00)</option>
+                    <option value="7-9">辰时 (7:00-9:00)</option>
+                    <option value="9-11">巳时 (9:00-11:00)</option>
+                    <option value="11-13">午时 (11:00-13:00)</option>
+                    <option value="13-15">未时 (13:00-15:00)</option>
+                    <option value="15-17">申时 (15:00-17:00)</option>
+                    <option value="17-19">酉时 (17:00-19:00)</option>
+                    <option value="19-21">戌时 (19:00-21:00)</option>
+                    <option value="21-23">亥时 (21:00-23:00)</option>
+                </select>
+                <p class="form-hint">请选择您的出生时辰</p>
+            </div>
+            
+            <div class="form-group">
+                <label for="wishContent"><i class="fas fa-star"></i> 愿望内容</label>
+                <textarea id="wishContent" rows="4" placeholder="写下您真诚的愿望..." required></textarea>
+            </div>
                     
                     <div class="form-group">
                         <label><i class="fas fa-eye"></i> 愿望可见性</label>
@@ -1435,40 +1460,47 @@
             
             // 处理许愿表单提交
             document.getElementById('wishForm').addEventListener('submit', function(e) {
-                e.preventDefault();
-                
-                const bazi = document.getElementById('bazi').value.trim();
-                const content = document.getElementById('wishContent').value.trim();
-                const visibility = document.querySelector('input[name="visibility"]:checked').value;
-                const type = document.getElementById('wishType').value;
-                const typeNames = {
-                    love: '姻缘感情',
-                    wealth: '财富事业',
-                    health: '健康平安',
-                    study: '学业成长',
-                    family: '家庭和睦',
-                    other: '其他愿望'
-                };
-                
-                if (!bazi || !content) {
-                    alert('请填写完整的八字和愿望内容');
-                    return;
-                }
-                
-                // 模拟添加到愿望池
-                const newWish = {
-                    id: `wish-${Date.now()}`,
-                    bazi: bazi,
-                    content: content,
-                    type: type,
-                    typeName: typeNames[type],
-                    visibility: visibility,
-                    blessings: 0,
-                    level: 1,
-                    createdAt: new Date(),
-                    daysLeft: 30,
-                    isOwner: true
-                };
+            e.preventDefault();
+            
+            const name = document.getElementById('name').value.trim();
+            const birthday = document.getElementById('birthday').value;
+            const birthtime = document.getElementById('birthtime').value;
+            const content = document.getElementById('wishContent').value.trim();
+            const visibility = document.querySelector('input[name="visibility"]:checked').value;
+            const type = document.getElementById('wishType').value;
+            const typeNames = {
+                love: '姻缘感情',
+                wealth: '财富事业',
+                health: '健康平安',
+                study: '学业成长',
+                family: '家庭和睦',
+                other: '其他愿望'
+            };
+            
+            if (!name || !birthday || !birthtime || !content) {
+                alert('请填写完整的个人信息和愿望内容');
+                return;
+            }
+            
+            // 将出生日期和时间转换为八字
+            // 这里需要实际实现八字计算逻辑，以下为示例
+            const bazi = calculateBazi(birthday, birthtime);
+            
+            // 模拟添加到愿望池
+            const newWish = {
+                id: `wish-${Date.now()}`,
+                name: name,
+                bazi: bazi,
+                content: content,
+                type: type,
+                typeName: typeNames[type],
+                visibility: visibility,
+                blessings: 0,
+                level: 1,
+                createdAt: new Date(),
+                daysLeft: 30,
+                isOwner: true
+            };
                 
                 wishes.unshift(newWish);
                 currentPage = 1;
@@ -1481,7 +1513,13 @@
                 // 显示成功消息
                 showSuccessMessage('您的愿望已成功投入命缘池！');
             });
-            
+
+            // 示例八字计算函数（实际应用中需要完整的八字计算逻辑）
+            function calculateBazi(birthday, birthtime) {
+                // 这里应该是实际的八字计算逻辑
+                // 示例仅返回固定值
+                return "甲子 乙丑 丙寅 丁卯";
+            }
             // 显示成功消息
             function showSuccessMessage(message) {
                 const toast = document.createElement('div');
