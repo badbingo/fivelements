@@ -1259,7 +1259,7 @@
     const API_BASE_URL = "https://bazi-backend.owenjass.workers.dev";
     const wishesPerPage = 9;
     let currentPage = 1;
-    let wishes = [];
+    let wishes = []; // 确保初始化为空数组
     
     // DOM 元素
     const wishForm = document.getElementById('wishForm');
@@ -1324,6 +1324,30 @@
         }
     }
     
+    // 带超时的fetch请求
+    async function safeFetch(url, options = {}) {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10秒超时
+
+        try {
+            const response = await fetch(url, {
+                ...options,
+                signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`请求失败 (${response.status}): ${errorText}`);
+            }
+            
+            return response;
+        } catch (err) {
+            clearTimeout(timeoutId);
+            throw new Error(`请求超时或中断: ${err.message}`);
+        }
+    }
+    
     // 设置提交按钮状态
     function setSubmitButtonState(isLoading) {
         if (isLoading) {
@@ -1337,63 +1361,71 @@
     
     // 提交愿望到后端
     async function submitWish(formData) {
-        const response = await fetch(`${API_BASE_URL}/api/wishes`, {
+        const response = await safeFetch(`${API_BASE_URL}/api/wishes`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(formData)
         });
         
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData.message || `请求失败，状态码: ${response.status}`);
-        }
-        
         return await response.json();
     }
     
-    // 获取愿望列表
+    // 获取愿望列表（带健壮性处理）
     async function fetchWishes() {
         try {
-            wishPool.innerHTML = '<div class="wish-loading"><div class="loader"></div><p>正在连接命缘池能量场...</p></div>';
+            // 显示加载状态
+            const loadingIndicator = document.createElement('div');
+            loadingIndicator.className = 'wish-loading';
+            loadingIndicator.innerHTML = '<div class="loader"></div><p>正在连接命缘池能量场...</p>';
+            wishPool.innerHTML = '';
+            wishPool.appendChild(loadingIndicator);
             
-            const response = await fetch(`${API_BASE_URL}/api/wishes`);
-            if (!response.ok) throw new Error('获取愿望列表失败');
+            // 发送请求
+            const response = await safeFetch(`${API_BASE_URL}/api/wishes`);
             
-            wishes = await response.json();
+            // 解析响应
+            const data = await response.json();
+            
+            // 验证数据格式
+            if (!Array.isArray(data)) {
+                console.warn('API返回非数组数据:', data);
+                throw new Error('服务器返回的数据格式不正确');
+            }
+            
+            // 更新愿望列表
+            wishes = data;
             renderWishes();
             updateStats();
             
         } catch (error) {
             console.error('获取愿望失败:', error);
-            wishPool.innerHTML = `<div class="wish-loading"><p>加载失败: ${error.message}</p></div>`;
+            
+            // 显示友好的错误提示
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'wish-loading';
+            errorDiv.innerHTML = `
+                <p>加载失败: ${error.message}</p>
+                <button class="btn-mingyuan" onclick="fetchWishes()" style="margin-top: 15px;">
+                    <i class="fas fa-sync-alt"></i> 重新加载
+                </button>
+            `;
+            
+            wishPool.innerHTML = '';
+            wishPool.appendChild(errorDiv);
+            
+            // 确保wishes是空数组
+            wishes = [];
         }
     }
-            
-    // 修改所有fetch请求如下
-async function safeFetch(url, options = {}) {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 10000); // 10秒超时
-
-  try {
-    const response = await fetch(url, {
-      ...options,
-      signal: controller.signal
-    });
-    clearTimeout(timeoutId);
-    return response;
-  } catch (err) {
-    clearTimeout(timeoutId);
-    throw new Error(`请求超时或中断: ${err.message}`);
-  }
-}
-            
-
-// 使用示例
-safeFetch("https://bazi-backend.owenjass.workers.dev/api/wishes")
-  .then(res => res.json())
-  .catch(err => console.error(err));
-    // 渲染愿望列表
+    
+    // 渲染愿望列表（带保护性检查）
     function renderWishes() {
+        // 确保wishes是数组
+        if (!Array.isArray(wishes)) {
+            console.error('wishes不是数组:', wishes);
+            wishes = [];
+        }
+        
         const filter = document.getElementById('wishFilter').value;
         const sort = document.getElementById('sortFilter').value;
         
@@ -1413,12 +1445,19 @@ safeFetch("https://bazi-backend.owenjass.workers.dev/api/wishes")
         // 分页
         const startIdx = (currentPage - 1) * wishesPerPage;
         const paginatedWishes = filteredWishes.slice(startIdx, startIdx + wishesPerPage);
+        const totalPages = Math.max(1, Math.ceil(filteredWishes.length / wishesPerPage));
         
         // 清空并重新渲染
         wishPool.innerHTML = '';
         
         if (paginatedWishes.length === 0) {
-            wishPool.innerHTML = '<div class="wish-loading"><p>没有找到符合条件的愿望</p></div>';
+            wishPool.innerHTML = `
+                <div class="wish-loading">
+                    <p>暂时没有愿望</p>
+                    <p>成为第一个许愿者吧！</p>
+                </div>
+            `;
+            updatePagination(totalPages);
             return;
         }
         
@@ -1435,9 +1474,9 @@ safeFetch("https://bazi-backend.owenjass.workers.dev/api/wishes")
             
             // 设置卡片属性
             wishCard.dataset.id = wish.id;
-            wishCard.dataset.level = wish.level;
-            wishCard.dataset.type = wish.type;
-            wishCard.dataset.visibility = wish.visibility;
+            wishCard.dataset.level = wish.level || 1;
+            wishCard.dataset.type = wish.type || 'other';
+            wishCard.dataset.visibility = wish.visibility || 'public';
             
             // 计算剩余天数
             const expiresAt = new Date(wish.expires_at);
@@ -1446,33 +1485,30 @@ safeFetch("https://bazi-backend.owenjass.workers.dev/api/wishes")
             // 填充内容
             card.querySelector('.wish-type').textContent = typeNames[wish.type] || wish.type;
             card.querySelector('.days-left').textContent = daysLeft;
-            card.querySelector('.wish-text').textContent = wish.content;
+            card.querySelector('.wish-text').textContent = wish.content || '无内容';
             card.querySelector('.bazi-text').textContent = wish.bazi || '匿名用户';
             card.querySelector('.bless-count').textContent = wish.blessings || 0;
-            card.querySelector('.energy-level').style.width = `${(wish.level || 1) * 20}%`;
+            card.querySelector('.energy-level').style.width = `${((wish.level || 1) * 20)}%`;
             
             // 添加到池中
             wishPool.appendChild(card);
         });
         
-        updatePagination(filteredWishes.length);
+        updatePagination(totalPages);
     }
     
     // 更新分页信息
-    function updatePagination(totalWishes) {
-        const totalPages = Math.ceil(totalWishes / wishesPerPage);
+    function updatePagination(totalPages) {
         document.getElementById('pageInfo').textContent = `第 ${currentPage} 页 / 共 ${totalPages} 页`;
         
         document.getElementById('prevPage').disabled = currentPage <= 1;
-        document.getElementById('nextPage').disabled = currentPage >= totalPages || totalPages === 0;
+        document.getElementById('nextPage').disabled = currentPage >= totalPages;
     }
     
     // 更新统计信息
     async function updateStats() {
         try {
-            const response = await fetch(`${API_BASE_URL}/api/stats`);
-            if (!response.ok) throw new Error('获取统计信息失败');
-            
+            const response = await safeFetch(`${API_BASE_URL}/api/stats`);
             const stats = await response.json();
             
             document.getElementById('todayWishes').textContent = stats.todayWishes || 0;
@@ -1513,6 +1549,9 @@ safeFetch("https://bazi-backend.owenjass.workers.dev/api/wishes")
     
     // 显示Toast消息
     function showToast(message, type) {
+        // 移除现有的toast
+        document.querySelectorAll('.toast').forEach(toast => toast.remove());
+        
         const toast = document.createElement('div');
         toast.className = `toast ${type}`;
         toast.innerHTML = `
@@ -1543,7 +1582,9 @@ safeFetch("https://bazi-backend.owenjass.workers.dev/api/wishes")
         });
         
         document.getElementById('nextPage').addEventListener('click', () => {
-            const totalPages = Math.ceil(wishes.length / wishesPerPage);
+            const totalWishes = wishes.length;
+            const totalPages = Math.ceil(totalWishes / wishesPerPage);
+            
             if (currentPage < totalPages) {
                 currentPage++;
                 renderWishes();
@@ -1569,28 +1610,26 @@ safeFetch("https://bazi-backend.owenjass.workers.dev/api/wishes")
                     btn.disabled = true;
                     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 加持中';
                     
-                    const response = await fetch(`${API_BASE_URL}/api/wishes/${wishId}/bless`, {
+                    const response = await safeFetch(`${API_BASE_URL}/api/wishes/${wishId}/bless`, {
                         method: 'POST'
                     });
                     
-                    if (!response.ok) throw new Error('加持失败');
-                    
                     const result = await response.json();
-                    const wish = wishes.find(w => w.id === wishId);
+                    const wishIndex = wishes.findIndex(w => w.id === wishId);
                     
-                    if (wish) {
-                        wish.blessings = result.blessings;
-                        wish.level = result.level;
+                    if (wishIndex !== -1) {
+                        wishes[wishIndex].blessings = result.blessings;
+                        wishes[wishIndex].level = result.level;
                         
                         // 更新UI
-                        wishCard.dataset.level = wish.level;
-                        wishCard.querySelector('.energy-level').style.width = `${wish.level * 20}%`;
-                        wishCard.querySelector('.bless-count').textContent = wish.blessings;
+                        wishCard.dataset.level = result.level;
+                        wishCard.querySelector('.energy-level').style.width = `${result.level * 20}%`;
+                        wishCard.querySelector('.bless-count').textContent = result.blessings;
                         
                         if (result.levelIncreased) {
                             wishCard.classList.add('level-up');
                             setTimeout(() => wishCard.classList.remove('level-up'), 1000);
-                            showSuccessMessage(`愿望能量提升至${getLevelName(wish.level)}！`);
+                            showSuccessMessage(`愿望能量提升至${getLevelName(result.level)}！`);
                         }
                         
                         btn.innerHTML = '<i class="fas fa-check"></i> 已加持';
@@ -1634,16 +1673,20 @@ safeFetch("https://bazi-backend.owenjass.workers.dev/api/wishes")
             align-items: center;
             gap: 10px;
             font-size: 0.95rem;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
         }
         
         .toast.success {
-            background: rgba(46, 204, 113, 0.9);
-            color: white;
+            color: #6a11cb;
+            border-color: rgba(106, 17, 203, 0.5);
         }
         
         .toast.error {
-            background: rgba(231, 76, 60, 0.9);
-            color: white;
+            color: #ff6b6b;
+            border-color: rgba(255, 107, 107, 0.5);
         }
         
         .toast.show {
@@ -1659,6 +1702,13 @@ safeFetch("https://bazi-backend.owenjass.workers.dev/api/wishes")
         @keyframes fa-spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
+        }
+        
+        /* 重试按钮样式 */
+        .wish-loading .btn-mingyuan {
+            margin-top: 15px;
+            padding: 10px 20px;
+            font-size: 1rem;
         }
     `;
     document.head.appendChild(style);
