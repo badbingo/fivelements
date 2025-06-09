@@ -1513,22 +1513,56 @@
             
             // 渲染愿望列表
             async function renderWishes() {
-                wishPool.innerHTML = '<div class="wish-loading"><div class="loader"></div><p>正在加载愿望...</p></div>';
-                
+    wishPool.innerHTML = '<div class="wish-loading"><div class="loader"></div><p>正在加载愿望...</p></div>';
+    
+    try {
+        const response = await fetch(API_URL);
+        if (!response.ok) {
+            throw new Error(`HTTP错误: ${response.status}`);
+        }
+        
+        // 确保解析为JSON
+        const data = await response.json();
+        
+        // 检查返回的数据结构
+        if (!data || !Array.isArray(data.wishes || data)) {
+                throw new Error('无效的响应格式: 期望愿望数组');
+            }
+            
+            // 处理两种可能的响应格式
+            const wishes = Array.isArray(data) ? data : data.wishes;
+            renderWishCards(wishes || []);
+            
+        } catch (err) {
+            console.error('渲染愿望时出错:', err);
+            wishPool.innerHTML = `
+                <div class="wish-loading">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p>加载失败: ${err.message}</p>
+                    <button class="btn-mingyuan" onclick="renderWishes()">
+                        <i class="fas fa-sync-alt"></i> 重新加载
+                    </button>
+                </div>
+            `;
+        }
+    }
+            async function renderWishesWithRetry(retries = 3) {
                 try {
-                    const response = await fetch(API_URL);
-                    const wishes = await response.json();
-                    
-                    if (!Array.isArray(wishes)) {
-                        throw new Error('返回的不是愿望数组');
+                    await renderWishes();
+                } catch (error) {
+                    if (retries > 0) {
+                        console.log(`重试剩余 ${retries} 次...`);
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+                        return renderWishesWithRetry(retries - 1);
                     }
-                    
-                    renderWishCards(wishes);
-                } catch (err) {
-                    console.error('渲染愿望时出错:', err);
-                    wishPool.innerHTML = `<p style="color:red;">加载失败：${err.message}</p>`;
+                    throw error;
                 }
             }
+            
+            // 使用重试机制初始化
+            renderWishesWithRetry().catch(error => {
+                console.error('最终加载失败:', error);
+            });
             
             // 渲染愿望卡片
             function renderWishCards(wishes) {
@@ -1613,6 +1647,31 @@
                 });
             }
             
+            async function fetchWishes() {
+                try {
+                    const response = await fetch(API_URL, {
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`服务器返回 ${response.status}`);
+                    }
+                    
+                    const contentType = response.headers.get('content-type');
+                    if (!contentType || !contentType.includes('application/json')) {
+                        throw new Error('无效的响应格式: 期望JSON');
+                    }
+                    
+                    return await response.json();
+                } catch (error) {
+                    console.error('获取愿望失败:', error);
+                    throw error;
+                }
+            }
+            
             // 加持愿望处理（修复每小时限制问题）
             async function handleBlessWish(cardElement, wish) {
                 try {
@@ -1666,6 +1725,35 @@
                     showErrorMessage('加持失败，请稍后重试');
                 }
             }
+
+            /**
+ * 封装获取愿望数据的API请求
+ * @returns {Promise} 包含愿望数据的Promise
+ */
+async function fetchWishes() {
+    try {
+        const response = await fetch(API_URL, {
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error(`服务器返回 ${response.status}`);
+        }
+        
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            throw new Error('无效的响应格式: 期望JSON');
+        }
+        
+        return await response.json();
+    } catch (error) {
+        console.error('获取愿望失败:', error);
+        throw error; // 继续抛出错误让外部处理
+    }
+}
             
             // 还愿处理
             async function handleFulfillWish(wish) {
