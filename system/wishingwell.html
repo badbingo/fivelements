@@ -1517,23 +1517,28 @@
             
             // 渲染愿望列表
             async function renderWishes() {
-              try {
-                const response = await fetch(API_URL + '?visibility=public');
-                const text = await response.text();  // 先读为纯文本，方便调试
-                console.log('[DEBUG] 返回原始内容:', text);
-            
-                // 确保返回的是 JSON
-                const data = JSON.parse(text);
-            
-                const wishes = Array.isArray(data) ? data : data.wishes || [];
-                renderWishCards(wishes);
-            
-              } catch (err) {
-                console.error('渲染愿望时出错:', err);
-                wishPool.innerHTML = `<p style="text-align: center; color: red;">连接失败：${err.message}</p>`;
-              }
-            }
-            
+                  try {
+                    const response = await fetch(API_URL + '?visibility=public');
+                    const text = await response.text();
+                    console.log('[DEBUG] 原始响应内容:', text);
+                
+                    const data = JSON.parse(text);
+                
+                    const wishes = Array.isArray(data) ? data : data.wishes || [];
+                
+                    if (!Array.isArray(wishes)) {
+                      throw new Error('返回的不是数组');
+                    }
+                
+                    console.log('[DEBUG] 愿望数量:', wishes.length);
+                
+                    renderWishCards(wishes);
+                  } catch (err) {
+                    console.error('渲染愿望时出错:', err);
+                    wishPool.innerHTML = `<p style="color:red;">加载失败：${err.message}</p>`;
+                  }
+                }
+                            
             // 更新统计信息
            function updateStats(wishes) {
                 // 确保wishes是一个数组
