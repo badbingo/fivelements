@@ -1,22 +1,102 @@
-<h2>找回密码</h2>
-<form id="resetRequestForm">
-  <input type="email" name="email" placeholder="请输入注册邮箱" required />
-  <button type="submit">发送重设链接</button>
-</form>
-<div id="message"></div>
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>找回密码 - 八字命理</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      background: linear-gradient(to right, #edf2f7, #e2e8f0);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .container {
+      background: #fff;
+      padding: 2.5rem;
+      border-radius: 1rem;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+      max-width: 400px;
+      width: 100%;
+    }
+    h2 {
+      text-align: center;
+      color: #1a202c;
+      margin-bottom: 1.5rem;
+    }
+    input {
+      width: 100%;
+      padding: 0.75rem;
+      margin-bottom: 1rem;
+      font-size: 1rem;
+      border: 1px solid #cbd5e0;
+      border-radius: 0.5rem;
+      transition: 0.2s;
+    }
+    input:focus {
+      border-color: #4299e1;
+      box-shadow: 0 0 0 2px rgba(66, 153, 225, 0.4);
+      outline: none;
+    }
+    button {
+      width: 100%;
+      padding: 0.75rem;
+      background-color: #3182ce;
+      color: white;
+      border: none;
+      border-radius: 0.5rem;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #2b6cb0;
+    }
+    .message {
+      text-align: center;
+      margin-top: 1rem;
+      font-size: 0.95rem;
+      color: #2d3748;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>找回密码</h2>
+    <form id="forgotForm">
+      <input type="email" id="email" placeholder="请输入注册邮箱" required />
+      <button type="submit">发送重设链接</button>
+      <div class="message" id="message"></div>
+    </form>
+  </div>
 
-<script>
-document.getElementById('resetRequestForm').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const email = e.target.email.value.trim();
-  const res = await fetch('https://bazi-backend.owenjass.workers.dev/api/request-reset', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email })
-  });
-  const data = await res.json();
-  document.getElementById('message').textContent = data.success
-    ? '已发送密码重置链接，请查收邮箱。'
-    : data.error || '发送失败';
-});
-</script>
+  <script>
+    document.getElementById('forgotForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('email').value;
+      const message = document.getElementById('message');
+
+      try {
+        const res = await fetch('https://bazi-backend.owenjass.workers.dev/api/request-reset', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email })
+        });
+
+        const result = await res.json();
+
+        if (res.ok) {
+          message.textContent = '重设链接已发送到您的邮箱，请检查收件箱';
+        } else {
+          message.textContent = result.error || '发送失败，请确认邮箱已注册';
+        }
+      } catch (err) {
+        message.textContent = '网络错误，请稍后重试';
+      }
+    });
+  </script>
+</body>
+</html>
