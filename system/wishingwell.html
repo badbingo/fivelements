@@ -1553,6 +1553,7 @@
                 const filter = document.getElementById('wishFilter').value;
                 const sort = document.getElementById('sortFilter').value;
                 
+                // 显示加载状态
                 wishPool.innerHTML = `
                     <div class="wish-loading">
                         <div class="loader"></div>
@@ -1560,24 +1561,32 @@
                     </div>
                 `;
                 
+                // 尝试从API获取数据
                 fetch(`${DB_API_URL}/api/wishes?filter=${filter}&sort=${sort}&page=${currentPage}&perPage=9`)
                 .then(response => {
                     if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
+                        throw new Error(`网络响应不正常 (${response.status})`);
                     }
                     return response.json();
                 })
                 .then(data => {
-                    if (data.success && data.wishes.length > 0) {
-                        renderWishCards(data.wishes);
-                        updatePagination(data.total, data.perPage);
+                    if (data.success) {
+                        if (data.wishes && data.wishes.length > 0) {
+                            renderWishCards(data.wishes);
+                            updatePagination(data.total, data.perPage);
+                        } else {
+                            showEmptyState();
+                        }
                     } else {
-                        showEmptyState();
+                        throw new Error(data.message || '获取愿望数据失败');
                     }
                 })
                 .catch(error => {
                     console.error('获取愿望失败:', error);
                     showErrorState(error);
+                    
+                    // 可选：在这里可以添加回退到本地存储的逻辑
+                    // loadWishesFromLocalStorage();
                 });
             }
                         
@@ -1730,6 +1739,30 @@
             // 显示错误消息
             function showErrorMessage(message) {
                 showToast(message, 'error');
+            }
+
+            function showEmptyState() {
+                wishPool.innerHTML = `
+                    <div class="wish-loading">
+                        <i class="fas fa-water" style="font-size: 3rem; color: #6a11cb; margin-bottom: 15px;"></i>
+                        <p>命缘池暂时平静如水</p>
+                        <p>成为第一个许下心愿的人吧！</p>
+                    </div>
+                `;
+                updatePagination(0);
+            }
+            
+            function showErrorState(error) {
+                wishPool.innerHTML = `
+                    <div class="wish-loading">
+                        <i class="fas fa-exclamation-triangle" style="color: #ff6b6b; font-size: 2rem; margin-bottom: 15px;"></i>
+                        <p>无法连接命缘池</p>
+                        <p>${error.message || '请稍后重试'}</p>
+                        <button class="btn-mingyuan" onclick="renderWishes()">
+                            <i class="fas fa-sync"></i> 重新加载
+                        </button>
+                    </div>
+                `;
             }
             
             // 显示Toast消息
