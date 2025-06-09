@@ -1,89 +1,123 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh">
 <head>
-  <meta charset="UTF-8">
-  <title>愿望卡片管理</title>
+  <meta charset="UTF-8" />
+  <title>许愿池管理</title>
   <style>
     body {
       font-family: sans-serif;
-      padding: 2rem;
-      background: #f2f2f2;
+      padding: 20px;
+      background: #f4f4f4;
     }
-    .card {
+    .wish-card {
       background: white;
-      border-radius: 12px;
       padding: 16px;
-      margin-bottom: 1rem;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      margin-bottom: 12px;
+      border-radius: 8px;
+      box-shadow: 0 0 6px rgba(0,0,0,0.1);
       position: relative;
     }
-    .card h3 {
+    .wish-card h3 {
       margin: 0 0 8px;
     }
-    .card small {
+    .wish-card small {
       color: #666;
     }
     .delete-btn {
       position: absolute;
-      top: 16px;
-      right: 16px;
-      background: #ff4d4f;
-      border: none;
+      top: 8px;
+      right: 12px;
+      background: red;
       color: white;
-      padding: 4px 8px;
+      border: none;
       border-radius: 4px;
+      padding: 4px 8px;
       cursor: pointer;
     }
-    .delete-btn:hover {
-      background: #d9363e;
+    #message {
+      margin-bottom: 12px;
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
-  <h1>愿望卡片管理</h1>
-  <div id="wishList"></div>
+
+  <h1>许愿池卡片管理</h1>
+  <div id="message"></div>
+  <div id="wishList">加载中...</div>
 
   <script>
     const API_URL = 'https://bazi-backend.owenjass.workers.dev/api/wishes';
+    const wishList = document.getElementById('wishList');
+    const messageDiv = document.getElementById('message');
 
-    async function fetchWishes() {
-      const res = await fetch(API_URL + '?visibility=public');
-      const data = await res.json();
-      return data.data;
+    function showMessage(msg, isError = false) {
+      messageDiv.textContent = msg;
+      messageDiv.style.color = isError ? 'red' : 'green';
+      setTimeout(() => messageDiv.textContent = '', 3000);
     }
 
-    async function deleteWish(id) {
-      if (!confirm('确定要删除这个愿望吗？')) return;
+    async function fetchWishes() {
       try {
-        const res = await fetch(`${API_URL}/${id}`, {
-          method: 'DELETE'
-        });
-        if (!res.ok) throw new Error('删除失败');
-        alert('删除成功');
-        loadWishes(); // 刷新
-      } catch (err) {
-        alert('删除失败，请稍后重试');
-        console.error(err);
+        const res = await fetch(API_URL + '?visibility=public');
+        const data = await res.json();
+        if (!data || !data.data) throw new Error('数据格式错误');
+
+        renderWishes(data.data);
+      } catch (e) {
+        showMessage('加载愿望失败: ' + e.message, true);
+        wishList.innerHTML = '';
       }
     }
 
-    async function loadWishes() {
-      const wishes = await fetchWishes();
-      const container = document.getElementById('wishList');
-      container.innerHTML = ''; // 清空
+    function renderWishes(wishes) {
+      if (!wishes.length) {
+        wishList.innerHTML = '<p>暂无愿望</p>';
+        return;
+      }
+
+      wishList.innerHTML = '';
       wishes.forEach(wish => {
         const card = document.createElement('div');
-        card.className = 'card';
+        card.className = 'wish-card';
+
         card.innerHTML = `
-          <h3>${wish.content}</h3>
-          <small>${wish.user_name || '匿名'} · ${wish.bazi || '未知八字'}</small>
-          <button class="delete-btn" onclick="deleteWish(${wish.id})">删除</button>
+          <h3>${wish.user_name || '匿名'}</h3>
+          <p>${wish.content}</p>
+          <small>八字：${wish.bazi}</small><br>
+          <small>提交时间：${wish.created_at}</small>
+          <button class="delete-btn" data-id="${wish.id}">删除</button>
         `;
-        container.appendChild(card);
+
+        const btn = card.querySelector('.delete-btn');
+        btn.addEventListener('click', () => deleteWish(wish.id));
+
+        wishList.appendChild(card);
       });
     }
 
-    loadWishes();
+    async function deleteWish(id) {
+      if (!confirm('确认删除这条愿望吗？')) return;
+
+      try {
+        const res = await fetch(`${API_URL}/${id}`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (!res.ok) throw new Error('服务器错误');
+
+        showMessage('删除成功');
+        await fetchWishes();
+      } catch (e) {
+        showMessage('删除失败，请稍后重试', true);
+      }
+    }
+
+    fetchWishes();
   </script>
+
 </body>
 </html>
