@@ -1648,29 +1648,51 @@
             }
             
             async function fetchWishes() {
-                try {
-                    const response = await fetch(API_URL, {
-                        headers: {
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/json'
-                        }
-                    });
-                    
-                    if (!response.ok) {
-                        throw new Error(`服务器返回 ${response.status}`);
-                    }
-                    
-                    const contentType = response.headers.get('content-type');
-                    if (!contentType || !contentType.includes('application/json')) {
-                        throw new Error('无效的响应格式: 期望JSON');
-                    }
-                    
-                    return await response.json();
-                } catch (error) {
-                    console.error('获取愿望失败:', error);
-                    throw error;
-                }
+    try {
+        const response = await fetch(API_URL, {
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
             }
+        });
+        
+        if (!response.ok) throw new Error(`服务器错误: ${response.status}`);
+        if (!response.headers.get('content-type')?.includes('application/json')) {
+            throw new Error('无效的响应格式');
+        }
+        
+        return await response.json();
+    } catch (error) {
+        console.error('获取愿望失败:', error);
+        throw error;
+    }
+}
+
+// 渲染函数（修改）
+function renderWishes(wishes = []) {
+    if (!Array.isArray(wishes)) {
+        console.warn('renderWishes期望数组，收到:', wishes);
+        wishes = [];
+    }
+    renderWishCards(wishes);
+}
+
+// 初始化调用（替换）
+document.addEventListener('DOMContentLoaded', function() {
+    // ...其他初始化代码...
+    
+    // 替换原来的renderWishes()调用
+    fetchWishes()
+        .then(data => {
+            const wishes = Array.isArray(data) ? data : (data.wishes || []);
+            renderWishes(wishes);
+            updateStats(wishes); // 可选：更新统计信息
+        })
+        .catch(error => {
+            showErrorMessage(`加载失败: ${error.message}`);
+            renderWishes([]); // 显示空状态
+        });
+});
             
             // 加持愿望处理（修复每小时限制问题）
             async function handleBlessWish(cardElement, wish) {
