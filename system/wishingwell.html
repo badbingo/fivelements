@@ -1343,7 +1343,22 @@
     </div>
 
     <script>
+        
         document.addEventListener('DOMContentLoaded', function() {
+             document.addEventListener('DOMContentLoaded', function() {
+            // 修复1：正确的API基础URL
+            const DB_API_URL = 'https://bazi-backend.owenjass.workers.dev';
+            
+            // 修复2：添加CORS代理URL
+            const CORS_PROXY = 'https://cors-anywhere.herokuapp.com/';
+            const PROXIED_API_URL = CORS_PROXY + DB_API_URL;
+            
+            // 修复3：使用安全的API端点路径
+            const API_ENDPOINTS = {
+                WISHES: '/api/wishes',
+                BLESS: '/api/wishes/bless',
+                FULFILL: '/api/wishes/fulfill'
+            };
             // 粒子背景初始化
             particlesJS("particles-js", {
                 particles: {
@@ -1445,7 +1460,7 @@
             wishForm.addEventListener('submit', handleSubmitWish);
             
             // 表单提交处理
-            function handleSubmitWish(e) {
+            async function handleSubmitWish(e) {
                 e.preventDefault();
                 
                 // 获取表单数据
@@ -1482,39 +1497,33 @@
                         solar_date: new Date().toISOString().split('T')[0]
                     };
                     
-                    // 发送到数据库
-                    fetch(`${DB_API_URL}/api/wishes`, {
+                    // 发送到数据库（使用代理URL）
+                    const response = await fetch(PROXIED_API_URL + API_ENDPOINTS.WISHES, {
                         method: 'POST',
                         headers: {
-                            'Content-Type': 'application/json'
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'  // 修复4：添加CORS安全头部
                         },
                         body: JSON.stringify(newWish)
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            // 重新加载愿望列表
-                            currentPage = 1;
-                            renderWishes();
-                            
-                            // 重置表单
-                            wishForm.reset();
-                            showSuccessMessage('愿望已成功投入命缘池！');
-                        } else {
-                            showErrorMessage('提交愿望失败，请稍后重试');
-                        }
-                    })
-                    .catch(error => {
-                        console.error('提交失败:', error);
-                        showErrorMessage('提交愿望失败，请稍后重试');
-                    })
-                    .finally(() => {
-                        setSubmitButtonState(false);
                     });
                     
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        // 重新加载愿望列表
+                        currentPage = 1;
+                        renderWishes();
+                        
+                        // 重置表单
+                        wishForm.reset();
+                        showSuccessMessage('愿望已成功投入命缘池！');
+                    } else {
+                        showErrorMessage('提交愿望失败，请稍后重试');
+                    }
                 } catch (error) {
                     console.error('提交失败:', error);
                     showErrorMessage('提交愿望失败，请稍后重试');
+                } finally {
                     setSubmitButtonState(false);
                 }
             }
@@ -1549,7 +1558,7 @@
             }
             
             // 渲染愿望列表
-            function renderWishes() {
+            async function renderWishes() {
                 const filter = document.getElementById('wishFilter').value;
                 const sort = document.getElementById('sortFilter').value;
                 
@@ -1561,11 +1570,28 @@
                     </div>
                 `;
                 
-                // 从API获取愿望数据
-                fetch(`${DB_API_URL}/api/wishes?filter=${filter}&sort=${sort}&page=${currentPage}&perPage=9`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success && data.wishes.length > 0) {
+                try {
+                    // 修复5：使用正确的查询参数格式
+                    const params = new URLSearchParams({
+                        filter: filter,
+                        sort: sort,
+                        page: currentPage,
+                        perPage: 9
+                    });
+                    
+                    // 使用代理URL获取数据
+                    const response = await fetch(
+                        `${PROXIED_API_URL}${API_ENDPOINTS.WISHES}?${params}`, 
+                        {
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest'  // CORS安全头部
+                            }
+                        }
+                    );
+                    
+                    const data = await response.json();
+                    
+                    if (data.success && data.wishes && data.wishes.length > 0) {
                         renderWishCards(data.wishes);
                         updatePagination(data.total, data.perPage);
                     } else {
@@ -1578,20 +1604,19 @@
                         `;
                         updatePagination(0);
                     }
-                })
-                .catch(error => {
+                } catch (error) {
                     console.error('获取愿望失败:', error);
                     wishPool.innerHTML = `
                         <div class="wish-loading">
                             <i class="fas fa-exclamation-triangle" style="color: #ff6b6b; font-size: 2rem; margin-bottom: 15px;"></i>
                             <p>无法连接命缘池</p>
                             <p>请稍后重试</p>
-                            <button class="btn-mingyuan" onclick="renderWishes()">
+                            <button class="btn-mingyuan" onclick="location.reload()">
                                 <i class="fas fa-sync"></i> 重新加载
                             </button>
                         </div>
                     `;
-                });
+                }
             }
             
             // 渲染愿望卡片
@@ -1654,13 +1679,21 @@
             }
             
             // 加持愿望处理
-            function handleBlessWish(wish) {
-                // 发送加持请求
-                fetch(`${DB_API_URL}/api/wishes/${wish.id}/bless`, {
-                    method: 'PATCH'
-                })
-                .then(response => response.json())
-                .then(data => {
+            async function handleBlessWish(wish) {
+                try {
+                    // 修复6：使用正确的加持端点
+                    const response = await fetch(
+                        `${PROXIED_API_URL}${API_ENDPOINTS.BLESS}/${wish.id}`, 
+                        {
+                            method: 'PATCH',
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        }
+                    );
+                    
+                    const data = await response.json();
+                    
                     if (data.success) {
                         // 计算新等级
                         const newBlessings = wish.blessings + 1;
@@ -1682,15 +1715,14 @@
                     } else {
                         showErrorMessage('加持失败，请稍后重试');
                     }
-                })
-                .catch(error => {
+                } catch (error) {
                     console.error('加持失败:', error);
                     showErrorMessage('加持失败，请稍后重试');
-                });
+                }
             }
             
             // 还愿处理
-            function handleFulfillWish(wish) {
+            async function handleFulfillWish(wish) {
                 const modal = document.getElementById('fulfillModal');
                 const closeBtn = modal.querySelector('.close-modal');
                 const options = modal.querySelectorAll('.fulfill-option');
@@ -1704,15 +1736,24 @@
                 
                 // 选择还愿金额
                 options.forEach(option => {
-                    option.onclick = () => {
+                    option.onclick = async () => {
                         const amount = option.dataset.amount;
                         
-                        // 发送还愿请求
-                        fetch(`${DB_API_URL}/api/wishes/${wish.id}`, {
-                            method: 'DELETE'
-                        })
-                        .then(response => response.json())
-                        .then(data => {
+                        try {
+                            // 修复7：使用正确的还愿端点
+                            const response = await fetch(
+                                `${PROXIED_API_URL}${API_ENDPOINTS.FULFILL}/${wish.id}`, 
+                                {
+                                    method: 'DELETE',
+                                    headers: {
+                                        'X-Requested-With': 'XMLHttpRequest'
+                                    },
+                                    body: JSON.stringify({ amount: amount })
+                                }
+                            );
+                            
+                            const data = await response.json();
+                            
                             if (data.success) {
                                 modal.style.display = 'none';
                                 renderWishes();
@@ -1720,11 +1761,10 @@
                             } else {
                                 showErrorMessage('还愿失败，请稍后重试');
                             }
-                        })
-                        .catch(error => {
+                        } catch (error) {
                             console.error('还愿失败:', error);
                             showErrorMessage('还愿失败，请稍后重试');
-                        });
+                        }
                     };
                 });
             }
