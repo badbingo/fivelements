@@ -1,25 +1,116 @@
-<h2>重设密码</h2>
-<form id="resetForm">
-  <input type="password" name="newPassword" placeholder="新密码" required />
-  <button type="submit">提交</button>
-</form>
-<div id="message"></div>
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>重设密码 - 八字命理</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      background: linear-gradient(to bottom right, #f9fafb, #e2e8f0);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .container {
+      background: white;
+      padding: 2.5rem;
+      border-radius: 1rem;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 400px;
+    }
+    h2 {
+      margin-bottom: 1.5rem;
+      font-size: 1.5rem;
+      text-align: center;
+      color: #1a202c;
+    }
+    input {
+      width: 100%;
+      padding: 0.75rem;
+      margin-bottom: 1rem;
+      border: 1px solid #cbd5e0;
+      border-radius: 0.5rem;
+      font-size: 1rem;
+      transition: 0.3s;
+    }
+    input:focus {
+      border-color: #3182ce;
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(66, 153, 225, 0.4);
+    }
+    button {
+      width: 100%;
+      padding: 0.75rem;
+      background: #3182ce;
+      color: white;
+      font-size: 1rem;
+      border: none;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background: #2b6cb0;
+    }
+    .message {
+      margin-top: 1rem;
+      font-size: 0.95rem;
+      color: #2d3748;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>重设密码</h2>
+    <form id="resetForm">
+      <input type="password" id="newPassword" placeholder="请输入新密码" required />
+      <input type="password" id="confirmPassword" placeholder="确认新密码" required />
+      <button type="submit">提交重设</button>
+      <div class="message" id="message"></div>
+    </form>
+  </div>
 
-<script>
-const urlParams = new URLSearchParams(window.location.search);
-const token = urlParams.get('token');
+  <script>
+    document.getElementById('resetForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const newPassword = document.getElementById('newPassword').value;
+      const confirmPassword = document.getElementById('confirmPassword').value;
+      const msg = document.getElementById('message');
 
-document.getElementById('resetForm').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const newPassword = e.target.newPassword.value;
-  const res = await fetch('https://bazi-backend.owenjass.workers.dev/api/reset-password', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ token, newPassword })
-  });
-  const data = await res.json();
-  document.getElementById('message').textContent = data.success
-    ? '密码已更新，请返回登录页面。'
-    : data.error || '重设失败';
-});
-</script>
+      if (newPassword !== confirmPassword) {
+        msg.textContent = '两次输入的密码不一致';
+        return;
+      }
+
+      const params = new URLSearchParams(window.location.search);
+      const token = params.get('token');
+      if (!token) {
+        msg.textContent = '链接无效，请重新申请重设密码';
+        return;
+      }
+
+      try {
+        const res = await fetch('https://bazi-backend.owenjass.workers.dev/api/reset-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token, newPassword })
+        });
+
+        const result = await res.json();
+        if (res.ok) {
+          msg.textContent = '密码重设成功，请重新登录';
+        } else {
+          msg.textContent = result.error || '重设失败，请稍后重试';
+        }
+      } catch (err) {
+        msg.textContent = '网络错误，请稍后重试';
+      }
+    });
+  </script>
+</body>
+</html>
