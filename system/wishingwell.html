@@ -1420,7 +1420,8 @@
                     birth_time: document.getElementById('birthtime').value,
                     type: document.getElementById('wishType').value,
                     visibility: document.querySelector('input[name="visibility"]:checked').value,
-                    solar_date: new Date().toISOString().split('T')[0]
+                    solar_date: new Date().toISOString().split('T')[0],
+                    bazi: generateBazi(document.getElementById('birthday').value, document.getElementById('birthtime').value)
                 };
                 
                 // 验证必填字段
@@ -1429,41 +1430,55 @@
                     return;
                 }
                 
-                // 生成八字
-                formData.bazi = generateBazi(formData.birth_date, formData.birth_time);
-                
                 // 设置加载状态
                 setSubmitButtonState(true);
                 
                 try {
-                    // 发送愿望到后端API
+                    // 发送愿望到后端API - 添加错误处理和超时
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 8000); // 8秒超时
+                    
                     const response = await fetch(API_URL, {
                         method: 'POST',
                         headers: {
-                            'Content-Type': 'application/json'
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
                         },
-                        body: JSON.stringify(formData)
+                        body: JSON.stringify(formData),
+                        signal: controller.signal
                     });
                     
+                    clearTimeout(timeoutId);
+                    
+                    // 检查响应状态
                     if (!response.ok) {
-                        throw new Error('提交愿望失败，请稍后重试');
+                        const errorData = await response.json().catch(() => null);
+                        const errorMsg = errorData?.message || '提交愿望失败，请稍后重试';
+                        throw new Error(errorMsg);
                     }
+                    
+                    const result = await response.json();
                     
                     // 重新加载愿望列表
                     currentPage = 1;
-                    renderWishes();
+                    await renderWishes();
                     
                     // 重置表单
                     wishForm.reset();
                     baziInfo.style.display = 'none';
                     showSuccessMessage('愿望已成功投入命缘池！');
+                    
                 } catch (error) {
                     console.error('提交失败:', error);
-                    showErrorMessage('提交愿望失败，请稍后重试');
+                    const errorMessage = error.name === 'AbortError' ? 
+                        '请求超时，请检查网络连接' : 
+                        error.message || '提交愿望失败，请稍后重试';
+                    showErrorMessage(errorMessage);
                 } finally {
                     setSubmitButtonState(false);
                 }
             }
+
             
             // 设置提交按钮状态
             function setSubmitButtonState(isLoading) {
