@@ -1410,74 +1410,95 @@
             
             // 表单提交处理
             async function handleSubmitWish(e) {
-                e.preventDefault();
-                
-                // 获取表单数据
-                const formData = {
-                    content: document.getElementById('wishContent').value.trim(),
-                    user_name: document.getElementById('name').value.trim() || '匿名用户',
-                    birth_date: document.getElementById('birthday').value,
-                    birth_time: document.getElementById('birthtime').value,
-                    type: document.getElementById('wishType').value,
-                    visibility: document.querySelector('input[name="visibility"]:checked').value,
-                    solar_date: new Date().toISOString().split('T')[0],
-                    bazi: generateBazi(document.getElementById('birthday').value, document.getElementById('birthtime').value)
-                };
-                
-                // 验证必填字段
-                if (!formData.content || !formData.birth_date || !formData.birth_time) {
-                    showErrorMessage('请填写完整的愿望内容和出生信息');
-                    return;
-                }
-                
-                // 设置加载状态
-                setSubmitButtonState(true);
-                
-                try {
-                    // 发送愿望到后端API - 添加错误处理和超时
-                    const controller = new AbortController();
-                    const timeoutId = setTimeout(() => controller.abort(), 8000); // 8秒超时
-                    
-                    const response = await fetch(API_URL, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json'
-                        },
-                        body: JSON.stringify(formData),
-                        signal: controller.signal
-                    });
-                    
-                    clearTimeout(timeoutId);
-                    
-                    // 检查响应状态
-                    if (!response.ok) {
-                        const errorData = await response.json().catch(() => null);
-                        const errorMsg = errorData?.message || '提交愿望失败，请稍后重试';
-                        throw new Error(errorMsg);
-                    }
-                    
-                    const result = await response.json();
-                    
-                    // 重新加载愿望列表
-                    currentPage = 1;
-                    await renderWishes();
-                    
-                    // 重置表单
-                    wishForm.reset();
-                    baziInfo.style.display = 'none';
-                    showSuccessMessage('愿望已成功投入命缘池！');
-                    
-                } catch (error) {
-                    console.error('提交失败:', error);
-                    const errorMessage = error.name === 'AbortError' ? 
-                        '请求超时，请检查网络连接' : 
-                        error.message || '提交愿望失败，请稍后重试';
-                    showErrorMessage(errorMessage);
-                } finally {
-                    setSubmitButtonState(false);
-                }
+    e.preventDefault();
+    
+    // 1. 收集表单数据（添加更严格的验证）
+    const name = document.getElementById('name').value.trim() || '匿名用户';
+    const birthday = document.getElementById('birthday').value;
+    const birthtime = document.getElementById('birthtime').value;
+    const content = document.getElementById('wishContent').value.trim();
+    
+    if (!content || !birthday || !birthtime) {
+        showErrorMessage('请填写完整的愿望内容和出生信息');
+        return;
+    }
+
+    // 2. 构造请求数据
+    const formData = {
+        content,
+        user_name: name,
+        birth_date: birthday,
+        birth_time: birthtime,
+        type: document.getElementById('wishType').value,
+        visibility: document.querySelector('input[name="visibility"]:checked').value,
+        solar_date: new Date().toISOString().split('T')[0],
+        bazi: generateBazi(birthday, birthtime)
+    };
+
+    // 3. 设置加载状态
+    setSubmitButtonState(true);
+
+    try {
+        // 4. 添加请求调试信息
+        console.log('[DEBUG] 提交数据:', formData);
+        console.log('[DEBUG] API URL:', API_URL);
+
+        // 5. 发送请求（添加超时和取消功能）
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 10000); // 10秒超时
+
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(formData),
+            signal: controller.signal
+        });
+
+        clearTimeout(timeout);
+
+        // 6. 处理响应
+        if (!response.ok) {
+            let errorData;
+            try {
+                errorData = await response.json();
+            } catch (e) {
+                throw new Error(`HTTP错误: ${response.status} ${response.statusText}`);
             }
+            throw new Error(errorData.message || '服务器返回错误');
+        }
+
+        const result = await response.json();
+        console.log('[DEBUG] 响应数据:', result);
+
+        // 7. 处理成功响应
+        currentPage = 1;
+        await renderWishes();
+        wishForm.reset();
+        baziInfo.style.display = 'none';
+        showSuccessMessage('愿望已成功投入命缘池！');
+
+    } catch (error) {
+        // 8. 改进错误处理
+        console.error('提交错误详情:', error);
+        
+        let userMessage = '提交愿望失败，请稍后重试';
+        if (error.name === 'AbortError') {
+            userMessage = '请求超时，请检查网络连接';
+        } else if (error.message.includes('Failed to fetch')) {
+            userMessage = '无法连接到服务器，请检查网络';
+        } else if (error.message.includes('HTTP错误')) {
+            userMessage = `服务器错误: ${error.message}`;
+        }
+        
+        showErrorMessage(userMessage);
+    } finally {
+        setSubmitButtonState(false);
+    }
+}
+
 
             
             // 设置提交按钮状态
