@@ -1,16 +1,43 @@
 <!DOCTYPE html>
 <html lang="zh">
 <head>
-  <meta charset="UTF-8" />
-  <title>许愿池管理</title>
+  <meta charset="UTF-8">
+  <title>许愿池后台管理</title>
   <style>
     body {
       font-family: sans-serif;
-      background: #f0f2f5;
+      background: #f5f5f5;
       padding: 20px;
     }
     h1 {
       text-align: center;
+    }
+    .login-form {
+      max-width: 300px;
+      margin: 100px auto;
+      padding: 20px;
+      background: white;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      border-radius: 8px;
+    }
+    .login-form input {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    .login-form button {
+      width: 100%;
+      padding: 10px;
+      background: #1890ff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .login-form button:hover {
+      background: #1677c9;
     }
     .wish-container {
       display: flex;
@@ -48,16 +75,64 @@
       color: #555;
       margin-top: 8px;
     }
+    .logout-btn {
+      position: absolute;
+      right: 20px;
+      top: 20px;
+      background: #666;
+      color: #fff;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .logout-btn:hover {
+      background: #444;
+    }
   </style>
 </head>
 <body>
-  <h1>许愿池卡片管理</h1>
-  <div class="wish-container" id="wishContainer"></div>
+  <button class="logout-btn" onclick="logout()" style="display:none;">退出登录</button>
+  <div id="loginSection" class="login-form">
+    <h2>管理员登录</h2>
+    <input type="text" id="username" placeholder="用户名" />
+    <input type="password" id="password" placeholder="密码" />
+    <button onclick="login()">登录</button>
+  </div>
+
+  <div id="adminSection" style="display:none;">
+    <h1>许愿池卡片管理</h1>
+    <div class="wish-container" id="wishContainer"></div>
+  </div>
 
   <script>
     const API_URL = 'https://bazi-backend.owenjass.workers.dev/api/wishes';
+    const ADMIN_USERNAME = 'admin';
+    const ADMIN_PASSWORD = '8077';
 
-    // 加载愿望
+    function login() {
+      const u = document.getElementById('username').value;
+      const p = document.getElementById('password').value;
+      if (u === ADMIN_USERNAME && p === ADMIN_PASSWORD) {
+        localStorage.setItem('adminLoggedIn', 'true');
+        showAdminPanel();
+      } else {
+        alert('用户名或密码错误');
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem('adminLoggedIn');
+      location.reload();
+    }
+
+    function showAdminPanel() {
+      document.getElementById('loginSection').style.display = 'none';
+      document.getElementById('adminSection').style.display = 'block';
+      document.querySelector('.logout-btn').style.display = 'block';
+      loadWishes();
+    }
+
     async function loadWishes() {
       try {
         const res = await fetch(API_URL);
@@ -86,7 +161,6 @@
       }
     }
 
-    // 删除愿望
     async function deleteWish(id, btn) {
       if (!confirm('确定要删除这条愿望吗？')) return;
       btn.disabled = true;
@@ -105,7 +179,10 @@
       }
     }
 
-    loadWishes();
+    // 自动判断是否登录
+    if (localStorage.getItem('adminLoggedIn') === 'true') {
+      showAdminPanel();
+    }
   </script>
 </body>
 </html>
