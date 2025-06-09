@@ -1518,18 +1518,19 @@
             // 渲染愿望列表
             async function renderWishes() {
               try {
-                wishPool.innerHTML = `<p style="text-align:center;">正在连接命缘池能量场...</p>`;
-            
                 const response = await fetch(API_URL + '?visibility=public');
-                const data = await response.json();
+                const text = await response.text();  // 先读为纯文本，方便调试
+                console.log('[DEBUG] 返回原始内容:', text);
             
-                // 判断返回结构
+                // 确保返回的是 JSON
+                const data = JSON.parse(text);
+            
                 const wishes = Array.isArray(data) ? data : data.wishes || [];
-            
                 renderWishCards(wishes);
-              } catch (error) {
-                console.error('加载愿望失败:', error);
-                wishPool.innerHTML = `<p style="text-align:center; color:red;">连接失败，请稍后再试。</p>`;
+            
+              } catch (err) {
+                console.error('渲染愿望时出错:', err);
+                wishPool.innerHTML = `<p style="text-align: center; color: red;">连接失败：${err.message}</p>`;
               }
             }
             
