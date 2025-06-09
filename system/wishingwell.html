@@ -1565,13 +1565,17 @@
             async function renderWishes() {
                   try {
                     const response = await fetch(API_URL + '?visibility=public');
-                
-                    const text = await response.text();  // 先以纯文本读取
+                    const text = await response.text();
                     console.log('[DEBUG] 原始响应:', text);
                 
-                    const data = JSON.parse(text);  // 现在尝试解析 JSON
-                    const wishes = Array.isArray(data) ? data : data.wishes || [];
+                    const json = JSON.parse(text);
+                    const wishes = Array.isArray(json) ? json : json.data || [];
                 
+                    if (!Array.isArray(wishes)) {
+                      throw new Error('返回的不是愿望数组');
+                    }
+                
+                    console.log('[DEBUG] 愿望数量:', wishes.length);
                     renderWishCards(wishes);
                   } catch (err) {
                     console.error('渲染愿望时出错:', err);
