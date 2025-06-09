@@ -480,13 +480,6 @@
             z-index: -1;
         }
 
-        /* 卡片等级背景色 */
-        .wish-card.level-1 { background: rgba(0, 0, 100, 0.3); } /* 初愿 - 暗蓝 */
-        .wish-card.level-2 { background: rgba(0, 0, 120, 0.3); } /* 小成 - 稍深暗蓝 */
-        .wish-card.level-3 { background: rgba(101, 67, 33, 0.3); } /* 中成 - 暗棕色 */
-        .wish-card.level-4 { background: rgba(139, 0, 0, 0.3); } /* 大成 - 暗红色 */
-        .wish-card.level-5 { background: rgba(255, 215, 0, 0.2); } /* 圆满 - 金色 */
-        
         .wish-card.level-up {
             animation: levelUp 1s ease;
         }
@@ -588,11 +581,14 @@
             color: white;
         }
 
-        /* 修复还愿按钮显示问题 */
         .btn-fulfill {
             background: rgba(37, 117, 252, 0.3);
             color: var(--text-light);
-            display: flex; /* 改为始终显示 */
+            display: none;
+        }
+
+        .wish-card[data-owner="true"] .btn-fulfill {
+            display: flex;
         }
 
         .btn-fulfill:hover {
@@ -611,16 +607,10 @@
         .energy-level {
             height: 100%;
             width: 0;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
             transition: width 0.5s ease;
         }
 
-        /* 能量条颜色 */
-        .wish-card.level-1 .energy-level { background: linear-gradient(90deg, #1a237e, #4a148c); }
-        .wish-card.level-2 .energy-level { background: linear-gradient(90deg, #0d47a1, #1565c0); }
-        .wish-card.level-3 .energy-level { background: linear-gradient(90deg, #4e342e, #795548); }
-        .wish-card.level-4 .energy-level { background: linear-gradient(90deg, #b71c1c, #c62828); }
-        .wish-card.level-5 .energy-level { background: linear-gradient(90deg, #ff9800, #ffca28); }
-        
         .wish-card[data-level="1"] .energy-level { width: 20%; }
         .wish-card[data-level="2"] .energy-level { width: 40%; }
         .wish-card[data-level="3"] .energy-level { width: 60%; }
@@ -1286,7 +1276,7 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+         document.addEventListener('DOMContentLoaded', function() {
             // 定义API端点
             const API_URL = 'https://bazi-backend.owenjass.workers.dev/api/wishes';
             
@@ -1374,6 +1364,17 @@
                 }
             });
             
+            renderWishes();  // 加上这行：初始化时就加载愿望池内容
+            
+            // DOM 元素
+            const wishForm = document.getElementById('wishForm');
+            const submitBtn = wishForm.querySelector('button[type="submit"]');
+            const wishPool = document.querySelector('.wish-pool');
+            const baziInfo = document.getElementById('baziInfo');
+            
+            // 初始化表单提交
+            wishForm.addEventListener('submit', handleSubmitWish);
+            
             // 生成八字信息（模拟）
             function generateBazi(birthday, birthtime) {
                 // 简单模拟生成八字
@@ -1411,97 +1412,100 @@
             
             // 表单提交处理
             async function handleSubmitWish(e) {
-                e.preventDefault();
-                
-                // 1. 收集表单数据（添加更严格的验证）
-                const name = document.getElementById('name').value.trim() || '匿名用户';
-                const birthday = document.getElementById('birthday').value;
-                const birthtime = document.getElementById('birthtime').value;
-                const content = document.getElementById('wishContent').value.trim();
-                
-                if (!content || !birthday || !birthtime) {
-                    showErrorMessage('请填写完整的愿望内容和出生信息');
-                    return;
-                }
+    e.preventDefault();
+    
+    // 1. 收集表单数据（添加更严格的验证）
+    const name = document.getElementById('name').value.trim() || '匿名用户';
+    const birthday = document.getElementById('birthday').value;
+    const birthtime = document.getElementById('birthtime').value;
+    const content = document.getElementById('wishContent').value.trim();
+    
+    if (!content || !birthday || !birthtime) {
+        showErrorMessage('请填写完整的愿望内容和出生信息');
+        return;
+    }
 
-                // 2. 构造请求数据
-                const formData = {
-                    content,
-                    user_name: name,
-                    birth_date: birthday,
-                    birth_time: birthtime,
-                    type: document.getElementById('wishType').value,
-                    visibility: document.querySelector('input[name="visibility"]:checked').value,
-                    solar_date: new Date().toISOString().split('T')[0],
-                    bazi: generateBazi(birthday, birthtime),
-                    user_id: 'guest_' + Date.now(),
-                    blessings: 0,
-                    level: 1
-                };
+    // 2. 构造请求数据
+    const formData = {
+    content,
+    user_name: name,
+    birth_date: birthday,
+    birth_time: birthtime,
+    type: document.getElementById('wishType').value,
+    visibility: document.querySelector('input[name="visibility"]:checked').value,
+    solar_date: new Date().toISOString().split('T')[0],
+    bazi: generateBazi(birthday, birthtime),
+    user_id: 'guest_' + Date.now()
+    };
 
-                // 3. 设置加载状态
-                setSubmitButtonState(true);
+    // 3. 设置加载状态
+    setSubmitButtonState(true);
 
-                try {
-                    // 5. 发送请求（添加超时和取消功能）
-                    const controller = new AbortController();
-                    const timeout = setTimeout(() => controller.abort(), 10000); // 10秒超时
+    try {
+        // 4. 添加请求调试信息
+        console.log('[DEBUG] 提交数据:', formData);
+        console.log('[DEBUG] API URL:', API_URL);
 
-                    const response = await fetch(API_URL, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json'
-                        },
-                        body: JSON.stringify(formData),
-                        signal: controller.signal
-                    });
+        // 5. 发送请求（添加超时和取消功能）
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 10000); // 10秒超时
 
-                    clearTimeout(timeout);
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(formData),
+            signal: controller.signal
+        });
 
-                    // 6. 处理响应
-                    if (!response.ok) {
-                        let errorData;
-                        try {
-                            errorData = await response.json();
-                        } catch (e) {
-                            throw new Error(`HTTP错误: ${response.status} ${response.statusText}`);
-                        }
-                        throw new Error(errorData.message || '服务器返回错误');
-                    }
+        clearTimeout(timeout);
 
-                    const result = await response.json();
-                    console.log('愿望提交成功:', result);
-
-                    // 7. 处理成功响应
-                    currentPage = 1;
-                    await renderWishes();
-                    wishForm.reset();
-                    baziInfo.style.display = 'none';
-                    showSuccessMessage('愿望已成功投入命缘池！');
-
-                } catch (error) {
-                    // 8. 改进错误处理
-                    console.error('提交错误详情:', error);
-                    
-                    let userMessage = '提交愿望失败，请稍后重试';
-                    if (error.name === 'AbortError') {
-                        userMessage = '请求超时，请检查网络连接';
-                    } else if (error.message.includes('Failed to fetch')) {
-                        userMessage = '无法连接到服务器，请检查网络';
-                    } else if (error.message.includes('HTTP错误')) {
-                        userMessage = `服务器错误: ${error.message}`;
-                    }
-                    
-                    showErrorMessage(userMessage);
-                } finally {
-                    setSubmitButtonState(false);
-                }
+        // 6. 处理响应
+        if (!response.ok) {
+            let errorData;
+            try {
+                errorData = await response.json();
+            } catch (e) {
+                throw new Error(`HTTP错误: ${response.status} ${response.statusText}`);
             }
+            throw new Error(errorData.message || '服务器返回错误');
+        }
 
+        const result = await response.json();
+        console.log('[DEBUG] 响应数据:', result);
+
+        // 7. 处理成功响应
+        currentPage = 1;
+        await renderWishes();
+        wishForm.reset();
+        baziInfo.style.display = 'none';
+        showSuccessMessage('愿望已成功投入命缘池！');
+
+    } catch (error) {
+        // 8. 改进错误处理
+        console.error('提交错误详情:', error);
+        
+        let userMessage = '提交愿望失败，请稍后重试';
+        if (error.name === 'AbortError') {
+            userMessage = '请求超时，请检查网络连接';
+        } else if (error.message.includes('Failed to fetch')) {
+            userMessage = '无法连接到服务器，请检查网络';
+        } else if (error.message.includes('HTTP错误')) {
+            userMessage = `服务器错误: ${error.message}`;
+        }
+        
+        showErrorMessage(userMessage);
+    } finally {
+        setSubmitButtonState(false);
+    }
+}
+
+
+            
             // 设置提交按钮状态
             function setSubmitButtonState(isLoading) {
-                const submitBtn = wishForm.querySelector('button[type="submit"]');
                 if (isLoading) {
                     submitBtn.disabled = true;
                     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 提交中...';
@@ -1513,60 +1517,79 @@
             
             // 渲染愿望列表
             async function renderWishes() {
-    wishPool.innerHTML = '<div class="wish-loading"><div class="loader"></div><p>正在加载愿望...</p></div>';
-    
-    try {
-        const response = await fetch(API_URL);
-        if (!response.ok) {
-            throw new Error(`HTTP错误: ${response.status}`);
-        }
-        
-        // 确保解析为JSON
-        const data = await response.json();
-        
-        // 检查返回的数据结构
-        if (!data || !Array.isArray(data.wishes || data)) {
-                throw new Error('无效的响应格式: 期望愿望数组');
-            }
-            
-            // 处理两种可能的响应格式
-            const wishes = Array.isArray(data) ? data : data.wishes;
-            renderWishCards(wishes || []);
-            
-        } catch (err) {
-            console.error('渲染愿望时出错:', err);
-            wishPool.innerHTML = `
-                <div class="wish-loading">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <p>加载失败: ${err.message}</p>
-                    <button class="btn-mingyuan" onclick="renderWishes()">
-                        <i class="fas fa-sync-alt"></i> 重新加载
-                    </button>
-                </div>
-            `;
-        }
-    }
-            async function renderWishesWithRetry(retries = 3) {
-                try {
-                    await renderWishes();
-                } catch (error) {
-                    if (retries > 0) {
-                        console.log(`重试剩余 ${retries} 次...`);
-                        await new Promise(resolve => setTimeout(resolve, 1000));
-                        return renderWishesWithRetry(retries - 1);
+                  try {
+                    const response = await fetch(API_URL + '?visibility=public');
+                    const text = await response.text();
+                    console.log('[DEBUG] 原始响应内容:', text);
+                
+                    const data = JSON.parse(text);
+                
+                    const wishes = Array.isArray(data) ? data : data.wishes || [];
+                
+                    if (!Array.isArray(wishes)) {
+                      throw new Error('返回的不是数组');
                     }
-                    throw error;
+                
+                    console.log('[DEBUG] 愿望数量:', wishes.length);
+                
+                    renderWishCards(wishes);
+                  } catch (err) {
+                    console.error('渲染愿望时出错:', err);
+                    wishPool.innerHTML = `<p style="color:red;">加载失败：${err.message}</p>`;
+                  }
                 }
+                            
+            // 更新统计信息
+           function updateStats(wishes) {
+                // 确保wishes是一个数组
+                if (!Array.isArray(wishes)) {
+                    console.error('wishes不是数组:', wishes);
+                    wishes = [];
+                }
+                
+                const today = new Date().toISOString().split('T')[0];
+                
+                // 计算今日新增愿望
+                const todayWishes = wishes.filter(wish => wish.solar_date === today).length;
+                document.getElementById('todayWishes').textContent = todayWishes;
+                
+                // 计算今日加持次数（这里简化处理）
+                const todayBlessings = wishes.reduce((sum, wish) => sum + (wish.solar_date === today ? (wish.blessings || 0) : 0), 0);
+                document.getElementById('todayBlessings').textContent = todayBlessings;
+                
+                // 计算今日还愿次数（这里简化处理）
+                const todayFulfilled = wishes.filter(wish => wish.fulfilled && wish.fulfilled_date === today).length;
+                document.getElementById('todayFulfilled').textContent = todayFulfilled;
             }
-            
-            // 使用重试机制初始化
-            renderWishesWithRetry().catch(error => {
-                console.error('最终加载失败:', error);
-            });
+
+            async function renderWishes() {
+                  try {
+                    const response = await fetch(API_URL + '?visibility=public');
+                    const text = await response.text();
+                    console.log('[DEBUG] 原始响应:', text);
+                
+                    const json = JSON.parse(text);
+                    const wishes = Array.isArray(json) ? json : json.data || [];
+                
+                    if (!Array.isArray(wishes)) {
+                      throw new Error('返回的不是愿望数组');
+                    }
+                
+                    console.log('[DEBUG] 愿望数量:', wishes.length);
+                    renderWishCards(wishes);
+                  } catch (err) {
+                    console.error('渲染愿望时出错:', err);
+                    wishPool.innerHTML = `<p style="color:red;">加载失败：${err.message}</p>`;
+                  }
+                }
             
             // 渲染愿望卡片
             function renderWishCards(wishes) {
-                wishPool.innerHTML = '';
+                  if (!Array.isArray(wishes)) {
+                    console.error('renderWishCards 接收到的不是数组:', wishes);
+                    return;
+                  }
+                    wishPool.innerHTML = '';
                 
                 if (wishes.length === 0) {
                     wishPool.innerHTML = `
@@ -1592,14 +1615,14 @@
                 wishes.forEach(wish => {
                     // 创建愿望卡片
                     const wishCard = document.createElement('div');
-                    wishCard.className = `wish-card level-${wish.level || 1}`;
+                    wishCard.className = 'wish-card';
                     wishCard.dataset.id = wish.id;
                     wishCard.dataset.level = wish.level || 1;
                     wishCard.dataset.type = wish.type;
                     wishCard.dataset.visibility = wish.visibility;
                     
                     // 计算剩余天数
-                    const createdDate = new Date(wish.created_at || new Date());
+                    const createdDate = new Date(wish.created_at);
                     const expiresAt = new Date(createdDate);
                     expiresAt.setDate(expiresAt.getDate() + 30);
                     const daysLeft = Math.max(0, Math.ceil((expiresAt - new Date()) / (86400000)));
@@ -1616,7 +1639,7 @@
                         </div>
                         <div class="wish-meta">
                             <div class="wish-bazi">
-                                <i class="fas fa-user-secret"></i> <span class="bazi-text">${wish.bazi || '未知八字'}</span>
+                                <i class="fas fa-user-secret"></i> <span class="bazi-text">${wish.bazi}</span>
                             </div>
                             <div class="wish-stats">
                                 <span class="bless-count">${wish.blessings || 0}</span> 次加持
@@ -1647,69 +1670,20 @@
                 });
             }
             
-            async function fetchWishes() {
-    try {
-        const response = await fetch(API_URL, {
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
+            // 更新分页信息
+            function updatePagination(totalItems, perPage = 6) {
+                const totalPages = Math.max(1, Math.ceil(totalItems / perPage));
+                
+                document.getElementById('pageInfo').textContent = `第 ${currentPage} 页 / 共 ${totalPages} 页`;
+                document.getElementById('prevPage').disabled = currentPage <= 1;
+                document.getElementById('nextPage').disabled = currentPage >= totalPages;
             }
-        });
-        
-        if (!response.ok) throw new Error(`服务器错误: ${response.status}`);
-        if (!response.headers.get('content-type')?.includes('application/json')) {
-            throw new Error('无效的响应格式');
-        }
-        
-        return await response.json();
-    } catch (error) {
-        console.error('获取愿望失败:', error);
-        throw error;
-    }
-}
-
-// 渲染函数（修改）
-function renderWishes(wishes = []) {
-    if (!Array.isArray(wishes)) {
-        console.warn('renderWishes期望数组，收到:', wishes);
-        wishes = [];
-    }
-    renderWishCards(wishes);
-}
-
-// 初始化调用（替换）
-document.addEventListener('DOMContentLoaded', function() {
-    // ...其他初始化代码...
-    
-    // 替换原来的renderWishes()调用
-    fetchWishes()
-        .then(data => {
-            const wishes = Array.isArray(data) ? data : (data.wishes || []);
-            renderWishes(wishes);
-            updateStats(wishes); // 可选：更新统计信息
-        })
-        .catch(error => {
-            showErrorMessage(`加载失败: ${error.message}`);
-            renderWishes([]); // 显示空状态
-        });
-});
             
-            // 加持愿望处理（修复每小时限制问题）
+            // 加持愿望处理
             async function handleBlessWish(cardElement, wish) {
                 try {
-                    // 检查上次加持时间
-                    const lastBlessKey = `lastBless_${wish.id}`;
-                    const lastBlessTime = localStorage.getItem(lastBlessKey);
-                    const currentTime = new Date().getTime();
-                    
-                    if (lastBlessTime && (currentTime - parseInt(lastBlessTime)) < 3600000) {
-                        const minutesLeft = Math.ceil((3600000 - (currentTime - parseInt(lastBlessTime))) / 60000);
-                        showErrorMessage(`请${minutesLeft}分钟后再来加持`);
-                        return;
-                    }
-                    
                     // 发送加持请求到后端
-                    const response = await fetch(`${API_URL}/${wish.id}/bless`, {
+                    const response = await fetch(`${API_URL}/bless/${wish.id}`, {
                         method: 'POST'
                     });
                     
@@ -1720,62 +1694,29 @@ document.addEventListener('DOMContentLoaded', function() {
                     const updatedWish = await response.json();
                     
                     // 更新本地数据
-                    wish.blessings = updatedWish.blessings || wish.blessings + 1;
-                    wish.level = updatedWish.level || Math.min(5, Math.floor(wish.blessings / 5) + 1);
+                    wish.blessings = updatedWish.blessings;
+                    wish.level = updatedWish.level;
                     
                     // 更新UI
                     cardElement.querySelector('.bless-count').textContent = wish.blessings;
                     cardElement.dataset.level = wish.level;
-                    cardElement.querySelector('.energy-level').style.width = `${(wish.level * 20)}%`;
-                    
-                    // 更新卡片等级背景
-                    cardElement.className = `wish-card level-${wish.level}`;
+                    cardElement.querySelector('.energy-level').style.width = `${wish.level * 20}%`;
                     
                     // 添加动画效果
                     cardElement.classList.add('level-up');
                     setTimeout(() => cardElement.classList.remove('level-up'), 1000);
                     
-                    // 保存加持时间
-                    localStorage.setItem(lastBlessKey, currentTime.toString());
-                    
                     // 显示成功消息
                     const levelName = getLevelName(wish.level);
                     showSuccessMessage(`愿望能量提升至${levelName}！`);
                     
+                    // 更新统计信息
+                    renderWishes();
                 } catch (error) {
                     console.error('加持失败:', error);
                     showErrorMessage('加持失败，请稍后重试');
                 }
             }
-
-            /**
- * 封装获取愿望数据的API请求
- * @returns {Promise} 包含愿望数据的Promise
- */
-async function fetchWishes() {
-    try {
-        const response = await fetch(API_URL, {
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            }
-        });
-        
-        if (!response.ok) {
-            throw new Error(`服务器返回 ${response.status}`);
-        }
-        
-        const contentType = response.headers.get('content-type');
-        if (!contentType || !contentType.includes('application/json')) {
-            throw new Error('无效的响应格式: 期望JSON');
-        }
-        
-        return await response.json();
-    } catch (error) {
-        console.error('获取愿望失败:', error);
-        throw error; // 继续抛出错误让外部处理
-    }
-}
             
             // 还愿处理
             async function handleFulfillWish(wish) {
@@ -1797,7 +1738,7 @@ async function fetchWishes() {
                         
                         try {
                             // 发送还愿请求到后端
-                            const response = await fetch(`${API_URL}/${wish.id}/fulfill`, {
+                            const response = await fetch(`${API_URL}/fulfill/${wish.id}`, {
                                 method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/json'
@@ -1824,13 +1765,7 @@ async function fetchWishes() {
             
             // 获取等级名称
             function getLevelName(level) {
-                const levels = { 
-                    1: '初愿', 
-                    2: '小成', 
-                    3: '中成', 
-                    4: '大成', 
-                    5: '圆满' 
-                };
+                const levels = { 1: '初愿', 2: '小成', 3: '中成', 4: '大成', 5: '圆满' };
                 return levels[level] || '';
             }
             
@@ -1905,13 +1840,9 @@ async function fetchWishes() {
             
             // 初始化变量
             let currentPage = 1;
-            const wishForm = document.getElementById('wishForm');
-            const wishPool = document.querySelector('.wish-pool');
-            const baziInfo = document.getElementById('baziInfo');
             
             // 初始化
             initEventListeners();
-            wishForm.addEventListener('submit', handleSubmitWish);
             renderWishes();
         });
     </script>
