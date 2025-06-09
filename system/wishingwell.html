@@ -1001,6 +1001,39 @@
                 width: 90%;
             }
         }
+        /* 添加日期输入框样式 */
+        .mingyuan-form input[type="date"] {
+            width: 100%;
+            padding: 12px 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            color: var(--text-color);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            font-family: 'Noto Serif SC', serif;
+        }
+        
+        .mingyuan-form input[type="date"]:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(106, 17, 203, 0.3);
+        }
+        
+        /* 愿望卡片调整 */
+        .wish-meta {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+        }
+        
+        .wish-bazi {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
     </style>
 </head>
 <body>
@@ -1400,11 +1433,8 @@
             document.getElementById('todayBlessings').textContent = '47';
             document.getElementById('todayFulfilled').textContent = '3';
             
-            // 愿望数据存储
-            const WISHES_KEY = 'mingyuan_wishes';
-            let wishes = JSON.parse(localStorage.getItem(WISHES_KEY)) || [];
-            const wishesPerPage = 9;
-            let currentPage = 1;
+            // 数据库连接信息
+            const DB_API_URL = 'https://bazi-backend.your-worker-subdomain.workers.dev';
             
             // DOM 元素
             const wishForm = document.getElementById('wishForm');
@@ -1440,36 +1470,51 @@
                 try {
                     // 生成愿望对象
                     const newWish = {
-                        id: 'wish_' + Date.now(),
                         content: formData.content,
-                        userName: formData.userName,
+                        user_name: formData.userName,
                         bazi: generateBazi(formData.birthDate, formData.birthTime),
                         type: formData.type,
                         visibility: formData.visibility,
                         blessings: 0,
                         level: 1,
-                        createdAt: new Date().toISOString(),
-                        expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+                        birth_date: formData.birthDate,
+                        birth_time: formData.birthTime,
+                        solar_date: new Date().toISOString().split('T')[0]
                     };
                     
-                    // 添加到愿望列表
-                    wishes.unshift(newWish);
-                    
-                    // 保存到本地存储
-                    localStorage.setItem(WISHES_KEY, JSON.stringify(wishes));
-                    
-                    // 更新本地数据
-                    currentPage = 1;
-                    renderWishes();
-                    
-                    // 重置表单
-                    wishForm.reset();
-                    showSuccessMessage('愿望已成功投入命缘池！');
+                    // 发送到数据库
+                    fetch(`${DB_API_URL}/api/wishes`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(newWish)
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // 重新加载愿望列表
+                            currentPage = 1;
+                            renderWishes();
+                            
+                            // 重置表单
+                            wishForm.reset();
+                            showSuccessMessage('愿望已成功投入命缘池！');
+                        } else {
+                            showErrorMessage('提交愿望失败，请稍后重试');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('提交失败:', error);
+                        showErrorMessage('提交愿望失败，请稍后重试');
+                    })
+                    .finally(() => {
+                        setSubmitButtonState(false);
+                    });
                     
                 } catch (error) {
                     console.error('提交失败:', error);
                     showErrorMessage('提交愿望失败，请稍后重试');
-                } finally {
                     setSubmitButtonState(false);
                 }
             }
@@ -1508,38 +1553,50 @@
                 const filter = document.getElementById('wishFilter').value;
                 const sort = document.getElementById('sortFilter').value;
                 
-                // 筛选和排序
-                let filteredWishes = [...wishes];
-                if (filter !== 'all') {
-                    filteredWishes = filteredWishes.filter(wish => wish.type === filter);
-                }
+                // 显示加载状态
+                wishPool.innerHTML = `
+                    <div class="wish-loading">
+                        <div class="loader"></div>
+                        <p>正在连接命缘池能量场...</p>
+                    </div>
+                `;
                 
-                switch (sort) {
-                    case 'newest': filteredWishes.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); break;
-                    case 'oldest': filteredWishes.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt)); break;
-                    case 'most': filteredWishes.sort((a, b) => b.blessings - a.blessings); break;
-                    case 'least': filteredWishes.sort((a, b) => a.blessings - b.blessings); break;
-                }
-                
-                // 分页
-                const startIdx = (currentPage - 1) * wishesPerPage;
-                const paginatedWishes = filteredWishes.slice(startIdx, startIdx + wishesPerPage);
-                const totalPages = Math.max(1, Math.ceil(filteredWishes.length / wishesPerPage));
-                
-                // 清空并重新渲染
-                wishPool.innerHTML = '';
-                
-                if (paginatedWishes.length === 0) {
+                // 从API获取愿望数据
+                fetch(`${DB_API_URL}/api/wishes?filter=${filter}&sort=${sort}&page=${currentPage}&perPage=9`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.wishes.length > 0) {
+                        renderWishCards(data.wishes);
+                        updatePagination(data.total, data.perPage);
+                    } else {
+                        wishPool.innerHTML = `
+                            <div class="wish-loading">
+                                <i class="fas fa-water" style="font-size: 3rem; color: #6a11cb; margin-bottom: 15px;"></i>
+                                <p>命缘池暂时平静如水</p>
+                                <p>成为第一个许下心愿的人吧！</p>
+                            </div>
+                        `;
+                        updatePagination(0);
+                    }
+                })
+                .catch(error => {
+                    console.error('获取愿望失败:', error);
                     wishPool.innerHTML = `
                         <div class="wish-loading">
-                            <i class="fas fa-water" style="font-size: 3rem; color: #6a11cb; margin-bottom: 15px;"></i>
-                            <p>命缘池暂时平静如水</p>
-                            <p>成为第一个许下心愿的人吧！</p>
+                            <i class="fas fa-exclamation-triangle" style="color: #ff6b6b; font-size: 2rem; margin-bottom: 15px;"></i>
+                            <p>无法连接命缘池</p>
+                            <p>请稍后重试</p>
+                            <button class="btn-mingyuan" onclick="renderWishes()">
+                                <i class="fas fa-sync"></i> 重新加载
+                            </button>
                         </div>
                     `;
-                    updatePagination(totalPages);
-                    return;
-                }
+                });
+            }
+            
+            // 渲染愿望卡片
+            function renderWishCards(wishes) {
+                wishPool.innerHTML = '';
                 
                 // 使用模板渲染每个愿望
                 const template = document.getElementById('wishCardTemplate');
@@ -1548,7 +1605,7 @@
                     study: '学业成长', family: '家庭和睦', other: '其他愿望'
                 };
                 
-                paginatedWishes.forEach(wish => {
+                wishes.forEach(wish => {
                     const card = template.content.cloneNode(true);
                     const wishCard = card.querySelector('.wish-card');
                     
@@ -1559,14 +1616,15 @@
                     wishCard.dataset.visibility = wish.visibility;
                     
                     // 计算剩余天数
-                    const expiresAt = new Date(wish.expiresAt);
+                    const expiresAt = new Date(wish.created_at);
+                    expiresAt.setDate(expiresAt.getDate() + 30);
                     const daysLeft = Math.max(0, Math.ceil((expiresAt - new Date()) / (86400000)));
                     
                     // 填充内容
                     card.querySelector('.wish-type').textContent = typeNames[wish.type] || '其他愿望';
                     card.querySelector('.days-left').textContent = daysLeft;
                     card.querySelector('.wish-text').textContent = wish.content;
-                    card.querySelector('.bazi-text').textContent = wish.userName;
+                    card.querySelector('.bazi-text').textContent = wish.bazi;
                     card.querySelector('.bless-count').textContent = wish.blessings;
                     
                     // 计算能量等级（每5次祝福升一级）
@@ -1584,38 +1642,51 @@
                     // 添加到池中
                     wishPool.appendChild(card);
                 });
-                
-                updatePagination(totalPages);
             }
             
             // 更新分页信息
-            function updatePagination(totalPages) {
-                document.getElementById('pageInfo').textContent = `第 ${currentPage} 页 / 共 ${totalPages} 页`;
+            function updatePagination(totalItems, perPage = 9) {
+                const totalPages = Math.max(1, Math.ceil(totalItems / perPage));
                 
+                document.getElementById('pageInfo').textContent = `第 ${currentPage} 页 / 共 ${totalPages} 页`;
                 document.getElementById('prevPage').disabled = currentPage <= 1;
                 document.getElementById('nextPage').disabled = currentPage >= totalPages;
             }
             
             // 加持愿望处理
             function handleBlessWish(wish) {
-                wish.blessings += 1;
-                
-                // 计算新等级
-                const newLevel = Math.min(5, Math.floor(wish.blessings / 5) + 1);
-                const levelIncreased = newLevel > (wish.level || 1);
-                wish.level = newLevel;
-                
-                // 更新本地存储
-                localStorage.setItem(WISHES_KEY, JSON.stringify(wishes));
-                
-                // 重新渲染愿望池
-                renderWishes();
-                
-                if (levelIncreased) {
-                    showSuccessMessage(`愿望能量提升至${getLevelName(newLevel)}！`);
-                } else {
-                    showSuccessMessage('已为愿望加持！');
-                }
+                // 发送加持请求
+                fetch(`${DB_API_URL}/api/wishes/${wish.id}/bless`, {
+                    method: 'PATCH'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // 计算新等级
+                        const newBlessings = wish.blessings + 1;
+                        const newLevel = Math.min(5, Math.floor(newBlessings / 5) + 1);
+                        const levelIncreased = newLevel > (wish.level || 1);
+                        
+                        // 更新本地愿望对象（可选）
+                        wish.blessings = newBlessings;
+                        wish.level = newLevel;
+                        
+                        // 重新渲染愿望池
+                        renderWishes();
+                        
+                        if (levelIncreased) {
+                            showSuccessMessage(`愿望能量提升至${getLevelName(newLevel)}！`);
+                        } else {
+                            showSuccessMessage('已为愿望加持！');
+                        }
+                    } else {
+                        showErrorMessage('加持失败，请稍后重试');
+                    }
+                })
+                .catch(error => {
+                    console.error('加持失败:', error);
+                    showErrorMessage('加持失败，请稍后重试');
+                });
             }
             
             // 还愿处理
@@ -1635,13 +1706,25 @@
                 options.forEach(option => {
                     option.onclick = () => {
                         const amount = option.dataset.amount;
-                        // 移除愿望
-                        wishes = wishes.filter(w => w.id !== wish.id);
-                        localStorage.setItem(WISHES_KEY, JSON.stringify(wishes));
                         
-                        modal.style.display = 'none';
-                        renderWishes();
-                        showSuccessMessage(`还愿成功！感谢您的${amount}元支持！`);
+                        // 发送还愿请求
+                        fetch(`${DB_API_URL}/api/wishes/${wish.id}`, {
+                            method: 'DELETE'
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                modal.style.display = 'none';
+                                renderWishes();
+                                showSuccessMessage(`还愿成功！感谢您的${amount}元支持！`);
+                            } else {
+                                showErrorMessage('还愿失败，请稍后重试');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('还愿失败:', error);
+                            showErrorMessage('还愿失败，请稍后重试');
+                        });
                     };
                 });
             }
@@ -1697,13 +1780,8 @@
                 });
                 
                 document.getElementById('nextPage').addEventListener('click', () => {
-                    const totalWishes = wishes.length;
-                    const totalPages = Math.ceil(totalWishes / wishesPerPage);
-                    
-                    if (currentPage < totalPages) {
-                        currentPage++;
-                        renderWishes();
-                    }
+                    currentPage++;
+                    renderWishes();
                 });
                 
                 // 筛选变化
@@ -1712,8 +1790,14 @@
                     renderWishes();
                 });
                 
-                document.getElementById('sortFilter').addEventListener('change', renderWishes);
+                document.getElementById('sortFilter').addEventListener('change', () => {
+                    currentPage = 1;
+                    renderWishes();
+                });
             }
+            
+            // 初始化变量
+            let currentPage = 1;
             
             // 初始化
             initEventListeners();
