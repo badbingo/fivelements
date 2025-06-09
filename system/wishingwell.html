@@ -1726,39 +1726,48 @@
             // 加持愿望处理
             async function handleBlessWish(cardElement, wish) {
                 try {
+                    const user_id = localStorage.getItem('user_id');
+                    if (!user_id) {
+                        showErrorMessage('请先登录或设置用户信息');
+                        return;
+                    }
+            
                     // 发送加持请求到后端
                     const response = await fetch(`${API_URL}/bless/${wish.id}`, {
-                        method: 'POST'
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ user_id })
                     });
-                    
+            
+                    const result = await response.json();
+            
                     if (!response.ok) {
-                        throw new Error('加持失败');
+                        // 后端返回错误信息，例如每小时限制
+                        throw new Error(result.error || '加持失败');
                     }
-                    
-                    const updatedWish = await response.json();
-                    
+            
                     // 更新本地数据
-                    wish.blessings = updatedWish.blessings;
-                    wish.level = updatedWish.level;
-                    
+                    wish.blessings = result.blessings;
+                    wish.level = result.level;
+            
                     // 更新UI
                     cardElement.querySelector('.bless-count').textContent = wish.blessings;
                     cardElement.dataset.level = wish.level;
                     cardElement.querySelector('.energy-level').style.width = `${wish.level * 20}%`;
-                    
+            
                     // 添加动画效果
                     cardElement.classList.add('level-up');
                     setTimeout(() => cardElement.classList.remove('level-up'), 1000);
-                    
+            
                     // 显示成功消息
                     const levelName = getLevelName(wish.level);
                     showSuccessMessage(`愿望能量提升至${levelName}！`);
-                    
+            
                     // 更新统计信息
                     renderWishes();
                 } catch (error) {
                     console.error('加持失败:', error);
-                    showErrorMessage('加持失败，请稍后重试');
+                    showErrorMessage(error.message || '加持失败，请稍后重试');
                 }
             }
             
