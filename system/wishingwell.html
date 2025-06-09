@@ -1434,7 +1434,7 @@
             document.getElementById('todayFulfilled').textContent = '3';
             
             // 数据库连接信息
-            const DB_API_URL = 'https://bazi-backend.your-worker-subdomain.workers.dev';
+            const DB_API_URL = 'https://bazi-backend.owenjass.workers.dev';
             
             // DOM 元素
             const wishForm = document.getElementById('wishForm');
@@ -1553,7 +1553,6 @@
                 const filter = document.getElementById('wishFilter').value;
                 const sort = document.getElementById('sortFilter').value;
                 
-                // 显示加载状态
                 wishPool.innerHTML = `
                     <div class="wish-loading">
                         <div class="loader"></div>
@@ -1561,39 +1560,27 @@
                     </div>
                 `;
                 
-                // 从API获取愿望数据
                 fetch(`${DB_API_URL}/api/wishes?filter=${filter}&sort=${sort}&page=${currentPage}&perPage=9`)
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
                 .then(data => {
                     if (data.success && data.wishes.length > 0) {
                         renderWishCards(data.wishes);
                         updatePagination(data.total, data.perPage);
                     } else {
-                        wishPool.innerHTML = `
-                            <div class="wish-loading">
-                                <i class="fas fa-water" style="font-size: 3rem; color: #6a11cb; margin-bottom: 15px;"></i>
-                                <p>命缘池暂时平静如水</p>
-                                <p>成为第一个许下心愿的人吧！</p>
-                            </div>
-                        `;
-                        updatePagination(0);
+                        showEmptyState();
                     }
                 })
                 .catch(error => {
                     console.error('获取愿望失败:', error);
-                    wishPool.innerHTML = `
-                        <div class="wish-loading">
-                            <i class="fas fa-exclamation-triangle" style="color: #ff6b6b; font-size: 2rem; margin-bottom: 15px;"></i>
-                            <p>无法连接命缘池</p>
-                            <p>请稍后重试</p>
-                            <button class="btn-mingyuan" onclick="renderWishes()">
-                                <i class="fas fa-sync"></i> 重新加载
-                            </button>
-                        </div>
-                    `;
+                    showErrorState(error);
                 });
             }
-            
+                        
             // 渲染愿望卡片
             function renderWishCards(wishes) {
                 wishPool.innerHTML = '';
