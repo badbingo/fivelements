@@ -1558,32 +1558,21 @@
             }
 
             async function renderWishes() {
-  try {
-    const response = await fetch('/api/wishes');
-    const result = await response.json();
-    console.log('愿望池返回数据:', result);
-
-    const wishes = Array.isArray(result) ? result : result.data || [];
-
-    const wishPool = document.getElementById('wishPool');
-    wishPool.innerHTML = ''; // 清空愿望池内容
-
-    wishes.forEach(wish => {
-      const wishCard = document.createElement('div');
-      wishCard.className = 'wish-card';
-      wishCard.innerHTML = `
-        <h4>${wish.user_name || '匿名'}</h4>
-        <p>${wish.content}</p>
-        <small>${wish.solar_date || ''}</small>
-      `;
-      wishPool.appendChild(wishCard);
-    });
-
-  } catch (error) {
-    console.error('渲染愿望时出错:', error);
-    showErrorMessage('无法加载愿望池，请稍后再试');
-  }
-}
+                  try {
+                    const response = await fetch(API_URL + '?visibility=public');
+                
+                    const text = await response.text();  // 先以纯文本读取
+                    console.log('[DEBUG] 原始响应:', text);
+                
+                    const data = JSON.parse(text);  // 现在尝试解析 JSON
+                    const wishes = Array.isArray(data) ? data : data.wishes || [];
+                
+                    renderWishCards(wishes);
+                  } catch (err) {
+                    console.error('渲染愿望时出错:', err);
+                    wishPool.innerHTML = `<p style="color:red;">加载失败：${err.message}</p>`;
+                  }
+                }
             
             // 渲染愿望卡片
             function renderWishCards(wishes) {
