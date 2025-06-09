@@ -3,116 +3,169 @@
 <head>
   <meta charset="UTF-8">
   <title>许愿池后台管理</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
-      font-family: sans-serif;
-      background: #f5f5f5;
-      padding: 20px;
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background: #f0f2f5;
+      color: #333;
     }
-    h1 {
-      text-align: center;
+
+    .container {
+      padding: 40px 20px;
+      max-width: 1200px;
+      margin: 0 auto;
     }
+
+    .login-wrapper {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
     .login-form {
-      max-width: 300px;
-      margin: 100px auto;
-      padding: 20px;
       background: white;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-      border-radius: 8px;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 320px;
     }
+
+    .login-form h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
     .login-form input {
       width: 100%;
-      padding: 10px;
-      margin: 8px 0;
+      padding: 10px 12px;
+      margin: 10px 0;
       border: 1px solid #ccc;
-      border-radius: 4px;
+      border-radius: 6px;
+      font-size: 16px;
     }
+
     .login-form button {
       width: 100%;
       padding: 10px;
-      background: #1890ff;
+      background-color: #1890ff;
       color: white;
       border: none;
-      border-radius: 4px;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    .login-form button:hover {
+      background-color: #1677c9;
+    }
+
+    .logout-btn {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #999;
+      color: white;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 6px;
       cursor: pointer;
     }
-    .login-form button:hover {
-      background: #1677c9;
+
+    .logout-btn:hover {
+      background: #666;
     }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
     .wish-container {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 15px;
-      justify-content: center;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
     }
+
     .wish-card {
       background: white;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      padding: 16px;
-      width: 280px;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
       position: relative;
     }
+
     .wish-card h3 {
-      margin: 0 0 8px;
+      margin: 0 0 10px;
+      font-size: 18px;
     }
-    .wish-card .delete-btn {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      background: #ff4d4f;
-      color: white;
-      border: none;
-      padding: 6px 10px;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-    .wish-card .delete-btn:hover {
-      background: #d9363e;
-    }
+
     .wish-meta {
       font-size: 14px;
       color: #555;
-      margin-top: 8px;
+      line-height: 1.6;
     }
-    .logout-btn {
+
+    .delete-btn {
       position: absolute;
-      right: 20px;
-      top: 20px;
-      background: #666;
-      color: #fff;
+      top: 12px;
+      right: 12px;
+      background-color: #ff4d4f;
       border: none;
-      padding: 6px 12px;
-      border-radius: 4px;
+      color: white;
+      padding: 6px 10px;
+      border-radius: 5px;
       cursor: pointer;
+      font-size: 12px;
     }
-    .logout-btn:hover {
-      background: #444;
+
+    .delete-btn:hover {
+      background-color: #d9363e;
+    }
+
+    @media (max-width: 480px) {
+      .login-form {
+        margin: 0 10px;
+      }
     }
   </style>
 </head>
 <body>
+
   <button class="logout-btn" onclick="logout()" style="display:none;">退出登录</button>
-  <div id="loginSection" class="login-form">
-    <h2>管理员登录</h2>
-    <input type="text" id="username" placeholder="用户名" />
-    <input type="password" id="password" placeholder="密码" />
-    <button onclick="login()">登录</button>
+
+  <div id="loginSection" class="login-wrapper">
+    <div class="login-form">
+      <h2>管理员登录</h2>
+      <input type="text" id="username" placeholder="用户名" />
+      <input type="password" id="password" placeholder="密码" />
+      <button onclick="login()">登录</button>
+    </div>
   </div>
 
   <div id="adminSection" style="display:none;">
-    <h1>许愿池卡片管理</h1>
-    <div class="wish-container" id="wishContainer"></div>
+    <div class="container">
+      <h1>许愿池卡片管理</h1>
+      <div class="wish-container" id="wishContainer"></div>
+    </div>
   </div>
 
   <script>
     const API_URL = 'https://bazi-backend.owenjass.workers.dev/api/wishes';
     const ADMIN_USERNAME = 'admin';
-    const ADMIN_PASSWORD = '8077';
+    const ADMIN_PASSWORD = 'bazi123';
 
     function login() {
-      const u = document.getElementById('username').value;
-      const p = document.getElementById('password').value;
+      const u = document.getElementById('username').value.trim();
+      const p = document.getElementById('password').value.trim();
       if (u === ADMIN_USERNAME && p === ADMIN_PASSWORD) {
         localStorage.setItem('adminLoggedIn', 'true');
         showAdminPanel();
@@ -150,8 +203,8 @@
             <div class="wish-meta">
               <div><strong>姓名:</strong> ${wish.user_name || '匿名'}</div>
               <div><strong>八字:</strong> ${wish.bazi || '未填写'}</div>
-              <div><strong>类别:</strong> ${wish.type}</div>
-              <div><strong>创建时间:</strong> ${wish.created_at}</div>
+              <div><strong>类别:</strong> ${wish.type || '未知'}</div>
+              <div><strong>创建时间:</strong> ${wish.created_at || ''}</div>
             </div>
           `;
           container.appendChild(card);
@@ -163,26 +216,25 @@
 
     async function deleteWish(id, btn) {
       if (!confirm('确定要删除这条愿望吗？')) return;
-      btn.disabled = true;
       try {
-        const res = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+        const res = await fetch(`${API_URL}/${id}`, {
+          method: 'DELETE'
+        });
         if (res.ok) {
-          const card = btn.closest('.wish-card');
-          card.remove();
+          btn.parentElement.remove();
         } else {
-          alert('删除失败，请稍后重试。');
-          btn.disabled = false;
+          alert('删除失败，请稍后重试');
         }
       } catch (err) {
-        alert('请求失败：' + err.message);
-        btn.disabled = false;
+        alert('请求错误：' + err.message);
       }
     }
 
-    // 自动判断是否登录
+    // 初始化判断是否已登录
     if (localStorage.getItem('adminLoggedIn') === 'true') {
       showAdminPanel();
     }
   </script>
+
 </body>
 </html>
