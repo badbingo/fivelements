@@ -1,92 +1,134 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <title>用户注册与登录</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>用户注册</title>
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; }
-    form { margin-bottom: 30px; max-width: 400px; }
-    input { display: block; margin: 10px 0; padding: 8px; width: 100%; }
-    button { padding: 10px; width: 100%; }
-    .message { color: green; }
-    .error { color: red; }
+    body {
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background: #f0f4f8;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .register-container {
+      background: white;
+      padding: 2rem 3rem;
+      border-radius: 8px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      width: 320px;
+    }
+    h2 {
+      margin-bottom: 1.5rem;
+      color: #333;
+      text-align: center;
+    }
+    label {
+      display: block;
+      margin-bottom: 0.25rem;
+      color: #555;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+    input[type="text"],
+    input[type="email"],
+    input[type="password"] {
+      width: 100%;
+      padding: 0.5rem 0.75rem;
+      margin-bottom: 1.25rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 1rem;
+      box-sizing: border-box;
+      transition: border-color 0.2s ease;
+    }
+    input[type="text"]:focus,
+    input[type="email"]:focus,
+    input[type="password"]:focus {
+      border-color: #0078d4;
+      outline: none;
+    }
+    button {
+      width: 100%;
+      padding: 0.6rem 1rem;
+      background-color: #0078d4;
+      color: white;
+      font-size: 1rem;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background-color 0.2s ease;
+    }
+    button:hover {
+      background-color: #005a9e;
+    }
+    .message {
+      text-align: center;
+      margin-top: 1rem;
+      font-size: 0.9rem;
+      color: red;
+      min-height: 1.2rem;
+    }
   </style>
 </head>
 <body>
-  <h2>用户注册</h2>
-  <form id="registerForm">
-    <input type="text" id="reg_name" placeholder="用户名" required>
-    <input type="password" id="reg_password" placeholder="密码" required>
-    <button type="submit">注册</button>
-  </form>
+  <div class="register-container">
+    <h2>用户注册</h2>
+    <form id="registerForm">
+      <label for="name">用户名</label>
+      <input type="text" id="name" name="name" required minlength="2" />
 
-  <h2>用户登录</h2>
-  <form id="loginForm">
-    <input type="text" id="login_name" placeholder="用户名" required>
-    <input type="password" id="login_password" placeholder="密码" required>
-    <button type="submit">登录</button>
-  </form>
+      <label for="email">邮箱</label>
+      <input type="email" id="email" name="email" required />
 
-  <p class="message" id="msg"></p>
-  <p class="error" id="err"></p>
+      <label for="password">密码</label>
+      <input type="password" id="password" name="password" required minlength="6" />
+
+      <button type="submit">注册</button>
+    </form>
+    <div class="message" id="message"></div>
+  </div>
 
   <script>
-    const API_BASE = 'https://bazi-backend.owenjass.workers.dev';
+    const form = document.getElementById('registerForm');
+    const messageDiv = document.getElementById('message');
 
-    const msg = document.getElementById('msg');
-    const err = document.getElementById('err');
-
-    // 注册处理
-    document.getElementById('registerForm').addEventListener('submit', async (e) => {
+    form.addEventListener('submit', async (e) => {
       e.preventDefault();
-      msg.textContent = ''; err.textContent = '';
+      messageDiv.textContent = '';
 
-      const name = document.getElementById('reg_name').value.trim();
-      const password = document.getElementById('reg_password').value;
+      const name = form.name.value.trim();
+      const email = form.email.value.trim();
+      const password = form.password.value;
 
-      try {
-        const res = await fetch(`${API_BASE}/api/register`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, password })
-        });
-        const data = await res.json();
-
-        if (res.ok) {
-          msg.textContent = '注册成功，请登录！';
-        } else {
-          err.textContent = data.error || '注册失败';
-        }
-      } catch (e) {
-        err.textContent = '网络错误，请稍后再试';
+      if (!name || !email || !password) {
+        messageDiv.textContent = '请填写所有字段';
+        return;
       }
-    });
-
-    // 登录处理
-    document.getElementById('loginForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      msg.textContent = ''; err.textContent = '';
-
-      const name = document.getElementById('login_name').value.trim();
-      const password = document.getElementById('login_password').value;
 
       try {
-        const res = await fetch(`${API_BASE}/api/login`, {
+        const res = await fetch('/api/register', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, password })
+          body: JSON.stringify({ name, email, password }),
         });
-        const data = await res.json();
 
-        if (res.ok && data.token) {
-          localStorage.setItem('jwt', data.token);
-          localStorage.setItem('user_id', data.user_id);
-          msg.textContent = '登录成功！您现在可以进行加持等操作。';
+        const data = await res.json();
+        if (res.ok && data.success) {
+          messageDiv.style.color = 'green';
+          messageDiv.textContent = '注册成功！你可以登录了。';
+          form.reset();
         } else {
-          err.textContent = data.error || '登录失败';
+          messageDiv.style.color = 'red';
+          messageDiv.textContent = data.error || '注册失败，请稍后再试。';
         }
-      } catch (e) {
-        err.textContent = '网络错误，请稍后再试';
+      } catch (err) {
+        messageDiv.style.color = 'red';
+        messageDiv.textContent = '网络错误，请稍后再试。';
       }
     });
   </script>
