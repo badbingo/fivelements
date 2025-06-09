@@ -3,140 +3,84 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>用户登录 / 注册</title>
+  <title>注册 / 登录</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f2f2f2;
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      padding-top: 50px;
-    }
-    .container {
-      background: #fff;
-      padding: 24px;
-      border-radius: 12px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-      width: 320px;
-    }
-    h2 {
-      margin-bottom: 16px;
-      text-align: center;
-    }
-    input {
-      width: 100%;
-      padding: 8px;
-      margin: 6px 0;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-    }
-    button {
-      width: 100%;
-      padding: 10px;
-      background: #3b82f6;
-      border: none;
-      color: white;
-      font-weight: bold;
-      border-radius: 6px;
-      cursor: pointer;
-      margin-top: 10px;
-    }
-    button:hover {
-      background: #2563eb;
-    }
-    .toggle {
-      margin-top: 12px;
-      text-align: center;
-      font-size: 14px;
-      cursor: pointer;
-      color: #2563eb;
-    }
-    #message {
-      margin-top: 10px;
-      text-align: center;
-      font-size: 14px;
-    }
+    body { font-family: sans-serif; max-width: 400px; margin: auto; padding: 1rem; }
+    h2 { text-align: center; }
+    form { display: flex; flex-direction: column; gap: 0.75rem; margin-top: 1rem; }
+    input, button { padding: 0.5rem; font-size: 1rem; }
+    #message { text-align: center; margin-top: 1rem; color: red; }
+    .toggle { text-align: center; margin-top: 1rem; color: blue; cursor: pointer; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h2 id="formTitle">登录</h2>
+  <h2 id="formTitle">注册</h2>
 
-    <form id="userForm">
-      <input type="text" name="name" placeholder="用户名" required />
-      <input type="email" name="email" placeholder="邮箱" id="emailField" style="display: none;" />
-      <input type="password" name="password" placeholder="密码" required />
-      <button type="submit" id="submitBtn">登录</button>
-    </form>
+  <!-- 注册和登录表单 -->
+  <form id="userForm">
+    <input type="text" name="name" placeholder="昵称" required />
+    <input type="email" name="email" placeholder="邮箱" required />
+    <input type="password" name="password" placeholder="密码" required />
+    <button type="submit">注册</button>
+  </form>
 
-    <div class="toggle" id="toggleMode">还没有账号？注册</div>
-    <div id="message"></div>
-  </div>
+  <div class="toggle" id="toggleMode">已有账号？点击登录</div>
+  <div class="toggle" id="forgotPassword">忘记密码？</div>
+  <div id="message"></div>
 
   <script>
+    let isLogin = false;
+
     const form = document.getElementById('userForm');
+    const toggleMode = document.getElementById('toggleMode');
+    const forgotPassword = document.getElementById('forgotPassword');
     const messageDiv = document.getElementById('message');
-    const toggle = document.getElementById('toggleMode');
-    const formTitle = document.getElementById('formTitle');
-    const submitBtn = document.getElementById('submitBtn');
-    const emailField = document.getElementById('emailField');
+    const title = document.getElementById('formTitle');
 
-    let mode = 'login'; // or 'register'
-
-    toggle.addEventListener('click', () => {
-      mode = (mode === 'login') ? 'register' : 'login';
-      if (mode === 'register') {
-        formTitle.textContent = '注册';
-        submitBtn.textContent = '注册';
-        emailField.style.display = 'block';
-        toggle.textContent = '已有账号？登录';
-      } else {
-        formTitle.textContent = '登录';
-        submitBtn.textContent = '登录';
-        emailField.style.display = 'none';
-        toggle.textContent = '还没有账号？注册';
-      }
+    toggleMode.addEventListener('click', () => {
+      isLogin = !isLogin;
+      form.name.style.display = isLogin ? 'none' : 'block';
+      form.querySelector('button').textContent = isLogin ? '登录' : '注册';
+      title.textContent = isLogin ? '登录' : '注册';
+      toggleMode.textContent = isLogin ? '没有账号？点击注册' : '已有账号？点击登录';
       messageDiv.textContent = '';
+    });
+
+    forgotPassword.addEventListener('click', () => {
+      window.location.href = '/system/forgot.html';
     });
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
+      messageDiv.style.color = 'red';
       messageDiv.textContent = '';
-      const name = form.name.value.trim();
-      const password = form.password.value;
-      const email = form.email.value.trim();
 
-      if (!name || !password || (mode === 'register' && !email)) {
-        messageDiv.style.color = 'red';
-        messageDiv.textContent = '请填写所有字段';
-        return;
-      }
+      const email = form.email.value.trim();
+      const password = form.password.value;
+      const name = form.name?.value.trim();
+
+      const url = isLogin
+        ? 'https://bazi-backend.owenjass.workers.dev/api/login'
+        : 'https://bazi-backend.owenjass.workers.dev/api/register';
+
+      const payload = isLogin ? { email, password } : { name, email, password };
 
       try {
-        const res = await fetch(`https://bazi-backend.owenjass.workers.dev/api/${mode}`, {
+        const res = await fetch(url, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, email, password }),
+          body: JSON.stringify(payload)
         });
-
         const data = await res.json();
 
-        if (res.ok && (data.success || data.token)) {
+        if (res.ok && data.success) {
           messageDiv.style.color = 'green';
-          messageDiv.textContent = mode === 'register' ? '注册成功！你可以登录了。' : '登录成功，欢迎你！';
-          if (data.token) {
-            localStorage.setItem('token', data.token);
-            // 可以跳转页面，例如：
-            // window.location.href = '/dashboard.html';
-          }
-          if (mode === 'register') form.reset();
+          messageDiv.textContent = isLogin ? '登录成功！' : '注册成功，请登录。';
+          form.reset();
         } else {
-          messageDiv.style.color = 'red';
-          messageDiv.textContent = data.error || '操作失败，请稍后再试。';
+          messageDiv.textContent = data.error || '操作失败';
         }
       } catch (err) {
-        messageDiv.style.color = 'red';
         messageDiv.textContent = '网络错误，请稍后再试。';
       }
     });
