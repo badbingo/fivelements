@@ -1,0 +1,25 @@
+<h2>重设密码</h2>
+<form id="resetForm">
+  <input type="password" name="newPassword" placeholder="新密码" required />
+  <button type="submit">提交</button>
+</form>
+<div id="message"></div>
+
+<script>
+const urlParams = new URLSearchParams(window.location.search);
+const token = urlParams.get('token');
+
+document.getElementById('resetForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const newPassword = e.target.newPassword.value;
+  const res = await fetch('https://bazi-backend.owenjass.workers.dev/api/reset-password', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token, newPassword })
+  });
+  const data = await res.json();
+  document.getElementById('message').textContent = data.success
+    ? '密码已更新，请返回登录'
+    : data.error || '重设失败';
+});
+</script>
