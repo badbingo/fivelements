@@ -1362,6 +1362,7 @@
                         tooltip: { backgroundColor: 'rgba(10, 10, 20, 0.9)' }
                     }
                 }
+                renderWishes();  // 加上这行：初始化时就加载愿望池内容
             });
             
             // DOM 元素
@@ -1580,6 +1581,37 @@
                 // 计算今日还愿次数（这里简化处理）
                 const todayFulfilled = wishes.filter(wish => wish.fulfilled && wish.fulfilled_date === today).length;
                 document.getElementById('todayFulfilled').textContent = todayFulfilled;
+            }
+
+            async function renderWishes() {
+                try {
+                    const response = await fetch(API_URL);
+                    if (!response.ok) {
+                        throw new Error('无法获取愿望数据');
+                    }
+            
+                    const wishes = await response.json();
+                    console.log('[DEBUG] 获取到的愿望:', wishes);
+            
+                    // 清空愿望池内容
+                    wishPool.innerHTML = '';
+            
+                    // 渲染每一个愿望
+                    wishes.forEach(wish => {
+                        const wishCard = document.createElement('div');
+                        wishCard.className = 'wish-card';
+                        wishCard.innerHTML = `
+                            <h4>${wish.user_name || '匿名'}</h4>
+                            <p>${wish.content}</p>
+                            <small>${wish.solar_date || ''}</small>
+                        `;
+                        wishPool.appendChild(wishCard);
+                    });
+            
+                } catch (error) {
+                    console.error('渲染愿望时出错:', error);
+                    showErrorMessage('无法加载愿望池，请稍后再试');
+                }
             }
             
             // 渲染愿望卡片
