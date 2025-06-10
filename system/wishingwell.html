@@ -1421,38 +1421,41 @@
             
             // 生成八字信息（模拟）
             function generateBazi(birthday, birthtime) {
-                // 简单模拟生成八字
-                const years = ['甲子', '乙丑', '丙寅', '丁卯', '戊辰', '己巳', '庚午', '辛未', '壬申', '癸酉'];
-                const months = ['正月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '冬月', '腊月'];
-                const days = ['初一', '初二', '初三', '初四', '初五', '初六', '初七', '初八', '初九', '初十', 
-                            '十一', '十二', '十三', '十四', '十五', '十六', '十七', '十八', '十九', '二十',
-                            '廿一', '廿二', '廿三', '廿四', '廿五', '廿六', '廿七', '廿八', '廿九', '三十'];
-                const times = ['子时', '丑时', '寅时', '卯时', '辰时', '巳时', '午时', '未时', '申时', '酉时', '戌时', '亥时'];
-                
-                const yearIndex = Math.floor(Math.random() * years.length);
-                const monthIndex = Math.floor(Math.random() * months.length);
-                const dayIndex = Math.floor(Math.random() * days.length);
-                const timeIndex = Math.floor(Math.random() * times.length);
-                
-                return `${years[yearIndex]} ${months[monthIndex]} ${days[dayIndex]} ${times[timeIndex]}`;
+            // 简单模拟生成八字
+            const years = ['甲子', '乙丑', '丙寅', '丁卯', '戊辰', '己巳', '庚午', '辛未', '壬申', '癸酉'];
+            const months = ['正月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '冬月', '腊月'];
+            const days = ['初一', '初二', '初三', '初四', '初五', '初六', '初七', '初八', '初九', '初十', 
+                        '十一', '十二', '十三', '十四', '十五', '十六', '十七', '十八', '十九', '二十',
+                        '廿一', '廿二', '廿三', '廿四', '廿五', '廿六', '廿七', '廿八', '廿九', '三十'];
+            const times = ['子时', '丑时', '寅时', '卯时', '辰时', '巳时', '午时', '未时', '申时', '酉时', '戌时', '亥时'];
+
+            const yearIndex = Math.floor(Math.random() * years.length);
+            const monthIndex = Math.floor(Math.random() * months.length);
+            const dayIndex = Math.floor(Math.random() * days.length);
+            const timeIndex = Math.floor(Math.random() * times.length);
+
+            return `${years[yearIndex]} ${months[monthIndex]} ${days[dayIndex]} ${times[timeIndex]}`;
+        }
+
+        // 获取显示八字信息的元素
+        const baziInfo = document.getElementById('baziInfo');
+
+        // 当出生日期或时间变化时更新八字信息
+        document.getElementById('birthday').addEventListener('change', updateBaziInfo);
+        document.getElementById('birthtime').addEventListener('change', updateBaziInfo);
+
+        function updateBaziInfo() {
+            const birthday = document.getElementById('birthday').value;
+            const birthtime = document.getElementById('birthtime').value;
+
+            if (birthday && birthtime) {
+                const bazi = generateBazi(birthday, birthtime);
+                baziInfo.textContent = `您的八字：${bazi}`;
+                baziInfo.style.display = 'block';
+            } else {
+                baziInfo.style.display = 'none';
             }
-            
-            // 当出生日期或时间变化时更新八字信息
-            document.getElementById('birthday').addEventListener('change', updateBaziInfo);
-            document.getElementById('birthtime').addEventListener('change', updateBaziInfo);
-            
-            function updateBaziInfo() {
-                const birthday = document.getElementById('birthday').value;
-                const birthtime = document.getElementById('birthtime').value;
-                
-                if (birthday && birthtime) {
-                    const bazi = generateBazi(birthday, birthtime);
-                    baziInfo.textContent = `您的八字：${bazi}`;
-                    baziInfo.style.display = 'block';
-                } else {
-                    baziInfo.style.display = 'none';
-                }
-            }
+        }
             
             // 表单提交处理
             async function handleSubmitWish(e) {
@@ -1512,7 +1515,7 @@
             try {
                 errorData = await response.json();
             } catch (e) {
-                throw new Error(`HTTP错误: ${response.status} ${response.statusText}`);
+                throw new Error(HTTP错误: ${response.status} ${response.statusText});
             }
             throw new Error(errorData.message || '服务器返回错误');
         }
@@ -1537,7 +1540,7 @@
         } else if (error.message.includes('Failed to fetch')) {
             userMessage = '无法连接到服务器，请检查网络';
         } else if (error.message.includes('HTTP错误')) {
-            userMessage = `服务器错误: ${error.message}`;
+            userMessage = 服务器错误: ${error.message};
         }
         
         showErrorMessage(userMessage);
@@ -1545,7 +1548,6 @@
         setSubmitButtonState(false);
     }
 }
-
 
             
             // 设置提交按钮状态
@@ -1579,7 +1581,7 @@
                     renderWishCards(wishes);
                   } catch (err) {
                     console.error('渲染愿望时出错:', err);
-                    wishPool.innerHTML = `<p style="color:red;">加载失败：${err.message}</p>`;
+                    wishPool.innerHTML = <p style="color:red;">加载失败：${err.message}</p>;
                   }
                 }
                             
@@ -1623,7 +1625,7 @@
                     renderWishCards(wishes);
                   } catch (err) {
                     console.error('渲染愿望时出错:', err);
-                    wishPool.innerHTML = `<p style="color:red;">加载失败：${err.message}</p>`;
+                    wishPool.innerHTML = <p style="color:red;">加载失败：${err.message}</p>;
                   }
                 }
             
@@ -1636,13 +1638,13 @@
                     wishPool.innerHTML = '';
                 
                 if (wishes.length === 0) {
-                    wishPool.innerHTML = `
+                    wishPool.innerHTML = 
                         <div class="wish-loading">
                             <i class="fas fa-water" style="font-size: 2rem; color: #6a11cb; margin-bottom: 15px;"></i>
                             <p>命缘池中暂无愿望</p>
                             <p>请投入您的第一个愿望</p>
                         </div>
-                    `;
+                    ;
                     return;
                 }
                 
@@ -1672,7 +1674,7 @@
                     const daysLeft = Math.max(0, Math.ceil((expiresAt - new Date()) / (86400000)));
                     
                     // 填充内容
-                    wishCard.innerHTML = `
+                    wishCard.innerHTML = 
                         <div class="wish-header">
                             <span class="wish-type">${typeNames[wish.type] || '其他愿望'}</span>
                             <span class="wish-time">剩余<span class="days-left">${daysLeft}</span>天</span>
@@ -1700,7 +1702,7 @@
                         <div class="wish-energy">
                             <div class="energy-level" data-level="${wish.level || 1}"></div>
                         </div>
-                    `;
+                    ;
                     
                     // 添加事件监听
                     const blessBtn = wishCard.querySelector('.btn-bless');
@@ -1718,7 +1720,7 @@
             function updatePagination(totalItems, perPage = 6) {
                 const totalPages = Math.max(1, Math.ceil(totalItems / perPage));
                 
-                document.getElementById('pageInfo').textContent = `第 ${currentPage} 页 / 共 ${totalPages} 页`;
+                document.getElementById('pageInfo').textContent = 第 ${currentPage} 页 / 共 ${totalPages} 页;
                 document.getElementById('prevPage').disabled = currentPage <= 1;
                 document.getElementById('nextPage').disabled = currentPage >= totalPages;
             }
@@ -1732,7 +1734,7 @@
     }
 
     // 限制逻辑（1小时内只能加持一次）
-    const lastBlessStr = localStorage.getItem(`bless_${wish.id}`);
+    const lastBlessStr = localStorage.getItem(bless_${wish.id});
     const lastBlessTime = lastBlessStr ? parseInt(lastBlessStr, 10) : 0;
     const now = Date.now();
     if (now - lastBlessTime < 3600000) {
@@ -1741,11 +1743,11 @@
     }
 
     // 调用后端接口
-    const response = await fetch(`${API_URL}/bless/${wish.id}`, {
+    const response = await fetch(${API_URL}/bless/${wish.id}, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`  // 关键：带上 token
+        'Authorization': Bearer ${token}  // 关键：带上 token
       },
       // 有需要可以带请求体，这里你原先只是带 user_id，通常后端也能从 token 解出用户ID，这里可以不带
       body: JSON.stringify({})
@@ -1767,17 +1769,17 @@
     wish.blessings = result.blessings;
     wish.level = result.level;
 
-    localStorage.setItem(`bless_${wish.id}`, now.toString());
+    localStorage.setItem(bless_${wish.id}, now.toString());
 
     cardElement.querySelector('.bless-count').textContent = wish.blessings;
     cardElement.dataset.level = wish.level;
-    cardElement.querySelector('.energy-level').style.width = `${wish.level * 20}%`;
+    cardElement.querySelector('.energy-level').style.width = ${wish.level * 20}%;
 
     cardElement.classList.add('level-up');
     setTimeout(() => cardElement.classList.remove('level-up'), 1000);
 
     const levelName = getLevelName(wish.level);
-    showSuccessMessage(`愿望能量提升至${levelName}！`);
+    showSuccessMessage(愿望能量提升至${levelName}！);
 
     renderWishes();
 
@@ -1807,7 +1809,7 @@
                         
                         try {
                             // 发送还愿请求到后端
-                            const response = await fetch(`${API_URL}/fulfill/${wish.id}`, {
+                            const response = await fetch(${API_URL}/fulfill/${wish.id}, {
                                 method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/json'
@@ -1820,7 +1822,7 @@
                             }
                             
                             modal.style.display = 'none';
-                            showSuccessMessage(`还愿成功！感谢您的${amount}元支持！`);
+                            showSuccessMessage(还愿成功！感谢您的${amount}元支持！);
                             
                             // 重新加载愿望列表
                             renderWishes();
@@ -1854,11 +1856,11 @@
                 document.querySelectorAll('.toast').forEach(toast => toast.remove());
                 
                 const toast = document.createElement('div');
-                toast.className = `toast ${type}`;
-                toast.innerHTML = `
+                toast.className = toast ${type};
+                toast.innerHTML = 
                     <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
                     ${message}
-                `;
+                ;
                 
                 document.body.appendChild(toast);
                 
