@@ -325,25 +325,34 @@
   </div>
 
   <!-- 忘记密码模态框 -->
-  <div class="modal" id="forgotPasswordModal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3>找回密码</h3>
-        <button class="close-btn" id="closeModal">&times;</button>
-      </div>
+<div class="modal" id="forgotPasswordModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>找回密码</h3>
+      <button class="close-btn" id="closeModal">&times;</button>
+    </div>
 
-      <div id="forgotAlert" class="alert hidden"></div>
+    <div id="forgotAlert" class="alert hidden"></div>
 
+    <div id="forgotForm">
       <p>请输入您的注册邮箱，我们将发送密码重置链接</p>
-
       <div class="form-group mt-3">
         <label for="forgotEmail">注册邮箱</label>
         <input type="email" id="forgotEmail" class="form-control" required>
       </div>
-
       <button class="btn" id="sendResetBtn">发送重置链接</button>
     </div>
+
+    <div id="forgotSuccess" class="hidden">
+      <div class="modal-body">
+        <div class="alert alert-success">
+          <i>✓</i> 密码重置链接已发送到您的邮箱，请检查收件箱
+        </div>
+        <button class="btn" id="resendBtn">重新发送</button>
+      </div>
+    </div>
   </div>
+</div>
 
   <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -513,64 +522,61 @@
 
   // 发送密码重置链接
   sendResetBtn.addEventListener('click', async () => {
-    forgotAlert.classList.add('hidden');
+  forgotAlert.classList.add('hidden');
 
-    const email = document.getElementById('forgotEmail').value.trim();
+  const email = document.getElementById('forgotEmail').value.trim();
 
-    if (!email) {
-      showAlert(forgotAlert, '请输入注册邮箱', 'danger');
-      return;
-    }
-
-    // 简单邮箱验证
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      showAlert(forgotAlert, '请输入有效的电子邮箱', 'danger');
-      return;
-    }
-
-    try {
-      const response = await fetch('https://bazi-backend.owenjass.workers.dev/api/request-reset', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          email: email,
-          provider: 'sendinblue'
-        })
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        showAlert(forgotAlert, '密码重置链接已发送到您的邮箱，请检查收件箱', 'success');
-        document.getElementById('forgotEmail').value = '';
-      } else {
-        let errorMsg = '发送失败，请重试';
-        if (data.error) {
-          if (data.error.includes('not found')) {
-            errorMsg = '该邮箱未注册';
-          } else if (data.error.includes('SendinBlue') || data.error.includes('Brevo')) {
-            errorMsg = '邮件服务暂时不可用，请联系管理员';
-          }
-        }
-        showAlert(forgotAlert, errorMsg, 'danger');
-      }
-    } catch (error) {
-      console.error('密码重置请求错误:', error);
-      showAlert(forgotAlert, '网络错误，请稍后重试', 'danger');
-    }
-  });
-
-  // 检查登录状态
-  function checkLoginStatus() {
-    const token = localStorage.getItem('token');
-    if (token) {
-      document.getElementById('loginUsername').value = '';
-      document.getElementById('loginPassword').value = '';
-      showAlert(loginAlert, '您已登录', 'success');
-    }
+  if (!email) {
+    showAlert(forgotAlert, '请输入注册邮箱', 'danger');
+    return;
   }
+
+  // 简单邮箱验证
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    showAlert(forgotAlert, '请输入有效的电子邮箱', 'danger');
+    return;
+  }
+
+  try {
+    const response = await fetch('https://bazi-backend.owenjass.workers.dev/api/request-reset', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        email: email,
+        provider: 'sendinblue'
+      })
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      // 隐藏表单，显示成功信息
+      document.getElementById('forgotForm').classList.add('hidden');
+      document.getElementById('forgotSuccess').classList.remove('hidden');
+    } else {
+      let errorMsg = '发送失败，请重试';
+      if (data.error) {
+        if (data.error.includes('not found')) {
+          errorMsg = '该邮箱未注册';
+        } else if (data.error.includes('SendinBlue') || data.error.includes('Brevo')) {
+          errorMsg = '邮件服务暂时不可用，请联系管理员';
+        }
+      }
+      showAlert(forgotAlert, errorMsg, 'danger');
+    }
+  } catch (error) {
+    console.error('密码重置请求错误:', error);
+    showAlert(forgotAlert, '网络错误，请稍后重试', 'danger');
+  }
+});
+
+// 重新发送按钮
+document.getElementById('resendBtn').addEventListener('click', () => {
+  document.getElementById('forgotForm').classList.remove('hidden');
+  document.getElementById('forgotSuccess').classList.add('hidden');
+  document.getElementById('forgotEmail').value = '';
 });
 
   </script>
