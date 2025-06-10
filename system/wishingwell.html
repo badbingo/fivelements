@@ -1799,15 +1799,13 @@ function getTimeGan(dayGan, timeZhi) {
             
             async function handleBlessWish(cardElement, wish) {
   try {
-    // 检查用户是否登录
     const token = localStorage.getItem('token');
     if (!token) {
       showErrorMessage('请先登录以加持愿望');
-      window.location.href = '/user.html'; // 跳转到登录页面
+      window.location.href = '/user.html'; 
       return;
     }
 
-    // 限制逻辑（1小时内只能加持一次）
     const lastBlessStr = localStorage.getItem(`bless_${wish.id}`);
     const lastBlessTime = lastBlessStr ? parseInt(lastBlessStr, 10) : 0;
     const now = Date.now();
@@ -1816,7 +1814,6 @@ function getTimeGan(dayGan, timeZhi) {
       return;
     }
 
-    // 调用后端接口
     const response = await fetch(`${API_URL}/bless/${wish.id}`, {
       method: 'POST',
       headers: {
@@ -1826,19 +1823,15 @@ function getTimeGan(dayGan, timeZhi) {
       body: JSON.stringify({})
     });
 
-    // 检查响应状态
     const responseText = await response.text(); // 获取原始响应
     console.log('Server Response:', responseText); // 打印服务器响应
 
-    // 处理响应
     if (response.ok) {
-      const result = JSON.parse(responseText); // 解析 JSON
+      const result = JSON.parse(responseText);
       wish.blessings = result.blessings;
       wish.level = result.level;
 
-      // 保存加持时间
       localStorage.setItem(`bless_${wish.id}`, now.toString());
-
       cardElement.querySelector('.bless-count').textContent = wish.blessings;
       cardElement.dataset.level = wish.level;
       cardElement.querySelector('.energy-level').style.width = `${wish.level * 20}%`;
@@ -1851,14 +1844,13 @@ function getTimeGan(dayGan, timeZhi) {
 
       renderWishes();
     } else {
-      // 如果响应不成功，输出错误信息
-      console.error('加持失败，错误信息', responseText);
+      console.error('加持请求失败，状态码:', response.status);
+      console.error('服务器返回的响应:', responseText);
       try {
-          const errorResult = JSON.parse(responseText); // 尝试解析错误信息
-          throw new Error(errorResult.error || '加持失败');
+        const errorResult = JSON.parse(responseText);
+        throw new Error(errorResult.error || '加持失败');
       } catch (parseError) {
-          // 如果解析错误信息失败，则抛出默认错误信息
-          throw new Error('加持失败，请稍后重试');
+        throw new Error('加持失败，请稍后重试');
       }
     }
   } catch (error) {
