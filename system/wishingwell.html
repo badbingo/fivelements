@@ -1434,7 +1434,7 @@
                 const dayIndex = Math.floor(Math.random() * days.length);
                 const timeIndex = Math.floor(Math.random() * times.length);
                 
-                return ${years[yearIndex]} ${months[monthIndex]} ${days[dayIndex]} ${times[timeIndex]};
+                return `${years[yearIndex]} ${months[monthIndex]} ${days[dayIndex]} ${times[timeIndex]}`;
             }
             
             // 当出生日期或时间变化时更新八字信息
@@ -1447,7 +1447,7 @@
                 
                 if (birthday && birthtime) {
                     const bazi = generateBazi(birthday, birthtime);
-                    baziInfo.textContent = 您的八字：${bazi};
+                    baziInfo.textContent = `您的八字：${bazi}`;
                     baziInfo.style.display = 'block';
                 } else {
                     baziInfo.style.display = 'none';
@@ -1512,7 +1512,7 @@
             try {
                 errorData = await response.json();
             } catch (e) {
-                throw new Error(HTTP错误: ${response.status} ${response.statusText});
+                throw new Error(`HTTP错误: ${response.status} ${response.statusText}`);
             }
             throw new Error(errorData.message || '服务器返回错误');
         }
@@ -1537,7 +1537,7 @@
         } else if (error.message.includes('Failed to fetch')) {
             userMessage = '无法连接到服务器，请检查网络';
         } else if (error.message.includes('HTTP错误')) {
-            userMessage = 服务器错误: ${error.message};
+            userMessage = `服务器错误: ${error.message}`;
         }
         
         showErrorMessage(userMessage);
@@ -1545,6 +1545,7 @@
         setSubmitButtonState(false);
     }
 }
+
 
             
             // 设置提交按钮状态
@@ -1578,7 +1579,7 @@
                     renderWishCards(wishes);
                   } catch (err) {
                     console.error('渲染愿望时出错:', err);
-                    wishPool.innerHTML = <p style="color:red;">加载失败：${err.message}</p>;
+                    wishPool.innerHTML = `<p style="color:red;">加载失败：${err.message}</p>`;
                   }
                 }
                             
@@ -1622,7 +1623,7 @@
                     renderWishCards(wishes);
                   } catch (err) {
                     console.error('渲染愿望时出错:', err);
-                    wishPool.innerHTML = <p style="color:red;">加载失败：${err.message}</p>;
+                    wishPool.innerHTML = `<p style="color:red;">加载失败：${err.message}</p>`;
                   }
                 }
             
@@ -1635,13 +1636,13 @@
                     wishPool.innerHTML = '';
                 
                 if (wishes.length === 0) {
-                    wishPool.innerHTML = 
+                    wishPool.innerHTML = `
                         <div class="wish-loading">
                             <i class="fas fa-water" style="font-size: 2rem; color: #6a11cb; margin-bottom: 15px;"></i>
                             <p>命缘池中暂无愿望</p>
                             <p>请投入您的第一个愿望</p>
                         </div>
-                    ;
+                    `;
                     return;
                 }
                 
@@ -1671,7 +1672,7 @@
                     const daysLeft = Math.max(0, Math.ceil((expiresAt - new Date()) / (86400000)));
                     
                     // 填充内容
-                    wishCard.innerHTML = 
+                    wishCard.innerHTML = `
                         <div class="wish-header">
                             <span class="wish-type">${typeNames[wish.type] || '其他愿望'}</span>
                             <span class="wish-time">剩余<span class="days-left">${daysLeft}</span>天</span>
@@ -1699,7 +1700,7 @@
                         <div class="wish-energy">
                             <div class="energy-level" data-level="${wish.level || 1}"></div>
                         </div>
-                    ;
+                    `;
                     
                     // 添加事件监听
                     const blessBtn = wishCard.querySelector('.btn-bless');
@@ -1717,7 +1718,7 @@
             function updatePagination(totalItems, perPage = 6) {
                 const totalPages = Math.max(1, Math.ceil(totalItems / perPage));
                 
-                document.getElementById('pageInfo').textContent = 第 ${currentPage} 页 / 共 ${totalPages} 页;
+                document.getElementById('pageInfo').textContent = `第 ${currentPage} 页 / 共 ${totalPages} 页`;
                 document.getElementById('prevPage').disabled = currentPage <= 1;
                 document.getElementById('nextPage').disabled = currentPage >= totalPages;
             }
@@ -1731,7 +1732,7 @@
     }
 
     // 限制逻辑（1小时内只能加持一次）
-    const lastBlessStr = localStorage.getItem(bless_${wish.id});
+    const lastBlessStr = localStorage.getItem(`bless_${wish.id}`);
     const lastBlessTime = lastBlessStr ? parseInt(lastBlessStr, 10) : 0;
     const now = Date.now();
     if (now - lastBlessTime < 3600000) {
@@ -1740,11 +1741,11 @@
     }
 
     // 调用后端接口
-    const response = await fetch(${API_URL}/bless/${wish.id}, {
+    const response = await fetch(`${API_URL}/bless/${wish.id}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': Bearer ${token}  // 关键：带上 token
+        'Authorization': `Bearer ${token}`  // 关键：带上 token
       },
       // 有需要可以带请求体，这里你原先只是带 user_id，通常后端也能从 token 解出用户ID，这里可以不带
       body: JSON.stringify({})
@@ -1766,17 +1767,17 @@
     wish.blessings = result.blessings;
     wish.level = result.level;
 
-    localStorage.setItem(bless_${wish.id}, now.toString());
+    localStorage.setItem(`bless_${wish.id}`, now.toString());
 
     cardElement.querySelector('.bless-count').textContent = wish.blessings;
     cardElement.dataset.level = wish.level;
-    cardElement.querySelector('.energy-level').style.width = ${wish.level * 20}%;
+    cardElement.querySelector('.energy-level').style.width = `${wish.level * 20}%`;
 
     cardElement.classList.add('level-up');
     setTimeout(() => cardElement.classList.remove('level-up'), 1000);
 
     const levelName = getLevelName(wish.level);
-    showSuccessMessage(愿望能量提升至${levelName}！);
+    showSuccessMessage(`愿望能量提升至${levelName}！`);
 
     renderWishes();
 
@@ -1806,7 +1807,7 @@
                         
                         try {
                             // 发送还愿请求到后端
-                            const response = await fetch(${API_URL}/fulfill/${wish.id}, {
+                            const response = await fetch(`${API_URL}/fulfill/${wish.id}`, {
                                 method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/json'
@@ -1819,7 +1820,7 @@
                             }
                             
                             modal.style.display = 'none';
-                            showSuccessMessage(还愿成功！感谢您的${amount}元支持！);
+                            showSuccessMessage(`还愿成功！感谢您的${amount}元支持！`);
                             
                             // 重新加载愿望列表
                             renderWishes();
@@ -1853,11 +1854,11 @@
                 document.querySelectorAll('.toast').forEach(toast => toast.remove());
                 
                 const toast = document.createElement('div');
-                toast.className = toast ${type};
-                toast.innerHTML = 
+                toast.className = `toast ${type}`;
+                toast.innerHTML = `
                     <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
                     ${message}
-                ;
+                `;
                 
                 document.body.appendChild(toast);
                 
