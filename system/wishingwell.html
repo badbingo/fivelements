@@ -1320,602 +1320,284 @@
     </div>
 
     <script>
-         document.addEventListener('DOMContentLoaded', function() {
-            // 定义API端点
-            const API_URL = 'https://bazi-backend.owenjass.workers.dev/api/wishes';
-            
-            // 粒子背景初始化
-            particlesJS("particles-js", {
-                particles: {
-                    number: { value: 80, density: { enable: true, value_area: 800 } },
-                    color: { value: "#6a11cb" },
-                    shape: { type: "circle", stroke: { width: 0, color: "#000000" } },
-                    opacity: { value: 0.3, random: true, anim: { enable: true, speed: 1, opacity_min: 0.1 } },
-                    size: { value: 3, random: true, anim: { enable: true, speed: 2, size_min: 0.1 } },
-                    line_linked: { enable: true, distance: 150, color: "#6a11cb", opacity: 0.2, width: 1 },
-                    move: { enable: true, speed: 1, direction: "none", random: true, straight: false, out_mode: "out" }
-                },
-                interactivity: {
-                    detect_on: "canvas",
-                    events: {
-                        onhover: { enable: true, mode: "bubble" },
-                        onclick: { enable: true, mode: "push" }
-                    },
-                    modes: {
-                        bubble: { distance: 250, size: 4, duration: 2, opacity: 0.5, speed: 3 },
-                        push: { particles_nb: 4 }
-                    }
-                }
-            });
-            
-            // 图表初始化
-            const energyChart = new Chart(document.getElementById('energyChart'), {
-                type: 'line',
-                data: {
-                    labels: ['1月', '2月', '3月', '4月', '5月', '6月'],
-                    datasets: [{
-                        label: '能量强度',
-                        data: [65, 79, 90, 81, 56, 75],
-                        borderColor: '#6a11cb',
-                        backgroundColor: 'rgba(106, 17, 203, 0.1)',
-                        borderWidth: 2,
-                        tension: 0.4,
-                        pointRadius: 4,
-                        pointBackgroundColor: '#6a11cb'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: { color: 'rgba(255, 255, 255, 0.1)' },
-                            ticks: { color: '#b8c2cc' }
-                        },
-                        x: {
-                            grid: { color: 'rgba(255, 255, 255, 0.1)' },
-                            ticks: { color: '#b8c2cc' }
-                        }
-                    },
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: { backgroundColor: 'rgba(10, 10, 20, 0.9)' }
-                    }
-                }
-            });
-            
-            // 愿望类型图表
-            const wishTypeChart = new Chart(document.getElementById('wishTypeChart'), {
-                type: 'doughnut',
-                data: {
-                    labels: ['姻缘感情', '财富事业', '健康平安', '学业成长', '家庭和睦', '其他愿望'],
-                    datasets: [{
-                        data: [35, 25, 15, 10, 10, 5],
-                        backgroundColor: [
-                            '#6a11cb', '#2575fc', '#00b894', '#fdcb6e', '#e17055', '#b2bec3'
-                        ],
-                        borderWidth: 0
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { position: 'bottom', labels: { color: '#b8c2cc' } },
-                        tooltip: { backgroundColor: 'rgba(10, 10, 20, 0.9)' }
-                    }
-                }
-            });
-            
-            renderWishes();  // 加上这行：初始化时就加载愿望池内容
-            
-            // DOM 元素
-            const wishForm = document.getElementById('wishForm');
-            const submitBtn = wishForm.querySelector('button[type="submit"]');
-            const wishPool = document.querySelector('.wish-pool');
-            const baziInfo = document.getElementById('baziInfo');
-            
-            // 初始化表单提交
-            wishForm.addEventListener('submit', handleSubmitWish);
-            
-            // 生成八字信息（模拟）
-            function generateBazi(birthday, birthtime) {
-            // 简单模拟生成八字
-            const years = ['甲子', '乙丑', '丙寅', '丁卯', '戊辰', '己巳', '庚午', '辛未', '壬申', '癸酉'];
-            const months = ['正月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '冬月', '腊月'];
-            const days = ['初一', '初二', '初三', '初四', '初五', '初六', '初七', '初八', '初九', '初十', 
-                        '十一', '十二', '十三', '十四', '十五', '十六', '十七', '十八', '十九', '二十',
-                        '廿一', '廿二', '廿三', '廿四', '廿五', '廿六', '廿七', '廿八', '廿九', '三十'];
-            const times = ['子时', '丑时', '寅时', '卯时', '辰时', '巳时', '午时', '未时', '申时', '酉时', '戌时', '亥时'];
+         document.addEventListener('DOMContentLoaded', function () {
+    const API_URL = 'https://bazi-backend.owenjass.workers.dev/api/wishes';
 
-            const yearIndex = Math.floor(Math.random() * years.length);
-            const monthIndex = Math.floor(Math.random() * months.length);
-            const dayIndex = Math.floor(Math.random() * days.length);
-            const timeIndex = Math.floor(Math.random() * times.length);
-
-            return `${years[yearIndex]} ${months[monthIndex]} ${days[dayIndex]} ${times[timeIndex]}`;
-        }
-
-        // 获取显示八字信息的元素
-        const baziInfo = document.getElementById('baziInfo');
-
-        // 当出生日期或时间变化时更新八字信息
-        document.getElementById('birthday').addEventListener('change', updateBaziInfo);
-        document.getElementById('birthtime').addEventListener('change', updateBaziInfo);
-
-        function updateBaziInfo() {
-            const birthday = document.getElementById('birthday').value;
-            const birthtime = document.getElementById('birthtime').value;
-
-            if (birthday && birthtime) {
-                const bazi = generateBazi(birthday, birthtime);
-                baziInfo.textContent = `您的八字：${bazi}`;
-                baziInfo.style.display = 'block';
-            } else {
-                baziInfo.style.display = 'none';
-            }
-        }
-            
-            // 表单提交处理
-            async function handleSubmitWish(e) {
-    e.preventDefault();
-    
-    // 1. 收集表单数据（添加更严格的验证）
-    const name = document.getElementById('name').value.trim() || '匿名用户';
-    const birthday = document.getElementById('birthday').value;
-    const birthtime = document.getElementById('birthtime').value;
-    const content = document.getElementById('wishContent').value.trim();
-    
-    if (!content || !birthday || !birthtime) {
-        showErrorMessage('请填写完整的愿望内容和出生信息');
-        return;
-    }
-
-    // 2. 构造请求数据
-    const formData = {
-    content,
-    user_name: name,
-    birth_date: birthday,
-    birth_time: birthtime,
-    type: document.getElementById('wishType').value,
-    visibility: document.querySelector('input[name="visibility"]:checked').value,
-    solar_date: new Date().toISOString().split('T')[0],
-    bazi: generateBazi(birthday, birthtime),
-    user_id: 'guest_' + Date.now()
-    };
-
-    // 3. 设置加载状态
-    setSubmitButtonState(true);
-
-    try {
-        // 4. 添加请求调试信息
-        console.log('[DEBUG] 提交数据:', formData);
-        console.log('[DEBUG] API URL:', API_URL);
-
-        // 5. 发送请求（添加超时和取消功能）
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 10000); // 10秒超时
-
-        const response = await fetch(API_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
+    // 粒子背景初始化
+    particlesJS("particles-js", {
+        particles: {
+            number: { value: 80, density: { enable: true, value_area: 800 } },
+            color: { value: "#6a11cb" },
+            shape: { type: "circle", stroke: { width: 0, color: "#000000" } },
+            opacity: { value: 0.3, random: true, anim: { enable: true, speed: 1, opacity_min: 0.1 } },
+            size: { value: 3, random: true, anim: { enable: true, speed: 2, size_min: 0.1 } },
+            line_linked: { enable: true, distance: 150, color: "#6a11cb", opacity: 0.2, width: 1 },
+            move: { enable: true, speed: 1, direction: "none", random: true, straight: false, out_mode: "out" }
+        },
+        interactivity: {
+            detect_on: "canvas",
+            events: {
+                onhover: { enable: true, mode: "bubble" },
+                onclick: { enable: true, mode: "push" }
             },
-            body: JSON.stringify(formData),
-            signal: controller.signal
-        });
-
-        clearTimeout(timeout);
-
-        // 6. 处理响应
-        if (!response.ok) {
-            let errorData;
-            try {
-                errorData = await response.json();
-            } catch (e) {
-                throw new Error(HTTP错误: ${response.status} ${response.statusText});
+            modes: {
+                bubble: { distance: 250, size: 4, duration: 2, opacity: 0.5, speed: 3 },
+                push: { particles_nb: 4 }
             }
-            throw new Error(errorData.message || '服务器返回错误');
         }
-
-        const result = await response.json();
-        console.log('[DEBUG] 响应数据:', result);
-
-        // 7. 处理成功响应
-        currentPage = 1;
-        await renderWishes();
-        wishForm.reset();
-        baziInfo.style.display = 'none';
-        showSuccessMessage('愿望已成功投入命缘池！');
-
-    } catch (error) {
-        // 8. 改进错误处理
-        console.error('提交错误详情:', error);
-        
-        let userMessage = '提交愿望失败，请稍后重试';
-        if (error.name === 'AbortError') {
-            userMessage = '请求超时，请检查网络连接';
-        } else if (error.message.includes('Failed to fetch')) {
-            userMessage = '无法连接到服务器，请检查网络';
-        } else if (error.message.includes('HTTP错误')) {
-            userMessage = 服务器错误: ${error.message};
-        }
-        
-        showErrorMessage(userMessage);
-    } finally {
-        setSubmitButtonState(false);
-    }
-}
-
-            
-            // 设置提交按钮状态
-            function setSubmitButtonState(isLoading) {
-                if (isLoading) {
-                    submitBtn.disabled = true;
-                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 提交中...';
-                } else {
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> 投入命缘池';
-                }
-            }
-            
-            // 渲染愿望列表
-            async function renderWishes() {
-                  try {
-                    const response = await fetch(API_URL + '?visibility=public');
-                    const text = await response.text();
-                    console.log('[DEBUG] 原始响应内容:', text);
-                
-                    const data = JSON.parse(text);
-                
-                    const wishes = Array.isArray(data) ? data : data.wishes || [];
-                
-                    if (!Array.isArray(wishes)) {
-                      throw new Error('返回的不是数组');
-                    }
-                
-                    console.log('[DEBUG] 愿望数量:', wishes.length);
-                
-                    renderWishCards(wishes);
-                  } catch (err) {
-                    console.error('渲染愿望时出错:', err);
-                    wishPool.innerHTML = <p style="color:red;">加载失败：${err.message}</p>;
-                  }
-                }
-                            
-            // 更新统计信息
-           function updateStats(wishes) {
-                // 确保wishes是一个数组
-                if (!Array.isArray(wishes)) {
-                    console.error('wishes不是数组:', wishes);
-                    wishes = [];
-                }
-                
-                const today = new Date().toISOString().split('T')[0];
-                
-                // 计算今日新增愿望
-                const todayWishes = wishes.filter(wish => wish.solar_date === today).length;
-                document.getElementById('todayWishes').textContent = todayWishes;
-                
-                // 计算今日加持次数（这里简化处理）
-                const todayBlessings = wishes.reduce((sum, wish) => sum + (wish.solar_date === today ? (wish.blessings || 0) : 0), 0);
-                document.getElementById('todayBlessings').textContent = todayBlessings;
-                
-                // 计算今日还愿次数（这里简化处理）
-                const todayFulfilled = wishes.filter(wish => wish.fulfilled && wish.fulfilled_date === today).length;
-                document.getElementById('todayFulfilled').textContent = todayFulfilled;
-            }
-
-            async function renderWishes() {
-                  try {
-                    const response = await fetch(API_URL + '?visibility=public');
-                    const text = await response.text();
-                    console.log('[DEBUG] 原始响应:', text);
-                
-                    const json = JSON.parse(text);
-                    const wishes = Array.isArray(json) ? json : json.data || [];
-                
-                    if (!Array.isArray(wishes)) {
-                      throw new Error('返回的不是愿望数组');
-                    }
-                
-                    console.log('[DEBUG] 愿望数量:', wishes.length);
-                    renderWishCards(wishes);
-                  } catch (err) {
-                    console.error('渲染愿望时出错:', err);
-                    wishPool.innerHTML = <p style="color:red;">加载失败：${err.message}</p>;
-                  }
-                }
-            
-            // 渲染愿望卡片
-            function renderWishCards(wishes) {
-                  if (!Array.isArray(wishes)) {
-                    console.error('renderWishCards 接收到的不是数组:', wishes);
-                    return;
-                  }
-                    wishPool.innerHTML = '';
-                
-                if (wishes.length === 0) {
-                    wishPool.innerHTML = 
-                        <div class="wish-loading">
-                            <i class="fas fa-water" style="font-size: 2rem; color: #6a11cb; margin-bottom: 15px;"></i>
-                            <p>命缘池中暂无愿望</p>
-                            <p>请投入您的第一个愿望</p>
-                        </div>
-                    ;
-                    return;
-                }
-                
-                // 愿望类型名称映射
-                const typeNames = {
-                    love: '姻缘感情', 
-                    wealth: '财富事业', 
-                    health: '健康平安',
-                    study: '学业成长', 
-                    family: '家庭和睦', 
-                    other: '其他愿望'
-                };
-                
-                wishes.forEach(wish => {
-                    // 创建愿望卡片
-                    const wishCard = document.createElement('div');
-                    wishCard.className = 'wish-card';
-                    wishCard.dataset.id = wish.id;
-                    wishCard.dataset.level = wish.level || 1;
-                    wishCard.dataset.type = wish.type;
-                    wishCard.dataset.visibility = wish.visibility;
-                    
-                    // 计算剩余天数
-                    const createdDate = new Date(wish.created_at);
-                    const expiresAt = new Date(createdDate);
-                    expiresAt.setDate(expiresAt.getDate() + 30);
-                    const daysLeft = Math.max(0, Math.ceil((expiresAt - new Date()) / (86400000)));
-                    
-                    // 填充内容
-                    wishCard.innerHTML = 
-                        <div class="wish-header">
-                            <span class="wish-type">${typeNames[wish.type] || '其他愿望'}</span>
-                            <span class="wish-time">剩余<span class="days-left">${daysLeft}</span>天</span>
-                        </div>
-                        <div class="wish-content">
-                            <p class="wish-text">${wish.content}</p>
-                            <p class="wish-hidden">愿望已隐藏</p>
-                        </div>
-                        <div class="wish-meta">
-                            <div class="wish-bazi">
-                                <i class="fas fa-user-secret"></i> <span class="bazi-text">${wish.bazi}</span>
-                            </div>
-                            <div class="wish-stats">
-                                <span class="bless-count">${wish.blessings || 0}</span> 次加持
-                            </div>
-                        </div>
-                        <div class="wish-actions">
-                            <button class="btn-bless">
-                                <i class="fas fa-hands-helping"></i> 加持
-                            </button>
-                            <button class="btn-fulfill">
-                                <i class="fas fa-hand-holding-heart"></i> 还愿
-                            </button>
-                        </div>
-                        <div class="wish-energy">
-                            <div class="energy-level" data-level="${wish.level || 1}"></div>
-                        </div>
-                    ;
-                    
-                    // 添加事件监听
-                    const blessBtn = wishCard.querySelector('.btn-bless');
-                    blessBtn.addEventListener('click', () => handleBlessWish(wishCard, wish));
-                    
-                    const fulfillBtn = wishCard.querySelector('.btn-fulfill');
-                    fulfillBtn.addEventListener('click', () => handleFulfillWish(wish));
-                    
-                    // 添加到池中
-                    wishPool.appendChild(wishCard);
-                });
-            }
-            
-            // 更新分页信息
-            function updatePagination(totalItems, perPage = 6) {
-                const totalPages = Math.max(1, Math.ceil(totalItems / perPage));
-                
-                document.getElementById('pageInfo').textContent = 第 ${currentPage} 页 / 共 ${totalPages} 页;
-                document.getElementById('prevPage').disabled = currentPage <= 1;
-                document.getElementById('nextPage').disabled = currentPage >= totalPages;
-            }
-            
-            async function handleBlessWish(cardElement, wish) {
-  try {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      showErrorMessage('请先登录或设置用户信息');
-      return;
-    }
-
-    // 限制逻辑（1小时内只能加持一次）
-    const lastBlessStr = localStorage.getItem(bless_${wish.id});
-    const lastBlessTime = lastBlessStr ? parseInt(lastBlessStr, 10) : 0;
-    const now = Date.now();
-    if (now - lastBlessTime < 3600000) {
-      showErrorMessage('一个小时内只能加持一次该愿望，请稍后再试');
-      return;
-    }
-
-    // 调用后端接口
-    const response = await fetch(${API_URL}/bless/${wish.id}, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': Bearer ${token}  // 关键：带上 token
-      },
-      // 有需要可以带请求体，这里你原先只是带 user_id，通常后端也能从 token 解出用户ID，这里可以不带
-      body: JSON.stringify({})
     });
 
-    if (response.status === 401) {
-      showErrorMessage('登录已失效，请重新登录');
-      // 可跳转登录页
-      window.location.href = '/login.html';
-      return;
-    }
+    // 能量强度图表
+    new Chart(document.getElementById('energyChart'), {
+        type: 'line',
+        data: {
+            labels: ['1月', '2月', '3月', '4月', '5月', '6月'],
+            datasets: [{
+                label: '能量强度',
+                data: [65, 79, 90, 81, 56, 75],
+                borderColor: '#6a11cb',
+                backgroundColor: 'rgba(106, 17, 203, 0.1)',
+                borderWidth: 2,
+                tension: 0.4,
+                pointRadius: 4,
+                pointBackgroundColor: '#6a11cb'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                    ticks: { color: '#b8c2cc' }
+                },
+                x: {
+                    grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                    ticks: { color: '#b8c2cc' }
+                }
+            },
+            plugins: {
+                legend: { display: false },
+                tooltip: { backgroundColor: 'rgba(10, 10, 20, 0.9)' }
+            }
+        }
+    });
 
-    const result = await response.json();
-    if (!response.ok) {
-      throw new Error(result.error || '加持失败');
-    }
+    // 愿望类型图表
+    new Chart(document.getElementById('wishTypeChart'), {
+        type: 'doughnut',
+        data: {
+            labels: ['姻缘感情', '财富事业', '健康平安', '学业成长', '家庭和睦', '其他愿望'],
+            datasets: [{
+                data: [35, 25, 15, 10, 10, 5],
+                backgroundColor: ['#6a11cb', '#2575fc', '#00b894', '#fdcb6e', '#e17055', '#b2bec3'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom', labels: { color: '#b8c2cc' } },
+                tooltip: { backgroundColor: 'rgba(10, 10, 20, 0.9)' }
+            }
+        }
+    });
 
-    // 更新愿望数据和UI
-    wish.blessings = result.blessings;
-    wish.level = result.level;
+    const wishForm = document.getElementById('wishForm');
+    const submitBtn = wishForm.querySelector('button[type="submit"]');
+    const wishPool = document.querySelector('.wish-pool');
+    const baziInfo = document.getElementById('baziInfo');
 
-    localStorage.setItem(bless_${wish.id}, now.toString());
-
-    cardElement.querySelector('.bless-count').textContent = wish.blessings;
-    cardElement.dataset.level = wish.level;
-    cardElement.querySelector('.energy-level').style.width = ${wish.level * 20}%;
-
-    cardElement.classList.add('level-up');
-    setTimeout(() => cardElement.classList.remove('level-up'), 1000);
-
-    const levelName = getLevelName(wish.level);
-    showSuccessMessage(愿望能量提升至${levelName}！);
+    wishForm.addEventListener('submit', handleSubmitWish);
+    document.getElementById('birthday').addEventListener('change', updateBaziInfo);
+    document.getElementById('birthtime').addEventListener('change', updateBaziInfo);
 
     renderWishes();
 
-  } catch (error) {
-    console.error('加持失败:', error);
-    showErrorMessage(error.message || '加持失败，请稍后重试');
-  }
-}
-             
-            // 还愿处理
-            async function handleFulfillWish(wish) {
-                const modal = document.getElementById('fulfillModal');
-                const closeBtn = modal.querySelector('.close-modal');
-                const options = modal.querySelectorAll('.fulfill-option');
-                
-                modal.style.display = 'block';
-                
-                // 关闭模态框
-                closeBtn.onclick = () => {
-                    modal.style.display = 'none';
-                };
-                
-                // 选择还愿金额
-                options.forEach(option => {
-                    option.onclick = async () => {
-                        const amount = option.dataset.amount;
-                        
-                        try {
-                            // 发送还愿请求到后端
-                            const response = await fetch(${API_URL}/fulfill/${wish.id}, {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json'
-                                },
-                                body: JSON.stringify({ amount })
-                            });
-                            
-                            if (!response.ok) {
-                                throw new Error('还愿失败');
-                            }
-                            
-                            modal.style.display = 'none';
-                            showSuccessMessage(还愿成功！感谢您的${amount}元支持！);
-                            
-                            // 重新加载愿望列表
-                            renderWishes();
-                        } catch (error) {
-                            console.error('还愿失败:', error);
-                            showErrorMessage('还愿失败，请稍后重试');
-                        }
-                    };
-                });
-            }
-            
-            // 获取等级名称
-            function getLevelName(level) {
-                const levels = { 1: '初愿', 2: '小成', 3: '中成', 4: '大成', 5: '圆满' };
-                return levels[level] || '';
-            }
-            
-            // 显示成功消息
-            function showSuccessMessage(message) {
-                showToast(message, 'success');
-            }
-            
-            // 显示错误消息
-            function showErrorMessage(message) {
-                showToast(message, 'error');
-            }
-            
-            // 显示Toast消息
-            function showToast(message, type) {
-                // 移除现有的toast
-                document.querySelectorAll('.toast').forEach(toast => toast.remove());
-                
-                const toast = document.createElement('div');
-                toast.className = toast ${type};
-                toast.innerHTML = 
-                    <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
-                    ${message}
-                ;
-                
-                document.body.appendChild(toast);
-                
-                // 显示动画
-                setTimeout(() => toast.classList.add('show'), 100);
-                
-                // 3秒后自动消失
-                setTimeout(() => {
-                    toast.classList.remove('show');
-                    setTimeout(() => toast.remove(), 300);
-                }, 3000);
-            }
-            
-            // 初始化事件监听
-            function initEventListeners() {
-                // 分页按钮
-                document.getElementById('prevPage').addEventListener('click', () => {
-                    if (currentPage > 1) {
-                        currentPage--;
-                        renderWishes();
-                    }
-                });
-                
-                document.getElementById('nextPage').addEventListener('click', () => {
-                    currentPage++;
-                    renderWishes();
-                });
-                
-                // 筛选变化
-                document.getElementById('wishFilter').addEventListener('change', () => {
-                    currentPage = 1;
-                    renderWishes();
-                });
-                
-                document.getElementById('sortFilter').addEventListener('change', () => {
-                    currentPage = 1;
-                    renderWishes();
-                });
-                
-                // 全局点击关闭模态框
-                window.addEventListener('click', (e) => {
-                    const modal = document.getElementById('fulfillModal');
-                    if (e.target === modal) {
-                        modal.style.display = 'none';
-                    }
-                });
-            }
-            
-            // 初始化变量
-            let currentPage = 1;
-            
-            // 初始化
-            initEventListeners();
-            renderWishes();
+    function generateBazi(birthday, birthtime) {
+        const years = ['甲子', '乙丑', '丙寅', '丁卯', '戊辰', '己巳', '庚午', '辛未', '壬申', '癸酉'];
+        const months = ['正月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '冬月', '腊月'];
+        const days = ['初一', '初二', '初三', '初四', '初五', '初六', '初七', '初八', '初九', '初十', '十一', '十二', '十三', '十四', '十五', '十六', '十七', '十八', '十九', '二十', '廿一', '廿二', '廿三', '廿四', '廿五', '廿六', '廿七', '廿八', '廿九', '三十'];
+        const times = ['子时', '丑时', '寅时', '卯时', '辰时', '巳时', '午时', '未时', '申时', '酉时', '戌时', '亥时'];
+
+        return `${years[Math.floor(Math.random() * years.length)]} ${months[Math.floor(Math.random() * months.length)]} ${days[Math.floor(Math.random() * days.length)]} ${times[Math.floor(Math.random() * times.length)]}`;
+    }
+
+    function updateBaziInfo() {
+        const birthday = document.getElementById('birthday').value;
+        const birthtime = document.getElementById('birthtime').value;
+
+        if (birthday && birthtime) {
+            const bazi = generateBazi(birthday, birthtime);
+            baziInfo.textContent = `您的八字：${bazi}`;
+            baziInfo.style.display = 'block';
+        } else {
+            baziInfo.style.display = 'none';
+        }
+    }
+
+    function showErrorMessage(msg) {
+        alert(msg);
+    }
+
+    function setSubmitButtonState(isLoading) {
+        submitBtn.disabled = isLoading;
+        submitBtn.textContent = isLoading ? '提交中...' : '提交愿望';
+    }
+
+    function escapeHTML(str) {
+        if (!str) return '';
+        return str.replace(/[&<>"']/g, m => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+        })[m]);
+    }
+
+    function calculateDaysLeft(dateStr) {
+        const end = new Date(dateStr);
+        end.setDate(end.getDate() + 30);
+        const now = new Date();
+        const diff = Math.ceil((end - now) / (1000 * 60 * 60 * 24));
+        return diff > 0 ? diff : 0;
+    }
+
+    async function renderWishes() {
+        try {
+            const response = await fetch(API_URL, { method: 'GET' });
+            if (!response.ok) throw new Error(`HTTP错误，状态码: ${response.status}`);
+            const result = await response.json();
+            const wishes = Array.isArray(result.data) ? result.data : [];
+            renderWishCards(wishes);
+        } catch (error) {
+            console.error('加载愿望失败:', error);
+            wishPool.innerHTML = '<p class="error">加载愿望失败，请稍后重试。</p>';
+        }
+    }
+
+    function renderWishCards(wishes) {
+        if (!Array.isArray(wishes) || wishes.length === 0) {
+            wishPool.innerHTML = '<p class="empty">暂无愿望，快来许愿吧！</p>';
+            return;
+        }
+
+        wishPool.innerHTML = '';
+
+        const typeNames = {
+            romance: '姻缘感情',
+            wealth: '财富事业',
+            health: '健康平安',
+            study: '学业成长',
+            family: '家庭和睦',
+            other: '其他愿望'
+        };
+
+        wishes.slice().reverse().forEach(wish => {
+            const daysLeft = calculateDaysLeft(wish.solar_date || wish.created_at || wish.createdAt);
+
+            const wishCard = document.createElement('div');
+            wishCard.className = 'wish-card';
+            wishCard.innerHTML = `
+                <div class="wish-header">
+                    <span class="wish-type">${typeNames[wish.type] || '其他愿望'}</span>
+                    <span class="wish-time">剩余<span class="days-left">${daysLeft}</span>天</span>
+                </div>
+                <div class="wish-content">
+                    <p class="wish-text">${escapeHTML(wish.content)}</p>
+                    <p class="wish-hidden" style="display:none;">愿望已隐藏</p>
+                </div>
+                <div class="wish-meta">
+                    <div class="wish-bazi"><i class="fas fa-user-secret"></i> <span class="bazi-text">${escapeHTML(wish.bazi || '')}</span></div>
+                    <div class="wish-stats"><span class="bless-count">${wish.blessings || 0}</span> 次加持</div>
+                </div>
+                <div class="wish-actions">
+                    <button class="btn-bless"><i class="fas fa-hands-helping"></i> 加持</button>
+                    <button class="btn-fulfill"><i class="fas fa-hand-holding-heart"></i> 还愿</button>
+                </div>
+                <div class="wish-energy">
+                    <div class="energy-level" data-level="${wish.level || 1}"></div>
+                </div>
+            `;
+
+            wishCard.querySelector('.btn-bless').addEventListener('click', () => handleBlessWish(wish.id));
+            wishCard.querySelector('.btn-fulfill').addEventListener('click', () => handleFulfillWish(wish.id));
+
+            wishPool.appendChild(wishCard);
         });
+    }
+
+    async function handleSubmitWish(e) {
+        e.preventDefault();
+
+        const name = document.getElementById('name').value.trim() || '匿名用户';
+        const birthday = document.getElementById('birthday').value;
+        const birthtime = document.getElementById('birthtime').value;
+        const content = document.getElementById('wishContent').value.trim();
+        const wishType = document.getElementById('wishType').value;
+        const visibility = document.querySelector('input[name="visibility"]:checked').value;
+
+        if (!content || !birthday || !birthtime) {
+            showErrorMessage('请填写完整的愿望内容和出生信息');
+            return;
+        }
+
+        const formData = {
+            content,
+            user_name: name,
+            birth_date: birthday,
+            birth_time: birthtime,
+            type: wishType,
+            visibility,
+            solar_date: new Date().toISOString().split('T')[0],
+            bazi: generateBazi(birthday, birthtime),
+            user_id: 'guest_' + Date.now()
+        };
+
+        setSubmitButtonState(true);
+
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+            const res = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData),
+                signal: controller.signal
+            });
+
+            clearTimeout(timeoutId);
+
+            if (!res.ok) throw new Error(`提交失败，状态码：${res.status}`);
+
+            await res.json();
+            renderWishes();
+            wishForm.reset();
+            baziInfo.style.display = 'none';
+
+            alert('愿望提交成功！感谢您的参与。');
+        } catch (err) {
+            if (err.name === 'AbortError') {
+                showErrorMessage('请求超时，请稍后再试。');
+            } else {
+                showErrorMessage('提交失败，请检查网络或稍后重试。');
+            }
+            console.error('提交出错:', err);
+        } finally {
+            setSubmitButtonState(false);
+        }
+    }
+
+    // 示例：处理加持按钮
+    function handleBlessWish(wishId) {
+        alert(`为愿望 ${wishId} 加持，逻辑待实现`);
+    }
+
+    // 示例：处理还愿按钮
+    function handleFulfillWish(wishId) {
+        alert(`愿望 ${wishId} 已还愿，逻辑待实现`);
+    }
+});
     </script>
 </body>
 </html>
