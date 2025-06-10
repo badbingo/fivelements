@@ -11,7 +11,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="../js/lunar.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
     <style>
         :root {
@@ -1422,32 +1421,21 @@
             
             // 生成八字信息（模拟）
             function generateBazi(birthday, birthtime) {
-    console.log('Calculating bazi for:', birthday, birthtime); // 调试日志
-    
-    if (!birthday || !birthtime) {
-        console.error('Missing birthday or birthtime');
-        return '缺少出生信息';
-    }
-    
-    try {
-        const [year, month, day] = birthday.split('-').map(Number);
-        const hour = parseInt(birthtime.split('-')[0]);
-        
-        console.log('Parsed datetime:', {year, month, day, hour}); // 调试日志
-        
-        const solar = Solar.fromYmdHms(year, month, day, hour, 0, 0);
-        const lunar = solar.getLunar();
-        const bazi = lunar.getEightChar();
-        
-        const result = `${bazi.getYear()} ${bazi.getMonth()} ${bazi.getDay()} ${bazi.getTime()}`;
-        console.log('Bazi result:', result); // 调试日志
-        
-        return result;
-    } catch (e) {
-        console.error('Bazi calculation error:', e);
-        return '八字计算错误';
-    }
-}
+                // 简单模拟生成八字
+                const years = ['甲子', '乙丑', '丙寅', '丁卯', '戊辰', '己巳', '庚午', '辛未', '壬申', '癸酉'];
+                const months = ['正月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '冬月', '腊月'];
+                const days = ['初一', '初二', '初三', '初四', '初五', '初六', '初七', '初八', '初九', '初十', 
+                            '十一', '十二', '十三', '十四', '十五', '十六', '十七', '十八', '十九', '二十',
+                            '廿一', '廿二', '廿三', '廿四', '廿五', '廿六', '廿七', '廿八', '廿九', '三十'];
+                const times = ['子时', '丑时', '寅时', '卯时', '辰时', '巳时', '午时', '未时', '申时', '酉时', '戌时', '亥时'];
+                
+                const yearIndex = Math.floor(Math.random() * years.length);
+                const monthIndex = Math.floor(Math.random() * months.length);
+                const dayIndex = Math.floor(Math.random() * days.length);
+                const timeIndex = Math.floor(Math.random() * times.length);
+                
+                return `${years[yearIndex]} ${months[monthIndex]} ${days[dayIndex]} ${times[timeIndex]}`;
+            }
             
             // 当出生日期或时间变化时更新八字信息
             document.getElementById('birthday').addEventListener('change', updateBaziInfo);
@@ -1470,7 +1458,7 @@
             async function handleSubmitWish(e) {
     e.preventDefault();
     
-    // 收集表单数据
+    // 1. 收集表单数据（添加更严格的验证）
     const name = document.getElementById('name').value.trim() || '匿名用户';
     const birthday = document.getElementById('birthday').value;
     const birthtime = document.getElementById('birthtime').value;
@@ -1480,22 +1468,6 @@
         showErrorMessage('请填写完整的愿望内容和出生信息');
         return;
     }
-
-    // 使用lunar.js计算八字
-    const bazi = generateBazi(birthday, birthtime);
-    
-    // 构造请求数据
-    const formData = {
-        content,
-        user_name: name,
-        birth_date: birthday,
-        birth_time: birthtime,
-        type: document.getElementById('wishType').value,
-        visibility: document.querySelector('input[name="visibility"]:checked').value,
-        solar_date: new Date().toISOString().split('T')[0],
-        bazi: bazi,
-        user_id: 'guest_' + Date.now()
-    };
 
     // 2. 构造请求数据
     const formData = {
@@ -1657,69 +1629,90 @@
             
             // 渲染愿望卡片
             function renderWishCards(wishes) {
-    wishPool.innerHTML = '';
-    
-    if (wishes.length === 0) {
-        wishPool.innerHTML = `
-            <div class="wish-loading">
-                <i class="fas fa-water" style="font-size: 2rem; color: #6a11cb; margin-bottom: 15px;"></i>
-                <p>命缘池中暂无愿望</p>
-                <p>请投入您的第一个愿望</p>
-            </div>
-        `;
-        return;
-    }
-    
-    wishes.forEach(wish => {
-        // 创建愿望卡片
-        const wishCard = document.createElement('div');
-        wishCard.className = 'wish-card';
-        wishCard.dataset.id = wish.id;
-        wishCard.dataset.level = wish.level || 1;
-        wishCard.dataset.type = wish.type;
-        wishCard.dataset.visibility = wish.visibility;
-        
-        // 计算剩余天数
-        const createdDate = new Date(wish.created_at);
-        const expiresAt = new Date(createdDate);
-        expiresAt.setDate(expiresAt.getDate() + 30);
-        const daysLeft = Math.max(0, Math.ceil((expiresAt - new Date()) / (86400000)));
-        
-        // 填充内容
-        wishCard.innerHTML = `
-            <div class="wish-header">
-                <span class="wish-type">${typeNames[wish.type] || '其他愿望'}</span>
-                <span class="wish-time">剩余<span class="days-left">${daysLeft}</span>天</span>
-            </div>
-            <div class="wish-content">
-                <p class="wish-text">${wish.content}</p>
-                <p class="wish-hidden">愿望已隐藏</p>
-            </div>
-            <div class="wish-meta">
-                <div class="wish-bazi">
-                    <i class="fas fa-user-secret"></i> <span class="bazi-text">${wish.bazi || '八字信息'}</span>
-                </div>
-                <div class="wish-stats">
-                    <span class="bless-count">${wish.blessings || 0}</span> 次加持
-                </div>
-            </div>
-            <div class="wish-actions">
-                <button class="btn-bless">
-                    <i class="fas fa-hands-helping"></i> 加持
-                </button>
-                <button class="btn-fulfill">
-                    <i class="fas fa-hand-holding-heart"></i> 还愿
-                </button>
-            </div>
-            <div class="wish-energy">
-                <div class="energy-level" data-level="${wish.level || 1}"></div>
-            </div>
-        `;
-        
-        // 添加事件监听...
-        wishPool.appendChild(wishCard);
-    });
-}
+                  if (!Array.isArray(wishes)) {
+                    console.error('renderWishCards 接收到的不是数组:', wishes);
+                    return;
+                  }
+                    wishPool.innerHTML = '';
+                
+                if (wishes.length === 0) {
+                    wishPool.innerHTML = `
+                        <div class="wish-loading">
+                            <i class="fas fa-water" style="font-size: 2rem; color: #6a11cb; margin-bottom: 15px;"></i>
+                            <p>命缘池中暂无愿望</p>
+                            <p>请投入您的第一个愿望</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // 愿望类型名称映射
+                const typeNames = {
+                    love: '姻缘感情', 
+                    wealth: '财富事业', 
+                    health: '健康平安',
+                    study: '学业成长', 
+                    family: '家庭和睦', 
+                    other: '其他愿望'
+                };
+                
+                wishes.forEach(wish => {
+                    // 创建愿望卡片
+                    const wishCard = document.createElement('div');
+                    wishCard.className = 'wish-card';
+                    wishCard.dataset.id = wish.id;
+                    wishCard.dataset.level = wish.level || 1;
+                    wishCard.dataset.type = wish.type;
+                    wishCard.dataset.visibility = wish.visibility;
+                    
+                    // 计算剩余天数
+                    const createdDate = new Date(wish.created_at);
+                    const expiresAt = new Date(createdDate);
+                    expiresAt.setDate(expiresAt.getDate() + 30);
+                    const daysLeft = Math.max(0, Math.ceil((expiresAt - new Date()) / (86400000)));
+                    
+                    // 填充内容
+                    wishCard.innerHTML = `
+                        <div class="wish-header">
+                            <span class="wish-type">${typeNames[wish.type] || '其他愿望'}</span>
+                            <span class="wish-time">剩余<span class="days-left">${daysLeft}</span>天</span>
+                        </div>
+                        <div class="wish-content">
+                            <p class="wish-text">${wish.content}</p>
+                            <p class="wish-hidden">愿望已隐藏</p>
+                        </div>
+                        <div class="wish-meta">
+                            <div class="wish-bazi">
+                                <i class="fas fa-user-secret"></i> <span class="bazi-text">${wish.bazi}</span>
+                            </div>
+                            <div class="wish-stats">
+                                <span class="bless-count">${wish.blessings || 0}</span> 次加持
+                            </div>
+                        </div>
+                        <div class="wish-actions">
+                            <button class="btn-bless">
+                                <i class="fas fa-hands-helping"></i> 加持
+                            </button>
+                            <button class="btn-fulfill">
+                                <i class="fas fa-hand-holding-heart"></i> 还愿
+                            </button>
+                        </div>
+                        <div class="wish-energy">
+                            <div class="energy-level" data-level="${wish.level || 1}"></div>
+                        </div>
+                    `;
+                    
+                    // 添加事件监听
+                    const blessBtn = wishCard.querySelector('.btn-bless');
+                    blessBtn.addEventListener('click', () => handleBlessWish(wishCard, wish));
+                    
+                    const fulfillBtn = wishCard.querySelector('.btn-fulfill');
+                    fulfillBtn.addEventListener('click', () => handleFulfillWish(wish));
+                    
+                    // 添加到池中
+                    wishPool.appendChild(wishCard);
+                });
+            }
             
             // 更新分页信息
             function updatePagination(totalItems, perPage = 6) {
