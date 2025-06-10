@@ -1,22 +1,120 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>注册 / 登录</title>
+  <style>
+    body { font-family: sans-serif; max-width: 400px; margin: auto; padding: 1rem; }
+    h2 { text-align: center; }
+    form { display: flex; flex-direction: column; gap: 0.75rem; margin-top: 1rem; }
+    input, button { padding: 0.5rem; font-size: 1rem; }
+    #message { text-align: center; margin-top: 1rem; color: red; }
+    .toggle { text-align: center; margin-top: 1rem; color: blue; cursor: pointer; }
+  </style>
+</head>
 <body>
-  <form id="testForm">
-    <input type="text" id="name" name="name" placeholder="昵称" required />
+  <h2 id="formTitle">注册</h2>
+
+  <!-- 注册和登录表单 -->
+  <form id="userForm" novalidate>
+    <input type="text" name="name" placeholder="昵称" required />
     <input type="email" name="email" placeholder="邮箱" required />
     <input type="password" name="password" placeholder="密码" required />
-    <button type="submit">提交</button>
+    <button type="submit">注册</button>
   </form>
 
-  <button onclick="document.getElementById('name').style.display='none'; document.getElementById('name').removeAttribute('required');">
-    模拟登录模式（隐藏昵称）
-  </button>
+  <div class="toggle" id="toggleMode">已有账号？点击登录</div>
+  <div class="toggle" id="forgotPassword">忘记密码？</div>
+  <div id="message"></div>
 
   <script>
-    document.getElementById('testForm').addEventListener('submit', e => {
-      e.preventDefault();
-      alert('提交成功！');
+    let isLogin = false;
+
+    const form = document.getElementById('userForm');
+    const toggleMode = document.getElementById('toggleMode');
+    const forgotPassword = document.getElementById('forgotPassword');
+    const messageDiv = document.getElementById('message');
+    const title = document.getElementById('formTitle');
+    const nameInput = form.querySelector('input[name="name"]');
+    const submitBtn = form.querySelector('button[type="submit"]');
+
+    function toggleFormMode() {
+      isLogin = !isLogin;
+
+      if (isLogin) {
+        // 登录状态，隐藏昵称并去掉required
+        nameInput.style.display = 'none';
+        nameInput.removeAttribute('required');
+        nameInput.value = '';
+        submitBtn.textContent = '登录';
+        title.textContent = '登录';
+        toggleMode.textContent = '没有账号？点击注册';
+      } else {
+        // 注册状态，显示昵称并加上required
+        nameInput.style.display = 'block';
+        nameInput.setAttribute('required', 'required');
+        submitBtn.textContent = '注册';
+        title.textContent = '注册';
+        toggleMode.textContent = '已有账号？点击登录';
+      }
+      messageDiv.textContent = '';
+      messageDiv.style.color = 'red';
+    }
+
+    toggleMode.addEventListener('click', toggleFormMode);
+
+    forgotPassword.addEventListener('click', () => {
+      window.location.href = '/system/forgot.html';
     });
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      messageDiv.style.color = 'red';
+      messageDiv.textContent = '';
+
+      // 表单验证
+      if (!form.checkValidity()) {
+        messageDiv.textContent = '请完整填写必填字段。';
+        return;
+      }
+
+      const email = form.email.value.trim();
+      const password = form.password.value;
+      const name = isLogin ? null : form.name.value.trim();
+
+      const url = isLogin
+        ? 'https://bazi-backend.owenjass.workers.dev/api/login'
+        : 'https://bazi-backend.owenjass.workers.dev/api/register';
+
+      const payload = isLogin ? { email, password } : { name, email, password };
+
+      try {
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+          messageDiv.style.color = 'green';
+          messageDiv.textContent = isLogin ? '登录成功！' : '注册成功，请登录。';
+          form.reset();
+          if (!isLogin) {
+            toggleFormMode(); // 注册后自动切换到登录
+          }
+        } else {
+          messageDiv.textContent = data.error || '操作失败';
+        }
+      } catch (err) {
+        messageDiv.textContent = '网络错误，请稍后再试。';
+      }
+    });
+
+    // 初始化，默认注册状态
+    toggleFormMode();
   </script>
 </body>
 </html>
