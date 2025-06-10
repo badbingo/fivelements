@@ -198,31 +198,6 @@
       color: var(--success-color);
     }
     
-    .social-login {
-      display: flex;
-      justify-content: center;
-      margin: 20px 0;
-    }
-    
-    .social-icon {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      margin: 0 10px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background: white;
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-    
-    .social-icon:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-    }
-    
     @media (max-width: 480px) {
       .container {
         margin: 10px;
@@ -349,7 +324,7 @@
       }
     });
     
-    // 注册功能
+    // 注册功能 - 已修复邮箱唯一性约束问题
     document.getElementById("registerBtn").addEventListener("click", async function () {
       const name = document.getElementById("registerName").value.trim();
       const email = document.getElementById("registerEmail").value.trim();
@@ -387,11 +362,22 @@
         
         if (res.ok) {
           showMessage(messageEl, "注册成功! 请登录", "success");
+          // 清空注册表单
+          document.getElementById("registerName").value = "";
+          document.getElementById("registerEmail").value = "";
+          document.getElementById("registerPassword").value = "";
+          document.getElementById("registerConfirm").value = "";
+          
           setTimeout(() => {
             container.classList.remove('flipped');
           }, 1500);
         } else {
-          showMessage(messageEl, result.error || "注册失败", "error");
+          // 处理邮箱已存在的情况
+          if (result.error && result.error.includes("UNIQUE constraint failed: users.email")) {
+            showMessage(messageEl, "该邮箱已被注册，请使用其他邮箱", "error");
+          } else {
+            showMessage(messageEl, result.error || "注册失败", "error");
+          }
         }
       } catch (err) {
         console.error(err);
