@@ -1723,20 +1723,22 @@
                 document.getElementById('nextPage').disabled = currentPage >= totalPages;
             }
             
-            // 加持愿望处理
+            // 加持愿望处理（使用 JWT 验证）
             async function handleBlessWish(cardElement, wish) {
                 try {
-                    const user_id = localStorage.getItem('user_id');
-                    if (!user_id) {
-                        showErrorMessage('请先登录或设置用户信息');
+                    const token = localStorage.getItem('token');
+                    if (!token) {
+                        showErrorMessage('请先登录');
                         return;
                     }
             
                     // 发送加持请求到后端
                     const response = await fetch(`${API_URL}/bless/${wish.id}`, {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ user_id })
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        }
                     });
             
                     const result = await response.json();
@@ -1770,7 +1772,7 @@
                     showErrorMessage(error.message || '加持失败，请稍后重试');
                 }
             }
-            
+             
             // 还愿处理
             async function handleFulfillWish(wish) {
                 const modal = document.getElementById('fulfillModal');
