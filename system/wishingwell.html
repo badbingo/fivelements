@@ -1798,68 +1798,69 @@ function getTimeGan(dayGan, timeZhi) {
             }
             
             async function handleBlessWish(cardElement, wish) {
-  try {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      showErrorMessage('请先登录或设置用户信息');
-      return;
-    }
-
-    // 限制逻辑（1小时内只能加持一次）
-    const lastBlessStr = localStorage.getItem(`bless_${wish.id}`);
-    const lastBlessTime = lastBlessStr ? parseInt(lastBlessStr, 10) : 0;
-    const now = Date.now();
-    if (now - lastBlessTime < 3600000) {
-      showErrorMessage('一个小时内只能加持一次该愿望，请稍后再试');
-      return;
-    }
-
-    // 调用后端接口
-    const response = await fetch(`${API_URL}/bless/${wish.id}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`  // 关键：带上 token
-      },
-      // 有需要可以带请求体，这里你原先只是带 user_id，通常后端也能从 token 解出用户ID，这里可以不带
-      body: JSON.stringify({})
-    });
-
-    if (response.status === 401) {
-      showErrorMessage('登录已失效，请重新登录');
-      // 可跳转登录页
-      window.location.href = '/login.html';
-      return;
-    }
-
-    const result = await response.json();
-    if (!response.ok) {
-      throw new Error(result.error || '加持失败');
-    }
-
-    // 更新愿望数据和UI
-    wish.blessings = result.blessings;
-    wish.level = result.level;
-
-    localStorage.setItem(`bless_${wish.id}`, now.toString());
-
-    cardElement.querySelector('.bless-count').textContent = wish.blessings;
-    cardElement.dataset.level = wish.level;
-    cardElement.querySelector('.energy-level').style.width = `${wish.level * 20}%`;
-
-    cardElement.classList.add('level-up');
-    setTimeout(() => cardElement.classList.remove('level-up'), 1000);
-
-    const levelName = getLevelName(wish.level);
-    showSuccessMessage(`愿望能量提升至${levelName}！`);
-
-    renderWishes();
-
-  } catch (error) {
-    console.error('加持失败:', error);
-    showErrorMessage(error.message || '加持失败，请稍后重试');
-  }
-}
+              try {
+                // 检查用户是否登录
+                const token = localStorage.getItem('token');
+                if (!token) {
+                  showErrorMessage('请先登录以加持愿望');
+                  window.location.href = '/user.html'; // 跳转到登录页面
+                  return;
+                }
+            
+                // 限制逻辑（1小时内只能加持一次）
+                const lastBlessStr = localStorage.getItem(`bless_${wish.id}`);
+                const lastBlessTime = lastBlessStr ? parseInt(lastBlessStr, 10) : 0;
+                const now = Date.now();
+                if (now - lastBlessTime < 3600000) {
+                  showErrorMessage('一个小时内只能加持一次该愿望，请稍后再试');
+                  return;
+                }
+            
+                // 调用后端接口
+                const response = await fetch(`${API_URL}/bless/${wish.id}`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                  },
+                  body: JSON.stringify({})
+                });
+            
+                if (response.status === 401) {
+                  showErrorMessage('登录已失效，请重新登录');
+                  window.location.href = '/user.html';
+                  return;
+                }
+            
+                const result = await response.json();
+                if (!response.ok) {
+                  throw new Error(result.error || '加持失败');
+                }
+            
+                // 更新愿望数据和UI
+                wish.blessings = result.blessings;
+                wish.level = result.level;
+            
+                // 保存加持时间
+                localStorage.setItem(`bless_${wish.id}`, now.toString());
+            
+                cardElement.querySelector('.bless-count').textContent = wish.blessings;
+                cardElement.dataset.level = wish.level;
+                cardElement.querySelector('.energy-level').style.width = `${wish.level * 20}%`;
+            
+                cardElement.classList.add('level-up');
+                setTimeout(() => cardElement.classList.remove('level-up'), 1000);
+            
+                const levelName = getLevelName(wish.level);
+                showSuccessMessage(`愿望能量提升至${levelName}！`);
+            
+                renderWishes();
+            
+              } catch (error) {
+                console.error('加持失败:', error);
+                showErrorMessage(error.message || '加持失败，请稍后重试');
+              }
+            }
              
             // 还愿处理
             async function handleFulfillWish(wish) {
@@ -1989,349 +1990,5 @@ function getTimeGan(dayGan, timeZhi) {
             renderWishes();
         });
     </script>
-</body>
-</html>
-后端index.js代码
-function base64Encode(bytes) {
-  return btoa(String.fromCharCode(...bytes)).replace(/=+$/, '');
-}
-
-function base64Decode(base64) {
-  const binary = atob(base64);
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) {
-    bytes[i] = binary.charCodeAt(i);
-  }
-  return bytes;
-}
-
-const JWT_SECRET = 'your_jwt_secret_key';
-
-function generateJWT(payload) {
-  const header = { alg: 'HS256', typ: 'JWT' };
-  const encodedHeader = base64Encode(new TextEncoder().encode(JSON.stringify(header)));
-  const encodedPayload = base64Encode(new TextEncoder().encode(JSON.stringify(payload)));
-  // 注意：这里的签名方式简易，只是演示，生产建议用HMAC SHA256
-  const signature = base64Encode(new TextEncoder().encode(`${encodedHeader}.${encodedPayload}.${JWT_SECRET}`));
-  return `${encodedHeader}.${encodedPayload}.${signature}`;
-}
-
-function verifyJWT(token) {
-  const [encodedHeader, encodedPayload, signature] = token.split('.');
-  const expected = base64Encode(new TextEncoder().encode(`${encodedHeader}.${encodedPayload}.${JWT_SECRET}`));
-  if (signature !== expected) return null;
-  const payloadStr = new TextDecoder().decode(base64Decode(encodedPayload));
-  return JSON.parse(payloadStr);
-}
-
-async function hashPassword(password) {
-  const hash = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(password));
-  return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
-}
-
-async function sendResetEmail(toEmail, resetLink, env) {
-  const payload = {
-    personalizations: [{ to: [{ email: toEmail }], subject: "重设你的麦八字密码" }],
-    from: { email: "no-reply@owenjass.sendgrid.net", name: "麦八字" },
-    content: [{
-      type: "text/plain",
-      value: `点击以下链接重设你的密码：\n\n${resetLink}\n\n链接10分钟内有效。`
-    }]
-  };
-
-  const res = await fetch("https://api.sendgrid.com/v3/mail/send", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${env.SENDGRID_API_KEY}`,
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(payload)
-  });
-
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`SendGrid 错误：${res.status} - ${text}`);
-  }
-}
-
-export default {
-  async fetch(request, env, ctx) {
-    const { method } = request;
-    const url = new URL(request.url);
-
-    const corsHeaders = {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization'
-    };
-
-    if (method === 'OPTIONS') {
-      return new Response(null, { status: 204, headers: corsHeaders });
-    }
-
-    // 注册接口
-    if (url.pathname === '/api/register' && method === 'POST') {
-      const { name, email, password } = await request.json();
-      if (!name || !email || !password) {
-        return new Response(JSON.stringify({ error: '所有字段为必填' }), {
-          status: 400,
-          headers: { 'Content-Type': 'application/json', ...corsHeaders }
-        });
-      }
-      const hashed = await hashPassword(password);
-      const createdAt = Math.floor(Date.now() / 1000);
-      try {
-        await env.DB.prepare(`INSERT INTO users (name, email, password, created_at) VALUES (?, ?, ?, ?)`)
-          .bind(name, email, hashed, createdAt).run();
-        return new Response(JSON.stringify({ success: true }), {
-          headers: { 'Content-Type': 'application/json', ...corsHeaders }
-        });
-      } catch (err) {
-        return new Response(JSON.stringify({ error: '注册失败: ' + err.message }), {
-          status: 500,
-          headers: { 'Content-Type': 'application/json', ...corsHeaders }
-        });
-      }
-    }
-
-    // 登录接口
-    if (url.pathname === '/api/login' && method === 'POST') {
-      const { name, password } = await request.json();
-      const hashed = await hashPassword(password);
-      const user = await env.DB.prepare(`SELECT * FROM users WHERE name = ?`).bind(name).first();
-      if (!user || user.password !== hashed) {
-        return new Response(JSON.stringify({ error: '用户名或密码错误' }), {
-          status: 401,
-          headers: { 'Content-Type': 'application/json', ...corsHeaders }
-        });
-      }
-      const token = generateJWT({ id: user.id, name: user.name });
-      return new Response(JSON.stringify({ token }), {
-        headers: { 'Content-Type': 'application/json', ...corsHeaders }
-      });
-    }
-
-    // 请求重设密码接口
-    if (url.pathname === '/api/request-reset' && method === 'POST') {
-      const { email } = await request.json();
-      const user = await env.DB.prepare(`SELECT * FROM users WHERE email = ?`).bind(email).first();
-      if (!user) {
-        // 不暴露是否存在
-        return new Response(JSON.stringify({ success: true }), {
-          headers: { 'Content-Type': 'application/json', ...corsHeaders }
-        });
-      }
-      const token = generateJWT({ id: user.id, exp: Math.floor(Date.now() / 1000) + 600 }); // 10分钟有效
-      const link = `https://bazi.owenjass.com/reset-password.html?token=${token}`;
-      try {
-        await sendResetEmail(email, link, env);
-        return new Response(JSON.stringify({ success: true }), {
-          headers: { 'Content-Type': 'application/json', ...corsHeaders }
-        });
-      } catch (err) {
-        return new Response(JSON.stringify({ error: err.message }), {
-          status: 500,
-          headers: { 'Content-Type': 'application/json', ...corsHeaders }
-        });
-      }
-    }
-
-    // 提交新密码接口
-    if (url.pathname === '/api/reset-password' && method === 'POST') {
-      const { token, newPassword } = await request.json();
-      const payload = verifyJWT(token);
-      if (!payload || payload.exp < Math.floor(Date.now() / 1000)) {
-        return new Response(JSON.stringify({ error: '链接已过期或无效' }), {
-          status: 400,
-          headers: { 'Content-Type': 'application/json', ...corsHeaders }
-        });
-      }
-      const hashed = await hashPassword(newPassword);
-      await env.DB.prepare(`UPDATE users SET password = ? WHERE id = ?`).bind(hashed, payload.id).run();
-      return new Response(JSON.stringify({ success: true }), {
-        headers: { 'Content-Type': 'application/json', ...corsHeaders }
-      });
-    }
-
-    // 许愿池接口
-    if (url.pathname === '/api/wishes') {
-      try {
-        if (method === 'POST') {
-          const data = await request.json();
-          const {
-            user_name, bazi, content, type, visibility,
-            birth_date, birth_time, user_id, solar_date
-          } = data;
-
-          await env.DB.prepare(`
-            INSERT INTO wishes (user_name, bazi, content, type, visibility, birth_date, birth_time, user_id, solar_date)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-          `).bind(user_name, bazi, content, type, visibility, birth_date, birth_time, user_id, solar_date).run();
-
-          return new Response(JSON.stringify({ success: true }), {
-            headers: { 'Content-Type': 'application/json', ...corsHeaders }
-          });
-        }
-
-        if (method === 'GET') {
-          const { results } = await env.DB.prepare(`SELECT * FROM wishes ORDER BY id DESC`).all();
-          return new Response(JSON.stringify({ data: results }), {
-            headers: { 'Content-Type': 'application/json', ...corsHeaders }
-          });
-        }
-
-        return new Response('Method Not Allowed', { status: 405, headers: corsHeaders });
-      } catch (err) {
-        return new Response('Internal Error: ' + err.message, {
-          status: 500,
-          headers: { 'Content-Type': 'text/plain', ...corsHeaders }
-        });
-      }
-    }
-
-    // 删除愿望接口
-    if (url.pathname.startsWith('/api/wishes/') && method === 'DELETE') {
-      const id = url.pathname.split('/').pop();
-      try {
-        await env.DB.prepare(`DELETE FROM wishes WHERE id = ?`).bind(id).run();
-        return new Response(JSON.stringify({ success: true }), {
-          headers: { 'Content-Type': 'application/json', ...corsHeaders }
-        });
-      } catch (err) {
-        return new Response('Delete Error: ' + err.message, {
-          status: 500,
-          headers: { 'Content-Type': 'text/plain', ...corsHeaders }
-        });
-      }
-    }
-    // --- 简化版加持接口 ---
-    if (url.pathname.startsWith('/api/bless/') && method === 'POST') {
-        try {
-            const wishId = url.pathname.split('/').pop();
-            const token = getTokenFromHeader(request);
-            const user = verifyJWT(token);
-            
-            if (!user) {
-                return new Response(JSON.stringify({ error: '请先登录' }), { 
-                    status: 401,
-                    headers: { 'Content-Type': 'application/json', ...corsHeaders }
-                });
-            }
-
-            // 直接更新计数（频率限制由前端控制）
-            await env.DB.prepare(
-                `UPDATE wishes SET blessings_count = COALESCE(blessings_count, 0) + 1 
-                WHERE id = ?`
-            ).bind(wishId).run();
-
-            return new Response(JSON.stringify({ success: true }), {
-                headers: { 'Content-Type': 'application/json', ...corsHeaders }
-            });
-
-        } catch (err) {
-            return new Response(JSON.stringify({ error: '服务器错误' }), { 
-                status: 500,
-                headers: { 'Content-Type': 'application/json', ...corsHeaders }
-            });
-        }
-    }
-    // 其他路径404
-    return new Response('Not Found', { status: 404, headers: corsHeaders });
-  }
-};
-前端用户登录页面代码
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>用户登录</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 40px;
-      background: #f5f5f5;
-    }
-    .container {
-      max-width: 400px;
-      margin: 0 auto;
-      background: white;
-      padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    }
-    h2 {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    input {
-      width: 100%;
-      padding: 10px;
-      margin: 10px 0;
-      box-sizing: border-box;
-    }
-    button {
-      width: 100%;
-      padding: 10px;
-      background-color: #0078d7;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #005fa3;
-    }
-    .message {
-      text-align: center;
-      color: red;
-      margin-top: 10px;
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <h2>用户登录</h2>
-    <input type="text" id="name" placeholder="用户名" />
-    <input type="password" id="password" placeholder="密码" />
-    <button id="loginBtn">登录</button>
-    <div class="message" id="message"></div>
-  </div>
-
-  <script>
-    document.getElementById("loginBtn").addEventListener("click", async function () {
-      const name = document.getElementById("name").value.trim();
-      const password = document.getElementById("password").value;
-
-      const messageEl = document.getElementById("message");
-      messageEl.textContent = "";
-
-      if (!name || !password) {
-        messageEl.textContent = "用户名和密码必填";
-        return;
-      }
-
-      try {
-        const res = await fetch("https://bazi-backend.owenjass.workers.dev/api/login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name, password })
-        });
-
-        const result = await res.json();
-
-        if (res.ok && result.token) {
-          localStorage.setItem("token", result.token);
-          alert("登录成功");
-          window.location.href = "/system/wishingwell.html";
-        } else {
-          messageEl.textContent = result.error || "登录失败";
-        }
-      } catch (err) {
-        console.error(err);
-        messageEl.textContent = "网络错误，请稍后再试";
-      }
-    });
-  </script>
 </body>
 </html>
