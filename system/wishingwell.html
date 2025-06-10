@@ -1347,7 +1347,7 @@
         }
     });
 
-    // 能量强度图表
+    // 能量强度图表初始化（保持不变）
     const energyChart = new Chart(document.getElementById('energyChart'), {
         type: 'line',
         data: {
@@ -1384,7 +1384,7 @@
         }
     });
 
-    // 愿望类型图表
+    // 愿望类型图表初始化（保持不变）
     const wishTypeChart = new Chart(document.getElementById('wishTypeChart'), {
         type: 'doughnut',
         data: {
@@ -1452,20 +1452,31 @@
         }
     }
 
-    // 显示错误消息（简单alert，也可换成页面提示）
-    function showErrorMessage(msg) {
-        alert(msg);
+    // 计算剩余天数（假设愿望有效期30天）
+    function calculateDaysLeft(dateStr) {
+        if (!dateStr) return '-';
+        const created = new Date(dateStr);
+        const now = new Date();
+        const diff = 30 - Math.floor((now - created) / (1000 * 60 * 60 * 24));
+        return diff > 0 ? diff : 0;
     }
 
-    // 控制提交按钮状态
-    function setSubmitButtonState(isLoading) {
-        submitBtn.disabled = isLoading;
-        submitBtn.textContent = isLoading ? '提交中...' : '提交愿望';
+    // 防XSS转义
+    function escapeHTML(str) {
+        if (!str) return '';
+        return str.replace(/[&<>"']/g, function(m) {
+            return {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;'
+            }[m];
+        });
     }
 
     // 渲染愿望卡片
     function renderWishCards(wishes) {
-    try {
         if (!Array.isArray(wishes) || wishes.length === 0) {
             wishPool.innerHTML = '<p class="empty">暂无愿望，快来许愿吧！</p>';
             return;
@@ -1491,149 +1502,99 @@
             wishCard.innerHTML = `
                 <div class="wish-header">
                     <span class="wish-type">${typeNames[wish.type] || '其他愿望'}</span>
-                    <span class="wish-time">剩余<span class="days-left">${daysLeft}</span>天</span>
+                    <span class="wish-time">剩余 <span class="days-left">${daysLeft}</span> 天</span>
                 </div>
                 <div class="wish-content">
                     <p class="wish-text">${escapeHTML(wish.content)}</p>
-                    <p class="wish-hidden" style="display:none;">愿望已隐藏</p>
-                </div>
-                <div class="wish-meta">
-                    <div class="wish-bazi">
-                        <i class="fas fa-user-secret"></i> <span class="bazi-text">${escapeHTML(wish.bazi || '')}</span>
-                    </div>
-                    <div class="wish-stats">
-                        <span class="bless-count">${wish.blessings || 0}</span> 次加持
-                    </div>
-                </div>
-                <div class="wish-actions">
-                    <button class="btn-bless">
-                        <i class="fas fa-hands-helping"></i> 加持
-                    </button>
-                    <button class="btn-fulfill">
-                        <i class="fas fa-hand-holding-heart"></i> 还愿
-                    </button>
-                </div>
-                <div class="wish-energy">
-                    <div class="energy-level" data-level="${wish.level || 1}"></div>
+                    <p class="wish-bazi">${escapeHTML(wish.bazi || '')}</p>
                 </div>
             `;
 
-            const btnBless = wishCard.querySelector('.btn-bless');
-            btnBless.addEventListener('click', () => handleBlessWish(wish.id));
-
-            const btnFulfill = wishCard.querySelector('.btn-fulfill');
-            btnFulfill.addEventListener('click', () => handleFulfillWish(wish.id));
-
             wishPool.appendChild(wishCard);
         });
-    } catch (e) {
-        console.error('renderWishCards 错误:', e);
-        alert('渲染愿望时发生错误，请查看控制台');
-    }
-}
-
-    // 防止XSS的简单转义
-    function escapeHTML(str) {
-        if (!str) return '';
-        return str.replace(/[&<>"']/g, function(m) {
-            return ({
-                '&': '&amp;',
-                '<': '&lt;',
-                '>': '&gt;',
-                '"': '&quot;',
-                "'": '&#39;'
-            })[m];
-        });
     }
 
-        // 初始化时加载愿望池内容
-        renderWishes();
-        
-        async function renderWishes() {
-            try {
-                const response = await fetch(API_URL, { method: 'GET' });
-                if (!response.ok) throw new Error(`HTTP错误，状态码: ${response.status}`);
-        
-                const result = await response.json();
-        
-                const wishes = Array.isArray(result.data) ? result.data : [];
-        
-                renderWishCards(wishes);
-            } catch (error) {
-                console.error('加载愿望失败:', error);
-                wishPool.innerHTML = '<p class="error">加载愿望失败，请稍后重试。</p>';
-            }
+    // 从接口拉取愿望数据并渲染
+    async function renderWishes() {
+        try {
+            const res = await fetch(API_URL);
+            if (!res.ok) throw new Error('网络请求失败');
+            const data = await res.json();
+            renderWishCards(data);
+        } catch (err) {
+            wishPool.innerHTML = `<p class="error">加载愿望失败：${escapeHTML(err.message)}</p>`;
         }
+    }
 
     // 表单提交处理
-    async function handleSubmitWish(e) {
-        e.preventDefault();
+    async function handleSubmitWish(event) {
+        event.preventDefault();
 
-        const name = document.getElementById('name').value.trim() || '匿名用户';
+        const content = wishForm.querySelector('textarea[name="content"]').value.trim();
+        const type = wishForm.querySelector('select[name="type"]').value;
         const birthday = document.getElementById('birthday').value;
         const birthtime = document.getElementById('birthtime').value;
-        const content = document.getElementById('wishContent').value.trim();
 
-        if (!content || !birthday || !birthtime) {
-            showErrorMessage('请填写完整的愿望内容和出生信息');
+        if (!content) {
+            showErrorMessage('请填写愿望内容');
+            return;
+        }
+        if (!birthday) {
+            showErrorMessage('请选择生日');
+            return;
+        }
+        if (!birthtime) {
+            showErrorMessage('请选择出生时间');
             return;
         }
 
-        const wishType = document.getElementById('wishType').value;
-        const visibility = document.querySelector('input[name="visibility"]:checked').value;
-
-        const formData = {
-            content,
-            user_name: name,
-            birth_date: birthday,
-            birth_time: birthtime,
-            type: wishType,
-            visibility,
-            solar_date: new Date().toISOString().split('T')[0],
-            bazi: generateBazi(birthday, birthtime),
-            user_id: 'guest_' + Date.now()
-        };
-
         setSubmitButtonState(true);
 
+        // 生成八字字符串
+        const bazi = generateBazi(birthday, birthtime);
+
+        // 构造提交数据
+        const postData = {
+            content,
+            type,
+            birthday,
+            birthtime,
+            bazi,
+            created_at: new Date().toISOString()
+        };
+
         try {
-            console.log('[DEBUG] 提交数据:', formData);
-            console.log('[DEBUG] API URL:', API_URL);
-
-            // fetch请求带超时
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 10000);
-
             const res = await fetch(API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData),
-                signal: controller.signal
+                body: JSON.stringify(postData)
             });
-            clearTimeout(timeoutId);
+            if (!res.ok) throw new Error('提交失败');
 
-            if (!res.ok) throw new Error(`提交失败，状态码：${res.status}`);
+            // 提交成功，刷新愿望列表
+            await renderWishes();
 
-            const result = await res.json();
-            console.log('[DEBUG] 返回结果:', result);
-
-            // 提交成功，刷新愿望池，清空内容
-            renderWishes();
+            // 重置表单
             wishForm.reset();
             baziInfo.style.display = 'none';
 
-            alert('愿望提交成功！感谢您的参与。');
-
+            alert('愿望提交成功！');
         } catch (err) {
-            if (err.name === 'AbortError') {
-                showErrorMessage('请求超时，请稍后再试。');
-            } else {
-                showErrorMessage('提交失败，请检查网络或稍后重试。');
-            }
-            console.error('提交出错:', err);
+            showErrorMessage(err.message);
         } finally {
             setSubmitButtonState(false);
         }
+    }
+
+    // 简单错误提示
+    function showErrorMessage(msg) {
+        alert(msg);
+    }
+
+    // 控制提交按钮状态
+    function setSubmitButtonState(isLoading) {
+        submitBtn.disabled = isLoading;
+        submitBtn.textContent = isLoading ? '提交中...' : '提交愿望';
     }
 });
     </script>
