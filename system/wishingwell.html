@@ -1853,7 +1853,13 @@ function getTimeGan(dayGan, timeZhi) {
                 } else {
                   // 如果响应不成功，输出错误信息
                   console.error('加持失败，错误信息', responseText);
-                  throw new Error(result.error || '加持失败');
+                  try {
+                      const errorResult = JSON.parse(responseText); // 尝试解析错误信息
+                      throw new Error(errorResult.error || '加持失败');
+                  } catch (parseError) {
+                      // 如果解析错误信息失败，则抛出默认错误信息
+                      throw new Error('加持失败，请稍后重试');
+                  }
                 }
               } catch (error) {
                 console.error('加持失败:', error);
