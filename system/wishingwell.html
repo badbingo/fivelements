@@ -1465,74 +1465,71 @@
 
     // 渲染愿望卡片
     function renderWishCards(wishes) {
-    if (!Array.isArray(wishes) || wishes.length === 0) {
-        wishPool.innerHTML = '<p class="empty">暂无愿望，快来许愿吧！</p>';
-        return;
+    try {
+        if (!Array.isArray(wishes) || wishes.length === 0) {
+            wishPool.innerHTML = '<p class="empty">暂无愿望，快来许愿吧！</p>';
+            return;
+        }
+
+        wishPool.innerHTML = '';
+
+        const typeNames = {
+            romance: '姻缘感情',
+            wealth: '财富事业',
+            health: '健康平安',
+            study: '学业成长',
+            family: '家庭和睦',
+            other: '其他愿望'
+        };
+
+        wishes.slice().reverse().forEach(wish => {
+            const daysLeft = calculateDaysLeft(wish.solar_date || wish.created_at || wish.createdAt);
+
+            const wishCard = document.createElement('div');
+            wishCard.className = 'wish-card';
+
+            wishCard.innerHTML = `
+                <div class="wish-header">
+                    <span class="wish-type">${typeNames[wish.type] || '其他愿望'}</span>
+                    <span class="wish-time">剩余<span class="days-left">${daysLeft}</span>天</span>
+                </div>
+                <div class="wish-content">
+                    <p class="wish-text">${escapeHTML(wish.content)}</p>
+                    <p class="wish-hidden" style="display:none;">愿望已隐藏</p>
+                </div>
+                <div class="wish-meta">
+                    <div class="wish-bazi">
+                        <i class="fas fa-user-secret"></i> <span class="bazi-text">${escapeHTML(wish.bazi || '')}</span>
+                    </div>
+                    <div class="wish-stats">
+                        <span class="bless-count">${wish.blessings || 0}</span> 次加持
+                    </div>
+                </div>
+                <div class="wish-actions">
+                    <button class="btn-bless">
+                        <i class="fas fa-hands-helping"></i> 加持
+                    </button>
+                    <button class="btn-fulfill">
+                        <i class="fas fa-hand-holding-heart"></i> 还愿
+                    </button>
+                </div>
+                <div class="wish-energy">
+                    <div class="energy-level" data-level="${wish.level || 1}"></div>
+                </div>
+            `;
+
+            const btnBless = wishCard.querySelector('.btn-bless');
+            btnBless.addEventListener('click', () => handleBlessWish(wish.id));
+
+            const btnFulfill = wishCard.querySelector('.btn-fulfill');
+            btnFulfill.addEventListener('click', () => handleFulfillWish(wish.id));
+
+            wishPool.appendChild(wishCard);
+        });
+    } catch (e) {
+        console.error('renderWishCards 错误:', e);
+        alert('渲染愿望时发生错误，请查看控制台');
     }
-
-    // 清空容器
-    wishPool.innerHTML = '';
-
-    // 类型名称映射
-    const typeNames = {
-        romance: '姻缘感情',
-        wealth: '财富事业',
-        health: '健康平安',
-        study: '学业成长',
-        family: '家庭和睦',
-        other: '其他愿望'
-    };
-
-    // 反转数组，让最新愿望排前面
-    wishes.slice().reverse().forEach(wish => {
-        // 计算剩余天数（假设你有calculateDaysLeft函数）
-        const daysLeft = calculateDaysLeft(wish.solar_date || wish.created_at || wish.createdAt);
-
-        // 创建愿望卡容器
-        const wishCard = document.createElement('div');
-        wishCard.className = 'wish-card';
-
-        // 填充内容
-        wishCard.innerHTML = `
-            <div class="wish-header">
-                <span class="wish-type">${typeNames[wish.type] || '其他愿望'}</span>
-                <span class="wish-time">剩余<span class="days-left">${daysLeft}</span>天</span>
-            </div>
-            <div class="wish-content">
-                <p class="wish-text">${escapeHTML(wish.content)}</p>
-                <p class="wish-hidden" style="display:none;">愿望已隐藏</p>
-            </div>
-            <div class="wish-meta">
-                <div class="wish-bazi">
-                    <i class="fas fa-user-secret"></i> <span class="bazi-text">${escapeHTML(wish.bazi || '')}</span>
-                </div>
-                <div class="wish-stats">
-                    <span class="bless-count">${wish.blessings || 0}</span> 次加持
-                </div>
-            </div>
-            <div class="wish-actions">
-                <button class="btn-bless">
-                    <i class="fas fa-hands-helping"></i> 加持
-                </button>
-                <button class="btn-fulfill">
-                    <i class="fas fa-hand-holding-heart"></i> 还愿
-                </button>
-            </div>
-            <div class="wish-energy">
-                <div class="energy-level" data-level="${wish.level || 1}"></div>
-            </div>
-        `;
-
-        // 绑定按钮事件
-        const btnBless = wishCard.querySelector('.btn-bless');
-        btnBless.addEventListener('click', () => handleBlessWish(wish.id));
-
-        const btnFulfill = wishCard.querySelector('.btn-fulfill');
-        btnFulfill.addEventListener('click', () => handleFulfillWish(wish.id));
-
-        // 添加卡片到容器
-        wishPool.appendChild(wishCard);
-    });
 }
 
     // 防止XSS的简单转义
