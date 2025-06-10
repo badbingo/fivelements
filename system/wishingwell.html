@@ -1798,68 +1798,47 @@ function getTimeGan(dayGan, timeZhi) {
             }
             
             async function handleBlessWish(cardElement, wish) {
-  try {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      showErrorMessage('请先登录或设置用户信息');
-      return;
-    }
-
-    // 限制逻辑（1小时内只能加持一次）
-    const lastBlessStr = localStorage.getItem(`bless_${wish.id}`);
-    const lastBlessTime = lastBlessStr ? parseInt(lastBlessStr, 10) : 0;
-    const now = Date.now();
-    if (now - lastBlessTime < 3600000) {
-      showErrorMessage('一个小时内只能加持一次该愿望，请稍后再试');
-      return;
-    }
-
-    // 调用后端接口
-    const response = await fetch(`${API_URL}/bless/${wish.id}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`  // 关键：带上 token
-      },
-      // 有需要可以带请求体，这里你原先只是带 user_id，通常后端也能从 token 解出用户ID，这里可以不带
-      body: JSON.stringify({})
-    });
-
-    if (response.status === 401) {
-      showErrorMessage('登录已失效，请重新登录');
-      // 可跳转登录页
-      window.location.href = '/login.html';
-      return;
-    }
-
-    const result = await response.json();
-    if (!response.ok) {
-      throw new Error(result.error || '加持失败');
-    }
-
-    // 更新愿望数据和UI
-    wish.blessings = result.blessings;
-    wish.level = result.level;
-
-    localStorage.setItem(`bless_${wish.id}`, now.toString());
-
-    cardElement.querySelector('.bless-count').textContent = wish.blessings;
-    cardElement.dataset.level = wish.level;
-    cardElement.querySelector('.energy-level').style.width = `${wish.level * 20}%`;
-
-    cardElement.classList.add('level-up');
-    setTimeout(() => cardElement.classList.remove('level-up'), 1000);
-
-    const levelName = getLevelName(wish.level);
-    showSuccessMessage(`愿望能量提升至${levelName}！`);
-
-    renderWishes();
-
-  } catch (error) {
-    console.error('加持失败:', error);
-    showErrorMessage(error.message || '加持失败，请稍后重试');
-  }
-}
+              try {
+                // 1. 检查用户是否登录
+                const token = localStorage.getItem('token');
+                if (!token) {
+                  showErrorMessage('请先登录才能加持愿望');
+                  setTimeout(() => {
+                    window.location.href = 'user.html'; // 跳转到登录页
+                  }, 1500);
+                  return;
+                }
+            
+                // 2. 检查一小时内的加持限制
+                const lastBlessKey = `bless_${wish.id}`;
+                const lastBlessTime = localStorage.getItem(lastBlessKey);
+                const now = Date.now();
+                
+                if (lastBlessTime && now - parseInt(lastBlessTime) < 3600000) {
+                  const remainingMinutes = Math.ceil((3600000 - (now - parseInt(lastBlessTime))) / 60000);
+                  showErrorMessage(`请等待${remainingMinutes}分钟后再加持此愿望`);
+                  return;
+                }
+            
+                // 3. 调用加持接口
+                const response = await fetch(`${API_URL}/bless/${wish.id}`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                  }
+                });
+            
+                // 处理响应...
+                
+                // 4. 成功时记录加持时间
+                localStorage.setItem(lastBlessKey, now.toString());
+                
+              } catch (error) {
+                console.error('加持失败:', error);
+                showErrorMessage('加持失败，请稍后重试');
+              }
+            }
              
             // 还愿处理
             async function handleFulfillWish(wish) {
