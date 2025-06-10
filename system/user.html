@@ -69,52 +69,43 @@
     });
     
     form.addEventListener('submit', async (e) => {
-      e.preventDefault();
+  e.preventDefault();
+  messageDiv.style.color = 'red';
+  messageDiv.textContent = '';
 
-      messageDiv.style.color = 'red';
-      messageDiv.textContent = '';
+  const email = form.email.value.trim();
+  const password = form.password.value;
+  const name = form.name?.value.trim();
 
-      // 表单验证
-      if (!form.checkValidity()) {
-        messageDiv.textContent = '请完整填写必填字段。';
-        return;
-      }
+  const url = isLogin
+    ? 'https://bazi-backend.owenjass.workers.dev/api/login'
+    : 'https://bazi-backend.owenjass.workers.dev/api/register';
 
-      const email = form.email.value.trim();
-      const password = form.password.value;
-      const name = isLogin ? null : form.name.value.trim();
+  const payload = isLogin ? { email, password } : { name, email, password };
 
-      const url = isLogin
-        ? 'https://bazi-backend.owenjass.workers.dev/api/login'
-        : 'https://bazi-backend.owenjass.workers.dev/api/register';
-      
-    console.log('请求URL:', url);
-    console.log('请求负载:', payload);
-      
-      const payload = isLogin ? { email, password } : { name, email, password };
+  // 这两句放这里，保证url和payload是定义好的变量
+  console.log('请求URL:', url);
+  console.log('请求负载:', payload);
 
-      try {
-        const res = await fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        const data = await res.json();
-
-        if (res.ok && data.success) {
-          messageDiv.style.color = 'green';
-          messageDiv.textContent = isLogin ? '登录成功！' : '注册成功，请登录。';
-          form.reset();
-          if (!isLogin) {
-            toggleFormMode(); // 注册后自动切换到登录
-          }
-        } else {
-          messageDiv.textContent = data.error || '操作失败';
-        }
-      } catch (err) {
-        messageDiv.textContent = '网络错误，请稍后再试。';
-      }
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
     });
+    const data = await res.json();
+
+    if (res.ok && data.success) {
+      messageDiv.style.color = 'green';
+      messageDiv.textContent = isLogin ? '登录成功！' : '注册成功，请登录。';
+      form.reset();
+    } else {
+      messageDiv.textContent = data.error || '操作失败';
+    }
+  } catch (err) {
+    messageDiv.textContent = '网络错误，请稍后再试。';
+  }
+});
 
     // 初始化，默认注册状态
     toggleFormMode();
