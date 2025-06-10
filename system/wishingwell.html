@@ -1806,18 +1806,30 @@ function getTimeGan(dayGan, timeZhi) {
       return;
     }
 
-    const lastBlessStr = localStorage.getItem(`bless_${wish.id}`);
-    const lastBlessTime = lastBlessStr ? parseInt(lastBlessStr, 10) : 0;
+    // 频率限制检查（1小时内只能加持一次）
+    const lastBlessKey = `bless_${wish.id}`;
+    const lastBlessTime = localStorage.getItem(lastBlessKey);
     const now = Date.now();
-    if (now - lastBlessTime < 3600000) {
+    
+    if (lastBlessTime && (now - parseInt(lastBlessTime)) < 3600000) {
       showErrorMessage('一个小时内只能加持一次该愿望，请稍后再试');
       return;
     }
 
-    // 确认 API_URL 以及 wish.id
-    console.log(`Requesting: ${API_URL}/bless/${wish.id}`);
+    // 修正API路径（关键修复）
+    const correctedUrl = API_URL.replace('/api/wishes', '/api') + `/bless/${wish.id}`;
+    console.log('[加持调试] 请求URL:', correctedUrl);
+    console.log('[加持调试] 愿望ID:', wish.id);
+    console.log('[加持调试] 用户Token:', token.substring(0, 10) + '...');
 
-    const response = await fetch(`${API_URL}/bless/${wish.id}`, {
+    // 设置加载状态
+    const blessBtn = cardElement.querySelector('.btn-bless');
+    const originalBtnText = blessBtn.innerHTML;
+    blessBtn.disabled = true;
+    blessBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 加持中...';
+    
+    // 发送加持请求
+    const response = await fetch(correctedUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -1826,34 +1838,62 @@ function getTimeGan(dayGan, timeZhi) {
       body: JSON.stringify({})
     });
 
-    const responseText = await response.text(); 
-    console.log('Server Response:', responseText); 
-
+    // 处理响应
     if (response.ok) {
-      const result = JSON.parse(responseText);
+      const result = await response.json();
+      console.log('[加持调试] 响应数据:', result);
+      
+      // 验证响应数据结构
+      if (typeof result.blessings === 'undefined' || typeof result.level === 'undefined') {
+        throw new Error('服务器返回无效数据');
+      }
+      
+      // 更新愿望数据
       wish.blessings = result.blessings;
       wish.level = result.level;
 
-      localStorage.setItem(`bless_${wish.id}`, now.toString());
-      cardElement.querySelector('.bless-count').textContent = wish.blessings;
-      cardElement.dataset.level = wish.level;
-      cardElement.querySelector('.energy-level').style.width = `${wish.level * 20}%`;
+      // 更新UI
+      cardElement.querySelector('.bless-count').textContent = result.blessings;
+      cardElement.dataset.level = result.level;
       
+      // 更新能量条（根据1-5级显示不同比例）
+      const levelPercent = [20, 40, 60, 80, 100][result.level - 1] || 20;
+      cardElement.querySelector('.energy-level').style.width = `${levelPercent}%`;
+      
+      // 视觉反馈
       cardElement.classList.add('level-up');
       setTimeout(() => cardElement.classList.remove('level-up'), 1000);
       
-      const levelName = getLevelName(wish.level);
-      showSuccessMessage(`愿望能量提升至${levelName}！`);
+      // 成功提示
+      const levelNames = ['初愿', '小成', '中成', '大成', '圆满'];
+      const levelName = levelNames[result.level - 1] || '初愿';
+      showSuccessMessage(`愿望能量提升至${levelName}！当前加持次数: ${result.blessings}`);
 
-      renderWishes();
+      // 更新频率限制
+      localStorage.setItem(lastBlessKey, now.toString());
     } else {
-      console.error('加持请求失败，状态码:', response.status);
-      console.error('服务器返回的响应:', responseText);
-      throw new Error('加持失败，请稍后重试');
+      // 处理HTTP错误
+      const errorText = await response.text();
+      console.error('[加持错误] 状态码:', response.status);
+      console.error('[加持错误] 响应内容:', errorText);
+      
+      let errorMsg = '加持失败，请稍后重试';
+      if (response.status === 401) errorMsg = '身份验证失败，请重新登录';
+      if (response.status === 404) errorMsg = '愿望不存在或已被删除';
+      if (response.status === 429) errorMsg = '操作过于频繁，请稍后再试';
+      
+      throw new Error(`${errorMsg} (状态码: ${response.status})`);
     }
   } catch (error) {
-    console.error('加持失败:', error);
-    showErrorMessage(error.message || '加持失败，请稍后重试');
+    console.error('[加持异常]', error);
+    showErrorMessage(error.message);
+  } finally {
+    // 恢复按钮状态
+    const blessBtn = cardElement.querySelector('.btn-bless');
+    if (blessBtn) {
+      blessBtn.disabled = false;
+      blessBtn.innerHTML = '<i class="fas fa-hands-helping"></i> 加持';
+    }
   }
 }
              
