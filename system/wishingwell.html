@@ -1422,27 +1422,32 @@
             
             // 生成八字信息（模拟）
             function generateBazi(birthday, birthtime) {
-                if (!birthday || !birthtime) return '';
-                
-                try {
-                    // 解析出生日期
-                    const [year, month, day] = birthday.split('-').map(Number);
-                    
-                    // 解析出生时辰
-                    const hour = parseInt(birthtime.split('-')[0]);
-                    
-                    // 使用lunar.js计算八字
-                    const solar = Solar.fromYmdHms(year, month, day, hour, 0, 0);
-                    const lunar = solar.getLunar();
-                    const bazi = lunar.getEightChar();
-                    
-                    // 格式化为：年柱 月柱 日柱 时柱
-                    return `${bazi.getYear()} ${bazi.getMonth()} ${bazi.getDay()} ${bazi.getTime()}`;
-                } catch (e) {
-                    console.error('八字计算错误:', e);
-                    return '八字计算错误';
-                }
-            }
+    console.log('Calculating bazi for:', birthday, birthtime); // 调试日志
+    
+    if (!birthday || !birthtime) {
+        console.error('Missing birthday or birthtime');
+        return '缺少出生信息';
+    }
+    
+    try {
+        const [year, month, day] = birthday.split('-').map(Number);
+        const hour = parseInt(birthtime.split('-')[0]);
+        
+        console.log('Parsed datetime:', {year, month, day, hour}); // 调试日志
+        
+        const solar = Solar.fromYmdHms(year, month, day, hour, 0, 0);
+        const lunar = solar.getLunar();
+        const bazi = lunar.getEightChar();
+        
+        const result = `${bazi.getYear()} ${bazi.getMonth()} ${bazi.getDay()} ${bazi.getTime()}`;
+        console.log('Bazi result:', result); // 调试日志
+        
+        return result;
+    } catch (e) {
+        console.error('Bazi calculation error:', e);
+        return '八字计算错误';
+    }
+}
             
             // 当出生日期或时间变化时更新八字信息
             document.getElementById('birthday').addEventListener('change', updateBaziInfo);
