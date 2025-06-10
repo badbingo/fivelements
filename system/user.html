@@ -36,8 +36,8 @@
     .container {
       position: relative;
       width: 100%;
-      max-width: 450px;
-      min-height: 500px;
+      max-width: 500px;
+      min-height: 600px;
       margin: 20px;
       transition: all 0.8s cubic-bezier(0.68, -0.6, 0.32, 1.6);
       transform-style: preserve-3d;
@@ -55,7 +55,7 @@
       background: rgba(255, 255, 255, 0.9);
       border-radius: 20px;
       box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
-      padding: 40px;
+      padding: 50px 40px;
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -72,6 +72,7 @@
       text-align: center;
       margin-bottom: 30px;
       position: relative;
+      padding-top: 10px;
     }
     
     h2::after {
@@ -198,13 +199,72 @@
       color: var(--success-color);
     }
     
+    .forgot-password {
+      text-align: right;
+      margin-top: -10px;
+      margin-bottom: 15px;
+    }
+    
+    .forgot-password a {
+      color: #666;
+      font-size: 14px;
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+    
+    .forgot-password a:hover {
+      color: var(--primary-color);
+      text-decoration: underline;
+    }
+    
+    /* 忘记密码模态框样式 */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    .modal-content {
+      background: white;
+      padding: 30px;
+      border-radius: 15px;
+      width: 90%;
+      max-width: 450px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+      position: relative;
+    }
+    
+    .close-modal {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      font-size: 24px;
+      cursor: pointer;
+      color: #666;
+    }
+    
+    .close-modal:hover {
+      color: var(--error-color);
+    }
+    
     @media (max-width: 480px) {
       .container {
         margin: 10px;
       }
       
       .form-container {
-        padding: 30px 20px;
+        padding: 40px 20px;
+      }
+      
+      .modal-content {
+        padding: 20px;
       }
     }
   </style>
@@ -223,6 +283,10 @@
       <div class="input-group">
         <input type="password" id="loginPassword" placeholder=" " required />
         <label for="loginPassword">密码</label>
+      </div>
+      
+      <div class="forgot-password">
+        <a href="#" id="forgotPasswordLink">忘记密码?</a>
       </div>
       
       <button id="loginBtn">登录</button>
@@ -265,6 +329,24 @@
       </div>
       
       <div class="message" id="registerMessage"></div>
+    </div>
+  </div>
+
+  <!-- 忘记密码模态框 -->
+  <div class="modal" id="forgotPasswordModal">
+    <div class="modal-content">
+      <span class="close-modal" id="closeModal">&times;</span>
+      <h2>找回密码</h2>
+      <p style="margin-bottom: 20px; color: #666;">请输入您的注册邮箱，我们将发送密码重置链接</p>
+      
+      <div class="input-group">
+        <input type="email" id="forgotEmail" placeholder=" " required />
+        <label for="forgotEmail">注册邮箱</label>
+      </div>
+      
+      <button id="sendResetLink">发送重置链接</button>
+      
+      <div class="message" id="forgotMessage"></div>
     </div>
   </div>
 
@@ -324,7 +406,7 @@
       }
     });
     
-    // 注册功能 - 已修复邮箱唯一性约束问题
+    // 注册功能
     document.getElementById("registerBtn").addEventListener("click", async function () {
       const name = document.getElementById("registerName").value.trim();
       const email = document.getElementById("registerEmail").value.trim();
@@ -382,6 +464,72 @@
       } catch (err) {
         console.error(err);
         showMessage(messageEl, "网络错误，请稍后再试", "error");
+      }
+    });
+    
+    // 忘记密码功能
+    const forgotPasswordLink = document.getElementById('forgotPasswordLink');
+    const forgotPasswordModal = document.getElementById('forgotPasswordModal');
+    const closeModal = document.getElementById('closeModal');
+    
+    forgotPasswordLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      forgotPasswordModal.style.display = 'flex';
+    });
+    
+    closeModal.addEventListener('click', () => {
+      forgotPasswordModal.style.display = 'none';
+      document.getElementById('forgotMessage').classList.remove('show');
+    });
+    
+    // 点击模态框外部关闭
+    window.addEventListener('click', (e) => {
+      if (e.target === forgotPasswordModal) {
+        forgotPasswordModal.style.display = 'none';
+        document.getElementById('forgotMessage').classList.remove('show');
+      }
+    });
+    
+    // 发送重置链接
+    document.getElementById('sendResetLink').addEventListener('click', async function() {
+      const email = document.getElementById('forgotEmail').value.trim();
+      const messageEl = document.getElementById('forgotMessage');
+      
+      messageEl.textContent = '';
+      messageEl.classList.remove('show', 'error', 'success');
+      
+      if (!email) {
+        showMessage(messageEl, '请输入注册邮箱', 'error');
+        return;
+      }
+      
+      if (!validateEmail(email)) {
+        showMessage(messageEl, '请输入有效的电子邮箱', 'error');
+        return;
+      }
+      
+      try {
+        const res = await fetch('https://bazi-backend.owenjass.workers.dev/api/request-reset', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email })
+        });
+        
+        const result = await res.json();
+        
+        if (res.ok) {
+          showMessage(messageEl, '密码重置链接已发送到您的邮箱，请检查收件箱', 'success');
+          document.getElementById('forgotEmail').value = '';
+          setTimeout(() => {
+            forgotPasswordModal.style.display = 'none';
+            messageEl.classList.remove('show');
+          }, 3000);
+        } else {
+          showMessage(messageEl, result.error || '发送失败，请确认邮箱已注册', 'error');
+        }
+      } catch (err) {
+        console.error(err);
+        showMessage(messageEl, '网络错误，请稍后重试', 'error');
       }
     });
     
