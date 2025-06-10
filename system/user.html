@@ -50,8 +50,8 @@
 <body>
   <div class="container">
     <h2>用户登录</h2>
-    <input type="text" id="name" placeholder="用户名" />
-    <input type="password" id="password" placeholder="密码" />
+    <input type="text" id="name" placeholder="用户名" required />
+    <input type="password" id="password" placeholder="密码" required />
     <button id="loginBtn">登录</button>
     <div class="message" id="message"></div>
   </div>
@@ -78,12 +78,15 @@
 
         const result = await res.json();
 
-      // 在user.html的登录处理函数中
-      if (res.ok && result.token) {
-        localStorage.setItem("token", result.token);
-        // 跳转回愿望池页面
-        const redirectUrl = localStorage.getItem('redirectUrl') || '/wishingwell.html';
-        window.location.href = redirectUrl;
+        // 登录成功后处理
+        if (res.ok && result.token) {
+          localStorage.setItem("token", result.token);
+          // 跳转回愿望池页面
+          const redirectUrl = localStorage.getItem('redirectUrl') || '/wishingwell.html';
+          window.location.href = redirectUrl;
+
+          // 清除重定向地址
+          localStorage.removeItem('redirectUrl');
         } else {
           messageEl.textContent = result.error || "登录失败";
         }
@@ -92,6 +95,11 @@
         messageEl.textContent = "网络错误，请稍后再试";
       }
     });
+
+    // 在页面加载时，如果用户未登录并试图访问需要登录的页面，记下重定向地址
+    if (!localStorage.getItem("token")) {
+      localStorage.setItem('redirectUrl', window.location.pathname);
+    }
   </script>
 </body>
 </html>
