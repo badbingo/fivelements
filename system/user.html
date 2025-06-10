@@ -543,65 +543,24 @@
       const data = await response.json();
 
       if (response.ok) {
-  // 获取用户输入的邮箱
-  const userEmail = document.getElementById('forgotEmail').value;
-  
-  // 替换整个模态框内容
-  const modalContent = document.querySelector('#forgotPasswordContent');
-  modalContent.innerHTML = `
-    <div class="modal-header">
-      <h5>邮件已发送</h5>
-      <button type="button" class="btn-close" id="closeSuccessModal"></button>
-    </div>
-    <div class="modal-body text-center">
-      <div class="alert alert-success d-flex align-items-center">
-        <i class="bi bi-check-circle-fill me-2"></i>
-        <div>
-          <p class="mb-1">密码重置链接已发送至：</p>
-          <p class="fw-bold">${maskEmail(userEmail)}</p>
-          <p class="small text-muted">（请检查收件箱，包括垃圾邮件）</p>
-        </div>
-      </div>
-      <button class="btn btn-outline-primary mt-3" id="resendBtn">
-        <i class="bi bi-arrow-repeat me-1"></i>重新发送
-      </button>
-    </div>
-  `;
-
-  // 绑定新元素事件
-  document.getElementById('closeSuccessModal').addEventListener('click', closeModal);
-  document.getElementById('resendBtn').addEventListener('click', () => {
-    closeModal();
-    setTimeout(() => {
-      document.getElementById('forgotPasswordModal').classList.add('show');
-      document.getElementById('forgotEmail').value = userEmail;
-      document.getElementById('forgotEmail').focus();
-    }, 300);
-  });
-
-} else {
-  // 错误处理部分保持不变
-  let errorMsg = '发送失败，请重试';
-  if (data.error) {
-    if (data.error.includes('not found')) {
-      errorMsg = '该邮箱未注册';
-    } else if (data.error.includes('SendinBlue') || data.error.includes('Brevo')) {
-      errorMsg = '邮件服务暂时不可用，请联系管理员';
+        showAlert(forgotAlert, '密码重置链接已发送到您的邮箱，请检查收件箱', 'success');
+        document.getElementById('forgotEmail').value = '';
+      } else {
+        let errorMsg = '发送失败，请重试';
+        if (data.error) {
+          if (data.error.includes('not found')) {
+            errorMsg = '该邮箱未注册';
+          } else if (data.error.includes('SendinBlue') || data.error.includes('Brevo')) {
+            errorMsg = '邮件服务暂时不可用，请联系管理员';
+          }
+        }
+        showAlert(forgotAlert, errorMsg, 'danger');
+      }
+    } catch (error) {
+      console.error('密码重置请求错误:', error);
+      showAlert(forgotAlert, '网络错误，请稍后重试', 'danger');
     }
-  }
-  showAlert(forgotAlert, errorMsg, 'danger');
-}
-
-// 辅助函数
-function closeModal() {
-  document.getElementById('forgotPasswordModal').classList.remove('show');
-}
-
-function maskEmail(email) {
-  // 将 example@test.com 显示为 ex***@test.com
-  return email.replace(/(\w{2})([\w.-]+)(@[\w.-]+)/, (_, p1, __, p3) => `${p1}***${p3}`);
-}
-
+  });
 
   // 检查登录状态
   function checkLoginStatus() {
