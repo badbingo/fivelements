@@ -78,10 +78,12 @@
 
         const result = await res.json();
 
-        if (res.ok && result.token) {
-          localStorage.setItem("token", result.token);
-          alert("登录成功");
-          window.location.href = "/system/wishingwell.html";
+      // 在user.html的登录处理函数中
+      if (res.ok && result.token) {
+        localStorage.setItem("token", result.token);
+        // 跳转回愿望池页面
+        const redirectUrl = localStorage.getItem('redirectUrl') || '/wishingwell.html';
+        window.location.href = redirectUrl;
         } else {
           messageEl.textContent = result.error || "登录失败";
         }
