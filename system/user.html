@@ -1,118 +1,95 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>注册 / 登录</title>
+  <title>用户登录</title>
   <style>
-    body { font-family: sans-serif; max-width: 400px; margin: auto; padding: 1rem; }
-    h2 { text-align: center; }
-    form { display: flex; flex-direction: column; gap: 0.75rem; margin-top: 1rem; }
-    input, button { padding: 0.5rem; font-size: 1rem; }
-    #message { text-align: center; margin-top: 1rem; color: red; }
-    .toggle { text-align: center; margin-top: 1rem; color: blue; cursor: pointer; }
+    body {
+      font-family: Arial, sans-serif;
+      padding: 40px;
+      background: #f5f5f5;
+    }
+    .container {
+      max-width: 400px;
+      margin: 0 auto;
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      box-sizing: border-box;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      background-color: #0078d7;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #005fa3;
+    }
+    .message {
+      text-align: center;
+      color: red;
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
-  <h2 id="formTitle">注册</h2>
-
-  <!-- 注册和登录表单 -->
-  <form id="userForm" novalidate>
-    <input type="text" name="name" placeholder="昵称" required />
-    <input type="email" name="email" placeholder="邮箱" required />
-    <input type="password" name="password" placeholder="密码" required />
-    <button type="submit">注册</button>
-  </form>
-
-  <div class="toggle" id="toggleMode">已有账号？点击登录</div>
-  <div class="toggle" id="forgotPassword">忘记密码？</div>
-  <div id="message"></div>
+  <div class="container">
+    <h2>用户登录</h2>
+    <input type="text" id="name" placeholder="用户名" />
+    <input type="password" id="password" placeholder="密码" />
+    <button id="loginBtn">登录</button>
+    <div class="message" id="message"></div>
+  </div>
 
   <script>
-    let isLogin = false;
+    document.getElementById("loginBtn").addEventListener("click", async function () {
+      const name = document.getElementById("name").value.trim();
+      const password = document.getElementById("password").value;
 
-    const form = document.getElementById('userForm');
-    const toggleMode = document.getElementById('toggleMode');
-    const forgotPassword = document.getElementById('forgotPassword');
-    const messageDiv = document.getElementById('message');
-    const title = document.getElementById('formTitle');
-    const nameInput = form.querySelector('input[name="name"]');
-    const submitBtn = form.querySelector('button[type="submit"]');
+      const messageEl = document.getElementById("message");
+      messageEl.textContent = "";
 
-    function toggleFormMode() {
-      isLogin = !isLogin;
-
-      if (isLogin) {
-        // 登录状态，隐藏昵称并去掉required
-        nameInput.style.display = 'none';
-        nameInput.removeAttribute('required');
-        nameInput.value = '';
-        submitBtn.textContent = '登录';
-        title.textContent = '登录';
-        toggleMode.textContent = '没有账号？点击注册';
-      } else {
-        // 注册状态，显示昵称并加上required
-        nameInput.style.display = 'block';
-        nameInput.setAttribute('required', 'required');
-        submitBtn.textContent = '注册';
-        title.textContent = '注册';
-        toggleMode.textContent = '已有账号？点击登录';
+      if (!name || !password) {
+        messageEl.textContent = "用户名和密码必填";
+        return;
       }
-      messageDiv.textContent = '';
-      messageDiv.style.color = 'red';
-    }
 
-    toggleMode.addEventListener('click', toggleFormMode);
+      try {
+        const res = await fetch("https://bazi-backend.owenjass.workers.dev/api/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, password })
+        });
 
-    forgotPassword.addEventListener('click', () => {
-      window.location.href = '/system/forgot.html';
+        const result = await res.json();
+
+        if (res.ok && result.token) {
+          localStorage.setItem("token", result.token);
+          alert("登录成功");
+          window.location.href = "/system/wishingwell.html";
+        } else {
+          messageEl.textContent = result.error || "登录失败";
+        }
+      } catch (err) {
+        console.error(err);
+        messageEl.textContent = "网络错误，请稍后再试";
+      }
     });
-    
-    form.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  messageDiv.style.color = 'red';
-  messageDiv.textContent = '';
-
-  const email = form.email.value.trim();
-  const password = form.password.value;
-  const name = form.name?.value.trim();
-
-  const url = isLogin
-    ? 'https://bazi-backend.owenjass.workers.dev/api/login'
-    : 'https://bazi-backend.owenjass.workers.dev/api/register';
-
-  const payload = isLogin ? { email, password } : { name, email, password };
-
-  // 这两句放这里，保证url和payload是定义好的变量
-  console.log('请求URL:', url);
-  console.log('请求负载:', payload);
-
-  try {
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-    const data = await res.json();
-    
-    // 加这两行调试
-    console.log('响应状态:', res.status);
-    console.log('服务器返回:', data);
-    
-    if (res.ok && data.success) {
-      messageDiv.style.color = 'green';
-      messageDiv.textContent = isLogin ? '登录成功！' : '注册成功，请登录。';
-      form.reset();
-    } else {
-      messageDiv.textContent = data.error || '操作失败';
-    }
-  } catch (err) {
-    messageDiv.textContent = '网络错误，请稍后再试。';
-  }
-});
-
-    // 初始化，默认注册状态
-    toggleFormMode();
   </script>
 </body>
 </html>
