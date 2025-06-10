@@ -1,554 +1,562 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>用户登录/注册</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>用户中心 - 八字命理系统</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --primary-color: #6c5ce7;
-      --secondary-color: #a29bfe;
-      --accent-color: #fd79a8;
-      --dark-color: #2d3436;
-      --light-color: #f5f6fa;
-      --success-color: #00b894;
-      --error-color: #d63031;
+      --primary: #6c5ce7;
+      --primary-light: #a29bfe;
+      --secondary: #00b894;
+      --danger: #d63031;
+      --dark: #2d3436;
+      --light: #f5f6fa;
+      --gray: #636e72;
+      --border-radius: 8px;
+      --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
-    
+
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
     }
-    
+
     body {
-      font-family: 'Poppins', sans-serif;
-      min-height: 100vh;
-      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      font-family: 'Noto Sans SC', sans-serif;
+      background-color: #f8f9fa;
+      color: var(--dark);
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .auth-container {
       display: flex;
       justify-content: center;
       align-items: center;
-      perspective: 1000px;
-      overflow-x: hidden;
+      min-height: 100vh;
     }
-    
-    .container {
-      position: relative;
+
+    .auth-card {
+      background: white;
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
       width: 100%;
-      max-width: 500px;
-      min-height: 600px;
-      margin: 20px;
-      transition: all 0.8s cubic-bezier(0.68, -0.6, 0.32, 1.6);
-      transform-style: preserve-3d;
+      max-width: 450px;
+      padding: 40px;
+      transition: all 0.3s ease;
     }
-    
-    .container.flipped {
-      transform: rotateY(180deg);
-    }
-    
-    .form-container {
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      backface-visibility: hidden;
-      background: rgba(255, 255, 255, 0.9);
-      border-radius: 20px;
-      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
-      padding: 50px 40px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-    }
-    
-    .register-container {
-      transform: rotateY(180deg);
-      background: rgba(255, 255, 255, 0.95);
-    }
-    
-    h2 {
-      color: var(--dark-color);
-      font-weight: 600;
+
+    .auth-header {
       text-align: center;
       margin-bottom: 30px;
-      position: relative;
-      padding-top: 10px;
     }
-    
-    h2::after {
-      content: '';
-      position: absolute;
-      bottom: -10px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 50px;
-      height: 3px;
-      background: var(--primary-color);
-      border-radius: 3px;
+
+    .auth-header h2 {
+      color: var(--primary);
+      font-weight: 700;
+      margin-bottom: 10px;
     }
-    
-    .input-group {
-      position: relative;
-      margin-bottom: 25px;
+
+    .auth-header p {
+      color: var(--gray);
     }
-    
-    input {
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: var(--dark);
+    }
+
+    .form-control {
       width: 100%;
-      padding: 15px 20px;
-      border: none;
-      border-radius: 50px;
-      background: rgba(255, 255, 255, 0.8);
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+      padding: 12px 15px;
+      border: 1px solid #ddd;
+      border-radius: var(--border-radius);
       font-size: 16px;
-      transition: all 0.3s ease;
-      border: 1px solid transparent;
+      transition: border-color 0.3s;
     }
-    
-    input:focus {
+
+    .form-control:focus {
       outline: none;
-      border-color: var(--primary-color);
-      box-shadow: 0 5px 15px rgba(108, 92, 231, 0.2);
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.2);
     }
-    
-    label {
-      position: absolute;
-      top: 15px;
-      left: 20px;
-      color: #999;
-      font-weight: 300;
-      transition: all 0.3s ease;
-      pointer-events: none;
-    }
-    
-    input:focus + label,
-    input:not(:placeholder-shown) + label {
-      top: -10px;
-      left: 15px;
-      font-size: 12px;
-      background: white;
-      padding: 0 5px;
-      color: var(--primary-color);
-    }
-    
-    button {
-      width: 100%;
-      padding: 15px;
-      border: none;
-      border-radius: 50px;
-      background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+
+    .btn {
+      display: inline-block;
+      padding: 12px 24px;
+      background: var(--primary);
       color: white;
+      border: none;
+      border-radius: var(--border-radius);
       font-size: 16px;
       font-weight: 500;
       cursor: pointer;
-      transition: all 0.3s ease;
-      box-shadow: 0 5px 15px rgba(108, 92, 231, 0.4);
-      margin-top: 10px;
+      transition: all 0.3s;
+      width: 100%;
     }
-    
-    button:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 8px 20px rgba(108, 92, 231, 0.6);
+
+    .btn:hover {
+      background: #5649d6;
+      transform: translateY(-2px);
     }
-    
-    button:active {
-      transform: translateY(0);
+
+    .btn-secondary {
+      background: var(--secondary);
     }
-    
-    .toggle-form {
+
+    .btn-secondary:hover {
+      background: #00a884;
+    }
+
+    .text-center {
       text-align: center;
-      margin-top: 20px;
-      color: #666;
     }
-    
-    .toggle-form a {
-      color: var(--primary-color);
-      text-decoration: none;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-    
-    .toggle-form a:hover {
-      color: var(--accent-color);
-      text-decoration: underline;
-    }
-    
-    .message {
-      text-align: center;
+
+    .mt-3 {
       margin-top: 15px;
-      padding: 10px;
-      border-radius: 5px;
-      font-size: 14px;
-      opacity: 0;
-      transform: translateY(10px);
-      transition: all 0.3s ease;
     }
-    
-    .message.show {
-      opacity: 1;
-      transform: translateY(0);
+
+    .mt-4 {
+      margin-top: 20px;
     }
-    
-    .message.error {
-      background-color: rgba(214, 48, 49, 0.1);
-      color: var(--error-color);
-    }
-    
-    .message.success {
-      background-color: rgba(0, 184, 148, 0.1);
-      color: var(--success-color);
-    }
-    
-    .forgot-password {
-      text-align: right;
-      margin-top: -10px;
-      margin-bottom: 15px;
-    }
-    
-    .forgot-password a {
-      color: #666;
-      font-size: 14px;
+
+    .link {
+      color: var(--primary);
       text-decoration: none;
-      transition: color 0.3s ease;
+      cursor: pointer;
     }
-    
-    .forgot-password a:hover {
-      color: var(--primary-color);
+
+    .link:hover {
       text-decoration: underline;
     }
-    
-    /* 忘记密码模态框样式 */
-    .modal {
+
+    .alert {
+      padding: 12px 15px;
+      border-radius: var(--border-radius);
+      margin-bottom: 20px;
+      font-size: 14px;
+    }
+
+    .alert-danger {
+      background-color: rgba(214, 48, 49, 0.1);
+      color: var(--danger);
+      border: 1px solid rgba(214, 48, 49, 0.2);
+    }
+
+    .alert-success {
+      background-color: rgba(0, 184, 148, 0.1);
+      color: var(--secondary);
+      border: 1px solid rgba(0, 184, 148, 0.2);
+    }
+
+    .hidden {
       display: none;
+    }
+
+    /* 模态框样式 */
+    .modal {
       position: fixed;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
       background-color: rgba(0, 0, 0, 0.5);
-      z-index: 1000;
+      display: flex;
       justify-content: center;
       align-items: center;
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s;
     }
-    
+
+    .modal.show {
+      opacity: 1;
+      visibility: visible;
+    }
+
     .modal-content {
       background: white;
-      padding: 30px;
-      border-radius: 15px;
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
       width: 90%;
       max-width: 450px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-      position: relative;
+      padding: 30px;
+      transform: translateY(-20px);
+      transition: all 0.3s;
     }
-    
-    .close-modal {
-      position: absolute;
-      top: 15px;
-      right: 15px;
+
+    .modal.show .modal-content {
+      transform: translateY(0);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .modal-header h3 {
+      color: var(--primary);
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
       font-size: 24px;
       cursor: pointer;
-      color: #666;
+      color: var(--gray);
     }
-    
-    .close-modal:hover {
-      color: var(--error-color);
-    }
-    
-    @media (max-width: 480px) {
-      .container {
-        margin: 10px;
-      }
-      
-      .form-container {
-        padding: 40px 20px;
-      }
-      
-      .modal-content {
-        padding: 20px;
+
+    /* 响应式调整 */
+    @media (max-width: 576px) {
+      .auth-card {
+        padding: 30px 20px;
       }
     }
   </style>
 </head>
 <body>
-  <div class="container" id="container">
+  <div class="auth-container">
     <!-- 登录表单 -->
-    <div class="form-container login-container">
-      <h2>欢迎回来</h2>
-      
-      <div class="input-group">
-        <input type="text" id="loginName" placeholder=" " required />
-        <label for="loginName">用户名</label>
+    <div class="auth-card" id="loginCard">
+      <div class="auth-header">
+        <h2>用户登录</h2>
+        <p>请输入您的账号信息</p>
       </div>
-      
-      <div class="input-group">
-        <input type="password" id="loginPassword" placeholder=" " required />
-        <label for="loginPassword">密码</label>
+
+      <div id="loginAlert" class="alert hidden"></div>
+
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="loginUsername">用户名</label>
+          <input type="text" id="loginUsername" class="form-control" required>
+        </div>
+
+        <div class="form-group">
+          <label for="loginPassword">密码</label>
+          <input type="password" id="loginPassword" class="form-control" required>
+        </div>
+
+        <div class="form-group text-right">
+          <a href="#" class="link" id="forgotPasswordLink">忘记密码?</a>
+        </div>
+
+        <button type="submit" class="btn">登录</button>
+      </form>
+
+      <div class="text-center mt-4">
+        <span>还没有账号? </span>
+        <a href="#" class="link" id="showRegisterLink">立即注册</a>
       </div>
-      
-      <div class="forgot-password">
-        <a href="#" id="forgotPasswordLink">忘记密码?</a>
-      </div>
-      
-      <button id="loginBtn">登录</button>
-      
-      <div class="toggle-form">
-        还没有账号? <a id="showRegister">立即注册</a>
-      </div>
-      
-      <div class="message" id="loginMessage"></div>
     </div>
-    
+
     <!-- 注册表单 -->
-    <div class="form-container register-container">
-      <h2>创建账号</h2>
-      
-      <div class="input-group">
-        <input type="text" id="registerName" placeholder=" " required />
-        <label for="registerName">用户名</label>
+    <div class="auth-card hidden" id="registerCard">
+      <div class="auth-header">
+        <h2>用户注册</h2>
+        <p>创建您的个人账号</p>
       </div>
-      
-      <div class="input-group">
-        <input type="email" id="registerEmail" placeholder=" " required />
-        <label for="registerEmail">电子邮箱</label>
+
+      <div id="registerAlert" class="alert hidden"></div>
+
+      <form id="registerForm">
+        <div class="form-group">
+          <label for="registerUsername">用户名</label>
+          <input type="text" id="registerUsername" class="form-control" required>
+        </div>
+
+        <div class="form-group">
+          <label for="registerEmail">电子邮箱</label>
+          <input type="email" id="registerEmail" class="form-control" required>
+        </div>
+
+        <div class="form-group">
+          <label for="registerPassword">密码</label>
+          <input type="password" id="registerPassword" class="form-control" required>
+        </div>
+
+        <div class="form-group">
+          <label for="registerConfirmPassword">确认密码</label>
+          <input type="password" id="registerConfirmPassword" class="form-control" required>
+        </div>
+
+        <button type="submit" class="btn btn-secondary">注册</button>
+      </form>
+
+      <div class="text-center mt-4">
+        <span>已有账号? </span>
+        <a href="#" class="link" id="showLoginLink">立即登录</a>
       </div>
-      
-      <div class="input-group">
-        <input type="password" id="registerPassword" placeholder=" " required />
-        <label for="registerPassword">密码</label>
-      </div>
-      
-      <div class="input-group">
-        <input type="password" id="registerConfirm" placeholder=" " required />
-        <label for="registerConfirm">确认密码</label>
-      </div>
-      
-      <button id="registerBtn">注册</button>
-      
-      <div class="toggle-form">
-        已有账号? <a id="showLogin">立即登录</a>
-      </div>
-      
-      <div class="message" id="registerMessage"></div>
     </div>
   </div>
 
   <!-- 忘记密码模态框 -->
   <div class="modal" id="forgotPasswordModal">
     <div class="modal-content">
-      <span class="close-modal" id="closeModal">&times;</span>
-      <h2>找回密码</h2>
-      <p style="margin-bottom: 20px; color: #666;">请输入您的注册邮箱，我们将发送密码重置链接</p>
-      
-      <div class="input-group">
-        <input type="email" id="forgotEmail" placeholder=" " required />
-        <label for="forgotEmail">注册邮箱</label>
+      <div class="modal-header">
+        <h3>找回密码</h3>
+        <button class="close-btn" id="closeModal">&times;</button>
       </div>
-      
-      <button id="sendResetLink">发送重置链接</button>
-      
-      <div class="message" id="forgotMessage"></div>
+
+      <div id="forgotAlert" class="alert hidden"></div>
+
+      <p>请输入您的注册邮箱，我们将发送密码重置链接</p>
+
+      <div class="form-group mt-3">
+        <label for="forgotEmail">注册邮箱</label>
+        <input type="email" id="forgotEmail" class="form-control" required>
+      </div>
+
+      <button class="btn" id="sendResetBtn">发送重置链接</button>
     </div>
   </div>
 
   <script>
-    // 切换登录和注册表单
-    const container = document.getElementById('container');
-    const showRegister = document.getElementById('showRegister');
-    const showLogin = document.getElementById('showLogin');
-    
-    showRegister.addEventListener('click', () => {
-      container.classList.add('flipped');
-    });
-    
-    showLogin.addEventListener('click', () => {
-      container.classList.remove('flipped');
-    });
-    
-    // 登录功能
-    document.getElementById("loginBtn").addEventListener("click", async function () {
-      const name = document.getElementById("loginName").value.trim();
-      const password = document.getElementById("loginPassword").value;
-      
-      const messageEl = document.getElementById("loginMessage");
-      messageEl.textContent = "";
-      messageEl.classList.remove("show", "error", "success");
-      
-      if (!name || !password) {
-        showMessage(messageEl, "用户名和密码必填", "error");
-        return;
-      }
-      
-      try {
-        const res = await fetch("https://bazi-backend.owenjass.workers.dev/api/login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name, password })
-        });
-        
-        const result = await res.json();
-        
-        if (res.ok && result.token) {
-          localStorage.setItem("token", result.token);
-          showMessage(messageEl, "登录成功! 正在跳转...", "success");
-          
-          // 跳转回愿望池页面
-          setTimeout(() => {
-            const redirectUrl = localStorage.getItem('redirectUrl') || '/system/wishingwell.html';
-            window.location.href = redirectUrl;
-            localStorage.removeItem('redirectUrl');
-          }, 1000);
-        } else {
-          showMessage(messageEl, result.error || "登录失败", "error");
-        }
-      } catch (err) {
-        console.error(err);
-        showMessage(messageEl, "网络错误，请稍后再试", "error");
-      }
-    });
-    
-    // 注册功能
-    document.getElementById("registerBtn").addEventListener("click", async function () {
-      const name = document.getElementById("registerName").value.trim();
-      const email = document.getElementById("registerEmail").value.trim();
-      const password = document.getElementById("registerPassword").value;
-      const confirmPassword = document.getElementById("registerConfirm").value;
-      
-      const messageEl = document.getElementById("registerMessage");
-      messageEl.textContent = "";
-      messageEl.classList.remove("show", "error", "success");
-      
-      // 验证输入
-      if (!name || !email || !password || !confirmPassword) {
-        showMessage(messageEl, "所有字段都是必填的", "error");
-        return;
-      }
-      
-      if (password !== confirmPassword) {
-        showMessage(messageEl, "两次输入的密码不一致", "error");
-        return;
-      }
-      
-      if (!validateEmail(email)) {
-        showMessage(messageEl, "请输入有效的电子邮箱", "error");
-        return;
-      }
-      
-      try {
-        const res = await fetch("https://bazi-backend.owenjass.workers.dev/api/register", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name, email, password })
-        });
-        
-        const result = await res.json();
-        
-        if (res.ok) {
-          showMessage(messageEl, "注册成功! 请登录", "success");
-          // 清空注册表单
-          document.getElementById("registerName").value = "";
-          document.getElementById("registerEmail").value = "";
-          document.getElementById("registerPassword").value = "";
-          document.getElementById("registerConfirm").value = "";
-          
-          setTimeout(() => {
-            container.classList.remove('flipped');
-          }, 1500);
-        } else {
-          // 处理邮箱已存在的情况
-          if (result.error && result.error.includes("UNIQUE constraint failed: users.email")) {
-            showMessage(messageEl, "该邮箱已被注册，请使用其他邮箱", "error");
-          } else {
-            showMessage(messageEl, result.error || "注册失败", "error");
-          }
-        }
-      } catch (err) {
-        console.error(err);
-        showMessage(messageEl, "网络错误，请稍后再试", "error");
-      }
-    });
-    
-    // 忘记密码功能
+    // DOM元素
+    const loginCard = document.getElementById('loginCard');
+    const registerCard = document.getElementById('registerCard');
+    const showRegisterLink = document.getElementById('showRegisterLink');
+    const showLoginLink = document.getElementById('showLoginLink');
     const forgotPasswordLink = document.getElementById('forgotPasswordLink');
     const forgotPasswordModal = document.getElementById('forgotPasswordModal');
     const closeModal = document.getElementById('closeModal');
-    
+    const sendResetBtn = document.getElementById('sendResetBtn');
+
+    // 切换登录和注册表单
+    showRegisterLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      loginCard.classList.add('hidden');
+      registerCard.classList.remove('hidden');
+    });
+
+    showLoginLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      registerCard.classList.add('hidden');
+      loginCard.classList.remove('hidden');
+    });
+
+    // 显示忘记密码模态框
     forgotPasswordLink.addEventListener('click', (e) => {
       e.preventDefault();
-      forgotPasswordModal.style.display = 'flex';
+      forgotPasswordModal.classList.add('show');
     });
-    
+
+    // 关闭模态框
     closeModal.addEventListener('click', () => {
-      forgotPasswordModal.style.display = 'none';
-      document.getElementById('forgotMessage').classList.remove('show');
+      forgotPasswordModal.classList.remove('show');
     });
-    
+
     // 点击模态框外部关闭
-    window.addEventListener('click', (e) => {
+    forgotPasswordModal.addEventListener('click', (e) => {
       if (e.target === forgotPasswordModal) {
-        forgotPasswordModal.style.display = 'none';
-        document.getElementById('forgotMessage').classList.remove('show');
+        forgotPasswordModal.classList.remove('show');
       }
     });
-    
-    // 发送重置链接
-    document.getElementById('sendResetLink').addEventListener('click', async function() {
-      const email = document.getElementById('forgotEmail').value.trim();
-      const messageEl = document.getElementById('forgotMessage');
-      
-      messageEl.textContent = '';
-      messageEl.classList.remove('show', 'error', 'success');
-      
-      if (!email) {
-        showMessage(messageEl, '请输入注册邮箱', 'error');
+
+    // 显示消息函数
+    function showAlert(element, message, type) {
+      element.textContent = message;
+      element.classList.remove('hidden', 'alert-danger', 'alert-success');
+      element.classList.add(`alert-${type}`);
+      element.classList.remove('hidden');
+    }
+
+    // 登录表单提交
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const alertEl = document.getElementById('loginAlert');
+      alertEl.classList.add('hidden');
+
+      const username = document.getElementById('loginUsername').value.trim();
+      const password = document.getElementById('loginPassword').value;
+
+      if (!username || !password) {
+        showAlert(alertEl, '请输入用户名和密码', 'danger');
         return;
       }
-      
-      if (!validateEmail(email)) {
-        showMessage(messageEl, '请输入有效的电子邮箱', 'error');
-        return;
-      }
-      
+
       try {
-        const res = await fetch('https://bazi-backend.owenjass.workers.dev/api/request-reset', {
+        const response = await fetch('https://bazi-backend.owenjass.workers.dev/api/login', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email })
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            name: username,
+            password: password
+          })
         });
-        
-        const result = await res.json();
-        
-        if (res.ok) {
-          showMessage(messageEl, '密码重置链接已发送到您的邮箱，请检查收件箱', 'success');
-          document.getElementById('forgotEmail').value = '';
+
+        const data = await response.json();
+
+        if (response.ok) {
+          localStorage.setItem('token', data.token);
+          showAlert(alertEl, '登录成功! 正在跳转...', 'success');
+          
+          // 跳转到用户中心或之前访问的页面
           setTimeout(() => {
-            forgotPasswordModal.style.display = 'none';
-            messageEl.classList.remove('show');
+            const redirectUrl = localStorage.getItem('redirectUrl') || 'index.html';
+            window.location.href = redirectUrl;
+          }, 1000);
+        } else {
+          showAlert(alertEl, data.error || '登录失败', 'danger');
+        }
+      } catch (error) {
+        console.error('登录错误:', error);
+        showAlert(alertEl, '网络错误，请稍后再试', 'danger');
+      }
+    });
+
+    // 注册表单提交
+    document.getElementById('registerForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const alertEl = document.getElementById('registerAlert');
+      alertEl.classList.add('hidden');
+
+      const username = document.getElementById('registerUsername').value.trim();
+      const email = document.getElementById('registerEmail').value.trim();
+      const password = document.getElementById('registerPassword').value;
+      const confirmPassword = document.getElementById('registerConfirmPassword').value;
+
+      // 验证输入
+      if (!username || !email || !password || !confirmPassword) {
+        showAlert(alertEl, '所有字段都是必填的', 'danger');
+        return;
+      }
+
+      if (password !== confirmPassword) {
+        showAlert(alertEl, '两次输入的密码不一致', 'danger');
+        return;
+      }
+
+      // 简单邮箱验证
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        showAlert(alertEl, '请输入有效的电子邮箱', 'danger');
+        return;
+      }
+
+      try {
+        const response = await fetch('https://bazi-backend.owenjass.workers.dev/api/register', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            name: username,
+            email: email,
+            password: password
+          })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          showAlert(alertEl, '注册成功! 请登录', 'success');
+          // 清空表单
+          document.getElementById('registerForm').reset();
+          // 3秒后跳转到登录表单
+          setTimeout(() => {
+            registerCard.classList.add('hidden');
+            loginCard.classList.remove('hidden');
           }, 3000);
         } else {
-          showMessage(messageEl, result.error || '发送失败，请确认邮箱已注册', 'error');
+          // 处理邮箱已存在的情况
+          if (data.error && data.error.includes('UNIQUE constraint failed: users.email')) {
+            showAlert(alertEl, '该邮箱已被注册，请使用其他邮箱', 'danger');
+          } else {
+            showAlert(alertEl, data.error || '注册失败', 'danger');
+          }
         }
-      } catch (err) {
-        console.error(err);
-        showMessage(messageEl, '网络错误，请稍后重试', 'error');
+      } catch (error) {
+        console.error('注册错误:', error);
+        showAlert(alertEl, '网络错误，请稍后再试', 'danger');
       }
     });
-    
-    // 显示消息函数
-    function showMessage(element, text, type) {
-      element.textContent = text;
-      element.classList.add("show", type);
+
+    // 发送密码重置链接
+    sendResetBtn.addEventListener('click', async () => {
+      const alertEl = document.getElementById('forgotAlert');
+      alertEl.classList.add('hidden');
+
+      const email = document.getElementById('forgotEmail').value.trim();
+
+      if (!email) {
+        showAlert(alertEl, '请输入注册邮箱', 'danger');
+        return;
+      }
+
+      // 简单邮箱验证
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        showAlert(alertEl, '请输入有效的电子邮箱', 'danger');
+        return;
+      }
+
+      try {
+        const response = await fetch('https://bazi-backend.owenjass.workers.dev/api/request-reset', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            email: email,
+            provider: 'sendinblue' // 明确指定使用SendinBlue服务
+          })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          showAlert(alertEl, '密码重置链接已发送到您的邮箱，请检查收件箱', 'success');
+          document.getElementById('forgotEmail').value = '';
+          // 3秒后关闭模态框
+          setTimeout(() => {
+            forgotPasswordModal.classList.remove('show');
+            alertEl.classList.add('hidden');
+          }, 3000);
+        } else {
+          // 更友好的错误提示
+          let errorMsg = '发送失败，请重试';
+          if (data.error) {
+            if (data.error.includes('not found')) {
+              errorMsg = '该邮箱未注册';
+            } else if (data.error.includes('SendinBlue') || data.error.includes('Brevo')) {
+              errorMsg = '邮件服务暂时不可用，请联系管理员';
+            }
+          }
+          showAlert(alertEl, errorMsg, 'danger');
+        }
+      } catch (error) {
+        console.error('密码重置请求错误:', error);
+        showAlert(alertEl, '网络错误，请稍后重试', 'danger');
+      }
+    });
+
+    // 检查是否已登录
+    function checkLoginStatus() {
+      const token = localStorage.getItem('token');
+      if (token) {
+        window.location.href = 'index.html';
+      }
     }
-    
-    // 简单的邮箱验证
-    function validateEmail(email) {
-      const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      return re.test(email);
-    }
-    
-    // 在页面加载时，如果用户未登录并试图访问需要登录的页面，记下重定向地址
-    if (!localStorage.getItem("token")) {
-      localStorage.setItem('redirectUrl', window.location.pathname);
-    }
+
+    // 页面加载时检查登录状态
+    checkLoginStatus();
   </script>
 </body>
 </html>
