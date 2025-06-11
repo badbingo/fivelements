@@ -11,6 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="../js/lunar.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
     <style>
         :root {
@@ -63,53 +64,6 @@
             z-index: -1;
         }
 
-        /* 新增星空背景 */
-        .starfield {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -2;
-            overflow: hidden;
-        }
-
-        .star {
-            position: absolute;
-            background-color: #fff;
-            border-radius: 50%;
-            animation: twinkle var(--duration) infinite ease-in-out;
-        }
-
-        @keyframes twinkle {
-            0%, 100% { opacity: 0.2; transform: scale(0.8); }
-            50% { opacity: 1; transform: scale(1.2); }
-        }
-
-        /* 新增能量波纹效果 */
-        .energy-ripple {
-            position: fixed;
-            width: 100%;
-            height: 100%;
-            top: 0;
-            left: 0;
-            z-index: -1;
-            overflow: hidden;
-        }
-
-        .ripple-circle {
-            position: absolute;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(106, 17, 203, 0.1) 0%, transparent 70%);
-            transform: scale(0);
-            animation: ripple 15s infinite linear;
-        }
-
-        @keyframes ripple {
-            0% { transform: scale(0); opacity: 0.8; }
-            100% { transform: scale(3); opacity: 0; }
-        }
-
         .background-overlay {
             position: fixed;
             top: 0;
@@ -118,25 +72,6 @@
             height: 100%;
             background: radial-gradient(circle at center, rgba(106, 17, 203, 0.1) 0%, rgba(10, 10, 20, 0.9) 100%);
             z-index: -1;
-        }
-
-        /* 新增浮动能量球 */
-        .floating-orb {
-            position: fixed;
-            width: 300px;
-            height: 300px;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(106, 17, 203, 0.3) 0%, transparent 70%);
-            filter: blur(30px);
-            animation: floatOrb 20s infinite ease-in-out;
-            z-index: -1;
-        }
-
-        @keyframes floatOrb {
-            0%, 100% { transform: translate(0, 0); }
-            25% { transform: translate(50px, 50px); }
-            50% { transform: translate(100px, -30px); }
-            75% { transform: translate(-50px, 50px); }
         }
 
         .content-container {
@@ -164,28 +99,6 @@
             z-index: -1;
         }
 
-        /* 新增容器发光效果 */
-        .content-container::after {
-            content: '';
-            position: absolute;
-            top: -10px;
-            left: -10px;
-            right: -10px;
-            bottom: -10px;
-            border-radius: 30px;
-            background: linear-gradient(45deg, #6a11cb, #2575fc, #6a11cb);
-            z-index: -2;
-            opacity: 0.3;
-            filter: blur(20px);
-            animation: containerGlow 8s infinite alternate;
-        }
-
-        @keyframes containerGlow {
-            0% { opacity: 0.2; }
-            50% { opacity: 0.4; }
-            100% { opacity: 0.2; }
-        }
-
         .content-title {
             text-align: center;
             margin-bottom: 60px;
@@ -203,32 +116,6 @@
             clip-path: polygon(0 0, 100% 0, 95% 50%, 100% 100%, 5% 100%, 0 50%);
             margin-bottom: 20px;
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .content-title h1::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: linear-gradient(
-                to bottom right,
-                rgba(255, 255, 255, 0) 0%,
-                rgba(255, 255, 255, 0) 45%,
-                rgba(255, 255, 255, 0.3) 50%,
-                rgba(255, 255, 255, 0) 55%,
-                rgba(255, 255, 255, 0) 100%
-            );
-            transform: rotate(30deg);
-            animation: titleShine 6s infinite;
-        }
-
-        @keyframes titleShine {
-            0% { transform: translateX(-100%) rotate(30deg); }
-            100% { transform: translateX(100%) rotate(30deg); }
         }
 
         .content-title h1:hover {
@@ -276,13 +163,6 @@
         .section-header i {
             font-size: 1.8rem;
             color: var(--primary-color);
-            text-shadow: 0 0 10px rgba(106, 17, 203, 0.5);
-            animation: iconPulse 2s infinite ease-in-out;
-        }
-
-        @keyframes iconPulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
         }
 
         .section-header h2 {
@@ -313,29 +193,6 @@
             border: 1px solid var(--border-color);
             backdrop-filter: blur(5px);
             transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(
-                45deg,
-                rgba(255, 255, 255, 0.03) 0%,
-                rgba(255, 255, 255, 0) 50%,
-                rgba(255, 255, 255, 0.03) 100%
-            );
-            transform: translateX(-100%);
-            transition: transform 0.6s ease;
-        }
-
-        .card:hover::before {
-            transform: translateX(100%);
         }
 
         .card:hover {
@@ -393,19 +250,6 @@
 
         .mingyuan-intro .intro-text p {
             margin-bottom: 20px;
-            position: relative;
-            padding-left: 20px;
-        }
-
-        .mingyuan-intro .intro-text p::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 8px;
-            width: 8px;
-            height: 8px;
-            background: var(--primary-color);
-            border-radius: 50%;
         }
 
         .mingyuan-intro .intro-image {
@@ -417,19 +261,6 @@
             border-radius: 10px;
             padding: 20px;
             height: 250px;
-            position: relative;
-        }
-
-        .energy-chart::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: url('data:image/svg+xml;utf8,<svg width="20" height="20" xmlns="http://www.w3.org/2000/svg"><path d="M0 0 L20 20 M20 0 L0 20" stroke="rgba(106,17,203,0.1)" stroke-width="0.5"/></svg>');
-            opacity: 0.3;
-            z-index: 0;
         }
 
         .wish-levels {
@@ -518,7 +349,6 @@
 
         .form-group {
             margin-bottom: 25px;
-            position: relative;
         }
 
         label {
@@ -560,22 +390,6 @@
             box-shadow: 0 0 0 2px rgba(106, 17, 203, 0.3);
         }
 
-        /* 新增输入框动画效果 */
-        .form-group::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 0;
-            height: 2px;
-            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
-            transition: width 0.3s ease;
-        }
-
-        .form-group:focus-within::after {
-            width: 100%;
-        }
-
         .form-hint {
             font-size: 0.85rem;
             color: var(--text-dark);
@@ -601,11 +415,6 @@
             border-radius: 50%;
             display: inline-block;
             position: relative;
-            transition: all 0.3s ease;
-        }
-
-        .radio-option:hover .radio-custom {
-            box-shadow: 0 0 10px rgba(106, 17, 203, 0.5);
         }
 
         .radio-option input[type="radio"] {
@@ -621,13 +430,6 @@
             height: 10px;
             background: var(--primary-color);
             border-radius: 50%;
-            animation: radioPulse 0.5s ease;
-        }
-
-        @keyframes radioPulse {
-            0% { transform: scale(0); }
-            70% { transform: scale(1.2); }
-            100% { transform: scale(1); }
         }
 
         .form-actions {
@@ -649,35 +451,11 @@
             display: inline-flex;
             align-items: center;
             gap: 10px;
-            position: relative;
-            overflow: hidden;
-            z-index: 1;
-        }
-
-        .btn-mingyuan::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, var(--secondary-color) 0%, var(--primary-color) 100%);
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            z-index: -1;
         }
 
         .btn-mingyuan:hover {
             transform: translateY(-3px);
             box-shadow: 0 8px 25px rgba(106, 17, 203, 0.4);
-        }
-
-        .btn-mingyuan:hover::before {
-            opacity: 1;
-        }
-
-        .btn-mingyuan:active {
-            transform: translateY(1px);
         }
 
         .filter-controls {
@@ -693,17 +471,6 @@
             padding: 8px 15px;
             border-radius: 6px;
             font-family: inherit;
-            transition: all 0.3s ease;
-        }
-
-        .filter-controls select:hover {
-            border-color: rgba(106, 17, 203, 0.5);
-        }
-
-        .filter-controls select:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 2px rgba(106, 17, 203, 0.3);
         }
 
         .wish-pool {
@@ -714,6 +481,7 @@
         }
 
         .wish-card {
+            /* 保持原有卡片样式不变 */
             background: var(--level-1);
             border-radius: 10px;
             padding: 20px;
@@ -723,48 +491,63 @@
             border: 1px solid var(--border-color);
             display: flex;
             flex-direction: column;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
         }
-
+        
+        /* 背景图容器 - 调整到最底层 */
         .wish-card::before {
             content: '';
             position: absolute;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
-            background-image: url('data:image/svg+xml;utf8,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><path d="M0 0 L100 100 M100 0 L0 100" stroke="rgba(255,255,255,0.05)" stroke-width="0.5"/></svg>');
-            opacity: 0.1;
+            width: 100%; /* 恢复原始宽度 */
+            height: 100%; /* 恢复原始高度 */
+            background-image: url('../images/6bg.gif');
+            background-position: center;
+            background-repeat: no-repeat;
+            opacity: 0.01; /* 99%透明度（仅1%可见）*/
             z-index: 0;
             pointer-events: none;
         }
-
+        
+        /* 确保所有内容在背景之上 */
+        .wish-card > * {
+            position: relative;
+            z-index: 1; /* 内容层级高于背景 */
+        }
+        
+        /* 卡片底色微调 */
+        .wish-card[data-level="1"] { background: rgba(20, 20, 30, 0.95); }
+        /* 其他等级颜色保持原有样式... */
+        
         .wish-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 10px 30px rgba(106, 17, 203, 0.2);
         }
-
+        
+        /* 卡片内容容器 - 确保在背景之上 */
+        .wish-card-content {
+            position: relative;
+            z-index: 1; /* 高于背景图 */
+        }
+        
         /* 不同等级的卡片底色 */
-        .wish-card[data-level="1"] { 
-            background: rgba(20, 20, 30, 0.9);
-            border: 1px solid rgba(106, 17, 203, 0.3);
-        }
-        .wish-card[data-level="2"] { 
-            background: rgba(26, 58, 95, 0.9);
-            border: 1px solid rgba(37, 117, 252, 0.3);
-        }
-        .wish-card[data-level="3"] { 
-            background: rgba(93, 64, 55, 0.9);
-            border: 1px solid rgba(211, 84, 0, 0.3);
-        }
-        .wish-card[data-level="4"] { 
-            background: rgba(127, 0, 0, 0.9);
-            border: 1px solid rgba(192, 57, 43, 0.3);
-        }
+        .wish-card[data-level="1"] { background: rgba(20, 20, 30, 0.9); }
+        .wish-card[data-level="2"] { background: rgba(26, 58, 95, 0.9); }
+        .wish-card[data-level="3"] { background: rgba(93, 64, 55, 0.9); }
+        .wish-card[data-level="4"] { background: rgba(127, 0, 0, 0.9); }
         .wish-card[data-level="5"] { 
             background: linear-gradient(135deg, rgba(255, 215, 0, 0.9), rgba(218, 165, 32, 0.9));
-            border: 1px solid rgba(241, 196, 15, 0.3);
         }
+        
+        /* 确保所有交互元素在背景之上 */
+        .wish-card > *,
+        .wish-card .wish-btn,
+        .wish-card .wish-text {
+            position: relative;
+            z-index: 2; /* 高于背景和内容容器 */
+        }
+        
+
 
         .wish-card.level-up {
             animation: levelUp 1s ease;
@@ -788,21 +571,10 @@
             padding: 3px 10px;
             border-radius: 20px;
             color: var(--text-light);
-            transition: all 0.3s ease;
-        }
-
-        .wish-card:hover .wish-type {
-            background: rgba(106, 17, 203, 0.4);
-            color: white;
         }
 
         .wish-time {
             color: var(--text-dark);
-            transition: all 0.3s ease;
-        }
-
-        .wish-card:hover .wish-time {
-            color: var(--text-light);
         }
 
         .wish-content {
@@ -866,8 +638,6 @@
             justify-content: center;
             gap: 8px;
             font-size: 0.95rem;
-            position: relative;
-            overflow: hidden;
         }
 
         .btn-bless {
@@ -889,31 +659,6 @@
         .btn-fulfill:hover {
             background: rgba(37, 117, 252, 0.5);
             color: white;
-        }
-
-        /* 新增按钮波纹效果 */
-        .btn-bless::after, .btn-fulfill::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 5px;
-            height: 5px;
-            background: rgba(255, 255, 255, 0.5);
-            opacity: 0;
-            border-radius: 100%;
-            transform: scale(1, 1) translate(-50%);
-            transform-origin: 50% 50%;
-        }
-
-        .btn-bless:focus:not(:active)::after,
-        .btn-fulfill:focus:not(:active)::after {
-            animation: ripple 1s ease-out;
-        }
-
-        @keyframes ripple {
-            0% { transform: scale(0, 0); opacity: 0.5; }
-            100% { transform: scale(20, 20); opacity: 0; }
         }
 
         .wish-energy {
@@ -1015,35 +760,6 @@
             background: rgba(0, 0, 0, 0.3);
             border-radius: 10px;
             margin-bottom: 15px;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 5px 15px rgba(106, 17, 203, 0.2);
-        }
-
-        .stat-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(
-                45deg,
-                rgba(255, 255, 255, 0.03) 0%,
-                rgba(255, 255, 255, 0) 50%,
-                rgba(255, 255, 255, 0.03) 100%
-            );
-            transform: translateX(-100%);
-            transition: transform 0.6s ease;
-        }
-
-        .stat-card:hover::before {
-            transform: translateX(100%);
         }
 
         .stat-value {
@@ -1053,7 +769,6 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             margin-bottom: 5px;
-            position: relative;
         }
 
         .stat-label {
@@ -1253,242 +968,6 @@
             100% { transform: scale(1); opacity: 0.7; }
         }
 
-        /* 升级版六字真言全屏特效 */
-        .mantra-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(circle at center, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.95) 100%);
-            z-index: 9999;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.8s ease-out;
-            overflow: hidden;
-        }
-
-        .mantra-overlay.active {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        .mantra-container {
-            position: relative;
-            width: 90%;
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-        
-        .mantra-row {
-            display: flex;
-            justify-content: center;
-            width: 100%;
-        }
-        
-        .mantra-text {
-            font-size: 8vw;
-            font-weight: 900;
-            color: transparent;
-            background: linear-gradient(45deg, 
-                #6a11cb 0%, #2575fc 20%, 
-                #00b894 40%, #fdcb6e 60%, 
-                #e17055 80%, #6a11cb 100%);
-            background-size: 400% 400%;
-            -webkit-background-clip: text;
-            background-clip: text;
-            animation: mantraGradient 6s ease infinite, 
-                       mantraFloat 4s ease-in-out infinite alternate;
-            text-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
-            margin: 15px 0;
-            position: relative;
-            z-index: 2;
-            opacity: 0;
-            transform: translateY(30px) scale(0.9);
-            filter: drop-shadow(0 0 10px currentColor);
-        }
-        
-        /* 响应式调整 - 小屏幕时缩小字号和间距 */
-        @media (max-width: 768px) {
-            .mantra-text {
-                font-size: 8vw;
-                margin: 0 0.5vw;
-            }
-        }
-        
-        .mantra-text.active {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-        }
-
-        @keyframes mantraGradient {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
-        @keyframes mantraFloat {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-15px); }
-        }
-        
-        .mantra-particle {
-            position: absolute;
-            width: 15px;
-            height: 15px;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(106,17,203,0.8) 70%);
-            pointer-events: none;
-            z-index: 1;
-            box-shadow: 0 0 15px 5px rgba(106, 17, 203, 0.5);
-        }
-        
-        .mantra-symbol {
-            position: absolute;
-            font-size: 4rem;
-            opacity: 0;
-            z-index: 0;
-            color: rgba(255,255,255,0.15);
-            filter: drop-shadow(0 0 5px rgba(106, 17, 203, 0.7));
-        }
-        
-        .mantra-beam {
-            position: absolute;
-            width: 2px;
-            height: 100%;
-            background: linear-gradient(to top, 
-                transparent 0%, 
-                rgba(106, 17, 203, 0.5) 30%, 
-                transparent 100%);
-            top: 0;
-            z-index: 0;
-            animation: beamScan 8s linear infinite;
-        }
-        
-        .mantra-circle {
-            position: absolute;
-            border: 2px solid rgba(106, 17, 203, 0.5);
-            border-radius: 50%;
-            animation: circlePulse 6s ease-out infinite;
-        }
-        
-        @keyframes mantraFloatIn {
-            0% { transform: translateY(50px) rotate(5deg); opacity: 0; }
-            100% { transform: translateY(0) rotate(0); opacity: 1; }
-        }
-        
-        @keyframes mantraParticle {
-            0% { transform: translateY(0) scale(1); opacity: 1; }
-            100% { transform: translateY(-100vh) scale(0.3); opacity: 0; }
-        }
-        
-        @keyframes beamScan {
-            0% { transform: rotate(0deg); left: 0; }
-            100% { transform: rotate(360deg); left: 100%; }
-        }
-        
-        @keyframes circlePulse {
-            0% { transform: scale(0.5); opacity: 0; }
-            50% { opacity: 0.7; }
-            100% { transform: scale(3); opacity: 0; }
-        }
-        
-        @keyframes symbolFloat {
-            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
-            20% { opacity: 0.3; }
-            80% { opacity: 0.3; }
-            100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; }
-        }
-
-        /* 新增愿望卡片浮动效果 */
-        @keyframes floatCard {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
-
-        .wish-card:nth-child(odd) {
-            animation: floatCard 8s ease-in-out infinite;
-        }
-
-        .wish-card:nth-child(even) {
-            animation: floatCard 8s ease-in-out infinite reverse;
-        }
-
-        /* 新增愿望卡片边框动画 */
-        .wish-card::after {
-            content: '';
-            position: absolute;
-            top: -2px;
-            left: -2px;
-            right: -2px;
-            bottom: -2px;
-            border-radius: 12px;
-            border: 2px solid transparent;
-            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color)) border-box;
-            -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
-            -webkit-mask-composite: destination-out;
-            mask-composite: exclude;
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .wish-card:hover::after {
-            opacity: 0.5;
-        }
-
-        /* 新增愿望卡片内容区域 */
-        .wish-card-content {
-            position: relative;
-            z-index: 1;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-        }
-
-        /* 新增愿望卡片背景图案 */
-        .wish-card-bg {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            opacity: 0.05;
-            background-image: url('data:image/svg+xml;utf8,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><path d="M0 0 L100 100 M100 0 L0 100" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/></svg>');
-            z-index: 0;
-        }
-
-        /* 新增愿望卡片悬浮效果 */
-        .wish-card:hover .wish-card-bg {
-            animation: bgScroll 30s linear infinite;
-        }
-
-        @keyframes bgScroll {
-            0% { background-position: 0 0; }
-            100% { background-position: 100px 100px; }
-        }
-
-        /* 新增愿望卡片能量条动画 */
-        .energy-level::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(90deg, 
-                rgba(255,255,255,0.1) 0%, 
-                rgba(255,255,255,0.3) 50%, 
-                rgba(255,255,255,0.1) 100%);
-            animation: shine 2s infinite;
-        }
-
         @media (max-width: 992px) {
             .content-container {
                 padding: 40px;
@@ -1675,20 +1154,176 @@
         .btn-confirm:hover {
             background: var(--secondary-color);
         }
+
+        /* 升级版六字真言全屏特效 */
+    /* 横向排列六字真言特效 */
+.mantra-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at center, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.95) 100%);
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.8s ease-out;
+    overflow: hidden;
+}
+
+.mantra-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+    
+    .mantra-container {
+        position: relative;
+        width: 90%;
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+    
+    .mantra-row {
+        display: flex;
+        justify-content: center;
+        width: 100%;
+    }
+    
+    .mantra-text {
+    font-size: 8vw;
+    font-weight: 900;
+    color: transparent;
+    background: linear-gradient(45deg, 
+        #6a11cb 0%, #2575fc 20%, 
+        #00b894 40%, #fdcb6e 60%, 
+        #e17055 80%, #6a11cb 100%);
+    background-size: 400% 400%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    animation: mantraGradient 6s ease infinite, 
+               mantraFloat 4s ease-in-out infinite alternate;
+    text-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+    margin: 15px 0;
+    position: relative;
+    z-index: 2;
+    opacity: 0;
+    transform: translateY(30px) scale(0.9);
+    filter: drop-shadow(0 0 10px currentColor);
+}
+    
+    /* 响应式调整 - 小屏幕时缩小字号和间距 */
+    @media (max-width: 768px) {
+        .mantra-text {
+            font-size: 8vw;
+            margin: 0 0.5vw;
+        }
+    }
+    
+.mantra-text.active {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+
+        @keyframes mantraGradient {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+@keyframes mantraFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-15px); }
+}
+    
+    .mantra-particle {
+        position: absolute;
+        width: 15px;
+        height: 15px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(106,17,203,0.8) 70%);
+        pointer-events: none;
+        z-index: 1;
+        box-shadow: 0 0 15px 5px rgba(106, 17, 203, 0.5);
+    }
+    
+    .mantra-symbol {
+        position: absolute;
+        font-size: 4rem;
+        opacity: 0;
+        z-index: 0;
+        color: rgba(255,255,255,0.15);
+        filter: drop-shadow(0 0 5px rgba(106, 17, 203, 0.7));
+    }
+    
+    .mantra-beam {
+        position: absolute;
+        width: 2px;
+        height: 100%;
+        background: linear-gradient(to top, 
+            transparent 0%, 
+            rgba(106, 17, 203, 0.5) 30%, 
+            transparent 100%);
+        top: 0;
+        z-index: 0;
+        animation: beamScan 8s linear infinite;
+    }
+    
+    .mantra-circle {
+        position: absolute;
+        border: 2px solid rgba(106, 17, 203, 0.5);
+        border-radius: 50%;
+        animation: circlePulse 6s ease-out infinite;
+    }
+    
+    @keyframes mantraGradient {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+    
+    @keyframes mantraFloat {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-15px); }
+    }
+    
+    @keyframes mantraFloatIn {
+        0% { transform: translateY(50px) rotate(5deg); opacity: 0; }
+        100% { transform: translateY(0) rotate(0); opacity: 1; }
+    }
+    
+    @keyframes mantraParticle {
+        0% { transform: translateY(0) scale(1); opacity: 1; }
+        100% { transform: translateY(-100vh) scale(0.3); opacity: 0; }
+    }
+    
+    @keyframes beamScan {
+        0% { transform: rotate(0deg); left: 0; }
+        100% { transform: rotate(360deg); left: 100%; }
+    }
+    
+    @keyframes circlePulse {
+        0% { transform: scale(0.5); opacity: 0; }
+        50% { opacity: 0.7; }
+        100% { transform: scale(3); opacity: 0; }
+    }
+    
+    @keyframes symbolFloat {
+        0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+        20% { opacity: 0.3; }
+        80% { opacity: 0.3; }
+        100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; }
+    }
+        
     </style>
 </head>
 <body>
-    <!-- 新增星空背景 -->
-    <div class="starfield" id="starfield"></div>
-    
-    <!-- 新增能量波纹背景 -->
-    <div class="energy-ripple" id="energyRipple"></div>
-    
-    <!-- 新增浮动能量球 -->
-    <div class="floating-orb" style="top: 20%; left: 10%;"></div>
-    <div class="floating-orb" style="top: 70%; left: 80%; animation-delay: -5s;"></div>
-    <div class="floating-orb" style="top: 30%; left: 60%; animation-delay: -10s;"></div>
-    
     <div id="particles-js"></div>
     <div class="background-overlay"></div>
     
@@ -1900,7 +1535,8 @@
                         <i class="fas fa-chart-pie" style="color: #e84393;"></i> 愿望分布
                     </div>
                     <div class="card-content">
-                        <canvas id="wishchart"></canvas>
+                            <canvas id="wishchart"></canvas>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1943,18 +1579,19 @@
         </div>
     </footer>
 
-    <!-- 修改HTML结构为横向排列 -->
-    <div class="mantra-overlay" id="mantraOverlay">
-        <div class="mantra-container">
-            <div class="mantra-beam"></div>
-            <div class="mantra-text" data-text="唵">唵</div>
-            <div class="mantra-text" data-text="嘛">嘛</div>
-            <div class="mantra-text" data-text="呢">呢</div>
-            <div class="mantra-text" data-text="叭">叭</div>
-            <div class="mantra-text" data-text="咪">咪</div>
-            <div class="mantra-text" data-text="吽">吽</div>
-        </div>
+<!-- 修改HTML结构为横向排列 -->
+<div class="mantra-overlay" id="mantraOverlay">
+    <div class="mantra-container">
+        <div class="mantra-beam"></div>
+        <div class="mantra-text" data-text="唵">唵</div>
+        <div class="mantra-text" data-text="嘛">嘛</div>
+        <div class="mantra-text" data-text="呢">呢</div>
+        <div class="mantra-text" data-text="叭">叭</div>
+        <div class="mantra-text" data-text="咪">咪</div>
+        <div class="mantra-text" data-text="吽">吽</div>
     </div>
+</div>
+
     
     <!-- 登录提示模态框 -->
     <div id="loginModal" class="modal">
@@ -1986,103 +1623,17 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+         document.addEventListener('DOMContentLoaded', function() {
             // 定义API端点
             const API_URL = 'https://bazi-backend.owenjass.workers.dev/api/wishes';
-            
-            // 创建星空背景
-            function createStarfield() {
-                const starfield = document.getElementById('starfield');
-                const starCount = Math.floor(window.innerWidth * window.innerHeight / 1000);
-                
-                for (let i = 0; i < starCount; i++) {
-                    const star = document.createElement('div');
-                    star.className = 'star';
-                    
-                    // 随机大小
-                    const size = Math.random() * 2 + 1;
-                    star.style.width = `${size}px`;
-                    star.style.height = `${size}px`;
-                    
-                    // 随机位置
-                    star.style.left = `${Math.random() * 100}%`;
-                    star.style.top = `${Math.random() * 100}%`;
-                    
-                    // 随机闪烁速度
-                    star.style.setProperty('--duration', `${Math.random() * 5 + 3}s`);
-                    
-                    // 随机透明度
-                    star.style.opacity = Math.random() * 0.8 + 0.2;
-                    
-                    starfield.appendChild(star);
-                }
-            }
-            
-            // 创建能量波纹
-            function createEnergyRipples() {
-                const rippleContainer = document.getElementById('energyRipple');
-                
-                function addRipple() {
-                    const ripple = document.createElement('div');
-                    ripple.className = 'ripple-circle';
-                    
-                    // 随机位置
-                    ripple.style.left = `${Math.random() * 100}%`;
-                    ripple.style.top = `${Math.random() * 100}%`;
-                    
-                    // 随机大小
-                    const size = Math.random() * 300 + 100;
-                    ripple.style.width = `${size}px`;
-                    ripple.style.height = `${size}px`;
-                    
-                    // 随机颜色
-                    const colors = ['#6a11cb', '#2575fc', '#00b894', '#fdcb6e', '#e17055'];
-                    const color = colors[Math.floor(Math.random() * colors.length)];
-                    ripple.style.background = `radial-gradient(circle, ${color} 0%, transparent 70%)`;
-                    
-                    // 随机动画延迟
-                    ripple.style.animationDelay = `${Math.random() * 5}s`;
-                    
-                    rippleContainer.appendChild(ripple);
-                    
-                    // 动画结束后移除
-                    setTimeout(() => {
-                        ripple.remove();
-                    }, 15000);
-                }
-                
-                // 初始创建
-                for (let i = 0; i < 5; i++) {
-                    addRipple();
-                }
-                
-                // 定期添加新的波纹
-                setInterval(addRipple, 3000);
-            }
-            
+             
             // 加载lunar.js库
-            function loadLunarJS() {
-                return new Promise((resolve, reject) => {
-                    if (typeof Lunar !== 'undefined') {
-                        resolve();
-                        return;
-                    }
-            
-                    const script = document.createElement('script');
-                    // 指定 1.7.3 版本
-                    script.src = 'https://cdn.jsdelivr.net/npm/lunar-javascript@1.7.3/dist/lunar.min.js';
-                    script.onload = () => {
-                        console.log('lunar.js 1.7.3 加载成功');
-                        resolve();
-                    };
-                    script.onerror = (error) => {
-                        console.error('lunar.js 1.7.3 加载失败:', error);
-                        reject(error);
-                    };
-                    document.head.appendChild(script);
-                });
-            }
-            
+            loadLunarJS().then(() => {
+                console.log('lunar.js加载成功');
+            }).catch(error => {
+                console.error('加载lunar.js失败:', error);
+            });
+             
             // 粒子背景初始化
             particlesJS("particles-js", {
                 particles: {
@@ -2120,9 +1671,7 @@
                         borderWidth: 2,
                         tension: 0.4,
                         pointRadius: 4,
-                        pointBackgroundColor: '#6a11cb',
-                        pointHoverRadius: 6,
-                        pointHoverBorderWidth: 2
+                        pointBackgroundColor: '#6a11cb'
                     }]
                 },
                 options: {
@@ -2141,13 +1690,7 @@
                     },
                     plugins: {
                         legend: { display: false },
-                        tooltip: { 
-                            backgroundColor: 'rgba(10, 10, 20, 0.9)',
-                            borderColor: 'rgba(106, 17, 203, 0.5)',
-                            borderWidth: 1,
-                            titleFont: { family: "'Noto Serif SC', serif" },
-                            bodyFont: { family: "'Noto Serif SC', serif" }
-                        }
+                        tooltip: { backgroundColor: 'rgba(10, 10, 20, 0.9)' }
                     }
                 }
             });
@@ -2169,25 +1712,85 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: { 
-                            position: 'bottom', 
-                            labels: { 
-                                color: '#b8c2cc',
-                                font: {
-                                    family: "'Noto Serif SC', serif"
-                                }
-                            } 
-                        },
-                        tooltip: { 
-                            backgroundColor: 'rgba(10, 10, 20, 0.9)',
-                            borderColor: 'rgba(106, 17, 203, 0.5)',
-                            borderWidth: 1,
-                            titleFont: { family: "'Noto Serif SC', serif" },
-                            bodyFont: { family: "'Noto Serif SC', serif" }
-                        }
+                        legend: { position: 'bottom', labels: { color: '#b8c2cc' } },
+                        tooltip: { backgroundColor: 'rgba(10, 10, 20, 0.9)' }
                     }
                 }
             });
+            renderWishes();  // 加上这行：初始化时就加载愿望池内容
+            fetchStats();// 添加统计获取调用
+            setInterval(fetchStats, 5 * 60 * 1000);// 每5分钟自动更新一次统计数据
+             
+            // DOM 元素
+            const wishForm = document.getElementById('wishForm');
+            const submitBtn = wishForm.querySelector('button[type="submit"]');
+            const wishPool = document.querySelector('.wish-pool');
+            const baziInfo = document.getElementById('baziInfo');
+            
+            // 初始化表单提交
+            wishForm.addEventListener('submit', handleSubmitWish);
+            
+            // 生成八字信息
+            function generateBazi(birthday, birthtime) {
+                // 使用lunar.js计算
+                const bazi = calculateBazi(birthday, birthtime);
+                if (bazi) return bazi;
+                
+                // 如果计算失败，返回提示信息
+                console.error('使用lunar.js计算八字失败');
+                return "八字计算失败，请检查输入";
+            }
+            
+            // 更新八字信息显示
+            function updateBaziInfo() {
+                const birthday = document.getElementById('birthday').value;
+                const birthtime = document.getElementById('birthtime').value;
+                
+                if (birthday && birthtime) {
+                    // 显示加载状态
+                    baziInfo.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 计算中...';
+                    baziInfo.style.display = 'block';
+                    
+                    // 延迟计算以避免频繁调用
+                    setTimeout(() => {
+                        const bazi = calculateBazi(birthday, birthtime);
+                        if (bazi) {
+                            baziInfo.innerHTML = `您的八字：<strong>${bazi}</strong>`;
+                        } else {
+                            baziInfo.innerHTML = '<span style="color:#ff6b6b">八字计算失败，请检查输入</span>';
+                        }
+                    }, 300);
+                } else {
+                    baziInfo.style.display = 'none';
+                }
+            }
+
+            // 添加出生日期和时间变化的事件监听
+            document.getElementById('birthday').addEventListener('change', updateBaziInfo);
+            document.getElementById('birthtime').addEventListener('change', updateBaziInfo);
+            
+                         // 加载lunar.js库
+            function loadLunarJS() {
+                return new Promise((resolve, reject) => {
+                    if (typeof Lunar !== 'undefined') {
+                        resolve();
+                        return;
+                    }
+            
+                    const script = document.createElement('script');
+                    // 指定 1.7.3 版本
+                    script.src = 'https://cdn.jsdelivr.net/npm/lunar-javascript@1.7.3/dist/lunar.min.js';
+                    script.onload = () => {
+                        console.log('lunar.js 1.7.3 加载成功');
+                        resolve();
+                    };
+                    script.onerror = (error) => {
+                        console.error('lunar.js 1.7.3 加载失败:', error);
+                        reject(error);
+                    };
+                    document.head.appendChild(script);
+                });
+            }
             
             // 使用lunar.js计算八字
             function calculateBazi(birthday, birthtime) {
