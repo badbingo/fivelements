@@ -1315,15 +1315,15 @@
                     </div>
                     <div class="card-content">
                         <div class="stat-card">
-                            <div class="stat-value" id="todayWishes">0</div>
+                            <div class="stat-value" id="newWishesCount">0</div>
                             <div class="stat-label">新增愿望</div>
                         </div>
                         <div class="stat-card">
-                            <div class="stat-value" id="todayBlessings">0</div>
+                            <div class="stat-value" id="blessingsCount">0</div>
                             <div class="stat-label">加持次数</div>
                         </div>
                         <div class="stat-card">
-                            <div class="stat-value" id="todayFulfilled">0</div>
+                            <div class="stat-value" id="fulfilledCount">0</div>
                             <div class="stat-label">还愿次数</div>
                         </div>
                     </div>
@@ -1335,7 +1335,7 @@
                     </div>
                     <div class="card-content">
                         <div class="wish-chart">
-                            <canvas id="wishTypeChart"></canvas>
+                            <canvas id="wishDistributionChart"></canvas>
                         </div>
                     </div>
                 </div>
@@ -1503,9 +1503,8 @@
                     }
                 }
             });
-            
             renderWishes();  // 加上这行：初始化时就加载愿望池内容
-            
+             
             // DOM 元素
             const wishForm = document.getElementById('wishForm');
             const submitBtn = wishForm.querySelector('button[type="submit"]');
@@ -2075,7 +2074,34 @@ function getTimeGan(dayGan, timeZhi) {
                     setTimeout(() => toast.remove(), 300);
                 }, 3000);
             }
-            
+
+             function renderDistribution(distribution) {
+                  const labels = Object.keys(distribution);
+                  const counts = Object.values(distribution);
+                
+                  const ctx = document.getElementById('wishDistributionChart').getContext('2d');
+                  new Chart(ctx, {
+                    type: 'pie',
+                    data: {
+                      labels: labels,
+                      datasets: [{
+                        data: counts,
+                        backgroundColor: [
+                          '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40'
+                        ]
+                      }]
+                    },
+                    options: {
+                      responsive: true,
+                      plugins: {
+                        legend: {
+                          position: 'bottom'
+                        }
+                      }
+                    }
+                  });
+                }
+             
             // 初始化事件监听
             function initEventListeners() {
                 // 分页按钮
