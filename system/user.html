@@ -503,40 +503,38 @@
         }
 
         try {
-          const response = await fetch('https://bazi-backend.owenjass.workers.dev/api/register', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              name: username,
-              email: email,
-              password: password
-            })
-          });
+  const response = await fetch('https://bazi-backend.owenjass.workers.dev/api/register', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      name: username,
+      email: email,
+      password: password
+    })
+  });
 
-          const data = await response.json();
+  const text = await response.text(); // 先拿到原始文本
+  let data;
 
-          // 首先检查响应状态
-            if (!response.ok) {
-              const text = await response.text();
-              console.error('注册响应文本:', text);
-              throw new Error(`HTTP错误! 状态: ${response.status}`);
-            }
-        
-            // 然后尝试解析JSON
-            const data = await response.json();
-            
-            if (response.ok) {
-              showAlert(registerAlert, '注册成功! 请登录', 'success');
-              document.getElementById('registerForm').reset();
-            } else {
-              // 处理错误...
-            }
-          } catch (error) {
-            console.error('完整注册错误:', error);
-            showAlert(registerAlert, `注册失败: ${error.message}`, 'danger');
-          }
+  try {
+    data = JSON.parse(text); // 尝试解析
+  } catch (jsonError) {
+    console.error('返回内容不是 JSON:', text);
+    throw new Error('服务器返回了无效数据');
+  }
+
+  if (response.ok) {
+    showAlert(registerAlert, '注册成功! 请登录', 'success');
+    document.getElementById('registerForm').reset();
+  } else {
+    showAlert(registerAlert, data.error || '注册失败', 'danger');
+  }
+} catch (error) {
+  console.error('完整注册错误:', error);
+  showAlert(registerAlert, `注册失败: ${error.message}`, 'danger');
+}
         });
       // 发送密码重置链接
       sendResetBtn.addEventListener('click', async () => {
