@@ -10,6 +10,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="../js/lunar.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
@@ -1154,6 +1155,87 @@
         .btn-confirm:hover {
             background: var(--secondary-color);
         }
+
+        /* 全屏遮罩 */
+        .mantra-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0,0,0,0.9);
+            z-index: 9999;
+            display: none;
+            overflow: hidden;
+        }
+        
+        /* 粒子画布 */
+        .mantra-particle-field {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+        
+        /* 六字真言容器 */
+        .mantra-characters {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            z-index: 2;
+        }
+        
+        /* 单个字符样式 */
+        .mantra-char {
+            font-size: 8vw;
+            font-family: "Noto Sans Tibetan", sans-serif;
+            color: transparent;
+            text-shadow: 0 0 10px #d4af37;
+            margin: 0 15px;
+            opacity: 0;
+            transform: translateY(50px);
+            animation: charAppear 0.8s forwards;
+            animation-delay: calc(var(--char-index) * 0.3s);
+        }
+        
+        /* 光柱效果 */
+        .light-beam {
+            position: absolute;
+            top: -100%;
+            left: 50%;
+            width: 2px;
+            height: 200%;
+            background: linear-gradient(to bottom, 
+                rgba(212, 175, 55, 0) 0%,
+                rgba(212, 175, 55, 0.8) 50%,
+                rgba(212, 175, 55, 0) 100%);
+            transform: translateX(-50%) rotate(15deg);
+            filter: blur(1px);
+            animation: beamScan 5s linear;
+            z-index: 1;
+        }
+        
+        /* 动画定义 */
+        @keyframes charAppear {
+            0% { opacity: 0; transform: translateY(50px); }
+            100% { opacity: 1; transform: translateY(0); 
+                   text-shadow: 0 0 20px #f9d423, 0 0 40px #ffffff; }
+        }
+        
+        @keyframes beamScan {
+            0% { transform: translateX(-50%) rotate(15deg) translateY(-100%); }
+            100% { transform: translateX(-50%) rotate(15deg) translateY(100%); }
+        }
+        
+        /* 粒子动画 */
+        @keyframes particlePulse {
+            0% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.5); opacity: 1; }
+            100% { transform: scale(1); opacity: 0.8; }
+        }
+        
     </style>
 </head>
 <body>
@@ -1412,6 +1494,25 @@
         </div>
     </footer>
 
+    <!-- 在body末尾添加 -->
+        <div id="mantra-overlay" class="mantra-overlay">
+            <div class="mantra-container">
+                <div class="mantra-particle-field" id="particleCanvas"></div>
+                <div class="mantra-characters">
+                    <span class="mantra-char" data-char="唵">唵</span>
+                    <span class="mantra-char" data-char="嘛">嘛</span>
+                    <span class="mantra-char" data-char="呢">呢</span>
+                    <span class="mantra-char" data-char="叭">叭</span>
+                    <span class="mantra-char" data-char="咪">咪</span>
+                    <span class="mantra-char" data-char="吽">吽</span>
+                </div>
+                <div class="light-beam"></div>
+            </div>
+        </div>
+
+<!-- 原有加持按钮 -->
+<button id="blessButton" class="bless-button">🙏 佛力加持</button>
+    
     <!-- 登录提示模态框 -->
     <div id="loginModal" class="modal">
         <div class="modal-content">
@@ -2024,7 +2125,139 @@ function getTimeGan(dayGan, timeZhi) {
                     }
                 }
             }
-             
+
+             // 加持按钮点击事件
+            document.getElementById('blessButton').addEventListener('click', function() {
+                const overlay = document.getElementById('mantra-overlay');
+                
+                // 显示全屏特效
+                overlay.style.display = 'block';
+                
+                // 初始化粒子系统
+                initParticleField('particleCanvas');
+                
+                // 设置字符动画延迟
+                document.querySelectorAll('.mantra-char').forEach((char, index) => {
+                    char.style.setProperty('--char-index', index);
+                });
+                
+                // 5秒后自动关闭
+                setTimeout(() => {
+                    overlay.style.display = 'none';
+                }, 5000);
+            });
+            
+            // 粒子系统初始化
+            function initParticleField(canvasId) {
+                const canvas = document.getElementById(canvasId);
+                const ctx = canvas.getContext('2d');
+                const particles = [];
+                const colors = ['#d4af37', '#f9d423', '#ffffff', '#c9a227'];
+                
+                // 设置画布尺寸
+                canvas.width = canvas.offsetWidth;
+                canvas.height = canvas.offsetHeight;
+                
+                // 创建粒子
+                for (let i = 0; i < 200; i++) {
+                    particles.push({
+                        x: Math.random() * canvas.width,
+                        y: Math.random() * canvas.height,
+                        size: Math.random() * 3 + 1,
+                        color: colors[Math.floor(Math.random() * colors.length)],
+                        speedX: (Math.random() - 0.5) * 2,
+                        speedY: (Math.random() - 0.5) * 2,
+                        angle: 0,
+                        rotationSpeed: (Math.random() - 0.5) * 0.1
+                    });
+                }
+                
+                // 动画循环
+                function animate() {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    
+                    particles.forEach(particle => {
+                        // 更新位置
+                        particle.x += particle.speedX;
+                        particle.y += particle.speedY;
+                        particle.angle += particle.rotationSpeed;
+                        
+                        // 边界检查
+                        if (particle.x < 0 || particle.x > canvas.width) particle.speedX *= -1;
+                        if (particle.y < 0 || particle.y > canvas.height) particle.speedY *= -1;
+                        
+                        // 绘制粒子
+                        ctx.save();
+                        ctx.translate(particle.x, particle.y);
+                        ctx.rotate(particle.angle);
+                        
+                        // 创建发光效果
+                        const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, particle.size);
+                        gradient.addColorStop(0, particle.color);
+                        gradient.addColorStop(1, 'transparent');
+                        
+                        ctx.fillStyle = gradient;
+                        ctx.fillRect(-particle.size, -particle.size, particle.size * 2, particle.size * 2);
+                        ctx.restore();
+                    });
+                    
+                    requestAnimationFrame(animate);
+                }
+                
+                animate();
+            }
+             // GSAP增强动画
+            function playMantraAnimation() {
+                const overlay = document.getElementById('mantra-overlay');
+                const chars = document.querySelectorAll('.mantra-char');
+                
+                // 显示全屏特效
+                overlay.style.display = 'block';
+                
+                // 光效动画
+                gsap.fromTo('.light-beam', 
+                    { y: '-100%' },
+                    { y: '100%', duration: 5, ease: 'power1.inOut' }
+                );
+                
+                // 字符逐个出现动画
+                chars.forEach((char, i) => {
+                    gsap.to(char, {
+                        opacity: 1,
+                        y: 0,
+                        duration: 0.8,
+                        delay: i * 0.3,
+                        ease: 'back.out',
+                        textShadow: '0 0 20px #f9d423, 0 0 40px #ffffff'
+                    });
+                });
+                
+                // 背景脉动效果
+                gsap.to(overlay, {
+                    backgroundColor: 'rgba(20, 10, 30, 0.95)',
+                    duration: 1,
+                    yoyo: true,
+                    repeat: 5,
+                    ease: 'sine.inOut'
+                });
+                
+                // 5秒后关闭
+                setTimeout(() => {
+                    gsap.to(overlay, {
+                        opacity: 0,
+                        duration: 0.5,
+                        onComplete: () => {
+                            overlay.style.display = 'none';
+                            overlay.style.opacity = 1;
+                            // 重置字符状态
+                            chars.forEach(char => {
+                                char.style.opacity = 0;
+                                char.style.transform = 'translateY(50px)';
+                            });
+                        }
+                    });
+                }, 5000);
+            }
             // 还愿处理
             async function handleFulfillWish(wish) {
                 const modal = document.getElementById('fulfillModal');
