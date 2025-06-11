@@ -481,6 +481,7 @@
         }
 
         .wish-card {
+            /* 原有样式保持不变 */
             background: var(--level-1);
             border-radius: 10px;
             padding: 20px;
@@ -490,17 +491,17 @@
             border: 1px solid var(--border-color);
             display: flex;
             flex-direction: column;
-            /* 新增背景图样式 */
+            
+            /* 新增背景图样式 - 调整透明度 */
             background-image: url('../images/6bg.gif');
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
-            /* 添加半透明遮罩确保文字可读 */
-            box-shadow: inset 0 0 0 1000px rgba(0,0,0,0.3);
-            /* 提升层级确保内容在背景之上 */
-            z-index: 1;
+            background-blend-mode: overlay; /* 混合模式增强控制 */
+            opacity: 0.9; /* 卡片整体透明度 */
         }
-
+        
+        /* 使用伪元素实现透明背景层 */
         .wish-card::before {
             content: '';
             position: absolute;
@@ -508,32 +509,33 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(135deg, rgba(106, 17, 203, 0.1) 0%, rgba(37, 117, 252, 0.05) 100%);
+            background-color: rgba(0, 0, 0, 0.8); /* 深色半透明遮罩 */
             z-index: -1;
+            mix-blend-mode: multiply; /* 混合模式 */
         }
         
         /* 不同等级的卡片背景遮罩 */
-        .wish-card[data-level="1"] { 
-            box-shadow: inset 0 0 0 1000px rgba(20, 20, 30, 0.7); 
+        .wish-card[data-level="1"]::before { 
+            background-color: rgba(20, 20, 30, 0.85); 
         }
-        .wish-card[data-level="2"] { 
-            box-shadow: inset 0 0 0 1000px rgba(26, 58, 95, 0.7); 
+        .wish-card[data-level="2"]::before { 
+            background-color: rgba(26, 58, 95, 0.85); 
         }
-        .wish-card[data-level="3"] { 
-            box-shadow: inset 0 0 0 1000px rgba(93, 64, 55, 0.7); 
+        .wish-card[data-level="3"]::before { 
+            background-color: rgba(93, 64, 55, 0.85); 
         }
-        .wish-card[data-level="4"] { 
-            box-shadow: inset 0 0 0 1000px rgba(127, 0, 0, 0.7); 
+        .wish-card[data-level="4"]::before { 
+            background-color: rgba(127, 0, 0, 0.85); 
         }
-        .wish-card[data-level="5"] { 
-            box-shadow: inset 0 0 0 1000px rgba(106, 17, 203, 0.5); 
+        .wish-card[data-level="5"]::before { 
+            background-color: rgba(106, 17, 203, 0.8); 
         }
         
         .wish-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(106, 17, 203, 0.2), 
-                        inset 0 0 0 1000px rgba(0,0,0,0.3);
+            box-shadow: 0 10px 30px rgba(106, 17, 203, 0.2);
             border-color: rgba(106, 17, 203, 0.6);
+            opacity: 1; /* 悬停时完全显示 */
         }
 
         .wish-card.level-up {
