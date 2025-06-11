@@ -481,51 +481,57 @@
         }
 
         .wish-card {
-    /* 原有基础样式保持不变 */
-    background: var(--level-1);
-    border-radius: 10px;
-    padding: 20px;
-    position: relative;
-    overflow: hidden;
-    transition: all 0.3s ease;
-    border: 1px solid var(--border-color);
-    display: flex;
-    flex-direction: column;
-    
-    /* 移除之前添加的透明度相关属性 */
+            /* 原有基础样式保持不变 */
+            background: var(--level-1);
+            border-radius: 10px;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
         }
         
-        /* 新增背景图容器 */
-        .wish-card::after {
+        /* 背景图容器 - 调整到最底层 */
+        .wish-card::before {
             content: '';
             position: absolute;
             top: 50%;
             left: 50%;
-            width: 70%; /* 背景图宽度为卡片的70% */
-            height: 70%; /* 背景图高度为卡片的70% */
+            width: 70%;
+            height: 70%;
             transform: translate(-50%, -50%);
             background-image: url('../images/6bg.gif');
-            background-size: contain; /* 保持原图比例 */
+            background-size: contain;
             background-repeat: no-repeat;
             background-position: center;
-            opacity: 0.5; /* 50%透明度 */
-            z-index: 0; /* 置于最底层 */
-            pointer-events: none; /* 防止干扰交互 */
+            opacity: 0.1; /* 90%透明度 = 10%可见度 */
+            z-index: 0; /* 确保在最底层 */
+            pointer-events: none;
+        }
+        
+        /* 卡片内容容器 - 确保在背景之上 */
+        .wish-card-content {
+            position: relative;
+            z-index: 1; /* 高于背景图 */
         }
         
         /* 不同等级的卡片底色 */
-        .wish-card[data-level="1"] { background: rgba(20, 20, 30, 0.7); }
-        .wish-card[data-level="2"] { background: rgba(26, 58, 95, 0.7); }
-        .wish-card[data-level="3"] { background: rgba(93, 64, 55, 0.7); }
-        .wish-card[data-level="4"] { background: rgba(127, 0, 0, 0.7); }
+        .wish-card[data-level="1"] { background: rgba(20, 20, 30, 0.9); }
+        .wish-card[data-level="2"] { background: rgba(26, 58, 95, 0.9); }
+        .wish-card[data-level="3"] { background: rgba(93, 64, 55, 0.9); }
+        .wish-card[data-level="4"] { background: rgba(127, 0, 0, 0.9); }
         .wish-card[data-level="5"] { 
-            background: linear-gradient(135deg, rgba(255, 215, 0, 0.7), rgba(218, 165, 32, 0.7));
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.9), rgba(218, 165, 32, 0.9));
         }
         
-        /* 确保卡片内容在背景之上 */
-        .wish-card > * {
+        /* 确保所有交互元素在背景之上 */
+        .wish-card > *,
+        .wish-card .wish-btn,
+        .wish-card .wish-text {
             position: relative;
-            z-index: 1;
+            z-index: 2; /* 高于背景和内容容器 */
         }
         
         .wish-card:hover {
@@ -533,6 +539,7 @@
             box-shadow: 0 10px 30px rgba(106, 17, 203, 0.2);
             border-color: rgba(106, 17, 203, 0.6);
         }
+
 
         .wish-card.level-up {
             animation: levelUp 1s ease;
