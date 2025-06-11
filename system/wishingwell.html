@@ -1156,6 +1156,7 @@
         }
 
         /* 升级版六字真言全屏特效 */
+    /* 横向排列六字真言特效 */
     .mantra-overlay {
         position: fixed;
         top: 0;
@@ -1165,7 +1166,6 @@
         background: radial-gradient(circle at center, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.95) 100%);
         z-index: 9999;
         display: flex;
-        flex-direction: column;
         justify-content: center;
         align-items: center;
         opacity: 0;
@@ -1181,16 +1181,21 @@
     
     .mantra-container {
         position: relative;
-        width: 100%;
-        height: 100%;
+        width: 90%;
         display: flex;
-        flex-direction: column;
-        justify-content: center;
+        justify-content: space-around;
         align-items: center;
+        flex-wrap: wrap;
+    }
+    
+    .mantra-row {
+        display: flex;
+        justify-content: center;
+        width: 100%;
     }
     
     .mantra-text {
-        font-size: 8vw;
+        font-size: 6vw;
         font-weight: 900;
         color: transparent;
         background: linear-gradient(45deg, 
@@ -1203,12 +1208,21 @@
         animation: mantraGradient 6s ease infinite, 
                    mantraFloat 4s ease-in-out infinite alternate;
         text-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
-        margin: 15px 0;
+        margin: 0 1vw;
         position: relative;
         z-index: 2;
         opacity: 0;
         transform: translateY(30px) scale(0.9);
         filter: drop-shadow(0 0 10px currentColor);
+        flex-shrink: 0;
+    }
+    
+    /* 响应式调整 - 小屏幕时缩小字号和间距 */
+    @media (max-width: 768px) {
+        .mantra-text {
+            font-size: 8vw;
+            margin: 0 0.5vw;
+        }
     }
     
     .mantra-text.active {
@@ -1553,16 +1567,17 @@
         </div>
     </footer>
 
-   <!-- 在body标签底部添加升级版HTML结构 -->
+<!-- 修改HTML结构为横向排列 -->
 <div class="mantra-overlay" id="mantraOverlay">
     <div class="mantra-container">
-        <div class="mantra-beam"></div>
-        <div class="mantra-text" data-text="唵">唵</div>
-        <div class="mantra-text" data-text="嘛">嘛</div>
-        <div class="mantra-text" data-text="呢">呢</div>
-        <div class="mantra-text" data-text="叭">叭</div>
-        <div class="mantra-text" data-text="咪">咪</div>
-        <div class="mantra-text" data-text="吽">吽</div>
+        <div class="mantra-row">
+            <div class="mantra-text" data-text="唵">唵</div>
+            <div class="mantra-text" data-text="嘛">嘛</div>
+            <div class="mantra-text" data-text="呢">呢</div>
+            <div class="mantra-text" data-text="叭">叭</div>
+            <div class="mantra-text" data-text="咪">咪</div>
+            <div class="mantra-text" data-text="吽">吽</div>
+        </div>
     </div>
 </div>
 
@@ -2169,16 +2184,16 @@ function getTimeGan(dayGan, timeZhi) {
             setTimeout(() => {
                 overlay.classList.add('active');
                 
-                // 文字逐个显示动画
+                // 文字横向同时显示动画
                 const texts = document.querySelectorAll('.mantra-text');
                 texts.forEach((text, index) => {
                     setTimeout(() => {
                         text.classList.add('active');
                         
                         // 每个文字显示时创建粒子爆发
-                        if(index % 2 === 0) createParticleBurst(text);
+                        createParticleBurst(text);
                         
-                    }, index * 300);
+                    }, index * 100); // 缩短间隔时间实现更紧凑的效果
                 });
                 
                 // 7秒后结束
