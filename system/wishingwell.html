@@ -1154,78 +1154,6 @@
         .btn-confirm:hover {
             background: var(--secondary-color);
         }
-
-        /* 六字真言全屏特效 */
-        .mantra-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.9);
-            z-index: 9999;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.5s ease;
-        }
-        
-        .mantra-overlay.active {
-            opacity: 1;
-            pointer-events: auto;
-        }
-        
-        .mantra-text {
-            font-size: 8vw;
-            font-weight: bold;
-            color: transparent;
-            background: linear-gradient(45deg, #6a11cb, #2575fc, #00b894, #fdcb6e, #e17055, #6a11cb);
-            background-size: 400% 400%;
-            -webkit-background-clip: text;
-            background-clip: text;
-            animation: mantraGradient 8s ease infinite;
-            text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
-            margin: 20px 0;
-            position: relative;
-            z-index: 1;
-        }
-        
-        .mantra-particle {
-            position: absolute;
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: rgba(106, 17, 203, 0.7);
-            pointer-events: none;
-            z-index: 0;
-        }
-        
-        @keyframes mantraGradient {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-        
-        @keyframes mantraFloat {
-            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
-            100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; }
-        }
-        
-        .mantra-symbol {
-            position: absolute;
-            font-size: 3rem;
-            opacity: 0.3;
-            animation: mantraSymbol 15s linear infinite;
-            z-index: 0;
-        }
-        
-        @keyframes mantraSymbol {
-            0% { transform: translateY(100vh) rotate(0deg); }
-            100% { transform: translateY(-100vh) rotate(360deg); }
-        }
     </style>
 </head>
 <body>
@@ -1484,15 +1412,6 @@
         </div>
     </footer>
 
-    <div class="mantra-overlay" id="mantraOverlay">
-        <div class="mantra-text">唵</div>
-        <div class="mantra-text">嘛</div>
-        <div class="mantra-text">呢</div>
-        <div class="mantra-text">叭</div>
-        <div class="mantra-text">咪</div>
-        <div class="mantra-text">吽</div>
-    </div>
-    
     <!-- 登录提示模态框 -->
     <div id="loginModal" class="modal">
         <div class="modal-content">
@@ -2036,19 +1955,6 @@ function getTimeGan(dayGan, timeZhi) {
                     const originalBtnText = blessBtn.innerHTML;
                     blessBtn.disabled = true;
                     blessBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 加持中...';
-
-                    // 在发送加持请求前显示特效
-                    showMantraEffect();
-                    
-                    // 发送加持请求
-                    const response = await fetch(correctedUrl, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`
-                        },
-                        body: JSON.stringify({})
-                    });
                     
                     // 发送加持请求
                     const response = await fetch(correctedUrl, {
@@ -2283,84 +2189,6 @@ function getTimeGan(dayGan, timeZhi) {
                     });
                 }
 
-             // 显示六字真言特效
-            function showMantraEffect() {
-                const overlay = document.getElementById('mantraOverlay');
-                overlay.classList.add('active');
-                
-                // 创建粒子效果
-                createMantraParticles();
-                
-                // 创建漂浮符号
-                createFloatingSymbols();
-                
-                // 5秒后自动关闭
-                setTimeout(() => {
-                    overlay.classList.remove('active');
-                }, 5000);
-            }
-            
-            // 创建粒子效果
-            function createMantraParticles() {
-                const overlay = document.getElementById('mantraOverlay');
-                const colors = ['#6a11cb', '#2575fc', '#00b894', '#fdcb6e', '#e17055'];
-                
-                // 清除现有粒子
-                document.querySelectorAll('.mantra-particle').forEach(p => p.remove());
-                
-                // 创建新粒子
-                for (let i = 0; i < 100; i++) {
-                    const particle = document.createElement('div');
-                    particle.className = 'mantra-particle';
-                    
-                    // 随机属性
-                    const size = Math.random() * 10 + 5;
-                    const color = colors[Math.floor(Math.random() * colors.length)];
-                    const left = Math.random() * 100;
-                    const delay = Math.random() * 5;
-                    const duration = Math.random() * 10 + 5;
-                    
-                    // 设置样式
-                    particle.style.width = `${size}px`;
-                    particle.style.height = `${size}px`;
-                    particle.style.background = color;
-                    particle.style.left = `${left}%`;
-                    particle.style.bottom = `-${size}px`;
-                    particle.style.animation = `mantraFloat ${duration}s ease-in ${delay}s forwards`;
-                    
-                    overlay.appendChild(particle);
-                }
-            }
-            
-            // 创建漂浮符号
-            function createFloatingSymbols() {
-                const overlay = document.getElementById('mantraOverlay');
-                const symbols = ['☸', '卍', '☯', 'ॐ', '♈', '♉', '♊', '♋', '♌', '♍', '♎', '♏', '♐', '♑', '♒', '♓'];
-                
-                // 清除现有符号
-                document.querySelectorAll('.mantra-symbol').forEach(s => s.remove());
-                
-                // 创建新符号
-                for (let i = 0; i < 20; i++) {
-                    const symbol = document.createElement('div');
-                    symbol.className = 'mantra-symbol';
-                    
-                    // 随机属性
-                    const size = Math.random() * 3 + 1;
-                    const left = Math.random() * 100;
-                    const delay = Math.random() * 5;
-                    const duration = Math.random() * 15 + 10;
-                    const symbolChar = symbols[Math.floor(Math.random() * symbols.length)];
-                    
-                    // 设置样式
-                    symbol.textContent = symbolChar;
-                    symbol.style.fontSize = `${size}rem`;
-                    symbol.style.left = `${left}%`;
-                    symbol.style.animation = `mantraSymbol ${duration}s linear ${delay}s infinite`;
-                    
-                    overlay.appendChild(symbol);
-                }
-            }
              
             // 初始化事件监听
             function initEventListeners() {
