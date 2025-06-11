@@ -1334,8 +1334,7 @@
                         <i class="fas fa-chart-pie" style="color: #e84393;"></i> 愿望分布
                     </div>
                     <div class="card-content">
-                        <div class="wish-chart">
-                            <canvas id="wishDistributionChart"></canvas>
+                            <canvas id="wishchart"></canvas>
                         </div>
                     </div>
                 </div>
@@ -2075,6 +2074,23 @@ function getTimeGan(dayGan, timeZhi) {
                 }, 3000);
             }
 
+             async function fetchStats() {
+                  try {
+                    const res = await fetch('https://bazi-backend.owenjass.workers.dev/api/stats');
+                    const data = await res.json();
+                
+                    // 更新数字
+                    document.getElementById('todayWishes').innerText = data.today.newWishes;
+                    document.getElementById('todayBlessings').innerText = data.today.blessings;
+                    document.getElementById('todayFulfilled').innerText = data.today.fulfilled;
+                
+                    // 渲染饼图
+                    renderDistribution(data.distribution);
+                  } catch (err) {
+                    console.error('加载统计数据失败', err);
+                  }
+                }
+             
              function renderDistribution(distribution) {
                   const labels = Object.keys(distribution);
                   const counts = Object.values(distribution);
