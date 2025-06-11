@@ -481,7 +481,7 @@
         }
 
         .wish-card {
-            /* 原有基础样式保持不变 */
+            /* 保持原有卡片样式不变 */
             background: var(--level-1);
             border-radius: 10px;
             padding: 20px;
@@ -497,18 +497,32 @@
         .wish-card::before {
             content: '';
             position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 70%;
-            height: 70%;
-            transform: translate(-50%, -50%);
+            top: 0;
+            left: 0;
+            width: 100%; /* 恢复原始宽度 */
+            height: 100%; /* 恢复原始高度 */
             background-image: url('../images/6bg.gif');
-            background-size: contain;
-            background-repeat: no-repeat;
+            background-size: cover; /* 改为cover填充整个卡片 */
             background-position: center;
-            opacity: 0.1; /* 90%透明度 = 10%可见度 */
-            z-index: 0; /* 确保在最底层 */
+            background-repeat: no-repeat;
+            opacity: 0.05; /* 95%透明度（仅5%可见）*/
+            z-index: 0;
             pointer-events: none;
+        }
+        
+        /* 确保所有内容在背景之上 */
+        .wish-card > * {
+            position: relative;
+            z-index: 1; /* 内容层级高于背景 */
+        }
+        
+        /* 卡片底色微调 */
+        .wish-card[data-level="1"] { background: rgba(20, 20, 30, 0.95); }
+        /* 其他等级颜色保持原有样式... */
+        
+        .wish-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(106, 17, 203, 0.2);
         }
         
         /* 卡片内容容器 - 确保在背景之上 */
@@ -534,11 +548,6 @@
             z-index: 2; /* 高于背景和内容容器 */
         }
         
-        .wish-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(106, 17, 203, 0.2);
-            border-color: rgba(106, 17, 203, 0.6);
-        }
 
 
         .wish-card.level-up {
