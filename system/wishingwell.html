@@ -1505,7 +1505,8 @@
             });
             
             renderWishes();  // 加上这行：初始化时就加载愿望池内容
-            
+            updateStats(); // 页面加载时立即更新统计
+             
             // DOM 元素
             const wishForm = document.getElementById('wishForm');
             const submitBtn = wishForm.querySelector('button[type="submit"]');
@@ -1768,34 +1769,61 @@ function getTimeGan(dayGan, timeZhi) {
                 document.getElementById('todayFulfilled').textContent = todayFulfilled;
             }
 
-            async function renderWishes() {
-                  try {
-                    const response = await fetch(API_URL + '?visibility=public');
-                    const text = await response.text();
-                    console.log('[DEBUG] 原始响应:', text);
-                
-                    const json = JSON.parse(text);
-                    const wishes = Array.isArray(json) ? json : json.data || [];
-                
-                    if (!Array.isArray(wishes)) {
-                      throw new Error('返回的不是愿望数组');
-                    }
-                
-                    console.log('[DEBUG] 愿望数量:', wishes.length);
-                    renderWishCards(wishes);
-                  } catch (err) {
-                    console.error('渲染愿望时出错:', err);
-                    wishPool.innerHTML = `<p style="color:red;">加载失败：${err.message}</p>`;
-                  }
-                }
-            
-            // 渲染愿望卡片
-            function renderWishCards(wishes) {
-                  if (!Array.isArray(wishes)) {
-                    console.error('renderWishCards 接收到的不是数组:', wishes);
-                    return;
-                  }
-                    wishPool.innerHTML = '';
+            // 修改updateStats函数获取真实数据
+async function updateStats() {
+    try {
+        const response = await fetch(STATS_API_URL);
+        if (!response.ok) {
+            throw new Error(`HTTP错误! 状态码: ${response.status}`);
+        }
+        
+        const stats = await response.json();
+        
+        // 更新今日能量数据
+        document.getElementById('todayWishes').textContent = stats.today_wishes;
+        document.getElementById('todayBlessings').textContent = stats.today_blessings;
+        document.getElementById('todayFulfilled').textContent = stats.today_fulfilled;
+        
+        // 更新愿望分布图表
+        wishTypeChart.data.datasets[0].data = [
+            stats.type_love,
+            stats.type_wealth,
+            stats.type_health,
+            stats.type_study,
+            stats.type_family,
+            stats.type_other
+        ];
+        
+        wishTypeChart.update();
+    } catch (error) {
+        console.error('获取统计数据失败:', error);
+        showErrorMessage('获取统计数据失败，请稍后刷新页面');
+    }
+}
+
+// 在renderWishes函数中调用updateStats
+async function renderWishes() {
+    try {
+        const response = await fetch(API_URL + '?visibility=public');
+        const text = await response.text();
+        console.log('[DEBUG] 原始响应内容:', text);
+        
+        const data = JSON.parse(text);
+        const wishes = Array.isArray(data) ? data : data.wishes || [];
+        
+        if (!Array.isArray(wishes)) {
+            throw new Error('返回的不是数组');
+        }
+        
+        console.log('[DEBUG] 愿望数量:', wishes.length);
+        
+        renderWishCards(wishes);
+        await updateStats(); // 调用更新统计数据的函数
+    } catch (err) {
+        console.error('渲染愿望时出错:', err);
+        wishPool.innerHTML = `<p style="color:red;">加载失败：${err.message}</p>`;
+    }
+}
                 
                 if (wishes.length === 0) {
                     wishPool.innerHTML = `
