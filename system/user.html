@@ -517,23 +517,27 @@
 
           const data = await response.json();
 
-          if (response.ok) {
-            showAlert(registerAlert, '注册成功! 请登录', 'success');
-            document.getElementById('registerForm').reset();
-          } else {
-            // 处理邮箱已存在的情况
-            if (data.error && data.error.includes('UNIQUE constraint failed: users.email')) {
-              showAlert(registerAlert, '该邮箱已被注册，请使用其他邮箱', 'danger');
-            } else {
-              showAlert(registerAlert, data.error || '注册失败', 'danger');
+          // 首先检查响应状态
+            if (!response.ok) {
+              const text = await response.text();
+              console.error('注册响应文本:', text);
+              throw new Error(`HTTP错误! 状态: ${response.status}`);
             }
+        
+            // 然后尝试解析JSON
+            const data = await response.json();
+            
+            if (response.ok) {
+              showAlert(registerAlert, '注册成功! 请登录', 'success');
+              document.getElementById('registerForm').reset();
+            } else {
+              // 处理错误...
+            }
+          } catch (error) {
+            console.error('完整注册错误:', error);
+            showAlert(registerAlert, `注册失败: ${error.message}`, 'danger');
           }
-        } catch (error) {
-          console.error('注册错误:', error);
-          showAlert(registerAlert, '网络错误，请稍后再试', 'danger');
-        }
-      });
-
+        });
       // 发送密码重置链接
       sendResetBtn.addEventListener('click', async () => {
         forgotAlert.classList.add('hidden');
