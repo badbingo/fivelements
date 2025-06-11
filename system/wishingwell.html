@@ -1505,6 +1505,7 @@
             });
             
             renderWishes();  // 加上这行：初始化时就加载愿望池内容
+            updateStatsFromServer();  // 获取并展示最新统计数据
             
             // DOM 元素
             const wishForm = document.getElementById('wishForm');
@@ -1744,29 +1745,6 @@ function getTimeGan(dayGan, timeZhi) {
                     wishPool.innerHTML = `<p style="color:red;">加载失败：${err.message}</p>`;
                   }
                 }
-                            
-            // 更新统计信息
-           function updateStats(wishes) {
-                // 确保wishes是一个数组
-                if (!Array.isArray(wishes)) {
-                    console.error('wishes不是数组:', wishes);
-                    wishes = [];
-                }
-                
-                const today = new Date().toISOString().split('T')[0];
-                
-                // 计算今日新增愿望
-                const todayWishes = wishes.filter(wish => wish.solar_date === today).length;
-                document.getElementById('todayWishes').textContent = todayWishes;
-                
-                // 计算今日加持次数（这里简化处理）
-                const todayBlessings = wishes.reduce((sum, wish) => sum + (wish.solar_date === today ? (wish.blessings || 0) : 0), 0);
-                document.getElementById('todayBlessings').textContent = todayBlessings;
-                
-                // 计算今日还愿次数（这里简化处理）
-                const todayFulfilled = wishes.filter(wish => wish.fulfilled && wish.fulfilled_date === today).length;
-                document.getElementById('todayFulfilled').textContent = todayFulfilled;
-            }
 
             async function renderWishes() {
                   try {
@@ -1878,7 +1856,26 @@ function getTimeGan(dayGan, timeZhi) {
                     wishPool.appendChild(wishCard);
                 });
             }
+
+             async function updateStatsFromServer() {
+                try {
+                    const res = await fetch('https://你的域名/api/stats');
+                    const data = await res.json();
             
+                    document.getElementById('todayWishes').textContent = data.today.newWishes;
+                    document.getElementById('todayBlessings').textContent = data.today.blessings;
+                    document.getElementById('todayFulfilled').textContent = data.today.fulfilled;
+            
+                    // 更新饼图
+                    if (window.wishTypeChart) {
+                        window.wishTypeChart.data.labels = Object.keys(data.distribution);
+                        window.wishTypeChart.data.datasets[0].data = Object.values(data.distribution);
+                        window.wishTypeChart.update();
+                    }
+                } catch (err) {
+                    console.error('获取统计数据失败:', err);
+                }
+            }
             // 更新分页信息
             function updatePagination(totalItems, perPage = 6) {
                 const totalPages = Math.max(1, Math.ceil(totalItems / perPage));
