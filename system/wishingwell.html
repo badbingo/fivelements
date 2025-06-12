@@ -2299,25 +2299,60 @@
                     submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> 投入命缘池';
                 }
             }
+
+            // 筛选和排序愿望
+            function filterAndSortWishes(wishes) {
+                // 获取筛选条件
+                const filterValue = document.getElementById('wishFilter').value;
+                const sortValue = document.getElementById('sortFilter').value;
+                
+                // 筛选愿望
+                let filteredWishes = wishes;
+                if (filterValue !== 'all') {
+                    filteredWishes = wishes.filter(wish => wish.type === filterValue);
+                }
+                
+                // 排序愿望
+                switch(sortValue) {
+                    case 'newest':
+                        filteredWishes.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                        break;
+                    case 'oldest':
+                        filteredWishes.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+                        break;
+                    case 'most':
+                        filteredWishes.sort((a, b) => (b.blessings || 0) - (a.blessings || 0));
+                        break;
+                    case 'least':
+                        filteredWishes.sort((a, b) => (a.blessings || 0) - (b.blessings || 0));
+                        break;
+                }
+                
+                return filteredWishes;
+            }
             
             // 渲染愿望列表
             async function renderWishes() {
                 try {
                     const response = await fetch(API_URL + '?visibility=public');
                     const text = await response.text();
-                    console.log('[DEBUG] 原始响应内容:', text);
+                    console.log('[DEBUG] 原始响应:', text);
                 
-                    const data = JSON.parse(text);
-                
-                    const wishes = Array.isArray(data) ? data : data.wishes || [];
+                    const json = JSON.parse(text);
+                    let wishes = Array.isArray(json) ? json : json.data || [];
                 
                     if (!Array.isArray(wishes)) {
-                        throw new Error('返回的不是数组');
+                        throw new Error('返回的不是愿望数组');
                     }
                 
+                    // 应用筛选和排序
+                    wishes = filterAndSortWishes(wishes);
+                    
                     console.log('[DEBUG] 愿望数量:', wishes.length);
-                
                     renderWishCards(wishes);
+                    
+                    // 更新分页信息
+                    updatePagination(wishes.length);
                 } catch (err) {
                     console.error('渲染愿望时出错:', err);
                     wishPool.innerHTML = `<p style="color:red;">加载失败：${err.message}</p>`;
@@ -2386,12 +2421,16 @@
                     wishPool.innerHTML = `
                         <div class="wish-loading">
                             <i class="fas fa-water" style="font-size: 2rem; color: #6a11cb; margin-bottom: 15px;"></i>
-                            <p>命缘池中暂无愿望</p>
-                            <p>请投入您的第一个愿望</p>
+                            <p>没有找到符合条件的愿望</p>
                         </div>
                     `;
                     return;
                 }
+                
+                // 分页处理
+                const perPage = 6;
+                const startIndex = (currentPage - 1) * perPage;
+                const paginatedWishes = wishes.slice(startIndex, startIndex + perPage);
                 
                 // 愿望类型名称映射
                 const typeNames = {
@@ -2403,7 +2442,7 @@
                     other: '其他愿望'
                 };
                 
-                wishes.forEach(wish => {
+                paginatedWishes.forEach(wish => {
                     // 创建愿望卡片
                     const wishCard = document.createElement('div');
                     wishCard.className = 'wish-card';
@@ -2830,16 +2869,9 @@
                     renderWishes();
                 });
                 
-                // 筛选变化
-                document.getElementById('wishFilter').addEventListener('change', () => {
-                    currentPage = 1;
-                    renderWishes();
-                });
-                
-                document.getElementById('sortFilter').addEventListener('change', () => {
-                    currentPage = 1;
-                    renderWishes();
-                });
+                // 筛选变化 - 修改为直接重新渲染
+                document.getElementById('wishFilter').addEventListener('change', renderWishes);
+                document.getElementById('sortFilter').addEventListener('change', renderWishes);
                 
                 // 全局点击关闭模态框
                 window.addEventListener('click', (e) => {
