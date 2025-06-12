@@ -2484,46 +2484,67 @@
                   return;
                 }
             
-                // 2. 显示特效（可选）
-                await showMantraEffect();
-            
-                // 3. 准备请求参数
-                const API_URL = 'https://bazi-backend.owenjass.workers.dev/api'; // 确保这是您的真实后端地址
-                const blessUrl = `${API_URL}/bless/${wish.id}`;
+                // 2. 检查本地加持记录（新增部分）
+                const lastBlessKey = `lastBless_${wish.id}`;
+                const lastBlessTime = localStorage.getItem(lastBlessKey);
+                const now = Date.now();
                 
-                // 4. 发送请求（关键修改）
+                // 如果本地有记录且未满1小时，直接阻止
+                if (lastBlessTime && (now - parseInt(lastBlessTime)) < 3600000) {
+                  const nextBlessTime = new Date(parseInt(lastBlessTime) + 3600000);
+                  showToast(`每小时只能加持一次，请于 ${nextBlessTime.toLocaleTimeString()} 后再试`);
+                  return; // 直接返回，不执行后续逻辑
+                }
+            
+                // 3. 获取加持按钮并禁用
                 const blessBtn = cardElement.querySelector('.btn-bless');
                 blessBtn.disabled = true;
                 blessBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 加持中...';
             
+                // 4. 显示特效
+                await showMantraEffect();
+            
+                // 5. 发送请求
+                const API_URL = 'https://bazi-backend.owenjass.workers.dev/api';
+                const blessUrl = `${API_URL}/bless/${wish.id}`;
+                
                 const response = await fetch(blessUrl, {
                   method: 'POST',
                   headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                   },
-                  body: JSON.stringify({}) // 即使没有数据也要传空对象
+                  body: JSON.stringify({})
                 });
             
-                // 5. 处理响应
+                // 6. 处理响应
                 if (!response.ok) {
-                  const errorDetail = await response.text();
-                  throw new Error(`加持失败 (${response.status}): ${errorDetail}`);
+                  const errorData = await response.json();
+                  if (errorData.code === 429) {
+                    // 存储后端返回的限制时间
+                    localStorage.setItem(lastBlessKey, new Date(errorData.nextBlessTime).getTime() - 3600000);
+                    showToast(errorData.error);
+                    return; // 不执行成功逻辑
+                  }
+                  throw new Error(`加持失败 (${response.status}): ${JSON.stringify(errorData)}`);
                 }
             
                 const result = await response.json();
-                console.log('加持结果:', result); // 调试用
+                console.log('加持结果:', result);
             
-                // 6. 更新UI
+                // 7. 记录本次加持时间
+                localStorage.setItem(lastBlessKey, now.toString());
+            
+                // 8. 更新UI
                 cardElement.querySelector('.bless-count').textContent = result.blessings;
                 cardElement.dataset.level = result.level;
                 cardElement.querySelector('.energy-level').style.width = `${result.level * 20}%`;
                 
-                // 7. 显示成功动画
+                // 9. 显示成功动画
                 cardElement.classList.add('level-up');
                 setTimeout(() => cardElement.classList.remove('level-up'), 1000);
                 
-                // 8. 提示用户
+                // 10. 提示用户
                 const levelNames = ['初愿', '小成', '中成', '大成', '圆满'];
                 showSuccessMessage(`加持成功！当前能量：${levelNames[result.level - 1]}`);
             
@@ -2531,7 +2552,7 @@
                 console.error('加持出错:', error);
                 showErrorMessage(error.message);
               } finally {
-                // 9. 重置按钮状态
+                // 11. 重置按钮状态
                 const blessBtn = cardElement.querySelector('.btn-bless');
                 if (blessBtn) {
                   blessBtn.disabled = false;
