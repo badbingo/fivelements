@@ -2012,6 +2012,9 @@
                 }
             });
 
+            const wishFilter = document.getElementById('wishFilter');
+            const sortFilter = document.getElementById('sortFilter');
+            
             document.getElementById('wishContent').addEventListener('input', function() {
                 const count = this.value.length;
                 document.getElementById('charCount').textContent = count;
@@ -2296,30 +2299,68 @@
                 }
             }
             
-            // 渲染愿望列表
+            // 初始化筛选函数
+            function applyFiltersAndSort(wishes) {
+                // 1. 应用类型筛选
+                const selectedType = wishFilter.value;
+                let filteredWishes = wishes;
+                
+                if (selectedType !== 'all') {
+                    filteredWishes = wishes.filter(wish => wish.type === selectedType);
+                }
+                
+                // 2. 应用排序
+                const selectedSort = sortFilter.value;
+                
+                switch(selectedSort) {
+                    case 'newest': // 最新愿望
+                        filteredWishes.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                        break;
+                    case 'oldest': // 最早愿望
+                        filteredWishes.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+                        break;
+                    case 'most': // 最多加持
+                        filteredWishes.sort((a, b) => (b.blessings || 0) - (a.blessings || 0));
+                        break;
+                    case 'least': // 最少加持
+                        filteredWishes.sort((a, b) => (a.blessings || 0) - (b.blessings || 0));
+                        break;
+                    default:
+                        // 默认按最新排序
+                        filteredWishes.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                }
+                
+                return filteredWishes;
+            }
+            // 修改renderWishes函数以使用筛选和排序
             async function renderWishes() {
                 try {
                     const response = await fetch(API_URL + '?visibility=public');
                     const text = await response.text();
-                    console.log('[DEBUG] 原始响应内容:', text);
+                    console.log('[DEBUG] 原始响应:', text);
                 
-                    const data = JSON.parse(text);
-                
-                    const wishes = Array.isArray(data) ? data : data.wishes || [];
+                    const json = JSON.parse(text);
+                    let wishes = Array.isArray(json) ? json : json.data || [];
                 
                     if (!Array.isArray(wishes)) {
-                        throw new Error('返回的不是数组');
+                        throw new Error('返回的不是愿望数组');
                     }
-                
-                    console.log('[DEBUG] 愿望数量:', wishes.length);
-                
+                    
+                    // 应用筛选和排序
+                    wishes = applyFiltersAndSort(wishes);
+                    
+                    console.log('[DEBUG] 筛选排序后的愿望数量:', wishes.length);
                     renderWishCards(wishes);
                 } catch (err) {
                     console.error('渲染愿望时出错:', err);
                     wishPool.innerHTML = `<p style="color:red;">加载失败：${err.message}</p>`;
                 }
             }
-                            
+                 
+            // 为筛选控件添加事件监听
+            wishFilter.addEventListener('change', renderWishes);
+            sortFilter.addEventListener('change', renderWishes);
+            
             // 更新统计信息
             async function updateStats() {
               try {
