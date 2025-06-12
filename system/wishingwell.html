@@ -2383,6 +2383,7 @@
             // 升级版handleBlessWish函数
             async function handleBlessWish(cardElement, wish) {
               try {
+                // 1. 检查登录状态
                 const token = localStorage.getItem('token');
                 if (!token) {
                   const shouldLogin = confirm('您需要先登录才能加持\n\n点击"确定"跳转到登录页面');
@@ -2390,46 +2391,54 @@
                   return;
                 }
             
-                // 显示特效
+                // 2. 显示特效（可选）
                 await showMantraEffect();
             
-                // 发送加持请求
+                // 3. 准备请求参数
+                const API_URL = 'https://bazi-backend.owenjass.workers.dev/api'; // 确保这是您的真实后端地址
+                const blessUrl = `${API_URL}/bless/${wish.id}`;
+                
+                // 4. 发送请求（关键修改）
                 const blessBtn = cardElement.querySelector('.btn-bless');
                 blessBtn.disabled = true;
                 blessBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 加持中...';
-                
-                const response = await fetch(`/api/bless/${wish.id}`, {
+            
+                const response = await fetch(blessUrl, {
                   method: 'POST',
                   headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
-                  }
+                  },
+                  body: JSON.stringify({}) // 即使没有数据也要传空对象
                 });
             
+                // 5. 处理响应
                 if (!response.ok) {
-                  throw new Error(`HTTP 错误: ${response.status}`);
+                  const errorDetail = await response.text();
+                  throw new Error(`加持失败 (${response.status}): ${errorDetail}`);
                 }
             
                 const result = await response.json();
-                console.log('加持响应:', result); // 调试日志
-                
-                // 更新UI
+                console.log('加持结果:', result); // 调试用
+            
+                // 6. 更新UI
                 cardElement.querySelector('.bless-count').textContent = result.blessings;
                 cardElement.dataset.level = result.level;
-                const levelPercent = [20, 40, 60, 80, 100][result.level - 1] || 20;
-                cardElement.querySelector('.energy-level').style.width = `${levelPercent}%`;
+                cardElement.querySelector('.energy-level').style.width = `${result.level * 20}%`;
                 
+                // 7. 显示成功动画
                 cardElement.classList.add('level-up');
                 setTimeout(() => cardElement.classList.remove('level-up'), 1000);
                 
+                // 8. 提示用户
                 const levelNames = ['初愿', '小成', '中成', '大成', '圆满'];
-                const levelName = levelNames[result.level - 1] || '初愿';
-                showSuccessMessage(`愿望能量提升至${levelName}！当前加持次数: ${result.blessings}`);
+                showSuccessMessage(`加持成功！当前能量：${levelNames[result.level - 1]}`);
             
               } catch (error) {
-                console.error('加持异常:', error);
+                console.error('加持出错:', error);
                 showErrorMessage(error.message);
               } finally {
+                // 9. 重置按钮状态
                 const blessBtn = cardElement.querySelector('.btn-bless');
                 if (blessBtn) {
                   blessBtn.disabled = false;
