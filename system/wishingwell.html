@@ -2301,19 +2301,42 @@
                 try {
                     const response = await fetch(API_URL + '?visibility=public');
                     const text = await response.text();
-                    console.log('[DEBUG] 原始响应内容:', text);
-                
-                    const data = JSON.parse(text);
-                
-                    const wishes = Array.isArray(data) ? data : data.wishes || [];
-                
+                    console.log('[DEBUG] 原始响应:', text);
+            
+                    const json = JSON.parse(text);
+                    let wishes = Array.isArray(json) ? json : json.data || [];
+            
                     if (!Array.isArray(wishes)) {
-                        throw new Error('返回的不是数组');
+                        throw new Error('返回的不是愿望数组');
                     }
-                
+            
                     console.log('[DEBUG] 愿望数量:', wishes.length);
-                
+            
+                    // 获取筛选和排序的值
+                    const typeFilter = document.getElementById('wishFilter')?.value || 'all';
+                    const sortOrder = document.getElementById('sortFilter')?.value || 'newest';
+            
+                    // 应用类型筛选
+                    if (typeFilter !== 'all') {
+                        wishes = wishes.filter(w => w.type === typeFilter);
+                    }
+            
+                    // 应用排序
+                    wishes.sort((a, b) => {
+                        if (sortOrder === 'newest') {
+                            return new Date(b.created_at) - new Date(a.created_at);
+                        } else if (sortOrder === 'oldest') {
+                            return new Date(a.created_at) - new Date(b.created_at);
+                        } else if (sortOrder === 'most') {
+                            return (b.blessings || 0) - (a.blessings || 0);
+                        } else if (sortOrder === 'least') {
+                            return (a.blessings || 0) - (b.blessings || 0);
+                        }
+                        return 0;
+                    });
+            
                     renderWishCards(wishes);
+            
                 } catch (err) {
                     console.error('渲染愿望时出错:', err);
                     wishPool.innerHTML = `<p style="color:red;">加载失败：${err.message}</p>`;
