@@ -1972,7 +1972,90 @@ let appState = {
   }
 };
 
-// ====================== 主初始化函数 ======================
+// ====================== 新增缺失的函数定义 ======================
+
+/**
+ * 初始化所有UI组件
+ */
+function initUIComponents() {
+  // 1. 初始化日期选择器
+  const dateInputs = document.querySelectorAll('.date-picker');
+  dateInputs.forEach(input => {
+    input.addEventListener('focus', function() {
+      this.type = 'date';
+    });
+    input.addEventListener('blur', function() {
+      if (!this.value) this.type = 'text';
+    });
+  });
+
+  // 2. 初始化工具提示
+  const tooltips = document.querySelectorAll('[data-tooltip]');
+  tooltips.forEach(el => {
+    el.addEventListener('mouseenter', showTooltip);
+    el.addEventListener('mouseleave', hideTooltip);
+  });
+
+  // 3. 初始化模态框
+  const modals = document.querySelectorAll('.modal');
+  modals.forEach(modal => {
+    const closeBtn = modal.querySelector('.modal-close');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', () => {
+        modal.classList.remove('active');
+      });
+    }
+  });
+
+  // 4. 初始化下拉菜单
+  const dropdowns = document.querySelectorAll('.dropdown-toggle');
+  dropdowns.forEach(dropdown => {
+    dropdown.addEventListener('click', function(e) {
+      e.stopPropagation();
+      const menu = this.nextElementSibling;
+      menu.classList.toggle('show');
+    });
+  });
+
+  // 点击其他地方关闭下拉菜单
+  document.addEventListener('click', () => {
+    document.querySelectorAll('.dropdown-menu').forEach(menu => {
+      menu.classList.remove('show');
+    });
+  });
+}
+
+/**
+ * 显示工具提示
+ */
+function showTooltip(e) {
+  const tooltipText = this.getAttribute('data-tooltip');
+  if (!tooltipText) return;
+
+  const tooltip = document.createElement('div');
+  tooltip.className = 'tooltip';
+  tooltip.textContent = tooltipText;
+  
+  document.body.appendChild(tooltip);
+  
+  const rect = this.getBoundingClientRect();
+  tooltip.style.top = `${rect.top - tooltip.offsetHeight - 5}px`;
+  tooltip.style.left = `${rect.left + rect.width / 2 - tooltip.offsetWidth / 2}px`;
+  
+  this._currentTooltip = tooltip;
+}
+
+/**
+ * 隐藏工具提示
+ */
+function hideTooltip() {
+  if (this._currentTooltip) {
+    this._currentTooltip.remove();
+    this._currentTooltip = null;
+  }
+}
+
+// ====================== 原有代码保持不变 ======================
 document.addEventListener('DOMContentLoaded', async function() {
   // 1. 初始化基础组件
   initAuth();
