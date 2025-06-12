@@ -1730,7 +1730,8 @@
                     
                     <div class="form-group">
                         <label for="wishContent"><i class="fas fa-star"></i> 愿望内容</label>
-                        <textarea id="wishContent" rows="4" placeholder="写下您真诚的愿望..." required></textarea>
+                        <textarea id="wishContent" rows="4" maxlength="200" placeholder="写下您真诚的愿望(限200字以内)..." required></textarea>
+                        <p class="form-hint">已输入 <span id="charCount">0</span>/200 字</p>
                         <p class="bazi-info" id="baziInfo"></p>
                     </div>
                     
@@ -2012,6 +2013,14 @@
                         bubble: { distance: 250, size: 4, duration: 2, opacity: 0.5, speed: 3 },
                         push: { particles_nb: 4 }
                     }
+                }
+            });
+
+            document.getElementById('wishContent').addEventListener('input', function() {
+                const count = this.value.length;
+                document.getElementById('charCount').textContent = count;
+                if (count >= 200) {
+                    showToast('已达到最大字数限制', 'info');
                 }
             });
             
