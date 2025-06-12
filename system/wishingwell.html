@@ -2314,28 +2314,33 @@
             }
                             
             // 更新统计信息
-            function updateStats(wishes) {
-                // 确保wishes是一个数组
-                if (!Array.isArray(wishes)) {
-                    console.error('wishes不是数组:', wishes);
-                    wishes = [];
+            async function updateStats() {
+              try {
+                const response = await fetch('https://bazi-backend.owenjass.workers.dev/api/stats?_=' + Date.now());
+                
+                if (!response.ok) {
+                  const errorData = await response.json();
+                  throw new Error(errorData.details || '请求失败');
                 }
+            
+                const data = await response.json();
                 
-                const today = new Date().toISOString().split('T')[0];
+                // 调试日志
+                console.log('统计数据:', {
+                  blessings: data.today.blessings,
+                  rawData: data
+                });
+            
+                // 更新UI
+                document.getElementById('blessingsCount').textContent = data.today.blessings || 0;
                 
-                // 计算今日新增愿望
-                const todayWishes = wishes.filter(wish => wish.solar_date === today).length;
-                document.getElementById('todayWishes').textContent = todayWishes;
-                
-                // 计算今日加持次数（这里简化处理）
-                const todayBlessings = wishes.reduce((sum, wish) => sum + (wish.solar_date === today ? (wish.blessings || 0) : 0), 0);
-                document.getElementById('todayBlessings').textContent = todayBlessings;
-                
-                // 计算今日还愿次数（这里简化处理）
-                const todayFulfilled = wishes.filter(wish => wish.fulfilled && wish.fulfilled_date === today).length;
-                document.getElementById('todayFulfilled').textContent = todayFulfilled;
+              } catch (error) {
+                console.error('更新统计失败:', {
+                  error: error.message,
+                  stack: error.stack
+                });
+              }
             }
-
             async function renderWishes() {
                 try {
                     const response = await fetch(API_URL + '?visibility=public');
