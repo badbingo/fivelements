@@ -2105,72 +2105,78 @@ function getTimeGan(dayGan, timeZhi) {
             
             // 升级版handleBlessWish函数
     async function handleBlessWish(cardElement, wish) {
-    try {
-        const token = localStorage.getItem('token');
-        if (!token) {
-            const shouldLogin = confirm('您需要先登录才能加持\n\n点击"确定"跳转到登录页面');
-            if (shouldLogin) window.location.href = '/system/user.html';
-            return;
-        }
-        // 频率限制检查
-        const lastBlessKey = `bless_${wish.id}`;
-        const lastBlessTime = localStorage.getItem(lastBlessKey);
-        const now = Date.now();
-        
-        if (lastBlessTime && (now - parseInt(lastBlessTime)) < 3600000) {
-            showErrorMessage('一个小时内只能加持一次该愿望，请稍后再试');
-            return;
-        }
-        // 设置加载状态
-        const blessBtn = cardElement.querySelector('.btn-bless');
-        blessBtn.disabled = true;
-        blessBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 加持中...';
-        
-        // 发送加持请求
-        const blessUrl = 'https://bazi-backend.owenjass.workers.dev/api/bless/' + wish.id;
-        const response = await fetch(blessUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                const shouldLogin = confirm('您需要先登录才能加持\n\n点击"确定"跳转到登录页面');
+                if (shouldLogin) window.location.href = '/system/user.html';
+                return;
             }
-        });
-        if (!response.ok) {
-            throw new Error(`HTTP错误: ${response.status}`);
-        }
-        const result = await response.json();
-        console.log('加持响应:', result); // 调试
-        
-        // 更新UI
-        cardElement.querySelector('.bless-count').textContent = result.blessings;
-        cardElement.dataset.level = result.level;
-        const levelPercent = [20, 40, 60, 80, 100][result.level - 1] || 20;
-        cardElement.querySelector('.energy-level').style.width = `${levelPercent}%`;
-        
-        // 显示特效
-        await showMantraEffect();
-        
-        cardElement.classList.add('level-up');
-        setTimeout(() => cardElement.classList.remove('level-up'), 1000);
-        
-        // 刷新统计数据
-        await fetchStats();
-        
-        const levelNames = ['初愿', '小成', '中成', '大成', '圆满'];
-        const levelName = levelNames[result.level - 1] || '初愿';
-        showSuccessMessage(`愿望能量提升至${levelName}！当前加持次数: ${result.blessings}`);
-        localStorage.setItem(lastBlessKey, now.toString());
-    } catch (error) {
-        console.error('加持异常:', error);
-        showErrorMessage(error.message);
-    } finally {
-        const blessBtn = cardElement.querySelector('.btn-bless');
-        if (blessBtn) {
-            blessBtn.disabled = false;
-            blessBtn.innerHTML = '<i class="fas fa-hands-helping"></i> 加持';
+
+            // 频率限制检查
+            const lastBlessKey = `bless_${wish.id}`;
+            const lastBlessTime = localStorage.getItem(lastBlessKey);
+            const now = Date.now();
+            
+            if (lastBlessTime && (now - parseInt(lastBlessTime)) < 3600000) {
+                showErrorMessage('一个小时内只能加持一次该愿望，请稍后再试');
+                return;
+            }
+
+            // 显示超级炫酷特效
+            await showMantraEffect();
+
+            // 发送加持请求
+            const correctedUrl = API_URL.replace('/api/wishes', '/api') + `/bless/${wish.id}`;
+            const blessBtn = cardElement.querySelector('.btn-bless');
+            blessBtn.disabled = true;
+            blessBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 加持中...';
+            
+            const response = await fetch(correctedUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({})
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                
+                // 更新UI
+                cardElement.querySelector('.bless-count').textContent = result.blessings;
+                cardElement.dataset.level = result.level;
+                const levelPercent = [20, 40, 60, 80, 100][result.level - 1] || 20;
+                cardElement.querySelector('.energy-level').style.width = `${levelPercent}%`;
+                
+                cardElement.classList.add('level-up');
+                setTimeout(() => cardElement.classList.remove('level-up'), 1000);
+                
+                const levelNames = ['初愿', '小成', '中成', '大成', '圆满'];
+                const levelName = levelNames[result.level - 1] || '初愿';
+                showSuccessMessage(`愿望能量提升至${levelName}！当前加持次数: ${result.blessings}`);
+
+                localStorage.setItem(lastBlessKey, now.toString());
+            } else {
+                const errorText = await response.text();
+                let errorMsg = '加持失败，请稍后重试';
+                if (response.status === 401) errorMsg = '身份验证失败，请重新登录';
+                if (response.status === 404) errorMsg = '愿望不存在或已被删除';
+                if (response.status === 429) errorMsg = '操作过于频繁，请稍后再试';
+                throw new Error(`${errorMsg} (状态码: ${response.status})`);
+            }
+        } catch (error) {
+            console.error('加持异常:', error);
+            showErrorMessage(error.message);
+        } finally {
+            const blessBtn = cardElement.querySelector('.btn-bless');
+            if (blessBtn) {
+                blessBtn.disabled = false;
+                blessBtn.innerHTML = '<i class="fas fa-hands-helping"></i> 加持';
+            }
         }
     }
-}
 
     // 升级版特效显示函数
     async function showMantraEffect() {
