@@ -1,3 +1,4 @@
+完整功能小bug版
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -2025,43 +2026,58 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             // 更新八字信息显示
-            // 五鼠遁计算时干
-            function getTimeGan(dayGan, timeZhi) {
-                const ganOrder = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
-                const zhiOrder = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
+            function updateBaziInfo() {
+                const birthday = document.getElementById('birthday').value;
+                const birthtime = document.getElementById('birthtime').value;
                 
-                const startGanMap = {
-                    '甲': '甲', '乙': '丙', '丙': '戊', '丁': '庚', 
-                    '戊': '壬', '己': '甲', '庚': '丙', '辛': '戊', 
-                    '壬': '庚', '癸': '壬'
-                };
-                
-                const startGan = startGanMap[dayGan];
-                const startIndex = ganOrder.indexOf(startGan);
-                const timeIndex = zhiOrder.indexOf(timeZhi);
-                
-                return ganOrder[(startIndex + timeIndex) % 10];
+                if (birthday && birthtime) {
+                    // 显示加载状态
+                    baziInfo.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 计算中...';
+                    baziInfo.style.display = 'block';
+                    
+                    // 延迟计算以避免频繁调用
+                    setTimeout(() => {
+                        const bazi = calculateBazi(birthday, birthtime);
+                        if (bazi) {
+                            baziInfo.innerHTML = `您的八字：<strong>${bazi}</strong>`;
+                        } else {
+                            baziInfo.innerHTML = '<span style="color:#ff6b6b">八字计算失败，请检查输入</span>';
+                        }
+                    }, 300);
+                } else {
+                    baziInfo.style.display = 'none';
+                }
             }
 
             // 添加出生日期和时间变化的事件监听
             document.getElementById('birthday').addEventListener('change', updateBaziInfo);
             document.getElementById('birthtime').addEventListener('change', updateBaziInfo);
             
-            // 确保lunar.js已加载
-            async function loadLunarJS() {
-                if (typeof Lunar !== 'undefined') return;
-                
+            // 加载lunar.js库
+            function loadLunarJS() {
                 return new Promise((resolve, reject) => {
+                    if (typeof Lunar !== 'undefined') {
+                        resolve();
+                        return;
+                    }
+            
                     const script = document.createElement('script');
+                    // 指定 1.7.3 版本
                     script.src = 'https://cdn.jsdelivr.net/npm/lunar-javascript@1.7.3/dist/lunar.min.js';
-                    script.onload = resolve;
-                    script.onerror = reject;
+                    script.onload = () => {
+                        console.log('lunar.js 1.7.3 加载成功');
+                        resolve();
+                    };
+                    script.onerror = (error) => {
+                        console.error('lunar.js 1.7.3 加载失败:', error);
+                        reject(error);
+                    };
                     document.head.appendChild(script);
                 });
             }
             
-            // 准确的八字计算函数
-function calculateBazi(birthday, birthtime) {
+            // 使用lunar.js计算八字
+            function calculateBazi(birthday, birthtime) {
     if (!birthday || !birthtime) return null;
     
     try {
@@ -2100,7 +2116,7 @@ function calculateBazi(birthday, birthtime) {
 }
 
             // 五鼠遁计算时干
-function getTimeGan(dayGan, timeZhi) {
+            function getTimeGan(dayGan, timeZhi) {
     const ganOrder = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
     const zhiOrder = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
     
