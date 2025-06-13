@@ -2010,7 +2010,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
 
-     // 初始化表单提交
+             // 初始化表单提交
             wishForm.addEventListener('submit', handleSubmitWish);
             
             // 生成八字信息
@@ -2025,87 +2025,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             // 更新八字信息显示
-            function updateBaziInfo() {
-                const birthday = document.getElementById('birthday').value;
-                const birthtime = document.getElementById('birthtime').value;
-                
-                if (birthday && birthtime) {
-                    // 显示加载状态
-                    baziInfo.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 计算中...';
-                    baziInfo.style.display = 'block';
-                    
-                    // 延迟计算以避免频繁调用
-                    setTimeout(() => {
-                        const bazi = calculateBazi(birthday, birthtime);
-                        if (bazi) {
-                            baziInfo.innerHTML = `您的八字：<strong>${bazi}</strong>`;
-                        } else {
-                            baziInfo.innerHTML = '<span style="color:#ff6b6b">八字计算失败，请检查输入</span>';
-                        }
-                    }, 300);
-                } else {
-                    baziInfo.style.display = 'none';
-                }
-            }
-
-            // 添加出生日期和时间变化的事件监听
-            document.getElementById('birthday').addEventListener('change', updateBaziInfo);
-            document.getElementById('birthtime').addEventListener('change', updateBaziInfo);
-            
-            // 加载lunar.js库
-            function loadLunarJS() {
-                return new Promise((resolve, reject) => {
-                    if (typeof Lunar !== 'undefined') {
-                        resolve();
-                        return;
-                    }
-            
-                    const script = document.createElement('script');
-                    // 指定 1.7.3 版本
-                    script.src = 'https://cdn.jsdelivr.net/npm/lunar-javascript@1.7.3/dist/lunar.min.js';
-                    script.onload = () => {
-                        console.log('lunar.js 1.7.3 加载成功');
-                        resolve();
-                    };
-                    script.onerror = (error) => {
-                        console.error('lunar.js 1.7.3 加载失败:', error);
-                        reject(error);
-                    };
-                    document.head.appendChild(script);
-                });
-            }
-            
-            // 使用lunar.js计算八字
-            function calculateBazi(birthday, birthtime) {
-        if (!birthday || !birthtime) return null;
-        
-        try {
-            // 简单实现 - 实际应该使用专业的八字计算库
-            const [year, month, day] = birthday.split('-');
-            const timeNames = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
-            const hour = parseInt(birthtime.split('-')[0]);
-            const timeIndex = Math.floor(((hour + 1) % 24) / 2);
-            const timeZhi = timeNames[timeIndex];
-            
-            // 简化版八字计算 - 仅作示例
-            const gan = ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
-            const zhi = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
-            
-            const yearGan = gan[(parseInt(year) - 4) % 10];
-            const yearZhi = zhi[(parseInt(year) - 4) % 12];
-            const monthGan = gan[(parseInt(month) + 1) % 10];
-            const monthZhi = zhi[(parseInt(month) + 1) % 12];
-            const dayGan = gan[(parseInt(day) + 3) % 10];
-            const dayZhi = zhi[(parseInt(day) + 3) % 12];
-            const timeGan = gan[(timeIndex + 3) % 10];
-            
-            return `${yearGan}${yearZhi} ${monthGan}${monthZhi} ${dayGan}${dayZhi} ${timeGan}${timeZhi}`;
-        } catch (error) {
-            console.error('计算八字出错:', error);
-            return null;
-        }
-    }
-
             // 五鼠遁计算时干
             function getTimeGan(dayGan, timeZhi) {
                 const ganOrder = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
@@ -2123,6 +2042,80 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 return ganOrder[(startIndex + timeIndex) % 10];
             }
+
+            // 添加出生日期和时间变化的事件监听
+            document.getElementById('birthday').addEventListener('change', updateBaziInfo);
+            document.getElementById('birthtime').addEventListener('change', updateBaziInfo);
+            
+            // 确保lunar.js已加载
+            async function loadLunarJS() {
+                if (typeof Lunar !== 'undefined') return;
+                
+                return new Promise((resolve, reject) => {
+                    const script = document.createElement('script');
+                    script.src = 'https://cdn.jsdelivr.net/npm/lunar-javascript@1.7.3/dist/lunar.min.js';
+                    script.onload = resolve;
+                    script.onerror = reject;
+                    document.head.appendChild(script);
+                });
+            }
+            
+            // 准确的八字计算函数
+async function calculateBazi(birthday, birthtime) {
+    try {
+        await loadLunarJS();
+        
+        if (!birthday || !birthtime) return null;
+        
+        // 解析日期
+        const [year, month, day] = birthday.split('-').map(Number);
+        const [hourStr] = birthtime.split('-');
+        let hour = parseInt(hourStr, 10);
+        
+        // 处理时辰(23-1为子时)
+        const timeIndex = Math.floor(((hour + 1) % 24) / 2);
+        const timeNames = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
+        const timeZhi = timeNames[timeIndex];
+        
+        // 使用lunar.js计算
+        const solarDate = new Date(year, month - 1, day);
+        const lunarDate = Lunar.fromDate(solarDate);
+        
+        // 年柱
+        const ganzhiYear = lunarDate.getYearInGanZhi();
+        // 月柱
+        const ganzhiMonth = lunarDate.getMonthInGanZhi();
+        // 日柱
+        const ganzhiDay = lunarDate.getDayInGanZhi();
+        
+        // 时柱需要单独计算(五鼠遁)
+        const dayGan = ganzhiDay.substring(0, 1); // 日干
+        const timeGan = getTimeGan(dayGan, timeZhi);
+        
+        return `${ganzhiYear} ${ganzhiMonth} ${ganzhiDay} ${timeGan}${timeZhi}`;
+    } catch (error) {
+        console.error('八字计算错误:', error);
+        return null;
+    }
+}
+
+            // 五鼠遁计算时干
+function getTimeGan(dayGan, timeZhi) {
+    const ganOrder = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
+    const zhiOrder = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
+    
+    const startGanMap = {
+        '甲': '甲', '乙': '丙', '丙': '戊', '丁': '庚', 
+        '戊': '壬', '己': '甲', '庚': '丙', '辛': '戊', 
+        '壬': '庚', '癸': '壬'
+    };
+    
+    const startGan = startGanMap[dayGan];
+    const startIndex = ganOrder.indexOf(startGan);
+    const timeIndex = zhiOrder.indexOf(timeZhi);
+    
+    return ganOrder[(startIndex + timeIndex) % 10];
+}
              
             // 表单提交处理
             async function handleSubmitWish(e) {
