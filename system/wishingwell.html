@@ -2769,48 +2769,25 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 处理还愿
     async function handleFulfillWish(wish) {
-        const modal = document.getElementById('fulfillModal');
-        const closeBtn = modal.querySelector('.close-modal');
-        const options = modal.querySelectorAll('.fulfill-option');
-        
-        modal.style.display = 'block';
-        
-        // 关闭模态框
-        closeBtn.onclick = () => {
-            modal.style.display = 'none';
-        };
-        
-        // 选择还愿金额
-        options.forEach(option => {
-            option.onclick = async () => {
-                const amount = option.dataset.amount;
-                
-                try {
-                    // 发送还愿请求到后端
-                    const response = await fetch(`${API_BASE}/api/fulfill/${wish.id}`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({ amount })
-                    });
-                    
-                    if (!response.ok) {
-                        throw new Error('还愿失败');
-                    }
-                    
-                    modal.style.display = 'none';
-                    showSuccessMessage(`还愿成功！感谢您的${amount}元支持！`);
-                    
-                    // 重新加载愿望列表
-                    loadAllWishes();
-                } catch (error) {
-                    console.error('还愿失败:', error);
-                    showErrorMessage('还愿失败，请稍后重试');
-                }
-            };
-        });
+  try {
+    const response = await fetch(`${API_BASE}/api/wishes/${wish.id}/fulfill`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ amount })
+    });
+    
+    if (!response.ok) {
+      throw new Error('还愿失败');
     }
+    
+    // 处理成功响应
+  } catch (error) {
+    console.error('还愿失败:', error);
+    showErrorMessage('还愿失败，请稍后重试');
+  }
+}
 
     // 更新分页信息
     function updatePagination() {
