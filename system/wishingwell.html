@@ -2296,23 +2296,37 @@
                 }
             }
             
-            // 渲染愿望列表
+            // 过滤器和排序器的功能
+            document.getElementById('wishFilter').addEventListener('change', function() {
+                currentPage = 1; // 重置为第一页
+                renderWishes(); // 重新渲染愿望列表
+            });
+            
+            document.getElementById('sortFilter').addEventListener('change', function() {
+                currentPage = 1; // 重置为第一页
+                renderWishes(); // 重新渲染愿望列表
+            });
+            
+            // 修改渲染愿望的函数
             async function renderWishes() {
                 try {
-                    const response = await fetch(API_URL + '?visibility=public');
-                    const text = await response.text();
-                    console.log('[DEBUG] 原始响应内容:', text);
-                
-                    const data = JSON.parse(text);
-                
-                    const wishes = Array.isArray(data) ? data : data.wishes || [];
-                
-                    if (!Array.isArray(wishes)) {
-                        throw new Error('返回的不是数组');
+                    // 获取当前过滤和排序条件
+                    const filterValue = document.getElementById('wishFilter').value;
+                    const sortValue = document.getElementById('sortFilter').value;
+                    
+                    // 构建请求URL
+                    let url = `${API_URL}?visibility=public`;
+                    if (filterValue !== 'all') {
+                        url += `&type=${filterValue}`; // 添加类型过滤
                     }
-                
-                    console.log('[DEBUG] 愿望数量:', wishes.length);
-                
+                    url += `&sort=${sortValue}`; // 添加排序条件
+            
+                    const response = await fetch(url);
+                    const text = await response.text();
+                    const data = JSON.parse(text);
+                    const wishes = Array.isArray(data) ? data : data.wishes || [];
+            
+                    // 继续渲染卡片
                     renderWishCards(wishes);
                 } catch (err) {
                     console.error('渲染愿望时出错:', err);
