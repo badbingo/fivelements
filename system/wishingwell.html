@@ -1975,16 +1975,19 @@
         }
 
         document.addEventListener('DOMContentLoaded', function() {
+            // 创建星空背景
             createStars();
             
+            // 定义API端点
             const API_URL = 'https://bazi-backend.owenjass.workers.dev/api/wishes';
-        
+             
+            // 加载lunar.js库
             loadLunarJS().then(() => {
                 console.log('lunar.js加载成功');
             }).catch(error => {
                 console.error('加载lunar.js失败:', error);
             });
-        
+             
             // 粒子背景初始化
             particlesJS("particles-js", {
                 particles: {
@@ -2008,7 +2011,7 @@
                     }
                 }
             });
-        
+
             document.getElementById('wishContent').addEventListener('input', function() {
                 const count = this.value.length;
                 document.getElementById('charCount').textContent = count;
@@ -2016,18 +2019,7 @@
                     showToast('已达到最大字数限制', 'info');
                 }
             });
-        
-            // 筛选和排序的事件监听
-            document.getElementById('wishFilter').addEventListener('change', function() {
-                currentPage = 1; // 重置为第一页
-                renderWishes(); // 重新渲染愿望列表
-            });
-        
-            document.getElementById('sortFilter').addEventListener('change', function() {
-                currentPage = 1; // 重置为第一页
-                renderWishes(); // 重新渲染愿望列表
-            });
-        
+            
             // 图表初始化
             const energyChart = new Chart(document.getElementById('energyChart'), {
                 type: 'line',
@@ -2064,13 +2056,32 @@
                     }
                 }
             });
-        
-            // 渲染愿望池内容
-            renderWishes(); 
-            fetchStats(); // 获取统计数据
-            setInterval(fetchStats, 5 * 60 * 1000); // 每5分钟自动更新统计数据
-        });
-
+            
+            // 愿望类型图表
+            const wishTypeChart = new Chart(document.getElementById('wishTypeChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['姻缘感情', '财富事业', '健康平安', '学业成长', '家庭和睦', '其他愿望'],
+                    datasets: [{
+                        data: [35, 25, 15, 10, 10, 5],
+                        backgroundColor: [
+                            '#6a11cb', '#2575fc', '#00b894', '#fdcb6e', '#e17055', '#b2bec3'
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { color: '#b8c2cc' } },
+                        tooltip: { backgroundColor: 'rgba(10, 10, 20, 0.9)' }
+                    }
+                }
+            });
+            renderWishes();  // 加上这行：初始化时就加载愿望池内容
+            fetchStats();// 添加统计获取调用
+            setInterval(fetchStats, 5 * 60 * 1000);// 每5分钟自动更新一次统计数据
              
             // DOM 元素
             const wishForm = document.getElementById('wishForm');
@@ -2285,26 +2296,23 @@
                 }
             }
             
-            // 修改渲染愿望的函数
+            // 渲染愿望列表
             async function renderWishes() {
                 try {
-                    // 获取当前过滤和排序条件
-                    const filterValue = document.getElementById('wishFilter').value;
-                    const sortValue = document.getElementById('sortFilter').value;
-                    
-                    // 构建请求URL
-                    let url = `${API_URL}?visibility=public`;
-                    if (filterValue !== 'all') {
-                        url += `&type=${filterValue}`; // 添加类型过滤
-                    }
-                    url += `&sort=${sortValue}`; // 添加排序条件
-            
-                    const response = await fetch(url);
+                    const response = await fetch(API_URL + '?visibility=public');
                     const text = await response.text();
+                    console.log('[DEBUG] 原始响应内容:', text);
+                
                     const data = JSON.parse(text);
+                
                     const wishes = Array.isArray(data) ? data : data.wishes || [];
-            
-                    // 继续渲染卡片
+                
+                    if (!Array.isArray(wishes)) {
+                        throw new Error('返回的不是数组');
+                    }
+                
+                    console.log('[DEBUG] 愿望数量:', wishes.length);
+                
                     renderWishCards(wishes);
                 } catch (err) {
                     console.error('渲染愿望时出错:', err);
@@ -2859,6 +2867,13 @@
                 });
             }
             
+            // 初始化变量
+            let currentPage = 1;
+            
+            // 初始化
+            initEventListeners();
+            renderWishes();
+        });
     </script>
 </body>
 </html>
