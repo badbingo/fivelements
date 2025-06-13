@@ -2019,6 +2019,17 @@
                     showToast('已达到最大字数限制', 'info');
                 }
             });
+
+            // 筛选和排序的事件监听
+            document.getElementById('wishFilter').addEventListener('change', function() {
+                currentPage = 1; // 重置为第一页
+                renderWishes(); // 重新渲染愿望列表
+            });
+        
+            document.getElementById('sortFilter').addEventListener('change', function() {
+                currentPage = 1; // 重置为第一页
+                renderWishes(); // 重新渲染愿望列表
+            });
             
             // 图表初始化
             const energyChart = new Chart(document.getElementById('energyChart'), {
@@ -2078,10 +2089,11 @@
                         tooltip: { backgroundColor: 'rgba(10, 10, 20, 0.9)' }
                     }
                 }
-            });
+
             renderWishes();  // 加上这行：初始化时就加载愿望池内容
             fetchStats();// 添加统计获取调用
             setInterval(fetchStats, 5 * 60 * 1000);// 每5分钟自动更新一次统计数据
+            });
              
             // DOM 元素
             const wishForm = document.getElementById('wishForm');
@@ -2295,17 +2307,6 @@
                     submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> 投入命缘池';
                 }
             }
-            
-            // 过滤器和排序器的功能
-            document.getElementById('wishFilter').addEventListener('change', function() {
-                currentPage = 1; // 重置为第一页
-                renderWishes(); // 重新渲染愿望列表
-            });
-            
-            document.getElementById('sortFilter').addEventListener('change', function() {
-                currentPage = 1; // 重置为第一页
-                renderWishes(); // 重新渲染愿望列表
-            });
             
             // 修改渲染愿望的函数
             async function renderWishes() {
