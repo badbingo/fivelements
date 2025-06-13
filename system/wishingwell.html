@@ -84,33 +84,26 @@
             animation: twinkle 3s infinite;
         }
 
+        /* 粒子背景 */
         #particles-js {
-        /* 增加粒子数量和密度 */
-        particles: {
-            number: { value: 150, density: { enable: true, value_area: 1000 } },
-            /* 增加粒子大小和透明度 */
-            size: { value: 5, random: true },
-            opacity: { value: 0.5, random: true },
-            /* 增强连线效果 */
-            line_linked: { 
-                enable: true, 
-                distance: 100,  // 缩短连线距离使更密集
-                color: "#6a11cb", 
-                opacity: 0.4,   // 增加连线透明度
-                width: 2        // 加粗连线
-            }
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: -1;
         }
-    }
 
         /* 能量光晕背景 */
         .background-overlay {
-        /* 增大光晕范围和亮度 */
-        background: radial-gradient(
-            circle at center, 
-            rgba(106, 17, 203, 0.3) 0%,  /* 提高中心亮度 */
-            rgba(10, 10, 20, 0.7) 100%   /* 减少外围暗度 */
-        );
-    }
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, rgba(106, 17, 203, 0.1) 0%, rgba(10, 10, 20, 0.9) 100%);
+            z-index: -1;
+        }
 
         /* 能量流动画 */
         @keyframes energyFlow {
@@ -292,23 +285,8 @@
         }
 
         .card:hover {
-            transform: translateY(-10px); /* 增加悬浮高度 */
-            box-shadow: 0 20px 40px rgba(106, 17, 203, 0.5); /* 增强阴影效果 */
-            
-            /* 添加发光边框效果 */
-            &::after {
-                content: '';
-                position: absolute;
-                top: -2px;
-                left: -2px;
-                right: -2px;
-                bottom: -2px;
-                border-radius: 12px;
-                background: linear-gradient(45deg, #6a11cb, #2575fc);
-                z-index: -1;
-                filter: blur(5px);
-                opacity: 0.7;
-            }
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
         }
 
         .card::before {
@@ -362,21 +340,6 @@
             gap: 20px;
         }
 
-        @keyframes energyFlow {
-            0% { 
-                background-position: 0% 50%;
-                box-shadow: 0 0 20px rgba(106, 17, 203, 0.5);
-            }
-            50% { 
-                background-position: 100% 50%;
-                box-shadow: 0 0 30px rgba(106, 17, 203, 0.8);
-            }
-            100% { 
-                background-position: 0% 50%;
-                box-shadow: 0 0 20px rgba(106, 17, 203, 0.5);
-            }
-        }
-        
         /* 命缘池介绍区域 */
         .mingyuan-intro {
             display: flex;
@@ -2800,32 +2763,7 @@ document.addEventListener('DOMContentLoaded', function() {
             container.appendChild(symbol);
         }
     }
-
-    // 在星星创建代码中增加星星数量和大小
-    function createStars() {
-        const stars = document.getElementById('stars');
-        const count = 200; // 增加星星数量
-        
-        for (let i = 0; i < count; i++) {
-            const star = document.createElement('div');
-            star.className = 'star';
             
-            // 随机位置
-            star.style.left = `${Math.random() * 100}%`;
-            star.style.top = `${Math.random() * 100}%`;
-            
-            // 随机大小 (2-5px)
-            const size = Math.random() * 3 + 2;
-            star.style.width = `${size}px`;
-            star.style.height = `${size}px`;
-            
-            // 更亮的闪烁效果
-            star.style.animation = `twinkle ${Math.random() * 5 + 3}s infinite`;
-            
-            stars.appendChild(star);
-        }
-    }
-    
     // 粒子背景初始化
         particlesJS("particles-js", {
                 particles: {
