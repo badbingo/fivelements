@@ -1959,13 +1959,29 @@
     let currentPage = 1;
     const wishesPerPage = 6;
 
-    // 获取DOM元素
-    const wishFilter = document.getElementById('wishFilter');
-    const sortFilter = document.getElementById('sortFilter');
-    const wishPool = document.querySelector('.wish-pool');
-    const prevPageBtn = document.getElementById('prevPage');
-    const nextPageBtn = document.getElementById('nextPage');
-    const pageInfo = document.getElementById('pageInfo');
+    // 统计面板元素
+    const statsPanel = {
+        totalWishes: document.getElementById('totalWishes'),
+        totalBlessings: document.getElementById('totalBlessings'),
+        totalFulfillments: document.getElementById('totalFulfillments'),
+        wishDistribution: document.getElementById('wishDistribution')
+    };
+    // 愿望类型名称映射
+    const typeNames = {
+        love: '姻缘感情', 
+        wealth: '财富事业', 
+        health: '健康平安',
+        study: '学业成长', 
+        family: '家庭和睦', 
+        other: '其他愿望'
+    };
+        // 获取DOM元素
+        const wishFilter = document.getElementById('wishFilter');
+        const sortFilter = document.getElementById('sortFilter');
+        const wishPool = document.querySelector('.wish-pool');
+        const prevPageBtn = document.getElementById('prevPage');
+        const nextPageBtn = document.getElementById('nextPage');
+        const pageInfo = document.getElementById('pageInfo');
 
     // 初始化加载愿望数据
     async function loadAllWishes() {
@@ -2132,6 +2148,68 @@
         });
     }
 
+            // 更新统计面板
+            async function updateStatisticsPanel() {
+                try {
+                    // 1. 获取统计数据
+                    const statsResponse = await fetch(`${API_BASE}/api/stats`);
+                    const statsData = await statsResponse.json();
+                    
+                    // 2. 更新基本统计数字
+                    statsPanel.totalWishes.textContent = statsData.totalWishes || 0;
+                    statsPanel.totalBlessings.textContent = statsData.totalBlessings || 0;
+                    statsPanel.totalFulfillments.textContent = statsData.totalFulfillments || 0;
+                    
+                    // 3. 更新愿望类型分布图表
+                    updateWishDistributionChart(statsData.typeDistribution || {});
+                    
+                } catch (error) {
+                    console.error('更新统计面板失败:', error);
+                    // 显示错误状态
+                    statsPanel.totalWishes.textContent = '--';
+                    statsPanel.totalBlessings.textContent = '--';
+                    statsPanel.totalFulfillments.textContent = '--';
+                    statsPanel.wishDistribution.innerHTML = '<div class="error">数据加载失败</div>';
+                }
+            }
+            // 更新愿望类型分布图表
+            function updateWishDistributionChart(distributionData) {
+                // 确保所有类型都有数据
+                const fullDistribution = Object.keys(typeNames).reduce((acc, type) => {
+                    acc[type] = distributionData[type] || 0;
+                    return acc;
+                }, {});
+                
+                // 计算百分比
+                const total = Object.values(fullDistribution).reduce((sum, val) => sum + val, 0);
+                const percentages = Object.entries(fullDistribution).map(([type, count]) => ({
+                    type,
+                    name: typeNames[type],
+                    count,
+                    percentage: total > 0 ? Math.round((count / total) * 100) : 0
+                }));
+                
+                // 按百分比排序
+                percentages.sort((a, b) => b.percentage - a.percentage);
+                
+                // 生成HTML
+                const chartHTML = `
+                    <div class="distribution-bars">
+                        ${percentages.map(item => `
+                            <div class="distribution-item">
+                                <div class="distribution-type">${item.name}</div>
+                                <div class="distribution-bar-container">
+                                    <div class="distribution-bar" style="width: ${item.percentage}%"></div>
+                                    <div class="distribution-value">${item.count} (${item.percentage}%)</div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                
+                statsPanel.wishDistribution.innerHTML = total > 0 ? chartHTML : '<div class="empty">暂无分布数据</div>';
+            }
+            
     // 处理加持愿望
     async function handleBlessWish(cardElement, wish) {
         try {
