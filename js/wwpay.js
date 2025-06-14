@@ -1,10 +1,11 @@
 /**
- * 命缘池支付系统 - 完整优化版 v6.2
+ * 命缘池支付系统 - 完整稳定版 v7.0
  * 功能：
- * 1. 修复支付按钮文字混乱问题
- * 2. 支付宝和微信支付按钮并排显示
+ * 1. 美观的并排支付按钮
+ * 2. 可靠的支付流程
  * 3. 支付成功后显示提示并移除愿望卡片
- * 4. 优化支付流程和状态管理
+ * 4. 完善的错误处理
+ * 5. 自动跳转到许愿池页面
  */
 
 class WWPay {
@@ -66,21 +67,18 @@ class WWPay {
   initEventListeners() {
     document.addEventListener('click', (e) => {
       try {
-        // 还愿金额选择
         const fulfillOption = e.target.closest('.fulfill-option');
         if (fulfillOption) {
           this.handleFulfillOptionClick(fulfillOption);
           return;
         }
 
-        // 支付方式选择
         const methodBtn = e.target.closest('.wwpay-method-btn');
         if (methodBtn) {
           this.handlePaymentMethodSelect(methodBtn);
           return;
         }
 
-        // 确认支付按钮
         const confirmBtn = e.target.closest('#confirm-payment-btn');
         if (confirmBtn) {
           this.processPayment();
@@ -252,13 +250,23 @@ class WWPay {
         background: rgba(40, 167, 69, 0.9);
       }
       
+      .wwpay-toast.error {
+        background: rgba(220, 53, 69, 0.9);
+      }
+      
+      .wwpay-toast.warning {
+        background: rgba(255, 193, 7, 0.9);
+        color: #212529;
+      }
+      
       .wish-card-removing {
-        transition: all 0.4s ease !important;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
         opacity: 0 !important;
         height: 0 !important;
         margin: 0 !important;
         padding: 0 !important;
         overflow: hidden !important;
+        pointer-events: none !important;
       }
     `;
     document.head.appendChild(style);
@@ -530,7 +538,8 @@ class WWPay {
         
         if (statusData.status === 'success') {
           this.clearPaymentStatusCheck();
-          this.handlePaymentSuccess();
+          await this.handlePaymentSuccess();
+          this.hideFullscreenLoading();
         } else if (statusData.status === 'failed') {
           throw new Error(statusData.message || '支付失败');
         }
@@ -543,34 +552,75 @@ class WWPay {
     }, checkInterval);
   }
 
-  handlePaymentSuccess() {
-    // 显示成功提示
-    this.showToast('还愿已成功，您的愿望将会被移除', 'success');
-    
-    // 移除愿望卡片
-    this.removeWishCard(this.state.currentWishId);
-    
-    // 3秒后跳转
-    setTimeout(() => {
+  async handlePaymentSuccess() {
+    try {
+      // 1. 显示成功提示
+      this.showToast('还愿已成功，您的愿望将会被移除', 'success');
+      
+      // 2. 移除愿望卡片（带重试机制）
+      await this.removeWishCardWithRetry(this.state.currentWishId, 3);
+      
+      // 3. 3秒后跳转
+      setTimeout(() => {
+        window.location.href = this.config.paymentGateway.successUrl;
+      }, 3000);
+      
+    } catch (error) {
+      console.error('支付成功处理失败:', error);
+      // 即使出错也跳转
       window.location.href = this.config.paymentGateway.successUrl;
-    }, 3000);
+    }
   }
 
-  removeWishCard(wishId) {
-    try {
-      const wishCard = document.querySelector(`.wish-card[data-wish-id="${wishId}"]`);
-      if (wishCard) {
+  async removeWishCardWithRetry(wishId, maxRetries) {
+    let retries = 0;
+    while (retries < maxRetries) {
+      try {
+        await this.removeWishCard(wishId);
+        return; // 成功则退出
+      } catch (error) {
+        retries++;
+        if (retries >= maxRetries) {
+          throw error; // 重试次数用完
+        }
+        await new Promise(resolve => setTimeout(resolve, 300)); // 延迟后重试
+      }
+    }
+  }
+
+  async removeWishCard(wishId) {
+    return new Promise((resolve, reject) => {
+      try {
+        const wishCard = document.querySelector(`.wish-card[data-wish-id="${wishId}"]`);
+        if (!wishCard) {
+          this.log(`未找到愿望卡片: ${wishId}`);
+          return resolve();
+        }
+
         // 添加移除动画类
         wishCard.classList.add('wish-card-removing');
         
         // 动画完成后移除元素
-        setTimeout(() => {
+        const removeElement = () => {
+          wishCard.removeEventListener('transitionend', removeElement);
           wishCard.remove();
-        }, 400);
+          resolve();
+        };
+        
+        wishCard.addEventListener('transitionend', removeElement);
+        
+        // 安全超时处理
+        setTimeout(() => {
+          if (document.body.contains(wishCard)) {
+            wishCard.remove();
+          }
+          resolve();
+        }, 500);
+        
+      } catch (error) {
+        reject(error);
       }
-    } catch (error) {
-      console.error('移除愿望卡片失败:', error);
-    }
+    });
   }
 
   /* ========== 辅助方法 ========== */
@@ -618,7 +668,9 @@ class WWPay {
 
   showToast(message, type = 'info') {
     try {
-      document.querySelectorAll('.wwpay-toast').forEach(el => el.remove());
+      // 先移除旧的toast
+      const oldToasts = document.querySelectorAll('.wwpay-toast');
+      oldToasts.forEach(toast => toast.remove());
       
       const icon = type === 'success' ? 'check-circle' : 
                   type === 'error' ? 'exclamation-circle' : 'info-circle';
@@ -627,17 +679,33 @@ class WWPay {
       toast.className = `wwpay-toast ${type}`;
       toast.innerHTML = `
         <i class="fas fa-${icon}"></i>
-        ${message}
+        <span>${message}</span>
       `;
+      
       document.body.appendChild(toast);
       
-      setTimeout(() => toast.classList.add('show'), 10);
+      // 强制重绘
+      toast.offsetHeight;
+      
+      // 显示toast
+      toast.classList.add('show');
+      
+      // 3秒后隐藏
       setTimeout(() => {
         toast.classList.remove('show');
-        setTimeout(() => toast.remove(), 300);
+        
+        // 动画完成后移除
+        setTimeout(() => {
+          if (toast.parentNode) {
+            toast.remove();
+          }
+        }, 300);
       }, 3000);
+      
     } catch (error) {
       console.error('显示Toast失败:', error);
+      // 降级处理
+      alert(message);
     }
   }
 
@@ -706,7 +774,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // 全局支付方法
-window.startWishPayment = function(wishId, amount, method = 'alipay') {
+window.startWishPayment = async function(wishId, amount, method = 'alipay') {
   if (!window.wwPay) {
     console.error('支付系统未初始化');
     alert('支付系统正在初始化，请稍后再试');
@@ -721,5 +789,10 @@ window.startWishPayment = function(wishId, amount, method = 'alipay') {
     statusCheckInterval: null
   };
   
-  window.wwPay.processPayment();
+  try {
+    await window.wwPay.processPayment();
+  } catch (error) {
+    console.error('支付流程出错:', error);
+    window.wwPay.showToast('支付流程出错，请重试', 'error');
+  }
 };
