@@ -1,11 +1,11 @@
 /**
- * 命缘池支付系统 - 完整修复版
- * 版本: 2.2.0
- * 修复内容:
- * 1. 移除SES依赖(harden)
- * 2. 修复金额选择错误
- * 3. 完善支付全流程
- * 4. 增强错误处理
+ * 命缘池支付系统 - 完整版
+ * 版本: 3.0.0
+ * 功能:
+ * 1. 完整的支付流程处理
+ * 2. 微信/支付宝支付支持
+ * 3. 支付状态检查
+ * 4. 完善的错误处理
  */
 
 class WWPay {
@@ -39,11 +39,19 @@ class WWPay {
       paymentStatusCheck: null
     };
 
+    // 绑定方法上下文
+    this.handleFulfillOptionClick = this.handleFulfillOptionClick.bind(this);
+    this.handlePaymentMethodSelect = this.handlePaymentMethodSelect.bind(this);
+    this.processPayment = this.processPayment.bind(this);
+    this.handleWechatPay = this.handleWechatPay.bind(this);
+    this.handleAlipay = this.handleAlipay.bind(this);
+
     // 初始化
     this.initEventListeners();
   }
 
-  /* 初始化事件监听 */
+  /* ==================== 初始化方法 ==================== */
+
   initEventListeners() {
     document.addEventListener('click', (e) => {
       // 还愿金额选择
@@ -63,7 +71,66 @@ class WWPay {
     });
   }
 
-  /* 处理还愿选项点击 */
+  /* ==================== 核心支付方法 ==================== */
+
+  async recordFulfillment() {
+    try {
+      const response = await fetch(`${this.config.apiBase}/api/fulfill`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+        },
+        body: JSON.stringify({
+          wishId: this.state.currentWishId,
+          amount: this.state.selectedAmount,
+          paymentMethod: this.state.selectedMethod,
+          timestamp: new Date().toISOString()
+        })
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || '还愿记录失败');
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('[WWPay] 记录还愿失败:', error);
+      throw error;
+    }
+  }
+
+  async createPaymentOrder() {
+    try {
+      const response = await fetch(`${this.config.apiBase}/api/payments`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+        },
+        body: JSON.stringify({
+          amount: this.state.selectedAmount,
+          method: this.state.selectedMethod,
+          wishId: this.state.currentWishId,
+          timestamp: new Date().toISOString()
+        })
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || '支付订单创建失败');
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('[WWPay] 创建支付订单失败:', error);
+      throw error;
+    }
+  }
+
+  /* ==================== 支付流程处理 ==================== */
+
   handleFulfillOptionClick(optionElement) {
     try {
       // 1. 获取金额
@@ -97,7 +164,6 @@ class WWPay {
     }
   }
 
-  /* 显示支付方式 */
   showPaymentMethods() {
     try {
       // 清理旧元素
@@ -135,7 +201,6 @@ class WWPay {
     }
   }
 
-  /* 处理支付方式选择 */
   handlePaymentMethodSelect(buttonElement) {
     try {
       const buttons = document.querySelectorAll('.payment-method-btn');
@@ -147,7 +212,6 @@ class WWPay {
     }
   }
 
-  /* 处理支付流程 */
   async processPayment() {
     // 验证状态
     if (!this.validatePaymentState()) return;
@@ -157,20 +221,20 @@ class WWPay {
       
       // 1. 记录还愿意向
       const fulfillmentResponse = await this.recordFulfillment();
-      if (!fulfillmentResponse.success) {
-        throw new Error('还愿记录失败');
+      if (!fulfillmentResponse?.success) {
+        throw new Error(fulfillmentResponse?.message || '还愿记录失败');
       }
       
       // 2. 创建支付订单
       const paymentResponse = await this.createPaymentOrder();
-      if (!paymentResponse.success) {
-        throw new Error(paymentResponse.error || '支付订单创建失败');
+      if (!paymentResponse?.success) {
+        throw new Error(paymentResponse?.message || '支付订单创建失败');
       }
       
       // 3. 处理支付
       if (this.state.selectedMethod === 'wxpay') {
         this.handleWechatPay(paymentResponse.paymentUrl);
-      } else if (this.state.selectedMethod === 'alipay') {
+      } else {
         this.handleAlipay(paymentResponse.paymentUrl);
       }
     } catch (error) {
@@ -180,7 +244,6 @@ class WWPay {
     }
   }
 
-  /* 微信支付处理 */
   handleWechatPay(paymentUrl) {
     try {
       this.showLoading('正在跳转微信支付...');
@@ -196,7 +259,6 @@ class WWPay {
     }
   }
 
-  /* 支付宝处理 */
   handleAlipay(paymentUrl) {
     try {
       this.showLoading('正在跳转支付宝...');
@@ -208,7 +270,8 @@ class WWPay {
     }
   }
 
-  /* 支付状态检查 */
+  /* ==================== 支付状态检查 ==================== */
+
   async checkPaymentStatus() {
     this.clearPaymentStatusCheck();
     let retries = 0;
@@ -225,10 +288,17 @@ class WWPay {
         retries++;
         
         const response = await fetch(
-          `${this.config.apiBase}/api/payments/status?wishId=${this.state.currentWishId}`
+          `${this.config.apiBase}/api/payments/status?wishId=${this.state.currentWishId}`,
+          {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+            }
+          }
         );
         
-        if (!response.ok) throw new Error('状态检查请求失败');
+        if (!response.ok) {
+          throw new Error('状态检查请求失败');
+        }
         
         const data = await response.json();
         if (data.status === 'success') {
@@ -245,12 +315,13 @@ class WWPay {
     }, this.config.paymentCheck.retryInterval);
   }
 
-  /* 支付成功处理 */
   paymentSuccess() {
     try {
       this.showToast('支付成功！感谢您的还愿', 'success');
       this.closeModal();
-      setTimeout(() => window.location.reload(), 3000);
+      setTimeout(() => {
+        window.location.reload();
+      }, 3000);
     } catch (error) {
       console.error('[WWPay] 支付成功处理失败:', error);
     } finally {
@@ -259,7 +330,8 @@ class WWPay {
     }
   }
 
-  /* 辅助方法 */
+  /* ==================== 辅助方法 ==================== */
+
   validatePaymentState() {
     if (!this.state.selectedAmount) {
       this.showToast('请选择还愿金额', 'error');
@@ -288,15 +360,22 @@ class WWPay {
     }
   }
 
-  /* UI 方法 */
+  /* ==================== UI 方法 ==================== */
+
   showToast(message, type = 'info') {
+    // 移除旧toast
+    document.querySelectorAll('.wwpay-toast').forEach(el => el.remove());
+    
     const toast = document.createElement('div');
     toast.className = `wwpay-toast toast ${type}`;
     toast.innerHTML = `
-      <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+      <i class="fas fa-${type === 'success' ? 'check-circle' : 
+                         type === 'error' ? 'exclamation-circle' : 
+                         'info-circle'}"></i>
       ${message}
     `;
     document.body.appendChild(toast);
+    
     setTimeout(() => toast.classList.add('show'), 10);
     setTimeout(() => {
       toast.classList.remove('show');
@@ -331,8 +410,6 @@ class WWPay {
 }
 
 // 自动初始化
-(function initWWPay() {
-  if (typeof window !== 'undefined') {
-    window.wwPay = new WWPay();
-  }
-})();
+if (typeof window !== 'undefined') {
+  window.wwPay = new WWPay();
+}
