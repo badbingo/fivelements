@@ -93,49 +93,29 @@ class WWPay {
   /* 核心支付流程方法 */
   handleFulfillOptionClick(optionElement) {
   try {
-    console.debug('[WWPay] 处理还愿选项点击', optionElement);
-    
-    // 验证点击元素
-    if (!optionElement || !optionElement.dataset) {
-      throw new Error('无效的选项元素');
-    }
-
-    // 获取金额
-    const amount = optionElement.dataset.amount;
+    // Get amount safely
+    const amount = optionElement?.dataset?.amount;
     if (!amount || isNaN(amount)) {
-      throw new Error('无效的金额值');
+      throw new Error('Invalid amount');
     }
 
-    // 获取愿望ID - 现在从模态框获取
+    // Get wish ID from modal
     const modal = document.getElementById('fulfillModal');
-    if (!modal) {
-      throw new Error('还愿模态框未找到');
-    }
+    const wishId = modal?.dataset?.wishId;
+    if (!wishId) throw new Error('No wish ID');
 
-    const wishId = modal.dataset.wishId;
-    if (!wishId) {
-      throw new Error('未关联愿望ID');
-    }
-
-    // 更新状态
+    // Update state
     this.state = {
       ...this.state,
       selectedAmount: amount,
       currentWishId: wishId
     };
 
-    console.debug('[WWPay] 更新后的状态:', this.state);
-    
-    // 显示支付方式
     this.showPaymentMethods();
     
   } catch (error) {
-    console.error('[WWPay] 处理还愿选项失败:', error);
-    this.showToast(`选择金额失败: ${error.message}`, 'error');
-    
-    // 调试信息
-    console.debug('当前点击元素:', optionElement);
-    console.debug('模态框状态:', document.getElementById('fulfillModal'));
+    console.error('Payment error:', error);
+    this.showToast(`Payment failed: ${error.message}`, 'error');
   }
 }
       
