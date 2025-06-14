@@ -1,11 +1,11 @@
 /**
- * 命缘池支付系统 - 优化版 v5.2.0
- * 重构支付逻辑，参考 gamepay.js 的最佳实践
- * 主要改进：
- * - 简化支付流程
- * - 添加支付签名验证
- * - 直接对接支付网关
- * - 增强错误处理
+ * 命缘池支付系统 - 稳定优化版 v5.2.1
+ * 功能：
+ * - 完整的微信/支付宝支付流程
+ * - 修复 resetPaymentState 方法缺失问题
+ * - 优化的支付状态管理
+ * - 增强的错误处理
+ * - 兼容性优化
  */
 
 class WWPay {
@@ -41,14 +41,9 @@ class WWPay {
       debug: true
     };
 
-    // 状态变量
-    this.state = {
-      selectedAmount: null,
-      selectedMethod: 'wxpay', // 默认微信支付
-      currentWishId: null,
-      processing: false
-    };
-
+    // 初始化状态
+    this.resetPaymentState();
+    
     // 初始化
     this.initEventListeners();
     this.log('支付系统初始化完成');
@@ -200,11 +195,8 @@ class WWPay {
       if (!wishId) throw new Error('未关联愿望ID');
 
       // 更新状态
-      this.state = {
-        ...this.state,
-        selectedAmount: amount,
-        currentWishId: wishId
-      };
+      this.state.selectedAmount = amount;
+      this.state.currentWishId = wishId;
 
       // 显示支付方式
       this.showPaymentMethods();
@@ -287,8 +279,24 @@ class WWPay {
     }
   }
 
-  /* ========== 辅助方法 ========== */
+  /* ========== 状态管理方法 ========== */
 
+  /**
+   * 重置支付状态
+   */
+  resetPaymentState() {
+    this.state = {
+      selectedAmount: null,
+      selectedMethod: 'wxpay',
+      currentWishId: null,
+      processing: false
+    };
+    this.log('支付状态已重置');
+  }
+
+  /**
+   * 验证支付状态是否有效
+   */
   validatePaymentState() {
     if (!this.state.selectedAmount) {
       this.showToast('请选择还愿金额', 'error');
@@ -410,6 +418,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   } catch (error) {
     console.error('支付系统初始化失败:', error);
+    alert('支付系统初始化失败，请刷新页面重试');
   }
 });
 
