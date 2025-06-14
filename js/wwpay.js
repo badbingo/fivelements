@@ -1,10 +1,11 @@
 /**
- * 命缘池支付系统 - 终极稳定版 v8.5
+ * 命缘池支付系统 - 终极稳定版 v8.6
  * 完整功能：
  * 1. 100%可靠的支付流程
  * 2. 完善的事件处理绑定
  * 3. 强化的错误处理
  * 4. 优化的UI反馈
+ * 5. 增强的支付恢复机制
  */
 
 class WWPay {
@@ -16,6 +17,7 @@ class WWPay {
     this.processPayment = this.processPayment.bind(this);
     this.handlePaymentSuccess = this.handlePaymentSuccess.bind(this);
     this.checkPendingPayments = this.checkPendingPayments.bind(this);
+    this.handleFailedPayment = this.handleFailedPayment.bind(this);
 
     // 支付系统配置
     this.config = {
@@ -28,7 +30,8 @@ class WWPay {
         successUrl: 'https://mybazi.net/system/wishingwell.html',
         checkInterval: 2000,
         maxChecks: 15,
-        retryDelay: 1000
+        retryDelay: 1000,
+        maxRetries: 3
       },
       paymentMethods: [
         {
@@ -503,6 +506,10 @@ class WWPay {
 
   async checkPaymentStatus() {
     try {
+      if (!this.state.currentWishId) {
+        throw new Error('缺少愿望ID');
+      }
+
       const response = await fetch(
         `${this.config.paymentGateway.apiBase}/api/payments/status?wishId=${this.state.currentWishId}`,
         {
@@ -512,16 +519,26 @@ class WWPay {
         }
       );
       
+      if (!response.ok) {
+        throw new Error('网络请求失败');
+      }
+      
       const data = await response.json();
       
-      if (!response.ok) {
-        throw new Error(data.error || '支付状态检查失败');
+      // Validate response structure
+      if (typeof data.status !== 'string') {
+        throw new Error('无效的响应格式');
       }
       
       return data;
     } catch (error) {
       console.error('支付状态检查错误:', error);
-      throw error;
+      
+      // Return a pending status if we can't verify
+      return {
+        status: 'pending',
+        message: error.message || '无法验证支付状态'
+      };
     }
   }
 
@@ -826,31 +843,96 @@ class WWPay {
 
   /* ========== 恢复机制 ========== */
 
-  checkPendingPayments() {
-    const pending = localStorage.getItem('pending-fulfillment');
-    if (pending) {
-      try {
-        const data = JSON.parse(pending);
-        this.log('检测到未完成的支付:', data);
-        this.showGuaranteedToast('检测到未完成的支付，正在验证状态...');
-        
-        setTimeout(async () => {
-          try {
-            this.state.currentWishId = data.wishId;
-            const verified = await this.verifyFulfillmentWithRetry();
-            if (verified) {
-              await this.safeRemoveWishCard(data.wishId);
-              localStorage.removeItem('pending-fulfillment');
-              this.showGuaranteedToast('未完成支付已处理', 'success');
-            }
-          } catch (error) {
-            this.safeLogError('恢复支付失败', error);
+  async checkPendingPayments() {
+    try {
+      // Check localStorage for pending payments
+      const pendingPayment = localStorage.getItem('last-payment');
+      const pendingFulfillment = localStorage.getItem('pending-fulfillment');
+      
+      if (pendingPayment) {
+        try {
+          const paymentData = JSON.parse(pendingPayment);
+          this.log('检测到未完成的支付:', paymentData);
+          this.showGuaranteedToast('检测到未完成的支付，正在验证状态...');
+          
+          // Update current state
+          this.state.currentWishId = paymentData.wishId;
+          this.state.selectedAmount = paymentData.amount;
+          this.state.selectedMethod = paymentData.method;
+          
+          // Verify payment status
+          const status = await this.checkPaymentStatus();
+          
+          if (status.status === 'success') {
+            // Payment was successful but fulfillment wasn't recorded
+            await this.handlePaymentSuccess();
+            localStorage.removeItem('last-payment');
+          } else if (status.status === 'failed') {
+            this.showGuaranteedToast('上次支付未成功完成', 'warning');
+            localStorage.removeItem('last-payment');
+          } else {
+            // Still pending - suggest user to check their payment app
+            this.showGuaranteedToast(
+              `支付处理中，请检查您的${paymentData.method === 'alipay' ? '支付宝' : '微信支付'}`, 
+              'warning'
+            );
           }
-        }, 2000);
+        } catch (error) {
+          this.safeLogError('恢复支付失败', error);
+          localStorage.removeItem('last-payment');
+        }
+      }
+      
+      // Handle pending fulfillment records
+      if (pendingFulfillment) {
+        try {
+          const fulfillmentData = JSON.parse(pendingFulfillment);
+          this.state.currentWishId = fulfillmentData.wishId;
+          
+          const verified = await this.verifyFulfillmentWithRetry();
+          if (verified) {
+            await this.safeRemoveWishCard(fulfillmentData.wishId);
+            localStorage.removeItem('pending-fulfillment');
+            this.showGuaranteedToast('未完成支付已处理', 'success');
+          } else {
+            this.showGuaranteedToast('无法验证上次支付状态', 'warning');
+          }
+        } catch (error) {
+          this.safeLogError('恢复还愿记录失败', error);
+          localStorage.removeItem('pending-fulfillment');
+        }
+      }
+    } catch (error) {
+      this.safeLogError('支付恢复系统错误', error);
+    }
+  }
+
+  async handleFailedPayment(paymentData, retries = 3) {
+    for (let i = 0; i < retries; i++) {
+      try {
+        const status = await this.checkPaymentStatus();
+        
+        if (status.status === 'success') {
+          await this.handlePaymentSuccess();
+          return true;
+        }
+        
+        if (status.status === 'failed') {
+          throw new Error('支付失败: ' + (status.message || '未知原因'));
+        }
+        
+        await this.delay(this.config.paymentGateway.retryDelay);
       } catch (error) {
-        this.safeLogError('解析未完成支付失败', error);
+        if (i === retries - 1) {
+          this.showGuaranteedToast(
+            `支付验证失败: ${error.message}`,
+            'error'
+          );
+          return false;
+        }
       }
     }
+    return false;
   }
 
   async recordFulfillment() {
@@ -889,9 +971,9 @@ document.addEventListener('DOMContentLoaded', () => {
       if (typeof CryptoJS === 'undefined') {
         const script = document.createElement('script');
         script.src = 'https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js';
-        script.onload = () => {
+        script.onload = async () => {
           window.wwPay = new WWPay();
-          window.wwPay.checkPendingPayments();
+          await window.wwPay.checkPendingPayments(); // Wait for pending check
         };
         script.onerror = () => {
           console.error('加载CryptoJS失败');
