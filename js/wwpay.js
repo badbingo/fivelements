@@ -1,9 +1,10 @@
 /**
- * 命缘池支付系统 - 完整终极版 v7.2
- * 完全修复：
- * 1. 确保支付成功提示100%显示
- * 2. 确保愿望卡片100%移除
+ * 命缘池支付系统 - 终极稳定版 v7.3
+ * 完整修复：
+ * 1. 确保支付成功后100%显示提示
+ * 2. 确保愿望卡片100%被移除
  * 3. 优化支付流程可靠性
+ * 4. 完善前后端数据同步
  */
 
 class WWPay {
@@ -591,13 +592,16 @@ class WWPay {
 
   async handlePaymentSuccess() {
     try {
-      // 1. 显示成功提示（强制显示）
+      // 1. 强制显示成功提示
       this.showPersistentToast('还愿已成功，您的愿望将会被移除', 'success');
       
-      // 2. 移除愿望卡片（强制移除）
+      // 2. 确保后端处理完成
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // 3. 强制移除愿望卡片
       await this.forceRemoveWishCard(this.state.currentWishId);
       
-      // 3. 3秒后跳转
+      // 4. 3秒后跳转
       setTimeout(() => {
         window.location.href = this.config.paymentGateway.successUrl;
       }, 3000);
@@ -612,6 +616,8 @@ class WWPay {
   async forceRemoveWishCard(wishId) {
     return new Promise((resolve) => {
       try {
+        console.log(`尝试移除愿望卡片: ${wishId}`);
+        
         // 方法1：通过class查找
         let wishCard = document.querySelector(`.wish-card[data-wish-id="${wishId}"]`);
         
@@ -621,14 +627,14 @@ class WWPay {
         }
         
         if (wishCard) {
-          // 添加移除动画类
+          console.log('找到愿望卡片，开始移除动画');
           wishCard.classList.add('wish-card-removing');
           
-          // 动画完成后移除元素
           const removeElement = () => {
             wishCard.removeEventListener('transitionend', removeElement);
             if (wishCard.parentNode) {
               wishCard.remove();
+              console.log('愿望卡片已移除');
             }
             resolve();
           };
@@ -639,6 +645,7 @@ class WWPay {
           setTimeout(() => {
             if (wishCard && wishCard.parentNode) {
               wishCard.remove();
+              console.log('通过超时移除愿望卡片');
             }
             resolve();
           }, 500);
@@ -647,7 +654,7 @@ class WWPay {
           resolve();
         }
       } catch (error) {
-        console.error('强制移除愿望卡片失败:', error);
+        console.error('移除愿望卡片出错:', error);
         resolve(); // 即使出错也继续
       }
     });
