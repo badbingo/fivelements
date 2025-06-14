@@ -1,14 +1,22 @@
 /**
- * 命缘池支付系统 - 终极稳定版 v8.3
+ * 命缘池支付系统 - 终极稳定版 v8.5
  * 完整功能：
  * 1. 100%可靠的支付流程
- * 2. 修复所有已知错误
- * 3. 完善的错误处理
- * 4. 强化的UI反馈
+ * 2. 完善的事件处理绑定
+ * 3. 强化的错误处理
+ * 4. 优化的UI反馈
  */
 
 class WWPay {
   constructor() {
+    // 绑定所有方法确保正确的this上下文
+    this.handleDocumentClick = this.handleDocumentClick.bind(this);
+    this.handleFulfillOptionClick = this.handleFulfillOptionClick.bind(this);
+    this.handlePaymentMethodSelect = this.handlePaymentMethodSelect.bind(this);
+    this.processPayment = this.processPayment.bind(this);
+    this.handlePaymentSuccess = this.handlePaymentSuccess.bind(this);
+    this.checkPendingPayments = this.checkPendingPayments.bind(this);
+
     // 支付系统配置
     this.config = {
       paymentGateway: {
@@ -72,31 +80,7 @@ class WWPay {
 
   initEventListeners() {
     document.removeEventListener('click', this.handleDocumentClick);
-    this.handleDocumentClick = this.handleDocumentClick.bind(this);
     document.addEventListener('click', this.handleDocumentClick);
-  }
-
-  handleDocumentClick(e) {
-    try {
-      const fulfillOption = e.target.closest('.fulfill-option');
-      if (fulfillOption) {
-        this.handleFulfillOptionClick(fulfillOption);
-        return;
-      }
-
-      const methodBtn = e.target.closest('.wwpay-method-btn');
-      if (methodBtn) {
-        this.handlePaymentMethodSelect(methodBtn);
-        return;
-      }
-
-      const confirmBtn = e.target.closest('#confirm-payment-btn');
-      if (confirmBtn) {
-        this.processPayment();
-      }
-    } catch (error) {
-      this.safeLogError('事件处理出错', error);
-    }
   }
 
   injectStyles() {
@@ -292,6 +276,78 @@ class WWPay {
         self.isLogging = false;
       }
     };
+  }
+
+  /* ========== 事件处理方法 ========== */
+
+  handleDocumentClick(e) {
+    try {
+      const fulfillOption = e.target.closest('.fulfill-option');
+      if (fulfillOption) {
+        this.handleFulfillOptionClick(fulfillOption);
+        return;
+      }
+
+      const methodBtn = e.target.closest('.wwpay-method-btn');
+      if (methodBtn) {
+        this.handlePaymentMethodSelect(methodBtn);
+        return;
+      }
+
+      const confirmBtn = e.target.closest('#confirm-payment-btn');
+      if (confirmBtn) {
+        this.processPayment();
+      }
+    } catch (error) {
+      this.safeLogError('事件处理出错', error);
+    }
+  }
+
+  handleFulfillOptionClick(optionElement) {
+    try {
+      if (!optionElement?.dataset?.amount) {
+        throw new Error('无效的选项元素');
+      }
+
+      const amount = parseFloat(optionElement.dataset.amount);
+      if (isNaN(amount)) {
+        throw new Error('金额必须是数字');
+      }
+
+      const modal = document.getElementById('fulfillModal');
+      if (!modal) throw new Error('找不到还愿模态框');
+      
+      const wishId = modal.dataset.wishId;
+      if (!wishId) throw new Error('未关联愿望ID');
+
+      this.state.selectedAmount = amount;
+      this.state.currentWishId = wishId;
+
+      this.showPaymentMethods();
+    } catch (error) {
+      this.handleError('处理还愿选项失败', error);
+      this.showToast(`操作失败: ${error.message}`, 'error');
+    }
+  }
+
+  handlePaymentMethodSelect(buttonElement) {
+    try {
+      document.querySelectorAll('.wwpay-method-btn').forEach(btn => {
+        const methodId = btn.dataset.type;
+        const method = this.config.paymentMethods.find(m => m.id === methodId);
+        btn.style.background = method.color;
+        btn.classList.remove('active');
+      });
+      
+      const selectedMethod = buttonElement.dataset.type;
+      const selectedMethodConfig = this.config.paymentMethods.find(m => m.id === selectedMethod);
+      buttonElement.style.background = selectedMethodConfig.activeColor;
+      buttonElement.classList.add('active');
+      
+      this.state.selectedMethod = selectedMethod;
+    } catch (error) {
+      this.handleError('选择支付方式失败', error);
+    }
   }
 
   /* ========== 核心支付方法 ========== */
@@ -696,6 +752,46 @@ class WWPay {
     }
   }
 
+  showPaymentMethods() {
+    try {
+      const oldSection = document.getElementById('payment-methods-section');
+      if (oldSection) oldSection.remove();
+      
+      const methodsHtml = `
+        <div class="payment-methods" id="payment-methods-section">
+          <h4 style="text-align: center; margin-bottom: 20px; color: #333;">
+            <i class="fas fa-wallet" style="margin-right: 8px;"></i>选择支付方式
+          </h4>
+          <div class="wwpay-methods-container">
+            ${this.config.paymentMethods.map(method => `
+              <button class="wwpay-method-btn ${method.id === this.state.selectedMethod ? 'active' : ''}" 
+                      data-type="${method.id}" 
+                      style="background: ${method.id === this.state.selectedMethod ? method.activeColor : method.color}; 
+                             color: white;">
+                <i class="${method.icon}"></i>
+                <span class="wwpay-method-name">${method.name}</span>
+                <span class="wwpay-method-hint">${method.hint}</span>
+              </button>
+            `).join('')}
+          </div>
+          <div style="text-align: center;">
+            <button id="confirm-payment-btn">
+              <i class="fas fa-check-circle" style="margin-right: 8px;"></i> 
+              确认支付 ${this.state.selectedAmount}元
+            </button>
+          </div>
+        </div>
+      `;
+      
+      const modalContent = document.querySelector('#fulfillModal .modal-content');
+      if (modalContent) {
+        modalContent.insertAdjacentHTML('beforeend', methodsHtml);
+      }
+    } catch (error) {
+      this.handleError('支付方式显示失败', error);
+    }
+  }
+
   /* ========== 工具方法 ========== */
 
   delay(ms) {
@@ -754,6 +850,34 @@ class WWPay {
       } catch (error) {
         this.safeLogError('解析未完成支付失败', error);
       }
+    }
+  }
+
+  async recordFulfillment() {
+    try {
+      const response = await fetch(`${this.config.paymentGateway.apiBase}/api/wishes/fulfill`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+        },
+        body: JSON.stringify({
+          wishId: this.state.currentWishId,
+          amount: this.state.selectedAmount,
+          paymentMethod: this.state.selectedMethod
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || '还愿记录失败');
+      }
+      
+      return data;
+    } catch (error) {
+      console.error('记录还愿失败:', error);
+      throw new Error(`记录还愿失败: ${error.message}`);
     }
   }
 }
