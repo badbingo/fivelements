@@ -91,32 +91,39 @@ class WWPay {
   }
 
   /* 核心支付流程方法 */
-  async handleFulfillOptionClick(optionElement) {
+  handleFulfillOptionClick(optionElement) {
     try {
-      // 重置状态
-      this.resetPaymentState();
-      
-      // 设置选中状态
-      const options = document.querySelectorAll('.fulfill-option');
-      options.forEach(opt => opt.classList.remove('selected'));
-      optionElement.classList.add('selected');
-      
-      // 更新状态
-      this.state.selectedAmount = optionElement.dataset.amount;
-      this.state.currentWishId = optionElement.closest('.wish-card')?.dataset?.id;
-      
-      if (!this.state.currentWishId) {
-        throw new Error('无法获取愿望ID');
+      // 1. 通过DOM层级关系找到父卡片
+      const wishCard = optionElement.closest('.wish-card');
+      if (!wishCard) {
+        throw new Error('找不到愿望卡片容器');
       }
-      
-      this.showToast(`已选择 ${this.state.selectedAmount}元 还愿金额`, 'success');
+  
+      // 2. 确保从data-id获取值
+      const wishId = wishCard.dataset.id;
+      if (!wishId) {
+        throw new Error('愿望ID未定义');
+      }
+  
+      // 3. 更新状态
+      this.state = {
+        ...this.state,
+        selectedAmount: optionElement.dataset.amount,
+        currentWishId: wishId
+      };
+  
+      // 4. 显示支付方式
       this.showPaymentMethods();
+      
     } catch (error) {
       console.error('[WWPay] 处理还愿选项失败:', error);
-      this.showToast('选择金额失败: ' + error.message, 'error');
+      this.showToast(`选择金额失败: ${error.message}`, 'error');
+      
+      // 调试用 - 打印DOM结构
+      console.debug('当前点击元素:', optionElement);
+      console.debug('父级卡片:', optionElement.closest('.wish-card'));
     }
   }
-
   showPaymentMethods() {
     try {
       const existingSection = document.getElementById('payment-methods-section');
