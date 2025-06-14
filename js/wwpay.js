@@ -824,63 +824,7 @@ class WWPay {
     this.safeLogError(context, error);
   }
 
-  /* ========== 恢复机制 ========== */
-
-  checkPendingPayments() {
-    const pending = localStorage.getItem('pending-fulfillment');
-    if (pending) {
-      try {
-        const data = JSON.parse(pending);
-        this.log('检测到未完成的支付:', data);
-        this.showGuaranteedToast('检测到未完成的支付，正在验证状态...');
-        
-        setTimeout(async () => {
-          try {
-            this.state.currentWishId = data.wishId;
-            const verified = await this.verifyFulfillmentWithRetry();
-            if (verified) {
-              await this.safeRemoveWishCard(data.wishId);
-              localStorage.removeItem('pending-fulfillment');
-              this.showGuaranteedToast('未完成支付已处理', 'success');
-            }
-          } catch (error) {
-            this.safeLogError('恢复支付失败', error);
-          }
-        }, 2000);
-      } catch (error) {
-        this.safeLogError('解析未完成支付失败', error);
-      }
-    }
-  }
-
-  async recordFulfillment() {
-    try {
-      const response = await fetch(`${this.config.paymentGateway.apiBase}/api/wishes/fulfill`, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
-        },
-        body: JSON.stringify({
-          wishId: this.state.currentWishId,
-          amount: this.state.selectedAmount,
-          paymentMethod: this.state.selectedMethod
-        })
-      });
-      
-      const data = await response.json();
-      
-      if (!response.ok || !data.success) {
-        throw new Error(data.error || '还愿记录失败');
-      }
-      
-      return data;
-    } catch (error) {
-      console.error('记录还愿失败:', error);
-      throw new Error(`记录还愿失败: ${error.message}`);
-    }
-  }
-}
+  
 
 // 安全初始化
 document.addEventListener('DOMContentLoaded', () => {
