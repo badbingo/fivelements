@@ -591,74 +591,53 @@ class WWPay {
   }
 
   async handlePaymentSuccess() {
-    try {
-      // 1. 强制显示成功提示
-      this.showPersistentToast('还愿已成功，您的愿望将会被移除', 'success');
-      
-      // 2. 确保后端处理完成
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // 3. 强制移除愿望卡片
-      await this.forceRemoveWishCard(this.state.currentWishId);
-      
-      // 4. 3秒后跳转
-      setTimeout(() => {
-        window.location.href = this.config.paymentGateway.successUrl;
-      }, 3000);
-      
-    } catch (error) {
-      console.error('支付成功处理失败:', error);
-      // 即使出错也跳转
-      window.location.href = this.config.paymentGateway.successUrl;
-    }
-  }
-
-  async forceRemoveWishCard(wishId) {
-    return new Promise((resolve) => {
-      try {
-        console.log(`尝试移除愿望卡片: ${wishId}`);
-        
-        // 方法1：通过class查找
-        let wishCard = document.querySelector(`.wish-card[data-wish-id="${wishId}"]`);
-        
-        // 方法2：通过属性查找（备用）
-        if (!wishCard) {
-          wishCard = document.querySelector(`[data-wish-id="${wishId}"]`);
-        }
-        
-        if (wishCard) {
-          console.log('找到愿望卡片，开始移除动画');
-          wishCard.classList.add('wish-card-removing');
-          
-          const removeElement = () => {
-            wishCard.removeEventListener('transitionend', removeElement);
-            if (wishCard.parentNode) {
-              wishCard.remove();
-              console.log('愿望卡片已移除');
-            }
-            resolve();
-          };
-          
-          wishCard.addEventListener('transitionend', removeElement);
-          
-          // 安全超时处理
-          setTimeout(() => {
-            if (wishCard && wishCard.parentNode) {
-              wishCard.remove();
-              console.log('通过超时移除愿望卡片');
-            }
-            resolve();
-          }, 500);
-        } else {
-          console.warn(`未找到愿望卡片: ${wishId}`);
+  try {
+    // 1. 强制显示成功提示（使用更可靠的方式）
+    const toastMsg = '还愿已成功，您的愿望将会被移除';
+    console.log('显示提示:', toastMsg);
+    this.showPersistentToast(toastMsg, 'success');
+    
+    // 2. 确保DOM更新后再执行移除
+    await new Promise(resolve => {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
           resolve();
-        }
-      } catch (error) {
-        console.error('移除愿望卡片出错:', error);
-        resolve(); // 即使出错也继续
-      }
+        });
+      });
     });
+    
+    // 3. 强制移除愿望卡片（添加重试机制）
+    let retryCount = 0;
+    const maxRetries = 3;
+    
+    while (retryCount < maxRetries) {
+      try {
+        console.log(`尝试移除卡片，第${retryCount + 1}次`);
+        await this.forceRemoveWishCard(this.state.currentWishId);
+        break;
+      } catch (error) {
+        retryCount++;
+        if (retryCount >= maxRetries) {
+          console.error('移除卡片最终失败:', error);
+          throw error;
+        }
+        await new Promise(resolve => setTimeout(resolve, 300));
+      }
+    }
+    
+    // 4. 确保用户看到提示后再跳转
+    setTimeout(() => {
+      console.log('跳转到成功页面');
+      window.location.href = this.config.paymentGateway.successUrl;
+    }, 3000);
+    
+  } catch (error) {
+    console.error('支付成功处理异常:', error);
+    // 终极降级方案
+    alert('还愿成功！请手动刷新页面查看变化');
+    window.location.href = this.config.paymentGateway.successUrl;
   }
+}
 
   /* ========== 辅助方法 ========== */
 
