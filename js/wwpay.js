@@ -1,11 +1,11 @@
 /**
  * 命缘池支付系统 - 完整版
- * 版本: 3.0.0
+ * 版本: 3.2.0
  * 功能:
- * 1. 完整的支付流程处理
- * 2. 微信/支付宝支付支持
- * 3. 支付状态检查
- * 4. 完善的错误处理
+ * - 完整的支付流程处理
+ * - 微信/支付宝支付支持
+ * - 增强的错误处理和JSON解析
+ * - 支付状态自动检查
  */
 
 class WWPay {
@@ -34,7 +34,7 @@ class WWPay {
     // 状态变量
     this.state = {
       selectedAmount: null,
-      selectedMethod: 'wxpay', // 默认微信支付
+      selectedMethod: 'wxpay',
       currentWishId: null,
       paymentStatusCheck: null
     };
@@ -43,14 +43,10 @@ class WWPay {
     this.handleFulfillOptionClick = this.handleFulfillOptionClick.bind(this);
     this.handlePaymentMethodSelect = this.handlePaymentMethodSelect.bind(this);
     this.processPayment = this.processPayment.bind(this);
-    this.handleWechatPay = this.handleWechatPay.bind(this);
-    this.handleAlipay = this.handleAlipay.bind(this);
-
-    // 初始化
-    this.initEventListeners();
+    this.handleResponse = this.handleResponse.bind(this);
   }
 
-  /* ==================== 初始化方法 ==================== */
+  /* ========== 初始化方法 ========== */
 
   initEventListeners() {
     document.addEventListener('click', (e) => {
@@ -71,7 +67,28 @@ class WWPay {
     });
   }
 
-  /* ==================== 核心支付方法 ==================== */
+  /* ========== 核心支付方法 ========== */
+
+  async handleResponse(response) {
+    const contentType = response.headers.get('content-type');
+    const text = await response.text();
+    
+    // 检查响应类型
+    if (!response.ok) {
+      throw new Error(`请求失败: ${response.status} ${response.statusText}`);
+    }
+
+    if (!contentType || !contentType.includes('application/json')) {
+      throw new Error(`无效的响应格式: ${text.substring(0, 100)}`);
+    }
+
+    try {
+      return JSON.parse(text);
+    } catch (error) {
+      console.error('响应内容:', text);
+      throw new Error('响应解析失败: 不是有效的JSON');
+    }
+  }
 
   async recordFulfillment() {
     try {
@@ -89,15 +106,16 @@ class WWPay {
         })
       });
       
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || '还愿记录失败');
+      const data = await this.handleResponse(response);
+      
+      if (!data.success) {
+        throw new Error(data.message || '还愿记录失败');
       }
       
-      return await response.json();
+      return data;
     } catch (error) {
       console.error('[WWPay] 记录还愿失败:', error);
-      throw error;
+      throw new Error(`记录还愿失败: ${error.message}`);
     }
   }
 
@@ -117,19 +135,24 @@ class WWPay {
         })
       });
       
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || '支付订单创建失败');
+      const data = await this.handleResponse(response);
+      
+      if (!data.success) {
+        throw new Error(data.message || '支付订单创建失败');
       }
       
-      return await response.json();
+      if (!data.paymentUrl) {
+        throw new Error('支付链接缺失');
+      }
+      
+      return data;
     } catch (error) {
       console.error('[WWPay] 创建支付订单失败:', error);
-      throw error;
+      throw new Error(`创建订单失败: ${error.message}`);
     }
   }
 
-  /* ==================== 支付流程处理 ==================== */
+  /* ========== 支付流程处理 ========== */
 
   handleFulfillOptionClick(optionElement) {
     try {
@@ -213,7 +236,6 @@ class WWPay {
   }
 
   async processPayment() {
-    // 验证状态
     if (!this.validatePaymentState()) return;
 
     try {
@@ -221,15 +243,9 @@ class WWPay {
       
       // 1. 记录还愿意向
       const fulfillmentResponse = await this.recordFulfillment();
-      if (!fulfillmentResponse?.success) {
-        throw new Error(fulfillmentResponse?.message || '还愿记录失败');
-      }
       
       // 2. 创建支付订单
       const paymentResponse = await this.createPaymentOrder();
-      if (!paymentResponse?.success) {
-        throw new Error(paymentResponse?.message || '支付订单创建失败');
-      }
       
       // 3. 处理支付
       if (this.state.selectedMethod === 'wxpay') {
@@ -270,7 +286,7 @@ class WWPay {
     }
   }
 
-  /* ==================== 支付状态检查 ==================== */
+  /* ========== 支付状态检查 ========== */
 
   async checkPaymentStatus() {
     this.clearPaymentStatusCheck();
@@ -296,21 +312,19 @@ class WWPay {
           }
         );
         
-        if (!response.ok) {
-          throw new Error('状态检查请求失败');
-        }
+        const data = await this.handleResponse(response);
         
-        const data = await response.json();
         if (data.status === 'success') {
           this.clearPaymentStatusCheck();
           this.paymentSuccess();
         } else if (data.status === 'failed') {
-          this.clearPaymentStatusCheck();
-          this.showToast(`支付失败: ${data.message || '未知错误'}`, 'error');
-          this.hideLoading();
+          throw new Error(data.message || '支付失败');
         }
       } catch (error) {
         console.error('[WWPay] 支付状态检查错误:', error);
+        this.showToast(error.message, 'error');
+        this.hideLoading();
+        this.clearPaymentStatusCheck();
       }
     }, this.config.paymentCheck.retryInterval);
   }
@@ -330,7 +344,7 @@ class WWPay {
     }
   }
 
-  /* ==================== 辅助方法 ==================== */
+  /* ========== 辅助方法 ========== */
 
   validatePaymentState() {
     if (!this.state.selectedAmount) {
@@ -360,7 +374,7 @@ class WWPay {
     }
   }
 
-  /* ==================== UI 方法 ==================== */
+  /* ========== UI 方法 ========== */
 
   showToast(message, type = 'info') {
     // 移除旧toast
@@ -369,9 +383,11 @@ class WWPay {
     const toast = document.createElement('div');
     toast.className = `wwpay-toast toast ${type}`;
     toast.innerHTML = `
-      <i class="fas fa-${type === 'success' ? 'check-circle' : 
-                         type === 'error' ? 'exclamation-circle' : 
-                         'info-circle'}"></i>
+      <i class="fas fa-${
+        type === 'success' ? 'check-circle' : 
+        type === 'error' ? 'exclamation-circle' : 
+        'info-circle'
+      }"></i>
       ${message}
     `;
     document.body.appendChild(toast);
