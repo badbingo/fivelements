@@ -1,12 +1,11 @@
 /**
- * 命缘池支付系统 - 完整稳定版
- * 版本: 4.1.0
- * 功能:
- * - 完整的支付流程处理
- * - 微信/支付宝支付支持
- * - 增强的错误处理
- * - 兼容性优化
- * - 移除第三方依赖问题
+ * 命缘池支付系统 - 完整修复版
+ * 版本: 5.0.0
+ * 修复内容:
+ * - 修复所有API路径与后端匹配
+ * - 增强错误处理
+ * - 优化支付流程
+ * - 移除不必要依赖
  */
 
 class WWPay {
@@ -39,12 +38,6 @@ class WWPay {
       currentWishId: null,
       paymentStatusCheck: null
     };
-
-    // 绑定方法上下文
-    this.handleFulfillOptionClick = this.handleFulfillOptionClick.bind(this);
-    this.handlePaymentMethodSelect = this.handlePaymentMethodSelect.bind(this);
-    this.processPayment = this.processPayment.bind(this);
-    this.handleResponse = this.handleResponse.bind(this);
 
     // 初始化
     this.initEventListeners();
@@ -85,35 +78,25 @@ class WWPay {
 
   async handleResponse(response) {
     let responseData;
+    const text = await response.text();
+    
+    // 尝试解析JSON
     try {
-      const text = await response.text();
-      
-      // 尝试解析JSON
-      try {
-        responseData = text ? JSON.parse(text) : {};
-      } catch (e) {
-        console.warn('响应不是有效的JSON:', text);
-        responseData = { raw: text };
-      }
-
-      // 检查HTTP状态
-      if (!response.ok) {
-        const errorMsg = responseData.message || 
-                        responseData.error || 
-                        `请求失败: ${response.status}`;
-        throw new Error(errorMsg);
-      }
-
-      return responseData;
-    } catch (error) {
-      console.error('响应处理失败:', {
-        error,
-        status: response.status,
-        url: response.url,
-        data: responseData
-      });
-      throw error;
+      responseData = text ? JSON.parse(text) : {};
+    } catch (e) {
+      console.warn('响应不是有效的JSON:', text);
+      responseData = { raw: text };
     }
+
+    // 检查HTTP状态
+    if (!response.ok) {
+      const errorMsg = responseData.message || 
+                      responseData.error || 
+                      `请求失败: ${response.status} ${response.statusText}`;
+      throw new Error(errorMsg);
+    }
+
+    return responseData;
   }
 
   async recordFulfillment() {
@@ -122,7 +105,11 @@ class WWPay {
         throw new Error('无效的支付状态');
       }
 
-      const response = await fetch(`${this.config.apiBase}/api/fulfill`, {
+      // 修复API路径为 /api/wishes/fulfill
+      const url = `${this.config.apiBase}/api/wishes/fulfill`;
+      console.log('记录还愿请求:', url);
+
+      const response = await fetch(url, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -131,8 +118,7 @@ class WWPay {
         body: JSON.stringify({
           wishId: this.state.currentWishId,
           amount: this.state.selectedAmount,
-          paymentMethod: this.state.selectedMethod,
-          timestamp: new Date().toISOString()
+          paymentMethod: this.state.selectedMethod
         })
       });
       
@@ -144,17 +130,18 @@ class WWPay {
       
       return data;
     } catch (error) {
-      console.error('记录还愿失败:', {
-        error,
-        state: this.state
-      });
+      console.error('记录还愿失败:', error);
       throw new Error(`记录还愿失败: ${error.message}`);
     }
   }
 
   async createPaymentOrder() {
     try {
-      const response = await fetch(`${this.config.apiBase}/api/payments`, {
+      // 修复API路径为 /api/payments/create
+      const url = `${this.config.apiBase}/api/payments/create`;
+      console.log('创建支付订单请求:', url);
+
+      const response = await fetch(url, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -163,8 +150,7 @@ class WWPay {
         body: JSON.stringify({
           amount: this.state.selectedAmount,
           method: this.state.selectedMethod,
-          wishId: this.state.currentWishId,
-          timestamp: new Date().toISOString()
+          wishId: this.state.currentWishId
         })
       });
       
@@ -180,10 +166,7 @@ class WWPay {
       
       return data;
     } catch (error) {
-      console.error('创建支付订单失败:', {
-        error,
-        state: this.state
-      });
+      console.error('创建支付订单失败:', error);
       throw new Error(`创建订单失败: ${error.message}`);
     }
   }
@@ -197,8 +180,8 @@ class WWPay {
       }
 
       const amount = optionElement.dataset.amount;
-      if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) {
-        throw new Error('金额必须是正数');
+      if (!amount || isNaN(Number(amount)) {
+        throw new Error('金额必须是数字');
       }
 
       const modal = document.getElementById('fulfillModal');
@@ -209,9 +192,10 @@ class WWPay {
 
       // 更新状态
       this.state = {
-        ...this.state,
         selectedAmount: amount,
-        currentWishId: wishId
+        selectedMethod: this.state.selectedMethod || 'wxpay',
+        currentWishId: wishId,
+        paymentStatusCheck: null
       };
 
       console.log('支付状态更新:', this.state);
@@ -220,10 +204,7 @@ class WWPay {
       this.showPaymentMethods();
       
     } catch (error) {
-      console.error('处理还愿选项失败:', {
-        error,
-        element: optionElement
-      });
+      console.error('处理还愿选项失败:', error);
       this.showToast(`操作失败: ${error.message}`, 'error');
     }
   }
@@ -274,10 +255,7 @@ class WWPay {
       buttonElement.classList.add('active');
       this.state.selectedMethod = buttonElement.dataset.type;
     } catch (error) {
-      console.error('选择支付方式失败:', {
-        error,
-        element: buttonElement
-      });
+      console.error('选择支付方式失败:', error);
     }
   }
 
@@ -301,10 +279,7 @@ class WWPay {
         this.handleAlipay(paymentResponse.paymentUrl);
       }
     } catch (error) {
-      console.error('支付处理失败:', {
-        error,
-        state: this.state
-      });
+      console.error('支付处理失败:', error);
       this.showToast(`支付失败: ${error.message}`, 'error');
       this.hideLoading();
     }
@@ -353,6 +328,7 @@ class WWPay {
         
         retries++;
         
+        // 修复API路径为 /api/payments/status
         const response = await fetch(
           `${this.config.apiBase}/api/payments/status?wishId=${this.state.currentWishId}`,
           {
@@ -369,6 +345,8 @@ class WWPay {
           this.paymentSuccess();
         } else if (data.status === 'failed') {
           throw new Error(data.message || '支付失败');
+        } else if (data.status === 'pending') {
+          // 支付处理中，继续等待
         }
       } catch (error) {
         console.error('支付状态检查错误:', error);
