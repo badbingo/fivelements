@@ -93,29 +93,70 @@ class WWPay {
   /* 核心支付流程方法 */
   handleFulfillOptionClick(optionElement) {
   try {
-    // Get amount safely
-    const amount = optionElement?.dataset?.amount;
-    if (!amount || isNaN(amount)) {
-      throw new Error('Invalid amount');
+    // 1. Safely get amount from clicked button
+    const amount = optionElement.getAttribute('data-amount');
+    if (!amount || isNaN(Number(amount))) {
+      throw new Error('无效的金额值');
     }
 
-    // Get wish ID from modal
+    // 2. Get wish ID from modal (more reliable than DOM traversal)
     const modal = document.getElementById('fulfillModal');
-    const wishId = modal?.dataset?.wishId;
-    if (!wishId) throw new Error('No wish ID');
+    if (!modal) throw new Error('找不到还愿模态框');
+    
+    const wishId = modal.getAttribute('data-wish-id');
+    if (!wishId) throw new Error('未关联愿望ID');
 
-    // Update state
-    this.state = {
-      ...this.state,
+    // 3. Update payment state (SES-safe version)
+    this.state = harden({
       selectedAmount: amount,
-      currentWishId: wishId
-    };
+      selectedMethod: this.state.selectedMethod,
+      currentWishId: wishId,
+      paymentStatusCheck: null
+    });
 
+    console.log('[WWPay] 更新后的状态:', this.state);
+    
+    // 4. Initialize payment methods (SES-compatible)
     this.showPaymentMethods();
     
   } catch (error) {
-    console.error('Payment error:', error);
-    this.showToast(`Payment failed: ${error.message}`, 'error');
+    console.error('[WWPay] 处理还愿选项失败:', error);
+    this.showToast(`支付初始化失败: ${error.message}`, 'error');
+  }
+}
+
+// SES-compatible payment method display
+showPaymentMethods() {
+  try {
+    // Create payment UI in a SES-safe way
+    const container = document.createElement('div');
+    container.id = 'payment-methods-section';
+    container.className = 'payment-methods';
+    
+    container.innerHTML = `
+      <h4><i class="fas fa-wallet"></i> 选择支付方式</h4>
+      <div class="payment-options">
+        <button class="payment-method-btn active" data-type="wxpay">
+          <i class="fab fa-weixin"></i> 微信支付
+        </button>
+        <button class="payment-method-btn" data-type="alipay">
+          <i class="fab fa-alipay"></i> 支付宝
+        </button>
+      </div>
+      <div class="payment-actions">
+        <button id="confirm-payment-btn">
+          <i class="fas fa-check-circle"></i> 确认支付 ${this.state.selectedAmount}元
+        </button>
+      </div>
+    `;
+
+    // SES-safe DOM insertion
+    const modalContent = document.querySelector('#fulfillModal .modal-content');
+    if (modalContent) {
+      modalContent.appendChild(container);
+    }
+  } catch (error) {
+    console.error('[WWPay] 支付方式显示失败:', error);
   }
 }
       
