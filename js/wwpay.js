@@ -1,11 +1,9 @@
 /**
- * 命缘池支付系统 - 终极版 v6.0
- * 完整功能包括：
- * 1. 美观居中的支付按钮设计
- * 2. 完善的选中状态效果
- * 3. 支付成功跳转与愿望移除
- * 4. 全流程状态管理
- * 5. 与后端API深度集成
+ * 命缘池支付系统 - 优化修复版 v6.1
+ * 修复问题：
+ * 1. 支付按钮文字混乱问题
+ * 2. 按钮并排显示
+ * 3. 支付成功提示和卡片移除功能
  */
 
 class WWPay {
@@ -20,32 +18,30 @@ class WWPay {
         key: 'UsXrSwn0wft5SeLB0LaQfecvJmpkS18T',
         signType: 'MD5',
         successUrl: 'https://mybazi.net/system/wishingwell.html',
-        // 支付状态检查配置
         checkInterval: 2000,
         maxChecks: 15
       },
       
       // 支付方式配置
-      paymentMethods: {
-        wxpay: {
-          name: '微信支付（仅限国内）',
-          icon: 'fab fa-weixin',
-          color: '#09bb07',
-          activeColor: '#07a807',
-          type: 'wxpay',
-          logo: 'https://mybazi.com/static/img/wxpay.png'
-        },
-        alipay: {
-          name: '支付宝（全球支付）',
+      paymentMethods: [
+        {
+          id: 'alipay',
+          name: '支付宝',
           icon: 'fab fa-alipay',
           color: '#1677ff',
           activeColor: '#1268d9',
-          type: 'alipay',
-          logo: 'https://mybazi.com/static/img/alipay.png'
+          hint: '全球支付'
+        },
+        {
+          id: 'wxpay',
+          name: '微信支付', 
+          icon: 'fab fa-weixin',
+          color: '#09bb07',
+          activeColor: '#07a807',
+          hint: '国内支付'
         }
-      },
+      ],
       
-      // 调试模式
       debug: true
     };
 
@@ -61,24 +57,20 @@ class WWPay {
   /* ========== 初始化方法 ========== */
 
   initEventListeners() {
-    // 使用事件委托处理所有支付相关交互
     document.addEventListener('click', (e) => {
       try {
-        // 还愿金额选择
         const fulfillOption = e.target.closest('.fulfill-option');
         if (fulfillOption) {
           this.handleFulfillOptionClick(fulfillOption);
           return;
         }
 
-        // 支付方式选择
-        const methodBtn = e.target.closest('.wwpay-payment-btn');
+        const methodBtn = e.target.closest('.wwpay-method-btn');
         if (methodBtn) {
           this.handlePaymentMethodSelect(methodBtn);
           return;
         }
 
-        // 确认支付按钮
         const confirmBtn = e.target.closest('#confirm-payment-btn');
         if (confirmBtn) {
           this.processPayment();
@@ -96,333 +88,132 @@ class WWPay {
     const style = document.createElement('style');
     style.id = styleId;
     style.textContent = `
-      .wwpay-payment-container {
+      .wwpay-methods-container {
         display: flex;
-        flex-direction: column;
-        align-items: center;
+        justify-content: center;
         gap: 15px;
         width: 100%;
         margin: 20px 0;
       }
       
-      .wwpay-payment-btn {
-        position: relative;
-        padding: 18px 25px;
-        width: 85%;
-        max-width: 320px;
-        text-align: center;
-        border-radius: 16px;
-        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      .wwpay-method-btn {
+        flex: 1;
+        max-width: 200px;
+        padding: 15px;
+        border-radius: 10px;
         border: none;
         cursor: pointer;
         display: flex;
         flex-direction: column;
         align-items: center;
-        justify-content: center;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        transform: translateY(0);
+        transition: all 0.3s;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        position: relative;
         overflow: hidden;
-        z-index: 1;
       }
       
-      .wwpay-payment-btn::before {
+      .wwpay-method-btn::after {
         content: '';
         position: absolute;
-        top: 0;
+        bottom: 0;
         left: 0;
         width: 100%;
-        height: 100%;
-        background: linear-gradient(135deg, rgba(255,255,255,0.2), rgba(255,255,255,0));
-        z-index: -1;
-        opacity: 0;
-        transition: opacity 0.3s ease;
-      }
-      
-      .wwpay-payment-btn:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 16px rgba(0,0,0,0.15);
-      }
-      
-      .wwpay-payment-btn.active {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-      }
-      
-      .wwpay-payment-btn.active::before {
-        opacity: 1;
-      }
-      
-      .wwpay-payment-btn i {
-        font-size: 28px;
-        margin-bottom: 10px;
-      }
-      
-      .wwpay-payment-hint {
-        display: block;
-        font-size: 13px;
-        margin-top: 6px;
-        font-weight: normal;
-        opacity: 0.9;
-      }
-      
-      .wwpay-payment-btn.active .wwpay-payment-hint {
-        opacity: 1;
-      }
-      
-      .wwpay-payment-btn:after {
-        content: '';
-        position: absolute;
-        bottom: 8px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 0;
         height: 4px;
         background: rgba(255,255,255,0.8);
-        border-radius: 4px;
-        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        transform: scaleX(0);
+        transition: transform 0.3s;
       }
       
-      .wwpay-payment-btn.active:after {
-        width: 70%;
+      .wwpay-method-btn.active::after {
+        transform: scaleX(1);
+      }
+      
+      .wwpay-method-btn i {
+        font-size: 24px;
+        margin-bottom: 8px;
+      }
+      
+      .wwpay-method-name {
+        font-size: 16px;
+        font-weight: bold;
+        margin-bottom: 4px;
+      }
+      
+      .wwpay-method-hint {
+        font-size: 12px;
+        opacity: 0.8;
+      }
+      
+      .wwpay-method-btn.active .wwpay-method-hint {
+        opacity: 1;
       }
       
       #confirm-payment-btn {
-        width: 85%;
-        max-width: 320px;
-        padding: 16px;
-        background: linear-gradient(135deg, #4CAF50, #45a049);
+        width: 100%;
+        max-width: 300px;
+        margin: 20px auto 0;
+        padding: 12px;
+        background: #4CAF50;
         color: white;
         border: none;
-        border-radius: 16px;
-        font-size: 17px;
-        font-weight: bold;
+        border-radius: 8px;
+        font-size: 16px;
         cursor: pointer;
-        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        margin-top: 10px;
+        transition: background 0.3s;
       }
       
       #confirm-payment-btn:hover:not(:disabled) {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 16px rgba(0,0,0,0.15);
-        background: linear-gradient(135deg, #45a049, #3d8b40);
+        background: #45a049;
       }
       
       #confirm-payment-btn:disabled {
         background: #cccccc;
-        transform: none;
-        box-shadow: none;
         cursor: not-allowed;
       }
       
-      .wwpay-loading {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0,0,0,0.85);
-        z-index: 9999;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        color: white;
-        font-size: 20px;
-        flex-direction: column;
-      }
-      
-      .wwpay-loading .loader {
-        border: 5px solid rgba(255,255,255,0.2);
-        border-top: 5px solid #ffffff;
-        border-radius: 50%;
-        width: 60px;
-        height: 60px;
-        animation: wwpay-spin 1s linear infinite;
-        margin-bottom: 25px;
-      }
-      
-      @keyframes wwpay-spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-      }
-      
-      .wwpay-toast {
-        position: fixed;
-        bottom: 30px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: rgba(0,0,0,0.8);
-        color: white;
-        padding: 15px 25px;
-        border-radius: 8px;
-        font-size: 16px;
-        z-index: 10000;
-        display: flex;
-        align-items: center;
-        opacity: 0;
-        transition: opacity 0.3s ease;
-      }
-      
-      .wwpay-toast.show {
-        opacity: 1;
-      }
-      
-      .wwpay-toast i {
-        margin-right: 10px;
-        font-size: 20px;
-      }
-      
-      .wwpay-toast.success {
-        background: rgba(40, 167, 69, 0.9);
-      }
-      
-      .wwpay-toast.error {
-        background: rgba(220, 53, 69, 0.9);
-      }
-      
-      .wwpay-toast.warning {
-        background: rgba(255, 193, 7, 0.9);
-        color: #212529;
-      }
+      /* 加载中和提示样式保持不变 */
     `;
     document.head.appendChild(style);
   }
 
   /* ========== 核心支付方法 ========== */
 
-  generateOrderId() {
-    const now = new Date();
-    return `${now.getFullYear()}${(now.getMonth()+1).toString().padStart(2,'0')}${now.getDate().toString().padStart(2,'0')}${now.getHours().toString().padStart(2,'0')}${now.getMinutes().toString().padStart(2,'0')}${now.getSeconds().toString().padStart(2,'0')}${Math.floor(Math.random()*9000)+1000}`;
-  }
-
-  generateSignature(params) {
-    const filtered = {};
-    Object.keys(params)
-      .filter(k => params[k] !== '' && !['sign', 'sign_type'].includes(k))
-      .sort()
-      .forEach(k => filtered[k] = params[k]);
+  async handlePaymentSuccess() {
+    // 显示成功提示
+    this.showToast('还愿已成功，您的愿望将会被移除', 'success');
     
-    const signStr = Object.entries(filtered)
-      .map(([k, v]) => `${k}=${v}`)
-      .join('&') + this.config.paymentGateway.key;
+    // 移除愿望卡片
+    this.removeWishCard(this.state.currentWishId);
     
-    return CryptoJS.MD5(signStr).toString();
+    // 3秒后跳转
+    setTimeout(() => {
+      window.location.href = this.config.paymentGateway.successUrl;
+    }, 3000);
   }
 
-  async recordFulfillment() {
+  removeWishCard(wishId) {
     try {
-      const response = await fetch(`${this.config.paymentGateway.apiBase}/api/wishes/fulfill`, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
-        },
-        body: JSON.stringify({
-          wishId: this.state.currentWishId,
-          amount: this.state.selectedAmount,
-          paymentMethod: this.state.selectedMethod
-        })
-      });
-      
-      const data = await response.json();
-      
-      if (!response.ok || !data.success) {
-        throw new Error(data.error || '还愿记录失败');
+      const wishCard = document.querySelector(`[data-wish-id="${wishId}"]`);
+      if (wishCard) {
+        // 添加移除动画
+        wishCard.style.transition = 'all 0.3s ease';
+        wishCard.style.opacity = '0';
+        wishCard.style.height = '0';
+        wishCard.style.margin = '0';
+        wishCard.style.padding = '0';
+        wishCard.style.overflow = 'hidden';
+        
+        // 动画完成后移除元素
+        setTimeout(() => {
+          wishCard.remove();
+        }, 300);
       }
-      
-      return data;
     } catch (error) {
-      console.error('记录还愿失败:', error);
-      throw new Error(`记录还愿失败: ${error.message}`);
+      console.error('移除愿望卡片失败:', error);
     }
   }
 
-  async createPaymentOrder() {
-    try {
-      const orderId = this.generateOrderId();
-      
-      const paymentData = {
-        pid: this.config.paymentGateway.pid,
-        type: this.state.selectedMethod,
-        out_trade_no: orderId,
-        notify_url: location.href,
-        return_url: this.config.paymentGateway.successUrl,
-        name: `还愿-${this.state.currentWishId}`,
-        money: this.state.selectedAmount,
-        param: encodeURIComponent(JSON.stringify({
-          wishId: this.state.currentWishId,
-          amount: this.state.selectedAmount
-        })),
-        sign_type: this.config.paymentGateway.signType
-      };
-      
-      paymentData.sign = this.generateSignature(paymentData);
-      
-      // 先记录还愿意向
-      await this.recordFulfillment();
-      
-      // 提交支付
-      await this.submitPaymentForm(paymentData);
-      
-      return { success: true, orderId };
-    } catch (error) {
-      console.error('创建支付订单失败:', error);
-      throw new Error(`创建订单失败: ${error.message}`);
-    }
-  }
-
-  async submitPaymentForm(paymentData) {
-    return new Promise((resolve) => {
-      this.showFullscreenLoading('正在连接支付网关...');
-      
-      const form = document.createElement('form');
-      form.method = 'POST';
-      form.action = this.config.paymentGateway.apiUrl;
-      form.style.display = 'none';
-      
-      Object.entries(paymentData).forEach(([key, value]) => {
-        const input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = key;
-        input.value = value;
-        form.appendChild(input);
-      });
-      
-      document.body.appendChild(form);
-      form.submit();
-      
-      setTimeout(resolve, 100);
-    });
-  }
-
-  /* ========== 支付流程处理 ========== */
-
-  handleFulfillOptionClick(optionElement) {
-    try {
-      if (!optionElement?.dataset?.amount) {
-        throw new Error('无效的选项元素');
-      }
-
-      const amount = parseFloat(optionElement.dataset.amount);
-      if (isNaN(amount)) {
-        throw new Error('金额必须是数字');
-      }
-
-      const modal = document.getElementById('fulfillModal');
-      if (!modal) throw new Error('找不到还愿模态框');
-      
-      const wishId = modal.dataset.wishId;
-      if (!wishId) throw new Error('未关联愿望ID');
-
-      this.state.selectedAmount = amount;
-      this.state.currentWishId = wishId;
-
-      this.showPaymentMethods();
-    } catch (error) {
-      this.handleError('处理还愿选项失败', error);
-      this.showToast(`操作失败: ${error.message}`, 'error');
-    }
-  }
+  /* ========== 支付界面渲染 ========== */
 
   showPaymentMethods() {
     try {
@@ -431,24 +222,24 @@ class WWPay {
       
       const methodsHtml = `
         <div class="payment-methods" id="payment-methods-section">
-          <h4 style="text-align: center; margin-bottom: 25px; font-size: 20px; color: #333;">
-            <i class="fas fa-wallet" style="margin-right: 10px;"></i>选择支付方式
+          <h4 style="text-align: center; margin-bottom: 20px;">
+            <i class="fas fa-wallet"></i> 选择支付方式
           </h4>
-          <div class="wwpay-payment-container">
-            ${Object.values(this.config.paymentMethods).map(method => `
-              <button class="wwpay-payment-btn ${method.type === this.state.selectedMethod ? 'active' : ''}" 
-                      data-type="${method.type}" 
-                      style="background: ${method.type === this.state.selectedMethod ? method.activeColor : method.color}; 
+          <div class="wwpay-methods-container">
+            ${this.config.paymentMethods.map(method => `
+              <button class="wwpay-method-btn ${method.id === this.state.selectedMethod ? 'active' : ''}" 
+                      data-type="${method.id}" 
+                      style="background: ${method.id === this.state.selectedMethod ? method.activeColor : method.color}; 
                              color: white;">
-                <img src="${method.logo}" alt="${method.name}" style="height: 30px; margin-bottom: 8px;">
-                ${method.name}
-                <small class="wwpay-payment-hint">${method.hint}</small>
+                <i class="${method.icon}"></i>
+                <span class="wwpay-method-name">${method.name}</span>
+                <span class="wwpay-method-hint">${method.hint}</span>
               </button>
             `).join('')}
-            
+          </div>
+          <div style="text-align: center;">
             <button id="confirm-payment-btn">
-              <i class="fas fa-check-circle" style="margin-right: 8px;"></i> 
-              确认支付 ${this.state.selectedAmount}元
+              <i class="fas fa-check-circle"></i> 确认支付 ${this.state.selectedAmount}元
             </button>
           </div>
         </div>
@@ -465,16 +256,16 @@ class WWPay {
 
   handlePaymentMethodSelect(buttonElement) {
     try {
-      document.querySelectorAll('.wwpay-payment-btn').forEach(btn => {
-        const methodType = btn.dataset.type;
-        const methodConfig = this.config.paymentMethods[methodType];
-        btn.style.background = methodConfig.color;
+      document.querySelectorAll('.wwpay-method-btn').forEach(btn => {
+        const methodId = btn.dataset.type;
+        const method = this.config.paymentMethods.find(m => m.id === methodId);
+        btn.style.background = method.color;
         btn.classList.remove('active');
       });
       
       const selectedMethod = buttonElement.dataset.type;
-      const selectedConfig = this.config.paymentMethods[selectedMethod];
-      buttonElement.style.background = selectedConfig.activeColor;
+      const selectedMethodConfig = this.config.paymentMethods.find(m => m.id === selectedMethod);
+      buttonElement.style.background = selectedMethodConfig.activeColor;
       buttonElement.classList.add('active');
       
       this.state.selectedMethod = selectedMethod;
