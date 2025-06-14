@@ -19,7 +19,7 @@ class WWPay {
         pid: '2025051013380915',
         key: 'UsXrSwn0wft5SeLB0LaQfecvJmpkS18T',
         signType: 'MD5',
-        successUrl: 'https://mybazi.com/system/wishingwell.html',
+        successUrl: 'https://mybazi.net/system/wishingwell.html',
         // 支付状态检查配置
         checkInterval: 2000,
         maxChecks: 15
@@ -28,21 +28,19 @@ class WWPay {
       // 支付方式配置
       paymentMethods: {
         wxpay: {
-          name: '微信支付（国内）',
+          name: '微信支付（仅限国内）',
           icon: 'fab fa-weixin',
           color: '#09bb07',
           activeColor: '#07a807',
           type: 'wxpay',
-          hint: '仅限国内支付',
           logo: 'https://mybazi.com/static/img/wxpay.png'
         },
         alipay: {
-          name: '支付宝（全球）',
+          name: '支付宝（全球支付）',
           icon: 'fab fa-alipay',
           color: '#1677ff',
           activeColor: '#1268d9',
           type: 'alipay',
-          hint: '支持全球支付',
           logo: 'https://mybazi.com/static/img/alipay.png'
         }
       },
