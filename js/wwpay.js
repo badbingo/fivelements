@@ -92,32 +92,40 @@ class WWPay {
 
   /* 核心支付流程方法 */
   handleFulfillOptionClick(optionElement) {
-    try {
-      // 1. 通过DOM层级关系找到父卡片
-      const wishCard = optionElement.closest('.wish-card');
-      if (!wishCard) {
-        throw new Error('找不到愿望卡片容器');
-      }
-  
-      // 2. 确保从data-id获取值
-      const wishId = wishCard.dataset.id;
-      if (!wishId) {
-        throw new Error('愿望ID未定义');
-      }
-  
-      // 3. 更新状态
-      this.state = {
-        ...this.state,
-        selectedAmount: optionElement.dataset.amount,
-        currentWishId: wishId
-      };
-  
-      // 4. 显示支付方式
-      this.showPaymentMethods();
-      
-    } catch (error) {
-      console.error('[WWPay] 处理还愿选项失败:', error);
-      this.showToast(`选择金额失败: ${error.message}`, 'error');
+  try {
+    // 1. 直接从点击元素获取金额数据
+    const amount = optionElement.dataset.amount;
+    if (!amount) {
+      throw new Error('无效的金额选项');
+    }
+
+    // 2. 从模态框中获取愿望ID（更可靠的方式）
+    const modal = document.getElementById('fulfillModal');
+    if (!modal) {
+      throw new Error('找不到还愿模态框');
+    }
+
+    // 3. 从模态框的数据属性中获取愿望ID
+    const wishId = modal.dataset.wishId;
+    if (!wishId) {
+      throw new Error('愿望ID未定义');
+    }
+
+    // 4. 更新状态
+    this.state = {
+      ...this.state,
+      selectedAmount: amount,
+      currentWishId: wishId
+    };
+
+    // 5. 显示支付方式
+    this.showPaymentMethods();
+    
+  } catch (error) {
+    console.error('[WWPay] 处理还愿选项失败:', error);
+    this.showToast(`选择金额失败: ${error.message}`, 'error');
+  }
+}
       
       // 调试用 - 打印DOM结构
       console.debug('当前点击元素:', optionElement);
