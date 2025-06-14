@@ -1,10 +1,11 @@
 /**
- * 命缘池支付系统 - 终极稳定版 v8.5
+ * 命缘池支付系统 - 终极稳定版 v8.6
  * 完整功能：
  * 1. 100%可靠的支付流程
  * 2. 完善的事件处理绑定
  * 3. 强化的错误处理
  * 4. 优化的UI反馈
+ * 5. 修复支付成功提示和卡片移除问题
  */
 
 class WWPay {
@@ -244,13 +245,30 @@ class WWPay {
       }
       
       .wish-card-removing {
-        transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        animation: wwpay-remove-card 0.8s forwards !important;
         opacity: 0 !important;
         max-height: 0 !important;
         margin: 0 !important;
         padding: 0 !important;
         overflow: hidden !important;
         pointer-events: none !important;
+      }
+      
+      @keyframes wwpay-remove-card {
+        0% { 
+          transform: scale(1);
+          opacity: 1;
+          max-height: 500px;
+        }
+        50% {
+          transform: scale(0.95);
+          opacity: 0.5;
+        }
+        100% { 
+          transform: scale(0.9);
+          opacity: 0;
+          max-height: 0;
+        }
       }
     `;
     document.head.appendChild(style);
@@ -536,23 +554,31 @@ class WWPay {
 
   async handlePaymentSuccess() {
     try {
-      this.showGuaranteedToast('还愿成功！正在更新状态...');
+      // 显示用户要求的特定提示
+      this.showGuaranteedToast('还愿已成功，您的愿望将会移除');
       
       const verified = await this.verifyFulfillmentWithRetry();
       if (!verified) {
         throw new Error('状态验证失败');
       }
 
+      // 确保愿望卡片被移除
       await this.safeRemoveWishCard(this.state.currentWishId);
       this.cleanupPaymentState();
       
+      // 显示完成提示（停留2秒让用户看到）
       this.showGuaranteedToast('还愿处理完成！即将跳转...', 'success');
       await this.delay(2000);
+      
+      // 跳转到成功页面
       window.location.href = this.config.paymentGateway.successUrl;
       
     } catch (error) {
       this.safeLogError('支付成功处理异常', error);
       this.showGuaranteedToast('支付已完成！请手动刷新查看', 'warning');
+      
+      // 即使出错也跳转，但显示警告
+      await this.delay(2000);
       window.location.href = this.config.paymentGateway.successUrl;
     }
   }
@@ -599,38 +625,49 @@ class WWPay {
   }
 
   findWishCard(wishId) {
+    // 增强选择器兼容性
     const selectors = [
       `.wish-card[data-wish-id="${wishId}"]`,
       `[data-wish-id="${wishId}"]`,
-      `#wish-${wishId}`
+      `#wish-${wishId}`,
+      `#wish-card-${wishId}`,
+      `[data-id="${wishId}"]`
     ];
     
     for (const selector of selectors) {
       const card = document.querySelector(selector);
-      if (card) return card;
+      if (card) {
+        this.log(`找到愿望卡片: ${selector}`);
+        return card;
+      }
     }
+    
+    this.log(`未找到愿望卡片，尝试的选择器: ${selectors.join(', ')}`);
     return null;
   }
 
   applyRemovalAnimation(card) {
     return new Promise((resolve) => {
+      // 添加移除动画类
       card.classList.add('wish-card-removing');
       
-      const onTransitionEnd = () => {
-        card.removeEventListener('transitionend', onTransitionEnd);
+      // 确保动画执行
+      const onAnimationEnd = () => {
+        card.removeEventListener('animationend', onAnimationEnd);
         card.remove();
         resolve();
       };
       
-      card.addEventListener('transitionend', onTransitionEnd);
+      card.addEventListener('animationend', onAnimationEnd);
       
+      // 确保最终移除（即使动画未触发）
       setTimeout(() => {
         if (card.parentNode) {
-          card.removeEventListener('transitionend', onTransitionEnd);
+          card.removeEventListener('animationend', onAnimationEnd);
           card.remove();
         }
         resolve();
-      }, 800);
+      }, 1000); // 延长超时时间确保执行
     });
   }
 
@@ -827,8 +864,8 @@ class WWPay {
   /* ========== 恢复机制 ========== */
 
   checkPendingPayments() {
-  return false; // 静默跳过检查
-}
+    return false; // 静默跳过检查
+  }
 
   async recordFulfillment() {
     try {
