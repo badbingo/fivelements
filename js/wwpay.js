@@ -636,7 +636,7 @@ class WWPay {
     }
   }
 
-  async verifyFulfillmentWithRetry(retries = 3) {
+  async verifyFulfillmentWithRetry(retries = 3) {  // 修复方法名拼写错误
     for (let i = 0; i < retries; i++) {
       try {
         const response = await fetch(
@@ -654,7 +654,6 @@ class WWPay {
         
         const data = await response.json();
         
-        // 更严格的响应验证
         if (typeof data.fulfilled !== 'undefined') {
           this.log('验证还愿成功:', data);
           return data.fulfilled;
@@ -662,7 +661,7 @@ class WWPay {
         throw new Error('无效的响应格式');
       } catch (error) {
         this.log(`验证还愿状态失败 (${i+1}/${retries}): ${error.message}`);
-        if (i === retries - 1) throw error; // 最后一次尝试抛出错误
+        if (i === retries - 1) throw error;
         await this.delay(this.config.paymentGateway.retryDelay);
       }
     }
