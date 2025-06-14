@@ -18,7 +18,7 @@ class WWPay {
         pid: '2025051013380915',
         key: 'UsXrSwn0wft5SeLB0LaQfecvJmpkS18T',
         signType: 'MD5',
-        successUrl: 'https://mybazi.net/system/bazisystem.html'
+        successUrl: 'https://mybazi.net/system/wishingwell.html'
       },
       
       // 支付方式配置
