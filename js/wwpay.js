@@ -1,11 +1,12 @@
 /**
- * 命缘池支付系统 - 完整修复版
- * 版本: 5.0.0
- * 修复内容:
- * - 修复所有API路径与后端匹配
- * - 增强错误处理
- * - 优化支付流程
- * - 移除不必要依赖
+ * 命缘池支付系统 - 稳定版
+ * 版本: 5.1.0
+ * 功能:
+ * - 完整的支付流程处理
+ * - 微信/支付宝支付支持
+ * - 增强的错误处理
+ * - 兼容性优化
+ * - 解决第三方库冲突
  */
 
 class WWPay {
@@ -46,7 +47,7 @@ class WWPay {
   /* ========== 初始化方法 ========== */
 
   initEventListeners() {
-    // 使用更可靠的事件委托
+    // 使用安全的事件委托
     document.addEventListener('click', (e) => {
       try {
         // 还愿金额选择
@@ -105,10 +106,7 @@ class WWPay {
         throw new Error('无效的支付状态');
       }
 
-      // 修复API路径为 /api/wishes/fulfill
       const url = `${this.config.apiBase}/api/wishes/fulfill`;
-      console.log('记录还愿请求:', url);
-
       const response = await fetch(url, {
         method: 'POST',
         headers: { 
@@ -137,10 +135,7 @@ class WWPay {
 
   async createPaymentOrder() {
     try {
-      // 修复API路径为 /api/payments/create
       const url = `${this.config.apiBase}/api/payments/create`;
-      console.log('创建支付订单请求:', url);
-
       const response = await fetch(url, {
         method: 'POST',
         headers: { 
@@ -180,7 +175,7 @@ class WWPay {
       }
 
       const amount = optionElement.dataset.amount;
-      if (!amount || isNaN(Number(amount)) {
+      if (!amount || isNaN(Number(amount))) {
         throw new Error('金额必须是数字');
       }
 
@@ -193,13 +188,11 @@ class WWPay {
       // 更新状态
       this.state = {
         selectedAmount: amount,
-        selectedMethod: this.state.selectedMethod || 'wxpay',
+        selectedMethod: this.state.selectedMethod,
         currentWishId: wishId,
         paymentStatusCheck: null
       };
 
-      console.log('支付状态更新:', this.state);
-      
       // 显示支付方式
       this.showPaymentMethods();
       
@@ -328,7 +321,6 @@ class WWPay {
         
         retries++;
         
-        // 修复API路径为 /api/payments/status
         const response = await fetch(
           `${this.config.apiBase}/api/payments/status?wishId=${this.state.currentWishId}`,
           {
@@ -345,8 +337,6 @@ class WWPay {
           this.paymentSuccess();
         } else if (data.status === 'failed') {
           throw new Error(data.message || '支付失败');
-        } else if (data.status === 'pending') {
-          // 支付处理中，继续等待
         }
       } catch (error) {
         console.error('支付状态检查错误:', error);
@@ -409,14 +399,13 @@ class WWPay {
       // 移除旧toast
       document.querySelectorAll('.wwpay-toast').forEach(el => el.remove());
       
+      const icon = type === 'success' ? 'check-circle' : 
+                  type === 'error' ? 'exclamation-circle' : 'info-circle';
+      
       const toast = document.createElement('div');
       toast.className = `wwpay-toast toast ${type}`;
       toast.innerHTML = `
-        <i class="fas fa-${
-          type === 'success' ? 'check-circle' : 
-          type === 'error' ? 'exclamation-circle' : 
-          'info-circle'
-        }"></i>
+        <i class="fas fa-${icon}"></i>
         ${message}
       `;
       document.body.appendChild(toast);
@@ -470,15 +459,13 @@ class WWPay {
 }
 
 // 安全初始化
-if (typeof window !== 'undefined') {
-  document.addEventListener('DOMContentLoaded', () => {
-    try {
-      if (!window.wwPay) {
-        window.wwPay = new WWPay();
-        console.log('支付系统初始化成功');
-      }
-    } catch (error) {
-      console.error('支付系统初始化失败:', error);
+document.addEventListener('DOMContentLoaded', () => {
+  try {
+    if (!window.wwPay) {
+      window.wwPay = new WWPay();
+      console.log('支付系统初始化成功');
     }
-  });
-}
+  } catch (error) {
+    console.error('支付系统初始化失败:', error);
+  }
+});
