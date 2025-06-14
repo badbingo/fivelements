@@ -552,37 +552,57 @@ class WWPay {
 
   /* ========== 支付成功处理 ========== */
 
-  async handlePaymentSuccess() {
-    try {
-      // 显示用户要求的特定提示
-      this.showGuaranteedToast('还愿已成功，您的愿望将会移除');
-      
-      const verified = await this.verifyFulfillmentWithRetry();
-      if (!verified) {
-        throw new Error('状态验证失败');
+ async handlePaymentSuccess() {
+  try {
+    console.log("开始处理支付成功...", this.state);
+
+    // 1. 显示用户提示
+    this.showGuaranteedToast('还愿已成功，您的愿望将会移除');
+    await this.delay(1500);
+
+    // 2. 验证还愿状态（重试3次）
+    let verified = false;
+    for (let i = 0; i < 3; i++) {
+      try {
+        const response = await fetch(
+          `${this.config.paymentGateway.apiBase}/api/wishes/check?wishId=${this.state.currentWishId}`
+        );
+        const data = await response.json();
+        
+        if (data.fulfilled) {
+          verified = true;
+          break;
+        }
+      } catch (e) {
+        console.warn(`验证还愿状态失败 (${i+1}/3):`, e);
       }
-
-      // 确保愿望卡片被移除
-      await this.safeRemoveWishCard(this.state.currentWishId);
-      this.cleanupPaymentState();
-      
-      // 显示完成提示（停留2秒让用户看到）
-      this.showGuaranteedToast('还愿处理完成！即将跳转...', 'success');
-      await this.delay(2000);
-      
-      // 跳转到成功页面
-      window.location.href = this.config.paymentGateway.successUrl;
-      
-    } catch (error) {
-      this.safeLogError('支付成功处理异常', error);
-      this.showGuaranteedToast('支付已完成！请手动刷新查看', 'warning');
-      
-      // 即使出错也跳转，但显示警告
-      await this.delay(2000);
-      window.location.href = this.config.paymentGateway.successUrl;
+      await this.delay(1000);
     }
-  }
 
+    if (!verified) {
+      throw new Error("无法验证还愿状态");
+    }
+
+    // 3. 移除卡片
+    const card = this.findWishCard(this.state.currentWishId);
+    if (card) {
+      console.log("移除愿望卡片:", card);
+      await this.applyRemovalAnimation(card);
+    } else {
+      console.warn("未找到愿望卡片，可能已被移除");
+    }
+
+    // 4. 清理状态
+    this.cleanupPaymentState();
+    this.showGuaranteedToast('处理完成！', 'success');
+    
+  } catch (error) {
+    console.error("支付成功处理失败:", error);
+    this.showGuaranteedToast('支付已完成，但更新状态失败', 'warning');
+  } finally {
+    this.hideFullscreenLoading();
+  }
+}
   async verifyFulfillmentWithRetry(retries = 3) {
     for (let i = 0; i < retries; i++) {
       try {
