@@ -325,66 +325,73 @@ class WWPay {
   }
 
   async recordFulfillment() {
-    try {
-      const response = await fetch(`${this.config.paymentGateway.apiBase}/api/wishes/fulfill`, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
-        },
-        body: JSON.stringify({
-          wishId: this.state.currentWishId,
-          amount: this.state.selectedAmount,
-          paymentMethod: this.state.selectedMethod
-        })
-      });
-      
-      const data = await response.json();
-      
-      if (!response.ok || !data.success) {
-        throw new Error(data.error || '还愿记录失败');
+  try {
+    const response = await fetch(`${this.config.paymentGateway.apiBase}/api/wishes/fulfill`, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+      },
+      body: JSON.stringify({
+        wishId: this.state.currentWishId,
+        amount: this.state.selectedAmount,
+        paymentMethod: this.state.selectedMethod
+      })
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      // 处理特定的错误代码
+      if (data.code === 'WISH_NOT_FOUND') {
+        throw new Error('愿望不存在或已被移除');
       }
-      
-      return data;
-    } catch (error) {
-      console.error('记录还愿失败:', error);
-      throw new Error(`记录还愿失败: ${error.message}`);
+      throw new Error(data.error || '还愿记录失败');
     }
+    
+    return data;
+  } catch (error) {
+    console.error('记录还愿失败:', error);
+    throw new Error(`记录还愿失败: ${error.message}`);
   }
+}
 
-  async createPaymentOrder() {
-    try {
-      const orderId = this.generateOrderId();
-      
-      const paymentData = {
-        pid: this.config.paymentGateway.pid,
-        type: this.state.selectedMethod,
-        out_trade_no: orderId,
-        notify_url: location.href,
-        return_url: this.config.paymentGateway.successUrl,
-        name: `还愿-${this.state.currentWishId}`,
-        money: this.state.selectedAmount,
-        param: encodeURIComponent(JSON.stringify({
-          wishId: this.state.currentWishId,
-          amount: this.state.selectedAmount
-        })),
-        sign_type: this.config.paymentGateway.signType
-      };
-      
-      paymentData.sign = this.generateSignature(paymentData);
-      
-      // 先记录还愿意向
-      await this.recordFulfillment();
-      
-      // 提交支付
-      await this.submitPaymentForm(paymentData);
-      
-      return { success: true, orderId };
-    } catch (error) {
-      console.error('创建支付订单失败:', error);
-      throw new Error(`创建订单失败: ${error.message}`);
-    }
+ async createPaymentOrder() {
+  try {
+    const orderId = this.generateOrderId();
+    
+    // 1. 先记录还愿（不等待完成）
+    this.recordFulfillment().catch(error => {
+      console.error('异步记录还愿失败:', error);
+    });
+    
+    // 2. 准备支付数据
+    const paymentData = {
+      pid: this.config.paymentGateway.pid,
+      type: this.state.selectedMethod,
+      out_trade_no: orderId,
+      notify_url: location.href,
+      return_url: this.config.paymentGateway.successUrl,
+      name: `还愿-${this.state.currentWishId}`,
+      money: this.state.selectedAmount,
+      param: encodeURIComponent(JSON.stringify({
+        wishId: this.state.currentWishId,
+        amount: this.state.selectedAmount
+      })),
+      sign_type: this.config.paymentGateway.signType
+    };
+    
+    paymentData.sign = this.generateSignature(paymentData);
+    
+    // 3. 提交支付
+    await this.submitPaymentForm(paymentData);
+    
+    return { success: true, orderId };
+  } catch (error) {
+    console.error('创建支付订单失败:', error);
+    throw new Error(`创建订单失败: ${error.message}`);
   }
+}
 
   async submitPaymentForm(paymentData) {
     return new Promise((resolve) => {
@@ -590,54 +597,26 @@ class WWPay {
     }, checkInterval);
   }
 
+
   async handlePaymentSuccess() {
   try {
-    // 1. 强制显示成功提示（使用更可靠的方式）
-    const toastMsg = '还愿已成功，您的愿望将会被移除';
-    console.log('显示提示:', toastMsg);
-    this.showPersistentToast(toastMsg, 'success');
+    // 1. 显示持久提示
+    this.showPersistentToast('还愿成功！即将跳转...', 'success');
     
-    // 2. 确保DOM更新后再执行移除
-    await new Promise(resolve => {
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          resolve();
-        });
-      });
-    });
+    // 2. 延迟确保用户看到提示
+    await new Promise(resolve => setTimeout(resolve, 2000));
     
-    // 3. 强制移除愿望卡片（添加重试机制）
-    let retryCount = 0;
-    const maxRetries = 3;
-    
-    while (retryCount < maxRetries) {
-      try {
-        console.log(`尝试移除卡片，第${retryCount + 1}次`);
-        await this.forceRemoveWishCard(this.state.currentWishId);
-        break;
-      } catch (error) {
-        retryCount++;
-        if (retryCount >= maxRetries) {
-          console.error('移除卡片最终失败:', error);
-          throw error;
-        }
-        await new Promise(resolve => setTimeout(resolve, 300));
-      }
-    }
-    
-    // 4. 确保用户看到提示后再跳转
-    setTimeout(() => {
-      console.log('跳转到成功页面');
-      window.location.href = this.config.paymentGateway.successUrl;
-    }, 3000);
+    // 3. 跳转到成功页面
+    window.location.href = this.config.paymentGateway.successUrl;
     
   } catch (error) {
     console.error('支付成功处理异常:', error);
     // 终极降级方案
-    alert('还愿成功！请手动刷新页面查看变化');
+    alert('支付成功！请手动刷新页面');
     window.location.href = this.config.paymentGateway.successUrl;
   }
 }
+  
 
   /* ========== 辅助方法 ========== */
 
