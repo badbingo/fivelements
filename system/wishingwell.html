@@ -2061,24 +2061,24 @@
         </div>
     </div>
     
-    <!-- 还愿模态框 -->
+   <!-- 还愿模态框 -->
     <div id="fulfillModal" class="modal">
-        <div class="modal-content">
-            <span class="close-modal">&times;</span>
-            <h3><i class="fas fa-hand-holding-heart"></i> 感恩还愿</h3>
-            <p>您的愿望已经实现，请选择还愿金额以完成能量循环：</p>
-            
-            <div class="fulfill-options">
-                <button class="fulfill-option" data-amount="5">5元</button>
-                <button class="fulfill-option" data-amount="10">10元</button>
-                <button class="fulfill-option" data-amount="20">20元</button>
-                <button class="fulfill-option" data-amount="50">50元</button>
-            </div>
-            
-            <p class="fulfill-note">还愿金额将用于维护命缘池系统及慈善捐赠</p>
-            
-            <!-- 支付方式部分将由JS动态生成 -->
+      <div class="modal-content">
+        <span class="close-modal">&times;</span>
+        <h3><i class="fas fa-hand-holding-heart"></i> 感恩还愿</h3>
+        <p>您的愿望已经实现，请选择还愿金额：</p>
+        
+        <!-- 金额选择 -->
+        <div class="fulfill-options">
+          <button class="fulfill-option" data-amount="5">5元</button>
+          <button class="fulfill-option" data-amount="10">10元</button>
+          <button class="fulfill-option" data-amount="20">20元</button>
+          <button class="fulfill-option" data-amount="50">50元</button>
         </div>
+    
+        <!-- 支付方式区域（由 wwpay.js 动态生成） -->
+        <!-- 动态插入的位置 -->
+      </div>
     </div>
 
     <script>
@@ -2767,51 +2767,33 @@ document.addEventListener('DOMContentLoaded', function() {
                     });
                 }
     
-    // 处理还愿
-     // 处理还愿
-    async function handleFulfillWish(wish) {
-        const modal = document.getElementById('fulfillModal');
-        const closeBtn = modal.querySelector('.close-modal');
-        const options = modal.querySelectorAll('.fulfill-option');
+       // 修改后的还愿处理函数
+        async function handleFulfillWish(wish) {
+          try {
+            // 1. 检查是否已登录（如果有登录逻辑）
+            const token = localStorage.getItem('token');
+            if (!token) {
+              const shouldLogin = confirm('请先登录后再还愿');
+              if (shouldLogin) window.location.href = '/user.html';
+              return;
+            }
         
-        modal.style.display = 'block';
+            // 2. 显示还愿模态框（确保模态框ID匹配）
+            const modal = document.getElementById('fulfillModal');
+            if (!modal) {
+              throw new Error('找不到还愿模态框');
+            }
+            modal.style.display = 'block';
         
-        // 关闭模态框
-        closeBtn.onclick = () => {
-            modal.style.display = 'none';
-        };
-        
-        // 选择还愿金额
-        options.forEach(option => {
-            option.onclick = async () => {
-                const amount = option.dataset.amount;
-                
-                try {
-                    // 发送还愿请求到后端
-                    const response = await fetch(`${API_BASE}/api/fulfill/${wish.id}`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({ amount })
-                    });
-                    
-                    if (!response.ok) {
-                        throw new Error('还愿失败');
-                    }
-                    
-                    modal.style.display = 'none';
-                    showSuccessMessage(`还愿成功！感谢您的${amount}元支持！`);
-                    
-                    // 重新加载愿望列表
-                    loadAllWishes();
-                } catch (error) {
-                    console.error('还愿失败:', error);
-                    showErrorMessage('还愿失败，请稍后重试');
-                }
-            };
-        });
-    }
+            // 3. 初始化支付选项（由 wwpay.js 自动处理）
+            // 注意：确保模态框中有以下结构：
+            // - 金额选择按钮（class="fulfill-option" data-amount="5"）
+            // - 支付方式区域（由 wwpay.js 动态生成）
+          } catch (error) {
+            console.error('还愿初始化失败:', error);
+            alert('还愿失败: ' + error.message);
+          }
+        }
 
 
     // 更新分页信息
