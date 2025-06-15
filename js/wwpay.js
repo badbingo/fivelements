@@ -646,10 +646,19 @@ class WWPay {
 
   /* ========== 数据库操作 ========== */
 
-  async recordFulfillment() {
+ async recordFulfillment(retryCount = 3) {
+  const baseDelay = 1000; // 基础延迟1秒
+  const url = `${this.config.paymentGateway.apiBase}/api/wishes/fulfill`;
+  
+  for (let attempt = 1; attempt <= retryCount; attempt++) {
     try {
-      this.log('正在记录还愿到数据库...');
-      const response = await fetch(`${this.config.paymentGateway.apiBase}/api/wishes/fulfill`, {
+      this.log(`[重试 ${attempt}/${retryCount}] 正在记录还愿到数据库...`, {
+        wishId: this.state.currentWishId,
+        amount: this.state.selectedAmount,
+        method: this.state.selectedMethod
+      });
+      
+      const response = await fetch(url, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -662,18 +671,41 @@ class WWPay {
         })
       });
       
-      const data = await response.json();
-      
-      if (!response.ok || !data.success) {
-        throw new Error(data.error || '还愿记录失败');
+      // 处理HTTP错误状态
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `HTTP错误: ${response.status}`);
       }
       
-      this.log('还愿记录成功:', data);
+      const data = await response.json();
+      
+      // 验证后端响应
+      if (!data.success) {
+        throw new Error(data.message || '还愿记录失败');
+      }
+      
+      this.log(`[成功] 还愿记录完成! fulfillmentId: ${data.fulfillmentId}`);
       return data;
+      
     } catch (error) {
-      throw new Error(`记录还愿失败: ${error.message}`);
+      const errorMsg = `记录还愿失败 (尝试 ${attempt}/${retryCount}): ${error.message}`;
+      
+      // 最后一次尝试仍然失败
+      if (attempt === retryCount) {
+        this.safeLogError(errorMsg, error);
+        this.savePendingFulfillment(); // 保存待处理记录
+        throw new Error(`所有尝试均失败: ${error.message}`);
+      }
+      
+      // 指数退避策略
+      const delay = baseDelay * Math.pow(2, attempt - 1) + 
+                   Math.floor(Math.random() * 500); // 添加随机性
+      
+      this.log(`${errorMsg} - ${delay}ms后重试`);
+      await this.delay(delay);
     }
   }
+}
 
   async forceDeleteWish() {
     try {
