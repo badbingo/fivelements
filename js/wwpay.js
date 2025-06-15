@@ -1,5 +1,13 @@
+// 在WWPay构造函数中添加
 class WWPay {
   constructor() {
+    this.isSecureEnvironment = typeof lockdown !== 'undefined' || 
+                              typeof ses !== 'undefined';
+    
+    if (this.isSecureEnvironment) {
+      console.warn('运行在安全沙箱环境中，功能可能受限');
+      this.config.debug = true; // 强制开启调试
+    }
     this.handleDocumentClick = this.handleDocumentClick.bind(this);
     this.handleFulfillOptionClick = this.handleFulfillOptionClick.bind(this);
     this.handlePaymentMethodSelect = this.handlePaymentMethodSelect.bind(this);
@@ -58,6 +66,27 @@ class WWPay {
     this.cleanupLocalStorage();
     this.log('支付系统初始化完成');
   }
+
+  // 修改日志方法
+  log(...messages) {
+    if (this.config.debug) {
+      // 安全环境下使用更兼容的控制台输出
+      if (this.isSecureEnvironment) {
+        try {
+          console.log('[WWPay]', ...messages);
+        } catch (e) {
+          // 回退到简单输出
+          const safeMsg = messages.map(m => 
+            typeof m === 'object' ? JSON.stringify(m) : m
+          ).join(' ');
+          console.log('[WWPay] ' + safeMsg);
+        }
+      } else {
+        console.log('[WWPay]', ...messages);
+      }
+    }
+  }
+}
 
   /* ========== 初始化方法 ========== */
   initEventListeners() {
@@ -443,6 +472,31 @@ class WWPay {
       await this.delay(delay);
     }
   }
+}
+
+// 添加专门的安全沙箱兼容层
+function createSecurePaymentSystem() {
+  // 创建安全执行环境
+  const paymentContainer = document.createElement('div');
+  paymentContainer.id = 'wwpay-secure-container';
+  paymentContainer.style.display = 'none';
+  document.body.appendChild(paymentContainer);
+  
+  // 在安全容器中执行支付代码
+  const script = document.createElement('script');
+  script.textContent = `
+    try {
+      window.wwPay = new WWPay();
+      console.info('支付系统在安全环境中初始化成功');
+    } catch (error) {
+      console.error('安全环境初始化失败:', error);
+      window.postMessage({ 
+        type: 'WWPAY_ERROR', 
+        error: error.message 
+      }, '*');
+    }
+  `;
+  paymentContainer.appendChild(script);
 }
 
   /* ========== 支付成功处理 ========== */
@@ -960,15 +1014,16 @@ function initPaySystem() {
       window.history.replaceState(null, '', cleanUrl);
     }
 
+    if (window.wwPay?.isSecureEnvironment) {
+    createSecurePaymentSystem();
+  } else {
     if (!window.wwPay) {
       window.wwPay = new WWPay();
       checkPendingFulfillments();
     }
-  } catch (error) {
-    console.error('支付系统初始化错误:', error);
   }
 }
-
+  
 function handleInitError(error) {
   console.error('CryptoJS加载失败:', error);
   alert('安全组件加载失败，请禁用广告拦截器后重试');
