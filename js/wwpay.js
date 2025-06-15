@@ -540,47 +540,49 @@ class WWPay {
   /* ========== 支付成功处理 ========== */
 
   async handlePaymentSuccess() {
-    try {
-      this.showGuaranteedToast('还愿成功！正在更新状态...');
-      
-      const verified = await this.verifyFulfillmentWithRetry();
-      if (!verified) {
-        throw new Error('状态验证失败');
-      }
-
-      await this.safeRemoveWishCard(this.state.currentWishId);
-      this.cleanupPaymentState();
-      
-      this.showGuaranteedToast('还愿处理完成！即将跳转...', 'success');
-      await this.delay(2000);
-      window.location.href = this.config.paymentGateway.successUrl;
-      
-    } catch (error) {
-      this.safeLogError('支付成功处理异常', error);
-      this.showGuaranteedToast('支付已完成！请手动刷新查看', 'warning');
-      window.location.href = this.config.paymentGateway.successUrl;
+  try {
+    this.showGuaranteedToast('还愿成功！正在更新状态...');
+    
+    const verified = await this.verifyFulfillmentWithRetry();
+    if (!verified) {
+      throw new Error('状态验证失败');
     }
-  }
 
+    // 添加跳转参数 - 修改点
+    const successUrl = new URL(this.config.paymentGateway.successUrl);
+    successUrl.searchParams.append('fulfillment_success', 'true');
+    
+    this.showGuaranteedToast('还愿处理完成！即将跳转...', 'success');
+    await this.delay(2000);
+    window.location.href = successUrl.toString();
+    
+  } catch (error) {
+    this.safeLogError('支付成功处理异常', error);
+    this.showGuaranteedToast('支付已完成！请手动刷新查看', 'warning');
+    window.location.href = this.config.paymentGateway.successUrl;
+  }
+}
+  
   async verifyFulfillmentWithRetry(retries = 3) {
-    for (let i = 0; i < retries; i++) {
-      try {
-        const response = await fetch(
-          `${this.config.paymentGateway.apiBase}/api/wishes/check?wishId=${this.state.currentWishId}`
-        );
-        const data = await response.json();
-        
-        if (data.fulfilled) {
-          this.log('验证还愿成功:', data);
-          return true;
-        }
-      } catch (error) {
-        this.log(`验证还愿状态失败 (${i+1}/${retries}): ${error.message}`);
+  for (let i = 0; i < retries; i++) {
+    try {
+      const response = await fetch(
+        `${this.config.paymentGateway.apiBase}/api/wishes/check?wishId=${this.state.currentWishId}`
+      );
+      const data = await response.json();
+      
+      // 修改验证逻辑 - 只要fulfilled为true即可
+      if (data.fulfilled) {
+        this.log('验证还愿成功:', data);
+        return true;
       }
-      await this.delay(this.config.paymentGateway.retryDelay);
+    } catch (error) {
+      this.log(`验证还愿状态失败 (${i+1}/${retries}): ${error.message}`);
     }
-    return false;
+    await this.delay(this.config.paymentGateway.retryDelay);
   }
+  return false;
+}
 
   /* ========== 愿望卡片处理 ========== */
 
@@ -862,12 +864,37 @@ class WWPay {
 // 安全初始化
 document.addEventListener('DOMContentLoaded', () => {
   try {
+    // 先处理还愿成功通知
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('fulfillment_success') === 'true') {
+      // 显示通知
+      const notification = document.createElement('div');
+      notification.className = 'fulfillment-notification';
+      notification.textContent = '还愿已成功，您的愿望将被移除';
+      document.body.appendChild(notification);
+      
+      // 3秒后淡出并移除通知
+      setTimeout(() => {
+        notification.style.opacity = '0';
+        setTimeout(() => {
+          document.body.removeChild(notification);
+        }, 1000);
+      }, 3000);
+      
+      // 清除URL参数避免刷新时重复显示
+      urlParams.delete('fulfillment_success');
+      const newUrl = window.location.pathname + 
+                   (urlParams.toString() ? `?${urlParams.toString()}` : '');
+      window.history.replaceState({}, document.title, newUrl);
+    }
+
+    // 初始化支付系统
     if (!window.wwPay) {
       if (typeof CryptoJS === 'undefined') {
         const script = document.createElement('script');
         script.src = 'https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js';
         script.onload = () => {
-          window.wwPay = new WWPay(); // 移除了 checkPendingPayments()
+          window.wwPay = new WWPay();
         };
         script.onerror = () => {
           console.error('加载CryptoJS失败');
@@ -875,7 +902,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         document.head.appendChild(script);
       } else {
-        window.wwPay = new WWPay(); // 移除了 checkPendingPayments()
+        window.wwPay = new WWPay();
       }
     }
   } catch (error) {
@@ -883,6 +910,26 @@ document.addEventListener('DOMContentLoaded', () => {
     alert('支付系统初始化失败，请刷新页面重试');
   }
 });
+
+// 添加CSS样式
+const style = document.createElement('style');
+style.textContent = `
+  .fulfillment-notification {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #4CAF50;
+    color: white;
+    padding: 15px 30px;
+    border-radius: 4px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    z-index: 1000;
+    transition: opacity 0.5s ease;
+    opacity: 1;
+  }
+`;
+document.head.appendChild(style);
 
 // 全局支付方法
 window.startWishPayment = async function(wishId, amount, method = 'alipay') {
