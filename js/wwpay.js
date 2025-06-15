@@ -61,7 +61,6 @@ class WWPay {
     // 方法绑定
     this.handleDocumentClick = this.handleDocumentClick.bind(this);
     this.handleFulfillOptionClick = this.handleFulfillOptionClick.bind(this);
-    this.handlePaymentMethodSelect = this.handlePaymentMethodSelect.bind(this);
     this.processPayment = this.processPayment.bind(this);
     this.handlePaymentSuccess = this.handlePaymentSuccess.bind(this);
     this.generateSignature = this.generateSignature.bind(this);
@@ -559,25 +558,31 @@ class WWPay {
       const oldSection = document.getElementById('payment-methods-section');
       if (oldSection) oldSection.remove();
       
+      const activeColor = this.config.paymentMethods.find(m => m.id === this.state.selectedMethod)?.activeColor || '#1268d9';
+      const color = this.config.paymentMethods.find(m => m.id === this.state.selectedMethod)?.color || '#1677ff';
+      
       const methodsHtml = `
         <div class="payment-methods" id="payment-methods-section">
           <h4 style="text-align: center; margin-bottom: 20px; color: #333;">
             <i class="fas fa-wallet" style="margin-right: 8px;"></i>选择支付方式
           </h4>
           <div class="wwpay-methods-container">
-            ${this.config.paymentMethods.map(method => `
-              <button class="wwpay-method-btn ${method.id === this.state.selectedMethod ? 'active' : ''}" 
-                      data-type="${method.id}" 
-                      style="background: ${method.id === this.state.selectedMethod ? method.activeColor : method.color}; 
-                             color: white;">
-                <i class="${method.icon}"></i>
-                <span class="wwpay-method-name">${method.name}</span>
-                <span class="wwpay-method-hint">${method.hint}</span>
-              </button>
-            `).join('')}
+            ${this.config.paymentMethods.map(method => {
+              const isActive = method.id === this.state.selectedMethod;
+              return `
+                <button class="wwpay-method-btn ${isActive ? 'active' : ''}" 
+                        data-type="${method.id}" 
+                        style="background: ${isActive ? method.activeColor : method.color}; 
+                               color: white;">
+                  <i class="${method.icon}"></i>
+                  <span class="wwpay-method-name">${method.name}</span>
+                  <span class="wwpay-method-hint">${method.hint}</span>
+                </button>
+              `;
+            }).join('')}
           </div>
-          <div style="text-align: center;">
-            <button id="confirm-payment-btn">
+          <div style="text-align: center; margin-top: 20px;">
+            <button id="confirm-payment-btn" style="background: ${activeColor};">
               <i class="fas fa-check-circle" style="margin-right: 8px;"></i> 
               确认支付 ${this.state.selectedAmount}元
             </button>
@@ -639,8 +644,9 @@ class WWPay {
     
     // 支付方式选择
     document.addEventListener('click', (e) => {
-      if (e.target.closest('.wwpay-method-btn')) {
-        const method = e.target.closest('.wwpay-method-btn').dataset.type;
+      const btn = e.target.closest('.wwpay-method-btn');
+      if (btn) {
+        const method = btn.dataset.type;
         this.state.selectedMethod = method;
         this.showPaymentMethods();
       }
