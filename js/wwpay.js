@@ -349,97 +349,101 @@ class WWPay {
   }
 
   async recordFulfillment(retryCount = 3) {
-    const baseDelay = 1000;
-    const url = `${this.config.paymentGateway.apiBase}/api/wishes/fulfill`;
-    
-    // 验证愿望ID
-    if (!this.state.currentWishId || typeof this.state.currentWishId !== 'number' || this.state.currentWishId <= 0) {
-      const errorMsg = `无效的愿望ID: ${this.state.currentWishId}`;
-      this.safeLogError(errorMsg);
-      this.showToast('愿望ID无效，无法记录还愿', 'error');
-      this.savePendingFulfillment();
-      throw new Error(errorMsg);
-    }
-    
-    // 获取token
-    const token = localStorage.getItem('token') || '';
-    if (!token) {
-      const errorMsg = '用户未登录，无法记录还愿';
-      this.safeLogError(errorMsg);
-      this.showToast('请先登录', 'error');
-      throw new Error(errorMsg);
-    }
-    
-    // 请求数据
-    const requestData = {
-      wishId: this.state.currentWishId,
-      amount: this.state.selectedAmount,
-      paymentMethod: this.state.selectedMethod
-    };
-    
-    this.log('开始记录还愿:', requestData);
-    
-    for (let attempt = 1; attempt <= retryCount; attempt++) {
-      try {
-        this.log(`[还愿记录] 尝试 ${attempt}/${retryCount}`);
+  const baseDelay = 1000;
+  const url = `${this.config.paymentGateway.apiBase}/api/wishes/fulfill`;
+  
+  // 验证愿望ID
+  if (!this.state.currentWishId || typeof this.state.currentWishId !== 'number' || this.state.currentWishId <= 0) {
+    const errorMsg = `无效的愿望ID: ${this.state.currentWishId}`;
+    this.safeLogError(errorMsg);
+    this.showToast('愿望ID无效，无法记录还愿', 'error');
+    this.savePendingFulfillment();
+    throw new Error(errorMsg);
+  }
+  
+  // 获取token
+  const token = localStorage.getItem('token') || '';
+  if (!token) {
+    const errorMsg = '用户未登录，无法记录还愿';
+    this.safeLogError(errorMsg);
+    this.showToast('请先登录', 'error');
+    throw new Error(errorMsg);
+  }
+  
+  // 请求数据
+  const requestData = {
+    wishId: this.state.currentWishId,
+    amount: this.state.selectedAmount,
+    paymentMethod: this.state.selectedMethod
+  };
+  
+  this.log('开始记录还愿:', requestData);
+  
+  for (let attempt = 1; attempt <= retryCount; attempt++) {
+    try {
+      this.log(`[还愿记录] 尝试 ${attempt}/${retryCount}`);
+      
+      // 准备请求参数
+      const headers = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      };
+      const body = JSON.stringify(requestData);
+      
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: headers,
+        body: body
+      });
+      
+      // 处理HTTP响应
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`HTTP错误 ${response.status}: ${errorText}`);
+      }
+      
+      const data = await response.json();
+      
+      // 检查后端响应
+      if (!data.success) {
+        throw new Error(`后端错误: ${data.error || data.message || '未知错误'}`);
+      }
+      
+      // 记录成功
+      this.log(`[还愿记录] 成功! fulfillmentId: ${data.fulfillmentId}`);
+      return data;
+      
+    } catch (error) {
+      const errorMsg = `记录还愿失败 (尝试 ${attempt}/${retryCount}): ${error.message}`;
+      
+      // 最后一次尝试失败
+      if (attempt === retryCount) {
+        this.safeLogError(errorMsg, error);
         
-        const response = await fetch(url, {
-          method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify(requestData)
+        // 保存到待处理列表
+        const pending = JSON.parse(localStorage.getItem('pendingFulfillments') || '[]');
+        pending.push({
+          wishId: this.state.currentWishId,
+          amount: this.state.selectedAmount,
+          method: this.state.selectedMethod,
+          timestamp: Date.now(),
+          error: error.message,
+          attempts: 0
         });
         
-        // 处理HTTP响应
-        if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(`HTTP错误 ${response.status}: ${errorText}`);
-        }
+        localStorage.setItem('pendingFulfillments', JSON.stringify(pending));
+        this.log(`已保存到待处理列表，当前待处理记录: ${pending.length}`);
         
-        const data = await response.json();
-        
-        // 检查后端响应
-        if (!data.success) {
-          throw new Error(`后端错误: ${data.error || data.message || '未知错误'}`);
-        }
-        
-        // 记录成功
-        this.log(`[还愿记录] 成功! fulfillmentId: ${data.fulfillmentId}`);
-        return data;
-        
-      } catch (error) {
-        const errorMsg = `记录还愿失败 (尝试 ${attempt}/${retryCount}): ${error.message}`;
-        
-        // 最后一次尝试失败
-        if (attempt === retryCount) {
-          this.safeLogError(errorMsg, error);
-          
-          // 保存到待处理列表
-          const pending = JSON.parse(localStorage.getItem('pendingFulfillments') || '[]');
-          pending.push({
-            wishId: this.state.currentWishId,
-            amount: this.state.selectedAmount,
-            method: this.state.selectedMethod,
-            timestamp: Date.now(),
-            error: error.message,
-            attempts: 0
-          });
-          
-          localStorage.setItem('pendingFulfillments', JSON.stringify(pending));
-          this.log(`已保存到待处理列表，当前待处理记录: ${pending.length}`);
-          
-          throw new Error(`所有尝试均失败: ${error.message}`);
-        }
-        
-        // 指数退避
-        const delay = baseDelay * Math.pow(2, attempt - 1) + Math.random() * 500;
-        this.log(`${errorMsg} - ${Math.round(delay)}ms后重试`);
-        await this.delay(delay);
+        throw new Error(`所有尝试均失败: ${error.message}`);
       }
+      
+      // 指数退避
+      const delay = baseDelay * Math.pow(2, attempt - 1) + Math.random() * 500;
+      this.log(`${errorMsg} - ${Math.round(delay)}ms后重试`);
+      await this.delay(delay);
     }
   }
+}
 
   /* ========== 支付成功处理 ========== */
   async handlePaymentSuccess() {
