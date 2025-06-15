@@ -460,7 +460,9 @@ class WWPay {
           attempts: 0
         });
         
+        // 修复这里：去掉多余的右括号
         localStorage.setItem('pendingFulfillments', JSON.stringify(pending));
+        
         this.log(`已保存到待处理列表，当前待处理记录: ${pending.length}`);
         
         throw new Error(`所有尝试均失败: ${error.message}`);
