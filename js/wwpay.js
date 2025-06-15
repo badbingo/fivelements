@@ -1,12 +1,13 @@
 /**
- * 命缘池支付系统 - 完整稳定版 v10.0
- * 功能完整包含：
- * 1. 支付流程处理
+ * 命缘池支付系统 - 完整稳定版 v10.2
+ * 包含所有功能：
+ * 1. 完整的支付流程
  * 2. 还愿记录与愿望删除
  * 3. 支付状态验证
  * 4. 完善的错误处理
  * 5. 用户反馈系统
  * 6. 本地存储备份
+ * 7. 修复签名生成问题
  */
 
 class WWPay {
@@ -18,6 +19,7 @@ class WWPay {
     this.processPayment = this.processPayment.bind(this);
     this.handlePaymentSuccess = this.handlePaymentSuccess.bind(this);
     this.handlePaymentError = this.handlePaymentError.bind(this);
+    this.generateSignature = this.generateSignature.bind(this);
     this.cleanupPaymentState = this.cleanupPaymentState.bind(this);
 
     // 系统配置
@@ -412,7 +414,7 @@ class WWPay {
         notify_url: location.href,
         return_url: this.config.paymentGateway.successUrl,
         name: `还愿-${this.state.currentWishId}`,
-        money: this.state.selectedAmount,
+        money: this.state.selectedAmount.toFixed(2),
         param: encodeURIComponent(JSON.stringify({
           wishId: this.state.currentWishId,
           amount: this.state.selectedAmount
@@ -420,12 +422,48 @@ class WWPay {
         sign_type: this.config.paymentGateway.signType
       };
       
+      // 生成签名
       paymentData.sign = this.generateSignature(paymentData);
+      
+      if (!paymentData.sign) {
+        throw new Error('签名生成失败');
+      }
+
       await this.submitPaymentForm(paymentData);
       
       return { success: true, orderId };
     } catch (error) {
       throw new Error(`创建订单失败: ${error.message}`);
+    }
+  }
+
+  generateSignature(params) {
+    try {
+      if (!params || typeof params !== 'object') {
+        throw new Error('无效的签名参数');
+      }
+
+      // 过滤空值和排除签名字段
+      const filtered = {};
+      Object.keys(params)
+        .filter(k => params[k] !== '' && !['sign', 'sign_type'].includes(k))
+        .sort()
+        .forEach(k => filtered[k] = params[k]);
+
+      // 构建签名字符串
+      const signStr = Object.entries(filtered)
+        .map(([k, v]) => `${k}=${v}`)
+        .join('&') + this.config.paymentGateway.key;
+
+      // 使用CryptoJS生成MD5签名
+      if (typeof CryptoJS === 'undefined') {
+        throw new Error('CryptoJS未加载');
+      }
+
+      return CryptoJS.MD5(signStr).toString();
+    } catch (error) {
+      console.error('生成签名失败:', error);
+      throw new Error(`签名生成失败: ${error.message}`);
     }
   }
 
