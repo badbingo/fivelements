@@ -875,8 +875,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const script = document.createElement('script');
         script.src = 'https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js';
         script.onload = () => {
-          window.wwPay = new WWPay();
-          window.wwPay.checkPendingPayments();
+          window.wwPay = new WWPay(); // 移除了 checkPendingPayments()
         };
         script.onerror = () => {
           console.error('加载CryptoJS失败');
@@ -884,8 +883,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         document.head.appendChild(script);
       } else {
-        window.wwPay = new WWPay();
-        window.wwPay.checkPendingPayments();
+        window.wwPay = new WWPay(); // 移除了 checkPendingPayments()
       }
     }
   } catch (error) {
