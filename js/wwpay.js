@@ -15,7 +15,6 @@ class WWPay {
     this.handlePaymentMethodSelect = this.handlePaymentMethodSelect.bind(this);
     this.processPayment = this.processPayment.bind(this);
     this.handlePaymentSuccess = this.handlePaymentSuccess.bind(this);
-    this.checkPendingPayments = this.checkPendingPayments.bind(this);
 
     // 支付系统配置
     this.config = {
