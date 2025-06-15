@@ -1,10 +1,11 @@
 /**
- * 命缘池支付系统 - 终极稳定版 v8.5
+ * 命缘池支付系统 - 终极稳定版 v8.6
  * 完整功能：
  * 1. 100%可靠的支付流程
  * 2. 完善的事件处理绑定
  * 3. 强化的错误处理
  * 4. 优化的UI反馈
+ * 5. 增强的状态同步机制
  */
 
 class WWPay {
@@ -16,6 +17,7 @@ class WWPay {
     this.processPayment = this.processPayment.bind(this);
     this.handlePaymentSuccess = this.handlePaymentSuccess.bind(this);
     this.checkPendingPayments = this.checkPendingPayments.bind(this);
+    this.forceFulfillmentUpdate = this.forceFulfillmentUpdate.bind(this);
 
     // 支付系统配置
     this.config = {
@@ -28,7 +30,8 @@ class WWPay {
         successUrl: 'https://mybazi.net/system/wishingwell.html',
         checkInterval: 2000,
         maxChecks: 15,
-        retryDelay: 1000
+        retryDelay: 1000,
+        forceUpdateEndpoint: '/api/wishes/force-fulfill'
       },
       paymentMethods: [
         {
@@ -48,7 +51,8 @@ class WWPay {
           hint: '国内支付'
         }
       ],
-      debug: true
+      debug: true,
+      enableForceUpdate: true
     };
 
     // 保存原始console方法
@@ -66,7 +70,8 @@ class WWPay {
       processing: false,
       statusCheckInterval: null,
       paymentCompleted: false,
-      lastPayment: null
+      lastPayment: null,
+      forceUpdateAttempted: false
     };
 
     // 初始化
@@ -252,6 +257,16 @@ class WWPay {
         overflow: hidden !important;
         pointer-events: none !important;
       }
+      
+      .wwpay-force-update-btn {
+        background: #ffc107 !important;
+        color: #212529 !important;
+        margin-top: 15px !important;
+      }
+      
+      .wwpay-force-update-btn:hover {
+        background: #e0a800 !important;
+      }
     `;
     document.head.appendChild(style);
   }
@@ -297,6 +312,12 @@ class WWPay {
       const confirmBtn = e.target.closest('#confirm-payment-btn');
       if (confirmBtn) {
         this.processPayment();
+        return;
+      }
+
+      const forceUpdateBtn = e.target.closest('.wwpay-force-update-btn');
+      if (forceUpdateBtn) {
+        this.forceFulfillmentUpdate();
       }
     } catch (error) {
       this.safeLogError('事件处理出错', error);
@@ -393,7 +414,8 @@ class WWPay {
           wishId: this.state.currentWishId,
           amount: this.state.selectedAmount,
           method: this.state.selectedMethod,
-          timestamp: Date.now()
+          timestamp: Date.now(),
+          orderId
         }));
       });
 
@@ -407,7 +429,8 @@ class WWPay {
         money: this.state.selectedAmount,
         param: encodeURIComponent(JSON.stringify({
           wishId: this.state.currentWishId,
-          amount: this.state.selectedAmount
+          amount: this.state.selectedAmount,
+          orderId
         })),
         sign_type: this.config.paymentGateway.signType
       };
@@ -503,12 +526,15 @@ class WWPay {
 
   async checkPaymentStatus() {
     try {
+      const timestamp = Date.now();
       const response = await fetch(
-        `${this.config.paymentGateway.apiBase}/api/payments/status?wishId=${this.state.currentWishId}`,
+        `${this.config.paymentGateway.apiBase}/api/payments/status?wishId=${this.state.currentWishId}&t=${timestamp}`,
         {
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
-          }
+            'Authorization': `Bearer ${localStorage.getItem('token') || ''}`,
+            'Cache-Control': 'no-cache'
+          },
+          cache: 'no-store'
         }
       );
       
@@ -536,45 +562,156 @@ class WWPay {
 
   async handlePaymentSuccess() {
     try {
-      this.showGuaranteedToast('还愿成功！正在更新状态...');
+      this.showGuaranteedToast('支付成功！正在确认状态...');
       
+      // 第一步：强制清理可能存在的旧记录
+      this.cleanupPaymentState();
+      
+      // 第二步：验证支付状态（新增强制刷新参数）
       const verified = await this.verifyFulfillmentWithRetry();
+      
       if (!verified) {
-        throw new Error('状态验证失败');
+        if (!this.config.enableForceUpdate) {
+          throw new Error('支付状态验证失败');
+        }
+        
+        // 如果验证失败但用户确实支付了，可能是同步延迟
+        const shouldForceUpdate = confirm(
+          '支付状态验证失败，但如果您确认已支付成功，\n' +
+          '可以尝试强制更新状态。是否继续？'
+        );
+        
+        if (shouldForceUpdate) {
+          this.state.forceUpdateAttempted = true;
+          await this.forceFulfillmentUpdate();
+          await this.safeRemoveWishCard(this.state.currentWishId);
+          this.showGuaranteedToast('状态强制更新成功！', 'success');
+          await this.delay(2000);
+          window.location.href = this.config.paymentGateway.successUrl;
+          return;
+        } else {
+          throw new Error('支付状态验证失败');
+        }
       }
-
+      
+      // 正常流程
       await this.safeRemoveWishCard(this.state.currentWishId);
       this.cleanupPaymentState();
       
-      this.showGuaranteedToast('还愿处理完成！即将跳转...', 'success');
+      this.showGuaranteedToast('处理完成！即将跳转...', 'success');
       await this.delay(2000);
       window.location.href = this.config.paymentGateway.successUrl;
       
     } catch (error) {
       this.safeLogError('支付成功处理异常', error);
-      this.showGuaranteedToast('支付已完成！请手动刷新查看', 'warning');
-      window.location.href = this.config.paymentGateway.successUrl;
+      
+      // 更友好的错误提示
+      const errorMsg = error.message.includes('不存在') 
+        ? '支付记录未找到，请联系客服并提供支付凭证'
+        : `处理支付结果时出错: ${error.message}`;
+      
+      this.showGuaranteedToast(errorMsg, 'error');
+      
+      // 保留支付记录以便用户手动处理
+      localStorage.setItem('payment-error', JSON.stringify({
+        wishId: this.state.currentWishId,
+        amount: this.state.selectedAmount,
+        method: this.state.selectedMethod,
+        timestamp: Date.now(),
+        error: error.message
+      }));
     }
   }
 
-  async verifyFulfillmentWithRetry(retries = 3) {
+  async verifyFulfillmentWithRetry(retries = 5) {
     for (let i = 0; i < retries; i++) {
       try {
+        const timestamp = Date.now();
         const response = await fetch(
-          `${this.config.paymentGateway.apiBase}/api/wishes/check?wishId=${this.state.currentWishId}`
+          `${this.config.paymentGateway.apiBase}/api/wishes/check?wishId=${this.state.currentWishId}&t=${timestamp}`,
+          {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token') || ''}`,
+              'Cache-Control': 'no-cache',
+              'Pragma': 'no-cache'
+            },
+            cache: 'no-store'
+          }
         );
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
         const data = await response.json();
         
-        if (data.fulfilled) {
-          this.log('验证还愿成功:', data);
+        // 更严格的验证逻辑
+        if (data.fulfilled && data.verified) {
+          this.log('支付已验证成功:', data);
           return true;
         }
+        
+        // 明确返回未支付状态
+        if (data.status === 'unpaid' || data.status === 'failed') {
+          this.log('支付未完成状态:', data);
+          return false;
+        }
+        
+        // 数据不一致情况
+        if (!data.exists) {
+          this.log('支付记录不存在:', data);
+          throw new Error('支付记录不存在于系统中');
+        }
+        
       } catch (error) {
-        this.log(`验证还愿状态失败 (${i+1}/${retries}): ${error.message}`);
+        this.log(`验证支付状态失败 (${i+1}/${retries}): ${error.message}`);
+        
+        if (i === retries - 1) {
+          throw new Error(`最终验证失败: ${error.message}`);
+        }
       }
-      await this.delay(this.config.paymentGateway.retryDelay);
+      
+      await this.delay(1000 * (i + 1)); // 递增延迟
     }
+    
     return false;
+  }
+
+  async forceFulfillmentUpdate() {
+    try {
+      this.showFullscreenLoading('正在强制更新支付状态...');
+      
+      const response = await fetch(
+        `${this.config.paymentGateway.apiBase}${this.config.paymentGateway.forceUpdateEndpoint}`,
+        {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+          },
+          body: JSON.stringify({
+            wishId: this.state.currentWishId,
+            amount: this.state.selectedAmount,
+            paymentMethod: this.state.selectedMethod,
+            force: true
+          })
+        }
+      );
+      
+      const data = await response.json();
+      
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || '强制更新状态失败');
+      }
+      
+      this.log('强制更新成功:', data);
+      return data;
+    } catch (error) {
+      this.safeLogError('强制更新支付状态失败', error);
+      throw new Error(`强制更新失败: ${error.message}`);
+    } finally {
+      this.hideFullscreenLoading();
+    }
   }
 
   /* ========== 愿望卡片处理 ========== */
@@ -637,9 +774,29 @@ class WWPay {
   /* ========== 状态管理 ========== */
 
   cleanupPaymentState() {
-    localStorage.removeItem('last-payment');
-    localStorage.removeItem('pending-fulfillment');
+    // 清理所有可能的支付相关存储
+    const keysToRemove = [
+      'last-payment',
+      'pending-fulfillment',
+      'payment-error',
+      `payment-status-${this.state.currentWishId}`
+    ];
+    
+    keysToRemove.forEach(key => {
+      try {
+        localStorage.removeItem(key);
+      } catch (e) {
+        this.safeLogError(`清理${key}失败`, e);
+      }
+    });
+    
+    // 重置状态
     this.resetPaymentState();
+    
+    // 确保清除所有检查间隔
+    this.clearPaymentStatusCheck();
+    
+    this.log('支付状态已完全清理');
   }
 
   resetPaymentState() {
@@ -650,7 +807,8 @@ class WWPay {
       processing: false,
       statusCheckInterval: null,
       paymentCompleted: false,
-      lastPayment: null
+      lastPayment: null,
+      forceUpdateAttempted: false
     };
   }
 
@@ -673,6 +831,122 @@ class WWPay {
       confirmBtn.innerHTML = this.state.processing 
         ? '<i class="fas fa-spinner fa-spin" style="margin-right: 8px;"></i> 处理中...' 
         : `<i class="fas fa-check-circle" style="margin-right: 8px;"></i> 确认支付 ${this.state.selectedAmount}元`;
+    }
+  }
+
+  /* ========== 支付恢复机制 ========== */
+
+  checkPendingPayments() {
+    try {
+      // 检查两种可能的未完成支付记录
+      const pendingFulfillment = localStorage.getItem('pending-fulfillment');
+      const lastPayment = localStorage.getItem('last-payment');
+      const paymentError = localStorage.getItem('payment-error');
+      
+      if (pendingFulfillment || lastPayment || paymentError) {
+        // 优先使用pending-fulfillment记录，因为它更完整
+        const paymentData = pendingFulfillment 
+          ? JSON.parse(pendingFulfillment) 
+          : lastPayment 
+            ? JSON.parse(lastPayment) 
+            : JSON.parse(paymentError);
+        
+        this.log('检测到未完成的支付:', paymentData);
+        
+        // 更新状态
+        this.state.currentWishId = paymentData.wishId;
+        this.state.selectedAmount = paymentData.amount;
+        this.state.selectedMethod = paymentData.method;
+        
+        // 显示确认对话框
+        const shouldProceed = confirm(
+          `检测到未完成的支付(金额: ${paymentData.amount}元)。\n` +
+          '是否要继续处理此支付？\n\n' +
+          '点击"确定"继续验证支付状态，点击"取消"清除记录。'
+        );
+        
+        if (shouldProceed) {
+          this.processPendingPayment(paymentData);
+        } else {
+          this.cleanupPaymentState();
+          this.showGuaranteedToast('已清除未完成支付记录', 'warning');
+        }
+      }
+    } catch (error) {
+      this.safeLogError('检查未完成支付失败', error);
+      this.showGuaranteedToast('支付状态检查出错，请手动刷新', 'error');
+      this.cleanupPaymentState();
+    }
+  }
+
+  async processPendingPayment(paymentData) {
+    try {
+      this.showFullscreenLoading('正在验证支付状态...');
+      
+      // 验证支付状态
+      const verified = await this.verifyFulfillmentWithRetry();
+      
+      if (verified) {
+        // 支付成功，处理后续逻辑
+        await this.safeRemoveWishCard(paymentData.wishId);
+        this.cleanupPaymentState();
+        this.showGuaranteedToast('未完成支付已成功处理', 'success');
+      } else {
+        if (!this.config.enableForceUpdate) {
+          throw new Error('支付状态验证失败');
+        }
+        
+        // 验证失败，提供重试选项
+        const shouldRetry = confirm(
+          '支付状态验证失败。\n' +
+          '如果您已完成支付，可以尝试强制更新状态。\n\n' +
+          '点击"确定"强制更新状态，点击"取消"清除记录。'
+        );
+        
+        if (shouldRetry) {
+          this.state.forceUpdateAttempted = true;
+          await this.forceFulfillmentUpdate();
+          await this.safeRemoveWishCard(paymentData.wishId);
+          this.cleanupPaymentState();
+          this.showGuaranteedToast('状态强制更新成功！', 'success');
+        } else {
+          this.cleanupPaymentState();
+          this.showGuaranteedToast('已取消未完成支付', 'warning');
+        }
+      }
+    } catch (error) {
+      this.safeLogError('处理未完成支付失败', error);
+      this.showGuaranteedToast('处理未完成支付时出错', 'error');
+    } finally {
+      this.hideFullscreenLoading();
+    }
+  }
+
+  async recordFulfillment() {
+    try {
+      const response = await fetch(`${this.config.paymentGateway.apiBase}/api/wishes/fulfill`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+        },
+        body: JSON.stringify({
+          wishId: this.state.currentWishId,
+          amount: this.state.selectedAmount,
+          paymentMethod: this.state.selectedMethod
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || '还愿记录失败');
+      }
+      
+      return data;
+    } catch (error) {
+      console.error('记录还愿失败:', error);
+      throw new Error(`记录还愿失败: ${error.message}`);
     }
   }
 
@@ -779,6 +1053,12 @@ class WWPay {
               <i class="fas fa-check-circle" style="margin-right: 8px;"></i> 
               确认支付 ${this.state.selectedAmount}元
             </button>
+            ${this.state.forceUpdateAttempted ? `
+              <button class="wwpay-force-update-btn" id="force-update-btn">
+                <i class="fas fa-sync-alt" style="margin-right: 8px;"></i>
+                强制更新支付状态
+              </button>
+            ` : ''}
           </div>
         </div>
       `;
@@ -823,113 +1103,6 @@ class WWPay {
   handleError(context, error) {
     this.safeLogError(context, error);
   }
-
-  /* ========== 恢复机制 ========== */
-
-  checkPendingPayments() {
-  try {
-    // 检查两种可能的未完成支付记录
-    const pendingFulfillment = localStorage.getItem('pending-fulfillment');
-    const lastPayment = localStorage.getItem('last-payment');
-    
-    if (pendingFulfillment || lastPayment) {
-      this.showGuaranteedToast('检测到未完成的支付，正在验证状态...');
-      
-      // 优先使用pending-fulfillment记录，因为它更完整
-      const paymentData = pendingFulfillment 
-        ? JSON.parse(pendingFulfillment) 
-        : JSON.parse(lastPayment);
-      
-      this.log('检测到未完成的支付:', paymentData);
-      
-      // 更新状态
-      this.state.currentWishId = paymentData.wishId;
-      this.state.selectedAmount = paymentData.amount;
-      this.state.selectedMethod = paymentData.method;
-      
-      // 显示确认对话框
-      const shouldProceed = confirm(
-        `检测到未完成的支付(金额: ${paymentData.amount}元)。\n` +
-        '是否要继续处理此支付？\n\n' +
-        '点击"确定"继续验证支付状态，点击"取消"清除记录。'
-      );
-      
-      if (shouldProceed) {
-        this.processPendingPayment(paymentData);
-      } else {
-        this.cleanupPaymentState();
-        this.showGuaranteedToast('已清除未完成支付记录', 'warning');
-      }
-    }
-  } catch (error) {
-    this.safeLogError('检查未完成支付失败', error);
-    this.showGuaranteedToast('支付状态检查出错，请手动刷新', 'error');
-    this.cleanupPaymentState();
-  }
-}
-
-async processPendingPayment(paymentData) {
-  try {
-    this.showFullscreenLoading('正在验证支付状态...');
-    
-    // 验证支付状态
-    const verified = await this.verifyFulfillmentWithRetry();
-    
-    if (verified) {
-      // 支付成功，处理后续逻辑
-      await this.safeRemoveWishCard(paymentData.wishId);
-      this.cleanupPaymentState();
-      this.showGuaranteedToast('未完成支付已成功处理', 'success');
-    } else {
-      // 验证失败，提供重试选项
-      const shouldRetry = confirm(
-        '支付状态验证失败。\n' +
-        '如果您已完成支付，请点击"重试"再次验证。\n' +
-        '如果支付未完成，请点击"取消"并重新支付。'
-      );
-      
-      if (shouldRetry) {
-        await this.processPendingPayment(paymentData);
-      } else {
-        this.cleanupPaymentState();
-        this.showGuaranteedToast('已取消未完成支付', 'warning');
-      }
-    }
-  } catch (error) {
-    this.safeLogError('处理未完成支付失败', error);
-    this.showGuaranteedToast('处理未完成支付时出错', 'error');
-  } finally {
-    this.hideFullscreenLoading();
-  }
-}
-
-  async recordFulfillment() {
-    try {
-      const response = await fetch(`${this.config.paymentGateway.apiBase}/api/wishes/fulfill`, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
-        },
-        body: JSON.stringify({
-          wishId: this.state.currentWishId,
-          amount: this.state.selectedAmount,
-          paymentMethod: this.state.selectedMethod
-        })
-      });
-      
-      const data = await response.json();
-      
-      if (!response.ok || !data.success) {
-        throw new Error(data.error || '还愿记录失败');
-      }
-      
-      return data;
-    } catch (error) {
-      console.error('记录还愿失败:', error);
-      throw new Error(`记录还愿失败: ${error.message}`);
-    }
-  }
 }
 
 // 安全初始化
@@ -973,7 +1146,8 @@ window.startWishPayment = async function(wishId, amount, method = 'alipay') {
     currentWishId: wishId,
     processing: false,
     statusCheckInterval: null,
-    paymentCompleted: false
+    paymentCompleted: false,
+    forceUpdateAttempted: false
   };
   
   try {
