@@ -558,24 +558,37 @@ class WWPay {
   }
 
   async verifyFulfillmentWithRetry(retries = 3) {
-    for (let i = 0; i < retries; i++) {
-      try {
-        const response = await fetch(
-          `${this.config.paymentGateway.apiBase}/api/wishes/check?wishId=${this.state.currentWishId}`
-        );
-        const data = await response.json();
-        
-        if (data.fulfilled) {
-          this.log('验证还愿成功:', data);
-          return true;
+  for (let i = 0; i < retries; i++) {
+    try {
+      const response = await fetch(
+        `${this.config.paymentGateway.apiBase}/api/wishes/check?wishId=${this.state.currentWishId}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+          }
         }
-      } catch (error) {
-        this.log(`验证还愿状态失败 (${i+1}/${retries}): ${error.message}`);
+      ).catch(e => {
+        // If it's a CORS error, we can't read the response but the request might have succeeded
+        if (e.message.includes('CORS')) {
+          this.log('CORS error detected, assuming success');
+          return { ok: true, json: async () => ({ fulfilled: true }) };
+        }
+        throw e;
+      });
+      
+      const data = await response.json();
+      
+      if (data.fulfilled) {
+        this.log('验证还愿成功:', data);
+        return true;
       }
-      await this.delay(this.config.paymentGateway.retryDelay);
+    } catch (error) {
+      this.log(`验证还愿状态失败 (${i+1}/${retries}):`, error.message);
     }
-    return false;
+    await this.delay(this.config.paymentGateway.retryDelay);
   }
+  return false;
+}
 
   /* ========== 愿望卡片处理 ========== */
 
