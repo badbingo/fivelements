@@ -1,6 +1,6 @@
 class WWPay {
   constructor() {
-    // 先初始化配置和状态
+    // 初始化配置和状态
     this.config = {
       paymentGateway: {
         apiBase: 'https://bazi-backend.owenjass.workers.dev',
@@ -44,11 +44,11 @@ class WWPay {
       lastPayment: null
     };
 
-    // 然后检查安全环境
+    // 安全检查
     try {
       this.isSecureEnvironment = (typeof lockdown !== 'undefined') || 
-                                 (typeof ses !== 'undefined') ||
-                                 (window.trustedTypes && window.trustedTypes.createPolicy);
+                               (typeof ses !== 'undefined') ||
+                               (window.trustedTypes && window.trustedTypes.createPolicy);
     } catch (e) {
       this.isSecureEnvironment = true;
     }
@@ -58,7 +58,7 @@ class WWPay {
       this.config.debug = true;
     }
 
-    // 现在绑定方法
+    // 方法绑定
     this.handleDocumentClick = this.handleDocumentClick.bind(this);
     this.handleFulfillOptionClick = this.handleFulfillOptionClick.bind(this);
     this.handlePaymentMethodSelect = this.handlePaymentMethodSelect.bind(this);
@@ -75,118 +75,7 @@ class WWPay {
     this.log('支付系统初始化完成');
   }
 
-  // 添加空方法占位符
-  handleDocumentClick(event) {
-    // 将在后续实现
-  }
-
-  handleFulfillOptionClick(event) {
-    // 将在后续实现
-  }
-
-  handlePaymentMethodSelect(event) {
-    // 将在后续实现
-  }
-
-  // 修复括号问题的 recordFulfillment 方法
-  async recordFulfillment(retryCount = 3) {
-    const baseDelay = 1000;
-    const url = `${this.config.paymentGateway.apiBase}/api/wishes/fulfill`;
-    
-    // 验证愿望ID
-    if (!this.state.currentWishId || typeof this.state.currentWishId !== 'number' || this.state.currentWishId <= 0) {
-      const errorMsg = `无效的愿望ID: ${this.state.currentWishId}`;
-      this.safeLogError(errorMsg);
-      this.showToast('愿望ID无效，无法记录还愿', 'error');
-      this.savePendingFulfillment();
-      throw new Error(errorMsg);
-    }
-    
-    // 获取token
-    const token = localStorage.getItem('token') || '';
-    if (!token) {
-      const errorMsg = '用户未登录，无法记录还愿';
-      this.safeLogError(errorMsg);
-      this.showToast('请先登录', 'error');
-      throw new Error(errorMsg);
-    }
-    
-    // 请求数据
-    const requestData = {
-      wishId: this.state.currentWishId,
-      amount: this.state.selectedAmount,
-      paymentMethod: this.state.selectedMethod
-    };
-    
-    this.log('开始记录还愿:', requestData);
-    
-    for (let attempt = 1; attempt <= retryCount; attempt++) {
-      try {
-        this.log(`[还愿记录] 尝试 ${attempt}/${retryCount}`);
-        
-        // 准备请求参数
-        const headers = {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        };
-        const body = JSON.stringify(requestData);
-        
-        const response = await fetch(url, {
-          method: 'POST',
-          headers: headers,
-          body: body
-        });
-        
-        // 处理HTTP响应
-        if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(`HTTP错误 ${response.status}: ${errorText}`);
-        }
-        
-        const data = await response.json();
-        
-        // 检查后端响应
-        if (!data.success) {
-          throw new Error(`后端错误: ${data.error || data.message || '未知错误'}`);
-        }
-        
-        // 记录成功
-        this.log(`[还愿记录] 成功! fulfillmentId: ${data.fulfillmentId}`);
-        return data;
-        
-      } catch (error) {
-        const errorMsg = `记录还愿失败 (尝试 ${attempt}/${retryCount}): ${error.message}`;
-        
-        // 最后一次尝试失败
-        if (attempt === retryCount) {
-          this.safeLogError(errorMsg, error);
-          
-          // 保存到待处理列表
-          const pending = JSON.parse(localStorage.getItem('pendingFulfillments') || '[]');
-          pending.push({
-            wishId: this.state.currentWishId,
-            amount: this.state.selectedAmount,
-            method: this.state.selectedMethod,
-            timestamp: Date.now(),
-            error: error.message,
-            attempts: 0
-          });
-          
-          localStorage.setItem('pendingFulfillments', JSON.stringify(pending));
-          this.log(`已保存到待处理列表，当前待处理记录: ${pending.length}`);
-          
-          throw new Error(`所有尝试均失败: ${error.message}`);
-        }
-        
-        // 指数退避
-        const delay = baseDelay * Math.pow(2, attempt - 1) + Math.random() * 500;
-        this.log(`${errorMsg} - ${Math.round(delay)}ms后重试`);
-        await this.delay(delay);
-      }
-    }
-  }
-
-  /* ========== 支付处理 ========== */
+  /* ========== 支付核心方法 ========== */
   async processPayment() {
     if (!this.validatePaymentState()) return;
     
@@ -195,15 +84,12 @@ class WWPay {
     this.showFullscreenLoading('正在准备支付...');
     
     try {
-      // 1. 生成订单信息
       const orderInfo = this.generateOrderInfo();
       this.log('生成的订单信息:', orderInfo);
       
-      // 2. 创建支付请求
       const paymentResponse = await this.createPaymentRequest(orderInfo);
       this.log('支付网关响应:', paymentResponse);
       
-      // 3. 处理支付响应
       if (paymentResponse.code === '10000') {
         this.handlePaymentResponse(paymentResponse);
       } else {
@@ -247,23 +133,21 @@ class WWPay {
       timestamp: timestamp.toString()
     };
     
-    // 按照参数名ASCII码从小到大排序
     const sortedKeys = Object.keys(params).sort();
-    const signStr = sortedKeys.map(key => `${key}=${params[key]}`).join('&') + this.config.paymentGateway.key;
+    const signStr = sortedKeys.map(key => `${key}=${params[key]}`).join('&') + 
+                    this.config.paymentGateway.key;
     
-    // 使用CryptoJS进行MD5签名
     if (typeof CryptoJS !== 'undefined') {
       return CryptoJS.MD5(signStr).toString().toUpperCase();
     }
     
-    // 备用简单签名方法（仅用于开发环境）
     if (this.config.debug) {
       console.warn('CryptoJS未加载，使用简单签名方法');
       let hash = 0;
       for (let i = 0; i < signStr.length; i++) {
         const char = signStr.charCodeAt(i);
         hash = ((hash << 5) - hash) + char;
-        hash = hash & hash; // Convert to 32bit integer
+        hash = hash & hash;
       }
       return Math.abs(hash).toString(16).toUpperCase();
     }
@@ -1010,7 +894,6 @@ class WWPay {
 // ========== 全局初始化 ==========
 document.addEventListener('DOMContentLoaded', () => {
   try {
-    // 延迟初始化以避免与扩展冲突
     setTimeout(() => {
       initPaySystem();
     }, 500);
@@ -1021,7 +904,6 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function initPaySystem() {
-  // 检查是否已经初始化
   if (window.wwPayInitialized) return;
   window.wwPayInitialized = true;
   
