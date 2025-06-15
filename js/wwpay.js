@@ -1,13 +1,20 @@
-// 在WWPay构造函数中添加
 class WWPay {
   constructor() {
-    this.isSecureEnvironment = typeof lockdown !== 'undefined' || 
-                              typeof ses !== 'undefined';
+    // 改进安全环境检测
+    try {
+      this.isSecureEnvironment = (typeof lockdown !== 'undefined') || 
+                                 (typeof ses !== 'undefined') ||
+                                 (window.trustedTypes && window.trustedTypes.createPolicy);
+    } catch (e) {
+      this.isSecureEnvironment = true; // 如果检测失败，保守假设在安全环境
+    }
     
     if (this.isSecureEnvironment) {
       console.warn('运行在安全沙箱环境中，功能可能受限');
-      this.config.debug = true; // 强制开启调试
+      this.config = { debug: true }; // 先创建基本配置
     }
+    
+    // 绑定方法
     this.handleDocumentClick = this.handleDocumentClick.bind(this);
     this.handleFulfillOptionClick = this.handleFulfillOptionClick.bind(this);
     this.handlePaymentMethodSelect = this.handlePaymentMethodSelect.bind(this);
@@ -17,6 +24,7 @@ class WWPay {
     this.cleanupPaymentState = this.cleanupPaymentState.bind(this);
     this.recordFulfillment = this.recordFulfillment.bind(this);
 
+    // 完整配置
     this.config = {
       paymentGateway: {
         apiBase: 'https://bazi-backend.owenjass.workers.dev',
@@ -47,7 +55,7 @@ class WWPay {
           hint: '国内支付'
         }
       ],
-      debug: true
+      debug: this.isSecureEnvironment ? true : false // 安全环境强制开启调试
     };
 
     this.state = {
@@ -67,26 +75,24 @@ class WWPay {
     this.log('支付系统初始化完成');
   }
 
-  // 修改日志方法
+  // 安全日志方法
   log(...messages) {
     if (this.config.debug) {
-      // 安全环境下使用更兼容的控制台输出
-      if (this.isSecureEnvironment) {
-        try {
-          console.log('[WWPay]', ...messages);
-        } catch (e) {
-          // 回退到简单输出
+      try {
+        // 安全环境下使用更简单的日志
+        if (this.isSecureEnvironment) {
           const safeMsg = messages.map(m => 
-            typeof m === 'object' ? JSON.stringify(m) : m
+            typeof m === 'object' ? '[Object]' : String(m)
           ).join(' ');
           console.log('[WWPay] ' + safeMsg);
+        } else {
+          console.log('[WWPay]', ...messages);
         }
-      } else {
-        console.log('[WWPay]', ...messages);
+      } catch (e) {
+        console.log('[WWPay] 日志记录失败');
       }
     }
   }
-}
 
   /* ========== 初始化方法 ========== */
   initEventListeners() {
@@ -377,129 +383,103 @@ class WWPay {
     }
   }
 
+  // 修复括号问题的 recordFulfillment 方法
   async recordFulfillment(retryCount = 3) {
-  const baseDelay = 1000;
-  const url = `${this.config.paymentGateway.apiBase}/api/wishes/fulfill`;
-  
-  // 验证愿望ID
-  if (!this.state.currentWishId || typeof this.state.currentWishId !== 'number' || this.state.currentWishId <= 0) {
-    const errorMsg = `无效的愿望ID: ${this.state.currentWishId}`;
-    this.safeLogError(errorMsg);
-    this.showToast('愿望ID无效，无法记录还愿', 'error');
-    this.savePendingFulfillment();
-    throw new Error(errorMsg);
-  }
-  
-  // 获取token
-  const token = localStorage.getItem('token') || '';
-  if (!token) {
-    const errorMsg = '用户未登录，无法记录还愿';
-    this.safeLogError(errorMsg);
-    this.showToast('请先登录', 'error');
-    throw new Error(errorMsg);
-  }
-  
-  // 请求数据
-  const requestData = {
-    wishId: this.state.currentWishId,
-    amount: this.state.selectedAmount,
-    paymentMethod: this.state.selectedMethod
-  };
-  
-  this.log('开始记录还愿:', requestData);
-  
-  for (let attempt = 1; attempt <= retryCount; attempt++) {
-    try {
-      this.log(`[还愿记录] 尝试 ${attempt}/${retryCount}`);
-      
-      // 准备请求参数
-      const headers = {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      };
-      const body = JSON.stringify(requestData);
-      
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: headers,
-        body: body
-      });
-      
-      // 处理HTTP响应
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`HTTP错误 ${response.status}: ${errorText}`);
-      }
-      
-      const data = await response.json();
-      
-      // 检查后端响应
-      if (!data.success) {
-        throw new Error(`后端错误: ${data.error || data.message || '未知错误'}`);
-      }
-      
-      // 记录成功
-      this.log(`[还愿记录] 成功! fulfillmentId: ${data.fulfillmentId}`);
-      return data;
-      
-    } catch (error) {
-      const errorMsg = `记录还愿失败 (尝试 ${attempt}/${retryCount}): ${error.message}`;
-      
-      // 最后一次尝试失败
-      if (attempt === retryCount) {
-        this.safeLogError(errorMsg, error);
+    const baseDelay = 1000;
+    const url = `${this.config.paymentGateway.apiBase}/api/wishes/fulfill`;
+    
+    // 验证愿望ID
+    if (!this.state.currentWishId || typeof this.state.currentWishId !== 'number' || this.state.currentWishId <= 0) {
+      const errorMsg = `无效的愿望ID: ${this.state.currentWishId}`;
+      this.safeLogError(errorMsg);
+      this.showToast('愿望ID无效，无法记录还愿', 'error');
+      this.savePendingFulfillment();
+      throw new Error(errorMsg);
+    }
+    
+    // 获取token
+    const token = localStorage.getItem('token') || '';
+    if (!token) {
+      const errorMsg = '用户未登录，无法记录还愿';
+      this.safeLogError(errorMsg);
+      this.showToast('请先登录', 'error');
+      throw new Error(errorMsg);
+    }
+    
+    // 请求数据
+    const requestData = {
+      wishId: this.state.currentWishId,
+      amount: this.state.selectedAmount,
+      paymentMethod: this.state.selectedMethod
+    };
+    
+    this.log('开始记录还愿:', requestData);
+    
+    for (let attempt = 1; attempt <= retryCount; attempt++) {
+      try {
+        this.log(`[还愿记录] 尝试 ${attempt}/${retryCount}`);
         
-        // 保存到待处理列表
-        const pending = JSON.parse(localStorage.getItem('pendingFulfillments') || '[]');
-        pending.push({
-          wishId: this.state.currentWishId,
-          amount: this.state.selectedAmount,
-          method: this.state.selectedMethod,
-          timestamp: Date.now(),
-          error: error.message,
-          attempts: 0
+        // 准备请求参数
+        const headers = {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        };
+        const body = JSON.stringify(requestData);
+        
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: headers,
+          body: body
         });
         
-        // 修复这里：去掉多余的右括号
-        localStorage.setItem('pendingFulfillments', JSON.stringify(pending));
+        // 处理HTTP响应
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`HTTP错误 ${response.status}: ${errorText}`);
+        }
         
-        this.log(`已保存到待处理列表，当前待处理记录: ${pending.length}`);
+        const data = await response.json();
         
-        throw new Error(`所有尝试均失败: ${error.message}`);
+        // 检查后端响应
+        if (!data.success) {
+          throw new Error(`后端错误: ${data.error || data.message || '未知错误'}`);
+        }
+        
+        // 记录成功
+        this.log(`[还愿记录] 成功! fulfillmentId: ${data.fulfillmentId}`);
+        return data;
+        
+      } catch (error) {
+        const errorMsg = `记录还愿失败 (尝试 ${attempt}/${retryCount}): ${error.message}`;
+        
+        // 最后一次尝试失败
+        if (attempt === retryCount) {
+          this.safeLogError(errorMsg, error);
+          
+          // 保存到待处理列表 - 修复括号问题
+          const pending = JSON.parse(localStorage.getItem('pendingFulfillments') || '[]');
+          pending.push({
+            wishId: this.state.currentWishId,
+            amount: this.state.selectedAmount,
+            method: this.state.selectedMethod,
+            timestamp: Date.now(),
+            error: error.message,
+            attempts: 0
+          });
+          
+          localStorage.setItem('pendingFulfillments', JSON.stringify(pending));
+          this.log(`已保存到待处理列表，当前待处理记录: ${pending.length}`);
+          
+          throw new Error(`所有尝试均失败: ${error.message}`);
+        }
+        
+        // 指数退避
+        const delay = baseDelay * Math.pow(2, attempt - 1) + Math.random() * 500;
+        this.log(`${errorMsg} - ${Math.round(delay)}ms后重试`);
+        await this.delay(delay);
       }
-      
-      // 指数退避
-      const delay = baseDelay * Math.pow(2, attempt - 1) + Math.random() * 500;
-      this.log(`${errorMsg} - ${Math.round(delay)}ms后重试`);
-      await this.delay(delay);
     }
   }
-}
-
-// 添加专门的安全沙箱兼容层
-function createSecurePaymentSystem() {
-  // 创建安全执行环境
-  const paymentContainer = document.createElement('div');
-  paymentContainer.id = 'wwpay-secure-container';
-  paymentContainer.style.display = 'none';
-  document.body.appendChild(paymentContainer);
-  
-  // 在安全容器中执行支付代码
-  const script = document.createElement('script');
-  script.textContent = `
-    try {
-      window.wwPay = new WWPay();
-      console.info('支付系统在安全环境中初始化成功');
-    } catch (error) {
-      console.error('安全环境初始化失败:', error);
-      window.postMessage({ 
-        type: 'WWPAY_ERROR', 
-        error: error.message 
-      }, '*');
-    }
-  `;
-  paymentContainer.appendChild(script);
-}
 
   /* ========== 支付成功处理 ========== */
   async handlePaymentSuccess() {
@@ -586,104 +566,6 @@ function createSecurePaymentSystem() {
   }
 
   /* ========== 数据库操作 ========== */
-
- async recordFulfillment(retryCount = 3) {
-  const baseDelay = 1000; // 基础延迟1秒
-  const url = `${this.config.paymentGateway.apiBase}/api/wishes/fulfill`;
-  
-  // 1. 验证愿望ID是否有效
-  if (!this.state.currentWishId || typeof this.state.currentWishId !== 'number' || this.state.currentWishId <= 0) {
-    const errorMsg = `无效的愿望ID: ${this.state.currentWishId}`;
-    this.safeLogError(errorMsg);
-    this.showToast('愿望ID无效，无法记录还愿', 'error');
-    this.savePendingFulfillment(); // 保存为待处理记录
-    throw new Error(errorMsg);
-  }
-  
-  // 2. 验证愿望在本地是否存在
-  const wishCard = document.querySelector(`[data-wish-id="${this.state.currentWishId}"]`);
-  if (!wishCard) {
-    const errorMsg = `找不到愿望卡片: ${this.state.currentWishId}`;
-    this.safeLogError(errorMsg);
-    this.showToast('愿望不存在或已被删除', 'error');
-    this.savePendingFulfillment(); // 保存为待处理记录
-    throw new Error(errorMsg);
-  }
-  
-  // 3. 创建请求数据
-  const requestData = {
-    wishId: this.state.currentWishId,
-    amount: this.state.selectedAmount,
-    paymentMethod: this.state.selectedMethod
-  };
-  
-  // 4. 重试循环
-  for (let attempt = 1; attempt <= retryCount; attempt++) {
-    try {
-      // 详细日志
-      this.log(`[还愿记录] 尝试 ${attempt}/${retryCount} | 愿望ID: ${this.state.currentWishId} | 金额: ${this.state.selectedAmount} | 方式: ${this.state.selectedMethod}`);
-      
-      // 发送请求
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
-        },
-        body: JSON.stringify(requestData)
-      });
-      
-      // 处理HTTP响应
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`HTTP错误 ${response.status}: ${errorText}`);
-      }
-      
-      const data = await response.json();
-      
-      // 检查后端响应
-      if (!data.success) {
-        throw new Error(`后端错误: ${data.error || data.message || '未知错误'}`);
-      }
-      
-      // 记录成功
-      this.log(`[还愿记录] 成功! fulfillmentId: ${data.fulfillmentId}`);
-      return data;
-      
-    } catch (error) {
-      const errorMsg = `记录还愿失败 (尝试 ${attempt}/${retryCount}): ${error.message}`;
-      
-      // 最后一次尝试失败
-      if (attempt === retryCount) {
-        this.safeLogError(errorMsg, error);
-        
-        // 保存到待处理列表
-        const pending = JSON.parse(localStorage.getItem('pendingFulfillments') || '[]');
-        pending.push({
-          wishId: this.state.currentWishId,
-          amount: this.state.selectedAmount,
-          method: this.state.selectedMethod,
-          timestamp: Date.now(),
-          error: error.message,
-          attempts: 0 // 重试次数计数器
-        });
-        
-        localStorage.setItem('pendingFulfillments', JSON.stringify(pending));
-        this.log(`已保存到待处理列表，当前待处理记录: ${pending.length}`);
-        
-        // 启动后台重试
-        this.startBackgroundRetry();
-        
-        throw new Error(`所有尝试均失败: ${error.message}`);
-      }
-      
-      // 指数退避 + 随机抖动
-      const delay = baseDelay * Math.pow(2, attempt - 1) + Math.random() * 500;
-      this.log(`${errorMsg} - ${Math.round(delay)}ms后重试`);
-      await this.delay(delay);
-    }
-  }
-}
 
   async forceDeleteWish() {
     try {
@@ -949,17 +831,16 @@ function createSecurePaymentSystem() {
     return `${now.getFullYear()}${(now.getMonth()+1).toString().padStart(2,'0')}${now.getDate().toString().padStart(2,'0')}${now.getHours().toString().padStart(2,'0')}${now.getMinutes().toString().padStart(2,'0')}${now.getSeconds().toString().padStart(2,'0')}${Math.floor(Math.random()*9000)+1000}`;
   }
 
-  log(...messages) {
-    if (this.config.debug) {
-      console.log('[WWPay]', ...messages);
-    }
-  }
-
   safeLogError(context, error) {
     try {
-      console.error(`[WWPay] ${context}:`, error);
+      // 安全环境下使用更简单的错误日志
+      if (this.isSecureEnvironment) {
+        console.error(`[WWPay] ${context}: ${error.message || error}`);
+      } else {
+        console.error(`[WWPay] ${context}:`, error);
+      }
     } catch (e) {
-      console.error('[WWPay] 记录错误失败:', e);
+      console.error('[WWPay] 记录错误失败');
     }
   }
 
@@ -982,11 +863,13 @@ function createSecurePaymentSystem() {
 document.addEventListener('DOMContentLoaded', () => {
   try {
     // 检查是否在安全沙箱环境中
-    const isSecureContext = window.trustedTypes && window.trustedTypes.createPolicy;
+    const isSecureContext = (window.trustedTypes && window.trustedTypes.createPolicy) || 
+                           (typeof ses !== 'undefined') || 
+                           (typeof lockdown !== 'undefined');
     
     // 延迟初始化以避免与扩展冲突
     setTimeout(() => {
-      if (typeof CryptoJS === 'undefined') {
+      if (typeof CryptoJS === 'undefined' && !isSecureContext) {
         loadCryptoJS().then(initPaySystem).catch(handleInitError);
       } else {
         initPaySystem();
@@ -1016,16 +899,15 @@ function initPaySystem() {
       window.history.replaceState(null, '', cleanUrl);
     }
 
-    if (window.wwPay?.isSecureEnvironment) {
-    createSecurePaymentSystem();
-  } else {
     if (!window.wwPay) {
       window.wwPay = new WWPay();
       checkPendingFulfillments();
     }
+  } catch (e) {
+    console.error('支付系统初始化失败:', e);
   }
 }
-  
+
 function handleInitError(error) {
   console.error('CryptoJS加载失败:', error);
   alert('安全组件加载失败，请禁用广告拦截器后重试');
