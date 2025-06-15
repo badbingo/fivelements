@@ -650,58 +650,95 @@ class WWPay {
   const baseDelay = 1000; // 基础延迟1秒
   const url = `${this.config.paymentGateway.apiBase}/api/wishes/fulfill`;
   
+  // 1. 验证愿望ID是否有效
+  if (!this.state.currentWishId || typeof this.state.currentWishId !== 'number' || this.state.currentWishId <= 0) {
+    const errorMsg = `无效的愿望ID: ${this.state.currentWishId}`;
+    this.safeLogError(errorMsg);
+    this.showToast('愿望ID无效，无法记录还愿', 'error');
+    this.savePendingFulfillment(); // 保存为待处理记录
+    throw new Error(errorMsg);
+  }
+  
+  // 2. 验证愿望在本地是否存在
+  const wishCard = document.querySelector(`[data-wish-id="${this.state.currentWishId}"]`);
+  if (!wishCard) {
+    const errorMsg = `找不到愿望卡片: ${this.state.currentWishId}`;
+    this.safeLogError(errorMsg);
+    this.showToast('愿望不存在或已被删除', 'error');
+    this.savePendingFulfillment(); // 保存为待处理记录
+    throw new Error(errorMsg);
+  }
+  
+  // 3. 创建请求数据
+  const requestData = {
+    wishId: this.state.currentWishId,
+    amount: this.state.selectedAmount,
+    paymentMethod: this.state.selectedMethod
+  };
+  
+  // 4. 重试循环
   for (let attempt = 1; attempt <= retryCount; attempt++) {
     try {
-      this.log(`[重试 ${attempt}/${retryCount}] 正在记录还愿到数据库...`, {
-        wishId: this.state.currentWishId,
-        amount: this.state.selectedAmount,
-        method: this.state.selectedMethod
-      });
+      // 详细日志
+      this.log(`[还愿记录] 尝试 ${attempt}/${retryCount} | 愿望ID: ${this.state.currentWishId} | 金额: ${this.state.selectedAmount} | 方式: ${this.state.selectedMethod}`);
       
+      // 发送请求
       const response = await fetch(url, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
         },
-        body: JSON.stringify({
-          wishId: this.state.currentWishId,
-          amount: this.state.selectedAmount,
-          paymentMethod: this.state.selectedMethod
-        })
+        body: JSON.stringify(requestData)
       });
       
-      // 处理HTTP错误状态
+      // 处理HTTP响应
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || `HTTP错误: ${response.status}`);
+        const errorText = await response.text();
+        throw new Error(`HTTP错误 ${response.status}: ${errorText}`);
       }
       
       const data = await response.json();
       
-      // 验证后端响应
+      // 检查后端响应
       if (!data.success) {
-        throw new Error(data.message || '还愿记录失败');
+        throw new Error(`后端错误: ${data.error || data.message || '未知错误'}`);
       }
       
-      this.log(`[成功] 还愿记录完成! fulfillmentId: ${data.fulfillmentId}`);
+      // 记录成功
+      this.log(`[还愿记录] 成功! fulfillmentId: ${data.fulfillmentId}`);
       return data;
       
     } catch (error) {
       const errorMsg = `记录还愿失败 (尝试 ${attempt}/${retryCount}): ${error.message}`;
       
-      // 最后一次尝试仍然失败
+      // 最后一次尝试失败
       if (attempt === retryCount) {
         this.safeLogError(errorMsg, error);
-        this.savePendingFulfillment(); // 保存待处理记录
+        
+        // 保存到待处理列表
+        const pending = JSON.parse(localStorage.getItem('pendingFulfillments') || '[]');
+        pending.push({
+          wishId: this.state.currentWishId,
+          amount: this.state.selectedAmount,
+          method: this.state.selectedMethod,
+          timestamp: Date.now(),
+          error: error.message,
+          attempts: 0 // 重试次数计数器
+        });
+        
+        localStorage.setItem('pendingFulfillments', JSON.stringify(pending));
+        this.log(`已保存到待处理列表，当前待处理记录: ${pending.length}`);
+        
+        // 启动后台重试
+        this.startBackgroundRetry();
+        
         throw new Error(`所有尝试均失败: ${error.message}`);
       }
       
-      // 指数退避策略
-      const delay = baseDelay * Math.pow(2, attempt - 1) + 
-                   Math.floor(Math.random() * 500); // 添加随机性
-      
-      this.log(`${errorMsg} - ${delay}ms后重试`);
+      // 指数退避 + 随机抖动
+      const delay = baseDelay * Math.pow(2, attempt - 1) + Math.random() * 500;
+      this.log(`${errorMsg} - ${Math.round(delay)}ms后重试`);
       await this.delay(delay);
     }
   }
