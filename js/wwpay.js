@@ -1,21 +1,24 @@
 /**
- * 命缘池支付系统 - 完整版 v9.0
- * 功能：
- * 1. 完整的支付流程处理
+ * 命缘池支付系统 - 完整稳定版 v10.0
+ * 功能完整包含：
+ * 1. 支付流程处理
  * 2. 还愿记录与愿望删除
  * 3. 支付状态验证
  * 4. 完善的错误处理
  * 5. 用户反馈系统
+ * 6. 本地存储备份
  */
 
 class WWPay {
   constructor() {
-    // 绑定方法上下文
+    // 绑定所有方法上下文
     this.handleDocumentClick = this.handleDocumentClick.bind(this);
     this.handleFulfillOptionClick = this.handleFulfillOptionClick.bind(this);
     this.handlePaymentMethodSelect = this.handlePaymentMethodSelect.bind(this);
     this.processPayment = this.processPayment.bind(this);
     this.handlePaymentSuccess = this.handlePaymentSuccess.bind(this);
+    this.handlePaymentError = this.handlePaymentError.bind(this);
+    this.cleanupPaymentState = this.cleanupPaymentState.bind(this);
 
     // 系统配置
     this.config = {
@@ -84,7 +87,6 @@ class WWPay {
     const style = document.createElement('style');
     style.id = styleId;
     style.textContent = `
-      /* 支付方法选择样式 */
       .wwpay-methods-container {
         display: flex;
         justify-content: center;
@@ -109,13 +111,75 @@ class WWPay {
         overflow: hidden;
       }
       
-      /* 支付按钮激活状态 */
+      .wwpay-method-btn::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background: rgba(255,255,255,0.8);
+        transform: scaleX(0);
+        transition: transform 0.3s;
+      }
+      
       .wwpay-method-btn.active {
         transform: translateY(-3px);
         box-shadow: 0 5px 15px rgba(0,0,0,0.2);
       }
       
-      /* 加载动画 */
+      .wwpay-method-btn.active::after {
+        transform: scaleX(1);
+      }
+      
+      .wwpay-method-btn i {
+        font-size: 24px;
+        margin-bottom: 8px;
+      }
+      
+      .wwpay-method-name {
+        font-size: 16px;
+        font-weight: bold;
+        margin-bottom: 4px;
+      }
+      
+      .wwpay-method-hint {
+        font-size: 12px;
+        opacity: 0.8;
+      }
+      
+      .wwpay-method-btn.active .wwpay-method-hint {
+        opacity: 1;
+      }
+      
+      #confirm-payment-btn {
+        display: block;
+        width: 100%;
+        max-width: 300px;
+        margin: 25px auto 0;
+        padding: 12px;
+        background: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        cursor: pointer;
+        transition: all 0.3s;
+      }
+      
+      #confirm-payment-btn:hover:not(:disabled) {
+        background: #45a049;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      }
+      
+      #confirm-payment-btn:disabled {
+        background: #cccccc;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+      }
+      
       .wwpay-loading {
         position: fixed;
         top: 0;
@@ -132,7 +196,21 @@ class WWPay {
         flex-direction: column;
       }
       
-      /* 通知样式 */
+      .wwpay-loading .loader {
+        border: 5px solid rgba(255,255,255,0.2);
+        border-top: 5px solid #ffffff;
+        border-radius: 50%;
+        width: 60px;
+        height: 60px;
+        animation: wwpay-spin 1s linear infinite;
+        margin-bottom: 25px;
+      }
+      
+      @keyframes wwpay-spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      
       .wwpay-guaranteed-toast {
         position: fixed;
         bottom: 30px;
@@ -148,7 +226,30 @@ class WWPay {
         animation: wwpay-toast-fadein 0.3s;
       }
       
-      /* 还愿成功通知 */
+      .wwpay-guaranteed-toast.error {
+        background: #dc3545;
+      }
+      
+      .wwpay-guaranteed-toast.warning {
+        background: #ffc107;
+        color: #212529;
+      }
+      
+      @keyframes wwpay-toast-fadein {
+        from { opacity: 0; transform: translate(-50%, 20px); }
+        to { opacity: 1; transform: translate(-50%, 0); }
+      }
+      
+      .wish-card-removing {
+        transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        opacity: 0 !important;
+        max-height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: hidden !important;
+        pointer-events: none !important;
+      }
+      
       .fulfillment-notification {
         position: fixed;
         top: 20px;
@@ -171,21 +272,102 @@ class WWPay {
         transform: translateX(-50%) translateY(-20px);
       }
       
-      /* 动画定义 */
-      @keyframes wwpay-spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-      }
-      
-      @keyframes wwpay-toast-fadein {
-        from { opacity: 0; transform: translate(-50%, 20px); }
-        to { opacity: 1; transform: translate(-50%, 0); }
+      .fulfillment-notification svg {
+        width: 20px;
+        height: 20px;
+        margin-right: 10px;
       }
     `;
     document.head.appendChild(style);
   }
 
-  /* ========== 核心支付流程 ========== */
+  setupErrorHandling() {
+    window.addEventListener('error', (event) => {
+      this.safeLogError('全局错误', event.error);
+    });
+
+    window.addEventListener('unhandledrejection', (event) => {
+      this.safeLogError('未处理的Promise拒绝', event.reason);
+    });
+  }
+
+  cleanupLocalStorage() {
+    localStorage.removeItem('pending-fulfillment');
+    localStorage.removeItem('last-payment');
+  }
+
+  /* ========== 事件处理方法 ========== */
+
+  handleDocumentClick(e) {
+    try {
+      const fulfillOption = e.target.closest('.fulfill-option');
+      if (fulfillOption) {
+        this.handleFulfillOptionClick(fulfillOption);
+        return;
+      }
+
+      const methodBtn = e.target.closest('.wwpay-method-btn');
+      if (methodBtn) {
+        this.handlePaymentMethodSelect(methodBtn);
+        return;
+      }
+
+      const confirmBtn = e.target.closest('#confirm-payment-btn');
+      if (confirmBtn) {
+        this.processPayment();
+      }
+    } catch (error) {
+      this.safeLogError('事件处理出错', error);
+    }
+  }
+
+  handleFulfillOptionClick(optionElement) {
+    try {
+      if (!optionElement?.dataset?.amount) {
+        throw new Error('无效的选项元素');
+      }
+
+      const amount = parseFloat(optionElement.dataset.amount);
+      if (isNaN(amount)) {
+        throw new Error('金额必须是数字');
+      }
+
+      const modal = document.getElementById('fulfillModal');
+      if (!modal) throw new Error('找不到还愿模态框');
+      
+      const wishId = modal.dataset.wishId;
+      if (!wishId) throw new Error('未关联愿望ID');
+
+      this.state.selectedAmount = amount;
+      this.state.currentWishId = wishId;
+
+      this.showPaymentMethods();
+    } catch (error) {
+      this.showToast(`操作失败: ${error.message}`, 'error');
+    }
+  }
+
+  handlePaymentMethodSelect(buttonElement) {
+    try {
+      document.querySelectorAll('.wwpay-method-btn').forEach(btn => {
+        const methodId = btn.dataset.type;
+        const method = this.config.paymentMethods.find(m => m.id === methodId);
+        btn.style.background = method.color;
+        btn.classList.remove('active');
+      });
+      
+      const selectedMethod = buttonElement.dataset.type;
+      const selectedMethodConfig = this.config.paymentMethods.find(m => m.id === selectedMethod);
+      buttonElement.style.background = selectedMethodConfig.activeColor;
+      buttonElement.classList.add('active');
+      
+      this.state.selectedMethod = selectedMethod;
+    } catch (error) {
+      this.safeLogError('选择支付方式失败', error);
+    }
+  }
+
+  /* ========== 核心支付方法 ========== */
 
   async processPayment() {
     if (!this.validatePaymentState()) return;
@@ -195,7 +377,6 @@ class WWPay {
       this.updateConfirmButtonState();
       this.showFullscreenLoading('正在准备支付...');
       
-      // 保存支付状态
       this.state.lastPayment = {
         wishId: this.state.currentWishId,
         amount: this.state.selectedAmount,
@@ -248,6 +429,102 @@ class WWPay {
     }
   }
 
+  async submitPaymentForm(paymentData) {
+    return new Promise((resolve) => {
+      this.showFullscreenLoading('正在连接支付网关...');
+      
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = this.config.paymentGateway.apiUrl;
+      form.style.display = 'none';
+      
+      Object.entries(paymentData).forEach(([key, value]) => {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = key;
+        input.value = value;
+        form.appendChild(input);
+      });
+      
+      document.body.appendChild(form);
+      form.submit();
+      
+      setTimeout(resolve, 100);
+    });
+  }
+
+  /* ========== 支付状态检查 ========== */
+
+  startPaymentStatusCheck() {
+    let checks = 0;
+    const maxChecks = this.config.paymentGateway.maxChecks;
+    const checkInterval = this.config.paymentGateway.checkInterval;
+    
+    this.state.statusCheckInterval = setInterval(async () => {
+      if (this.state.paymentCompleted) {
+        this.clearPaymentStatusCheck();
+        return;
+      }
+      
+      checks++;
+      
+      if (checks >= maxChecks) {
+        this.clearPaymentStatusCheck();
+        this.showGuaranteedToast('支付超时，请检查支付状态', 'warning');
+        this.hideFullscreenLoading();
+        return;
+      }
+      
+      try {
+        const statusData = await this.checkPaymentStatus();
+        
+        if (statusData.status === 'success') {
+          this.clearPaymentStatusCheck();
+          this.state.paymentCompleted = true;
+          await this.handlePaymentSuccess();
+          this.hideFullscreenLoading();
+        } else if (statusData.status === 'failed') {
+          throw new Error(statusData.message || '支付失败');
+        }
+      } catch (error) {
+        this.clearPaymentStatusCheck();
+        this.safeLogError('支付状态检查失败', error);
+        this.showGuaranteedToast(error.message, 'error');
+        this.hideFullscreenLoading();
+      }
+    }, checkInterval);
+  }
+
+  async checkPaymentStatus() {
+    try {
+      const response = await fetch(
+        `${this.config.paymentGateway.apiBase}/api/payments/status?wishId=${this.state.currentWishId}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+          }
+        }
+      );
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || '支付状态检查失败');
+      }
+      
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  clearPaymentStatusCheck() {
+    if (this.state.statusCheckInterval) {
+      clearInterval(this.state.statusCheckInterval);
+      this.state.statusCheckInterval = null;
+    }
+  }
+
   /* ========== 支付成功处理 ========== */
 
   async handlePaymentSuccess() {
@@ -266,7 +543,7 @@ class WWPay {
         throw new Error('愿望删除验证失败');
       }
 
-      // 3. 准备跳转并显示成功消息
+      // 3. 准备跳转
       this.prepareSuccessRedirect();
       
     } catch (error) {
@@ -276,11 +553,11 @@ class WWPay {
 
   async ensureFulfillmentRecorded() {
     try {
-      // 先尝试从本地获取未完成的记录
+      // 先检查是否有未完成的记录
       const pending = localStorage.getItem('pending-fulfillment');
       if (pending) {
-        const { wishId, amount, method } = JSON.parse(pending);
-        if (wishId === this.state.currentWishId) {
+        const pendingData = JSON.parse(pending);
+        if (pendingData.wishId === this.state.currentWishId) {
           const result = await this.recordFulfillment();
           localStorage.removeItem('pending-fulfillment');
           return result;
@@ -337,6 +614,7 @@ class WWPay {
 
   async recordFulfillment() {
     try {
+      this.log('正在记录还愿到数据库...');
       const response = await fetch(`${this.config.paymentGateway.apiBase}/api/wishes/fulfill`, {
         method: 'POST',
         headers: { 
@@ -356,6 +634,7 @@ class WWPay {
         throw new Error(data.error || '还愿记录失败');
       }
       
+      this.log('还愿记录成功:', data);
       return data;
     } catch (error) {
       throw new Error(`记录还愿失败: ${error.message}`);
@@ -364,6 +643,7 @@ class WWPay {
 
   async forceDeleteWish() {
     try {
+      this.log('尝试强制删除愿望...');
       const response = await fetch(`${this.config.paymentGateway.apiBase}/api/wishes/force-fulfill`, {
         method: 'POST',
         headers: { 
@@ -383,26 +663,110 @@ class WWPay {
         throw new Error(data.message || '强制删除失败');
       }
       
+      this.log('强制删除成功');
       return true;
     } catch (error) {
       throw new Error(`强制删除愿望失败: ${error.message}`);
     }
   }
 
-  /* ========== 辅助方法 ========== */
+  /* ========== 愿望卡片处理 ========== */
 
-  generateSignature(params) {
-    const filtered = {};
-    Object.keys(params)
-      .filter(k => params[k] !== '' && !['sign', 'sign_type'].includes(k))
-      .sort()
-      .forEach(k => filtered[k] = params[k]);
+  async safeRemoveWishCard(wishId, retries = 3) {
+    for (let i = 0; i < retries; i++) {
+      try {
+        const card = this.findWishCard(wishId);
+        if (!card) {
+          this.log('未找到愿望卡片，可能已移除');
+          return true;
+        }
+
+        await this.applyRemovalAnimation(card);
+        return true;
+      } catch (error) {
+        this.log(`移除卡片失败 (${i+1}/${retries}): ${error.message}`);
+        await this.delay(500);
+      }
+    }
+    throw new Error('多次尝试移除卡片失败');
+  }
+
+  findWishCard(wishId) {
+    const selectors = [
+      `.wish-card[data-wish-id="${wishId}"]`,
+      `[data-wish-id="${wishId}"]`,
+      `#wish-${wishId}`
+    ];
     
-    const signStr = Object.entries(filtered)
-      .map(([k, v]) => `${k}=${v}`)
-      .join('&') + this.config.paymentGateway.key;
-    
-    return CryptoJS.MD5(signStr).toString();
+    for (const selector of selectors) {
+      const card = document.querySelector(selector);
+      if (card) return card;
+    }
+    return null;
+  }
+
+  applyRemovalAnimation(card) {
+    return new Promise((resolve) => {
+      card.classList.add('wish-card-removing');
+      
+      const onTransitionEnd = () => {
+        card.removeEventListener('transitionend', onTransitionEnd);
+        card.remove();
+        resolve();
+      };
+      
+      card.addEventListener('transitionend', onTransitionEnd);
+      
+      setTimeout(() => {
+        if (card.parentNode) {
+          card.removeEventListener('transitionend', onTransitionEnd);
+          card.remove();
+        }
+        resolve();
+      }, 800);
+    });
+  }
+
+  /* ========== 状态管理 ========== */
+
+  cleanupPaymentState() {
+    localStorage.removeItem('last-payment');
+    localStorage.removeItem('pending-fulfillment');
+    this.resetPaymentState();
+  }
+
+  resetPaymentState() {
+    this.state = {
+      selectedAmount: null,
+      selectedMethod: 'alipay',
+      currentWishId: null,
+      processing: false,
+      statusCheckInterval: null,
+      paymentCompleted: false,
+      lastPayment: null
+    };
+  }
+
+  validatePaymentState() {
+    if (!this.state.selectedAmount) {
+      this.showToast('请选择还愿金额', 'error');
+      return false;
+    }
+    if (!this.state.currentWishId) {
+      this.showToast('无法识别当前愿望', 'error');
+      return false;
+    }
+    return true;
+  }
+
+  updateConfirmButtonState() {
+    const confirmBtn = document.getElementById('confirm-payment-btn');
+    if (confirmBtn) {
+      confirmBtn.disabled = this.state.processing;
+      confirmBtn.innerHTML = this.state.processing 
+        ? '<i class="fas fa-spinner fa-spin" style="margin-right: 8px;"></i> 处理中...' 
+        : `<i class="fas fa-check-circle" style="margin-right: 8px;"></i> 确认支付 ${this.state.selectedAmount}元`;
+    }
   }
 
   savePendingFulfillment() {
@@ -414,19 +778,167 @@ class WWPay {
     }));
   }
 
-  cleanupLocalStorage() {
-    localStorage.removeItem('pending-fulfillment');
-    localStorage.removeItem('last-payment');
+  /* ========== UI 方法 ========== */
+
+  showGuaranteedToast(message, type = 'success') {
+    this.removeAllToasts();
+    
+    const toast = document.createElement('div');
+    toast.className = `wwpay-guaranteed-toast ${type}`;
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      setTimeout(() => toast.remove(), 500);
+    }, 3000);
+    
+    this.log(`[TOAST] ${type}: ${message}`);
   }
 
-  // ... (其他辅助方法保持不变)
+  removeAllToasts() {
+    document.querySelectorAll('.wwpay-toast, .wwpay-guaranteed-toast').forEach(el => {
+      try {
+        el.remove();
+      } catch (e) {
+        this.safeLogError('移除Toast失败', e);
+      }
+    });
+  }
+
+  showFullscreenLoading(message) {
+    this.hideFullscreenLoading();
+    
+    this.loadingElement = document.createElement('div');
+    this.loadingElement.className = 'wwpay-loading';
+    this.loadingElement.innerHTML = `
+      <div class="loader"></div>
+      <p>${message}</p>
+    `;
+    document.body.appendChild(this.loadingElement);
+  }
+
+  hideFullscreenLoading() {
+    if (this.loadingElement) {
+      this.loadingElement.remove();
+      this.loadingElement = null;
+    }
+  }
+
+  showToast(message, type = 'info') {
+    try {
+      this.removeAllToasts();
+      
+      const icon = type === 'success' ? 'check-circle' : 
+                  type === 'error' ? 'exclamation-circle' : 'info-circle';
+      
+      const toast = document.createElement('div');
+      toast.className = `wwpay-toast ${type}`;
+      toast.innerHTML = `
+        <i class="fas fa-${icon}"></i>
+        <span>${message}</span>
+      `;
+      
+      document.body.appendChild(toast);
+      toast.offsetHeight;
+      toast.classList.add('show');
+      
+      setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+      
+    } catch (error) {
+      this.safeLogError('显示Toast失败', error);
+      alert(message);
+    }
+  }
+
+  showPaymentMethods() {
+    try {
+      const oldSection = document.getElementById('payment-methods-section');
+      if (oldSection) oldSection.remove();
+      
+      const methodsHtml = `
+        <div class="payment-methods" id="payment-methods-section">
+          <h4 style="text-align: center; margin-bottom: 20px; color: #333;">
+            <i class="fas fa-wallet" style="margin-right: 8px;"></i>选择支付方式
+          </h4>
+          <div class="wwpay-methods-container">
+            ${this.config.paymentMethods.map(method => `
+              <button class="wwpay-method-btn ${method.id === this.state.selectedMethod ? 'active' : ''}" 
+                      data-type="${method.id}" 
+                      style="background: ${method.id === this.state.selectedMethod ? method.activeColor : method.color}; 
+                             color: white;">
+                <i class="${method.icon}"></i>
+                <span class="wwpay-method-name">${method.name}</span>
+                <span class="wwpay-method-hint">${method.hint}</span>
+              </button>
+            `).join('')}
+          </div>
+          <div style="text-align: center;">
+            <button id="confirm-payment-btn">
+              <i class="fas fa-check-circle" style="margin-right: 8px;"></i> 
+              确认支付 ${this.state.selectedAmount}元
+            </button>
+          </div>
+        </div>
+      `;
+      
+      const modalContent = document.querySelector('#fulfillModal .modal-content');
+      if (modalContent) {
+        modalContent.insertAdjacentHTML('beforeend', methodsHtml);
+      }
+    } catch (error) {
+      this.safeLogError('支付方式显示失败', error);
+    }
+  }
+
+  /* ========== 工具方法 ========== */
+
+  delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  generateOrderId() {
+    const now = new Date();
+    return `${now.getFullYear()}${(now.getMonth()+1).toString().padStart(2,'0')}${now.getDate().toString().padStart(2,'0')}${now.getHours().toString().padStart(2,'0')}${now.getMinutes().toString().padStart(2,'0')}${now.getSeconds().toString().padStart(2,'0')}${Math.floor(Math.random()*9000)+1000}`;
+  }
+
+  log(...messages) {
+    if (this.config.debug) {
+      console.log('[WWPay]', ...messages);
+    }
+  }
+
+  safeLogError(context, error) {
+    try {
+      console.error(`[WWPay] ${context}:`, error);
+    } catch (e) {
+      console.error('[WWPay] 记录错误失败:', e);
+    }
+  }
+
+  handlePaymentError(error) {
+    this.safeLogError('支付处理失败', error);
+    this.showGuaranteedToast(`支付失败: ${error.message}`, 'error');
+    this.hideFullscreenLoading();
+    this.state.processing = false;
+    this.updateConfirmButtonState();
+  }
+
+  handlePaymentSuccessError(error) {
+    this.safeLogError('支付成功处理异常', error);
+    this.showGuaranteedToast('支付已完成！请手动刷新查看', 'warning');
+    window.location.href = this.config.paymentGateway.successUrl;
+  }
 }
 
 // ========== 全局初始化 ==========
 
 document.addEventListener('DOMContentLoaded', () => {
   try {
-    // 处理还愿成功通知
+    // 1. 处理还愿成功通知
     const urlParams = new URLSearchParams(window.location.search);
     const wishId = urlParams.get('wish_id');
     
@@ -440,7 +952,7 @@ document.addEventListener('DOMContentLoaded', () => {
       window.history.replaceState(null, '', cleanUrl);
     }
 
-    // 初始化支付系统
+    // 2. 初始化支付系统
     if (!window.wwPay) {
       if (typeof CryptoJS === 'undefined') {
         loadCryptoJS().then(() => {
