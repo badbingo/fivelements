@@ -827,31 +827,81 @@ class WWPay {
   /* ========== 恢复机制 ========== */
 
   checkPendingPayments() {
-    const pending = localStorage.getItem('pending-fulfillment');
-    if (pending) {
-      try {
-        const data = JSON.parse(pending);
-        this.log('检测到未完成的支付:', data);
-        this.showGuaranteedToast('检测到未完成的支付，正在验证状态...');
-        
-        setTimeout(async () => {
-          try {
-            this.state.currentWishId = data.wishId;
-            const verified = await this.verifyFulfillmentWithRetry();
-            if (verified) {
-              await this.safeRemoveWishCard(data.wishId);
-              localStorage.removeItem('pending-fulfillment');
-              this.showGuaranteedToast('未完成支付已处理', 'success');
-            }
-          } catch (error) {
-            this.safeLogError('恢复支付失败', error);
-          }
-        }, 2000);
-      } catch (error) {
-        this.safeLogError('解析未完成支付失败', error);
+  try {
+    // 检查两种可能的未完成支付记录
+    const pendingFulfillment = localStorage.getItem('pending-fulfillment');
+    const lastPayment = localStorage.getItem('last-payment');
+    
+    if (pendingFulfillment || lastPayment) {
+      this.showGuaranteedToast('检测到未完成的支付，正在验证状态...');
+      
+      // 优先使用pending-fulfillment记录，因为它更完整
+      const paymentData = pendingFulfillment 
+        ? JSON.parse(pendingFulfillment) 
+        : JSON.parse(lastPayment);
+      
+      this.log('检测到未完成的支付:', paymentData);
+      
+      // 更新状态
+      this.state.currentWishId = paymentData.wishId;
+      this.state.selectedAmount = paymentData.amount;
+      this.state.selectedMethod = paymentData.method;
+      
+      // 显示确认对话框
+      const shouldProceed = confirm(
+        `检测到未完成的支付(金额: ${paymentData.amount}元)。\n` +
+        '是否要继续处理此支付？\n\n' +
+        '点击"确定"继续验证支付状态，点击"取消"清除记录。'
+      );
+      
+      if (shouldProceed) {
+        this.processPendingPayment(paymentData);
+      } else {
+        this.cleanupPaymentState();
+        this.showGuaranteedToast('已清除未完成支付记录', 'warning');
       }
     }
+  } catch (error) {
+    this.safeLogError('检查未完成支付失败', error);
+    this.showGuaranteedToast('支付状态检查出错，请手动刷新', 'error');
+    this.cleanupPaymentState();
   }
+}
+
+async processPendingPayment(paymentData) {
+  try {
+    this.showFullscreenLoading('正在验证支付状态...');
+    
+    // 验证支付状态
+    const verified = await this.verifyFulfillmentWithRetry();
+    
+    if (verified) {
+      // 支付成功，处理后续逻辑
+      await this.safeRemoveWishCard(paymentData.wishId);
+      this.cleanupPaymentState();
+      this.showGuaranteedToast('未完成支付已成功处理', 'success');
+    } else {
+      // 验证失败，提供重试选项
+      const shouldRetry = confirm(
+        '支付状态验证失败。\n' +
+        '如果您已完成支付，请点击"重试"再次验证。\n' +
+        '如果支付未完成，请点击"取消"并重新支付。'
+      );
+      
+      if (shouldRetry) {
+        await this.processPendingPayment(paymentData);
+      } else {
+        this.cleanupPaymentState();
+        this.showGuaranteedToast('已取消未完成支付', 'warning');
+      }
+    }
+  } catch (error) {
+    this.safeLogError('处理未完成支付失败', error);
+    this.showGuaranteedToast('处理未完成支付时出错', 'error');
+  } finally {
+    this.hideFullscreenLoading();
+  }
+}
 
   async recordFulfillment() {
     try {
