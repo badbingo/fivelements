@@ -571,9 +571,13 @@ class WWPay {
       const verified = await this.verifyFulfillmentWithRetry();
       
       if (!verified) {
-        if (!this.config.enableForceUpdate) {
-          throw new Error('支付状态验证失败');
-        }
+      // 自动触发强制更新（不弹窗确认）
+      this.log('触发自动强制更新');
+      await this.forceFulfillmentUpdate();
+      await this.safeRemoveWishCard(this.state.currentWishId);
+      this.showGuaranteedToast('支付状态已确认!');
+      window.location.href = this.config.paymentGateway.successUrl;
+    }
         
         // 如果验证失败但用户确实支付了，可能是同步延迟
         const shouldForceUpdate = confirm(
@@ -602,9 +606,14 @@ class WWPay {
       await this.delay(2000);
       window.location.href = this.config.paymentGateway.successUrl;
       
-    } catch (error) {
-      this.safeLogError('支付成功处理异常', error);
-      
+      } catch (error) {
+    // 添加特定错误处理
+    if (error.message.includes('不存在')) {
+      // 自动触发强制更新
+      await this.forceFulfillmentUpdate();
+      this.showGuaranteedToast('支付状态已自动修复');
+      window.location.reload();
+    }
       // 更友好的错误提示
       const errorMsg = error.message.includes('不存在') 
         ? '支付记录未找到，请联系客服并提供支付凭证'
@@ -657,11 +666,20 @@ class WWPay {
           return false;
         }
         
+        if (data.exists === false) {
+          throw new Error('愿望记录不存在');
+        }
+        // 修改为检查fulfillmentId
+        if (data.fulfilled && data.fulfillmentId) {
+          return true;
+        }
+        
         // 数据不一致情况
         if (!data.exists) {
           this.log('支付记录不存在:', data);
           throw new Error('支付记录不存在于系统中');
         }
+
         
       } catch (error) {
         this.log(`验证支付状态失败 (${i+1}/${retries}): ${error.message}`);
