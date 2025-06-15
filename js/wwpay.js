@@ -540,27 +540,41 @@ class WWPay {
   /* ========== 支付成功处理 ========== */
 
   async handlePaymentSuccess() {
-    try {
-      this.showGuaranteedToast('还愿成功！正在更新状态...');
-      
-      const verified = await this.verifyFulfillmentWithRetry();
-      if (!verified) {
-        throw new Error('状态验证失败');
-      }
-
-      await this.safeRemoveWishCard(this.state.currentWishId);
-      this.cleanupPaymentState();
-      
-      this.showGuaranteedToast('还愿处理完成！即将跳转...', 'success');
-      await this.delay(2000);
-      window.location.href = this.config.paymentGateway.successUrl;
-      
-    } catch (error) {
-      this.safeLogError('支付成功处理异常', error);
-      this.showGuaranteedToast('支付已完成！请手动刷新查看', 'warning');
-      window.location.href = this.config.paymentGateway.successUrl;
+  try {
+    this.showGuaranteedToast('还愿成功！正在更新状态...');
+    
+    // 确保还愿记录成功
+    const fulfillmentResult = await this.recordFulfillment();
+    if (!fulfillmentResult.success) {
+      throw new Error('还愿记录验证失败');
     }
+
+    // 双重验证愿望状态
+    const verified = await this.verifyFulfillmentWithRetry();
+    if (!verified) {
+      throw new Error('状态验证失败');
+    }
+
+    await this.safeRemoveWishCard(this.state.currentWishId);
+    this.cleanupPaymentState();
+    
+    this.showGuaranteedToast('还愿处理完成！即将跳转...', 'success');
+    await this.delay(2000);
+    window.location.href = this.config.paymentGateway.successUrl;
+    
+  } catch (error) {
+    console.error('支付成功处理异常:', error);
+    // 存储待完成的还愿
+    localStorage.setItem('pending-fulfillment', JSON.stringify({
+      wishId: this.state.currentWishId,
+      amount: this.state.selectedAmount,
+      method: this.state.selectedMethod,
+      timestamp: Date.now()
+    }));
+    this.showGuaranteedToast('支付已完成！请手动刷新查看', 'warning');
+    window.location.href = this.config.paymentGateway.successUrl;
   }
+}
 
   async verifyFulfillmentWithRetry(retries = 3) {
     for (let i = 0; i < retries; i++) {
@@ -830,9 +844,34 @@ class WWPay {
   }
 
 
-  async recordFulfillment() {
+ async recordFulfillment() {
+  try {
+    const response = await fetch(`${this.config.paymentGateway.apiBase}/api/wishes/fulfill`, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+      },
+      body: JSON.stringify({
+        wishId: this.state.currentWishId,
+        amount: this.state.selectedAmount,
+        paymentMethod: this.state.selectedMethod
+      })
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || '还愿记录失败');
+    }
+    
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    // 添加自动重试逻辑
+    console.error('记录还愿失败，尝试重试:', error);
+    await this.delay(1000);
     try {
-      const response = await fetch(`${this.config.paymentGateway.apiBase}/api/wishes/fulfill`, {
+      const retryResponse = await fetch(`${this.config.paymentGateway.apiBase}/api/wishes/force-fulfill`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -844,17 +883,10 @@ class WWPay {
           paymentMethod: this.state.selectedMethod
         })
       });
-      
-      const data = await response.json();
-      
-      if (!response.ok || !data.success) {
-        throw new Error(data.error || '还愿记录失败');
-      }
-      
-      return data;
-    } catch (error) {
-      console.error('记录还愿失败:', error);
-      throw new Error(`记录还愿失败: ${error.message}`);
+      return await retryResponse.json();
+    } catch (retryError) {
+      console.error('重试还愿记录失败:', retryError);
+      throw new Error(`记录还愿失败: ${retryError.message}`);
     }
   }
 }
