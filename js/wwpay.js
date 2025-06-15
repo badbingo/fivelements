@@ -925,6 +925,29 @@ class WWPay {
 // ========== 全局初始化 ==========
 document.addEventListener('DOMContentLoaded', () => {
   try {
+    // 检查是否在安全沙箱环境中
+    const isSecureContext = window.trustedTypes && window.trustedTypes.createPolicy;
+    
+    // 延迟初始化以避免与扩展冲突
+    setTimeout(() => {
+      if (typeof CryptoJS === 'undefined') {
+        loadCryptoJS().then(initPaySystem).catch(handleInitError);
+      } else {
+        initPaySystem();
+      }
+    }, isSecureContext ? 1000 : 300); // 安全环境下延长延迟
+  } catch (error) {
+    console.error('初始化失败:', error);
+    alert('系统初始化失败，请刷新页面重试');
+  }
+});
+
+function initPaySystem() {
+  // 检查是否已经初始化
+  if (window.wwPayInitialized) return;
+  window.wwPayInitialized = true;
+  
+  try {
     const urlParams = new URLSearchParams(window.location.search);
     const wishId = urlParams.get('wish_id');
     
@@ -938,21 +961,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (!window.wwPay) {
-      if (typeof CryptoJS === 'undefined') {
-        loadCryptoJS().then(() => {
-          window.wwPay = new WWPay();
-          checkPendingFulfillments();
-        }).catch(console.error);
-      } else {
-        window.wwPay = new WWPay();
-        checkPendingFulfillments();
-      }
+      window.wwPay = new WWPay();
+      checkPendingFulfillments();
     }
   } catch (error) {
-    console.error('初始化失败:', error);
-    alert('系统初始化失败，请刷新页面重试');
+    console.error('支付系统初始化错误:', error);
   }
-});
+}
+
+function handleInitError(error) {
+  console.error('CryptoJS加载失败:', error);
+  alert('安全组件加载失败，请禁用广告拦截器后重试');
+}
 
 function showFulfillmentNotification(wishId) {
   const notification = document.createElement('div');
