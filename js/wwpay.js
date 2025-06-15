@@ -74,6 +74,12 @@ class WWPay {
     this.injectStyles();
     this.setupErrorHandling();
     this.log('支付系统初始化完成');
+ 
+    // === 新增代码：清理本地存储 ===
+    localStorage.removeItem('pending-fulfillment');
+    localStorage.removeItem('last-payment');
+  
+    this.log('支付系统初始化完成');
   }
 
   /* ========== 初始化方法 ========== */
@@ -824,34 +830,6 @@ class WWPay {
     this.safeLogError(context, error);
   }
 
-  /* ========== 恢复机制 ========== */
-
-  checkPendingPayments() {
-    const pending = localStorage.getItem('pending-fulfillment');
-    if (pending) {
-      try {
-        const data = JSON.parse(pending);
-        this.log('检测到未完成的支付:', data);
-        this.showGuaranteedToast('检测到未完成的支付，正在验证状态...');
-        
-        setTimeout(async () => {
-          try {
-            this.state.currentWishId = data.wishId;
-            const verified = await this.verifyFulfillmentWithRetry();
-            if (verified) {
-              await this.safeRemoveWishCard(data.wishId);
-              localStorage.removeItem('pending-fulfillment');
-              this.showGuaranteedToast('未完成支付已处理', 'success');
-            }
-          } catch (error) {
-            this.safeLogError('恢复支付失败', error);
-          }
-        }, 2000);
-      } catch (error) {
-        this.safeLogError('解析未完成支付失败', error);
-      }
-    }
-  }
 
   async recordFulfillment() {
     try {
@@ -890,8 +868,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const script = document.createElement('script');
         script.src = 'https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js';
         script.onload = () => {
-          window.wwPay = new WWPay();
-          window.wwPay.checkPendingPayments();
+          window.wwPay = new WWPay(); // 移除了 checkPendingPayments()
         };
         script.onerror = () => {
           console.error('加载CryptoJS失败');
@@ -899,8 +876,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         document.head.appendChild(script);
       } else {
-        window.wwPay = new WWPay();
-        window.wwPay.checkPendingPayments();
+        window.wwPay = new WWPay(); // 移除了 checkPendingPayments()
       }
     }
   } catch (error) {
