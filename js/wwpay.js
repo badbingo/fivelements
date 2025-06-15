@@ -558,37 +558,24 @@ class WWPay {
   }
 
   async verifyFulfillmentWithRetry(retries = 3) {
-  for (let i = 0; i < retries; i++) {
-    try {
-      const response = await fetch(
-        `${this.config.paymentGateway.apiBase}/api/wishes/check?wishId=${this.state.currentWishId}`,
-        {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
-          }
+    for (let i = 0; i < retries; i++) {
+      try {
+        const response = await fetch(
+          `${this.config.paymentGateway.apiBase}/api/wishes/check?wishId=${this.state.currentWishId}`
+        );
+        const data = await response.json();
+        
+        if (data.fulfilled) {
+          this.log('验证还愿成功:', data);
+          return true;
         }
-      ).catch(e => {
-        // If it's a CORS error, we can't read the response but the request might have succeeded
-        if (e.message.includes('CORS')) {
-          this.log('CORS error detected, assuming success');
-          return { ok: true, json: async () => ({ fulfilled: true }) };
-        }
-        throw e;
-      });
-      
-      const data = await response.json();
-      
-      if (data.fulfilled) {
-        this.log('验证还愿成功:', data);
-        return true;
+      } catch (error) {
+        this.log(`验证还愿状态失败 (${i+1}/${retries}): ${error.message}`);
       }
-    } catch (error) {
-      this.log(`验证还愿状态失败 (${i+1}/${retries}):`, error.message);
+      await this.delay(this.config.paymentGateway.retryDelay);
     }
-    await this.delay(this.config.paymentGateway.retryDelay);
+    return false;
   }
-  return false;
-}
 
   /* ========== 愿望卡片处理 ========== */
 
@@ -837,6 +824,34 @@ class WWPay {
     this.safeLogError(context, error);
   }
 
+  /* ========== 恢复机制 ========== */
+
+  checkPendingPayments() {
+    const pending = localStorage.getItem('pending-fulfillment');
+    if (pending) {
+      try {
+        const data = JSON.parse(pending);
+        this.log('检测到未完成的支付:', data);
+        this.showGuaranteedToast('检测到未完成的支付，正在验证状态...');
+        
+        setTimeout(async () => {
+          try {
+            this.state.currentWishId = data.wishId;
+            const verified = await this.verifyFulfillmentWithRetry();
+            if (verified) {
+              await this.safeRemoveWishCard(data.wishId);
+              localStorage.removeItem('pending-fulfillment');
+              this.showGuaranteedToast('未完成支付已处理', 'success');
+            }
+          } catch (error) {
+            this.safeLogError('恢复支付失败', error);
+          }
+        }, 2000);
+      } catch (error) {
+        this.safeLogError('解析未完成支付失败', error);
+      }
+    }
+  }
 
   async recordFulfillment() {
     try {
@@ -875,7 +890,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const script = document.createElement('script');
         script.src = 'https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js';
         script.onload = () => {
-          window.wwPay = new WWPay(); // 移除了 checkPendingPayments()
+          window.wwPay = new WWPay();
+          window.wwPay.checkPendingPayments();
         };
         script.onerror = () => {
           console.error('加载CryptoJS失败');
@@ -883,7 +899,8 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         document.head.appendChild(script);
       } else {
-        window.wwPay = new WWPay(); // 移除了 checkPendingPayments()
+        window.wwPay = new WWPay();
+        window.wwPay.checkPendingPayments();
       }
     }
   } catch (error) {
