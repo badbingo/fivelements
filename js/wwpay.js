@@ -418,39 +418,7 @@ generateZPaySignature(params) {
   return CryptoJS.MD5(signStr).toString();
 }
 
-  // 订单查询接口
-if (url.pathname === '/api/zpay/query' && method === 'GET') {
-  try {
-    const orderId = url.searchParams.get('order_id');
-    console.log('[ZPay查询] 查询订单:', orderId);
 
-    // 调用ZPay查询接口
-    const queryUrl = `https://zpayz.cn/api.php?act=order&pid=${env.PAY_PID}&key=${env.PAY_KEY}&out_trade_no=${orderId}`;
-    const response = await fetch(queryUrl);
-    const data = await response.json();
-
-    console.log('[ZPay查询] 响应:', data);
-    
-    if (data.code !== 1) {
-      return new Response(JSON.stringify({ 
-        status: 'error',
-        message: data.msg
-      }), { status: 400, headers: corsHeaders });
-    }
-
-    return new Response(JSON.stringify({
-      status: data.status == 1 ? 'success' : 'processing',
-      paymentData: data
-    }), { headers: corsHeaders });
-
-  } catch (error) {
-    console.error('[ZPay查询] 错误:', error);
-    return new Response(JSON.stringify({ 
-      status: 'error',
-      message: error.message
-    }), { status: 500, headers: corsHeaders });
-  }
-}
 // 支付成功页面检查
 checkPaymentSuccessFromURL() {
   const urlParams = new URLSearchParams(window.location.search);
