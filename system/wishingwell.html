@@ -999,34 +999,47 @@ document.addEventListener('DOMContentLoaded', function() {
     
        // 修改后的还愿处理函数
         async function handleFulfillWish(wish) {
-          try {
-            // 1. 检查是否已登录
-            const token = localStorage.getItem('token');
-            if (!token) {
-              const shouldLogin = confirm('请先登录后再还愿');
-              if (shouldLogin) window.location.href = '/user.html';
-              return;
-            }
-          
-            // 2. 显示还愿模态框
-            const modal = document.getElementById('fulfillModal');
-            if (!modal) {
-              throw new Error('找不到还愿模态框');
-            }
-            
-            // 设置愿望ID到模态框
-            modal.dataset.wishId = wish.id;
-            modal.style.display = 'block';
-          
-            // 3. 初始化支付选项
-            if (window.wwPay) {
-              window.wwPay.resetPaymentState();
-            }
-          } catch (error) {
-            console.error('还愿初始化失败:', error);
-            alert('还愿失败: ' + error.message);
-          }
-        }
+  try {
+    // 1. 检查是否已登录
+    const token = localStorage.getItem('token');
+    if (!token) {
+      const shouldLogin = confirm('请先登录后再还愿');
+      if (shouldLogin) window.location.href = '/user.html';
+      return;
+    }
+
+    // 2. 立即更新is_fulfilled字段为true
+    const updateResponse = await fetch(`${API_BASE}/api/wishes/${wish.id}/fulfill`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!updateResponse.ok) {
+      throw new Error('更新还愿状态失败');
+    }
+
+    // 3. 显示还愿模态框
+    const modal = document.getElementById('fulfillModal');
+    if (!modal) {
+      throw new Error('找不到还愿模态框');
+    }
+    
+    // 设置愿望ID到模态框
+    modal.dataset.wishId = wish.id;
+    modal.style.display = 'block';
+  
+    // 4. 初始化支付选项
+    if (window.wwPay) {
+      window.wwPay.resetPaymentState();
+    }
+  } catch (error) {
+    console.error('还愿初始化失败:', error);
+    alert('还愿失败: ' + error.message);
+  }
+}
 
     // 更新分页信息
     function updatePagination() {
