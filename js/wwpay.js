@@ -280,15 +280,18 @@ class WWPay {
   }
 
   setupErrorHandling() {
-    window.addEventListener('error', (event) => {
-  if (event.filename.includes('lockdown-install.js')) return; // 忽略
-  this.safeLogError('全局错误', event.error);
-});
-    
-    window.addEventListener('unhandledrejection', (event) => {
-      this.safeLogError('未处理的Promise拒绝', event.reason);
-    });
-  }
+  window.addEventListener('error', (event) => {
+    if (event.filename && event.filename.includes('lockdown-install.js')) {
+      // 忽略该错误
+      return;
+    }
+    this.safeLogError('全局错误', event.error);
+  });
+
+  window.addEventListener('unhandledrejection', (event) => {
+    this.safeLogError('未处理的Promise拒绝', event.reason);
+  });
+}
 
   cleanupLocalStorage() {
     localStorage.removeItem('pending-fulfillment');
