@@ -529,45 +529,6 @@ class WWPay {
     }, checkInterval);
   }
 
-  async verifyPayment() {
-  const maxRetries = 5;
-  const retryDelay = 2000;
-  
-  for (let i = 0; i < maxRetries; i++) {
-    try {
-      const response = await fetch(
-        `${this.config.paymentGateway.apiBase}/api/payments/verify`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
-          },
-          body: JSON.stringify({
-            orderId: this.state.lastPayment.orderId,
-            wishId: this.state.currentWishId,
-            amount: this.state.selectedAmount
-          })
-        }
-      );
-      
-      const data = await response.json();
-      
-      if (!response.ok || !data.success) {
-        throw new Error(data.error || '支付验证失败');
-      }
-      
-      return data;
-      
-    } catch (error) {
-      if (i === maxRetries - 1) {
-        throw error;
-      }
-      await this.delay(retryDelay);
-    }
-  }
-}
-  
   async checkPaymentStatus() {
     try {
       const response = await fetch(
@@ -601,34 +562,28 @@ class WWPay {
   /* ========== 支付成功处理 ========== */
 
   async handlePaymentSuccess() {
-  try {
-    // 1. 显示处理中状态
-    this.showFullscreenLoading('正在验证支付结果...');
-    
-    // 2. 验证支付状态
-    const verification = await this.verifyPayment();
-    if (!verification.success) {
-      throw new Error(verification.error || '支付验证失败');
+    try {
+      this.showGuaranteedToast('还愿成功！正在更新状态...');
+      
+      // 1. 确保记录到fulfillments表
+      const fulfillmentResult = await this.ensureFulfillmentRecorded();
+      if (!fulfillmentResult.success) {
+        throw new Error(fulfillmentResult.message);
+      }
+      
+      // 2. 验证愿望已从wishes表删除
+      const verified = await this.verifyWishRemoved();
+      if (!verified) {
+        throw new Error('愿望删除验证失败');
+      }
+
+      // 3. 准备跳转
+      this.prepareSuccessRedirect();
+      
+    } catch (error) {
+      this.handlePaymentSuccessError(error);
     }
-    
-    // 3. 移除愿望卡片
-    await this.safeRemoveWishCard(this.state.currentWishId);
-    
-    // 4. 显示成功通知
-    this.showFulfillmentNotification(this.state.currentWishId);
-    
-    // 5. 跳转回许愿池
-    setTimeout(() => {
-      window.location.href = this.config.paymentGateway.successUrl;
-    }, 2000);
-    
-  } catch (error) {
-    this.handlePaymentSuccessError(error);
-  } finally {
-    this.hideFullscreenLoading();
-    this.cleanupPaymentState();
   }
-}
 
   async ensureFulfillmentRecorded() {
     try {
@@ -1085,23 +1040,36 @@ class WWPay {
 // ========== 全局初始化 ==========
 
 document.addEventListener('DOMContentLoaded', () => {
-  // 处理支付平台异步通知
-  const urlParams = new URLSearchParams(window.location.search);
-  if (urlParams.has('trade_status') && urlParams.get('trade_status') === 'TRADE_SUCCESS') {
-    const wishId = JSON.parse(decodeURIComponent(urlParams.get('param'))?.wishId;
-    if (wishId) {
+  try {
+    // 1. 处理还愿成功通知
+    const urlParams = new URLSearchParams(window.location.search);
+    const wishId = urlParams.get('wish_id');
+    
+    if (urlParams.get('fulfillment_success') === 'true') {
       showFulfillmentNotification(wishId);
       
       // 清理URL参数
-      const cleanUrl = window.location.pathname;
+      urlParams.delete('fulfillment_success');
+      urlParams.delete('wish_id');
+      const cleanUrl = `${window.location.pathname}${urlParams.toString() ? '?' + urlParams.toString() : ''}`;
       window.history.replaceState(null, '', cleanUrl);
-      
-      // 触发前端处理
-      if (window.wwPay) {
-        window.wwPay.state.currentWishId = wishId;
-        window.wwPay.handlePaymentSuccess();
+    }
+
+    // 2. 初始化支付系统
+    if (!window.wwPay) {
+      if (typeof CryptoJS === 'undefined') {
+        loadCryptoJS().then(() => {
+          window.wwPay = new WWPay();
+          checkPendingFulfillments();
+        }).catch(console.error);
+      } else {
+        window.wwPay = new WWPay();
+        checkPendingFulfillments();
       }
     }
+  } catch (error) {
+    console.error('初始化失败:', error);
+    alert('系统初始化失败，请刷新页面重试');
   }
 });
 
@@ -1112,7 +1080,7 @@ function showFulfillmentNotification(wishId) {
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
       <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
     </svg>
-    <span>还愿已成功，您的愿望将被删除</span>
+    <span>还愿已成功，愿望 #${wishId} 已被移除</span>
   `;
   document.body.appendChild(notification);
   
