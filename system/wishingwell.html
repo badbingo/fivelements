@@ -1080,45 +1080,47 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // 调用后端API完成还愿
         const response = await fetch(`${API_BASE}/api/wishes/fulfill`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify({
-            wish_id: wishId,
-            amount: parseFloat(amount),
-            payment_method: 'wechat' // 可以根据实际情况修改
-          })
-        });
-        
-        if (!response.ok) {
-          throw new Error(await response.text());
-        }
-        
-        const result = await response.json();
-        
-        // 显示成功消息
-        showSuccessMessage('还愿已成功，您的愿望将会被移除');
-        
-        // 关闭模态框
-        modal.style.display = 'none';
-        
-        // 重新加载愿望列表
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        wish_id: wishId,
+        amount: parseFloat(amount),
+        payment_method: 'wechat'
+      })
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      let errorMsg = '还愿失败';
+      
+      if (errorData.error === '愿望不存在或已被删除') {
+        errorMsg = '愿望不存在或已被删除，无法还愿';
+        // 重新加载列表以更新UI
         loadAllWishes();
-        
-      } catch (error) {
-        console.error('还愿处理失败:', error);
-        showErrorMessage('还愿失败: ' + error.message);
-        
-        // 重新启用按钮
-        const options = modal.querySelectorAll('.fulfill-option');
-        options.forEach(opt => {
-          opt.disabled = false;
-          opt.innerHTML = `${opt.dataset.amount}元`;
-        });
       }
+      
+      throw new Error(errorMsg);
     }
+    
+    // ...成功处理代码...
+    
+  } catch (error) {
+    console.error('还愿处理失败:', error);
+    showErrorMessage(error.message);
+    
+    const modal = document.getElementById('fulfillModal');
+    if (modal) {
+      const options = modal.querySelectorAll('.fulfill-option');
+      options.forEach(opt => {
+        opt.disabled = false;
+        opt.innerHTML = `${opt.dataset.amount}元`;
+      });
+    }
+  }
+}
     
     // 更新分页信息
     function updatePagination() {
