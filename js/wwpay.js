@@ -367,7 +367,7 @@ class WWPay {
 
   /* ========== 核心支付方法 ========== */
 
- async processPayment() {
+  async processPayment() {
     if (!this.validatePaymentState()) return;
 
     try {
@@ -392,97 +392,6 @@ class WWPay {
       this.handlePaymentError(error);
     }
   }
-
-  async createPaymentOrder() {
-    try {
-      const orderId = this.generateOrderId();
-      
-      // 异步记录还愿
-      this.recordFulfillment().catch(error => {
-        this.safeLogError('异步记录还愿失败', error);
-        this.savePendingFulfillment();
-      });
-
-      const paymentData = {
-        pid: this.config.paymentGateway.pid,
-        type: this.state.selectedMethod,
-        out_trade_no: orderId,
-        notify_url: location.href,
-        return_url: this.config.paymentGateway.successUrl,
-        name: `还愿-${this.state.currentWishId}`,
-        money: this.state.selectedAmount.toFixed(2),
-        param: encodeURIComponent(JSON.stringify({
-          wishId: this.state.currentWishId,
-          amount: this.state.selectedAmount
-        })),
-        sign_type: this.config.paymentGateway.signType
-      };
-      
-      // 生成签名
-      paymentData.sign = this.generateSignature(paymentData);
-      
-      if (!paymentData.sign) {
-        throw new Error('签名生成失败');
-      }
-
-      await this.submitPaymentForm(paymentData);
-      
-      return { success: true, orderId };
-    } catch (error) {
-      throw new Error(`创建订单失败: ${error.message}`);
-    }
-  }
-
-  generateSignature(params) {
-    try {
-      if (!params || typeof params !== 'object') {
-        throw new Error('无效的签名参数');
-      }
-
-      // 过滤空值和排除签名字段
-      const filtered = {};
-      Object.keys(params)
-        .filter(k => params[k] !== '' && !['sign', 'sign_type'].includes(k))
-        .sort()
-        .forEach(k => filtered[k] = params[k]);
-
-      // 构建签名字符串
-      const signStr = Object.entries(filtered)
-        .map(([k, v]) => `${k}=${v}`)
-        .join('&') + this.config.paymentGateway.key;
-
-      // 使用CryptoJS生成MD5签名
-      if (typeof CryptoJS === 'undefined') {
-        throw new Error('CryptoJS未加载');
-      }
-
-      return CryptoJS.MD5(signStr).toString();
-    } catch (error) {
-      console.error('生成签名失败:', error);
-      throw new Error(`签名生成失败: ${error.message}`);
-    }
-  }
-
-
-// ZPay专用签名方法
-generateZPaySignature(params) {
-  const signStr = `money=${params.money}&name=${params.name}&out_trade_no=${params.out_trade_no}&pid=${params.pid}&type=${params.type}&key=${this.config.paymentGateway.key}`;
-  return CryptoJS.MD5(signStr).toString();
-}
-
-
-// 支付成功页面检查
-checkPaymentSuccessFromURL() {
-  const urlParams = new URLSearchParams(window.location.search);
-  if (urlParams.get('payment_success') === 'true') {
-    const wishId = urlParams.get('wish_id');
-    this.showFulfillmentSuccessNotification();
-    this.safeRemoveWishCard(wishId);
-    
-    // 清理URL
-    window.history.replaceState({}, '', window.location.pathname);
-  }
-}
 
   async createPaymentOrder() {
     try {
@@ -621,30 +530,27 @@ checkPaymentSuccessFromURL() {
   }
 
   async checkPaymentStatus() {
-  try {
-    const response = await fetch(
-      `${this.config.paymentGateway.apiBase}/api/zpay/query?order_id=${this.state.lastPayment.orderId}`
-    );
-    
-    if (!response.ok) {
-      throw new Error(`HTTP错误 ${response.status}`);
-    }
-    
-    const data = await response.json();
-    
-    // 检查本地是否已处理（防止重复处理）
-    if (data.status === 'success') {
-      const exists = await this.checkFulfillmentExists();
-      if (exists) return { status: 'success' };
+    try {
+      const response = await fetch(
+        `${this.config.paymentGateway.apiBase}/api/payments/status?wishId=${this.state.currentWishId}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+          }
+        }
+      );
       
-      await this.handlePaymentSuccess();
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || '支付状态检查失败');
+      }
+      
+      return data;
+    } catch (error) {
+      throw error;
     }
-    
-    return data;
-  } catch (error) {
-    throw new Error(`支付状态检查失败: ${error.message}`);
   }
-}
 
   clearPaymentStatusCheck() {
     if (this.state.statusCheckInterval) {
@@ -656,96 +562,29 @@ checkPaymentSuccessFromURL() {
   /* ========== 支付成功处理 ========== */
 
   async handlePaymentSuccess() {
-  try {
-    this.showGuaranteedToast('还愿成功！正在更新状态...');
-    
-    // 1. 确保记录到fulfillments表 (此操作在后端会自动删除愿望)
-    const fulfillmentResult = await this.ensureFulfillmentRecorded();
-    if (!fulfillmentResult.success) {
-      throw new Error(fulfillmentResult.message);
-    }
-
-    // 2. 显示成功通知
-    await this.showFulfillmentSuccessNotification(); // 等待通知完成
-
-    // 3. 跳转到许愿池
-    this.redirectToWishingWell();
-
-  } catch (error) {
-    this.handlePaymentSuccessError(error);
-  }
-}
-
-// 更新通知方法 (返回Promise确保完整显示)
-showFulfillmentSuccessNotification() {
-  return new Promise((resolve) => {
-    const notification = document.createElement('div');
-    notification.className = 'fulfillment-notification';
-    notification.innerHTML = `
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
-      </svg>
-      <span>还愿已成功，您的愿望将被删除</span>
-    `;
-    document.body.appendChild(notification);
-    
-    setTimeout(() => {
-      notification.classList.add('fade-out');
-      setTimeout(() => {
-        notification.remove();
-        resolve(); // 通知完全消失后resolve
-      }, 1000);
-    }, 3000);
-  });
-}
-
-  // 新增 deleteWishFromBackend 方法
-async deleteWishFromBackend() {
-  try {
-    const response = await fetch(
-      `${this.config.paymentGateway.apiBase}/api/wishes/delete`,
-      {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
-        },
-        body: JSON.stringify({
-          wishId: this.state.currentWishId
-        })
+    try {
+      this.showGuaranteedToast('还愿成功！正在更新状态...');
+      
+      // 1. 确保记录到fulfillments表
+      const fulfillmentResult = await this.ensureFulfillmentRecorded();
+      if (!fulfillmentResult.success) {
+        throw new Error(fulfillmentResult.message);
       }
-    );
-    
-    const data = await response.json();
-    
-    if (!response.ok || !data.success) {
-      throw new Error(data.message || '删除愿望失败');
-    }
-    
-    return data;
-  } catch (error) {
-    throw new Error(`删除愿望失败: ${error.message}`);
-  }
-}
+      
+      // 2. 验证愿望已从wishes表删除
+      const verified = await this.verifyWishRemoved();
+      if (!verified) {
+        throw new Error('愿望删除验证失败');
+      }
 
-// 新增 showFulfillmentSuccessNotification 方法
-showFulfillmentSuccessNotification() {
-  const notification = document.createElement('div');
-  notification.className = 'fulfillment-notification';
-  notification.innerHTML = `
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
-    </svg>
-    <span>还愿已成功，您的愿望将会被移除</span>
-  `;
-  document.body.appendChild(notification);
-  
-  setTimeout(() => {
-    notification.classList.add('fade-out');
-    setTimeout(() => notification.remove(), 1000);
-  }, 3000);
-}
-  
+      // 3. 准备跳转
+      this.prepareSuccessRedirect();
+      
+    } catch (error) {
+      this.handlePaymentSuccessError(error);
+    }
+  }
+
   async ensureFulfillmentRecorded() {
     try {
       // 先检查是否有未完成的记录
@@ -767,14 +606,6 @@ showFulfillmentSuccessNotification() {
     }
   }
 
-  // 修改 redirectToWishingWell 方法
-  redirectToWishingWell() {
-    setTimeout(() => {
-      this.cleanupPaymentState();
-      window.location.href = `${this.config.paymentGateway.successUrl}?fulfillment_success=true&wish_id=${this.state.currentWishId}`;
-    }, 1500);
-  }
-  
   async verifyWishRemoved() {
     for (let i = 0; i < 5; i++) {
       try {
@@ -1241,6 +1072,23 @@ document.addEventListener('DOMContentLoaded', () => {
     alert('系统初始化失败，请刷新页面重试');
   }
 });
+
+function showFulfillmentNotification(wishId) {
+  const notification = document.createElement('div');
+  notification.className = 'fulfillment-notification';
+  notification.innerHTML = `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+    </svg>
+    <span>还愿已成功，愿望 #${wishId} 已被移除</span>
+  `;
+  document.body.appendChild(notification);
+  
+  setTimeout(() => {
+    notification.classList.add('fade-out');
+    setTimeout(() => notification.remove(), 1000);
+  }, 3000);
+}
 
 function checkPendingFulfillments() {
   const pending = localStorage.getItem('pending-fulfillment');
