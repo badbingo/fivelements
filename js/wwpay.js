@@ -281,9 +281,10 @@ class WWPay {
 
   setupErrorHandling() {
     window.addEventListener('error', (event) => {
-      this.safeLogError('全局错误', event.error);
-    });
-
+  if (event.filename.includes('lockdown-install.js')) return; // 忽略
+  this.safeLogError('全局错误', event.error);
+});
+    
     window.addEventListener('unhandledrejection', (event) => {
       this.safeLogError('未处理的Promise拒绝', event.reason);
     });
