@@ -367,50 +367,102 @@ class WWPay {
 
   /* ========== 核心支付方法 ========== */
 
-  async processPayment() {
-  if (!this.validatePaymentState()) return;
+ async processPayment() {
+    if (!this.validatePaymentState()) return;
 
-  try {
-    this.state.processing = true;
-    this.updateConfirmButtonState();
-    
-    // 生成唯一订单号
-    const orderId = this.generateOrderId();
-    const wishId = this.state.currentWishId;
+    try {
+      this.state.processing = true;
+      this.updateConfirmButtonState();
+      this.showFullscreenLoading('正在准备支付...');
+      
+      this.state.lastPayment = {
+        wishId: this.state.currentWishId,
+        amount: this.state.selectedAmount,
+        method: this.state.selectedMethod,
+        timestamp: Date.now()
+      };
+      localStorage.setItem('last-payment', JSON.stringify(this.state.lastPayment));
 
-    // 保存支付记录到本地
-    this.state.lastPayment = {
-      orderId,
-      wishId,
-      amount: this.state.selectedAmount,
-      method: this.state.selectedMethod,
-      timestamp: Date.now()
-    };
-    localStorage.setItem('last-payment', JSON.stringify(this.state.lastPayment));
-
-    // 构建支付参数
-    const paymentData = {
-      pid: this.config.paymentGateway.pid,
-      type: this.state.selectedMethod,
-      out_trade_no: orderId,
-      notify_url: `${this.config.paymentGateway.apiBase}/api/zpay/notify`,
-      name: `还愿-${wishId}`,
-      money: this.state.selectedAmount.toFixed(2),
-      param: encodeURIComponent(JSON.stringify({ wishId })),
-      return_url: `${window.location.origin}/wishingwell.html?payment_success=true&wish_id=${wishId}`,
-      sign_type: 'MD5'
-    };
-
-    // 生成签名
-    paymentData.sign = this.generateZPaySignature(paymentData);
-    
-    // 提交支付
-    await this.submitZPayForm(paymentData);
-
-  } catch (error) {
-    this.handlePaymentError(error);
+      const result = await this.createPaymentOrder();
+      
+      if (result.success) {
+        this.startPaymentStatusCheck();
+      }
+    } catch (error) {
+      this.handlePaymentError(error);
+    }
   }
-}
+
+  async createPaymentOrder() {
+    try {
+      const orderId = this.generateOrderId();
+      
+      // 异步记录还愿
+      this.recordFulfillment().catch(error => {
+        this.safeLogError('异步记录还愿失败', error);
+        this.savePendingFulfillment();
+      });
+
+      const paymentData = {
+        pid: this.config.paymentGateway.pid,
+        type: this.state.selectedMethod,
+        out_trade_no: orderId,
+        notify_url: location.href,
+        return_url: this.config.paymentGateway.successUrl,
+        name: `还愿-${this.state.currentWishId}`,
+        money: this.state.selectedAmount.toFixed(2),
+        param: encodeURIComponent(JSON.stringify({
+          wishId: this.state.currentWishId,
+          amount: this.state.selectedAmount
+        })),
+        sign_type: this.config.paymentGateway.signType
+      };
+      
+      // 生成签名
+      paymentData.sign = this.generateSignature(paymentData);
+      
+      if (!paymentData.sign) {
+        throw new Error('签名生成失败');
+      }
+
+      await this.submitPaymentForm(paymentData);
+      
+      return { success: true, orderId };
+    } catch (error) {
+      throw new Error(`创建订单失败: ${error.message}`);
+    }
+  }
+
+  generateSignature(params) {
+    try {
+      if (!params || typeof params !== 'object') {
+        throw new Error('无效的签名参数');
+      }
+
+      // 过滤空值和排除签名字段
+      const filtered = {};
+      Object.keys(params)
+        .filter(k => params[k] !== '' && !['sign', 'sign_type'].includes(k))
+        .sort()
+        .forEach(k => filtered[k] = params[k]);
+
+      // 构建签名字符串
+      const signStr = Object.entries(filtered)
+        .map(([k, v]) => `${k}=${v}`)
+        .join('&') + this.config.paymentGateway.key;
+
+      // 使用CryptoJS生成MD5签名
+      if (typeof CryptoJS === 'undefined') {
+        throw new Error('CryptoJS未加载');
+      }
+
+      return CryptoJS.MD5(signStr).toString();
+    } catch (error) {
+      console.error('生成签名失败:', error);
+      throw new Error(`签名生成失败: ${error.message}`);
+    }
+  }
+
 
 // ZPay专用签名方法
 generateZPaySignature(params) {
