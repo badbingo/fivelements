@@ -368,30 +368,101 @@ class WWPay {
   /* ========== 核心支付方法 ========== */
 
   async processPayment() {
-    if (!this.validatePaymentState()) return;
+  if (!this.validatePaymentState()) return;
 
-    try {
-      this.state.processing = true;
-      this.updateConfirmButtonState();
-      this.showFullscreenLoading('正在准备支付...');
-      
-      this.state.lastPayment = {
-        wishId: this.state.currentWishId,
-        amount: this.state.selectedAmount,
-        method: this.state.selectedMethod,
-        timestamp: Date.now()
-      };
-      localStorage.setItem('last-payment', JSON.stringify(this.state.lastPayment));
+  try {
+    this.state.processing = true;
+    this.updateConfirmButtonState();
+    
+    // 生成唯一订单号
+    const orderId = this.generateOrderId();
+    const wishId = this.state.currentWishId;
 
-      const result = await this.createPaymentOrder();
-      
-      if (result.success) {
-        this.startPaymentStatusCheck();
-      }
-    } catch (error) {
-      this.handlePaymentError(error);
-    }
+    // 保存支付记录到本地
+    this.state.lastPayment = {
+      orderId,
+      wishId,
+      amount: this.state.selectedAmount,
+      method: this.state.selectedMethod,
+      timestamp: Date.now()
+    };
+    localStorage.setItem('last-payment', JSON.stringify(this.state.lastPayment));
+
+    // 构建支付参数
+    const paymentData = {
+      pid: this.config.paymentGateway.pid,
+      type: this.state.selectedMethod,
+      out_trade_no: orderId,
+      notify_url: `${this.config.paymentGateway.apiBase}/api/zpay/notify`,
+      name: `还愿-${wishId}`,
+      money: this.state.selectedAmount.toFixed(2),
+      param: encodeURIComponent(JSON.stringify({ wishId })),
+      return_url: `${window.location.origin}/wishingwell.html?payment_success=true&wish_id=${wishId}`,
+      sign_type: 'MD5'
+    };
+
+    // 生成签名
+    paymentData.sign = this.generateZPaySignature(paymentData);
+    
+    // 提交支付
+    await this.submitZPayForm(paymentData);
+
+  } catch (error) {
+    this.handlePaymentError(error);
   }
+}
+
+// ZPay专用签名方法
+generateZPaySignature(params) {
+  const signStr = `money=${params.money}&name=${params.name}&out_trade_no=${params.out_trade_no}&pid=${params.pid}&type=${params.type}&key=${this.config.paymentGateway.key}`;
+  return CryptoJS.MD5(signStr).toString();
+}
+
+  // 订单查询接口
+if (url.pathname === '/api/zpay/query' && method === 'GET') {
+  try {
+    const orderId = url.searchParams.get('order_id');
+    console.log('[ZPay查询] 查询订单:', orderId);
+
+    // 调用ZPay查询接口
+    const queryUrl = `https://zpayz.cn/api.php?act=order&pid=${env.PAY_PID}&key=${env.PAY_KEY}&out_trade_no=${orderId}`;
+    const response = await fetch(queryUrl);
+    const data = await response.json();
+
+    console.log('[ZPay查询] 响应:', data);
+    
+    if (data.code !== 1) {
+      return new Response(JSON.stringify({ 
+        status: 'error',
+        message: data.msg
+      }), { status: 400, headers: corsHeaders });
+    }
+
+    return new Response(JSON.stringify({
+      status: data.status == 1 ? 'success' : 'processing',
+      paymentData: data
+    }), { headers: corsHeaders });
+
+  } catch (error) {
+    console.error('[ZPay查询] 错误:', error);
+    return new Response(JSON.stringify({ 
+      status: 'error',
+      message: error.message
+    }), { status: 500, headers: corsHeaders });
+  }
+}
+// 支付成功页面检查
+checkPaymentSuccessFromURL() {
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('payment_success') === 'true') {
+    const wishId = urlParams.get('wish_id');
+    this.showFulfillmentSuccessNotification();
+    this.safeRemoveWishCard(wishId);
+    
+    // 清理URL
+    window.history.replaceState({}, '', window.location.pathname);
+  }
+}
 
   async createPaymentOrder() {
     try {
@@ -530,27 +601,30 @@ class WWPay {
   }
 
   async checkPaymentStatus() {
-    try {
-      const response = await fetch(
-        `${this.config.paymentGateway.apiBase}/api/payments/status?wishId=${this.state.currentWishId}`,
-        {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
-          }
-        }
-      );
-      
-      const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(data.error || '支付状态检查失败');
-      }
-      
-      return data;
-    } catch (error) {
-      throw error;
+  try {
+    const response = await fetch(
+      `${this.config.paymentGateway.apiBase}/api/zpay/query?order_id=${this.state.lastPayment.orderId}`
+    );
+    
+    if (!response.ok) {
+      throw new Error(`HTTP错误 ${response.status}`);
     }
+    
+    const data = await response.json();
+    
+    // 检查本地是否已处理（防止重复处理）
+    if (data.status === 'success') {
+      const exists = await this.checkFulfillmentExists();
+      if (exists) return { status: 'success' };
+      
+      await this.handlePaymentSuccess();
+    }
+    
+    return data;
+  } catch (error) {
+    throw new Error(`支付状态检查失败: ${error.message}`);
   }
+}
 
   clearPaymentStatusCheck() {
     if (this.state.statusCheckInterval) {
