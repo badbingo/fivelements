@@ -562,28 +562,26 @@ class WWPay {
   /* ========== 支付成功处理 ========== */
 
   async handlePaymentSuccess() {
-    try {
-      this.showGuaranteedToast('还愿成功！正在更新状态...');
-      
-      // 1. 确保记录到fulfillments表
-      const fulfillmentResult = await this.ensureFulfillmentRecorded();
-      if (!fulfillmentResult.success) {
-        throw new Error(fulfillmentResult.message);
-      }
-      
-      // 2. 验证愿望已从wishes表删除
-      const verified = await this.verifyWishRemoved();
-      if (!verified) {
-        throw new Error('愿望删除验证失败');
-      }
-
-      // 3. 准备跳转
-      this.prepareSuccessRedirect();
-      
-    } catch (error) {
-      this.handlePaymentSuccessError(error);
-    }
+  try {
+    // 1. 显示成功通知
+    this.showFulfillmentNotification(this.state.currentWishId);
+    
+    // 2. 记录还愿到数据库
+    await this.recordFulfillment();
+    
+    // 3. 移除愿望卡片
+    await this.safeRemoveWishCard(this.state.currentWishId);
+    
+    // 4. 跳转回许愿池页面
+    setTimeout(() => {
+      this.cleanupPaymentState();
+      window.location.href = this.config.paymentGateway.successUrl;
+    }, 1500);
+    
+  } catch (error) {
+    this.handlePaymentSuccessError(error);
   }
+}
 
   async ensureFulfillmentRecorded() {
     try {
@@ -647,17 +645,44 @@ class WWPay {
   /* ========== 数据库操作 ========== */
 
  async recordFulfillment(retryCount = 3) {
-  const baseDelay = 1000; // 基础延迟1秒
   const url = `${this.config.paymentGateway.apiBase}/api/wishes/fulfill`;
   
-  // 1. 验证愿望ID是否有效
-  if (!this.state.currentWishId || typeof this.state.currentWishId !== 'number' || this.state.currentWishId <= 0) {
-    const errorMsg = `无效的愿望ID: ${this.state.currentWishId}`;
-    this.safeLogError(errorMsg);
-    this.showToast('愿望ID无效，无法记录还愿', 'error');
-    this.savePendingFulfillment(); // 保存为待处理记录
-    throw new Error(errorMsg);
+  // 验证愿望ID
+  if (!this.state.currentWishId) {
+    throw new Error('无效的愿望ID');
   }
+
+  const requestData = {
+    wishId: this.state.currentWishId,
+    amount: this.state.selectedAmount,
+    paymentMethod: this.state.selectedMethod
+  };
+  
+  for (let attempt = 1; attempt <= retryCount; attempt++) {
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+        },
+        body: JSON.stringify(requestData)
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP错误 ${response.status}`);
+      }
+      
+      return await response.json();
+      
+    } catch (error) {
+      if (attempt === retryCount) {
+        throw new Error(`记录还愿失败: ${error.message}`);
+      }
+      await this.delay(1000 * attempt);
+    }
+  }
+}
   
   // 2. 验证愿望在本地是否存在
   const wishCard = document.querySelector(`[data-wish-id="${this.state.currentWishId}"]`);
@@ -1073,14 +1098,15 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-function showFulfillmentNotification(wishId) {
+// 新增 showFulfillmentNotification 方法
+showFulfillmentNotification(wishId) {
   const notification = document.createElement('div');
   notification.className = 'fulfillment-notification';
   notification.innerHTML = `
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
       <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
     </svg>
-    <span>还愿已成功，愿望 #${wishId} 已被移除</span>
+    <span>还愿已成功，您的愿望将会被移除</span>
   `;
   document.body.appendChild(notification);
   
