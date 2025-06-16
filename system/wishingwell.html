@@ -1072,56 +1072,62 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 处理还愿请求
 async function processFulfillment(wishId, amount, token) {
-    const modal = document.getElementById('fulfillModal');
+  const modal = document.getElementById('fulfillModal');
+  
+  try {
+    // 显示处理中状态
+    modal.querySelector('.fulfill-options').style.display = 'none';
+    modal.querySelector('.fulfill-processing').style.display = 'block';
     
-    try {
-        // 显示处理中状态
-        modal.querySelector('.fulfill-options').style.display = 'none';
-        modal.querySelector('.fulfill-processing').style.display = 'block';
-        
-        // 发送还愿请求
-        const response = await fetch(`${API_BASE}/api/wishes/fulfill`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({
-                wishId,
-                amount,
-                paymentMethod: 'wechat' // 默认为微信支付
-            })
-        });
-        
-        if (!response.ok) {
-            throw new Error(await response.text());
-        }
-        
-        // 显示成功状态
-        modal.querySelector('.fulfill-processing').style.display = 'none';
-        modal.querySelector('.fulfill-success').style.display = 'block';
-        
-        // 3秒后关闭模态框
-        setTimeout(() => {
-            modal.style.display = 'none';
-            
-            // 从UI中移除愿望
-            const wishCard = document.querySelector(`.wish-card[data-id="${wishId}"]`);
-            if (wishCard) {
-                wishCard.remove();
-                showSuccessMessage('愿望已成功移除');
-            }
-        }, 3000);
-        
-    } catch (error) {
-        console.error('还愿处理失败:', error);
-        
-        // 恢复选择状态
-        modal.querySelector('.fulfill-options').style.display = 'grid';
-        modal.querySelector('.fulfill-processing').style.display = 'none';
-        
-        showErrorMessage('还愿失败: ' + error.message);
+    // 发送还愿请求
+    const response = await fetch(`${API_BASE}/api/wishes/fulfill`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        wishId,
+        amount,
+        paymentMethod: 'wechat'
+      })
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      // 处理特定错误
+      if (data.error === 'WISH_NOT_FOUND') {
+        throw new Error('愿望不存在或已被删除');
+      }
+      throw new Error(data.message || '还愿失败');
     }
+    
+    // 显示成功状态
+    modal.querySelector('.fulfill-processing').style.display = 'none';
+    modal.querySelector('.fulfill-success').style.display = 'block';
+    
+    // 3秒后关闭模态框
+    setTimeout(() => {
+      modal.style.display = 'none';
+      
+      // 从UI中移除愿望
+      const wishCard = document.querySelector(`.wish-card[data-id="${wishId}"]`);
+      if (wishCard) {
+        wishCard.remove();
+        showSuccessMessage('愿望已成功移除');
+      }
+    }, 3000);
+    
+  } catch (error) {
+    console.error('还愿处理失败:', error);
+    
+    // 恢复选择状态
+    modal.querySelector('.fulfill-options').style.display = 'grid';
+    modal.querySelector('.fulfill-processing').style.display = 'none';
+    
+    showErrorMessage(error.message);
+  }
 }
     
     // 更新分页信息
