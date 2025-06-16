@@ -368,30 +368,31 @@ class WWPay {
   /* ========== 核心支付方法 ========== */
 
   async processPayment() {
-  try {
-    // 通过API与后端交互
-    const response = await fetch(`${this.config.paymentGateway.apiBase}/api/payments/precreate`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
-      },
-      body: JSON.stringify({
+    if (!this.validatePaymentState()) return;
+
+    try {
+      this.state.processing = true;
+      this.updateConfirmButtonState();
+      this.showFullscreenLoading('正在准备支付...');
+      
+      this.state.lastPayment = {
         wishId: this.state.currentWishId,
         amount: this.state.selectedAmount,
-        method: this.state.selectedMethod
-      })
-    });
+        method: this.state.selectedMethod,
+        timestamp: Date.now()
+      };
+      localStorage.setItem('last-payment', JSON.stringify(this.state.lastPayment));
 
-    if (!response.ok) throw new Error('预创建订单失败');
-    const { orderId } = await response.json();
-    this.state.lastPayment.orderId = orderId;
-    
-  } catch (error) {
-    this.handlePaymentError(error);
+      const result = await this.createPaymentOrder();
+      
+      if (result.success) {
+        this.startPaymentStatusCheck();
+      }
+    } catch (error) {
+      this.handlePaymentError(error);
+    }
   }
-}
-  
+
   async createPaymentOrder() {
     try {
       const orderId = this.generateOrderId();
@@ -560,90 +561,30 @@ class WWPay {
 
   /* ========== 支付成功处理 ========== */
 
-  // 修改后的支付成功处理逻辑
-async handlePaymentSuccess() {
-  // 1. 显示临时通知
-  this.showGuaranteedToast('支付处理中，请勿关闭页面...');
-  
-  // 2. 启动轮询检查
-  const maxAttempts = 10;
-  const interval = 3000;
-  
-  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+  async handlePaymentSuccess() {
     try {
-      const status = await this.checkPaymentStatus();
+      this.showGuaranteedToast('还愿成功！正在更新状态...');
       
-      if (status === 'success') {
-        // 3. 确认成功后记录还愿
-        await this.recordFulfillment();
-        this.showSuccessNotification();
-        return;
+      // 1. 确保记录到fulfillments表
+      const fulfillmentResult = await this.ensureFulfillmentRecorded();
+      if (!fulfillmentResult.success) {
+        throw new Error(fulfillmentResult.message);
       }
       
-      await this.delay(interval);
+      // 2. 验证愿望已从wishes表删除
+      const verified = await this.verifyWishRemoved();
+      if (!verified) {
+        throw new Error('愿望删除验证失败');
+      }
+
+      // 3. 准备跳转
+      this.prepareSuccessRedirect();
       
     } catch (error) {
-      console.error(`支付状态检查失败 (${attempt}/${maxAttempts}):`, error);
-      if (attempt === maxAttempts) {
-        this.showGuaranteedToast('支付验证超时，请联系客服', 'error');
-      }
+      this.handlePaymentSuccessError(error);
     }
   }
-}
 
-// 新增支付状态检查方法
-async checkPaymentStatus() {
-  const response = await fetch(
-    `${this.config.paymentGateway.apiBase}/api/payments/verify?orderId=${this.state.lastPayment.orderId}`
-  );
-  const data = await response.json();
-  return data.status; // 'success'|'pending'|'failed'
-}
-
-// 支付初始阶段就创建预记录
-async processPayment() {
-  // 1. 先在数据库创建"待支付"记录
-  const preRecord = await env.DB.prepare(
-    `INSERT INTO fulfillments 
-     (wish_id, amount, payment_method, status, created_at)
-     VALUES (?, ?, ?, 'pending', ?)`
-  ).bind(this.state.currentWishId, 
-         this.state.selectedAmount,
-         this.state.selectedMethod,
-         Math.floor(Date.now()/1000)).run();
-
-  // 2. 支付成功后更新状态
-  await env.DB.prepare(
-    `UPDATE fulfillments SET status='success' 
-     WHERE id=? AND status='pending'`
-  ).bind(preRecord.last_row_id).run();
-}
-  
-  /* ========== 显示成功通知 ========== */
-
-showSuccessNotification() {
-  const notification = document.createElement('div');
-  notification.className = 'fulfillment-notification';
-  notification.innerHTML = `
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
-    </svg>
-    <span>还愿已成功，您的愿望将会被移除</span>
-  `;
-  document.body.appendChild(notification);
-  
-  setTimeout(() => {
-    notification.classList.add('fade-out');
-    setTimeout(() => notification.remove(), 1000);
-  }, 3000);
-  
-  // 关闭模态框（如果存在）
-  const modal = bootstrap.Modal.getInstance(document.getElementById('fulfillModal'));
-  if (modal) {
-    modal.hide();
-  }
-}
-  
   async ensureFulfillmentRecorded() {
     try {
       // 先检查是否有未完成的记录
@@ -705,43 +646,101 @@ showSuccessNotification() {
 
   /* ========== 数据库操作 ========== */
 
- async recordFulfillment() {
+ async recordFulfillment(retryCount = 3) {
+  const baseDelay = 1000; // 基础延迟1秒
   const url = `${this.config.paymentGateway.apiBase}/api/wishes/fulfill`;
-  console.log('[Fulfillment] 请求URL:', url); // 调试日志
   
-  try {
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
-      },
-      body: JSON.stringify({
-        wishId: this.state.currentWishId,
-        amount: this.state.selectedAmount,
-        paymentMethod: this.state.selectedMethod
-      })
-    });
-    
-    console.log('[Fulfillment] 响应状态:', response.status); // 调试日志
-    
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('[Fulfillment] 错误响应:', errorText);
-      throw new Error(`HTTP错误 ${response.status}: ${errorText}`);
+  // 1. 验证愿望ID是否有效
+  if (!this.state.currentWishId || typeof this.state.currentWishId !== 'number' || this.state.currentWishId <= 0) {
+    const errorMsg = `无效的愿望ID: ${this.state.currentWishId}`;
+    this.safeLogError(errorMsg);
+    this.showToast('愿望ID无效，无法记录还愿', 'error');
+    this.savePendingFulfillment(); // 保存为待处理记录
+    throw new Error(errorMsg);
+  }
+  
+  // 2. 验证愿望在本地是否存在
+  const wishCard = document.querySelector(`[data-wish-id="${this.state.currentWishId}"]`);
+  if (!wishCard) {
+    const errorMsg = `找不到愿望卡片: ${this.state.currentWishId}`;
+    this.safeLogError(errorMsg);
+    this.showToast('愿望不存在或已被删除', 'error');
+    this.savePendingFulfillment(); // 保存为待处理记录
+    throw new Error(errorMsg);
+  }
+  
+  // 3. 创建请求数据
+  const requestData = {
+    wishId: this.state.currentWishId,
+    amount: this.state.selectedAmount,
+    paymentMethod: this.state.selectedMethod
+  };
+  
+  // 4. 重试循环
+  for (let attempt = 1; attempt <= retryCount; attempt++) {
+    try {
+      // 详细日志
+      this.log(`[还愿记录] 尝试 ${attempt}/${retryCount} | 愿望ID: ${this.state.currentWishId} | 金额: ${this.state.selectedAmount} | 方式: ${this.state.selectedMethod}`);
+      
+      // 发送请求
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+        },
+        body: JSON.stringify(requestData)
+      });
+      
+      // 处理HTTP响应
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`HTTP错误 ${response.status}: ${errorText}`);
+      }
+      
+      const data = await response.json();
+      
+      // 检查后端响应
+      if (!data.success) {
+        throw new Error(`后端错误: ${data.error || data.message || '未知错误'}`);
+      }
+      
+      // 记录成功
+      this.log(`[还愿记录] 成功! fulfillmentId: ${data.fulfillmentId}`);
+      return data;
+      
+    } catch (error) {
+      const errorMsg = `记录还愿失败 (尝试 ${attempt}/${retryCount}): ${error.message}`;
+      
+      // 最后一次尝试失败
+      if (attempt === retryCount) {
+        this.safeLogError(errorMsg, error);
+        
+        // 保存到待处理列表
+        const pending = JSON.parse(localStorage.getItem('pendingFulfillments') || '[]');
+        pending.push({
+          wishId: this.state.currentWishId,
+          amount: this.state.selectedAmount,
+          method: this.state.selectedMethod,
+          timestamp: Date.now(),
+          error: error.message,
+          attempts: 0 // 重试次数计数器
+        });
+        
+        localStorage.setItem('pendingFulfillments', JSON.stringify(pending));
+        this.log(`已保存到待处理列表，当前待处理记录: ${pending.length}`);
+        
+        // 启动后台重试
+        this.startBackgroundRetry();
+        
+        throw new Error(`所有尝试均失败: ${error.message}`);
+      }
+      
+      // 指数退避 + 随机抖动
+      const delay = baseDelay * Math.pow(2, attempt - 1) + Math.random() * 500;
+      this.log(`${errorMsg} - ${Math.round(delay)}ms后重试`);
+      await this.delay(delay);
     }
-    
-    const data = await response.json();
-    console.log('[Fulfillment] 响应数据:', data); // 调试日志
-    
-    if (!data.success) {
-      throw new Error(data.error || '还愿记录失败');
-    }
-    
-    return data;
-  } catch (error) {
-    console.error('[Fulfillment] 记录还愿异常:', error);
-    throw error;
   }
 }
 
