@@ -368,31 +368,31 @@ class WWPay {
   /* ========== 核心支付方法 ========== */
 
   async processPayment() {
-    if (!this.validatePaymentState()) return;
+  if (!this.validatePaymentState()) return;
 
-    try {
-      this.state.processing = true;
-      this.updateConfirmButtonState();
-      this.showFullscreenLoading('正在准备支付...');
-      
-      this.state.lastPayment = {
-        wishId: this.state.currentWishId,
-        amount: this.state.selectedAmount,
-        method: this.state.selectedMethod,
-        timestamp: Date.now()
-      };
-      localStorage.setItem('last-payment', JSON.stringify(this.state.lastPayment));
+  try {
+    this.state.processing = true;
+    this.updateConfirmButtonState();
+    this.showFullscreenLoading('正在准备支付...');
+    
+    this.state.lastPayment = {
+      wishId: this.state.currentWishId,
+      amount: this.state.selectedAmount,
+      method: this.state.selectedMethod,
+      timestamp: Date.now()
+    };
+    localStorage.setItem('last-payment', JSON.stringify(this.state.lastPayment));
 
-      const result = await this.createPaymentOrder();
-      
-      if (result.success) {
-        this.startPaymentStatusCheck();
-      }
-    } catch (error) {
-      this.handlePaymentError(error);
+    const result = await this.createPaymentOrder();
+    
+    if (result.success) {
+      this.startPaymentStatusCheck();
     }
+  } catch (error) {
+    this.handlePaymentError(error);
   }
-
+}
+  
   async createPaymentOrder() {
     try {
       const orderId = this.generateOrderId();
@@ -562,28 +562,28 @@ class WWPay {
   /* ========== 支付成功处理 ========== */
 
   async handlePaymentSuccess() {
-    try {
-      this.showGuaranteedToast('还愿成功！正在更新状态...');
-      
-      // 1. 确保记录到fulfillments表
-      const fulfillmentResult = await this.ensureFulfillmentRecorded();
-      if (!fulfillmentResult.success) {
-        throw new Error(fulfillmentResult.message);
-      }
-      
-      // 2. 验证愿望已从wishes表删除
-      const verified = await this.verifyWishRemoved();
-      if (!verified) {
-        throw new Error('愿望删除验证失败');
-      }
-
-      // 3. 准备跳转
-      this.prepareSuccessRedirect();
-      
-    } catch (error) {
-      this.handlePaymentSuccessError(error);
+  try {
+    this.showGuaranteedToast('支付成功！正在记录还愿...');
+    
+    // 1. 确保记录到fulfillments表（核心修复点）
+    const fulfillmentResult = await this.ensureFulfillmentRecorded();
+    if (!fulfillmentResult.success) {
+      throw new Error(fulfillmentResult.message);
     }
+    
+    // 2. 验证愿望已从wishes表删除
+    const verified = await this.verifyWishRemoved();
+    if (!verified) {
+      throw new Error('愿望删除验证失败');
+    }
+
+    // 3. 准备跳转
+    this.prepareSuccessRedirect();
+    
+  } catch (error) {
+    this.handlePaymentSuccessError(error);
   }
+}
 
   async ensureFulfillmentRecorded() {
     try {
