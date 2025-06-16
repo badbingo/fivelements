@@ -562,22 +562,28 @@ class WWPay {
   /* ========== 支付成功处理 ========== */
 
   async handlePaymentSuccess() {
-  try {
-    this.showGuaranteedToast('还愿成功！正在更新状态...');
-    
-    // 1. 确保记录到fulfillments表
-    const fulfillmentResult = await this.ensureFulfillmentRecorded();
-    if (!fulfillmentResult.success) {
-      throw new Error(fulfillmentResult.message);
+    try {
+      this.showGuaranteedToast('还愿成功！正在更新状态...');
+      
+      // 1. 确保记录到fulfillments表
+      const fulfillmentResult = await this.ensureFulfillmentRecorded();
+      if (!fulfillmentResult.success) {
+        throw new Error(fulfillmentResult.message);
+      }
+      
+      // 2. 验证愿望已从wishes表删除
+      const verified = await this.verifyWishRemoved();
+      if (!verified) {
+        throw new Error('愿望删除验证失败');
+      }
+
+      // 3. 准备跳转
+      this.prepareSuccessRedirect();
+      
+    } catch (error) {
+      this.handlePaymentSuccessError(error);
     }
-    
-    // 2. 准备跳转
-    this.prepareSuccessRedirect();
-    
-  } catch (error) {
-    this.handlePaymentSuccessError(error);
   }
-}
 
   async ensureFulfillmentRecorded() {
     try {
@@ -626,18 +632,17 @@ class WWPay {
     return false;
   }
 
-// 修改 prepareSuccessRedirect 方法
-prepareSuccessRedirect() {
-  const successUrl = new URL(this.config.paymentGateway.successUrl);
-  successUrl.searchParams.append('fulfillment_success', 'true');
-  successUrl.searchParams.append('wish_id', this.state.currentWishId);
-  
-  this.showGuaranteedToast('处理完成！即将跳转...', 'success');
-  setTimeout(() => {
-    this.cleanupPaymentState();
-    window.location.href = successUrl.toString();
-  }, 1500);
-}
+  prepareSuccessRedirect() {
+    const successUrl = new URL(this.config.paymentGateway.successUrl);
+    successUrl.searchParams.append('fulfillment_success', 'true');
+    successUrl.searchParams.append('wish_id', this.state.currentWishId);
+    
+    this.showGuaranteedToast('处理完成！即将跳转...', 'success');
+    setTimeout(() => {
+      this.cleanupPaymentState();
+      window.location.href = successUrl.toString();
+    }, 1500);
+  }
 
   /* ========== 数据库操作 ========== */
 
@@ -1075,7 +1080,7 @@ function showFulfillmentNotification(wishId) {
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
       <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
     </svg>
-    <span>还愿已成功，您的愿望将会被移除</span>
+    <span>还愿已成功，愿望 #${wishId} 已被移除</span>
   `;
   document.body.appendChild(notification);
   
