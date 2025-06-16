@@ -561,36 +561,65 @@ class WWPay {
 
   /* ========== 支付成功处理 ========== */
 
-  async handlePaymentSuccess() {
-  try {
-    console.log('[Payment] 支付成功处理开始'); // 调试日志
-    
-    this.showGuaranteedToast('还愿成功！正在更新状态...');
-    
-    // 1. 记录还愿
-    console.log('[Payment] 正在记录还愿...');
-    const fulfillmentResult = await this.ensureFulfillmentRecorded();
-    console.log('[Payment] 还愿记录结果:', fulfillmentResult);
-    
-    if (!fulfillmentResult.success) {
-      throw new Error(fulfillmentResult.message || '还愿记录失败');
+  // 修改后的支付成功处理逻辑
+async handlePaymentSuccess() {
+  // 1. 显示临时通知
+  this.showGuaranteedToast('支付处理中，请勿关闭页面...');
+  
+  // 2. 启动轮询检查
+  const maxAttempts = 10;
+  const interval = 3000;
+  
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      const status = await this.checkPaymentStatus();
+      
+      if (status === 'success') {
+        // 3. 确认成功后记录还愿
+        await this.recordFulfillment();
+        this.showSuccessNotification();
+        return;
+      }
+      
+      await this.delay(interval);
+      
+    } catch (error) {
+      console.error(`支付状态检查失败 (${attempt}/${maxAttempts}):`, error);
+      if (attempt === maxAttempts) {
+        this.showGuaranteedToast('支付验证超时，请联系客服', 'error');
+      }
     }
-    
-    // 2. 显示成功通知
-    console.log('[Payment] 显示成功通知');
-    this.showSuccessNotification();
-    
-    // 3. 准备跳转
-    console.log('[Payment] 准备跳转');
-    this.prepareSuccessRedirect();
-    
-  } catch (error) {
-    console.error('[Payment] 支付成功处理异常:', error);
-    this.handlePaymentSuccessError(error);
   }
 }
 
+// 新增支付状态检查方法
+async checkPaymentStatus() {
+  const response = await fetch(
+    `${this.config.paymentGateway.apiBase}/api/payments/verify?orderId=${this.state.lastPayment.orderId}`
+  );
+  const data = await response.json();
+  return data.status; // 'success'|'pending'|'failed'
+}
 
+// 支付初始阶段就创建预记录
+async processPayment() {
+  // 1. 先在数据库创建"待支付"记录
+  const preRecord = await env.DB.prepare(
+    `INSERT INTO fulfillments 
+     (wish_id, amount, payment_method, status, created_at)
+     VALUES (?, ?, ?, 'pending', ?)`
+  ).bind(this.state.currentWishId, 
+         this.state.selectedAmount,
+         this.state.selectedMethod,
+         Math.floor(Date.now()/1000)).run();
+
+  // 2. 支付成功后更新状态
+  await env.DB.prepare(
+    `UPDATE fulfillments SET status='success' 
+     WHERE id=? AND status='pending'`
+  ).bind(preRecord.last_row_id).run();
+}
+  
   /* ========== 显示成功通知 ========== */
 
 showSuccessNotification() {
