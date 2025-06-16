@@ -340,7 +340,6 @@
     <script>
         
 document.addEventListener('DOMContentLoaded', function() {
-    
     // 配置后端地址
     const API_BASE = 'https://bazi-backend.owenjass.workers.dev';
     const API_URL = `${API_BASE}/api/wishes`;
@@ -359,6 +358,32 @@ document.addEventListener('DOMContentLoaded', function() {
     const pageInfo = document.getElementById('pageInfo');
     const wishForm = document.getElementById('wishForm');
     const baziInfo = document.getElementById('baziInfo');
+    const fulfillModal = document.getElementById('fulfillModal');
+
+    // ==================== 新增：模态框关闭逻辑 ====================
+    function setupModalClose() {
+        // 1. 点击X按钮关闭
+        const closeModalBtn = fulfillModal.querySelector('.close-modal');
+        if (closeModalBtn) {
+            closeModalBtn.addEventListener('click', function() {
+                fulfillModal.style.display = 'none';
+            });
+        }
+
+        // 2. 点击模态框外部关闭
+        window.addEventListener('click', function(event) {
+            if (event.target === fulfillModal) {
+                fulfillModal.style.display = 'none';
+            }
+        });
+    }
+
+    // 初始化模态框关闭功能
+    if (fulfillModal) {
+        setupModalClose();
+    } else {
+        console.warn('未找到还愿模态框元素');
+    }
 
     // 绑定表单提交事件
     wishForm.addEventListener('submit', handleSubmitWish);
