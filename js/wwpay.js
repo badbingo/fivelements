@@ -368,31 +368,30 @@ class WWPay {
   /* ========== 核心支付方法 ========== */
 
   async processPayment() {
-    if (!this.validatePaymentState()) return;
-
-    try {
-      this.state.processing = true;
-      this.updateConfirmButtonState();
-      this.showFullscreenLoading('正在准备支付...');
-      
-      this.state.lastPayment = {
+  try {
+    // 通过API与后端交互
+    const response = await fetch(`${this.config.paymentGateway.apiBase}/api/payments/precreate`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      },
+      body: JSON.stringify({
         wishId: this.state.currentWishId,
         amount: this.state.selectedAmount,
-        method: this.state.selectedMethod,
-        timestamp: Date.now()
-      };
-      localStorage.setItem('last-payment', JSON.stringify(this.state.lastPayment));
+        method: this.state.selectedMethod
+      })
+    });
 
-      const result = await this.createPaymentOrder();
-      
-      if (result.success) {
-        this.startPaymentStatusCheck();
-      }
-    } catch (error) {
-      this.handlePaymentError(error);
-    }
+    if (!response.ok) throw new Error('预创建订单失败');
+    const { orderId } = await response.json();
+    this.state.lastPayment.orderId = orderId;
+    
+  } catch (error) {
+    this.handlePaymentError(error);
   }
-
+}
+  
   async createPaymentOrder() {
     try {
       const orderId = this.generateOrderId();
