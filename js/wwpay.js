@@ -365,89 +365,103 @@ class WWPay {
     }
   }
 
-  // 修改后的 processPayment 方法
-async processPayment() {
-  if (!this.validatePaymentState()) return;
+  /* ========== 核心支付方法 ========== */
 
-  try {
-    this.state.processing = true;
-    this.updateConfirmButtonState();
-    this.showFullscreenLoading('正在准备支付...');
-    
-    const result = await this.createPaymentOrder();
-    
-    if (result.success) {
-      this.startPaymentStatusCheck();
-    }
-  } catch (error) {
-    console.error('支付处理失败:', error);
-    
-    // 分类处理不同错误
-    if (error.message.includes('无效的愿望ID')) {
-      this.showPersistentToast('愿望ID无效，请刷新页面重试', 'error');
-    } else if (error.message.includes('支付参数缺失')) {
-      this.showPersistentToast('支付参数配置错误，请联系管理员', 'error');
-    } else {
-      this.showPersistentToast(`支付失败: ${error.message}`, 'error');
-    }
-    
-    this.hideFullscreenLoading();
-    this.state.processing = false;
-    this.updateConfirmButtonState();
-  }
-}
-// 修改后的 createPaymentOrder
-async createPaymentOrder() {
-  try {
-    const orderId = this.generateOrderId();
-    
-    // 确保愿望ID有效
-    if (!this.state.currentWishId || isNaN(this.state.currentWishId)) {
-      throw new Error(`无效的愿望ID: ${this.state.currentWishId}`);
-    }
-    
-    // 确保金额有效
-    if (!this.state.selectedAmount || isNaN(this.state.selectedAmount)) {
-      throw new Error(`无效的支付金额: ${this.state.selectedAmount}`);
-    }
+  async processPayment() {
+    if (!this.validatePaymentState()) return;
 
-    const paymentData = {
-      pid: this.config.paymentGateway.pid,
-      type: this.state.selectedMethod,
-      out_trade_no: orderId,
-      notify_url: 'https://bazi-backend.owenjass.workers.dev/api/payments/callback', // 固定回调URL
-      return_url: this.config.paymentGateway.successUrl,
-      name: `还愿-${this.state.currentWishId}`,
-      money: this.state.selectedAmount.toFixed(2), // 确保金额格式正确
-      param: encodeURIComponent(JSON.stringify({
+    try {
+      this.state.processing = true;
+      this.updateConfirmButtonState();
+      this.showFullscreenLoading('正在准备支付...');
+      
+      this.state.lastPayment = {
         wishId: this.state.currentWishId,
-        amount: this.state.selectedAmount
-      })),
-      sign_type: this.config.paymentGateway.signType
-    };
-    
-    // 检查所有必填参数
-    const requiredParams = ['pid', 'type', 'out_trade_no', 'notify_url', 'return_url', 'name', 'money', 'sign_type'];
-    requiredParams.forEach(param => {
-      if (!paymentData[param]) {
-        throw new Error(`支付参数缺失: ${param}`);
+        amount: this.state.selectedAmount,
+        method: this.state.selectedMethod,
+        timestamp: Date.now()
+      };
+      localStorage.setItem('last-payment', JSON.stringify(this.state.lastPayment));
+
+      const result = await this.createPaymentOrder();
+      
+      if (result.success) {
+        this.startPaymentStatusCheck();
       }
-    });
-    
-    paymentData.sign = this.generateSignature(paymentData);
-    
-    // 先记录还愿意向
-    await this.recordFulfillment();
-    
-    // 提交支付
-    await this.submitPaymentForm(paymentData);
-    
-    return { success: true, orderId };
-  } catch (error) {
-    console.error('创建支付订单失败:', error);
-    throw new Error(`创建订单失败: ${error.message}`);
+    } catch (error) {
+      this.handlePaymentError(error);
+    }
   }
-}
+
+  async createPaymentOrder() {
+    try {
+      const orderId = this.generateOrderId();
+      
+      // 异步记录还愿
+      this.recordFulfillment().catch(error => {
+        this.safeLogError('异步记录还愿失败', error);
+        this.savePendingFulfillment();
+      });
+
+      const paymentData = {
+        pid: this.config.paymentGateway.pid,
+        type: this.state.selectedMethod,
+        out_trade_no: orderId,
+        notify_url: location.href,
+        return_url: this.config.paymentGateway.successUrl,
+        name: `还愿-${this.state.currentWishId}`,
+        money: this.state.selectedAmount.toFixed(2),
+        param: encodeURIComponent(JSON.stringify({
+          wishId: this.state.currentWishId,
+          amount: this.state.selectedAmount
+        })),
+        sign_type: this.config.paymentGateway.signType
+      };
+      
+      // 生成签名
+      paymentData.sign = this.generateSignature(paymentData);
+      
+      if (!paymentData.sign) {
+        throw new Error('签名生成失败');
+      }
+
+      await this.submitPaymentForm(paymentData);
+      
+      return { success: true, orderId };
+    } catch (error) {
+      throw new Error(`创建订单失败: ${error.message}`);
+    }
+  }
+
+  generateSignature(params) {
+    try {
+      if (!params || typeof params !== 'object') {
+        throw new Error('无效的签名参数');
+      }
+
+      // 过滤空值和排除签名字段
+      const filtered = {};
+      Object.keys(params)
+        .filter(k => params[k] !== '' && !['sign', 'sign_type'].includes(k))
+        .sort()
+        .forEach(k => filtered[k] = params[k]);
+
+      // 构建签名字符串
+      const signStr = Object.entries(filtered)
+        .map(([k, v]) => `${k}=${v}`)
+        .join('&') + this.config.paymentGateway.key;
+
+      // 使用CryptoJS生成MD5签名
+      if (typeof CryptoJS === 'undefined') {
+        throw new Error('CryptoJS未加载');
+      }
+
+      return CryptoJS.MD5(signStr).toString();
+    } catch (error) {
+      console.error('生成签名失败:', error);
+      throw new Error(`签名生成失败: ${error.message}`);
+    }
+  }
 
   async submitPaymentForm(paymentData) {
     return new Promise((resolve) => {
@@ -632,47 +646,51 @@ async createPaymentOrder() {
 
   /* ========== 数据库操作 ========== */
 
- async recordFulfillment() {
-  try {
-    // 验证愿望ID
-    const wishId = parseInt(this.state.currentWishId);
-    if (isNaN(wishId) {
-      throw new Error(`无效的愿望ID: ${this.state.currentWishId}`);
-    }
-
-    const response = await fetch(`${this.config.paymentGateway.apiBase}/api/wishes/fulfill`, {
-      method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
-      },
-      body: JSON.stringify({
-        wishId: wishId, // 确保使用数字类型
-        amount: this.state.selectedAmount,
-        paymentMethod: this.state.selectedMethod
-      })
-    });
-    
-    const data = await response.json();
-    
-    if (!response.ok || !data.success) {
-      throw new Error(data.error || '还愿记录失败');
-    }
-    
-    return data;
-  } catch (error) {
-    console.error('记录还愿失败:', error);
-    throw new Error(`记录还愿失败: ${error.message}`);
+ async recordFulfillment(retryCount = 3) {
+  const baseDelay = 1000; // 基础延迟1秒
+  const url = `${this.config.paymentGateway.apiBase}/api/wishes/fulfill`;
+  
+  // 1. 验证愿望ID是否有效
+  if (!this.state.currentWishId || typeof this.state.currentWishId !== 'number' || this.state.currentWishId <= 0) {
+    const errorMsg = `无效的愿望ID: ${this.state.currentWishId}`;
+    this.safeLogError(errorMsg);
+    this.showToast('愿望ID无效，无法记录还愿', 'error');
+    this.savePendingFulfillment(); // 保存为待处理记录
+    throw new Error(errorMsg);
   }
-}
-      // 支付验证方法
-      async verifyPayment() {
-        const response = await fetch(
-          `${this.config.paymentGateway.apiBase}/verify-payment`,
-          { method: 'POST', body: JSON.stringify(this.state.lastPayment) }
-        );
-        return response.status === 200;
-      }
+  
+  // 2. 验证愿望在本地是否存在
+  const wishCard = document.querySelector(`[data-wish-id="${this.state.currentWishId}"]`);
+  if (!wishCard) {
+    const errorMsg = `找不到愿望卡片: ${this.state.currentWishId}`;
+    this.safeLogError(errorMsg);
+    this.showToast('愿望不存在或已被删除', 'error');
+    this.savePendingFulfillment(); // 保存为待处理记录
+    throw new Error(errorMsg);
+  }
+  
+  // 3. 创建请求数据
+  const requestData = {
+    wishId: this.state.currentWishId,
+    amount: this.state.selectedAmount,
+    paymentMethod: this.state.selectedMethod
+  };
+  
+  // 4. 重试循环
+  for (let attempt = 1; attempt <= retryCount; attempt++) {
+    try {
+      // 详细日志
+      this.log(`[还愿记录] 尝试 ${attempt}/${retryCount} | 愿望ID: ${this.state.currentWishId} | 金额: ${this.state.selectedAmount} | 方式: ${this.state.selectedMethod}`);
+      
+      // 发送请求
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+        },
+        body: JSON.stringify(requestData)
+      });
       
       // 处理HTTP响应
       if (!response.ok) {
