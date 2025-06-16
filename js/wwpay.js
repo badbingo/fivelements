@@ -453,7 +453,61 @@ class WWPay {
       window.location.href = successUrl.toString();
     }, 1500);
   }
+  
+// 在 WWPay 类的 setupErrorHandling 方法中
+setupErrorHandling() {
+  try {
+    // 保存原始错误处理
+    const originalOnError = window.onerror;
+    
+    window.onerror = function(message, source, lineno, colno, error) {
+      // 忽略 lockdown-install.js 的所有错误
+      if (source && source.includes('lockdown-install.js')) {
+        return true; // 阻止错误继续传播
+      }
+      
+      // 调用原始错误处理
+      if (typeof originalOnError === 'function') {
+        return originalOnError.call(this, message, source, lineno, colno, error);
+      }
+      
+      return false;
+    };
 
+    window.addEventListener('unhandledrejection', (event) => {
+      try {
+        this.safeLogError('未处理的Promise拒绝', event.reason);
+      } catch (innerError) {
+        // 静默处理
+      }
+    });
+  } catch (outerError) {
+    // 静默处理初始化错误
+  }
+}
+
+  safeLogError(context, error) {
+  try {
+    // 使用最安全的日志方式
+    if (typeof console !== 'undefined' && console.error) {
+      // 确保错误信息是字符串
+      const errorMsg = (error && error.message) ? error.message : 
+                      (typeof error === 'string') ? error : 
+                      '未知错误';
+      
+      // 使用传统字符串连接
+      console.error('[WWPay] ' + context + ': ' + errorMsg);
+      
+      // 如果需要完整错误堆栈
+      if (error && error.stack) {
+        console.error('错误堆栈:', error.stack);
+      }
+    }
+  } catch (e) {
+    // 完全静默，不做任何操作
+  }
+}
+  
   /* ========== 数据库操作 ========== */
 
   async recordFulfillment(retryCount = 3) {
