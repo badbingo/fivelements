@@ -331,20 +331,26 @@
         </div>
     </div>
     
-   <!-- 还愿模态框 -->
-    <div id="fulfillModal" class="modal">
-      <div class="modal-content">
-        <span class="close-modal">&times;</span>
-        <h3><i class="fas fa-hand-holding-heart"></i> 感恩还愿</h3>
-        <p>您的愿望已经实现，请选择还愿金额：</p>
-        
-        <!-- 金额选择 -->
-        <div class="fulfill-options">
-          <button class="fulfill-option" data-amount="0.01">5元</button>
-          <button class="fulfill-option" data-amount="10">10元</button>
-          <button class="fulfill-option" data-amount="20">20元</button>
-          <button class="fulfill-option" data-amount="50">50元</button>
-        </div>    
+        <!-- 在HTML中添加还愿模态框（已存在，需要完善） -->
+        <div id="fulfillModal" class="modal">
+          <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h3><i class="fas fa-hand-holding-heart"></i> 感恩还愿</h3>
+            <p>您的愿望已经实现，请选择还愿金额：</p>
+            
+            <!-- 金额选择 -->
+            <div class="fulfill-options">
+              <button class="fulfill-option" data-amount="5">5元</button>
+              <button class="fulfill-option" data-amount="10">10元</button>
+              <button class="fulfill-option" data-amount="20">20元</button>
+              <button class="fulfill-option" data-amount="50">50元</button>
+            </div>
+            
+            <div class="modal-actions">
+              <button id="cancelFulfill" class="btn-cancel">取消</button>
+            </div>
+          </div>
+        </div>  
     <script>
         
 document.addEventListener('DOMContentLoaded', function() {
@@ -1021,7 +1027,7 @@ document.addEventListener('DOMContentLoaded', function() {
               if (shouldLogin) window.location.href = '/user.html';
               return;
             }
-          
+            
             // 2. 显示还愿模态框
             const modal = document.getElementById('fulfillModal');
             if (!modal) {
@@ -1031,17 +1037,89 @@ document.addEventListener('DOMContentLoaded', function() {
             // 设置愿望ID到模态框
             modal.dataset.wishId = wish.id;
             modal.style.display = 'block';
-          
-            // 3. 初始化支付选项
-            if (window.wwPay) {
-              window.wwPay.resetPaymentState();
-            }
+            
+            // 3. 绑定金额选择事件
+            const fulfillOptions = modal.querySelectorAll('.fulfill-option');
+            fulfillOptions.forEach(option => {
+              option.addEventListener('click', async () => {
+                const amount = option.dataset.amount;
+                await processFulfillment(wish.id, amount, token);
+              });
+            });
+            
+            // 4. 绑定取消按钮事件
+            const cancelBtn = modal.querySelector('.close-modal');
+            cancelBtn.addEventListener('click', () => {
+              modal.style.display = 'none';
+            });
+            
+            // 5. 点击模态框外部关闭
+            modal.addEventListener('click', (e) => {
+              if (e.target === modal) {
+                modal.style.display = 'none';
+              }
+            });
+            
           } catch (error) {
             console.error('还愿初始化失败:', error);
-            alert('还愿失败: ' + error.message);
+            showErrorMessage('还愿失败: ' + error.message);
           }
         }
 
+    // 处理还愿支付
+    async function processFulfillment(wishId, amount, token) {
+      try {
+        const modal = document.getElementById('fulfillModal');
+        
+        // 禁用所有金额按钮
+        const options = modal.querySelectorAll('.fulfill-option');
+        options.forEach(opt => {
+          opt.disabled = true;
+          opt.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        });
+        
+        // 调用后端API完成还愿
+        const response = await fetch(`${API_BASE}/api/wishes/fulfill`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            wish_id: wishId,
+            amount: parseFloat(amount),
+            payment_method: 'wechat' // 可以根据实际情况修改
+          })
+        });
+        
+        if (!response.ok) {
+          throw new Error(await response.text());
+        }
+        
+        const result = await response.json();
+        
+        // 显示成功消息
+        showSuccessMessage('还愿已成功，您的愿望将会被移除');
+        
+        // 关闭模态框
+        modal.style.display = 'none';
+        
+        // 重新加载愿望列表
+        loadAllWishes();
+        
+      } catch (error) {
+        console.error('还愿处理失败:', error);
+        showErrorMessage('还愿失败: ' + error.message);
+        
+        // 重新启用按钮
+        const options = modal.querySelectorAll('.fulfill-option');
+        options.forEach(opt => {
+          opt.disabled = false;
+          opt.innerHTML = `${opt.dataset.amount}元`;
+        });
+      }
+    }
+    
     // 更新分页信息
     function updatePagination() {
         const selectedType = wishFilter.value;
