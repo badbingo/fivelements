@@ -565,25 +565,44 @@ class WWPay {
   try {
     this.showGuaranteedToast('还愿成功！正在更新状态...');
     
-    // 1. 确保记录到fulfillments表
+    // 1. 确保记录到fulfillments表 (此操作在后端会自动删除愿望)
     const fulfillmentResult = await this.ensureFulfillmentRecorded();
     if (!fulfillmentResult.success) {
       throw new Error(fulfillmentResult.message);
     }
-    
-    // 2. 从wishes表删除愿望卡片
-    const deleteResult = await this.deleteWishFromBackend();
-    if (!deleteResult.success) {
-      throw new Error(deleteResult.message);
-    }
 
-    // 3. 显示成功通知并跳转
-    this.showFulfillmentSuccessNotification();
+    // 2. 显示成功通知
+    await this.showFulfillmentSuccessNotification(); // 等待通知完成
+
+    // 3. 跳转到许愿池
     this.redirectToWishingWell();
 
   } catch (error) {
     this.handlePaymentSuccessError(error);
   }
+}
+
+// 更新通知方法 (返回Promise确保完整显示)
+showFulfillmentSuccessNotification() {
+  return new Promise((resolve) => {
+    const notification = document.createElement('div');
+    notification.className = 'fulfillment-notification';
+    notification.innerHTML = `
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+      </svg>
+      <span>还愿已成功，您的愿望将被删除</span>
+    `;
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+      notification.classList.add('fade-out');
+      setTimeout(() => {
+        notification.remove();
+        resolve(); // 通知完全消失后resolve
+      }, 1000);
+    }, 3000);
+  });
 }
 
   // 新增 deleteWishFromBackend 方法
