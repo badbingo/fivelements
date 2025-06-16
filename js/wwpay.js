@@ -365,73 +365,40 @@ class WWPay {
     }
   }
 
-  /* ========== 核心支付方法 ========== */
+  // 修改后的 processPayment 方法
+async processPayment() {
+  // ...验证支付状态...
 
-  async processPayment() {
-    if (!this.validatePaymentState()) return;
-
-    try {
-      this.state.processing = true;
-      this.updateConfirmButtonState();
-      this.showFullscreenLoading('正在准备支付...');
-      
-      this.state.lastPayment = {
-        wishId: this.state.currentWishId,
-        amount: this.state.selectedAmount,
-        method: this.state.selectedMethod,
-        timestamp: Date.now()
-      };
-      localStorage.setItem('last-payment', JSON.stringify(this.state.lastPayment));
-
-      const result = await this.createPaymentOrder();
-      
-      if (result.success) {
-        this.startPaymentStatusCheck();
-      }
-    } catch (error) {
-      this.handlePaymentError(error);
+  try {
+    // 1. 先创建支付订单
+    const result = await this.createPaymentOrder();
+    
+    // 2. 支付成功后再记录还愿
+    if (result.success) {
+      await this.recordFulfillment();
+      this.startPaymentStatusCheck();
     }
+  } catch (error) {
+    this.handlePaymentError(error);
   }
+}
 
-  async createPaymentOrder() {
-    try {
-      const orderId = this.generateOrderId();
-      
-      // 异步记录还愿
-      this.recordFulfillment().catch(error => {
-        this.safeLogError('异步记录还愿失败', error);
-        this.savePendingFulfillment();
-      });
-
-      const paymentData = {
-        pid: this.config.paymentGateway.pid,
-        type: this.state.selectedMethod,
-        out_trade_no: orderId,
-        notify_url: location.href,
-        return_url: this.config.paymentGateway.successUrl,
-        name: `还愿-${this.state.currentWishId}`,
-        money: this.state.selectedAmount.toFixed(2),
-        param: encodeURIComponent(JSON.stringify({
-          wishId: this.state.currentWishId,
-          amount: this.state.selectedAmount
-        })),
-        sign_type: this.config.paymentGateway.signType
-      };
-      
-      // 生成签名
-      paymentData.sign = this.generateSignature(paymentData);
-      
-      if (!paymentData.sign) {
-        throw new Error('签名生成失败');
-      }
-
-      await this.submitPaymentForm(paymentData);
-      
-      return { success: true, orderId };
-    } catch (error) {
-      throw new Error(`创建订单失败: ${error.message}`);
-    }
-  }
+// 修改后的 createPaymentOrder
+async createPaymentOrder() {
+  const orderId = this.generateOrderId();
+  
+  const paymentData = {
+    // ...支付参数...
+    param: encodeURIComponent(JSON.stringify({
+      wishId: this.state.currentWishId,
+      amount: this.state.selectedAmount
+    }))
+  };
+  
+  // 提交支付请求
+  await this.submitPaymentForm(paymentData);
+  return { success: true, orderId };
+}
 
   generateSignature(params) {
     try {
