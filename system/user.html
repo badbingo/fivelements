@@ -330,49 +330,47 @@ document.addEventListener('DOMContentLoaded', function() {
      * 执行登录API请求
      */
     async function performLogin(username, password) {
-        const startTime = Date.now();
-        
-        const response = await fetch(API_ENDPOINT, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify({ name: username, password })
-        });
-        
-        console.log(`登录请求耗时: ${Date.now() - startTime}ms`);
-        
-        // 检查HTTP状态
-        if (!response.ok) {
-            const errorData = await parseResponse(response);
-            throw new Error(errorData?.message || `登录失败: ${response.status}`);
-        }
-        
-        // 解析响应数据
-        const responseData = await parseResponse(response);
-        console.debug('登录响应:', responseData);
+    const startTime = Date.now();
+    
+    const response = await fetch(API_ENDPOINT, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({ name: username, password })
+    });
 
+    console.log(`登录请求耗时: ${Date.now() - startTime}ms`);
 
-        // 假设后端返回的是 { token: 'xxxxx' }
-        const data = await res.json();
-        if (data.token && typeof data.token === "string") {
-          localStorage.setItem("token", data.token);  // ✅ 只存字符串
-        } else {
-          throw new Error("无效的令牌格式");
-        }
-
-      
-         // 验证格式
-        if (!isValidJWT(token)) {
-            throw new Error('无效的令牌格式');
-        }
-        
-        return {
-            token,
-            expiresIn: responseData?.expires_in || 3600 // 默认1小时
-        };
+    if (!response.ok) {
+        const errorData = await parseResponse(response);
+        throw new Error(errorData?.message || `登录失败: ${response.status}`);
     }
+
+    const responseData = await parseResponse(response);
+    console.debug('登录响应:', responseData);
+
+    const token = responseData?.token;
+
+    // 验证 token 是否存在且为字符串
+    if (token && typeof token === "string") {
+        localStorage.setItem("token", token);
+    } else {
+        throw new Error("无效的令牌格式");
+    }
+
+    // 验证 JWT 格式（如果你实现了 isValidJWT 函数）
+    if (!isValidJWT(token)) {
+        throw new Error("无效的令牌格式");
+    }
+
+    return {
+        token,
+        expiresIn: responseData?.expires_in || 3600
+    };
+}
+
     
     /**
      * 处理登录成功
