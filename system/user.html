@@ -311,14 +311,29 @@
           }
 
           if (!response.ok) {
-            throw new Error(data.error || '登录失败');
+              throw new Error(data.error || '登录失败');
           }
 
-          // 确保token存在
-          if (!data.token) {
-            throw new Error('未收到有效的登录令牌');
+          // 确保token存在且是字符串
+          if (!data.token || typeof data.token !== 'string') {
+              // 特殊处理：如果服务器返回的是对象，尝试提取token字段
+              if (data.token && typeof data.token === 'object') {
+                  if (data.token.token && typeof data.token.token === 'string') {
+                      data.token = data.token.token; // 修正为字符串
+                  } else {
+                      throw new Error('无效的令牌格式');
+                  }
+              } else {
+                  throw new Error('未收到有效的登录令牌');
+              }
           }
 
+          // 增强验证：确保token是有效的JWT格式
+          const tokenParts = data.token.split('.');
+          if (tokenParts.length !== 3) {
+              throw new Error('令牌格式无效');
+          }
+          
           // 存储token
           localStorage.setItem('token', data.token);
           
