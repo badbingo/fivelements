@@ -342,8 +342,8 @@
 document.addEventListener('DOMContentLoaded', function() {
     // 配置后端地址
     const API_BASE = 'https://bazi-backend.owenjass.workers.dev';
-    const API_URL = `${API_BASE}/api/wishes`;
-
+    const API_URL = `${API_BASE}/api`;
+    
     // 全局变量
     let allWishes = [];
     let currentPage = 1;
@@ -640,7 +640,20 @@ document.addEventListener('DOMContentLoaded', function() {
         submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> 投入命缘池';
     }
 }
-
+    
+// 添加在全局脚本区域
+function verifyJWT(token) {
+  try {
+    // 简易JWT验证 - 实际项目应使用更安全的方式
+    const [header, payload, signature] = token.split('.');
+    const decodedPayload = JSON.parse(atob(payload));
+    return decodedPayload;
+  } catch (e) {
+    console.error('JWT验证失败:', e);
+    throw new Error('无效的令牌');
+  }
+}
+    
 // 替换原有的登录跳转代码
 function showLoginModal(message) {
     const modal = document.getElementById('loginModal');
@@ -663,27 +676,38 @@ function showLoginModal(message) {
 
      // 渲染愿望列表
             async function renderWishes() {
-                try {
-                    const response = await fetch(API_URL + '?visibility=public');
-                    const text = await response.text();
-                    console.log('[DEBUG] 原始响应内容:', text);
-                
-                    const data = JSON.parse(text);
-                
-                    const wishes = Array.isArray(data) ? data : data.wishes || [];
-                
-                    if (!Array.isArray(wishes)) {
-                        throw new Error('返回的不是数组');
-                    }
-                
-                    console.log('[DEBUG] 愿望数量:', wishes.length);
-                
-                    renderWishCards(wishes);
-                } catch (err) {
-                    console.error('渲染愿望时出错:', err);
-                    wishPool.innerHTML = `<p style="color:red;">加载失败：${err.message}</p>`;
-                }
-            }
+  try {
+    const response = await fetch(`${API_URL}/wishes?visibility=public`);
+    
+    if (!response.ok) {
+      throw new Error(`请求失败: ${response.status}`);
+    }
+    
+    const contentType = response.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      throw new Error('响应不是JSON格式');
+    }
+    
+    const data = await response.json();
+    const wishes = Array.isArray(data) ? data : (data.wishes || []);
+    
+    if (!Array.isArray(wishes)) {
+      throw new Error('无效的愿望数据格式');
+    }
+    
+    renderWishCards(wishes);
+    
+  } catch (err) {
+    console.error('渲染愿望时出错:', err);
+    wishPool.innerHTML = `
+      <div class="wish-error">
+        <i class="fas fa-exclamation-triangle"></i>
+        <p>加载失败: ${err.message}</p>
+        <button onclick="renderWishes()" class="btn-retry">重试</button>
+      </div>
+    `;
+  }
+}
                             
             // 更新统计信息
             async function updateStats() {
