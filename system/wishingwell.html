@@ -552,58 +552,41 @@ document.addEventListener('DOMContentLoaded', function() {
   const submitBtn = e.target.querySelector('button[type="submit"]');
   const originalBtnText = submitBtn.innerHTML;
 
-  // 1. 首先定义 formData 对象
+  // 1. 结构化数据采集
   const formData = {
-    user_name: document.getElementById('name').value.trim(),
-    birth_date: document.getElementById('birthday').value,
-    birth_time: document.getElementById('birthtime').value,
-    content: document.getElementById('wishContent').value.trim(),
-    type: document.getElementById('wishType').value,
-    visibility: document.querySelector('input[name="visibility"]:checked').value,
+    user_name: document.getElementById('name')?.value.trim() || '',
+    birth_date: document.getElementById('birthday')?.value || '',
+    birth_time: document.getElementById('birthtime')?.value || '',
+    content: document.getElementById('wishContent')?.value.trim() || '',
+    type: document.getElementById('wishType')?.value || 'other',
+    visibility: document.querySelector('input[name="visibility"]:checked')?.value || 'public',
     bazi: calculateBazi(
-      document.getElementById('birthday').value,
-      document.getElementById('birthtime').value
-    ),
+      document.getElementById('birthday')?.value,
+      document.getElementById('birthtime')?.value
+    ) || '',
     solar_date: new Date().toISOString().split('T')[0]
   };
 
+  console.debug('提交数据详情:', JSON.stringify(formData, null, 2)); // 关键调试点
+
   try {
-    // 2. 验证必填字段
-    const requiredFields = {
-      user_name: '姓名',
-      birth_date: '出生日期',
-      birth_time: '出生时辰', 
-      content: '愿望内容'
-    };
+    // 2. 增强验证
+    if (!formData.user_name) throw new Error('姓名不能为空');
+    if (!formData.birth_date) throw new Error('请选择出生日期');
+    if (!formData.birth_time) throw new Error('请选择出生时辰');
+    if (formData.content.length > 200) throw new Error('愿望内容超过200字限制');
 
-    const missingFields = [];
-    for (const [field, name] of Object.entries(requiredFields)) {
-      if (!formData[field]) {
-        missingFields.push(name);
-      }
-    }
-
-    if (missingFields.length > 0) {
-      throw new Error(`请填写以下必填项: ${missingFields.join(', ')}`);
-    }
-
-    // 3. 检查内容长度
-    if (formData.content.length > 200) {
-      throw new Error('愿望内容不能超过200字');
-    }
-
-    // 4. 获取并验证Token
+    // 3. Token验证
     const token = localStorage.getItem('token');
     if (!token) {
-      showLoginModal('请先登录后再许愿');
+      showLoginModal('会话已过期，请重新登录');
       return;
     }
 
-    // 5. 显示加载状态
+    // 4. 发送请求
     submitBtn.disabled = true;
     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 提交中...';
 
-    // 6. 发送请求
     const response = await fetch(`${API_URL}/wishes`, {
       method: 'POST',
       headers: {
@@ -613,27 +596,34 @@ document.addEventListener('DOMContentLoaded', function() {
       body: JSON.stringify(formData)
     });
 
-    // 7. 处理响应
+    console.debug('响应状态:', response.status); // 关键调试点
+
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.error || `请求失败 (${response.status})`);
+      const errorText = await response.text();
+      console.error('错误响应内容:', errorText); // 关键调试点
+      throw new Error(errorText || `请求失败 (${response.status})`);
     }
 
-    // 8. 成功处理
+    // 5. 成功处理
     const result = await response.json();
-    showSuccessMessage('愿望提交成功！');
-    document.getElementById('wishContent').value = '';
-    document.getElementById('charCount').textContent = '0';
+    console.debug('提交成功:', result); // 关键调试点
+    showSuccessMessage('愿望已成功提交！');
+    resetWishForm();
     loadAllWishes();
 
   } catch (error) {
-    console.error('提交愿望出错:', {
+    console.error('完整错误上下文:', {
       error: error.message,
-      formData, // 现在可以安全访问
+      stack: error.stack,
+      formData, // 确保可访问
       timestamp: new Date().toISOString()
     });
     
-    showErrorMessage(error.message);
+    showErrorMessage(
+      error.message.includes('Failed to fetch') ? 
+      '网络连接失败，请检查网络' : 
+      error.message
+    );
     
   } finally {
     if (submitBtn) {
