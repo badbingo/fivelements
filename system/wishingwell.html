@@ -550,21 +550,7 @@ document.addEventListener('DOMContentLoaded', function() {
     async function handleSubmitWish(e) {
   e.preventDefault();
   try {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      showLoginModal('请先登录后再许愿');
-      return;
-    }
-
-    // 验证token有效性
-    const payload = safeParseJwt(token);
-    if (!payload || !payload.id) {
-      localStorage.removeItem('token');
-      showLoginModal('登录已过期，请重新登录');
-      return;
-    }
-
-    // 获取表单数据
+    // 1. 获取表单数据
     const formData = {
       user_name: document.getElementById('name').value.trim(),
       birth_date: document.getElementById('birthday').value,
@@ -576,15 +562,55 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('birthday').value,
         document.getElementById('birthtime').value
       ),
-      solar_date: new Date().toISOString().split('T')[0] // 自动添加当前日期
+      solar_date: new Date().toISOString().split('T')[0]
     };
 
-    // 验证必填字段
-    if (!formData.user_name || !formData.birth_date || !formData.content) {
-      throw new Error('姓名、生日和愿望内容为必填项');
+    console.log('表单数据:', formData); // 调试日志
+
+    // 2. 表单验证
+    const validationErrors = [];
+    if (!formData.user_name) validationErrors.push('请输入姓名');
+    if (!formData.birth_date) validationErrors.push('请选择出生日期');
+    if (!formData.birth_time) validationErrors.push('请选择出生时辰');
+    if (!formData.content) validationErrors.push('请输入愿望内容');
+    if (formData.content.length > 200) validationErrors.push('愿望内容不能超过200字');
+
+    if (validationErrors.length > 0) {
+      showErrorMessage(validationErrors.join('<br>'));
+      return;
     }
 
-    // 发送请求
+    // 3. 检查登录状态
+    const token = localStorage.getItem('token');
+    if (!token) {
+      showLoginModal('请先登录后再许愿');
+      return;
+    }
+
+    // 4. 验证token有效性
+    let payload;
+    try {
+      payload = safeParseJwt(token);
+      if (!payload?.id) {
+        localStorage.removeItem('token');
+        showLoginModal('登录已过期，请重新登录');
+        return;
+      }
+    } catch (tokenError) {
+      console.error('Token解析失败:', tokenError);
+      localStorage.removeItem('token');
+      showLoginModal('登录信息无效，请重新登录');
+      return;
+    }
+
+    // 5. 显示加载状态
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    const originalBtnText = submitBtn.innerHTML;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 提交中...';
+
+    // 6. 发送请求
+    console.log('准备提交愿望:', { formData }); // 调试日志
     const response = await fetch(`${API_URL}/wishes`, {
       method: 'POST',
       headers: {
@@ -594,18 +620,64 @@ document.addEventListener('DOMContentLoaded', function() {
       body: JSON.stringify(formData)
     });
 
+    console.log('收到响应:', { 
+      status: response.status,
+      statusText: response.statusText
+    }); // 调试日志
+
+    // 7. 处理响应
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || '请求失败');
+      let errorData = {};
+      try {
+        errorData = await response.json();
+        console.error('错误详情:', errorData); // 调试日志
+      } catch (parseError) {
+        console.error('解析错误响应失败:', parseError);
+      }
+      
+      throw new Error(
+        errorData.message || 
+        errorData.error || 
+        `请求失败: ${response.status} ${response.statusText}`
+      );
     }
 
-    showSuccessMessage('愿望提交成功！');
-    // 刷新愿望列表
-    loadAllWishes();
+    const result = await response.json();
+    console.log('愿望提交成功:', result); // 调试日志
+
+    // 8. 显示成功消息
+    showSuccessMessage('愿望已成功投入命缘池！');
     
+    // 9. 重置表单
+    document.getElementById('wishContent').value = '';
+    document.getElementById('charCount').textContent = '0';
+    
+    // 10. 刷新愿望列表
+    setTimeout(() => {
+      loadAllWishes();
+    }, 1500);
+
   } catch (error) {
-    console.error('提交愿望出错:', error);
-    showErrorMessage(error.message || '请求失败，请检查网络或字段格式');
+    console.error('提交愿望出错:', {
+      error: error.message,
+      stack: error.stack,
+      timestamp: new Date().toISOString()
+    });
+    
+    // 显示用户友好的错误消息
+    const errorMessage = error.message.includes('Failed to fetch') 
+      ? '网络连接失败，请检查网络设置'
+      : error.message;
+    
+    showErrorMessage(errorMessage);
+    
+  } finally {
+    // 重置按钮状态
+    const submitBtn = document.querySelector('#wishForm button[type="submit"]');
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = originalBtnText || '<i class="fas fa-paper-plane"></i> 投入命缘池';
+    }
   }
 }
 
