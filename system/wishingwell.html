@@ -557,44 +557,56 @@ document.addEventListener('DOMContentLoaded', function() {
       return;
     }
 
+    // 获取表单数据
     const formData = {
       name: document.getElementById('name').value.trim(),
       birthday: document.getElementById('birthday').value,
       birthtime: document.getElementById('birthtime').value,
       content: document.getElementById('wishContent').value.trim(),
       type: document.getElementById('wishType').value,
-      visibility: document.querySelector('input[name="visibility"]:checked').value,
+      // 使用 Optional Chaining (?.) 避免未选择时出错
+      visibility: document.querySelector('input[name="visibility"]:checked')?.value,
       bazi: calculateBazi(document.getElementById('birthday').value, 
-              document.getElementById('birthtime').value)
+                        document.getElementById('birthtime').value)
     };
 
-    // 关键修改：使用 API_URL 而非 API_BASE
+    // ---------- 关键修改：修复数据格式 ----------
+    const payload = {
+      user_name: formData.name || '匿名用户',  // 默认值防止 undefined
+      birth_date: formData.birthday,          // 必须为 YYYY-MM-DD 格式
+      birth_time: formData.birthtime || '00:00', // 默认值
+      content: formData.content,
+      type: formData.type || 'general',       // 默认类型
+      // 确保 visibility 有值，否则默认 'public'
+      visibility: formData.visibility || 'public',
+      bazi: formData.bazi || '',              // 默认空字符串
+      solar_date: new Date().toISOString().split('T')[0] // 自动生成当前日期
+    };
+
+    // 验证必填字段
+    if (!payload.user_name || !payload.birth_date || !payload.content) {
+      alert('姓名、生日和愿望内容为必填项！');
+      return;
+    }
+
+    // 发送请求
     const response = await fetch(`${API_URL}/wishes`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
       },
-      body: JSON.stringify({
-        user_name: formData.name,
-        birth_date: formData.birthday,
-        birth_time: formData.birthtime,
-        content: formData.content,
-        type: formData.type,
-        visibility: formData.visibility,
-        bazi: formData.bazi,
-        solar_date: new Date().toISOString().split('T')[0]
-      })
+      body: JSON.stringify(payload)  // 使用修复后的 payload
     });
 
     if (!response.ok) throw new Error(await response.text());
     showSuccessMessage('愿望提交成功！');
-    
   } catch (error) {
     console.error('提交愿望出错:', error);
     showErrorMessage(error.message || '请求失败');
   }
 }
+
 
 
 // 辅助函数：显示登录模态框
