@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>用户中心 - 八字命理系统</title>
+  <title>用户登录 - 八字命理系统</title>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     :root {
       --primary: #6c5ce7;
@@ -42,6 +43,7 @@
       justify-content: center;
       align-items: center;
       min-height: 100vh;
+      padding: 20px;
     }
 
     .auth-card {
@@ -107,11 +109,18 @@
       cursor: pointer;
       transition: all 0.3s;
       width: 100%;
+      position: relative;
     }
 
     .btn:hover {
       background: #5649d6;
       transform: translateY(-2px);
+    }
+
+    .btn:disabled {
+      background: var(--gray);
+      cursor: not-allowed;
+      transform: none;
     }
 
     .btn-secondary {
@@ -149,6 +158,12 @@
       border-radius: var(--border-radius);
       margin-bottom: 20px;
       font-size: 14px;
+      display: flex;
+      align-items: center;
+    }
+
+    .alert i {
+      margin-right: 10px;
     }
 
     .alert-danger {
@@ -164,7 +179,7 @@
     }
 
     .hidden {
-      display: none;
+      display: none !important;
     }
 
     /* 模态框样式 */
@@ -223,29 +238,29 @@
       color: var(--gray);
     }
 
+    /* 加载动画 */
+    .spinner {
+      animation: spin 1s linear infinite;
+      display: inline-block;
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    .btn-content {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
     /* 响应式调整 */
     @media (max-width: 576px) {
       .auth-card {
         padding: 30px 20px;
       }
-    }
-    
-    /* 添加成功状态样式 */
-    .modal-body .alert-success {
-      padding: 15px;
-      border-radius: 4px;
-      background: #f0f9eb;
-      color: #67c23a;
-      border: 1px solid #e1f3d8;
-    }
-    
-    .modal-body .alert-success i {
-      margin-right: 10px;
-      font-size: 18px;
-    }
-    
-    #resendBtn {
-      margin-top: 15px;
     }
     
     /* 防止背景滚动 */
@@ -263,7 +278,10 @@
         <p>请输入您的账号信息</p>
       </div>
 
-      <div id="loginAlert" class="alert hidden"></div>
+      <div id="loginAlert" class="alert hidden">
+        <i class="fas fa-exclamation-circle"></i>
+        <span id="loginAlertText"></span>
+      </div>
 
       <form id="loginForm">
         <div class="form-group">
@@ -280,7 +298,12 @@
           <a href="#" class="link" id="forgotPasswordLink">忘记密码?</a>
         </div>
 
-        <button type="submit" class="btn">登录</button>
+        <button type="submit" class="btn" id="loginBtn">
+          <span class="btn-content">
+            <span id="loginText">登录</span>
+            <i id="loginSpinner" class="fas fa-spinner spinner hidden"></i>
+          </span>
+        </button>
       </form>
 
       <div class="text-center mt-4">
@@ -296,7 +319,10 @@
         <p>创建您的个人账号</p>
       </div>
 
-      <div id="registerAlert" class="alert hidden"></div>
+      <div id="registerAlert" class="alert hidden">
+        <i class="fas fa-exclamation-circle"></i>
+        <span id="registerAlertText"></span>
+      </div>
 
       <form id="registerForm">
         <div class="form-group">
@@ -319,7 +345,12 @@
           <input type="password" id="registerConfirmPassword" class="form-control" required>
         </div>
 
-        <button type="submit" class="btn btn-secondary">注册</button>
+        <button type="submit" class="btn btn-secondary" id="registerBtn">
+          <span class="btn-content">
+            <span id="registerText">注册</span>
+            <i id="registerSpinner" class="fas fa-spinner spinner hidden"></i>
+          </span>
+        </button>
       </form>
 
       <div class="text-center mt-4">
@@ -337,7 +368,10 @@
         <button class="close-btn" id="closeModal">&times;</button>
       </div>
 
-      <div id="forgotAlert" class="alert hidden"></div>
+      <div id="forgotAlert" class="alert hidden">
+        <i class="fas fa-exclamation-circle"></i>
+        <span id="forgotAlertText"></span>
+      </div>
 
       <div id="forgotForm">
         <p>请输入您的注册邮箱，我们将发送密码重置链接</p>
@@ -345,13 +379,19 @@
           <label for="forgotEmail">注册邮箱</label>
           <input type="email" id="forgotEmail" class="form-control" required>
         </div>
-        <button class="btn" id="sendResetBtn">发送重置链接</button>
+        <button class="btn" id="sendResetBtn">
+          <span class="btn-content">
+            <span id="sendResetText">发送重置链接</span>
+            <i id="sendResetSpinner" class="fas fa-spinner spinner hidden"></i>
+          </span>
+        </button>
       </div>
 
       <div id="forgotSuccess" class="hidden">
         <div class="modal-body">
           <div class="alert alert-success">
-            <i>✓</i> 密码重置链接已发送到您的邮箱，请检查收件箱
+            <i class="fas fa-check-circle"></i>
+            <span>密码重置链接已发送到您的邮箱，请检查收件箱</span>
           </div>
           <button class="btn" id="resendBtn">重新发送</button>
         </div>
@@ -371,12 +411,40 @@
       const closeModal = document.getElementById('closeModal');
       const sendResetBtn = document.getElementById('sendResetBtn');
       const resendBtn = document.getElementById('resendBtn');
+      
+      // 表单元素
+      const loginForm = document.getElementById('loginForm');
+      const registerForm = document.getElementById('registerForm');
+      
+      // 按钮和加载状态
+      const loginBtn = document.getElementById('loginBtn');
+      const loginText = document.getElementById('loginText');
+      const loginSpinner = document.getElementById('loginSpinner');
+      
+      const registerBtn = document.getElementById('registerBtn');
+      const registerText = document.getElementById('registerText');
+      const registerSpinner = document.getElementById('registerSpinner');
+      
+      const sendResetText = document.getElementById('sendResetText');
+      const sendResetSpinner = document.getElementById('sendResetSpinner');
+      
+      // 提示信息元素
       const loginAlert = document.getElementById('loginAlert');
+      const loginAlertText = document.getElementById('loginAlertText');
+      
       const registerAlert = document.getElementById('registerAlert');
+      const registerAlertText = document.getElementById('registerAlertText');
+      
       const forgotAlert = document.getElementById('forgotAlert');
+      const forgotAlertText = document.getElementById('forgotAlertText');
+      
+      // 表单元素
       const forgotForm = document.getElementById('forgotForm');
       const forgotSuccess = document.getElementById('forgotSuccess');
 
+      // API基础URL
+      const API_BASE = 'https://bazi-backend.owenjass.workers.dev';
+      
       // 初始化检查登录状态
       checkLoginStatus();
 
@@ -398,33 +466,42 @@
       // 显示忘记密码模态框
       forgotPasswordLink.addEventListener('click', (e) => {
         e.preventDefault();
+        openForgotModal();
+      });
+
+      // 关闭模态框
+      closeModal.addEventListener('click', closeForgotModal);
+
+      // 点击模态框外部关闭
+      forgotPasswordModal.addEventListener('click', (e) => {
+        if (e.target === forgotPasswordModal) {
+          closeForgotModal();
+        }
+      });
+
+      // 打开忘记密码模态框
+      function openForgotModal() {
         forgotPasswordModal.classList.add('show');
         document.body.classList.add('modal-open');
         forgotAlert.classList.add('hidden');
         forgotForm.classList.remove('hidden');
         forgotSuccess.classList.add('hidden');
         document.getElementById('forgotEmail').value = '';
-      });
+      }
 
-      // 关闭模态框
-      closeModal.addEventListener('click', () => {
+      // 关闭忘记密码模态框
+      function closeForgotModal() {
         forgotPasswordModal.classList.remove('show');
         document.body.classList.remove('modal-open');
-      });
-
-      // 点击模态框外部关闭
-      forgotPasswordModal.addEventListener('click', (e) => {
-        if (e.target === forgotPasswordModal) {
-          forgotPasswordModal.classList.remove('show');
-          document.body.classList.remove('modal-open');
-        }
-      });
+      }
 
       // 显示消息函数
-      function showAlert(element, message, type) {
-        element.textContent = message;
-        element.classList.remove('hidden', 'alert-danger', 'alert-success');
-        element.classList.add(`alert-${type}`);
+      function showAlert(element, textElement, message, type) {
+        textElement.textContent = message;
+        element.className = `alert alert-${type}`;
+        element.querySelector('i').className = type === 'danger' 
+          ? 'fas fa-exclamation-circle' 
+          : 'fas fa-check-circle';
         element.classList.remove('hidden');
       }
 
@@ -435,24 +512,66 @@
         });
       }
 
-      // 登录表单提交
-      document.getElementById('loginForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        loginAlert.classList.add('hidden');
+      // 设置按钮加载状态
+      function setLoading(button, textElement, spinner, isLoading) {
+        button.disabled = isLoading;
+        textElement.style.visibility = isLoading ? 'hidden' : 'visible';
+        spinner.classList.toggle('hidden', !isLoading);
+      }
 
-        const username = document.getElementById('loginUsername').value.trim();
-        const password = document.getElementById('loginPassword').value;
-
-        if (!username || !password) {
-          showAlert(loginAlert, '请输入用户名和密码', 'danger');
-          return;
-        }
-
+      // 解析JWT token
+      function parseJwt(token) {
         try {
-          const response = await fetch('https://bazi-backend.owenjass.workers.dev/api/login', {
+          const base64Url = token.split('.')[1];
+          const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+          return JSON.parse(atob(base64));
+        } catch (e) {
+          console.error('解析JWT失败:', e);
+          return null;
+        }
+      }
+
+      // 检查token有效期
+      function isTokenValid(token) {
+        if (!token) return false;
+        
+        const payload = parseJwt(token);
+        if (!payload) return false;
+        
+        // 检查过期时间
+        if (payload.exp && payload.exp < Date.now() / 1000) {
+          return false;
+        }
+        
+        return true;
+      }
+
+      // 检查登录状态
+      function checkLoginStatus() {
+        const token = localStorage.getItem('token');
+        const urlParams = new URLSearchParams(window.location.search);
+        const redirectUrl = urlParams.get('redirect');
+        
+        if (token && isTokenValid(token)) {
+          // 如果已登录且有有效token，重定向
+          if (redirectUrl) {
+            window.location.href = decodeURIComponent(redirectUrl);
+          } else {
+            window.location.href = 'index.html';
+          }
+        }
+      }
+
+      // 处理登录请求
+      async function handleLogin(username, password) {
+        setLoading(loginBtn, loginText, loginSpinner, true);
+        
+        try {
+          const response = await fetch(`${API_BASE}/api/login`, {
             method: 'POST',
             headers: {
-              'Content-Type': 'application/json'
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
             },
             body: JSON.stringify({
               name: username,
@@ -462,21 +581,155 @@
 
           const data = await response.json();
 
-          if (response.ok) {
-            localStorage.setItem('token', data.token);
-            showAlert(loginAlert, '登录成功!', 'success');
-            document.getElementById('loginPassword').value = '';
-          } else {
-            showAlert(loginAlert, data.error || '登录失败', 'danger');
+          if (!response.ok) {
+            let errorMsg = data.error || '登录失败';
+            if (response.status === 401) errorMsg = '用户名或密码错误';
+            if (response.status === 429) errorMsg = '尝试次数过多，请稍后再试';
+            throw new Error(errorMsg);
           }
+
+          if (!data.token) {
+            throw new Error('服务器未返回认证令牌');
+          }
+
+          // 验证token结构
+          if (data.token.split('.').length !== 3) {
+            throw new Error('无效的令牌格式');
+          }
+
+          // 存储token
+          localStorage.setItem('token', data.token);
+          
+          // 解析并检查token
+          const payload = parseJwt(data.token);
+          if (!payload || !payload.id) {
+            throw new Error('无效的用户信息');
+          }
+
+          // 重定向
+          const urlParams = new URLSearchParams(window.location.search);
+          const redirectUrl = urlParams.get('redirect') || 'index.html';
+          window.location.href = decodeURIComponent(redirectUrl);
+
         } catch (error) {
           console.error('登录错误:', error);
-          showAlert(loginAlert, '网络错误，请稍后再试', 'danger');
+          
+          // 清除无效的token
+          if (error.message.includes('无效') || 
+              error.message.includes('过期') || 
+              error.message.includes('expired')) {
+            localStorage.removeItem('token');
+          }
+          
+          showAlert(loginAlert, loginAlertText, error.message, 'danger');
+        } finally {
+          setLoading(loginBtn, loginText, loginSpinner, false);
         }
+      }
+
+      // 处理注册请求
+      async function handleRegister(username, email, password) {
+        setLoading(registerBtn, registerText, registerSpinner, true);
+        
+        try {
+          const response = await fetch(`${API_BASE}/api/register`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+              name: username,
+              email: email,
+              password: password
+            })
+          });
+
+          const data = await response.json();
+
+          if (!response.ok) {
+            let errorMsg = data.error || '注册失败';
+            if (response.status === 409) errorMsg = '用户名或邮箱已存在';
+            throw new Error(errorMsg);
+          }
+
+          showAlert(registerAlert, registerAlertText, '注册成功! 请登录', 'success');
+          registerForm.reset();
+          
+          // 自动切换到登录表单
+          setTimeout(() => {
+            registerCard.classList.add('hidden');
+            loginCard.classList.remove('hidden');
+            document.getElementById('loginUsername').value = username;
+            document.getElementById('loginPassword').value = '';
+            document.getElementById('loginUsername').focus();
+          }, 1500);
+
+        } catch (error) {
+          console.error('注册错误:', error);
+          showAlert(registerAlert, registerAlertText, error.message, 'danger');
+        } finally {
+          setLoading(registerBtn, registerText, registerSpinner, false);
+        }
+      }
+
+      // 处理密码重置请求
+      async function handlePasswordReset(email) {
+        setLoading(sendResetBtn, sendResetText, sendResetSpinner, true);
+        
+        try {
+          const response = await fetch(`${API_BASE}/api/request-reset`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+              email: email
+            })
+          });
+
+          const data = await response.json();
+
+          if (!response.ok) {
+            let errorMsg = data.error || '发送失败，请重试';
+            if (data.error && data.error.includes('not found')) {
+              errorMsg = '该邮箱未注册';
+            }
+            throw new Error(errorMsg);
+          }
+
+          // 显示成功状态
+          forgotForm.classList.add('hidden');
+          forgotSuccess.classList.remove('hidden');
+          document.getElementById('forgotEmail').value = '';
+
+        } catch (error) {
+          console.error('密码重置错误:', error);
+          showAlert(forgotAlert, forgotAlertText, error.message, 'danger');
+        } finally {
+          setLoading(sendResetBtn, sendResetText, sendResetSpinner, false);
+        }
+      }
+
+      // 登录表单提交
+      loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        loginAlert.classList.add('hidden');
+
+        const username = document.getElementById('loginUsername').value.trim();
+        const password = document.getElementById('loginPassword').value;
+
+        if (!username || !password) {
+          showAlert(loginAlert, loginAlertText, '请输入用户名和密码', 'danger');
+          return;
+        }
+
+        await handleLogin(username, password);
       });
 
       // 注册表单提交
-      document.getElementById('registerForm').addEventListener('submit', async (e) => {
+      registerForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         registerAlert.classList.add('hidden');
 
@@ -487,141 +740,58 @@
 
         // 验证输入
         if (!username || !email || !password || !confirmPassword) {
-          showAlert(registerAlert, '所有字段都是必填的', 'danger');
+          showAlert(registerAlert, registerAlertText, '所有字段都是必填的', 'danger');
           return;
         }
 
         if (password !== confirmPassword) {
-          showAlert(registerAlert, '两次输入的密码不一致', 'danger');
+          showAlert(registerAlert, registerAlertText, '两次输入的密码不一致', 'danger');
           return;
         }
 
         // 简单邮箱验证
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-          showAlert(registerAlert, '请输入有效的电子邮箱', 'danger');
+          showAlert(registerAlert, registerAlertText, '请输入有效的电子邮箱', 'danger');
           return;
         }
 
-        try {
-  const response = await fetch('https://bazi-backend.owenjass.workers.dev/api/register', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      name: username,
-      email: email,
-      password: password
-    })
-  });
+        await handleRegister(username, email, password);
+      });
 
-  const text = await response.text(); // 先拿到原始文本
-  let data;
-
-  try {
-    data = JSON.parse(text); // 尝试解析
-  } catch (jsonError) {
-    console.error('返回内容不是 JSON:', text);
-    throw new Error('服务器返回了无效数据');
-  }
-
-  if (response.ok) {
-    showAlert(registerAlert, '注册成功! 请登录', 'success');
-    document.getElementById('registerForm').reset();
-  } else {
-    showAlert(registerAlert, data.error || '注册失败', 'danger');
-  }
-} catch (error) {
-  console.error('完整注册错误:', error);
-  showAlert(registerAlert, `注册失败: ${error.message}`, 'danger');
-}
-        });
       // 发送密码重置链接
-      sendResetBtn.addEventListener('click', async () => {
+      sendResetBtn.addEventListener('click', async (e) => {
+        e.preventDefault();
         forgotAlert.classList.add('hidden');
 
         const email = document.getElementById('forgotEmail').value.trim();
 
         if (!email) {
-          showAlert(forgotAlert, '请输入注册邮箱', 'danger');
+          showAlert(forgotAlert, forgotAlertText, '请输入注册邮箱', 'danger');
           return;
         }
 
         // 简单邮箱验证
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-          showAlert(forgotAlert, '请输入有效的电子邮箱', 'danger');
+          showAlert(forgotAlert, forgotAlertText, '请输入有效的电子邮箱', 'danger');
           return;
         }
 
-        try {
-          const response = await fetch('https://bazi-backend.owenjass.workers.dev/api/request-reset', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              email: email,
-              provider: 'sendinblue'
-            })
-          });
+        await handlePasswordReset(email);
+      });
 
-          const data = await response.json();
+      // 重新发送按钮
+      resendBtn.addEventListener('click', () => {
+        forgotForm.classList.remove('hidden');
+        forgotSuccess.classList.add('hidden');
+      });
 
-          if (response.ok) {
-            forgotForm.classList.add('hidden');
-            forgotSuccess.classList.remove('hidden');
-            document.getElementById('forgotEmail').value = '';
-          } else {
-            let errorMsg = '发送失败，请重试';
-            if (data.error) {
-              if (data.error.includes('not found')) {
-                errorMsg = '该邮箱未注册';
-              } else if (data.error.includes('SendinBlue') || data.error.includes('Brevo')) {
-                errorMsg = '邮件服务暂时不可用，请联系管理员';
-              }
-            }
-            showAlert(forgotAlert, errorMsg, 'danger');
-          }
-        } catch (error) {
-          console.error('密码重置请求错误:', error);
-          showAlert(forgotAlert, '网络错误，请稍后重试', 'danger');
-    }
-  });
-
-  // 重新发送按钮
-  resendBtn.addEventListener('click', () => {
-    forgotForm.classList.remove('hidden');
-    forgotSuccess.classList.add('hidden');
-    document.getElementById('forgotEmail').value = '';
-  });
-
-  // 检查登录状态
-  function checkLoginStatus() {
-    const token = localStorage.getItem('token');
-    if (token) {
-      document.getElementById('loginUsername').value = '';
-      document.getElementById('loginPassword').value = '';
-      showAlert(loginAlert, '您已登录', 'success');
-    }
-  }
-
-  // 添加键盘事件监听 - ESC键关闭模态框
-  document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape' && forgotPasswordModal.classList.contains('show')) {
-      forgotPasswordModal.classList.remove('show');
-      document.body.classList.remove('modal-open');
-    }
-  });
-
-  // 表单提交防止页面刷新
-  document.querySelectorAll('form').forEach(form => {
-    form.addEventListener('submit', function(e) {
-      e.preventDefault();
+      // 添加键盘事件监听 - ESC键关闭模态框
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && forgotPasswordModal.classList.contains('show')) {
+          closeForgotModal();
+        }
+      });
     });
-  });
-});
-</script> 
-</body> 
+  </script>
+</body>
 </html>
-
-    
