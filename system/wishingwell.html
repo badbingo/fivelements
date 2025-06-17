@@ -558,37 +558,35 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // 1. 获取表单数据（确保 DOM 元素 ID 正确）
-    const formData = {
-      name: document.getElementById('name')?.value.trim() || '',       // 避免 undefined
-      birthday: document.getElementById('birthday')?.value || '',      // 避免 undefined
-      birthtime: document.getElementById('birthtime')?.value || '00:00', // 默认值
-      content: document.getElementById('wishContent')?.value.trim() || '', // 避免 undefined
-      type: document.getElementById('wishType')?.value || 'general',   // 默认值
-      visibility: document.querySelector('input[name="visibility"]:checked')?.value || 'public', // 默认值
+       const formData = {
+      name: document.getElementById('name')?.value.trim() || '匿名用户',
+      birthday: document.getElementById('birthday')?.value || '2000-01-01',
+      birthtime: document.getElementById('birthtime')?.value || '00:00:00',
+      content: document.getElementById('wishContent')?.value.trim() || '',
+      type: document.getElementById('wishType')?.value || 'general',
+      visibility: document.querySelector('input[name="visibility"]:checked')?.value || 'public',
       bazi: calculateBazi(
         document.getElementById('birthday')?.value,
         document.getElementById('birthtime')?.value
-      ) || '' // 避免 undefined
+      ) || ''
     };
 
     // 2. 验证必填字段（后端可能要求这些字段非空）
     if (!formData.name || !formData.birthday || !formData.content) {
-      alert('姓名、生日和愿望内容为必填项！');
-      return;
+      throw new Error('姓名、生日和愿望内容为必填项');
     }
-
-    // 3. 构建请求数据（确保所有字段有值且类型正确）
+    // 3. 构建请求数据（确保类型正确）
     const payload = {
-      user_name: formData.name,               // 已处理默认值
-      birth_date: formData.birthday,          // 格式必须为 YYYY-MM-DD
-      birth_time: formData.birthtime,         // 格式必须为 HH:mm 或 HH:mm:ss
-      content: formData.content,              // 已处理默认值
-      type: formData.type,                    // 已处理默认值
-      visibility: formData.visibility,        // 已处理默认值
-      bazi: formData.bazi,                    // 已处理默认值
-      solar_date: new Date().toISOString().split('T')[0] // 自动生成当前日期
+      user_name: formData.name,
+      birth_date: formData.birthday,
+      birth_time: formData.birthtime.includes(':') ? formData.birthtime : `${formData.birthtime}:00`,
+      content: formData.content,
+      type: formData.type,
+      visibility: formData.visibility,
+      bazi: formData.bazi,
+      solar_date: new Date().toISOString().split('T')[0]
     };
-
+      
     // 4. 发送请求（检查 API_URL 是否正确）
     const response = await fetch(`${API_URL}/wishes`, {
       method: 'POST',
