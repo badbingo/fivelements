@@ -395,26 +395,24 @@ document.addEventListener('DOMContentLoaded', function() {
      * 处理登录失败
      */
     function handleLoginFailure(error) {
-        console.error('登录错误:', error);
-        
-        // 清除可能无效的令牌
-        clearAuthToken();
-        
-        // 显示错误消息
-        let errorMessage = error.message;
-        
-        // 特定错误处理
-        if (error.message.includes('NetworkError')) {
-            errorMessage = '网络连接失败，请检查网络设置';
-        } else if (error.message.includes('timed out')) {
-            errorMessage = '请求超时，请稍后重试';
-        }
-        
-        showAlert(errorMessage, 'danger');
-        
-        // 重新聚焦输入框
-        usernameInput.focus();
+    console.error('登录错误:', error);
+    clearAuthToken();
+    
+    let errorMessage = error.message;
+    
+    if (error.message.includes('NetworkError')) {
+        errorMessage = '网络连接失败，请检查网络设置';
+    } else if (error.message.includes('timed out')) {
+        errorMessage = '请求超时，请稍后重试';
+    } else if (error.message.includes('无效的令牌格式')) {
+        errorMessage = '服务器返回了无效的认证信息，请联系管理员';
+    } else if (error.message.includes('无法解析服务器响应')) {
+        errorMessage = '服务器返回了意外的响应格式';
     }
+    
+    showAlert(errorMessage, 'danger');
+    usernameInput.focus();
+}
     
     // ==================== 工具函数 ====================
     
