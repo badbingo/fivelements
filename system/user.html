@@ -579,66 +579,72 @@
             })
         });
 
-        // 首先检查响应内容类型
-        const contentType = response.headers.get('content-type');
-        if (!contentType || !contentType.includes('application/json')) {
-            const text = await response.text();
-            throw new Error(`服务器返回了非JSON数据: ${text.substring(0, 100)}`);
-        }
-
-        const data = await response.json();
-
+        // 1. 检查响应状态
         if (!response.ok) {
-            let errorMsg = data.error || '登录失败';
-            if (response.status === 401) errorMsg = '用户名或密码错误';
-            if (response.status === 429) errorMsg = '尝试次数过多，请稍后再试';
-            throw new Error(errorMsg);
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.message || `登录失败: HTTP ${response.status}`);
         }
 
-        // 更健壮的token检查
-        const token = data.token || data.access_token || data.jwt;
+        // 2. 获取响应数据（兼容多种格式）
+        const data = await response.json().catch(async () => {
+            // 如果JSON解析失败，尝试获取原始文本
+            const text = await response.text();
+            return { token: text }; // 假设纯文本响应就是token
+        });
+
+        // 3. 获取token（支持多种字段名）
+        const token = data.token || data.access_token || data.accessToken || data.jwt || data;
         if (!token) {
-            console.error('后端返回数据:', data);
-            throw new Error('服务器响应中未找到token字段');
+            console.error('Token字段缺失，完整响应:', data);
+            throw new Error('服务器未返回认证令牌');
         }
 
+        // 4. 严格验证JWT格式
         if (typeof token !== 'string') {
-            console.error('无效的token类型:', typeof token, token);
-            throw new Error('无效的认证令牌格式');
+            throw new Error(`令牌格式无效: 应为字符串，实际得到 ${typeof token}`);
         }
 
-        // 验证token结构
         const tokenParts = token.split('.');
         if (tokenParts.length !== 3) {
-            throw new Error('无效的令牌格式');
+            throw new Error(`JWT格式错误: 应为3部分，实际得到 ${tokenParts.length} 部分`);
         }
 
-        // 存储token
+        // 5. 存储token
         localStorage.setItem('token', token);
         
-        // 解析并检查token
-        const payload = parseJwt(token);
-        if (!payload || !payload.id) {
-            throw new Error('无效的用户信息');
+        // 6. 解析payload获取用户信息
+        let payload;
+        try {
+            payload = JSON.parse(atob(tokenParts[1]));
+        } catch (e) {
+            throw new Error('令牌payload解析失败: ' + e.message);
         }
 
-        // 重定向
+        if (!payload.id) {
+            throw new Error('令牌中缺少用户ID');
+        }
+
+        // 7. 重定向到目标页面
         const urlParams = new URLSearchParams(window.location.search);
         const redirectUrl = urlParams.get('redirect') || 'index.html';
         window.location.href = decodeURIComponent(redirectUrl);
 
     } catch (error) {
-        console.error('登录错误:', error);
+        console.error('登录错误详情:', {
+            error: error,
+            message: error.message,
+            stack: error.stack
+        });
         
-        // 清除无效的token
+        // 清除可能无效的token
         localStorage.removeItem('token');
         
-        // 显示用户友好的错误信息
+        // 友好的错误提示
         let userMessage = error.message;
-        if (error.message.includes('Failed to fetch')) {
+        if (/failed to fetch/i.test(error.message)) {
             userMessage = '网络连接失败，请检查网络设置';
-        } else if (error.message.includes('JSON')) {
-            userMessage = '服务器返回了无效数据';
+        } else if (/jwt|token/i.test(error.message)) {
+            userMessage = '认证服务暂时不可用，请联系管理员';
         }
         
         showAlert(loginAlert, loginAlertText, userMessage, 'danger');
@@ -646,6 +652,24 @@
         setLoading(loginBtn, loginText, loginSpinner, false);
     }
 }
+      // 添加到脚本的工具函数部分
+      function isValidJwt(token) {
+          try {
+              if (typeof token !== 'string') return false;
+              const parts = token.split('.');
+              if (parts.length !== 3) return false;
+              
+              // 验证各部分是否有效的base64
+              parts.forEach(part => {
+                  atob(part.replace(/-/g, '+').replace(/_/g, '/'));
+              });
+              
+              return true;
+          } catch (e) {
+              return false;
+          }
+      }
+      
 
       // 处理注册请求
       async function handleRegister(username, email, password) {
