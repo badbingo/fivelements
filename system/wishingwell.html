@@ -644,12 +644,23 @@ document.addEventListener('DOMContentLoaded', function() {
 // 添加在全局脚本区域
 function verifyJWT(token) {
   try {
-    // 简易JWT验证 - 实际项目应使用更安全的方式
-    const [header, payload, signature] = token.split('.');
-    const decodedPayload = JSON.parse(atob(payload));
-    return decodedPayload;
-  } catch (e) {
-    console.error('JWT验证失败:', e);
+    // JWT由三部分组成：header.payload.signature
+    const parts = token.split('.');
+    if (parts.length !== 3) {
+      throw new Error('无效的令牌格式');
+    }
+    
+    // 仅解析payload部分（不验证签名，因为前端无法安全存储密钥）
+    const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+    
+    // 检查过期时间
+    if (payload.exp && Date.now() >= payload.exp * 1000) {
+      throw new Error('令牌已过期');
+    }
+    
+    return payload;
+  } catch (error) {
+    console.error('JWT验证失败:', error);
     throw new Error('无效的令牌');
   }
 }
