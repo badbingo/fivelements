@@ -579,52 +579,53 @@
             })
         });
 
-        // 1. 检查响应状态
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData.message || `登录失败: HTTP ${response.status}`);
-        }
+        // 1. 获取原始响应文本（用于调试）
+        const responseText = await response.text();
+        console.debug('原始响应:', responseText);
 
-        // 2. 获取响应数据（兼容多种格式）
-        const data = await response.json().catch(async () => {
-            // 如果JSON解析失败，尝试获取原始文本
-            const text = await response.text();
-            return { token: text }; // 假设纯文本响应就是token
-        });
-
-        // 3. 获取token（支持多种字段名）
-        const token = data.token || data.access_token || data.accessToken || data.jwt || data;
-        if (!token) {
-            console.error('Token字段缺失，完整响应:', data);
-            throw new Error('服务器未返回认证令牌');
-        }
-
-        // 4. 严格验证JWT格式
-        if (typeof token !== 'string') {
-            throw new Error(`令牌格式无效: 应为字符串，实际得到 ${typeof token}`);
-        }
-
-        const tokenParts = token.split('.');
-        if (tokenParts.length !== 3) {
-            throw new Error(`JWT格式错误: 应为3部分，实际得到 ${tokenParts.length} 部分`);
-        }
-
-        // 5. 存储token
-        localStorage.setItem('token', token);
-        
-        // 6. 解析payload获取用户信息
-        let payload;
+        // 2. 尝试解析JSON
+        let data;
         try {
-            payload = JSON.parse(atob(tokenParts[1]));
+            data = JSON.parse(responseText);
         } catch (e) {
-            throw new Error('令牌payload解析失败: ' + e.message);
+            // 如果解析失败，可能token就是响应体本身
+            console.warn('响应不是标准JSON，尝试作为纯token处理');
+            data = { token: responseText };
         }
 
-        if (!payload.id) {
-            throw new Error('令牌中缺少用户ID');
+        // 3. 深度提取token（支持嵌套对象）
+        const extractToken = (obj) => {
+            if (typeof obj === 'string') return obj;
+            if (obj?.token) return extractToken(obj.token);
+            if (obj?.access_token) return extractToken(obj.access_token);
+            if (obj?.data?.token) return extractToken(obj.data.token);
+            return null;
+        };
+
+        const token = extractToken(data);
+        console.debug('提取到的token:', token);
+
+        if (!token) {
+            console.error('无法提取token，完整响应:', data);
+            throw new Error('认证令牌缺失');
         }
 
-        // 7. 重定向到目标页面
+        // 4. 统一转换为字符串
+        const tokenString = String(token).trim();
+        if (!tokenString) {
+            throw new Error('令牌内容为空');
+        }
+
+        // 5. 验证JWT格式
+        const tokenParts = tokenString.split('.');
+        if (tokenParts.length !== 3) {
+            throw new Error(`无效的JWT格式，应为3部分，实际得到 ${tokenParts.length} 部分`);
+        }
+
+        // 6. 存储token
+        localStorage.setItem('token', tokenString);
+        
+        // 7. 重定向
         const urlParams = new URLSearchParams(window.location.search);
         const redirectUrl = urlParams.get('redirect') || 'index.html';
         window.location.href = decodeURIComponent(redirectUrl);
@@ -636,15 +637,13 @@
             stack: error.stack
         });
         
-        // 清除可能无效的token
         localStorage.removeItem('token');
         
-        // 友好的错误提示
         let userMessage = error.message;
         if (/failed to fetch/i.test(error.message)) {
-            userMessage = '网络连接失败，请检查网络设置';
-        } else if (/jwt|token/i.test(error.message)) {
-            userMessage = '认证服务暂时不可用，请联系管理员';
+            userMessage = '网络连接失败';
+        } else if (/token/i.test(error.message)) {
+            userMessage = '认证服务异常';
         }
         
         showAlert(loginAlert, loginAlertText, userMessage, 'danger');
@@ -652,6 +651,7 @@
         setLoading(loginBtn, loginText, loginSpinner, false);
     }
 }
+      
       // 添加到脚本的工具函数部分
       function isValidJwt(token) {
           try {
