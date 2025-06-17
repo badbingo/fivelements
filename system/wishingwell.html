@@ -15,7 +15,11 @@
     <script src="../js/wwpay.js"></script>
     <script src="../js/lunar.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
-
+    <script>
+      // 配置后端地址（必须修改！）
+      const API_BASE = 'https://bazi-backend.owenjass.workers.dev';
+      const API_URL = `${API_BASE}/api`;
+    </script>
     
 </head>
 <body>
@@ -544,107 +548,40 @@ document.addEventListener('DOMContentLoaded', function() {
 }
              
             // 表单提交处理
-           async function handleSubmitWish(e) {
-          e.preventDefault();
-          
-          // 1. 检查令牌
-          const token = localStorage.getItem('token');
-          if (!token) {
-            showLoginModal('请先登录后再许愿');
-            return;
-          }
-        
-          // 2. 收集数据
-          const formData = {
-            user_name: document.getElementById('name').value.trim() || '匿名用户',
-            birth_date: document.getElementById('birthday').value,
-            birth_time: document.getElementById('birthtime').value,
-            content: document.getElementById('wishContent').value.trim(),
-            type: document.getElementById('wishType').value,
-            visibility: document.querySelector('input[name="visibility"]:checked').value,
-            bazi: calculateBazi(birthday, birthtime),
-            solar_date: new Date().toISOString().split('T')[0]
-          };
-        
-          // 3. 提交请求
-          try {
-            const response = await fetch(`${API_BASE}/api/wishes`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-              },
-              body: JSON.stringify(formData)
-            });
-        
-            const data = await response.json();
-        
-            if (!response.ok) {
-              throw new Error(data.error || '提交失败');
-            }
-        
-            showSuccessMessage('愿望提交成功！');
-            wishForm.reset();
-        
-          } catch (error) {
-            console.error('提交错误:', error);
-            showErrorMessage(error.message);
-          }
+            async function handleSubmitWish(e) {
+    e.preventDefault();
+    
+    // 强制登录检查
+    const token = localStorage.getItem('token');
+    if (!token) {
+        showLoginModal('请先登录后再许愿');
+        return;
+    }
+
+    // 验证JWT有效性
+    let userId;
+    try {
+        const payload = verifyJWT(token);
+        userId = payload.id;
+        if (!userId || typeof userId !== 'string') {
+            throw new Error('无效的用户ID');
         }
+    } catch (error) {
+        console.error('Token验证失败:', error);
+        showLoginModal('登录已过期，请重新登录');
+        return;
+    }
 
-
-// 辅助函数：显示登录模态框
-function showLoginModal(message) {
-  const modal = document.getElementById('loginModal');
-  modal.querySelector('p').textContent = message;
-  modal.style.display = 'block';
-  
-  // 设置确认按钮跳转
-  const confirmBtn = modal.querySelector('#confirmLogin');
-  confirmBtn.onclick = () => {
-    window.location.href = 'user.html?redirect=' + 
-      encodeURIComponent(window.location.pathname + window.location.search);
-  };
-}
-
-// 辅助函数：显示成功消息
-function showSuccessMessage(message) {
-  const toast = document.createElement('div');
-  toast.className = 'toast success';
-  toast.innerHTML = `
-    <i class="fas fa-check-circle"></i>
-    ${message}
-  `;
-  document.body.appendChild(toast);
-  
-  setTimeout(() => {
-    toast.classList.add('show');
-    setTimeout(() => {
-      toast.classList.remove('show');
-      setTimeout(() => toast.remove(), 300);
-    }, 3000);
-  }, 100);
-}
-
-// 辅助函数：显示错误消息
-function showErrorMessage(message) {
-  const toast = document.createElement('div');
-  toast.className = 'toast error';
-  toast.innerHTML = `
-    <i class="fas fa-exclamation-circle"></i>
-    ${message}
-  `;
-  document.body.appendChild(toast);
-  
-  setTimeout(() => {
-    toast.classList.add('show');
-    setTimeout(() => {
-      toast.classList.remove('show');
-      setTimeout(() => toast.remove(), 300);
-    }, 3000);
-  }, 100);
-}
-                                                
+    // 收集表单数据
+    const name = document.getElementById('name').value.trim() || '匿名用户';
+    const birthday = document.getElementById('birthday').value;
+    const birthtime = document.getElementById('birthtime').value;
+    const content = document.getElementById('wishContent').value.trim();
+    
+    if (!content || !birthday || !birthtime) {
+        showErrorMessage('请填写完整的愿望内容和出生信息');
+        return;
+    }
 
     // 计算八字
     const bazi = calculateBazi(birthday, birthtime);
@@ -705,11 +642,27 @@ function showErrorMessage(message) {
 }
     
 // 添加在全局脚本区域
-function isTokenValid(token) {
-  // 只做基本格式检查，实际验证由后端完成
-  if (!token) return false;
-  const parts = token.split('.');
-  return parts.length === 3;
+function verifyJWT(token) {
+  try {
+    // JWT由三部分组成：header.payload.signature
+    const parts = token.split('.');
+    if (parts.length !== 3) {
+      throw new Error('无效的令牌格式');
+    }
+    
+    // 仅解析payload部分（不验证签名，因为前端无法安全存储密钥）
+    const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+    
+    // 检查过期时间
+    if (payload.exp && Date.now() >= payload.exp * 1000) {
+      throw new Error('令牌已过期');
+    }
+    
+    return payload;
+  } catch (error) {
+    console.error('JWT验证失败:', error);
+    throw new Error('无效的令牌');
+  }
 }
     
 // 替换原有的登录跳转代码
