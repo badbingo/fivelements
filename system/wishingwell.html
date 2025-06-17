@@ -551,22 +551,17 @@ document.addEventListener('DOMContentLoaded', function() {
     async function handleSubmitWish(e) {
     e.preventDefault();
     
-    // 1. 获取并验证JWT令牌
+    // 增强的token验证
     const token = localStorage.getItem('token');
-    if (!token) {
+    if (!token || !isValidJWT(token)) {
         showLoginModal('请先登录后再许愿');
         return;
     }
 
-    // 验证token格式
+    // 验证token是否过期
     try {
         const payload = JSON.parse(atob(token.split('.')[1]));
-        if (!payload.id || !payload.exp) {
-            throw new Error('Invalid token payload');
-        }
-        
-        // 检查是否过期
-        if (payload.exp < Date.now() / 1000) {
+        if (payload.exp && payload.exp < Date.now() / 1000) {
             localStorage.removeItem('token');
             showLoginModal('登录已过期，请重新登录');
             return;
@@ -740,11 +735,13 @@ function showErrorMessage(message) {
 }
     
 // 添加在全局脚本区域
-function isTokenValid(token) {
-  // 只做基本格式检查，实际验证由后端完成
-  if (!token) return false;
-  const parts = token.split('.');
-  return parts.length === 3;
+function isValidJWT(token) {
+    if (!token) return false;
+    const parts = token.split('.');
+    return parts.length === 3 && 
+           parts[0].length > 0 && 
+           parts[1].length > 0 && 
+           parts[2].length > 0;
 }
     
 // 替换原有的登录跳转代码
