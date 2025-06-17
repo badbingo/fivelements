@@ -17,8 +17,8 @@
     <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
     <script>
       // 配置后端地址（必须修改！）
-      const API_BASE = 'https://bazi-backend.owenjass.workers.dev';
-      const API_URL = `${API_BASE}/api`;
+    const API_BASE = 'https://bazi-backend.owenjass.workers.dev';
+    const API_URL = `${API_BASE}`; // 去掉/api后缀，因为后端处理的是根路径
     </script>
     
 </head>
@@ -342,8 +342,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     // 配置后端地址
     const API_BASE = 'https://bazi-backend.owenjass.workers.dev';
-    const API_URL = `${API_BASE}/api`;
-    
+    const API_URL = `${API_BASE}`; // 去掉/api后缀，因为后端处理的是根路径
     // 全局变量
     let allWishes = [];
     let currentPage = 1;
@@ -557,65 +556,117 @@ document.addEventListener('DOMContentLoaded', function() {
       return;
     }
 
-    // 1. 获取表单数据（确保 DOM 元素 ID 正确）
-       const formData = {
-      name: document.getElementById('name')?.value.trim() || '匿名用户',
-      birthday: document.getElementById('birthday')?.value || '2000-01-01',
-      birthtime: document.getElementById('birthtime')?.value || '00:00:00',
-      content: document.getElementById('wishContent')?.value.trim() || '',
-      type: document.getElementById('wishType')?.value || 'general',
-      visibility: document.querySelector('input[name="visibility"]:checked')?.value || 'public',
-      bazi: calculateBazi(
-        document.getElementById('birthday')?.value,
-        document.getElementById('birthtime')?.value
-      ) || ''
-    };
-
-    // 2. 验证必填字段（后端可能要求这些字段非空）
-    if (!formData.name || !formData.birthday || !formData.content) {
-      throw new Error('姓名、生日和愿望内容为必填项');
-    }
-    // 3. 构建请求数据（确保类型正确）
-    const payload = {
-      // 必填字段（确保非空）
-      user_name: document.getElementById('name')?.value.trim() || '匿名用户',
-      birth_date: document.getElementById('birthday')?.value || '',
-      content: document.getElementById('wishContent')?.value.trim() || '',
-      // 可选字段（设置默认值）
-      birth_time: document.getElementById('birthtime')?.value || '00:00',
-      type: document.getElementById('wishType')?.value || 'general',
-      visibility: document.querySelector('input[name="visibility"]:checked')?.value || 'public',
-      bazi: calculateBazi() || '', // 确保函数有返回值
-      solar_date: new Date().toISOString().split('T')[0] // 自动生成当前日期
-    };
-      
-    // 检查必填字段是否为空
-    if (!payload.user_name || !payload.birth_date || !payload.content) {
-      alert('姓名、生日和愿望内容不能为空！');
+    // 验证token有效性
+    const payload = safeParseJwt(token);
+    if (!payload || !payload.id) {
+      localStorage.removeItem('token');
+      showLoginModal('登录已过期，请重新登录');
       return;
     }
-      
-    // 4. 发送请求（检查 API_URL 是否正确）
+
+    // 获取表单数据
+    const formData = {
+      user_name: document.getElementById('name').value.trim(),
+      birth_date: document.getElementById('birthday').value,
+      birth_time: document.getElementById('birthtime').value,
+      content: document.getElementById('wishContent').value.trim(),
+      type: document.getElementById('wishType').value,
+      visibility: document.querySelector('input[name="visibility"]:checked').value,
+      bazi: calculateBazi(
+        document.getElementById('birthday').value,
+        document.getElementById('birthtime').value
+      ),
+      solar_date: new Date().toISOString().split('T')[0] // 自动添加当前日期
+    };
+
+    // 验证必填字段
+    if (!formData.user_name || !formData.birth_date || !formData.content) {
+      throw new Error('姓名、生日和愿望内容为必填项');
+    }
+
+    // 发送请求
     const response = await fetch(`${API_URL}/wishes`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
       },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(formData)
     });
 
     if (!response.ok) {
       const errorData = await response.json();
-      throw new Error(JSON.stringify(errorData));
+      throw new Error(errorData.error || '请求失败');
     }
 
     showSuccessMessage('愿望提交成功！');
+    // 刷新愿望列表
+    loadAllWishes();
+    
   } catch (error) {
     console.error('提交愿望出错:', error);
     showErrorMessage(error.message || '请求失败，请检查网络或字段格式');
   }
 }
+
+    // 检查并刷新Token
+async function checkAndRefreshToken() {
+  const token = localStorage.getItem('token');
+  if (!token) return false;
+  
+  try {
+    const payload = safeParseJwt(token);
+    if (!payload) {
+      localStorage.removeItem('token');
+      return false;
+    }
+    
+    // 如果Token将在30分钟内过期，尝试刷新
+    const currentTime = Math.floor(Date.now() / 1000);
+    if (payload.exp && payload.exp - currentTime < 1800) {
+      const response = await fetch(`${API_URL}/refresh-token`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (response.ok) {
+        const { token: newToken } = await response.json();
+        localStorage.setItem('token', newToken);
+        return true;
+      }
+    }
+    return true;
+  } catch (error) {
+    console.error('Token检查失败:', error);
+    return false;
+  }
+}
+
+// 在每次API调用前检查Token
+async function safeApiCall(url, options = {}) {
+  await checkAndRefreshToken();
+  
+  const token = localStorage.getItem('token');
+  if (token) {
+    options.headers = {
+      ...options.headers,
+      'Authorization': `Bearer ${token}`
+    };
+  }
+  
+  const response = await fetch(url, options);
+  
+  if (response.status === 401) {
+    localStorage.removeItem('token');
+    showLoginModal('登录已过期，请重新登录');
+    throw new Error('Unauthorized');
+  }
+  
+  return response;
+}
+    
 
 // 辅助函数：显示登录模态框
 function showLoginModal(message) {
