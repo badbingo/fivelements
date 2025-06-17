@@ -332,47 +332,57 @@ document.addEventListener('DOMContentLoaded', function() {
     async function performLogin(username, password) {
     const startTime = Date.now();
     
-    const response = await fetch(API_ENDPOINT, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-        },
-        body: JSON.stringify({ name: username, password })
-    });
-
-    console.log(`登录请求耗时: ${Date.now() - startTime}ms`);
-    console.log('响应状态:', response.status);
-    
-    const responseText = await response.text();
-    console.log('原始响应文本:', responseText);
-    
     try {
-        const responseData = JSON.parse(responseText);
-        console.log('解析后的响应:', responseData);
+        const response = await fetch(API_ENDPOINT, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ name: username, password })
+        });
+
+        console.log(`登录请求耗时: ${Date.now() - startTime}ms`);
+        console.log('响应状态:', response.status);
         
-        if (!response.ok) {
-            throw new Error(responseData?.message || `登录失败: ${response.status}`);
+        const responseText = await response.text();
+        console.log('原始响应文本:', responseText);
+        
+        let responseData;
+        try {
+            responseData = responseText ? JSON.parse(responseText) : {};
+        } catch (e) {
+            console.error('JSON解析失败:', e);
+            throw new Error("服务器返回了无效的JSON格式");
         }
 
-        const token = responseData?.token;
+        // 检查是否为空对象
+        if (Object.keys(responseData).length === 0) {
+            throw new Error("服务器返回了空响应");
+        }
+
+        // 即使状态码是200，也可能包含错误信息
+        if (!response.ok || responseData.error) {
+            const errorMsg = responseData.message || responseData.error || `登录失败: ${response.status}`;
+            throw new Error(errorMsg);
+        }
+
+        const token = responseData.token;
         if (!token || typeof token !== "string") {
-            console.error('无效的令牌:', token);
-            throw new Error("无效的令牌格式");
+            throw new Error("响应中缺少有效的token字段");
         }
 
         if (!isValidJWT(token)) {
-            console.error('无效的JWT格式:', token);
-            throw new Error("无效的令牌格式");
+            throw new Error("令牌格式无效");
         }
 
         return {
             token,
-            expiresIn: responseData?.expires_in || 3600
+            expiresIn: responseData.expires_in || 3600
         };
-    } catch (e) {
-        console.error('响应解析错误:', e);
-        throw new Error("无法解析服务器响应");
+    } catch (error) {
+        console.error('登录过程中出错:', error);
+        throw error; // 重新抛出以便上层处理
     }
 }
 
@@ -398,16 +408,20 @@ document.addEventListener('DOMContentLoaded', function() {
     console.error('登录错误:', error);
     clearAuthToken();
     
-    let errorMessage = error.message;
+    let errorMessage = '登录过程中发生错误';
     
     if (error.message.includes('NetworkError')) {
         errorMessage = '网络连接失败，请检查网络设置';
     } else if (error.message.includes('timed out')) {
         errorMessage = '请求超时，请稍后重试';
-    } else if (error.message.includes('无效的令牌格式')) {
-        errorMessage = '服务器返回了无效的认证信息，请联系管理员';
-    } else if (error.message.includes('无法解析服务器响应')) {
-        errorMessage = '服务器返回了意外的响应格式';
+    } else if (error.message.includes('空响应')) {
+        errorMessage = '服务器返回了空响应，请检查您的凭据或联系管理员';
+    } else if (error.message.includes('无效的JSON格式')) {
+        errorMessage = '服务器返回了无法解析的响应';
+    } else if (error.message.includes('缺少有效的token字段')) {
+        errorMessage = '认证失败，请检查用户名和密码';
+    } else {
+        errorMessage = error.message; // 显示原始错误消息
     }
     
     showAlert(errorMessage, 'danger');
