@@ -352,12 +352,12 @@ document.addEventListener('DOMContentLoaded', function() {
         // 解析响应数据
         const responseData = await parseResponse(response);
         console.debug('登录响应:', responseData);
-        
-        // 提取令牌
-        const token = extractAuthToken(responseData, response);
+      
+        // 确保 token 存在于 responseData 中
+        const token = responseData?.token;
         if (!token) throw new Error('无法获取访问令牌');
         
-        // 验证令牌格式
+         // 验证格式
         if (!isValidJWT(token)) {
             throw new Error('无效的令牌格式');
         }
