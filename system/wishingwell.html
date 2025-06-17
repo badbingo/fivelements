@@ -547,19 +547,35 @@ document.addEventListener('DOMContentLoaded', function() {
     return ganOrder[(startIndex + timeIndex) % 10];
 }
              
-        // 表单提交处理
-        async function handleSubmitWish(e) {
-    console.log('当前token:', localStorage.getItem('token'));
-    console.log('Token是否有效:', isTokenValid(localStorage.getItem('token')));
-                    
-  e.preventDefault();
-  
-  // 1. 获取并验证JWT令牌
-  const token = localStorage.getItem('token');
-  if (!token || token.split('.').length !== 3) {
-    showLoginModal('请先登录后再许愿');
-    return;
-  }
+    // 表单提交处理
+    async function handleSubmitWish(e) {
+    e.preventDefault();
+    
+    // 1. 获取并验证JWT令牌
+    const token = localStorage.getItem('token');
+    if (!token) {
+        showLoginModal('请先登录后再许愿');
+        return;
+    }
+
+    // 验证token格式
+    try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        if (!payload.id || !payload.exp) {
+            throw new Error('Invalid token payload');
+        }
+        
+        // 检查是否过期
+        if (payload.exp < Date.now() / 1000) {
+            localStorage.removeItem('token');
+            showLoginModal('登录已过期，请重新登录');
+            return;
+        }
+    } catch (error) {
+        localStorage.removeItem('token');
+        showLoginModal('登录状态无效，请重新登录');
+        return;
+    }
 
   // 2. 收集表单数据
   const name = document.getElementById('name').value.trim() || '匿名用户';
