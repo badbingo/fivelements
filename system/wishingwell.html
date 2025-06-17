@@ -551,112 +551,83 @@ document.addEventListener('DOMContentLoaded', function() {
     async function handleSubmitWish(e) {
     e.preventDefault();
     
-    // 增强的token验证
+    // 1. 验证登录状态
     const token = localStorage.getItem('token');
-    if (!token || !isValidJWT(token)) {
+    if (!token) {
         showLoginModal('请先登录后再许愿');
         return;
     }
 
-    // 验证token是否过期
+    // 2. 收集表单数据
+    const name = document.getElementById('name').value.trim() || '匿名用户';
+    const birthday = document.getElementById('birthday').value;
+    const birthtime = document.getElementById('birthtime').value;
+    const content = document.getElementById('wishContent').value.trim();
+    
+    // 3. 验证必填字段
+    if (!content || !birthday || !birthtime) {
+        showErrorMessage('请填写完整的愿望内容和出生信息');
+        return;
+    }
+
+    // 4. 计算八字
+    const bazi = calculateBazi(birthday, birthtime);
+    if (!bazi) {
+        showErrorMessage('八字计算失败，请检查出生日期和时间');
+        return;
+    }
+
+    // 5. 准备请求数据
+    const wishData = {
+        user_name: name,
+        birth_date: birthday,
+        birth_time: birthtime,
+        content: content,
+        type: document.getElementById('wishType').value,
+        visibility: document.querySelector('input[name="visibility"]:checked').value,
+        bazi: bazi,
+        solar_date: new Date().toISOString().split('T')[0]
+    };
+
+    // 6. 设置提交按钮状态
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    const originalBtnText = submitBtn.innerHTML;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 提交中...';
+
     try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        if (payload.exp && payload.exp < Date.now() / 1000) {
-            localStorage.removeItem('token');
-            showLoginModal('登录已过期，请重新登录');
-            return;
+        // 7. 发送请求到正确的端点
+        const response = await fetch(`${API_URL}/wishes`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(wishData)
+        });
+
+        // 8. 处理响应
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || '愿望提交失败');
         }
+
+        // 9. 成功处理
+        showSuccessMessage('愿望已成功投入命缘池！');
+        wishForm.reset();
+        
+        // 重新加载愿望列表
+        currentPage = 1;
+        loadAllWishes();
+
     } catch (error) {
-        localStorage.removeItem('token');
-        showLoginModal('登录状态无效，请重新登录');
-        return;
+        console.error('提交愿望失败:', error);
+        showErrorMessage(`提交失败: ${error.message}`);
+    } finally {
+        // 10. 重置按钮状态
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnText;
     }
-
-  // 2. 收集表单数据
-  const name = document.getElementById('name').value.trim() || '匿名用户';
-  const birthday = document.getElementById('birthday').value;
-  const birthtime = document.getElementById('birthtime').value;
-  const content = document.getElementById('wishContent').value.trim();
-  
-  // 3. 表单验证
-  if (!content || !birthday || !birthtime) {
-    showErrorMessage('请填写完整的愿望内容和出生信息');
-    return;
-  }
-
-  // 4. 计算八字
-  const bazi = calculateBazi(birthday, birthtime);
-  if (!bazi) {
-    showErrorMessage('八字计算失败，请检查出生日期和时间');
-    return;
-  }
-
-  // 5. 准备请求数据
-  const wishData = {
-    user_name: name,
-    birth_date: birthday,
-    birth_time: birthtime,
-    content: content,
-    type: document.getElementById('wishType').value,
-    visibility: document.querySelector('input[name="visibility"]:checked').value,
-    bazi: bazi,
-    solar_date: new Date().toISOString().split('T')[0]
-  };
-
-  // 6. 设置提交按钮状态
-  const submitBtn = e.target.querySelector('button[type="submit"]');
-  const originalBtnText = submitBtn.innerHTML;
-  submitBtn.disabled = true;
-  submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 提交中...';
-
-  try {
-    // 7. 发送请求
-    const response = await fetch(API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify(wishData)
-    });
-
-    // 8. 处理响应
-    if (!response.ok) {
-      const errorData = await response.json();
-      
-      // 处理令牌过期情况
-      if (response.status === 401) {
-        localStorage.removeItem('token');
-        showLoginModal('登录已过期，请重新登录');
-        return;
-      }
-      
-      throw new Error(errorData.message || '愿望提交失败');
-    }
-
-    // 9. 成功处理
-    showSuccessMessage('愿望已成功投入命缘池！');
-    wishForm.reset();
-    
-    // 重新加载愿望列表
-    currentPage = 1;
-    loadAllWishes();
-
-  } catch (error) {
-    console.error('提交愿望失败:', error);
-    
-    // 10. 错误分类处理
-    if (error.message.includes('NetworkError')) {
-      showErrorMessage('网络连接失败，请检查网络后重试');
-    } else {
-      showErrorMessage(`提交失败: ${error.message}`);
-    }
-    
-  } finally {
-    // 11. 重置按钮状态
-    submitBtn.disabled = false;
-    submitBtn.innerHTML = originalBtnText;
-  }
 }
 
 // 辅助函数：显示登录模态框
