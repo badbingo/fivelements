@@ -514,8 +514,23 @@ document.addEventListener('DOMContentLoaded', function() {
     /**
      * 验证JWT格式
      */
-    function isValidJWT(token) {
-        return typeof token === 'string' && token.split('.').length === 3;
+       function isValidJWT(token) {
+        if (typeof token !== 'string') return false;
+        
+        // 基本JWT格式验证 (header.payload.signature)
+        const parts = token.split('.');
+        if (parts.length !== 3) return false;
+        
+        try {
+            // 尝试解码JWT头部
+            const header = JSON.parse(atob(parts[0]));
+            if (!header.alg || !header.typ || header.typ !== 'JWT') {
+                return false;
+            }
+            return true;
+        } catch (e) {
+            return false;
+        }
     }
     
     /**
