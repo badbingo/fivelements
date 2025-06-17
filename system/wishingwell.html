@@ -641,15 +641,23 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 }
 
-// 显示登录模态框
+// 替换原有的登录跳转代码
 function showLoginModal(message) {
     const modal = document.getElementById('loginModal');
     modal.querySelector('p').textContent = message;
     modal.style.display = 'block';
     
-    // 确认按钮跳转到登录页
-    modal.querySelector('#confirmLogin').onclick = () => {
-        window.location.href = '/login.html?redirect=' + encodeURIComponent(window.location.pathname);
+    // 修改确认按钮跳转路径
+    const confirmBtn = modal.querySelector('#confirmLogin');
+    confirmBtn.onclick = () => {
+        // 使用相对路径，保留当前URL参数
+        const params = new URLSearchParams(window.location.search);
+        window.location.href = `user.html?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`;
+    };
+    
+    // 取消按钮关闭模态框
+    modal.querySelector('#cancelLogin').onclick = () => {
+        modal.style.display = 'none';
     };
 }
 
