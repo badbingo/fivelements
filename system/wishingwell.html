@@ -552,15 +552,33 @@ document.addEventListener('DOMContentLoaded', function() {
     async function handleSubmitWish(e) {
     e.preventDefault();
     
+    // 强制登录检查
+    const token = localStorage.getItem('token');
+    if (!token) {
+        showLoginModal('请先登录后再许愿');
+        return;
+    }
+
+    // 验证JWT有效性
+    let userId;
+    try {
+        const payload = verifyJWT(token);
+        userId = payload.id;
+        if (!userId || typeof userId !== 'string') {
+            throw new Error('无效的用户ID');
+        }
+    } catch (error) {
+        console.error('Token验证失败:', error);
+        showLoginModal('登录已过期，请重新登录');
+        return;
+    }
+
     // 收集表单数据
     const name = document.getElementById('name').value.trim() || '匿名用户';
     const birthday = document.getElementById('birthday').value;
     const birthtime = document.getElementById('birthtime').value;
     const content = document.getElementById('wishContent').value.trim();
-    const type = document.getElementById('wishType').value;
-    const visibility = document.querySelector('input[name="visibility"]:checked').value;
     
-    // 验证必填字段
     if (!content || !birthday || !birthtime) {
         showErrorMessage('请填写完整的愿望内容和出生信息');
         return;
@@ -573,55 +591,31 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
     }
 
-    // 获取或生成owner_id（明确的所有者ID）
-    let ownerId;
-    try {
-        const token = localStorage.getItem('token');
-        if (token) {
-            // 已登录用户：使用JWT中的用户ID作为owner_id
-            const payload = verifyJWT(token);
-            ownerId = payload.id;
-        } else {
-            // 未登录用户：使用设备指纹+时间戳生成唯一owner_id
-            if (!localStorage.getItem('deviceFingerprint')) {
-                const fingerprint = generateDeviceFingerprint();
-                localStorage.setItem('deviceFingerprint', fingerprint);
-            }
-            ownerId = 'device_' + localStorage.getItem('deviceFingerprint');
-        }
-    } catch (error) {
-        console.error('owner_id生成失败:', error);
-        ownerId = 'temp_' + Date.now(); // 最终备用方案
-    }
-
     // 设置提交按钮状态
     const submitBtn = e.target.querySelector('button[type="submit"]');
-    const originalBtnText = submitBtn.innerHTML;
     submitBtn.disabled = true;
     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 提交中...';
 
     try {
-        // 准备请求数据（同时包含user_id和owner_id）
+        // 准备请求数据（仅包含注册用户ID）
         const wishData = {
             user_name: name,
             birth_date: birthday,
             birth_time: birthtime,
             content: content,
-            type: type,
-            visibility: visibility,
+            type: document.getElementById('wishType').value,
+            visibility: document.querySelector('input[name="visibility"]:checked').value,
             bazi: bazi,
-            user_id: 'legacy_' + ownerId, // 保持原有user_id字段兼容
-            owner_id: ownerId,            // 新增的明确所有者字段
-            solar_date: new Date().toISOString().split('T')[0],
-            created_at: Date.now()        // 精确到毫秒的时间戳
+            user_id: userId, // 确保使用users表中的注册ID
+            solar_date: new Date().toISOString().split('T')[0]
         };
 
-        // 发送请求到后端
+        // 发送请求
         const response = await fetch(API_URL, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Accept': 'application/json'
+                'Authorization': `Bearer ${token}` // 添加认证头
             },
             body: JSON.stringify(wishData)
         });
@@ -631,49 +625,34 @@ document.addEventListener('DOMContentLoaded', function() {
             throw new Error(errorData.message || '愿望提交失败');
         }
 
-        // 显示成功动画
-        await showMantraEffect();
         showSuccessMessage('愿望已成功投入命缘池！');
-        
-        // 重置表单
         wishForm.reset();
-        baziInfo.style.display = 'none';
         
-        // 重新加载愿望列表（自动显示"我的愿望"）
+        // 重新加载列表并自动切换到"我的愿望"
         currentPage = 1;
-        wishFilter.value = 'my'; // 自动切换到"我的愿望"视图
+        wishFilter.value = 'my';
         loadAllWishes();
         
     } catch (error) {
-        console.error('愿望提交错误:', error);
-        showErrorMessage(`提交失败: ${error.message.replace('owner_id', '用户识别')}`);
+        console.error('提交愿望失败:', error);
+        showErrorMessage(`提交失败: ${error.message}`);
     } finally {
-        // 恢复按钮状态
         submitBtn.disabled = false;
-        submitBtn.innerHTML = originalBtnText;
+        submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> 投入命缘池';
     }
 }
 
-// 生成设备指纹的辅助函数
-function generateDeviceFingerprint() {
-    const components = [
-        navigator.userAgent,
-        navigator.hardwareConcurrency,
-        screen.width + 'x' + screen.height,
-        new Date().getTimezoneOffset()
-    ];
-    return components.join('|').hashCode(); // 简单的哈希生成
+// 显示登录模态框
+function showLoginModal(message) {
+    const modal = document.getElementById('loginModal');
+    modal.querySelector('p').textContent = message;
+    modal.style.display = 'block';
+    
+    // 确认按钮跳转到登录页
+    modal.querySelector('#confirmLogin').onclick = () => {
+        window.location.href = '/login.html?redirect=' + encodeURIComponent(window.location.pathname);
+    };
 }
-
-// 简易字符串哈希（实际项目建议使用更安全的算法）
-String.prototype.hashCode = function() {
-    let hash = 0;
-    for (let i = 0; i < this.length; i++) {
-        hash = ((hash << 5) - hash) + this.charCodeAt(i);
-        hash |= 0; // 转换为32位整数
-    }
-    return 'fp_' + Math.abs(hash).toString(16);
-};
 
      // 渲染愿望列表
             async function renderWishes() {
@@ -730,18 +709,53 @@ String.prototype.hashCode = function() {
         
         // 应用筛选和排序并渲染当前页的愿望
         function renderFilteredWishes() {
-            // 1. 应用类型筛选
             const selectedType = wishFilter.value;
-        let filteredWishes = [...allWishes];
+            const selectedSort = sortFilter.value;
+            let filteredWishes = [...allWishes];
+            
+            // "我的愿望"筛选（仅对登录用户有效）
+            if (selectedType === 'my') {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    wishPool.innerHTML = `
+                        <div class="wish-empty">
+                            <i class="fas fa-lock"></i>
+                            <h3>请登录后查看您的愿望</h3>
+                            <button onclick="window.location.href='/login.html'" 
+                                    class="btn-mingyuan">
+                                <i class="fas fa-sign-in-alt"></i> 立即登录
+                            </button>
+                        </div>
+                    `;
+                    return;
+                }
         
-        if (selectedType === 'my') {
-            // 从localStorage获取当前用户ID
-            const userId = localStorage.getItem('userId') || 'guest_' + localStorage.getItem('guestId');
-            filteredWishes = allWishes.filter(wish => wish.user_id === userId);
-        } 
-        else if (selectedType !== 'all') {
-            filteredWishes = allWishes.filter(wish => wish.type === selectedType);
-        }
+                try {
+                    const payload = verifyJWT(token);
+                    filteredWishes = allWishes.filter(wish => wish.user_id === payload.id);
+                    
+                    if (filteredWishes.length === 0) {
+                        wishPool.innerHTML = `
+                            <div class="wish-empty">
+                                <i class="fas fa-star"></i>
+                                <h3>您还没有许过愿望</h3>
+                                <button onclick="document.querySelector('#wishContent').focus()" 
+                                        class="btn-mingyuan">
+                                    <i class="fas fa-plus"></i> 创建第一个愿望
+                                </button>
+                            </div>
+                        `;
+                        return;
+                    }
+                } catch (error) {
+                    console.error('Token解析失败:', error);
+                    showLoginModal('登录状态异常，请重新登录');
+                    return;
+                }
+            } 
+            else if (selectedType !== 'all') {
+                filteredWishes = allWishes.filter(wish => wish.type === selectedType);
+            }
         
         // 2. 应用排序
         const selectedSort = sortFilter.value;
