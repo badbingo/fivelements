@@ -330,8 +330,12 @@ document.addEventListener('DOMContentLoaded', function() {
      * 执行登录API请求
      */
     async function performLogin(username, password) {
-    const startTime = Date.now();
-    
+    const debugInfo = {
+        request: { username, password },
+        response: null,
+        error: null
+    };
+
     try {
         const response = await fetch(API_ENDPOINT, {
             method: 'POST',
@@ -342,50 +346,48 @@ document.addEventListener('DOMContentLoaded', function() {
             body: JSON.stringify({ name: username, password })
         });
 
-        console.log(`登录请求耗时: ${Date.now() - startTime}ms`);
-        console.log('响应状态:', response.status);
-        
-        const responseText = await response.text();
-        console.log('原始响应文本:', responseText);
-        
+        debugInfo.response = {
+            status: response.status,
+            headers: Object.fromEntries(response.headers.entries()),
+            body: await response.text()
+        };
+
+        console.debug('完整登录调试信息:', debugInfo);
+
         let responseData;
         try {
-            responseData = responseText ? JSON.parse(responseText) : {};
+            responseData = debugInfo.response.body ? JSON.parse(debugInfo.response.body) : {};
         } catch (e) {
             console.error('JSON解析失败:', e);
-            throw new Error("服务器返回了无效的JSON格式");
+            throw new Error("服务器返回了无效的响应格式");
         }
 
-        // 检查是否为空对象
-        if (Object.keys(responseData).length === 0) {
-            throw new Error("服务器返回了空响应");
+        // 详细检查响应结构
+        if (response.status !== 200) {
+            throw new Error(responseData.message || `服务器返回错误状态: ${response.status}`);
         }
 
-        // 即使状态码是200，也可能包含错误信息
-        if (!response.ok || responseData.error) {
-            const errorMsg = responseData.message || responseData.error || `登录失败: ${response.status}`;
-            throw new Error(errorMsg);
+        if (!responseData.token) {
+            // 记录完整的响应数据以便分析
+            console.error('完整响应数据:', responseData);
+            throw new Error("认证成功但缺少令牌");
         }
 
-        const token = responseData.token;
-        if (!token || typeof token !== "string") {
-            throw new Error("响应中缺少有效的token字段");
-        }
-
-        if (!isValidJWT(token)) {
+        if (!isValidJWT(responseData.token)) {
             throw new Error("令牌格式无效");
         }
 
         return {
-            token,
-            expiresIn: responseData.expires_in || 3600
+            token: responseData.token,
+            expiresIn: responseData.expires_in || 3600,
+            debugInfo // 可选：返回调试信息
         };
     } catch (error) {
-        console.error('登录过程中出错:', error);
-        throw error; // 重新抛出以便上层处理
+        debugInfo.error = error.message;
+        console.error('完整登录过程错误:', debugInfo);
+        throw error;
     }
 }
-
     
     /**
      * 处理登录成功
@@ -405,26 +407,59 @@ document.addEventListener('DOMContentLoaded', function() {
      * 处理登录失败
      */
     function handleLoginFailure(error) {
-    console.error('登录错误:', error);
+    console.error('增强版错误处理:', error);
     clearAuthToken();
     
     let errorMessage = '登录过程中发生错误';
+    let suggestContact = false;
     
-    if (error.message.includes('NetworkError')) {
-        errorMessage = '网络连接失败，请检查网络设置';
-    } else if (error.message.includes('timed out')) {
-        errorMessage = '请求超时，请稍后重试';
-    } else if (error.message.includes('空响应')) {
-        errorMessage = '服务器返回了空响应，请检查您的凭据或联系管理员';
-    } else if (error.message.includes('无效的JSON格式')) {
-        errorMessage = '服务器返回了无法解析的响应';
-    } else if (error.message.includes('缺少有效的token字段')) {
-        errorMessage = '认证失败，请检查用户名和密码';
-    } else {
-        errorMessage = error.message; // 显示原始错误消息
+    const errorCases = [
+        {
+            match: 'NetworkError|Failed to fetch',
+            message: '网络连接问题，请检查您的网络设置'
+        },
+        {
+            match: 'timed out',
+            message: '请求超时，请稍后重试'
+        },
+        {
+            match: '无效的响应格式',
+            message: '服务器返回了无法识别的格式',
+            contact: true
+        },
+        {
+            match: '认证成功但缺少令牌',
+            message: '系统认证异常，请稍后再试',
+            contact: true
+        },
+        {
+            match: '令牌格式无效',
+            message: '系统安全认证异常',
+            contact: true
+        },
+        {
+            match: '服务器返回错误状态',
+            message: '系统暂时不可用'
+        }
+    ];
+    
+    for (const case of errorCases) {
+        if (new RegExp(case.match).test(error.message)) {
+            errorMessage = case.message;
+            suggestContact = case.contact || false;
+            break;
+        }
     }
     
     showAlert(errorMessage, 'danger');
+    
+    if (suggestContact) {
+        const contactMsg = document.createElement('div');
+        contactMsg.className = 'mt-2';
+        contactMsg.innerHTML = '如问题持续，请联系<a href="mailto:support@mybazi.net" class="link">技术支持</a>';
+        alertBox.appendChild(contactMsg);
+    }
+    
     usernameInput.focus();
 }
     
