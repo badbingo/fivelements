@@ -549,29 +549,38 @@ document.addEventListener('DOMContentLoaded', function() {
              
             // 表单提交处理
             async function handleSubmitWish(e) {
-    e.preventDefault();
+              e.preventDefault();
+              
+              const token = localStorage.getItem('token');
+              if (!isTokenValid(token)) {
+                showLoginModal('请先登录后再许愿');
+                return;
+              }
+            
+              // 直接发送请求，让后端验证令牌
+              try {
+                const response = await fetch(API_URL, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                  },
+                  body: JSON.stringify(wishData)
+                });
+            
+                if (response.status === 401) {
+                  // 令牌无效
+                  localStorage.removeItem('token');
+                  showLoginModal('登录已过期，请重新登录');
+                  return;
+                }
+                
+                // 处理成功响应...
+              } catch (error) {
+                // 错误处理...
+              }
+            }
     
-    // 强制登录检查
-    const token = localStorage.getItem('token');
-    if (!token) {
-        showLoginModal('请先登录后再许愿');
-        return;
-    }
-
-    // 验证JWT有效性
-    let userId;
-    try {
-        const payload = verifyJWT(token);
-        userId = payload.id;
-        if (!userId || typeof userId !== 'string') {
-            throw new Error('无效的用户ID');
-        }
-    } catch (error) {
-        console.error('Token验证失败:', error);
-        showLoginModal('登录已过期，请重新登录');
-        return;
-    }
-
     // 收集表单数据
     const name = document.getElementById('name').value.trim() || '匿名用户';
     const birthday = document.getElementById('birthday').value;
