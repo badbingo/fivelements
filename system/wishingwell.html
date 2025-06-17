@@ -577,15 +577,23 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     // 3. 构建请求数据（确保类型正确）
     const payload = {
-      user_name: formData.name,
-      birth_date: formData.birthday,
-      birth_time: formData.birthtime.includes(':') ? formData.birthtime : `${formData.birthtime}:00`,
-      content: formData.content,
-      type: formData.type,
-      visibility: formData.visibility,
-      bazi: formData.bazi,
-      solar_date: new Date().toISOString().split('T')[0]
+      // 必填字段（确保非空）
+      user_name: document.getElementById('name')?.value.trim() || '匿名用户',
+      birth_date: document.getElementById('birthday')?.value || '',
+      content: document.getElementById('wishContent')?.value.trim() || '',
+      // 可选字段（设置默认值）
+      birth_time: document.getElementById('birthtime')?.value || '00:00',
+      type: document.getElementById('wishType')?.value || 'general',
+      visibility: document.querySelector('input[name="visibility"]:checked')?.value || 'public',
+      bazi: calculateBazi() || '', // 确保函数有返回值
+      solar_date: new Date().toISOString().split('T')[0] // 自动生成当前日期
     };
+      
+    // 检查必填字段是否为空
+    if (!payload.user_name || !payload.birth_date || !payload.content) {
+      alert('姓名、生日和愿望内容不能为空！');
+      return;
+    }
       
     // 4. 发送请求（检查 API_URL 是否正确）
     const response = await fetch(`${API_URL}/wishes`, {
