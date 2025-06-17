@@ -708,132 +708,180 @@ function showLoginModal(message) {
 
     // 应用筛选和排序并渲染当前页的愿望
     function renderFilteredWishes() {
-        // 1. 应用类型筛选
-        const selectedType = wishFilter.value;
-        let filteredWishes = [...allWishes];
-        
-        if (selectedType !== 'all') {
-            filteredWishes = allWishes.filter(wish => wish.type === selectedType);
+    // 1. 获取筛选条件和排序方式
+    const selectedType = wishFilter.value;
+    const selectedSort = sortFilter.value;
+    
+    // 2. 获取当前登录用户ID
+    let currentUserId = null;
+    try {
+        const token = localStorage.getItem('token');
+        if (token) {
+            const payload = verifyJWT(token);
+            currentUserId = payload.id;
         }
-        
-        // 2. 应用排序
-        const selectedSort = sortFilter.value;
-        
-        switch(selectedSort) {
-            case 'newest':
-                filteredWishes.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
-                break;
-            case 'oldest':
-                filteredWishes.sort((a, b) => new Date(a.created_at || 0) - new Date(b.created_at || 0));
-                break;
-            case 'most':
-                filteredWishes.sort((a, b) => (b.blessings || 0) - (a.blessings || 0));
-                break;
-            case 'least':
-                filteredWishes.sort((a, b) => (a.blessings || 0) - (b.blessings || 0));
-                break;
-            default:
-                filteredWishes.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
-        }
-        
-        // 3. 分页处理
-        const startIndex = (currentPage - 1) * wishesPerPage;
-        const paginatedWishes = filteredWishes.slice(startIndex, startIndex + wishesPerPage);
-        
-        // 渲染筛选后的愿望
-        renderWishCards(paginatedWishes);
+    } catch (error) {
+        console.error('Token解析失败:', error);
     }
 
-    // 渲染愿望卡片
-    function renderWishCards(wishes) {
-        if (!Array.isArray(wishes)) {
-            console.error('renderWishCards 接收到的不是数组:', wishes);
-            return;
+    // 3. 应用筛选条件
+    let filteredWishes = allWishes.filter(wish => {
+        // "我的愿望"专属筛选
+        if (selectedType === 'my') {
+            return currentUserId && wish.user_id === currentUserId;
         }
-        
-        wishPool.innerHTML = '';
-        
-        if (wishes.length === 0) {
-            wishPool.innerHTML = `
-                <div class="wish-loading">
-                    <i class="fas fa-water" style="font-size: 2rem; color: #6a11cb;"></i>
-                    <p>没有找到符合条件的愿望</p>
-                    <p>请尝试其他筛选条件</p>
-                </div>
-            `;
-            return;
+        // 其他类型筛选
+        else if (selectedType !== 'all') {
+            return wish.type === selectedType;
         }
-        
-        // 愿望类型名称映射
-        const typeNames = {
-            love: '姻缘感情', 
-            wealth: '财富事业', 
-            health: '健康平安',
-            study: '学业成长', 
-            family: '家庭和睦', 
-            other: '其他愿望'
-        };
-        
-        wishes.forEach(wish => {
-            // 创建愿望卡片
-            const wishCard = document.createElement('div');
-            wishCard.className = 'wish-card';
-            wishCard.dataset.id = wish.id;
-            wishCard.dataset.level = wish.level || 1;
-            wishCard.dataset.type = wish.type;
-            wishCard.dataset.visibility = wish.visibility;
-            
-            // 计算剩余天数
-            const createdDate = new Date(wish.created_at);
-            const expiresAt = new Date(createdDate);
-            expiresAt.setDate(expiresAt.getDate() + 30);
-            const daysLeft = Math.max(0, Math.ceil((expiresAt - new Date()) / (86400000)));
-            
-            // 填充内容
-            wishCard.innerHTML = `
-                <div class="wish-header">
-                    <div class="wish-user">
-                        <i class="fas fa-user"></i> <span class="user-name">${wish.user_name || '匿名用户'}</span>
-                    </div>
-                    <span class="wish-type">${typeNames[wish.type] || '其他愿望'}</span>
-                    <span class="wish-time">剩余<span class="days-left">${daysLeft}</span>天</span>
-                </div>
-                <div class="wish-content">
-                    <p class="wish-text">${wish.content}</p>
-                    <p class="wish-hidden">愿望已隐藏</p>
-                </div>
-                <div class="wish-meta">
-                    <div class="wish-bazi">
-                        <i class="fas fa-user-secret"></i> <span class="bazi-text">${wish.bazi}</span>
-                    </div>
-                    <div class="wish-stats">
-                        <span class="bless-count">${wish.blessings || 0}</span> 次加持
-                    </div>
-                </div>
-                <div class="wish-actions">
-                    <button class="btn-bless">
-                        <i class="fas fa-hands-helping"></i> 加持
-                    </button>
-                    <button class="btn-fulfill">
-                    <i class="fas fa-hand-holding-heart"></i> 还愿
-                    </button>
-                </div>
-                <div class="wish-energy">
-                    <div class="energy-level" data-level="${wish.level || 1}"></div>
-                </div>
-            `;
-            
-            // 添加事件监听
-            const blessBtn = wishCard.querySelector('.btn-bless');
-            blessBtn.addEventListener('click', () => handleBlessWish(wishCard, wish));
-            
-            const fulfillBtn = wishCard.querySelector('.btn-fulfill');
-            fulfillBtn.addEventListener('click', () => handleFulfillWish(wish));
-            
-            // 添加到池中
-            wishPool.appendChild(wishCard);
-        });
+        // "全部愿望"不筛选
+        return true;
+    });
+
+    // 4. 处理空状态
+    if (filteredWishes.length === 0) {
+        wishPool.innerHTML = createEmptyState(selectedType, !!currentUserId);
+        return;
     }
+
+    // 5. 应用排序
+    filteredWishes = sortWishes(filteredWishes, selectedSort);
+
+    // 6. 分页处理
+    const startIndex = (currentPage - 1) * wishesPerPage;
+    const paginatedWishes = filteredWishes.slice(startIndex, startIndex + wishesPerPage);
+
+    // 7. 渲染愿望卡片
+    renderWishCards(paginatedWishes);
+}
+
+// 辅助函数：创建空状态提示
+function createEmptyState(selectedType, isLoggedIn) {
+    const emptyState = document.createElement('div');
+    emptyState.className = 'wish-empty';
+    
+    if (selectedType === 'my') {
+        if (!isLoggedIn) {
+            emptyState.innerHTML = `
+                <i class="fas fa-lock"></i>
+                <h3>请登录查看您的愿望</h3>
+                <button onclick="window.location.href='/login.html'" class="btn-mingyuan">
+                    <i class="fas fa-sign-in-alt"></i> 立即登录
+                </button>
+            `;
+        } else {
+            emptyState.innerHTML = `
+                <i class="fas fa-star"></i>
+                <h3>您还没有许过愿望</h3>
+                <button onclick="document.querySelector('#wishContent').focus()" class="btn-mingyuan">
+                    <i class="fas fa-plus"></i> 创建第一个愿望
+                </button>
+            `;
+        }
+    } else {
+        emptyState.innerHTML = `
+            <i class="fas fa-water"></i>
+            <h3>没有找到符合条件的愿望</h3>
+            <p>尝试调整筛选条件或创建新愿望</p>
+            ${!isLoggedIn ? `
+            <button onclick="window.location.href='/login.html'" class="btn-mingyuan">
+                <i class="fas fa-sign-in-alt"></i> 登录后查看更多
+            </button>
+            ` : ''}
+        `;
+    }
+    
+    return emptyState;
+}
+
+// 辅助函数：愿望排序
+function sortWishes(wishes, sortType) {
+    const sorted = [...wishes];
+    switch(sortType) {
+        case 'newest':
+            return sorted.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        case 'oldest':
+            return sorted.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+        case 'most':
+            return sorted.sort((a, b) => (b.blessings || 0) - (a.blessings || 0));
+        case 'least':
+            return sorted.sort((a, b) => (a.blessings || 0) - (b.blessings || 0));
+        default:
+            return sorted;
+    }
+}
+
+// 辅助函数：渲染愿望卡片
+function renderWishCards(wishes) {
+    wishPool.innerHTML = '';
+    
+    wishes.forEach(wish => {
+        const card = document.createElement('div');
+        card.className = 'wish-card';
+        card.dataset.id = wish.id;
+        card.dataset.level = wish.level || 1;
+        
+        // 计算剩余天数
+        const expiresAt = new Date(wish.created_at);
+        expiresAt.setDate(expiresAt.getDate() + 30);
+        const daysLeft = Math.max(0, Math.ceil((expiresAt - new Date()) / 86400000));
+        
+        card.innerHTML = `
+            <div class="wish-header">
+                <div class="wish-user">
+                    <i class="fas fa-user"></i> ${wish.user_name || '匿名用户'}
+                </div>
+                <span class="wish-type">${getWishTypeName(wish.type)}</span>
+                <span class="wish-time">剩余${daysLeft}天</span>
+            </div>
+            <div class="wish-content">
+                <p class="wish-text">${wish.content}</p>
+            </div>
+            <div class="wish-meta">
+                <div class="wish-bazi">
+                    <i class="fas fa-user-secret"></i> ${wish.bazi}
+                </div>
+                <div class="wish-stats">
+                    <span class="bless-count">${wish.blessings || 0}</span> 次加持
+                </div>
+            </div>
+            <div class="wish-actions">
+                <button class="btn-bless">
+                    <i class="fas fa-hands-helping"></i> 加持
+                </button>
+                ${wish.user_id === currentUserId ? `
+                <button class="btn-fulfill">
+                    <i class="fas fa-hand-holding-heart"></i> 还愿
+                </button>
+                ` : ''}
+            </div>
+            <div class="wish-energy">
+                <div class="energy-level" style="width: ${(wish.level || 1) * 20}%"></div>
+            </div>
+        `;
+        
+        // 添加事件监听
+        card.querySelector('.btn-bless').addEventListener('click', () => handleBlessWish(wish.id));
+        if (wish.user_id === currentUserId) {
+            card.querySelector('.btn-fulfill').addEventListener('click', () => handleFulfillWish(wish.id));
+        }
+        
+        wishPool.appendChild(card);
+    });
+}
+
+// 辅助函数：获取愿望类型名称
+function getWishTypeName(type) {
+    const typeNames = {
+        love: '姻缘感情',
+        wealth: '财富事业', 
+        health: '健康平安',
+        study: '学业成长',
+        family: '家庭和睦',
+        other: '其他愿望'
+    };
+    return typeNames[type] || '其他愿望';
+}
 
     // 处理加持愿望
     async function handleBlessWish(cardElement, wish) {
