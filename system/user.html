@@ -580,111 +580,84 @@
             })
         });
 
-        // 2. 获取并记录完整响应（用于调试）
+        // 2. 获取原始响应文本
         const responseText = await response.text();
-        console.log('完整登录响应:', {
+        
+        // 3. 调试输出 - 实际生产环境应移除
+        console.debug('登录响应:', {
             status: response.status,
             headers: Object.fromEntries(response.headers.entries()),
             body: responseText
         });
 
-        // 3. 尝试解析响应数据
+        // 4. 尝试解析响应
         let responseData;
         try {
             responseData = responseText ? JSON.parse(responseText) : {};
         } catch (e) {
-            console.warn('响应不是有效JSON，尝试作为纯文本处理');
-            responseData = { raw: responseText };
+            // 如果不是JSON，尝试作为纯令牌处理
+            if (responseText.split('.').length === 3) {
+                responseData = { token: responseText };
+            } else {
+                throw new Error('响应不是有效的JSON格式');
+            }
         }
 
-        // 4. 智能令牌提取（支持多种后端格式）
-        const findAuthToken = (data) => {
-            // 常见token字段名
-            const tokenFields = [
-                'token', 'access_token', 'accessToken', 
-                'jwt', 'auth_token', 'authToken', 'id_token'
-            ];
-            
-            // 检查顶级字段
-            for (const field of tokenFields) {
-                if (data[field] && typeof data[field] === 'string') {
-                    return data[field];
-                }
-            }
-            
-            // 检查常见嵌套结构
-            const nestedPaths = [
-                'data.token', 'result.access_token', 
-                'auth.token', 'payload.jwt'
-            ];
-            
-            for (const path of nestedPaths) {
-                const value = path.split('.').reduce((obj, key) => obj?.[key], data);
-                if (value && typeof value === 'string') {
-                    return value;
-                }
-            }
-            
-            // 深度搜索整个对象
-            const stack = [data];
-            while (stack.length) {
-                const current = stack.pop();
-                if (typeof current === 'string' && current.split('.').length === 3) {
-                    return current; // 符合JWT格式的字符串
-                }
-                if (typeof current === 'object' && current !== null) {
-                    Object.values(current).forEach(val => stack.push(val));
-                }
-            }
-            
-            return null;
-        };
-
-        const token = findAuthToken(responseData);
-        
+        // 5. 令牌提取逻辑增强
+        const token = extractTokenFromResponse(responseData);
         if (!token) {
-            console.error('无法从响应中提取token，完整响应:', responseData);
-            throw new Error('认证令牌缺失：服务器未返回有效令牌');
-        }
-
-        // 5. 验证令牌基本格式
-        if (typeof token !== 'string') {
-            throw new Error(`无效令牌类型: ${typeof token}，应为字符串`);
-        }
-
-        const tokenParts = token.split('.');
-        if (tokenParts.length !== 3) {
-            throw new Error(`无效JWT格式: 需要3部分，实际得到${tokenParts.length}部分`);
+            throw new Error('无法从响应中提取认证令牌');
         }
 
         // 6. 存储令牌并重定向
         localStorage.setItem('token', token);
-        
-        const urlParams = new URLSearchParams(window.location.search);
-        const redirectUrl = urlParams.get('redirect') || 'index.html';
-        window.location.href = decodeURIComponent(redirectUrl);
+        redirectAfterLogin();
 
     } catch (error) {
-        console.error('登录流程错误:', {
-            error: error,
-            message: error.message,
-            stack: error.stack
-        });
-        
-        localStorage.removeItem('token');
-        
-        // 友好错误提示
-        let userMessage = '登录失败，请重试';
-        if (error.message.includes('令牌缺失')) {
-            userMessage = '系统未返回认证信息，请联系管理员';
-        } else if (error.message.includes('网络错误')) {
-            userMessage = '网络连接异常，请检查网络设置';
-        }
-        
-        showAlert(loginAlert, loginAlertText, userMessage, 'danger');
+        handleLoginError(error);
     } finally {
         setLoading(loginBtn, loginText, loginSpinner, false);
     }
+}
+
+// 令牌提取工具函数
+function extractTokenFromResponse(responseData) {
+    // 尝试从常见字段获取
+    const possiblePaths = [
+        'token', 'access_token', 'accessToken', 
+        'jwt', 'auth_token', 'authToken',
+        'data.token', 'result.token', 'payload.token',
+        'auth.access_token', 'credentials.token'
+    ];
+    
+    for (const path of possiblePaths) {
+        const value = path.split('.').reduce((obj, key) => obj?.[key], responseData);
+        if (value && typeof value === 'string' && value.split('.').length === 3) {
+            return value;
+        }
+    }
+    
+    return null;
+}
+
+// 重定向函数
+function redirectAfterLogin() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const redirectUrl = urlParams.get('redirect') || 'index.html';
+    window.location.href = decodeURIComponent(redirectUrl);
+}
+
+// 错误处理函数
+function handleLoginError(error) {
+    console.error('登录错误:', error);
+    localStorage.removeItem('token');
+    
+    let userMessage = '登录失败，请重试';
+    if (error.message.includes('认证令牌')) {
+        userMessage = '系统未返回认证信息，请联系管理员';
+    }
+    
+    showAlert(loginAlert, loginAlertText, userMessage, 'danger');
 }
       
       // 添加到脚本的工具函数部分
