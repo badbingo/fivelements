@@ -354,19 +354,20 @@
 
       // 检查登录状态
       function checkLoginStatus() {
-        const token = localStorage.getItem('token');
-        
-        // 简单验证token格式
-        const isValidToken = token && token.split('.').length === 3;
-        
-        if (isValidToken) {
-          showAlert(loginAlert, '您已登录，正在跳转...', 'success');
-          // 已登录用户自动跳转
-          setTimeout(() => {
-            window.location.href = 'wishingwell.html';
-          }, 1500);
-        }
+      const token = localStorage.getItem('token');
+      
+      // 增强验证：检查 token 格式和内容
+      const isValidToken = token && 
+                          token.split('.').length === 3 &&
+                          /^[a-zA-Z0-9\-_]+$/.test(token);
+      
+      if (isValidToken) {
+        // ...原有代码...
+      } else {
+        // 清除无效 token
+        localStorage.removeItem('token');
       }
+    }
     });
   </script>
 </body>
