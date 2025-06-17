@@ -809,7 +809,7 @@ function showLoginModal(message) {
             }
 
     // 应用筛选和排序并渲染当前页的愿望
-    function renderFilteredWishes() {
+    async function renderFilteredWishes() {
     // 1. 获取筛选条件和排序方式
     const selectedType = wishFilter.value;
     const selectedSort = sortFilter.value;
@@ -819,11 +819,22 @@ function showLoginModal(message) {
     try {
         const token = localStorage.getItem('token');
         if (token) {
-            const payload = verifyJWT(token);
+            // Instead of directly verifying, you could:
+            // Option 1: Make an API call to verify the token
+            // const response = await fetch(`${API_BASE}/api/verify-token`, {
+            //     headers: { 'Authorization': `Bearer ${token}` }
+            // });
+            // const data = await response.json();
+            // currentUserId = data.userId;
+            
+            // Option 2: Just decode the token without verifying (less secure)
+            const payload = JSON.parse(atob(token.split('.')[1]));
             currentUserId = payload.id;
         }
     } catch (error) {
         console.error('Token解析失败:', error);
+        // Handle invalid token (e.g., remove it)
+        localStorage.removeItem('token');
     }
 
     // 3. 应用筛选条件
