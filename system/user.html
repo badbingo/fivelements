@@ -389,43 +389,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 }
 
-      // 存储token
-    function storeAuthToken(token) {
-        localStorage.setItem('token', token);
-        
-        // 解码token获取过期时间
-        try {
-            const payload = JSON.parse(atob(token.split('.')[1]));
-            if (payload.exp) {
-                const expiryDate = new Date(payload.exp * 1000);
-                localStorage.setItem('token_expiry', expiryDate.toISOString());
-            }
-        } catch (e) {
-            console.error('解析token失败:', e);
-        }
-    }
-    
-    // 检查token有效性
-    function checkAuth() {
-        const token = localStorage.getItem('token');
-        if (!token) return false;
-        
-        try {
-            const payload = JSON.parse(atob(token.split('.')[1]));
-            if (payload.exp && payload.exp < Date.now() / 1000) {
-                localStorage.removeItem('token');
-                return false;
-            }
-            return true;
-        } catch (e) {
-            return false;
-        }
-    }
-    
-    // 页面加载时检查
-    if (!checkAuth() && !location.pathname.includes('user.html')) {
-        window.location.href = 'user.html?redirect=' + encodeURIComponent(window.location.pathname);
-    }
   
     /**
      * 处理登录成功
