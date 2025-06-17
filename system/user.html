@@ -243,86 +243,341 @@
   </div>
 
   <script>
-    document.addEventListener('DOMContentLoaded', function() {
-    const loginForm = document.getElementById('loginForm');
+    /**
+ * 登录页面主逻辑
+ * 功能：用户认证、令牌管理、错误处理、页面跳转
+ */
+document.addEventListener('DOMContentLoaded', function() {
+    // ==================== 配置常量 ====================
+    const API_ENDPOINT = 'https://bazi-backend.owenjass.workers.dev/api/login';
+    const DEFAULT_REDIRECT = 'wishingwell.html';
+    const TOKEN_KEY = 'auth_token';
+    const TOKEN_EXPIRY_KEY = 'token_expiry';
     
-    loginForm.addEventListener('submit', async function(e) {
+    // ==================== DOM元素 ====================
+    const loginForm = document.getElementById('loginForm');
+    const usernameInput = document.getElementById('loginUsername');
+    const passwordInput = document.getElementById('loginPassword');
+    const togglePasswordBtn = document.getElementById('togglePassword');
+    const loginBtn = document.getElementById('loginBtn');
+    const loginBtnText = document.getElementById('loginBtnText');
+    const alertBox = document.getElementById('loginAlert');
+    const forgotPasswordLink = document.getElementById('forgotPasswordLink');
+
+    // ==================== 初始化 ====================
+    initLoginPage();
+
+    // ==================== 事件监听 ====================
+    loginForm.addEventListener('submit', handleLoginSubmit);
+    togglePasswordBtn.addEventListener('click', togglePasswordVisibility);
+    forgotPasswordLink?.addEventListener('click', handleForgotPassword);
+    
+    // ==================== 核心函数 ====================
+    
+    /**
+     * 初始化登录页面
+     */
+    function initLoginPage() {
+        // 自动聚焦用户名输入框
+        setTimeout(() => usernameInput?.focus(), 100);
+        
+        // 检查已有登录状态
+        if (checkExistingSession()) {
+            showAlert('您已登录，正在跳转...', 'success');
+            redirectAfterLogin();
+        }
+        
+        // 从URL获取重定向路径
+        const redirectParam = new URLSearchParams(window.location.search).get('redirect');
+        if (redirectParam && !redirectParam.startsWith('/')) {
+            window.history.replaceState({}, '', window.location.pathname);
+        }
+    }
+    
+    /**
+     * 处理登录表单提交
+     */
+    async function handleLoginSubmit(e) {
         e.preventDefault();
         
-        // 获取表单数据
-        const username = document.getElementById('loginUsername').value.trim();
-        const password = document.getElementById('loginPassword').value;
+        const username = usernameInput.value.trim();
+        const password = passwordInput.value;
         
-        // 验证输入
-        if (!username || !password) {
-            alert('请输入用户名和密码');
-            return;
-        }
+        // 输入验证
+        if (!validateInputs(username, password)) return;
+        
+        // 设置加载状态
+        setLoadingState(true);
         
         try {
-            // 显示加载状态
-            const submitBtn = e.target.querySelector('button[type="submit"]');
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 登录中...';
+            // 执行登录流程
+            const tokenData = await performLogin(username, password);
             
-            // 发送登录请求
-            const response = await fetch('https://bazi-backend.owenjass.workers.dev/api/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({
-                    name: username,
-                    password: password
-                })
-            });
-            
-            // 检查响应状态
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.message || `登录失败: ${response.status}`);
-            }
-            
-            // 解析响应数据
-            const data = await response.json().catch(() => {
-                throw new Error('无效的JSON响应');
-            });
-            
-            // 提取令牌
-            let token;
-            try {
-                token = extractTokenFromResponse(data, response);
-            } catch (extractError) {
-                console.error('令牌提取失败:', extractError);
-                throw new Error('登录成功但无法获取访问令牌');
-            }
-            
-            // 验证令牌格式
-            if (!token || typeof token !== 'string' || token.split('.').length !== 3) {
-                throw new Error('无效的令牌格式');
-            }
-            
-            // 存储令牌
-            localStorage.setItem('token', token);
-            
-            // 跳转到目标页面
-            const urlParams = new URLSearchParams(window.location.search);
-            const redirectUrl = urlParams.get('redirect') || 'wishingwell.html';
-            window.location.href = redirectUrl;
+            // 处理登录成功
+            handleLoginSuccess(tokenData);
             
         } catch (error) {
-            console.error('登录错误:', error);
-            alert(`登录失败: ${error.message}`);
+            // 处理登录失败
+            handleLoginFailure(error);
+            
         } finally {
-            // 重置按钮状态
-            const submitBtn = e.target.querySelector('button[type="submit"]');
-            if (submitBtn) {
-                submitBtn.disabled = false;
-                submitBtn.textContent = '登录';
-            }
+            // 重置加载状态
+            setLoadingState(false);
         }
-    });
+    }
+    
+    /**
+     * 执行登录API请求
+     */
+    async function performLogin(username, password) {
+        const startTime = Date.now();
+        
+        const response = await fetch(API_ENDPOINT, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ name: username, password })
+        });
+        
+        console.log(`登录请求耗时: ${Date.now() - startTime}ms`);
+        
+        // 检查HTTP状态
+        if (!response.ok) {
+            const errorData = await parseResponse(response);
+            throw new Error(errorData?.message || `登录失败: ${response.status}`);
+        }
+        
+        // 解析响应数据
+        const responseData = await parseResponse(response);
+        console.debug('登录响应:', responseData);
+        
+        // 提取令牌
+        const token = extractAuthToken(responseData, response);
+        if (!token) throw new Error('无法获取访问令牌');
+        
+        // 验证令牌格式
+        if (!isValidJWT(token)) {
+            throw new Error('无效的令牌格式');
+        }
+        
+        return {
+            token,
+            expiresIn: responseData?.expires_in || 3600 // 默认1小时
+        };
+    }
+    
+    /**
+     * 处理登录成功
+     */
+    function handleLoginSuccess(tokenData) {
+        // 存储令牌
+        storeAuthToken(tokenData.token, tokenData.expiresIn);
+        
+        // 显示成功消息
+        showAlert('登录成功，正在跳转...', 'success');
+        
+        // 跳转页面
+        redirectAfterLogin();
+    }
+    
+    /**
+     * 处理登录失败
+     */
+    function handleLoginFailure(error) {
+        console.error('登录错误:', error);
+        
+        // 清除可能无效的令牌
+        clearAuthToken();
+        
+        // 显示错误消息
+        let errorMessage = error.message;
+        
+        // 特定错误处理
+        if (error.message.includes('NetworkError')) {
+            errorMessage = '网络连接失败，请检查网络设置';
+        } else if (error.message.includes('timed out')) {
+            errorMessage = '请求超时，请稍后重试';
+        }
+        
+        showAlert(errorMessage, 'danger');
+        
+        // 重新聚焦输入框
+        usernameInput.focus();
+    }
+    
+    // ==================== 工具函数 ====================
+    
+    /**
+     * 检查现有会话
+     */
+    function checkExistingSession() {
+        const token = localStorage.getItem(TOKEN_KEY);
+        const expiry = localStorage.getItem(TOKEN_EXPIRY_KEY);
+        
+        // 检查令牌是否存在且未过期
+        return token && (!expiry || new Date(expiry) > new Date());
+    }
+    
+    /**
+     * 验证输入
+     */
+    function validateInputs(username, password) {
+        if (!username) {
+            showAlert('请输入用户名', 'warning');
+            usernameInput.focus();
+            return false;
+        }
+        
+        if (!password) {
+            showAlert('请输入密码', 'warning');
+            passwordInput.focus();
+            return false;
+        }
+        
+        return true;
+    }
+    
+    /**
+     * 设置加载状态
+     */
+    function setLoadingState(isLoading) {
+        if (isLoading) {
+            loginBtn.disabled = true;
+            loginBtnText.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 登录中...';
+        } else {
+            loginBtn.disabled = false;
+            loginBtnText.textContent = '登录';
+        }
+    }
+    
+    /**
+     * 解析API响应
+     */
+    async function parseResponse(response) {
+        const contentType = response.headers.get('content-type') || '';
+        
+        if (contentType.includes('application/json')) {
+            return await response.json();
+        }
+        
+        // 处理非JSON响应
+        const text = await response.text();
+        
+        // 尝试解析可能被错误标记的JSON
+        try {
+            return JSON.parse(text);
+        } catch {
+            return text; // 返回原始文本
+        }
+    }
+    
+    /**
+     * 从响应中提取令牌
+     */
+    function extractAuthToken(data, response) {
+        // 检查常见令牌位置
+        const tokenPaths = [
+            'token', 'data.token', 'access_token', 'accessToken',
+            'auth_token', 'authToken', 'jwt', 'id_token'
+        ];
+        
+        for (const path of tokenPaths) {
+            const value = path.split('.').reduce((obj, key) => obj?.[key], data);
+            if (value && typeof value === 'string') return value;
+        }
+        
+        // 检查Authorization头
+        const authHeader = response.headers.get('Authorization');
+        if (authHeader?.startsWith('Bearer ')) {
+            return authHeader.split(' ')[1];
+        }
+        
+        // 检查响应体是否为纯令牌
+        if (typeof data === 'string' && data.match(/^eyJ[a-zA-Z0-9-_]+\.[a-zA-Z0-9-_]+\.[a-zA-Z0-9-_]+$/)) {
+            return data;
+        }
+        
+        return null;
+    }
+    
+    /**
+     * 验证JWT格式
+     */
+    function isValidJWT(token) {
+        return typeof token === 'string' && token.split('.').length === 3;
+    }
+    
+    /**
+     * 存储认证令牌
+     */
+    function storeAuthToken(token, expiresIn) {
+        localStorage.setItem(TOKEN_KEY, token);
+        
+        // 计算过期时间
+        const expiryDate = new Date();
+        expiryDate.setSeconds(expiryDate.getSeconds() + expiresIn);
+        localStorage.setItem(TOKEN_EXPIRY_KEY, expiryDate.toISOString());
+    }
+    
+    /**
+     * 清除认证令牌
+     */
+    function clearAuthToken() {
+        localStorage.removeItem(TOKEN_KEY);
+        localStorage.removeItem(TOKEN_EXPIRY_KEY);
+    }
+    
+    /**
+     * 登录后跳转
+     */
+    function redirectAfterLogin() {
+        const redirectUrl = new URLSearchParams(window.location.search).get('redirect') || DEFAULT_REDIRECT;
+        
+        // 延迟跳转以显示消息
+        setTimeout(() => {
+            window.location.href = redirectUrl.startsWith('http') 
+                ? redirectUrl 
+                : `${window.location.origin}/${redirectUrl.replace(/^\//, '')}`;
+        }, 1500);
+    }
+    
+    /**
+     * 显示提示消息
+     */
+    function showAlert(message, type = 'info') {
+        if (!alertBox) return;
+        
+        alertBox.textContent = message;
+        alertBox.className = `alert alert-${type}`;
+        alertBox.style.display = 'block';
+        
+        // 自动隐藏
+        if (type !== 'danger') {
+            setTimeout(() => {
+                alertBox.style.display = 'none';
+            }, 5000);
+        }
+    }
+    
+    /**
+     * 切换密码可见性
+     */
+    function togglePasswordVisibility() {
+        const isPassword = passwordInput.type === 'password';
+        passwordInput.type = isPassword ? 'text' : 'password';
+        this.classList.toggle('fa-eye-slash');
+        this.classList.toggle('fa-eye');
+    }
+    
+    /**
+     * 处理忘记密码
+     */
+    function handleForgotPassword(e) {
+        e.preventDefault();
+        window.location.href = 'forgot-password.html';
+    }
 });
   </script>
 </body>
