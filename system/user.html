@@ -329,13 +329,9 @@ document.addEventListener('DOMContentLoaded', function() {
     /**
      * 执行登录API请求
      */
-    async function performLogin(username, password) {
-    const debugInfo = {
-        request: { username, password },
-        response: null,
-        error: null
-    };
-
+   async function performLogin(username, password) {
+    const startTime = Date.now();
+    
     try {
         const response = await fetch(API_ENDPOINT, {
             method: 'POST',
@@ -346,46 +342,47 @@ document.addEventListener('DOMContentLoaded', function() {
             body: JSON.stringify({ name: username, password })
         });
 
-        debugInfo.response = {
-            status: response.status,
-            headers: Object.fromEntries(response.headers.entries()),
-            body: await response.text()
-        };
-
-        console.debug('完整登录调试信息:', debugInfo);
-
+        console.log(`登录请求耗时: ${Date.now() - startTime}ms`);
+        console.log('响应状态:', response.status);
+        
+        const responseText = await response.text();
+        console.log('原始响应文本:', responseText);
+        
         let responseData;
         try {
-            responseData = debugInfo.response.body ? JSON.parse(debugInfo.response.body) : {};
+            responseData = responseText ? JSON.parse(responseText) : {};
         } catch (e) {
             console.error('JSON解析失败:', e);
-            throw new Error("服务器返回了无效的响应格式");
+            throw new Error("服务器返回了无效的JSON格式");
         }
 
-        // 详细检查响应结构
-        if (response.status !== 200) {
-            throw new Error(responseData.message || `服务器返回错误状态: ${response.status}`);
+        // 检查是否为空对象
+        if (Object.keys(responseData).length === 0) {
+            throw new Error("服务器返回了空响应");
         }
 
-        if (!responseData.token) {
-            // 记录完整的响应数据以便分析
-            console.error('完整响应数据:', responseData);
-            throw new Error("认证成功但缺少令牌");
+        // 即使状态码是200，也可能包含错误信息
+        if (!response.ok || responseData.error) {
+            const errorMsg = responseData.message || responseData.error || `登录失败: ${response.status}`;
+            throw new Error(errorMsg);
         }
 
-        if (!isValidJWT(responseData.token)) {
+        const token = responseData.token;
+        if (!token || typeof token !== "string") {
+            throw new Error("响应中缺少有效的token字段");
+        }
+
+        if (!isValidJWT(token)) {
             throw new Error("令牌格式无效");
         }
 
         return {
-            token: responseData.token,
-            expiresIn: responseData.expires_in || 3600,
-            debugInfo // 可选：返回调试信息
+            token,
+            expiresIn: responseData.expires_in || 3600
         };
     } catch (error) {
-        debugInfo.error = error.message;
-        console.error('完整登录过程错误:', debugInfo);
-        throw error;
+        console.error('登录过程中出错:', error);
+        throw error; // 重新抛出以便上层处理
     }
 }
 
