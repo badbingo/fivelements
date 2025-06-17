@@ -552,7 +552,7 @@ document.addEventListener('DOMContentLoaded', function() {
     e.preventDefault();
     
     try {
-        // 1. 增强的token验证
+        // 1. 验证token
         const token = localStorage.getItem('token');
         if (!token || !isValidJWT(token)) {
             showLoginModal('请先登录后再许愿');
@@ -567,7 +567,8 @@ document.addEventListener('DOMContentLoaded', function() {
             content: document.getElementById('wishContent').value.trim(),
             type: document.getElementById('wishType').value,
             visibility: document.querySelector('input[name="visibility"]:checked').value,
-            bazi: calculateBazi(document.getElementById('birthday').value, document.getElementById('birthtime').value)
+            bazi: calculateBazi(document.getElementById('birthday').value, 
+                     document.getElementById('birthtime').value)
         };
 
         // 3. 验证必填字段
@@ -580,8 +581,8 @@ document.addEventListener('DOMContentLoaded', function() {
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 提交中...';
 
-        // 5. 发送请求
-        const response = await fetch(`${API_BASE}/api/wishes`, {
+        // 5. 发送请求 - 注意修改了API端点
+        const response = await fetch(`${API_BASE}/wishes`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -599,13 +600,15 @@ document.addEventListener('DOMContentLoaded', function() {
             })
         });
 
-        // 6. 处理响应
+        // 6. 增强的错误处理
         if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData.message || `服务器错误: ${response.status}`);
+            const errorText = await response.text();
+            console.error('API响应错误:', response.status, errorText);
+            throw new Error(errorText || `服务器错误: ${response.status}`);
         }
 
         // 7. 成功处理
+        const result = await response.json();
         showSuccessMessage('愿望已成功投入命缘池！');
         wishForm.reset();
         loadAllWishes();
