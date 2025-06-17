@@ -342,33 +342,38 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     console.log(`登录请求耗时: ${Date.now() - startTime}ms`);
+    console.log('响应状态:', response.status);
+    
+    const responseText = await response.text();
+    console.log('原始响应文本:', responseText);
+    
+    try {
+        const responseData = JSON.parse(responseText);
+        console.log('解析后的响应:', responseData);
+        
+        if (!response.ok) {
+            throw new Error(responseData?.message || `登录失败: ${response.status}`);
+        }
 
-    if (!response.ok) {
-        const errorData = await parseResponse(response);
-        throw new Error(errorData?.message || `登录失败: ${response.status}`);
+        const token = responseData?.token;
+        if (!token || typeof token !== "string") {
+            console.error('无效的令牌:', token);
+            throw new Error("无效的令牌格式");
+        }
+
+        if (!isValidJWT(token)) {
+            console.error('无效的JWT格式:', token);
+            throw new Error("无效的令牌格式");
+        }
+
+        return {
+            token,
+            expiresIn: responseData?.expires_in || 3600
+        };
+    } catch (e) {
+        console.error('响应解析错误:', e);
+        throw new Error("无法解析服务器响应");
     }
-
-    const responseData = await parseResponse(response);
-    console.debug('登录响应:', responseData);
-
-    const token = responseData?.token;
-
-    // 验证 token 是否存在且为字符串
-    if (token && typeof token === "string") {
-        localStorage.setItem("token", token);
-    } else {
-        throw new Error("无效的令牌格式");
-    }
-
-    // 验证 JWT 格式（如果你实现了 isValidJWT 函数）
-    if (!isValidJWT(token)) {
-        throw new Error("无效的令牌格式");
-    }
-
-    return {
-        token,
-        expiresIn: responseData?.expires_in || 3600
-    };
 }
 
     
