@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../css/wwstyle.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
+    <script src="../js/wwpay.js"></script>
     <script src="../js/lunar.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
     <script>
@@ -797,25 +797,32 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 处理加持愿望
     async function handleBlessWish(cardElement, wish) {
+    // 获取加持按钮元素
+    const blessBtn = cardElement.querySelector('.btn-bless');
+    if (!blessBtn) return;
+
     try {
-        // 检查登录状态
+        // 1. 检查登录状态
         const token = localStorage.getItem('token');
         if (!token) {
-            showLoginModal(); // 使用模态框替代alert
+            showLoginModal();
             return;
         }
 
-        // 获取加持按钮并禁用
-        const blessBtn = cardElement.querySelector('.btn-bless');
+        // 2. 禁用按钮并显示加载状态
         blessBtn.disabled = true;
         blessBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 加持中...';
 
-        // 显示特效
-        await showMantraEffect();
+        // 3. 显示六字真言特效
+        try {
+            await showMantraEffect();
+        } catch (effectError) {
+            console.warn('特效显示失败:', effectError);
+            // 特效失败不影响主要功能
+        }
 
-        // 发送请求
+        // 4. 发送加持请求
         const blessUrl = `${API_BASE}/api/bless/${wish.id}`;
-        
         const response = await fetch(blessUrl, {
             method: 'POST',
             headers: {
@@ -824,32 +831,100 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
-        // 处理响应
+        // 5. 处理响应
         if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || `加持失败 (${response.status})`);
+            const errorText = await response.text();
+            let errorMessage = '加持失败';
+            
+            try {
+                const errorData = JSON.parse(errorText);
+                errorMessage = errorData.error || errorMessage;
+                
+                // 特殊处理令牌失效情况
+                if (response.status === 401) {
+                    localStorage.removeItem('token');
+                    showLoginModal();
+                    return;
+                }
+            } catch {
+                errorMessage = errorText || errorMessage;
+            }
+            
+            throw new Error(errorMessage);
         }
 
         const result = await response.json();
         
-        // 更新UI
-        cardElement.querySelector('.bless-count').textContent = result.blessings;
-        cardElement.dataset.level = result.level;
-        cardElement.querySelector('.energy-level').style.width = `${result.level * 20}%`;
-        
-        // 显示成功消息
-        showSuccessMessage('加持成功！');
-
+        // 6. 更新UI
+        if (result.success) {
+            // 更新加持次数
+            const blessCountElement = cardElement.querySelector('.bless-count');
+            if (blessCountElement) {
+                blessCountElement.textContent = result.blessings || 0;
+            }
+            
+            // 更新能量等级
+            const energyLevelElement = cardElement.querySelector('.energy-level');
+            if (energyLevelElement && result.level) {
+                cardElement.dataset.level = result.level;
+                energyLevelElement.style.width = `${result.level * 20}%`;
+            }
+            
+            // 显示成功消息
+            showSuccessMessage('加持成功！愿力已增强！');
+            
+            // 播放成功音效（可选）
+            try {
+                const audio = new Audio('/sounds/bless-success.mp3');
+                audio.volume = 0.3;
+                audio.play().catch(e => console.warn('音效播放失败:', e));
+            } catch (audioError) {
+                console.warn('音效加载失败:', audioError);
+            }
+        } else {
+            throw new Error(result.error || '加持失败');
+        }
     } catch (error) {
         console.error('加持出错:', error);
-        showErrorMessage(error.message);
-    } finally {
-        // 重置按钮状态
-        const blessBtn = cardElement.querySelector('.btn-bless');
-        if (blessBtn) {
-            blessBtn.disabled = false;
-            blessBtn.innerHTML = '<i class="fas fa-hands-helping"></i> 加持';
+        
+        // 显示错误消息
+        let errorMessage = error.message;
+        
+        // 特殊错误处理
+        if (error.message.includes('每小时只能加持一次')) {
+            errorMessage = '加持过于频繁，请1小时后再试';
+        } else if (error.message.includes('无效令牌')) {
+            errorMessage = '登录已过期，请重新登录';
+            localStorage.removeItem('token');
+            showLoginModal();
         }
+        
+        showErrorMessage(errorMessage);
+    } finally {
+        // 7. 重置按钮状态
+        blessBtn.disabled = false;
+        blessBtn.innerHTML = '<i class="fas fa-hands-helping"></i> 加持';
+        
+        // 8. 更新全局统计（可选）
+        setTimeout(fetchStats, 1000); // 1秒后刷新统计
+    }
+}
+
+// 辅助函数：显示登录模态框
+function showLoginModal() {
+    const modal = document.getElementById('loginModal');
+    if (modal) {
+        modal.style.display = 'block';
+        
+        // 绑定确认按钮事件
+        const confirmBtn = document.getElementById('confirmLogin');
+        if (confirmBtn) {
+            confirmBtn.onclick = () => {
+                window.location.href = '/login.html?redirect=' + encodeURIComponent(window.location.pathname);
+            };
+        }
+    } else {
+        alert('请先登录才能加持愿望');
     }
 }
 
