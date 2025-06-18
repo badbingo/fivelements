@@ -877,17 +877,12 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // 处理加持愿望
-    // 处理加持愿望
-async function handleBlessWish(cardElement, wish) {
+    async function handleBlessWish(cardElement, wish) {
     try {
         // 检查登录状态
         const token = localStorage.getItem('token');
         if (!token) {
-            // 创建自定义弹窗而不是使用默认confirm
-            const loginConfirm = confirm('您需要先登录才能加持愿望\n\n点击"确定"跳转到登录页面');
-            if (loginConfirm) {
-                window.location.href = 'user.html';
-            }
+            showLoginModal();
             return;
         }
 
@@ -925,7 +920,11 @@ async function handleBlessWish(cardElement, wish) {
         // 处理响应
         if (!response.ok) {
             const errorData = await response.json();
-            if (errorData.code === 429) {
+            if (errorData.code === 401) {  // 未授权/未登录
+                showLoginModal();
+                return;
+            }
+            if (errorData.code === 429) {  // 频率限制
                 localStorage.setItem(lastBlessKey, new Date(errorData.nextBlessTime).getTime() - 3600000);
                 showToast(errorData.error);
                 return;
@@ -965,6 +964,41 @@ async function handleBlessWish(cardElement, wish) {
     }
 }
 
+    // 显示登录提示模态框
+function showLoginModal() {
+    const modal = document.getElementById('loginModal');
+    if (!modal) {
+        // 如果没有模态框，使用默认confirm
+        const shouldLogin = confirm('请先登录后才能加持\n\n点击"确定"跳转到登录页面');
+        if (shouldLogin) {
+            window.location.href = 'user.html';
+        }
+        return;
+    }
+    
+    modal.style.display = 'block';
+    
+    // 设置确认按钮事件
+    document.getElementById('confirmLogin').onclick = function() {
+        window.location.href = 'user.html';
+    };
+    
+    // 设置取消按钮事件
+    document.getElementById('cancelLogin').onclick = function() {
+        modal.style.display = 'none';
+    };
+    
+    // 点击关闭按钮或模态框外部关闭
+    modal.querySelector('.close-modal').onclick = function() {
+        modal.style.display = 'none';
+    };
+    window.onclick = function(event) {
+        if (event.target === modal) {
+            modal.style.display = 'none';
+        }
+    };
+}
+    
      // 图表初始化
             const energyChart = new Chart(document.getElementById('energyChart'), {
                 type: 'line',
