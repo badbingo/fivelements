@@ -1,4 +1,3 @@
-完美版许愿池6-19 
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -170,6 +169,11 @@
                 <i class="fas fa-water"></i>
                 <h2>愿望池</h2>
                 <div class="filter-controls">
+                    <div class="search-container">
+                        <input type="text" id="wishSearch" placeholder="搜索姓名..." class="search-input">
+                        <button id="searchBtn" class="search-btn"><i class="fas fa-search"></i></button>
+                        <button id="clearSearchBtn" class="clear-search-btn" style="display:none;"><i class="fas fa-times"></i></button>
+                    </div>
                     <select id="wishFilter">
                         <option value="all">全部愿望</option>
                         <option value="love">姻缘感情</option>
@@ -349,6 +353,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let allWishes = [];
     let currentPage = 1;
     const wishesPerPage = 9;
+    let currentSearchTerm = '';
     
     // 获取DOM元素
     const wishFilter = document.getElementById('wishFilter');
@@ -360,6 +365,112 @@ document.addEventListener('DOMContentLoaded', function() {
     const wishForm = document.getElementById('wishForm');
     const baziInfo = document.getElementById('baziInfo');
     const fulfillModal = document.getElementById('fulfillModal');
+    const wishSearch = document.getElementById('wishSearch');
+    const searchBtn = document.getElementById('searchBtn');
+    const clearSearchBtn = document.getElementById('clearSearchBtn');
+
+    // ==================== 新增：搜索功能 ====================
+    function initSearchFunctionality() {
+        // 搜索按钮点击事件
+        searchBtn.addEventListener('click', () => {
+            currentSearchTerm = wishSearch.value.trim();
+            if (currentSearchTerm) {
+                currentPage = 1;
+                renderFilteredWishes();
+                clearSearchBtn.style.display = 'inline-block';
+            }
+        });
+
+        // 清空搜索按钮
+        clearSearchBtn.addEventListener('click', () => {
+            wishSearch.value = '';
+            currentSearchTerm = '';
+            currentPage = 1;
+            renderFilteredWishes();
+            clearSearchBtn.style.display = 'none';
+        });
+
+        // 回车键触发搜索
+        wishSearch.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                currentSearchTerm = wishSearch.value.trim();
+                if (currentSearchTerm) {
+                    currentPage = 1;
+                    renderFilteredWishes();
+                    clearSearchBtn.style.display = 'inline-block';
+                }
+            }
+        });
+    }
+
+    // ==================== 修改：应用筛选和排序并渲染当前页的愿望 ====================
+    function renderFilteredWishes() {
+        // 1. 应用类型筛选
+        const selectedType = wishFilter.value;
+        let filteredWishes = [...allWishes];
+        
+        if (selectedType !== 'all') {
+            filteredWishes = allWishes.filter(wish => wish.type === selectedType);
+        }
+        
+        // 2. 应用搜索筛选
+        if (currentSearchTerm) {
+            filteredWishes = filteredWishes.filter(wish => 
+                wish.user_name && wish.user_name.toLowerCase().includes(currentSearchTerm.toLowerCase())
+            );
+        }
+        
+        // 3. 应用排序
+        const selectedSort = sortFilter.value;
+        
+        switch(selectedSort) {
+            case 'newest':
+                filteredWishes.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+                break;
+            case 'oldest':
+                filteredWishes.sort((a, b) => new Date(a.created_at || 0) - new Date(b.created_at || 0));
+                break;
+            case 'most':
+                filteredWishes.sort((a, b) => (b.blessings || 0) - (a.blessings || 0));
+                break;
+            case 'least':
+                filteredWishes.sort((a, b) => (a.blessings || 0) - (b.blessings || 0));
+                break;
+            default:
+                filteredWishes.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+        }
+        
+        // 4. 分页处理
+        const startIndex = (currentPage - 1) * wishesPerPage;
+        const paginatedWishes = filteredWishes.slice(startIndex, startIndex + wishesPerPage);
+        
+        // 渲染筛选后的愿望
+        renderWishCards(paginatedWishes);
+        updatePagination();
+    }
+
+    // ==================== 修改：更新分页信息 ====================
+    function updatePagination() {
+        const selectedType = wishFilter.value;
+        let filteredWishes = [...allWishes];
+        
+        if (selectedType !== 'all') {
+            filteredWishes = allWishes.filter(wish => wish.type === selectedType);
+        }
+        
+        // 应用搜索筛选
+        if (currentSearchTerm) {
+            filteredWishes = filteredWishes.filter(wish => 
+                wish.user_name && wish.user_name.toLowerCase().includes(currentSearchTerm.toLowerCase())
+            );
+        }
+        
+        const totalPages = Math.ceil(filteredWishes.length / wishesPerPage);
+        
+        pageInfo.textContent = `第 ${currentPage} 页 / 共 ${totalPages} 页`;
+        prevPageBtn.disabled = currentPage <= 1;
+        nextPageBtn.disabled = currentPage >= totalPages || totalPages === 0;
+    }
 
     // ==================== 新增：模态框关闭逻辑 ====================
     function setupModalClose() {
@@ -667,44 +778,6 @@ document.addEventListener('DOMContentLoaded', function() {
               }
             }
 
-    // 应用筛选和排序并渲染当前页的愿望
-    function renderFilteredWishes() {
-        // 1. 应用类型筛选
-        const selectedType = wishFilter.value;
-        let filteredWishes = [...allWishes];
-        
-        if (selectedType !== 'all') {
-            filteredWishes = allWishes.filter(wish => wish.type === selectedType);
-        }
-        
-        // 2. 应用排序
-        const selectedSort = sortFilter.value;
-        
-        switch(selectedSort) {
-            case 'newest':
-                filteredWishes.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
-                break;
-            case 'oldest':
-                filteredWishes.sort((a, b) => new Date(a.created_at || 0) - new Date(b.created_at || 0));
-                break;
-            case 'most':
-                filteredWishes.sort((a, b) => (b.blessings || 0) - (a.blessings || 0));
-                break;
-            case 'least':
-                filteredWishes.sort((a, b) => (a.blessings || 0) - (b.blessings || 0));
-                break;
-            default:
-                filteredWishes.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
-        }
-        
-        // 3. 分页处理
-        const startIndex = (currentPage - 1) * wishesPerPage;
-        const paginatedWishes = filteredWishes.slice(startIndex, startIndex + wishesPerPage);
-        
-        // 渲染筛选后的愿望
-        renderWishCards(paginatedWishes);
-    }
-
     // 渲染愿望卡片
     function renderWishCards(wishes) {
         if (!Array.isArray(wishes)) {
@@ -719,7 +792,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="wish-loading">
                     <i class="fas fa-water" style="font-size: 2rem; color: #6a11cb;"></i>
                     <p>没有找到符合条件的愿望</p>
-                    <p>请尝试其他筛选条件</p>
+                    ${currentSearchTerm ? `<p>没有找到与"${currentSearchTerm}"相关的愿望</p>` : '<p>请尝试其他筛选条件</p>'}
                 </div>
             `;
             return;
@@ -1103,22 +1176,6 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 }
 
-    // 更新分页信息
-    function updatePagination() {
-        const selectedType = wishFilter.value;
-        let filteredWishes = [...allWishes];
-        
-        if (selectedType !== 'all') {
-            filteredWishes = allWishes.filter(wish => wish.type === selectedType);
-        }
-        
-        const totalPages = Math.ceil(filteredWishes.length / wishesPerPage);
-        
-        pageInfo.textContent = `第 ${currentPage} 页 / 共 ${totalPages} 页`;
-        prevPageBtn.disabled = currentPage <= 1;
-        nextPageBtn.disabled = currentPage >= totalPages;
-    }
-
     // 显示六字真言特效
     async function showMantraEffect() {
         return new Promise((resolve) => {
@@ -1229,6 +1286,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 初始化事件监听
     function initEventListeners() {
+        // 初始化搜索功能
+        initSearchFunctionality();
+        
         // 筛选变化
         wishFilter.addEventListener('change', () => {
             currentPage = 1;
@@ -1256,6 +1316,13 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (selectedType !== 'all') {
                 filteredWishes = allWishes.filter(wish => wish.type === selectedType);
+            }
+            
+            // 应用搜索筛选
+            if (currentSearchTerm) {
+                filteredWishes = filteredWishes.filter(wish => 
+                    wish.user_name && wish.user_name.toLowerCase().includes(currentSearchTerm.toLowerCase())
+                );
             }
             
             const totalPages = Math.ceil(filteredWishes.length / wishesPerPage);
