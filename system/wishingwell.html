@@ -369,15 +369,91 @@ document.addEventListener('DOMContentLoaded', function() {
     const searchBtn = document.getElementById('searchBtn');
 
     // 初始化函数
-   function init() {
-    setupModalClose();
-    setupEventListeners();
-    loadLunarJS().then(() => {
-        loadAllWishes();
-        updateStats();
-        initEnergyChart();  // 新增这行
-    }).catch(console.error);
-}
+    function init() {
+        setupModalClose();
+        setupEventListeners();
+        loadLunarJS().then(() => {
+            loadAllWishes();
+            updateStats();
+            initEnergyChart(); // 初始化能量图表
+        }).catch(console.error);
+    }
+
+    // 初始化能量图表
+    function initEnergyChart() {
+        const ctx = document.getElementById('energyChart')?.getContext('2d');
+        if (!ctx) {
+            console.warn('能量图表canvas元素未找到');
+            return;
+        }
+        
+        // 如果已有图表实例，先销毁
+        if (window.energyChart) {
+            window.energyChart.destroy();
+        }
+        
+        window.energyChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['1月', '2月', '3月', '4月', '5月', '6月'],
+                datasets: [{
+                    label: '能量强度',
+                    data: [65, 79, 90, 81, 56, 75],
+                    borderColor: '#6a11cb',
+                    backgroundColor: 'rgba(106, 17, 203, 0.2)',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#6a11cb',
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(10, 10, 20, 0.9)',
+                        titleFont: {
+                            family: "'Noto Serif SC', serif"
+                        },
+                        bodyFont: {
+                            family: "'Noto Serif SC', serif"
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { 
+                            color: 'rgba(255, 255, 255, 0.1)',
+                            drawBorder: false
+                        },
+                        ticks: { 
+                            color: '#b8c2cc',
+                            font: {
+                                family: "'Noto Serif SC', serif"
+                            }
+                        }
+                    },
+                    x: {
+                        grid: { 
+                            color: 'rgba(255, 255, 255, 0.1)',
+                            drawBorder: false
+                        },
+                        ticks: { 
+                            color: '#b8c2cc',
+                            font: {
+                                family: "'Noto Serif SC', serif"
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
     // 设置模态框关闭逻辑
     function setupModalClose() {
         if (fulfillModal) {
@@ -1023,7 +1099,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // 渲染愿望分布图表
     function renderDistributionChart(distribution) {
         // 获取canvas元素
-        const ctx = document.getElementById('wishchart').getContext('2d');
+        const ctx = document.getElementById('wishchart')?.getContext('2d');
+        if (!ctx) return;
         
         // 确保之前的图表实例被销毁
         if (window.wishDistributionChart) {
@@ -1079,77 +1156,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // 初始化能量图表
-function initEnergyChart() {
-    const ctx = document.getElementById('energyChart').getContext('2d');
-    
-    // 如果已有图表实例，先销毁
-    if (window.energyChart) {
-        window.energyChart.destroy();
-    }
-    
-    window.energyChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: ['1月', '2月', '3月', '4月', '5月', '6月'],
-            datasets: [{
-                label: '能量强度',
-                data: [65, 79, 90, 81, 56, 75],
-                borderColor: '#6a11cb',
-                backgroundColor: 'rgba(106, 17, 203, 0.1)',
-                borderWidth: 2,
-                tension: 0.4,
-                pointRadius: 4,
-                pointBackgroundColor: '#6a11cb',
-                fill: true
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                    backgroundColor: 'rgba(10, 10, 20, 0.9)',
-                    titleFont: {
-                        family: "'Noto Serif SC', serif"
-                    },
-                    bodyFont: {
-                        family: "'Noto Serif SC', serif"
-                    }
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    grid: { 
-                        color: 'rgba(255, 255, 255, 0.1)',
-                        drawBorder: false
-                    },
-                    ticks: { 
-                        color: '#b8c2cc',
-                        font: {
-                            family: "'Noto Serif SC', serif"
-                        }
-                    }
-                },
-                x: {
-                    grid: { 
-                        color: 'rgba(255, 255, 255, 0.1)',
-                        drawBorder: false
-                    },
-                    ticks: { 
-                        color: '#b8c2cc',
-                        font: {
-                            family: "'Noto Serif SC', serif"
-                        }
-                    }
-                }
-            }
-        }
-    });
-}
-    
     // 显示六字真言特效
     async function showMantraEffect() {
         return new Promise((resolve) => {
