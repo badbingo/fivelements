@@ -1082,62 +1082,87 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // 渲染愿望分布图表
                 function renderDistributionChart(distribution) {
-                    // 获取canvas元素
-                    const ctx = document.getElementById('wishchart').getContext('2d');
-                    
-                    // 确保之前的图表实例被销毁
-                    if (window.wishDistributionChart) {
-                        window.wishDistributionChart.destroy();
-                    }
-                    
-                    // 准备图表数据
-                    const labels = Object.keys(distribution);
-                    const data = Object.values(distribution);
-                    
-                    // 创建新图表
-                    window.wishDistributionChart = new Chart(ctx, {
-                        type: 'pie',
-                        data: {
-                            labels: labels,
-                            datasets: [{
-                                data: data,
-                                backgroundColor: [
-                                    '#6a11cb', 
-                                    '#2575fc', 
-                                    '#00b894', 
-                                    '#fdcb6e', 
-                                    '#e17055', 
-                                    '#b2bec3'
-                                ],
-                                borderWidth: 0
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                                legend: {
-                                    position: 'bottom',
-                                    labels: {
-                                        color: '#b8c2cc',
-                                        font: {
-                                            family: "'Noto Serif SC', serif"
-                                        }
-                                    }
-                                },
-                                tooltip: {
-                                    backgroundColor: 'rgba(10, 10, 20, 0.9)',
-                                    titleFont: {
-                                        family: "'Noto Serif SC', serif"
-                                    },
-                                    bodyFont: {
-                                        family: "'Noto Serif SC', serif"
-                                    }
-                                }
-                            }
+    // 获取canvas元素
+    const ctx = document.getElementById('wishchart').getContext('2d');
+    
+    // 确保之前的图表实例被销毁
+    if (window.wishDistributionChart) {
+        window.wishDistributionChart.destroy();
+    }
+    
+    // 准备图表数据 - 使用中文标签
+    const labels = {
+        'love': '姻缘感情',
+        'wealth': '财富事业',
+        'health': '健康平安',
+        'study': '学业成长',
+        'family': '家庭和睦',
+        'other': '其他愿望'
+    };
+    
+    // 确保数据顺序一致
+    const data = [
+        distribution.love || 0,
+        distribution.wealth || 0,
+        distribution.health || 0,
+        distribution.study || 0,
+        distribution.family || 0,
+        distribution.other || 0
+    ];
+    
+    // 创建新图表
+    window.wishDistributionChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: Object.values(labels),
+            datasets: [{
+                data: data,
+                backgroundColor: [
+                    '#6a11cb', 
+                    '#2575fc', 
+                    '#00b894', 
+                    '#fdcb6e', 
+                    '#e17055', 
+                    '#b2bec3'
+                ],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        color: '#b8c2cc',
+                        font: {
+                            family: "'Noto Serif SC', serif"
                         }
-                    });
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = context.raw || 0;
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = Math.round((value / total) * 100);
+                            return `${label}: ${value} (${percentage}%)`;
+                        }
+                    },
+                    backgroundColor: 'rgba(10, 10, 20, 0.9)',
+                    titleFont: {
+                        family: "'Noto Serif SC', serif"
+                    },
+                    bodyFont: {
+                        family: "'Noto Serif SC', serif"
+                    }
                 }
+            }
+        }
+    });
+}
     
        // 修改后的还愿处理函数
         async function handleFulfillWish(wish) {
