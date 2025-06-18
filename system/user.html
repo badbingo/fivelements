@@ -316,201 +316,183 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // 获取DOM元素
-            const loginTab = document.getElementById('loginTab');
-            const registerTab = document.getElementById('registerTab');
-            const loginForm = document.getElementById('loginForm');
-            const registerForm = document.getElementById('registerForm');
-            
-            // 切换标签页
-            loginTab.addEventListener('click', function() {
-                switchTab('login');
-            });
-            
-            registerTab.addEventListener('click', function() {
-                switchTab('register');
-            });
-            
-            // 登录表单提交
-            loginForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-                handleLogin();
-            });
-            
-            // 注册表单提交
-            registerForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-                handleRegister();
-            });
-            
-            // 切换标签页函数
-            function switchTab(tab) {
-                if (tab === 'login') {
-                    loginTab.classList.add('active');
-                    registerTab.classList.remove('active');
-                    loginForm.classList.add('active');
-                    registerForm.classList.remove('active');
-                } else {
-                    loginTab.classList.remove('active');
-                    registerTab.classList.add('active');
-                    loginForm.classList.remove('active');
-                    registerForm.classList.add('active');
-                }
-                
-                // 清除所有错误信息
-                document.querySelectorAll('.error-message').forEach(el => {
-                    el.style.display = 'none';
-                });
-            }
-            
-            // 处理登录
-            function handleLogin() {
-                const username = document.getElementById('loginUsername').value.trim();
-                const password = document.getElementById('loginPassword').value.trim();
-                
-                // 验证输入
-                if (!username) {
-                    showError('loginUsernameError', '请输入用户名');
-                    return;
-                }
-                
-                if (!password) {
-                    showError('loginPasswordError', '请输入密码');
-                    return;
-                }
-                
-                // 显示加载状态
-                const loginText = document.getElementById('loginText');
-                const loginLoader = document.getElementById('loginLoader');
-                loginText.style.display = 'none';
-                loginLoader.style.display = 'block';
-                document.getElementById('loginBtn').disabled = true;
-                
-                // 模拟API请求延迟
-                setTimeout(function() {
-                    // 这里应该是实际的登录API调用
-                    // 模拟登录成功
-                    localStorage.setItem('token', 'simulated_token_' + Date.now());
-                    localStorage.setItem('username', username);
-                    
-                    // 跳转到许愿池页面
-                    window.location.href = 'wishingwell.html';
-                    
-                    // 重置按钮状态（正常情况下不会执行到这里）
-                    loginText.style.display = 'inline';
-                    loginLoader.style.display = 'none';
-                    document.getElementById('loginBtn').disabled = false;
-                }, 1500);
-            }
-            
-            // 处理注册
-            function handleRegister() {
-                const username = document.getElementById('registerUsername').value.trim();
-                const email = document.getElementById('registerEmail').value.trim();
-                const password = document.getElementById('registerPassword').value.trim();
-                const confirmPassword = document.getElementById('registerConfirmPassword').value.trim();
-                
-                // 清除之前的错误信息
-                hideError('registerUsernameError');
-                hideError('registerEmailError');
-                hideError('registerPasswordError');
-                hideError('registerConfirmPasswordError');
-                
-                // 验证输入
-                let isValid = true;
-                
-                if (!username) {
-                    showError('registerUsernameError', '请输入用户名');
-                    isValid = false;
-                } else if (username.length < 4 || username.length > 16) {
-                    showError('registerUsernameError', '用户名长度应为4-16位');
-                    isValid = false;
-                }
-                
-                if (!email) {
-                    showError('registerEmailError', '请输入电子邮箱');
-                    isValid = false;
-                } else if (!validateEmail(email)) {
-                    showError('registerEmailError', '请输入有效的电子邮箱');
-                    isValid = false;
-                }
-                
-                if (!password) {
-                    showError('registerPasswordError', '请输入密码');
-                    isValid = false;
-                } else if (password.length < 6) {
-                    showError('registerPasswordError', '密码长度至少为6位');
-                    isValid = false;
-                }
-                
-                if (!confirmPassword) {
-                    showError('registerConfirmPasswordError', '请确认密码');
-                    isValid = false;
-                } else if (password !== confirmPassword) {
-                    showError('registerConfirmPasswordError', '两次输入的密码不一致');
-                    isValid = false;
-                }
-                
-                if (!isValid) return;
-                
-                // 显示加载状态
-                const registerText = document.getElementById('registerText');
-                const registerLoader = document.getElementById('registerLoader');
-                registerText.style.display = 'none';
-                registerLoader.style.display = 'block';
-                document.getElementById('registerBtn').disabled = true;
-                
-                // 模拟API请求延迟
-                setTimeout(function() {
-                    // 这里应该是实际的注册API调用
-                    // 模拟注册成功
-                    
-                    // 显示成功消息
-                    const successMessage = document.getElementById('registerSuccess');
-                    successMessage.textContent = '注册成功！正在跳转到登录页面...';
-                    successMessage.style.display = 'block';
-                    
-                    // 3秒后自动跳转到登录标签页
-                    setTimeout(function() {
-                        switchTab('login');
-                        successMessage.style.display = 'none';
-                        
-                        // 清空注册表单
-                        registerForm.reset();
-                        
-                        // 重置按钮状态
-                        registerText.style.display = 'inline';
-                        registerLoader.style.display = 'none';
-                        document.getElementById('registerBtn').disabled = false;
-                    }, 3000);
-                    
-                }, 1500);
-            }
-            
-            // 验证电子邮箱格式
-            function validateEmail(email) {
-                const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                return re.test(email);
-            }
-            
-            // 显示错误信息
-            function showError(elementId, message) {
-                const element = document.getElementById(elementId);
-                element.textContent = message;
-                element.style.display = 'block';
-            }
-            
-            // 隐藏错误信息
-            function hideError(elementId) {
-                document.getElementById(elementId).style.display = 'none';
-            }
-            
-            // 检查是否已登录
-            if (localStorage.getItem('token')) {
-                window.location.href = 'wishingwell.html';
-            }
+    const API_BASE = 'https://bazi-backend.owenjass.workers.dev';
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const loginTab = document.getElementById('loginTab');
+        const registerTab = document.getElementById('registerTab');
+        const loginForm = document.getElementById('loginForm');
+        const registerForm = document.getElementById('registerForm');
+
+        loginTab.addEventListener('click', () => switchTab('login'));
+        registerTab.addEventListener('click', () => switchTab('register'));
+
+        loginForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+            handleLogin();
         });
+
+        registerForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+            handleRegister();
+        });
+
+        function switchTab(tab) {
+            if (tab === 'login') {
+                loginTab.classList.add('active');
+                registerTab.classList.remove('active');
+                loginForm.classList.add('active');
+                registerForm.classList.remove('active');
+            } else {
+                loginTab.classList.remove('active');
+                registerTab.classList.add('active');
+                loginForm.classList.remove('active');
+                registerForm.classList.add('active');
+            }
+
+            document.querySelectorAll('.error-message').forEach(el => el.style.display = 'none');
+        }
+
+        async function handleLogin() {
+            const username = document.getElementById('loginUsername').value.trim();
+            const password = document.getElementById('loginPassword').value.trim();
+
+            if (!username) return showError('loginUsernameError', '请输入用户名');
+            if (!password) return showError('loginPasswordError', '请输入密码');
+
+            const loginText = document.getElementById('loginText');
+            const loginLoader = document.getElementById('loginLoader');
+            loginText.style.display = 'none';
+            loginLoader.style.display = 'block';
+            document.getElementById('loginBtn').disabled = true;
+
+            try {
+                const response = await fetch(`${API_BASE}/api/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: username, password })
+                });
+
+                const result = await response.json();
+                if (!response.ok) throw new Error(result.error || '登录失败');
+
+                localStorage.setItem('token', result.token);
+                localStorage.setItem('username', username);
+
+                window.location.href = 'wishingwell.html';
+            } catch (err) {
+                alert('登录失败：' + err.message);
+            } finally {
+                loginText.style.display = 'inline';
+                loginLoader.style.display = 'none';
+                document.getElementById('loginBtn').disabled = false;
+            }
+        }
+
+        async function handleRegister() {
+            const username = document.getElementById('registerUsername').value.trim();
+            const email = document.getElementById('registerEmail').value.trim();
+            const password = document.getElementById('registerPassword').value.trim();
+            const confirmPassword = document.getElementById('registerConfirmPassword').value.trim();
+
+            hideError('registerUsernameError');
+            hideError('registerEmailError');
+            hideError('registerPasswordError');
+            hideError('registerConfirmPasswordError');
+
+            let isValid = true;
+
+            if (!username) {
+                showError('registerUsernameError', '请输入用户名');
+                isValid = false;
+            } else if (username.length < 4 || username.length > 16) {
+                showError('registerUsernameError', '用户名长度应为4-16位');
+                isValid = false;
+            }
+
+            if (!email) {
+                showError('registerEmailError', '请输入电子邮箱');
+                isValid = false;
+            } else if (!validateEmail(email)) {
+                showError('registerEmailError', '请输入有效的电子邮箱');
+                isValid = false;
+            }
+
+            if (!password) {
+                showError('registerPasswordError', '请输入密码');
+                isValid = false;
+            } else if (password.length < 6) {
+                showError('registerPasswordError', '密码长度至少为6位');
+                isValid = false;
+            }
+
+            if (!confirmPassword) {
+                showError('registerConfirmPasswordError', '请确认密码');
+                isValid = false;
+            } else if (password !== confirmPassword) {
+                showError('registerConfirmPasswordError', '两次输入的密码不一致');
+                isValid = false;
+            }
+
+            if (!isValid) return;
+
+            const registerText = document.getElementById('registerText');
+            const registerLoader = document.getElementById('registerLoader');
+            registerText.style.display = 'none';
+            registerLoader.style.display = 'block';
+            document.getElementById('registerBtn').disabled = true;
+
+            try {
+                const response = await fetch(`${API_BASE}/api/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: username, email, password })
+                });
+
+                const result = await response.json();
+                if (!response.ok) throw new Error(result.error || '注册失败');
+
+                localStorage.setItem('token', result.token);
+                localStorage.setItem('username', username);
+
+                const successMessage = document.getElementById('registerSuccess');
+                successMessage.textContent = '注册成功！正在跳转到许愿池...';
+                successMessage.style.display = 'block';
+
+                setTimeout(() => {
+                    window.location.href = 'wishingwell.html';
+                }, 2000);
+            } catch (err) {
+                alert('注册失败：' + err.message);
+            } finally {
+                registerText.style.display = 'inline';
+                registerLoader.style.display = 'none';
+                document.getElementById('registerBtn').disabled = false;
+            }
+        }
+
+        function showError(id, msg) {
+            const el = document.getElementById(id);
+            if (el) {
+                el.textContent = msg;
+                el.style.display = 'block';
+            }
+        }
+
+        function hideError(id) {
+            const el = document.getElementById(id);
+            if (el) el.style.display = 'none';
+        }
+
+        function validateEmail(email) {
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        }
+
+        if (localStorage.getItem('token')) {
+            window.location.href = 'wishingwell.html';
+        }
+    });
+
     </script>
 </body>
 </html>
