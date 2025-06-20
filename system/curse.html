@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="诅咒池 - 八字能量诅咒系统，汇聚众生怨念，助你达成诅咒">
-    <meta name="keywords" content="诅咒池,诅咒,八字,怨念,偿金,能量池">
+    <meta name="keywords" content="诅咒池,诅咒,八字,怨念,还愿,能量池">
     <title>诅咒池 - 八字能量诅咒系统</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -975,17 +975,14 @@
             border-left-color: var(--error-color);
         }
 
-        /* 新增的两行并排布局样式 */
+        /* 新增的两行并排样式 */
         .form-row {
             display: flex;
             gap: 20px;
         }
         
-        .form-col {
+        .form-row .form-group {
             flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
         }
 
         @media (max-width: 768px) {
@@ -1013,9 +1010,10 @@
                 width: 100%;
             }
             
-            /* 响应式调整两行布局 */
+            /* 响应式调整两行并排 */
             .form-row {
                 flex-direction: column;
+                gap: 15px;
             }
         }
     </style>
@@ -1049,8 +1047,8 @@
                 <div class="mingyuan-intro">
                     <div class="intro-text">
                         <p>诅咒池源自古老巫术"怨念汇聚"之法，结合八字命理能量学，创造出一个集体怨恨能量场。</p>
-                        <p>在此投入诅咒之时，您的八字化作独一无二的怨念标识，携同六字真言之力启动诅咒。而众生心念汇聚而来的怨恨之力，将如涟漪般扩散，不断放大诅咒的共振频率。</p>
-                        <p>每5次诅咒，诅咒能量将提升一个等级，越多人帮你诅咒怨念越强。30天内若达成所愿，请务必偿金以完成能量循环。</p>
+                        <p>在此投入诅咒之时，您的姓名将改为对方姓名，出生时间改为对方特征描述，携同六字真言之力启动诅咒。而众生心念汇聚而来的怨恨之力，将如涟漪般扩散，不断放大诅咒的共振频率。</p>
+                        <p>每5次诅咒，诅咒能量将提升一个等级，越多人帮你诅咒效果越强。30天内若达成所愿，请务必偿还以完成能量循环。</p>
                     </div>
                     <div class="intro-image">
                         <div class="energy-chart">
@@ -1096,55 +1094,79 @@
             
             <div class="card">
                 <form id="wishForm" class="mingyuan-form">
-                    <div class="form-row">  <!-- 新增的两行布局容器 -->
-                        <div class="form-col">  <!-- 第一列 -->
-                            <div class="form-group">
-                                <label for="targetName"><i class="fas fa-user"></i> 对方姓名</label>
-                                <input type="text" id="targetName" placeholder="请输入对方姓名" required>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="targetDescription"><i class="fas fa-info-circle"></i> 对方特征描述</label>
-                                <textarea id="targetDescription" rows="2" placeholder="描述对方的特征或识别信息"></textarea>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="wishType"><i class="fas fa-tags"></i> 诅咒类型</label>
-                                <select id="wishType">
-                                    <option value="love">感情破裂</option>
-                                    <option value="wealth">事业失败</option>
-                                    <option value="health">疾病缠身</option>
-                                    <option value="study">学业受阻</option>
-                                    <option value="family">家庭不和</option>
-                                    <option value="other">其他诅咒</option>
-                                </select>
-                            </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="targetName"><i class="fas fa-user"></i> 对方姓名</label>
+                            <input type="text" id="targetName" placeholder="请输入对方真实姓名" required>
                         </div>
                         
-                        <div class="form-col">  <!-- 第二列 -->
-                            <div class="form-group">
-                                <label for="wishContent"><i class="fas fa-skull"></i> 诅咒内容</label>
-                                <textarea id="wishContent" rows="4" maxlength="200" placeholder="写下您真诚的诅咒(限200字以内)..." required></textarea>
-                                <p class="form-hint">已输入 <span id="charCount">0</span>/200 字</p>
-                                <p class="bazi-info" id="baziInfo"></p>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label><i class="fas fa-eye"></i> 诅咒可见性</label>
-                                <div class="radio-group">
-                                    <label class="radio-option">
-                                        <input type="radio" name="visibility" value="public" checked>
-                                        <span class="radio-custom"></span>
-                                        <span class="radio-label">公开诅咒</span>
-                                    </label>
-                                    <label class="radio-option">
-                                        <input type="radio" name="visibility" value="private">
-                                        <span class="radio-custom"></span>
-                                        <span class="radio-label">隐藏诅咒</span>
-                                    </label>
-                                </div>
-                            </div>
+                        <div class="form-group">
+                            <label for="targetDesc"><i class="fas fa-clock"></i> 对方特征</label>
+                            <input type="text" id="targetDesc" placeholder="描述对方特征或出生信息" required>
                         </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="birthday"><i class="fas fa-calendar-alt"></i> 出生日期</label>
+                            <input type="date" id="birthday">
+                            <p class="form-hint">可选，不填则使用当前时间</p>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="birthtime"><i class="fas fa-clock"></i> 出生时间</label>
+                            <select id="birthtime">
+                                <option value="">请选择出生时辰</option>
+                                <option value="23-1">子时 (23:00-1:00)</option>
+                                <option value="1-3">丑时 (1:00-3:00)</option>
+                                <option value="3-5">寅时 (3:00-5:00)</option>
+                                <option value="5-7">卯时 (5:00-7:00)</option>
+                                <option value="7-9">辰时 (7:00-9:00)</option>
+                                <option value="9-11">巳时 (9:00-11:00)</option>
+                                <option value="11-13">午时 (11:00-13:00)</option>
+                                <option value="13-15">未时 (13:00-15:00)</option>
+                                <option value="15-17">申时 (15:00-17:00)</option>
+                                <option value="17-19">酉时 (17:00-19:00)</option>
+                                <option value="19-21">戌时 (19:00-21:00)</option>
+                                <option value="21-23">亥时 (21:00-23:00)</option>
+                            </select>
+                            <p class="form-hint">可选，不填则使用当前时辰</p>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="wishContent"><i class="fas fa-skull"></i> 诅咒内容</label>
+                        <textarea id="wishContent" rows="4" maxlength="200" placeholder="写下您真诚的诅咒(限200字以内)..." required></textarea>
+                        <p class="form-hint">已输入 <span id="charCount">0</span>/200 字</p>
+                        <p class="bazi-info" id="baziInfo"></p>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label><i class="fas fa-eye"></i> 诅咒可见性</label>
+                        <div class="radio-group">
+                            <label class="radio-option">
+                                <input type="radio" name="visibility" value="public" checked>
+                                <span class="radio-custom"></span>
+                                <span class="radio-label">公开诅咒</span>
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="visibility" value="private">
+                                <span class="radio-custom"></span>
+                                <span class="radio-label">隐藏诅咒</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="wishType"><i class="fas fa-tags"></i> 诅咒类型</label>
+                        <select id="wishType">
+                            <option value="love">感情破裂</option>
+                            <option value="wealth">事业失败</option>
+                            <option value="health">疾病缠身</option>
+                            <option value="study">学业受阻</option>
+                            <option value="family">家庭不和</option>
+                            <option value="other">其他诅咒</option>
+                        </select>
                     </div>
                     
                     <div class="form-actions">
@@ -1275,7 +1297,7 @@
                 <div class="note-box important">
                     <h4><i class="fas fa-lightbulb"></i> 心诚则灵</h4>
                     <ul>
-                        <li>请确保对方信息准确无误，这是诅咒的能量标识</li>
+                        <li>请确保对方姓名和特征准确无误，这是诅咒的能量标识</li>
                         <li>诅咒内容需真诚具体，避免模糊或正面表述</li>
                         <li>在诅咒他人时，请保持怨恨，能量会回馈于你</li>
                         <li>诅咒达成后请及时偿金，完成能量循环</li>
@@ -1331,7 +1353,7 @@
     <div id="fulfillModal" class="modal">
       <div class="modal-content">
         <span class="close-modal">&times;</span>
-        <h3><i class="fas fa-hand-holding-heart"></i> 感恩偿金</h3>
+        <h3><i class="fas fa-hand-holding-heart"></i> 偿还诅咒</h3>
         <p>您的诅咒已经实现，请选择偿金金额：</p>
         
         <!-- 金额选择 -->
@@ -1518,24 +1540,9 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
         `;
 
+        // 确保按最新诅咒排序请求
         const response = await fetch(API_URL + '?visibility=public&sort=newest');
-        
-        // 添加响应状态检查
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        // 添加响应内容类型检查
-        const contentType = response.headers.get('content-type');
-        if (!contentType || !contentType.includes('application/json')) {
-            throw new Error("响应不是JSON格式");
-        }
-
-        const text = await response.text();
-        console.log('原始响应:', text);  // 调试用
-        
-        // 尝试解析JSON
-        const data = text ? JSON.parse(text) : [];
+        const data = await response.json();
         
         allWishes = Array.isArray(data) ? data : data.data || [];
         
@@ -1543,6 +1550,8 @@ document.addEventListener('DOMContentLoaded', function() {
             throw new Error('返回的不是诅咒数组');
         }
         
+        // 确保应用默认排序
+        sortFilter.value = 'newest';
         renderFilteredWishes();
         updatePagination();
         
@@ -1560,19 +1569,151 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 }
 
-    // 表单提交处理
-    async function handleSubmitWish(e) {
+             // 初始化表单提交
+            wishForm.addEventListener('submit', handleSubmitWish);
+            
+            // 生成八字信息
+            function generateBazi(birthday, birthtime) {
+                // 使用lunar.js计算
+                const bazi = calculateBazi(birthday, birthtime);
+                if (bazi) return bazi;
+                
+                // 如果计算失败，返回提示信息
+                console.error('使用lunar.js计算八字失败');
+                return "八字计算失败，请检查输入";
+            }
+            
+            // 更新八字信息显示
+            function updateBaziInfo() {
+                const birthday = document.getElementById('birthday').value;
+                const birthtime = document.getElementById('birthtime').value;
+                
+                if (birthday && birthtime) {
+                    // 显示加载状态
+                    baziInfo.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 计算中...';
+                    baziInfo.style.display = 'block';
+                    
+                    // 延迟计算以避免频繁调用
+                    setTimeout(() => {
+                        const bazi = calculateBazi(birthday, birthtime);
+                        if (bazi) {
+                            baziInfo.innerHTML = `您的八字：<strong>${bazi}</strong>`;
+                        } else {
+                            baziInfo.innerHTML = '<span style="color:#ff6b6b">八字计算失败，请检查输入</span>';
+                        }
+                    }, 300);
+                } else {
+                    baziInfo.style.display = 'none';
+                }
+            }
+
+            // 添加出生日期和时间变化的事件监听
+            document.getElementById('birthday').addEventListener('change', updateBaziInfo);
+            document.getElementById('birthtime').addEventListener('change', updateBaziInfo);
+            
+            // 加载lunar.js库
+            function loadLunarJS() {
+                return new Promise((resolve, reject) => {
+                    if (typeof Lunar !== 'undefined') {
+                        resolve();
+                        return;
+                    }
+            
+                    const script = document.createElement('script');
+                    // 指定 1.7.3 版本
+                    script.src = 'https://cdn.jsdelivr.net/npm/lunar-javascript@1.7.3/dist/lunar.min.js';
+                    script.onload = () => {
+                        console.log('lunar.js 1.7.3 加载成功');
+                        resolve();
+                    };
+                    script.onerror = (error) => {
+                        console.error('lunar.js 1.7.3 加载失败:', error);
+                        reject(error);
+                    };
+                    document.head.appendChild(script);
+                });
+            }
+            
+            // 使用lunar.js计算八字
+            function calculateBazi(birthday, birthtime) {
+    if (!birthday || !birthtime) return null;
+    
+    try {
+        // 解析日期
+        const [year, month, day] = birthday.split('-').map(Number);
+        const [hourStr] = birthtime.split('-');
+        const hour = parseInt(hourStr, 10);
+        
+        // 1.7.3版本时辰处理
+        const timeIndex = Math.floor(((hour + 1) % 24) / 2);
+        const timeNames = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
+        const timeZhi = timeNames[timeIndex];
+        
+        // 创建公历日期对象
+        const solarDate = new Date(year, month - 1, day);
+        
+        // 使用lunar.js 1.7.3计算
+        const lunarDate = Lunar.fromDate(solarDate);
+        
+        // 年柱
+        const ganzhiYear = lunarDate.getYearInGanZhi();
+        // 月柱
+        const ganzhiMonth = lunarDate.getMonthInGanZhi();
+        // 日柱
+        const ganzhiDay = lunarDate.getDayInGanZhi();
+        
+        // 时柱计算（五鼠遁）
+        const dayGan = ganzhiDay.substring(0, 1); // 日干
+        const timeGan = getTimeGan(dayGan, timeZhi);
+        
+        return `${ganzhiYear} ${ganzhiMonth} ${ganzhiDay} ${timeGan}${timeZhi}`;
+    } catch (error) {
+        console.error('八字计算错误:', error);
+        return null;
+    }
+}
+
+            // 五鼠遁计算时干
+            function getTimeGan(dayGan, timeZhi) {
+    const ganOrder = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
+    const zhiOrder = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
+    
+    const startGanMap = {
+        '甲': '甲', '乙': '丙', '丙': '戊', '丁': '庚', 
+        '戊': '壬', '己': '甲', '庚': '丙', '辛': '戊', 
+        '壬': '庚', '癸': '壬'
+    };
+    
+    const startGan = startGanMap[dayGan];
+    const startIndex = ganOrder.indexOf(startGan);
+    const timeIndex = zhiOrder.indexOf(timeZhi);
+    
+    return ganOrder[(startIndex + timeIndex) % 10];
+}
+             
+            // 表单提交处理
+            async function handleSubmitWish(e) {
     e.preventDefault();
     
+    // 收集表单数据
     const targetName = document.getElementById('targetName').value.trim() || '匿名目标';
-    const targetDescription = document.getElementById('targetDescription').value.trim();
+    const targetDesc = document.getElementById('targetDesc').value.trim();
+    const birthday = document.getElementById('birthday').value;
+    const birthtime = document.getElementById('birthtime').value;
     const content = document.getElementById('wishContent').value.trim();
     
-    if (!content || !targetName) {
-        showErrorMessage('请填写完整的诅咒内容和目标姓名');
+    if (!content || !targetName || !targetDesc) {
+        showErrorMessage('请填写完整的诅咒内容和目标信息');
         return;
     }
 
+    // 计算八字（可选）
+    let bazi = '';
+    if (birthday && birthtime) {
+        bazi = calculateBazi(birthday, birthtime) || '';
+    }
+
+    // 设置提交按钮状态
     const submitBtn = e.target.querySelector('button[type="submit"]');
     submitBtn.disabled = true;
     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 提交中...';
@@ -1586,28 +1727,28 @@ document.addEventListener('DOMContentLoaded', function() {
             },
             body: JSON.stringify({
                 content,
-                target_name: targetName,
-                target_description: targetDescription,
+                user_name: targetName,  // 使用对方姓名
+                birth_date: birthday || '',
+                birth_time: birthtime || '',
+                target_desc: targetDesc,  // 对方特征描述
                 type: document.getElementById('wishType').value,
                 visibility: document.querySelector('input[name="visibility"]:checked').value,
                 solar_date: new Date().toISOString().split('T')[0],
+                bazi: bazi,
                 user_id: 'guest_' + Date.now()
             })
         });
 
-        // 添加响应检查
         if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(errorText || `HTTP错误: ${response.status}`);
+            throw new Error(await response.text());
         }
 
-        const result = await response.json();
-        console.log('提交结果:', result);
-        
         showSuccessMessage('诅咒已成功投入诅咒池！');
         wishForm.reset();
-        loadAllWishes();
+        baziInfo.style.display = 'none';
         
+        // 重新加载诅咒列表
+        loadAllWishes();
     } catch (error) {
         console.error('提交错误:', error);
         showErrorMessage(`提交失败: ${error.message}`);
@@ -1617,58 +1758,58 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 }
 
-    // 渲染诅咒列表
-    async function renderWishes() {
-        try {
-            const response = await fetch(API_URL + '?visibility=public');
-            const text = await response.text();
-            console.log('[DEBUG] 原始响应内容:', text);
-        
-            const data = JSON.parse(text);
-        
-            const wishes = Array.isArray(data) ? data : data.wishes || [];
-        
-            if (!Array.isArray(wishes)) {
-                throw new Error('返回的不是数组');
+     // 渲染诅咒列表
+            async function renderWishes() {
+                try {
+                    const response = await fetch(API_URL + '?visibility=public');
+                    const text = await response.text();
+                    console.log('[DEBUG] 原始响应内容:', text);
+                
+                    const data = JSON.parse(text);
+                
+                    const wishes = Array.isArray(data) ? data : data.wishes || [];
+                
+                    if (!Array.isArray(wishes)) {
+                        throw new Error('返回的不是数组');
+                    }
+                
+                    console.log('[DEBUG] 诅咒数量:', wishes.length);
+                
+                    renderWishCards(wishes);
+                } catch (err) {
+                    console.error('渲染诅咒时出错:', err);
+                    wishPool.innerHTML = `<p style="color:red;">加载失败：${err.message}</p>`;
+                }
             }
-        
-            console.log('[DEBUG] 诅咒数量:', wishes.length);
-        
-            renderWishCards(wishes);
-        } catch (err) {
-            console.error('渲染诅咒时出错:', err);
-            wishPool.innerHTML = `<p style="color:red;">加载失败：${err.message}</p>`;
-        }
-    }
-                        
-    // 更新统计信息
-    async function updateStats() {
-      try {
-        const response = await fetch('https://bazi-backend.owenjass.workers.dev/api/stats?_=' + Date.now());
-        
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.details || '请求失败');
-        }
-    
-        const data = await response.json();
-        
-        // 调试日志
-        console.log('统计数据:', {
-          blessings: data.today.blessings,
-          rawData: data
-        });
-    
-        // 更新UI
-        document.getElementById('blessingsCount').textContent = data.today.blessings || 0;
-        
-      } catch (error) {
-        console.error('更新统计失败:', {
-          error: error.message,
-          stack: error.stack
-        });
-      }
-    }
+                            
+            // 更新统计信息
+            async function updateStats() {
+              try {
+                const response = await fetch('https://bazi-backend.owenjass.workers.dev/api/stats?_=' + Date.now());
+                
+                if (!response.ok) {
+                  const errorData = await response.json();
+                  throw new Error(errorData.details || '请求失败');
+                }
+            
+                const data = await response.json();
+                
+                // 调试日志
+                console.log('统计数据:', {
+                  blessings: data.today.blessings,
+                  rawData: data
+                });
+            
+                // 更新UI
+                document.getElementById('blessingsCount').textContent = data.today.blessings || 0;
+                
+              } catch (error) {
+                console.error('更新统计失败:', {
+                  error: error.message,
+                  stack: error.stack
+                });
+              }
+            }
 
     // 渲染诅咒卡片
     function renderWishCards(wishes) {
@@ -1719,17 +1860,19 @@ document.addEventListener('DOMContentLoaded', function() {
             wishCard.innerHTML = `
                 <div class="wish-header">
                     <div class="wish-user">
-                        <i class="fas fa-user"></i> <span class="user-name">${wish.target_name || '匿名目标'}</span>
+                        <i class="fas fa-user"></i> <span class="user-name">${wish.user_name || '匿名目标'}</span>
                     </div>
                     <span class="wish-type">${typeNames[wish.type] || '其他诅咒'}</span>
                     <span class="wish-time">剩余<span class="days-left">${daysLeft}</span>天</span>
                 </div>
                 <div class="wish-content">
                     <p class="wish-text">${wish.content}</p>
-                    ${wish.target_description ? `<p class="target-description">目标特征: ${wish.target_description}</p>` : ''}
                     <p class="wish-hidden">诅咒已隐藏</p>
                 </div>
                 <div class="wish-meta">
+                    <div class="wish-bazi">
+                        <i class="fas fa-user-secret"></i> <span class="bazi-text">${wish.bazi || wish.target_desc || '未知特征'}</span>
+                    </div>
                     <div class="wish-stats">
                         <span class="bless-count">${wish.blessings || 0}</span> 次诅咒
                     </div>
@@ -1941,7 +2084,7 @@ function showLoginModal() {
                     }
                 }
             });
-            renderWishes();  // 初始化时就加载诅咒池内容
+            renderWishes();  // 加上这行：初始化时就加载诅咒池内容
             fetchStats();// 添加统计获取调用
             setInterval(fetchStats, 5 * 60 * 1000);// 每5分钟自动更新一次统计数据
 
