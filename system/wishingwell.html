@@ -412,49 +412,50 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // ==================== 修改：应用筛选和排序并渲染当前页的愿望 ====================
     function renderFilteredWishes() {
-        // 1. 应用类型筛选
-        const selectedType = wishFilter.value;
-        let filteredWishes = [...allWishes];
-        
-        if (selectedType !== 'all') {
-            filteredWishes = allWishes.filter(wish => wish.type === selectedType);
-        }
-        
-        // 2. 应用搜索筛选
-        if (currentSearchTerm) {
-            filteredWishes = filteredWishes.filter(wish => 
-                wish.user_name && wish.user_name.toLowerCase().includes(currentSearchTerm.toLowerCase())
-            );
-        }
-        
-        // 3. 应用排序
-        const selectedSort = sortFilter.value;
-        
-        switch(selectedSort) {
-            case 'newest':
-                filteredWishes.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
-                break;
-            case 'oldest':
-                filteredWishes.sort((a, b) => new Date(a.created_at || 0) - new Date(b.created_at || 0));
-                break;
-            case 'most':
-                filteredWishes.sort((a, b) => (b.blessings || 0) - (a.blessings || 0));
-                break;
-            case 'least':
-                filteredWishes.sort((a, b) => (a.blessings || 0) - (b.blessings || 0));
-                break;
-            default:
-                filteredWishes.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
-        }
-        
-        // 4. 分页处理
-        const startIndex = (currentPage - 1) * wishesPerPage;
-        const paginatedWishes = filteredWishes.slice(startIndex, startIndex + wishesPerPage);
-        
-        // 渲染筛选后的愿望
-        renderWishCards(paginatedWishes);
-        updatePagination();
+    // 1. 应用类型筛选
+    const selectedType = wishFilter.value;
+    let filteredWishes = [...allWishes];
+    
+    if (selectedType !== 'all') {
+        filteredWishes = allWishes.filter(wish => wish.type === selectedType);
     }
+    
+    // 2. 应用搜索筛选
+    if (currentSearchTerm) {
+        filteredWishes = filteredWishes.filter(wish => 
+            wish.user_name && wish.user_name.toLowerCase().includes(currentSearchTerm.toLowerCase())
+        );
+    }
+    
+    // 3. 确保总是有排序条件
+    const selectedSort = sortFilter.value || 'newest'; // 默认最新
+    
+    switch(selectedSort) {
+        case 'newest':
+            filteredWishes.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+            break;
+        case 'oldest':
+            filteredWishes.sort((a, b) => new Date(a.created_at || 0) - new Date(b.created_at || 0));
+            break;
+        case 'most':
+            filteredWishes.sort((a, b) => (b.blessings || 0) - (a.blessings || 0));
+            break;
+        case 'least':
+            filteredWishes.sort((a, b) => (a.blessings || 0) - (b.blessings || 0));
+            break;
+        default:
+            // 默认按最新排序
+            filteredWishes.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+    }
+    
+    // 4. 分页处理
+    const startIndex = (currentPage - 1) * wishesPerPage;
+    const paginatedWishes = filteredWishes.slice(startIndex, startIndex + wishesPerPage);
+    
+    // 渲染筛选后的愿望
+    renderWishCards(paginatedWishes);
+    updatePagination();
+}
 
     // ==================== 修改：更新分页信息 ====================
     function updatePagination() {
@@ -509,39 +510,42 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 初始化加载愿望数据
     async function loadAllWishes() {
-        try {
-            wishPool.innerHTML = `
-                <div class="wish-loading">
-                    <div class="loader"></div>
-                    <p>正在连接命缘池能量场...</p>
-                </div>
-            `;
+    try {
+        wishPool.innerHTML = `
+            <div class="wish-loading">
+                <div class="loader"></div>
+                <p>正在连接命缘池能量场...</p>
+            </div>
+        `;
 
-            const response = await fetch(API_URL + '?visibility=public');
-            const data = await response.json();
-            
-            allWishes = Array.isArray(data) ? data : data.data || [];
-            
-            if (!Array.isArray(allWishes)) {
-                throw new Error('返回的不是愿望数组');
-            }
-            
-            renderFilteredWishes();
-            updatePagination();
-            
-        } catch (err) {
-            console.error('加载愿望时出错:', err);
-            wishPool.innerHTML = `
-                <div class="wish-loading">
-                    <i class="fas fa-exclamation-triangle" style="color: #ff6b6b;"></i>
-                    <p>加载失败：${err.message}</p>
-                    <button onclick="loadAllWishes()" class="btn-mingyuan" style="padding: 8px 20px; font-size: 0.9rem;">
-                        <i class="fas fa-sync-alt"></i> 重新加载
-                    </button>
-                </div>
-            `;
+        // 确保按最新愿望排序请求
+        const response = await fetch(API_URL + '?visibility=public&sort=newest');
+        const data = await response.json();
+        
+        allWishes = Array.isArray(data) ? data : data.data || [];
+        
+        if (!Array.isArray(allWishes)) {
+            throw new Error('返回的不是愿望数组');
         }
+        
+        // 确保应用默认排序
+        sortFilter.value = 'newest';
+        renderFilteredWishes();
+        updatePagination();
+        
+    } catch (err) {
+        console.error('加载愿望时出错:', err);
+        wishPool.innerHTML = `
+            <div class="wish-loading">
+                <i class="fas fa-exclamation-triangle" style="color: #ff6b6b;"></i>
+                <p>加载失败：${err.message}</p>
+                <button onclick="loadAllWishes()" class="btn-mingyuan" style="padding: 8px 20px; font-size: 0.9rem;">
+                    <i class="fas fa-sync-alt"></i> 重新加载
+                </button>
+            </div>
+        `;
     }
+}
 
 
              // 初始化表单提交
