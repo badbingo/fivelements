@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="诅咒池 - 八字能量诅咒系统，汇聚众生怨念，助你达成诅咒">
-    <meta name="keywords" content="诅咒池,诅咒,八字,怨念,偿金,能量池">
+    <meta name="keywords" content="诅咒池,诅咒,八字,怨念,还愿,能量池">
     <title>诅咒池 - 八字能量诅咒系统</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -975,16 +975,6 @@
             border-left-color: var(--error-color);
         }
 
-        /* 新增的两行并排布局样式 */
-        .form-row {
-            display: flex;
-            gap: 20px;
-        }
-        
-        .form-row .form-group {
-            flex: 1;
-        }
-
         @media (max-width: 768px) {
             .mingyuan-intro {
                 flex-direction: column;
@@ -1009,12 +999,6 @@
             .form-control {
                 width: 100%;
             }
-            
-            /* 响应式调整两行布局 */
-            .form-row {
-                flex-direction: column;
-                gap: 15px;
-            }
         }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -1024,8 +1008,7 @@
     <script>
       // 配置后端地址（必须修改！）
       const API_BASE = 'https://bazi-backend.owenjass.workers.dev';
-      const API_URL = `${API_BASE}/api`;  // 修改为连接curse表
-
+      const API_URL = `${API_BASE}/api`;
     </script>
     
 </head>
@@ -1048,8 +1031,8 @@
                 <div class="mingyuan-intro">
                     <div class="intro-text">
                         <p>诅咒池源自古老巫术"怨念汇聚"之法，结合八字命理能量学，创造出一个集体怨恨能量场。</p>
-                        <p>在此投入诅咒之时，您的姓名将改为对方姓名，您的出生时间将变为对方特征描述，以此建立诅咒连接。而众生心念汇聚而来的怨恨之力，将如涟漪般扩散，不断放大诅咒的共振频率。</p>
-                        <p>每5次诅咒，诅咒能量将提升一个等级，越多人帮你诅咒效果越强。30天内若达成所愿，请务必支付偿金以完成能量循环。</p>
+                        <p>在此投入诅咒之时，您的八字化作独一无二的怨念标识，携同六字真言之力启动诅咒。而众生心念汇聚而来的怨恨之力，将如涟漪般扩散，不断放大诅咒的共振频率。</p>
+                        <p>每5次加持，诅咒能量将提升一个等级，越多人帮你加持怨念越强。30天内若达成所愿，请务必还愿以完成能量循环。</p>
                     </div>
                     <div class="intro-image">
                         <div class="energy-chart">
@@ -1063,23 +1046,23 @@
                     <div class="level-bars">
                         <div class="level-bar" data-level="1">
                             <div class="bar-fill"></div>
-                            <span>初咒 (0-4诅咒)</span>
+                            <span>初咒 (0-4加持)</span>
                         </div>
                         <div class="level-bar" data-level="2">
                             <div class="bar-fill"></div>
-                            <span>小成 (5-9诅咒)</span>
+                            <span>小成 (5-9加持)</span>
                         </div>
                         <div class="level-bar" data-level="3">
                             <div class="bar-fill"></div>
-                            <span>中成 (10-14诅咒)</span>
+                            <span>中成 (10-14加持)</span>
                         </div>
                         <div class="level-bar" data-level="4">
                             <div class="bar-fill"></div>
-                            <span>大成 (15-19诅咒)</span>
+                            <span>大成 (15-19加持)</span>
                         </div>
                         <div class="level-bar" data-level="5">
                             <div class="bar-fill"></div>
-                            <span>圆满 (20+诅咒)</span>
+                            <span>圆满 (20+加持)</span>
                         </div>
                     </div>
                 </div>
@@ -1095,46 +1078,35 @@
             
             <div class="card">
                 <form id="wishForm" class="mingyuan-form">
-                    <!-- 第一行：姓名和对方特征 -->
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="targetName"><i class="fas fa-user"></i> 对方姓名</label>
-                            <input type="text" id="targetName" placeholder="请输入对方真实姓名" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="targetDesc"><i class="fas fa-user-tag"></i> 对方特征</label>
-                            <input type="text" id="targetDesc" placeholder="描述对方特征(如:左脸有痣)">
-                        </div>
+                    <div class="form-group">
+                        <label for="name"><i class="fas fa-user"></i> 您的姓名</label>
+                        <input type="text" id="name" placeholder="请输入您的真实姓名" required>
                     </div>
                     
-                    <!-- 第二行：出生日期和时间 -->
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="birthday"><i class="fas fa-calendar-alt"></i> 出生日期</label>
-                            <input type="date" id="birthday">
-                            <p class="form-hint">可选择不填</p>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="birthtime"><i class="fas fa-clock"></i> 出生时间</label>
-                            <select id="birthtime">
-                                <option value="">请选择出生时辰</option>
-                                <option value="23-1">子时 (23:00-1:00)</option>
-                                <option value="1-3">丑时 (1:00-3:00)</option>
-                                <option value="3-5">寅时 (3:00-5:00)</option>
-                                <option value="5-7">卯时 (5:00-7:00)</option>
-                                <option value="7-9">辰时 (7:00-9:00)</option>
-                                <option value="9-11">巳时 (9:00-11:00)</option>
-                                <option value="11-13">午时 (11:00-13:00)</option>
-                                <option value="13-15">未时 (13:00-15:00)</option>
-                                <option value="15-17">申时 (15:00-17:00)</option>
-                                <option value="17-19">酉时 (17:00-19:00)</option>
-                                <option value="19-21">戌时 (19:00-21:00)</option>
-                                <option value="21-23">亥时 (21:00-23:00)</option>
-                            </select>
-                            <p class="form-hint">将变为对方特征描述</p>
-                        </div>
+                    <div class="form-group">
+                        <label for="birthday"><i class="fas fa-calendar-alt"></i> 出生日期</label>
+                        <input type="date" id="birthday" required>
+                        <p class="form-hint">请选择您的出生年月日</p>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="birthtime"><i class="fas fa-clock"></i> 出生时间</label>
+                        <select id="birthtime" required>
+                            <option value="">请选择出生时辰</option>
+                            <option value="23-1">子时 (23:00-1:00)</option>
+                            <option value="1-3">丑时 (1:00-3:00)</option>
+                            <option value="3-5">寅时 (3:00-5:00)</option>
+                            <option value="5-7">卯时 (5:00-7:00)</option>
+                            <option value="7-9">辰时 (7:00-9:00)</option>
+                            <option value="9-11">巳时 (9:00-11:00)</option>
+                            <option value="11-13">午时 (11:00-13:00)</option>
+                            <option value="13-15">未时 (13:00-15:00)</option>
+                            <option value="15-17">申时 (15:00-17:00)</option>
+                            <option value="17-19">酉时 (17:00-19:00)</option>
+                            <option value="19-21">戌时 (19:00-21:00)</option>
+                            <option value="21-23">亥时 (21:00-23:00)</option>
+                        </select>
+                        <p class="form-hint">请选择您的出生时辰</p>
                     </div>
                     
                     <div class="form-group">
@@ -1195,7 +1167,7 @@
                             <button id="clearSearchBtn" class="wish-clear-search-btn" style="display:none;"><i class="fas fa-times"></i></button>
                         </div>
                         
-                        <!-- 诅咒类型筛选 -->
+                        <!-- 诅咒类型筛选 - 保持原有样式 -->
                         <select id="wishFilter" class="form-control">
                             <option value="all">全部诅咒</option>
                             <option value="love">感情破裂</option>
@@ -1205,12 +1177,12 @@
                             <option value="family">家庭不和</option>
                         </select>
                         
-                        <!-- 排序筛选 -->
+                        <!-- 排序筛选 - 保持原有样式 -->
                         <select id="sortFilter" class="form-control">
                             <option value="newest">最新诅咒</option>
                             <option value="oldest">最早诅咒</option>
-                            <option value="most">最多诅咒</option>
-                            <option value="least">最少诅咒</option>
+                            <option value="most">最多加持</option>
+                            <option value="least">最少加持</option>
                         </select>
                     </div>
                 </div>
@@ -1255,19 +1227,20 @@
                     </div>
                   </div>
                   
-                  <!-- 诅咒次数 -->
+                  <!-- 加持次数（重点修改部分） -->
                   <div class="stat-card highlight" onclick="fetchBlessings()">
                     <div class="stat-value" id="blessingsCount">0</div>
                     <div class="stat-label">
-                      诅咒次数
+                      加持次数
                     </div>
                   </div>
                   
-                  <!-- 偿金次数 -->
+                  <!-- 还愿次数 -->
                   <div class="stat-card" onclick="fetchFulfillments()">
                     <div class="stat-value" id="fulfilledCount">0</div>
                     <div class="stat-label">
-                      偿金次数
+                      还愿次数
+                    
                     </div>
                   </div>
                 </div>
@@ -1300,10 +1273,10 @@
                 <div class="note-box important">
                     <h4><i class="fas fa-lightbulb"></i> 心诚则灵</h4>
                     <ul>
-                        <li>请确保对方姓名准确无误，这是诅咒的能量标识</li>
+                        <li>请确保八字信息准确无误，这是诅咒的能量标识</li>
                         <li>诅咒内容需真诚具体，避免模糊或正面表述</li>
-                        <li>在诅咒他人时，请保持怨恨，能量会回馈于你</li>
-                        <li>诅咒达成后请及时支付偿金，完成能量循环</li>
+                        <li>在加持他人诅咒时，请保持怨恨，能量会回馈于你</li>
+                        <li>诅咒达成后请及时还愿，完成能量循环</li>
                         <li>每个诅咒有效期为30天，到期后自动从池中移除</li>
                     </ul>
                     
@@ -1344,7 +1317,7 @@
         <div class="modal-content">
             <span class="close-modal">&times;</span>
             <h3><i class="fas fa-user-lock"></i> 需要登录</h3>
-            <p>您需要先登录才能诅咒他人</p>
+            <p>您需要先登录才能加持诅咒</p>
             <div class="modal-actions">
                 <button id="cancelLogin" class="btn-cancel">取消</button>
                 <button id="confirmLogin" class="btn-confirm">前往登录</button>
@@ -1352,12 +1325,12 @@
         </div>
     </div>
     
-   <!-- 偿金模态框 -->
+   <!-- 还愿模态框 -->
     <div id="fulfillModal" class="modal">
       <div class="modal-content">
         <span class="close-modal">&times;</span>
-        <h3><i class="fas fa-hand-holding-heart"></i> 支付偿金</h3>
-        <p>您的诅咒已经实现，请选择偿金金额：</p>
+        <h3><i class="fas fa-hand-holding-heart"></i> 感恩还愿</h3>
+        <p>您的诅咒已经实现，请选择还愿金额：</p>
         
         <!-- 金额选择 -->
         <div class="fulfill-options">
@@ -1371,7 +1344,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     // 配置后端地址
     const API_BASE = 'https://bazi-backend.owenjass.workers.dev';
-    const API_URL = `${API_BASE}/api/curse`;  // 修改为连接curse表
+    const API_URL = `${API_BASE}/api/wishes`;
 
     // 全局变量
     let allWishes = [];
@@ -1527,7 +1500,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (fulfillModal) {
         setupModalClose();
     } else {
-        console.warn('未找到偿金模态框元素');
+        console.warn('未找到还愿模态框元素');
     }
 
     // 绑定表单提交事件
@@ -1571,6 +1544,7 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
     }
 }
+
 
              // 初始化表单提交
             wishForm.addEventListener('submit', handleSubmitWish);
@@ -1699,14 +1673,20 @@ document.addEventListener('DOMContentLoaded', function() {
     e.preventDefault();
     
     // 收集表单数据
-    const targetName = document.getElementById('targetName').value.trim() || '匿名目标';
-    const targetDesc = document.getElementById('targetDesc').value.trim() || '无特征描述';
+    const name = document.getElementById('name').value.trim() || '匿名用户';
     const birthday = document.getElementById('birthday').value;
     const birthtime = document.getElementById('birthtime').value;
     const content = document.getElementById('wishContent').value.trim();
     
-    if (!content || !targetName) {
-        showErrorMessage('请填写完整的诅咒内容和目标姓名');
+    if (!content || !birthday || !birthtime) {
+        showErrorMessage('请填写完整的诅咒内容和出生信息');
+        return;
+    }
+
+    // 计算八字
+    const bazi = calculateBazi(birthday, birthtime);
+    if (!bazi) {
+        showErrorMessage('八字计算失败，请检查出生日期和时间');
         return;
     }
 
@@ -1724,14 +1704,13 @@ document.addEventListener('DOMContentLoaded', function() {
             },
             body: JSON.stringify({
                 content,
-                user_name: targetName,  // 使用对方姓名
-                birth_date: birthday || null,
-                birth_time: birthtime || null,
-                target_desc: targetDesc,  // 添加对方特征描述
+                user_name: name,
+                birth_date: birthday,
+                birth_time: birthtime,
                 type: document.getElementById('wishType').value,
                 visibility: document.querySelector('input[name="visibility"]:checked').value,
                 solar_date: new Date().toISOString().split('T')[0],
-                bazi: "诅咒专用",  // 修改为固定值
+                bazi: bazi,
                 user_id: 'guest_' + Date.now()
             })
         });
@@ -1857,7 +1836,7 @@ document.addEventListener('DOMContentLoaded', function() {
             wishCard.innerHTML = `
                 <div class="wish-header">
                     <div class="wish-user">
-                        <i class="fas fa-user"></i> <span class="user-name">${wish.user_name || '匿名目标'}</span>
+                        <i class="fas fa-user"></i> <span class="user-name">${wish.user_name || '匿名用户'}</span>
                     </div>
                     <span class="wish-type">${typeNames[wish.type] || '其他诅咒'}</span>
                     <span class="wish-time">剩余<span class="days-left">${daysLeft}</span>天</span>
@@ -1868,18 +1847,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
                 <div class="wish-meta">
                     <div class="wish-bazi">
-                        <i class="fas fa-user-secret"></i> <span class="bazi-text">${wish.target_desc || '无特征描述'}</span>
+                        <i class="fas fa-user-secret"></i> <span class="bazi-text">${wish.bazi}</span>
                     </div>
                     <div class="wish-stats">
-                        <span class="bless-count">${wish.blessings || 0}</span> 次诅咒
+                        <span class="bless-count">${wish.blessings || 0}</span> 次加持
                     </div>
                 </div>
                 <div class="wish-actions">
                     <button class="btn-bless">
-                        <i class="fas fa-hands-helping"></i> 诅咒
+                        <i class="fas fa-hands-helping"></i> 加持
                     </button>
                     <button class="btn-fulfill">
-                    <i class="fas fa-hand-holding-heart"></i> 偿金
+                    <i class="fas fa-hand-holding-heart"></i> 还愿
                     </button>
                 </div>
                 <div class="wish-energy">
@@ -1899,7 +1878,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // 处理诅咒他人
+    // 处理加持诅咒
     async function handleBlessWish(cardElement, wish) {
     try {
         // 检查登录状态
@@ -1909,21 +1888,21 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // 检查本地诅咒记录
+        // 检查本地加持记录
         const lastBlessKey = `lastBless_${wish.id}`;
         const lastBlessTime = localStorage.getItem(lastBlessKey);
         const now = Date.now();
         
         if (lastBlessTime && (now - parseInt(lastBlessTime)) < 3600000) {
             const nextBlessTime = new Date(parseInt(lastBlessTime) + 3600000);
-            showToast(`每小时只能诅咒一次，请于 ${nextBlessTime.toLocaleTimeString()} 后再试`);
+            showToast(`每小时只能加持一次，请于 ${nextBlessTime.toLocaleTimeString()} 后再试`);
             return;
         }
     
-        // 获取诅咒按钮并禁用
+        // 获取加持按钮并禁用
         const blessBtn = cardElement.querySelector('.btn-bless');
         blessBtn.disabled = true;
-        blessBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 诅咒中...';
+        blessBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 加持中...';
     
         // 显示特效
         await showMantraEffect();
@@ -1952,13 +1931,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 showToast(errorData.error);
                 return;
             }
-            throw new Error(`诅咒失败 (${response.status}): ${JSON.stringify(errorData)}`);
+            throw new Error(`加持失败 (${response.status}): ${JSON.stringify(errorData)}`);
         }
     
         const result = await response.json();
-        console.log('诅咒结果:', result);
+        console.log('加持结果:', result);
     
-        // 记录本次诅咒时间
+        // 记录本次加持时间
         localStorage.setItem(lastBlessKey, now.toString());
     
         // 更新UI
@@ -1972,17 +1951,17 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // 提示用户
         const levelNames = ['初咒', '小成', '中成', '大成', '圆满'];
-        showSuccessMessage(`诅咒成功！当前能量：${levelNames[result.level - 1]}`);
+        showSuccessMessage(`加持成功！当前能量：${levelNames[result.level - 1]}`);
     
     } catch (error) {
-        console.error('诅咒出错:', error);
+        console.error('加持出错:', error);
         showErrorMessage(error.message);
     } finally {
         // 重置按钮状态
         const blessBtn = cardElement.querySelector('.btn-bless');
         if (blessBtn) {
             blessBtn.disabled = false;
-            blessBtn.innerHTML = '<i class="fas fa-hands-helping"></i> 诅咒';
+            blessBtn.innerHTML = '<i class="fas fa-hands-helping"></i> 加持';
         }
     }
 }
@@ -1992,7 +1971,7 @@ function showLoginModal() {
     const modal = document.getElementById('loginModal');
     if (!modal) {
         // 如果没有模态框，使用默认confirm
-        const shouldLogin = confirm('请先登录后才能诅咒\n\n点击"确定"跳转到登录页面');
+        const shouldLogin = confirm('请先登录后才能加持\n\n点击"确定"跳转到登录页面');
         if (shouldLogin) {
             window.location.href = 'user.html';
         }
@@ -2081,7 +2060,7 @@ function showLoginModal() {
                     }
                 }
             });
-            renderWishes();  // 初始化时就加载诅咒池内容
+            renderWishes();  // 加上这行：初始化时就加载诅咒池内容
             fetchStats();// 添加统计获取调用
             setInterval(fetchStats, 5 * 60 * 1000);// 每5分钟自动更新一次统计数据
 
@@ -2105,7 +2084,7 @@ function showLoginModal() {
     const stats = data.today || {};
     const fulfilledCount = stats.fulfilled !== undefined ? stats.fulfilled : 0;
     
-    console.log('计算出的偿金次数:', fulfilledCount); // 调试日志
+    console.log('计算出的还愿次数:', fulfilledCount); // 调试日志
     
     // 更新页面显示
     const fulfilledElement = document.getElementById('fulfilledCount');
@@ -2225,19 +2204,19 @@ function showLoginModal() {
     });
 }
     
-       // 修改后的偿金处理函数
+       // 修改后的还愿处理函数
         async function handleFulfillWish(wish) {
   try {
     // 1. 检查是否已登录
     const token = localStorage.getItem('token');
     if (!token) {
-      const shouldLogin = confirm('请先登录后再支付偿金');
+      const shouldLogin = confirm('请先登录后再还愿');
       if (shouldLogin) window.location.href = '/user.html';
       return;
     }
 
     // 2. 立即更新is_fulfilled字段为true
-    const updateResponse = await fetch(`${API_BASE}/api/curse/${wish.id}/fulfill`, {
+    const updateResponse = await fetch(`${API_BASE}/api/wishes/${wish.id}/fulfill`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -2246,13 +2225,13 @@ function showLoginModal() {
     });
 
     if (!updateResponse.ok) {
-      throw new Error('更新偿金状态失败');
+      throw new Error('更新还愿状态失败');
     }
 
-    // 3. 显示偿金模态框
+    // 3. 显示还愿模态框
     const modal = document.getElementById('fulfillModal');
     if (!modal) {
-      throw new Error('找不到偿金模态框');
+      throw new Error('找不到还愿模态框');
     }
     
     // 设置诅咒ID到模态框
@@ -2264,8 +2243,8 @@ function showLoginModal() {
       window.wwPay.resetPaymentState();
     }
   } catch (error) {
-    console.error('偿金初始化失败:', error);
-    alert('偿金失败: ' + error.message);
+    console.error('还愿初始化失败:', error);
+    alert('还愿失败: ' + error.message);
   }
 }
 
