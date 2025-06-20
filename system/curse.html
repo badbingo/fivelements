@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="诅咒池 - 八字能量诅咒系统，汇聚众生怨念，助你达成诅咒">
-    <meta name="keywords" content="诅咒池,诅咒,八字,怨念,还愿,能量池">
+    <meta name="keywords" content="诅咒池,诅咒,八字,怨念,偿金,能量池">
     <title>诅咒池 - 八字能量诅咒系统</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -975,7 +975,7 @@
             border-left-color: var(--error-color);
         }
 
-        /* 新增的两行并排样式 */
+        /* 新增的两行并排布局样式 */
         .form-row {
             display: flex;
             gap: 20px;
@@ -1010,7 +1010,7 @@
                 width: 100%;
             }
             
-            /* 响应式调整两行并排 */
+            /* 响应式调整两行布局 */
             .form-row {
                 flex-direction: column;
                 gap: 15px;
@@ -1025,6 +1025,7 @@
       // 配置后端地址（必须修改！）
       const API_BASE = 'https://bazi-backend.owenjass.workers.dev';
       const API_URL = `${API_BASE}/api/curse`;  // 修改为连接curse表
+
     </script>
     
 </head>
@@ -1047,8 +1048,8 @@
                 <div class="mingyuan-intro">
                     <div class="intro-text">
                         <p>诅咒池源自古老巫术"怨念汇聚"之法，结合八字命理能量学，创造出一个集体怨恨能量场。</p>
-                        <p>在此投入诅咒之时，您的姓名将改为对方姓名，出生时间改为对方特征描述，携同六字真言之力启动诅咒。而众生心念汇聚而来的怨恨之力，将如涟漪般扩散，不断放大诅咒的共振频率。</p>
-                        <p>每5次诅咒，诅咒能量将提升一个等级，越多人帮你诅咒效果越强。30天内若达成所愿，请务必偿还以完成能量循环。</p>
+                        <p>在此投入诅咒之时，您的姓名将改为对方姓名，您的出生时间将变为对方特征描述，以此建立诅咒连接。而众生心念汇聚而来的怨恨之力，将如涟漪般扩散，不断放大诅咒的共振频率。</p>
+                        <p>每5次诅咒，诅咒能量将提升一个等级，越多人帮你诅咒效果越强。30天内若达成所愿，请务必支付偿金以完成能量循环。</p>
                     </div>
                     <div class="intro-image">
                         <div class="energy-chart">
@@ -1094,6 +1095,7 @@
             
             <div class="card">
                 <form id="wishForm" class="mingyuan-form">
+                    <!-- 第一行：姓名和对方特征 -->
                     <div class="form-row">
                         <div class="form-group">
                             <label for="targetName"><i class="fas fa-user"></i> 对方姓名</label>
@@ -1101,16 +1103,17 @@
                         </div>
                         
                         <div class="form-group">
-                            <label for="targetDesc"><i class="fas fa-clock"></i> 对方特征</label>
-                            <input type="text" id="targetDesc" placeholder="描述对方特征或出生信息" required>
+                            <label for="targetDesc"><i class="fas fa-user-tag"></i> 对方特征</label>
+                            <input type="text" id="targetDesc" placeholder="描述对方特征(如:左脸有痣)">
                         </div>
                     </div>
                     
+                    <!-- 第二行：出生日期和时间 -->
                     <div class="form-row">
                         <div class="form-group">
                             <label for="birthday"><i class="fas fa-calendar-alt"></i> 出生日期</label>
                             <input type="date" id="birthday">
-                            <p class="form-hint">可选，不填则使用当前时间</p>
+                            <p class="form-hint">可选择不填</p>
                         </div>
                         
                         <div class="form-group">
@@ -1130,7 +1133,7 @@
                                 <option value="19-21">戌时 (19:00-21:00)</option>
                                 <option value="21-23">亥时 (21:00-23:00)</option>
                             </select>
-                            <p class="form-hint">可选，不填则使用当前时辰</p>
+                            <p class="form-hint">将变为对方特征描述</p>
                         </div>
                     </div>
                     
@@ -1192,7 +1195,7 @@
                             <button id="clearSearchBtn" class="wish-clear-search-btn" style="display:none;"><i class="fas fa-times"></i></button>
                         </div>
                         
-                        <!-- 诅咒类型筛选 - 保持原有样式 -->
+                        <!-- 诅咒类型筛选 -->
                         <select id="wishFilter" class="form-control">
                             <option value="all">全部诅咒</option>
                             <option value="love">感情破裂</option>
@@ -1202,7 +1205,7 @@
                             <option value="family">家庭不和</option>
                         </select>
                         
-                        <!-- 排序筛选 - 保持原有样式 -->
+                        <!-- 排序筛选 -->
                         <select id="sortFilter" class="form-control">
                             <option value="newest">最新诅咒</option>
                             <option value="oldest">最早诅咒</option>
@@ -1252,7 +1255,7 @@
                     </div>
                   </div>
                   
-                  <!-- 诅咒次数（重点修改部分） -->
+                  <!-- 诅咒次数 -->
                   <div class="stat-card highlight" onclick="fetchBlessings()">
                     <div class="stat-value" id="blessingsCount">0</div>
                     <div class="stat-label">
@@ -1297,10 +1300,10 @@
                 <div class="note-box important">
                     <h4><i class="fas fa-lightbulb"></i> 心诚则灵</h4>
                     <ul>
-                        <li>请确保对方姓名和特征准确无误，这是诅咒的能量标识</li>
+                        <li>请确保对方姓名准确无误，这是诅咒的能量标识</li>
                         <li>诅咒内容需真诚具体，避免模糊或正面表述</li>
                         <li>在诅咒他人时，请保持怨恨，能量会回馈于你</li>
-                        <li>诅咒达成后请及时偿金，完成能量循环</li>
+                        <li>诅咒达成后请及时支付偿金，完成能量循环</li>
                         <li>每个诅咒有效期为30天，到期后自动从池中移除</li>
                     </ul>
                     
@@ -1341,7 +1344,7 @@
         <div class="modal-content">
             <span class="close-modal">&times;</span>
             <h3><i class="fas fa-user-lock"></i> 需要登录</h3>
-            <p>您需要先登录才能诅咒</p>
+            <p>您需要先登录才能诅咒他人</p>
             <div class="modal-actions">
                 <button id="cancelLogin" class="btn-cancel">取消</button>
                 <button id="confirmLogin" class="btn-confirm">前往登录</button>
@@ -1353,7 +1356,7 @@
     <div id="fulfillModal" class="modal">
       <div class="modal-content">
         <span class="close-modal">&times;</span>
-        <h3><i class="fas fa-hand-holding-heart"></i> 偿还诅咒</h3>
+        <h3><i class="fas fa-hand-holding-heart"></i> 支付偿金</h3>
         <p>您的诅咒已经实现，请选择偿金金额：</p>
         
         <!-- 金额选择 -->
@@ -1697,20 +1700,14 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 收集表单数据
     const targetName = document.getElementById('targetName').value.trim() || '匿名目标';
-    const targetDesc = document.getElementById('targetDesc').value.trim();
+    const targetDesc = document.getElementById('targetDesc').value.trim() || '无特征描述';
     const birthday = document.getElementById('birthday').value;
     const birthtime = document.getElementById('birthtime').value;
     const content = document.getElementById('wishContent').value.trim();
     
-    if (!content || !targetName || !targetDesc) {
-        showErrorMessage('请填写完整的诅咒内容和目标信息');
+    if (!content || !targetName) {
+        showErrorMessage('请填写完整的诅咒内容和目标姓名');
         return;
-    }
-
-    // 计算八字（可选）
-    let bazi = '';
-    if (birthday && birthtime) {
-        bazi = calculateBazi(birthday, birthtime) || '';
     }
 
     // 设置提交按钮状态
@@ -1728,13 +1725,13 @@ document.addEventListener('DOMContentLoaded', function() {
             body: JSON.stringify({
                 content,
                 user_name: targetName,  // 使用对方姓名
-                birth_date: birthday || '',
-                birth_time: birthtime || '',
-                target_desc: targetDesc,  // 对方特征描述
+                birth_date: birthday || null,
+                birth_time: birthtime || null,
+                target_desc: targetDesc,  // 添加对方特征描述
                 type: document.getElementById('wishType').value,
                 visibility: document.querySelector('input[name="visibility"]:checked').value,
                 solar_date: new Date().toISOString().split('T')[0],
-                bazi: bazi,
+                bazi: "诅咒专用",  // 修改为固定值
                 user_id: 'guest_' + Date.now()
             })
         });
@@ -1871,7 +1868,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
                 <div class="wish-meta">
                     <div class="wish-bazi">
-                        <i class="fas fa-user-secret"></i> <span class="bazi-text">${wish.bazi || wish.target_desc || '未知特征'}</span>
+                        <i class="fas fa-user-secret"></i> <span class="bazi-text">${wish.target_desc || '无特征描述'}</span>
                     </div>
                     <div class="wish-stats">
                         <span class="bless-count">${wish.blessings || 0}</span> 次诅咒
@@ -1902,7 +1899,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // 处理诅咒
+    // 处理诅咒他人
     async function handleBlessWish(cardElement, wish) {
     try {
         // 检查登录状态
@@ -2084,7 +2081,7 @@ function showLoginModal() {
                     }
                 }
             });
-            renderWishes();  // 加上这行：初始化时就加载诅咒池内容
+            renderWishes();  // 初始化时就加载诅咒池内容
             fetchStats();// 添加统计获取调用
             setInterval(fetchStats, 5 * 60 * 1000);// 每5分钟自动更新一次统计数据
 
@@ -2234,7 +2231,7 @@ function showLoginModal() {
     // 1. 检查是否已登录
     const token = localStorage.getItem('token');
     if (!token) {
-      const shouldLogin = confirm('请先登录后再偿金');
+      const shouldLogin = confirm('请先登录后再支付偿金');
       if (shouldLogin) window.location.href = '/user.html';
       return;
     }
