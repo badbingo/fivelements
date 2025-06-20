@@ -3,22 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>命缘池 - 用户登录/注册</title>
+    <title>命缘池 - 用户注册</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --primary-color: #8a5cf5;
-            --secondary-color: #6c5ce7;
-            --text-color: #f0f0f0;
-            --light-text: #b0b0b0;
-            --bg-color: #121212;
-            --card-bg: #1e1e1e;
-            --border-color: #333;
-            --error-color: #ff6b6b;
-            --success-color: #55efc4;
+            --primary-color: #7c4dff;
+            --primary-light: #9a76ff;
+            --primary-dark: #5e35b1;
+            --secondary-color: #26a69a;
+            --text-color: #2d3748;
+            --light-text: #718096;
+            --lighter-text: #a0aec0;
+            --bg-color: #f8f9fa;
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --border-focus: #a0aec0;
+            --error-color: #f56565;
+            --success-color: #48bb78;
+            --warning-color: #ed8936;
+            --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --radius-sm: 0.25rem;
+            --radius-md: 0.375rem;
+            --radius-lg: 0.5rem;
+            --transition: all 0.2s ease;
         }
         
         * {
@@ -28,18 +40,18 @@
         }
         
         body {
-            font-family: 'Noto Serif SC', serif;
+            font-family: 'Inter', 'Noto Serif SC', sans-serif;
             background-color: var(--bg-color);
             color: var(--text-color);
             line-height: 1.6;
             min-height: 100vh;
-            background-image: radial-gradient(circle at 10% 20%, rgba(138, 92, 245, 0.05) 0%, rgba(108, 92, 231, 0.05) 90%);
+            background-image: radial-gradient(circle at 10% 20%, rgba(124, 77, 255, 0.03) 0%, rgba(94, 53, 177, 0.03) 90%);
         }
         
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 2rem;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
@@ -50,16 +62,16 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 40px 0;
+            padding: 2rem 0;
         }
 
         .auth-card {
             background-color: var(--card-bg);
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-            padding: 40px;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            padding: 3rem;
             width: 100%;
-            max-width: 500px;
+            max-width: 480px;
             text-align: center;
             position: relative;
             overflow: hidden;
@@ -67,124 +79,131 @@
         }
         
         .auth-header {
-            margin-bottom: 30px;
+            margin-bottom: 2.5rem;
             position: relative;
         }
         
+        .logo {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            border-radius: 50%;
+            margin-bottom: 1.5rem;
+            font-size: 1.75rem;
+            box-shadow: 0 4px 6px rgba(124, 77, 255, 0.3);
+        }
+        
         .auth-header h1 {
-            color: var(--primary-color);
-            font-size: 2.2rem;
-            margin-bottom: 10px;
+            color: var(--text-color);
+            font-size: 1.75rem;
+            margin-bottom: 0.75rem;
+            font-weight: 700;
         }
         
         .auth-header p {
             color: var(--light-text);
             font-size: 1rem;
-        }
-        
-        .auth-tabs {
-            display: flex;
-            margin-bottom: 20px;
-            border-bottom: 1px solid var(--border-color);
-        }
-        
-        .auth-tab {
-            flex: 1;
-            padding: 12px;
-            cursor: pointer;
-            font-weight: 500;
-            color: var(--light-text);
-            transition: all 0.3s;
-            text-align: center;
-        }
-        
-        .auth-tab.active {
-            color: var(--primary-color);
-            border-bottom: 2px solid var(--primary-color);
+            max-width: 80%;
+            margin: 0 auto;
         }
         
         .auth-content {
             position: relative;
-            min-height: 500px; /* 增加最小高度 */
         }
         
         .auth-form {
-            position: absolute;
             width: 100%;
-            transition: all 0.3s;
-            opacity: 0;
-            visibility: hidden;
-        }
-        
-        .auth-form.active {
-            opacity: 1;
-            visibility: visible;
         }
         
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 1.5rem;
             text-align: left;
+            position: relative;
         }
         
         .form-group label {
             display: block;
-            margin-bottom: 8px;
+            margin-bottom: 0.5rem;
             font-weight: 500;
             color: var(--text-color);
+            font-size: 0.9375rem;
         }
         
         .form-control {
             width: 100%;
-            padding: 12px 15px;
+            padding: 0.875rem 1rem;
             border: 1px solid var(--border-color);
-            border-radius: 8px;
-            font-family: 'Noto Serif SC', serif;
+            border-radius: var(--radius-md);
+            font-family: 'Inter', sans-serif;
             font-size: 1rem;
-            transition: all 0.3s;
-            background-color: #2a2a2a;
+            transition: var(--transition);
+            background-color: white;
             color: var(--text-color);
         }
         
         .form-control:focus {
             outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(138, 92, 245, 0.2);
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 3px rgba(124, 77, 255, 0.1);
+        }
+        
+        .password-container {
+            position: relative;
+        }
+        
+        .toggle-password {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--lighter-text);
+            cursor: pointer;
+            background: none;
+            border: none;
+            font-size: 1.1rem;
         }
         
         .btn {
             display: inline-block;
-            padding: 12px 24px;
-            background-color: var(--primary-color);
+            padding: 1rem 2rem;
+            background: linear-gradient(to right, var(--primary-color), var(--primary-dark));
             color: white;
             border: none;
-            border-radius: 8px;
-            font-family: 'Noto Serif SC', serif;
+            border-radius: var(--radius-md);
+            font-family: 'Inter', sans-serif;
             font-size: 1rem;
+            font-weight: 500;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: var(--transition);
             text-decoration: none;
+            width: 100%;
+            margin-top: 0.5rem;
         }
         
         .btn:hover {
-            background-color: #7a4ce5;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(138, 92, 245, 0.4);
+            background: linear-gradient(to right, var(--primary-light), var(--primary-color));
+            box-shadow: 0 4px 12px rgba(124, 77, 255, 0.25);
+            transform: translateY(-1px);
         }
         
-        .btn-block {
-            display: block;
-            width: 100%;
+        .btn:active {
+            transform: translateY(0);
         }
         
         .auth-footer {
-            margin-top: 20px;
-            font-size: 0.9rem;
+            margin-top: 2rem;
+            font-size: 0.9375rem;
             color: var(--light-text);
         }
         
         .auth-footer a {
             color: var(--primary-color);
             text-decoration: none;
+            font-weight: 500;
         }
         
         .auth-footer a:hover {
@@ -193,23 +212,127 @@
         
         .error-message {
             color: var(--error-color);
-            font-size: 0.9rem;
-            margin-top: 5px;
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
             display: none;
         }
         
         .success-message {
             color: var(--success-color);
-            font-size: 0.9rem;
-            margin-top: 5px;
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
             display: none;
+        }
+        
+        .password-strength {
+            margin-top: 0.5rem;
+            height: 4px;
+            background-color: var(--border-color);
+            border-radius: 2px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .strength-meter {
+            height: 100%;
+            width: 0;
+            transition: width 0.3s ease;
+        }
+        
+        .strength-weak {
+            background-color: var(--error-color);
+        }
+        
+        .strength-medium {
+            background-color: var(--warning-color);
+        }
+        
+        .strength-strong {
+            background-color: var(--success-color);
+        }
+        
+        .password-hints {
+            margin-top: 0.5rem;
+            font-size: 0.8125rem;
+            color: var(--light-text);
+        }
+        
+        .hint-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.25rem;
+        }
+        
+        .hint-icon {
+            margin-right: 0.5rem;
+            font-size: 0.75rem;
+        }
+        
+        .hint-valid {
+            color: var(--success-color);
+        }
+        
+        .hint-invalid {
+            color: var(--lighter-text);
+        }
+        
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 1.5rem 0;
+            color: var(--light-text);
+            font-size: 0.875rem;
+        }
+        
+        .divider::before, .divider::after {
+            content: "";
+            flex: 1;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .divider::before {
+            margin-right: 1rem;
+        }
+        
+        .divider::after {
+            margin-left: 1rem;
+        }
+        
+        .social-login {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .social-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: 1px solid var(--border-color);
+            background: white;
+            color: var(--text-color);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .social-btn:hover {
+            background-color: #f7fafc;
+            transform: translateY(-2px);
+        }
+        
+        .social-btn i {
+            font-size: 1.25rem;
         }
         
         /* 加载动画 */
         .loader {
             display: none;
-            border: 3px solid #333;
-            border-top: 3px solid var(--primary-color);
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid white;
             border-radius: 50%;
             width: 20px;
             height: 20px;
@@ -223,17 +346,16 @@
         }
         
         /* 响应式设计 */
-        @media (max-width: 576px) {
-        .auth-card {
-            padding: 30px 20px;
-        }
-        
-        .auth-header h1 {
-            font-size: 1.8rem;
-        }
-        
-        .auth-content {
-            min-height: 550px; /* 移动端增加更多高度 */
+        @media (max-width: 640px) {
+            .auth-card {
+                padding: 2rem 1.5rem;
+                box-shadow: none;
+                border: none;
+                background-color: transparent;
+            }
+            
+            .container {
+                padding: 1rem;
             }
         }
     </style>
@@ -243,70 +365,84 @@
         <div class="auth-container">
             <div class="auth-card">
                 <div class="auth-header">
-                    <h1><i class="fas fa-user-circle"></i> 命缘池</h1>
-                    <p>登录或注册以管理您的愿望</p>
-                </div>
-                
-                <div class="auth-tabs">
-                    <div class="auth-tab active" id="loginTab">登录</div>
-                    <div class="auth-tab" id="registerTab">注册</div>
+                    <div class="logo">
+                        <i class="fas fa-magic"></i>
+                    </div>
+                    <h1>创建您的账户</h1>
+                    <p>加入命缘池，开始您的愿望管理之旅</p>
                 </div>
                 
                 <div class="auth-content">
-                    <!-- 登录表单 -->
-                    <form id="loginForm" class="auth-form active">
-                        <div class="form-group">
-                            <label for="loginUsername">用户名</label>
-                            <input type="text" id="loginUsername" class="form-control" placeholder="请输入用户名" required>
-                            <div class="error-message" id="loginUsernameError"></div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="loginPassword">密码</label>
-                            <input type="password" id="loginPassword" class="form-control" placeholder="请输入密码" required>
-                            <div class="error-message" id="loginPasswordError"></div>
-                        </div>
-                        
-                        <button type="submit" class="btn btn-block" id="loginBtn">
-                            <span id="loginText">登录</span>
-                            <div class="loader" id="loginLoader"></div>
-                        </button>
-                        
-                        <div class="auth-footer">
-                            <p><a href="forgot-password.html">忘记密码？</a></p>
-                        </div>
-                    </form>
-                    
-                    <!-- 注册表单 -->
                     <form id="registerForm" class="auth-form">
                         <div class="form-group">
                             <label for="registerUsername">用户名</label>
-                            <input type="text" id="registerUsername" class="form-control" placeholder="请输入用户名(4-16位)" required minlength="4" maxlength="16">
+                            <input type="text" id="registerUsername" class="form-control" placeholder="输入4-16位用户名" required minlength="4" maxlength="16">
                             <div class="error-message" id="registerUsernameError"></div>
                         </div>
                         
                         <div class="form-group">
                             <label for="registerEmail">电子邮箱</label>
-                            <input type="email" id="registerEmail" class="form-control" placeholder="请输入电子邮箱" required>
+                            <input type="email" id="registerEmail" class="form-control" placeholder="输入您的电子邮箱" required>
                             <div class="error-message" id="registerEmailError"></div>
                         </div>
                         
                         <div class="form-group">
                             <label for="registerPassword">密码</label>
-                            <input type="password" id="registerPassword" class="form-control" placeholder="请输入密码(至少6位)" required minlength="6">
+                            <div class="password-container">
+                                <input type="password" id="registerPassword" class="form-control" placeholder="至少6位字符" required minlength="6">
+                                <button type="button" class="toggle-password" id="togglePassword">
+                                    <i class="far fa-eye"></i>
+                                </button>
+                            </div>
+                            <div class="password-strength">
+                                <div class="strength-meter" id="strengthMeter"></div>
+                            </div>
+                            <div class="password-hints">
+                                <div class="hint-item">
+                                    <span class="hint-icon" id="lengthHint"><i class="fas fa-circle"></i></span>
+                                    <span>至少6位字符</span>
+                                </div>
+                                <div class="hint-item">
+                                    <span class="hint-icon" id="complexityHint"><i class="fas fa-circle"></i></span>
+                                    <span>包含字母和数字</span>
+                                </div>
+                            </div>
                             <div class="error-message" id="registerPasswordError"></div>
                         </div>
                         
                         <div class="form-group">
                             <label for="registerConfirmPassword">确认密码</label>
-                            <input type="password" id="registerConfirmPassword" class="form-control" placeholder="请再次输入密码" required>
+                            <div class="password-container">
+                                <input type="password" id="registerConfirmPassword" class="form-control" placeholder="再次输入密码" required>
+                                <button type="button" class="toggle-password" id="toggleConfirmPassword">
+                                    <i class="far fa-eye"></i>
+                                </button>
+                            </div>
                             <div class="error-message" id="registerConfirmPasswordError"></div>
                         </div>
                         
-                        <button type="submit" class="btn btn-block" id="registerBtn">
+                        <button type="submit" class="btn" id="registerBtn">
                             <span id="registerText">注册</span>
                             <div class="loader" id="registerLoader"></div>
                         </button>
+                        
+                        <div class="divider">或</div>
+                        
+                        <div class="social-login">
+                            <button type="button" class="social-btn">
+                                <i class="fab fa-weixin"></i>
+                            </button>
+                            <button type="button" class="social-btn">
+                                <i class="fab fa-qq"></i>
+                            </button>
+                            <button type="button" class="social-btn">
+                                <i class="fab fa-weibo"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="auth-footer">
+                            <p>已有账户？<a href="login.html">立即登录</a></p>
+                        </div>
                         
                         <div class="success-message" id="registerSuccess"></div>
                     </form>
@@ -319,73 +455,83 @@
     const API_BASE = 'https://bazi-backend.owenjass.workers.dev';
 
     document.addEventListener('DOMContentLoaded', function () {
-        const loginTab = document.getElementById('loginTab');
-        const registerTab = document.getElementById('registerTab');
-        const loginForm = document.getElementById('loginForm');
         const registerForm = document.getElementById('registerForm');
-
-        loginTab.addEventListener('click', () => switchTab('login'));
-        registerTab.addEventListener('click', () => switchTab('register'));
-
-        loginForm.addEventListener('submit', function (e) {
-            e.preventDefault();
-            handleLogin();
-        });
+        const togglePassword = document.getElementById('togglePassword');
+        const toggleConfirmPassword = document.getElementById('toggleConfirmPassword');
+        const registerPassword = document.getElementById('registerPassword');
+        const strengthMeter = document.getElementById('strengthMeter');
+        const lengthHint = document.getElementById('lengthHint');
+        const complexityHint = document.getElementById('complexityHint');
 
         registerForm.addEventListener('submit', function (e) {
             e.preventDefault();
             handleRegister();
         });
 
-        function switchTab(tab) {
-            if (tab === 'login') {
-                loginTab.classList.add('active');
-                registerTab.classList.remove('active');
-                loginForm.classList.add('active');
-                registerForm.classList.remove('active');
+        // 密码可见性切换
+        togglePassword.addEventListener('click', function() {
+            const type = registerPassword.getAttribute('type') === 'password' ? 'text' : 'password';
+            registerPassword.setAttribute('type', type);
+            this.querySelector('i').classList.toggle('fa-eye');
+            this.querySelector('i').classList.toggle('fa-eye-slash');
+        });
+
+        toggleConfirmPassword.addEventListener('click', function() {
+            const confirmPassword = document.getElementById('registerConfirmPassword');
+            const type = confirmPassword.getAttribute('type') === 'password' ? 'text' : 'password';
+            confirmPassword.setAttribute('type', type);
+            this.querySelector('i').classList.toggle('fa-eye');
+            this.querySelector('i').classList.toggle('fa-eye-slash');
+        });
+
+        // 密码强度检测
+        registerPassword.addEventListener('input', function() {
+            const password = this.value;
+            checkPasswordStrength(password);
+        });
+
+        function checkPasswordStrength(password) {
+            let strength = 0;
+            
+            // 长度检查
+            if (password.length >= 6) {
+                strength += 1;
+                lengthHint.classList.add('hint-valid');
+                lengthHint.classList.remove('hint-invalid');
+                lengthHint.querySelector('i').className = 'fas fa-check-circle';
             } else {
-                loginTab.classList.remove('active');
-                registerTab.classList.add('active');
-                loginForm.classList.remove('active');
-                registerForm.classList.add('active');
+                lengthHint.classList.remove('hint-valid');
+                lengthHint.classList.add('hint-invalid');
+                lengthHint.querySelector('i').className = 'fas fa-circle';
             }
-
-            document.querySelectorAll('.error-message').forEach(el => el.style.display = 'none');
+            
+            // 复杂度检查
+            if (/[a-zA-Z]/.test(password) && /[0-9]/.test(password)) {
+                strength += 1;
+                complexityHint.classList.add('hint-valid');
+                complexityHint.classList.remove('hint-invalid');
+                complexityHint.querySelector('i').className = 'fas fa-check-circle';
+            } else {
+                complexityHint.classList.remove('hint-valid');
+                complexityHint.classList.add('hint-invalid');
+                complexityHint.querySelector('i').className = 'fas fa-circle';
+            }
+            
+            // 更新强度条
+            updateStrengthMeter(strength);
         }
-
-        async function handleLogin() {
-            const username = document.getElementById('loginUsername').value.trim();
-            const password = document.getElementById('loginPassword').value.trim();
-
-            if (!username) return showError('loginUsernameError', '请输入用户名');
-            if (!password) return showError('loginPasswordError', '请输入密码');
-
-            const loginText = document.getElementById('loginText');
-            const loginLoader = document.getElementById('loginLoader');
-            loginText.style.display = 'none';
-            loginLoader.style.display = 'block';
-            document.getElementById('loginBtn').disabled = true;
-
-            try {
-                const response = await fetch(`${API_BASE}/api/login`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name: username, password })
-                });
-
-                const result = await response.json();
-                if (!response.ok) throw new Error(result.error || '登录失败');
-
-                localStorage.setItem('token', result.token);
-                localStorage.setItem('username', username);
-
-                window.location.href = 'wishingwell.html';
-            } catch (err) {
-                alert('登录失败：' + err.message);
-            } finally {
-                loginText.style.display = 'inline';
-                loginLoader.style.display = 'none';
-                document.getElementById('loginBtn').disabled = false;
+        
+        function updateStrengthMeter(strength) {
+            strengthMeter.className = 'strength-meter';
+            
+            if (strength === 0) {
+                strengthMeter.style.width = '0%';
+            } else if (strength === 1) {
+                strengthMeter.style.width = '50%';
+                strengthMeter.classList.add('strength-weak');
+            } else {
+                strengthMeter.style.width = '100%';
+                strengthMeter.classList.add('strength-strong');
             }
         }
 
@@ -492,7 +638,6 @@
             window.location.href = 'wishingwell.html';
         }
     });
-
     </script>
 </body>
 </html>
