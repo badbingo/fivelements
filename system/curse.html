@@ -1386,761 +1386,639 @@
     </div>
     
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // 配置后端地址
-            const API_BASE = 'https://curse-backend.owenjass.workers.dev';
-            const API_URL = `${API_BASE}/api/curse`;
+        // 配置后端地址
+const API_BASE = 'https://curse-backend.owenjass.workers.dev';
+const API_URL = `${API_BASE}/api/curse`;
 
-            // 全局变量
-            let allWishes = [];
-            let currentPage = 1;
-            const wishesPerPage = 9;
-            let currentSearchTerm = '';
-            
-            // 获取DOM元素
-            const wishFilter = document.getElementById('wishFilter');
-            const sortFilter = document.getElementById('sortFilter');
-            const wishPool = document.querySelector('.wish-pool');
-            const prevPageBtn = document.getElementById('prevPage');
-            const nextPageBtn = document.getElementById('nextPage');
-            const pageInfo = document.getElementById('pageInfo');
-            const wishForm = document.getElementById('wishForm');
-            const baziInfo = document.getElementById('baziInfo');
-            const fulfillModal = document.getElementById('fulfillModal');
-            const wishSearch = document.getElementById('wishSearch');
-            const searchBtn = document.getElementById('searchBtn');
-            const clearSearchBtn = document.getElementById('clearSearchBtn');
-            const charCount = document.getElementById('charCount');
-            const descCharCount = document.getElementById('descCharCount');
-            const targetDescription = document.getElementById('targetDescription');
-            const wishContent = document.getElementById('wishContent');
+// 全局变量
+let allWishes = [];
+let currentPage = 1;
+const wishesPerPage = 9;
+let currentSearchTerm = '';
+let currentFilter = 'all';
+let currentSort = 'newest';
 
-            // 初始化字符计数器
-            wishContent.addEventListener('input', function() {
-                charCount.textContent = this.value.length;
-            });
-            
-            targetDescription.addEventListener('input', function() {
-                descCharCount.textContent = this.value.length;
-            });
+// DOM元素引用
+const elements = {
+  wishPool: document.querySelector('.wish-pool'),
+  prevPageBtn: document.getElementById('prevPage'),
+  nextPageBtn: document.getElementById('nextPage'),
+  pageInfo: document.getElementById('pageInfo'),
+  wishForm: document.getElementById('wishForm'),
+  wishSearch: document.getElementById('wishSearch'),
+  searchBtn: document.getElementById('searchBtn'),
+  clearSearchBtn: document.getElementById('clearSearchBtn'),
+  wishFilter: document.getElementById('wishFilter'),
+  sortFilter: document.getElementById('sortFilter'),
+  newWishesCount: document.getElementById('newWishesCount'),
+  blessingsCount: document.getElementById('blessingsCount'),
+  fulfilledCount: document.getElementById('fulfilledCount'),
+  lastUpdated: document.getElementById('lastUpdated'),
+  refreshStatsBtn: document.getElementById('refreshStatsBtn')
+};
 
-            // 设置默认排序为"最新诅咒"
-            sortFilter.value = 'newest';
+// 初始化函数
+function init() {
+  setupEventListeners();
+  loadInitialData();
+  setupCharacterCounters();
+}
 
-            // 初始化搜索功能
-            function initSearchFunctionality() {
-                // 搜索按钮点击事件
-                searchBtn.addEventListener('click', () => {
-                    currentSearchTerm = wishSearch.value.trim();
-                    if (currentSearchTerm) {
-                        currentPage = 1;
-                        renderFilteredWishes();
-                        clearSearchBtn.style.display = 'inline-block';
-                    }
-                });
+// 事件监听器设置
+function setupEventListeners() {
+  // 分页控制
+  elements.prevPageBtn.addEventListener('click', goToPrevPage);
+  elements.nextPageBtn.addEventListener('click', goToNextPage);
+  
+  // 搜索和筛选
+  elements.searchBtn.addEventListener('click', handleSearch);
+  elements.clearSearchBtn.addEventListener('click', clearSearch);
+  elements.wishSearch.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') handleSearch();
+  });
+  
+  elements.wishFilter.addEventListener('change', () => {
+    currentFilter = elements.wishFilter.value;
+    refreshWishDisplay();
+  });
+  
+  elements.sortFilter.addEventListener('change', () => {
+    currentSort = elements.sortFilter.value;
+    refreshWishDisplay();
+  });
+  
+  // 表单提交
+  elements.wishForm.addEventListener('submit', handleSubmitWish);
+  
+  // 统计刷新
+  elements.refreshStatsBtn.addEventListener('click', refreshStats);
+  
+  // 模态框控制
+  setupModalControls();
+}
 
-                // 清空搜索按钮
-                clearSearchBtn.addEventListener('click', () => {
-                    wishSearch.value = '';
-                    currentSearchTerm = '';
-                    currentPage = 1;
-                    renderFilteredWishes();
-                    clearSearchBtn.style.display = 'none';
-                });
+// 初始数据加载
+function loadInitialData() {
+  loadAllWishes();
+  refreshStats();
+}
 
-                // 回车键触发搜索
-                wishSearch.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter') {
-                        currentSearchTerm = wishSearch.value.trim();
-                        if (currentSearchTerm) {
-                            currentPage = 1;
-                            renderFilteredWishes();
-                            clearSearchBtn.style.display = 'inline-block';
-                        }
-                    }
-                });
-            }
+// 字符计数器设置
+function setupCharacterCounters() {
+  const wishContent = document.getElementById('wishContent');
+  const targetDescription = document.getElementById('targetDescription');
+  const charCount = document.getElementById('charCount');
+  const descCharCount = document.getElementById('descCharCount');
+  
+  wishContent.addEventListener('input', () => {
+    charCount.textContent = wishContent.value.length;
+  });
+  
+  targetDescription.addEventListener('input', () => {
+    descCharCount.textContent = targetDescription.value.length;
+  });
+}
 
-            // 应用筛选和排序并渲染当前页的诅咒
-            function renderFilteredWishes() {
-                // 1. 应用类型筛选
-                const selectedType = wishFilter.value;
-                let filteredWishes = [...allWishes];
-                
-                if (selectedType !== 'all') {
-                    filteredWishes = allWishes.filter(wish => wish.type === selectedType);
-                }
-                
-                // 2. 应用搜索筛选
-                if (currentSearchTerm) {
-                    filteredWishes = filteredWishes.filter(wish => 
-                        wish.user_name && wish.user_name.toLowerCase().includes(currentSearchTerm.toLowerCase())
-                    );
-                }
-                
-                // 3. 应用排序
-                const selectedSort = sortFilter.value;
-                
-                switch(selectedSort) {
-                    case 'newest':
-                        filteredWishes.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
-                        break;
-                    case 'oldest':
-                        filteredWishes.sort((a, b) => new Date(a.created_at || 0) - new Date(b.created_at || 0));
-                        break;
-                    case 'most':
-                        filteredWishes.sort((a, b) => (b.blessings || 0) - (a.blessings || 0));
-                        break;
-                    case 'least':
-                        filteredWishes.sort((a, b) => (a.blessings || 0) - (b.blessings || 0));
-                        break;
-                    default:
-                        filteredWishes.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
-                }
-                
-                // 4. 分页处理
-                const startIndex = (currentPage - 1) * wishesPerPage;
-                const paginatedWishes = filteredWishes.slice(startIndex, startIndex + wishesPerPage);
-                
-                // 渲染筛选后的诅咒
-                renderWishCards(paginatedWishes);
-                updatePagination();
-            }
+/**********************
+ * 核心功能函数
+ **********************/
 
-            // 更新分页信息
-            function updatePagination() {
-                const selectedType = wishFilter.value;
-                let filteredWishes = [...allWishes];
-                
-                if (selectedType !== 'all') {
-                    filteredWishes = allWishes.filter(wish => wish.type === selectedType);
-                }
-                
-                // 应用搜索筛选
-                if (currentSearchTerm) {
-                    filteredWishes = filteredWishes.filter(wish => 
-                        wish.user_name && wish.user_name.toLowerCase().includes(currentSearchTerm.toLowerCase())
-                    );
-                }
-                
-                const totalPages = Math.ceil(filteredWishes.length / wishesPerPage);
-                
-                pageInfo.textContent = `第 ${currentPage} 页 / 共 ${totalPages} 页`;
-                prevPageBtn.disabled = currentPage <= 1;
-                nextPageBtn.disabled = currentPage >= totalPages || totalPages === 0;
-            }
+// 加载所有诅咒
+async function loadAllWishes() {
+  try {
+    showLoadingState();
+    
+    const response = await fetch(API_URL);
+    if (!response.ok) throw new Error(`HTTP错误: ${response.status}`);
+    
+    const data = await response.json();
+    allWishes = Array.isArray(data) ? data : data.data || [];
+    
+    if (!Array.isArray(allWishes)) {
+      throw new Error('无效的数据格式');
+    }
+    
+    refreshWishDisplay();
+  } catch (error) {
+    showErrorState(error);
+  }
+}
 
-            // 模态框关闭逻辑
-            function setupModalClose() {
-                // 1. 点击X按钮关闭
-                const closeModalBtn = fulfillModal.querySelector('.close-modal');
-                if (closeModalBtn) {
-                    closeModalBtn.addEventListener('click', function() {
-                        fulfillModal.style.display = 'none';
-                    });
-                }
+// 刷新诅咒显示
+function refreshWishDisplay() {
+  const filtered = filterWishes(allWishes);
+  const sorted = sortWishes(filtered);
+  const paginated = paginateWishes(sorted);
+  
+  renderWishCards(paginated);
+  updatePagination(filtered.length);
+}
 
-                // 2. 点击模态框外部关闭
-                window.addEventListener('click', function(event) {
-                    if (event.target === fulfillModal) {
-                        fulfillModal.style.display = 'none';
-                    }
-                });
-            }
+// 筛选诅咒
+function filterWishes(wishes) {
+  let filtered = [...wishes];
+  
+  // 按类型筛选
+  if (currentFilter !== 'all') {
+    filtered = filtered.filter(wish => wish.type === currentFilter);
+  }
+  
+  // 按搜索词筛选
+  if (currentSearchTerm) {
+    const term = currentSearchTerm.toLowerCase();
+    filtered = filtered.filter(wish => 
+      wish.user_name && wish.user_name.toLowerCase().includes(term)
+    );
+  }
+  
+  return filtered;
+}
 
-            // 初始化模态框关闭功能
-            setupModalClose();
+// 排序诅咒
+function sortWishes(wishes) {
+  switch(currentSort) {
+    case 'newest':
+      return [...wishes].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    case 'oldest':
+      return [...wishes].sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+    case 'most':
+      return [...wishes].sort((a, b) => (b.blessings || 0) - (a.blessings || 0));
+    case 'least':
+      return [...wishes].sort((a, b) => (a.blessings || 0) - (b.blessings || 0));
+    default:
+      return wishes;
+  }
+}
 
-            // 绑定表单提交事件
-            wishForm.addEventListener('submit', handleSubmitWish);
+// 分页处理
+function paginateWishes(wishes) {
+  const startIndex = (currentPage - 1) * wishesPerPage;
+  return wishes.slice(startIndex, startIndex + wishesPerPage);
+}
 
-            // 初始化加载诅咒数据
-            async function loadAllWishes() {
-              try {
-                const response = await fetch(API_URL);
-                
-                if (!response.ok) {
-                  throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
-                const result = await response.json();
-                
-                // 处理两种可能的响应格式
-                allWishes = Array.isArray(result) 
-                  ? result 
-                  : (result.data || [result]).filter(Boolean);
-                
-                // 转换日期字符串为Date对象
-                allWishes.forEach(wish => {
-                  if (wish.created_at && typeof wish.created_at === 'string') {
-                    wish.created_at = new Date(wish.created_at);
-                  }
-                });
-                
-                renderFilteredWishes();
-                updatePagination();
-                
-              } catch (err) {
-                console.error('加载诅咒时出错:', err);
-                showErrorMessage(`加载失败: ${err.message}`);
-              }
-            }
+// 更新分页UI
+function updatePagination(totalItems) {
+  const totalPages = Math.ceil(totalItems / wishesPerPage);
+  elements.pageInfo.textContent = `第 ${currentPage} 页 / 共 ${totalPages} 页`;
+  elements.prevPageBtn.disabled = currentPage <= 1;
+  elements.nextPageBtn.disabled = currentPage >= totalPages || totalPages === 0;
+}
 
-            // 表单提交处理
-            async function handleSubmitWish(e) {
-                e.preventDefault();
-                
-                // 收集表单数据
-                const targetName = document.getElementById('name').value.trim() || '匿名目标';
-                const targetDescription = document.getElementById('targetDescription').value.trim();
-                const content = document.getElementById('wishContent').value.trim();
-                
-                if (!content || !targetName || !targetDescription) {
-                    showErrorMessage('请填写完整的诅咒内容和目标信息');
-                    return;
-                }
+// 翻页函数
+function goToPrevPage() {
+  if (currentPage > 1) {
+    currentPage--;
+    refreshWishDisplay();
+  }
+}
 
-                // 设置提交按钮状态
-                const submitBtn = e.target.querySelector('button[type="submit"]');
-                submitBtn.disabled = true;
-                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 提交中...';
+function goToNextPage() {
+  const filtered = filterWishes(allWishes);
+  const totalPages = Math.ceil(filtered.length / wishesPerPage);
+  
+  if (currentPage < totalPages) {
+    currentPage++;
+    refreshWishDisplay();
+  }
+}
 
-                try {
-                    const response = await fetch(API_URL, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            content,
-                            user_name: targetName,
-                            target_description: targetDescription,
-                            type: document.getElementById('wishType').value,
-                            visibility: document.querySelector('input[name="visibility"]:checked').value,
-                            solar_date: new Date().toISOString().split('T')[0],
-                            user_id: 'guest_' + Date.now()
-                        })
-                    });
+/**********************
+ * 渲染函数
+ **********************/
 
-                    if (!response.ok) {
-                        throw new Error(await response.text());
-                    }
+// 渲染诅咒卡片
+function renderWishCards(wishes) {
+  if (!wishes || !Array.isArray(wishes)) {
+    elements.wishPool.innerHTML = `
+      <div class="wish-loading">
+        <i class="fas fa-exclamation-triangle"></i>
+        <p>数据加载异常</p>
+      </div>
+    `;
+    return;
+  }
+  
+  if (wishes.length === 0) {
+    elements.wishPool.innerHTML = `
+      <div class="wish-loading">
+        <i class="fas fa-search"></i>
+        <p>没有找到符合条件的诅咒</p>
+        ${currentSearchTerm ? `<p>搜索词: "${currentSearchTerm}"</p>` : ''}
+      </div>
+    `;
+    return;
+  }
+  
+  elements.wishPool.innerHTML = '';
+  
+  const typeNames = {
+    love: '感情破裂', 
+    wealth: '事业失败', 
+    health: '疾病缠身',
+    study: '学业受阻', 
+    family: '家庭不和', 
+    other: '其他诅咒'
+  };
+  
+  wishes.forEach(wish => {
+    const daysLeft = calculateDaysLeft(wish.created_at);
+    const card = document.createElement('div');
+    card.className = `wish-card level-${wish.level || 1}`;
+    card.dataset.id = wish.id;
+    
+    card.innerHTML = `
+      <div class="wish-header">
+        <div class="wish-user">
+          <i class="fas fa-user"></i> <span>${wish.user_name || '匿名'}</span>
+        </div>
+        <span class="wish-type">${typeNames[wish.type] || '其他'}</span>
+        <span class="wish-time">剩余<span class="days-left">${daysLeft}</span>天</span>
+      </div>
+      <div class="wish-content">
+        <p class="wish-text">${wish.content}</p>
+        ${wish.target_description ? `<p class="target-description"><small>目标特征: ${wish.target_description}</small></p>` : ''}
+      </div>
+      <div class="wish-meta">
+        <div class="wish-stats">
+          <span class="bless-count">${wish.blessings || 0}</span> 次加持
+        </div>
+      </div>
+      <div class="wish-actions">
+        <button class="btn-bless">
+          <i class="fas fa-hands-helping"></i> 加持
+        </button>
+        <button class="btn-fulfill">
+          <i class="fas fa-hand-holding-heart"></i> 还愿
+        </button>
+      </div>
+      <div class="wish-energy">
+        <div class="energy-level level-${wish.level || 1}" 
+             style="width: ${(wish.level || 1) * 20}%"></div>
+      </div>
+    `;
+    
+    // 添加事件监听
+    card.querySelector('.btn-bless').addEventListener('click', () => handleBlessWish(wish));
+    card.querySelector('.btn-fulfill').addEventListener('click', () => handleFulfillWish(wish));
+    
+    elements.wishPool.appendChild(card);
+  });
+}
 
-                    showSuccessMessage('诅咒已成功投入诅咒池！');
-                    wishForm.reset();
-                    charCount.textContent = '0';
-                    descCharCount.textContent = '0';
-                    
-                    // 重新加载诅咒列表
-                    loadAllWishes();
-                } catch (error) {
-                    console.error('提交错误:', error);
-                    showErrorMessage(`提交失败: ${error.message}`);
-                } finally {
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> 投入诅咒池';
-                }
-            }
-                            
-            // 渲染诅咒卡片
-            function renderWishCards(wishes) {
-                if (!Array.isArray(wishes)) {
-                    console.error('renderWishCards 接收到的不是数组:', wishes);
-                    return;
-                }
-                
-                wishPool.innerHTML = '';
-                
-                if (wishes.length === 0) {
-                    wishPool.innerHTML = `
-                        <div class="wish-loading">
-                            <i class="fas fa-skull-crossbones" style="font-size: 2rem; color: #c62828;"></i>
-                            <p>没有找到符合条件的诅咒</p>
-                            ${currentSearchTerm ? `<p>没有找到与"${currentSearchTerm}"相关的诅咒</p>` : '<p>请尝试其他筛选条件</p>'}
-                        </div>
-                    `;
-                    return;
-                }
-                
-                // 诅咒类型名称映射
-                const typeNames = {
-                    love: '感情破裂', 
-                    wealth: '事业失败', 
-                    health: '疾病缠身',
-                    study: '学业受阻', 
-                    family: '家庭不和', 
-                    other: '其他诅咒'
-                };
-                
-                wishes.forEach(wish => {
-                    // 创建诅咒卡片
-                    const wishCard = document.createElement('div');
-                    wishCard.className = `wish-card level-${wish.level || 1}`;
-                    wishCard.dataset.id = wish.id;
-                    wishCard.dataset.level = wish.level || 1;
-                    wishCard.dataset.type = wish.type;
-                    wishCard.dataset.visibility = wish.visibility;
-                    
-                    // 计算剩余天数
-                    const createdDate = new Date(wish.created_at);
-                    const expiresAt = new Date(createdDate);
-                    expiresAt.setDate(expiresAt.getDate() + 30);
-                    const daysLeft = Math.max(0, Math.ceil((expiresAt - new Date()) / (86400000)));
-                    
-                    // 填充内容
-                    wishCard.innerHTML = `
-                        <div class="wish-header">
-                            <div class="wish-user">
-                                <i class="fas fa-user"></i> <span class="user-name">${wish.user_name || '匿名用户'}</span>
-                            </div>
-                            <span class="wish-type">${typeNames[wish.type] || '其他诅咒'}</span>
-                            <span class="wish-time">剩余<span class="days-left">${daysLeft}</span>天</span>
-                        </div>
-                        <div class="wish-content">
-                            <p class="wish-text">${wish.content}</p>
-                            ${wish.target_description ? `<p class="target-description"><small>目标特征: ${wish.target_description}</small></p>` : ''}
-                            <p class="wish-hidden">诅咒已隐藏</p>
-                        </div>
-                        <div class="wish-meta">
-                            <div class="wish-stats">
-                                <span class="bless-count">${wish.blessings || 0}</span> 次加持
-                            </div>
-                        </div>
-                        <div class="wish-actions">
-                            <button class="btn-bless">
-                                <i class="fas fa-hands-helping"></i> 加持
-                            </button>
-                            <button class="btn-fulfill">
-                            <i class="fas fa-hand-holding-heart"></i> 还愿
-                            </button>
-                        </div>
-                        <div class="wish-energy">
-                            <div class="energy-level level-${wish.level || 1}" style="width: ${(wish.level || 1) * 20}%"></div>
-                        </div>
-                    `;
-                    
-                    // 添加事件监听
-                    const blessBtn = wishCard.querySelector('.btn-bless');
-                    blessBtn.addEventListener('click', () => handleBlessWish(wishCard, wish));
-                    
-                    const fulfillBtn = wishCard.querySelector('.btn-fulfill');
-                    fulfillBtn.addEventListener('click', () => handleFulfillWish(wish));
-                    
-                    // 添加到池中
-                    wishPool.appendChild(wishCard);
-                });
-            }
+// 计算剩余天数
+function calculateDaysLeft(createdAt) {
+  const createdDate = new Date(createdAt);
+  const expiresAt = new Date(createdDate);
+  expiresAt.setDate(expiresAt.getDate() + 30);
+  return Math.max(0, Math.ceil((expiresAt - new Date()) / (86400000)));
+}
 
-            // 处理加持诅咒
-            async function handleBlessWish(cardElement, wish) {
-                try {
-                    // 检查登录状态
-                    const token = localStorage.getItem('token');
-                    if (!token) {
-                        showLoginModal();
-                        return;
-                    }
+/**********************
+ * 交互功能函数
+ **********************/
 
-                    // 检查本地加持记录
-                    const lastBlessKey = `lastBless_${wish.id}`;
-                    const lastBlessTime = localStorage.getItem(lastBlessKey);
-                    const now = Date.now();
-                    
-                    if (lastBlessTime && (now - parseInt(lastBlessTime)) < 3600000) {
-                        const nextBlessTime = new Date(parseInt(lastBlessTime) + 3600000);
-                        showToast(`每小时只能加持一次，请于 ${nextBlessTime.toLocaleTimeString()} 后再试`);
-                        return;
-                    }
-                
-                    // 获取加持按钮并禁用
-                    const blessBtn = cardElement.querySelector('.btn-bless');
-                    blessBtn.disabled = true;
-                    blessBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 加持中...';
-                
-                    // 显示特效
-                    await showMantraEffect();
-                
-                    // 发送请求
-                    const blessUrl = `${API_BASE}/api/bless/${wish.id}`;
-                    
-                    const response = await fetch(blessUrl, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`
-                        },
-                        body: JSON.stringify({})
-                    });
-                
-                    // 处理响应
-                    if (!response.ok) {
-                        const errorData = await response.json();
-                        if (errorData.code === 401) {  // 未授权/未登录
-                            showLoginModal();
-                            return;
-                        }
-                        if (errorData.code === 429) {  // 频率限制
-                            localStorage.setItem(lastBlessKey, new Date(errorData.nextBlessTime).getTime() - 3600000);
-                            showToast(errorData.error);
-                            return;
-                        }
-                        throw new Error(`加持失败 (${response.status}): ${JSON.stringify(errorData)}`);
-                    }
-                
-                    const result = await response.json();
-                    console.log('加持结果:', result);
-                
-                    // 记录本次加持时间
-                    localStorage.setItem(lastBlessKey, now.toString());
-                
-                    // 更新UI
-                    cardElement.querySelector('.bless-count').textContent = result.blessings;
-                    cardElement.dataset.level = result.level;
-                    cardElement.className = `wish-card level-${result.level}`;
-                    cardElement.querySelector('.energy-level').className = `energy-level level-${result.level}`;
-                    cardElement.querySelector('.energy-level').style.width = `${result.level * 20}%`;
-                    
-                    // 显示成功动画
-                    cardElement.classList.add('level-up');
-                    setTimeout(() => cardElement.classList.remove('level-up'), 1000);
-                    
-                    // 提示用户
-                    const levelNames = ['初咒', '小成', '中成', '大成', '圆满'];
-                    showSuccessMessage(`加持成功！当前能量：${levelNames[result.level - 1]}`);
-                
-                } catch (error) {
-                    console.error('加持出错:', error);
-                    showErrorMessage(error.message);
-                } finally {
-                    // 重置按钮状态
-                    const blessBtn = cardElement.querySelector('.btn-bless');
-                    if (blessBtn) {
-                        blessBtn.disabled = false;
-                        blessBtn.innerHTML = '<i class="fas fa-hands-helping"></i> 加持';
-                    }
-                }
-            }
+// 处理搜索
+function handleSearch() {
+  currentSearchTerm = elements.wishSearch.value.trim();
+  currentPage = 1;
+  
+  if (currentSearchTerm) {
+    elements.clearSearchBtn.style.display = 'inline-block';
+  }
+  
+  refreshWishDisplay();
+}
 
-            // 显示登录提示模态框
-            function showLoginModal() {
-                const modal = document.getElementById('loginModal');
-                if (!modal) {
-                    // 如果没有模态框，使用默认confirm
-                    const shouldLogin = confirm('请先登录后才能加持\n\n点击"确定"跳转到登录页面');
-                    if (shouldLogin) {
-                        window.location.href = 'user.html';
-                    }
-                    return;
-                }
-                
-                modal.style.display = 'block';
-                
-                // 设置确认按钮事件
-                document.getElementById('confirmLogin').onclick = function() {
-                    window.location.href = 'user.html';
-                };
-                
-                // 设置取消按钮事件
-                document.getElementById('cancelLogin').onclick = function() {
-                    modal.style.display = 'none';
-                };
-            }
-            
-            // 处理还愿诅咒
-            async function handleFulfillWish(wish) {
-                try {
-                    // 检查登录状态
-                    const token = localStorage.getItem('token');
-                    if (!token) {
-                        const shouldLogin = confirm('请先登录后再还愿');
-                        if (shouldLogin) window.location.href = '/user.html';
-                        return;
-                    }
+// 清除搜索
+function clearSearch() {
+  elements.wishSearch.value = '';
+  currentSearchTerm = '';
+  currentPage = 1;
+  elements.clearSearchBtn.style.display = 'none';
+  refreshWishDisplay();
+}
 
-                    // 显示还愿模态框
-                    const modal = document.getElementById('fulfillModal');
-                    if (!modal) {
-                        throw new Error('找不到还愿模态框');
-                    }
-                    
-                    // 设置诅咒ID到模态框
-                    modal.dataset.wishId = wish.id;
-                    modal.style.display = 'block';
-                
-                } catch (error) {
-                    console.error('还愿初始化失败:', error);
-                    alert('还愿失败: ' + error.message);
-                }
-            }
+// 处理表单提交
+async function handleSubmitWish(e) {
+  e.preventDefault();
+  
+  const formData = {
+    name: document.getElementById('name').value.trim(),
+    targetDescription: document.getElementById('targetDescription').value.trim(),
+    content: document.getElementById('wishContent').value.trim(),
+    type: document.getElementById('wishType').value,
+    visibility: document.querySelector('input[name="visibility"]:checked').value
+  };
+  
+  // 验证
+  if (!formData.content || !formData.name || !formData.targetDescription) {
+    showToast('请填写所有必填字段', 'error');
+    return;
+  }
+  
+  const submitBtn = e.target.querySelector('button[type="submit"]');
+  submitBtn.disabled = true;
+  submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 提交中...';
+  
+  try {
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ...formData,
+        user_name: formData.name,
+        solar_date: new Date().toISOString().split('T')[0],
+        user_id: 'guest_' + Date.now()
+      })
+    });
+    
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(error);
+    }
+    
+    showToast('诅咒已成功投入诅咒池！', 'success');
+    elements.wishForm.reset();
+    document.getElementById('charCount').textContent = '0';
+    document.getElementById('descCharCount').textContent = '0';
+    
+    // 重新加载数据
+    loadAllWishes();
+    refreshStats();
+  } catch (error) {
+    showToast(`提交失败: ${error.message}`, 'error');
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> 投入诅咒池';
+  }
+}
 
-            // 图表初始化
-            const energyChart = new Chart(document.getElementById('energyChart'), {
-                type: 'line',
-                data: {
-                    labels: ['1月', '2月', '3月', '4月', '5月', '6月'],
-                    datasets: [{
-                        label: '怨念强度',
-                        data: [65, 79, 90, 81, 56, 75],
-                        borderColor: '#c62828',
-                        backgroundColor: 'rgba(198, 40, 40, 0.1)',
-                        borderWidth: 2,
-                        tension: 0.4,
-                        pointRadius: 4,
-                        pointBackgroundColor: '#c62828'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: { color: 'rgba(255, 255, 255, 0.1)' },
-                            ticks: { color: '#b8c2cc' }
-                        },
-                        x: {
-                            grid: { color: 'rgba(255, 255, 255, 0.1)' },
-                            ticks: { color: '#b8c2cc' }
-                        }
-                    },
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: { backgroundColor: 'rgba(10, 10, 20, 0.9)' }
-                    }
-                }
-            });
-            
-            // 诅咒类型图表
-            const wishTypeChart = new Chart(document.getElementById('wishchart'), {
-                type: 'doughnut',
-                data: {
-                    labels: ['感情破裂', '事业失败', '疾病缠身', '学业受阻', '家庭不和', '其他诅咒'],
-                    datasets: [{
-                        data: [35, 25, 15, 10, 10, 5],
-                        backgroundColor: [
-                            '#c62828', '#8e0000', '#ff5f52', '#8d6e63', '#5d4037', '#3e2723'
-                        ],
-                        borderWidth: 0
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { position: 'bottom', labels: { color: '#b8c2cc' } },
-                        tooltip: { backgroundColor: 'rgba(10, 10, 20, 0.9)' }
-                    }
-                }
-            });
+/**********************
+ * 统计功能
+ **********************/
 
-            // 显示六字真言特效
-            async function showMantraEffect() {
-                return new Promise((resolve) => {
-                    const overlay = document.getElementById('mantraOverlay');
-                    const container = overlay.querySelector('.mantra-container');
-                    
-                    // 重置状态
-                    overlay.classList.remove('active');
-                    document.querySelectorAll('.mantra-particle, .mantra-symbol, .mantra-circle').forEach(el => el.remove());
-                    
-                    // 创建背景元素
-                    createMantraBackground(container);
-                    
-                    // 显示叠加层
-                    setTimeout(() => {
-                        overlay.classList.add('active');
-                        
-                        // 文字逐个显示动画
-                        const texts = document.querySelectorAll('.mantra-text');
-                        texts.forEach((text, index) => {
-                            setTimeout(() => {
-                                text.classList.add('active');
-                                
-                                // 每个文字显示时创建粒子爆发
-                                if(index % 2 === 0) createParticleBurst(text);
-                                
-                            }, index * 300);
-                        });
-                        
-                        // 7秒后结束
-                        setTimeout(() => {
-                            overlay.classList.remove('active');
-                            setTimeout(resolve, 800);
-                        }, 7000);
-                    }, 50);
-                });
-            }
+// 刷新统计数据
+async function refreshStats() {
+  try {
+    elements.refreshStatsBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    
+    const response = await fetch(`${API_BASE}/api/stats`);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    
+    const data = await response.json();
+    
+    // 更新UI
+    elements.newWishesCount.textContent = data.today?.newCurses || 0;
+    elements.blessingsCount.textContent = data.today?.blessings || 0;
+    elements.fulfilledCount.textContent = data.today?.fulfilled || 0;
+    elements.lastUpdated.textContent = new Date().toLocaleTimeString();
+    
+    // 更新图表
+    updateCharts(data);
+  } catch (error) {
+    console.error('统计加载失败:', error);
+    elements.lastUpdated.textContent = `更新失败: ${error.message}`;
+  } finally {
+    elements.refreshStatsBtn.innerHTML = '<i class="fas fa-sync-alt"></i>';
+    
+    // 30秒后自动刷新
+    setTimeout(refreshStats, 30000);
+  }
+}
 
-            // 创建背景元素
-            function createMantraBackground(container) {
-                // 创建扫描光束
-                for(let i = 0; i < 3; i++) {
-                    const beam = document.createElement('div');
-                    beam.className = 'mantra-beam';
-                    beam.style.left = `${Math.random() * 100}%`;
-                    beam.style.animationDelay = `${Math.random() * 5}s`;
-                    container.appendChild(beam);
-                }
-                
-                // 创建脉动圆圈
-                for(let i = 0; i < 5; i++) {
-                    const circle = document.createElement('div');
-                    circle.className = 'mantra-circle';
-                    circle.style.width = `${Math.random() * 200 + 100}px`;
-                    circle.style.height = circle.style.width;
-                    circle.style.left = `${Math.random() * 100}%`;
-                    circle.style.top = `${Math.random() * 100}%`;
-                    circle.style.animationDelay = `${Math.random() * 3}s`;
-                    container.appendChild(circle);
-                }
-                
-                // 创建漂浮符号
-                const symbols = ['☠', '☣', '☢', '⚰', '⚱', '☠', '☣', '☢', '⚰', '⚱', '☠', '☣', '☢', '⚰', '⚱'];
-                for(let i = 0; i < 25; i++) {
-                    const symbol = document.createElement('div');
-                    symbol.className = 'mantra-symbol';
-                    symbol.textContent = symbols[Math.floor(Math.random() * symbols.length)];
-                    symbol.style.left = `${Math.random() * 100}%`;
-                    symbol.style.fontSize = `${Math.random() * 3 + 2}rem`;
-                    symbol.style.animation = `symbolFloat ${Math.random() * 15 + 10}s linear ${Math.random() * 5}s infinite`;
-                    container.appendChild(symbol);
-                }
-            }
+// 更新图表
+function updateCharts(data) {
+  // 如果有图表实例，更新它们
+  if (window.energyChart) {
+    // 更新能量图表数据
+    window.energyChart.data.datasets[0].data = [
+      data.today.newCurses,
+      data.today.blessings,
+      data.today.fulfilled
+    ];
+    window.energyChart.update();
+  }
+  
+  if (window.wishTypeChart && data.distribution) {
+    // 更新类型分布图表
+    const labels = Object.keys(data.distribution);
+    const values = Object.values(data.distribution);
+    
+    window.wishTypeChart.data.labels = labels;
+    window.wishTypeChart.data.datasets[0].data = values;
+    window.wishTypeChart.update();
+  }
+}
 
-            // 创建粒子爆发效果
-            function createParticleBurst(element) {
-                const rect = element.getBoundingClientRect();
-                const centerX = rect.left + rect.width / 2;
-                const centerY = rect.top + rect.height / 2;
-                
-                for (let i = 0; i < 30; i++) {
-                    const particle = document.createElement('div');
-                    particle.className = 'mantra-particle';
-                    particle.style.left = `${centerX}px`;
-                    particle.style.top = `${centerY}px`;
-                    
-                    const angle = Math.random() * Math.PI * 2;
-                    const velocity = 2 + Math.random() * 3;
-                    const lifetime = 1000 + Math.random() * 1000;
-                    
-                    document.body.appendChild(particle);
-                    
-                    let startTime = Date.now();
-                    
-                    function animateParticle() {
-                        const elapsed = Date.now() - startTime;
-                        const progress = elapsed / lifetime;
-                        
-                        if (progress >= 1) {
-                            particle.remove();
-                            return;
-                        }
-                        
-                        const distance = velocity * elapsed / 20;
-                        const x = centerX + Math.cos(angle) * distance;
-                        const y = centerY + Math.sin(angle) * distance;
-                        
-                        particle.style.left = `${x}px`;
-                        particle.style.top = `${y}px`;
-                        particle.style.opacity = 1 - progress;
-                        
-                        requestAnimationFrame(animateParticle);
-                    }
-                    
-                    requestAnimationFrame(animateParticle);
-                }
-            }
+/**********************
+ * 加持和还愿功能
+ **********************/
 
-            // 显示Toast消息
-            function showToast(message, type = 'success') {
-                // 移除现有的toast
-                document.querySelectorAll('.toast').forEach(toast => toast.remove());
-                
-                const toast = document.createElement('div');
-                toast.className = `toast ${type}`;
-                toast.innerHTML = `
-                    <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
-                    ${message}
-                `;
-                
-                document.body.appendChild(toast);
-                
-                // 显示动画
-                setTimeout(() => toast.classList.add('show'), 100);
-                
-                // 3秒后自动消失
-                setTimeout(() => {
-                    toast.classList.remove('show');
-                    setTimeout(() => toast.remove(), 300);
-                }, 3000);
-            }
+// 处理加持
+async function handleBlessWish(wish) {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      showLoginModal();
+      return;
+    }
+    
+    const lastBlessKey = `lastBless_${wish.id}`;
+    const lastBlessTime = localStorage.getItem(lastBlessKey);
+    const now = Date.now();
+    
+    if (lastBlessTime && (now - parseInt(lastBlessTime)) < 3600000) {
+      const nextBlessTime = new Date(parseInt(lastBlessTime) + 3600000);
+      showToast(`每小时只能加持一次，请于 ${nextBlessTime.toLocaleTimeString()} 后再试`, 'warning');
+      return;
+    }
+    
+    const blessUrl = `${API_BASE}/api/bless/${wish.id}`;
+    const response = await fetch(blessUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      if (errorData.code === 401) {
+        showLoginModal();
+        return;
+      }
+      throw new Error(errorData.error || '加持失败');
+    }
+    
+    const result = await response.json();
+    localStorage.setItem(lastBlessKey, now.toString());
+    
+    // 更新本地数据
+    const updatedWish = allWishes.find(w => w.id === wish.id);
+    if (updatedWish) {
+      updatedWish.blessings = result.blessings;
+      updatedWish.level = result.level;
+    }
+    
+    // 刷新显示
+    refreshWishDisplay();
+    refreshStats();
+    
+    const levelNames = ['初咒', '小成', '中成', '大成', '圆满'];
+    showToast(`加持成功！当前能量：${levelNames[result.level - 1]}`, 'success');
+    
+  } catch (error) {
+    showToast(`加持失败: ${error.message}`, 'error');
+  }
+}
 
-            // 显示成功消息
-            function showSuccessMessage(message) {
-                showToast(message, 'success');
-            }
-            
-            // 显示错误消息
-            function showErrorMessage(message) {
-                showToast(message, 'error');
-            }
+// 处理还愿
+async function handleFulfillWish(wish) {
+  const modal = document.getElementById('fulfillModal');
+  if (!modal) return;
+  
+  modal.dataset.wishId = wish.id;
+  modal.style.display = 'block';
+}
 
-            // 初始化事件监听
-            function initEventListeners() {
-                // 初始化搜索功能
-                initSearchFunctionality();
-                
-                // 筛选变化
-                wishFilter.addEventListener('change', () => {
-                    currentPage = 1;
-                    renderFilteredWishes();
-                    updatePagination();
-                });
-                
-                sortFilter.addEventListener('change', () => {
-                    currentPage = 1;
-                    renderFilteredWishes();
-                });
-                
-                // 分页按钮
-                prevPageBtn.addEventListener('click', () => {
-                    if (currentPage > 1) {
-                        currentPage--;
-                        renderFilteredWishes();
-                        updatePagination();
-                    }
-                });
-                
-                nextPageBtn.addEventListener('click', () => {
-                    const selectedType = wishFilter.value;
-                    let filteredWishes = [...allWishes];
-                    
-                    if (selectedType !== 'all') {
-                        filteredWishes = allWishes.filter(wish => wish.type === selectedType);
-                    }
-                    
-                    // 应用搜索筛选
-                    if (currentSearchTerm) {
-                        filteredWishes = filteredWishes.filter(wish => 
-                            wish.user_name && wish.user_name.toLowerCase().includes(currentSearchTerm.toLowerCase())
-                        );
-                    }
-                    
-                    const totalPages = Math.ceil(filteredWishes.length / wishesPerPage);
-                    
-                    if (currentPage < totalPages) {
-                        currentPage++;
-                        renderFilteredWishes();
-                        updatePagination();
-                    }
-                });
-            }
-            
-            // 初始化
-            initEventListeners();
-            loadAllWishes();
-        });
+/**********************
+ * UI辅助函数
+ **********************/
+
+// 显示加载状态
+function showLoadingState() {
+  elements.wishPool.innerHTML = `
+    <div class="wish-loading">
+      <div class="loader"></div>
+      <p>正在连接诅咒池能量场...</p>
+    </div>
+  `;
+}
+
+// 显示错误状态
+function showErrorState(error) {
+  elements.wishPool.innerHTML = `
+    <div class="wish-loading">
+      <i class="fas fa-exclamation-triangle"></i>
+      <p>加载失败: ${error.message}</p>
+      <button onclick="loadAllWishes()" class="btn-mingyuan">
+        <i class="fas fa-sync-alt"></i> 重新加载
+      </button>
+    </div>
+  `;
+}
+
+// 显示Toast通知
+function showToast(message, type = 'info') {
+  const icons = {
+    success: 'check-circle',
+    error: 'exclamation-circle',
+    warning: 'exclamation-triangle',
+    info: 'info-circle'
+  };
+  
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.innerHTML = `
+    <i class="fas fa-${icons[type] || 'info-circle'}"></i>
+    ${message}
+  `;
+  
+  document.body.appendChild(toast);
+  
+  setTimeout(() => {
+    toast.classList.add('show');
+    setTimeout(() => {
+      toast.classList.remove('show');
+      setTimeout(() => toast.remove(), 300);
+    }, 3000);
+  }, 100);
+}
+
+// 模态框控制
+function setupModalControls() {
+  const modal = document.getElementById('fulfillModal');
+  if (!modal) return;
+  
+  // 关闭按钮
+  modal.querySelector('.close-modal').addEventListener('click', () => {
+    modal.style.display = 'none';
+  });
+  
+  // 外部点击关闭
+  window.addEventListener('click', (e) => {
+    if (e.target === modal) modal.style.display = 'none';
+  });
+  
+  // 还愿选项
+  modal.querySelectorAll('.fulfill-option').forEach(option => {
+    option.addEventListener('click', function() {
+      modal.querySelectorAll('.fulfill-option').forEach(opt => 
+        opt.classList.remove('selected')
+      );
+      this.classList.add('selected');
+      modal.dataset.amount = this.dataset.amount;
+    });
+  });
+  
+  // 确认还愿
+  modal.querySelector('.btn-confirm').addEventListener('click', async () => {
+    const amount = modal.dataset.amount;
+    const wishId = modal.dataset.wishId;
+    
+    if (!amount || !wishId) {
+      showToast('请选择还愿金额', 'error');
+      return;
+    }
+    
+    try {
+      // 这里应该调用支付接口
+      showToast(`还愿请求已发送: ${amount}元`, 'success');
+      modal.style.display = 'none';
+      
+      // 更新本地数据
+      const fulfilledWish = allWishes.find(w => w.id === wishId);
+      if (fulfilledWish) {
+        fulfilledWish.is_fulfilled = true;
+      }
+      
+      refreshWishDisplay();
+      refreshStats();
+    } catch (error) {
+      showToast(`还愿失败: ${error.message}`, 'error');
+    }
+  });
+}
+
+// 登录模态框
+function showLoginModal() {
+  const modal = document.getElementById('loginModal');
+  if (!modal) {
+    const proceed = confirm('请先登录后才能加持\n\n点击"确定"跳转到登录页面');
+    if (proceed) window.location.href = 'user.html';
+    return;
+  }
+  
+  modal.style.display = 'block';
+  modal.querySelector('#confirmLogin').onclick = () => {
+    window.location.href = 'user.html';
+  };
+  modal.querySelector('#cancelLogin').onclick = () => {
+    modal.style.display = 'none';
+  };
+}
+
+/**********************
+ * 初始化执行
+ **********************/
+
+// 页面加载完成后初始化
+document.addEventListener('DOMContentLoaded', init);
+
+// 暴露全局函数（用于HTML中的内联事件）
+window.loadAllWishes = loadAllWishes;
+window.refreshStats = refreshStats;
     </script>
 </body>
 </html>
