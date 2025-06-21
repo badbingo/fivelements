@@ -1579,6 +1579,10 @@
                 
                 renderFilteredWishes();
                 updatePagination();
+
+                  // 加载统计数据和分布
+                fetchStats();
+                fetchDistribution();
                 
               } catch (err) {
                 console.error('加载诅咒时出错:', err);
@@ -1586,6 +1590,48 @@
               }
             }
 
+            // 获取统计信息
+    async function fetchStats() {
+      try {
+        const response = await fetch(`${API_BASE}/api/stats`);
+        if (!response.ok) throw new Error('获取统计失败');
+        const data = await response.json();
+
+        // 更新统计卡片
+        document.getElementById('newWishesCount').textContent = data.today.newCurses;
+        document.getElementById('blessingsCount').textContent = data.today.blessings;
+        document.getElementById('fulfilledCount').textContent = data.today.fulfilled;
+        
+        // 更新时间
+        document.getElementById('lastUpdated').textContent = new Date().toLocaleTimeString();
+      } catch (error) {
+        console.error('获取统计出错:', error);
+        showErrorMessage(`获取统计失败: ${error.message}`);
+      }
+    }
+
+    // 获取诅咒类型分布
+    async function fetchDistribution() {
+      try {
+        const response = await fetch(`${API_BASE}/api/stats/distribution`);
+        if (!response.ok) throw new Error('获取诅咒分布失败');
+        const data = await response.json();
+
+        // 更新图表数据
+        wishTypeChart.data.datasets[0].data = [
+          data.love || 0,
+          data.wealth || 0,
+          data.health || 0,
+          data.study || 0,
+          data.family || 0,
+          data.other || 0
+        ];
+        wishTypeChart.update();
+      } catch (error) {
+        console.error('获取诅咒分布出错:', error);
+      }
+    }
+            
             // 表单提交处理
             async function handleSubmitWish(e) {
                 e.preventDefault();
