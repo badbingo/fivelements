@@ -1288,13 +1288,20 @@
                   最后更新: <span id="lastUpdated">刚刚</span>
                 </div>
               </div>
-               
+
                 <div class="card hover-card">
                     <div class="card-title">
                         <i class="fas fa-chart-pie" style="color: #e84393;"></i> 诅咒分布
+                        <span id="chartLoading" style="display:none; margin-left:10px;">
+                            <i class="fas fa-spinner fa-spin"></i> 更新中...
+                        </span>
                     </div>
                     <div class="card-content">
-                        <canvas id="wishchart"></canvas>
+                        <!-- 明确设置canvas尺寸 -->
+                        <canvas id="wishchart" width="400" height="300"></canvas>
+                    </div>
+                    <div class="card-footer">
+                        <small id="chartSummary">正在加载数据...</small>
                     </div>
                 </div>
             </div>
@@ -1398,6 +1405,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentSearchTerm = '';
     let energyChart = null;
     let wishDistributionChart = null;
+    let lastStatsUpdate = 0;
     
     // 获取DOM元素
     const wishFilter = document.getElementById('wishFilter');
@@ -1650,56 +1658,108 @@ document.addEventListener('DOMContentLoaded', function() {
     // 获取并更新统计数据
     async function fetchStats() {
     try {
-        console.log('正在获取统计数据...'); // 调试日志
+        const now = Date.now();
+        if (now - lastStatsUpdate < 5000) { // 5秒内不重复请求
+            console.log('[DEBUG] 跳过频繁请求');
+            return;
+        }
+        lastStatsUpdate = now;
         
-        const response = await fetch(`${API_BASE}/api/stats?_=${Date.now()}`);
+        console.log('[DEBUG] 请求统计数据...');
+        showLoadingState(true);
         
+        const response = await fetch(`${API_BASE}/api/stats?t=${now}`);
         if (!response.ok) {
             throw new Error(`请求失败: ${response.status}`);
         }
         
         const data = await response.json();
-        console.log('API返回数据:', data); // 调试日志
+        console.log('[DEBUG] 接收数据:', data);
         
-        // 更新统计数字
-        document.getElementById('newWishesCount').textContent = data.today.newWishes || 0;
-        document.getElementById('blessingsCount').textContent = data.today.blessings || 0;
-        document.getElementById('fulfilledCount').textContent = data.today.fulfilled || 0;
-        
-        // 更新最后更新时间
-        const now = new Date();
-        document.getElementById('lastUpdated').textContent = 
-            `最后更新: ${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
-        
-        // 渲染分布图表 - 确保传递的是distribution对象
-        if (data.today && data.today.distribution) {
-            console.log('准备渲染分布图表，数据:', data.today.distribution); // 调试日志
-            renderDistributionChart(data.today.distribution);
-        } else {
-            console.warn('API返回的数据中没有distribution字段，使用默认值');
-            renderDistributionChart({
-                wealth: 2 // 根据您提供的API响应示例
-            });
-        }
+        processStatsResponse(data);
         
     } catch (error) {
-        console.error('加载统计数据失败:', error);
-        
-        // 出错时显示占位数据
-        document.getElementById('newWishesCount').textContent = '?';
-        document.getElementById('blessingsCount').textContent = '?';
-        document.getElementById('fulfilledCount').textContent = '?';
-        document.getElementById('lastUpdated').textContent = '更新失败';
-        
-        // 使用默认数据渲染图表
-        renderDistributionChart({
-            wealth: 2 // 根据您提供的API响应示例
-        });
-        
-        showErrorMessage(`统计加载失败: ${error.message}`);
+        console.error('[ERROR] 统计加载失败:', error);
+        handleStatsError(error);
+    } finally {
+        showLoadingState(false);
     }
 }
 
+    function processStatsResponse(data) {
+    // 验证数据
+    if (!data.today) {
+        throw new Error('无效的数据格式: 缺少today字段');
+    }
+    
+    // 确保distribution存在所有分类
+    const defaultDistribution = {
+        love: 0,
+        wealth: 0,
+        health: 0,
+        study: 0,
+        family: 0,
+        other: 0
+    };
+    
+    const stats = {
+        newWishes: data.today.newWishes || 0,
+        blessings: data.today.blessings || 0,
+        fulfilled: data.today.fulfilled || 0,
+        distribution: {
+            ...defaultDistribution,
+            ...(data.today.distribution || {})
+        }
+    };
+    
+    console.log('[DEBUG] 处理后的统计:', stats);
+    
+    // 更新UI
+    updateStatisticsDisplay(stats);
+    renderDistributionChart(stats.distribution);
+    
+    // 检查数据一致性
+    const backendCount = Object.values(stats.distribution).reduce((a, b) => a + b, 0);
+    const chartCount = window.wishDistributionChart?.data.datasets[0]?.data?.reduce((a, b) => a + b, 0) || 0;
+    
+    console.log(`[DEBUG] 数据一致性检查: 后端=${backendCount} 图表=${chartCount}`);
+    if (backendCount !== chartCount) {
+        console.warn('[WARN] 数据不一致，重新渲染图表');
+        renderDistributionChart(stats.distribution);
+    }
+}
+
+
+    function showLoadingState(loading) {
+    const loader = document.getElementById('statsLoading');
+    const cards = document.querySelectorAll('.stat-card');
+    
+    if (loading) {
+        if (loader) loader.style.display = 'inline';
+        cards.forEach(card => {
+            card.querySelector('.stat-value').textContent = '...';
+        });
+    } else {
+        if (loader) loader.style.display = 'none';
+    }
+}
+
+function handleStatsError(error) {
+    console.error('[ERROR] 处理统计错误:', error);
+    
+    // 显示错误状态
+    document.querySelectorAll('.stat-value').forEach(el => {
+        el.textContent = '?';
+    });
+    document.getElementById('lastUpdated').textContent = '更新失败';
+    
+    // 显示错误通知
+    showErrorMessage(`统计加载失败: ${error.message}`);
+    
+    // 尝试重新加载
+    setTimeout(fetchStats, 5000);
+}
+    
 // 辅助函数：更新统计数字显示
 function updateStatDisplay(elementId, value) {
     const element = document.getElementById(elementId);
@@ -1794,58 +1854,45 @@ function updateLastUpdatedTime(text) {
 }
     
     // 渲染愿望分布图表
-    function renderDistributionChart(distributionData) {
-    console.log('渲染分布图表，接收到的数据:', distributionData); // 调试日志
+    function renderDistributionChart(distribution) {
+    console.log('[DEBUG] 渲染图表，分布数据:', JSON.stringify(distribution)));
     
     const ctx = document.getElementById('wishchart');
     if (!ctx) {
-        console.error('错误: 找不到wishchart canvas元素');
+        console.error('错误: 找不到图表canvas元素');
         return;
     }
-
-    // 如果已有图表实例，先销毁
+    
+    // 销毁旧图表
     if (window.wishDistributionChart) {
         window.wishDistributionChart.destroy();
     }
-
-    // 确保所有分类都有值，即使API返回的数据中缺少某些分类
-    const fullDistribution = {
-        love: distributionData.love || 0,
-        wealth: distributionData.wealth || 0,
-        health: distributionData.health || 0,
-        study: distributionData.study || 0,
-        family: distributionData.family || 0,
-        other: distributionData.other || 0
-    };
-
-    console.log('完整分布数据:', fullDistribution); // 调试日志
-
-    // 准备图表数据
+    
+    // 准备图表数据 - 确保顺序一致
     const chartData = {
         labels: ['感情破裂', '事业失败', '疾病缠身', '学业受阻', '家庭不和', '其他诅咒'],
         datasets: [{
             data: [
-                fullDistribution.love,
-                fullDistribution.wealth,
-                fullDistribution.health,
-                fullDistribution.study,
-                fullDistribution.family,
-                fullDistribution.other
+                distribution.love,
+                distribution.wealth,
+                distribution.health,
+                distribution.study,
+                distribution.family,
+                distribution.other
             ],
             backgroundColor: [
-                '#c62828', // 红色 - 感情破裂
-                '#8e0000', // 深红 - 事业失败
-                '#ff5f52', // 浅红 - 疾病缠身
-                '#8d6e63', // 棕色 - 学业受阻
-                '#5d4037', // 深棕 - 家庭不和
-                '#3e2723'  // 黑棕 - 其他诅咒
+                '#FF6384', // 感情破裂
+                '#36A2EB', // 事业失败
+                '#FFCE56', // 疾病缠身
+                '#4BC0C0', // 学业受阻
+                '#9966FF', // 家庭不和
+                '#FF9F40'  // 其他诅咒
             ],
-            borderWidth: 0,
-            hoverOffset: 15
+            borderWidth: 0
         }]
     };
-
-    // 创建图表
+    
+    // 创建新图表
     window.wishDistributionChart = new Chart(ctx, {
         type: 'doughnut',
         data: chartData,
@@ -1861,22 +1908,10 @@ function updateLastUpdatedTime(text) {
                             family: "'Noto Serif SC', serif",
                             size: 12
                         },
-                        padding: 20,
-                        usePointStyle: true
+                        padding: 20
                     }
                 },
                 tooltip: {
-                    backgroundColor: 'rgba(30, 30, 30, 0.9)',
-                    titleColor: '#f5f5f5',
-                    bodyColor: '#f5f5f5',
-                    titleFont: {
-                        family: "'Noto Serif SC', serif",
-                        size: 14
-                    },
-                    bodyFont: {
-                        family: "'Noto Serif SC', serif",
-                        size: 12
-                    },
                     callbacks: {
                         label: function(context) {
                             const label = context.label || '';
@@ -1888,9 +1923,11 @@ function updateLastUpdatedTime(text) {
                     }
                 }
             },
-            cutout: '65%'
+            cutout: '60%'
         }
     });
+    
+    console.log('[DEBUG] 图表渲染完成');
 }
 
     // 渲染诅咒卡片
