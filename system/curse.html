@@ -1287,8 +1287,7 @@
                   最后更新: <span id="lastUpdated">刚刚</span>
                 </div>
               </div>
-        
-                
+               
                 <div class="card hover-card">
                     <div class="card-title">
                         <i class="fas fa-chart-pie" style="color: #e84393;"></i> 诅咒分布
@@ -1650,36 +1649,64 @@ document.addEventListener('DOMContentLoaded', function() {
     // 获取并更新统计数据
     async function fetchStats() {
     try {
-        // 添加时间戳防止缓存
         const response = await fetch(`${API_BASE}/api/stats?_=${Date.now()}`);
         
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            throw new Error(`请求失败: ${response.status}`);
         }
         
         const data = await response.json();
-        console.log('统计数据:', data); // 调试用
+        console.log('收到的统计数据:', data);
         
-        // 确保数据结构正确
-        const stats = data.today || {};
-        
-        // 更新UI显示
-        document.getElementById('newWishesCount').textContent = stats.newWishes || 0;
-        document.getElementById('blessingsCount').textContent = stats.blessings || 0;
-        document.getElementById('fulfilledCount').textContent = stats.fulfilled || 0;
-        
-        // 更新最后更新时间
-        const now = new Date();
-        document.getElementById('lastUpdated').textContent = 
-            `最后更新: ${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
-        
-        // 如果有分布数据则渲染图表
-        if (stats.distribution) {
-            renderDistributionChart(stats.distribution);
+        // 确保有分布数据
+        if (data.today && data.today.distribution) {
+            // 打印分布数据用于调试
+            console.log('分布数据:', data.today.distribution);
+            
+            // 确保canvas元素存在
+            const canvas = document.getElementById('wishchart');
+            if (!canvas) {
+                console.error('错误: 找不到wishchart canvas元素');
+                return;
+            }
+            
+            // 渲染图表
+            renderDistributionChart(data.today.distribution);
+            
+            // 更新其他统计信息
+            document.getElementById('newWishesCount').textContent = data.today.newWishes || 0;
+            document.getElementById('blessingsCount').textContent = data.today.blessings || 0;
+            document.getElementById('fulfilledCount').textContent = data.today.fulfilled || 0;
+            
+            // 更新最后更新时间
+            const now = new Date();
+            document.getElementById('lastUpdated').textContent = 
+                `最后更新: ${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
+        } else {
+            console.error('错误: 数据中缺少today.distribution');
+            // 使用默认数据渲染图表作为回退
+            renderDistributionChart({
+                love: 1,
+                wealth: 1,
+                health: 1,
+                study: 1,
+                family: 1,
+                other: 1
+            });
         }
-        
     } catch (error) {
         console.error('加载统计数据失败:', error);
+        
+        // 出错时使用默认数据渲染图表
+        renderDistributionChart({
+            love: 1,
+            wealth: 1,
+            health: 1,
+            study: 1,
+            family: 1,
+            other: 1
+        });
+        
         showErrorMessage(`统计加载失败: ${error.message}`);
     }
 }
@@ -1756,89 +1783,95 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 渲染愿望分布图表
     function renderDistributionChart(distribution) {
-    const ctx = document.getElementById('wishchart').getContext('2d');
+    const ctx = document.getElementById('wishchart');
     
-    // 如果已存在图表实例，先销毁
+    // 确保canvas元素存在
+    if (!ctx) {
+        console.error('找不到wishchart canvas元素');
+        return;
+    }
+    
+    // 销毁旧图表实例
     if (wishDistributionChart) {
         wishDistributionChart.destroy();
     }
     
-    // 准备图表数据 - 使用中文标签
-    const labels = {
-        love: '感情破裂', 
-        wealth: '事业失败', 
-        health: '疾病缠身',
-        study: '学业受阻', 
-        family: '家庭不和', 
-        other: '其他诅咒'
+    // 准备数据 - 确保所有类型都有默认值0
+    const chartData = {
+        love: distribution.love || 0,
+        wealth: distribution.wealth || 0,
+        health: distribution.health || 0,
+        study: distribution.study || 0,
+        family: distribution.family || 0,
+        other: distribution.other || 0
     };
-    
-    // 确保所有类型都有值
-    const data = [
-        distribution.love || 0,
-        distribution.wealth || 0,
-        distribution.health || 0,
-        distribution.study || 0,
-        distribution.family || 0,
-        distribution.other || 0
-    ];
     
     // 创建新图表
     wishDistributionChart = new Chart(ctx, {
         type: 'doughnut',
         data: {
-            labels: Object.values(labels),
+            labels: ['感情破裂', '事业失败', '疾病缠身', '学业受阻', '家庭不和', '其他诅咒'],
             datasets: [{
-                data: data,
-                backgroundColor: [
-                    '#c62828', 
-                    '#8e0000', 
-                    '#ff5f52', 
-                    '#8d6e63', 
-                    '#5d4037', 
-                    '#3e2723'
+                data: [
+                    chartData.love,
+                    chartData.wealth,
+                    chartData.health,
+                    chartData.study,
+                    chartData.family,
+                    chartData.other
                 ],
-                borderWidth: 0,
-                hoverOffset: 10
+                backgroundColor: [
+                    '#c62828', // 红色
+                    '#8e0000', // 深红
+                    '#ff5f52', // 浅红
+                    '#8d6e63', // 棕色
+                    '#5d4037', // 深棕
+                    '#3e2723'  // 黑棕
+                ],
+                borderWidth: 0
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            cutout: '65%',
             plugins: {
                 legend: {
-                    position: 'bottom',
+                    position: 'right',
                     labels: {
-                        color: '#b8c2cc',
+                        color: '#f5f5f5',
                         font: {
                             family: "'Noto Serif SC', serif",
                             size: 12
                         },
                         padding: 20,
-                        usePointStyle: true,
-                        pointStyle: 'circle'
+                        usePointStyle: true
                     }
                 },
                 tooltip: {
-                    backgroundColor: 'rgba(10, 10, 20, 0.9)',
+                    backgroundColor: 'rgba(30, 30, 30, 0.9)',
+                    titleColor: '#f5f5f5',
+                    bodyColor: '#f5f5f5',
                     titleFont: {
-                        family: "'Noto Serif SC', serif"
+                        family: "'Noto Serif SC', serif",
+                        size: 14
                     },
                     bodyFont: {
-                        family: "'Noto Serif SC', serif"
+                        family: "'Noto Serif SC', serif",
+                        size: 12
                     },
+                    displayColors: true,
                     callbacks: {
                         label: function(context) {
                             const label = context.label || '';
                             const value = context.raw || 0;
                             const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                            const percentage = Math.round((value / total) * 100);
+                            const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
                             return `${label}: ${value} (${percentage}%)`;
                         }
                     }
                 }
-            }
+            },
+            cutout: '65%'
         }
     });
 }
