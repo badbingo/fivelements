@@ -1805,86 +1805,90 @@ function updateLastUpdatedTime(text) {
 }
     
     // 渲染愿望分布图表
-    function renderDistributionChart(apiResponse) {
-    // 1. 确保canvas存在
-    const canvas = document.getElementById('wishchart');
-    if (!canvas) {
-        console.error('错误: 找不到canvas元素');
+    function renderDistributionChart(apiData) {
+    // 1. 强制类型检查
+    if (!apiData || typeof apiData !== 'object') {
+        console.error('无效数据:', apiData);
         return;
     }
 
-    // 2. 销毁旧图表
-    if (window.wishDistributionChart instanceof Chart) {
-        window.wishDistributionChart.destroy();
-        window.wishDistributionChart = null;
+    // 2. 锁定distribution数据
+    const distribution = apiData.distribution || {};
+    console.log('锁定distribution:', JSON.stringify(distribution));
+
+    // 3. 准备数据 - 完全隔离式处理
+    const chartData = {
+        love: Number(distribution.love) || 0,
+        wealth: Number(distribution.wealth) || 0,
+        health: Number(distribution.health) || 0,
+        study: Number(distribution.study) || 0,
+        family: Number(distribution.family) || 0,
+        other: Number(distribution.other) || 0
+    };
+    console.log('最终图表数据:', JSON.stringify(chartData));
+
+    // 4. 销毁旧图表（加强版）
+    const canvas = document.getElementById('wishchart');
+    if (!canvas) return;
+    
+    if (window.wishDistributionChart) {
+        try {
+            window.wishDistributionChart.destroy();
+        } catch (e) {
+            canvas.remove();
+            const newCanvas = document.createElement('canvas');
+            newCanvas.id = 'wishchart';
+            canvas.parentNode.appendChild(newCanvas);
+        }
     }
 
-    // 3. 数据兼容处理
-    const distribution = apiResponse.distribution || apiResponse;
-    console.log('实际使用的分布数据:', distribution);
-
-    // 4. 定义完整的数据结构
-    const defaultDistribution = {
-        love: 0,
-        wealth: 0,
-        health: 0,
-        study: 0,
-        family: 0,
-        other: 0
-    };
-
-    // 5. 合并数据（保留API数据，缺失字段用0填充）
-    const finalData = {
-        ...defaultDistribution,
-        ...distribution
-    };
-
-    // 6. 准备图表数据（固定顺序）
-    const labels = ['感情破裂', '事业失败', '疾病缠身', '学业受阻', '家庭不和', '其他诅咒'];
-    const data = [
-        finalData.love,
-        finalData.wealth,
-        finalData.health,
-        finalData.study,
-        finalData.family,
-        finalData.other
-    ];
-
-    console.log('最终图表数据:', data);
-
-    // 7. 创建新图表
-    const ctx = canvas.getContext('2d');
+    // 5. 渲染图表（简化版）
+    const ctx = document.getElementById('wishchart').getContext('2d');
     window.wishDistributionChart = new Chart(ctx, {
         type: 'pie',
         data: {
-            labels: labels,
+            labels: ['感情破裂', '事业失败', '疾病缠身', '学业受阻', '家庭不和', '其他诅咒'],
             datasets: [{
-                data: data,
+                data: [
+                    chartData.love,
+                    chartData.wealth,
+                    chartData.health,
+                    chartData.study,
+                    chartData.family,
+                    chartData.other
+                ],
                 backgroundColor: [
                     '#6a11cb', '#2575fc', '#00b894',
                     '#fdcb6e', '#e17055', '#b2bec3'
-                ],
-                borderWidth: 0
+                ]
             }]
         },
         options: {
-            responsive: true,
             plugins: {
                 tooltip: {
                     callbacks: {
-                        label: (context) => 
-                            `${context.label}: ${context.raw}`
+                        label: ctx => `${ctx.label}: ${ctx.raw}`
                     }
                 }
             }
         }
     });
 
-    // 8. 添加调试覆盖层
-    const debugInfo = `API数据: ${JSON.stringify(apiResponse)}
-                    图表wealth值: ${finalData.wealth}
-                    图表显示值: ${data[1]}`;
-    console.log(debugInfo);
+    // 6. 最终验证
+    setTimeout(() => {
+        const displayedValue = window.wishDistributionChart.data.datasets[0].data[1];
+        console.log(
+            `数据验证:\n` +
+            `API原始wealth值: ${apiData.distribution?.wealth}\n` +
+            `前端接收wealth值: ${distribution.wealth}\n` +
+            `图表显示wealth值: ${displayedValue}`
+        );
+        
+        if (apiData.distribution?.wealth !== displayedValue) {
+            console.error('数据不一致警告！');
+            alert(`数据不一致！后端:${apiData.distribution?.wealth} 前端:${displayedValue}`);
+        }
+    }, 500);
 }
 
     // 渲染诅咒卡片
