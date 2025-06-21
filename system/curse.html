@@ -603,7 +603,7 @@
             display: flex;
             gap: 15px;
             flex-wrap: wrap;
-            justify-content: flex-end; /* Right align search */
+            justify-content: flex-end; /* 修改为靠右对齐 */
         }
 
         .wish-search-container {
@@ -1024,6 +1024,21 @@
             border-left-color: var(--error-color);
         }
 
+        /* 新增样式：统计卡片居中布局 */
+        .stats-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .stat-card {
+            flex: 1;
+            min-width: 150px;
+            max-width: 200px;
+            text-align: center;
+        }
+
         @media (max-width: 768px) {
             .mingyuan-intro {
                 flex-direction: column;
@@ -1051,6 +1066,17 @@
             
             .form-row {
                 flex-direction: column;
+            }
+            
+            /* 移动端统计卡片布局调整 */
+            .stats-container {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .stat-card {
+                width: 100%;
+                max-width: none;
             }
         }
     </style>
@@ -1257,30 +1283,32 @@
                   </button>
                 </div>
                 <div class="card-content">
-                  <!-- 新增诅咒 -->
-                  <div class="stat-card" onclick="fetchWishes('new')">
-                    <div class="stat-value" id="newWishesCount">0</div>
-                    <div class="stat-label">
-                      新增诅咒
-                      <span class="stat-trend" id="wishesTrend"></span>
-                    </div>
-                  </div>
-                  
-                  <!-- 加持次数（重点修改部分） -->
-                  <div class="stat-card highlight" onclick="fetchBlessings()">
-                    <div class="stat-value" id="blessingsCount">0</div>
-                    <div class="stat-label">
-                      加持次数
-                    </div>
-                  </div>
-                  
-                  <!-- 还愿次数 -->
-                  <div class="stat-card" onclick="fetchFulfillments()">
-                    <div class="stat-value" id="fulfilledCount">0</div>
-                    <div class="stat-label">
-                      还愿次数
-                    
-                    </div>
+                  <!-- 修改为居中布局的统计卡片 -->
+                  <div class="stats-container">
+                      <!-- 新增诅咒 -->
+                      <div class="stat-card" onclick="fetchWishes('new')">
+                        <div class="stat-value" id="newWishesCount">0</div>
+                        <div class="stat-label">
+                          新增诅咒
+                          <span class="stat-trend" id="wishesTrend"></span>
+                        </div>
+                      </div>
+                      
+                      <!-- 加持次数 -->
+                      <div class="stat-card highlight" onclick="fetchBlessings()">
+                        <div class="stat-value" id="blessingsCount">0</div>
+                        <div class="stat-label">
+                          加持次数
+                        </div>
+                      </div>
+                      
+                      <!-- 还愿次数 -->
+                      <div class="stat-card" onclick="fetchFulfillments()">
+                        <div class="stat-value" id="fulfilledCount">0</div>
+                        <div class="stat-label">
+                          还愿次数
+                        </div>
+                      </div>
                   </div>
                 </div>
                 
