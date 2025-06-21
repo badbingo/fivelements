@@ -1806,19 +1806,21 @@ function updateLastUpdatedTime(text) {
     
     // 渲染愿望分布图表
     function renderDistributionChart(distribution) {
-    // 获取canvas元素
     const ctx = document.getElementById('wishchart').getContext('2d');
     
-    // 确保之前的图表实例被销毁
+    // 销毁旧图表
     if (window.wishDistributionChart instanceof Chart) {
         window.wishDistributionChart.destroy();
         window.wishDistributionChart = null;
     }
     
-    // 调试：打印实际分布数据
-    console.log('渲染分布数据:', distribution);
+    // 调试日志
+    console.log('后端分布数据:', distribution);
     
-    // 准备图表数据 - 使用中文标签
+    // 定义固定的类型顺序
+    const typeOrder = ['love', 'wealth', 'health', 'study', 'family', 'other'];
+    
+    // 中文标签映射
     const labels = {
         'love': '感情破裂',
         'wealth': '事业失败',
@@ -1827,25 +1829,22 @@ function updateLastUpdatedTime(text) {
         'family': '家庭不和',
         'other': '其他诅咒'
     };
-
-    // 确保数据顺序一致
-    const data = [
-        distribution.love || 0,
-        distribution.wealth || 0,
-        distribution.health || 0,
-        distribution.study || 0,
-        distribution.family || 0,
-        distribution.other || 0
-    ];
     
-    // 调试：打印最终使用的数据数组
+    // 按固定顺序创建数据数组
+    const data = typeOrder.map(type => distribution[type] || 0);
+    
+    // 按相同顺序创建标签数组
+    const labelValues = typeOrder.map(type => labels[type]);
+    
+    // 调试日志
     console.log('图表数据数组:', data);
+    console.log('图表标签数组:', labelValues);
     
     // 创建新图表
     window.wishDistributionChart = new Chart(ctx, {
         type: 'pie',
         data: {
-            labels: Object.values(labels),
+            labels: labelValues, // 使用按顺序创建的标签数组
             datasets: [{
                 data: data,
                 backgroundColor: [
@@ -1875,14 +1874,12 @@ function updateLastUpdatedTime(text) {
                 tooltip: {
                     callbacks: {
                         label: function(context) {
-                            // 使用Chart.js内部维护的总数，确保准确性
-                            const datasetMeta = context.chart.getDatasetMeta(0);
-                            const total = datasetMeta.total;
+                            // 直接使用图表数据确保准确性
+                            const value = context.raw;
+                            const label = context.label;
                             
-                            const label = context.label || '';
-                            const value = context.parsed || 0;
-                            
-                            // 避免除以零错误
+                            // 计算总数
+                            const total = context.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
                             const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
                             
                             return `${label}: ${value} (${percentage}%)`;
@@ -1900,13 +1897,14 @@ function updateLastUpdatedTime(text) {
         }
     });
     
-    // 调试：验证图表内部数据
+    // 验证数据
     setTimeout(() => {
         if (window.wishDistributionChart) {
-            console.log('图表内部数据:', 
-                window.wishDistributionChart.data.datasets[0].data);
-            console.log('图表计算的总数:', 
-                window.wishDistributionChart.getDatasetMeta(0).total);
+            const chartData = window.wishDistributionChart.data.datasets[0].data;
+            console.log('图表最终数据:');
+            labelValues.forEach((label, index) => {
+                console.log(`${label}: ${chartData[index]}`);
+            });
         }
     }, 500);
 }
