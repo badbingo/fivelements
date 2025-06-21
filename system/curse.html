@@ -1653,63 +1653,46 @@ document.addEventListener('DOMContentLoaded', function() {
         
         const response = await fetch(`${API_BASE}/api/stats?_=${Date.now()}`);
         
-        console.log('收到响应:', response); // 调试日志
-        
         if (!response.ok) {
-            const errorText = await response.text();
-            console.error('API返回错误:', errorText);
-            throw new Error(`请求失败: ${response.status} ${response.statusText}`);
+            throw new Error(`请求失败: ${response.status}`);
         }
         
         const data = await response.json();
-        console.log('API返回数据:', data); // 详细日志
+        console.log('API返回数据:', data); // 调试日志
         
-        // 确保数据结构正确
-        const stats = data.today || {};
-        const distribution = data.today?.distribution || {};
-        
-        console.log('解析后的统计数据:', { stats, distribution }); // 调试日志
-        
-        // 更新统计数字显示
-        updateStatDisplay('newWishesCount', stats.newWishes);
-        updateStatDisplay('blessingsCount', stats.blessings);
-        updateStatDisplay('fulfilledCount', stats.fulfilled);
+        // 更新统计数字
+        document.getElementById('newWishesCount').textContent = data.today.newWishes || 0;
+        document.getElementById('blessingsCount').textContent = data.today.blessings || 0;
+        document.getElementById('fulfilledCount').textContent = data.today.fulfilled || 0;
         
         // 更新最后更新时间
-        updateLastUpdatedTime();
+        const now = new Date();
+        document.getElementById('lastUpdated').textContent = 
+            `最后更新: ${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
         
-        // 渲染分布图表
-        if (Object.keys(distribution).length > 0) {
-            renderDistributionChart(distribution);
+        // 渲染分布图表 - 确保传递的是distribution对象
+        if (data.today && data.today.distribution) {
+            console.log('准备渲染分布图表，数据:', data.today.distribution); // 调试日志
+            renderDistributionChart(data.today.distribution);
         } else {
-            console.warn('没有分布数据，使用默认值渲染');
+            console.warn('API返回的数据中没有distribution字段，使用默认值');
             renderDistributionChart({
-                love: 1,
-                wealth: 1,
-                health: 1,
-                study: 1,
-                family: 1,
-                other: 1
+                wealth: 2 // 根据您提供的API响应示例
             });
         }
         
     } catch (error) {
-        console.error('获取统计数据失败:', error);
+        console.error('加载统计数据失败:', error);
         
         // 出错时显示占位数据
-        updateStatDisplay('newWishesCount', 0);
-        updateStatDisplay('blessingsCount', 0);
-        updateStatDisplay('fulfilledCount', 0);
-        updateLastUpdatedTime('更新失败');
+        document.getElementById('newWishesCount').textContent = '?';
+        document.getElementById('blessingsCount').textContent = '?';
+        document.getElementById('fulfilledCount').textContent = '?';
+        document.getElementById('lastUpdated').textContent = '更新失败';
         
         // 使用默认数据渲染图表
         renderDistributionChart({
-            love: 1,
-            wealth: 1,
-            health: 1,
-            study: 1,
-            family: 1,
-            other: 1
+            wealth: 2 // 根据您提供的API响应示例
         });
         
         showErrorMessage(`统计加载失败: ${error.message}`);
@@ -1810,55 +1793,61 @@ function updateLastUpdatedTime(text) {
 }
     
     // 渲染愿望分布图表
-    function renderDistributionChart(distribution) {
-    const ctx = document.getElementById('wishchart');
+    function renderDistributionChart(distributionData) {
+    console.log('渲染分布图表，接收到的数据:', distributionData); // 调试日志
     
-    // 确保canvas元素存在
+    const ctx = document.getElementById('wishchart');
     if (!ctx) {
-        console.error('找不到wishchart canvas元素');
+        console.error('错误: 找不到wishchart canvas元素');
         return;
     }
-    
-    // 销毁旧图表实例
-    if (wishDistributionChart) {
-        wishDistributionChart.destroy();
+
+    // 如果已有图表实例，先销毁
+    if (window.wishDistributionChart) {
+        window.wishDistributionChart.destroy();
     }
-    
-    // 准备数据 - 确保所有类型都有默认值0
-    const chartData = {
-        love: distribution.love || 0,
-        wealth: distribution.wealth || 0,
-        health: distribution.health || 0,
-        study: distribution.study || 0,
-        family: distribution.family || 0,
-        other: distribution.other || 0
+
+    // 确保所有分类都有值，即使API返回的数据中缺少某些分类
+    const fullDistribution = {
+        love: distributionData.love || 0,
+        wealth: distributionData.wealth || 0,
+        health: distributionData.health || 0,
+        study: distributionData.study || 0,
+        family: distributionData.family || 0,
+        other: distributionData.other || 0
     };
-    
-    // 创建新图表
-    wishDistributionChart = new Chart(ctx, {
+
+    console.log('完整分布数据:', fullDistribution); // 调试日志
+
+    // 准备图表数据
+    const chartData = {
+        labels: ['感情破裂', '事业失败', '疾病缠身', '学业受阻', '家庭不和', '其他诅咒'],
+        datasets: [{
+            data: [
+                fullDistribution.love,
+                fullDistribution.wealth,
+                fullDistribution.health,
+                fullDistribution.study,
+                fullDistribution.family,
+                fullDistribution.other
+            ],
+            backgroundColor: [
+                '#c62828', // 红色 - 感情破裂
+                '#8e0000', // 深红 - 事业失败
+                '#ff5f52', // 浅红 - 疾病缠身
+                '#8d6e63', // 棕色 - 学业受阻
+                '#5d4037', // 深棕 - 家庭不和
+                '#3e2723'  // 黑棕 - 其他诅咒
+            ],
+            borderWidth: 0,
+            hoverOffset: 15
+        }]
+    };
+
+    // 创建图表
+    window.wishDistributionChart = new Chart(ctx, {
         type: 'doughnut',
-        data: {
-            labels: ['感情破裂', '事业失败', '疾病缠身', '学业受阻', '家庭不和', '其他诅咒'],
-            datasets: [{
-                data: [
-                    chartData.love,
-                    chartData.wealth,
-                    chartData.health,
-                    chartData.study,
-                    chartData.family,
-                    chartData.other
-                ],
-                backgroundColor: [
-                    '#c62828', // 红色
-                    '#8e0000', // 深红
-                    '#ff5f52', // 浅红
-                    '#8d6e63', // 棕色
-                    '#5d4037', // 深棕
-                    '#3e2723'  // 黑棕
-                ],
-                borderWidth: 0
-            }]
-        },
+        data: chartData,
         options: {
             responsive: true,
             maintainAspectRatio: false,
@@ -1887,7 +1876,6 @@ function updateLastUpdatedTime(text) {
                         family: "'Noto Serif SC', serif",
                         size: 12
                     },
-                    displayColors: true,
                     callbacks: {
                         label: function(context) {
                             const label = context.label || '';
