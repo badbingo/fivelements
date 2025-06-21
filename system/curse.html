@@ -58,8 +58,6 @@
             margin-bottom: 10px;
             color: var(--primary-color);
             text-shadow: 0 0 10px rgba(198, 40, 40, 0.5);
-            white-space: nowrap; /* 新增：防止换行 */
-            padding-right: 20px; /* 新增：右侧留白 */
         }
 
         .content-title p {
@@ -598,67 +596,58 @@
             display: flex;
             flex-direction: column;
             gap: 15px;
-            width: 100%;
         }
-        
+
         .wish-search-row {
             display: flex;
-            gap: 10px; /* 缩小间距从15px改为10px */
+            gap: 15px;
             flex-wrap: wrap;
-            justify-content: flex-end;
-            margin-left: auto;
-            margin-right: 20px; /* 新增：整体向右移动 */
+            justify-content: flex-end; /* Right align search */
         }
-        
+
         .wish-search-container {
-            flex: 0 1 auto; /* 不伸缩，可收缩 */
-            min-width: 180px; /* 从200px减小到180px */
-            max-width: 300px; /* 从400px减小到300px */
+            flex: 1;
+            min-width: 200px;
+            max-width: 400px;
             position: relative;
             display: flex;
         }
 
-        .search-controls-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
-            display: flex;
-            justify-content: flex-end;
-            margin-right: 40px; /* 新增：向右移动40px */
+        .wish-search-input {
+            flex: 1;
+            padding: 10px 15px;
+            background-color: #2a2a2a;
+            border: 1px solid var(--primary-dark);
+            border-radius: 6px;
+            color: var(--text-color);
+            font-family: 'Noto Serif SC', serif;
+            font-size: 1rem;
         }
-        
-.wish-search-input {
-    flex: 1;
-    padding: 10px 12px; /* 减小左右内边距 */
-    background-color: #2a2a2a;
-    border: 1px solid var(--primary-dark);
-    border-radius: 6px;
-    color: var(--text-color);
-    font-family: 'Noto Serif SC', serif;
-    font-size: 0.95rem; /* 稍微减小字体大小 */
-    width: 60%; /* 确保宽度100%填充容器 */
-}
 
-.wish-search-btn, .wish-clear-search-btn {
-    background-color: var(--primary-dark);
-    color: white;
-    border: none;
-    padding: 0 15px;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-    margin-left: 5px;
-}
+        .wish-search-btn, .wish-clear-search-btn {
+            background-color: var(--primary-dark);
+            color: white;
+            border: none;
+            padding: 0 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-left: 5px;
+        }
 
         .wish-search-btn:hover, .wish-clear-search-btn:hover {
             background-color: var(--primary-color);
         }
 
-        /* 下拉菜单样式调整 */
         .form-control {
-            width: auto; /* 宽度自适应内容 */
-            flex: 0 0 auto; /* 不伸缩不收缩 */
-            min-width: 120px; /* 保持最小宽度 */
+            padding: 10px 15px;
+            background-color: #2a2a2a;
+            border: 1px solid var(--primary-dark);
+            border-radius: 6px;
+            color: var(--text-color);
+            font-family: 'Noto Serif SC', serif;
+            font-size: 1rem;
+            min-width: 150px;
         }
 
         .pagination {
@@ -1113,19 +1102,19 @@
                         </div>
                         <div class="level-bar" data-level="2">
                             <div class="bar-fill"></div>
-                            <span>小惩 (5-9加持)</span>
+                            <span>小成 (5-9加持)</span>
                         </div>
                         <div class="level-bar" data-level="3">
                             <div class="bar-fill"></div>
-                            <span>中惩 (10-14加持)</span>
+                            <span>中成 (10-14加持)</span>
                         </div>
                         <div class="level-bar" data-level="4">
                             <div class="bar-fill"></div>
-                            <span>大惩 (15-19加持)</span>
+                            <span>大成 (15-19加持)</span>
                         </div>
                         <div class="level-bar" data-level="5">
                             <div class="bar-fill"></div>
-                            <span>地狱 (20+加持)</span>
+                            <span>圆满 (20+加持)</span>
                         </div>
                     </div>
                 </div>
@@ -1207,34 +1196,32 @@
             <div class="section-header">
                 <i class="fas fa-skull-crossbones"></i>
                 <h2>诅咒池</h2>
-                <div class="search-controls-container">
-                    <div class="filter-controls wish-search-controls">
-                        <div class="wish-search-row">
-                            <!-- 搜索框 -->
-                            <div class="wish-search-container">
-                                <input type="text" id="wishSearch" placeholder="搜索姓名..." class="wish-search-input">
-                                <button id="searchBtn" class="wish-search-btn"><i class="fas fa-search"></i></button>
-                                <button id="clearSearchBtn" class="wish-clear-search-btn" style="display:none;"><i class="fas fa-times"></i></button>
-                            </div>
-                            
-                            <!-- 诅咒类型筛选 -->
-                            <select id="wishFilter" class="form-control">
-                                <option value="all">全部诅咒</option>
-                                <option value="love">感情破裂</option>
-                                <option value="wealth">事业失败</option>
-                                <option value="health">疾病缠身</option>
-                                <option value="study">学业受阻</option>
-                                <option value="family">家庭不和</option>
-                            </select>
-                            
-                            <!-- 排序筛选 -->
-                            <select id="sortFilter" class="form-control">
-                                <option value="newest">最新诅咒</option>
-                                <option value="oldest">最早诅咒</option>
-                                <option value="most">最多诅咒</option>
-                                <option value="least">最少诅咒</option>
-                            </select>
+                <div class="filter-controls wish-search-controls">
+                    <div class="wish-search-row">
+                        <!-- 搜索框 -->
+                        <div class="wish-search-container">
+                            <input type="text" id="wishSearch" placeholder="搜索姓名..." class="wish-search-input">
+                            <button id="searchBtn" class="wish-search-btn"><i class="fas fa-search"></i></button>
+                            <button id="clearSearchBtn" class="wish-clear-search-btn" style="display:none;"><i class="fas fa-times"></i></button>
                         </div>
+                        
+                        <!-- 诅咒类型筛选 - 保持原有样式 -->
+                        <select id="wishFilter" class="form-control">
+                            <option value="all">全部诅咒</option>
+                            <option value="love">感情破裂</option>
+                            <option value="wealth">事业失败</option>
+                            <option value="health">疾病缠身</option>
+                            <option value="study">学业受阻</option>
+                            <option value="family">家庭不和</option>
+                        </select>
+                        
+                        <!-- 排序筛选 - 保持原有样式 -->
+                        <select id="sortFilter" class="form-control">
+                            <option value="newest">最新诅咒</option>
+                            <option value="oldest">最早诅咒</option>
+                            <option value="most">最多诅咒</option>
+                            <option value="least">最少诅咒</option>
+                        </select>
                     </div>
                 </div>
             </div>
@@ -1278,7 +1265,7 @@
                       </div>
                     </div>
                   
-                  <!-- 加持次数 -->
+                  <!-- 加持次数（重点修改部分） -->
                   <div class="stat-card highlight" onclick="fetchBlessings()" style="text-align: center;">
                       <div class="stat-value" id="blessingsCount" style="display: block; margin: 0 auto;">0</div>
                       <div class="stat-label" style="display: block; margin: 0 auto;">
@@ -1805,86 +1792,103 @@ function updateLastUpdatedTime(text) {
 }
     
     // 渲染愿望分布图表
-    function renderDistributionChart(apiResponse) {
-    // 1. 确保canvas存在
-    const canvas = document.getElementById('wishchart');
-    if (!canvas) {
-        console.error('错误: 找不到canvas元素');
+    function renderDistributionChart(distributionData) {
+    console.log('渲染分布图表，接收到的数据:', distributionData); // 调试日志
+    
+    const ctx = document.getElementById('wishchart');
+    if (!ctx) {
+        console.error('错误: 找不到wishchart canvas元素');
         return;
     }
 
-    // 2. 销毁旧图表
-    if (window.wishDistributionChart instanceof Chart) {
+    // 如果已有图表实例，先销毁
+    if (window.wishDistributionChart) {
         window.wishDistributionChart.destroy();
-        window.wishDistributionChart = null;
     }
 
-    // 3. 数据兼容处理
-    const distribution = apiResponse.distribution || apiResponse;
-    console.log('实际使用的分布数据:', distribution);
-
-    // 4. 定义完整的数据结构
-    const defaultDistribution = {
-        love: 0,
-        wealth: 0,
-        health: 0,
-        study: 0,
-        family: 0,
-        other: 0
+    // 确保所有分类都有值，即使API返回的数据中缺少某些分类
+    const fullDistribution = {
+        love: distributionData.love || 0,
+        wealth: distributionData.wealth || 0,
+        health: distributionData.health || 0,
+        study: distributionData.study || 0,
+        family: distributionData.family || 0,
+        other: distributionData.other || 0
     };
 
-    // 5. 合并数据（保留API数据，缺失字段用0填充）
-    const finalData = {
-        ...defaultDistribution,
-        ...distribution
+    console.log('完整分布数据:', fullDistribution); // 调试日志
+
+    // 准备图表数据
+    const chartData = {
+        labels: ['感情破裂', '事业失败', '疾病缠身', '学业受阻', '家庭不和', '其他诅咒'],
+        datasets: [{
+            data: [
+                fullDistribution.love,
+                fullDistribution.wealth,
+                fullDistribution.health,
+                fullDistribution.study,
+                fullDistribution.family,
+                fullDistribution.other
+            ],
+            backgroundColor: [
+                '#c62828', // 红色 - 感情破裂
+                '#8e0000', // 深红 - 事业失败
+                '#ff5f52', // 浅红 - 疾病缠身
+                '#8d6e63', // 棕色 - 学业受阻
+                '#5d4037', // 深棕 - 家庭不和
+                '#3e2723'  // 黑棕 - 其他诅咒
+            ],
+            borderWidth: 0,
+            hoverOffset: 15
+        }]
     };
 
-    // 6. 准备图表数据（固定顺序）
-    const labels = ['感情破裂', '事业失败', '疾病缠身', '学业受阻', '家庭不和', '其他诅咒'];
-    const data = [
-        finalData.love,
-        finalData.wealth,
-        finalData.health,
-        finalData.study,
-        finalData.family,
-        finalData.other
-    ];
-
-    console.log('最终图表数据:', data);
-
-    // 7. 创建新图表
-    const ctx = canvas.getContext('2d');
+    // 创建图表
     window.wishDistributionChart = new Chart(ctx, {
-        type: 'pie',
-        data: {
-            labels: labels,
-            datasets: [{
-                data: data,
-                backgroundColor: [
-                    '#6a11cb', '#2575fc', '#00b894',
-                    '#fdcb6e', '#e17055', '#b2bec3'
-                ],
-                borderWidth: 0
-            }]
-        },
+        type: 'doughnut',
+        data: chartData,
         options: {
             responsive: true,
+            maintainAspectRatio: false,
             plugins: {
+                legend: {
+                    position: 'right',
+                    labels: {
+                        color: '#f5f5f5',
+                        font: {
+                            family: "'Noto Serif SC', serif",
+                            size: 12
+                        },
+                        padding: 20,
+                        usePointStyle: true
+                    }
+                },
                 tooltip: {
+                    backgroundColor: 'rgba(30, 30, 30, 0.9)',
+                    titleColor: '#f5f5f5',
+                    bodyColor: '#f5f5f5',
+                    titleFont: {
+                        family: "'Noto Serif SC', serif",
+                        size: 14
+                    },
+                    bodyFont: {
+                        family: "'Noto Serif SC', serif",
+                        size: 12
+                    },
                     callbacks: {
-                        label: (context) => 
-                            `${context.label}: ${context.raw}`
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = context.raw || 0;
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
+                            return `${label}: ${value} (${percentage}%)`;
+                        }
                     }
                 }
-            }
+            },
+            cutout: '65%'
         }
     });
-
-    // 8. 添加调试覆盖层
-    const debugInfo = `API数据: ${JSON.stringify(apiResponse)}
-                    图表wealth值: ${finalData.wealth}
-                    图表显示值: ${data[1]}`;
-    console.log(debugInfo);
 }
 
     // 渲染诅咒卡片
