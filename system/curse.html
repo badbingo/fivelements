@@ -1880,81 +1880,61 @@
 
             // 更新获取统计数据的函数
                async function fetchStats() {
-  try {
-    // 添加时间戳防止缓存
-    const apiUrl = `${API_BASE}/api/stats?t=${Date.now()}`;
-    console.log('正在请求统计接口:', apiUrl); // 调试日志
-    
-    const response = await fetch(apiUrl);
-    
-    if (!response.ok) {
-      throw new Error(`请求失败: ${response.status} ${response.statusText}`);
+    try {
+        // 添加时间戳防止缓存
+        const response = await fetch(`${API_BASE}/api/stats?_=${Date.now()}`);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log('统计数据:', data); // 调试用
+        
+        // 确保数据结构正确
+        const stats = data.today || {};
+        
+        // 更新UI显示
+        document.getElementById('newWishesCount').textContent = stats.newWishes || 0;
+        document.getElementById('blessingsCount').textContent = stats.blessings || 0;
+        document.getElementById('fulfilledCount').textContent = stats.fulfilled || 0;
+        
+        // 更新最后更新时间
+        const now = new Date();
+        document.getElementById('lastUpdated').textContent = 
+            `最后更新: ${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
+        
+        // 如果有分布数据则渲染图表
+        if (stats.distribution) {
+            renderDistributionChart(stats.distribution);
+        }
+        
+    } catch (error) {
+        console.error('加载统计数据失败:', error);
+        showErrorMessage(`统计加载失败: ${error.message}`);
     }
-    
-    const data = await response.json();
-    console.log('接口返回数据:', data); // 调试日志
-    
-    // 确保数据结构正确（双重保护）
-    const stats = data.today || {};
-    const fulfilledCount = stats.fulfilled !== undefined ? stats.fulfilled : 0;
-    
-    console.log('计算出的还愿次数:', fulfilledCount); // 调试日志
-    
-    // 更新页面显示
-    const fulfilledElement = document.getElementById('fulfilledCount');
-    if (fulfilledElement) {
-      fulfilledElement.textContent = fulfilledCount;
-    } else {
-      console.error('错误: 找不到ID为fulfilledCount的元素');
-    }
-    
-    // 更新其他统计信息（保持原有逻辑）
-    document.getElementById('newWishesCount').textContent = stats.newWishes || 0;
-    document.getElementById('blessingsCount').textContent = stats.blessings || 0;
-    
-    // 更新最后更新时间
-    const now = new Date();
-    document.getElementById('lastUpdated').textContent = 
-      `最后更新: ${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
-    
-    // 如果有分布数据则渲染图表
-    if (data.distribution) {
-      renderDistributionChart(data.distribution);
-    }
-    
-  } catch (err) {
-    console.error('加载统计数据失败:', err);
-    
-    // 显示错误状态
-    document.getElementById('fulfilledCount').textContent = '?';
-    document.getElementById('lastUpdated').textContent = '更新失败';
-    
-    // 可选：显示错误提示
-    showToast(`统计加载失败: ${err.message}`, 'error');
-  }
 }
                 
-                // 渲染愿望分布图表
-                function renderDistributionChart(distribution) {
-    // 获取canvas元素
+        // 渲染愿望分布图表
+        function renderDistributionChart(distribution) {
     const ctx = document.getElementById('wishchart').getContext('2d');
     
-    // 确保之前的图表实例被销毁
+    // 销毁旧图表实例
     if (window.wishDistributionChart) {
         window.wishDistributionChart.destroy();
     }
     
-    // 准备图表数据 - 使用中文标签
+    // 准备图表数据
     const labels = {
-        'love': '姻缘感情',
-        'wealth': '财富事业',
-        'health': '健康平安',
-        'study': '学业成长',
-        'family': '家庭和睦',
-        'other': '其他愿望'
+        love: '感情破裂', 
+        wealth: '事业失败', 
+        health: '疾病缠身',
+        study: '学业受阻', 
+        family: '家庭不和', 
+        other: '其他诅咒'
     };
     
-    // 确保数据顺序一致
+    // 确保所有类型都有值
     const data = [
         distribution.love || 0,
         distribution.wealth || 0,
@@ -1993,24 +1973,6 @@
                         font: {
                             family: "'Noto Serif SC', serif"
                         }
-                    }
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            const label = context.label || '';
-                            const value = context.raw || 0;
-                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                            const percentage = Math.round((value / total) * 100);
-                            return `${label}: ${value} (${percentage}%)`;
-                        }
-                    },
-                    backgroundColor: 'rgba(10, 10, 20, 0.9)',
-                    titleFont: {
-                        family: "'Noto Serif SC', serif"
-                    },
-                    bodyFont: {
-                        family: "'Noto Serif SC', serif"
                     }
                 }
             }
