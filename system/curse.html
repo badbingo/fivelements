@@ -1806,45 +1806,64 @@ function updateLastUpdatedTime(text) {
     
     // 渲染愿望分布图表
     function renderDistributionChart(distribution) {
-    const ctx = document.getElementById('wishchart').getContext('2d');
-    
-    // 销毁旧图表
-    if (window.wishDistributionChart instanceof Chart) {
-        window.wishDistributionChart.destroy();
+    // 1. 彻底销毁旧图表
+    if (window.wishDistributionChart) {
+        try {
+            window.wishDistributionChart.destroy();
+        } catch (e) {
+            console.error('销毁图表时出错:', e);
+        }
         window.wishDistributionChart = null;
     }
     
-    // 调试日志
-    console.log('后端分布数据:', distribution);
+    // 2. 获取canvas并重置
+    const canvas = document.getElementById('wishchart');
+    if (!canvas) {
+        console.error('错误: 找不到canvas元素');
+        return;
+    }
     
-    // 定义固定的类型顺序
-    const typeOrder = ['love', 'wealth', 'health', 'study', 'family', 'other'];
+    // 清除canvas内容
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-    // 中文标签映射
-    const labels = {
-        'love': '感情破裂',
-        'wealth': '事业失败',
-        'health': '疾病缠身',
-        'study': '学业受阻',
-        'family': '家庭不和',
-        'other': '其他诅咒'
-    };
+    // 3. 创建全新的canvas克隆（避免任何残留状态）
+    const canvasClone = canvas.cloneNode(true);
+    canvas.parentNode.replaceChild(canvasClone, canvas);
+    canvasClone.id = 'wishchart'; // 保持ID不变
     
-    // 按固定顺序创建数据数组
-    const data = typeOrder.map(type => distribution[type] || 0);
+    // 4. 验证并记录原始数据
+    console.group('图表数据验证');
+    console.log('原始分布数据:', JSON.stringify(distribution));
     
-    // 按相同顺序创建标签数组
-    const labelValues = typeOrder.map(type => labels[type]);
+    // 5. 确保所有类型都存在
+    const requiredTypes = ['love', 'wealth', 'health', 'study', 'family', 'other'];
+    const validatedDistribution = {};
     
-    // 调试日志
+    requiredTypes.forEach(type => {
+        validatedDistribution[type] = distribution[type] || 0;
+        console.log(`类型 ${type}: ${validatedDistribution[type]}`);
+    });
+    
+    // 6. 准备图表数据（使用固定顺序）
+    const data = [
+        validatedDistribution.love,
+        validatedDistribution.wealth,
+        validatedDistribution.health,
+        validatedDistribution.study,
+        validatedDistribution.family,
+        validatedDistribution.other
+    ];
+    
     console.log('图表数据数组:', data);
-    console.log('图表标签数组:', labelValues);
+    console.groupEnd();
     
-    // 创建新图表
-    window.wishDistributionChart = new Chart(ctx, {
+    // 7. 创建全新的Chart实例（不使用window全局变量）
+    const chartCtx = document.getElementById('wishchart').getContext('2d');
+    const newChart = new Chart(chartCtx, {
         type: 'pie',
         data: {
-            labels: labelValues, // 使用按顺序创建的标签数组
+            labels: ['感情破裂', '事业失败', '疾病缠身', '学业受阻', '家庭不和', '其他诅咒'],
             datasets: [{
                 data: data,
                 backgroundColor: [
@@ -1874,15 +1893,7 @@ function updateLastUpdatedTime(text) {
                 tooltip: {
                     callbacks: {
                         label: function(context) {
-                            // 直接使用图表数据确保准确性
-                            const value = context.raw;
-                            const label = context.label;
-                            
-                            // 计算总数
-                            const total = context.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
-                            const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
-                            
-                            return `${label}: ${value} (${percentage}%)`;
+                            return `${context.label}: ${context.raw}`;
                         }
                     },
                     backgroundColor: 'rgba(10, 10, 20, 0.9)',
@@ -1897,16 +1908,39 @@ function updateLastUpdatedTime(text) {
         }
     });
     
-    // 验证数据
+    // 8. 添加临时数据验证覆盖层
     setTimeout(() => {
-        if (window.wishDistributionChart) {
-            const chartData = window.wishDistributionChart.data.datasets[0].data;
-            console.log('图表最终数据:');
-            labelValues.forEach((label, index) => {
-                console.log(`${label}: ${chartData[index]}`);
-            });
-        }
-    }, 500);
+        const overlay = document.createElement('div');
+        overlay.style.position = 'absolute';
+        overlay.style.top = '10px';
+        overlay.style.left = '10px';
+        overlay.style.backgroundColor = 'rgba(0,0,0,0.7)';
+        overlay.style.color = 'white';
+        overlay.style.padding = '10px';
+        overlay.style.zIndex = '1000';
+        overlay.style.fontFamily = 'monospace';
+        overlay.style.fontSize = '14px';
+        overlay.style.borderRadius = '5px';
+        
+        overlay.innerHTML = `
+            <div>实时数据验证:</div>
+            <div>财富(wealth): ${validatedDistribution.wealth}</div>
+            <div>健康(health): ${validatedDistribution.health}</div>
+            <div>学习(study): ${validatedDistribution.study}</div>
+            <div>家庭(family): ${validatedDistribution.family}</div>
+            <div>图表显示值: ${newChart.data.datasets[0].data[1]}</div>
+        `;
+        
+        canvas.parentNode.appendChild(overlay);
+        
+        // 5秒后自动移除
+        setTimeout(() => {
+            overlay.remove();
+        }, 5000);
+    }, 1000);
+    
+    // 9. 返回新图表实例（可选）
+    return newChart;
 }
 
     // 渲染诅咒卡片
