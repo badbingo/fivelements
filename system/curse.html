@@ -1396,6 +1396,8 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentPage = 1;
     const wishesPerPage = 9;
     let currentSearchTerm = '';
+    let energyChart = null;
+    let wishDistributionChart = null;
     
     // 获取DOM元素
     const wishFilter = document.getElementById('wishFilter');
@@ -1647,123 +1649,199 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 获取并更新统计数据
     async function fetchStats() {
-        try {
-            // 添加时间戳防止缓存
-            const response = await fetch(`${API_BASE}/api/stats?_=${Date.now()}`);
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            const data = await response.json();
-            console.log('统计数据:', data); // 调试用
-            
-            // 确保数据结构正确
-            const stats = data.today || {};
-            
-            // 更新UI显示
-            document.getElementById('newWishesCount').textContent = stats.newWishes || 0;
-            document.getElementById('blessingsCount').textContent = stats.blessings || 0;
-            document.getElementById('fulfilledCount').textContent = stats.fulfilled || 0;
-            
-            // 更新最后更新时间
-            const now = new Date();
-            document.getElementById('lastUpdated').textContent = 
-                `最后更新: ${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
-            
-            // 如果有分布数据则渲染图表
-            if (stats.distribution) {
-                renderDistributionChart(stats.distribution);
-            }
-            
-        } catch (error) {
-            console.error('加载统计数据失败:', error);
-            showErrorMessage(`统计加载失败: ${error.message}`);
+    try {
+        // 添加时间戳防止缓存
+        const response = await fetch(`${API_BASE}/api/stats?_=${Date.now()}`);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
+        
+        const data = await response.json();
+        console.log('统计数据:', data); // 调试用
+        
+        // 确保数据结构正确
+        const stats = data.today || {};
+        
+        // 更新UI显示
+        document.getElementById('newWishesCount').textContent = stats.newWishes || 0;
+        document.getElementById('blessingsCount').textContent = stats.blessings || 0;
+        document.getElementById('fulfilledCount').textContent = stats.fulfilled || 0;
+        
+        // 更新最后更新时间
+        const now = new Date();
+        document.getElementById('lastUpdated').textContent = 
+            `最后更新: ${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
+        
+        // 如果有分布数据则渲染图表
+        if (stats.distribution) {
+            renderDistributionChart(stats.distribution);
+        }
+        
+    } catch (error) {
+        console.error('加载统计数据失败:', error);
+        showErrorMessage(`统计加载失败: ${error.message}`);
+    }
+}
+
+    function initEnergyChart() {
+    const ctx = document.getElementById('energyChart').getContext('2d');
+    
+    // 如果已存在图表实例，先销毁
+    if (energyChart) {
+        energyChart.destroy();
     }
     
-    // 渲染愿望分布图表
-    function renderDistributionChart(distribution) {
-        const ctx = document.getElementById('wishchart').getContext('2d');
-        
-        // 销毁旧图表实例
-        if (window.wishDistributionChart) {
-            window.wishDistributionChart.destroy();
-        }
-        
-        // 准备图表数据 - 使用中文标签
-        const labels = {
-            love: '感情破裂', 
-            wealth: '事业失败', 
-            health: '疾病缠身',
-            study: '学业受阻', 
-            family: '家庭不和', 
-            other: '其他诅咒'
-        };
-                        
-        // 确保数据顺序一致
-        const data = [
-            distribution.love || 0,
-            distribution.wealth || 0,
-            distribution.health || 0,
-            distribution.study || 0,
-            distribution.family || 0,
-            distribution.other || 0
-        ];
-        
-        // 创建新图表
-        window.wishDistributionChart = new Chart(ctx, {
-            type: 'pie',
-            data: {
-                labels: Object.values(labels),
-                datasets: [{
-                    data: data,
-                    backgroundColor: [
-                        '#6a11cb', 
-                        '#2575fc', 
-                        '#00b894', 
-                        '#fdcb6e', 
-                        '#e17055', 
-                        '#b2bec3'
-                    ],
-                    borderWidth: 0
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            color: '#b8c2cc',
-                            font: {
-                                family: "'Noto Serif SC', serif"
-                            }
-                        }
+    energyChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['1月', '2月', '3月', '4月', '5月', '6月'],
+            datasets: [{
+                label: '怨念强度',
+                data: [65, 79, 90, 81, 56, 75],
+                borderColor: '#c62828',
+                backgroundColor: 'rgba(198, 40, 40, 0.1)',
+                borderWidth: 2,
+                tension: 0.4,
+                pointRadius: 4,
+                pointBackgroundColor: '#c62828',
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: { 
+                    backgroundColor: 'rgba(10, 10, 20, 0.9)',
+                    titleFont: {
+                        family: "'Noto Serif SC', serif"
                     },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                const label = context.label || '';
-                                const value = context.raw || 0;
-                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                const percentage = Math.round((value / total) * 100);
-                                return `${label}: ${value} (${percentage}%)`;
-                            }
-                        },
-                        backgroundColor: 'rgba(10, 10, 20, 0.9)',
-                        titleFont: {
+                    bodyFont: {
+                        family: "'Noto Serif SC', serif"
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: { 
+                        color: 'rgba(255, 255, 255, 0.1)',
+                        drawBorder: false
+                    },
+                    ticks: { 
+                        color: '#b8c2cc',
+                        font: {
                             family: "'Noto Serif SC', serif"
-                        },
-                        bodyFont: {
+                        }
+                    }
+                },
+                x: {
+                    grid: { 
+                        color: 'rgba(255, 255, 255, 0.1)',
+                        drawBorder: false
+                    },
+                    ticks: { 
+                        color: '#b8c2cc',
+                        font: {
                             family: "'Noto Serif SC', serif"
                         }
                     }
                 }
             }
-        });
+        }
+    });
+}
+    
+    // 渲染愿望分布图表
+    function renderDistributionChart(distribution) {
+    const ctx = document.getElementById('wishchart').getContext('2d');
+    
+    // 如果已存在图表实例，先销毁
+    if (wishDistributionChart) {
+        wishDistributionChart.destroy();
     }
+    
+    // 准备图表数据 - 使用中文标签
+    const labels = {
+        love: '感情破裂', 
+        wealth: '事业失败', 
+        health: '疾病缠身',
+        study: '学业受阻', 
+        family: '家庭不和', 
+        other: '其他诅咒'
+    };
+    
+    // 确保所有类型都有值
+    const data = [
+        distribution.love || 0,
+        distribution.wealth || 0,
+        distribution.health || 0,
+        distribution.study || 0,
+        distribution.family || 0,
+        distribution.other || 0
+    ];
+    
+    // 创建新图表
+    wishDistributionChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: Object.values(labels),
+            datasets: [{
+                data: data,
+                backgroundColor: [
+                    '#c62828', 
+                    '#8e0000', 
+                    '#ff5f52', 
+                    '#8d6e63', 
+                    '#5d4037', 
+                    '#3e2723'
+                ],
+                borderWidth: 0,
+                hoverOffset: 10
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '65%',
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        color: '#b8c2cc',
+                        font: {
+                            family: "'Noto Serif SC', serif",
+                            size: 12
+                        },
+                        padding: 20,
+                        usePointStyle: true,
+                        pointStyle: 'circle'
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(10, 10, 20, 0.9)',
+                    titleFont: {
+                        family: "'Noto Serif SC', serif"
+                    },
+                    bodyFont: {
+                        family: "'Noto Serif SC', serif"
+                    },
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = context.raw || 0;
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = Math.round((value / total) * 100);
+                            return `${label}: ${value} (${percentage}%)`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
 
     // 渲染诅咒卡片
     function renderWishCards(wishes) {
@@ -2208,6 +2286,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initEventListeners();
     loadAllWishes();
     fetchStats(); // 初始加载统计数据
+    initEnergyChart();// 初始化图表
 
     // 设置定时刷新统计数据（每5分钟）
     setInterval(fetchStats, 5 * 60 * 1000);
