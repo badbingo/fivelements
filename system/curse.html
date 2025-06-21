@@ -1810,9 +1810,13 @@ function updateLastUpdatedTime(text) {
     const ctx = document.getElementById('wishchart').getContext('2d');
     
     // 确保之前的图表实例被销毁
-    if (window.wishDistributionChart) {
+    if (window.wishDistributionChart instanceof Chart) {
         window.wishDistributionChart.destroy();
+        window.wishDistributionChart = null;
     }
+    
+    // 调试：打印实际分布数据
+    console.log('渲染分布数据:', distribution);
     
     // 准备图表数据 - 使用中文标签
     const labels = {
@@ -1833,6 +1837,9 @@ function updateLastUpdatedTime(text) {
         distribution.family || 0,
         distribution.other || 0
     ];
+    
+    // 调试：打印最终使用的数据数组
+    console.log('图表数据数组:', data);
     
     // 创建新图表
     window.wishDistributionChart = new Chart(ctx, {
@@ -1868,10 +1875,16 @@ function updateLastUpdatedTime(text) {
                 tooltip: {
                     callbacks: {
                         label: function(context) {
+                            // 使用Chart.js内部维护的总数，确保准确性
+                            const datasetMeta = context.chart.getDatasetMeta(0);
+                            const total = datasetMeta.total;
+                            
                             const label = context.label || '';
-                            const value = context.raw || 0;
-                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                            const percentage = Math.round((value / total) * 100);
+                            const value = context.parsed || 0;
+                            
+                            // 避免除以零错误
+                            const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
+                            
                             return `${label}: ${value} (${percentage}%)`;
                         }
                     },
@@ -1886,6 +1899,16 @@ function updateLastUpdatedTime(text) {
             }
         }
     });
+    
+    // 调试：验证图表内部数据
+    setTimeout(() => {
+        if (window.wishDistributionChart) {
+            console.log('图表内部数据:', 
+                window.wishDistributionChart.data.datasets[0].data);
+            console.log('图表计算的总数:', 
+                window.wishDistributionChart.getDatasetMeta(0).total);
+        }
+    }, 500);
 }
 
     // 渲染诅咒卡片
