@@ -1648,7 +1648,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // 获取并更新统计数据
     async function fetchStats() {
     try {
-        console.log('正在获取统计数据...'); // 调试日志
+        console.log('正在获取统计数据...');
         
         const response = await fetch(`${API_BASE}/api/stats?_=${Date.now()}`);
         
@@ -1657,7 +1657,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         const data = await response.json();
-        console.log('API返回数据:', data); // 调试日志
+        console.log('API返回数据:', data);
         
         // 更新统计数字
         document.getElementById('newWishesCount').textContent = data.today.newWishes || 0;
@@ -1669,14 +1669,14 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('lastUpdated').textContent = 
             `最后更新: ${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
         
-        // 渲染分布图表 - 确保传递的是distribution对象
-        if (data.today && data.today.distribution) {
-            console.log('准备渲染分布图表，数据:', data.today.distribution); // 调试日志
-            renderDistributionChart(data.today.distribution);
+        // 修正这里 - 直接使用data.distribution而不是data.today.distribution
+        if (data.distribution) {
+            console.log('准备渲染分布图表，数据:', data.distribution);
+            renderDistributionChart(data.distribution);
         } else {
             console.warn('API返回的数据中没有distribution字段，使用默认值');
             renderDistributionChart({
-                wealth: 2 // 根据您提供的API响应示例
+                wealth: 2 // 默认值
             });
         }
         
@@ -1691,7 +1691,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // 使用默认数据渲染图表
         renderDistributionChart({
-            wealth: 2 // 根据您提供的API响应示例
+            wealth: 2
         });
         
         showErrorMessage(`统计加载失败: ${error.message}`);
