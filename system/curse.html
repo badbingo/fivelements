@@ -1661,35 +1661,52 @@ document.addEventListener('DOMContentLoaded', function() {
     // 获取并更新统计数据
     async function fetchStats() {
     try {
+        console.log('正在获取统计数据...');
         const response = await fetch(`${API_BASE}/api/stats?_=${Date.now()}`);
-        const data = await response.json();
         
-        // 确保API返回的是对象而不是数组
-        if (data && typeof data === 'object' && !Array.isArray(data)) {
-            // 检查是否有today属性
-            const todayData = data.today || {};
-            
-            // 更新统计数字
-            document.getElementById('newWishesCount').textContent = todayData.newWishes || 0;
-            document.getElementById('blessingsCount').textContent = todayData.blessings || 0;
-            document.getElementById('fulfilledCount').textContent = todayData.fulfilled || 0;
-            
-            // 处理分布数据 - 确保即使API没有返回distribution字段也能正常工作
-            const distributionData = todayData.distribution || {};
-            
-            // 渲染分布图表 - 传递整个分布对象
-            renderDistributionChart(distributionData);
-        } else {
-            throw new Error('API返回了无效的数据格式');
+        if (!response.ok) {
+            throw new Error(`API请求失败: ${response.status}`);
         }
         
-        // 更新最后更新时间
-        const now = new Date();
-        document.getElementById('lastUpdated').textContent = 
-            `最后更新: ${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
+        const data = await response.json();
+        console.log('API返回数据:', JSON.stringify(data));
         
+        // 处理数据格式兼容性
+        let statsData = {};
+        if (data && typeof data === 'object') {
+            // 处理两种可能的API响应格式
+            statsData = Array.isArray(data) ? 
+                { today: data[0] || {} } :  // 如果是数组，取第一个元素
+                { today: data.today || data }; // 否则尝试获取today属性或使用整个对象
+        }
+        
+        console.log('处理后的统计数据:', statsData);
+
+        // 更新统计数字
+        document.getElementById('newWishesCount').textContent = statsData.today.newWishes || 0;
+        document.getElementById('blessingsCount').textContent = statsData.today.blessings || 0;
+        document.getElementById('fulfilledCount').textContent = statsData.today.fulfilled || 0;
+        
+        // 处理分布数据
+        const distributionData = statsData.today.distribution || {};
+        console.log('分布数据:', distributionData);
+        
+        // 确保canvas元素存在
+        const ctx = document.getElementById('wishchart');
+        if (!ctx) {
+            console.error('错误: 找不到wishchart元素');
+            return;
+        }
+        
+        // 渲染图表
+        renderDistributionChart(distributionData);
+        
+        // 更新最后更新时间
+        updateLastUpdatedTime();
+
     } catch (error) {
         console.error('加载统计数据失败:', error);
+        showErrorMessage(`统计加载失败: ${error.message}`);
         
         // 出错时显示占位数据
         document.getElementById('newWishesCount').textContent = '?';
@@ -1697,8 +1714,12 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('fulfilledCount').textContent = '?';
         document.getElementById('lastUpdated').textContent = '更新失败';
         
-        // 使用默认数据渲染图表
-        renderDistributionChart({});
+        // 尝试渲染空图表
+        try {
+            renderDistributionChart({});
+        } catch (chartError) {
+            console.error('渲染空图表失败:', chartError);
+        }
     }
 }
 
@@ -1797,15 +1818,27 @@ function updateLastUpdatedTime(text) {
     
     // 渲染愿望分布图表
     function renderDistributionChart(distributionData) {
+    console.log('开始渲染分布图表，数据:', distributionData);
+    
     const ctx = document.getElementById('wishchart');
-    if (!ctx) return;
+    if (!ctx) {
+        console.error('错误: 找不到wishchart canvas元素');
+        return;
+    }
+
+    // 确保ctx有正确的上下文
+    if (!ctx.getContext) {
+        console.error('错误: canvas元素不支持getContext方法');
+        return;
+    }
 
     // 销毁现有图表
     if (window.wishDistributionChart) {
+        console.log('销毁现有图表实例');
         window.wishDistributionChart.destroy();
     }
 
-    // 确保所有分类都有值，即使API返回的数据中缺少某些分类
+    // 准备完整的分布数据
     const fullDistribution = {
         love: distributionData.love || 0,
         wealth: distributionData.wealth || 0,
@@ -1815,35 +1848,40 @@ function updateLastUpdatedTime(text) {
         other: distributionData.other || 0
     };
 
-    // 准备图表数据
-    const chartData = {
-        labels: ['感情破裂', '事业失败', '疾病缠身', '学业受阻', '家庭不和', '其他诅咒'],
-        datasets: [{
-            data: [
-                fullDistribution.love,
-                fullDistribution.wealth,
-                fullDistribution.health,
-                fullDistribution.study,
-                fullDistribution.family,
-                fullDistribution.other
-            ],
-            backgroundColor: [
-                '#c62828', // 红色 - 感情破裂
-                '#8e0000', // 深红 - 事业失败
-                '#ff5f52', // 浅红 - 疾病缠身
-                '#8d6e63', // 棕色 - 学业受阻
-                '#5d4037', // 深棕 - 家庭不和
-                '#3e2723'  // 黑棕 - 其他诅咒
-            ],
-            borderWidth: 0,
-            hoverOffset: 15
-        }]
-    };
+    console.log('完整分布数据:', fullDistribution);
 
-    // 创建图表
-    window.wishDistributionChart = new Chart(ctx, {
+    // 检查所有值是否为零
+    const allZero = Object.values(fullDistribution).every(val => val === 0);
+    if (allZero) {
+        console.log('所有分布数据为零，显示占位图表');
+        fullDistribution.other = 1; // 添加一个占位值
+    }
+
+    // 创建图表配置
+    const chartConfig = {
         type: 'doughnut',
-        data: chartData,
+        data: {
+            labels: ['感情破裂', '事业失败', '疾病缠身', '学业受阻', '家庭不和', '其他诅咒'],
+            datasets: [{
+                data: [
+                    fullDistribution.love,
+                    fullDistribution.wealth,
+                    fullDistribution.health,
+                    fullDistribution.study,
+                    fullDistribution.family,
+                    fullDistribution.other
+                ],
+                backgroundColor: [
+                    '#c62828',
+                    '#8e0000',
+                    '#ff5f52',
+                    '#8d6e63',
+                    '#5d4037',
+                    '#3e2723'
+                ],
+                borderWidth: 0
+            }]
+        },
         options: {
             responsive: true,
             maintainAspectRatio: false,
@@ -1853,39 +1891,44 @@ function updateLastUpdatedTime(text) {
                     labels: {
                         color: '#f5f5f5',
                         font: {
-                            family: "'Noto Serif SC', serif",
-                            size: 12
-                        },
-                        padding: 20,
-                        usePointStyle: true
+                            family: "'Noto Serif SC', serif"
+                        }
                     }
                 },
                 tooltip: {
-                    backgroundColor: 'rgba(30, 30, 30, 0.9)',
-                    titleColor: '#f5f5f5',
-                    bodyColor: '#f5f5f5',
-                    titleFont: {
-                        family: "'Noto Serif SC', serif",
-                        size: 14
-                    },
-                    bodyFont: {
-                        family: "'Noto Serif SC', serif",
-                        size: 12
-                    },
                     callbacks: {
                         label: function(context) {
-                            const label = context.label || '';
-                            const value = context.raw || 0;
-                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                            const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
-                            return `${label}: ${value} (${percentage}%)`;
+                            return `${context.label}: ${context.raw}`;
                         }
                     }
                 }
             },
             cutout: '65%'
         }
-    });
+    };
+
+    // 创建图表
+    try {
+        window.wishDistributionChart = new Chart(ctx, chartConfig);
+        console.log('图表渲染完成');
+    } catch (error) {
+        console.error('图表渲染错误:', error);
+        
+        // 显示错误信息
+        ctx.style.display = 'flex';
+        ctx.style.alignItems = 'center';
+        ctx.style.justifyContent = 'center';
+        ctx.style.color = '#c62828';
+        ctx.style.fontFamily = "'Noto Serif SC', serif";
+        ctx.innerHTML = '<div>图表加载失败</div>';
+    }
+}
+
+// 辅助函数：更新时间显示
+function updateLastUpdatedTime() {
+    const now = new Date();
+    const timeString = `${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
+    document.getElementById('lastUpdated').textContent = `最后更新: ${timeString}`;
 }
 
     // 渲染诅咒卡片
