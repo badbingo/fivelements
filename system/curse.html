@@ -1805,101 +1805,85 @@ function updateLastUpdatedTime(text) {
 }
     
     // 渲染愿望分布图表
-    function renderDistributionChart(distributionData) {
-    console.log('渲染分布图表，接收到的数据:', distributionData); // 调试日志
+    function renderDistributionChart(distribution) {
+    // 获取canvas元素
+    const ctx = document.getElementById('wishchart').getContext('2d');
     
-    const ctx = document.getElementById('wishchart');
-    if (!ctx) {
-        console.error('错误: 找不到wishchart canvas元素');
-        return;
-    }
-
-    // 如果已有图表实例，先销毁
+    // 确保之前的图表实例被销毁
     if (window.wishDistributionChart) {
         window.wishDistributionChart.destroy();
     }
-
-    // 确保所有分类都有值，即使API返回的数据中缺少某些分类
-    const fullDistribution = {
-        love: distributionData.love || 0,
-        wealth: distributionData.wealth || 0,
-        health: distributionData.health || 0,
-        study: distributionData.study || 0,
-        family: distributionData.family || 0,
-        other: distributionData.other || 0
+    
+    // 准备图表数据 - 使用中文标签
+    const labels = {
+        'love': '感情破裂',
+        'wealth': '事业失败',
+        'health': '疾病缠身',
+        'study': '学业受阻',
+        'family': '家庭不和',
+        'other': '其他诅咒'
     };
 
-    console.log('完整分布数据:', fullDistribution); // 调试日志
-
-    // 准备图表数据
-    const chartData = {
-        labels: ['感情破裂', '事业失败', '疾病缠身', '学业受阻', '家庭不和', '其他诅咒'],
-        datasets: [{
-            data: [
-                fullDistribution.love,
-                fullDistribution.wealth,
-                fullDistribution.health,
-                fullDistribution.study,
-                fullDistribution.family,
-                fullDistribution.other
-            ],
-            backgroundColor: [
-                '#c62828', // 红色 - 感情破裂
-                '#8e0000', // 深红 - 事业失败
-                '#ff5f52', // 浅红 - 疾病缠身
-                '#8d6e63', // 棕色 - 学业受阻
-                '#5d4037', // 深棕 - 家庭不和
-                '#3e2723'  // 黑棕 - 其他诅咒
-            ],
-            borderWidth: 0,
-            hoverOffset: 15
-        }]
-    };
-
-    // 创建图表
+    // 确保数据顺序一致
+    const data = [
+        distribution.love || 0,
+        distribution.wealth || 0,
+        distribution.health || 0,
+        distribution.study || 0,
+        distribution.family || 0,
+        distribution.other || 0
+    ];
+    
+    // 创建新图表
     window.wishDistributionChart = new Chart(ctx, {
-        type: 'doughnut',
-        data: chartData,
+        type: 'pie',
+        data: {
+            labels: Object.values(labels),
+            datasets: [{
+                data: data,
+                backgroundColor: [
+                    '#6a11cb', 
+                    '#2575fc', 
+                    '#00b894', 
+                    '#fdcb6e', 
+                    '#e17055', 
+                    '#b2bec3'
+                ],
+                borderWidth: 0
+            }]
+        },
         options: {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
                 legend: {
-                    position: 'right',
+                    position: 'bottom',
                     labels: {
-                        color: '#f5f5f5',
+                        color: '#b8c2cc',
                         font: {
-                            family: "'Noto Serif SC', serif",
-                            size: 12
-                        },
-                        padding: 20,
-                        usePointStyle: true
+                            family: "'Noto Serif SC', serif"
+                        }
                     }
                 },
                 tooltip: {
-                    backgroundColor: 'rgba(30, 30, 30, 0.9)',
-                    titleColor: '#f5f5f5',
-                    bodyColor: '#f5f5f5',
-                    titleFont: {
-                        family: "'Noto Serif SC', serif",
-                        size: 14
-                    },
-                    bodyFont: {
-                        family: "'Noto Serif SC', serif",
-                        size: 12
-                    },
                     callbacks: {
                         label: function(context) {
                             const label = context.label || '';
                             const value = context.raw || 0;
                             const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                            const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
+                            const percentage = Math.round((value / total) * 100);
                             return `${label}: ${value} (${percentage}%)`;
                         }
+                    },
+                    backgroundColor: 'rgba(10, 10, 20, 0.9)',
+                    titleFont: {
+                        family: "'Noto Serif SC', serif"
+                    },
+                    bodyFont: {
+                        family: "'Noto Serif SC', serif"
                     }
                 }
-            },
-            cutout: '65%'
+            }
         }
     });
 }
