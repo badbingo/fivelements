@@ -15,12 +15,144 @@
     <script src="../js/wwpay.js"></script>
     <script src="../js/lunar.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+    <style>
+        /* 新增的登录注册表单样式 */
+        .auth-container {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        
+        .auth-box {
+            background: rgba(30, 30, 30, 0.8);
+            border-radius: 10px;
+            padding: 20px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            border: 1px solid #333;
+        }
+        
+        .auth-tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #333;
+        }
+        
+        .auth-tab {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            cursor: pointer;
+            color: #b0b0b0;
+            transition: all 0.3s;
+        }
+        
+        .auth-tab.active {
+            color: #8a5cf5;
+            border-bottom: 2px solid #8a5cf5;
+        }
+        
+        .auth-form {
+            display: none;
+        }
+        
+        .auth-form.active {
+            display: block;
+        }
+        
+        .auth-form .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .auth-form label {
+            display: block;
+            margin-bottom: 5px;
+            color: #f0f0f0;
+        }
+        
+        .auth-form input {
+            width: 100%;
+            padding: 10px;
+            background: #2a2a2a;
+            border: 1px solid #333;
+            border-radius: 5px;
+            color: #f0f0f0;
+            font-family: 'Noto Serif SC', serif;
+        }
+        
+        .auth-form input:focus {
+            outline: none;
+            border-color: #8a5cf5;
+        }
+        
+        .auth-btn {
+            width: 100%;
+            padding: 10px;
+            background: #8a5cf5;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: 'Noto Serif SC', serif;
+            transition: all 0.3s;
+        }
+        
+        .auth-btn:hover {
+            background: #7a4ce5;
+        }
+        
+        .auth-message {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+        }
+        
+        .error {
+            background: rgba(255, 107, 107, 0.2);
+            color: #ff6b6b;
+            border: 1px solid #ff6b6b;
+        }
+        
+        .success {
+            background: rgba(85, 239, 196, 0.2);
+            color: #55efc4;
+            border: 1px solid #55efc4;
+        }
+        
+        .user-info {
+            display: none;
+            text-align: center;
+            padding: 10px;
+            background: rgba(30, 30, 30, 0.8);
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .user-info p {
+            margin: 5px 0;
+        }
+        
+        .logout-btn {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        
+        .logout-btn:hover {
+            background: #e74c3c;
+        }
+    </style>
     <script>
       // 配置后端地址（必须修改！）
       const API_BASE = 'https://bazi-backend.owenjass.workers.dev';
       const API_URL = `${API_BASE}/api`;
     </script>
-    
 </head>
 <body>
     
@@ -28,6 +160,72 @@
         <section class="content-title">
             <h1>命缘池</h1>
             <p>以八字为引，聚众生愿力，助你梦想成真</p>
+        </section>
+
+        <!-- 用户登录/注册区域 -->
+        <section class="full-width-section">
+            <div class="section-header">
+                <i class="fas fa-user-circle"></i>
+                <h2>用户中心</h2>
+            </div>
+            
+            <div class="card">
+                <div id="userInfo" class="user-info">
+                    <p><i class="fas fa-user"></i> 欢迎, <span id="usernameDisplay"></span></p>
+                    <button id="logoutBtn" class="logout-btn"><i class="fas fa-sign-out-alt"></i> 退出登录</button>
+                </div>
+                
+                <div id="authContainer" class="auth-container">
+                    <div class="auth-box">
+                        <div class="auth-tabs">
+                            <div class="auth-tab active" id="loginTab">登录</div>
+                            <div class="auth-tab" id="registerTab">注册</div>
+                        </div>
+                        
+                        <form id="loginForm" class="auth-form active">
+                            <div class="form-group">
+                                <label for="loginUsername">用户名</label>
+                                <input type="text" id="loginUsername" placeholder="请输入用户名" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="loginPassword">密码</label>
+                                <input type="password" id="loginPassword" placeholder="请输入密码" required>
+                            </div>
+                            
+                            <button type="submit" class="auth-btn" id="loginBtn">登录</button>
+                            
+                            <div id="loginMessage" class="auth-message"></div>
+                        </form>
+                        
+                        <form id="registerForm" class="auth-form">
+                            <div class="form-group">
+                                <label for="registerUsername">用户名</label>
+                                <input type="text" id="registerUsername" placeholder="请输入用户名(4-16位)" required minlength="4" maxlength="16">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="registerEmail">电子邮箱</label>
+                                <input type="email" id="registerEmail" placeholder="请输入电子邮箱" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="registerPassword">密码</label>
+                                <input type="password" id="registerPassword" placeholder="请输入密码(至少6位)" required minlength="6">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="registerConfirmPassword">确认密码</label>
+                                <input type="password" id="registerConfirmPassword" placeholder="请再次输入密码" required>
+                            </div>
+                            
+                            <button type="submit" class="auth-btn" id="registerBtn">注册</button>
+                            
+                            <div id="registerMessage" class="auth-message"></div>
+                        </form>
+                    </div>
+                </div>
+            </div>
         </section>
 
         <!-- 命缘池介绍 -->
@@ -379,6 +577,206 @@ document.addEventListener('DOMContentLoaded', function() {
     const charCount = document.getElementById('charCount');
     const wishContent = document.getElementById('wishContent');
 
+    // 新增的登录注册相关DOM元素
+    const loginTab = document.getElementById('loginTab');
+    const registerTab = document.getElementById('registerTab');
+    const loginForm = document.getElementById('loginForm');
+    const registerForm = document.getElementById('registerForm');
+    const authContainer = document.getElementById('authContainer');
+    const userInfo = document.getElementById('userInfo');
+    const usernameDisplay = document.getElementById('usernameDisplay');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const loginMessage = document.getElementById('loginMessage');
+    const registerMessage = document.getElementById('registerMessage');
+
+    /* ==================== 登录注册功能 ==================== */
+
+    // 检查登录状态
+    function checkLoginStatus() {
+        const token = localStorage.getItem('token');
+        const username = localStorage.getItem('username');
+        
+        if (token && username) {
+            authContainer.style.display = 'none';
+            userInfo.style.display = 'block';
+            usernameDisplay.textContent = username;
+        } else {
+            authContainer.style.display = 'flex';
+            userInfo.style.display = 'none';
+        }
+    }
+
+    // 切换登录/注册标签页
+    function switchAuthTab(tab) {
+        if (tab === 'login') {
+            loginTab.classList.add('active');
+            registerTab.classList.remove('active');
+            loginForm.classList.add('active');
+            registerForm.classList.remove('active');
+        } else {
+            loginTab.classList.remove('active');
+            registerTab.classList.add('active');
+            loginForm.classList.remove('active');
+            registerForm.classList.add('active');
+        }
+        
+        // 清空消息
+        loginMessage.style.display = 'none';
+        registerMessage.style.display = 'none';
+    }
+
+    // 处理登录
+    async function handleLogin(e) {
+        e.preventDefault();
+        
+        const username = document.getElementById('loginUsername').value.trim();
+        const password = document.getElementById('loginPassword').value.trim();
+        
+        if (!username || !password) {
+            showAuthMessage(loginMessage, '请输入用户名和密码', 'error');
+            return;
+        }
+        
+        const loginBtn = document.getElementById('loginBtn');
+        loginBtn.disabled = true;
+        loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 登录中...';
+        
+        try {
+            const response = await fetch(`${API_BASE}/api/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: username, password })
+            });
+            
+            const result = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(result.error || '登录失败');
+            }
+            
+            localStorage.setItem('token', result.token);
+            localStorage.setItem('username', username);
+            
+            showAuthMessage(loginMessage, '登录成功！', 'success');
+            checkLoginStatus();
+            
+            // 清空表单
+            document.getElementById('loginUsername').value = '';
+            document.getElementById('loginPassword').value = '';
+            
+        } catch (error) {
+            showAuthMessage(loginMessage, error.message, 'error');
+        } finally {
+            loginBtn.disabled = false;
+            loginBtn.textContent = '登录';
+        }
+    }
+
+    // 处理注册
+    async function handleRegister(e) {
+        e.preventDefault();
+        
+        const username = document.getElementById('registerUsername').value.trim();
+        const email = document.getElementById('registerEmail').value.trim();
+        const password = document.getElementById('registerPassword').value.trim();
+        const confirmPassword = document.getElementById('registerConfirmPassword').value.trim();
+        
+        // 验证输入
+        if (!username || username.length < 4 || username.length > 16) {
+            showAuthMessage(registerMessage, '用户名长度应为4-16位', 'error');
+            return;
+        }
+        
+        if (!email || !validateEmail(email)) {
+            showAuthMessage(registerMessage, '请输入有效的电子邮箱', 'error');
+            return;
+        }
+        
+        if (!password || password.length < 6) {
+            showAuthMessage(registerMessage, '密码长度至少为6位', 'error');
+            return;
+        }
+        
+        if (password !== confirmPassword) {
+            showAuthMessage(registerMessage, '两次输入的密码不一致', 'error');
+            return;
+        }
+        
+        const registerBtn = document.getElementById('registerBtn');
+        registerBtn.disabled = true;
+        registerBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 注册中...';
+        
+        try {
+            const response = await fetch(`${API_BASE}/api/register`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: username, email, password })
+            });
+            
+            const result = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(result.error || '注册失败');
+            }
+            
+            localStorage.setItem('token', result.token);
+            localStorage.setItem('username', username);
+            
+            showAuthMessage(registerMessage, '注册成功！已自动登录', 'success');
+            checkLoginStatus();
+            
+            // 清空表单
+            document.getElementById('registerUsername').value = '';
+            document.getElementById('registerEmail').value = '';
+            document.getElementById('registerPassword').value = '';
+            document.getElementById('registerConfirmPassword').value = '';
+            
+            // 切换到登录标签页
+            setTimeout(() => switchAuthTab('login'), 2000);
+            
+        } catch (error) {
+            showAuthMessage(registerMessage, error.message, 'error');
+        } finally {
+            registerBtn.disabled = false;
+            registerBtn.textContent = '注册';
+        }
+    }
+
+    // 处理退出登录
+    function handleLogout() {
+        localStorage.removeItem('token');
+        localStorage.removeItem('username');
+        checkLoginStatus();
+        switchAuthTab('login');
+    }
+
+    // 显示认证消息
+    function showAuthMessage(element, message, type) {
+        element.textContent = message;
+        element.className = 'auth-message ' + type;
+        element.style.display = 'block';
+        
+        // 3秒后自动隐藏
+        setTimeout(() => {
+            element.style.display = 'none';
+        }, 3000);
+    }
+
+    // 验证邮箱格式
+    function validateEmail(email) {
+        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return re.test(email);
+    }
+
+    // 初始化登录注册事件
+    function initAuthEvents() {
+        loginTab.addEventListener('click', () => switchAuthTab('login'));
+        registerTab.addEventListener('click', () => switchAuthTab('register'));
+        loginForm.addEventListener('submit', handleLogin);
+        registerForm.addEventListener('submit', handleRegister);
+        logoutBtn.addEventListener('click', handleLogout);
+    }
+
     /* ==================== 核心功能 ==================== */
 
     // 初始化加载愿望数据
@@ -507,12 +905,12 @@ function setupModalClose() {
         }
         
         const typeNames = {
-            love: '姻缘感情', 
-            wealth: '财富事业', 
-            health: '健康平安',
-            study: '学业成长', 
-            family: '家庭和睦', 
-            other: '其他愿望'
+            'love': '姻缘感情', 
+            'wealth': '财富事业', 
+            'health': '健康平安',
+            'study': '学业成长', 
+            'family': '家庭和睦', 
+            'other': '其他愿望'
         };
         
         wishes.forEach(wish => {
@@ -1326,6 +1724,8 @@ function initEnergyChart() {
     // 主初始化函数
     async function initialize() {
         await loadLunarJS();
+        initAuthEvents();  // 初始化登录注册事件
+        checkLoginStatus(); // 检查登录状态
         initEventListeners();
         loadAllWishes();
         fetchStats();
