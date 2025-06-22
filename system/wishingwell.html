@@ -1275,6 +1275,191 @@ function setupModalClose() {
     }
 
 
+    // 显示用户卡片浮窗
+async function showUserCards() {
+    const token = localStorage.getItem('token');
+    if (!token) {
+        toggleAuthModal(true);
+        switchAuthTab('login');
+        return;
+    }
+
+    const modal = document.getElementById('userCardsModal');
+    const cardsList = document.getElementById('userCardsList');
+    
+    // 显示加载状态
+    cardsList.innerHTML = `
+        <div class="wish-loading">
+            <div class="loader"></div>
+            <p>正在加载您的愿望卡片...</p>
+        </div>
+    `;
+    
+    modal.classList.add('active');
+    
+    try {
+        // 获取用户愿望
+        const response = await fetch(`${API_BASE}/api/user/wishes`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error('获取愿望失败');
+        }
+        
+        const wishes = await response.json();
+        
+        if (wishes.length === 0) {
+            cardsList.innerHTML = `
+                <div class="empty-cards">
+                    <i class="fas fa-box-open"></i>
+                    <p>您还没有创建任何愿望卡片</p>
+                </div>
+            `;
+            return;
+        }
+        
+        // 渲染愿望卡片
+        cardsList.innerHTML = '';
+        wishes.forEach(wish => {
+            const card = document.createElement('div');
+            card.className = 'user-card-item';
+            card.dataset.id = wish.id;
+            
+            // 计算剩余天数
+            const createdDate = new Date(wish.created_at);
+            const expiresAt = new Date(createdDate);
+            expiresAt.setDate(expiresAt.getDate() + 30);
+            const daysLeft = Math.max(0, Math.ceil((expiresAt - new Date()) / (86400000)));
+            
+            card.innerHTML = `
+                <div class="wish-header">
+                    <div class="wish-user">
+                        <i class="fas fa-user"></i> <span class="user-name">${wish.user_name || '匿名用户'}</span>
+                    </div>
+                    <span class="wish-time">剩余<span class="days-left">${daysLeft}</span>天</span>
+                </div>
+                <div class="wish-content">
+                    <p class="wish-text">${wish.content}</p>
+                </div>
+                <div class="card-meta">
+                    <span>创建于: ${new Date(wish.created_at).toLocaleString()}</span>
+                    <span>加持次数: ${wish.blessings || 0}</span>
+                </div>
+                <div class="wish-actions">
+                    <button class="btn-delete">
+                        <i class="fas fa-trash-alt"></i> 删除
+                    </button>
+                </div>
+            `;
+            
+            // 添加删除事件
+            const deleteBtn = card.querySelector('.btn-delete');
+            deleteBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                deleteUserWish(wish.id, card);
+            });
+            
+            cardsList.appendChild(card);
+        });
+    } catch (error) {
+        console.error('加载用户卡片失败:', error);
+        cardsList.innerHTML = `
+            <div class="wish-loading">
+                <i class="fas fa-exclamation-triangle" style="color: #ff6b6b;"></i>
+                <p>加载失败：${error.message}</p>
+                <button onclick="showUserCards()" class="btn-mingyuan">
+                    <i class="fas fa-sync-alt"></i> 重新加载
+                </button>
+            </div>
+        `;
+    }
+}
+
+// 删除用户愿望
+async function deleteUserWish(wishId, cardElement) {
+    if (!confirm('确定要删除这个愿望吗？删除后将无法恢复。')) {
+        return;
+    }
+    
+    const token = localStorage.getItem('token');
+    if (!token) {
+        toggleAuthModal(true);
+        switchAuthTab('login');
+        return;
+    }
+    
+    try {
+        cardElement.style.opacity = '0.5';
+        cardElement.querySelector('.btn-delete').innerHTML = '<i class="fas fa-spinner fa-spin"></i> 删除中...';
+        cardElement.querySelector('.btn-delete').disabled = true;
+        
+        const response = await fetch(`${API_BASE}/api/wishes/${wishId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error('删除失败');
+        }
+        
+        // 从DOM中移除卡片
+        cardElement.classList.add('fade-out');
+        setTimeout(() => {
+            cardElement.remove();
+            
+            // 如果删除了最后一个卡片，显示空状态
+            const cardsList = document.getElementById('userCardsList');
+            if (cardsList.children.length === 0) {
+                cardsList.innerHTML = `
+                    <div class="empty-cards">
+                        <i class="fas fa-box-open"></i>
+                        <p>您还没有创建任何愿望卡片</p>
+                    </div>
+                `;
+            }
+        }, 300);
+        
+        showToast('愿望已成功删除', 'success');
+        
+        // 更新主愿望池
+        loadAllWishes();
+    } catch (error) {
+        console.error('删除愿望失败:', error);
+        cardElement.style.opacity = '';
+        cardElement.querySelector('.btn-delete').innerHTML = '<i class="fas fa-trash-alt"></i> 删除';
+        cardElement.querySelector('.btn-delete').disabled = false;
+        showToast(`删除失败: ${error.message}`, 'error');
+    }
+}
+
+// 初始化用户卡片浮窗事件
+function initUserCardsModal() {
+    const userWelcome = document.getElementById('userWelcome');
+    const modal = document.getElementById('userCardsModal');
+    const closeBtn = document.querySelector('.close-cards');
+    
+    // 点击用户名打开浮窗
+    userWelcome.addEventListener('click', showUserCards);
+    
+    // 关闭浮窗
+    closeBtn.addEventListener('click', () => {
+        modal.classList.remove('active');
+    });
+    
+    // 点击外部关闭
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.classList.remove('active');
+        }
+    });
+}
+    
+
     // 在handleLogin函数的成功回调中添加
 const savedData = sessionStorage.getItem('tempWishFormData');
 if (savedData) {
@@ -1926,6 +2111,7 @@ function initEnergyChart() {
         initAuthEvents();  // 初始化登录注册事件
         checkLoginStatus(); // 检查登录状态
         initEventListeners();
+        initUserCardsModal(); // 新增这行
         loadAllWishes();
         fetchStats();
         initEnergyChart(); // 添加这行初始化图表
