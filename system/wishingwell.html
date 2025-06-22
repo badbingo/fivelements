@@ -1037,25 +1037,37 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 // 防止 XSS 攻击的转义函数
-function escapeHtml(unsafe) {
-  return unsafe
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
+/ 5. 渲染数据
+    const cards = await response.json();
+    container.innerHTML = cards.length ? '' : '<div class="empty">暂无卡片</div>';
+    cards.forEach(card => {
+      container.appendChild(createCardElement(card));
+    });
+
+  } catch (error) {
+    console.error('加载失败:', error);
+    container.innerHTML = 
+      <div class="error">
+        <p>${error.message}</p>
+        <button onclick="loadUserCards()">重试</button>
+      </div>
+    ;
+  }
 }
 
 // 卡片创建辅助函数
 function createCardElement(card) {
   const el = document.createElement('div');
   el.className = 'card';
-  el.innerHTML = `
+  el.innerHTML = 
     <h3>${escapeHtml(card.content.slice(0, 50))}</h3>
     <time>${new Date(card.created_at).toLocaleString()}</time>
-  `;
+  ;
   return el;
 }
+
+    // 渲染用户卡片
+    function renderUserCards(cards) {
 
     // 渲染用户卡片
     function renderUserCards(cards) {
