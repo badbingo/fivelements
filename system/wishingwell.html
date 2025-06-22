@@ -679,7 +679,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const charCount = document.getElementById('charCount');
     const wishContent = document.getElementById('wishContent');
 
-    // 新增的登录注册相关DOM元素
+    // 登录注册相关DOM元素
     const userWelcome = document.getElementById('userWelcome');
     const usernameDisplay = document.getElementById('usernameDisplay');
     const loginBtn = document.getElementById('loginBtn');
@@ -739,7 +739,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function toggleAuthModal(show) {
         if (show) {
             authModal.classList.add('active');
-            document.body.style.overflow = 'hidden'; // 防止背景滚动
+            document.body.style.overflow = 'hidden';
         } else {
             authModal.classList.remove('active');
             document.body.style.overflow = '';
@@ -748,103 +748,91 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 处理登录
     async function handleLogin(e) {
-    e.preventDefault();
-    
-    const username = document.getElementById('loginUsername').value.trim();
-    const password = document.getElementById('loginPassword').value.trim();
-    
-    if (!username || !password) {
-        showAuthMessage(loginMessage, '请输入用户名和密码', 'error');
-        return;
-    }
-    
-    submitLogin.disabled = true;
-    loginSpinner.style.display = 'inline-block';
-    document.getElementById('loginText').style.display = 'none';
-    
-    try {
-        const response = await fetch(`${API_BASE}/api/login`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name: username, password })
-        });
+        e.preventDefault();
         
-        const result = await response.json();
+        const username = document.getElementById('loginUsername').value.trim();
+        const password = document.getElementById('loginPassword').value.trim();
         
-        if (!response.ok) {
-            throw new Error(result.error || '登录失败');
+        if (!username || !password) {
+            showAuthMessage(loginMessage, '请输入用户名和密码', 'error');
+            return;
         }
         
-        localStorage.setItem('token', result.token);
-        localStorage.setItem('username', username);
+        submitLogin.disabled = true;
+        loginSpinner.style.display = 'inline-block';
+        document.getElementById('loginText').style.display = 'none';
         
-        // ▼▼▼ 新增的表单恢复逻辑 ▼▼▼
-        const savedData = sessionStorage.getItem('tempWishFormData');
-        if (savedData) {
-            const formData = JSON.parse(savedData);
+        try {
+            const response = await fetch(`${API_BASE}/api/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: username, password })
+            });
             
-            // 恢复表单字段
-            document.getElementById('name').value = formData.name || '';
-            document.getElementById('birthday').value = formData.birthday || '';
-            document.getElementById('birthtime').value = formData.birthtime || '';
-            document.getElementById('wishContent').value = formData.content || '';
-            document.getElementById('wishType').value = formData.type || 'love';
+            const result = await response.json();
             
-            // 恢复单选按钮状态
-            if (formData.visibility) {
-                const radio = document.querySelector(`input[name="visibility"][value="${formData.visibility}"]`);
-                if (radio) radio.checked = true;
+            if (!response.ok) {
+                throw new Error(result.error || '登录失败');
             }
             
-            // 更新字数统计
-            document.getElementById('charCount').textContent = formData.content?.length || 0;
+            localStorage.setItem('token', result.token);
+            localStorage.setItem('username', username);
             
-            // 清理临时存储
-            sessionStorage.removeItem('tempWishFormData');
-            
-            // 自动滚动并更新八字信息
-            setTimeout(() => {
-                document.querySelector('.mingyuan-form').scrollIntoView({ 
-                    behavior: 'smooth',
-                    block: 'center'
-                });
-                
-                if (formData.birthday && formData.birthtime) {
-                    updateBaziInfo();
-                }
-            }, 100);
-        }
-        // ▲▲▲ 新增代码结束 ▲▲▲
-        
-        showAuthMessage(loginMessage, '登录成功！', 'success');
-        checkLoginStatus();
-        
-        // 清空表单
-        document.getElementById('loginUsername').value = '';
-        document.getElementById('loginPassword').value = '';
-        
-        // 2秒后自动关闭弹窗
-        setTimeout(() => {
-            toggleAuthModal(false);
-            
-            // 如果是从愿望表单跳转过来的，显示成功提示
+            // 恢复表单数据
+            const savedData = sessionStorage.getItem('tempWishFormData');
             if (savedData) {
-                showToast('登录成功！您可以继续提交愿望', 'success');
+                const formData = JSON.parse(savedData);
+                
+                document.getElementById('name').value = formData.name || '';
+                document.getElementById('birthday').value = formData.birthday || '';
+                document.getElementById('birthtime').value = formData.birthtime || '';
+                document.getElementById('wishContent').value = formData.content || '';
+                document.getElementById('wishType').value = formData.type || 'love';
+                
+                if (formData.visibility) {
+                    const radio = document.querySelector(`input[name="visibility"][value="${formData.visibility}"]`);
+                    if (radio) radio.checked = true;
+                }
+                
+                document.getElementById('charCount').textContent = formData.content?.length || 0;
+                sessionStorage.removeItem('tempWishFormData');
+                
+                setTimeout(() => {
+                    document.querySelector('.mingyuan-form').scrollIntoView({ 
+                        behavior: 'smooth',
+                        block: 'center'
+                    });
+                    
+                    if (formData.birthday && formData.birthtime) {
+                        updateBaziInfo();
+                    }
+                }, 100);
             }
-        }, 2000);
-        
-    } catch (error) {
-        console.error('登录错误:', error);
-        showAuthMessage(loginMessage, error.message, 'error');
-        
-        // 登录失败时保留输入的用户名
-        document.getElementById('loginUsername').value = username;
-    } finally {
-        submitLogin.disabled = false;
-        loginSpinner.style.display = 'none';
-        document.getElementById('loginText').style.display = 'inline';
+            
+            showAuthMessage(loginMessage, '登录成功！', 'success');
+            checkLoginStatus();
+            
+            document.getElementById('loginUsername').value = '';
+            document.getElementById('loginPassword').value = '';
+            
+            setTimeout(() => {
+                toggleAuthModal(false);
+                
+                if (savedData) {
+                    showToast('登录成功！您可以继续提交愿望', 'success');
+                }
+            }, 2000);
+            
+        } catch (error) {
+            console.error('登录错误:', error);
+            showAuthMessage(loginMessage, error.message, 'error');
+            document.getElementById('loginUsername').value = username;
+        } finally {
+            submitLogin.disabled = false;
+            loginSpinner.style.display = 'none';
+            document.getElementById('loginText').style.display = 'inline';
+        }
     }
-}
 
     // 处理注册
     async function handleRegister(e) {
@@ -855,7 +843,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const password = document.getElementById('registerPassword').value.trim();
         const confirmPassword = document.getElementById('registerConfirmPassword').value.trim();
         
-        // 验证输入
         if (!username || username.length < 4 || username.length > 16) {
             showAuthMessage(registerMessage, '用户名长度应为4-16位', 'error');
             return;
@@ -899,13 +886,11 @@ document.addEventListener('DOMContentLoaded', function() {
             showAuthMessage(registerMessage, '注册成功！已自动登录', 'success');
             checkLoginStatus();
             
-            // 清空表单
             document.getElementById('registerUsername').value = '';
             document.getElementById('registerEmail').value = '';
             document.getElementById('registerPassword').value = '';
             document.getElementById('registerConfirmPassword').value = '';
             
-            // 2秒后自动关闭弹窗并切换到登录标签页
             setTimeout(() => {
                 toggleAuthModal(false);
                 switchAuthTab('login');
@@ -934,7 +919,6 @@ document.addEventListener('DOMContentLoaded', function() {
         element.className = 'auth-message ' + type;
         element.style.display = 'block';
         
-        // 3秒后自动隐藏
         setTimeout(() => {
             element.style.display = 'none';
         }, 3000);
@@ -948,32 +932,207 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 初始化登录注册事件
     function initAuthEvents() {
-        // 打开登录弹窗
         loginBtn.addEventListener('click', () => {
             toggleAuthModal(true);
             switchAuthTab('login');
         });
         
-        // 关闭登录弹窗
         closeAuth.addEventListener('click', () => toggleAuthModal(false));
         
-        // 点击弹窗外部关闭
         authModal.addEventListener('click', (e) => {
             if (e.target === authModal) {
                 toggleAuthModal(false);
             }
         });
         
-        // 切换标签页
         loginTab.addEventListener('click', () => switchAuthTab('login'));
         registerTab.addEventListener('click', () => switchAuthTab('register'));
         
-        // 表单提交
         loginForm.addEventListener('submit', handleLogin);
         registerForm.addEventListener('submit', handleRegister);
         
-        // 退出登录
         logoutBtn.addEventListener('click', handleLogout);
+    }
+
+    /* ==================== 用户卡片浮窗功能 ==================== */
+
+    // 设置用户卡片浮窗
+    function setupUserCardsModal() {
+        const userWelcome = document.getElementById('userWelcome');
+        const userCardsModal = document.getElementById('userCardsModal');
+        const closeCardsModal = document.getElementById('closeCardsModal');
+        
+        userWelcome.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            toggleUserCardsModal(true);
+            await loadUserCards();
+        });
+        
+        closeCardsModal.addEventListener('click', () => toggleUserCardsModal(false));
+        
+        userCardsModal.addEventListener('click', (e) => {
+            if (e.target === userCardsModal) {
+                toggleUserCardsModal(false);
+            }
+        });
+    }
+
+    // 切换用户卡片浮窗显示
+    function toggleUserCardsModal(show) {
+        const modal = document.getElementById('userCardsModal');
+        if (show) {
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        } else {
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    }
+
+    // 加载用户卡片
+    async function loadUserCards() {
+        const token = localStorage.getItem('token');
+        const userCardsGrid = document.getElementById('userCardsGrid');
+        
+        if (!token) {
+            userCardsGrid.innerHTML = `
+                <div class="no-cards-message">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <p>请先登录</p>
+                </div>
+            `;
+            return;
+        }
+        
+        userCardsGrid.innerHTML = `
+            <div class="loading-cards">
+                <div class="loader"></div>
+                <p>正在加载您的愿望卡片...</p>
+            </div>
+        `;
+        
+        try {
+            const response = await fetch(`${API_BASE}/api/user/wishes`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error('获取卡片失败');
+            }
+            
+            const cards = await response.json();
+            
+            if (!Array.isArray(cards)) {
+                throw new Error('无效的卡片数据');
+            }
+            
+            if (cards.length === 0) {
+                userCardsGrid.innerHTML = `
+                    <div class="no-cards-message">
+                        <i class="fas fa-water"></i>
+                        <p>您还没有创建任何愿望卡片</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            renderUserCards(cards);
+        } catch (error) {
+            console.error('加载用户卡片失败:', error);
+            userCardsGrid.innerHTML = `
+                <div class="no-cards-message">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p>加载失败: ${error.message}</p>
+                    <button onclick="loadUserCards()" class="btn-mingyuan small">
+                        <i class="fas fa-sync-alt"></i> 重试
+                    </button>
+                </div>
+            `;
+        }
+    }
+
+    // 渲染用户卡片
+    function renderUserCards(cards) {
+        const userCardsGrid = document.getElementById('userCardsGrid');
+        userCardsGrid.innerHTML = '';
+        
+        const typeNames = {
+            'love': '姻缘感情', 
+            'wealth': '财富事业', 
+            'health': '健康平安',
+            'study': '学业成长', 
+            'family': '家庭和睦', 
+            'other': '其他愿望'
+        };
+        
+        cards.forEach(card => {
+            const cardElement = document.createElement('div');
+            cardElement.className = 'user-card';
+            cardElement.dataset.id = card.id;
+            
+            const createdDate = new Date(card.created_at);
+            const expiresAt = new Date(createdDate);
+            expiresAt.setDate(expiresAt.getDate() + 30);
+            const daysLeft = Math.max(0, Math.ceil((expiresAt - new Date()) / (86400000)));
+            
+            cardElement.innerHTML = `
+                <div class="user-card-content">
+                    <p><strong>${typeNames[card.type] || '其他愿望'}</strong></p>
+                    <p>${card.content}</p>
+                </div>
+                <div class="user-card-meta">
+                    <span>加持: ${card.blessings || 0}次</span>
+                    <span>剩余${daysLeft}天</span>
+                </div>
+                <div class="user-card-actions">
+                    <button class="delete-card-btn" data-id="${card.id}">
+                        <i class="fas fa-trash-alt"></i> 删除
+                    </button>
+                </div>
+            `;
+            
+            userCardsGrid.appendChild(cardElement);
+        });
+        
+        document.querySelectorAll('.delete-card-btn').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                const cardId = e.target.closest('button').dataset.id;
+                await deleteUserCard(cardId);
+            });
+        });
+    }
+
+    // 删除用户卡片
+    async function deleteUserCard(cardId) {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+        
+        if (!confirm('确定要删除这张愿望卡片吗？此操作不可撤销。')) {
+            return;
+        }
+        
+        try {
+            const response = await fetch(`${API_BASE}/api/wishes/${cardId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error('删除失败');
+            }
+            
+            showToast('愿望卡片已删除', 'success');
+            await loadUserCards();
+            loadAllWishes();
+        } catch (error) {
+            console.error('删除卡片失败:', error);
+            showToast(`删除失败: ${error.message}`, 'error');
+        }
     }
 
     /* ==================== 核心功能 ==================== */
@@ -1016,31 +1175,27 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // 关闭模态框的函数
-function setupModalClose() {
-    // 获取所有关闭按钮
-    const closeButtons = document.querySelectorAll('.close-modal');
-    
-    closeButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            // 找到最近的模态框并隐藏
-            const modal = this.closest('.modal');
-            if (modal) {
-                modal.style.display = 'none';
+    function setupModalClose() {
+        const closeButtons = document.querySelectorAll('.close-modal');
+        
+        closeButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const modal = this.closest('.modal');
+                if (modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        });
+
+        window.addEventListener('click', function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = 'none';
             }
         });
-    });
-
-    // 点击模态框外部也关闭
-    window.addEventListener('click', function(event) {
-        if (event.target.classList.contains('modal')) {
-            event.target.style.display = 'none';
-        }
-    });
-}
+    }
     
     // 渲染筛选后的愿望
     function renderFilteredWishes() {
-        // 应用类型筛选
         const selectedType = wishFilter.value;
         let filteredWishes = [...allWishes];
         
@@ -1048,14 +1203,12 @@ function setupModalClose() {
             filteredWishes = allWishes.filter(wish => wish.type === selectedType);
         }
         
-        // 应用搜索筛选
         if (currentSearchTerm) {
             filteredWishes = filteredWishes.filter(wish => 
                 wish.user_name && wish.user_name.toLowerCase().includes(currentSearchTerm.toLowerCase())
             );
         }
         
-        // 应用排序
         const selectedSort = sortFilter.value || 'newest';
         
         switch(selectedSort) {
@@ -1075,7 +1228,6 @@ function setupModalClose() {
                 filteredWishes.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
         }
         
-        // 分页处理
         const startIndex = (currentPage - 1) * wishesPerPage;
         const paginatedWishes = filteredWishes.slice(startIndex, startIndex + wishesPerPage);
         
@@ -1120,13 +1272,11 @@ function setupModalClose() {
             wishCard.dataset.type = wish.type;
             wishCard.dataset.visibility = wish.visibility;
             
-            // 计算剩余天数
             const createdDate = new Date(wish.created_at);
             const expiresAt = new Date(createdDate);
             expiresAt.setDate(expiresAt.getDate() + 30);
             const daysLeft = Math.max(0, Math.ceil((expiresAt - new Date()) / (86400000)));
             
-            // 填充内容
             wishCard.innerHTML = `
                 <div class="wish-header">
                     <div class="wish-user">
@@ -1160,7 +1310,6 @@ function setupModalClose() {
                 </div>
             `;
             
-            // 添加事件监听
             const blessBtn = wishCard.querySelector('.btn-bless');
             blessBtn.addEventListener('click', () => handleBlessWish(wishCard, wish));
             
@@ -1200,7 +1349,6 @@ function setupModalClose() {
         try {
             const token = localStorage.getItem('token');
             if (!token) {
-                // 修改这里：直接显示登录弹窗而不是调用showLoginModal()
                 toggleAuthModal(true);
                 switchAuthTab('login');
                 return;
@@ -1274,20 +1422,6 @@ function setupModalClose() {
         }
     }
 
-
-    // 在handleLogin函数的成功回调中添加
-const savedData = sessionStorage.getItem('tempWishFormData');
-if (savedData) {
-    const formData = JSON.parse(savedData);
-    document.getElementById('name').value = formData.name;
-    document.getElementById('birthday').value = formData.birthday;
-    // 恢复其他字段...
-    sessionStorage.removeItem('tempWishFormData');
-    
-    // 自动滚动到表单位置
-    document.querySelector('.mingyuan-form').scrollIntoView({ behavior: 'smooth' });
-}
-
     // 处理还愿
     async function handleFulfillWish(wish) {
         try {
@@ -1331,108 +1465,104 @@ if (savedData) {
 
     // 处理表单提交
     async function handleSubmitWish(e) {
-    e.preventDefault();
-    
-    // 检查用户是否登录
-    const token = localStorage.getItem('token');
-    if (!token) {
-        // ▼▼▼ 新增的表单保存代码 ▼▼▼
-        const formData = {
-            name: document.getElementById('name').value,
-            birthday: document.getElementById('birthday').value,
-            birthtime: document.getElementById('birthtime').value,
-            content: document.getElementById('wishContent').value,
-            type: document.getElementById('wishType').value,
-            visibility: document.querySelector('input[name="visibility"]:checked').value
-        };
-        sessionStorage.setItem('tempWishFormData', JSON.stringify(formData));
-        // ▲▲▲ 新增代码结束 ▲▲▲
+        e.preventDefault();
         
-        toggleAuthModal(true);
-        switchAuthTab('login');
-        showAuthMessage(loginMessage, '请先登录后才能许愿', 'info');
-        return;
-    }
-
-    const name = document.getElementById('name').value.trim() || '匿名用户';
-    const birthday = document.getElementById('birthday').value;
-    const birthtime = document.getElementById('birthtime').value;
-    const content = document.getElementById('wishContent').value.trim();
-    
-    if (!content || !birthday || !birthtime) {
-        showErrorMessage('请填写完整的愿望内容和出生信息');
-        return;
-    }
-
-    const bazi = calculateBazi(birthday, birthtime);
-    if (!bazi) {
-        showErrorMessage('八字计算失败，请检查出生日期和时间');
-        return;
-    }
-
-    const submitBtn = e.target.querySelector('button[type="submit"]');
-    submitBtn.disabled = true;
-    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 提交中...';
-
-    try {
-        // 验证JWT并获取用户ID
-        const payload = verifyJWT(token);
-        if (!payload || !payload.id) {
-            throw new Error('无效的用户信息');
-        }
-
-        const response = await fetch(API_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({
-                content,
-                user_name: name,
-                birth_date: birthday,
-                birth_time: birthtime,
+        const token = localStorage.getItem('token');
+        if (!token) {
+            const formData = {
+                name: document.getElementById('name').value,
+                birthday: document.getElementById('birthday').value,
+                birthtime: document.getElementById('birthtime').value,
+                content: document.getElementById('wishContent').value,
                 type: document.getElementById('wishType').value,
-                visibility: document.querySelector('input[name="visibility"]:checked').value,
-                solar_date: new Date().toISOString().split('T')[0],
-                bazi: bazi,
-                user_id: payload.id
-            })
-        });
-
-        if (!response.ok) {
-            throw new Error(await response.text());
-        }
-
-        showSuccessMessage('愿望已成功投入命缘池！');
-        wishForm.reset();
-        baziInfo.style.display = 'none';
-        
-        loadAllWishes();
-    } catch (error) {
-        console.error('提交错误:', error);
-        showErrorMessage(`提交失败: ${error.message}`);
-        if (error.message.includes('未授权') || error.message.includes('无效的用户信息')) {
+                visibility: document.querySelector('input[name="visibility"]:checked').value
+            };
+            sessionStorage.setItem('tempWishFormData', JSON.stringify(formData));
+            
             toggleAuthModal(true);
             switchAuthTab('login');
+            showAuthMessage(loginMessage, '请先登录后才能许愿', 'info');
+            return;
         }
-    } finally {
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> 投入命缘池';
+
+        const name = document.getElementById('name').value.trim() || '匿名用户';
+        const birthday = document.getElementById('birthday').value;
+        const birthtime = document.getElementById('birthtime').value;
+        const content = document.getElementById('wishContent').value.trim();
+        
+        if (!content || !birthday || !birthtime) {
+            showErrorMessage('请填写完整的愿望内容和出生信息');
+            return;
+        }
+
+        const bazi = calculateBazi(birthday, birthtime);
+        if (!bazi) {
+            showErrorMessage('八字计算失败，请检查出生日期和时间');
+            return;
+        }
+
+        const submitBtn = e.target.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 提交中...';
+
+        try {
+            const payload = verifyJWT(token);
+            if (!payload || !payload.id) {
+                throw new Error('无效的用户信息');
+            }
+
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    content,
+                    user_name: name,
+                    birth_date: birthday,
+                    birth_time: birthtime,
+                    type: document.getElementById('wishType').value,
+                    visibility: document.querySelector('input[name="visibility"]:checked').value,
+                    solar_date: new Date().toISOString().split('T')[0],
+                    bazi: bazi,
+                    user_id: payload.id
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(await response.text());
+            }
+
+            showSuccessMessage('愿望已成功投入命缘池！');
+            wishForm.reset();
+            baziInfo.style.display = 'none';
+            
+            loadAllWishes();
+        } catch (error) {
+            console.error('提交错误:', error);
+            showErrorMessage(`提交失败: ${error.message}`);
+            if (error.message.includes('未授权') || error.message.includes('无效的用户信息')) {
+                toggleAuthModal(true);
+                switchAuthTab('login');
+            }
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> 投入命缘池';
+        }
     }
-}
 
     function verifyJWT(token) {
-    try {
-        const [encodedHeader, encodedPayload, signature] = token.split('.');
-        const payloadStr = atob(encodedPayload.replace(/-/g, '+').replace(/_/g, '/'));
-        return JSON.parse(payloadStr);
-    } catch (err) {
-        console.error('JWT解析错误:', err);
-        return null;
+        try {
+            const [encodedHeader, encodedPayload, signature] = token.split('.');
+            const payloadStr = atob(encodedPayload.replace(/-/g, '+').replace(/_/g, '/'));
+            return JSON.parse(payloadStr);
+        } catch (err) {
+            console.error('JWT解析错误:', err);
+            return null;
+        }
     }
-}
     
     // 计算八字
     function calculateBazi(birthday, birthtime) {
@@ -1627,76 +1757,71 @@ if (savedData) {
 
     /* ==================== 图表初始化 ==================== */
 
-// 能量图表配置
-function initEnergyChart() {
-    try {
-        const ctx = document.getElementById('energyChart');
-        if (!ctx) {
-            console.error('找不到energyChart canvas元素');
-            return;
-        }
-        
-        // 确保canvas有父容器尺寸
-        const container = ctx.closest('.energy-chart');
-        if (container) {
-            container.style.height = container.style.height || '300px';
-        }
+    // 能量图表配置
+    function initEnergyChart() {
+        try {
+            const ctx = document.getElementById('energyChart');
+            if (!ctx) {
+                console.error('找不到energyChart canvas元素');
+                return;
+            }
+            
+            const container = ctx.closest('.energy-chart');
+            if (container) {
+                container.style.height = container.style.height || '300px';
+            }
 
-        // 安全地销毁旧图表实例
-        if (window.energyChart && typeof window.energyChart.destroy === 'function') {
-            window.energyChart.destroy();
-        } else if (window.energyChart) {
-            // 如果不是有效图表实例，清除引用
-            console.warn('发现无效的图表实例，正在清除');
-            window.energyChart = null;
-        }
+            if (window.energyChart && typeof window.energyChart.destroy === 'function') {
+                window.energyChart.destroy();
+            } else if (window.energyChart) {
+                console.warn('发现无效的图表实例，正在清除');
+                window.energyChart = null;
+            }
 
-        // 创建新图表实例
-        window.energyChart = new Chart(ctx.getContext('2d'), {  // 修复了这里的括号错误
-            type: 'line',
-            data: {
-                labels: ['1月', '2月', '3月', '4月', '5月', '6月'],
-                datasets: [{
-                    label: '能量强度',
-                    data: [65, 79, 90, 81, 56, 75],
-                    borderColor: '#6a11cb',
-                    backgroundColor: 'rgba(106, 17, 203, 0.1)',
-                    borderWidth: 2,
-                    tension: 0.4,
-                    pointRadius: 4,
-                    pointBackgroundColor: '#6a11cb',
-                    fill: true
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false },
-                    tooltip: { 
-                        backgroundColor: 'rgba(10, 10, 20, 0.9)',
-                        titleFont: { family: "'Noto Serif SC', serif" },
-                        bodyFont: { family: "'Noto Serif SC', serif" }
-                    }
+            window.energyChart = new Chart(ctx.getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: ['1月', '2月', '3月', '4月', '5月', '6月'],
+                    datasets: [{
+                        label: '能量强度',
+                        data: [65, 79, 90, 81, 56, 75],
+                        borderColor: '#6a11cb',
+                        backgroundColor: 'rgba(106, 17, 203, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#6a11cb',
+                        fill: true
+                    }]
                 },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        grid: { color: 'rgba(255, 255, 255, 0.1)' },
-                        ticks: { color: '#b8c2cc' }
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { 
+                            backgroundColor: 'rgba(10, 10, 20, 0.9)',
+                            titleFont: { family: "'Noto Serif SC', serif" },
+                            bodyFont: { family: "'Noto Serif SC', serif" }
+                        }
                     },
-                    x: {
-                        grid: { color: 'rgba(255, 255, 255, 0.1)' },
-                        ticks: { color: '#b8c2cc' }
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                            ticks: { color: '#b8c2cc' }
+                        },
+                        x: {
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                            ticks: { color: '#b8c2cc' }
+                        }
                     }
                 }
-            }
-        });
-    } catch (error) {
-        console.error('初始化能量图表失败:', error);
+            });
+        } catch (error) {
+            console.error('初始化能量图表失败:', error);
+        }
     }
-}
-
     
     /* ==================== 特效功能 ==================== */
 
@@ -1880,19 +2005,15 @@ function initEnergyChart() {
             }
         });
 
-        // 八字计算
         document.getElementById('birthday').addEventListener('change', updateBaziInfo);
         document.getElementById('birthtime').addEventListener('change', updateBaziInfo);
 
-        // 字数统计
         wishContent.addEventListener('input', () => {
             charCount.textContent = wishContent.value.length;
         });
 
-        // 刷新统计
         refreshStatsBtn.addEventListener('click', fetchStats);
 
-        // 表单提交
         wishForm.addEventListener('submit', handleSubmitWish);
     }
 
@@ -1923,14 +2044,15 @@ function initEnergyChart() {
     // 主初始化函数
     async function initialize() {
         await loadLunarJS();
-        initAuthEvents();  // 初始化登录注册事件
-        checkLoginStatus(); // 检查登录状态
+        initAuthEvents();
+        checkLoginStatus();
+        setupUserCardsModal(); // 初始化用户卡片浮窗
         initEventListeners();
         loadAllWishes();
         fetchStats();
-        initEnergyChart(); // 添加这行初始化图表
-        setupModalClose(); // 添加这行
-        setInterval(fetchStats, 5 * 60 * 1000); // 每5分钟自动更新一次统计数据
+        initEnergyChart();
+        setupModalClose();
+        setInterval(fetchStats, 5 * 60 * 1000);
     }
 
     // 启动应用
