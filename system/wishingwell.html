@@ -394,6 +394,17 @@
             <div class="mantra-text" data-text="吽">吽</div>
         </div>
     </div>
+
+    <!-- 放在 body 的靠前位置 -->
+    <div class="user-cards-modal" id="userCardsModal">
+        <div class="user-cards-container">
+            <div class="user-cards-header">
+                <h3><i class="fas fa-id-card"></i> 我的愿望卡片</h3>
+                <span class="close-cards">&times;</span>
+            </div>
+            <div class="user-cards-list" id="userCardsList"></div>
+        </div>
+    </div>
     
    <!-- 还愿模态框 -->
     <div id="fulfillModal" class="modal">
@@ -1197,26 +1208,37 @@ async function deleteUserWish(wishId, cardElement) {
     }
 }
 
-// 初始化用户卡片浮窗事件
+// 修改 initUserCardsModal 函数
 function initUserCardsModal() {
-    const userWelcome = document.getElementById('userWelcome');
-    const modal = document.getElementById('userCardsModal');
-    const closeBtn = document.querySelector('.close-cards');
-    
-    // 点击用户名打开浮窗
-    userWelcome.addEventListener('click', showUserCards);
-    
-    // 关闭浮窗
-    closeBtn.addEventListener('click', () => {
-        modal.classList.remove('active');
-    });
-    
-    // 点击外部关闭
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-            modal.classList.remove('active');
+    try {
+        const userWelcome = document.getElementById('userWelcome');
+        const modal = document.getElementById('userCardsModal');
+        const closeBtn = modal ? modal.querySelector('.close-cards') : null;
+        
+        if (!userWelcome || !modal || !closeBtn) {
+            console.warn('用户卡片浮窗元素未找到，将延迟初始化');
+            setTimeout(initUserCardsModal, 500); // 延迟500ms重试
+            return;
         }
-    });
+        
+        // 点击用户名打开浮窗
+        userWelcome.addEventListener('click', showUserCards);
+        
+        // 关闭浮窗
+        closeBtn.addEventListener('click', () => {
+            modal.classList.remove('active');
+        });
+        
+        // 点击外部关闭
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.classList.remove('active');
+            }
+        });
+        
+    } catch (error) {
+        console.error('初始化用户卡片浮窗失败:', error);
+    }
 }
     
 
@@ -1867,11 +1889,13 @@ function initEnergyChart() {
 
     // 主初始化函数
     async function initialize() {
+        initUserCardsModal(); // 新增这行
+        
         await loadLunarJS();
         initAuthEvents();  // 初始化登录注册事件
         checkLoginStatus(); // 检查登录状态
         initEventListeners();
-        initUserCardsModal(); // 新增这行
+        
         loadAllWishes();
         fetchStats();
         initEnergyChart(); // 添加这行初始化图表
