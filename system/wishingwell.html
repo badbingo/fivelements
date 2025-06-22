@@ -1007,40 +1007,129 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 加载用户卡片
     async function loadUserCards() {
-    const container = document.getElementById('userCardsGrid');
-    const token = localStorage.getItem('token');
+  const container = document.getElementById('userCardsGrid');
+  const token = localStorage.getItem('token');
+
+  // 1. 检查登录状态
+  if (!token) {
+    container.innerHTML = `
+      <div class="error-message">
+        <i class="fas fa-exclamation-circle"></i>
+        <p>请先登录查看愿望卡片</p>
+      </div>
+    `;
+    return;
+  }
+
+  // 2. 显示加载状态
+  container.innerHTML = `
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>正在加载您的愿望卡片...</p>
+    </div>
+  `;
+
+  try {
+    // 3. 发起API请求
+    const response = await fetch(`${API_BASE}/api/user/wishes`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    // 4. 处理响应
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(
+        errorData.message || 
+        `请求失败 (${response.status} ${response.statusText})`
+      );
+    }
+
+    const cards = await response.json();
+
+    // 5. 检查数据有效性
+    if (!Array.isArray(cards)) {
+      throw new Error('返回数据格式不正确');
+    }
+
+    // 6. 渲染结果
+    if (cards.length === 0) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <i class="fas fa-inbox"></i>
+          <p>您还没有创建任何愿望卡片</p>
+          <button class="btn-create" onclick="showWishForm()">
+            创建第一个愿望
+          </button>
+        </div>
+      `;
+    } else {
+      renderUserCards(cards);
+    }
+
+  } catch (error) {
+    console.error('加载卡片失败:', error);
     
-    if (!token) {
-        container.innerHTML = '<div>请先登录</div>';
-        return;
-    }
-
-    try {
-        container.innerHTML = '<div>加载中...</div>';
-        
-        const response = await fetch(`${API_BASE}/api/user/wishes`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-
-        if (!response.ok) {
-            const err = await response.text();
-            throw new Error(err || `请求失败: ${response.status}`);
-        }
-
-        const cards = await response.json();
-        
-        if (!cards?.length) {
-            container.innerHTML = '<div>暂无愿望卡片</div>';
-            return;
-        }
-
-        renderUserCards(cards);
-        
-    } catch (error) {
-        console.error('加载失败:', error);
-        container.innerHTML = `<div>加载失败: ${error.message}</div>`;
-    }
+    // 7. 错误处理
+    container.innerHTML = `
+      <div class="error-state">
+        <i class="fas fa-exclamation-triangle"></i>
+        <p>加载失败: ${error.message}</p>
+        <div class="action-buttons">
+          <button class="btn-retry" onclick="loadUserCards()">
+            <i class="fas fa-sync-alt"></i> 重新加载
+          </button>
+          <button class="btn-support" onclick="contactSupport()">
+            <i class="fas fa-life-ring"></i> 联系支持
+          </button>
+        </div>
+      </div>
+    `;
+  }
 }
+
+// 示例渲染函数（需根据实际UI调整）
+function renderUserCards(cards) {
+  const container = document.getElementById('userCardsGrid');
+  container.innerHTML = cards.map(card => `
+    <div class="wish-card" data-id="${card.id}">
+      <div class="card-header">
+        <span class="wish-type">${getTypeName(card.type)}</span>
+        <span class="wish-date">${formatDate(card.created_at)}</span>
+      </div>
+      <div class="card-content">
+        <p>${card.content}</p>
+      </div>
+      <div class="card-footer">
+        <span class="blessings">
+          <i class="fas fa-hands-helping"></i> ${card.blessings || 0}次加持
+        </span>
+        <button class="btn-delete" onclick="deleteCard('${card.id}')">
+          <i class="fas fa-trash-alt"></i>
+        </button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// 辅助函数
+function getTypeName(type) {
+  const types = {
+    love: '姻缘感情',
+    wealth: '财富事业',
+    health: '健康平安',
+    study: '学业成长'
+  };
+  return types[type] || '其他愿望';
+}
+
+function formatDate(timestamp) {
+  return new Date(timestamp * 1000).toLocaleDateString();
+}
+
+    
     
     // 渲染用户卡片
     function renderUserCards(cards) {
