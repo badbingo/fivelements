@@ -1007,27 +1007,34 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 加载用户卡片
     async function loadUserCards() {
+    const token = localStorage.getItem('token');
+    if (!token) {
+        showErrorToast('请先登录');
+        return;
+    }
+
+    const container = document.getElementById('userCardsGrid');
+    container.innerHTML = '<div class="loading">加载中...</div>';
+
     try {
         const response = await fetch(`${API_BASE}/api/user/wishes`, {
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
-            }
+            headers: { 'Authorization': `Bearer ${token}` }
         });
         
         if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error || '获取卡片失败');
+            const error = await response.json().catch(() => ({}));
+            throw new Error(error.error || `请求失败: ${response.status}`);
         }
         
         const cards = await response.json();
+        container.innerHTML = '';
         renderUserCards(cards);
         
     } catch (error) {
-        console.error('加载失败:', error);
+        container.innerHTML = '';
         showErrorToast(error.message);
     }
 }
-
     // 渲染用户卡片
     function renderUserCards(cards) {
         const userCardsGrid = document.getElementById('userCardsGrid');
