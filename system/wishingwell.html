@@ -748,56 +748,103 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 处理登录
     async function handleLogin(e) {
-        e.preventDefault();
+    e.preventDefault();
+    
+    const username = document.getElementById('loginUsername').value.trim();
+    const password = document.getElementById('loginPassword').value.trim();
+    
+    if (!username || !password) {
+        showAuthMessage(loginMessage, '请输入用户名和密码', 'error');
+        return;
+    }
+    
+    submitLogin.disabled = true;
+    loginSpinner.style.display = 'inline-block';
+    document.getElementById('loginText').style.display = 'none';
+    
+    try {
+        const response = await fetch(`${API_BASE}/api/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: username, password })
+        });
         
-        const username = document.getElementById('loginUsername').value.trim();
-        const password = document.getElementById('loginPassword').value.trim();
+        const result = await response.json();
         
-        if (!username || !password) {
-            showAuthMessage(loginMessage, '请输入用户名和密码', 'error');
-            return;
+        if (!response.ok) {
+            throw new Error(result.error || '登录失败');
         }
         
-        submitLogin.disabled = true;
-        loginSpinner.style.display = 'inline-block';
-        document.getElementById('loginText').style.display = 'none';
+        localStorage.setItem('token', result.token);
+        localStorage.setItem('username', username);
         
-        try {
-            const response = await fetch(`${API_BASE}/api/login`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name: username, password })
-            });
+        // ▼▼▼ 新增的表单恢复逻辑 ▼▼▼
+        const savedData = sessionStorage.getItem('tempWishFormData');
+        if (savedData) {
+            const formData = JSON.parse(savedData);
             
-            const result = await response.json();
+            // 恢复表单字段
+            document.getElementById('name').value = formData.name || '';
+            document.getElementById('birthday').value = formData.birthday || '';
+            document.getElementById('birthtime').value = formData.birthtime || '';
+            document.getElementById('wishContent').value = formData.content || '';
+            document.getElementById('wishType').value = formData.type || 'love';
             
-            if (!response.ok) {
-                throw new Error(result.error || '登录失败');
+            // 恢复单选按钮状态
+            if (formData.visibility) {
+                const radio = document.querySelector(`input[name="visibility"][value="${formData.visibility}"]`);
+                if (radio) radio.checked = true;
             }
             
-            localStorage.setItem('token', result.token);
-            localStorage.setItem('username', username);
+            // 更新字数统计
+            document.getElementById('charCount').textContent = formData.content?.length || 0;
             
-            showAuthMessage(loginMessage, '登录成功！', 'success');
-            checkLoginStatus();
+            // 清理临时存储
+            sessionStorage.removeItem('tempWishFormData');
             
-            // 清空表单
-            document.getElementById('loginUsername').value = '';
-            document.getElementById('loginPassword').value = '';
-            
-            // 2秒后自动关闭弹窗
+            // 自动滚动并更新八字信息
             setTimeout(() => {
-                toggleAuthModal(false);
-            }, 2000);
-            
-        } catch (error) {
-            showAuthMessage(loginMessage, error.message, 'error');
-        } finally {
-            submitLogin.disabled = false;
-            loginSpinner.style.display = 'none';
-            document.getElementById('loginText').style.display = 'inline';
+                document.querySelector('.mingyuan-form').scrollIntoView({ 
+                    behavior: 'smooth',
+                    block: 'center'
+                });
+                
+                if (formData.birthday && formData.birthtime) {
+                    updateBaziInfo();
+                }
+            }, 100);
         }
+        // ▲▲▲ 新增代码结束 ▲▲▲
+        
+        showAuthMessage(loginMessage, '登录成功！', 'success');
+        checkLoginStatus();
+        
+        // 清空表单
+        document.getElementById('loginUsername').value = '';
+        document.getElementById('loginPassword').value = '';
+        
+        // 2秒后自动关闭弹窗
+        setTimeout(() => {
+            toggleAuthModal(false);
+            
+            // 如果是从愿望表单跳转过来的，显示成功提示
+            if (savedData) {
+                showToast('登录成功！您可以继续提交愿望', 'success');
+            }
+        }, 2000);
+        
+    } catch (error) {
+        console.error('登录错误:', error);
+        showAuthMessage(loginMessage, error.message, 'error');
+        
+        // 登录失败时保留输入的用户名
+        document.getElementById('loginUsername').value = username;
+    } finally {
+        submitLogin.disabled = false;
+        loginSpinner.style.display = 'none';
+        document.getElementById('loginText').style.display = 'inline';
     }
+}
 
     // 处理注册
     async function handleRegister(e) {
@@ -1227,25 +1274,7 @@ function setupModalClose() {
         }
     }
 
-    if (!token) {
-    toggleAuthModal(true);
-    switchAuthTab('login');
-    showAuthMessage(loginMessage, '请先登录后才能许愿', 'info');
-    return;
-}
-    if (!token) {
-    // 保存当前表单数据到临时存储
-    const formData = {
-        name: document.getElementById('name').value,
-        birthday: document.getElementById('birthday').value,
-        // 其他字段...
-    };
-    sessionStorage.setItem('tempWishFormData', JSON.stringify(formData));
-    
-    toggleAuthModal(true);
-    switchAuthTab('login');
-    return;
-}
+
     // 在handleLogin函数的成功回调中添加
 const savedData = sessionStorage.getItem('tempWishFormData');
 if (savedData) {
@@ -1307,8 +1336,21 @@ if (savedData) {
     // 检查用户是否登录
     const token = localStorage.getItem('token');
     if (!token) {
+        // ▼▼▼ 新增的表单保存代码 ▼▼▼
+        const formData = {
+            name: document.getElementById('name').value,
+            birthday: document.getElementById('birthday').value,
+            birthtime: document.getElementById('birthtime').value,
+            content: document.getElementById('wishContent').value,
+            type: document.getElementById('wishType').value,
+            visibility: document.querySelector('input[name="visibility"]:checked').value
+        };
+        sessionStorage.setItem('tempWishFormData', JSON.stringify(formData));
+        // ▲▲▲ 新增代码结束 ▲▲▲
+        
         toggleAuthModal(true);
         switchAuthTab('login');
+        showAuthMessage(loginMessage, '请先登录后才能许愿', 'info');
         return;
     }
 
