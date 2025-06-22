@@ -1010,85 +1010,63 @@ document.addEventListener('DOMContentLoaded', function() {
   const container = document.getElementById('userCardsGrid');
   
   try {
-    // 1. 检查认证
+    // 检查登录状态
     const token = localStorage.getItem('token');
-    if (!token) throw new Error('请先登录');
+    if (!token) {
+      container.innerHTML = '<div class="error">请先登录</div>';
+      return;
+    }
 
-    // 2. 显示加载状态
-    container.innerHTML = `<div class="loader">加载中...</div>`;
+    // 显示加载状态
+    container.innerHTML = '<div class="loader">加载中...</div>';
 
-    // 3. 发起请求（添加时间戳避免缓存）
-    const apiUrl = new URL(`${API_BASE}/api/user/wishes`);
-    apiUrl.searchParams.append('_t', Date.now()); // 防止缓存
-    
-    const response = await fetch(apiUrl, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'CF-Report-To': 'false' // 禁用Cloudflare报告
-      },
-      signal: AbortSignal.timeout(8000) // 8秒超时
+    // 发起请求
+    const response = await fetch(`${API_BASE}/api/user/wishes`, {
+      headers: { 'Authorization': `Bearer ${token}` }
     });
 
-    // 4. 处理HTTP错误
-    if (response.status === 404) {
-      throw new Error('API接口不存在，请联系管理员');
-    }
+    // 处理响应
     if (!response.ok) {
-      const err = await response.json().catch(() => null);
-      throw new Error(err?.message || `请求失败 (${response.status})`);
+      const error = await response.json().catch(() => null);
+      throw new Error(error?.message || `请求失败: ${response.status}`);
     }
 
-    // 5. 验证数据
     const cards = await response.json();
     if (!Array.isArray(cards)) {
-      throw new Error('服务器返回数据格式错误');
+      throw new Error('返回数据格式错误');
     }
 
-    // 6. 渲染结果
+    // 渲染结果
     container.innerHTML = '';
     if (cards.length === 0) {
       container.innerHTML = '<div class="empty">暂无愿望卡片</div>';
     } else {
-      cards.forEach(card => {
-        container.appendChild(createCardElement(card));
-      });
+      renderUserCards(cards);
     }
 
   } catch (error) {
-    console.error('[加载失败]', error);
+    console.error('加载失败:', error);
+    
+    // 安全显示错误信息
+    const errorMessage = typeof error === 'string' ? error : 
+      error.message || '未知错误';
+    
     container.innerHTML = `
       <div class="error">
-        <p>${error.message}</p>
-        <button onclick="retryLoad()">重试</button>
-        ${error.name === 'AbortError' ? '<p>请求超时，请检查网络</p>' : ''}
+        <p>${escapeHtml(errorMessage)}</p>
+        <button onclick="loadUserCards()">重试</button>
       </div>
     `;
-    
-    // 上报错误（可选）
-    if (!error.message.includes('请先登录')) {
-      reportErrorToServer(error);
-    }
   }
 }
 
-// 卡片创建辅助函数
-function createCardElement(card) {
-  const el = document.createElement('div');
-  el.className = 'wish-card';
-  el.innerHTML = `
-    <h3>${escapeHtml(card.title)}</h3>
-    <p>${formatDate(card.created_at)}</p>
-    <div class="content">${escapeHtml(card.content)}</div>
-  `;
-  return el;
-}
-
-// 安全HTML输出
-function escapeHtml(unsafe) {
-  return unsafe?.toString()
+// HTML转义辅助函数
+function escapeHtml(str) {
+  return str?.toString()
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;") || '';
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;") || '';
 }
 
 
