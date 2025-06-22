@@ -1077,27 +1077,37 @@ async function showUserCards() {
         });
         
         if (!response.ok) {
-            throw new Error('获取愿望失败');
+            const errorData = await response.json();
+            throw new Error(errorData.error || '获取愿望失败');
         }
         
         const wishes = await response.json();
+        
+        if (!Array.isArray(wishes)) {
+            throw new Error('返回数据格式不正确');
+        }
         
         if (wishes.length === 0) {
             cardsList.innerHTML = `
                 <div class="empty-cards">
                     <i class="fas fa-box-open"></i>
                     <p>您还没有创建任何愿望卡片</p>
+                    <button onclick="document.getElementById('wishForm').scrollIntoView()" 
+                            class="btn-mingyuan" style="margin-top:15px">
+                        <i class="fas fa-plus"></i> 创建新愿望
+                    </button>
                 </div>
             `;
             return;
         }
         
-        // 渲染愿望卡片
+        // 渲染愿望卡片网格
         cardsList.innerHTML = '';
         wishes.forEach(wish => {
             const card = document.createElement('div');
             card.className = 'user-card-item';
             card.dataset.id = wish.id;
+            card.dataset.type = wish.type || 'other';
             
             // 计算剩余天数
             const createdDate = new Date(wish.created_at);
@@ -1105,24 +1115,72 @@ async function showUserCards() {
             expiresAt.setDate(expiresAt.getDate() + 30);
             const daysLeft = Math.max(0, Math.ceil((expiresAt - new Date()) / (86400000)));
             
+            // 状态标签
+            const statusLabel = wish.is_fulfilled ? 
+                '<span class="card-status" style="background:#55efc420;color:#55efc4"><i class="fas fa-check-circle"></i> 已还愿</span>' :
+                `<span class="card-status"><i class="fas fa-spinner fa-pulse"></i> 进行中</span>`;
+            
+            // 能量等级
+            const level = wish.level || 1;
+            const levelPercent = level * 20;
+            const levelNames = ['初愿', '小成', '中成', '大成', '圆满'];
+            const levelColor = ['#6a11cb', '#2575fc', '#00b894', '#fdcb6e', '#e84393'][level - 1];
+            
+            // 愿望类型图标
+            const typeIcons = {
+                'love': 'fas fa-heart',
+                'wealth': 'fas fa-coins',
+                'health': 'fas fa-heartbeat',
+                'study': 'fas fa-graduation-cap',
+                'family': 'fas fa-home',
+                'other': 'fas fa-star'
+            };
+            const typeIcon = typeIcons[wish.type] || 'fas fa-star';
+            
             card.innerHTML = `
-                <div class="wish-header">
-                    <div class="wish-user">
-                        <i class="fas fa-user"></i> <span class="user-name">${wish.user_name || '匿名用户'}</span>
+                ${statusLabel}
+                <div class="user-card-content">
+                    <div class="wish-header">
+                        <div class="wish-user">
+                            <i class="fas fa-user"></i> 
+                            <span class="user-name">${wish.user_name || '匿名用户'}</span>
+                            <span class="wish-type-badge">
+                                <i class="${typeIcon}"></i> 
+                                ${getWishTypeName(wish.type)}
+                            </span>
+                        </div>
                     </div>
-                    <span class="wish-time">剩余<span class="days-left">${daysLeft}</span>天</span>
-                </div>
-                <div class="wish-content">
-                    <p class="wish-text">${wish.content}</p>
-                </div>
-                <div class="card-meta">
-                    <span>创建于: ${new Date(wish.created_at).toLocaleString()}</span>
-                    <span>加持次数: ${wish.blessings || 0}</span>
-                </div>
-                <div class="wish-actions">
-                    <button class="btn-delete">
-                        <i class="fas fa-trash-alt"></i> 删除
-                    </button>
+                    
+                    <div class="wish-content">
+                        <p class="wish-text">${wish.content}</p>
+                    </div>
+                    
+                    <div class="card-progress">
+                        <div class="card-energy-level">
+                            <div class="card-energy-level-fill" 
+                                 style="width: ${levelPercent}%; background: ${levelColor}"></div>
+                        </div>
+                        <div class="level-info">
+                            <span>${levelNames[level - 1]}等级</span>
+                            <span>${wish.blessings || 0}次加持</span>
+                        </div>
+                    </div>
+                    
+                    <div class="card-meta">
+                        <span><i class="fas fa-calendar-plus"></i> ${formatDate(wish.created_at)}</span>
+                        <span><i class="fas fa-calendar-check"></i> 剩余${daysLeft}天</span>
+                    </div>
+                    
+                    <div class="user-card-actions">
+                        ${!wish.is_fulfilled ? `
+                        <button class="btn-fulfill-small">
+                            <i class="fas fa-hand-holding-heart"></i> 还愿
+                        </button>
+                        ` : ''}
+                        <button class="btn-delete">
+                            <i class="fas fa-trash-alt"></i> 删除
+                        </button>
+                    </div>
                 </div>
             `;
             
@@ -1133,21 +1191,89 @@ async function showUserCards() {
                 deleteUserWish(wish.id, card);
             });
             
+            // 添加还愿事件（如果未还愿）
+            if (!wish.is_fulfilled) {
+                const fulfillBtn = card.querySelector('.btn-fulfill-small');
+                fulfillBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    handleFulfillWish(wish);
+                    modal.classList.remove('active');
+                });
+            }
+            
+            // 点击卡片主体查看详情
+            card.querySelector('.user-card-content').addEventListener('click', () => {
+                showWishDetail(wish);
+            });
+            
             cardsList.appendChild(card);
         });
+        
+        // 添加创建新愿望按钮
+        if (wishes.length > 3) {
+            const newCardBtn = document.createElement('div');
+            newCardBtn.className = 'user-card-item new-card-btn';
+            newCardBtn.innerHTML = `
+                <div class="user-card-content">
+                    <div class="add-new-card">
+                        <i class="fas fa-plus-circle"></i>
+                        <p>创建新愿望</p>
+                    </div>
+                </div>
+            `;
+            newCardBtn.addEventListener('click', () => {
+                modal.classList.remove('active');
+                document.getElementById('wishForm').scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+            cardsList.appendChild(newCardBtn);
+        }
+        
     } catch (error) {
         console.error('加载用户卡片失败:', error);
         cardsList.innerHTML = `
             <div class="wish-loading">
                 <i class="fas fa-exclamation-triangle" style="color: #ff6b6b;"></i>
                 <p>加载失败：${error.message}</p>
-                <button onclick="showUserCards()" class="btn-mingyuan">
-                    <i class="fas fa-sync-alt"></i> 重新加载
-                </button>
+                <div class="retry-buttons">
+                    <button onclick="showUserCards()" class="btn-mingyuan">
+                        <i class="fas fa-sync-alt"></i> 重新加载
+                    </button>
+                    <button onclick="location.reload()" class="btn-mingyuan">
+                        <i class="fas fa-redo"></i> 刷新页面
+                    </button>
+                </div>
             </div>
         `;
     }
 }
+
+// 辅助函数
+function getWishTypeName(type) {
+    const typeNames = {
+        'love': '姻缘',
+        'wealth': '财富', 
+        'health': '健康',
+        'study': '学业', 
+        'family': '家庭', 
+        'other': '其他'
+    };
+    return typeNames[type] || '其他';
+}
+
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    return `${date.getFullYear()}-${(date.getMonth()+1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
+}
+
+function showWishDetail(wish) {
+    // 这里可以实现查看愿望详情的功能
+    console.log('查看愿望详情:', wish);
+    // 例如打开一个详情模态框或跳转到详情页
+}
+
+    
 
 // 删除用户愿望
 async function deleteUserWish(wishId, cardElement) {
