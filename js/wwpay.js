@@ -964,7 +964,7 @@ class WWPay {
       
       const methodsHtml = `
         <div class="payment-methods" id="payment-methods-section">
-          <h4 style="text-align: center; margin-bottom: 20px; color: #333;">
+          <h4 style="text-align: center; margin-bottom: 20px; color: white;">
             <i class="fas fa-wallet" style="margin-right: 8px;"></i>选择支付方式
           </h4>
           <div class="wwpay-methods-container">
