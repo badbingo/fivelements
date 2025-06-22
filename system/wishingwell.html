@@ -1275,7 +1275,8 @@ function setupModalClose() {
     // 检查用户是否登录
     const token = localStorage.getItem('token');
     if (!token) {
-        showLoginModal();
+        toggleAuthModal(true);
+        switchAuthTab('login');
         return;
     }
 
@@ -1322,7 +1323,7 @@ function setupModalClose() {
                 visibility: document.querySelector('input[name="visibility"]:checked').value,
                 solar_date: new Date().toISOString().split('T')[0],
                 bazi: bazi,
-                user_id: payload.id  // 使用真实的用户ID
+                user_id: payload.id
             })
         });
 
@@ -1339,7 +1340,8 @@ function setupModalClose() {
         console.error('提交错误:', error);
         showErrorMessage(`提交失败: ${error.message}`);
         if (error.message.includes('未授权') || error.message.includes('无效的用户信息')) {
-            showLoginModal();
+            toggleAuthModal(true);
+            switchAuthTab('login');
         }
     } finally {
         submitBtn.disabled = false;
