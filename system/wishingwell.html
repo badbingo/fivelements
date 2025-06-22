@@ -376,49 +376,46 @@ document.addEventListener('DOMContentLoaded', function() {
     const searchBtn = document.getElementById('searchBtn');
     const clearSearchBtn = document.getElementById('clearSearchBtn');
 
-    // ==================== 初始化设置 ====================
-    // 1. 设置默认排序为"最新愿望"
-    if (sortFilter) {
-        sortFilter.value = 'newest';
-    } else {
-        console.warn('未找到排序筛选元素');
-    }
+    // 初始化加载愿望数据
+    async function loadAllWishes() {
+        try {
+            wishPool.innerHTML = `
+                <div class="wish-loading">
+                    <div class="loader"></div>
+                    <p>正在连接命缘池能量场...</p>
+                </div>
+            `;
 
-    // 2. 初始化搜索功能
-    function initSearchFunctionality() {
-        // 搜索按钮点击事件
-        searchBtn.addEventListener('click', () => {
-            currentSearchTerm = wishSearch.value.trim();
-            if (currentSearchTerm) {
-                currentPage = 1;
-                renderFilteredWishes();
-                clearSearchBtn.style.display = 'inline-block';
+            // 确保按最新愿望排序请求
+            const response = await fetch(API_URL + '?visibility=public&sort=newest');
+            const data = await response.json();
+            
+            allWishes = Array.isArray(data) ? data : data.data || [];
+            
+            if (!Array.isArray(allWishes)) {
+                throw new Error('返回的不是愿望数组');
             }
-        });
-
-        // 清空搜索按钮
-        clearSearchBtn.addEventListener('click', () => {
-            wishSearch.value = '';
-            currentSearchTerm = '';
-            currentPage = 1;
+            
+            // 确保应用默认排序
+            sortFilter.value = 'newest';
             renderFilteredWishes();
-            clearSearchBtn.style.display = 'none';
-        });
-
-        // 回车键触发搜索
-        wishSearch.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                currentSearchTerm = wishSearch.value.trim();
-                if (currentSearchTerm) {
-                    currentPage = 1;
-                    renderFilteredWishes();
-                    clearSearchBtn.style.display = 'inline-block';
-                }
-            }
-        });
+            updatePagination();
+            
+        } catch (err) {
+            console.error('加载愿望时出错:', err);
+            wishPool.innerHTML = `
+                <div class="wish-loading">
+                    <i class="fas fa-exclamation-triangle" style="color: #ff6b6b;"></i>
+                    <p>加载失败：${err.message}</p>
+                    <button onclick="loadAllWishes()" class="btn-mingyuan" style="padding: 8px 20px; font-size: 0.9rem;">
+                        <i class="fas fa-sync-alt"></i> 重新加载
+                    </button>
+                </div>
+            `;
+        }
     }
 
-    // ==================== 修改：应用筛选和排序并渲染当前页的愿望 ====================
+    // 应用筛选和排序并渲染当前页的愿望
     function renderFilteredWishes() {
         // 1. 应用类型筛选
         const selectedType = wishFilter.value;
@@ -465,7 +462,7 @@ document.addEventListener('DOMContentLoaded', function() {
         updatePagination();
     }
 
-    // ==================== 修改：更新分页信息 ====================
+    // 更新分页信息
     function updatePagination() {
         const selectedType = wishFilter.value;
         let filteredWishes = [...allWishes];
@@ -486,73 +483,6 @@ document.addEventListener('DOMContentLoaded', function() {
         pageInfo.textContent = `第 ${currentPage} 页 / 共 ${totalPages} 页`;
         prevPageBtn.disabled = currentPage <= 1;
         nextPageBtn.disabled = currentPage >= totalPages || totalPages === 0;
-    }
-
-    // ==================== 新增：模态框关闭逻辑 ====================
-    function setupModalClose() {
-        // 1. 点击X按钮关闭
-        const closeModalBtn = fulfillModal.querySelector('.close-modal');
-        if (closeModalBtn) {
-            closeModalBtn.addEventListener('click', function() {
-                fulfillModal.style.display = 'none';
-            });
-        }
-
-        // 2. 点击模态框外部关闭
-        window.addEventListener('click', function(event) {
-            if (event.target === fulfillModal) {
-                fulfillModal.style.display = 'none';
-            }
-        });
-    }
-
-    // 初始化模态框关闭功能
-    if (fulfillModal) {
-        setupModalClose();
-    } else {
-        console.warn('未找到还愿模态框元素');
-    }
-
-    // 绑定表单提交事件
-    wishForm.addEventListener('submit', handleSubmitWish);
-
-    // 初始化加载愿望数据
-    async function loadAllWishes() {
-        try {
-            wishPool.innerHTML = `
-                <div class="wish-loading">
-                    <div class="loader"></div>
-                    <p>正在连接命缘池能量场...</p>
-                </div>
-            `;
-
-            // 确保按最新愿望排序请求
-            const response = await fetch(API_URL + '?visibility=public&sort=newest');
-            const data = await response.json();
-            
-            allWishes = Array.isArray(data) ? data : data.data || [];
-            
-            if (!Array.isArray(allWishes)) {
-                throw new Error('返回的不是愿望数组');
-            }
-            
-            // 确保应用默认排序
-            sortFilter.value = 'newest';
-            renderFilteredWishes();
-            updatePagination();
-            
-        } catch (err) {
-            console.error('加载愿望时出错:', err);
-            wishPool.innerHTML = `
-                <div class="wish-loading">
-                    <i class="fas fa-exclamation-triangle" style="color: #ff6b6b;"></i>
-                    <p>加载失败：${err.message}</p>
-                    <button onclick="loadAllWishes()" class="btn-mingyuan" style="padding: 8px 20px; font-size: 0.9rem;">
-                        <i class="fas fa-sync-alt"></i> 重新加载
-                    </button>
-                </div>
-            `;
-        }
     }
 
     // 渲染愿望卡片
@@ -768,7 +698,51 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         };
     }
-    
+
+    // 处理还愿
+    async function handleFulfillWish(wish) {
+        try {
+            // 1. 检查是否已登录
+            const token = localStorage.getItem('token');
+            if (!token) {
+                const shouldLogin = confirm('请先登录后再还愿');
+                if (shouldLogin) window.location.href = '/user.html';
+                return;
+            }
+
+            // 2. 立即更新is_fulfilled字段为true
+            const updateResponse = await fetch(`${API_BASE}/api/wishes/${wish.id}/fulfill`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!updateResponse.ok) {
+                throw new Error('更新还愿状态失败');
+            }
+
+            // 3. 显示还愿模态框
+            const modal = document.getElementById('fulfillModal');
+            if (!modal) {
+                throw new Error('找不到还愿模态框');
+            }
+            
+            // 设置愿望ID到模态框
+            modal.dataset.wishId = wish.id;
+            modal.style.display = 'block';
+        
+            // 4. 初始化支付选项
+            if (window.wwPay) {
+                window.wwPay.resetPaymentState();
+            }
+        } catch (error) {
+            console.error('还愿初始化失败:', error);
+            alert('还愿失败: ' + error.message);
+        }
+    }
+
     // 显示六字真言特效
     async function showMantraEffect() {
         return new Promise((resolve) => {
@@ -875,6 +849,40 @@ document.addEventListener('DOMContentLoaded', function() {
     // 显示错误消息
     function showErrorMessage(message) {
         showToast(message, 'error');
+    }
+
+    // 初始化搜索功能
+    function initSearchFunctionality() {
+        // 搜索按钮点击事件
+        searchBtn.addEventListener('click', () => {
+            currentSearchTerm = wishSearch.value.trim();
+            if (currentSearchTerm) {
+                currentPage = 1;
+                renderFilteredWishes();
+                clearSearchBtn.style.display = 'inline-block';
+            }
+        });
+
+        // 清空搜索按钮
+        clearSearchBtn.addEventListener('click', () => {
+            wishSearch.value = '';
+            currentSearchTerm = '';
+            currentPage = 1;
+            renderFilteredWishes();
+            clearSearchBtn.style.display = 'none';
+        });
+
+        // 回车键触发搜索
+        wishSearch.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                currentSearchTerm = wishSearch.value.trim();
+                if (currentSearchTerm) {
+                    currentPage = 1;
+                    renderFilteredWishes();
+                    clearSearchBtn.style.display = 'inline-block';
+                }
+            }
+        });
     }
 
     // 初始化事件监听
