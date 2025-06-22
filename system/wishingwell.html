@@ -1007,36 +1007,38 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 加载用户卡片
     async function loadUserCards() {
+    const container = document.getElementById('userCardsGrid');
+    const token = localStorage.getItem('token');
+    
+    if (!token) {
+        container.innerHTML = '<div>请先登录</div>';
+        return;
+    }
+
     try {
-        const token = localStorage.getItem('token');
-        console.log('当前Token:', token); // 调试1：检查token是否存在
+        container.innerHTML = '<div>加载中...</div>';
         
         const response = await fetch(`${API_BASE}/api/user/wishes`, {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
+            headers: { 'Authorization': `Bearer ${token}` }
         });
-        
-        console.log('响应状态:', response.status); // 调试2：查看HTTP状态码
-        
+
         if (!response.ok) {
-            const error = await response.text(); // 改用text()避免JSON解析失败
-            console.error('错误响应内容:', error);
-            throw new Error(error || '获取卡片失败');
+            const err = await response.text();
+            throw new Error(err || `请求失败: ${response.status}`);
         }
-        
+
         const cards = await response.json();
-        console.log('实际获取卡片:', cards); // 调试3：查看返回数据
         
-        if (!cards || cards.length === 0) {
-            console.warn('返回空卡片数组'); 
+        if (!cards?.length) {
+            container.innerHTML = '<div>暂无愿望卡片</div>';
+            return;
         }
-        
+
         renderUserCards(cards);
         
     } catch (error) {
-        console.error('完整错误信息:', error);
-        showErrorToast(error.message);
+        console.error('加载失败:', error);
+        container.innerHTML = `<div>加载失败: ${error.message}</div>`;
     }
 }
     
