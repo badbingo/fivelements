@@ -222,18 +222,85 @@
             100% { transform: rotate(360deg); }
         }
         
+        /* 跳转选择弹窗样式 */
+        .redirect-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+        }
+        
+        .redirect-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .redirect-content {
+            background-color: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            border: 1px solid var(--border-color);
+        }
+        
+        .redirect-content h2 {
+            color: var(--primary-color);
+            margin-bottom: 20px;
+        }
+        
+        .redirect-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .redirect-btn {
+            display: block;
+            padding: 12px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Noto Serif SC', serif;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+        
+        .redirect-btn:hover {
+            background-color: #7a4ce5;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(138, 92, 245, 0.4);
+        }
+        
         /* 响应式设计 */
         @media (max-width: 576px) {
-        .auth-card {
-            padding: 30px 20px;
-        }
-        
-        .auth-header h1 {
-            font-size: 1.8rem;
-        }
-        
-        .auth-content {
-            min-height: 550px; /* 移动端增加更多高度 */
+            .auth-card {
+                padding: 30px 20px;
+            }
+            
+            .auth-header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .auth-content {
+                min-height: 550px; /* 移动端增加更多高度 */
+            }
+            
+            .redirect-content {
+                padding: 20px;
             }
         }
     </style>
@@ -315,6 +382,18 @@
         </div>
     </div>
 
+    <!-- 跳转选择弹窗 -->
+    <div class="redirect-modal" id="redirectModal">
+        <div class="redirect-content">
+            <h2>登录成功</h2>
+            <p>请选择您要前往的页面</p>
+            <div class="redirect-buttons">
+                <a href="wishingwell.html" class="redirect-btn">回到命缘池</a>
+                <a href="curse.html" class="redirect-btn">回到诅咒池</a>
+            </div>
+        </div>
+    </div>
+
     <script>
     const API_BASE = 'https://bazi-backend.owenjass.workers.dev';
 
@@ -323,6 +402,7 @@
         const registerTab = document.getElementById('registerTab');
         const loginForm = document.getElementById('loginForm');
         const registerForm = document.getElementById('registerForm');
+        const redirectModal = document.getElementById('redirectModal');
 
         loginTab.addEventListener('click', () => switchTab('login'));
         registerTab.addEventListener('click', () => switchTab('register'));
@@ -379,7 +459,8 @@
                 localStorage.setItem('token', result.token);
                 localStorage.setItem('username', username);
 
-                window.location.href = 'wishingwell.html';
+                // 显示跳转选择弹窗而不是直接跳转
+                redirectModal.classList.add('active');
             } catch (err) {
                 alert('登录失败：' + err.message);
             } finally {
@@ -456,12 +537,11 @@
                 localStorage.setItem('username', username);
 
                 const successMessage = document.getElementById('registerSuccess');
-                successMessage.textContent = '注册成功！正在跳转到许愿池...';
+                successMessage.textContent = '注册成功！';
                 successMessage.style.display = 'block';
 
-                setTimeout(() => {
-                    window.location.href = 'wishingwell.html';
-                }, 2000);
+                // 注册成功后也显示跳转选择弹窗
+                redirectModal.classList.add('active');
             } catch (err) {
                 alert('注册失败：' + err.message);
             } finally {
@@ -489,10 +569,9 @@
         }
 
         if (localStorage.getItem('token')) {
-            window.location.href = 'wishingwell.html';
+            redirectModal.classList.add('active');
         }
     });
-
     </script>
 </body>
 </html>
