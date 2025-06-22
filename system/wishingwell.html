@@ -946,6 +946,83 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    /* ==================== 图表初始化 ==================== */
+
+// 能量图表配置
+function initEnergyChart() {
+    const ctx = document.getElementById('energyChart').getContext('2d');
+    
+    // 确保之前的图表实例被销毁
+    if (window.energyChart) {
+        window.energyChart.destroy();
+    }
+
+    window.energyChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['1月', '2月', '3月', '4月', '5月', '6月'],
+            datasets: [{
+                label: '能量强度',
+                data: [65, 79, 90, 81, 56, 75],
+                borderColor: '#6a11cb',
+                backgroundColor: 'rgba(106, 17, 203, 0.1)',
+                borderWidth: 2,
+                tension: 0.4,
+                pointRadius: 4,
+                pointBackgroundColor: '#6a11cb',
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { 
+                    display: false 
+                },
+                tooltip: { 
+                    backgroundColor: 'rgba(10, 10, 20, 0.9)',
+                    titleFont: {
+                        family: "'Noto Serif SC', serif"
+                    },
+                    bodyFont: {
+                        family: "'Noto Serif SC', serif"
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: { 
+                        color: 'rgba(255, 255, 255, 0.1)' 
+                    },
+                    ticks: { 
+                        color: '#b8c2cc' 
+                    }
+                },
+                x: {
+                    grid: { 
+                        color: 'rgba(255, 255, 255, 0.1)' 
+                    },
+                    ticks: { 
+                        color: '#b8c2cc' 
+                    }
+                }
+            }
+        }
+    });
+}
+
+// 在初始化函数中调用
+async function initialize() {
+    await loadLunarJS();
+    initEventListeners();
+    loadAllWishes();
+    fetchStats();
+    initEnergyChart(); // 添加这行初始化图表
+    setInterval(fetchStats, 5 * 60 * 1000);
+}
+    
     /* ==================== 特效功能 ==================== */
 
     // 显示六字真言特效
