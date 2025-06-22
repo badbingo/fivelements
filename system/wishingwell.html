@@ -1,4 +1,3 @@
-许愿池需要登录版 
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -16,15 +15,328 @@
     <script src="../js/wwpay.js"></script>
     <script src="../js/lunar.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+    <style>
+        /* 新增的用户信息区域样式 */
+        .user-area {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .user-welcome {
+            color: #f0f0f0;
+            font-size: 0.9rem;
+            background: rgba(30, 30, 30, 0.8);
+            padding: 8px 15px;
+            border-radius: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            display: none;
+        }
+        
+        .login-btn, .logout-btn {
+            background: #8a5cf5;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-family: 'Noto Serif SC', serif;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        .login-btn:hover, .logout-btn:hover {
+            background: #7a4ce5;
+            transform: translateY(-2px);
+        }
+        
+        .logout-btn {
+            background: #ff6b6b;
+        }
+        
+        .logout-btn:hover {
+            background: #e74c3c;
+        }
+        
+        /* 半透明弹窗样式 */
+        .auth-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+        }
+        
+        .auth-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .auth-container {
+            background: rgba(30, 30, 30, 0.95);
+            border-radius: 15px;
+            width: 90%;
+            max-width: 400px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(138, 92, 245, 0.3);
+            backdrop-filter: blur(10px);
+            transform: translateY(20px);
+            transition: all 0.3s;
+        }
+        
+        .auth-modal.active .auth-container {
+            transform: translateY(0);
+        }
+        
+        .auth-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        
+        .auth-header h2 {
+            color: #8a5cf5;
+            margin-bottom: 10px;
+        }
+        
+        .auth-header p {
+            color: #b0b0b0;
+            font-size: 0.9rem;
+        }
+        
+        .auth-tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #333;
+        }
+        
+        .auth-tab {
+            flex: 1;
+            text-align: center;
+            padding: 12px;
+            cursor: pointer;
+            color: #b0b0b0;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+        
+        .auth-tab.active {
+            color: #8a5cf5;
+            border-bottom: 2px solid #8a5cf5;
+        }
+        
+        .auth-form {
+            display: none;
+        }
+        
+        .auth-form.active {
+            display: block;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #f0f0f0;
+            font-size: 0.9rem;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            background: rgba(42, 42, 42, 0.7);
+            border: 1px solid #333;
+            border-radius: 8px;
+            color: #f0f0f0;
+            font-family: 'Noto Serif SC', serif;
+            transition: all 0.3s;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #8a5cf5;
+            box-shadow: 0 0 0 3px rgba(138, 92, 245, 0.2);
+        }
+        
+        .auth-btn {
+            width: 100%;
+            padding: 12px;
+            background: #8a5cf5;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Noto Serif SC', serif;
+            font-size: 1rem;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+        
+        .auth-btn:hover {
+            background: #7a4ce5;
+        }
+        
+        .auth-btn.loading {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+        
+        .auth-message {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+            font-size: 0.9rem;
+            display: none;
+        }
+        
+        .auth-message.error {
+            background: rgba(255, 107, 107, 0.2);
+            color: #ff6b6b;
+            border: 1px solid #ff6b6b;
+        }
+        
+        .auth-message.success {
+            background: rgba(85, 239, 196, 0.2);
+            color: #55efc4;
+            border: 1px solid #55efc4;
+        }
+        
+        .close-auth {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            color: #b0b0b0;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+        
+        .close-auth:hover {
+            color: #f0f0f0;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        /* 响应式调整 */
+        @media (max-width: 768px) {
+            .user-area {
+                top: 10px;
+                right: 10px;
+            }
+            
+            .user-welcome {
+                display: none;
+            }
+            
+            .auth-container {
+                padding: 20px;
+                width: 95%;
+            }
+        }
+    </style>
     <script>
       // 配置后端地址（必须修改！）
       const API_BASE = 'https://bazi-backend.owenjass.workers.dev';
       const API_URL = `${API_BASE}/api`;
     </script>
-    
 </head>
 <body>
     
+    <!-- 用户信息区域 -->
+    <div class="user-area">
+        <div class="user-welcome" id="userWelcome">欢迎, <span id="usernameDisplay"></span></div>
+        <button class="login-btn" id="loginBtn">登录/注册</button>
+        <button class="logout-btn" id="logoutBtn" style="display:none;"><i class="fas fa-sign-out-alt"></i> 退出</button>
+    </div>
+
+    <!-- 半透明登录注册弹窗 -->
+    <div class="auth-modal" id="authModal">
+        <div class="auth-container">
+            <span class="close-auth" id="closeAuth">&times;</span>
+            <div class="auth-header">
+                <h2><i class="fas fa-user-circle"></i> 命缘池</h2>
+                <p>登录或注册以管理您的愿望</p>
+            </div>
+            
+            <div class="auth-tabs">
+                <div class="auth-tab active" id="loginTab">登录</div>
+                <div class="auth-tab" id="registerTab">注册</div>
+            </div>
+            
+            <!-- 登录表单 -->
+            <form id="loginForm" class="auth-form active">
+                <div class="form-group">
+                    <label for="loginUsername">用户名</label>
+                    <input type="text" id="loginUsername" placeholder="请输入用户名" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="loginPassword">密码</label>
+                    <input type="password" id="loginPassword" placeholder="请输入密码" required>
+                </div>
+                
+                <button type="submit" class="auth-btn" id="submitLogin">
+                    <span id="loginText">登录</span>
+                    <i class="fas fa-spinner fa-spin" id="loginSpinner" style="display:none;"></i>
+                </button>
+                
+                <div id="loginMessage" class="auth-message"></div>
+            </form>
+            
+            <!-- 注册表单 -->
+            <form id="registerForm" class="auth-form">
+                <div class="form-group">
+                    <label for="registerUsername">用户名</label>
+                    <input type="text" id="registerUsername" placeholder="请输入用户名(4-16位)" required minlength="4" maxlength="16">
+                </div>
+                
+                <div class="form-group">
+                    <label for="registerEmail">电子邮箱</label>
+                    <input type="email" id="registerEmail" placeholder="请输入电子邮箱" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="registerPassword">密码</label>
+                    <input type="password" id="registerPassword" placeholder="请输入密码(至少6位)" required minlength="6">
+                </div>
+                
+                <div class="form-group">
+                    <label for="registerConfirmPassword">确认密码</label>
+                    <input type="password" id="registerConfirmPassword" placeholder="请再次输入密码" required>
+                </div>
+                
+                <button type="submit" class="auth-btn" id="submitRegister">
+                    <span id="registerText">注册</span>
+                    <i class="fas fa-spinner fa-spin" id="registerSpinner" style="display:none;"></i>
+                </button>
+                
+                <div id="registerMessage" class="auth-message"></div>
+            </form>
+        </div>
+    </div>
+
     <main class="content-container">
         <section class="content-title">
             <h1>命缘池</h1>
@@ -323,19 +635,6 @@
         </div>
     </div>
     
-    <!-- 登录提示模态框 -->
-    <div id="loginModal" class="modal">
-        <div class="modal-content">
-            <span class="close-modal">&times;</span>
-            <h3><i class="fas fa-user-lock"></i> 需要登录</h3>
-            <p>您需要先登录才能加持愿望</p>
-            <div class="modal-actions">
-                <button id="cancelLogin" class="btn-cancel">取消</button>
-                <button id="confirmLogin" class="btn-confirm">前往登录</button>
-            </div>
-        </div>
-    </div>
-    
    <!-- 还愿模态框 -->
     <div id="fulfillModal" class="modal">
       <div class="modal-content">
@@ -379,6 +678,303 @@ document.addEventListener('DOMContentLoaded', function() {
     const refreshStatsBtn = document.getElementById('refreshStatsBtn');
     const charCount = document.getElementById('charCount');
     const wishContent = document.getElementById('wishContent');
+
+    // 新增的登录注册相关DOM元素
+    const userWelcome = document.getElementById('userWelcome');
+    const usernameDisplay = document.getElementById('usernameDisplay');
+    const loginBtn = document.getElementById('loginBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const authModal = document.getElementById('authModal');
+    const closeAuth = document.getElementById('closeAuth');
+    const loginTab = document.getElementById('loginTab');
+    const registerTab = document.getElementById('registerTab');
+    const loginForm = document.getElementById('loginForm');
+    const registerForm = document.getElementById('registerForm');
+    const loginMessage = document.getElementById('loginMessage');
+    const registerMessage = document.getElementById('registerMessage');
+    const submitLogin = document.getElementById('submitLogin');
+    const submitRegister = document.getElementById('submitRegister');
+    const loginSpinner = document.getElementById('loginSpinner');
+    const registerSpinner = document.getElementById('registerSpinner');
+
+    /* ==================== 登录注册功能 ==================== */
+
+    // 检查登录状态
+    function checkLoginStatus() {
+        const token = localStorage.getItem('token');
+        const username = localStorage.getItem('username');
+        
+        if (token && username) {
+            userWelcome.style.display = 'block';
+            usernameDisplay.textContent = username;
+            loginBtn.style.display = 'none';
+            logoutBtn.style.display = 'block';
+        } else {
+            userWelcome.style.display = 'none';
+            loginBtn.style.display = 'block';
+            logoutBtn.style.display = 'none';
+        }
+    }
+
+    // 切换登录/注册标签页
+    function switchAuthTab(tab) {
+        if (tab === 'login') {
+            loginTab.classList.add('active');
+            registerTab.classList.remove('active');
+            loginForm.classList.add('active');
+            registerForm.classList.remove('active');
+        } else {
+            loginTab.classList.remove('active');
+            registerTab.classList.add('active');
+            loginForm.classList.remove('active');
+            registerForm.classList.add('active');
+        }
+        
+        // 清空消息
+        loginMessage.style.display = 'none';
+        registerMessage.style.display = 'none';
+    }
+
+    // 显示/隐藏登录弹窗
+    function toggleAuthModal(show) {
+        if (show) {
+            authModal.classList.add('active');
+            document.body.style.overflow = 'hidden'; // 防止背景滚动
+        } else {
+            authModal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    }
+
+    // 处理登录
+    async function handleLogin(e) {
+    e.preventDefault();
+    
+    const username = document.getElementById('loginUsername').value.trim();
+    const password = document.getElementById('loginPassword').value.trim();
+    
+    if (!username || !password) {
+        showAuthMessage(loginMessage, '请输入用户名和密码', 'error');
+        return;
+    }
+    
+    submitLogin.disabled = true;
+    loginSpinner.style.display = 'inline-block';
+    document.getElementById('loginText').style.display = 'none';
+    
+    try {
+        const response = await fetch(`${API_BASE}/api/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: username, password })
+        });
+        
+        const result = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(result.error || '登录失败');
+        }
+        
+        localStorage.setItem('token', result.token);
+        localStorage.setItem('username', username);
+        
+        // ▼▼▼ 新增的表单恢复逻辑 ▼▼▼
+        const savedData = sessionStorage.getItem('tempWishFormData');
+        if (savedData) {
+            const formData = JSON.parse(savedData);
+            
+            // 恢复表单字段
+            document.getElementById('name').value = formData.name || '';
+            document.getElementById('birthday').value = formData.birthday || '';
+            document.getElementById('birthtime').value = formData.birthtime || '';
+            document.getElementById('wishContent').value = formData.content || '';
+            document.getElementById('wishType').value = formData.type || 'love';
+            
+            // 恢复单选按钮状态
+            if (formData.visibility) {
+                const radio = document.querySelector(`input[name="visibility"][value="${formData.visibility}"]`);
+                if (radio) radio.checked = true;
+            }
+            
+            // 更新字数统计
+            document.getElementById('charCount').textContent = formData.content?.length || 0;
+            
+            // 清理临时存储
+            sessionStorage.removeItem('tempWishFormData');
+            
+            // 自动滚动并更新八字信息
+            setTimeout(() => {
+                document.querySelector('.mingyuan-form').scrollIntoView({ 
+                    behavior: 'smooth',
+                    block: 'center'
+                });
+                
+                if (formData.birthday && formData.birthtime) {
+                    updateBaziInfo();
+                }
+            }, 100);
+        }
+        // ▲▲▲ 新增代码结束 ▲▲▲
+        
+        showAuthMessage(loginMessage, '登录成功！', 'success');
+        checkLoginStatus();
+        
+        // 清空表单
+        document.getElementById('loginUsername').value = '';
+        document.getElementById('loginPassword').value = '';
+        
+        // 2秒后自动关闭弹窗
+        setTimeout(() => {
+            toggleAuthModal(false);
+            
+            // 如果是从愿望表单跳转过来的，显示成功提示
+            if (savedData) {
+                showToast('登录成功！您可以继续提交愿望', 'success');
+            }
+        }, 2000);
+        
+    } catch (error) {
+        console.error('登录错误:', error);
+        showAuthMessage(loginMessage, error.message, 'error');
+        
+        // 登录失败时保留输入的用户名
+        document.getElementById('loginUsername').value = username;
+    } finally {
+        submitLogin.disabled = false;
+        loginSpinner.style.display = 'none';
+        document.getElementById('loginText').style.display = 'inline';
+    }
+}
+
+    // 处理注册
+    async function handleRegister(e) {
+        e.preventDefault();
+        
+        const username = document.getElementById('registerUsername').value.trim();
+        const email = document.getElementById('registerEmail').value.trim();
+        const password = document.getElementById('registerPassword').value.trim();
+        const confirmPassword = document.getElementById('registerConfirmPassword').value.trim();
+        
+        // 验证输入
+        if (!username || username.length < 4 || username.length > 16) {
+            showAuthMessage(registerMessage, '用户名长度应为4-16位', 'error');
+            return;
+        }
+        
+        if (!email || !validateEmail(email)) {
+            showAuthMessage(registerMessage, '请输入有效的电子邮箱', 'error');
+            return;
+        }
+        
+        if (!password || password.length < 6) {
+            showAuthMessage(registerMessage, '密码长度至少为6位', 'error');
+            return;
+        }
+        
+        if (password !== confirmPassword) {
+            showAuthMessage(registerMessage, '两次输入的密码不一致', 'error');
+            return;
+        }
+        
+        submitRegister.disabled = true;
+        registerSpinner.style.display = 'inline-block';
+        document.getElementById('registerText').style.display = 'none';
+        
+        try {
+            const response = await fetch(`${API_BASE}/api/register`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: username, email, password })
+            });
+            
+            const result = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(result.error || '注册失败');
+            }
+            
+            localStorage.setItem('token', result.token);
+            localStorage.setItem('username', username);
+            
+            showAuthMessage(registerMessage, '注册成功！已自动登录', 'success');
+            checkLoginStatus();
+            
+            // 清空表单
+            document.getElementById('registerUsername').value = '';
+            document.getElementById('registerEmail').value = '';
+            document.getElementById('registerPassword').value = '';
+            document.getElementById('registerConfirmPassword').value = '';
+            
+            // 2秒后自动关闭弹窗并切换到登录标签页
+            setTimeout(() => {
+                toggleAuthModal(false);
+                switchAuthTab('login');
+            }, 2000);
+            
+        } catch (error) {
+            showAuthMessage(registerMessage, error.message, 'error');
+        } finally {
+            submitRegister.disabled = false;
+            registerSpinner.style.display = 'none';
+            document.getElementById('registerText').style.display = 'inline';
+        }
+    }
+
+    // 处理退出登录
+    function handleLogout() {
+        localStorage.removeItem('token');
+        localStorage.removeItem('username');
+        checkLoginStatus();
+        switchAuthTab('login');
+    }
+
+    // 显示认证消息
+    function showAuthMessage(element, message, type) {
+        element.textContent = message;
+        element.className = 'auth-message ' + type;
+        element.style.display = 'block';
+        
+        // 3秒后自动隐藏
+        setTimeout(() => {
+            element.style.display = 'none';
+        }, 3000);
+    }
+
+    // 验证邮箱格式
+    function validateEmail(email) {
+        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return re.test(email);
+    }
+
+    // 初始化登录注册事件
+    function initAuthEvents() {
+        // 打开登录弹窗
+        loginBtn.addEventListener('click', () => {
+            toggleAuthModal(true);
+            switchAuthTab('login');
+        });
+        
+        // 关闭登录弹窗
+        closeAuth.addEventListener('click', () => toggleAuthModal(false));
+        
+        // 点击弹窗外部关闭
+        authModal.addEventListener('click', (e) => {
+            if (e.target === authModal) {
+                toggleAuthModal(false);
+            }
+        });
+        
+        // 切换标签页
+        loginTab.addEventListener('click', () => switchAuthTab('login'));
+        registerTab.addEventListener('click', () => switchAuthTab('register'));
+        
+        // 表单提交
+        loginForm.addEventListener('submit', handleLogin);
+        registerForm.addEventListener('submit', handleRegister);
+        
+        // 退出登录
+        logoutBtn.addEventListener('click', handleLogout);
+    }
 
     /* ==================== 核心功能 ==================== */
 
@@ -508,12 +1104,12 @@ function setupModalClose() {
         }
         
         const typeNames = {
-            love: '姻缘感情', 
-            wealth: '财富事业', 
-            health: '健康平安',
-            study: '学业成长', 
-            family: '家庭和睦', 
-            other: '其他愿望'
+            'love': '姻缘感情', 
+            'wealth': '财富事业', 
+            'health': '健康平安',
+            'study': '学业成长', 
+            'family': '家庭和睦', 
+            'other': '其他愿望'
         };
         
         wishes.forEach(wish => {
@@ -604,7 +1200,9 @@ function setupModalClose() {
         try {
             const token = localStorage.getItem('token');
             if (!token) {
-                showLoginModal();
+                // 修改这里：直接显示登录弹窗而不是调用showLoginModal()
+                toggleAuthModal(true);
+                switchAuthTab('login');
                 return;
             }
 
@@ -676,6 +1274,20 @@ function setupModalClose() {
         }
     }
 
+
+    // 在handleLogin函数的成功回调中添加
+const savedData = sessionStorage.getItem('tempWishFormData');
+if (savedData) {
+    const formData = JSON.parse(savedData);
+    document.getElementById('name').value = formData.name;
+    document.getElementById('birthday').value = formData.birthday;
+    // 恢复其他字段...
+    sessionStorage.removeItem('tempWishFormData');
+    
+    // 自动滚动到表单位置
+    document.querySelector('.mingyuan-form').scrollIntoView({ behavior: 'smooth' });
+}
+
     // 处理还愿
     async function handleFulfillWish(wish) {
         try {
@@ -724,7 +1336,21 @@ function setupModalClose() {
     // 检查用户是否登录
     const token = localStorage.getItem('token');
     if (!token) {
-        showLoginModal();
+        // ▼▼▼ 新增的表单保存代码 ▼▼▼
+        const formData = {
+            name: document.getElementById('name').value,
+            birthday: document.getElementById('birthday').value,
+            birthtime: document.getElementById('birthtime').value,
+            content: document.getElementById('wishContent').value,
+            type: document.getElementById('wishType').value,
+            visibility: document.querySelector('input[name="visibility"]:checked').value
+        };
+        sessionStorage.setItem('tempWishFormData', JSON.stringify(formData));
+        // ▲▲▲ 新增代码结束 ▲▲▲
+        
+        toggleAuthModal(true);
+        switchAuthTab('login');
+        showAuthMessage(loginMessage, '请先登录后才能许愿', 'info');
         return;
     }
 
@@ -771,7 +1397,7 @@ function setupModalClose() {
                 visibility: document.querySelector('input[name="visibility"]:checked').value,
                 solar_date: new Date().toISOString().split('T')[0],
                 bazi: bazi,
-                user_id: payload.id  // 使用真实的用户ID
+                user_id: payload.id
             })
         });
 
@@ -788,7 +1414,8 @@ function setupModalClose() {
         console.error('提交错误:', error);
         showErrorMessage(`提交失败: ${error.message}`);
         if (error.message.includes('未授权') || error.message.includes('无效的用户信息')) {
-            showLoginModal();
+            toggleAuthModal(true);
+            switchAuthTab('login');
         }
     } finally {
         submitBtn.disabled = false;
@@ -1138,37 +1765,6 @@ function initEnergyChart() {
 
     /* ==================== 辅助功能 ==================== */
 
-    // 显示登录提示模态框
-    function showLoginModal() {
-        const modal = document.getElementById('loginModal');
-        if (!modal) {
-            const shouldLogin = confirm('请先登录后才能加持\n\n点击"确定"跳转到登录页面');
-            if (shouldLogin) {
-                window.location.href = 'user.html';
-            }
-            return;
-        }
-        
-        modal.style.display = 'block';
-        
-        document.getElementById('confirmLogin').onclick = function() {
-            window.location.href = 'user.html';
-        };
-        
-        document.getElementById('cancelLogin').onclick = function() {
-            modal.style.display = 'none';
-        };
-        
-        modal.querySelector('.close-modal').onclick = function() {
-            modal.style.display = 'none';
-        };
-        window.onclick = function(event) {
-            if (event.target === modal) {
-                modal.style.display = 'none';
-            }
-        };
-    }
-
     // 显示Toast消息
     function showToast(message, type = 'success') {
         document.querySelectorAll('.toast').forEach(toast => toast.remove());
@@ -1327,6 +1923,8 @@ function initEnergyChart() {
     // 主初始化函数
     async function initialize() {
         await loadLunarJS();
+        initAuthEvents();  // 初始化登录注册事件
+        checkLoginStatus(); // 检查登录状态
         initEventListeners();
         loadAllWishes();
         fetchStats();
