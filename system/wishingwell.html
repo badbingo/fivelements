@@ -16,21 +16,105 @@
     <script src="../js/lunar.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
     <style>
-        /* 新增的登录注册表单样式 */
-        .auth-container {
+        /* 新增的用户信息区域样式 */
+        .user-area {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
             display: flex;
-            justify-content: center;
-            margin: 20px 0;
+            align-items: center;
+            gap: 15px;
         }
         
-        .auth-box {
+        .user-welcome {
+            color: #f0f0f0;
+            font-size: 0.9rem;
             background: rgba(30, 30, 30, 0.8);
-            border-radius: 10px;
-            padding: 20px;
+            padding: 8px 15px;
+            border-radius: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            display: none;
+        }
+        
+        .login-btn, .logout-btn {
+            background: #8a5cf5;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-family: 'Noto Serif SC', serif;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        .login-btn:hover, .logout-btn:hover {
+            background: #7a4ce5;
+            transform: translateY(-2px);
+        }
+        
+        .logout-btn {
+            background: #ff6b6b;
+        }
+        
+        .logout-btn:hover {
+            background: #e74c3c;
+        }
+        
+        /* 半透明弹窗样式 */
+        .auth-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
             width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+        }
+        
+        .auth-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .auth-container {
+            background: rgba(30, 30, 30, 0.95);
+            border-radius: 15px;
+            width: 90%;
             max-width: 400px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-            border: 1px solid #333;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(138, 92, 245, 0.3);
+            backdrop-filter: blur(10px);
+            transform: translateY(20px);
+            transition: all 0.3s;
+        }
+        
+        .auth-modal.active .auth-container {
+            transform: translateY(0);
+        }
+        
+        .auth-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        
+        .auth-header h2 {
+            color: #8a5cf5;
+            margin-bottom: 10px;
+        }
+        
+        .auth-header p {
+            color: #b0b0b0;
+            font-size: 0.9rem;
         }
         
         .auth-tabs {
@@ -42,10 +126,11 @@
         .auth-tab {
             flex: 1;
             text-align: center;
-            padding: 10px;
+            padding: 12px;
             cursor: pointer;
             color: #b0b0b0;
             transition: all 0.3s;
+            font-weight: 500;
         }
         
         .auth-tab.active {
@@ -61,91 +146,114 @@
             display: block;
         }
         
-        .auth-form .form-group {
-            margin-bottom: 15px;
+        .form-group {
+            margin-bottom: 20px;
         }
         
-        .auth-form label {
+        .form-group label {
             display: block;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
             color: #f0f0f0;
+            font-size: 0.9rem;
         }
         
-        .auth-form input {
+        .form-group input {
             width: 100%;
-            padding: 10px;
-            background: #2a2a2a;
+            padding: 12px 15px;
+            background: rgba(42, 42, 42, 0.7);
             border: 1px solid #333;
-            border-radius: 5px;
+            border-radius: 8px;
             color: #f0f0f0;
             font-family: 'Noto Serif SC', serif;
+            transition: all 0.3s;
         }
         
-        .auth-form input:focus {
+        .form-group input:focus {
             outline: none;
             border-color: #8a5cf5;
+            box-shadow: 0 0 0 3px rgba(138, 92, 245, 0.2);
         }
         
         .auth-btn {
             width: 100%;
-            padding: 10px;
+            padding: 12px;
             background: #8a5cf5;
             color: white;
             border: none;
-            border-radius: 5px;
+            border-radius: 8px;
             cursor: pointer;
             font-family: 'Noto Serif SC', serif;
+            font-size: 1rem;
             transition: all 0.3s;
+            margin-top: 10px;
         }
         
         .auth-btn:hover {
             background: #7a4ce5;
         }
         
+        .auth-btn.loading {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+        
         .auth-message {
             margin-top: 15px;
             padding: 10px;
             border-radius: 5px;
+            text-align: center;
+            font-size: 0.9rem;
             display: none;
         }
         
-        .error {
+        .auth-message.error {
             background: rgba(255, 107, 107, 0.2);
             color: #ff6b6b;
             border: 1px solid #ff6b6b;
         }
         
-        .success {
+        .auth-message.success {
             background: rgba(85, 239, 196, 0.2);
             color: #55efc4;
             border: 1px solid #55efc4;
         }
         
-        .user-info {
-            display: none;
-            text-align: center;
-            padding: 10px;
-            background: rgba(30, 30, 30, 0.8);
-            border-radius: 5px;
-            margin-bottom: 20px;
-        }
-        
-        .user-info p {
-            margin: 5px 0;
-        }
-        
-        .logout-btn {
-            background: #ff6b6b;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 5px;
+        .close-auth {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            color: #b0b0b0;
+            font-size: 1.5rem;
             cursor: pointer;
-            margin-top: 10px;
+            transition: all 0.3s;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
         }
         
-        .logout-btn:hover {
-            background: #e74c3c;
+        .close-auth:hover {
+            color: #f0f0f0;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        /* 响应式调整 */
+        @media (max-width: 768px) {
+            .user-area {
+                top: 10px;
+                right: 10px;
+            }
+            
+            .user-welcome {
+                display: none;
+            }
+            
+            .auth-container {
+                padding: 20px;
+                width: 95%;
+            }
         }
     </style>
     <script>
@@ -156,76 +264,83 @@
 </head>
 <body>
     
+    <!-- 用户信息区域 -->
+    <div class="user-area">
+        <div class="user-welcome" id="userWelcome">欢迎, <span id="usernameDisplay"></span></div>
+        <button class="login-btn" id="loginBtn">登录/注册</button>
+        <button class="logout-btn" id="logoutBtn" style="display:none;"><i class="fas fa-sign-out-alt"></i> 退出</button>
+    </div>
+
+    <!-- 半透明登录注册弹窗 -->
+    <div class="auth-modal" id="authModal">
+        <div class="auth-container">
+            <span class="close-auth" id="closeAuth">&times;</span>
+            <div class="auth-header">
+                <h2><i class="fas fa-user-circle"></i> 命缘池</h2>
+                <p>登录或注册以管理您的愿望</p>
+            </div>
+            
+            <div class="auth-tabs">
+                <div class="auth-tab active" id="loginTab">登录</div>
+                <div class="auth-tab" id="registerTab">注册</div>
+            </div>
+            
+            <!-- 登录表单 -->
+            <form id="loginForm" class="auth-form active">
+                <div class="form-group">
+                    <label for="loginUsername">用户名</label>
+                    <input type="text" id="loginUsername" placeholder="请输入用户名" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="loginPassword">密码</label>
+                    <input type="password" id="loginPassword" placeholder="请输入密码" required>
+                </div>
+                
+                <button type="submit" class="auth-btn" id="submitLogin">
+                    <span id="loginText">登录</span>
+                    <i class="fas fa-spinner fa-spin" id="loginSpinner" style="display:none;"></i>
+                </button>
+                
+                <div id="loginMessage" class="auth-message"></div>
+            </form>
+            
+            <!-- 注册表单 -->
+            <form id="registerForm" class="auth-form">
+                <div class="form-group">
+                    <label for="registerUsername">用户名</label>
+                    <input type="text" id="registerUsername" placeholder="请输入用户名(4-16位)" required minlength="4" maxlength="16">
+                </div>
+                
+                <div class="form-group">
+                    <label for="registerEmail">电子邮箱</label>
+                    <input type="email" id="registerEmail" placeholder="请输入电子邮箱" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="registerPassword">密码</label>
+                    <input type="password" id="registerPassword" placeholder="请输入密码(至少6位)" required minlength="6">
+                </div>
+                
+                <div class="form-group">
+                    <label for="registerConfirmPassword">确认密码</label>
+                    <input type="password" id="registerConfirmPassword" placeholder="请再次输入密码" required>
+                </div>
+                
+                <button type="submit" class="auth-btn" id="submitRegister">
+                    <span id="registerText">注册</span>
+                    <i class="fas fa-spinner fa-spin" id="registerSpinner" style="display:none;"></i>
+                </button>
+                
+                <div id="registerMessage" class="auth-message"></div>
+            </form>
+        </div>
+    </div>
+
     <main class="content-container">
         <section class="content-title">
             <h1>命缘池</h1>
             <p>以八字为引，聚众生愿力，助你梦想成真</p>
-        </section>
-
-        <!-- 用户登录/注册区域 -->
-        <section class="full-width-section">
-            <div class="section-header">
-                <i class="fas fa-user-circle"></i>
-                <h2>用户中心</h2>
-            </div>
-            
-            <div class="card">
-                <div id="userInfo" class="user-info">
-                    <p><i class="fas fa-user"></i> 欢迎, <span id="usernameDisplay"></span></p>
-                    <button id="logoutBtn" class="logout-btn"><i class="fas fa-sign-out-alt"></i> 退出登录</button>
-                </div>
-                
-                <div id="authContainer" class="auth-container">
-                    <div class="auth-box">
-                        <div class="auth-tabs">
-                            <div class="auth-tab active" id="loginTab">登录</div>
-                            <div class="auth-tab" id="registerTab">注册</div>
-                        </div>
-                        
-                        <form id="loginForm" class="auth-form active">
-                            <div class="form-group">
-                                <label for="loginUsername">用户名</label>
-                                <input type="text" id="loginUsername" placeholder="请输入用户名" required>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="loginPassword">密码</label>
-                                <input type="password" id="loginPassword" placeholder="请输入密码" required>
-                            </div>
-                            
-                            <button type="submit" class="auth-btn" id="loginBtn">登录</button>
-                            
-                            <div id="loginMessage" class="auth-message"></div>
-                        </form>
-                        
-                        <form id="registerForm" class="auth-form">
-                            <div class="form-group">
-                                <label for="registerUsername">用户名</label>
-                                <input type="text" id="registerUsername" placeholder="请输入用户名(4-16位)" required minlength="4" maxlength="16">
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="registerEmail">电子邮箱</label>
-                                <input type="email" id="registerEmail" placeholder="请输入电子邮箱" required>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="registerPassword">密码</label>
-                                <input type="password" id="registerPassword" placeholder="请输入密码(至少6位)" required minlength="6">
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="registerConfirmPassword">确认密码</label>
-                                <input type="password" id="registerConfirmPassword" placeholder="请再次输入密码" required>
-                            </div>
-                            
-                            <button type="submit" class="auth-btn" id="registerBtn">注册</button>
-                            
-                            <div id="registerMessage" class="auth-message"></div>
-                        </form>
-                    </div>
-                </div>
-            </div>
         </section>
 
         <!-- 命缘池介绍 -->
@@ -578,16 +693,22 @@ document.addEventListener('DOMContentLoaded', function() {
     const wishContent = document.getElementById('wishContent');
 
     // 新增的登录注册相关DOM元素
+    const userWelcome = document.getElementById('userWelcome');
+    const usernameDisplay = document.getElementById('usernameDisplay');
+    const loginBtn = document.getElementById('loginBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const authModal = document.getElementById('authModal');
+    const closeAuth = document.getElementById('closeAuth');
     const loginTab = document.getElementById('loginTab');
     const registerTab = document.getElementById('registerTab');
     const loginForm = document.getElementById('loginForm');
     const registerForm = document.getElementById('registerForm');
-    const authContainer = document.getElementById('authContainer');
-    const userInfo = document.getElementById('userInfo');
-    const usernameDisplay = document.getElementById('usernameDisplay');
-    const logoutBtn = document.getElementById('logoutBtn');
     const loginMessage = document.getElementById('loginMessage');
     const registerMessage = document.getElementById('registerMessage');
+    const submitLogin = document.getElementById('submitLogin');
+    const submitRegister = document.getElementById('submitRegister');
+    const loginSpinner = document.getElementById('loginSpinner');
+    const registerSpinner = document.getElementById('registerSpinner');
 
     /* ==================== 登录注册功能 ==================== */
 
@@ -597,12 +718,14 @@ document.addEventListener('DOMContentLoaded', function() {
         const username = localStorage.getItem('username');
         
         if (token && username) {
-            authContainer.style.display = 'none';
-            userInfo.style.display = 'block';
+            userWelcome.style.display = 'block';
             usernameDisplay.textContent = username;
+            loginBtn.style.display = 'none';
+            logoutBtn.style.display = 'block';
         } else {
-            authContainer.style.display = 'flex';
-            userInfo.style.display = 'none';
+            userWelcome.style.display = 'none';
+            loginBtn.style.display = 'block';
+            logoutBtn.style.display = 'none';
         }
     }
 
@@ -625,6 +748,17 @@ document.addEventListener('DOMContentLoaded', function() {
         registerMessage.style.display = 'none';
     }
 
+    // 显示/隐藏登录弹窗
+    function toggleAuthModal(show) {
+        if (show) {
+            authModal.classList.add('active');
+            document.body.style.overflow = 'hidden'; // 防止背景滚动
+        } else {
+            authModal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    }
+
     // 处理登录
     async function handleLogin(e) {
         e.preventDefault();
@@ -637,9 +771,9 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        const loginBtn = document.getElementById('loginBtn');
-        loginBtn.disabled = true;
-        loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 登录中...';
+        submitLogin.disabled = true;
+        loginSpinner.style.display = 'inline-block';
+        document.getElementById('loginText').style.display = 'none';
         
         try {
             const response = await fetch(`${API_BASE}/api/login`, {
@@ -664,11 +798,17 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('loginUsername').value = '';
             document.getElementById('loginPassword').value = '';
             
+            // 2秒后自动关闭弹窗
+            setTimeout(() => {
+                toggleAuthModal(false);
+            }, 2000);
+            
         } catch (error) {
             showAuthMessage(loginMessage, error.message, 'error');
         } finally {
-            loginBtn.disabled = false;
-            loginBtn.textContent = '登录';
+            submitLogin.disabled = false;
+            loginSpinner.style.display = 'none';
+            document.getElementById('loginText').style.display = 'inline';
         }
     }
 
@@ -702,9 +842,9 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        const registerBtn = document.getElementById('registerBtn');
-        registerBtn.disabled = true;
-        registerBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 注册中...';
+        submitRegister.disabled = true;
+        registerSpinner.style.display = 'inline-block';
+        document.getElementById('registerText').style.display = 'none';
         
         try {
             const response = await fetch(`${API_BASE}/api/register`, {
@@ -731,14 +871,18 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('registerPassword').value = '';
             document.getElementById('registerConfirmPassword').value = '';
             
-            // 切换到登录标签页
-            setTimeout(() => switchAuthTab('login'), 2000);
+            // 2秒后自动关闭弹窗并切换到登录标签页
+            setTimeout(() => {
+                toggleAuthModal(false);
+                switchAuthTab('login');
+            }, 2000);
             
         } catch (error) {
             showAuthMessage(registerMessage, error.message, 'error');
         } finally {
-            registerBtn.disabled = false;
-            registerBtn.textContent = '注册';
+            submitRegister.disabled = false;
+            registerSpinner.style.display = 'none';
+            document.getElementById('registerText').style.display = 'inline';
         }
     }
 
@@ -770,10 +914,31 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 初始化登录注册事件
     function initAuthEvents() {
+        // 打开登录弹窗
+        loginBtn.addEventListener('click', () => {
+            toggleAuthModal(true);
+            switchAuthTab('login');
+        });
+        
+        // 关闭登录弹窗
+        closeAuth.addEventListener('click', () => toggleAuthModal(false));
+        
+        // 点击弹窗外部关闭
+        authModal.addEventListener('click', (e) => {
+            if (e.target === authModal) {
+                toggleAuthModal(false);
+            }
+        });
+        
+        // 切换标签页
         loginTab.addEventListener('click', () => switchAuthTab('login'));
         registerTab.addEventListener('click', () => switchAuthTab('register'));
+        
+        // 表单提交
         loginForm.addEventListener('submit', handleLogin);
         registerForm.addEventListener('submit', handleRegister);
+        
+        // 退出登录
         logoutBtn.addEventListener('click', handleLogout);
     }
 
