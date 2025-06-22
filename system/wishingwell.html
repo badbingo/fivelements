@@ -1007,67 +1007,78 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 加载用户卡片
     async function loadUserCards() {
-        const token = localStorage.getItem('token');
-        const userCardsGrid = document.getElementById('userCardsGrid');
+    const token = localStorage.getItem('token');
+    const userCardsGrid = document.getElementById('userCardsGrid');
+    
+    if (!token) {
+        userCardsGrid.innerHTML = `
+            <div class="no-cards-message">
+                <i class="fas fa-exclamation-circle"></i>
+                <p>请先登录</p>
+            </div>
+        `;
+        return;
+    }
+    
+    userCardsGrid.innerHTML = `
+        <div class="loading-cards">
+            <div class="loader"></div>
+            <p>正在加载您的愿望卡片...</p>
+        </div>
+    `;
+    
+    try {
+        const response = await fetch(`${API_BASE}/api/user/wishes`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
         
-        if (!token) {
+        // 添加响应状态检查
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            console.error('API响应错误:', {
+                status: response.status,
+                statusText: response.statusText,
+                errorData
+            });
+            throw new Error(errorData.message || '获取卡片失败');
+        }
+        
+        const cards = await response.json();
+        
+        if (!Array.isArray(cards)) {
+            console.error('返回数据不是数组:', cards);
+            throw new Error('无效的卡片数据');
+        }
+        
+        if (cards.length === 0) {
             userCardsGrid.innerHTML = `
                 <div class="no-cards-message">
-                    <i class="fas fa-exclamation-circle"></i>
-                    <p>请先登录</p>
+                    <i class="fas fa-water"></i>
+                    <p>您还没有创建任何愿望卡片</p>
                 </div>
             `;
             return;
         }
         
+        renderUserCards(cards);
+    } catch (error) {
+        console.error('加载用户卡片失败:', error);
         userCardsGrid.innerHTML = `
-            <div class="loading-cards">
-                <div class="loader"></div>
-                <p>正在加载您的愿望卡片...</p>
+            <div class="no-cards-message">
+                <i class="fas fa-exclamation-triangle"></i>
+                <p>加载失败: ${error.message}</p>
+                <button onclick="loadUserCards()" class="btn-mingyuan small">
+                    <i class="fas fa-sync-alt"></i> 重试
+                </button>
+                <p class="error-detail" style="font-size:12px;margin-top:10px;color:#ff6b6b">
+                    如果问题持续存在，请联系管理员
+                </p>
             </div>
         `;
-        
-        try {
-            const response = await fetch(`${API_BASE}/api/user/wishes`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-            
-            if (!response.ok) {
-                throw new Error('获取卡片失败');
-            }
-            
-            const cards = await response.json();
-            
-            if (!Array.isArray(cards)) {
-                throw new Error('无效的卡片数据');
-            }
-            
-            if (cards.length === 0) {
-                userCardsGrid.innerHTML = `
-                    <div class="no-cards-message">
-                        <i class="fas fa-water"></i>
-                        <p>您还没有创建任何愿望卡片</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            renderUserCards(cards);
-        } catch (error) {
-            console.error('加载用户卡片失败:', error);
-            userCardsGrid.innerHTML = `
-                <div class="no-cards-message">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <p>加载失败: ${error.message}</p>
-                    <button onclick="loadUserCards()" class="btn-mingyuan small">
-                        <i class="fas fa-sync-alt"></i> 重试
-                    </button>
-                </div>
-            `;
-        }
     }
+}
 
     // 渲染用户卡片
     function renderUserCards(cards) {
