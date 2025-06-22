@@ -572,6 +572,48 @@ document.addEventListener('DOMContentLoaded', function() {
         nextPageBtn.disabled = currentPage >= totalPages || totalPages === 0;
     }
 
+    async function updateStats() {
+    try {
+        // 添加时间戳防止缓存
+        const response = await fetch(`${API_BASE}/api/stats?_=${Date.now()}`);
+        
+        if (!response.ok) {
+            throw new Error(`请求失败: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log('统计接口返回数据:', data); // 调试用
+
+        // 确保数据结构存在
+        const stats = data.today || {};
+        const distribution = data.distribution || {};
+
+        // 更新今日统计
+        document.getElementById('newWishesCount').textContent = stats.newWishes || 0;
+        document.getElementById('blessingsCount').textContent = stats.blessings || 0;
+        document.getElementById('fulfilledCount').textContent = stats.fulfilled || 0;
+
+        // 更新最后更新时间
+        const now = new Date();
+        document.getElementById('lastUpdated').textContent = 
+            `最后更新: ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+
+        // 更新愿望分布图表
+        renderDistributionChart(distribution);
+
+    } catch (error) {
+        console.error('获取统计信息失败:', error);
+        // 显示错误状态
+        document.getElementById('newWishesCount').textContent = '-';
+        document.getElementById('blessingsCount').textContent = '-';
+        document.getElementById('fulfilledCount').textContent = '-';
+        document.getElementById('lastUpdated').textContent = '更新失败';
+        
+        // 显示错误提示
+        showToast(`统计加载失败: ${error.message}`, 'error');
+    }
+}
+    
     // 渲染愿望卡片
     function renderWishCards(wishes) {
         if (!Array.isArray(wishes)) {
@@ -981,6 +1023,86 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    function renderDistributionChart(distribution) {
+    const ctx = document.getElementById('wishchart').getContext('2d');
+    
+    // 销毁旧图表实例
+    if (window.wishDistributionChart) {
+        window.wishDistributionChart.destroy();
+    }
+    
+    // 确保所有类型都有值
+    const typeNames = {
+        'love': '姻缘感情',
+        'wealth': '财富事业',
+        'health': '健康平安',
+        'study': '学业成长',
+        'family': '家庭和睦',
+        'other': '其他愿望'
+    };
+    
+    // 准备数据，确保所有类型都有默认值0
+    const labels = Object.values(typeNames);
+    const data = Object.keys(typeNames).map(key => distribution[key] || 0);
+    
+    // 创建新图表
+    window.wishDistributionChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: data,
+                backgroundColor: [
+                    '#6a11cb', '#2575fc', '#00b894', 
+                    '#fdcb6e', '#e17055', '#b2bec3'
+                ],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        color: '#b8c2cc',
+                        font: {
+                            family: "'Noto Serif SC', serif"
+                        }
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = context.raw || 0;
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
+                            return `${label}: ${value} (${percentage}%)`;
+                        }
+                    },
+                    backgroundColor: 'rgba(10, 10, 20, 0.9)'
+                }
+            }
+        }
+    });
+}
+
+    // 在初始化函数中添加统计更新
+function init() {
+    // ...其他初始化代码...
+    
+    // 初始加载统计信息
+    updateStats();
+    
+    // 设置定时刷新统计（每5分钟）
+    setInterval(updateStats, 5 * 60 * 1000);
+    
+    // 绑定刷新按钮事件
+    document.getElementById('refreshStatsBtn')?.addEventListener('click', updateStats);
+}
+    
     // 显示六字真言特效
     async function showMantraEffect() {
         return new Promise((resolve) => {
