@@ -1006,43 +1006,35 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // 加载用户卡片
-    async function loadUserCards() {
-  const container = document.getElementById('userCardsGrid');
-  const token = localStorage.getItem('token');
-
-  // 1. 检查登录状态
-  if (!token) {
-    container.innerHTML = '<div class="error">请先登录</div>';
-    return;
-  }
-
-  // 2. 显示加载状态
-  container.innerHTML = '<div class="loader">加载中...</div>';
-
+   async function loadUserCards() {
+  const container = document.getElementById('cardContainer'); // 请根据你的HTML修改容器ID
   try {
-    // 3. 发起请求（添加缓存绕过参数）
-    const apiUrl = new URL(`${API_BASE}/api/user/wishes`);
-    apiUrl.searchParams.append('_', Date.now()); // 防止缓存
-    
-    const response = await fetch(apiUrl, {
-      headers: { 'Authorization': `Bearer ${token}` }
+    const response = await fetch('/api/user/wishes', {
+      headers: {
+        'Authorization': 'Bearer ' + localStorage.getItem('token')  // 假设你使用 JWT
+      }
     });
 
-    // 4. 处理响应
-    if (response.status === 404) {
-      throw new Error('功能暂不可用，请稍后重试');
-    }
     if (!response.ok) {
-      const err = await response.json().catch(() => null);
-      throw new Error(err?.message || '请求失败');
+      throw new Error('请求失败: ' + response.status);
     }
 
-    // 5. 渲染数据
-const cards = await response.json();
-container.innerHTML = cards.length ? '' : '<div class="empty">暂无卡片</div>';
-cards.forEach(card => {
-  container.appendChild(createCardElement(card));
-});
+    const cards = await response.json();
+    container.innerHTML = cards.length ? '' : '<div class="empty">暂无卡片</div>';
+    cards.forEach(card => {
+      container.appendChild(createCardElement(card));
+    });
+
+  } catch (error) {
+    console.error('加载失败:', error);
+    container.innerHTML = `
+      <div class="error">
+        <p>${error.message}</p>
+        <button onclick="loadUserCards()">重试</button>
+      </div>
+    `;
+  }
+}
 
 // 防止 XSS 攻击的转义函数
 function escapeHtml(unsafe) {
