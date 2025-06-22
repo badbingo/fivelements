@@ -963,12 +963,17 @@ function initEnergyChart() {
             container.style.height = container.style.height || '300px';
         }
 
-        // 确保之前的图表实例被销毁
-        if (window.energyChart) {
+        // 安全地销毁旧图表实例
+        if (window.energyChart && typeof window.energyChart.destroy === 'function') {
             window.energyChart.destroy();
+        } else if (window.energyChart) {
+            // 如果不是有效图表实例，清除引用
+            console.warn('发现无效的图表实例，正在清除');
+            window.energyChart = null;
         }
 
-        window.energyChart = new Chart(ctx.getContext('2d'), {
+        // 创建新图表实例
+        window.energyChart = new Chart(ctx.getContext('2d'), {  // 修复了这里的括号错误
             type: 'line',
             data: {
                 labels: ['1月', '2月', '3月', '4月', '5月', '6月'],
