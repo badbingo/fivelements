@@ -3,336 +3,294 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>虚空入口</title>
+    <title>命运双池</title>
     <style>
         body {
             margin: 0;
             padding: 0;
             height: 100vh;
             overflow: hidden;
-            background: #050505;
+            background: #000;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: 'Arial', sans-serif;
         }
 
-        .void {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            background: 
-                radial-gradient(ellipse at 30% 30%, rgba(20, 5, 30, 0.8) 0%, transparent 70%),
-                radial-gradient(ellipse at 70% 70%, rgba(30, 5, 20, 0.8) 0%, transparent 70%);
-        }
-
-        .portal-container {
+        .container {
             position: relative;
-            width: 80vmin;
-            height: 80vmin;
-            max-width: 600px;
-            max-height: 600px;
-        }
-
-        .rift {
-            position: absolute;
             width: 100%;
             height: 100%;
-            border: 1px solid rgba(150, 150, 150, 0.05);
-            clip-path: polygon(
-                0% 15%, 15% 15%, 15% 0%, 85% 0%, 85% 15%,
-                100% 15%, 100% 85%, 85% 85%, 85% 100%,
-                15% 100%, 15% 85%, 0% 85%
-            );
-        }
-
-        .rift::before {
-            content: '';
-            position: absolute;
-            top: 2px;
-            left: 2px;
-            right: 2px;
-            bottom: 2px;
-            border: 1px solid rgba(150, 150, 150, 0.03);
-            clip-path: polygon(
-                0% 15%, 15% 15%, 15% 0%, 85% 0%, 85% 15%,
-                100% 15%, 100% 85%, 85% 85%, 85% 100%,
-                15% 100%, 15% 85%, 0% 85%
-            );
-        }
-
-        .rift-core {
-            position: absolute;
-            width: 60%;
-            height: 60%;
-            top: 20%;
-            left: 20%;
-            background: radial-gradient(
-                circle at center,
-                rgba(180, 20, 250, 0.05) 0%,
-                rgba(10, 5, 20, 0.9) 70%
-            );
-            border-radius: 50%;
-            box-shadow: 
-                0 0 40px rgba(180, 20, 250, 0.1),
-                inset 0 0 30px rgba(10, 240, 250, 0.05);
-            animation: core-pulse 12s infinite alternate;
-        }
-
-        @keyframes core-pulse {
-            0% { opacity: 0.7; box-shadow: 0 0 40px rgba(180, 20, 250, 0.1); }
-            50% { opacity: 1; box-shadow: 0 0 60px rgba(180, 20, 250, 0.2); }
-            100% { opacity: 0.7; box-shadow: 0 0 40px rgba(180, 20, 250, 0.1); }
-        }
-
-        .portal {
-            position: absolute;
-            width: 22%;
-            height: 22%;
-            border-radius: 50%;
-            cursor: pointer;
-            transition: all 0.6s cubic-bezier(0.22, 1, 0.36, 1);
-            z-index: 10;
-            display: flex;
-            justify-content: center;
-            align-items: center;
             overflow: hidden;
         }
 
-        .portal::before {
-            content: '';
+        .split {
             position: absolute;
             width: 100%;
             height: 100%;
-            border-radius: 50%;
-            border: 1px solid;
-            opacity: 0.3;
-            transition: all 0.6s;
+            display: flex;
         }
 
-        .portal::after {
-            content: '';
-            position: absolute;
-            width: 90%;
-            height: 90%;
-            border-radius: 50%;
-            border: 1px solid;
-            opacity: 0.2;
-            transition: all 0.6s;
-        }
-
-        .portal:hover {
-            transform: scale(1.15);
-        }
-
-        .portal:hover::before {
-            opacity: 0.6;
-            transform: scale(1.1);
-        }
-
-        .portal:hover::after {
-            opacity: 0.4;
-            transform: scale(0.9);
-        }
-
-        .curse {
-            top: 15%;
-            left: 15%;
-            background: radial-gradient(
-                circle at center,
-                rgba(150, 0, 0, 0.3) 0%,
-                rgba(10, 5, 20, 0.8) 70%
-            );
-            box-shadow: 
-                0 0 20px rgba(150, 0, 0, 0.2),
-                inset 0 0 15px rgba(255, 50, 50, 0.1);
-        }
-
-        .curse::before, .curse::after {
-            border-color: rgba(200, 50, 50, 0.5);
-        }
-
-        .wish {
-            bottom: 15%;
-            right: 15%;
-            background: radial-gradient(
-                circle at center,
-                rgba(0, 50, 150, 0.3) 0%,
-                rgba(10, 5, 20, 0.8) 70%
-            );
-            box-shadow: 
-                0 0 20px rgba(0, 50, 150, 0.2),
-                inset 0 0 15px rgba(50, 150, 255, 0.1);
-        }
-
-        .wish::before, .wish::after {
-            border-color: rgba(50, 150, 255, 0.5);
-        }
-
-        .energy {
-            position: absolute;
-            width: 100%;
+        .pool {
+            position: relative;
+            width: 50%;
             height: 100%;
-            background: conic-gradient(
-                from 0deg,
-                transparent 0%,
-                rgba(10, 240, 250, 0.03) 20%,
-                rgba(180, 20, 250, 0.05) 40%,
-                transparent 60%
-            );
-            animation: energy-rotate 30s linear infinite;
+            overflow: hidden;
+            transition: all 0.8s ease;
         }
 
-        @keyframes energy-rotate {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
+        .pool:hover {
+            width: 55%;
+        }
+
+        .curse-pool {
+            background: linear-gradient(135deg, #0a0505 0%, #1a0505 100%);
+        }
+
+        .wish-pool {
+            background: linear-gradient(135deg, #05050a 0%, #05051a 100%);
         }
 
         .fissure {
             position: absolute;
-            width: 100%;
+            width: 2px;
             height: 100%;
-            background: 
-                linear-gradient(
-                    45deg,
-                    transparent 45%,
-                    rgba(10, 240, 250, 0.02) 50%,
-                    transparent 55%
-                ),
-                linear-gradient(
-                    -45deg,
-                    transparent 45%,
-                    rgba(180, 20, 250, 0.02) 50%,
-                    transparent 55%
-                );
-            animation: fissure-shift 20s infinite alternate;
+            left: 50%;
+            background: linear-gradient(to bottom, 
+                                      transparent 0%, 
+                                      rgba(150, 0, 0, 0.8) 50%, 
+                                      transparent 100%);
+            box-shadow: 0 0 20px rgba(150, 0, 0, 0.5);
+            z-index: 10;
+            animation: fissure-glow 3s infinite alternate;
         }
 
-        @keyframes fissure-shift {
-            0% { background-position: 0 0, 0 0; }
-            100% { background-position: 30px 30px, -30px -30px; }
+        @keyframes fissure-glow {
+            0% { opacity: 0.3; }
+            100% { opacity: 0.8; }
+        }
+
+        .pool-content {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 5;
+        }
+
+        .pool-title {
+            color: #fff;
+            font-size: 3rem;
+            text-shadow: 0 0 15px currentColor;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+            transition: all 0.5s ease;
+        }
+
+        .curse-title {
+            color: #ff4d4d;
+            animation: curse-pulse 4s infinite alternate;
+        }
+
+        .wish-title {
+            color: #4da6ff;
+        }
+
+        @keyframes curse-pulse {
+            0% { opacity: 0.7; text-shadow: 0 0 10px #ff4d4d; }
+            50% { opacity: 1; text-shadow: 0 0 25px #ff4d4d; }
+            100% { opacity: 0.7; text-shadow: 0 0 10px #ff4d4d; }
+        }
+
+        .pool-surface {
+            position: absolute;
+            width: 80%;
+            height: 40%;
+            border-radius: 50%;
+            filter: blur(30px);
+            opacity: 0.3;
+            z-index: 1;
+        }
+
+        .curse-surface {
+            background: radial-gradient(circle at center, #8b0000 0%, transparent 70%);
+            animation: curse-breath 6s infinite alternate;
+            bottom: 10%;
+            left: 10%;
+        }
+
+        .wish-surface {
+            background: radial-gradient(circle at center, #00668b 0%, transparent 70%);
+            top: 10%;
+            right: 10%;
+        }
+
+        @keyframes curse-breath {
+            0% { transform: scale(0.9); opacity: 0.2; }
+            50% { transform: scale(1.1); opacity: 0.5; }
+            100% { transform: scale(0.9); opacity: 0.2; }
+        }
+
+        .ripples {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 2;
+        }
+
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            border: 1px solid;
+            opacity: 0;
+            animation: ripple-expand 4s infinite;
+        }
+
+        .curse-ripple {
+            border-color: rgba(255, 50, 50, 0.3);
+        }
+
+        .wish-ripple {
+            border-color: rgba(50, 150, 255, 0.3);
+        }
+
+        @keyframes ripple-expand {
+            0% { transform: scale(0.1); opacity: 0.3; }
+            100% { transform: scale(3); opacity: 0; }
+        }
+
+        .particles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            z-index: 3;
         }
 
         .particle {
             position: absolute;
-            width: 1px;
-            height: 1px;
-            background: rgba(200, 200, 255, 0.1);
+            width: 2px;
+            height: 2px;
             border-radius: 50%;
-            pointer-events: none;
-            z-index: 5;
+            opacity: 0;
+            animation: particle-float linear infinite;
+        }
+
+        .curse-particle {
+            background: rgba(255, 50, 50, 0.7);
+        }
+
+        .wish-particle {
+            background: rgba(50, 150, 255, 0.7);
+        }
+
+        @keyframes particle-float {
+            0% { transform: translateY(0); opacity: 0; }
+            10% { opacity: 0.7; }
+            90% { opacity: 0.7; }
+            100% { transform: translateY(-100vh); opacity: 0; }
         }
     </style>
 </head>
 <body>
-    <div class="void"></div>
-    
-    <div class="portal-container">
-        <div class="rift"></div>
-        <div class="rift-core"></div>
-        <div class="energy"></div>
+    <div class="container">
         <div class="fissure"></div>
         
-        <div class="portal curse" id="curse"></div>
-        <div class="portal wish" id="wish"></div>
+        <div class="split">
+            <div class="pool curse-pool" id="curse">
+                <div class="pool-surface curse-surface"></div>
+                
+                <div class="ripples" id="curse-ripples"></div>
+                <div class="particles" id="curse-particles"></div>
+                
+                <div class="pool-content">
+                    <h2 class="pool-title curse-title">诅咒池</h2>
+                </div>
+            </div>
+            
+            <div class="pool wish-pool" id="wish">
+                <div class="pool-surface wish-surface"></div>
+                
+                <div class="ripples" id="wish-ripples"></div>
+                <div class="particles" id="wish-particles"></div>
+                
+                <div class="pool-content">
+                    <h2 class="pool-title wish-title">命缘池</h2>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
-        // 创建粒子效果
-        function createParticles() {
-            const particleCount = 80;
-            
-            for (let i = 0; i < particleCount; i++) {
-                const particle = document.createElement('div');
-                particle.classList.add('particle');
+        // 创建波纹效果
+        function createRipples(container, className) {
+            for (let i = 0; i < 5; i++) {
+                const ripple = document.createElement('div');
+                ripple.classList.add('ripple', className);
                 
                 // 随机位置
-                particle.style.left = `${Math.random() * 100}%`;
-                particle.style.top = `${Math.random() * 100}%`;
+                const left = className === 'curse-ripple' ? 
+                    Math.random() * 40 + 10 : 
+                    Math.random() * 40 + 50;
+                const top = Math.random() * 60 + 20;
                 
-                // 随机大小
-                const size = Math.random() * 2 + 0.5;
-                particle.style.width = `${size}px`;
-                particle.style.height = `${size}px`;
+                ripple.style.left = `${left}%`;
+                ripple.style.top = `${top}%`;
+                
+                // 随机延迟
+                ripple.style.animationDelay = `${Math.random() * 4}s`;
+                
+                container.appendChild(ripple);
+            }
+        }
+        
+        // 创建粒子效果
+        function createParticles(container, className) {
+            for (let i = 0; i < 30; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle', className);
+                
+                // 随机位置
+                const left = className === 'curse-particle' ? 
+                    Math.random() * 50 : 
+                    Math.random() * 50 + 50;
+                
+                particle.style.left = `${left}%`;
+                particle.style.bottom = `-10px`;
                 
                 // 随机动画
-                const duration = Math.random() * 15 + 10;
+                const duration = Math.random() * 10 + 5;
                 const delay = Math.random() * 5;
                 particle.style.animation = `particle-float ${duration}s linear ${delay}s infinite`;
                 
-                document.body.appendChild(particle);
+                // 随机大小
+                const size = Math.random() * 3 + 1;
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                
+                container.appendChild(particle);
             }
-            
-            // 添加动画
-            const style = document.createElement('style');
-            style.innerHTML = `
-                @keyframes particle-float {
-                    0% { transform: translate(0, 0); opacity: 0; }
-                    10% { opacity: ${Math.random() * 0.3 + 0.1}; }
-                    90% { opacity: ${Math.random() * 0.3 + 0.1}; }
-                    100% { transform: translate(${Math.random() * 100 - 50}px, ${Math.random() * 100 - 50}px); opacity: 0; }
-                }
-            `;
-            document.head.appendChild(style);
-        }
-        
-        // 创建点击波纹效果
-        function createRipple(x, y, color) {
-            const ripple = document.createElement('div');
-            ripple.style.position = 'fixed';
-            ripple.style.left = `${x}px`;
-            ripple.style.top = `${y}px`;
-            ripple.style.width = '10px';
-            ripple.style.height = '10px';
-            ripple.style.borderRadius = '50%';
-            ripple.style.backgroundColor = color;
-            ripple.style.transform = 'translate(-50%, -50%) scale(0)';
-            ripple.style.opacity = '0.8';
-            ripple.style.zIndex = '100';
-            ripple.style.pointerEvents = 'none';
-            ripple.style.boxShadow = `0 0 15px ${color}`;
-            
-            document.body.appendChild(ripple);
-            
-            // 动画
-            const animation = ripple.animate([
-                { transform: 'translate(-50%, -50%) scale(0)', opacity: 0.8 },
-                { transform: 'translate(-50%, -50%) scale(20)', opacity: 0 }
-            ], {
-                duration: 800,
-                easing: 'cubic-bezier(0, 0.2, 0.8, 1)'
-            });
-            
-            animation.onfinish = () => ripple.remove();
         }
         
         // 初始化
         document.addEventListener('DOMContentLoaded', () => {
-            createParticles();
+            createRipples(document.getElementById('curse-ripples'), 'curse-ripple');
+            createRipples(document.getElementById('wish-ripples'), 'wish-ripple');
             
-            // 诅咒门户点击
-            document.getElementById('curse').addEventListener('click', (e) => {
-                createRipple(e.clientX, e.clientY, 'rgba(200, 50, 50, 0.7)');
-                setTimeout(() => {
-                    window.location.href = 'curse.html';
-                }, 600);
+            createParticles(document.getElementById('curse-particles'), 'curse-particle');
+            createParticles(document.getElementById('wish-particles'), 'wish-particle');
+            
+            // 诅咒池点击
+            document.getElementById('curse').addEventListener('click', () => {
+                window.location.href = 'curse.html';
             });
             
-            // 命缘门户点击
-            document.getElementById('wish').addEventListener('click', (e) => {
-                createRipple(e.clientX, e.clientY, 'rgba(50, 150, 255, 0.7)');
-                setTimeout(() => {
-                    window.location.href = 'wishingwell.html';
-                }, 600);
-            });
-            
-            // 中央裂隙点击 - 随机选择
-            document.querySelector('.rift-core').addEventListener('click', (e) => {
-                const color = Math.random() > 0.5 ? 'rgba(200, 50, 50, 0.7)' : 'rgba(50, 150, 255, 0.7)';
-                createRipple(e.clientX, e.clientY, color);
-                setTimeout(() => {
-                    window.location.href = Math.random() > 0.5 ? 'curse.html' : 'wishingwell.html';
-                }, 600);
+            // 命缘池点击
+            document.getElementById('wish').addEventListener('click', () => {
+                window.location.href = 'wishingwell.html';
             });
         });
     </script>
