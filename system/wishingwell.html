@@ -718,66 +718,94 @@ function setupModalClose() {
 
     // 处理表单提交
     async function handleSubmitWish(e) {
-        e.preventDefault();
-        
-        const name = document.getElementById('name').value.trim() || '匿名用户';
-        const birthday = document.getElementById('birthday').value;
-        const birthtime = document.getElementById('birthtime').value;
-        const content = document.getElementById('wishContent').value.trim();
-        
-        if (!content || !birthday || !birthtime) {
-            showErrorMessage('请填写完整的愿望内容和出生信息');
-            return;
-        }
-
-        const bazi = calculateBazi(birthday, birthtime);
-        if (!bazi) {
-            showErrorMessage('八字计算失败，请检查出生日期和时间');
-            return;
-        }
-
-        const submitBtn = e.target.querySelector('button[type="submit"]');
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 提交中...';
-
-        try {
-            const response = await fetch(API_URL, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({
-                    content,
-                    user_name: name,
-                    birth_date: birthday,
-                    birth_time: birthtime,
-                    type: document.getElementById('wishType').value,
-                    visibility: document.querySelector('input[name="visibility"]:checked').value,
-                    solar_date: new Date().toISOString().split('T')[0],
-                    bazi: bazi,
-                    user_id: 'guest_' + Date.now()
-                })
-            });
-
-            if (!response.ok) {
-                throw new Error(await response.text());
-            }
-
-            showSuccessMessage('愿望已成功投入命缘池！');
-            wishForm.reset();
-            baziInfo.style.display = 'none';
-            
-            loadAllWishes();
-        } catch (error) {
-            console.error('提交错误:', error);
-            showErrorMessage(`提交失败: ${error.message}`);
-        } finally {
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> 投入命缘池';
-        }
+    e.preventDefault();
+    
+    // 检查用户是否登录
+    const token = localStorage.getItem('token');
+    if (!token) {
+        showLoginModal();
+        return;
     }
 
+    const name = document.getElementById('name').value.trim() || '匿名用户';
+    const birthday = document.getElementById('birthday').value;
+    const birthtime = document.getElementById('birthtime').value;
+    const content = document.getElementById('wishContent').value.trim();
+    
+    if (!content || !birthday || !birthtime) {
+        showErrorMessage('请填写完整的愿望内容和出生信息');
+        return;
+    }
+
+    const bazi = calculateBazi(birthday, birthtime);
+    if (!bazi) {
+        showErrorMessage('八字计算失败，请检查出生日期和时间');
+        return;
+    }
+
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 提交中...';
+
+    try {
+        // 验证JWT并获取用户ID
+        const payload = verifyJWT(token);
+        if (!payload || !payload.id) {
+            throw new Error('无效的用户信息');
+        }
+
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                content,
+                user_name: name,
+                birth_date: birthday,
+                birth_time: birthtime,
+                type: document.getElementById('wishType').value,
+                visibility: document.querySelector('input[name="visibility"]:checked').value,
+                solar_date: new Date().toISOString().split('T')[0],
+                bazi: bazi,
+                user_id: payload.id  // 使用真实的用户ID
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(await response.text());
+        }
+
+        showSuccessMessage('愿望已成功投入命缘池！');
+        wishForm.reset();
+        baziInfo.style.display = 'none';
+        
+        loadAllWishes();
+    } catch (error) {
+        console.error('提交错误:', error);
+        showErrorMessage(`提交失败: ${error.message}`);
+        if (error.message.includes('未授权') || error.message.includes('无效的用户信息')) {
+            showLoginModal();
+        }
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> 投入命缘池';
+    }
+}
+
+    function verifyJWT(token) {
+    try {
+        const [encodedHeader, encodedPayload, signature] = token.split('.');
+        const payloadStr = atob(encodedPayload.replace(/-/g, '+').replace(/_/g, '/'));
+        return JSON.parse(payloadStr);
+    } catch (err) {
+        console.error('JWT解析错误:', err);
+        return null;
+    }
+}
+    
     // 计算八字
     function calculateBazi(birthday, birthtime) {
         if (!birthday || !birthtime) return null;
