@@ -3,334 +3,444 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>命运抉择</title>
+    <title>虚空裂隙</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&display=swap');
+        
+        :root {
+            --dark-void: #0a0a0f;
+            --gold-accent: #d4af37;
+            --neon-blue: #0ff0fc;
+            --neon-purple: #bc13fe;
+            --blood-crimson: #8b0000;
+            --deep-sapphire: #082567;
+        }
         
         body {
             margin: 0;
             padding: 0;
             height: 100vh;
             overflow: hidden;
-            background: #000;
+            background: var(--dark-void);
             display: flex;
             justify-content: center;
             align-items: center;
-            font-family: 'Cinzel Decorative', cursive;
-            perspective: 1000px;
+            font-family: 'Cormorant Garamond', serif;
+            color: rgba(255,255,255,0.85);
         }
         
-        .void {
+        .void-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: radial-gradient(ellipse at center, rgba(10,5,20,0.8) 0%, rgba(0,0,0,0.9) 100%);
+            background: 
+                radial-gradient(ellipse at 20% 20%, 
+                    rgba(11, 4, 23, 0.8) 0%, 
+                    transparent 70%),
+                radial-gradient(ellipse at 80% 80%, 
+                    rgba(23, 4, 11, 0.8) 0%, 
+                    transparent 70%);
             z-index: 1;
         }
         
-        .title {
+        .title-container {
             position: absolute;
-            top: 10%;
-            color: #d4af37;
-            font-size: 4rem;
-            text-shadow: 0 0 15px #ff00ff, 0 0 30px #00ffff;
+            top: 15%;
             z-index: 10;
-            animation: titleGlow 4s infinite alternate;
-            letter-spacing: 8px;
-            text-transform: uppercase;
+            text-align: center;
         }
         
-        @keyframes titleGlow {
-            0% { text-shadow: 0 0 15px #ff00ff, 0 0 30px #00ffff; }
-            50% { text-shadow: 0 0 25px #ff00ff, 0 0 50px #00ffff, 0 0 75px #9d00ff; }
-            100% { text-shadow: 0 0 15px #00ffff, 0 0 30px #ff00ff; }
-        }
-        
-        .rift-container {
+        .main-title {
+            font-size: 4.5rem;
+            margin: 0;
+            letter-spacing: 0.3rem;
+            color: var(--gold-accent);
+            text-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
             position: relative;
-            width: 80vw;
-            height: 60vh;
+        }
+        
+        .title-decoration {
+            position: absolute;
+            width: 150px;
+            height: 2px;
+            background: linear-gradient(90deg, 
+                transparent, 
+                var(--gold-accent), 
+                transparent);
+            bottom: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0.7;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            margin-top: 40px;
+            letter-spacing: 0.5rem;
+            font-weight: 300;
+            opacity: 0.8;
+        }
+        
+        .rift-gate {
+            position: relative;
+            width: 600px;
+            height: 400px;
             z-index: 5;
+            perspective: 1000px;
         }
         
-        .rift {
+        .rift-frame {
             position: absolute;
             width: 100%;
             height: 100%;
-            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600"><path fill="none" stroke="%23d4af37" stroke-width="2" d="M0,300 Q400,50 800,300 T0,300" /></svg>') no-repeat center center;
-            background-size: 100% 100%;
-            clip-path: polygon(0% 15%, 15% 15%, 15% 0%, 85% 0%, 85% 15%, 100% 15%, 100% 85%, 85% 85%, 85% 100%, 15% 100%, 15% 85%, 0% 85%);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            clip-path: polygon(
+                0% 15%, 15% 15%, 15% 0%, 85% 0%, 85% 15%, 
+                100% 15%, 100% 85%, 85% 85%, 85% 100%, 
+                15% 100%, 15% 85%, 0% 85%
+            );
+            box-shadow: 
+                inset 0 0 30px rgba(212, 175, 55, 0.1),
+                0 0 50px rgba(11, 4, 23, 0.8);
+        }
+        
+        .rift-frame::before {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            right: 2px;
+            bottom: 2px;
+            border: 1px solid rgba(212, 175, 55, 0.1);
+            clip-path: polygon(
+                0% 15%, 15% 15%, 15% 0%, 85% 0%, 85% 15%, 
+                100% 15%, 100% 85%, 85% 85%, 85% 100%, 
+                15% 100%, 15% 85%, 0% 85%
+            );
+        }
+        
+        .rift-portal {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: 
+                linear-gradient(135deg, 
+                    rgba(11, 4, 23, 0.9) 0%, 
+                    rgba(23, 4, 11, 0.7) 100%);
+            clip-path: polygon(
+                0% 15%, 15% 15%, 15% 0%, 85% 0%, 85% 15%, 
+                100% 15%, 100% 85%, 85% 85%, 85% 100%, 
+                15% 100%, 15% 85%, 0% 85%
+            );
             overflow: hidden;
-            box-shadow: 0 0 50px rgba(212, 175, 55, 0.5),
-                        inset 0 0 100px rgba(212, 175, 55, 0.3);
-            transition: all 0.5s;
         }
         
-        .rift-inner {
+        .rift-core {
             position: absolute;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, 
-                                       rgba(0,0,0,0.9) 0%, 
-                                       rgba(50,0,80,0.7) 50%, 
-                                       rgba(0,0,0,0.9) 100%);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        
-        .portal {
-            position: relative;
             width: 300px;
             height: 300px;
             border-radius: 50%;
-            background: radial-gradient(circle at center, 
-                                      rgba(0,255,255,0.1) 0%, 
-                                      rgba(0,255,255,0.3) 40%, 
-                                      rgba(255,0,255,0.5) 70%, 
-                                      rgba(0,0,0,0.9) 90%);
-            box-shadow: 0 0 100px rgba(0, 255, 255, 0.5),
-                        inset 0 0 50px rgba(255, 0, 255, 0.5);
-            animation: portalPulse 6s infinite alternate;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: radial-gradient(
+                circle at center,
+                rgba(188, 19, 254, 0.1) 0%,
+                rgba(11, 4, 23, 0.9) 70%
+            );
+            box-shadow: 
+                0 0 60px rgba(188, 19, 254, 0.3),
+                inset 0 0 30px rgba(15, 240, 252, 0.2);
+            animation: core-pulse 8s infinite alternate;
+        }
+        
+        @keyframes core-pulse {
+            0% { opacity: 0.7; box-shadow: 0 0 60px rgba(188, 19, 254, 0.3); }
+            50% { opacity: 1; box-shadow: 0 0 100px rgba(188, 19, 254, 0.5); }
+            100% { opacity: 0.7; box-shadow: 0 0 60px rgba(188, 19, 254, 0.3); }
+        }
+        
+        .rift-energy {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: conic-gradient(
+                from 0deg,
+                transparent 0%,
+                rgba(15, 240, 252, 0.1) 20%,
+                rgba(188, 19, 254, 0.2) 40%,
+                transparent 60%
+            );
+            animation: energy-rotate 20s linear infinite;
+        }
+        
+        @keyframes energy-rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .rift-fissure {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: 
+                linear-gradient(
+                    45deg,
+                    transparent 45%,
+                    rgba(15, 240, 252, 0.05) 50%,
+                    transparent 55%
+                ),
+                linear-gradient(
+                    -45deg,
+                    transparent 45%,
+                    rgba(188, 19, 254, 0.05) 50%,
+                    transparent 55%
+                );
+            animation: fissure-shift 15s infinite alternate;
+        }
+        
+        @keyframes fissure-shift {
+            0% { background-position: 0 0, 0 0; }
+            100% { background-position: 50px 50px, -50px -50px; }
+        }
+        
+        .choice-portals {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+        }
+        
+        .portal {
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.1rem;
+            letter-spacing: 0.1rem;
             cursor: pointer;
-            transition: transform 0.5s;
+            transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+            z-index: 15;
+            overflow: hidden;
+        }
+        
+        .portal::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 1px solid;
+            opacity: 0.3;
+            transition: all 0.5s;
+        }
+        
+        .portal::after {
+            content: '';
+            position: absolute;
+            width: 90%;
+            height: 90%;
+            border-radius: 50%;
+            border: 1px solid;
+            opacity: 0.2;
+            transition: all 0.5s;
         }
         
         .portal:hover {
             transform: scale(1.1);
-            box-shadow: 0 0 150px rgba(0, 255, 255, 0.7),
-                        inset 0 0 80px rgba(255, 0, 255, 0.7);
         }
         
-        @keyframes portalPulse {
-            0% { transform: scale(1); opacity: 0.8; }
-            50% { transform: scale(1.05); opacity: 1; }
-            100% { transform: scale(1); opacity: 0.8; }
+        .portal:hover::before {
+            opacity: 0.6;
+            transform: scale(1.1);
         }
         
-        .portal-core {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            background: conic-gradient(from 0deg, 
-                                      transparent 0%, 
-                                      rgba(0, 255, 255, 0.5) 10%, 
-                                      rgba(255, 0, 255, 0.7) 30%, 
-                                      transparent 50%);
-            animation: portalSpin 20s linear infinite;
+        .portal:hover::after {
+            opacity: 0.4;
+            transform: scale(0.9);
         }
         
-        @keyframes portalSpin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-        
-        .choice {
-            position: absolute;
-            width: 200px;
-            height: 200px;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: white;
-            font-size: 1.8rem;
-            text-shadow: 0 0 10px currentColor;
-            cursor: pointer;
-            transition: all 0.5s;
-            z-index: 20;
-            animation: float 6s ease-in-out infinite;
-        }
-        
-        .choice:nth-child(1) {
-            top: 10%;
+        .portal-crimson {
+            top: 20%;
             left: 20%;
-            background: radial-gradient(circle at center, 
-                                      rgba(255, 0, 0, 0.2) 0%, 
-                                      rgba(150, 0, 0, 0.5) 70%, 
-                                      rgba(50, 0, 0, 0.8) 100%);
-            box-shadow: 0 0 50px rgba(255, 0, 0, 0.5);
-            color: #ff5555;
-            animation-delay: 0s;
+            color: var(--blood-crimson);
+            background: radial-gradient(
+                circle at center,
+                rgba(139, 0, 0, 0.3) 0%,
+                rgba(11, 4, 23, 0.8) 70%
+            );
+            box-shadow: 
+                0 0 30px rgba(139, 0, 0, 0.3),
+                inset 0 0 20px rgba(139, 0, 0, 0.2);
         }
         
-        .choice:nth-child(2) {
-            bottom: 10%;
+        .portal-crimson::before {
+            border-color: var(--blood-crimson);
+            box-shadow: 0 0 20px var(--blood-crimson);
+        }
+        
+        .portal-crimson::after {
+            border-color: var(--blood-crimson);
+        }
+        
+        .portal-sapphire {
+            bottom: 20%;
             right: 20%;
-            background: radial-gradient(circle at center, 
-                                      rgba(0, 0, 255, 0.2) 0%, 
-                                      rgba(0, 0, 150, 0.5) 70%, 
-                                      rgba(0, 0, 50, 0.8) 100%);
-            box-shadow: 0 0 50px rgba(0, 0, 255, 0.5);
-            color: #5555ff;
-            animation-delay: 1s;
+            color: var(--neon-blue);
+            background: radial-gradient(
+                circle at center,
+                rgba(8, 37, 103, 0.3) 0%,
+                rgba(11, 4, 23, 0.8) 70%
+            );
+            box-shadow: 
+                0 0 30px rgba(8, 37, 103, 0.3),
+                inset 0 0 20px rgba(15, 240, 252, 0.2);
         }
         
-        @keyframes float {
-            0% { transform: translateY(0px); }
-            50% { transform: translateY(-20px); }
-            100% { transform: translateY(0px); }
+        .portal-sapphire::before {
+            border-color: var(--neon-blue);
+            box-shadow: 0 0 20px var(--neon-blue);
         }
         
-        .choice:hover {
-            transform: scale(1.2) translateY(-10px);
-            box-shadow: 0 0 80px currentColor;
-            z-index: 30;
+        .portal-sapphire::after {
+            border-color: var(--neon-blue);
         }
         
-        .energy-beam {
+        .fragment {
             position: absolute;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(to bottom, 
-                                      transparent 0%, 
-                                      rgba(0, 255, 255, 0.1) 50%, 
-                                      transparent 100%);
-            animation: beamScan 8s linear infinite;
-            opacity: 0.5;
-        }
-        
-        @keyframes beamScan {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-        
-        .particles {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 2;
-        }
-        
-        .particle {
-            position: absolute;
-            width: 3px;
-            height: 3px;
-            border-radius: 50%;
-            background: #d4af37;
+            width: 2px;
+            height: 2px;
+            background: var(--gold-accent);
             opacity: 0;
-            animation: particleFloat linear infinite;
-        }
-        
-        @keyframes particleFloat {
-            0% { transform: translateY(0) translateX(0); opacity: 0; }
-            10% { opacity: 1; }
-            90% { opacity: 1; }
-            100% { transform: translateY(-100vh) translateX(20px); opacity: 0; }
+            pointer-events: none;
+            z-index: 20;
         }
         
         .instructions {
             position: absolute;
-            bottom: 10%;
-            color: rgba(212, 175, 55, 0.8);
-            font-size: 1.5rem;
-            text-shadow: 0 0 10px #d4af37;
+            bottom: 15%;
+            font-size: 1rem;
+            letter-spacing: 0.3rem;
+            opacity: 0.7;
             z-index: 10;
-            animation: pulse 3s infinite;
+            animation: fade-pulse 4s infinite;
         }
         
-        @keyframes pulse {
-            0% { opacity: 0.6; }
-            50% { opacity: 1; }
-            100% { opacity: 0.6; }
+        @keyframes fade-pulse {
+            0% { opacity: 0.5; }
+            50% { opacity: 0.9; }
+            100% { opacity: 0.5; }
         }
         
-        .glow-circle {
+        .sigil {
             position: absolute;
-            border-radius: 50%;
-            filter: blur(40px);
-            opacity: 0.3;
-            z-index: 3;
+            width: 80px;
+            height: 80px;
+            opacity: 0.05;
+            z-index: 2;
         }
         
-        .glow-circle:nth-child(1) {
-            width: 300px;
-            height: 300px;
-            background: #00ffff;
+        .sigil-1 {
             top: 20%;
-            left: 20%;
-            animation: glowMove 15s infinite alternate;
-        }
-        
-        .glow-circle:nth-child(2) {
-            width: 400px;
-            height: 400px;
-            background: #ff00ff;
-            bottom: 20%;
             right: 20%;
-            animation: glowMove 20s infinite alternate-reverse;
+            background: radial-gradient(
+                circle at center,
+                var(--gold-accent) 0%,
+                transparent 70%
+            );
+            animation: sigil-float 15s infinite alternate;
         }
         
-        @keyframes glowMove {
+        .sigil-2 {
+            bottom: 20%;
+            left: 20%;
+            background: radial-gradient(
+                circle at center,
+                var(--neon-purple) 0%,
+                transparent 70%
+            );
+            animation: sigil-float 20s infinite alternate-reverse;
+        }
+        
+        @keyframes sigil-float {
             0% { transform: translate(0, 0); }
-            100% { transform: translate(100px, -100px); }
+            100% { transform: translate(50px, -50px); }
         }
     </style>
 </head>
 <body>
-    <div class="void"></div>
+    <div class="void-overlay"></div>
     
-    <div class="glow-circle"></div>
-    <div class="glow-circle"></div>
+    <div class="sigil sigil-1"></div>
+    <div class="sigil sigil-2"></div>
     
-    <h1 class="title">Dimensional Rift</h1>
+    <div class="title-container">
+        <h1 class="main-title">VOID RIFT</h1>
+        <div class="title-decoration"></div>
+        <p class="subtitle">CHOOSE YOUR PATH</p>
+    </div>
     
-    <div class="rift-container">
-        <div class="rift">
-            <div class="rift-inner">
-                <div class="portal">
-                    <div class="portal-core"></div>
-                </div>
-                
-                <div class="choice" id="curse">诅咒深渊</div>
-                <div class="choice" id="wish">命缘圣殿</div>
-                
-                <div class="energy-beam"></div>
-            </div>
+    <div class="rift-gate">
+        <div class="rift-frame"></div>
+        <div class="rift-portal">
+            <div class="rift-core"></div>
+            <div class="rift-energy"></div>
+            <div class="rift-fissure"></div>
+        </div>
+        
+        <div class="choice-portals">
+            <div class="portal portal-crimson" id="curse">诅咒</div>
+            <div class="portal portal-sapphire" id="wish">命缘</div>
         </div>
     </div>
     
-    <div class="particles" id="particles"></div>
+    <p class="instructions">触摸虚空印记以继续</p>
     
-    <p class="instructions">触摸命运之选</p>
-
     <script>
-        // 创建粒子效果
-        function createParticles() {
-            const container = document.getElementById('particles');
-            const particleCount = 100;
+        // 创建虚空碎片效果
+        function createFragments() {
+            const fragmentCount = 50;
             
-            for (let i = 0; i < particleCount; i++) {
-                const particle = document.createElement('div');
-                particle.classList.add('particle');
+            for (let i = 0; i < fragmentCount; i++) {
+                const fragment = document.createElement('div');
+                fragment.classList.add('fragment');
                 
                 // 随机位置
-                particle.style.left = `${Math.random() * 100}%`;
-                particle.style.top = `${Math.random() * 100}%`;
+                fragment.style.left = `${Math.random() * 100}%`;
+                fragment.style.top = `${Math.random() * 100}%`;
                 
                 // 随机大小
-                const size = Math.random() * 4 + 1;
-                particle.style.width = `${size}px`;
-                particle.style.height = `${size}px`;
-                
-                // 随机颜色
-                const colors = ['#d4af37', '#00ffff', '#ff00ff', '#ffffff'];
-                particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+                const size = Math.random() * 3 + 1;
+                fragment.style.width = `${size}px`;
+                fragment.style.height = `${size}px`;
                 
                 // 随机动画
                 const duration = Math.random() * 10 + 5;
                 const delay = Math.random() * 5;
-                particle.style.animation = `particleFloat ${duration}s linear ${delay}s infinite`;
+                fragment.style.animation = `fragment-fade ${duration}s linear ${delay}s infinite`;
                 
-                container.appendChild(particle);
+                document.body.appendChild(fragment);
             }
+            
+            // 添加动画
+            const style = document.createElement('style');
+            style.innerHTML = `
+                @keyframes fragment-fade {
+                    0% { transform: translate(0, 0); opacity: 0; }
+                    10% { opacity: ${Math.random() * 0.5 + 0.1}; }
+                    90% { opacity: ${Math.random() * 0.5 + 0.1}; }
+                    100% { transform: translate(${Math.random() * 200 - 100}px, ${Math.random() * 200 - 100}px); opacity: 0; }
+                }
+            `;
+            document.head.appendChild(style);
         }
         
-        // 点击效果
+        // 创建点击波纹效果
         function createRipple(x, y, color) {
             const ripple = document.createElement('div');
             ripple.style.position = 'fixed';
@@ -339,18 +449,18 @@
             ripple.style.width = '10px';
             ripple.style.height = '10px';
             ripple.style.borderRadius = '50%';
-            ripple.style.background = color;
-            ripple.style.transform = 'translate(-50%, -50%)';
-            ripple.style.boxShadow = `0 0 20px 10px ${color}`;
+            ripple.style.backgroundColor = color;
+            ripple.style.transform = 'translate(-50%, -50%) scale(0)';
             ripple.style.opacity = '0.8';
             ripple.style.zIndex = '100';
             ripple.style.pointerEvents = 'none';
+            ripple.style.boxShadow = `0 0 20px ${color}`;
             
             document.body.appendChild(ripple);
             
             // 动画
             const animation = ripple.animate([
-                { transform: 'translate(-50%, -50%) scale(1)', opacity: 0.8 },
+                { transform: 'translate(-50%, -50%) scale(0)', opacity: 0.8 },
                 { transform: 'translate(-50%, -50%) scale(30)', opacity: 0 }
             ], {
                 duration: 1000,
@@ -362,27 +472,27 @@
         
         // 初始化
         document.addEventListener('DOMContentLoaded', () => {
-            createParticles();
+            createFragments();
             
-            // 诅咒深渊点击
+            // 诅咒门户点击
             document.getElementById('curse').addEventListener('click', (e) => {
-                createRipple(e.clientX, e.clientY, '#ff5555');
+                createRipple(e.clientX, e.clientY, 'var(--blood-crimson)');
                 setTimeout(() => {
                     window.location.href = 'curse.html';
                 }, 800);
             });
             
-            // 命缘圣殿点击
+            // 命缘门户点击
             document.getElementById('wish').addEventListener('click', (e) => {
-                createRipple(e.clientX, e.clientY, '#5555ff');
+                createRipple(e.clientX, e.clientY, 'var(--neon-blue)');
                 setTimeout(() => {
                     window.location.href = 'wishingwell.html';
                 }, 800);
             });
             
-            // 中央传送门点击 - 随机选择
-            document.querySelector('.portal').addEventListener('click', (e) => {
-                const color = Math.random() > 0.5 ? '#ff5555' : '#5555ff';
+            // 中央裂隙点击 - 随机选择
+            document.querySelector('.rift-core').addEventListener('click', (e) => {
+                const color = Math.random() > 0.5 ? 'var(--blood-crimson)' : 'var(--neon-blue)';
                 createRipple(e.clientX, e.clientY, color);
                 setTimeout(() => {
                     window.location.href = Math.random() > 0.5 ? 'curse.html' : 'wishingwell.html';
