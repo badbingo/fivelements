@@ -105,7 +105,7 @@
         
         .auth-content {
             position: relative;
-            min-height: 500px; /* 增加最小高度 */
+            min-height: 500px;
         }
         
         .auth-form {
@@ -205,7 +205,6 @@
             display: none;
         }
         
-        /* 加载动画 */
         .loader {
             display: none;
             border: 3px solid #333;
@@ -252,6 +251,7 @@
             max-width: 400px;
             width: 90%;
             border: 1px solid var(--border-color);
+            position: relative;
         }
         
         .redirect-content h2 {
@@ -285,6 +285,28 @@
             box-shadow: 0 5px 15px rgba(138, 92, 245, 0.4);
         }
         
+        /* 关闭按钮样式 */
+        .redirect-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 1.5rem;
+            color: var(--light-text);
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+        
+        .redirect-close:hover {
+            color: var(--text-color);
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
         /* 响应式设计 */
         @media (max-width: 576px) {
             .auth-card {
@@ -296,7 +318,7 @@
             }
             
             .auth-content {
-                min-height: 550px; /* 移动端增加更多高度 */
+                min-height: 550px;
             }
             
             .redirect-content {
@@ -385,6 +407,7 @@
     <!-- 跳转选择弹窗 -->
     <div class="redirect-modal" id="redirectModal">
         <div class="redirect-content">
+            <span class="redirect-close" id="redirectClose">&times;</span>
             <h2>登录成功</h2>
             <p>请选择您要前往的页面</p>
             <div class="redirect-buttons">
@@ -403,6 +426,19 @@
         const loginForm = document.getElementById('loginForm');
         const registerForm = document.getElementById('registerForm');
         const redirectModal = document.getElementById('redirectModal');
+        const redirectClose = document.getElementById('redirectClose');
+
+        // 关闭弹窗事件
+        redirectClose.addEventListener('click', function() {
+            redirectModal.classList.remove('active');
+        });
+
+        // 点击弹窗外部也可以关闭
+        redirectModal.addEventListener('click', function(e) {
+            if (e.target === redirectModal) {
+                redirectModal.classList.remove('active');
+            }
+        });
 
         loginTab.addEventListener('click', () => switchTab('login'));
         registerTab.addEventListener('click', () => switchTab('register'));
@@ -459,7 +495,7 @@
                 localStorage.setItem('token', result.token);
                 localStorage.setItem('username', username);
 
-                // 显示跳转选择弹窗而不是直接跳转
+                // 显示跳转选择弹窗
                 redirectModal.classList.add('active');
             } catch (err) {
                 alert('登录失败：' + err.message);
@@ -540,7 +576,7 @@
                 successMessage.textContent = '注册成功！';
                 successMessage.style.display = 'block';
 
-                // 注册成功后也显示跳转选择弹窗
+                // 显示跳转选择弹窗
                 redirectModal.classList.add('active');
             } catch (err) {
                 alert('注册失败：' + err.message);
@@ -568,6 +604,7 @@
             return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
         }
 
+        // 检查是否已登录
         if (localStorage.getItem('token')) {
             redirectModal.classList.add('active');
         }
