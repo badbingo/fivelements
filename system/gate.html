@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>命运双池</title>
+    <link href="https://fonts.googleapis.com/css2?family=ZCOOL+QingKe+HuangYou&family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         body {
             margin: 0;
@@ -14,7 +16,6 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            font-family: 'Arial', sans-serif;
         }
 
         .container {
@@ -36,7 +37,7 @@
             width: 50%;
             height: 100%;
             overflow: hidden;
-            transition: all 0.8s ease;
+            transition: all 0.8s cubic-bezier(0.25, 1, 0.5, 1);
         }
 
         .pool:hover {
@@ -83,26 +84,73 @@
 
         .pool-title {
             color: #fff;
-            font-size: 3rem;
-            text-shadow: 0 0 15px currentColor;
-            margin-bottom: 2rem;
+            font-size: 3.5rem;
+            margin-bottom: 1.5rem;
             opacity: 0.9;
             transition: all 0.5s ease;
+            display: flex;
+            align-items: center;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
         }
 
         .curse-title {
+            font-family: 'ZCOOL QingKe HuangYou', cursive;
             color: #ff4d4d;
             animation: curse-pulse 4s infinite alternate;
+            letter-spacing: 2px;
         }
 
         .wish-title {
+            font-family: 'ZCOOL XiaoWei', serif;
             color: #4da6ff;
+            letter-spacing: 4px;
         }
 
         @keyframes curse-pulse {
-            0% { opacity: 0.7; text-shadow: 0 0 10px #ff4d4d; }
-            50% { opacity: 1; text-shadow: 0 0 25px #ff4d4d; }
-            100% { opacity: 0.7; text-shadow: 0 0 10px #ff4d4d; }
+            0% { 
+                opacity: 0.7; 
+                text-shadow: 0 0 10px #ff4d4d, 
+                             0 0 20px rgba(255, 77, 77, 0.5);
+            }
+            50% { 
+                opacity: 1; 
+                text-shadow: 0 0 25px #ff4d4d, 
+                             0 0 50px rgba(255, 77, 77, 0.7);
+            }
+            100% { 
+                opacity: 0.7; 
+                text-shadow: 0 0 10px #ff4d4d, 
+                             0 0 20px rgba(255, 77, 77, 0.5);
+            }
+        }
+
+        .icon {
+            margin: 0 15px;
+            font-size: 2.5rem;
+            transition: all 0.5s ease;
+        }
+
+        .curse-icon {
+            color: #ff4d4d;
+            text-shadow: 0 0 15px #ff4d4d;
+            animation: icon-shake 3s infinite;
+        }
+
+        .wish-icon {
+            color: #4da6ff;
+            text-shadow: 0 0 15px #4da6ff;
+            animation: icon-float 4s infinite ease-in-out;
+        }
+
+        @keyframes icon-shake {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-5deg); }
+            75% { transform: rotate(5deg); }
+        }
+
+        @keyframes icon-float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
         }
 
         .pool-surface {
@@ -193,6 +241,23 @@
             90% { opacity: 0.7; }
             100% { transform: translateY(-100vh); opacity: 0; }
         }
+
+        .hover-effect {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, 
+                                      rgba(255,255,255,0.05) 0%, 
+                                      transparent 70%);
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            pointer-events: none;
+            z-index: 4;
+        }
+
+        .pool:hover .hover-effect {
+            opacity: 1;
+        }
     </style>
 </head>
 <body>
@@ -205,9 +270,14 @@
                 
                 <div class="ripples" id="curse-ripples"></div>
                 <div class="particles" id="curse-particles"></div>
+                <div class="hover-effect"></div>
                 
                 <div class="pool-content">
-                    <h2 class="pool-title curse-title">诅咒池</h2>
+                    <h2 class="pool-title curse-title">
+                        <i class="fas fa-skull icon curse-icon"></i>
+                        诅咒池
+                        <i class="fas fa-skull icon curse-icon"></i>
+                    </h2>
                 </div>
             </div>
             
@@ -216,9 +286,14 @@
                 
                 <div class="ripples" id="wish-ripples"></div>
                 <div class="particles" id="wish-particles"></div>
+                <div class="hover-effect"></div>
                 
                 <div class="pool-content">
-                    <h2 class="pool-title wish-title">命缘池</h2>
+                    <h2 class="pool-title wish-title">
+                        <i class="fas fa-dove icon wish-icon"></i>
+                        命缘池
+                        <i class="fas fa-dove icon wish-icon"></i>
+                    </h2>
                 </div>
             </div>
         </div>
