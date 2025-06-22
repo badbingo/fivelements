@@ -1227,6 +1227,38 @@ function setupModalClose() {
         }
     }
 
+    if (!token) {
+    toggleAuthModal(true);
+    switchAuthTab('login');
+    showAuthMessage(loginMessage, '请先登录后才能许愿', 'info');
+    return;
+}
+    if (!token) {
+    // 保存当前表单数据到临时存储
+    const formData = {
+        name: document.getElementById('name').value,
+        birthday: document.getElementById('birthday').value,
+        // 其他字段...
+    };
+    sessionStorage.setItem('tempWishFormData', JSON.stringify(formData));
+    
+    toggleAuthModal(true);
+    switchAuthTab('login');
+    return;
+}
+    // 在handleLogin函数的成功回调中添加
+const savedData = sessionStorage.getItem('tempWishFormData');
+if (savedData) {
+    const formData = JSON.parse(savedData);
+    document.getElementById('name').value = formData.name;
+    document.getElementById('birthday').value = formData.birthday;
+    // 恢复其他字段...
+    sessionStorage.removeItem('tempWishFormData');
+    
+    // 自动滚动到表单位置
+    document.querySelector('.mingyuan-form').scrollIntoView({ behavior: 'smooth' });
+}
+
     // 处理还愿
     async function handleFulfillWish(wish) {
         try {
