@@ -418,6 +418,29 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // 关闭模态框的函数
+function setupModalClose() {
+    // 获取所有关闭按钮
+    const closeButtons = document.querySelectorAll('.close-modal');
+    
+    closeButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            // 找到最近的模态框并隐藏
+            const modal = this.closest('.modal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+        });
+    });
+
+    // 点击模态框外部也关闭
+    window.addEventListener('click', function(event) {
+        if (event.target.classList.contains('modal')) {
+            event.target.style.display = 'none';
+        }
+    });
+}
+    
     // 渲染筛选后的愿望
     function renderFilteredWishes() {
         // 应用类型筛选
@@ -1279,6 +1302,7 @@ function initEnergyChart() {
         loadAllWishes();
         fetchStats();
         initEnergyChart(); // 添加这行初始化图表
+        setupModalClose(); // 添加这行
         setInterval(fetchStats, 5 * 60 * 1000); // 每5分钟自动更新一次统计数据
     }
 
