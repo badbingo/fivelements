@@ -188,9 +188,10 @@
     <div id="userStatus" class="user-status" style="display: none;">
         <span class="welcome">欢迎，</span>
         <span class="username" id="usernameDisplay"></span>
+        <button class="manage-btn" id="manageBtn">管理</button>
         <button class="logout-btn" id="logoutBtn">退出</button>
     </div>
-    
+        
     <button id="loginButton" class="login-btn" style="display: none;">
         <i class="fas fa-user"></i> 登录/注册
     </button>
@@ -543,7 +544,18 @@
             </div>
         </div>
     </div>
-    
+
+    <!-- 诅咒卡管理弹窗 -->
+    <div id="manageModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h3><i class="fas fa-skull"></i> 我的诅咒卡</h3>
+            <div class="card-grid" id="userCurseCards">
+                <!-- 用户诅咒卡将在这里动态加载 -->
+            </div>
+        </div>
+    </div>
+        
    <!-- 还愿模态框 -->
     <div id="fulfillModal" class="modal">
       <div class="modal-content">
@@ -1297,6 +1309,7 @@
             }
 
             
+            
     // 处理还愿诅咒
     async function handleFulfillWish(wish) {
         try {
@@ -1498,7 +1511,132 @@
             }
         });
     }
+
+            // 在initUserStatus函数中添加管理按钮事件监听
+function initUserStatus() {
+    const token = localStorage.getItem('token');
+    const username = localStorage.getItem('username');
     
+    if (token && username) {
+        loginButton.style.display = 'none';
+        userStatus.style.display = 'flex';
+        usernameDisplay.textContent = username;
+        
+        // 添加管理按钮事件监听
+        document.getElementById('manageBtn').addEventListener('click', openManageModal);
+    } else {
+        loginButton.style.display = 'block';
+        userStatus.style.display = 'none';
+    }
+}
+
+// 打开管理弹窗
+async function openManageModal() {
+    try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            authModal.classList.add('active');
+            switchAuthTab('login');
+            return;
+        }
+        
+        // 获取用户的所有诅咒卡
+        const response = await fetch(`${API_BASE}/api/user/curse`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error('获取诅咒卡失败');
+        }
+        
+        const curses = await response.json();
+        renderUserCurseCards(curses);
+        
+        // 显示管理弹窗
+        document.getElementById('manageModal').style.display = 'block';
+    } catch (error) {
+        console.error('打开管理面板出错:', error);
+        showErrorMessage('加载诅咒卡失败: ' + error.message);
+    }
+}
+
+// 渲染用户的诅咒卡
+function renderUserCurseCards(curses) {
+    const container = document.getElementById('userCurseCards');
+    container.innerHTML = '';
+    
+    if (!curses || curses.length === 0) {
+        container.innerHTML = '<p>您还没有创建任何诅咒卡</p>';
+        return;
+    }
+    
+    curses.forEach(curse => {
+        const card = document.createElement('div');
+        card.className = 'curse-card';
+        card.innerHTML = `
+            <button class="delete-card" data-id="${curse.id}">&times;</button>
+            <h4>${curse.user_name || '匿名目标'}</h4>
+            <p>${curse.content}</p>
+            <small>类型: ${getCurseTypeName(curse.type)}</small>
+            <div class="wish-stats">
+                <span class="bless-count">${curse.blessings || 0}</span> 次诅咒
+            </div>
+        `;
+        container.appendChild(card);
+    });
+    
+    // 添加删除按钮事件
+    document.querySelectorAll('.delete-card').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const cardId = btn.dataset.id;
+            deleteCurseCard(cardId);
+        });
+    });
+}
+
+// 删除诅咒卡
+async function deleteCurseCard(cardId) {
+    if (!confirm('确定要删除这个诅咒吗？此操作不可撤销！')) {
+        return;
+    }
+    
+    try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_BASE}/api/curse/${cardId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}'
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error('删除失败');
+        }
+        
+        showSuccessMessage('诅咒卡已删除');
+        openManageModal(); // 刷新列表
+    } catch (error) {
+        console.error('删除诅咒卡出错:', error);
+        showErrorMessage('删除失败: ' + error.message);
+    }
+}
+
+// 辅助函数：获取诅咒类型名称
+function getCurseTypeName(type) {
+    const typeNames = {
+        love: '感情破裂', 
+        wealth: '事业失败', 
+        health: '疾病缠身',
+        study: '学业受阻', 
+        family: '家庭不和', 
+        other: '其他诅咒'
+    };
+    return typeNames[type] || '其他诅咒';
+}
+            
     // 渲染愿望分布图表
     function renderDistributionChart(distribution) {
         // 获取canvas元素
