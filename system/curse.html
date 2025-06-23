@@ -1617,69 +1617,69 @@
 
     // 处理提交诅咒
     async function handleSubmitWish(e) {
-        e.preventDefault();
-        
-        // 检查登录状态
-        const token = localStorage.getItem('token');
-        if (!token) {
-            authModal.classList.add('active');
-            switchAuthTab('login');
-            return;
+      e.preventDefault();
+      
+      // 检查登录状态
+      const token = localStorage.getItem('token');
+      if (!token) {
+        authModal.classList.add('active');
+        switchAuthTab('login');
+        return;
+      }
+      
+      // 收集表单数据
+      const targetName = document.getElementById('name').value.trim() || '匿名目标';
+      const targetDescription = document.getElementById('targetDescription').value.trim();
+      const content = document.getElementById('wishContent').value.trim();
+      
+      if (!content || !targetName || !targetDescription) {
+        showErrorMessage('请填写完整的诅咒内容和目标信息');
+        return;
+      }
+    
+      // 设置提交按钮状态
+      const submitBtn = e.target.querySelector('button[type="submit"]');
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 提交中...';
+    
+      try {
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Authorization': `Bearer ${token}`  // 添加Authorization头
+          },
+          body: JSON.stringify({
+            content,
+            user_name: targetName,
+            target_description: targetDescription,
+            type: document.getElementById('wishType').value,
+            visibility: document.querySelector('input[name="visibility"]:checked').value,
+            solar_date: new Date().toISOString().split('T')[0]
+            // 不再手动设置user_id，后端会从JWT中获取
+          })
+        });
+    
+        if (!response.ok) {
+          throw new Error(await response.text());
         }
+    
+        showSuccessMessage('诅咒已成功投入诅咒池！');
+        wishForm.reset();
+        charCount.textContent = '0';
+        descCharCount.textContent = '0';
         
-        // 收集表单数据
-        const targetName = document.getElementById('name').value.trim() || '匿名目标';
-        const targetDescription = document.getElementById('targetDescription').value.trim();
-        const content = document.getElementById('wishContent').value.trim();
-        
-        if (!content || !targetName || !targetDescription) {
-            showErrorMessage('请填写完整的诅咒内容和目标信息');
-            return;
-        }
-
-        // 设置提交按钮状态
-        const submitBtn = e.target.querySelector('button[type="submit"]');
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 提交中...';
-
-        try {
-            const response = await fetch(API_URL, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    content,
-                    user_name: targetName,
-                    target_description: targetDescription,
-                    type: document.getElementById('wishType').value,
-                    visibility: document.querySelector('input[name="visibility"]:checked').value,
-                    solar_date: new Date().toISOString().split('T')[0],
-                    user_id: 'user_' + Date.now()
-                })
-            });
-
-            if (!response.ok) {
-                throw new Error(await response.text());
-            }
-
-            showSuccessMessage('诅咒已成功投入诅咒池！');
-            wishForm.reset();
-            charCount.textContent = '0';
-            descCharCount.textContent = '0';
-            
-            // 重新加载诅咒列表和统计数据
-            loadAllWishes();
-            fetchStats();
-        } catch (error) {
-            console.error('提交错误:', error);
-            showErrorMessage(`提交失败: ${error.message}`);
-        } finally {
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> 投入诅咒池';
-        }
+        // 重新加载诅咒列表和统计数据
+        loadAllWishes();
+        fetchStats();
+      } catch (error) {
+        console.error('提交错误:', error);
+        showErrorMessage(`提交失败: ${error.message}`);
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> 投入诅咒池';
+      }
     }
 
     // 初始化事件监听
