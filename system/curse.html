@@ -15,247 +15,10 @@
     <script src="../js/wwpay.js"></script>
     <script src="../js/lunar.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
-    <style>
-        /* 新增的登录注册弹窗样式 */
-        .auth-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.8);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
-        
-        .auth-modal.active {
-            display: flex;
-        }
-        
-        .auth-card {
-            background-color: #1e1e1e;
-            border-radius: 12px;
-            padding: 30px;
-            width: 100%;
-            max-width: 500px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-            border: 1px solid #333;
-            position: relative;
-        }
-        
-        .auth-close {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            font-size: 1.5rem;
-            color: #b0b0b0;
-            cursor: pointer;
-        }
-        
-        .auth-tabs {
-            display: flex;
-            margin-bottom: 20px;
-            border-bottom: 1px solid #333;
-        }
-        
-        .auth-tab {
-            flex: 1;
-            padding: 12px;
-            cursor: pointer;
-            font-weight: 500;
-            color: #b0b0b0;
-            text-align: center;
-        }
-        
-        .auth-tab.active {
-            color: #8a5cf5;
-            border-bottom: 2px solid #8a5cf5;
-        }
-        
-        .auth-form {
-            display: none;
-        }
-        
-        .auth-form.active {
-            display: block;
-        }
-        
-        .auth-form .form-group {
-            margin-bottom: 20px;
-        }
-        
-        .auth-form label {
-            display: block;
-            margin-bottom: 8px;
-            color: #f0f0f0;
-        }
-        
-        .auth-form input {
-            width: 100%;
-            padding: 12px;
-            background-color: #2a2a2a;
-            border: 1px solid #333;
-            border-radius: 8px;
-            color: #f0f0f0;
-            font-family: 'Noto Serif SC', serif;
-        }
-        
-        .auth-form button {
-            width: 100%;
-            padding: 12px;
-            background-color: #8a5cf5;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-family: 'Noto Serif SC', serif;
-            margin-top: 10px;
-        }
-        
-        .auth-form button:hover {
-            background-color: #7a4ce5;
-        }
-        
-        .auth-error {
-            color: #ff6b6b;
-            font-size: 0.9rem;
-            margin-top: 5px;
-            display: none;
-        }
-        
-        /* 用户状态显示样式 */
-        .user-status {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 999;
-            display: flex;
-            align-items: center;
-            background-color: rgba(30, 30, 30, 0.9);
-            padding: 8px 15px;
-            border-radius: 20px;
-            border: 1px solid #333;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-        }
-        
-        .user-status .welcome {
-            margin-right: 10px;
-            color: #f0f0f0;
-        }
-        
-        .user-status .username {
-            color: #8a5cf5;
-            font-weight: 500;
-            margin-right: 15px;
-        }
-        
-        .user-status .logout-btn {
-            background: none;
-            border: none;
-            color: #b0b0b0;
-            cursor: pointer;
-            font-size: 0.9rem;
-        }
-        
-        .user-status .logout-btn:hover {
-            color: #f0f0f0;
-        }
-        
-        .login-btn {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 999;
-            background-color: #8a5cf5;
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-family: 'Noto Serif SC', serif;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-        }
-        
-        .login-btn:hover {
-            background-color: #7a4ce5;
-        }
-    </style>
 </head>
 <body>
-    <!-- 用户状态显示区域 -->
-    <div id="userStatus" class="user-status" style="display: none;">
-        <span class="welcome">欢迎，</span>
-        <span class="username" id="usernameDisplay"></span>
-        <button class="logout-btn" id="logoutBtn">退出</button>
-    </div>
-    
-    <button id="loginButton" class="login-btn" style="display: none;">
-        <i class="fas fa-user"></i> 登录/注册
-    </button>
-    
-    <!-- 登录注册弹窗 -->
-    <div id="authModal" class="auth-modal">
-        <div class="auth-card">
-            <span class="auth-close" id="authClose">&times;</span>
-            <h2 style="color: #8a5cf5; text-align: center; margin-bottom: 20px;">诅咒池用户</h2>
-            
-            <div class="auth-tabs">
-                <div class="auth-tab active" id="modalLoginTab">登录</div>
-                <div class="auth-tab" id="modalRegisterTab">注册</div>
-            </div>
-            
-            <!-- 登录表单 -->
-            <form id="modalLoginForm" class="auth-form active">
-                <div class="form-group">
-                    <label for="modalLoginUsername">用户名</label>
-                    <input type="text" id="modalLoginUsername" placeholder="请输入用户名" required>
-                    <div class="auth-error" id="modalLoginUsernameError"></div>
-                </div>
-                
-                <div class="form-group">
-                    <label for="modalLoginPassword">密码</label>
-                    <input type="password" id="modalLoginPassword" placeholder="请输入密码" required>
-                    <div class="auth-error" id="modalLoginPasswordError"></div>
-                </div>
-                
-                <button type="submit" id="modalLoginBtn">登录</button>
-            </form>
-            
-            <!-- 注册表单 -->
-            <form id="modalRegisterForm" class="auth-form">
-                <div class="form-group">
-                    <label for="modalRegisterUsername">用户名</label>
-                    <input type="text" id="modalRegisterUsername" placeholder="请输入用户名(4-16位)" required minlength="4" maxlength="16">
-                    <div class="auth-error" id="modalRegisterUsernameError"></div>
-                </div>
-                
-                <div class="form-group">
-                    <label for="modalRegisterEmail">电子邮箱</label>
-                    <input type="email" id="modalRegisterEmail" placeholder="请输入电子邮箱" required>
-                    <div class="auth-error" id="modalRegisterEmailError"></div>
-                </div>
-                
-                <div class="form-group">
-                    <label for="modalRegisterPassword">密码</label>
-                    <input type="password" id="modalRegisterPassword" placeholder="请输入密码(至少6位)" required minlength="6">
-                    <div class="auth-error" id="modalRegisterPasswordError"></div>
-                </div>
-                
-                <div class="form-group">
-                    <label for="modalRegisterConfirmPassword">确认密码</label>
-                    <input type="password" id="modalRegisterConfirmPassword" placeholder="请再次输入密码" required>
-                    <div class="auth-error" id="modalRegisterConfirmPasswordError"></div>
-                </div>
-                
-                <button type="submit" id="modalRegisterBtn">注册</button>
-            </form>
-        </div>
-    </div>
     
     <main class="content-container">
-        <!-- 原有页面内容保持不变 -->
         <section class="content-title">
             <h1>诅咒池</h1>
             <p>以正义为引，聚众生怨念，助你达成诅咒</p>
@@ -566,7 +329,6 @@
             // 配置后端地址
             const API_BASE = 'https://curse-backend.owenjass.workers.dev';
             const API_URL = `${API_BASE}/api/curse`;
-            const AUTH_API = `${API_BASE}/api/auth`;
 
             // 全局变量
             let allWishes = [];
@@ -594,20 +356,6 @@
             const targetDescription = document.getElementById('targetDescription');
             const wishContent = document.getElementById('wishContent');
             const refreshStatsBtn = document.getElementById('refreshStatsBtn');
-            
-            // 新增的登录注册相关DOM元素
-            const authModal = document.getElementById('authModal');
-            const authClose = document.getElementById('authClose');
-            const modalLoginTab = document.getElementById('modalLoginTab');
-            const modalRegisterTab = document.getElementById('modalRegisterTab');
-            const modalLoginForm = document.getElementById('modalLoginForm');
-            const modalRegisterForm = document.getElementById('modalRegisterForm');
-            const modalLoginBtn = document.getElementById('modalLoginBtn');
-            const modalRegisterBtn = document.getElementById('modalRegisterBtn');
-            const loginButton = document.getElementById('loginButton');
-            const userStatus = document.getElementById('userStatus');
-            const usernameDisplay = document.getElementById('usernameDisplay');
-            const logoutBtn = document.getElementById('logoutBtn');
 
             // 初始化字符计数器
             wishContent.addEventListener('input', function() {
@@ -620,268 +368,6 @@
 
             // 设置默认排序为"最新诅咒"
             sortFilter.value = 'newest';
-
-            // 初始化用户状态
-            function initUserStatus() {
-                const token = localStorage.getItem('token');
-                const username = localStorage.getItem('username');
-                
-                if (token && username) {
-                    // 用户已登录
-                    loginButton.style.display = 'none';
-                    userStatus.style.display = 'flex';
-                    usernameDisplay.textContent = username;
-                } else {
-                    // 用户未登录
-                    loginButton.style.display = 'block';
-                    userStatus.style.display = 'none';
-                }
-            }
-            
-            // 初始化登录注册弹窗
-            function initAuthModal() {
-                // 登录/注册按钮点击事件
-                loginButton.addEventListener('click', function() {
-                    authModal.classList.add('active');
-                    switchAuthTab('login');
-                });
-                
-                // 关闭按钮点击事件
-                authClose.addEventListener('click', function() {
-                    authModal.classList.remove('active');
-                });
-                
-                // 点击弹窗外部关闭
-                authModal.addEventListener('click', function(e) {
-                    if (e.target === authModal) {
-                        authModal.classList.remove('active');
-                    }
-                });
-                
-                // 登录/注册标签切换
-                modalLoginTab.addEventListener('click', function() {
-                    switchAuthTab('login');
-                });
-                
-                modalRegisterTab.addEventListener('click', function() {
-                    switchAuthTab('register');
-                });
-                
-                // 登录表单提交
-                modalLoginForm.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    handleModalLogin();
-                });
-                
-                // 注册表单提交
-                modalRegisterForm.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    handleModalRegister();
-                });
-                
-                // 退出按钮点击事件
-                logoutBtn.addEventListener('click', function() {
-                    localStorage.removeItem('token');
-                    localStorage.removeItem('username');
-                    initUserStatus();
-                });
-            }
-            
-            // 切换登录/注册标签
-            function switchAuthTab(tab) {
-                if (tab === 'login') {
-                    modalLoginTab.classList.add('active');
-                    modalRegisterTab.classList.remove('active');
-                    modalLoginForm.classList.add('active');
-                    modalRegisterForm.classList.remove('active');
-                } else {
-                    modalLoginTab.classList.remove('active');
-                    modalRegisterTab.classList.add('active');
-                    modalLoginForm.classList.remove('active');
-                    modalRegisterForm.classList.add('active');
-                }
-                
-                // 清除错误信息
-                document.querySelectorAll('.auth-error').forEach(el => {
-                    el.style.display = 'none';
-                });
-            }
-            
-            // 处理弹窗登录
-            async function handleModalLogin() {
-    const username = document.getElementById('modalLoginUsername').value.trim();
-    const password = document.getElementById('modalLoginPassword').value.trim();
-    
-    // 验证输入
-    if (!username) {
-        document.getElementById('modalLoginUsernameError').textContent = '请输入用户名';
-        document.getElementById('modalLoginUsernameError').style.display = 'block';
-        return;
-    }
-    
-    if (!password) {
-        document.getElementById('modalLoginPasswordError').textContent = '请输入密码';
-        document.getElementById('modalLoginPasswordError').style.display = 'block';
-        return;
-    }
-    
-    // 禁用登录按钮
-    modalLoginBtn.disabled = true;
-    modalLoginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 登录中...';
-    
-    try {
-        const response = await fetch('https://curse-backend.owenjass.workers.dev/api/login', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify({
-                name: username,
-                password: password
-            })
-        });
-        
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData.error || '登录失败，请检查用户名和密码');
-        }
-        
-        const data = await response.json();
-        
-        // 登录成功，保存token和用户名
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('username', username);
-        
-        // 更新用户状态
-        initUserStatus();
-        
-        // 关闭弹窗
-        authModal.classList.remove('active');
-        
-        // 显示成功消息
-        showSuccessMessage('登录成功！');
-        
-    } catch (error) {
-        console.error('登录失败:', error);
-        document.getElementById('modalLoginPasswordError').textContent = error.message;
-        document.getElementById('modalLoginPasswordError').style.display = 'block';
-    } finally {
-        // 恢复登录按钮
-        modalLoginBtn.disabled = false;
-        modalLoginBtn.innerHTML = '登录';
-    }
-}
-            
-            // 处理弹窗注册
-            async function handleModalRegister() {
-                const username = document.getElementById('modalRegisterUsername').value.trim();
-                const email = document.getElementById('modalRegisterEmail').value.trim();
-                const password = document.getElementById('modalRegisterPassword').value.trim();
-                const confirmPassword = document.getElementById('modalRegisterConfirmPassword').value.trim();
-                
-                // 清除之前的错误信息
-                document.querySelectorAll('.auth-error').forEach(el => {
-                    el.style.display = 'none';
-                });
-                
-                // 验证输入
-                let isValid = true;
-                
-                if (!username) {
-                    document.getElementById('modalRegisterUsernameError').textContent = '请输入用户名';
-                    document.getElementById('modalRegisterUsernameError').style.display = 'block';
-                    isValid = false;
-                } else if (username.length < 4 || username.length > 16) {
-                    document.getElementById('modalRegisterUsernameError').textContent = '用户名长度应为4-16位';
-                    document.getElementById('modalRegisterUsernameError').style.display = 'block';
-                    isValid = false;
-                }
-                
-                if (!email) {
-                    document.getElementById('modalRegisterEmailError').textContent = '请输入电子邮箱';
-                    document.getElementById('modalRegisterEmailError').style.display = 'block';
-                    isValid = false;
-                } else if (!validateEmail(email)) {
-                    document.getElementById('modalRegisterEmailError').textContent = '请输入有效的电子邮箱';
-                    document.getElementById('modalRegisterEmailError').style.display = 'block';
-                    isValid = false;
-                }
-                
-                if (!password) {
-                    document.getElementById('modalRegisterPasswordError').textContent = '请输入密码';
-                    document.getElementById('modalRegisterPasswordError').style.display = 'block';
-                    isValid = false;
-                } else if (password.length < 6) {
-                    document.getElementById('modalRegisterPasswordError').textContent = '密码长度至少为6位';
-                    document.getElementById('modalRegisterPasswordError').style.display = 'block';
-                    isValid = false;
-                }
-                
-                if (!confirmPassword) {
-                    document.getElementById('modalRegisterConfirmPasswordError').textContent = '请确认密码';
-                    document.getElementById('modalRegisterConfirmPasswordError').style.display = 'block';
-                    isValid = false;
-                } else if (password !== confirmPassword) {
-                    document.getElementById('modalRegisterConfirmPasswordError').textContent = '两次输入的密码不一致';
-                    document.getElementById('modalRegisterConfirmPasswordError').style.display = 'block';
-                    isValid = false;
-                }
-                
-                if (!isValid) return;
-                
-                // 禁用注册按钮
-                modalRegisterBtn.disabled = true;
-                modalRegisterBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 注册中...';
-                
-                try {
-                    const response = await fetch(`${AUTH_API}/register`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            name: username,
-                            email: email,
-                            password: password
-                        })
-                    });
-                    
-                    const data = await response.json();
-                    
-                    if (!response.ok) {
-                        throw new Error(data.error || '注册失败');
-                    }
-                    
-                    // 注册成功，自动登录
-                    localStorage.setItem('token', data.token);
-                    localStorage.setItem('username', username);
-                    
-                    // 更新用户状态
-                    initUserStatus();
-                    
-                    // 关闭弹窗
-                    authModal.classList.remove('active');
-                    
-                    // 显示成功消息
-                    showSuccessMessage('注册成功！已自动登录');
-                    
-                } catch (error) {
-                    console.error('注册失败:', error);
-                    document.getElementById('modalRegisterPasswordError').textContent = error.message;
-                    document.getElementById('modalRegisterPasswordError').style.display = 'block';
-                } finally {
-                    // 恢复注册按钮
-                    modalRegisterBtn.disabled = false;
-                    modalRegisterBtn.innerHTML = '注册';
-                }
-            }
-            
-            // 验证电子邮件格式
-            function validateEmail(email) {
-                const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                return re.test(email);
-            }
 
             // 初始化搜索功能
             function initSearchFunctionality() {
@@ -1044,77 +530,61 @@
 
             // 表单提交处理
             async function handleSubmitWish(e) {
-            e.preventDefault();
-            
-            // 检查登录状态
-            const token = localStorage.getItem('token');
-            if (!token) {
-                showLoginModal();
-                return;
-            }
-            
-            // 收集表单数据
-            const targetName = document.getElementById('name').value.trim() || '匿名目标';
-            const targetDescription = document.getElementById('targetDescription').value.trim();
-            const content = document.getElementById('wishContent').value.trim();
-            
-            if (!content || !targetName || !targetDescription) {
-                showErrorMessage('请填写完整的诅咒内容和目标信息');
-                return;
-            }
-        
-            // 设置提交按钮状态
-            const submitBtn = e.target.querySelector('button[type="submit"]');
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 提交中...';
-        
-            try {
-                const response = await fetch(`${API_BASE}/api/curse`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'Authorization': `Bearer ${token}`  // 携带JWT
-                    },
-                    body: JSON.stringify({
-                        content,
-                        user_name: targetName,
-                        target_description: targetDescription,
-                        type: document.getElementById('wishType').value,
-                        visibility: document.querySelector('input[name="visibility"]:checked').value,
-                        solar_date: new Date().toISOString().split('T')[0]
-                        // 不再需要手动传user_id
-                    })
-                });
-        
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || errorData.message || '提交失败');
-                }
-        
-                showSuccessMessage('诅咒已成功投入诅咒池！');
-                wishForm.reset();
-                charCount.textContent = '0';
-                descCharCount.textContent = '0';
+                e.preventDefault();
                 
-                // 重新加载诅咒列表和统计数据
-                loadAllWishes();
-                fetchStats();
-            } catch (error) {
-                console.error('提交错误:', error);
-                showErrorMessage(`提交失败: ${error.message}`);
+                // 收集表单数据
+                const targetName = document.getElementById('name').value.trim() || '匿名目标';
+                const targetDescription = document.getElementById('targetDescription').value.trim();
+                const content = document.getElementById('wishContent').value.trim();
                 
-                // 如果token失效，清空本地存储
-                if (error.message.includes('未授权') || error.message.includes('无效令牌')) {
-                    localStorage.removeItem('token');
-                    localStorage.removeItem('username');
-                    initUserStatus();
+                if (!content || !targetName || !targetDescription) {
+                    showErrorMessage('请填写完整的诅咒内容和目标信息');
+                    return;
                 }
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> 投入诅咒池';
+
+                // 设置提交按钮状态
+                const submitBtn = e.target.querySelector('button[type="submit"]');
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 提交中...';
+
+                try {
+                    const response = await fetch(API_URL, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            content,
+                            user_name: targetName,
+                            target_description: targetDescription,
+                            type: document.getElementById('wishType').value,
+                            visibility: document.querySelector('input[name="visibility"]:checked').value,
+                            solar_date: new Date().toISOString().split('T')[0],
+                            user_id: 'guest_' + Date.now()
+                        })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(await response.text());
+                    }
+
+                    showSuccessMessage('诅咒已成功投入诅咒池！');
+                    wishForm.reset();
+                    charCount.textContent = '0';
+                    descCharCount.textContent = '0';
+                    
+                    // 重新加载诅咒列表和统计数据
+                    loadAllWishes();
+                    fetchStats();
+                } catch (error) {
+                    console.error('提交错误:', error);
+                    showErrorMessage(`提交失败: ${error.message}`);
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> 投入诅咒池';
+                }
             }
-        }
 
             // 获取并更新统计数据
             async function fetchStats() {
@@ -1800,8 +1270,6 @@
             }
             
             // 初始化
-            initUserStatus(); // 初始化用户状态
-            initAuthModal(); // 初始化登录注册弹窗
             initEventListeners();
             loadAllWishes();
             fetchStats(); // 初始加载统计数据
