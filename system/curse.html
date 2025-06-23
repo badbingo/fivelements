@@ -546,20 +546,12 @@
     </div>
 
     <!-- 诅咒卡管理弹窗 -->
-    <div id="manageModal" class="manage-modal">
-        <div class="manage-modal-content">
-            <div class="manage-modal-header">
-                <h3><i class="fas fa-skull"></i> 我的诅咒卡管理</h3>
-                <span class="manage-close">&times;</span>
-            </div>
-            <div class="manage-modal-body">
-                <div class="curse-cards-container" id="userCurseCards">
-                    <!-- 卡片将在这里动态加载 -->
-                    <div class="loading-cards">
-                        <div class="loader"></div>
-                        <p>正在加载您的诅咒卡...</p>
-                    </div>
-                </div>
+    <div id="manageModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h3><i class="fas fa-skull"></i> 我的诅咒卡</h3>
+            <div class="card-grid" id="userCurseCards">
+                <!-- 用户诅咒卡将在这里动态加载 -->
             </div>
         </div>
     </div>
@@ -1541,25 +1533,12 @@ function initUserStatus() {
 // 打开管理弹窗
 async function openManageModal() {
     try {
-        const modal = document.getElementById('manageModal');
-        modal.style.display = 'block';
-        document.body.style.overflow = 'hidden'; // 禁止背景滚动
-        
         const token = localStorage.getItem('token');
         if (!token) {
             authModal.classList.add('active');
             switchAuthTab('login');
             return;
         }
-        
-        // 显示加载状态
-        const container = document.getElementById('userCurseCards');
-        container.innerHTML = `
-            <div class="loading-cards">
-                <div class="loader"></div>
-                <p>正在加载您的诅咒卡...</p>
-            </div>
-        `;
         
         // 获取用户的所有诅咒卡
         const response = await fetch(`${API_BASE}/api/user/curse`, {
@@ -1575,58 +1554,34 @@ async function openManageModal() {
         const curses = await response.json();
         renderUserCurseCards(curses);
         
+        // 显示管理弹窗
+        document.getElementById('manageModal').style.display = 'block';
     } catch (error) {
         console.error('打开管理面板出错:', error);
-        const container = document.getElementById('userCurseCards');
-        container.innerHTML = `
-            <div class="error-loading">
-                <i class="fas fa-exclamation-triangle"></i>
-                <p>加载失败: ${error.message}</p>
-                <button class="retry-btn">重试</button>
-            </div>
-        `;
-        container.querySelector('.retry-btn').addEventListener('click', openManageModal);
+        showErrorMessage('加载诅咒卡失败: ' + error.message);
     }
 }
 
 // 渲染用户的诅咒卡
 function renderUserCurseCards(curses) {
     const container = document.getElementById('userCurseCards');
+    container.innerHTML = '';
     
     if (!curses || curses.length === 0) {
-        container.innerHTML = `
-            <div class="no-cards">
-                <i class="fas fa-ghost"></i>
-                <p>您还没有创建任何诅咒卡</p>
-                <button class="btn-mingyuan" onclick="document.getElementById('wishForm').scrollIntoView()">
-                    <i class="fas fa-plus"></i> 创建新诅咒
-                </button>
-            </div>
-        `;
+        container.innerHTML = '<p>您还没有创建任何诅咒卡</p>';
         return;
     }
-    
-    container.innerHTML = '';
     
     curses.forEach(curse => {
         const card = document.createElement('div');
         card.className = 'curse-card';
         card.innerHTML = `
-            <button class="delete-card" data-id="${curse.id}" title="删除这张诅咒卡">&times;</button>
-            <div class="curse-card-header">
-                <h4 class="curse-card-title">${curse.user_name || '匿名目标'}</h4>
-                <span class="curse-card-type">${getCurseTypeName(curse.type)}</span>
-            </div>
-            <div class="curse-card-content">
-                <p>${curse.content}</p>
-                ${curse.target_description ? `<p class="target-description"><small>目标特征: ${curse.target_description}</small></p>` : ''}
-            </div>
-            <div class="curse-card-footer">
-                <span>创建于: ${formatDate(curse.created_at)}</span>
-                <div class="curse-card-stats">
-                    <span><i class="fas fa-bolt"></i> ${curse.level || 1}级</span>
-                    <span><i class="fas fa-hands-helping"></i> ${curse.blessings || 0}次</span>
-                </div>
+            <button class="delete-card" data-id="${curse.id}">&times;</button>
+            <h4>${curse.user_name || '匿名目标'}</h4>
+            <p>${curse.content}</p>
+            <small>类型: ${getCurseTypeName(curse.type)}</small>
+            <div class="wish-stats">
+                <span class="bless-count">${curse.blessings || 0}</span> 次诅咒
             </div>
         `;
         container.appendChild(card);
@@ -1640,26 +1595,6 @@ function renderUserCurseCards(curses) {
             deleteCurseCard(cardId);
         });
     });
-    
-    // 添加关闭弹窗事件
-    document.querySelector('.manage-close').addEventListener('click', closeManageModal);
-    document.getElementById('manageModal').addEventListener('click', (e) => {
-        if (e.target === document.getElementById('manageModal')) {
-            closeManageModal();
-        }
-    });
-}
-
-// 关闭管理弹窗
-function closeManageModal() {
-    document.getElementById('manageModal').style.display = 'none';
-    document.body.style.overflow = 'auto'; // 恢复背景滚动
-}
-
-// 辅助函数：格式化日期
-function formatDate(dateString) {
-    const date = new Date(dateString);
-    return `${date.getFullYear()}-${(date.getMonth()+1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
 }
 
 // 删除诅咒卡
