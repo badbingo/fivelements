@@ -1158,6 +1158,145 @@
         }
     }
 
+            // 新的诅咒特效函数
+            async function showCurseEffect() {
+                return new Promise((resolve) => {
+                    const overlay = document.getElementById('curseOverlay');
+                    const container = document.getElementById('curseContainer');
+                    
+                    // 清空容器
+                    container.innerHTML = '';
+                    
+                    // 添加震动效果到整个页面
+                    document.body.classList.add('shake');
+                    
+                    // 创建血脉冲效果
+                    const blood = document.createElement('div');
+                    blood.className = 'curse-blood';
+                    container.appendChild(blood);
+                    
+                    // 创建裂纹效果
+                    const crack = document.createElement('div');
+                    crack.className = 'curse-crack';
+                    container.appendChild(crack);
+                    
+                    // 创建诅咒符号
+                    const symbols = ['☠', '⚰', '☣', '🕱', '🕸', '💀'];
+                    for(let i = 0; i < 6; i++) {
+                        const symbol = document.createElement('div');
+                        symbol.className = 'curse-symbol';
+                        symbol.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+                        symbol.style.left = `${10 + Math.random() * 80}%`;
+                        symbol.style.top = `${10 + Math.random() * 80}%`;
+                        symbol.style.animationDelay = `${i * 0.2}s`;
+                        container.appendChild(symbol);
+                    }
+                    
+                    // 创建诅咒文字
+                    const texts = ['诅咒!', '痛苦!', '毁灭!', '厄运!', '绝望!'];
+                    const curseText = document.createElement('div');
+                    curseText.className = 'curse-text';
+                    curseText.textContent = texts[Math.floor(Math.random() * texts.length)];
+                    curseText.style.left = `${30 + Math.random() * 40}%`;
+                    curseText.style.top = `${30 + Math.random() * 40}%`;
+                    container.appendChild(curseText);
+                    
+                    // 创建鬼脸
+                    const face = document.createElement('div');
+                    face.className = 'curse-face';
+                    face.style.left = `${20 + Math.random() * 60}%`;
+                    face.style.top = `${20 + Math.random() * 60}%`;
+                    container.appendChild(face);
+                    
+                    // 显示叠加层
+                    overlay.classList.add('active');
+                    
+                    // 创建粒子爆发
+                    createCurseParticles(container);
+                    
+                    // 播放音效（需要用户交互后才能播放）
+                    playCurseSound();
+                    
+                    // 3秒后结束
+                    setTimeout(() => {
+                        overlay.classList.remove('active');
+                        document.body.classList.remove('shake');
+                        setTimeout(resolve, 500);
+                    }, 3000);
+                });
+            }
+            
+            // 创建诅咒粒子效果
+            function createCurseParticles(container) {
+                for (let i = 0; i < 50; i++) {
+                    const particle = document.createElement('div');
+                    particle.className = 'curse-particle';
+                    
+                    // 随机位置
+                    const x = Math.random() * window.innerWidth;
+                    const y = Math.random() * window.innerHeight;
+                    particle.style.left = `${x}px`;
+                    particle.style.top = `${y}px`;
+                    
+                    // 随机大小
+                    const size = 3 + Math.random() * 7;
+                    particle.style.width = `${size}px`;
+                    particle.style.height = `${size}px`;
+                    
+                    container.appendChild(particle);
+                    
+                    // 动画
+                    const angle = Math.random() * Math.PI * 2;
+                    const velocity = 1 + Math.random() * 3;
+                    const lifetime = 1000 + Math.random() * 1000;
+                    
+                    let startTime = Date.now();
+                    
+                    function animateParticle() {
+                        const elapsed = Date.now() - startTime;
+                        const progress = elapsed / lifetime;
+                        
+                        if (progress >= 1) {
+                            particle.remove();
+                            return;
+                        }
+                        
+                        const distance = velocity * elapsed / 20;
+                        const newX = x + Math.cos(angle) * distance;
+                        const newY = y + Math.sin(angle) * distance;
+                        
+                        particle.style.left = `${newX}px`;
+                        particle.style.top = `${newY}px`;
+                        particle.style.opacity = 0.8 - progress * 0.8;
+                        
+                        requestAnimationFrame(animateParticle);
+                    }
+                    
+                    requestAnimationFrame(animateParticle);
+                }
+            }
+            
+            // 播放诅咒音效
+            function playCurseSound() {
+                // 需要用户交互后才能播放音频
+                try {
+                    // 创建一个尖叫音效
+                    const scream = new Audio();
+                    scream.src = 'data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU...'; // 简化的base64音频数据
+                    scream.volume = 0.3;
+                    scream.play().catch(e => console.log('音频播放被阻止:', e));
+                    
+                    // 创建一个低沉的声音
+                    const lowSound = new Audio();
+                    lowSound.src = 'data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU...'; // 简化的base64音频数据
+                    lowSound.volume = 0.5;
+                    setTimeout(() => lowSound.play().catch(e => console.log('音频播放被阻止:', e)), 500);
+                } catch (e) {
+                    console.error('音频错误:', e);
+                }
+            }
+
+            
     // 处理还愿诅咒
     async function handleFulfillWish(wish) {
         try {
