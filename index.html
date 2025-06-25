@@ -460,7 +460,10 @@
             <!-- 添加名字输入模态框 -->
             <!-- 名字输入模态框 -->
             <div id="nameInputModal" class="modal">
-                <div class="modal-content" style="text-align: center;">
+                <div class="modal-content" style="position: relative; text-align: center;">
+                    <!-- Close button (X) in top right corner -->
+                    <span class="close" style="position: absolute; top: 10px; right: 15px; font-size: 24px; cursor: pointer;">&times;</span>
+                    
                     <h3>请输入您的姓名</h3>
                     <input type="text" id="userName" placeholder="请输入姓名" style="width: 80%; padding: 10px; margin: 10px auto; display: block;">
                     
@@ -468,13 +471,13 @@
                     <div class="payment-options" style="margin: 20px auto; width: 80%;">
                         <div class="payment-option" data-type="alipay" style="margin-bottom: 15px;">
                             <button class="payment-btn" style="background: #009fe8; color: white; width: 100%; padding: 12px; border: none; border-radius: 4px; cursor: pointer;">
-                                <img src="https://zpayz.cn/static/img/alipay.png" alt="" style="height: 24px; vertical-align: middle; margin-right: 10px;">
+                                <img src="https://zpayz.cn/static/img/alipay.png" alt="Alipay" style="height: 24px; vertical-align: middle; margin-right: 10px;">
                                 支付宝（全球支付）
                             </button>
                         </div>
                         <div class="payment-option" data-type="wxpay">
                             <button class="payment-btn" style="background: #07c160; color: white; width: 100%; padding: 12px; border: none; border-radius: 4px; cursor: pointer;">
-                                <img src="https://zpayz.cn/static/img/wxpay.png" alt="" style="height: 24px; vertical-align: middle; margin-right: 10px;">
+                                <img src="https://zpayz.cn/static/img/wxpay.png" alt="WeChat Pay" style="height: 24px; vertical-align: middle; margin-right: 10px;">
                                 微信支付（仅限国内）
                             </button>
                         </div>
@@ -953,13 +956,40 @@
             
             // 显示名字输入模态框
             function showNameInputModal() {
-                nameInputModal.style.display = 'block';
+                document.getElementById('nameInputModal').style.display = 'block';
             }
             
             // 隐藏名字输入模态框
             function hideNameInputModal() {
-                nameInputModal.style.display = 'none';
+                document.getElementById('nameInputModal').style.display = 'none';
             }
+
+            // 关闭按钮点击事件
+            document.querySelector('#nameInputModal .close').addEventListener('click', hideNameInputModal);
+            
+            // 支付按钮点击事件
+            document.querySelectorAll('.payment-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const userName = document.getElementById('userName').value.trim();
+                    if (!userName) {
+                        alert('请输入您的姓名');
+                        return;
+                    }
+                    
+                    const paymentType = this.closest('.payment-option').dataset.type;
+                    alert(`即将跳转到${paymentType === 'alipay' ? '支付宝' : '微信支付'}支付页面`);
+                    
+                    // 这里可以添加实际的支付处理代码
+                    // processPayment(userName, paymentType);
+                });
+            });
+            
+            // 点击模态框外部关闭
+            window.addEventListener('click', function(event) {
+                if (event.target === document.getElementById('nameInputModal')) {
+                    hideNameInputModal();
+                }
+            });
             
             // 翻回不匹配的卡片
             function unflipCards() {
