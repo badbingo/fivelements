@@ -28,6 +28,8 @@ body {
   display: flex;
   flex-direction: column;
   font-size: 16px;
+  overflow-x: hidden; /* 防止水平滚动 */
+  -webkit-text-size-adjust: 100%; /* 防止iOS文字缩放 */
 }
 
 /* 内容容器 */
@@ -37,6 +39,7 @@ body {
   padding: 20px;
   flex: 1;
   box-sizing: border-box;
+  width: 100%; /* 确保宽度不超过视口 */
 }
 
 /* 标题区域 */
@@ -268,6 +271,7 @@ body {
   font-size: 1rem;
   transition: border-color 0.3s;
   box-sizing: border-box;
+  width: 100%; /* 确保表单元素宽度不超过容器 */
 }
 
 .form-group input:focus,
@@ -605,7 +609,9 @@ body {
 
 .filter-controls.wish-search-controls {
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   white-space: nowrap;
+  padding-bottom: 10px;
 }
 
 .wish-search-row {
@@ -613,9 +619,7 @@ body {
   gap: 15px;
   flex-wrap: nowrap;
   justify-content: flex-end;
-  width: 1000px;
-  margin-left: auto;
-  margin-right: 0;
+  width: 100%;
 }
 
 .wish-search-container {
@@ -627,7 +631,7 @@ body {
 }
 
 .wish-search-input {
-  width: 80%;
+  width: 100%;
   padding: 10px 12px;
   background-color: #2a2a2a;
   border: 1px solid var(--primary-dark);
@@ -1092,6 +1096,9 @@ blockquote {
   opacity: 0;
   transition: all 0.3s;
   border-left: 4px solid var(--primary-color);
+  max-width: 90%;
+  box-sizing: border-box;
+  word-break: break-word;
 }
 
 .toast.show {
@@ -1129,7 +1136,7 @@ blockquote {
   background-color: #1e1e1e;
   border-radius: 12px;
   padding: 25px;
-  width: 100%;
+  width: 90%;
   max-width: 380px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
   border: 1px solid #333;
@@ -1185,7 +1192,7 @@ blockquote {
 }
 
 .auth-form input {
-  width: 90%;
+  width: 100%;
   padding: 10px;
   background-color: #2a2a2a;
   border: 1px solid #333;
@@ -1193,12 +1200,10 @@ blockquote {
   color: #f0f0f0;
   font-family: 'Noto Serif SC', serif;
   font-size: 0.9rem;
-  margin: 0 auto;
-  display: block;
 }
 
 .auth-form button {
-  width: 90%;
+  width: 100%;
   padding: 10px;
   background-color: #8a5cf5;
   color: white;
@@ -1207,9 +1212,6 @@ blockquote {
   cursor: pointer;
   font-family: 'Noto Serif SC', serif;
   margin-top: 8px;
-  margin-left: auto;
-  margin-right: auto;
-  display: block;
   font-size: 0.9rem;
 }
 
@@ -1222,9 +1224,6 @@ blockquote {
   font-size: 0.8rem;
   margin-top: 3px;
   display: none;
-  width: 90%;
-  margin-left: auto;
-  margin-right: auto;
 }
 
 /* 用户状态显示 */
@@ -1240,17 +1239,26 @@ blockquote {
   border-radius: 20px;
   border: 1px solid #333;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  max-width: calc(100% - 40px);
+  box-sizing: border-box;
 }
 
 .user-status .welcome {
   margin-right: 10px;
   color: #f0f0f0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .user-status .username {
   color: #8a5cf5;
   font-weight: 500;
   margin-right: 15px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100px;
 }
 
 .user-status .logout-btn {
@@ -1259,6 +1267,7 @@ blockquote {
   color: #b0b0b0;
   cursor: pointer;
   font-size: 0.9rem;
+  white-space: nowrap;
 }
 
 .user-status .logout-btn:hover {
@@ -1278,6 +1287,7 @@ blockquote {
   cursor: pointer;
   font-family: 'Noto Serif SC', serif;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  white-space: nowrap;
 }
 
 .login-btn:hover {
@@ -1406,6 +1416,7 @@ blockquote {
   cursor: pointer;
   margin-right: 10px;
   font-family: 'Noto Serif SC', serif;
+  white-space: nowrap;
 }
 
 .manage-btn:hover {
@@ -1484,6 +1495,7 @@ blockquote {
   .wish-search-container,
   .form-control {
     width: 100%;
+    max-width: none;
   }
   
   /* 统计卡片调整 */
@@ -1541,6 +1553,7 @@ blockquote {
     right: 10px;
     padding: 6px 10px;
     font-size: 0.9rem;
+    max-width: calc(100% - 20px);
   }
   
   .login-btn {
@@ -1608,5 +1621,19 @@ blockquote {
   .auth-form input,
   .auth-form button {
     padding: 14px;
+  }
+  
+  /* 调整愿望池筛选控件 */
+  .filter-controls.wish-search-controls {
+    padding-bottom: 15px;
+  }
+  
+  /* 调整愿望卡片操作按钮 */
+  .wish-actions {
+    flex-direction: column;
+  }
+  
+  .btn-bless, .btn-fulfill {
+    width: 100%;
   }
 }
