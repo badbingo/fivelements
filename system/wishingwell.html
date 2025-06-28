@@ -1403,43 +1403,44 @@ if (savedData) {
 }
 
     // 处理还愿
-    async function handleFulfillWish(wish) {
-        try {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                const shouldLogin = confirm('请先登录后再还愿');
-                if (shouldLogin) window.location.href = '/user.html';
-                return;
-            }
-
-            const updateResponse = await fetch(`${API_BASE}/api/wishes/${wish.id}/fulfill`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            if (!updateResponse.ok) {
-                throw new Error('更新还愿状态失败');
-            }
-
-            const modal = document.getElementById('fulfillModal');
-            if (!modal) {
-                throw new Error('找不到还愿模态框');
-            }
-            
-            modal.dataset.wishId = wish.id;
-            modal.style.display = 'block';
-        
-            if (window.wwPay) {
-                window.wwPay.resetPaymentState();
-            }
-        } catch (error) {
-            console.error('还愿初始化失败:', error);
-            alert('还愿失败: ' + error.message);
+async function handleFulfillWish(wish) {
+    try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            // 直接显示登录弹窗
+            toggleAuthModal(true);
+            switchAuthTab('login');
+            return;
         }
+
+        const updateResponse = await fetch(`${API_BASE}/api/wishes/${wish.id}/fulfill`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!updateResponse.ok) {
+            throw new Error('更新还愿状态失败');
+        }
+
+        const modal = document.getElementById('fulfillModal');
+        if (!modal) {
+            throw new Error('找不到还愿模态框');
+        }
+        
+        modal.dataset.wishId = wish.id;
+        modal.style.display = 'block';
+    
+        if (window.wwPay) {
+            window.wwPay.resetPaymentState();
+        }
+    } catch (error) {
+        console.error('还愿初始化失败:', error);
+        alert('还愿失败: ' + error.message);
     }
+}
 
     /* ==================== 许愿表单 ==================== */
 
