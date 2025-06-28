@@ -989,82 +989,110 @@ function setupModalClose() {
 
     // 处理加持愿望
     async function handleBlessWish(cardElement, wish) {
-        try {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                // 修改这里：直接显示登录弹窗而不是调用showLoginModal()
-                toggleAuthModal(true);
-                switchAuthTab('login');
-                return;
-            }
+    try {
+        // 检查是否已达到25次加持
+        if (wish.blessings >= 25) {
+            showToast('该愿望已达到最高加持次数(25次)，无法继续加持', 'info');
+            return;
+        }
 
-            const lastBlessKey = `lastBless_${wish.id}`;
-            const lastBlessTime = localStorage.getItem(lastBlessKey);
-            const now = Date.now();
-            
-            if (lastBlessTime && (now - parseInt(lastBlessTime)) < 3600000) {
-                const nextBlessTime = new Date(parseInt(lastBlessTime) + 3600000);
-                showToast(`每小时只能加持一次，请于 ${nextBlessTime.toLocaleTimeString()} 后再试`);
+        const token = localStorage.getItem('token');
+        if (!token) {
+            toggleAuthModal(true);
+            switchAuthTab('login');
+            return;
+        }
+
+        const lastBlessKey = `lastBless_${wish.id}`;
+        const lastBlessTime = localStorage.getItem(lastBlessKey);
+        const now = Date.now();
+        
+        if (lastBlessTime && (now - parseInt(lastBlessTime)) < 3600000) {
+            const nextBlessTime = new Date(parseInt(lastBlessTime) + 3600000);
+            showToast(`每小时只能加持一次，请于 ${nextBlessTime.toLocaleTimeString()} 后再试`, 'info');
+            return;
+        }
+    
+        const blessBtn = cardElement.querySelector('.btn-bless');
+        blessBtn.disabled = true;
+        blessBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 加持中...';
+    
+        await showMantraEffect();
+    
+        const blessUrl = `${API_BASE}/api/bless/${wish.id}`;
+        
+        const response = await fetch(blessUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({})
+        });
+    
+        if (!response.ok) {
+            const errorData = await response.json();
+            if (errorData.code === 401) {
+                showLoginModal();
                 return;
             }
-        
-            const blessBtn = cardElement.querySelector('.btn-bless');
-            blessBtn.disabled = true;
-            blessBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 加持中...';
-        
-            await showMantraEffect();
-        
-            const blessUrl = `${API_BASE}/api/bless/${wish.id}`;
-            
-            const response = await fetch(blessUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({})
-            });
-        
-            if (!response.ok) {
-                const errorData = await response.json();
-                if (errorData.code === 401) {
-                    showLoginModal();
-                    return;
-                }
-                if (errorData.code === 429) {
-                    localStorage.setItem(lastBlessKey, new Date(errorData.nextBlessTime).getTime() - 3600000);
-                    showToast(errorData.error);
-                    return;
-                }
-                throw new Error(`加持失败 (${response.status}): ${JSON.stringify(errorData)}`);
+            if (errorData.code === 429) {
+                localStorage.setItem(lastBlessKey, new Date(errorData.nextBlessTime).getTime() - 3600000);
+                showToast(errorData.error, 'info');
+                return;
             }
+            if (errorData.code === 400 && errorData.error.includes('最高加持次数')) {
+                // 处理已达25次上限的情况
+                cardElement.querySelector('.bless-count').textContent = 25;
+                cardElement.dataset.level = 5;
+                cardElement.querySelector('.energy-level').style.width = '100%';
+                blessBtn.disabled = true;
+                blessBtn.innerHTML = '<i class="fas fa-check-circle"></i> 圆满';
+                cardElement.classList.add('max-blessed');
+                showToast(errorData.error, 'info');
+                return;
+            }
+            throw new Error(`加持失败 (${response.status}): ${JSON.stringify(errorData)}`);
+        }
+    
+        const result = await response.json();
+        console.log('加持结果:', result);
+    
+        localStorage.setItem(lastBlessKey, now.toString());
+    
+        // 更新UI
+        cardElement.querySelector('.bless-count').textContent = result.blessings;
+        cardElement.dataset.level = result.level;
+        cardElement.querySelector('.energy-level').style.width = `${result.level * 20}%`;
         
-            const result = await response.json();
-            console.log('加持结果:', result);
+        // 检查是否达到25次
+        if (result.blessings >= 25 || result.isMax) {
+            blessBtn.disabled = true;
+            blessBtn.innerHTML = '<i class="fas fa-check-circle"></i> 圆满';
+            cardElement.classList.add('max-blessed');
+        }
         
-            localStorage.setItem(lastBlessKey, now.toString());
+        cardElement.classList.add('level-up');
+        setTimeout(() => cardElement.classList.remove('level-up'), 1000);
         
-            cardElement.querySelector('.bless-count').textContent = result.blessings;
-            cardElement.dataset.level = result.level;
-            cardElement.querySelector('.energy-level').style.width = `${result.level * 20}%`;
-            
-            cardElement.classList.add('level-up');
-            setTimeout(() => cardElement.classList.remove('level-up'), 1000);
-            
-            const levelNames = ['初愿', '小成', '中成', '大成', '圆满'];
-            showSuccessMessage(`加持成功！当前能量：${levelNames[result.level - 1]}`);
-        
-        } catch (error) {
-            console.error('加持出错:', error);
-            showErrorMessage(error.message);
-        } finally {
-            const blessBtn = cardElement.querySelector('.btn-bless');
-            if (blessBtn) {
+        const levelNames = ['初愿', '小成', '中成', '大成', '圆满'];
+        showSuccessMessage(`加持成功！当前能量：${levelNames[result.level - 1]}`);
+    
+    } catch (error) {
+        console.error('加持出错:', error);
+        showErrorMessage(error.message);
+    } finally {
+        const blessBtn = cardElement.querySelector('.btn-bless');
+        if (blessBtn) {
+            // 只有在未达到25次时才恢复按钮状态
+            const currentBlessings = parseInt(cardElement.querySelector('.bless-count').textContent);
+            if (currentBlessings < 25) {
                 blessBtn.disabled = false;
                 blessBtn.innerHTML = '<i class="fas fa-hands-helping"></i> 加持';
             }
         }
     }
+}
 
 
     // 显示用户卡片浮窗
