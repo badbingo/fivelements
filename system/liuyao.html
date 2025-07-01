@@ -858,6 +858,41 @@
             margin: 20px 0; /* 增加上下边距 */
             flex-wrap: wrap; /* 小屏幕自动换行 */
         }
+
+        /* Add this to your existing CSS */
+        .method-btn {
+            position: relative;
+            padding: 15px 25px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(237, 28, 36, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .method-btn.active {
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+            box-shadow: 0 0 0 3px rgba(237, 28, 36, 0.3);
+        }
+        
+        .method-btn.active::before {
+            content: "";
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-bottom: 10px solid var(--primary-color);
+        }
         
     </style>
     <!-- Google tag (gtag.js) -->
@@ -1791,6 +1826,26 @@ document.addEventListener('DOMContentLoaded', function() {
     `;
     fullscreenLoading.innerHTML = '<div><i class="fas fa-spinner fa-spin"></i> 正在处理支付请求...</div>';
     document.body.appendChild(fullscreenLoading);
+
+    // 初始化方法切换
+    const methodBtns = document.querySelectorAll('.method-btn');
+    methodBtns.forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault(); // Prevent default behavior that might move the page
+            
+            methodBtns.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            currentMethod = this.dataset.method;
+            
+            document.querySelectorAll('.method-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            document.getElementById(`${currentMethod}-method`).classList.add('active');
+            
+            // 重置状态
+            resetDivination();
+        });
+    });
     
     // 初始化支付状态
     let isPaid = false;
