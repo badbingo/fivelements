@@ -3,108 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>六爻占卜 - 神秘占卜系统</title>
+    <title>六爻起卦 - 麦八字教学网</title>
+    <link rel="stylesheet" href="../css/style1.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/seedrandom/3.0.5/seedrandom.min.js"></script>
+    <link rel="stylesheet" href="../css/navigation.css">
+    <script defer src="../js/navigation.js"></script>
     <style>
-        :root {
-            --primary-color: #9c27b0;
-            --secondary-color: #673ab7;
-            --dark-bg: #121212;
-            --darker-bg: #0a0a0a;
-            --card-bg: #1e1e1e;
-            --text-color: #e0e0e0;
-            --text-muted: #9e9e9e;
-            --accent-color: #7b1fa2;
-            --coin-gold: linear-gradient(135deg, #ffd700, #daa520);
-            --coin-silver: linear-gradient(135deg, #c0c0c0, #a0a0a0);
-        }
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Arial', sans-serif;
-            background-color: var(--dark-bg);
-            color: var(--text-color);
-            line-height: 1.6;
-            min-height: 100vh;
-            position: relative;
-            overflow-x: hidden;
-        }
-        
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(circle at 20% 30%, rgba(156, 39, 176, 0.1) 0%, transparent 50%),
-                        radial-gradient(circle at 80% 70%, rgba(103, 58, 183, 0.1) 0%, transparent 50%);
-            z-index: -1;
-            pointer-events: none;
-        }
-        
-        .main-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 2rem;
-        }
-        
-        .header {
-            text-align: center;
-            margin-bottom: 3rem;
-            position: relative;
-        }
-        
-        .header::after {
-            content: '';
-            display: block;
-            width: 100px;
-            height: 3px;
-            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
-            margin: 1rem auto;
-            border-radius: 3px;
-        }
-        
-        .header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 0.5rem;
-            color: #fff;
-            text-shadow: 0 0 10px rgba(156, 39, 176, 0.5);
-        }
-        
-        .header p {
-            color: var(--text-muted);
-            font-size: 1.1rem;
-        }
-        
-        .divination-section {
-            background-color: var(--card-bg);
-            border-radius: 15px;
-            padding: 2rem;
-            margin-bottom: 2rem;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(156, 39, 176, 0.1);
-        }
-        
-        .section-title {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 1.5rem;
-            color: #fff;
-            font-size: 1.5rem;
-        }
-        
-        .section-title i {
-            color: var(--primary-color);
-        }
-        
         /* 六爻起卦专属样式 */
         .hexagram-container {
             display: flex;
@@ -123,8 +28,8 @@
         }
         
         .solid-line {
-            background-color: var(--primary-color);
-            box-shadow: 0 0 10px rgba(156, 39, 176, 0.5);
+            background-color: #000;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
         }
         
         .broken-line {
@@ -135,8 +40,8 @@
         .broken-line-part {
             width: 48%;
             height: 100%;
-            background-color: var(--primary-color);
-            box-shadow: 0 0 10px rgba(156, 39, 176, 0.5);
+            background-color: #000;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
         }
         
         .line-number {
@@ -172,11 +77,11 @@
             width: 80px;
             height: 80px;
             border-radius: 50%;
-            background: var(--coin-gold);
+            background: linear-gradient(135deg, #f5f5f5, #e0e0e0);
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
             position: relative;
             transform-style: preserve-3d;
             cursor: pointer;
@@ -184,8 +89,8 @@
         }
         
         .coin.selected {
-            background: var(--coin-gold);
-            box-shadow: 0 0 15px rgba(255,215,0,0.7);
+            background: linear-gradient(135deg, #fffacd, #ffeb3b);
+            box-shadow: 0 0 15px rgba(255,235,59,0.7);
         }
         
         .coin-face {
@@ -222,7 +127,6 @@
             50% { transform: rotateY(540deg); }
             100% { transform: rotateY(1080deg); }
         }
-        
         /* 添加摇动中的样式 */
         .coin.casting {
             animation: coin-shake 0.4s ease-in-out infinite;
@@ -271,7 +175,7 @@
         }
 
         .highlight-coin {
-            box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+            box-shadow: 0 0 20px rgba(255, 255, 0, 0.8);
             transform: scale(1.1);
             transition: all 0.2s;
         }
@@ -288,30 +192,32 @@
         
         .result-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); /* 增加最小宽度 */
             gap: 30px;
             margin: 40px 0;
         }
                 
         .result-card {
-            background: var(--card-bg);
+            background: rgba(255, 255, 255, 0.8);
             border-radius: 15px;
             padding: 25px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
             transition: all 0.3s ease;
-            border: 1px solid rgba(156, 39, 176, 0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            backdrop-filter: blur(5px);
+            width: 100%; /* 确保占满可用空间 */
         }
                 
         .result-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.2);
         }
         
         .result-card h3 {
             color: var(--primary-color);
             margin-bottom: 15px;
             padding-bottom: 10px;
-            border-bottom: 1px solid rgba(156, 39, 176, 0.3);
+            border-bottom: 1px solid rgba(237, 28, 36, 0.2);
             display: flex;
             align-items: center;
             gap: 10px;
@@ -326,7 +232,7 @@
             height: 120px;
             margin: 20px auto;
             display: block;
-            filter: drop-shadow(0 5px 15px rgba(0,0,0,0.5));
+            filter: drop-shadow(0 5px 15px rgba(0,0,0,0.3));
             transition: all 0.5s ease;
         }
         
@@ -336,7 +242,7 @@
         
         .interpretation-text {
             line-height: 1.8;
-            color: var(--text-color);
+            color: #333;
             text-align: justify;
         }
         
@@ -349,7 +255,6 @@
         }
         
         .method-btn {
-            position: relative;
             padding: 15px 25px;
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             color: white;
@@ -358,51 +263,20 @@
             font-size: 1rem;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 5px 15px rgba(156, 39, 176, 0.3);
+            box-shadow: 0 5px 15px rgba(237, 28, 36, 0.3);
             display: flex;
             align-items: center;
             gap: 10px;
-            z-index: 1;
-            overflow: hidden;
-        }
-        
-        .method-btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-            transition: 0.5s;
-            z-index: -1;
-        }
-        
-        .method-btn:hover::before {
-            left: 100%;
         }
         
         .method-btn:hover {
             transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(156, 39, 176, 0.5);
+            box-shadow: 0 8px 20px rgba(237, 28, 36, 0.4);
         }
         
         .method-btn.active {
             background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
-            box-shadow: 0 0 0 3px rgba(156, 39, 176, 0.3);
-        }
-        
-        .method-btn.active::after {
-            content: "";
-            position: absolute;
-            top: -10px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 0;
-            height: 0;
-            border-left: 10px solid transparent;
-            border-right: 10px solid transparent;
-            border-bottom: 10px solid var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(237, 28, 36, 0.3);
         }
         
         .method-section {
@@ -432,24 +306,25 @@
             text-align: center;
             margin: 20px 0;
             font-weight: bold;
-            text-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            text-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
         
         .gua-description {
-            background: var(--card-bg);
-            padding: 30px;
+            background: rgba(255,255,255,0.7);
+            padding: 30px; /* 增加内边距 */
             border-radius: 15px;
             margin: 30px 0;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-            border: 1px solid rgba(156, 39, 176, 0.2);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.4);
+            width: 100%; /* 确保占满可用空间 */
         }
         
         .instruction-card {
-            background: var(--card-bg);
+            background: rgba(255,255,255,0.8);
             padding: 20px;
             border-radius: 10px;
             margin-bottom: 20px;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
             border-left: 4px solid var(--primary-color);
         }
         
@@ -467,20 +342,18 @@
         
         .instruction-card li {
             margin-bottom: 8px;
-            color: var(--text-color);
         }
         
         .method-steps {
             margin-top: 20px;
             padding-left: 20px;
-            border-left: 3px solid rgba(156, 39, 176, 0.3);
+            border-left: 3px solid rgba(237, 28, 36, 0.3);
         }
         
         .method-step {
             margin-bottom: 15px;
             position: relative;
             padding-left: 25px;
-            color: var(--text-color);
         }
         
         .method-step::before {
@@ -495,17 +368,16 @@
         }
         
         .highlight {
-            background-color: rgba(156, 39, 176, 0.2);
+            background-color: rgba(255, 235, 59, 0.3);
             padding: 2px 5px;
             border-radius: 3px;
-            color: #fff;
         }
         
         .loading {
             display: inline-block;
             width: 20px;
             height: 20px;
-            border: 3px solid rgba(156, 39, 176, 0.3);
+            border: 3px solid rgba(237, 28, 36, 0.3);
             border-radius: 50%;
             border-top-color: var(--primary-color);
             animation: spin 1s ease-in-out infinite;
@@ -521,19 +393,18 @@
             color: var(--primary-color);
             margin: 20px 0 10px;
             padding-bottom: 5px;
-            border-bottom: 1px dashed rgba(156, 39, 176, 0.3);
+            border-bottom: 1px dashed rgba(237, 28, 36, 0.3);
         }
         
         .detail-para {
             line-height: 1.8;
             margin-bottom: 15px;
             text-align: justify;
-            font-size: 1.05rem;
-            color: var(--text-color);
+            font-size: 1.05rem; /* 增加字体大小 */
         }
         
         .detail-highlight {
-            background-color: rgba(156, 39, 176, 0.1);
+            background-color: rgba(255, 235, 59, 0.2);
             padding: 15px;
             border-radius: 8px;
             margin: 15px 0;
@@ -557,18 +428,18 @@
             flex: 1;
             min-width: 200px;
             margin: 0 10px 20px;
-            background: var(--card-bg);
+            background: rgba(255,255,255,0.7);
             padding: 15px;
             border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-            border: 1px solid rgba(156, 39, 176, 0.2);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.4);
         }
 
         .info-frame h3 {
             color: var(--primary-color);
             margin-bottom: 10px;
             padding-bottom: 5px;
-            border-bottom: 1px solid rgba(156, 39, 176, 0.2);
+            border-bottom: 1px solid rgba(237, 28, 36, 0.2);
             display: flex;
             align-items: center;
             gap: 8px;
@@ -582,25 +453,24 @@
         .info-frame p {
             margin: 0;
             line-height: 1.6;
-            color: var(--text-color);
         }
         
         /* 历史记录样式 */
         .divination-history {
-            background: var(--card-bg);
+            background: rgba(255,255,255,0.8);
             padding: 25px;
             border-radius: 15px;
             margin: 30px 0;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-            border: 1px solid rgba(156, 39, 176, 0.2);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.4);
         }
         
         .history-item {
             padding: 12px 15px;
             margin-bottom: 10px;
-            background: rgba(0,0,0,0.2);
+            background: rgba(255,255,255,0.9);
             border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -611,8 +481,7 @@
         
         .history-item:hover {
             transform: translateX(5px);
-            box-shadow: 0 5px 10px rgba(0,0,0,0.2);
-            background: rgba(156, 39, 176, 0.1);
+            box-shadow: 0 5px 10px rgba(0,0,0,0.1);
         }
         
         .history-gua {
@@ -621,14 +490,14 @@
         }
         
         .history-date {
-            color: var(--text-muted);
+            color: #666;
             font-size: 0.9em;
         }
         
         .clear-history {
             margin-top: 20px;
             padding: 10px 15px;
-            background: rgba(156, 39, 176, 0.1);
+            background: rgba(237, 28, 36, 0.1);
             color: var(--primary-color);
             border: none;
             border-radius: 5px;
@@ -637,355 +506,18 @@
         }
         
         .clear-history:hover {
-            background: rgba(156, 39, 176, 0.2);
+            background: rgba(237, 28, 36, 0.2);
         }
         
-        /* 卦象结果容器 */
-        .gua-result-container {
-            display: flex;
-            gap: 25px;
-            background: var(--card-bg);
-            border-radius: 12px;
-            padding: 25px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-            margin-bottom: 25px;
-        }
-        
-        /* 卦象视觉框 */
-        .gua-visual-box {
-            flex-shrink: 0;
-            text-align: center;
-            padding: 20px;
-            background: rgba(0,0,0,0.2);
-            border-radius: 10px;
-            border: 1px solid rgba(156, 39, 176, 0.2);
-            width: 35%;
-        }
-                
-        .hexagram-svg {
-            display: block;
-            margin: 0 auto 10px;
-        }
-        
-        .yang-line {
-            stroke: #d4a017;
-            stroke-linecap: round;
-        }
-        
-        .yin-line {
-            stroke: #8e44ad;
-            stroke-linecap: round;
-        }
-        
-        .yao-position {
-            font-family: "SimSun", serif;
-            font-size: 12px;
-            fill: var(--text-color);
-        }
-        
-        .gua-meta-box {
-            margin-top: 15px;
-            text-align: center;
-        }
-        
-        .gua-name-tag {
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: #d4a017;
-            margin-bottom: 5px;
-        }
-        
-        .hexagram-code {
-            font-size: 0.9rem;
-            color: var(--text-muted);
-            font-family: monospace;
-        }
-        
-        .gua-text-content {
-            flex: 1;
-            width: 65%;
-            padding: 15px;
-        }
-        
-        .gua-text-content h4 {
-            color: var(--primary-color);
-            margin-bottom: 15px;
-            padding-bottom: 8px;
-            border-bottom: 1px dashed rgba(156, 39, 176, 0.3);
-        }
-        
-        .interpretation-text {
-            line-height: 1.8;
-            margin-bottom: 20px;
-        }
-        
-        .gua-structure {
-            background: rgba(156, 39, 176, 0.1);
-            padding: 10px;
-            border-radius: 6px;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.95rem;
-            color: var(--text-color);
-        }
-        
-        /* 卦象图片框 */
-        .gua-image-box {
-            position: relative;
-            flex-shrink: 0;
-            text-align: center;
-        }
-        
-        .gua-image {
-            width: 140px;
-            height: 140px;
-            object-fit: contain;
-            filter: drop-shadow(0 5px 15px rgba(0,0,0,0.5));
-            transition: all 0.5s ease;
-            border-radius: 8px;
-            background: var(--card-bg);
-            padding: 10px;
-            box-sizing: border-box;
-        }
-        
-        .gua-image:hover {
-            transform: scale(1.1) rotate(5deg);
-        }
-        
-        .gua-name-banner {
-            position: absolute;
-            bottom: -15px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white;
-            padding: 5px 20px;
-            border-radius: 20px;
-            font-size: 1rem;
-            font-weight: bold;
-            white-space: nowrap;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.3);
-            z-index: 2;
-        }
-        
-        .gua-text-content {
-            flex: 1;
-        }
-        
-        .gua-summary {
-            font-size: 1.1rem;
-            line-height: 1.8;
-            margin-bottom: 15px;
-            color: var(--text-color);
-        }
-        
-        .gua-meta-info {
-            background: rgba(156, 39, 176, 0.1);
-            padding: 12px;
-            border-radius: 8px;
-            border-left: 3px solid var(--primary-color);
-        }
-        
-        .gua-meta-info p {
-            margin: 8px 0;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: var(--text-color);
-        }
-        
-        /* 变爻分析样式 */
-        .changing-yao-header {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 15px;
-            color: var(--primary-color);
-        }
-        
-        .yao-item {
-            display: flex;
-            margin-bottom: 12px;
-            background: rgba(156, 39, 176, 0.1);
-            padding: 12px;
-            border-radius: 6px;
-        }
-        
-        .yao-position {
-            flex-shrink: 0;
-            width: 50px;
-            font-weight: bold;
-            color: var(--primary-color);
-        }
-        
-        .yao-content {
-            flex: 1;
-        }
-        
-        .yao-change-meaning {
-            background: rgba(156, 39, 176, 0.2);
-            padding: 12px;
-            border-radius: 6px;
-            margin-top: 15px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .no-changing-yao {
-            background: rgba(156, 39, 176, 0.1);
-            padding: 15px;
-            border-radius: 8px;
-            text-align: center;
-            color: var(--text-muted);
-        }
-        
-        /* 卦象SVG样式 */
-        .hexagram-svg {
-            background-color: var(--card-bg);
-            border-radius: 8px;
-            padding: 10px;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
-            margin-bottom: 10px;
-        }
-        
-        .gua-image-box {
-            text-align: center;
-            margin-right: 20px;
-        }
-        
-        /* 变爻高亮样式 */
-        .changing-yao {
-            animation: yao-highlight 1.5s infinite;
-        }
-        
-        @keyframes yao-highlight {
-            0% { opacity: 0.6; }
-            50% { opacity: 1; }
-            100% { opacity: 0.6; }
-        }
-        
-        /* 表单样式 */
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-        
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            color: var(--primary-color);
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .input-with-icon {
-            position: relative;
-            display: flex;
-            align-items: center;
-        }
-        
-        .input-with-icon i {
-            position: absolute;
-            left: 15px;
-            color: var(--primary-color);
-        }
-        
-        .input-with-icon input {
-            width: 100%;
-            padding: 12px 15px 12px 40px;
-            background: rgba(0,0,0,0.2);
-            border: 1px solid rgba(156, 39, 176, 0.3);
-            border-radius: 8px;
-            color: var(--text-color);
-            font-size: 1rem;
-            transition: all 0.3s ease;
-        }
-        
-        .input-with-icon input:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 2px rgba(156, 39, 176, 0.2);
-        }
-        
-        .hint-text {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            margin-top: 5px;
-        }
-        
-        .form-buttons {
-            display: flex;
-            gap: 15px;
-            margin-top: 20px;
-            flex-wrap: wrap;
-        }
-        
-        .btn {
-            padding: 12px 25px;
-            border: none;
-            border-radius: 8px;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white;
-            box-shadow: 0 5px 15px rgba(156, 39, 176, 0.3);
-        }
-        
-        .btn-primary:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(156, 39, 176, 0.4);
-        }
-        
-        .btn-action {
-            background: rgba(156, 39, 176, 0.1);
-            color: var(--primary-color);
-            border: 1px solid rgba(156, 39, 176, 0.3);
-        }
-        
-        .btn-action:hover {
-            background: rgba(156, 39, 176, 0.2);
-        }
-        
-        .btn-secondary {
-            background: rgba(255,255,255,0.1);
-            color: var(--text-color);
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-        
-        .btn-secondary:hover {
-            background: rgba(255,255,255,0.2);
-        }
-        
-        /* 响应式设计 */
-        @media (max-width: 992px) {
-            .gua-result-container {
-                flex-direction: column;
-            }
-            
-            .gua-visual-box, 
-            .gua-text-content {
-                width: 100%;
-            }
-        }
-        
+        /* 响应式调整 */
         @media (max-width: 768px) {
             .coin-container {
                 gap: 15px;
             }
             
             .coin {
-                width: 60px;
-                height: 60px;
+                width: 50px;
+                height: 50px;
             }
             
             .hexagram-line {
@@ -1015,41 +547,328 @@
                 margin: 0 0 15px;
                 min-width: auto;
             }
+        }
+
+        /* 卦象结果容器 */
+        .gua-result-container {
+            display: flex;
+            gap: 25px;
+            background: white;
+            border-radius: 12px;
+            padding: 25px; /* 增加内边距 */
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            margin-bottom: 25px;
+            width: 100%; /* 确保占满可用空间 */
+        }
+        
+        /* 卦象视觉框 */
+        .gua-visual-box {
+            flex-shrink: 0;
+            text-align: center;
+            padding: 20px; /* 增加内边距 */
+            background: #fafafa;
+            border-radius: 10px;
+            border: 1px solid #eee;
+            width: 35%; /* 调整视觉部分占比 */
+        }
+                
+        .hexagram-svg {
+            display: block;
+            margin: 0 auto 10px;
+        }
+        
+        .yang-line {
+            stroke: #d4a017; /* 阳爻金色 */
+        }
+        
+        .yin-line {
+            stroke: #8e44ad; /* 阴爻紫色 */
+        }
+        
+        .yao-position {
+            font-family: "SimSun", serif;
+            font-size: 12px;
+            fill: #666;
+        }
+        
+        .gua-meta-box {
+            margin-top: 15px;
+            text-align: center;
+        }
+        
+        .gua-name-tag {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #d4a017;
+            margin-bottom: 5px;
+        }
+        
+        .hexagram-code {
+            font-size: 0.9rem;
+            color: #666;
+            font-family: monospace;
+        }
+        
+        .gua-text-content {
+            flex: 1;
+            width: 65%; /* 增加文本内容宽度 */
+            padding: 15px; /* 增加内边距 */
+        }
+        
+        .gua-text-content h4 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 1px dashed #eee;
+        }
+        
+        .interpretation-text {
+            line-height: 1.8;
+            margin-bottom: 20px;
+        }
+        
+        .gua-structure {
+            background: rgba(0,0,0,0.03);
+            padding: 10px;
+            border-radius: 6px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.95rem;
+            color: #555;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 992px) {
+            .gua-result-container {
+                flex-direction: column;
+            }
             
-            .gua-image {
-                width: 100px;
-                height: 100px;
+            .gua-visual-box, 
+            .gua-text-content {
+                width: 100%; /* 移动设备上全宽显示 */
             }
         }
-        
-        /* 动画效果 */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+        .gua-image-box {
+            position: relative;
+            flex-shrink: 0;
+            text-align: center;
         }
         
-        /* 星星背景 */
-        .stars {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -2;
-            pointer-events: none;
+        .gua-image {
+            width: 140px;
+            height: 140px;
+            object-fit: contain;
+            filter: drop-shadow(0 5px 15px rgba(0,0,0,0.3));
+            transition: all 0.5s ease;
+            border-radius: 8px;
+            background: white;
+            padding: 10px;
+            box-sizing: border-box;
         }
         
-        .star {
+        .gua-image:hover {
+            transform: scale(1.1) rotate(5deg);
+        }
+        
+        .gua-name-banner {
             position: absolute;
-            background-color: #fff;
-            border-radius: 50%;
-            animation: twinkle var(--duration) infinite ease-in-out;
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 5px 20px;
+            border-radius: 20px;
+            font-size: 1rem;
+            font-weight: bold;
+            white-space: nowrap;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+            z-index: 2;
         }
         
-        @keyframes twinkle {
-            0%, 100% { opacity: 0.2; }
-            50% { opacity: 1; }
+        .gua-text-content {
+            flex: 1;
         }
+        
+        .gua-summary {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        
+        .gua-meta-info {
+            background: rgba(0,0,0,0.03);
+            padding: 12px;
+            border-radius: 8px;
+            border-left: 3px solid var(--primary-color);
+        }
+        
+        .gua-meta-info p {
+            margin: 8px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        /* 变爻分析样式 */
+        .changing-yao-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            color: var(--primary-color);
+        }
+        
+        .yao-item {
+            display: flex;
+            margin-bottom: 12px;
+            background: rgba(237, 28, 36, 0.05);
+            padding: 12px;
+            border-radius: 6px;
+        }
+        
+        .yao-position {
+            flex-shrink: 0;
+            width: 50px;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        
+        .yao-content {
+            flex: 1;
+        }
+        
+        .yao-change-meaning {
+            background: rgba(255, 235, 59, 0.2);
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .no-changing-yao {
+            background: rgba(0,0,0,0.05);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            color: #666;
+        }
+        
+        /* 卦象SVG样式 */
+        .hexagram-svg {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 10px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            margin-bottom: 10px;
+        }
+        
+        .gua-image-box {
+            text-align: center;
+            margin-right: 20px;
+        }
+        
+        /* 变爻高亮样式 */
+        .changing-yao {
+            animation: yao-highlight 1.5s infinite;
+        }
+        
+        @keyframes yao-highlight {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { opacity: 0.6; }
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .gua-result-container {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .gua-image {
+                width: 120px;
+                height: 120px;
+            }
+            
+            .gua-text-content {
+                width: 100%;
+            }
+        }
+        @media (max-width: 768px) {
+            .result-grid {
+                grid-template-columns: 1fr; /* 移动设备上单列显示 */
+            }
+        }
+
+        .hexagram-svg {
+            display: block;
+            margin: 0 auto 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .hexagram-svg:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        
+        .yang-line {
+            stroke: #8B4513; /* 阳爻改为深棕色 */
+            stroke-linecap: round;
+        }
+        
+        .yin-line {
+            stroke: #5a3921; /* 阴爻改为深褐色 */
+            stroke-linecap: round;
+        }
+        
+        .yao-position {
+            font-family: "SimSun", serif;
+            font-size: 12px;
+            fill: #5a3921;
+        }
+
+        /* Add this to your existing CSS */
+.method-btn {
+    position: relative;
+    padding: 15px 25px;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    border: none;
+    border-radius: 50px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 5px 15px rgba(237, 28, 36, 0.3);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.method-btn.active {
+    background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+    box-shadow: 0 0 0 3px rgba(237, 28, 36, 0.3);
+}
+
+.method-btn.active::before {
+    content: "";
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-bottom: 10px solid var(--primary-color);
+}
+        
     </style>
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-2NHJXGKS0Y"></script>
@@ -1062,18 +881,17 @@
     </script>
 </head>
 <body>
-    <!-- 星空背景 -->
-    <div class="stars" id="stars"></div>
+    <div class="background-overlay"></div>
 
-    <div class="main-container">
-        <header class="header">
-            <h1><i class="fas fa-star"></i> 六爻神秘占卜 <i class="fas fa-star"></i></h1>
-            <p>通过古老六爻占卜，揭示命运的神秘面纱</p>
-        </header>
+    <main class="content-container">
+        <div class="content-title">
+            <h1>六爻起卦系统</h1>
+            <p>通过传统六爻占卜，探索问题答案与未来趋势</p>
+        </div>
 
-        <div class="divination-section">
+        <div class="content-section">
             <div class="instruction-card">
-                <h4><i class="fas fa-moon"></i> 六爻占卜简介</h4>
+                <h4><i class="fas fa-info-circle"></i> 六爻占卜简介</h4>
                 <p>六爻占卜是中国古代《易经》预测方法之一，通过六次投掷钱币或其它方式得到一个六爻卦象，根据卦象变化解读事物发展趋势。本系统提供三种起卦方式：</p>
                 <ol>
                     <li><strong>钱币摇卦</strong> - 传统三枚钱币方法，最正统的起卦方式</li>
@@ -1084,11 +902,11 @@
             </div>
 
             <div class="calculator-form">
-                <div class="section-title">
-                    <i class="fas fa-question"></i>
-                    <h2>占卜问题</h2>
+                <div class="form-header">
+                    <h2 style="color: white;"><i class="fas fa-question-circle"></i> 占卜问题</h2>
+                    <p style="color: white;">请专注思考您要占卜的问题，然后选择起卦方式</p>
                 </div>
-                <form id="divination-form">
+                <form id="divination-form" class="elegant-form">
                     <div class="form-group">
                         <label for="question"><i class="fas fa-pen"></i> 占卜问题</label>
                         <div class="input-with-icon">
@@ -1259,11 +1077,10 @@
             </div>
         </div>
 
-        <div class="divination-section" id="hexagram-section" style="display: none;">
-            <div class="section-title">
-                <i class="fas fa-chart-pie"></i>
-                <h2>卦象结果</h2>
-                <div class="form-buttons" style="margin-left: auto;">
+        <div class="content-section" id="hexagram-section" style="display: none;">
+            <div class="result-header">
+                <h2><i class="fas fa-chart-pie"></i> 卦象结果</h2>
+                <div class="result-actions">
                     <button id="save-hexagram" class="btn btn-action"><i class="fas fa-save"></i> 保存</button>
                     <button id="new-divination" class="btn btn-action"><i class="fas fa-plus"></i> 新占卜</button>
                 </div>
@@ -1332,37 +1149,16 @@
             </div>
             <button class="clear-history" id="clear-history"><i class="fas fa-trash"></i> 清除历史记录</button>
         </div>
-    </div>
+    </main>
+
+    <footer class="main-footer">
+        <div class="container">
+            <p>&copy; 2025 麦八字教学网. 保留所有权利.</p>
+            <p>传承经典命理文化，科学学习八字知识</p>
+        </div>
+    </footer>
 
     <script>
-        // 创建星空背景
-        function createStars() {
-            const starsContainer = document.getElementById('stars');
-            const starCount = 200;
-            
-            for (let i = 0; i < starCount; i++) {
-                const star = document.createElement('div');
-                star.classList.add('star');
-                
-                // 随机大小
-                const size = Math.random() * 3;
-                star.style.width = `${size}px`;
-                star.style.height = `${size}px`;
-                
-                // 随机位置
-                star.style.left = `${Math.random() * 100}%`;
-                star.style.top = `${Math.random() * 100}%`;
-                
-                // 随机闪烁时间
-                star.style.setProperty('--duration', `${5 + Math.random() * 10}s`);
-                
-                starsContainer.appendChild(star);
-            }
-        }
-        
-        // 页面加载时创建星星
-        window.addEventListener('load', createStars);
-
         // DeepSeek API配置
         const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
         const apiKey = 'sk-b2950087a9d5427392762814114b22a9';
