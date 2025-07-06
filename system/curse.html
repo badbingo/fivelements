@@ -322,27 +322,31 @@
             background-color: #7a4ce5;
         }
 
-        /* 密码容器样式 */
+        /* 密码容器样式 - 保持原有输入框宽度 */
         .password-container {
           position: relative;
-          width: 90%;
-          margin: 0 auto;
+          width: 90%; /* 与原有输入框宽度一致 */
+          margin: 0 auto 15px; /* 保持原有下边距 */
         }
         
+        /* 确保输入框宽度不变 */
         .password-container input {
-          padding-right: 30px; /* 为眼睛图标留出空间 */
-          width: 100%;
+          width: 100%; /* 继承容器的90%宽度 */
+          padding-right: 30px; /* 为图标留出空间但不改变可视宽度 */
+          box-sizing: border-box; /* 重要：确保padding不影响总宽度 */
         }
         
-        /* 眼睛图标样式 */
+        /* 眼睛图标样式 - 精确定位 */
         .toggle-password {
           position: absolute;
-          right: 10px;
-          top: 50%;
-          transform: translateY(-50%);
+          right: 15px; /* 从容器边缘计算，不是输入框 */
+          top: 38px; /* 精确计算垂直位置 */
           cursor: pointer;
           color: #b0b0b0;
+          font-size: 0.9rem; /* 与输入框字体大小匹配 */
           z-index: 2;
+          background: #2a2a2a; /* 与输入框背景相同 */
+          padding: 0 5px; /* 增加点击区域 */
         }
         
         .toggle-password:hover {
@@ -382,10 +386,13 @@
                     <input type="text" id="modalLoginUsername" placeholder="请输入用户名" required>
                     <div class="auth-error" id="modalLoginUsernameError"></div>
                 </div>
-                
-                <div class="password-container">
-                  <input type="password" id="modalLoginPassword" placeholder="请输入密码" required>
-                  <i class="fas fa-eye toggle-password"></i>
+
+                <div class="form-group">
+                  <label for="modalLoginPassword">密码</label>
+                  <div class="password-container">
+                    <input type="password" id="modalLoginPassword" placeholder="请输入密码" required>
+                    <i class="fas fa-eye toggle-password"></i>
+                  </div>
                   <div class="auth-error" id="modalLoginPasswordError"></div>
                 </div>
                 
@@ -412,15 +419,23 @@
                 </div>
                 
                 
-                <div class="password-container">
-                  <input type="password" id="modalRegisterPassword" placeholder="请输入密码(至少6位)" required minlength="6">
-                  <i class="fas fa-eye toggle-password"></i>
+                <!-- 注册表单密码 -->
+                <div class="form-group">
+                  <label for="modalRegisterPassword">密码</label>
+                  <div class="password-container">
+                    <input type="password" id="modalRegisterPassword" placeholder="请输入密码(至少6位)" required minlength="6">
+                    <i class="fas fa-eye toggle-password"></i>
+                  </div>
                   <div class="auth-error" id="modalRegisterPasswordError"></div>
                 </div>
                 
-                <div class="password-container">
-                  <input type="password" id="modalRegisterConfirmPassword" placeholder="请再次输入密码" required>
-                  <i class="fas fa-eye toggle-password"></i>
+                <!-- 注册表单确认密码 -->
+                <div class="form-group">
+                  <label for="modalRegisterConfirmPassword">确认密码</label>
+                  <div class="password-container">
+                    <input type="password" id="modalRegisterConfirmPassword" placeholder="请再次输入密码" required>
+                    <i class="fas fa-eye toggle-password"></i>
+                  </div>
                   <div class="auth-error" id="modalRegisterConfirmPasswordError"></div>
                 </div>
                 
