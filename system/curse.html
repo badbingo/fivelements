@@ -778,6 +778,19 @@
     let currentSearchTerm = '';
     let energyChart = null;
     let wishDistributionChart = null;
+
+    // 切换密码可见性
+    document.querySelectorAll('.toggle-password').forEach(icon => {
+        icon.addEventListener('click', function() {
+            const input = this.previousElementSibling;
+            const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+            input.setAttribute('type', type);
+            
+            // 切换图标
+            this.classList.toggle('fa-eye');
+            this.classList.toggle('fa-eye-slash');
+        });
+    });
     
     // 获取DOM元素
     const wishFilter = document.getElementById('wishFilter');
@@ -854,18 +867,6 @@
         }
     });
 
-    document.querySelectorAll('.toggle-password').forEach(icon => {
-    icon.addEventListener('click', function() {
-      const input = this.previousElementSibling;
-      const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
-      input.setAttribute('type', type);
-      
-      // 切换图标
-      this.classList.toggle('fa-eye');
-      this.classList.toggle('fa-eye-slash');
-    });
-  });
-});
 
     // 初始化用户状态
     function initUserStatus() {
