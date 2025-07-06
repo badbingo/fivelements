@@ -1,657 +1,711 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BaZi Analysis in 7 Steps - My BaZi Learning</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style1.css">
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-2NHJXGKS0Y"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-    
-      gtag('config', 'G-2NHJXGKS0Y');
-    </script>
+    <title>麦八字 - 暗黑命理导航</title>
+    <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Ma+Shan+Zheng&family=Noto+Sans+SC:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* 基础样式 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: radial-gradient(ellipse at center, #0a0410 0%, #000000 100%);
+            color: #d4af37;
+            font-family: 'ZCOOL KuaiLe', 'Noto Sans SC', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><text x="10" y="50" font-family="Arial" font-size="10" fill="rgba(90,10,26,0.1)">☯☸✡☽♆</text></svg>');
+            opacity: 0.1;
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        h1, h2, h3 {
+            font-weight: normal;
+            text-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+        }
+        
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+        
+        /* 主容器 */
+        .mindmap-container {
+            position: relative;
+            width: 100%;
+            min-height: 100vh;
+            padding: 50px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* 中心节点 */
+        .central-node {
+            position: relative;
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            background: rgba(74, 13, 101, 0.3);
+            border: 2px solid #5e0a1a;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.5s ease;
+            z-index: 10;
+            box-shadow: 0 0 30px rgba(94, 10, 26, 0.5);
+        }
+        
+        .central-node h2 {
+            font-size: 2.5rem;
+            font-family: 'Ma Shan Zheng', cursive;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .central-node:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 50px rgba(212, 175, 55, 0.7);
+            border-color: #d4af37;
+        }
+        
+        .node-glow {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(212, 175, 55, 0.3) 0%, rgba(212, 175, 55, 0) 70%);
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        
+        .central-node:hover .node-glow {
+            opacity: 1;
+        }
+        
+        /* 一级节点容器 */
+        .level1-container {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+        }
+        
+        /* 一级节点 */
+        .level1-node {
+            position: absolute;
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            background: rgba(74, 13, 101, 0.2);
+            border: 1px solid #4a0d65;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            z-index: 9;
+        }
+        
+        .level1-node h3 {
+            font-size: 1.2rem;
+            text-align: center;
+            padding: 0 10px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .level1-node:hover {
+            background: rgba(94, 10, 26, 0.3);
+            border-color: #d4af37;
+            transform: scale(1.1);
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.5);
+        }
+        
+        .level1-node .node-orb {
+            width: 15px;
+            height: 15px;
+            background: #4a0d65;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 10px #5e0a1a;
+            margin-bottom: 8px;
+        }
+        
+        .level1-node:hover .node-orb {
+            transform: scale(1.5);
+            background: #d4af37;
+            box-shadow: 0 0 20px #d4af37;
+        }
+        
+        /* 二级节点容器 */
+        .level2-container {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+        }
+        
+        /* 二级节点 */
+        .level2-node {
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: rgba(74, 13, 101, 0.1);
+            border: 1px dashed #4a0d65;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            z-index: 8;
+            pointer-events: auto;
+            transform-style: preserve-3d;
+        }
+        
+        .level2-node h4 {
+            font-size: 1rem;
+            text-align: center;
+            padding: 0 10px;
+            font-family: 'Noto Sans SC', sans-serif;
+            font-weight: 400;
+        }
+        
+        .level2-node:hover {
+            background: rgba(94, 10, 26, 0.2);
+            border-style: solid;
+            border-color: #d4af37;
+            transform: scale(1.1) rotateY(20deg);
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.4);
+        }
+        
+        /* 三级节点容器 */
+        .level3-container {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+        }
+        
+        /* 三级节点 */
+        .level3-node {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: rgba(10, 4, 16, 0.7);
+            border: 1px dotted #5e0a1a;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            z-index: 7;
+            pointer-events: auto;
+        }
+        
+        .level3-node h5 {
+            font-size: 0.8rem;
+            text-align: center;
+            padding: 0 10px;
+            font-family: 'Noto Sans SC', sans-serif;
+            font-weight: 400;
+        }
+        
+        .level3-node:hover {
+            background: rgba(94, 10, 26, 0.3);
+            border-style: solid;
+            border-color: #d4af37;
+            transform: scale(1.1);
+            box-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
+        }
+        
+        /* 连接线 */
+        .connecting-line {
+            position: absolute;
+            background: linear-gradient(to right, #4a0d65, #5e0a1a);
+            height: 1px;
+            transform-origin: left center;
+            z-index: 1;
+        }
+        
+        .central-line {
+            background: linear-gradient(to right, #5e0a1a, #d4af37);
+            height: 2px;
+        }
+        
+        /* 粒子效果容器 */
+        .particles {
+            position: absolute;
+            pointer-events: none;
+            z-index: 5;
+        }
+        
+        /* 特殊节点样式 - 灵阵法门 */
+        .spell-node {
+            position: relative;
+        }
+        
+        .spell-node::before {
+            content: '';
+            position: absolute;
+            top: -15px;
+            left: -15px;
+            right: -15px;
+            bottom: -15px;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 60 60"><path d="M30,5 L40,20 L55,25 L45,40 L50,55 L30,45 L10,55 L15,40 L5,25 L20,20 Z" fill="none" stroke="%234a0d65" stroke-width="1"/></svg>');
+            opacity: 0;
+            transition: opacity 0.3s;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            pointer-events: none;
+        }
+        
+        .spell-node:hover::before {
+            opacity: 0.7;
+            animation: rotate-slow 20s linear infinite;
+        }
+        
+        /* 特殊节点样式 - 命运双池 */
+        .pool-node {
+            background: rgba(10, 4, 16, 0.8);
+            border: 1px solid #5e0a1a;
+        }
+        
+        .pool-node:hover {
+            background: rgba(94, 10, 26, 0.4);
+        }
+        
+        /* 动画 */
+        @keyframes pulse {
+            0% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        @keyframes rotate-slow {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .mindmap-container {
+                padding: 20px;
+                transform: scale(0.8);
+            }
+            
+            .central-node {
+                width: 120px;
+                height: 120px;
+            }
+            
+            .central-node h2 {
+                font-size: 1.8rem;
+            }
+            
+            .level1-node {
+                width: 100px;
+                height: 100px;
+            }
+            
+            .level1-node h3 {
+                font-size: 0.9rem;
+            }
+            
+            .level2-node {
+                width: 80px;
+                height: 80px;
+            }
+            
+            .level2-node h4 {
+                font-size: 0.8rem;
+            }
+            
+            .level3-node {
+                width: 70px;
+                height: 70px;
+            }
+            
+            .level3-node h5 {
+                font-size: 0.7rem;
+            }
+            
+            /* 移动端简化为2D效果 */
+            .level2-node:hover {
+                transform: scale(1.1);
+                filter: drop-shadow(0 0 10px #d4af37);
+            }
+        }
+    </style>
 </head>
 <body>
-    <div class="background-overlay"></div>
-    
-    <!-- Top Navigation Bar -->
-     <header class="main-header">
-        <div class="container header-container">
-            <div class="logo-container">
-                <div class="logo-text">
-                    <h1>My BaZi</h1>
-                    <p class="slogan">Easy Learning</p>
-                </div>
-            </div>
-            
-            <nav class="main-nav">
-                <ul class="nav-list">
-                    <li class="nav-item">
-                        <a href="index.html" class="nav-link active">
-                            <i class="fas fa-home"></i>7-Step
-                        </a>
-                    </li>
-                    
-                    <li class="nav-item dropdown">
-                        <a href="#" class="nav-link">
-                            <i class="fas fa-book-open"></i> Basics <i class="fas fa-chevron-down dropdown-icon"></i>
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li><a href="basics/bazi-process.html" class="dropdown-link">BaZi Introduction</a></li>
-                            <li><a href="basics/bazi-chart.html" class="dropdown-link">BaZi Chart</a></li>
-                            <li><a href="basics/yen-strength.html" class="dropdown-link">Daymaster Analysis</a></li>
-                            <li><a href="basics/elements.html" class="dropdown-link">Stem-Branch Meanings</a></li>
-                            <li><a href="basics/wuxing.html" class="dropdown-link">Five Elements</a></li>
-                            <li><a href="basics/ten-gods.html" class="dropdown-link">Ten Gods</a></li>
-                            <li><a href="basics/balance.html" class="dropdown-link">Element Balance</a></li>
-                            <li><a href="basics/combinations.html" class="dropdown-link">Combinations</a></li>
-                        </ul>
-                    </li>
-                    
-                    <li class="nav-item dropdown">
-                        <a href="#" class="nav-link">
-                            <i class="fas fa-chart-line"></i> Advanced <i class="fas fa-chevron-down dropdown-icon"></i>
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li><a href="advanced/tomb.html" class="dropdown-link">Four Tombs</a></li>
-                            <li><a href="advanced/personality.html" class="dropdown-link">Personality</a></li>
-                            <li><a href="advanced/wealth.html" class="dropdown-link">Wealth</a></li>
-                            <li><a href="advanced/career.html" class="dropdown-link">Career</a></li>
-                            <li><a href="advanced/marriage.html" class="dropdown-link">Marriage</a></li>
-                            <li><a href="advanced/health.html" class="dropdown-link">Health</a></li>
-                            <li><a href="advanced/luck.html" class="dropdown-link">Luck Cycles</a></li>
-                        </ul>
-                    </li>
-                    
-                    <li class="nav-item dropdown">
-                        <a href="#" class="nav-link">
-                            <i class="fas fa-shapes"></i> Patterns <i class="fas fa-chevron-down dropdown-icon"></i>
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li><a href="patterns/common.html" class="dropdown-link">Common Patterns</a></li>
-                            <li><a href="patterns/special.html" class="dropdown-link">Special Patterns</a></li>
-                        </ul>
-                    </li>
-                    
-                    <li class="nav-item dropdown">
-                        <a href="#" class="nav-link">
-                            <i class="fas fa-tools"></i> Tools <i class="fas fa-chevron-down dropdown-icon"></i>
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li><a href="tools/calculator.html" class="dropdown-link">BaZi Calculator</a></li>
-                            <li><a href="tools/reference.html" class="dropdown-link">Reference Tables</a></li>
-                            <li><a href="tools/bazi-test.html" class="dropdown-link">BaZi Quiz</a></li>
-                            <li><a href="tools/bazi.html" class="dropdown-link">Premium System</a></li>
-                            <li><a href="tools/hehun.html" class="dropdown-link">Marriage Analysis</a></li>
-                        </ul>
-                    </li>
-                    
-                    <li class="nav-item">
-                        <a href="about.html" class="nav-link">
-                            <i class="fas fa-info-circle"></i> About
-                        </a>
-                    </li>
-                </ul>
-            </nav>
-        </div>
-    </header>
-
-    <!-- Main Content Area -->
-    <main class="content-container">
-        <div class="content-title">
-            <h1>BaZi Analysis in 7 Steps</h1>
-            <p>Learn BaZi destiny analysis from scratch with this step-by-step guide</p>
+    <div class="mindmap-container">
+        <!-- 中心节点 -->
+        <div class="central-node" id="mybazi-central">
+            <div class="node-glow"></div>
+            <h2>麦八字</h2>
         </div>
         
-        <div class="content-section">
-            <h2>7 Steps to Master BaZi Analysis</h2>
+        <!-- 一级节点容器 -->
+        <div class="level1-container" id="level1-container">
+            <!-- 八字学习网 -->
+            <a href="https://mybazi.net" class="level1-node" id="study-node" style="top: 20%; left: 20%;">
+                <div class="node-orb"></div>
+                <h3>八字学习网</h3>
+            </a>
             
-            <!-- Step 1: Set Up the BaZi Chart -->
-            <div class="step-box">
-                <div class="step">
-                    <div class="step-number">1</div>
-                    <div class="step-content">
-                        <h3>Step 1: Set Up the BaZi Chart</h3>
-                        <p>A BaZi chart consists of Year, Month, Day, and Hour pillars, each with a Heavenly Stem and Earthly Branch, totaling eight characters - hence "BaZi" (Eight Characters).</p>
-                        
-                        <div class="bazi-table-container">
-                            <table class="bazi-simple-table">
-                                <thead>
-                                    <tr>
-                                        <th>Pillar</th>
-                                        <th>Year</th>
-                                        <th>Month</th>
-                                        <th>Day</th>
-                                        <th>Hour</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td class="row-label">Stem</td>
-                                        <td>壬</td>
-                                        <td>戊</td>
-                                        <td>甲</td>
-                                        <td>丙</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="row-label">Branch</td>
-                                        <td>戌</td>
-                                        <td>申</td>
-                                        <td>寅</td>
-                                        <td>寅</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="row-label">Hidden Stems</td>
-                                        <td>戊辛丁</td>
-                                        <td>庚壬戊</td>
-                                        <td>甲丙戊</td>
-                                        <td>甲丙戊</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        
-                        <div class="example-box">
-                            <h4><i class="fas fa-lightbulb"></i> Example:</h4>
-                            <p>For someone born on August 15, 1995 at 10:00 AM:</p>
-                            <ol>
-                                <li><strong>Year Pillar:</strong> 1995 is Yi Hai year (based on solar terms)</li>
-                                <li><strong>Month Pillar:</strong> August is Shen month (after LiQiu)</li>
-                                <li><strong>Day Pillar:</strong> Calculated using formula or calendar</li>
-                                <li><strong>Hour Pillar:</strong> 10 AM is Si hour</li>
-                            </ol>
-                            <p>Final BaZi: <strong>Yi Hai, Jia Shen, Wu Yin, Ding Si</strong></p>
-                        </div>
-                        
-                        <div class="note-box">
-                            <p><i class="fas fa-link"></i> Recommended Tools: <a href="tools/calculator.html" class="text-link">BaZi Calculator</a> | 
-                            <a href="basics/bazi-chart.html" class="text-link">Manual Calculation Guide</a></p>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Step 2: Determine Daymaster Strength -->
-                <div class="step">
-                    <div class="step-number">2</div>
-                    <div class="step-content">
-                        <h3>Step 2: Determine Daymaster Strength</h3>
-                        <p>The Daymaster is the Heavenly Stem of the Day Pillar, representing the self. Analyzing its strength is fundamental to BaZi interpretation.</p>
-                        
-                        <div class="card-grid">
-                            <div class="card">
-                                <h4 class="card-title">Four Strength Criteria <a href="basics/yen-strength.html" class="text-link"><i class="fas fa-info-circle"></i></a></h4>
-                                <ol>
-                                    <li><strong>Seasonal Strength:</strong> Daymaster's element matches or is supported by the month branch</li>
-                                    <li><strong>Root Support:</strong> Branches contain the Daymaster's root (e.g., Wood in Yin-Mao)</li>
-                                    <li><strong>Peer Support:</strong> Stems with same element (Comparisons/Rob Wealth)</li>
-                                    <li><strong>Nourishment:</strong> Presence of productive elements (Resource stars)</li>
-                                </ol>
-                            </div>
-                            <div class="card">
-                                <h4 class="card-title">Strength Assessment Mnemonic</h4>
-                                <p>"Three strong, one weak, two means balanced"</p>
-                                <ul>
-                                    <li>3-4 criteria met: Strong</li>
-                                    <li>2 criteria met: Balanced</li>
-                                    <li>0-1 criteria met: Weak</li>
-                                </ul>
-                            </div>
-                        </div>
-                        
-                        <div class="example-box">
-                            <h4><i class="fas fa-user"></i> Case Analysis:</h4>
-                            <p>BaZi: <strong>Ren Xu, Wu Shen, Jia Yin, Bing Yin</strong></p>
-                            <ul>
-                                <li>Jia Wood in Shen month (Metal controls Wood): <span class="wuxing-metal">Seasonally weak</span></li>
-                                <li>Day branch Yin Wood, Hour branch Yin Wood: <span class="wuxing-wood">Root support</span></li>
-                                <li>No Wood in stems: <span class="text-danger">No peer support</span></li>
-                                <li>Ren Water produces Jia Wood: <span class="wuxing-water">Nourishment</span></li>
-                                <li><strong>Conclusion:</strong> Balanced leaning weak</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Step 3: Understand Ten Gods -->
-                <div class="step">
-                    <div class="step-number">3</div>
-                    <div class="step-content">
-                        <h3>Step 3: Understand Ten Gods</h3>
-                        <p>The Ten Gods are determined by the Daymaster's relationship with other stems, representing different life aspects.</p>
-                        
-                        <div class="bazi-table-container">
-                            <table class="bazi-simple-table">
-                                <thead>
-                                    <tr>
-                                        <th>Ten Gods</th>
-                                        <th>Meaning</th>
-                                        <th>Determination</th>
-                                        <th>Example (Jia Daymaster)</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td class="row-label">Comparisons/Rob Wealth</td>
-                                        <td>Siblings, peers</td>
-                                        <td>Same element (same yinyang = Comparison)</td>
-                                        <td>Jia = Comparison, Yi = Rob Wealth</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="row-label">Output/Resource</td>
-                                        <td>Talent, children</td>
-                                        <td>Produced by Daymaster (same yinyang = Output)</td>
-                                        <td>Bing = Output, Ding = Resource</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="row-label">Wealth/Indirect Wealth</td>
-                                        <td>Money, spouse</td>
-                                        <td>Controlled by Daymaster (same yinyang = Indirect Wealth)</td>
-                                        <td>Wu = Indirect Wealth, Ji = Wealth</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        
-                        <div class="bazi-table-container" style="margin-top:20px;">
-                            <table class="bazi-simple-table">
-                                <caption>BaZi Ten Gods Example (Jia Daymaster)</caption>
-                                <thead>
-                                    <tr>
-                                        <th>Pillar</th>
-                                        <th>Year</th>
-                                        <th>Month</th>
-                                        <th>Day</th>
-                                        <th>Hour</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td class="row-label">Stem</td>
-                                        <td>Ren (Resource)</td>
-                                        <td>Wu (Indirect Wealth)</td>
-                                        <td>Jia (Daymaster)</td>
-                                        <td>Bing (Output)</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="row-label">Branch</td>
-                                        <td>Xu (Wu-Xin-Ding)<br>Indirect Wealth/Authority/Resource</td>
-                                        <td>Shen (Geng-Ren-Wu)<br>Authority/Resource/Indirect Wealth</td>
-                                        <td>Yin (Jia-Bing-Wu)<br>Comparison/Output/Indirect Wealth</td>
-                                        <td>Yin (Jia-Bing-Wu)<br>Comparison/Output/Indirect Wealth</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        
-                        <div class="note-box">
-                            <p><i class="fas fa-link"></i> Recommended Study: <a href="basics/ten-gods.html" class="text-link">Ten Gods Explained</a> | 
-                            <a href="tools/reference.html#tenshen" class="text-link">Ten Gods Reference</a></p>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Step 4: Analyze Element Balance -->
-                <div class="step">
-                    <div class="step-number">4</div>
-                    <div class="step-content">
-                        <h3>Step 4: Analyze Element Balance</h3>
-                        <p>Assess the waxing and waning of the Five Elements (Wood, Fire, Earth, Metal, Water) in the chart.</p>
-                        
-                        <div class="card-grid">
-                            <div class="card">
-                                <h4 class="card-title">Element Strength <a href="basics/wuxing.html" class="text-link"><i class="fas fa-info-circle"></i></a></h4>
-                                <ul>
-                                    <li><span class="wuxing-wood">Wood:</span> Yin-Mao-Chen strong, Hai-Zi supporting</li>
-                                    <li><span class="wuxing-fire">Fire:</span> Si-Wu-Wei strong, Yin-Mao supporting</li>
-                                    <li><span class="wuxing-earth">Earth:</span> Chen-Xu-Chou-Wei strong, Si-Wu supporting</li>
-                                    <li><span class="wuxing-metal">Metal:</span> Shen-You-Xu strong, Chen-Chou supporting</li>
-                                    <li><span class="wuxing-water">Water:</span> Hai-Zi-Chou strong, Shen-You supporting</li>
-                                </ul>
-                            </div>
-                            <div class="card">
-                                <h4 class="card-title">Element Relationships</h4>
-                                <p><strong>Productive Cycle:</strong> Wood→Fire→Earth→Metal→Water→Wood</p>
-                                <p><strong>Controlling Cycle:</strong> Wood→Earth→Water→Fire→Metal→Wood</p>
-                                <div class="note-box">
-                                    <p>Element balance is key to chart assessment</p>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="example-box">
-                            <h4><i class="fas fa-chart-pie"></i> Element Analysis Example:</h4>
-                            <p>BaZi: Ren Xu, Wu Shen, Jia Yin, Bing Yin</p>
-                            <div class="wuxing-chart">
-                                <div class="chart-container">
-                                    <div class="chart-radar">
-                                        <div class="chart-axis" style="--angle: 0deg"><span class="wuxing-metal">Metal</span><span class="chart-value" style="--value: 1"></span></div>
-                                        <div class="chart-axis" style="--angle: 72deg"><span class="wuxing-water">Water</span><span class="chart-value" style="--value: 1"></span></div>
-                                        <div class="chart-axis" style="--angle: 144deg"><span class="wuxing-wood">Wood</span><span class="chart-value" style="--value: 3"></span></div>
-                                        <div class="chart-axis" style="--angle: 216deg"><span class="wuxing-fire">Fire</span><span class="chart-value" style="--value: 1"></span></div>
-                                        <div class="chart-axis" style="--angle: 288deg"><span class="wuxing-earth">Earth</span><span class="chart-value" style="--value: 2"></span></div>
-                                    </div>
-                                    <div class="chart-legend">
-                                        <p><span class="wuxing-wood">Wood:3</span> (strong)</p>
-                                        <p><span class="wuxing-fire">Fire:1</span> (weak)</p>
-                                        <p><span class="wuxing-earth">Earth:2</span> (balanced)</p>
-                                        <p><span class="wuxing-metal">Metal:1</span> (weak)</p>
-                                        <p><span class="wuxing-water">Water:1</span> (weak)</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <p><strong>Analysis:</strong> Excess Wood, weak Metal-Water-Fire, needs Metal-Water balance</p>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Step 5: Identify Special Combinations -->
-                <div class="step">
-                    <div class="step-number">5</div>
-                    <div class="step-content">
-                        <h3>Step 5: Identify Special Combinations</h3>
-                        <p>Special combinations in BaZi can significantly alter element dynamics.</p>
-                        
-                        <div class="bazi-table-container">
-                            <table class="bazi-simple-table">
-                                <thead>
-                                    <tr>
-                                        <th>Combination</th>
-                                        <th>Conditions</th>
-                                        <th>Effect</th>
-                                        <th>Example</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td class="row-label">Triad Combination</td>
-                                        <td>Shen-Zi-Chen(Water), Hai-Mao-Wei(Wood), Yin-Wu-Xu(Fire), Si-You-Chou(Metal)</td>
-                                        <td>Strengthens the element</td>
-                                        <td>Yin-Wu-Xu Fire combination</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="row-label">Clash</td>
-                                        <td>Zi-Wu, Chou-Wei, Yin-Shen, Mao-You, Chen-Xu, Si-Hai</td>
-                                        <td>Causes instability</td>
-                                        <td>Yin-Shen clash</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        
-                        <div class="note-box">
-                            <p><i class="fas fa-link"></i> Recommended Study: <a href="basics/combinations.html" class="text-link">Combinations Explained</a></p>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Step 6: Determine Useful and Harmful Elements -->
-                <div class="step">
-                    <div class="step-number">6</div>
-                    <div class="step-content">
-                        <h3>Step 6: Determine Useful and Harmful Elements</h3>
-                        <p>Useful elements benefit the chart, while harmful elements create imbalance.</p>
-                        
-                        <div class="card-grid">
-                            <div class="card">
-                                <h4 class="card-title">Useful Element Selection</h4>
-                                <ul>
-                                    <li><strong>Strong Daymaster:</strong> Controlling (Authority), Output, Wealth elements</li>
-                                    <li><strong>Weak Daymaster:</strong> Nourishing (Resource), Supporting (Comparison) elements</li>
-                                    <li><strong>Special Patterns:</strong> Follow the pattern's needs</li>
-                                </ul>
-                            </div>
-                            <div class="card">
-                                <h4 class="card-title">Harmful Elements</h4>
-                                <ul>
-                                    <li>Elements that control useful elements</li>
-                                    <li>Elements that worsen imbalance</li>
-                                    <li>Problematic Ten Gods for the Daymaster</li>
-                                </ul>
-                            </div>
-                        </div>
-                        
-                        <div class="example-box">
-                            <h4><i class="fas fa-magic"></i> Useful Element Example:</h4>
-                            <p>BaZi: Ren Xu, Wu Shen, Jia Yin, Bing Yin</p>
-                            <ul>
-                                <li><strong>Daymaster:</strong> Jia Wood (balanced leaning weak)</li>
-                                <li><strong>Issue:</strong> Strong Wood, weak Metal-Water</li>
-                                <li><strong>Useful:</strong> Metal (controls Wood), Water (produces Wood)</li>
-                                <li><strong>Harmful:</strong> Wood (Comparisons), Fire (Output)</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Step 7: Analyze Luck Cycles -->
-                <div class="step">
-                    <div class="step-number">7</div>
-                    <div class="step-content">
-                        <h3>Step 7: Analyze Luck Cycles</h3>
-                        <p>Luck Pillars (10-year cycles) and Annual Pillars are crucial for timing predictions.</p>
-                        
-                        <div class="card-grid">
-                            <div class="card">
-                                <h4 class="card-title">Luck Pillars <a href="advanced/luck.html" class="text-link"><i class="fas fa-info-circle"></i></a></h4>
-                                <ul>
-                                    <li><strong>Function:</strong> 10-year cycles affecting long-term destiny</li>
-                                    <li><strong>Calculation:</strong> Yang year males forward, Yin year females forward; Yin year males backward, Yang year females backward</li>
-                                    <li><strong>Effects:</strong>
-                                        <ul>
-                                            <li>Useful element in power: Good decade</li>
-                                            <li>Harmful element in power: Challenging decade</li>
-                                            <li>Luck clashes chart: Major changes</li>
-                                        </ul>
-                                    </li>
-                                </ul>
-                            </div>
-                            <div class="card">
-                                <h4 class="card-title">Annual Pillars</h4>
-                                <ul>
-                                    <li><strong>Function:</strong> Yearly fluctuations, timing of events</li>
-                                    <li><strong>Assessment:</strong>
-                                        <ul>
-                                            <li>Useful element year: Smooth year</li>
-                                            <li>Harmful element year: Difficult year</li>
-                                            <li>Year clashes: Sudden changes</li>
-                                            <li>Year combinations: Relationship shifts</li>
-                                        </ul>
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-                        <div class="banner-container" style="text-align: center; margin: 20px 0;">
-                                <a href="tools/bazi.html">
-                                    <img src="images/bzbanner.jpg" alt="BaZi Analysis Banner" style="max-width: 100%; height: auto;">
-                                </a>
-                            </div>
-                        <div class="example-box detailed">
-                            <h4><i class="fas fa-calendar-alt"></i> Luck Cycle Case Study:</h4>
-                            <p>BaZi: Ren Xu, Wu Shen, Jia Yin, Bing Yin (Male)</p>
-                            
-                            <div class="bazi-table-container">
-                                <table class="bazi-simple-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Period</th>
-                                            <th>Luck Pillar</th>
-                                            <th>Elements</th>
-                                            <th>Analysis</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td>0-10</td>
-                                            <td>Ji You</td>
-                                            <td class="wuxing-earth">Earth Metal</td>
-                                            <td>Earth produces Metal, useful element, stable childhood</td>
-                                        </tr>
-                                        <tr>
-                                            <td>10-20</td>
-                                            <td>Geng Xu</td>
-                                            <td class="wuxing-metal">Metal Earth</td>
-                                            <td>Metal controls Wood, good for studies</td>
-                                        </tr>
-                                        <tr>
-                                            <td>20-30</td>
-                                            <td>Xin Hai</td>
-                                            <td class="wuxing-metal">Metal Water</td>
-                                            <td>Metal-Water productive, career beginnings</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                            
-                            <h5>2025 Yi Si Year Analysis:</h5>
-                            <ul>
-                                <li><strong>Annual Pillar:</strong> Yi Wood (Rob Wealth), Si Fire (Output)</li>
-                                <li><strong>With Luck Pillar:</strong> Yi combines with Geng, Si clashes with Hai</li>
-                                <li><strong>Effects:</strong>
-                                    <ul>
-                                        <li>Yi Wood Rob Wealth: Financial risks</li>
-                                        <li>Si Fire clashes Hai Water: Health caution</li>
-                                        <li>Overall: Neutral-leaning challenging year</li>
-                                    </ul>
-                                </li>
-                            </ul>
-                        </div>
-                        
-                        <div class="note-box">
-                            <p><i class="fas fa-link"></i> Recommended Tools: <a href="tools/calculator.html#luck" class="text-link">Luck Cycle Calculator</a> | 
-                            <a href="advanced/luck.html" class="text-link">Luck Cycles Tutorial</a></p>
-                        </div>
-                    </div>
-                </div>
+            <!-- 机缘命理系统 -->
+            <a href="https://mybazi.net/system/bazi.html" class="level1-node" id="bazi-node" style="top: 20%; right: 20%;">
+                <div class="node-orb"></div>
+                <h3>机缘命理系统</h3>
+            </a>
+            
+            <!-- 八字合婚系统 -->
+            <a href="https://mybazi.net/system/hehun.html" class="level1-node" id="hehun-node" style="top: 40%; left: 10%;">
+                <div class="node-orb"></div>
+                <h3>八字合婚系统</h3>
+            </a>
+            
+            <!-- 六爻起卦 -->
+            <a href="https://mybazi.net/system/liuyao.html" class="level1-node" id="liuyao-node" style="top: 40%; right: 10%;">
+                <div class="node-orb"></div>
+                <h3>六爻起卦</h3>
+            </a>
+            
+            <!-- 灵阵法门 -->
+            <div class="level1-node spell-node" id="spell-node" style="bottom: 25%; left: 25%;">
+                <div class="node-orb"></div>
+                <h3>灵阵法门</h3>
             </div>
-        </div>
-
-        <!-- Practical Case Section -->
-        <div class="content-section">
-            <h2>BaZi Analysis Case Study</h2>
-            <div class="example-box detailed">
-                <h4>Case: Male BaZi Analysis (Born October 20, 1982 at 6:00 AM)</h4>
-                
-                <div class="bazi-table-container">
-                    <table class="bazi-simple-table">
-                        <thead>
-                            <tr>
-                                <th>Pillar</th>
-                                <th>Year</th>
-                                <th>Month</th>
-                                <th>Day</th>
-                                <th>Hour</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td class="row-label">Stem</td>
-                                <td>Ren (Resource)</td>
-                                <td>Geng (Authority)</td>
-                                <td>Jia (Daymaster)</td>
-                                <td>Ding (Resource)</td>
-                            </tr>
-                            <tr>
-                                <td class="row-label">Branch</td>
-                                <td>Xu (Wu-Xin-Ding)<br>Indirect Wealth/Authority/Resource</td>
-                                <td>Xu (Wu-Xin-Ding)<br>Indirect Wealth/Authority/Resource</td>
-                                <td>Wu (Ding-Ji)<br>Resource/Wealth</td>
-                                <td>Mao (Yi)<br>Rob Wealth</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                
-                <div class="step-box">
-                    <div class="step">
-                        <div class="step-number">1</div>
-                        <div class="step-content">
-                            <h5>Daymaster Strength Analysis</h5>
-                            <ul>
-                                <li>Jia Wood in Xu month (Earth strong): Seasonally weak</li>
-                                <li>Hour branch Mao Wood as root: Root support</li>
-                                <li>No Wood in stems: No peer support</li>
-                                <li>Ren Water produces Jia Wood: Nourishment</li>
-                                <li><strong>Conclusion:</strong> Weak</li>
-                            </ul>
-                        </div>
-                    </div>
-                    
-                    <div class="step">
-                        <div class="step-number">2</div>
-                        <div class="step-content">
-                            <h5>Element Balance Analysis</h5>
-                            <div class="wuxing-chart">
-                                <div class="chart-container">
-                                    <div class="chart-radar">
-                                        <div class="chart-axis" style="--angle: 0deg"><span class="wuxing-metal">Metal</span><span class="chart-value" style="--value: 2"></span></div>
-                                        <div class="chart-axis" style="--angle: 72deg"><span class="wuxing-water">Water</span><span class="chart-value" style="--value: 1"></span></div>
-                                        <div class="chart-axis" style="--angle: 144deg"><span class="wuxing-wood">Wood</span><span class="chart-value" style="--value: 2"></span></div>
-                                        <div class="chart-axis" style="--angle: 216deg"><span class="wuxing-fire">Fire</span><span class="chart-value" style="--value: 3"></span></div>
-                                        <div class="chart-axis" style="--angle: 288deg"><span class="wuxing-earth">Earth</span><span class="chart-value" style="--value: 2"></span></div>
-                                    </div>
-                                </div>
-                            </div>
-                            <ul>
-                                <li><strong>Issue:</strong> Excess Fire, weak Water</li>
-                            </ul>
-                        </div>
-                    </div>
-                    
-                    <div class="step">
-                        <div class="step-number">3</div>
-                        <div class="step-content">
-                            <h5>Useful/Harmful Elements</h5>
-                            <ul>
-                                <li><strong>Useful:</strong> Water (controls Fire, produces Wood), Wood (supports Daymaster)</li>
-                                <li><strong>Harmful:</strong> Fire (consumes Wood), Earth (consumes Water)</li>
-                            </ul>
-                        </div>
-                    </div>
-                    
-                    <div class="step">
-                        <div class="step-number">4</div>
-                        <div class="step-content">
-                            <h5>Luck Cycle Analysis</h5>
-                            <ul>
-                                <li><strong>Current Luck Pillar:</strong> Gui Chou (Water, useful element active)</li>
-                                <li><strong>2025 Yi Si Year:</strong>
-                                    <ul>
-                                        <li>Yi Wood Rob Wealth (supports Daymaster)</li>
-                                        <li>Si Fire harmful (strengthens Fire)</li>
-                                        <li><strong>Conclusion:</strong> Helpful people but financial caution needed</li>
-                                    </ul>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
+            
+            <!-- 命运双池 -->
+            <div class="level1-node pool-node" id="pool-node" style="bottom: 25%; right: 25%;">
+                <div class="node-orb"></div>
+                <h3>命运双池</h3>
             </div>
         </div>
         
-        <div class="content-section cta-section">
-            <div class="cta-box">
-                <h3>Start Analyzing BaZi Now!</h3>
-                <p>Follow these 7 steps to master basic BaZi analysis</p>
-                <div class="cta-buttons">
-                    <a href="tools/calculator.html" class="cta-button primary">Free Calculator</a>
-                    <a href="patterns/common.html" class="cta-button secondary">Patterns Guide</a>
-                    <a href="tools/bazi-test.html" class="cta-button">Knowledge Quiz</a>
-                </div>
-            </div>
+        <!-- 二级节点容器 - 灵阵法门 -->
+        <div class="level2-container" id="spell-container">
+            <!-- 天罡聚财阵 -->
+            <a href="https://mybazi.net/system/richzf.html" class="level2-node spell-node" id="richzf-node" style="top: 30%; left: 15%;">
+                <h4>天罡聚财阵</h4>
+            </a>
+            
+            <!-- 天机姻缘配对阵 -->
+            <a href="https://mybazi.net/system/lovezf.html" class="level2-node spell-node" id="lovezf-node" style="top: 45%; left: 10%;">
+                <h4>天机姻缘配对阵</h4>
+            </a>
         </div>
-    </main>
+        
+        <!-- 二级节点容器 - 命运双池 -->
+        <div class="level2-container" id="pool-container">
+            <!-- 命缘池 -->
+            <a href="https://mybazi.net/system/wishingwell.html" class="level2-node" id="wishingwell-node" style="top: 30%; right: 15%;">
+                <h4>命缘池</h4>
+            </a>
+            
+            <!-- 怨化池 -->
+            <a href="https://mybazi.net/system/curse.html" class="level2-node" id="curse-node" style="top: 45%; right: 10%;">
+                <h4>怨化池</h4>
+            </a>
+        </div>
+        
+        <!-- 三级节点容器 - 命运之门 -->
+        <div class="level3-container" id="gate-container">
+            <!-- 命运之门 -->
+            <a href="https://mybazi.net/system/gate.html" class="level3-node" id="gate-node" style="top: 60%; right: 30%;">
+                <h5>命运之门</h5>
+            </a>
+        </div>
+    </div>
 
-    <footer class="main-footer">
-        <div class="container">
-            <p>&copy; 2025 My BaZi Learning. All Rights Reserved.</p>
-            <p>Preserving traditional destiny analysis through scientific learning</p>
-        </div>
-    </footer>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 创建连接线
+            createConnectingLines();
+            
+            // 初始化节点位置
+            positionNodes();
+            
+            // 添加粒子效果
+            initParticleEffects();
+            
+            // 窗口大小改变时重新定位节点
+            window.addEventListener('resize', function() {
+                positionNodes();
+                createConnectingLines();
+            });
+            
+            // 鼠标移动时的视差效果
+            document.addEventListener('mousemove', handleParallax);
+        });
+        
+        // 创建连接线
+        function createConnectingLines() {
+            // 清除现有的连接线
+            document.querySelectorAll('.connecting-line').forEach(line => line.remove());
+            
+            // 中心节点到一级节点的连接线
+            const centralNode = document.getElementById('mybazi-central');
+            const centralRect = centralNode.getBoundingClientRect();
+            const centralX = centralRect.left + centralRect.width / 2;
+            const centralY = centralRect.top + centralRect.height / 2;
+            
+            document.querySelectorAll('.level1-node').forEach(node => {
+                const nodeRect = node.getBoundingClientRect();
+                const nodeX = nodeRect.left + nodeRect.width / 2;
+                const nodeY = nodeRect.top + nodeRect.height / 2;
+                
+                const length = Math.sqrt(Math.pow(nodeX - centralX, 2) + Math.pow(nodeY - centralY, 2));
+                const angle = Math.atan2(nodeY - centralY, nodeX - centralX) * 180 / Math.PI;
+                
+                const line = document.createElement('div');
+                line.className = 'connecting-line central-line';
+                line.style.width = `${length}px`;
+                line.style.left = `${centralX}px`;
+                line.style.top = `${centralY}px`;
+                line.style.transform = `rotate(${angle}deg)`;
+                line.style.animation = 'pulse 2s infinite alternate';
+                
+                document.body.appendChild(line);
+            });
+            
+            // 一级节点到二级节点的连接线
+            document.querySelectorAll('.level1-node').forEach(parentNode => {
+                const parentRect = parentNode.getBoundingClientRect();
+                const parentX = parentRect.left + parentRect.width / 2;
+                const parentY = parentRect.top + parentRect.height / 2;
+                
+                const childNodes = [];
+                if (parentNode.id === 'spell-node') {
+                    childNodes.push(...document.querySelectorAll('#spell-container .level2-node'));
+                } else if (parentNode.id === 'pool-node') {
+                    childNodes.push(...document.querySelectorAll('#pool-container .level2-node'));
+                }
+                
+                childNodes.forEach(childNode => {
+                    const childRect = childNode.getBoundingClientRect();
+                    const childX = childRect.left + childRect.width / 2;
+                    const childY = childRect.top + childRect.height / 2;
+                    
+                    const length = Math.sqrt(Math.pow(childX - parentX, 2) + Math.pow(childY - parentY, 2));
+                    const angle = Math.atan2(childY - parentY, childX - parentX) * 180 / Math.PI;
+                    
+                    const line = document.createElement('div');
+                    line.className = 'connecting-line';
+                    line.style.width = `${length}px`;
+                    line.style.left = `${parentX}px`;
+                    line.style.top = `${parentY}px`;
+                    line.style.transform = `rotate(${angle}deg)`;
+                    line.style.animation = 'pulse 2s infinite alternate';
+                    
+                    document.body.appendChild(line);
+                });
+            });
+            
+            // 二级节点到三级节点的连接线
+            document.querySelectorAll('#pool-container .level2-node').forEach(parentNode => {
+                const parentRect = parentNode.getBoundingClientRect();
+                const parentX = parentRect.left + parentRect.width / 2;
+                const parentY = parentRect.top + parentRect.height / 2;
+                
+                const childNodes = [document.getElementById('gate-node')];
+                
+                childNodes.forEach(childNode => {
+                    if (!childNode) return;
+                    
+                    const childRect = childNode.getBoundingClientRect();
+                    const childX = childRect.left + childRect.width / 2;
+                    const childY = childRect.top + childRect.height / 2;
+                    
+                    const length = Math.sqrt(Math.pow(childX - parentX, 2) + Math.pow(childY - parentY, 2));
+                    const angle = Math.atan2(childY - parentY, childX - parentX) * 180 / Math.PI;
+                    
+                    const line = document.createElement('div');
+                    line.className = 'connecting-line';
+                    line.style.width = `${length}px`;
+                    line.style.left = `${parentX}px`;
+                    line.style.top = `${parentY}px`;
+                    line.style.transform = `rotate(${angle}deg)`;
+                    line.style.animation = 'pulse 2s infinite alternate';
+                    
+                    document.body.appendChild(line);
+                });
+            });
+        }
+        
+        // 定位节点
+        function positionNodes() {
+            const container = document.querySelector('.mindmap-container');
+            const containerWidth = container.offsetWidth;
+            const containerHeight = container.offsetHeight;
+            
+            // 中心节点始终居中
+            const centralNode = document.getElementById('mybazi-central');
+            centralNode.style.left = `${containerWidth / 2 - centralNode.offsetWidth / 2}px`;
+            centralNode.style.top = `${containerHeight / 2 - centralNode.offsetHeight / 2}px`;
+            
+            // 一级节点圆形分布
+            const level1Nodes = document.querySelectorAll('.level1-node');
+            const radius = Math.min(containerWidth, containerHeight) * 0.35;
+            const angleStep = (2 * Math.PI) / level1Nodes.length;
+            
+            level1Nodes.forEach((node, index) => {
+                const angle = index * angleStep;
+                const x = containerWidth / 2 + radius * Math.cos(angle) - node.offsetWidth / 2;
+                const y = containerHeight / 2 + radius * Math.sin(angle) - node.offsetHeight / 2;
+                
+                node.style.left = `${x}px`;
+                node.style.top = `${y}px`;
+            });
+            
+            // 二级节点相对于一级节点定位
+            positionChildNodes('#spell-node', '#spell-container', 0.25);
+            positionChildNodes('#pool-node', '#pool-container', 0.25);
+            
+            // 三级节点相对于二级节点定位
+            positionChildNodes('#wishingwell-node', '#gate-container', 0.2, true);
+        }
+        
+        // 定位子节点
+        function positionChildNodes(parentId, containerId, distanceFactor, isSingle = false) {
+            const parent = document.querySelector(parentId);
+            if (!parent) return;
+            
+            const parentRect = parent.getBoundingClientRect();
+            const parentX = parentRect.left + parentRect.width / 2;
+            const parentY = parentRect.top + parentRect.height / 2;
+            
+            const container = document.querySelector(containerId);
+            const children = container.querySelectorAll('.level2-node, .level3-node');
+            
+            if (isSingle && children.length > 0) {
+                const child = children[0];
+                const angle = Math.PI / 4; // 45度角
+                
+                const x = parentX + parent.offsetWidth * distanceFactor * Math.cos(angle) - child.offsetWidth / 2;
+                const y = parentY + parent.offsetHeight * distanceFactor * Math.sin(angle) - child.offsetHeight / 2;
+                
+                child.style.left = `${x}px`;
+                child.style.top = `${y}px`;
+            } else {
+                children.forEach((child, index) => {
+                    const angle = (index * (Math.PI / (children.length - 1))) - Math.PI / 2;
+                    
+                    const x = parentX + parent.offsetWidth * distanceFactor * Math.cos(angle) - child.offsetWidth / 2;
+                    const y = parentY + parent.offsetHeight * distanceFactor * Math.sin(angle) - child.offsetHeight / 2;
+                    
+                    child.style.left = `${x}px`;
+                    child.style.top = `${y}px`;
+                });
+            }
+        }
+        
+        // 初始化粒子效果
+        function initParticleEffects() {
+            document.querySelectorAll('.level1-node, .level2-node, .level3-node').forEach(node => {
+                node.addEventListener('mouseenter', function() {
+                    createParticles(this);
+                });
+            });
+        }
+        
+        // 创建粒子效果
+        function createParticles(node) {
+            const rect = node.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            
+            const colors = ['#4a0d65', '#5e0a1a', '#d4af37'];
+            const particleCount = 15;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.width = `${Math.random() * 4 + 2}px`;
+                particle.style.height = particle.style.width;
+                particle.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                particle.style.borderRadius = '50%';
+                particle.style.position = 'absolute';
+                particle.style.left = `${centerX}px`;
+                particle.style.top = `${centerY}px`;
+                particle.style.opacity = '0.8';
+                particle.style.zIndex = '5';
+                particle.style.pointerEvents = 'none';
+                
+                document.body.appendChild(particle);
+                
+                const angle = Math.random() * Math.PI * 2;
+                const distance = Math.random() * 30 + 20;
+                const duration = Math.random() * 1000 + 500;
+                
+                const animation = particle.animate([
+                    { transform: `translate(0, 0)`, opacity: 0.8 },
+                    { transform: `translate(${Math.cos(angle) * distance}px, ${Math.sin(angle) * distance}px)`, opacity: 0 }
+                ], {
+                    duration: duration,
+                    easing: 'cubic-bezier(0.4, 0, 0.2, 1)'
+                });
+                
+                animation.onfinish = () => {
+                    particle.remove();
+                };
+            }
+        }
+        
+        // 视差效果
+        function handleParallax(e) {
+            const x = e.clientX / window.innerWidth;
+            const y = e.clientY / window.innerHeight;
+            
+            document.querySelectorAll('.level1-node').forEach((node, index) => {
+                node.style.transform = `translate(${(x - 0.5) * 10}px, ${(y - 0.5) * 10}px)`;
+            });
+            
+            document.querySelectorAll('.level2-node').forEach((node, index) => {
+                node.style.transform = `translate(${(x - 0.5) * 20}px, ${(y - 0.5) * 20}px) rotateY(${(x - 0.5) * 20}deg)`;
+            });
+            
+            document.querySelectorAll('.level3-node').forEach((node, index) => {
+                node.style.transform = `translate(${(x - 0.5) * 30}px, ${(y - 0.5) * 30}px)`;
+            });
+        }
+    </script>
 </body>
 </html>
