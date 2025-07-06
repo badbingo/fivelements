@@ -75,7 +75,7 @@
             border: 3px solid #e6c88c;
             z-index: 100;
             transition: all 0.5s ease;
-            animation: centerPulse 4s infinite alternate, float 8s infinite ease-in-out;
+            animation: centerPulse 4s infinite alternate;
             filter: drop-shadow(0 0 20px rgba(220, 80, 80, 0.8));
         }
         
@@ -88,11 +88,6 @@
                 transform: scale(1.05);
                 box-shadow: 0 0 80px rgba(255, 100, 100, 1);
             }
-        }
-        
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-20px); }
         }
         
         .center-text {
@@ -141,20 +136,12 @@
             cursor: pointer;
             border: 2px solid;
             filter: drop-shadow(0 0 15px currentColor);
-            animation: nodeFloat 12s infinite ease-in-out;
-        }
-        
-        @keyframes nodeFloat {
-            0%, 100% { transform: translate(0, 0) rotate(0deg); }
-            25% { transform: translate(10px, 15px) rotate(2deg); }
-            50% { transform: translate(-5px, 20px) rotate(-2deg); }
-            75% { transform: translate(15px, -10px) rotate(3deg); }
+            will-change: transform;
         }
         
         .node:hover {
             transform: scale(1.2) !important;
             z-index: 150;
-            animation-play-state: paused;
         }
         
         .node::after {
@@ -296,6 +283,23 @@
             0% { transform: scale(0); opacity: 0.8; }
             100% { transform: scale(3); opacity: 0; }
         }
+        
+        .connector {
+            position: absolute;
+            height: 2px;
+            background: linear-gradient(to right, 
+                rgba(180, 60, 60, 0.3), 
+                rgba(60, 60, 180, 0.3), 
+                rgba(60, 180, 60, 0.3));
+            transform-origin: left center;
+            z-index: 1;
+            animation: connectorPulse 3s infinite alternate;
+        }
+        
+        @keyframes connectorPulse {
+            0% { opacity: 0.3; }
+            100% { opacity: 0.7; }
+        }
     </style>
 </head>
 <body>
@@ -311,67 +315,77 @@
         </div>
         
         <!-- 一级节点 -->
-        <div class="node node-large node-purple" style="transform: translate(-350px, -180px);">
+        <div class="node node-large node-purple" id="node1">
             <i class="node-icon fas fa-book-open"></i>
             <div class="node-text">八字学习网</div>
             <div class="energy-beam" style="left: 50%; bottom: -20px; transform: rotate(180deg);"></div>
         </div>
         
-        <div class="node node-medium node-blue" style="transform: translate(-250px, 220px);">
+        <div class="node node-medium node-blue" id="node2">
             <i class="node-icon fas fa-yin-yang"></i>
             <div class="node-text">机缘命理系统</div>
             <div class="energy-beam" style="left: 50%; bottom: -20px; transform: rotate(180deg);"></div>
         </div>
         
-        <div class="node node-large node-gold" style="transform: translate(0px, 350px);">
+        <div class="node node-large node-gold" id="node3">
             <i class="node-icon fas fa-heart"></i>
             <div class="node-text">八字合婚系统</div>
             <div class="energy-beam" style="left: 50%; bottom: -20px; transform: rotate(180deg);"></div>
         </div>
         
-        <div class="node node-medium node-purple" style="transform: translate(250px, 220px);">
+        <div class="node node-medium node-purple" id="node4">
             <i class="node-icon fas fa-hexagon"></i>
             <div class="node-text">六爻起卦</div>
             <div class="energy-beam" style="left: 50%; bottom: -20px; transform: rotate(180deg);"></div>
         </div>
         
-        <div class="node node-large node-red" style="transform: translate(350px, -180px);">
+        <div class="node node-large node-red" id="node5">
             <i class="node-icon fas fa-magic"></i>
             <div class="node-text">灵阵法门</div>
             <div class="energy-beam" style="left: 50%; bottom: -20px; transform: rotate(180deg);"></div>
         </div>
         
-        <div class="node node-medium node-green" style="transform: translate(0px, -350px);">
+        <div class="node node-medium node-green" id="node6">
             <i class="node-icon fas fa-tint"></i>
             <div class="node-text">命运双池</div>
             <div class="energy-beam" style="left: 50%; bottom: -20px; transform: rotate(180deg);"></div>
         </div>
         
         <!-- 灵阵法门的子节点 -->
-        <div class="node node-small node-gold" style="transform: translate(500px, -280px);">
+        <div class="node node-small node-gold" id="node7">
             <i class="node-icon fas fa-coins"></i>
             <div class="node-text">天罡聚财阵</div>
             <div class="energy-beam" style="left: 50%; bottom: -20px; transform: rotate(180deg);"></div>
         </div>
         
-        <div class="node node-small node-purple" style="transform: translate(500px, -80px);">
+        <div class="node node-small node-purple" id="node8">
             <i class="node-icon fas fa-heartbeat"></i>
             <div class="node-text">天机姻缘配对阵</div>
             <div class="energy-beam" style="left: 50%; bottom: -20px; transform: rotate(180deg);"></div>
         </div>
         
         <!-- 命运双池的子节点 -->
-        <div class="node node-small node-blue" style="transform: translate(-200px, -450px);">
+        <div class="node node-small node-blue" id="node9">
             <i class="node-icon fas fa-star"></i>
             <div class="node-text">命缘池</div>
             <div class="energy-beam" style="left: 50%; bottom: -20px; transform: rotate(180deg);"></div>
         </div>
         
-        <div class="node node-small node-red" style="transform: translate(200px, -450px);">
+        <div class="node node-small node-red" id="node10">
             <i class="node-icon fas fa-skull"></i>
             <div class="node-text">怨化池</div>
             <div class="energy-beam" style="left: 50%; bottom: -20px; transform: rotate(180deg);"></div>
         </div>
+        
+        <!-- 连接线 -->
+        <div class="connector" id="connector1"></div>
+        <div class="connector" id="connector2"></div>
+        <div class="connector" id="connector3"></div>
+        <div class="connector" id="connector4"></div>
+        <div class="connector" id="connector5"></div>
+        <div class="connector" id="connector6"></div>
+        <div class="connector" id="connector7"></div>
+        <div class="connector" id="connector8"></div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
@@ -500,23 +514,129 @@
             }
         }
         
-        // 初始化节点随机移动
-        function initNodeMovement() {
+        // 计算节点位置（避免重叠）
+        function calculateNodePositions() {
+            const center = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+            const radius = Math.min(window.innerWidth, window.innerHeight) * 0.35;
+            
+            // 一级节点位置（圆形排列）
+            const mainNodes = [
+                { id: 'node1', angle: -60, distance: radius },
+                { id: 'node2', angle: 0, distance: radius },
+                { id: 'node3', angle: 60, distance: radius },
+                { id: 'node4', angle: 120, distance: radius },
+                { id: 'node5', angle: 180, distance: radius },
+                { id: 'node6', angle: -120, distance: radius }
+            ];
+            
+            // 子节点位置（靠近父节点）
+            const childNodes = [
+                { id: 'node7', parentId: 'node5', angle: 30, distance: radius * 0.6 },
+                { id: 'node8', parentId: 'node5', angle: -30, distance: radius * 0.6 },
+                { id: 'node9', parentId: 'node6', angle: 30, distance: radius * 0.6 },
+                { id: 'node10', parentId: 'node6', angle: -30, distance: radius * 0.6 }
+            ];
+            
+            // 定位一级节点
+            mainNodes.forEach(node => {
+                const element = document.getElementById(node.id);
+                const x = center.x + Math.cos(node.angle * Math.PI / 180) * node.distance;
+                const y = center.y + Math.sin(node.angle * Math.PI / 180) * node.distance;
+                
+                element.style.left = `${x - element.offsetWidth / 2}px`;
+                element.style.top = `${y - element.offsetHeight / 2}px`;
+            });
+            
+            // 定位子节点
+            childNodes.forEach(node => {
+                const element = document.getElementById(node.id);
+                const parent = document.getElementById(node.parentId);
+                const parentRect = parent.getBoundingClientRect();
+                const parentCenter = {
+                    x: parentRect.left + parentRect.width / 2,
+                    y: parentRect.top + parentRect.height / 2
+                };
+                
+                const x = parentCenter.x + Math.cos(node.angle * Math.PI / 180) * node.distance;
+                const y = parentCenter.y + Math.sin(node.angle * Math.PI / 180) * node.distance;
+                
+                element.style.left = `${x - element.offsetWidth / 2}px`;
+                element.style.top = `${y - element.offsetHeight / 2}px`;
+            });
+            
+            // 更新连接线
+            updateConnectors();
+        }
+        
+        // 更新连接线
+        function updateConnectors() {
+            const center = document.querySelector('.center-node');
+            const centerRect = center.getBoundingClientRect();
+            const centerX = centerRect.left + centerRect.width / 2;
+            const centerY = centerRect.top + centerRect.height / 2;
+            
+            // 连接中心节点到一级节点
+            for (let i = 1; i <= 6; i++) {
+                const node = document.getElementById(`node${i}`);
+                const connector = document.getElementById(`connector${i}`);
+                
+                if (node && connector) {
+                    const nodeRect = node.getBoundingClientRect();
+                    const nodeX = nodeRect.left + nodeRect.width / 2;
+                    const nodeY = nodeRect.top + nodeRect.height / 2;
+                    
+                    const length = Math.sqrt(Math.pow(nodeX - centerX, 2) + Math.pow(nodeY - centerY, 2));
+                    const angle = Math.atan2(nodeY - centerY, nodeX - centerX) * 180 / Math.PI;
+                    
+                    connector.style.width = `${length}px`;
+                    connector.style.transform = `rotate(${angle}deg)`;
+                    connector.style.left = `${centerX}px`;
+                    connector.style.top = `${centerY}px`;
+                }
+            }
+            
+            // 连接一级节点到子节点
+            const parentNodes = {
+                'node5': document.getElementById('node5'),
+                'node6': document.getElementById('node6')
+            };
+            
+            for (let i = 7; i <= 10; i++) {
+                const node = document.getElementById(`node${i}`);
+                const connector = document.getElementById(`connector${i}`);
+                
+                if (node && connector) {
+                    let parentNode;
+                    if (i <= 8) {
+                        parentNode = parentNodes['node5'];
+                    } else {
+                        parentNode = parentNodes['node6'];
+                    }
+                    
+                    const parentRect = parentNode.getBoundingClientRect();
+                    const parentX = parentRect.left + parentRect.width / 2;
+                    const parentY = parentRect.top + parentRect.height / 2;
+                    
+                    const nodeRect = node.getBoundingClientRect();
+                    const nodeX = nodeRect.left + nodeRect.width / 2;
+                    const nodeY = nodeRect.top + nodeRect.height / 2;
+                    
+                    const length = Math.sqrt(Math.pow(nodeX - parentX, 2) + Math.pow(nodeY - parentY, 2));
+                    const angle = Math.atan2(nodeY - parentY, nodeX - parentX) * 180 / Math.PI;
+                    
+                    connector.style.width = `${length}px`;
+                    connector.style.transform = `rotate(${angle}deg)`;
+                    connector.style.left = `${parentX}px`;
+                    connector.style.top = `${parentY}px`;
+                }
+            }
+        }
+        
+        // 初始化节点交互
+        function initNodeInteractions() {
             const nodes = document.querySelectorAll('.node');
             
             nodes.forEach(node => {
-                // 设置初始位置
-                const transform = window.getComputedStyle(node).transform;
-                const matrix = new DOMMatrix(transform);
-                const x = matrix.m41;
-                const y = matrix.m42;
-                
-                node.style.left = '50%';
-                node.style.top = '50%';
-                node.style.marginLeft = `-${node.offsetWidth / 2}px`;
-                node.style.marginTop = `-${node.offsetHeight / 2}px`;
-                node.style.transform = `translate(${x}px, ${y}px)`;
-                
                 // 添加点击事件
                 node.addEventListener('click', function() {
                     const text = this.querySelector('.node-text').textContent;
@@ -539,33 +659,16 @@
                         window.open(url, '_blank');
                     }
                 });
-            });
-            
-            // 随机移动节点
-            setInterval(() => {
-                nodes.forEach(node => {
-                    if (!node.isHovered) {
-                        const currentTransform = window.getComputedStyle(node).transform;
-                        const matrix = new DOMMatrix(currentTransform);
-                        const currentX = matrix.m41;
-                        const currentY = matrix.m42;
-                        
-                        const targetX = currentX + (Math.random() * 40 - 20);
-                        const targetY = currentY + (Math.random() * 40 - 20);
-                        
-                        node.style.transform = `translate(${targetX}px, ${targetY}px)`;
-                    }
-                });
-            }, 3000);
-            
-            // 跟踪悬停状态
-            nodes.forEach(node => {
-                node.addEventListener('mouseenter', () => {
-                    node.isHovered = true;
+                
+                // 悬停效果
+                node.addEventListener('mouseenter', function() {
+                    this.style.transform = 'scale(1.2)';
+                    this.style.zIndex = '150';
                 });
                 
-                node.addEventListener('mouseleave', () => {
-                    node.isHovered = false;
+                node.addEventListener('mouseleave', function() {
+                    this.style.transform = '';
+                    this.style.zIndex = '50';
                 });
             });
         }
@@ -585,10 +688,16 @@
             }
         }
         
+        // 窗口大小改变时重新计算
+        window.addEventListener('resize', () => {
+            calculateNodePositions();
+        });
+        
         // 初始化
         document.addEventListener('DOMContentLoaded', () => {
             createRunes();
-            initNodeMovement();
+            calculateNodePositions();
+            initNodeInteractions();
             createEnergyBeams();
             
             // 添加整体浮动效果
