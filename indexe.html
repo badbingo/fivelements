@@ -3,709 +3,581 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>麦八字 - 神秘力量导航</title>
-    <link href="https://fonts.googleapis.com/css2?family=ZCOOL+XiaoWei&family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <title>麦八字 - 神秘命理之门</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=ZCOOL+QingKe+HuangYou&family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --primary-color: #8a2be2;
+            --secondary-color: #9370db;
+            --accent-color: #ba55d3;
+            --text-color: #e6e6fa;
+            --dark-bg: #0a0a1a;
+            --light-bg: #1a1a2e;
+            --glow-color: rgba(138, 43, 226, 0.7);
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
-            overflow: hidden;
-            background: #000;
             font-family: 'ZCOOL XiaoWei', serif;
-            color: #d1b48c;
-            height: 100vh;
+            background-color: var(--dark-bg);
+            color: var(--text-color);
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(138, 43, 226, 0.1) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(186, 85, 211, 0.1) 0%, transparent 20%),
+                url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><path d="M30,50 Q50,30 70,50 T90,50" fill="none" stroke="%238a2be2" stroke-width="0.5" opacity="0.3"/></svg>');
+            min-height: 100vh;
             perspective: 1000px;
         }
-        
-        #particles-js {
-            position: fixed;
-            width: 100%;
-            height: 100%;
-            z-index: -2;
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            position: relative;
+            z-index: 1;
         }
-        
-        .energy-field {
+
+        /* 星空背景 */
+        .stars {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: radial-gradient(circle at center, 
-                rgba(88, 28, 88, 0.1) 0%, 
-                rgba(28, 28, 88, 0.2) 30%, 
-                rgba(10, 10, 40, 0.5) 70%, 
-                rgba(0, 0, 0, 1) 100%);
-            z-index: -1;
-            animation: energyPulse 8s infinite alternate;
+            z-index: 0;
+            overflow: hidden;
         }
-        
-        @keyframes energyPulse {
-            0% { opacity: 0.3; }
-            100% { opacity: 0.8; }
-        }
-        
-        .mindmap-container {
-            position: relative;
-            width: 100%;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            transform-style: preserve-3d;
-        }
-        
-        .center-node {
+
+        .star {
             position: absolute;
-            width: 220px;
-            height: 220px;
-            background: radial-gradient(circle, 
-                rgba(180, 60, 60, 0.8) 0%, 
-                rgba(120, 30, 30, 0.9) 50%, 
-                rgba(60, 15, 15, 1) 100%);
+            background-color: white;
             border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            box-shadow: 0 0 50px rgba(220, 80, 80, 0.8);
-            border: 3px solid #e6c88c;
-            z-index: 100;
-            transition: all 0.5s ease;
-            animation: centerPulse 4s infinite alternate;
-            filter: drop-shadow(0 0 20px rgba(220, 80, 80, 0.8));
+            animation: twinkle var(--duration) infinite ease-in-out;
+            opacity: 0;
         }
-        
-        @keyframes centerPulse {
-            0% { 
-                transform: scale(1);
-                box-shadow: 0 0 50px rgba(220, 80, 80, 0.8);
-            }
-            100% { 
-                transform: scale(1.05);
-                box-shadow: 0 0 80px rgba(255, 100, 100, 1);
-            }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0; }
+            50% { opacity: var(--opacity); }
         }
-        
-        .center-text {
+
+        /* 主标题 */
+        .main-title {
+            text-align: center;
+            margin: 3rem 0;
+            position: relative;
+            perspective: 1000px;
+        }
+
+        .main-title h1 {
             font-family: 'Ma Shan Zheng', cursive;
-            font-size: 3rem;
-            color: #e6c88c;
-            text-shadow: 0 0 15px rgba(230, 200, 140, 0.9);
-            letter-spacing: 8px;
+            font-size: 5rem;
+            color: var(--text-color);
+            text-shadow: 0 0 10px var(--glow-color), 
+                         0 0 20px var(--glow-color), 
+                         0 0 30px var(--glow-color);
+            margin-bottom: 1rem;
+            animation: float 6s ease-in-out infinite;
             position: relative;
+            z-index: 2;
         }
-        
-        .center-text::before, .center-text::after {
-            content: "✧";
+
+        .main-title::before {
+            content: "";
             position: absolute;
-            font-size: 1.5rem;
-            color: rgba(230, 200, 140, 0.8);
-            animation: spin 10s linear infinite;
+            top: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, var(--primary-color) 0%, transparent 70%);
+            filter: blur(60px);
+            opacity: 0.3;
+            z-index: 1;
+            animation: pulse 8s infinite alternate;
         }
-        
-        .center-text::before {
-            left: -40px;
-            top: 50%;
-            transform: translateY(-50%);
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
         }
-        
-        .center-text::after {
-            right: -40px;
-            top: 50%;
-            transform: translateY(-50%);
+
+        @keyframes pulse {
+            0% { opacity: 0.2; transform: translateX(-50%) scale(0.8); }
+            100% { opacity: 0.4; transform: translateX(-50%) scale(1.2); }
         }
-        
-        @keyframes spin {
-            0% { transform: translateY(-50%) rotate(0deg); }
-            100% { transform: translateY(-50%) rotate(360deg); }
-        }
-        
-        .node {
-            position: absolute;
-            border-radius: 50%;
+
+        /* 导航菜单 */
+        .nav-menu {
             display: flex;
             flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            transition: all 0.8s ease;
-            z-index: 50;
-            cursor: pointer;
-            border: 2px solid;
-            filter: drop-shadow(0 0 15px currentColor);
-            will-change: transform;
+            gap: 1.5rem;
+            max-width: 800px;
+            margin: 0 auto;
         }
-        
-        .node:hover {
-            transform: scale(1.2) !important;
-            z-index: 150;
+
+        .menu-item {
+            background-color: rgba(26, 26, 46, 0.7);
+            border: 1px solid var(--primary-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            transform-style: preserve-3d;
         }
-        
-        .node::after {
-            content: '';
+
+        .menu-item::before {
+            content: "";
             position: absolute;
-            width: 150%;
-            height: 150%;
-            border-radius: 50%;
-            background: radial-gradient(circle, currentColor 0%, transparent 70%);
-            opacity: 0.3;
-            z-index: -1;
-            animation: haloPulse 3s infinite alternate;
-        }
-        
-        @keyframes haloPulse {
-            0% { transform: scale(0.8); opacity: 0.2; }
-            100% { transform: scale(1.2); opacity: 0.4; }
-        }
-        
-        .node-icon {
-            font-size: 2rem;
-            margin-bottom: 10px;
-            z-index: 2;
-        }
-        
-        .node-text {
-            font-size: 1.1rem;
-            text-align: center;
-            z-index: 2;
-            text-shadow: 0 0 5px currentColor;
-        }
-        
-        /* 不同大小的节点 */
-        .node-large {
-            width: 160px;
-            height: 160px;
-        }
-        
-        .node-medium {
-            width: 140px;
-            height: 140px;
-        }
-        
-        .node-small {
-            width: 120px;
-            height: 120px;
-        }
-        
-        /* 不同颜色的节点 */
-        .node-purple {
-            background: radial-gradient(circle, 
-                rgba(120, 60, 180, 0.8) 0%, 
-                rgba(80, 30, 120, 0.9) 70%, 
-                rgba(40, 15, 60, 1) 100%);
-            border-color: #b88cd1;
-            color: #d8b8f0;
-        }
-        
-        .node-blue {
-            background: radial-gradient(circle, 
-                rgba(60, 60, 180, 0.8) 0%, 
-                rgba(30, 30, 120, 0.9) 70%, 
-                rgba(15, 15, 60, 1) 100%);
-            border-color: #8ca8e6;
-            color: #b8c8f8;
-        }
-        
-        .node-green {
-            background: radial-gradient(circle, 
-                rgba(60, 180, 60, 0.7) 0%, 
-                rgba(30, 120, 30, 0.8) 70%, 
-                rgba(15, 60, 15, 1) 100%);
-            border-color: #a8e68c;
-            color: #c8f8b8;
-        }
-        
-        .node-gold {
-            background: radial-gradient(circle, 
-                rgba(180, 150, 60, 0.8) 0%, 
-                rgba(120, 100, 30, 0.9) 70%, 
-                rgba(60, 50, 15, 1) 100%);
-            border-color: #e6c88c;
-            color: #f8e0b8;
-        }
-        
-        .node-red {
-            background: radial-gradient(circle, 
-                rgba(180, 60, 60, 0.7) 0%, 
-                rgba(120, 30, 30, 0.8) 70%, 
-                rgba(60, 15, 15, 1) 100%);
-            border-color: #e68c8c;
-            color: #f8b8b8;
-        }
-        
-        .energy-beam {
-            position: absolute;
-            width: 2px;
-            height: 0;
-            background: linear-gradient(to bottom, 
-                rgba(255,255,255,0.8), 
-                rgba(255,255,255,0));
-            transform-origin: bottom center;
-            z-index: 10;
-            animation: beamFade 2s infinite alternate;
-        }
-        
-        @keyframes beamFade {
-            0% { height: 0; opacity: 0; }
-            100% { height: 200px; opacity: 0.6; }
-        }
-        
-        .rune {
-            position: absolute;
-            font-size: 1.5rem;
-            opacity: 0.3;
-            animation: runeFloat 15s infinite linear;
-            z-index: 5;
-        }
-        
-        @keyframes runeFloat {
-            0% { transform: translate(0, 0) rotate(0deg); opacity: 0.1; }
-            50% { transform: translate(100px, 100px) rotate(180deg); opacity: 0.4; }
-            100% { transform: translate(0, 0) rotate(360deg); opacity: 0.1; }
-        }
-        
-        .power-wave {
-            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
-            border-radius: 50%;
-            border: 1px solid rgba(255,255,255,0.1);
-            transform: scale(0);
-            opacity: 0;
-            animation: wave 6s infinite;
-            z-index: 1;
+            background: linear-gradient(45deg, transparent 60%, rgba(138, 43, 226, 0.2) 100%);
+            z-index: -1;
         }
-        
-        @keyframes wave {
-            0% { transform: scale(0); opacity: 0.8; }
-            100% { transform: scale(3); opacity: 0; }
+
+        .menu-item:hover {
+            transform: translateY(-5px) rotateX(5deg);
+            box-shadow: 0 15px 30px rgba(138, 43, 226, 0.4);
+            border-color: var(--accent-color);
         }
-        
-        .connector {
+
+        .menu-item:hover .menu-title {
+            color: var(--accent-color);
+            text-shadow: 0 0 10px var(--glow-color);
+        }
+
+        .menu-title {
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            color: var(--text-color);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .menu-title i {
+            font-size: 1.5rem;
+            color: var(--accent-color);
+        }
+
+        .submenu {
+            margin-left: 2rem;
+            margin-top: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+
+        .submenu-item {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            padding: 0.5rem 0;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .submenu-item::before {
+            content: "✧";
+            color: var(--accent-color);
+            font-size: 0.8rem;
             position: absolute;
-            height: 2px;
-            background: linear-gradient(to right, 
-                rgba(180, 60, 60, 0.3), 
-                rgba(60, 60, 180, 0.3), 
-                rgba(60, 180, 60, 0.3));
-            transform-origin: left center;
-            z-index: 1;
-            animation: connectorPulse 3s infinite alternate;
+            left: -1.5rem;
+            top: 50%;
+            transform: translateY(-50%);
         }
-        
-        @keyframes connectorPulse {
-            0% { opacity: 0.3; }
-            100% { opacity: 0.7; }
+
+        .submenu-item a {
+            color: var(--text-color);
+            text-decoration: none;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            position: relative;
+            display: inline-block;
+        }
+
+        .submenu-item a::after {
+            content: "";
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 0;
+            height: 1px;
+            background-color: var(--accent-color);
+            transition: width 0.3s ease;
+        }
+
+        .submenu-item:hover a::after {
+            width: 100%;
+        }
+
+        .submenu-item:hover a {
+            color: var(--accent-color);
+        }
+
+        .submenu-item:hover .submenu-icon {
+            transform: rotate(15deg) scale(1.2);
+        }
+
+        .submenu-icon {
+            font-size: 1rem;
+            color: var(--secondary-color);
+            transition: all 0.3s ease;
+        }
+
+        /* 浮动符文 */
+        .floating-symbols {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+            opacity: 0.2;
+        }
+
+        .symbol {
+            position: absolute;
+            font-family: 'ZCOOL QingKe HuangYou', sans-serif;
+            color: var(--primary-color);
+            font-size: 1.5rem;
+            opacity: 0;
+            animation: float-symbol var(--duration) linear infinite;
+            animation-delay: var(--delay);
+        }
+
+        @keyframes float-symbol {
+            0% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.5;
+            }
+            90% {
+                opacity: 0.5;
+            }
+            100% {
+                transform: translateY(-100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .main-title h1 {
+                font-size: 3rem;
+            }
+            
+            .menu-title {
+                font-size: 1.5rem;
+            }
+            
+            .submenu-item a {
+                font-size: 1rem;
+            }
+        }
+
+        /* 神秘门户效果 */
+        .portal-effect {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: radial-gradient(circle, var(--primary-color) 0%, transparent 70%);
+            filter: blur(30px);
+            opacity: 0;
+            z-index: -1;
+            transition: all 1s ease;
+        }
+
+        body.portal-active .portal-effect {
+            width: 200vh;
+            height: 200vh;
+            opacity: 0.1;
+        }
+
+        /* 鼠标跟随效果 */
+        .cursor-follower {
+            position: fixed;
+            width: 20px;
+            height: 20px;
+            background: radial-gradient(circle, var(--accent-color) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            mix-blend-mode: screen;
+            z-index: 9999;
+            filter: blur(5px);
+            opacity: 0.7;
+            transition: transform 0.1s ease;
         }
     </style>
 </head>
 <body>
-    <div id="particles-js"></div>
-    <div class="energy-field"></div>
-    
-    <div class="mindmap-container">
-        <div class="center-node">
-            <div class="center-text">麦八字</div>
-            <div class="power-wave" style="animation-delay: 0s;"></div>
-            <div class="power-wave" style="animation-delay: 2s;"></div>
-            <div class="power-wave" style="animation-delay: 4s;"></div>
+    <div class="stars" id="stars"></div>
+    <div class="floating-symbols" id="floatingSymbols"></div>
+    <div class="portal-effect" id="portalEffect"></div>
+    <div class="cursor-follower" id="cursorFollower"></div>
+
+    <div class="container">
+        <div class="main-title">
+            <h1>麦八字</h1>
         </div>
-        
-        <!-- 一级节点 -->
-        <div class="node node-large node-purple" id="node1">
-            <i class="node-icon fas fa-book-open"></i>
-            <div class="node-text">八字学习网</div>
-            <div class="energy-beam" style="left: 50%; bottom: -20px; transform: rotate(180deg);"></div>
+
+        <div class="nav-menu">
+            <div class="menu-item">
+                <div class="menu-title">
+                    <i class="fas fa-book-open"></i>
+                    八字学习网
+                </div>
+                <div class="submenu">
+                    <div class="submenu-item">
+                        <i class="fas fa-link submenu-icon"></i>
+                        <a href="https://mybazi.net" target="_blank">mybazi.net</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="menu-item">
+                <div class="menu-title">
+                    <i class="fas fa-yin-yang"></i>
+                    机缘命理系统
+                </div>
+                <div class="submenu">
+                    <div class="submenu-item">
+                        <i class="fas fa-link submenu-icon"></i>
+                        <a href="https://mybazi.net/system/bazi.html" target="_blank">mybazi.net/system/bazi.html</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="menu-item">
+                <div class="menu-title">
+                    <i class="fas fa-heart"></i>
+                    八字合婚系统
+                </div>
+                <div class="submenu">
+                    <div class="submenu-item">
+                        <i class="fas fa-link submenu-icon"></i>
+                        <a href="https://mybazi.net/system/hehun.html" target="_blank">mybazi.net/system/hehun.html</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="menu-item">
+                <div class="menu-title">
+                    <i class="fas fa-dice"></i>
+                    六爻起卦
+                </div>
+                <div class="submenu">
+                    <div class="submenu-item">
+                        <i class="fas fa-link submenu-icon"></i>
+                        <a href="https://mybazi.net/system/liuyao.html" target="_blank">mybazi.net/system/liuyao.html</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="menu-item">
+                <div class="menu-title">
+                    <i class="fas fa-magic"></i>
+                    灵阵法门
+                </div>
+                <div class="submenu">
+                    <div class="submenu-item">
+                        <i class="fas fa-link submenu-icon"></i>
+                        <a href="https://mybazi.net/system/zf.html" target="_blank">mybazi.net/system/zf.html</a>
+                    </div>
+                    <div class="submenu-item">
+                        <i class="fas fa-coins submenu-icon"></i>
+                        <a href="https://mybazi.net/system/richzf.html" target="_blank">天罡聚财阵（mybazi.net/system/richzf.html）</a>
+                    </div>
+                    <div class="submenu-item">
+                        <i class="fas fa-heartbeat submenu-icon"></i>
+                        <a href="https://mybazi.net/system/lovezf.html" target="_blank">天机姻缘配对阵（mybazi.net/system/lovezf.html）</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="menu-item">
+                <div class="menu-title">
+                    <i class="fas fa-infinity"></i>
+                    命运双池
+                </div>
+                <div class="submenu">
+                    <div class="submenu-item">
+                        <i class="fas fa-link submenu-icon"></i>
+                        <a href="https://mybazi.net/system/gate.html" target="_blank">mybazi.net/system/gate.html</a>
+                    </div>
+                    <div class="submenu-item">
+                        <i class="fas fa-star submenu-icon"></i>
+                        <a href="https://mybazi.net/system/wishingwell.html" target="_blank">命缘池（mybazi.net/system/wishingwell.html）</a>
+                    </div>
+                    <div class="submenu-item">
+                        <i class="fas fa-skull submenu-icon"></i>
+                        <a href="https://mybazi.net/system/curse.html" target="_blank">怨化池（mybazi.net/system/curse.html）</a>
+                    </div>
+                </div>
+            </div>
         </div>
-        
-        <div class="node node-medium node-blue" id="node2">
-            <i class="node-icon fas fa-yin-yang"></i>
-            <div class="node-text">机缘命理系统</div>
-            <div class="energy-beam" style="left: 50%; bottom: -20px; transform: rotate(180deg);"></div>
-        </div>
-        
-        <div class="node node-large node-gold" id="node3">
-            <i class="node-icon fas fa-heart"></i>
-            <div class="node-text">八字合婚系统</div>
-            <div class="energy-beam" style="left: 50%; bottom: -20px; transform: rotate(180deg);"></div>
-        </div>
-        
-        <div class="node node-medium node-purple" id="node4">
-            <i class="node-icon fas fa-hexagon"></i>
-            <div class="node-text">六爻起卦</div>
-            <div class="energy-beam" style="left: 50%; bottom: -20px; transform: rotate(180deg);"></div>
-        </div>
-        
-        <div class="node node-large node-red" id="node5">
-            <i class="node-icon fas fa-magic"></i>
-            <div class="node-text">灵阵法门</div>
-            <div class="energy-beam" style="left: 50%; bottom: -20px; transform: rotate(180deg);"></div>
-        </div>
-        
-        <div class="node node-medium node-green" id="node6">
-            <i class="node-icon fas fa-tint"></i>
-            <div class="node-text">命运双池</div>
-            <div class="energy-beam" style="left: 50%; bottom: -20px; transform: rotate(180deg);"></div>
-        </div>
-        
-        <!-- 灵阵法门的子节点 -->
-        <div class="node node-small node-gold" id="node7">
-            <i class="node-icon fas fa-coins"></i>
-            <div class="node-text">天罡聚财阵</div>
-            <div class="energy-beam" style="left: 50%; bottom: -20px; transform: rotate(180deg);"></div>
-        </div>
-        
-        <div class="node node-small node-purple" id="node8">
-            <i class="node-icon fas fa-heartbeat"></i>
-            <div class="node-text">天机姻缘配对阵</div>
-            <div class="energy-beam" style="left: 50%; bottom: -20px; transform: rotate(180deg);"></div>
-        </div>
-        
-        <!-- 命运双池的子节点 -->
-        <div class="node node-small node-blue" id="node9">
-            <i class="node-icon fas fa-star"></i>
-            <div class="node-text">命缘池</div>
-            <div class="energy-beam" style="left: 50%; bottom: -20px; transform: rotate(180deg);"></div>
-        </div>
-        
-        <div class="node node-small node-red" id="node10">
-            <i class="node-icon fas fa-skull"></i>
-            <div class="node-text">怨化池</div>
-            <div class="energy-beam" style="left: 50%; bottom: -20px; transform: rotate(180deg);"></div>
-        </div>
-        
-        <!-- 连接线 -->
-        <div class="connector" id="connector1"></div>
-        <div class="connector" id="connector2"></div>
-        <div class="connector" id="connector3"></div>
-        <div class="connector" id="connector4"></div>
-        <div class="connector" id="connector5"></div>
-        <div class="connector" id="connector6"></div>
-        <div class="connector" id="connector7"></div>
-        <div class="connector" id="connector8"></div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
     <script>
-        // 初始化粒子背景
-        particlesJS("particles-js", {
-            "particles": {
-                "number": {
-                    "value": 80,
-                    "density": {
-                        "enable": true,
-                        "value_area": 800
-                    }
-                },
-                "color": {
-                    "value": ["#e6c88c", "#b88cd1", "#8ca8e6", "#a8e68c", "#e68c8c"]
-                },
-                "shape": {
-                    "type": "circle",
-                    "stroke": {
-                        "width": 0,
-                        "color": "#000000"
-                    },
-                    "polygon": {
-                        "nb_sides": 5
-                    }
-                },
-                "opacity": {
-                    "value": 0.5,
-                    "random": true,
-                    "anim": {
-                        "enable": true,
-                        "speed": 1,
-                        "opacity_min": 0.1,
-                        "sync": false
-                    }
-                },
-                "size": {
-                    "value": 3,
-                    "random": true,
-                    "anim": {
-                        "enable": true,
-                        "speed": 2,
-                        "size_min": 0.1,
-                        "sync": false
-                    }
-                },
-                "line_linked": {
-                    "enable": true,
-                    "distance": 150,
-                    "color": "#e6c88c",
-                    "opacity": 0.2,
-                    "width": 1
-                },
-                "move": {
-                    "enable": true,
-                    "speed": 1,
-                    "direction": "none",
-                    "random": true,
-                    "straight": false,
-                    "out_mode": "out",
-                    "bounce": false,
-                    "attract": {
-                        "enable": true,
-                        "rotateX": 600,
-                        "rotateY": 1200
-                    }
-                }
-            },
-            "interactivity": {
-                "detect_on": "canvas",
-                "events": {
-                    "onhover": {
-                        "enable": true,
-                        "mode": "repulse"
-                    },
-                    "onclick": {
-                        "enable": true,
-                        "mode": "push"
-                    },
-                    "resize": true
-                },
-                "modes": {
-                    "grab": {
-                        "distance": 400,
-                        "line_linked": {
-                            "opacity": 1
-                        }
-                    },
-                    "bubble": {
-                        "distance": 400,
-                        "size": 40,
-                        "duration": 2,
-                        "opacity": 8,
-                        "speed": 3
-                    },
-                    "repulse": {
-                        "distance": 100,
-                        "duration": 0.4
-                    },
-                    "push": {
-                        "particles_nb": 4
-                    },
-                    "remove": {
-                        "particles_nb": 2
-                    }
-                }
-            },
-            "retina_detect": true
-        });
-        
-        // 创建神秘符文
-        function createRunes() {
-            const runes = ['✧', '✺', '✤', '✦', '✹', '✷', '✶', '✵'];
-            const container = document.querySelector('.mindmap-container');
+        // 创建星空背景
+        function createStars() {
+            const starsContainer = document.getElementById('stars');
+            const starCount = 200;
             
-            for (let i = 0; i < 20; i++) {
-                const rune = document.createElement('div');
-                rune.className = 'rune';
-                rune.textContent = runes[Math.floor(Math.random() * runes.length)];
-                rune.style.left = `${Math.random() * 100}%`;
-                rune.style.top = `${Math.random() * 100}%`;
-                rune.style.animationDuration = `${10 + Math.random() * 20}s`;
-                rune.style.animationDelay = `${Math.random() * 5}s`;
-                container.appendChild(rune);
+            for (let i = 0; i < starCount; i++) {
+                const star = document.createElement('div');
+                star.classList.add('star');
+                
+                // 随机大小
+                const size = Math.random() * 3;
+                star.style.width = `${size}px`;
+                star.style.height = `${size}px`;
+                
+                // 随机位置
+                star.style.left = `${Math.random() * 100}%`;
+                star.style.top = `${Math.random() * 100}%`;
+                
+                // 随机动画参数
+                const duration = 3 + Math.random() * 7;
+                const opacity = 0.3 + Math.random() * 0.7;
+                star.style.setProperty('--duration', `${duration}s`);
+                star.style.setProperty('--opacity', opacity);
+                
+                // 随机延迟
+                star.style.animationDelay = `${Math.random() * 10}s`;
+                
+                starsContainer.appendChild(star);
             }
         }
-        
-        // 计算节点位置（避免重叠）
-        function calculateNodePositions() {
-            const center = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
-            const radius = Math.min(window.innerWidth, window.innerHeight) * 0.35;
+
+        // 创建浮动符文
+        function createFloatingSymbols() {
+            const symbolsContainer = document.getElementById('floatingSymbols');
+            const symbolCount = 30;
+            const chineseSymbols = ['☯', '☸', '卍', '卐', '✡', '☤', '☥', '☦', '☧', '☨', '☩', '☪', '☫', '☬', '☭', '♆', '♁', '⚚', '⚛', '⚜', '⛧', '⛤', '⛥', '⛦', '⛨', '⛩'];
             
-            // 一级节点位置（圆形排列）
-            const mainNodes = [
-                { id: 'node1', angle: -60, distance: radius },
-                { id: 'node2', angle: 0, distance: radius },
-                { id: 'node3', angle: 60, distance: radius },
-                { id: 'node4', angle: 120, distance: radius },
-                { id: 'node5', angle: 180, distance: radius },
-                { id: 'node6', angle: -120, distance: radius }
-            ];
-            
-            // 子节点位置（靠近父节点）
-            const childNodes = [
-                { id: 'node7', parentId: 'node5', angle: 30, distance: radius * 0.6 },
-                { id: 'node8', parentId: 'node5', angle: -30, distance: radius * 0.6 },
-                { id: 'node9', parentId: 'node6', angle: 30, distance: radius * 0.6 },
-                { id: 'node10', parentId: 'node6', angle: -30, distance: radius * 0.6 }
-            ];
-            
-            // 定位一级节点
-            mainNodes.forEach(node => {
-                const element = document.getElementById(node.id);
-                const x = center.x + Math.cos(node.angle * Math.PI / 180) * node.distance;
-                const y = center.y + Math.sin(node.angle * Math.PI / 180) * node.distance;
+            for (let i = 0; i < symbolCount; i++) {
+                const symbol = document.createElement('div');
+                symbol.classList.add('symbol');
+                symbol.textContent = chineseSymbols[Math.floor(Math.random() * chineseSymbols.length)];
                 
-                element.style.left = `${x - element.offsetWidth / 2}px`;
-                element.style.top = `${y - element.offsetHeight / 2}px`;
+                // 随机位置
+                symbol.style.left = `${Math.random() * 100}%`;
+                symbol.style.bottom = `-50px`;
+                
+                // 随机动画参数
+                const duration = 20 + Math.random() * 40;
+                symbol.style.setProperty('--duration', `${duration}s`);
+                
+                // 随机延迟
+                const delay = Math.random() * 20;
+                symbol.style.setProperty('--delay', `${delay}s`);
+                
+                symbolsContainer.appendChild(symbol);
+            }
+        }
+
+        // 鼠标跟随效果
+        function setupCursorFollower() {
+            const follower = document.getElementById('cursorFollower');
+            
+            document.addEventListener('mousemove', (e) => {
+                follower.style.left = `${e.clientX}px`;
+                follower.style.top = `${e.clientY}px`;
             });
             
-            // 定位子节点
-            childNodes.forEach(node => {
-                const element = document.getElementById(node.id);
-                const parent = document.getElementById(node.parentId);
-                const parentRect = parent.getBoundingClientRect();
-                const parentCenter = {
-                    x: parentRect.left + parentRect.width / 2,
-                    y: parentRect.top + parentRect.height / 2
-                };
-                
-                const x = parentCenter.x + Math.cos(node.angle * Math.PI / 180) * node.distance;
-                const y = parentCenter.y + Math.sin(node.angle * Math.PI / 180) * node.distance;
-                
-                element.style.left = `${x - element.offsetWidth / 2}px`;
-                element.style.top = `${y - element.offsetHeight / 2}px`;
-            });
+            // 鼠标悬停效果
+            const hoverElements = document.querySelectorAll('.menu-item, .submenu-item a');
             
-            // 更新连接线
-            updateConnectors();
-        }
-        
-        // 更新连接线
-        function updateConnectors() {
-            const center = document.querySelector('.center-node');
-            const centerRect = center.getBoundingClientRect();
-            const centerX = centerRect.left + centerRect.width / 2;
-            const centerY = centerRect.top + centerRect.height / 2;
-            
-            // 连接中心节点到一级节点
-            for (let i = 1; i <= 6; i++) {
-                const node = document.getElementById(`node${i}`);
-                const connector = document.getElementById(`connector${i}`);
-                
-                if (node && connector) {
-                    const nodeRect = node.getBoundingClientRect();
-                    const nodeX = nodeRect.left + nodeRect.width / 2;
-                    const nodeY = nodeRect.top + nodeRect.height / 2;
-                    
-                    const length = Math.sqrt(Math.pow(nodeX - centerX, 2) + Math.pow(nodeY - centerY, 2));
-                    const angle = Math.atan2(nodeY - centerY, nodeX - centerX) * 180 / Math.PI;
-                    
-                    connector.style.width = `${length}px`;
-                    connector.style.transform = `rotate(${angle}deg)`;
-                    connector.style.left = `${centerX}px`;
-                    connector.style.top = `${centerY}px`;
-                }
-            }
-            
-            // 连接一级节点到子节点
-            const parentNodes = {
-                'node5': document.getElementById('node5'),
-                'node6': document.getElementById('node6')
-            };
-            
-            for (let i = 7; i <= 10; i++) {
-                const node = document.getElementById(`node${i}`);
-                const connector = document.getElementById(`connector${i}`);
-                
-                if (node && connector) {
-                    let parentNode;
-                    if (i <= 8) {
-                        parentNode = parentNodes['node5'];
-                    } else {
-                        parentNode = parentNodes['node6'];
-                    }
-                    
-                    const parentRect = parentNode.getBoundingClientRect();
-                    const parentX = parentRect.left + parentRect.width / 2;
-                    const parentY = parentRect.top + parentRect.height / 2;
-                    
-                    const nodeRect = node.getBoundingClientRect();
-                    const nodeX = nodeRect.left + nodeRect.width / 2;
-                    const nodeY = nodeRect.top + nodeRect.height / 2;
-                    
-                    const length = Math.sqrt(Math.pow(nodeX - parentX, 2) + Math.pow(nodeY - parentY, 2));
-                    const angle = Math.atan2(nodeY - parentY, nodeX - parentX) * 180 / Math.PI;
-                    
-                    connector.style.width = `${length}px`;
-                    connector.style.transform = `rotate(${angle}deg)`;
-                    connector.style.left = `${parentX}px`;
-                    connector.style.top = `${parentY}px`;
-                }
-            }
-        }
-        
-        // 初始化节点交互
-        function initNodeInteractions() {
-            const nodes = document.querySelectorAll('.node');
-            
-            nodes.forEach(node => {
-                // 添加点击事件
-                node.addEventListener('click', function() {
-                    const text = this.querySelector('.node-text').textContent;
-                    let url;
-                    
-                    switch(text) {
-                        case '八字学习网': url = 'https://mybazi.net'; break;
-                        case '机缘命理系统': url = 'https://mybazi.net/system/bazi.html'; break;
-                        case '八字合婚系统': url = 'https://mybazi.net/system/hehun.html'; break;
-                        case '六爻起卦': url = 'https://mybazi.net/system/liuyao.html'; break;
-                        case '灵阵法门': url = 'https://mybazi.net/system/zf.html'; break;
-                        case '天罡聚财阵': url = 'https://mybazi.net/system/richzf.html'; break;
-                        case '天机姻缘配对阵': url = 'https://mybazi.net/system/lovezf.html'; break;
-                        case '命运双池': url = 'https://mybazi.net/system/gate.html'; break;
-                        case '命缘池': url = 'https://mybazi.net/system/wishingwell.html'; break;
-                        case '怨化池': url = 'https://mybazi.net/system/curse.html'; break;
-                    }
-                    
-                    if (url) {
-                        window.open(url, '_blank');
-                    }
+            hoverElements.forEach(el => {
+                el.addEventListener('mouseenter', () => {
+                    follower.style.transform = 'translate(-50%, -50%) scale(2)';
+                    follower.style.backgroundColor = 'rgba(186, 85, 211, 0.5)';
                 });
                 
-                // 悬停效果
-                node.addEventListener('mouseenter', function() {
-                    this.style.transform = 'scale(1.2)';
-                    this.style.zIndex = '150';
-                });
-                
-                node.addEventListener('mouseleave', function() {
-                    this.style.transform = '';
-                    this.style.zIndex = '50';
+                el.addEventListener('mouseleave', () => {
+                    follower.style.transform = 'translate(-50%, -50%) scale(1)';
+                    follower.style.backgroundColor = 'rgba(186, 85, 211, 0.3)';
                 });
             });
         }
-        
-        // 创建能量光束
-        function createEnergyBeams() {
-            const container = document.querySelector('.mindmap-container');
+
+        // 门户效果
+        function setupPortalEffect() {
+            const portal = document.getElementById('portalEffect');
             
-            for (let i = 0; i < 5; i++) {
-                const beam = document.createElement('div');
-                beam.className = 'energy-beam';
-                beam.style.left = `${Math.random() * 100}%`;
-                beam.style.bottom = '0';
-                beam.style.transform = `rotate(${Math.random() * 30 - 15}deg)`;
-                beam.style.animationDelay = `${Math.random() * 2}s`;
-                container.appendChild(beam);
-            }
-        }
-        
-        // 窗口大小改变时重新计算
-        window.addEventListener('resize', () => {
-            calculateNodePositions();
-        });
-        
-        // 初始化
-        document.addEventListener('DOMContentLoaded', () => {
-            createRunes();
-            calculateNodePositions();
-            initNodeInteractions();
-            createEnergyBeams();
-            
-            // 添加整体浮动效果
             document.addEventListener('mousemove', (e) => {
                 const x = e.clientX / window.innerWidth;
                 const y = e.clientY / window.innerHeight;
-                const container = document.querySelector('.mindmap-container');
-                container.style.transform = `translate(${x * 40 - 20}px, ${y * 40 - 20}px) rotateX(${y * 10 - 5}deg) rotateY(${x * 10 - 5}deg)`;
+                
+                portal.style.background = `
+                    radial-gradient(
+                        circle at ${x * 100}% ${y * 100}%,
+                        var(--primary-color) 0%,
+                        transparent 70%
+                    )
+                `;
+            });
+            
+            // 页面加载时的门户动画
+            setTimeout(() => {
+                document.body.classList.add('portal-active');
+            }, 500);
+        }
+
+        // 初始化所有效果
+        window.addEventListener('DOMContentLoaded', () => {
+            createStars();
+            createFloatingSymbols();
+            setupCursorFollower();
+            setupPortalEffect();
+            
+            // 添加点击涟漪效果
+            document.addEventListener('click', (e) => {
+                const ripple = document.createElement('div');
+                ripple.style.position = 'fixed';
+                ripple.style.width = '20px';
+                ripple.style.height = '20px';
+                ripple.style.backgroundColor = 'rgba(138, 43, 226, 0.5)';
+                ripple.style.borderRadius = '50%';
+                ripple.style.pointerEvents = 'none';
+                ripple.style.left = `${e.clientX}px`;
+                ripple.style.top = `${e.clientY}px`;
+                ripple.style.transform = 'translate(-50%, -50%) scale(0)';
+                ripple.style.zIndex = '9998';
+                ripple.style.transition = 'transform 0.5s ease-out, opacity 0.5s ease-out';
+                
+                document.body.appendChild(ripple);
+                
+                setTimeout(() => {
+                    ripple.style.transform = 'translate(-50%, -50%) scale(20)';
+                    ripple.style.opacity = '0';
+                }, 10);
+                
+                setTimeout(() => {
+                    ripple.remove();
+                }, 600);
             });
         });
     </script>
