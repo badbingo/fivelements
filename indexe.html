@@ -3,10 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>麦八字 - 暗黑命理导航</title>
-    <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Ma+Shan+Zheng&family=Noto+Sans+SC:wght@400;700&display=swap" rel="stylesheet">
+    <title>麦八字 - 神秘命理导航</title>
+    <link href="https://fonts.googleapis.com/css2?family=ZCOOL+XiaoWei&family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        /* 基础样式 */
+        :root {
+            --dark-purple: #1a0526;
+            --purple: #3a0ca3;
+            --light-purple: #7209b7;
+            --pink: #f72585;
+            --cyan: #4cc9f0;
+            --gold: #ffd700;
+            --silver: #c0c0c0;
+        }
+        
         * {
             margin: 0;
             padding: 0;
@@ -14,698 +24,593 @@
         }
         
         body {
-            background: radial-gradient(ellipse at center, #0a0410 0%, #000000 100%);
-            color: #d4af37;
-            font-family: 'ZCOOL KuaiLe', 'Noto Sans SC', sans-serif;
-            min-height: 100vh;
+            background-color: #000;
+            color: var(--silver);
+            font-family: 'ZCOOL XiaoWei', serif;
             overflow-x: hidden;
-            position: relative;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(58, 12, 163, 0.15) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(247, 37, 133, 0.15) 0%, transparent 20%),
+                radial-gradient(circle at 50% 50%, rgba(76, 201, 240, 0.05) 0%, transparent 30%);
+            background-attachment: fixed;
         }
         
-        body::before {
-            content: '';
+        .container {
+            position: relative;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            perspective: 1000px;
+            z-index: 1;
+        }
+        
+        .title {
+            position: relative;
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 5rem;
+            color: var(--gold);
+            text-shadow: 0 0 10px var(--pink), 0 0 20px var(--light-purple);
+            margin-bottom: 3rem;
+            animation: glow 3s ease-in-out infinite alternate;
+            transform-style: preserve-3d;
+            cursor: default;
+        }
+        
+        .title::before, .title::after {
+            content: "✧";
+            position: absolute;
+            color: var(--cyan);
+            font-size: 2rem;
+            animation: float 4s ease-in-out infinite;
+        }
+        
+        .title::before {
+            left: -2.5rem;
+            top: 1rem;
+        }
+        
+        .title::after {
+            right: -2.5rem;
+            bottom: 1rem;
+        }
+        
+        .mindmap {
+            position: relative;
+            width: 100%;
+            max-width: 1200px;
+            height: 80vh;
+            margin: 0 auto;
+        }
+        
+        .center-node {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            background: radial-gradient(circle, var(--purple), var(--dark-purple));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 30px var(--light-purple), 0 0 60px rgba(114, 9, 183, 0.5);
+            z-index: 10;
+            animation: pulse 4s infinite;
+            transition: all 0.5s ease;
+            cursor: pointer;
+        }
+        
+        .center-node:hover {
+            transform: translate(-50%, -50%) scale(1.05);
+            box-shadow: 0 0 40px var(--light-purple), 0 0 80px rgba(114, 9, 183, 0.7);
+        }
+        
+        .center-text {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--gold);
+            text-align: center;
+            text-shadow: 0 0 5px var(--pink);
+        }
+        
+        .node {
+            position: absolute;
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(26, 5, 38, 0.9), rgba(58, 12, 163, 0.7));
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 20px var(--light-purple);
+            transition: all 0.5s ease;
+            z-index: 5;
+            cursor: pointer;
+            overflow: hidden;
+            border: 1px solid rgba(247, 37, 133, 0.3);
+        }
+        
+        .node:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 30px var(--pink), 0 0 60px rgba(247, 37, 133, 0.5);
+            z-index: 20;
+        }
+        
+        .node::before {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                to bottom right,
+                transparent, transparent, transparent,
+                rgba(76, 201, 240, 0.1), transparent, transparent, transparent
+            );
+            transform: rotate(30deg);
+            animation: shine 3s infinite;
+        }
+        
+        .node-icon {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            color: var(--cyan);
+            text-shadow: 0 0 10px var(--cyan);
+        }
+        
+        .node-text {
+            font-size: 1.1rem;
+            text-align: center;
+            color: var(--silver);
+            padding: 0 0.5rem;
+        }
+        
+        .node-url {
+            font-size: 0.7rem;
+            color: var(--pink);
+            margin-top: 0.3rem;
+            text-align: center;
+            opacity: 0.8;
+        }
+        
+        .connector {
+            position: absolute;
+            background: linear-gradient(to right, var(--light-purple), var(--pink));
+            height: 2px;
+            transform-origin: left center;
+            z-index: 1;
+            box-shadow: 0 0 5px var(--pink);
+        }
+        
+        .connector::after {
+            content: "";
+            position: absolute;
+            right: 0;
+            top: 50%;
+            width: 10px;
+            height: 10px;
+            background: var(--pink);
+            border-radius: 50%;
+            transform: translateY(-50%);
+            box-shadow: 0 0 10px var(--pink);
+        }
+        
+        .particles {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><text x="10" y="50" font-family="Arial" font-size="10" fill="rgba(90,10,26,0.1)">☯☸✡☽♆</text></svg>');
-            opacity: 0.1;
             pointer-events: none;
-            z-index: -1;
+            z-index: 0;
         }
         
-        h1, h2, h3 {
-            font-weight: normal;
-            text-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
-        }
-        
-        a {
-            color: inherit;
-            text-decoration: none;
-        }
-        
-        /* 主容器 */
-        .mindmap-container {
-            position: relative;
-            width: 100%;
-            min-height: 100vh;
-            padding: 50px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        /* 中心节点 */
-        .central-node {
-            position: relative;
-            width: 180px;
-            height: 180px;
-            border-radius: 50%;
-            background: rgba(74, 13, 101, 0.3);
-            border: 2px solid #5e0a1a;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.5s ease;
-            z-index: 10;
-            box-shadow: 0 0 30px rgba(94, 10, 26, 0.5);
-        }
-        
-        .central-node h2 {
-            font-size: 2.5rem;
-            font-family: 'Ma Shan Zheng', cursive;
-            position: relative;
-            z-index: 2;
-        }
-        
-        .central-node:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 50px rgba(212, 175, 55, 0.7);
-            border-color: #d4af37;
-        }
-        
-        .node-glow {
+        .floating-symbols {
             position: absolute;
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(212, 175, 55, 0.3) 0%, rgba(212, 175, 55, 0) 70%);
-            opacity: 0;
-            transition: opacity 0.5s ease;
+            font-size: 1.5rem;
+            color: rgba(76, 201, 240, 0.3);
+            animation: float 10s infinite ease-in-out;
+            z-index: 0;
         }
         
-        .central-node:hover .node-glow {
-            opacity: 1;
+        @keyframes glow {
+            0% {
+                text-shadow: 0 0 10px var(--pink), 0 0 20px var(--light-purple);
+            }
+            50% {
+                text-shadow: 0 0 15px var(--cyan), 0 0 30px var(--light-purple);
+            }
+            100% {
+                text-shadow: 0 0 10px var(--pink), 0 0 20px var(--light-purple);
+            }
         }
         
-        /* 一级节点容器 */
-        .level1-container {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            top: 0;
-            left: 0;
-        }
-        
-        /* 一级节点 */
-        .level1-node {
-            position: absolute;
-            width: 140px;
-            height: 140px;
-            border-radius: 50%;
-            background: rgba(74, 13, 101, 0.2);
-            border: 1px solid #4a0d65;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.4s ease;
-            z-index: 9;
-        }
-        
-        .level1-node h3 {
-            font-size: 1.2rem;
-            text-align: center;
-            padding: 0 10px;
-            position: relative;
-            z-index: 2;
-        }
-        
-        .level1-node:hover {
-            background: rgba(94, 10, 26, 0.3);
-            border-color: #d4af37;
-            transform: scale(1.1);
-            box-shadow: 0 0 20px rgba(212, 175, 55, 0.5);
-        }
-        
-        .level1-node .node-orb {
-            width: 15px;
-            height: 15px;
-            background: #4a0d65;
-            border-radius: 50%;
-            transition: all 0.3s ease;
-            box-shadow: 0 0 10px #5e0a1a;
-            margin-bottom: 8px;
-        }
-        
-        .level1-node:hover .node-orb {
-            transform: scale(1.5);
-            background: #d4af37;
-            box-shadow: 0 0 20px #d4af37;
-        }
-        
-        /* 二级节点容器 */
-        .level2-container {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            top: 0;
-            left: 0;
-            pointer-events: none;
-        }
-        
-        /* 二级节点 */
-        .level2-node {
-            position: absolute;
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            background: rgba(74, 13, 101, 0.1);
-            border: 1px dashed #4a0d65;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.4s ease;
-            z-index: 8;
-            pointer-events: auto;
-            transform-style: preserve-3d;
-        }
-        
-        .level2-node h4 {
-            font-size: 1rem;
-            text-align: center;
-            padding: 0 10px;
-            font-family: 'Noto Sans SC', sans-serif;
-            font-weight: 400;
-        }
-        
-        .level2-node:hover {
-            background: rgba(94, 10, 26, 0.2);
-            border-style: solid;
-            border-color: #d4af37;
-            transform: scale(1.1) rotateY(20deg);
-            box-shadow: 0 0 15px rgba(212, 175, 55, 0.4);
-        }
-        
-        /* 三级节点容器 */
-        .level3-container {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            top: 0;
-            left: 0;
-            pointer-events: none;
-        }
-        
-        /* 三级节点 */
-        .level3-node {
-            position: absolute;
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            background: rgba(10, 4, 16, 0.7);
-            border: 1px dotted #5e0a1a;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.4s ease;
-            z-index: 7;
-            pointer-events: auto;
-        }
-        
-        .level3-node h5 {
-            font-size: 0.8rem;
-            text-align: center;
-            padding: 0 10px;
-            font-family: 'Noto Sans SC', sans-serif;
-            font-weight: 400;
-        }
-        
-        .level3-node:hover {
-            background: rgba(94, 10, 26, 0.3);
-            border-style: solid;
-            border-color: #d4af37;
-            transform: scale(1.1);
-            box-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
-        }
-        
-        /* 连接线 */
-        .connecting-line {
-            position: absolute;
-            background: linear-gradient(to right, #4a0d65, #5e0a1a);
-            height: 1px;
-            transform-origin: left center;
-            z-index: 1;
-        }
-        
-        .central-line {
-            background: linear-gradient(to right, #5e0a1a, #d4af37);
-            height: 2px;
-        }
-        
-        /* 粒子效果容器 */
-        .particles {
-            position: absolute;
-            pointer-events: none;
-            z-index: 5;
-        }
-        
-        /* 特殊节点样式 - 灵阵法门 */
-        .spell-node {
-            position: relative;
-        }
-        
-        .spell-node::before {
-            content: '';
-            position: absolute;
-            top: -15px;
-            left: -15px;
-            right: -15px;
-            bottom: -15px;
-            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 60 60"><path d="M30,5 L40,20 L55,25 L45,40 L50,55 L30,45 L10,55 L15,40 L5,25 L20,20 Z" fill="none" stroke="%234a0d65" stroke-width="1"/></svg>');
-            opacity: 0;
-            transition: opacity 0.3s;
-            background-size: contain;
-            background-repeat: no-repeat;
-            background-position: center;
-            pointer-events: none;
-        }
-        
-        .spell-node:hover::before {
-            opacity: 0.7;
-            animation: rotate-slow 20s linear infinite;
-        }
-        
-        /* 特殊节点样式 - 命运双池 */
-        .pool-node {
-            background: rgba(10, 4, 16, 0.8);
-            border: 1px solid #5e0a1a;
-        }
-        
-        .pool-node:hover {
-            background: rgba(94, 10, 26, 0.4);
-        }
-        
-        /* 动画 */
         @keyframes pulse {
-            0% { opacity: 0.5; }
-            100% { opacity: 1; }
-        }
-        
-        @keyframes rotate-slow {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
+            0% {
+                box-shadow: 0 0 30px var(--light-purple), 0 0 60px rgba(114, 9, 183, 0.5);
+            }
+            50% {
+                box-shadow: 0 0 40px var(--pink), 0 0 80px rgba(247, 37, 133, 0.5);
+            }
+            100% {
+                box-shadow: 0 0 30px var(--light-purple), 0 0 60px rgba(114, 9, 183, 0.5);
+            }
         }
         
         @keyframes float {
-            0% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
-            100% { transform: translateY(0px); }
+            0%, 100% {
+                transform: translateY(0) rotate(0deg);
+            }
+            50% {
+                transform: translateY(-20px) rotate(10deg);
+            }
+        }
+        
+        @keyframes shine {
+            0% {
+                transform: rotate(30deg) translate(-30%, -30%);
+            }
+            100% {
+                transform: rotate(30deg) translate(30%, 30%);
+            }
         }
         
         /* 响应式设计 */
         @media (max-width: 768px) {
-            .mindmap-container {
-                padding: 20px;
-                transform: scale(0.8);
+            .title {
+                font-size: 3rem;
             }
             
-            .central-node {
+            .center-node {
                 width: 120px;
                 height: 120px;
             }
             
-            .central-node h2 {
-                font-size: 1.8rem;
+            .center-text {
+                font-size: 1.2rem;
             }
             
-            .level1-node {
+            .node {
                 width: 100px;
                 height: 100px;
             }
             
-            .level1-node h3 {
-                font-size: 0.9rem;
+            .node-icon {
+                font-size: 1.5rem;
             }
             
-            .level2-node {
-                width: 80px;
-                height: 80px;
-            }
-            
-            .level2-node h4 {
+            .node-text {
                 font-size: 0.8rem;
             }
             
-            .level3-node {
-                width: 70px;
-                height: 70px;
-            }
-            
-            .level3-node h5 {
-                font-size: 0.7rem;
-            }
-            
-            /* 移动端简化为2D效果 */
-            .level2-node:hover {
-                transform: scale(1.1);
-                filter: drop-shadow(0 0 10px #d4af37);
+            .node-url {
+                font-size: 0.5rem;
             }
         }
     </style>
 </head>
 <body>
-    <div class="mindmap-container">
-        <!-- 中心节点 -->
-        <div class="central-node" id="mybazi-central">
-            <div class="node-glow"></div>
-            <h2>麦八字</h2>
-        </div>
+    <div class="container">
+        <h1 class="title">麦八字</h1>
         
-        <!-- 一级节点容器 -->
-        <div class="level1-container" id="level1-container">
-            <!-- 八字学习网 -->
-            <a href="https://mybazi.net" class="level1-node" id="study-node" style="top: 20%; left: 20%;">
-                <div class="node-orb"></div>
-                <h3>八字学习网</h3>
-            </a>
-            
-            <!-- 机缘命理系统 -->
-            <a href="https://mybazi.net/system/bazi.html" class="level1-node" id="bazi-node" style="top: 20%; right: 20%;">
-                <div class="node-orb"></div>
-                <h3>机缘命理系统</h3>
-            </a>
-            
-            <!-- 八字合婚系统 -->
-            <a href="https://mybazi.net/system/hehun.html" class="level1-node" id="hehun-node" style="top: 40%; left: 10%;">
-                <div class="node-orb"></div>
-                <h3>八字合婚系统</h3>
-            </a>
-            
-            <!-- 六爻起卦 -->
-            <a href="https://mybazi.net/system/liuyao.html" class="level1-node" id="liuyao-node" style="top: 40%; right: 10%;">
-                <div class="node-orb"></div>
-                <h3>六爻起卦</h3>
-            </a>
-            
-            <!-- 灵阵法门 -->
-            <div class="level1-node spell-node" id="spell-node" style="bottom: 25%; left: 25%;">
-                <div class="node-orb"></div>
-                <h3>灵阵法门</h3>
+        <div class="mindmap">
+            <!-- 中心节点 -->
+            <div class="center-node">
+                <div class="center-text">命理之门</div>
             </div>
             
-            <!-- 命运双池 -->
-            <div class="level1-node pool-node" id="pool-node" style="bottom: 25%; right: 25%;">
-                <div class="node-orb"></div>
-                <h3>命运双池</h3>
+            <!-- 一级节点 -->
+            <div class="node" style="top: 20%; left: 20%;" data-angle="225">
+                <i class="node-icon fas fa-book-open"></i>
+                <div class="node-text">八字学习网</div>
+                <div class="node-url">mybazi.net</div>
             </div>
-        </div>
-        
-        <!-- 二级节点容器 - 灵阵法门 -->
-        <div class="level2-container" id="spell-container">
-            <!-- 天罡聚财阵 -->
-            <a href="https://mybazi.net/system/richzf.html" class="level2-node spell-node" id="richzf-node" style="top: 30%; left: 15%;">
-                <h4>天罡聚财阵</h4>
-            </a>
             
-            <!-- 天机姻缘配对阵 -->
-            <a href="https://mybazi.net/system/lovezf.html" class="level2-node spell-node" id="lovezf-node" style="top: 45%; left: 10%;">
-                <h4>天机姻缘配对阵</h4>
-            </a>
-        </div>
-        
-        <!-- 二级节点容器 - 命运双池 -->
-        <div class="level2-container" id="pool-container">
-            <!-- 命缘池 -->
-            <a href="https://mybazi.net/system/wishingwell.html" class="level2-node" id="wishingwell-node" style="top: 30%; right: 15%;">
-                <h4>命缘池</h4>
-            </a>
+            <div class="node" style="top: 20%; left: 80%;" data-angle="315">
+                <i class="node-icon fas fa-user-clock"></i>
+                <div class="node-text">机缘命理系统</div>
+                <div class="node-url">mybazi.net/system/bazi.html</div>
+            </div>
             
-            <!-- 怨化池 -->
-            <a href="https://mybazi.net/system/curse.html" class="level2-node" id="curse-node" style="top: 45%; right: 10%;">
-                <h4>怨化池</h4>
-            </a>
-        </div>
-        
-        <!-- 三级节点容器 - 命运之门 -->
-        <div class="level3-container" id="gate-container">
-            <!-- 命运之门 -->
-            <a href="https://mybazi.net/system/gate.html" class="level3-node" id="gate-node" style="top: 60%; right: 30%;">
-                <h5>命运之门</h5>
-            </a>
+            <div class="node" style="top: 80%; left: 20%;" data-angle="135">
+                <i class="node-icon fas fa-heart"></i>
+                <div class="node-text">八字合婚系统</div>
+                <div class="node-url">mybazi.net/system/hehun.html</div>
+            </div>
+            
+            <div class="node" style="top: 80%; left: 80%;" data-angle="45">
+                <i class="node-icon fas fa-yin-yang"></i>
+                <div class="node-text">六爻起卦</div>
+                <div class="node-url">mybazi.net/system/liuyao.html</div>
+            </div>
+            
+            <div class="node" style="top: 40%; left: 10%;" data-angle="180">
+                <i class="node-icon fas fa-star-and-crescent"></i>
+                <div class="node-text">灵阵法门</div>
+                <div class="node-url">mybazi.net/system/zf.html</div>
+            </div>
+            
+            <div class="node" style="top: 60%; left: 10%;" data-angle="180">
+                <i class="node-icon fas fa-gem"></i>
+                <div class="node-text">天罡聚财阵</div>
+                <div class="node-url">mybazi.net/system/richzf.html</div>
+            </div>
+            
+            <div class="node" style="top: 40%; left: 90%;" data-angle="0">
+                <i class="node-icon fas fa-heartbeat"></i>
+                <div class="node-text">天机姻缘配对阵</div>
+                <div class="node-url">mybazi.net/system/lovezf.html</div>
+            </div>
+            
+            <div class="node" style="top: 10%; left: 50%;" data-angle="270">
+                <i class="node-icon fas fa-door-open"></i>
+                <div class="node-text">命运双池</div>
+                <div class="node-url">mybazi.net/system/gate.html</div>
+            </div>
+            
+            <div class="node" style="top: 60%; left: 90%;" data-angle="0">
+                <i class="node-icon fas fa-hand-holding-heart"></i>
+                <div class="node-text">命缘池</div>
+                <div class="node-url">mybazi.net/system/wishingwell.html</div>
+            </div>
+            
+            <div class="node" style="top: 90%; left: 50%;" data-angle="90">
+                <i class="node-icon fas fa-skull"></i>
+                <div class="node-text">怨化池</div>
+                <div class="node-url">mybazi.net/system/curse.html</div>
+            </div>
+            
+            <!-- 连接线将通过JS动态生成 -->
         </div>
     </div>
-
+    
+    <div class="particles" id="particles-js"></div>
+    
+    <!-- 浮动符号 -->
+    <div class="floating-symbols" style="top: 10%; left: 10%; animation-delay: 0s;">☯</div>
+    <div class="floating-symbols" style="top: 15%; left: 85%; animation-delay: 2s;">☸</div>
+    <div class="floating-symbols" style="top: 85%; left: 15%; animation-delay: 4s;">♈</div>
+    <div class="floating-symbols" style="top: 80%; left: 80%; animation-delay: 6s;">♉</div>
+    <div class="floating-symbols" style="top: 30%; left: 30%; animation-delay: 1s;">♊</div>
+    <div class="floating-symbols" style="top: 70%; left: 70%; animation-delay: 3s;">♋</div>
+    <div class="floating-symbols" style="top: 40%; left: 60%; animation-delay: 5s;">♌</div>
+    <div class="floating-symbols" style="top: 60%; left: 40%; animation-delay: 7s;">♍</div>
+    
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // 初始化粒子效果
+            particlesJS('particles-js', {
+                "particles": {
+                    "number": {
+                        "value": 80,
+                        "density": {
+                            "enable": true,
+                            "value_area": 800
+                        }
+                    },
+                    "color": {
+                        "value": ["#f72585", "#7209b7", "#3a0ca3", "#4361ee", "#4cc9f0"]
+                    },
+                    "shape": {
+                        "type": "circle",
+                        "stroke": {
+                            "width": 0,
+                            "color": "#000000"
+                        },
+                        "polygon": {
+                            "nb_sides": 5
+                        }
+                    },
+                    "opacity": {
+                        "value": 0.5,
+                        "random": true,
+                        "anim": {
+                            "enable": true,
+                            "speed": 1,
+                            "opacity_min": 0.1,
+                            "sync": false
+                        }
+                    },
+                    "size": {
+                        "value": 3,
+                        "random": true,
+                        "anim": {
+                            "enable": true,
+                            "speed": 2,
+                            "size_min": 0.1,
+                            "sync": false
+                        }
+                    },
+                    "line_linked": {
+                        "enable": true,
+                        "distance": 150,
+                        "color": "#7209b7",
+                        "opacity": 0.4,
+                        "width": 1
+                    },
+                    "move": {
+                        "enable": true,
+                        "speed": 1,
+                        "direction": "none",
+                        "random": true,
+                        "straight": false,
+                        "out_mode": "out",
+                        "bounce": false,
+                        "attract": {
+                            "enable": true,
+                            "rotateX": 600,
+                            "rotateY": 1200
+                        }
+                    }
+                },
+                "interactivity": {
+                    "detect_on": "canvas",
+                    "events": {
+                        "onhover": {
+                            "enable": true,
+                            "mode": "grab"
+                        },
+                        "onclick": {
+                            "enable": true,
+                            "mode": "push"
+                        },
+                        "resize": true
+                    },
+                    "modes": {
+                        "grab": {
+                            "distance": 140,
+                            "line_linked": {
+                                "opacity": 1
+                            }
+                        },
+                        "bubble": {
+                            "distance": 400,
+                            "size": 40,
+                            "duration": 2,
+                            "opacity": 8,
+                            "speed": 3
+                        },
+                        "repulse": {
+                            "distance": 200,
+                            "duration": 0.4
+                        },
+                        "push": {
+                            "particles_nb": 4
+                        },
+                        "remove": {
+                            "particles_nb": 2
+                        }
+                    }
+                },
+                "retina_detect": true
+            });
+            
             // 创建连接线
-            createConnectingLines();
-            
-            // 初始化节点位置
-            positionNodes();
-            
-            // 添加粒子效果
-            initParticleEffects();
-            
-            // 窗口大小改变时重新定位节点
-            window.addEventListener('resize', function() {
-                positionNodes();
-                createConnectingLines();
-            });
-            
-            // 鼠标移动时的视差效果
-            document.addEventListener('mousemove', handleParallax);
-        });
-        
-        // 创建连接线
-        function createConnectingLines() {
-            // 清除现有的连接线
-            document.querySelectorAll('.connecting-line').forEach(line => line.remove());
-            
-            // 中心节点到一级节点的连接线
-            const centralNode = document.getElementById('mybazi-central');
-            const centralRect = centralNode.getBoundingClientRect();
-            const centralX = centralRect.left + centralRect.width / 2;
-            const centralY = centralRect.top + centralRect.height / 2;
-            
-            document.querySelectorAll('.level1-node').forEach(node => {
-                const nodeRect = node.getBoundingClientRect();
-                const nodeX = nodeRect.left + nodeRect.width / 2;
-                const nodeY = nodeRect.top + nodeRect.height / 2;
+            function createConnectors() {
+                const centerNode = document.querySelector('.center-node');
+                const nodes = document.querySelectorAll('.node:not(.center-node)');
+                const mindmap = document.querySelector('.mindmap');
                 
-                const length = Math.sqrt(Math.pow(nodeX - centralX, 2) + Math.pow(nodeY - centralY, 2));
-                const angle = Math.atan2(nodeY - centralY, nodeX - centralX) * 180 / Math.PI;
+                // 清除现有的连接线
+                const existingConnectors = document.querySelectorAll('.connector');
+                existingConnectors.forEach(connector => connector.remove());
                 
-                const line = document.createElement('div');
-                line.className = 'connecting-line central-line';
-                line.style.width = `${length}px`;
-                line.style.left = `${centralX}px`;
-                line.style.top = `${centralY}px`;
-                line.style.transform = `rotate(${angle}deg)`;
-                line.style.animation = 'pulse 2s infinite alternate';
+                // 获取中心节点位置
+                const centerRect = centerNode.getBoundingClientRect();
+                const centerX = centerRect.left + centerRect.width / 2 - mindmap.getBoundingClientRect().left;
+                const centerY = centerRect.top + centerRect.height / 2 - mindmap.getBoundingClientRect().top;
                 
-                document.body.appendChild(line);
-            });
-            
-            // 一级节点到二级节点的连接线
-            document.querySelectorAll('.level1-node').forEach(parentNode => {
-                const parentRect = parentNode.getBoundingClientRect();
-                const parentX = parentRect.left + parentRect.width / 2;
-                const parentY = parentRect.top + parentRect.height / 2;
-                
-                const childNodes = [];
-                if (parentNode.id === 'spell-node') {
-                    childNodes.push(...document.querySelectorAll('#spell-container .level2-node'));
-                } else if (parentNode.id === 'pool-node') {
-                    childNodes.push(...document.querySelectorAll('#pool-container .level2-node'));
-                }
-                
-                childNodes.forEach(childNode => {
-                    const childRect = childNode.getBoundingClientRect();
-                    const childX = childRect.left + childRect.width / 2;
-                    const childY = childRect.top + childRect.height / 2;
+                // 为每个节点创建连接线
+                nodes.forEach(node => {
+                    const nodeRect = node.getBoundingClientRect();
+                    const nodeX = nodeRect.left + nodeRect.width / 2 - mindmap.getBoundingClientRect().left;
+                    const nodeY = nodeRect.top + nodeRect.height / 2 - mindmap.getBoundingClientRect().top;
                     
-                    const length = Math.sqrt(Math.pow(childX - parentX, 2) + Math.pow(childY - parentY, 2));
-                    const angle = Math.atan2(childY - parentY, childX - parentX) * 180 / Math.PI;
+                    // 计算距离和角度
+                    const dx = nodeX - centerX;
+                    const dy = nodeY - centerY;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    const angle = Math.atan2(dy, dx) * 180 / Math.PI;
                     
-                    const line = document.createElement('div');
-                    line.className = 'connecting-line';
-                    line.style.width = `${length}px`;
-                    line.style.left = `${parentX}px`;
-                    line.style.top = `${parentY}px`;
-                    line.style.transform = `rotate(${angle}deg)`;
-                    line.style.animation = 'pulse 2s infinite alternate';
+                    // 创建连接线
+                    const connector = document.createElement('div');
+                    connector.className = 'connector';
+                    connector.style.width = `${distance}px`;
+                    connector.style.left = `${centerX}px`;
+                    connector.style.top = `${centerY}px`;
+                    connector.style.transform = `rotate(${angle}deg)`;
                     
-                    document.body.appendChild(line);
-                });
-            });
-            
-            // 二级节点到三级节点的连接线
-            document.querySelectorAll('#pool-container .level2-node').forEach(parentNode => {
-                const parentRect = parentNode.getBoundingClientRect();
-                const parentX = parentRect.left + parentRect.width / 2;
-                const parentY = parentRect.top + parentRect.height / 2;
-                
-                const childNodes = [document.getElementById('gate-node')];
-                
-                childNodes.forEach(childNode => {
-                    if (!childNode) return;
+                    mindmap.appendChild(connector);
                     
-                    const childRect = childNode.getBoundingClientRect();
-                    const childX = childRect.left + childRect.width / 2;
-                    const childY = childRect.top + childRect.height / 2;
-                    
-                    const length = Math.sqrt(Math.pow(childX - parentX, 2) + Math.pow(childY - parentY, 2));
-                    const angle = Math.atan2(childY - parentY, childX - parentX) * 180 / Math.PI;
-                    
-                    const line = document.createElement('div');
-                    line.className = 'connecting-line';
-                    line.style.width = `${length}px`;
-                    line.style.left = `${parentX}px`;
-                    line.style.top = `${parentY}px`;
-                    line.style.transform = `rotate(${angle}deg)`;
-                    line.style.animation = 'pulse 2s infinite alternate';
-                    
-                    document.body.appendChild(line);
-                });
-            });
-        }
-        
-        // 定位节点
-        function positionNodes() {
-            const container = document.querySelector('.mindmap-container');
-            const containerWidth = container.offsetWidth;
-            const containerHeight = container.offsetHeight;
-            
-            // 中心节点始终居中
-            const centralNode = document.getElementById('mybazi-central');
-            centralNode.style.left = `${containerWidth / 2 - centralNode.offsetWidth / 2}px`;
-            centralNode.style.top = `${containerHeight / 2 - centralNode.offsetHeight / 2}px`;
-            
-            // 一级节点圆形分布
-            const level1Nodes = document.querySelectorAll('.level1-node');
-            const radius = Math.min(containerWidth, containerHeight) * 0.35;
-            const angleStep = (2 * Math.PI) / level1Nodes.length;
-            
-            level1Nodes.forEach((node, index) => {
-                const angle = index * angleStep;
-                const x = containerWidth / 2 + radius * Math.cos(angle) - node.offsetWidth / 2;
-                const y = containerHeight / 2 + radius * Math.sin(angle) - node.offsetHeight / 2;
-                
-                node.style.left = `${x}px`;
-                node.style.top = `${y}px`;
-            });
-            
-            // 二级节点相对于一级节点定位
-            positionChildNodes('#spell-node', '#spell-container', 0.25);
-            positionChildNodes('#pool-node', '#pool-container', 0.25);
-            
-            // 三级节点相对于二级节点定位
-            positionChildNodes('#wishingwell-node', '#gate-container', 0.2, true);
-        }
-        
-        // 定位子节点
-        function positionChildNodes(parentId, containerId, distanceFactor, isSingle = false) {
-            const parent = document.querySelector(parentId);
-            if (!parent) return;
-            
-            const parentRect = parent.getBoundingClientRect();
-            const parentX = parentRect.left + parentRect.width / 2;
-            const parentY = parentRect.top + parentRect.height / 2;
-            
-            const container = document.querySelector(containerId);
-            const children = container.querySelectorAll('.level2-node, .level3-node');
-            
-            if (isSingle && children.length > 0) {
-                const child = children[0];
-                const angle = Math.PI / 4; // 45度角
-                
-                const x = parentX + parent.offsetWidth * distanceFactor * Math.cos(angle) - child.offsetWidth / 2;
-                const y = parentY + parent.offsetHeight * distanceFactor * Math.sin(angle) - child.offsetHeight / 2;
-                
-                child.style.left = `${x}px`;
-                child.style.top = `${y}px`;
-            } else {
-                children.forEach((child, index) => {
-                    const angle = (index * (Math.PI / (children.length - 1))) - Math.PI / 2;
-                    
-                    const x = parentX + parent.offsetWidth * distanceFactor * Math.cos(angle) - child.offsetWidth / 2;
-                    const y = parentY + parent.offsetHeight * distanceFactor * Math.sin(angle) - child.offsetHeight / 2;
-                    
-                    child.style.left = `${x}px`;
-                    child.style.top = `${y}px`;
+                    // 添加点击事件
+                    node.addEventListener('click', function() {
+                        const url = this.querySelector('.node-url').textContent;
+                        if (url) {
+                            window.open(`https://${url}`, '_blank');
+                        }
+                    });
                 });
             }
-        }
-        
-        // 初始化粒子效果
-        function initParticleEffects() {
-            document.querySelectorAll('.level1-node, .level2-node, .level3-node').forEach(node => {
+            
+            // 初始创建连接线
+            createConnectors();
+            
+            // 窗口大小改变时重新创建连接线
+            window.addEventListener('resize', createConnectors);
+            
+            // 中心节点点击效果
+            const centerNode = document.querySelector('.center-node');
+            centerNode.addEventListener('click', function() {
+                this.style.transform = 'translate(-50%, -50%) scale(0.9)';
+                setTimeout(() => {
+                    this.style.transform = 'translate(-50%, -50%) scale(1)';
+                }, 300);
+                
+                // 创建波纹效果
+                const ripple = document.createElement('div');
+                ripple.style.position = 'absolute';
+                ripple.style.width = '100%';
+                ripple.style.height = '100%';
+                ripple.style.borderRadius = '50%';
+                ripple.style.backgroundColor = 'rgba(247, 37, 133, 0.3)';
+                ripple.style.top = '0';
+                ripple.style.left = '0';
+                ripple.style.transform = 'scale(0)';
+                ripple.style.transition = 'transform 1s ease-out, opacity 1s ease-out';
+                this.appendChild(ripple);
+                
+                setTimeout(() => {
+                    ripple.style.transform = 'scale(2)';
+                    ripple.style.opacity = '0';
+                }, 10);
+                
+                setTimeout(() => {
+                    ripple.remove();
+                }, 1100);
+            });
+            
+            // 节点悬停动画
+            const allNodes = document.querySelectorAll('.node');
+            allNodes.forEach(node => {
                 node.addEventListener('mouseenter', function() {
-                    createParticles(this);
+                    const icon = this.querySelector('.node-icon');
+                    icon.style.transform = 'scale(1.2) rotate(10deg)';
+                    icon.style.transition = 'transform 0.3s ease';
+                    
+                    // 随机颜色变化
+                    const colors = ['#f72585', '#7209b7', '#3a0ca3', '#4361ee', '#4cc9f0'];
+                    const randomColor = colors[Math.floor(Math.random() * colors.length)];
+                    icon.style.color = randomColor;
+                    icon.style.textShadow = `0 0 10px ${randomColor}`;
+                });
+                
+                node.addEventListener('mouseleave', function() {
+                    const icon = this.querySelector('.node-icon');
+                    icon.style.transform = 'scale(1) rotate(0deg)';
+                    icon.style.color = '#4cc9f0';
+                    icon.style.textShadow = '0 0 10px #4cc9f0';
                 });
             });
-        }
-        
-        // 创建粒子效果
-        function createParticles(node) {
-            const rect = node.getBoundingClientRect();
-            const centerX = rect.left + rect.width / 2;
-            const centerY = rect.top + rect.height / 2;
             
-            const colors = ['#4a0d65', '#5e0a1a', '#d4af37'];
-            const particleCount = 15;
-            
-            for (let i = 0; i < particleCount; i++) {
-                const particle = document.createElement('div');
-                particle.className = 'particle';
-                particle.style.width = `${Math.random() * 4 + 2}px`;
-                particle.style.height = particle.style.width;
-                particle.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-                particle.style.borderRadius = '50%';
-                particle.style.position = 'absolute';
-                particle.style.left = `${centerX}px`;
-                particle.style.top = `${centerY}px`;
-                particle.style.opacity = '0.8';
-                particle.style.zIndex = '5';
-                particle.style.pointerEvents = 'none';
-                
-                document.body.appendChild(particle);
-                
-                const angle = Math.random() * Math.PI * 2;
-                const distance = Math.random() * 30 + 20;
-                const duration = Math.random() * 1000 + 500;
-                
-                const animation = particle.animate([
-                    { transform: `translate(0, 0)`, opacity: 0.8 },
-                    { transform: `translate(${Math.cos(angle) * distance}px, ${Math.sin(angle) * distance}px)`, opacity: 0 }
-                ], {
-                    duration: duration,
-                    easing: 'cubic-bezier(0.4, 0, 0.2, 1)'
-                });
-                
-                animation.onfinish = () => {
-                    particle.remove();
-                };
+            // 背景动画
+            let angle = 0;
+            function animateBackground() {
+                angle += 0.5;
+                const x = 50 + 20 * Math.cos(angle * Math.PI / 180);
+                const y = 50 + 20 * Math.sin(angle * Math.PI / 180);
+                document.body.style.backgroundPosition = `${x}% ${y}%`;
+                requestAnimationFrame(animateBackground);
             }
-        }
-        
-        // 视差效果
-        function handleParallax(e) {
-            const x = e.clientX / window.innerWidth;
-            const y = e.clientY / window.innerHeight;
             
-            document.querySelectorAll('.level1-node').forEach((node, index) => {
-                node.style.transform = `translate(${(x - 0.5) * 10}px, ${(y - 0.5) * 10}px)`;
-            });
-            
-            document.querySelectorAll('.level2-node').forEach((node, index) => {
-                node.style.transform = `translate(${(x - 0.5) * 20}px, ${(y - 0.5) * 20}px) rotateY(${(x - 0.5) * 20}deg)`;
-            });
-            
-            document.querySelectorAll('.level3-node').forEach((node, index) => {
-                node.style.transform = `translate(${(x - 0.5) * 30}px, ${(y - 0.5) * 30}px)`;
-            });
-        }
+            animateBackground();
+        });
     </script>
 </body>
 </html>
