@@ -3,18 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>麦八字 - 神秘命理之门</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>麦八字 - 命理玄机导航</title>
     <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=ZCOOL+QingKe+HuangYou&family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         :root {
-            --primary-color: #8a2be2;
-            --secondary-color: #9370db;
-            --accent-color: #ba55d3;
-            --text-color: #e6e6fa;
-            --dark-bg: #0a0a1a;
-            --light-bg: #1a1a2e;
-            --glow-color: rgba(138, 43, 226, 0.7);
+            --primary-color: #8e44ad;
+            --secondary-color: #3498db;
+            --accent-color: #f1c40f;
+            --dark-color: #2c3e50;
+            --light-color: #ecf0f1;
+            --mystic-purple: #9b59b6;
+            --mystic-blue: #3498db;
+            --mystic-gold: #f39c12;
         }
 
         * {
@@ -25,239 +26,269 @@
 
         body {
             font-family: 'ZCOOL XiaoWei', serif;
-            background-color: var(--dark-bg);
-            color: var(--text-color);
+            background-color: #0a0a1a;
+            color: var(--light-color);
             overflow-x: hidden;
             background-image: 
-                radial-gradient(circle at 10% 20%, rgba(138, 43, 226, 0.1) 0%, transparent 20%),
-                radial-gradient(circle at 90% 80%, rgba(186, 85, 211, 0.1) 0%, transparent 20%),
-                url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><path d="M30,50 Q50,30 70,50 T90,50" fill="none" stroke="%238a2be2" stroke-width="0.5" opacity="0.3"/></svg>');
-            min-height: 100vh;
-            perspective: 1000px;
+                radial-gradient(circle at 10% 20%, rgba(155, 89, 182, 0.1) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(52, 152, 219, 0.1) 0%, transparent 20%),
+                radial-gradient(circle at 50% 50%, rgba(243, 156, 18, 0.05) 0%, transparent 30%);
+            background-attachment: fixed;
         }
 
         .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 2rem;
-            position: relative;
-            z-index: 1;
-        }
-
-        /* 星空背景 */
-        .stars {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 0;
-            overflow: hidden;
-        }
-
-        .star {
-            position: absolute;
-            background-color: white;
-            border-radius: 50%;
-            animation: twinkle var(--duration) infinite ease-in-out;
-            opacity: 0;
-        }
-
-        @keyframes twinkle {
-            0%, 100% { opacity: 0; }
-            50% { opacity: var(--opacity); }
-        }
-
-        /* 主标题 */
-        .main-title {
-            text-align: center;
-            margin: 3rem 0;
-            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             perspective: 1000px;
         }
 
-        .main-title h1 {
-            font-family: 'Ma Shan Zheng', cursive;
-            font-size: 5rem;
-            color: var(--text-color);
-            text-shadow: 0 0 10px var(--glow-color), 
-                         0 0 20px var(--glow-color), 
-                         0 0 30px var(--glow-color);
-            margin-bottom: 1rem;
-            animation: float 6s ease-in-out infinite;
+        .mindmap {
             position: relative;
-            z-index: 2;
-        }
-
-        .main-title::before {
-            content: "";
-            position: absolute;
-            top: -50px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 300px;
-            height: 300px;
-            background: radial-gradient(circle, var(--primary-color) 0%, transparent 70%);
-            filter: blur(60px);
-            opacity: 0.3;
-            z-index: 1;
-            animation: pulse 8s infinite alternate;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-20px); }
-        }
-
-        @keyframes pulse {
-            0% { opacity: 0.2; transform: translateX(-50%) scale(0.8); }
-            100% { opacity: 0.4; transform: translateX(-50%) scale(1.2); }
-        }
-
-        /* 导航菜单 */
-        .nav-menu {
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-            max-width: 800px;
-            margin: 0 auto;
-        }
-
-        .menu-item {
-            background-color: rgba(26, 26, 46, 0.7);
-            border: 1px solid var(--primary-color);
-            border-radius: 8px;
-            padding: 1.5rem;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            width: 80%;
+            height: 80%;
             transform-style: preserve-3d;
         }
 
-        .menu-item::before {
-            content: "";
+        .center-node {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(45deg, transparent 60%, rgba(138, 43, 226, 0.2) 100%);
-            z-index: -1;
-        }
-
-        .menu-item:hover {
-            transform: translateY(-5px) rotateX(5deg);
-            box-shadow: 0 15px 30px rgba(138, 43, 226, 0.4);
-            border-color: var(--accent-color);
-        }
-
-        .menu-item:hover .menu-title {
-            color: var(--accent-color);
-            text-shadow: 0 0 10px var(--glow-color);
-        }
-
-        .menu-title {
-            font-size: 1.8rem;
-            margin-bottom: 1rem;
-            color: var(--text-color);
-            transition: all 0.3s ease;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 200px;
+            height: 200px;
+            background: rgba(46, 20, 64, 0.8);
+            border-radius: 50%;
             display: flex;
+            justify-content: center;
             align-items: center;
-            gap: 1rem;
+            box-shadow: 
+                0 0 30px var(--mystic-purple),
+                0 0 60px rgba(155, 89, 182, 0.3),
+                inset 0 0 20px rgba(255, 255, 255, 0.1);
+            border: 2px solid var(--mystic-purple);
+            z-index: 10;
+            animation: pulse 6s infinite alternate, float 8s ease-in-out infinite;
+            transition: all 0.5s ease;
         }
 
-        .menu-title i {
-            font-size: 1.5rem;
+        .center-node:hover {
+            transform: translate(-50%, -50%) scale(1.05);
+            box-shadow: 
+                0 0 40px var(--mystic-purple),
+                0 0 80px rgba(155, 89, 182, 0.5),
+                inset 0 0 30px rgba(255, 255, 255, 0.2);
+        }
+
+        .center-text {
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 2.5rem;
             color: var(--accent-color);
+            text-shadow: 0 0 10px rgba(241, 196, 15, 0.7);
+            letter-spacing: 5px;
         }
 
-        .submenu {
-            margin-left: 2rem;
-            margin-top: 1rem;
+        .node {
+            position: absolute;
+            width: 160px;
+            height: 160px;
+            background: rgba(30, 40, 70, 0.8);
+            border-radius: 20px;
             display: flex;
             flex-direction: column;
-            gap: 0.8rem;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 
+                0 0 15px rgba(52, 152, 219, 0.5),
+                inset 0 0 10px rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--mystic-blue);
+            transition: all 0.5s ease;
+            z-index: 5;
+            overflow: hidden;
+            backdrop-filter: blur(5px);
         }
 
-        .submenu-item {
-            display: flex;
-            align-items: center;
-            gap: 0.8rem;
-            padding: 0.5rem 0;
-            position: relative;
+        .node::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                45deg,
+                transparent,
+                rgba(52, 152, 219, 0.2),
+                transparent
+            );
+            transform: rotate(45deg);
+            animation: shine 3s infinite;
+        }
+
+        .node:hover {
+            transform: scale(1.1) translateZ(20px);
+            box-shadow: 
+                0 0 25px var(--mystic-blue),
+                inset 0 0 15px rgba(255, 255, 255, 0.2);
+            z-index: 20;
+        }
+
+        .node-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            color: var(--accent-color);
+            text-shadow: 0 0 8px rgba(241, 196, 15, 0.7);
+        }
+
+        .node-title {
+            font-size: 1.1rem;
+            text-align: center;
+            color: var(--light-color);
+            margin-bottom: 5px;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+        }
+
+        .node-link {
+            font-size: 0.8rem;
+            color: var(--mystic-blue);
+            text-decoration: none;
+            text-align: center;
             transition: all 0.3s ease;
         }
 
-        .submenu-item::before {
-            content: "✧";
+        .node-link:hover {
             color: var(--accent-color);
-            font-size: 0.8rem;
+            text-shadow: 0 0 5px rgba(241, 196, 15, 0.7);
+        }
+
+        .connector {
             position: absolute;
-            left: -1.5rem;
+            background: linear-gradient(90deg, var(--mystic-purple), var(--mystic-blue));
+            height: 2px;
+            transform-origin: left center;
+            z-index: 1;
+            box-shadow: 0 0 5px rgba(155, 89, 182, 0.7);
+        }
+
+        .connector::after {
+            content: '';
+            position: absolute;
+            right: 0;
             top: 50%;
             transform: translateY(-50%);
+            width: 10px;
+            height: 10px;
+            background-color: var(--mystic-blue);
+            border-radius: 50%;
+            box-shadow: 0 0 5px var(--mystic-blue);
         }
 
-        .submenu-item a {
-            color: var(--text-color);
-            text-decoration: none;
-            font-size: 1.2rem;
-            transition: all 0.3s ease;
-            position: relative;
-            display: inline-block;
-        }
-
-        .submenu-item a::after {
-            content: "";
+        .sub-node {
             position: absolute;
-            bottom: -2px;
-            left: 0;
-            width: 0;
-            height: 1px;
-            background-color: var(--accent-color);
-            transition: width 0.3s ease;
+            width: 140px;
+            height: 140px;
+            background: rgba(40, 50, 80, 0.7);
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 
+                0 0 10px rgba(243, 156, 18, 0.5),
+                inset 0 0 8px rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--mystic-gold);
+            transition: all 0.5s ease;
+            z-index: 4;
+            backdrop-filter: blur(3px);
         }
 
-        .submenu-item:hover a::after {
-            width: 100%;
+        .sub-node:hover {
+            transform: scale(1.08) translateZ(15px);
+            box-shadow: 
+                0 0 20px var(--mystic-gold),
+                inset 0 0 12px rgba(255, 255, 255, 0.2);
+            z-index: 15;
         }
 
-        .submenu-item:hover a {
-            color: var(--accent-color);
+        .sub-connector {
+            position: absolute;
+            background: linear-gradient(90deg, var(--mystic-blue), var(--mystic-gold));
+            height: 2px;
+            transform-origin: left center;
+            z-index: 1;
+            box-shadow: 0 0 5px rgba(52, 152, 219, 0.7);
         }
 
-        .submenu-item:hover .submenu-icon {
-            transform: rotate(15deg) scale(1.2);
+        .sub-connector::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 8px;
+            height: 8px;
+            background-color: var(--mystic-gold);
+            border-radius: 50%;
+            box-shadow: 0 0 5px var(--mystic-gold);
         }
 
-        .submenu-icon {
-            font-size: 1rem;
-            color: var(--secondary-color);
-            transition: all 0.3s ease;
-        }
-
-        /* 浮动符文 */
         .floating-symbols {
-            position: fixed;
+            position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             pointer-events: none;
-            z-index: -1;
-            opacity: 0.2;
+            z-index: 0;
+            overflow: hidden;
         }
 
         .symbol {
             position: absolute;
-            font-family: 'ZCOOL QingKe HuangYou', sans-serif;
-            color: var(--primary-color);
+            color: rgba(255, 255, 255, 0.1);
             font-size: 1.5rem;
-            opacity: 0;
-            animation: float-symbol var(--duration) linear infinite;
-            animation-delay: var(--delay);
+            animation: float-symbol linear infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 
+                    0 0 30px var(--mystic-purple),
+                    0 0 60px rgba(155, 89, 182, 0.3),
+                    inset 0 0 20px rgba(255, 255, 255, 0.1);
+            }
+            50% {
+                box-shadow: 
+                    0 0 40px var(--mystic-purple),
+                    0 0 80px rgba(155, 89, 182, 0.5),
+                    inset 0 0 30px rgba(255, 255, 255, 0.2);
+            }
+            100% {
+                box-shadow: 
+                    0 0 30px var(--mystic-purple),
+                    0 0 60px rgba(155, 89, 182, 0.3),
+                    inset 0 0 20px rgba(255, 255, 255, 0.1);
+            }
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translate(-50%, -50%) translateY(0);
+            }
+            50% {
+                transform: translate(-50%, -50%) translateY(-20px);
+            }
+        }
+
+        @keyframes shine {
+            0% {
+                transform: rotate(45deg) translate(-30%, -30%);
+            }
+            100% {
+                transform: rotate(45deg) translate(30%, 30%);
+            }
         }
 
         @keyframes float-symbol {
@@ -266,10 +297,10 @@
                 opacity: 0;
             }
             10% {
-                opacity: 0.5;
+                opacity: 0.1;
             }
             90% {
-                opacity: 0.5;
+                opacity: 0.1;
             }
             100% {
                 transform: translateY(-100vh) rotate(360deg);
@@ -277,309 +308,255 @@
             }
         }
 
-        /* 响应式设计 */
+        /* 响应式调整 */
+        @media (max-width: 1200px) {
+            .mindmap {
+                width: 90%;
+                height: 90%;
+            }
+            
+            .center-node {
+                width: 180px;
+                height: 180px;
+            }
+            
+            .node {
+                width: 140px;
+                height: 140px;
+            }
+            
+            .sub-node {
+                width: 120px;
+                height: 120px;
+            }
+        }
+
         @media (max-width: 768px) {
-            .main-title h1 {
-                font-size: 3rem;
+            .mindmap {
+                width: 95%;
+                height: 95%;
             }
             
-            .menu-title {
-                font-size: 1.5rem;
+            .center-node {
+                width: 150px;
+                height: 150px;
             }
             
-            .submenu-item a {
+            .center-text {
+                font-size: 2rem;
+            }
+            
+            .node {
+                width: 120px;
+                height: 120px;
+            }
+            
+            .node-title {
                 font-size: 1rem;
             }
-        }
-
-        /* 神秘门户效果 */
-        .portal-effect {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 0;
-            height: 0;
-            border-radius: 50%;
-            background: radial-gradient(circle, var(--primary-color) 0%, transparent 70%);
-            filter: blur(30px);
-            opacity: 0;
-            z-index: -1;
-            transition: all 1s ease;
-        }
-
-        body.portal-active .portal-effect {
-            width: 200vh;
-            height: 200vh;
-            opacity: 0.1;
-        }
-
-        /* 鼠标跟随效果 */
-        .cursor-follower {
-            position: fixed;
-            width: 20px;
-            height: 20px;
-            background: radial-gradient(circle, var(--accent-color) 0%, transparent 70%);
-            border-radius: 50%;
-            pointer-events: none;
-            transform: translate(-50%, -50%);
-            mix-blend-mode: screen;
-            z-index: 9999;
-            filter: blur(5px);
-            opacity: 0.7;
-            transition: transform 0.1s ease;
+            
+            .node-link {
+                font-size: 0.7rem;
+            }
+            
+            .sub-node {
+                width: 100px;
+                height: 100px;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="stars" id="stars"></div>
-    <div class="floating-symbols" id="floatingSymbols"></div>
-    <div class="portal-effect" id="portalEffect"></div>
-    <div class="cursor-follower" id="cursorFollower"></div>
-
     <div class="container">
-        <div class="main-title">
-            <h1>麦八字</h1>
-        </div>
-
-        <div class="nav-menu">
-            <div class="menu-item">
-                <div class="menu-title">
-                    <i class="fas fa-book-open"></i>
-                    八字学习网
-                </div>
-                <div class="submenu">
-                    <div class="submenu-item">
-                        <i class="fas fa-link submenu-icon"></i>
-                        <a href="https://mybazi.net" target="_blank">mybazi.net</a>
-                    </div>
-                </div>
+        <div class="mindmap">
+            <div class="floating-symbols" id="floatingSymbols"></div>
+            
+            <!-- 中心节点 -->
+            <div class="center-node">
+                <div class="center-text">麦八字</div>
             </div>
-
-            <div class="menu-item">
-                <div class="menu-title">
-                    <i class="fas fa-yin-yang"></i>
-                    机缘命理系统
-                </div>
-                <div class="submenu">
-                    <div class="submenu-item">
-                        <i class="fas fa-link submenu-icon"></i>
-                        <a href="https://mybazi.net/system/bazi.html" target="_blank">mybazi.net/system/bazi.html</a>
-                    </div>
-                </div>
+            
+            <!-- 一级节点 -->
+            <div class="node" style="top: 20%; left: 50%; transform: translate(-50%, 0);">
+                <i class="node-icon fas fa-book-open"></i>
+                <div class="node-title">八字学习网</div>
+                <a href="https://mybazi.net" class="node-link" target="_blank">mybazi.net</a>
             </div>
-
-            <div class="menu-item">
-                <div class="menu-title">
-                    <i class="fas fa-heart"></i>
-                    八字合婚系统
-                </div>
-                <div class="submenu">
-                    <div class="submenu-item">
-                        <i class="fas fa-link submenu-icon"></i>
-                        <a href="https://mybazi.net/system/hehun.html" target="_blank">mybazi.net/system/hehun.html</a>
-                    </div>
-                </div>
+            
+            <div class="node" style="top: 50%; left: 20%; transform: translate(0, -50%);">
+                <i class="node-icon fas fa-user-clock"></i>
+                <div class="node-title">机缘命理系统</div>
+                <a href="https://mybazi.net/system/bazi.html" class="node-link" target="_blank">mybazi.net/system/bazi.html</a>
             </div>
-
-            <div class="menu-item">
-                <div class="menu-title">
-                    <i class="fas fa-dice"></i>
-                    六爻起卦
-                </div>
-                <div class="submenu">
-                    <div class="submenu-item">
-                        <i class="fas fa-link submenu-icon"></i>
-                        <a href="https://mybazi.net/system/liuyao.html" target="_blank">mybazi.net/system/liuyao.html</a>
-                    </div>
-                </div>
+            
+            <div class="node" style="top: 50%; left: 80%; transform: translate(0, -50%);">
+                <i class="node-icon fas fa-heart"></i>
+                <div class="node-title">八字合婚系统</div>
+                <a href="https://mybazi.net/system/hehun.html" class="node-link" target="_blank">mybazi.net/system/hehun.html</a>
             </div>
-
-            <div class="menu-item">
-                <div class="menu-title">
-                    <i class="fas fa-magic"></i>
-                    灵阵法门
-                </div>
-                <div class="submenu">
-                    <div class="submenu-item">
-                        <i class="fas fa-link submenu-icon"></i>
-                        <a href="https://mybazi.net/system/zf.html" target="_blank">mybazi.net/system/zf.html</a>
-                    </div>
-                    <div class="submenu-item">
-                        <i class="fas fa-coins submenu-icon"></i>
-                        <a href="https://mybazi.net/system/richzf.html" target="_blank">天罡聚财阵（mybazi.net/system/richzf.html）</a>
-                    </div>
-                    <div class="submenu-item">
-                        <i class="fas fa-heartbeat submenu-icon"></i>
-                        <a href="https://mybazi.net/system/lovezf.html" target="_blank">天机姻缘配对阵（mybazi.net/system/lovezf.html）</a>
-                    </div>
-                </div>
+            
+            <div class="node" style="top: 80%; left: 30%; transform: translate(0, -50%);">
+                <i class="node-icon fas fa-yin-yang"></i>
+                <div class="node-title">六爻起卦</div>
+                <a href="https://mybazi.net/system/liuyao.html" class="node-link" target="_blank">mybazi.net/system/liuyao.html</a>
             </div>
-
-            <div class="menu-item">
-                <div class="menu-title">
-                    <i class="fas fa-infinity"></i>
-                    命运双池
-                </div>
-                <div class="submenu">
-                    <div class="submenu-item">
-                        <i class="fas fa-link submenu-icon"></i>
-                        <a href="https://mybazi.net/system/gate.html" target="_blank">mybazi.net/system/gate.html</a>
-                    </div>
-                    <div class="submenu-item">
-                        <i class="fas fa-star submenu-icon"></i>
-                        <a href="https://mybazi.net/system/wishingwell.html" target="_blank">命缘池（mybazi.net/system/wishingwell.html）</a>
-                    </div>
-                    <div class="submenu-item">
-                        <i class="fas fa-skull submenu-icon"></i>
-                        <a href="https://mybazi.net/system/curse.html" target="_blank">怨化池（mybazi.net/system/curse.html）</a>
-                    </div>
-                </div>
+            
+            <div class="node" style="top: 80%; left: 70%; transform: translate(0, -50%);">
+                <i class="node-icon fas fa-magic"></i>
+                <div class="node-title">灵阵法门</div>
+                <a href="https://mybazi.net/system/zf.html" class="node-link" target="_blank">mybazi.net/system/zf.html</a>
             </div>
+            
+            <div class="node" style="top: 20%; left: 30%; transform: translate(0, 0);">
+                <i class="node-icon fas fa-door-open"></i>
+                <div class="node-title">命运双池</div>
+                <a href="https://mybazi.net/system/gate.html" class="node-link" target="_blank">mybazi.net/system/gate.html</a>
+            </div>
+            
+            <!-- 灵阵法门的子节点 -->
+            <div class="sub-node" style="top: 65%; left: 55%;">
+                <i class="node-icon fas fa-coins"></i>
+                <div class="node-title">天罡聚财阵</div>
+                <a href="https://mybazi.net/system/richzf.html" class="node-link" target="_blank">mybazi.net/system/richzf.html</a>
+            </div>
+            
+            <div class="sub-node" style="top: 65%; left: 85%;">
+                <i class="node-icon fas fa-heartbeat"></i>
+                <div class="node-title">天机姻缘配对阵</div>
+                <a href="https://mybazi.net/system/lovezf.html" class="node-link" target="_blank">mybazi.net/system/lovezf.html</a>
+            </div>
+            
+            <!-- 命运双池的子节点 -->
+            <div class="sub-node" style="top: 5%; left: 15%;">
+                <i class="node-icon fas fa-star"></i>
+                <div class="node-title">命缘池</div>
+                <a href="https://mybazi.net/system/wishingwell.html" class="node-link" target="_blank">mybazi.net/system/wishingwell.html</a>
+            </div>
+            
+            <div class="sub-node" style="top: 5%; left: 45%;">
+                <i class="node-icon fas fa-skull"></i>
+                <div class="node-title">怨化池</div>
+                <a href="https://mybazi.net/system/curse.html" class="node-link" target="_blank">mybazi.net/system/curse.html</a>
+            </div>
+            
+            <!-- 连接线 -->
+            <div class="connector" id="connector1"></div>
+            <div class="connector" id="connector2"></div>
+            <div class="connector" id="connector3"></div>
+            <div class="connector" id="connector4"></div>
+            <div class="connector" id="connector5"></div>
+            <div class="connector" id="connector6"></div>
+            
+            <div class="sub-connector" id="subConnector1"></div>
+            <div class="sub-connector" id="subConnector2"></div>
+            <div class="sub-connector" id="subConnector3"></div>
+            <div class="sub-connector" id="subConnector4"></div>
         </div>
     </div>
 
     <script>
-        // 创建星空背景
-        function createStars() {
-            const starsContainer = document.getElementById('stars');
-            const starCount = 200;
+        document.addEventListener('DOMContentLoaded', function() {
+            // 创建浮动符号
+            createFloatingSymbols();
             
-            for (let i = 0; i < starCount; i++) {
-                const star = document.createElement('div');
-                star.classList.add('star');
-                
-                // 随机大小
-                const size = Math.random() * 3;
-                star.style.width = `${size}px`;
-                star.style.height = `${size}px`;
-                
-                // 随机位置
-                star.style.left = `${Math.random() * 100}%`;
-                star.style.top = `${Math.random() * 100}%`;
-                
-                // 随机动画参数
-                const duration = 3 + Math.random() * 7;
-                const opacity = 0.3 + Math.random() * 0.7;
-                star.style.setProperty('--duration', `${duration}s`);
-                star.style.setProperty('--opacity', opacity);
-                
-                // 随机延迟
-                star.style.animationDelay = `${Math.random() * 10}s`;
-                
-                starsContainer.appendChild(star);
-            }
-        }
+            // 更新连接线
+            updateConnectors();
+            
+            // 窗口大小改变时重新计算连接线
+            window.addEventListener('resize', updateConnectors);
+            
+            // 为节点添加随机动画延迟
+            document.querySelectorAll('.node, .sub-node').forEach((node, index) => {
+                node.style.animationDelay = `${index * 0.1}s`;
+            });
+        });
 
-        // 创建浮动符文
         function createFloatingSymbols() {
             const symbolsContainer = document.getElementById('floatingSymbols');
-            const symbolCount = 30;
-            const chineseSymbols = ['☯', '☸', '卍', '卐', '✡', '☤', '☥', '☦', '☧', '☨', '☩', '☪', '☫', '☬', '☭', '♆', '♁', '⚚', '⚛', '⚜', '⛧', '⛤', '⛥', '⛦', '⛨', '⛩'];
+            const symbols = ['☯', '☸', '♈', '♉', '♊', '♋', '♌', '♍', '♎', '♏', '♐', '♑', '♒', '♓', '☀', '☽', '☾', '♄', '♃', '♂', '♀', '♁'];
             
-            for (let i = 0; i < symbolCount; i++) {
+            for (let i = 0; i < 30; i++) {
                 const symbol = document.createElement('div');
-                symbol.classList.add('symbol');
-                symbol.textContent = chineseSymbols[Math.floor(Math.random() * chineseSymbols.length)];
+                symbol.className = 'symbol';
+                symbol.textContent = symbols[Math.floor(Math.random() * symbols.length)];
                 
                 // 随机位置
-                symbol.style.left = `${Math.random() * 100}%`;
-                symbol.style.bottom = `-50px`;
-                
-                // 随机动画参数
+                const left = Math.random() * 100;
                 const duration = 20 + Math.random() * 40;
-                symbol.style.setProperty('--duration', `${duration}s`);
-                
-                // 随机延迟
                 const delay = Math.random() * 20;
-                symbol.style.setProperty('--delay', `${delay}s`);
+                
+                symbol.style.left = `${left}%`;
+                symbol.style.animationDuration = `${duration}s`;
+                symbol.style.animationDelay = `-${delay}s`;
                 
                 symbolsContainer.appendChild(symbol);
             }
         }
 
-        // 鼠标跟随效果
-        function setupCursorFollower() {
-            const follower = document.getElementById('cursorFollower');
+        function updateConnectors() {
+            const centerNode = document.querySelector('.center-node');
+            const centerRect = centerNode.getBoundingClientRect();
+            const centerX = centerRect.left + centerRect.width / 2;
+            const centerY = centerRect.top + centerRect.height / 2;
             
-            document.addEventListener('mousemove', (e) => {
-                follower.style.left = `${e.clientX}px`;
-                follower.style.top = `${e.clientY}px`;
+            // 一级节点连接线
+            const nodes = document.querySelectorAll('.node');
+            nodes.forEach((node, index) => {
+                const nodeRect = node.getBoundingClientRect();
+                const nodeX = nodeRect.left + nodeRect.width / 2;
+                const nodeY = nodeRect.top + nodeRect.height / 2;
+                
+                const connector = document.getElementById(`connector${index + 1}`);
+                if (connector) {
+                    const length = Math.sqrt(Math.pow(nodeX - centerX, 2) + Math.pow(nodeY - centerY, 2));
+                    const angle = Math.atan2(nodeY - centerY, nodeX - centerX) * 180 / Math.PI;
+                    
+                    connector.style.width = `${length}px`;
+                    connector.style.left = `${centerX}px`;
+                    connector.style.top = `${centerY}px`;
+                    connector.style.transform = `rotate(${angle}deg)`;
+                }
             });
             
-            // 鼠标悬停效果
-            const hoverElements = document.querySelectorAll('.menu-item, .submenu-item a');
+            // 二级节点连接线
+            const parentNodes = [
+                document.querySelector('.node:nth-child(6)'), // 灵阵法门
+                document.querySelector('.node:nth-child(7)')  // 命运双池
+            ];
             
-            hoverElements.forEach(el => {
-                el.addEventListener('mouseenter', () => {
-                    follower.style.transform = 'translate(-50%, -50%) scale(2)';
-                    follower.style.backgroundColor = 'rgba(186, 85, 211, 0.5)';
-                });
+            parentNodes.forEach((parentNode, parentIndex) => {
+                if (!parentNode) return;
                 
-                el.addEventListener('mouseleave', () => {
-                    follower.style.transform = 'translate(-50%, -50%) scale(1)';
-                    follower.style.backgroundColor = 'rgba(186, 85, 211, 0.3)';
+                const parentRect = parentNode.getBoundingClientRect();
+                const parentX = parentRect.left + parentRect.width / 2;
+                const parentY = parentRect.top + parentRect.height / 2;
+                
+                const subNodes = document.querySelectorAll(parentIndex === 0 ? 
+                    '.sub-node:nth-child(8), .sub-node:nth-child(9)' : 
+                    '.sub-node:nth-child(10), .sub-node:nth-child(11)');
+                
+                subNodes.forEach((subNode, subIndex) => {
+                    const subRect = subNode.getBoundingClientRect();
+                    const subX = subRect.left + subRect.width / 2;
+                    const subY = subRect.top + subRect.height / 2;
+                    
+                    const connectorId = parentIndex === 0 ? 
+                        (subIndex === 0 ? 'subConnector1' : 'subConnector2') : 
+                        (subIndex === 0 ? 'subConnector3' : 'subConnector4');
+                    
+                    const connector = document.getElementById(connectorId);
+                    if (connector) {
+                        const length = Math.sqrt(Math.pow(subX - parentX, 2) + Math.pow(subY - parentY, 2));
+                        const angle = Math.atan2(subY - parentY, subX - parentX) * 180 / Math.PI;
+                        
+                        connector.style.width = `${length}px`;
+                        connector.style.left = `${parentX}px`;
+                        connector.style.top = `${parentY}px`;
+                        connector.style.transform = `rotate(${angle}deg)`;
+                    }
                 });
             });
         }
-
-        // 门户效果
-        function setupPortalEffect() {
-            const portal = document.getElementById('portalEffect');
-            
-            document.addEventListener('mousemove', (e) => {
-                const x = e.clientX / window.innerWidth;
-                const y = e.clientY / window.innerHeight;
-                
-                portal.style.background = `
-                    radial-gradient(
-                        circle at ${x * 100}% ${y * 100}%,
-                        var(--primary-color) 0%,
-                        transparent 70%
-                    )
-                `;
-            });
-            
-            // 页面加载时的门户动画
-            setTimeout(() => {
-                document.body.classList.add('portal-active');
-            }, 500);
-        }
-
-        // 初始化所有效果
-        window.addEventListener('DOMContentLoaded', () => {
-            createStars();
-            createFloatingSymbols();
-            setupCursorFollower();
-            setupPortalEffect();
-            
-            // 添加点击涟漪效果
-            document.addEventListener('click', (e) => {
-                const ripple = document.createElement('div');
-                ripple.style.position = 'fixed';
-                ripple.style.width = '20px';
-                ripple.style.height = '20px';
-                ripple.style.backgroundColor = 'rgba(138, 43, 226, 0.5)';
-                ripple.style.borderRadius = '50%';
-                ripple.style.pointerEvents = 'none';
-                ripple.style.left = `${e.clientX}px`;
-                ripple.style.top = `${e.clientY}px`;
-                ripple.style.transform = 'translate(-50%, -50%) scale(0)';
-                ripple.style.zIndex = '9998';
-                ripple.style.transition = 'transform 0.5s ease-out, opacity 0.5s ease-out';
-                
-                document.body.appendChild(ripple);
-                
-                setTimeout(() => {
-                    ripple.style.transform = 'translate(-50%, -50%) scale(20)';
-                    ripple.style.opacity = '0';
-                }, 10);
-                
-                setTimeout(() => {
-                    ripple.remove();
-                }, 600);
-            });
-        });
     </script>
 </body>
 </html>
