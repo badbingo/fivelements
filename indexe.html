@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>玄机命理导航</title>
+    <title>麦八字导航</title>
     <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=ZCOOL+QingKe+HuangYou&family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
@@ -38,50 +38,22 @@
             min-height: 100vh;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            justify-content: center;
             padding: 2rem;
             position: relative;
             z-index: 1;
         }
         
-        .title {
-            font-family: 'Ma Shan Zheng', cursive;
-            font-size: 3.5rem;
-            margin-bottom: 2rem;
-            text-align: center;
-            color: var(--light-color);
-            text-shadow: 0 0 10px var(--glow-color), 0 0 20px var(--glow-color);
-            animation: pulse 3s infinite alternate;
-            position: relative;
-        }
-        
-        .title::after {
-            content: "";
-            position: absolute;
-            bottom: -10px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 200px;
-            height: 3px;
-            background: linear-gradient(90deg, transparent, var(--accent-color), transparent);
-            border-radius: 50%;
-            filter: blur(1px);
-        }
-        
         .mindmap {
             position: relative;
             width: 100%;
-            max-width: 1200px;
-            height: 80vh;
+            height: 90vh;
             margin: 0 auto;
         }
         
         .central-node {
             position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
+            top: 40%;
+            left: 30%;
             width: 180px;
             height: 180px;
             border-radius: 50%;
@@ -98,7 +70,7 @@
         }
         
         .central-node:hover {
-            transform: translate(-50%, -50%) scale(1.05);
+            transform: scale(1.05);
             box-shadow: 0 0 30px var(--glow-color), inset 0 0 20px rgba(233, 30, 99, 0.6);
         }
         
@@ -110,10 +82,11 @@
         }
         
         .central-text {
-            font-size: 1.2rem;
+            font-size: 1.5rem;
             font-weight: bold;
             color: var(--light-color);
             text-align: center;
+            font-family: 'Ma Shan Zheng', cursive;
         }
         
         .node {
@@ -133,6 +106,7 @@
             z-index: 5;
             backdrop-filter: blur(5px);
             overflow: hidden;
+            will-change: transform;
         }
         
         .node::before {
@@ -201,6 +175,7 @@
             transition: all 0.3s ease;
             z-index: 3;
             backdrop-filter: blur(3px);
+            will-change: transform;
         }
         
         .sub-node:hover {
@@ -239,6 +214,7 @@
             transform-origin: left center;
             z-index: 1;
             box-shadow: 0 0 5px var(--glow-color);
+            will-change: transform, width;
         }
         
         .connector::after {
@@ -275,19 +251,10 @@
         
         @keyframes float {
             0%, 100% {
-                transform: translate(-50%, -50%) translateY(0);
+                transform: translateY(0);
             }
             50% {
-                transform: translate(-50%, -50%) translateY(-20px);
-            }
-        }
-        
-        @keyframes pulse {
-            0% {
-                text-shadow: 0 0 10px var(--glow-color), 0 0 20px var(--glow-color);
-            }
-            100% {
-                text-shadow: 0 0 15px var(--glow-color), 0 0 30px var(--glow-color), 0 0 40px var(--glow-color);
+                transform: translateY(-20px);
             }
         }
         
@@ -342,13 +309,10 @@
         
         /* Responsive adjustments */
         @media (max-width: 768px) {
-            .title {
-                font-size: 2.5rem;
-            }
-            
             .central-node {
                 width: 120px;
                 height: 120px;
+                left: 20%;
             }
             
             .node {
@@ -365,22 +329,20 @@
 </head>
 <body>
     <div class="container">
-        <h1 class="title">玄机命理导航</h1>
-        
         <div class="mindmap">
             <div class="particles" id="particles"></div>
             
             <!-- Central Node -->
             <div class="central-node" id="centralNode">
                 <i class="fas fa-yin-yang central-icon"></i>
-                <div class="central-text">命理玄机</div>
+                <div class="central-text">麦八字</div>
             </div>
             
             <!-- Nodes will be added here by JavaScript -->
         </div>
         
         <footer>
-            © 2023 玄机命理导航 | 探索命运奥秘
+            © 2023 麦八字导航 | 探索命运奥秘
         </footer>
         
         <div class="tooltip" id="tooltip"></div>
@@ -501,8 +463,14 @@
             
             // Get center coordinates of central node
             const centralRect = centralNode.getBoundingClientRect();
-            const centerX = centralRect.left + centralRect.width / 2;
-            const centerY = centralRect.top + centralRect.height / 2;
+            let centerX = centralRect.left + centralRect.width / 2;
+            let centerY = centralRect.top + centralRect.height / 2;
+            
+            // Store all nodes and connectors for animation
+            const nodeElements = [];
+            const connectorElements = [];
+            const subNodeElements = [];
+            const subConnectorElements = [];
             
             // Create nodes and connectors
             nodes.forEach(node => {
@@ -547,6 +515,7 @@
                 });
                 
                 mindmap.appendChild(nodeElement);
+                nodeElements.push({element: nodeElement, node: node});
                 
                 // Create connector
                 const connector = document.createElement('div');
@@ -562,6 +531,7 @@
                 connector.style.transform = `rotate(${angle}deg)`;
                 
                 mindmap.appendChild(connector);
+                connectorElements.push({element: connector, node: node});
                 
                 // Create sub-nodes
                 node.subNodes.forEach(subNode => {
@@ -605,6 +575,7 @@
                     });
                     
                     mindmap.appendChild(subNodeElement);
+                    subNodeElements.push({element: subNodeElement, subNode: subNode, parentNode: node});
                     
                     // Create sub-connector
                     const subConnector = document.createElement('div');
@@ -621,12 +592,13 @@
                     subConnector.style.opacity = '0.7';
                     
                     mindmap.appendChild(subConnector);
+                    subConnectorElements.push({element: subConnector, subNode: subNode, parentNode: node});
                 });
             });
             
             // Add animation to central node
             centralNode.addEventListener('mouseenter', (e) => {
-                tooltip.textContent = '命理玄机中心';
+                tooltip.textContent = '麦八字中心';
                 tooltip.style.left = `${e.pageX + 10}px`;
                 tooltip.style.top = `${e.pageY + 10}px`;
                 tooltip.style.opacity = '1';
@@ -641,89 +613,124 @@
                 tooltip.style.top = `${e.pageY + 10}px`;
             });
             
-            // Make nodes draggable for better visualization on different screens
-            makeDraggable(centralNode);
+            // Make central node draggable
+            let isDragging = false;
+            let offsetX, offsetY;
             
-            function makeDraggable(element) {
-                let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+            centralNode.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                offsetX = e.clientX - centralNode.getBoundingClientRect().left;
+                offsetY = e.clientY - centralNode.getBoundingClientRect().top;
+                centralNode.style.cursor = 'grabbing';
+                e.preventDefault();
+            });
+            
+            document.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
                 
-                element.onmousedown = dragMouseDown;
+                const x = e.clientX - offsetX;
+                const y = e.clientY - offsetY;
                 
-                function dragMouseDown(e) {
-                    e = e || window.event;
-                    e.preventDefault();
-                    // get the mouse cursor position at startup:
-                    pos3 = e.clientX;
-                    pos4 = e.clientY;
-                    document.onmouseup = closeDragElement;
-                    // call a function whenever the cursor moves:
-                    document.onmousemove = elementDrag;
-                }
+                centralNode.style.left = `${x}px`;
+                centralNode.style.top = `${y}px`;
                 
-                function elementDrag(e) {
-                    e = e || window.event;
-                    e.preventDefault();
-                    // calculate the new cursor position:
-                    pos1 = pos3 - e.clientX;
-                    pos2 = pos4 - e.clientY;
-                    pos3 = e.clientX;
-                    pos4 = e.clientY;
-                    // set the element's new position:
-                    element.style.top = (element.offsetTop - pos2) + "px";
-                    element.style.left = (element.offsetLeft - pos1) + "px";
-                }
+                // Update center position
+                const rect = centralNode.getBoundingClientRect();
+                centerX = rect.left + rect.width / 2;
+                centerY = rect.top + rect.height / 2;
                 
-                function closeDragElement() {
-                    // stop moving when mouse button is released:
-                    document.onmouseup = null;
-                    document.onmousemove = null;
-                }
+                // Update all connectors and nodes
+                updateConnectorsAndNodes();
+            });
+            
+            document.addEventListener('mouseup', () => {
+                isDragging = false;
+                centralNode.style.cursor = 'grab';
+            });
+            
+            // Function to update all connectors and nodes
+            function updateConnectorsAndNodes() {
+                // Update main nodes and connectors
+                nodeElements.forEach(item => {
+                    const angleRad = (item.node.angle * Math.PI) / 180;
+                    const nodeX = centerX + item.node.distance * Math.cos(angleRad);
+                    const nodeY = centerY + item.node.distance * Math.sin(angleRad);
+                    
+                    item.element.style.left = `${nodeX - 70}px`;
+                    item.element.style.top = `${nodeY - 70}px`;
+                });
+                
+                connectorElements.forEach(item => {
+                    item.element.style.left = `${centerX}px`;
+                    item.element.style.top = `${centerY}px`;
+                    item.element.style.transform = `rotate(${item.node.angle}deg)`;
+                });
+                
+                // Update sub-nodes and sub-connectors
+                subNodeElements.forEach(item => {
+                    const parentItem = nodeElements.find(n => n.node === item.parentNode);
+                    if (!parentItem) return;
+                    
+                    const parentRect = parentItem.element.getBoundingClientRect();
+                    const parentX = parentRect.left + parentRect.width / 2;
+                    const parentY = parentRect.top + parentRect.height / 2;
+                    
+                    const angleRad = (item.subNode.angle * Math.PI) / 180;
+                    const nodeX = parentX + item.subNode.distance * Math.cos(angleRad);
+                    const nodeY = parentY + item.subNode.distance * Math.sin(angleRad);
+                    
+                    item.element.style.left = `${nodeX - 55}px`;
+                    item.element.style.top = `${nodeY - 55}px`;
+                });
+                
+                subConnectorElements.forEach(item => {
+                    const parentItem = nodeElements.find(n => n.node === item.parentNode);
+                    if (!parentItem) return;
+                    
+                    const parentRect = parentItem.element.getBoundingClientRect();
+                    const parentX = parentRect.left + parentRect.width / 2;
+                    const parentY = parentRect.top + parentRect.height / 2;
+                    
+                    item.element.style.left = `${parentX}px`;
+                    item.element.style.top = `${parentY}px`;
+                    item.element.style.transform = `rotate(${item.subNode.angle}deg)`;
+                });
             }
+            
+            // Add gentle floating animation to all nodes
+            function animateNodes() {
+                const time = Date.now() * 0.001;
+                const floatIntensity = 5;
+                
+                nodeElements.forEach((item, index) => {
+                    const offset = index * 0.5;
+                    const y = Math.sin(time + offset) * floatIntensity;
+                    const x = Math.cos(time + offset * 0.7) * floatIntensity * 0.5;
+                    
+                    item.element.style.transform = `translate(${x}px, ${y}px)`;
+                });
+                
+                subNodeElements.forEach((item, index) => {
+                    const offset = index * 0.3;
+                    const y = Math.sin(time * 1.2 + offset) * floatIntensity * 0.8;
+                    const x = Math.cos(time * 1.2 + offset * 0.7) * floatIntensity * 0.4;
+                    
+                    item.element.style.transform = `translate(${x}px, ${y}px)`;
+                });
+                
+                requestAnimationFrame(animateNodes);
+            }
+            
+            // Start animation
+            animateNodes();
             
             // Add window resize event to reposition nodes
             window.addEventListener('resize', function() {
                 const centralRect = centralNode.getBoundingClientRect();
-                const newCenterX = centralRect.left + centralRect.width / 2;
-                const newCenterY = centralRect.top + centralRect.height / 2;
+                centerX = centralRect.left + centralRect.width / 2;
+                centerY = centralRect.top + centralRect.height / 2;
                 
-                nodes.forEach(node => {
-                    const nodeElement = document.getElementById(node.id);
-                    const angleRad = (node.angle * Math.PI) / 180;
-                    const nodeX = newCenterX + node.distance * Math.cos(angleRad);
-                    const nodeY = newCenterY + node.distance * Math.sin(angleRad);
-                    
-                    nodeElement.style.left = `${nodeX - 70}px`;
-                    nodeElement.style.top = `${nodeY - 70}px`;
-                    
-                    // Update connector
-                    const connectors = document.querySelectorAll('.connector');
-                    connectors.forEach(conn => {
-                        if (conn.parentNode === mindmap) {
-                            conn.style.left = `${newCenterX}px`;
-                            conn.style.top = `${newCenterY}px`;
-                        }
-                    });
-                    
-                    // Update sub-nodes
-                    node.subNodes.forEach(subNode => {
-                        const subNodeElement = document.getElementById(subNode.id);
-                        const subAngleRad = (subNode.angle * Math.PI) / 180;
-                        const subNodeX = nodeX + subNode.distance * Math.cos(subAngleRad);
-                        const subNodeY = nodeY + subNode.distance * Math.sin(subAngleRad);
-                        
-                        subNodeElement.style.left = `${subNodeX - 55}px`;
-                        subNodeElement.style.top = `${subNodeY - 55}px`;
-                        
-                        // Update sub-connector
-                        const subConnectors = document.querySelectorAll('.connector');
-                        subConnectors.forEach(subConn => {
-                            if (subConn.parentNode === mindmap) {
-                                subConn.style.left = `${nodeX}px`;
-                                subConn.style.top = `${nodeY}px`;
-                            }
-                        });
-                    });
-                });
+                updateConnectorsAndNodes();
             });
         });
     </script>
