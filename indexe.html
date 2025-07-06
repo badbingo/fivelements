@@ -3,276 +3,276 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>麦八字 - 命理玄机导航</title>
+    <title>玄机命理导航</title>
     <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=ZCOOL+QingKe+HuangYou&family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         :root {
-            --primary-color: #8e44ad;
-            --secondary-color: #3498db;
-            --accent-color: #f1c40f;
-            --dark-color: #2c3e50;
-            --light-color: #ecf0f1;
-            --mystic-purple: #9b59b6;
-            --mystic-blue: #3498db;
-            --mystic-gold: #f39c12;
+            --primary-color: #6a0dad;
+            --secondary-color: #9c27b0;
+            --accent-color: #e91e63;
+            --dark-color: #1a1a2e;
+            --light-color: #f8f8ff;
+            --glow-color: rgba(233, 30, 99, 0.6);
         }
-
+        
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-
+        
         body {
             font-family: 'ZCOOL XiaoWei', serif;
-            background-color: #0a0a1a;
+            background-color: var(--dark-color);
             color: var(--light-color);
             overflow-x: hidden;
             background-image: 
-                radial-gradient(circle at 10% 20%, rgba(155, 89, 182, 0.1) 0%, transparent 20%),
-                radial-gradient(circle at 90% 80%, rgba(52, 152, 219, 0.1) 0%, transparent 20%),
-                radial-gradient(circle at 50% 50%, rgba(243, 156, 18, 0.05) 0%, transparent 30%);
+                radial-gradient(circle at 10% 20%, rgba(106, 13, 173, 0.1) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(156, 39, 176, 0.1) 0%, transparent 20%),
+                radial-gradient(circle at 50% 50%, rgba(233, 30, 99, 0.05) 0%, transparent 30%);
             background-attachment: fixed;
         }
-
+        
         .container {
-            width: 100vw;
-            height: 100vh;
+            min-height: 100vh;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
-            perspective: 1000px;
+            justify-content: center;
+            padding: 2rem;
+            position: relative;
+            z-index: 1;
         }
-
+        
+        .title {
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 3.5rem;
+            margin-bottom: 2rem;
+            text-align: center;
+            color: var(--light-color);
+            text-shadow: 0 0 10px var(--glow-color), 0 0 20px var(--glow-color);
+            animation: pulse 3s infinite alternate;
+            position: relative;
+        }
+        
+        .title::after {
+            content: "";
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--accent-color), transparent);
+            border-radius: 50%;
+            filter: blur(1px);
+        }
+        
         .mindmap {
             position: relative;
-            width: 80%;
-            height: 80%;
-            transform-style: preserve-3d;
+            width: 100%;
+            max-width: 1200px;
+            height: 80vh;
+            margin: 0 auto;
         }
-
-        .center-node {
+        
+        .central-node {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 200px;
-            height: 200px;
-            background: rgba(46, 20, 64, 0.8);
+            width: 180px;
+            height: 180px;
             border-radius: 50%;
+            background: radial-gradient(circle, var(--primary-color), var(--dark-color));
+            border: 2px solid var(--secondary-color);
+            box-shadow: 0 0 20px var(--glow-color), inset 0 0 15px rgba(233, 30, 99, 0.4);
             display: flex;
-            justify-content: center;
             align-items: center;
-            box-shadow: 
-                0 0 30px var(--mystic-purple),
-                0 0 60px rgba(155, 89, 182, 0.3),
-                inset 0 0 20px rgba(255, 255, 255, 0.1);
-            border: 2px solid var(--mystic-purple);
-            z-index: 10;
-            animation: pulse 6s infinite alternate, float 8s ease-in-out infinite;
-            transition: all 0.5s ease;
-        }
-
-        .center-node:hover {
-            transform: translate(-50%, -50%) scale(1.05);
-            box-shadow: 
-                0 0 40px var(--mystic-purple),
-                0 0 80px rgba(155, 89, 182, 0.5),
-                inset 0 0 30px rgba(255, 255, 255, 0.2);
-        }
-
-        .center-text {
-            font-family: 'Ma Shan Zheng', cursive;
-            font-size: 2.5rem;
-            color: var(--accent-color);
-            text-shadow: 0 0 10px rgba(241, 196, 15, 0.7);
-            letter-spacing: 5px;
-        }
-
-        .node {
-            position: absolute;
-            width: 160px;
-            height: 160px;
-            background: rgba(30, 40, 70, 0.8);
-            border-radius: 20px;
-            display: flex;
+            justify-content: center;
             flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            box-shadow: 
-                0 0 15px rgba(52, 152, 219, 0.5),
-                inset 0 0 10px rgba(255, 255, 255, 0.1);
-            border: 1px solid var(--mystic-blue);
-            transition: all 0.5s ease;
-            z-index: 5;
-            overflow: hidden;
-            backdrop-filter: blur(5px);
-        }
-
-        .node::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: linear-gradient(
-                45deg,
-                transparent,
-                rgba(52, 152, 219, 0.2),
-                transparent
-            );
-            transform: rotate(45deg);
-            animation: shine 3s infinite;
-        }
-
-        .node:hover {
-            transform: scale(1.1) translateZ(20px);
-            box-shadow: 
-                0 0 25px var(--mystic-blue),
-                inset 0 0 15px rgba(255, 255, 255, 0.2);
-            z-index: 20;
-        }
-
-        .node-icon {
-            font-size: 2rem;
-            margin-bottom: 10px;
-            color: var(--accent-color);
-            text-shadow: 0 0 8px rgba(241, 196, 15, 0.7);
-        }
-
-        .node-title {
-            font-size: 1.1rem;
-            text-align: center;
-            color: var(--light-color);
-            margin-bottom: 5px;
-            text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
-        }
-
-        .node-link {
-            font-size: 0.8rem;
-            color: var(--mystic-blue);
-            text-decoration: none;
-            text-align: center;
+            z-index: 10;
             transition: all 0.3s ease;
+            animation: float 6s ease-in-out infinite;
         }
-
-        .node-link:hover {
-            color: var(--accent-color);
-            text-shadow: 0 0 5px rgba(241, 196, 15, 0.7);
+        
+        .central-node:hover {
+            transform: translate(-50%, -50%) scale(1.05);
+            box-shadow: 0 0 30px var(--glow-color), inset 0 0 20px rgba(233, 30, 99, 0.6);
         }
-
-        .connector {
-            position: absolute;
-            background: linear-gradient(90deg, var(--mystic-purple), var(--mystic-blue));
-            height: 2px;
-            transform-origin: left center;
-            z-index: 1;
-            box-shadow: 0 0 5px rgba(155, 89, 182, 0.7);
+        
+        .central-icon {
+            font-size: 3rem;
+            color: var(--light-color);
+            margin-bottom: 0.5rem;
+            text-shadow: 0 0 10px var(--glow-color);
         }
-
-        .connector::after {
-            content: '';
-            position: absolute;
-            right: 0;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 10px;
-            height: 10px;
-            background-color: var(--mystic-blue);
-            border-radius: 50%;
-            box-shadow: 0 0 5px var(--mystic-blue);
+        
+        .central-text {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--light-color);
+            text-align: center;
         }
-
-        .sub-node {
+        
+        .node {
             position: absolute;
             width: 140px;
             height: 140px;
-            background: rgba(40, 50, 80, 0.7);
-            border-radius: 15px;
+            border-radius: 50%;
+            background: rgba(26, 26, 46, 0.8);
+            border: 1px solid var(--secondary-color);
+            box-shadow: 0 0 15px rgba(156, 39, 176, 0.4);
             display: flex;
-            flex-direction: column;
-            justify-content: center;
             align-items: center;
-            box-shadow: 
-                0 0 10px rgba(243, 156, 18, 0.5),
-                inset 0 0 8px rgba(255, 255, 255, 0.1);
-            border: 1px solid var(--mystic-gold);
-            transition: all 0.5s ease;
-            z-index: 4;
+            justify-content: center;
+            flex-direction: column;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 5;
+            backdrop-filter: blur(5px);
+            overflow: hidden;
+        }
+        
+        .node::before {
+            content: "";
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, var(--primary-color), var(--accent-color), var(--secondary-color), var(--primary-color));
+            background-size: 400%;
+            border-radius: 50%;
+            z-index: -1;
+            opacity: 0;
+            transition: 0.5s;
+            animation: animate 20s linear infinite;
+        }
+        
+        .node:hover::before {
+            opacity: 1;
+            filter: blur(5px);
+        }
+        
+        .node:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 20px var(--glow-color);
+            z-index: 20;
+        }
+        
+        .node-icon {
+            font-size: 2rem;
+            color: var(--light-color);
+            margin-bottom: 0.5rem;
+            transition: all 0.3s ease;
+        }
+        
+        .node:hover .node-icon {
+            transform: rotate(15deg) scale(1.2);
+            color: var(--accent-color);
+        }
+        
+        .node-text {
+            font-size: 1rem;
+            color: var(--light-color);
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .node:hover .node-text {
+            color: var(--accent-color);
+        }
+        
+        .sub-node {
+            position: absolute;
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            background: rgba(26, 26, 46, 0.7);
+            border: 1px solid var(--primary-color);
+            box-shadow: 0 0 10px rgba(106, 13, 173, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 3;
             backdrop-filter: blur(3px);
         }
-
+        
         .sub-node:hover {
-            transform: scale(1.08) translateZ(15px);
-            box-shadow: 
-                0 0 20px var(--mystic-gold),
-                inset 0 0 12px rgba(255, 255, 255, 0.2);
+            transform: scale(1.1);
+            box-shadow: 0 0 15px var(--glow-color);
             z-index: 15;
         }
-
-        .sub-connector {
+        
+        .sub-node-icon {
+            font-size: 1.5rem;
+            color: var(--light-color);
+            margin-bottom: 0.3rem;
+            transition: all 0.3s ease;
+        }
+        
+        .sub-node:hover .sub-node-icon {
+            transform: scale(1.2);
+            color: var(--secondary-color);
+        }
+        
+        .sub-node-text {
+            font-size: 0.8rem;
+            color: var(--light-color);
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .sub-node:hover .sub-node-text {
+            color: var(--secondary-color);
+        }
+        
+        .connector {
             position: absolute;
-            background: linear-gradient(90deg, var(--mystic-blue), var(--mystic-gold));
+            background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
             height: 2px;
             transform-origin: left center;
             z-index: 1;
-            box-shadow: 0 0 5px rgba(52, 152, 219, 0.7);
+            box-shadow: 0 0 5px var(--glow-color);
         }
-
-        .sub-connector::after {
-            content: '';
+        
+        .connector::after {
+            content: "";
             position: absolute;
-            right: 0;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 8px;
-            height: 8px;
-            background-color: var(--mystic-gold);
+            width: 10px;
+            height: 10px;
             border-radius: 50%;
-            box-shadow: 0 0 5px var(--mystic-gold);
+            background: var(--accent-color);
+            right: -5px;
+            top: -4px;
+            box-shadow: 0 0 5px var(--glow-color);
         }
-
-        .floating-symbols {
+        
+        .particles {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            pointer-events: none;
             z-index: 0;
             overflow: hidden;
         }
-
-        .symbol {
+        
+        .particle {
             position: absolute;
-            color: rgba(255, 255, 255, 0.1);
-            font-size: 1.5rem;
-            animation: float-symbol linear infinite;
+            width: 2px;
+            height: 2px;
+            border-radius: 50%;
+            background-color: var(--light-color);
+            opacity: 0.5;
+            animation: float-particle linear infinite;
         }
-
-        @keyframes pulse {
-            0% {
-                box-shadow: 
-                    0 0 30px var(--mystic-purple),
-                    0 0 60px rgba(155, 89, 182, 0.3),
-                    inset 0 0 20px rgba(255, 255, 255, 0.1);
-            }
-            50% {
-                box-shadow: 
-                    0 0 40px var(--mystic-purple),
-                    0 0 80px rgba(155, 89, 182, 0.5),
-                    inset 0 0 30px rgba(255, 255, 255, 0.2);
-            }
-            100% {
-                box-shadow: 
-                    0 0 30px var(--mystic-purple),
-                    0 0 60px rgba(155, 89, 182, 0.3),
-                    inset 0 0 20px rgba(255, 255, 255, 0.1);
-            }
-        }
-
+        
         @keyframes float {
             0%, 100% {
                 transform: translate(-50%, -50%) translateY(0);
@@ -281,282 +281,451 @@
                 transform: translate(-50%, -50%) translateY(-20px);
             }
         }
-
-        @keyframes shine {
+        
+        @keyframes pulse {
             0% {
-                transform: rotate(45deg) translate(-30%, -30%);
+                text-shadow: 0 0 10px var(--glow-color), 0 0 20px var(--glow-color);
             }
             100% {
-                transform: rotate(45deg) translate(30%, 30%);
+                text-shadow: 0 0 15px var(--glow-color), 0 0 30px var(--glow-color), 0 0 40px var(--glow-color);
             }
         }
-
-        @keyframes float-symbol {
+        
+        @keyframes animate {
             0% {
-                transform: translateY(0) rotate(0deg);
+                background-position: 0 0;
+            }
+            50% {
+                background-position: 300% 0;
+            }
+            100% {
+                background-position: 0 0;
+            }
+        }
+        
+        @keyframes float-particle {
+            0% {
+                transform: translateY(0) translateX(0);
                 opacity: 0;
             }
             10% {
-                opacity: 0.1;
-            }
-            90% {
-                opacity: 0.1;
+                opacity: 0.5;
             }
             100% {
-                transform: translateY(-100vh) rotate(360deg);
+                transform: translateY(-100vh) translateX(20px);
                 opacity: 0;
             }
         }
-
-        /* 响应式调整 */
-        @media (max-width: 1200px) {
-            .mindmap {
-                width: 90%;
-                height: 90%;
-            }
-            
-            .center-node {
-                width: 180px;
-                height: 180px;
-            }
-            
-            .node {
-                width: 140px;
-                height: 140px;
-            }
-            
-            .sub-node {
-                width: 120px;
-                height: 120px;
-            }
+        
+        .tooltip {
+            position: absolute;
+            background: rgba(26, 26, 46, 0.9);
+            border: 1px solid var(--secondary-color);
+            border-radius: 5px;
+            padding: 0.5rem 1rem;
+            color: var(--light-color);
+            font-size: 0.9rem;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 100;
+            box-shadow: 0 0 10px rgba(156, 39, 176, 0.5);
+            backdrop-filter: blur(5px);
         }
-
+        
+        footer {
+            margin-top: 2rem;
+            text-align: center;
+            font-size: 0.8rem;
+            color: rgba(248, 248, 255, 0.6);
+        }
+        
+        /* Responsive adjustments */
         @media (max-width: 768px) {
-            .mindmap {
-                width: 95%;
-                height: 95%;
+            .title {
+                font-size: 2.5rem;
             }
             
-            .center-node {
-                width: 150px;
-                height: 150px;
-            }
-            
-            .center-text {
-                font-size: 2rem;
-            }
-            
-            .node {
+            .central-node {
                 width: 120px;
                 height: 120px;
             }
             
-            .node-title {
-                font-size: 1rem;
-            }
-            
-            .node-link {
-                font-size: 0.7rem;
-            }
-            
-            .sub-node {
+            .node {
                 width: 100px;
                 height: 100px;
+            }
+            
+            .sub-node {
+                width: 80px;
+                height: 80px;
             }
         }
     </style>
 </head>
 <body>
     <div class="container">
+        <h1 class="title">玄机命理导航</h1>
+        
         <div class="mindmap">
-            <div class="floating-symbols" id="floatingSymbols"></div>
+            <div class="particles" id="particles"></div>
             
-            <!-- 中心节点 -->
-            <div class="center-node">
-                <div class="center-text">麦八字</div>
+            <!-- Central Node -->
+            <div class="central-node" id="centralNode">
+                <i class="fas fa-yin-yang central-icon"></i>
+                <div class="central-text">命理玄机</div>
             </div>
             
-            <!-- 一级节点 -->
-            <div class="node" style="top: 20%; left: 50%; transform: translate(-50%, 0);">
-                <i class="node-icon fas fa-book-open"></i>
-                <div class="node-title">八字学习网</div>
-                <a href="https://mybazi.net" class="node-link" target="_blank">mybazi.net</a>
-            </div>
-            
-            <div class="node" style="top: 50%; left: 20%; transform: translate(0, -50%);">
-                <i class="node-icon fas fa-user-clock"></i>
-                <div class="node-title">机缘命理系统</div>
-                <a href="https://mybazi.net/system/bazi.html" class="node-link" target="_blank">mybazi.net/system/bazi.html</a>
-            </div>
-            
-            <div class="node" style="top: 50%; left: 80%; transform: translate(0, -50%);">
-                <i class="node-icon fas fa-heart"></i>
-                <div class="node-title">八字合婚系统</div>
-                <a href="https://mybazi.net/system/hehun.html" class="node-link" target="_blank">mybazi.net/system/hehun.html</a>
-            </div>
-            
-            <div class="node" style="top: 80%; left: 30%; transform: translate(0, -50%);">
-                <i class="node-icon fas fa-yin-yang"></i>
-                <div class="node-title">六爻起卦</div>
-                <a href="https://mybazi.net/system/liuyao.html" class="node-link" target="_blank">mybazi.net/system/liuyao.html</a>
-            </div>
-            
-            <div class="node" style="top: 80%; left: 70%; transform: translate(0, -50%);">
-                <i class="node-icon fas fa-magic"></i>
-                <div class="node-title">灵阵法门</div>
-                <a href="https://mybazi.net/system/zf.html" class="node-link" target="_blank">mybazi.net/system/zf.html</a>
-            </div>
-            
-            <div class="node" style="top: 20%; left: 30%; transform: translate(0, 0);">
-                <i class="node-icon fas fa-door-open"></i>
-                <div class="node-title">命运双池</div>
-                <a href="https://mybazi.net/system/gate.html" class="node-link" target="_blank">mybazi.net/system/gate.html</a>
-            </div>
-            
-            <!-- 灵阵法门的子节点 -->
-            <div class="sub-node" style="top: 65%; left: 55%;">
-                <i class="node-icon fas fa-coins"></i>
-                <div class="node-title">天罡聚财阵</div>
-                <a href="https://mybazi.net/system/richzf.html" class="node-link" target="_blank">mybazi.net/system/richzf.html</a>
-            </div>
-            
-            <div class="sub-node" style="top: 65%; left: 85%;">
-                <i class="node-icon fas fa-heartbeat"></i>
-                <div class="node-title">天机姻缘配对阵</div>
-                <a href="https://mybazi.net/system/lovezf.html" class="node-link" target="_blank">mybazi.net/system/lovezf.html</a>
-            </div>
-            
-            <!-- 命运双池的子节点 -->
-            <div class="sub-node" style="top: 5%; left: 15%;">
-                <i class="node-icon fas fa-star"></i>
-                <div class="node-title">命缘池</div>
-                <a href="https://mybazi.net/system/wishingwell.html" class="node-link" target="_blank">mybazi.net/system/wishingwell.html</a>
-            </div>
-            
-            <div class="sub-node" style="top: 5%; left: 45%;">
-                <i class="node-icon fas fa-skull"></i>
-                <div class="node-title">怨化池</div>
-                <a href="https://mybazi.net/system/curse.html" class="node-link" target="_blank">mybazi.net/system/curse.html</a>
-            </div>
-            
-            <!-- 连接线 -->
-            <div class="connector" id="connector1"></div>
-            <div class="connector" id="connector2"></div>
-            <div class="connector" id="connector3"></div>
-            <div class="connector" id="connector4"></div>
-            <div class="connector" id="connector5"></div>
-            <div class="connector" id="connector6"></div>
-            
-            <div class="sub-connector" id="subConnector1"></div>
-            <div class="sub-connector" id="subConnector2"></div>
-            <div class="sub-connector" id="subConnector3"></div>
-            <div class="sub-connector" id="subConnector4"></div>
+            <!-- Nodes will be added here by JavaScript -->
         </div>
+        
+        <footer>
+            © 2023 玄机命理导航 | 探索命运奥秘
+        </footer>
+        
+        <div class="tooltip" id="tooltip"></div>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // 创建浮动符号
-            createFloatingSymbols();
-            
-            // 更新连接线
-            updateConnectors();
-            
-            // 窗口大小改变时重新计算连接线
-            window.addEventListener('resize', updateConnectors);
-            
-            // 为节点添加随机动画延迟
-            document.querySelectorAll('.node, .sub-node').forEach((node, index) => {
-                node.style.animationDelay = `${index * 0.1}s`;
-            });
-        });
-
-        function createFloatingSymbols() {
-            const symbolsContainer = document.getElementById('floatingSymbols');
-            const symbols = ['☯', '☸', '♈', '♉', '♊', '♋', '♌', '♍', '♎', '♏', '♐', '♑', '♒', '♓', '☀', '☽', '☾', '♄', '♃', '♂', '♀', '♁'];
-            
-            for (let i = 0; i < 30; i++) {
-                const symbol = document.createElement('div');
-                symbol.className = 'symbol';
-                symbol.textContent = symbols[Math.floor(Math.random() * symbols.length)];
-                
-                // 随机位置
-                const left = Math.random() * 100;
-                const duration = 20 + Math.random() * 40;
-                const delay = Math.random() * 20;
-                
-                symbol.style.left = `${left}%`;
-                symbol.style.animationDuration = `${duration}s`;
-                symbol.style.animationDelay = `-${delay}s`;
-                
-                symbolsContainer.appendChild(symbol);
+            // Create particles
+            const particlesContainer = document.getElementById('particles');
+            for (let i = 0; i < 50; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                particle.style.left = `${Math.random() * 100}%`;
+                particle.style.top = `${Math.random() * 100}%`;
+                particle.style.width = `${Math.random() * 3 + 1}px`;
+                particle.style.height = particle.style.width;
+                particle.style.animationDuration = `${Math.random() * 10 + 10}s`;
+                particle.style.animationDelay = `${Math.random() * 5}s`;
+                particle.style.backgroundColor = `hsl(${Math.random() * 60 + 270}, 70%, 70%)`;
+                particlesContainer.appendChild(particle);
             }
-        }
-
-        function updateConnectors() {
-            const centerNode = document.querySelector('.center-node');
-            const centerRect = centerNode.getBoundingClientRect();
-            const centerX = centerRect.left + centerRect.width / 2;
-            const centerY = centerRect.top + centerRect.height / 2;
             
-            // 一级节点连接线
-            const nodes = document.querySelectorAll('.node');
-            nodes.forEach((node, index) => {
-                const nodeRect = node.getBoundingClientRect();
-                const nodeX = nodeRect.left + nodeRect.width / 2;
-                const nodeY = nodeRect.top + nodeRect.height / 2;
-                
-                const connector = document.getElementById(`connector${index + 1}`);
-                if (connector) {
-                    const length = Math.sqrt(Math.pow(nodeX - centerX, 2) + Math.pow(nodeY - centerY, 2));
-                    const angle = Math.atan2(nodeY - centerY, nodeX - centerX) * 180 / Math.PI;
-                    
-                    connector.style.width = `${length}px`;
-                    connector.style.left = `${centerX}px`;
-                    connector.style.top = `${centerY}px`;
-                    connector.style.transform = `rotate(${angle}deg)`;
+            // Define nodes data
+            const nodes = [
+                {
+                    id: 'bazi',
+                    icon: 'fas fa-birthday-cake',
+                    text: '八字学习',
+                    url: 'https://mybazi.net',
+                    angle: 0,
+                    distance: 200,
+                    subNodes: []
+                },
+                {
+                    id: 'jiming',
+                    icon: 'fas fa-atom',
+                    text: '机缘命理',
+                    url: 'https://mybazi.net/system/bazi.html',
+                    angle: 60,
+                    distance: 200,
+                    subNodes: []
+                },
+                {
+                    id: 'hehun',
+                    icon: 'fas fa-heart',
+                    text: '八字合婚',
+                    url: 'https://mybazi.net/system/hehun.html',
+                    angle: 120,
+                    distance: 200,
+                    subNodes: []
+                },
+                {
+                    id: 'liuyao',
+                    icon: 'fas fa-hexagon',
+                    text: '六爻起卦',
+                    url: 'https://mybazi.net/system/liuyao.html',
+                    angle: 180,
+                    distance: 200,
+                    subNodes: []
+                },
+                {
+                    id: 'lingzhen',
+                    icon: 'fas fa-star',
+                    text: '灵阵法门',
+                    url: 'https://mybazi.net/system/zf.html',
+                    angle: 240,
+                    distance: 200,
+                    subNodes: [
+                        {
+                            id: 'richzf',
+                            icon: 'fas fa-coins',
+                            text: '天罡聚财',
+                            url: 'https://mybazi.net/system/richzf.html',
+                            angle: 210,
+                            distance: 150
+                        },
+                        {
+                            id: 'lovezf',
+                            icon: 'fas fa-heartbeat',
+                            text: '天机姻缘',
+                            url: 'https://mybazi.net/system/lovezf.html',
+                            angle: 270,
+                            distance: 150
+                        }
+                    ]
+                },
+                {
+                    id: 'mingyun',
+                    icon: 'fas fa-water',
+                    text: '命运双池',
+                    url: 'https://mybazi.net/system/gate.html',
+                    angle: 300,
+                    distance: 200,
+                    subNodes: [
+                        {
+                            id: 'wishingwell',
+                            icon: 'fas fa-hand-holding-heart',
+                            text: '命缘池',
+                            url: 'https://mybazi.net/system/wishingwell.html',
+                            angle: 330,
+                            distance: 150
+                        },
+                        {
+                            id: 'curse',
+                            icon: 'fas fa-skull',
+                            text: '怨化池',
+                            url: 'https://mybazi.net/system/curse.html',
+                            angle: 390,
+                            distance: 150
+                        }
+                    ]
                 }
-            });
-            
-            // 二级节点连接线
-            const parentNodes = [
-                document.querySelector('.node:nth-child(6)'), // 灵阵法门
-                document.querySelector('.node:nth-child(7)')  // 命运双池
             ];
             
-            parentNodes.forEach((parentNode, parentIndex) => {
-                if (!parentNode) return;
+            const mindmap = document.querySelector('.mindmap');
+            const centralNode = document.getElementById('centralNode');
+            const tooltip = document.getElementById('tooltip');
+            
+            // Get center coordinates of central node
+            const centralRect = centralNode.getBoundingClientRect();
+            const centerX = centralRect.left + centralRect.width / 2;
+            const centerY = centralRect.top + centralRect.height / 2;
+            
+            // Create nodes and connectors
+            nodes.forEach(node => {
+                // Calculate node position
+                const angleRad = (node.angle * Math.PI) / 180;
+                const nodeX = centerX + node.distance * Math.cos(angleRad);
+                const nodeY = centerY + node.distance * Math.sin(angleRad);
                 
-                const parentRect = parentNode.getBoundingClientRect();
-                const parentX = parentRect.left + parentRect.width / 2;
-                const parentY = parentRect.top + parentRect.height / 2;
+                // Create node element
+                const nodeElement = document.createElement('div');
+                nodeElement.className = 'node';
+                nodeElement.id = node.id;
+                nodeElement.style.left = `${nodeX - 70}px`;
+                nodeElement.style.top = `${nodeY - 70}px`;
                 
-                const subNodes = document.querySelectorAll(parentIndex === 0 ? 
-                    '.sub-node:nth-child(8), .sub-node:nth-child(9)' : 
-                    '.sub-node:nth-child(10), .sub-node:nth-child(11)');
+                // Add icon and text
+                nodeElement.innerHTML = `
+                    <i class="${node.icon} node-icon"></i>
+                    <div class="node-text">${node.text}</div>
+                `;
                 
-                subNodes.forEach((subNode, subIndex) => {
-                    const subRect = subNode.getBoundingClientRect();
-                    const subX = subRect.left + subRect.width / 2;
-                    const subY = subRect.top + subRect.height / 2;
+                // Add click event
+                nodeElement.addEventListener('click', () => {
+                    window.open(node.url, '_blank');
+                });
+                
+                // Add hover events for tooltip
+                nodeElement.addEventListener('mouseenter', (e) => {
+                    tooltip.textContent = node.text;
+                    tooltip.style.left = `${e.pageX + 10}px`;
+                    tooltip.style.top = `${e.pageY + 10}px`;
+                    tooltip.style.opacity = '1';
+                });
+                
+                nodeElement.addEventListener('mouseleave', () => {
+                    tooltip.style.opacity = '0';
+                });
+                
+                nodeElement.addEventListener('mousemove', (e) => {
+                    tooltip.style.left = `${e.pageX + 10}px`;
+                    tooltip.style.top = `${e.pageY + 10}px`;
+                });
+                
+                mindmap.appendChild(nodeElement);
+                
+                // Create connector
+                const connector = document.createElement('div');
+                connector.className = 'connector';
+                
+                // Calculate connector properties
+                const length = node.distance;
+                const angle = node.angle;
+                
+                connector.style.width = `${length}px`;
+                connector.style.left = `${centerX}px`;
+                connector.style.top = `${centerY}px`;
+                connector.style.transform = `rotate(${angle}deg)`;
+                
+                mindmap.appendChild(connector);
+                
+                // Create sub-nodes
+                node.subNodes.forEach(subNode => {
+                    const subAngleRad = (subNode.angle * Math.PI) / 180;
+                    const subNodeX = nodeX + subNode.distance * Math.cos(subAngleRad);
+                    const subNodeY = nodeY + subNode.distance * Math.sin(subAngleRad);
                     
-                    const connectorId = parentIndex === 0 ? 
-                        (subIndex === 0 ? 'subConnector1' : 'subConnector2') : 
-                        (subIndex === 0 ? 'subConnector3' : 'subConnector4');
+                    // Create sub-node element
+                    const subNodeElement = document.createElement('div');
+                    subNodeElement.className = 'sub-node';
+                    subNodeElement.id = subNode.id;
+                    subNodeElement.style.left = `${subNodeX - 55}px`;
+                    subNodeElement.style.top = `${subNodeY - 55}px`;
                     
-                    const connector = document.getElementById(connectorId);
-                    if (connector) {
-                        const length = Math.sqrt(Math.pow(subX - parentX, 2) + Math.pow(subY - parentY, 2));
-                        const angle = Math.atan2(subY - parentY, subX - parentX) * 180 / Math.PI;
-                        
-                        connector.style.width = `${length}px`;
-                        connector.style.left = `${parentX}px`;
-                        connector.style.top = `${parentY}px`;
-                        connector.style.transform = `rotate(${angle}deg)`;
-                    }
+                    // Add icon and text
+                    subNodeElement.innerHTML = `
+                        <i class="${subNode.icon} sub-node-icon"></i>
+                        <div class="sub-node-text">${subNode.text}</div>
+                    `;
+                    
+                    // Add click event
+                    subNodeElement.addEventListener('click', () => {
+                        window.open(subNode.url, '_blank');
+                    });
+                    
+                    // Add hover events for tooltip
+                    subNodeElement.addEventListener('mouseenter', (e) => {
+                        tooltip.textContent = subNode.text;
+                        tooltip.style.left = `${e.pageX + 10}px`;
+                        tooltip.style.top = `${e.pageY + 10}px`;
+                        tooltip.style.opacity = '1';
+                    });
+                    
+                    subNodeElement.addEventListener('mouseleave', () => {
+                        tooltip.style.opacity = '0';
+                    });
+                    
+                    subNodeElement.addEventListener('mousemove', (e) => {
+                        tooltip.style.left = `${e.pageX + 10}px`;
+                        tooltip.style.top = `${e.pageY + 10}px`;
+                    });
+                    
+                    mindmap.appendChild(subNodeElement);
+                    
+                    // Create sub-connector
+                    const subConnector = document.createElement('div');
+                    subConnector.className = 'connector';
+                    
+                    // Calculate sub-connector properties
+                    const subLength = subNode.distance;
+                    const subAngle = subNode.angle;
+                    
+                    subConnector.style.width = `${subLength}px`;
+                    subConnector.style.left = `${nodeX}px`;
+                    subConnector.style.top = `${nodeY}px`;
+                    subConnector.style.transform = `rotate(${subAngle}deg)`;
+                    subConnector.style.opacity = '0.7';
+                    
+                    mindmap.appendChild(subConnector);
                 });
             });
-        }
+            
+            // Add animation to central node
+            centralNode.addEventListener('mouseenter', (e) => {
+                tooltip.textContent = '命理玄机中心';
+                tooltip.style.left = `${e.pageX + 10}px`;
+                tooltip.style.top = `${e.pageY + 10}px`;
+                tooltip.style.opacity = '1';
+            });
+            
+            centralNode.addEventListener('mouseleave', () => {
+                tooltip.style.opacity = '0';
+            });
+            
+            centralNode.addEventListener('mousemove', (e) => {
+                tooltip.style.left = `${e.pageX + 10}px`;
+                tooltip.style.top = `${e.pageY + 10}px`;
+            });
+            
+            // Make nodes draggable for better visualization on different screens
+            makeDraggable(centralNode);
+            
+            function makeDraggable(element) {
+                let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+                
+                element.onmousedown = dragMouseDown;
+                
+                function dragMouseDown(e) {
+                    e = e || window.event;
+                    e.preventDefault();
+                    // get the mouse cursor position at startup:
+                    pos3 = e.clientX;
+                    pos4 = e.clientY;
+                    document.onmouseup = closeDragElement;
+                    // call a function whenever the cursor moves:
+                    document.onmousemove = elementDrag;
+                }
+                
+                function elementDrag(e) {
+                    e = e || window.event;
+                    e.preventDefault();
+                    // calculate the new cursor position:
+                    pos1 = pos3 - e.clientX;
+                    pos2 = pos4 - e.clientY;
+                    pos3 = e.clientX;
+                    pos4 = e.clientY;
+                    // set the element's new position:
+                    element.style.top = (element.offsetTop - pos2) + "px";
+                    element.style.left = (element.offsetLeft - pos1) + "px";
+                }
+                
+                function closeDragElement() {
+                    // stop moving when mouse button is released:
+                    document.onmouseup = null;
+                    document.onmousemove = null;
+                }
+            }
+            
+            // Add window resize event to reposition nodes
+            window.addEventListener('resize', function() {
+                const centralRect = centralNode.getBoundingClientRect();
+                const newCenterX = centralRect.left + centralRect.width / 2;
+                const newCenterY = centralRect.top + centralRect.height / 2;
+                
+                nodes.forEach(node => {
+                    const nodeElement = document.getElementById(node.id);
+                    const angleRad = (node.angle * Math.PI) / 180;
+                    const nodeX = newCenterX + node.distance * Math.cos(angleRad);
+                    const nodeY = newCenterY + node.distance * Math.sin(angleRad);
+                    
+                    nodeElement.style.left = `${nodeX - 70}px`;
+                    nodeElement.style.top = `${nodeY - 70}px`;
+                    
+                    // Update connector
+                    const connectors = document.querySelectorAll('.connector');
+                    connectors.forEach(conn => {
+                        if (conn.parentNode === mindmap) {
+                            conn.style.left = `${newCenterX}px`;
+                            conn.style.top = `${newCenterY}px`;
+                        }
+                    });
+                    
+                    // Update sub-nodes
+                    node.subNodes.forEach(subNode => {
+                        const subNodeElement = document.getElementById(subNode.id);
+                        const subAngleRad = (subNode.angle * Math.PI) / 180;
+                        const subNodeX = nodeX + subNode.distance * Math.cos(subAngleRad);
+                        const subNodeY = nodeY + subNode.distance * Math.sin(subAngleRad);
+                        
+                        subNodeElement.style.left = `${subNodeX - 55}px`;
+                        subNodeElement.style.top = `${subNodeY - 55}px`;
+                        
+                        // Update sub-connector
+                        const subConnectors = document.querySelectorAll('.connector');
+                        subConnectors.forEach(subConn => {
+                            if (subConn.parentNode === mindmap) {
+                                subConn.style.left = `${nodeX}px`;
+                                subConn.style.top = `${nodeY}px`;
+                            }
+                        });
+                    });
+                });
+            });
+        });
     </script>
 </body>
 </html>
