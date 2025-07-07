@@ -951,7 +951,7 @@
             });
             
             // 显示八字信息
-            displayBaziInfo(progress.year, progress.month, progress.day, progress.hour);
+            displayBaziInfo(progress.year, progress.month, progress.day, progress.hour, progress.name);
             
             // 根据进度状态继续仪式
             if (progress.phase === 'incense') {
@@ -995,7 +995,7 @@
             incenseContainer.style.display = 'block';
             
             // 显示八字信息
-            displayBaziInfo(year, month, day, hour);
+            displayBaziInfo(year, month, day, hour, name);
             
             // 设置香点击事件
             setupIncenseClickHandlers(name);
@@ -1017,9 +1017,13 @@
         });
         
         // 显示八字信息
-        function displayBaziInfo(year, month, day, hour) {
-            const baziDisplay = document.getElementById('baziDisplay');
+        function displayBaziInfo(year, month, day, hour, name) {
+            const baziDisplay = document.getElementById('centeredBaziDisplay');
             const baziGrid = document.getElementById('baziGrid');
+            const baziHeader = document.getElementById('baziHeader');
+            
+            // 设置用户名字为标题
+            baziHeader.textContent = name || '八字命盘';
             
             try {
                 // 创建阳历日期对象
@@ -1328,6 +1332,7 @@
             document.getElementById('matrixCountdown').style.display = 'none';
             document.getElementById('userNameDisplay').style.display = 'none';
             document.getElementById('endRitualBtn').style.display = 'none';
+            document.getElementById('centeredBaziDisplay').style.display = 'none';
             
             // 更新进度信息
             document.getElementById('ritualStatus').textContent = '阵法失败：三根香全部熄灭';
@@ -1432,6 +1437,7 @@
                 document.getElementById('matrixCountdown').style.display = 'none';
                 document.getElementById('userNameDisplay').style.display = 'none';
                 document.getElementById('ritualStatus').textContent = '';
+                document.getElementById('centeredBaziDisplay').style.display = 'none';
             }, 5000);
         }
         
