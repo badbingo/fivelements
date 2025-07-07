@@ -4,9 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>天罡聚财阵</title>
-    <script src="../js/lunar.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lunar-javascript@1.7.3/dist/lunar.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&display=swap');
+        
+        :root {
+            --primary-color: #FFD700;
+            --secondary-color: #E6C229;
+            --dark-bg: #121212;
+            --light-text: #F5F5F5;
+            --accent-red: #C62828;
+            --accent-green: #2E7D32;
+        }
         
         * {
             box-sizing: border-box;
@@ -17,14 +26,14 @@
         body {
             margin: 0;
             padding: 0;
-            background-color: #000;
-            color: #e0c080;
+            background-color: var(--dark-bg);
+            color: var(--light-text);
             font-family: 'Noto Serif SC', serif;
-            overflow: hidden;
+            overflow-x: hidden;
             min-height: 100vh;
             background-image: 
-                radial-gradient(circle at center, rgba(17, 17, 17, 0.8) 0%, rgba(0, 0, 0, 0.2) 70%),
-                url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><path d="M30,50 Q50,30 70,50 T90,50" fill="none" stroke="%23e0c080" stroke-width="0.2" opacity="0.1"/></svg>');
+                radial-gradient(circle at center, rgba(20, 20, 20, 0.8) 0%, rgba(10, 10, 10, 0.2) 70%),
+                url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><path d="M30,50 Q50,30 70,50 T90,50" fill="none" stroke="%23FFD700" stroke-width="0.2" opacity="0.1"/></svg>');
             animation: bgMove 60s linear infinite;
         }
         
@@ -33,10 +42,9 @@
             100% { background-position: 100px 100px, 200px 200px; }
         }
         
-        .main-container {
+        .app-container {
             display: flex;
-            width: 100vw;
-            height: 100vh;
+            min-height: 100vh;
             position: relative;
             z-index: 10;
         }
@@ -44,14 +52,12 @@
         /* Left Panel - Instructions */
         .instructions-panel {
             width: 35%;
-            height: 100vh;
+            padding: 2rem;
+            background: linear-gradient(135deg, rgba(30, 30, 30, 0.95) 0%, rgba(20, 20, 20, 0.95) 100%);
+            border-right: 1px solid rgba(255, 215, 0, 0.2);
+            box-shadow: 5px 0 15px rgba(0, 0, 0, 0.5);
             overflow-y: auto;
-            padding: 30px;
-            background: linear-gradient(to right, rgba(10, 5, 15, 0.95), rgba(5, 5, 15, 0.9));
-            border-right: 1px solid rgba(224, 192, 128, 0.3);
-            box-shadow: 10px 0 25px rgba(0, 0, 0, 0.7);
             position: relative;
-            z-index: 20;
         }
         
         .instructions-panel::before {
@@ -61,8 +67,8 @@
             left: 0;
             right: 0;
             height: 30px;
-            background: linear-gradient(to bottom, rgba(10,5,15,1), rgba(10,5,15,0));
-            z-index: 21;
+            background: linear-gradient(to bottom, rgba(20,20,20,1), rgba(20,20,20,0));
+            z-index: 1;
         }
         
         .instructions-panel::after {
@@ -72,382 +78,275 @@
             left: 0;
             right: 0;
             height: 30px;
-            background: linear-gradient(to top, rgba(10,5,15,1), rgba(10,5,15,0));
-            z-index: 21;
+            background: linear-gradient(to top, rgba(20,20,20,1), rgba(20,20,20,0));
+            z-index: 1;
         }
         
-        .instructions-panel h1 {
-            font-size: 2.8rem;
-            margin-bottom: 2rem;
-            text-shadow: 0 0 15px rgba(248, 208, 48, 0.5);
-            letter-spacing: 8px;
-            font-family: 'Ma Shan Zheng', cursive;
-            color: #f8d030;
-            position: relative;
+        .instructions-header {
             text-align: center;
-            padding-bottom: 15px;
-            border-bottom: 1px solid rgba(224, 192, 128, 0.3);
+            margin-bottom: 2rem;
+            position: relative;
+            padding-bottom: 1.5rem;
+        }
+        
+        .instructions-header h1 {
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            font-family: 'Ma Shan Zheng', cursive;
+            letter-spacing: 3px;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+            margin-bottom: 0.5rem;
+        }
+        
+        .instructions-header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 25%;
+            width: 50%;
+            height: 2px;
+            background: linear-gradient(to right, transparent, var(--primary-color), transparent);
         }
         
         .instructions-content {
-            background-color: rgba(0, 0, 0, 0.3);
+            background-color: rgba(10, 10, 10, 0.5);
             border-radius: 8px;
-            padding: 25px;
-            margin-bottom: 25px;
-            border: 1px solid rgba(224, 192, 128, 0.2);
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid rgba(255, 215, 0, 0.1);
             position: relative;
         }
         
         .instructions-content h2 {
-            color: #f8d030;
+            color: var(--primary-color);
             font-family: 'Ma Shan Zheng', cursive;
-            border-bottom: 1px solid rgba(224, 192, 128, 0.3);
-            padding-bottom: 10px;
-            margin-top: 0;
+            margin-bottom: 1rem;
             text-align: center;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            font-size: 1.5rem;
         }
         
         .instructions-content ol {
-            padding-left: 20px;
+            padding-left: 1.5rem;
         }
         
         .instructions-content li {
-            margin-bottom: 15px;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
-            line-height: 1.8;
+            margin-bottom: 1rem;
+            line-height: 1.6;
         }
         
         .instructions-content strong {
-            color: #f8d030;
+            color: var(--primary-color);
+            font-weight: 700;
         }
         
         .instructions-content ul {
-            padding-left: 20px;
-            margin-top: 10px;
+            padding-left: 1.5rem;
+            margin-top: 0.5rem;
         }
         
-        .instructions-content p.quote {
-            text-align: center;
+        .quote {
             font-style: italic;
-            color: #f8d030;
-            margin-top: 20px;
+            color: var(--primary-color);
+            text-align: center;
+            margin-top: 1.5rem;
             font-size: 1.1rem;
-            text-shadow: 0 0 10px rgba(248, 208, 48, 0.5);
         }
         
         /* Right Panel - Ritual */
         .ritual-panel {
             width: 65%;
-            height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
+            padding: 2rem;
             position: relative;
-            z-index: 15;
-            background: radial-gradient(circle at center, rgba(10, 10, 20, 0.7), rgba(5, 5, 15, 0.9));
+            background: radial-gradient(circle at center, rgba(30, 30, 30, 0.7) 0%, rgba(20, 20, 20, 0.9) 100%);
         }
         
+        /* Bazi Display */
         .bazi-display {
             position: absolute;
             top: 20px;
             right: 20px;
-            background-color: rgba(10, 10, 10, 0.8);
-            border: 1px solid rgba(224, 192, 128, 0.3);
+            background-color: rgba(20, 20, 20, 0.9);
+            border: 1px solid rgba(255, 215, 0, 0.2);
             border-radius: 8px;
-            padding: 15px;
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.7);
-            z-index: 30;
+            padding: 1rem;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+            z-index: 20;
             display: none;
         }
         
         .bazi-display h3 {
-            color: #f8d030;
+            color: var(--primary-color);
             font-family: 'Ma Shan Zheng', cursive;
-            margin: 0 0 10px 0;
+            margin: 0 0 1rem 0;
             text-align: center;
-            font-size: 1.3rem;
+            font-size: 1.2rem;
         }
         
         .bazi-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
+            gap: 0.5rem;
             text-align: center;
         }
         
         .bazi-cell {
-            padding: 8px;
-            background-color: rgba(20, 20, 20, 0.6);
+            padding: 0.5rem;
+            background-color: rgba(30, 30, 30, 0.7);
             border-radius: 5px;
-            border: 1px solid rgba(224, 192, 128, 0.2);
+            border: 1px solid rgba(255, 215, 0, 0.1);
         }
         
         .bazi-cell strong {
             display: block;
-            color: #f8d030;
-            font-size: 1.2rem;
+            color: var(--primary-color);
+            font-size: 1rem;
         }
         
         .bazi-cell span {
             font-size: 0.9rem;
-            color: #e0c080;
+            color: var(--light-text);
         }
         
         /* Form Styles */
         .form-container {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
-            gap: 15px;
             width: 100%;
-            max-width: 600px;
+            max-width: 500px;
+            background-color: rgba(20, 20, 20, 0.8);
+            border-radius: 10px;
+            padding: 2rem;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
         }
         
         .form-group {
-            flex: 1 1 45%;
-            min-width: 250px;
-            margin-bottom: 15px;
+            margin-bottom: 1.5rem;
         }
         
         label {
             display: block;
-            margin-bottom: 8px;
-            font-size: 1.1rem;
-            color: #e0c080;
-            text-align: left;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+            margin-bottom: 0.5rem;
+            color: var(--light-text);
+            font-size: 1rem;
         }
         
         input, select {
             width: 100%;
-            background-color: rgba(20, 20, 20, 0.8);
-            border: 1px solid #e0c080;
-            color: #e0c080;
-            padding: 12px;
-            font-size: 1rem;
-            border-radius: 6px;
+            padding: 0.8rem;
+            background-color: rgba(30, 30, 30, 0.8);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-radius: 5px;
+            color: var(--light-text);
             font-family: 'Noto Serif SC', serif;
-            transition: all 0.3s;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+            font-size: 1rem;
+            transition: all 0.3s ease;
         }
         
         input:focus, select:focus {
             outline: none;
-            border-color: #f8d030;
-            box-shadow: 0 0 10px rgba(248, 208, 48, 0.5);
+            border-color: var(--primary-color);
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
         }
         
         button {
-            background-color: #3a2c0f;
-            color: #f8d030;
-            border: 1px solid #e0c080;
-            padding: 14px 30px;
-            font-size: 1.2rem;
+            background-color: rgba(255, 215, 0, 0.1);
+            color: var(--primary-color);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            padding: 0.8rem 1.5rem;
+            font-size: 1.1rem;
+            border-radius: 5px;
             cursor: pointer;
-            border-radius: 6px;
-            margin: 20px 0;
-            transition: all 0.3s;
-            font-family: 'Noto Serif SC', serif;
-            position: relative;
-            overflow: hidden;
+            transition: all 0.3s ease;
             width: 100%;
-            max-width: 300px;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+            font-family: 'Noto Serif SC', serif;
+            margin-top: 1rem;
         }
         
         button:hover {
-            background-color: #4a3c1f;
-            box-shadow: 0 0 15px #f8d030;
-        }
-        
-        button::after {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: linear-gradient(transparent, rgba(248, 208, 48, 0.1), transparent);
-            transform: rotate(30deg);
-            transition: all 0.3s;
-        }
-        
-        button:hover::after {
-            left: 100%;
+            background-color: rgba(255, 215, 0, 0.2);
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);
         }
         
         /* Ritual Elements */
-        .circle {
-            position: fixed;
-            border-radius: 50%;
-            border: 1px solid rgba(224, 192, 128, 0.3);
-            pointer-events: none;
-            z-index: 1;
-            animation-play-state: paused;
-        }
-        
-        .circle-1 {
-            width: 800px;
-            height: 800px;
-            animation: rotate 80s linear infinite;
-            border-color: rgba(248, 208, 48, 0.15);
-            box-shadow: 0 0 50px rgba(248, 208, 48, 0.1);
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-        }
-        
-        .circle-2 {
-            width: 600px;
-            height: 600px;
-            animation: rotate-reverse 60s linear infinite;
-            border-color: rgba(224, 192, 128, 0.15);
-            box-shadow: 0 0 40px rgba(224, 192, 128, 0.1);
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-        }
-        
-        .circle-3 {
+        .matrix-container {
+            display: none;
             width: 400px;
             height: 400px;
-            animation: rotate 40s linear infinite;
-            border-color: rgba(248, 208, 48, 0.2);
-            box-shadow: 0 0 30px rgba(248, 208, 48, 0.15);
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-        }
-        
-        .symbol {
-            position: absolute;
-            font-size: 2rem;
-            color: #f8d030;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
-            animation: glow 3s ease-in-out infinite alternate;
-            pointer-events: none;
-            z-index: 2;
-        }
-        
-        @keyframes rotate {
-            from { transform: translate(-50%, -50%) rotate(0deg); }
-            to { transform: translate(-50%, -50%) rotate(360deg); }
-        }
-        
-        @keyframes rotate-reverse {
-            from { transform: translate(-50%, -50%) rotate(360deg); }
-            to { transform: translate(-50%, -50%) rotate(0deg); }
-        }
-        
-        @keyframes glow {
-            from { opacity: 0.6; text-shadow: 0 0 5px #f8d030; }
-            to { opacity: 1; text-shadow: 0 0 15px #f8d030; }
-        }
-        
-        .matrix-container {
             position: relative;
-            width: 100%;
-            max-width: 500px;
-            height: 500px;
             margin: 2rem auto;
-            display: none;
-            z-index: 10;
         }
         
         .matrix {
-            position: absolute;
             width: 100%;
             height: 100%;
-            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="500" height="500"><circle cx="250" cy="250" r="240" fill="none" stroke="%23e0c080" stroke-width="1" stroke-opacity="0.3"/><circle cx="250" cy="250" r="180" fill="none" stroke="%23e0c080" stroke-width="1" stroke-opacity="0.3"/><circle cx="250" cy="250" r="120" fill="none" stroke="%23e0c080" stroke-width="1" stroke-opacity="0.3"/><circle cx="250" cy="250" r="60" fill="none" stroke="%23e0c080" stroke-width="1" stroke-opacity="0.3"/><line x1="250" y1="10" x2="250" y2="490" stroke="%23e0c080" stroke-width="1" stroke-opacity="0.3"/><line x1="10" y1="250" x2="490" y2="250" stroke="%23e0c080" stroke-width="1" stroke-opacity="0.3"/><line x1="70" y1="70" x2="430" y2="430" stroke="%23e0c080" stroke-width="1" stroke-opacity="0.3"/><line x1="430" y1="70" x2="70" y2="430" stroke="%23e0c080" stroke-width="1" stroke-opacity="0.3"/></svg>');
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400"><circle cx="200" cy="200" r="190" fill="none" stroke="%23FFD700" stroke-width="1" stroke-opacity="0.3"/><circle cx="200" cy="200" r="140" fill="none" stroke="%23FFD700" stroke-width="1" stroke-opacity="0.3"/><circle cx="200" cy="200" r="90" fill="none" stroke="%23FFD700" stroke-width="1" stroke-opacity="0.3"/><circle cx="200" cy="200" r="40" fill="none" stroke="%23FFD700" stroke-width="1" stroke-opacity="0.3"/><line x1="200" y1="10" x2="200" y2="390" stroke="%23FFD700" stroke-width="1" stroke-opacity="0.3"/><line x1="10" y1="200" x2="390" y2="200" stroke="%23FFD700" stroke-width="1" stroke-opacity="0.3"/><line x1="50" y1="50" x2="350" y2="350" stroke="%23FFD700" stroke-width="1" stroke-opacity="0.3"/><line x1="350" y1="50" x2="50" y2="350" stroke="%23FFD700" stroke-width="1" stroke-opacity="0.3"/></svg>');
             animation: rotate 120s linear infinite;
+        }
+        
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
         }
         
         .user-position {
             position: absolute;
-            width: 60px;
-            height: 60px;
-            background-color: rgba(248, 208, 48, 0.3);
+            width: 40px;
+            height: 40px;
+            background-color: rgba(255, 215, 0, 0.3);
             border-radius: 50%;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            box-shadow: 0 0 30px #f8d030;
+            box-shadow: 0 0 20px var(--primary-color);
             animation: pulse 2s infinite;
-            z-index: 11;
         }
         
         @keyframes pulse {
-            0% { transform: translate(-50%, -50%) scale(1); opacity: 0.7; box-shadow: 0 0 30px #f8d030; }
-            50% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; box-shadow: 0 0 50px #f8d030; }
-            100% { transform: translate(-50%, -50%) scale(1); opacity: 0.7; box-shadow: 0 0 30px #f8d030; }
-        }
-        
-        .particles {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 1;
-            pointer-events: none;
+            0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.7; }
+            50% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; }
         }
         
         .incense-container {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 11;
             display: none;
             text-align: center;
-        }
-        
-        .incense-timer {
-            font-size: 1.5rem;
-            color: #f8d030;
-            margin-top: 20px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            margin-top: 2rem;
         }
         
         .incense {
             display: inline-block;
-            width: 30px;
-            height: 150px;
+            width: 20px;
+            height: 100px;
             background: linear-gradient(to bottom, #8B4513, #A0522D);
-            margin: 0 25px;
+            margin: 0 15px;
             position: relative;
-            border-radius: 5px;
+            border-radius: 3px;
             cursor: pointer;
             transition: all 0.3s;
-        }
-        
-        .incense:hover {
-            transform: translateY(-5px);
         }
         
         .incense.lit::after {
             content: '';
             position: absolute;
-            top: -30px;
+            top: -20px;
             left: 50%;
             transform: translateX(-50%);
-            width: 6px;
-            height: 30px;
+            width: 4px;
+            height: 20px;
             background: linear-gradient(to bottom, #FFD700, #FFA500);
-            border-radius: 5px 5px 0 0;
+            border-radius: 3px 3px 0 0;
         }
         
         .incense.lit::before {
             content: '';
             position: absolute;
-            top: -40px;
+            top: -30px;
             left: 50%;
             transform: translateX(-50%);
-            width: 20px;
-            height: 20px;
+            width: 15px;
+            height: 15px;
             background: radial-gradient(ellipse at center, rgba(255,100,0,0.8) 0%, rgba(255,50,0,0) 70%);
             border-radius: 50%;
             animation: smoke 3s infinite ease-out;
@@ -455,106 +354,109 @@
         
         @keyframes smoke {
             0% { transform: translateX(-50%) scale(0.8); opacity: 0.8; }
-            50% { transform: translateX(-50%) translateY(-20px) scale(1.2); opacity: 0.5; }
-            100% { transform: translateX(-50%) translateY(-40px) scale(1.5); opacity: 0; }
+            50% { transform: translateX(-50%) translateY(-15px) scale(1.2); opacity: 0.5; }
+            100% { transform: translateX(-50%) translateY(-30px) scale(1.5); opacity: 0; }
         }
         
         .wealth-incantation {
-            position: fixed;
-            top: 50%;
-            left: calc(50% + 200px);
-            transform: translateY(-50%);
-            background-color: rgba(10, 10, 10, 0.8);
-            padding: 15px;
+            display: none;
+            background-color: rgba(20, 20, 20, 0.9);
+            padding: 1.5rem;
             border-radius: 10px;
-            border: 1px solid rgba(224, 192, 128, 0.3);
+            border: 1px solid rgba(255, 215, 0, 0.2);
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
             width: 300px;
             text-align: center;
-            z-index: 11;
-            display: none;
+            margin-top: 2rem;
         }
         
         .wealth-incantation h3 {
-            color: #f8d030;
+            color: var(--primary-color);
             font-family: 'Ma Shan Zheng', cursive;
-            margin-top: 0;
-            margin-bottom: 15px;
-            font-size: 1.5rem;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            margin-bottom: 1rem;
         }
         
         .wealth-incantation p {
-            margin: 10px 0;
-            line-height: 1.8;
-            font-size: 1.1rem;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            margin: 0.5rem 0;
+            line-height: 1.6;
         }
         
-        .wealth-incantation .hint {
+        .hint {
             font-style: italic;
-            color: #e0c080;
-            margin-top: 15px;
-            font-size: 1rem;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            color: var(--light-text);
+            margin-top: 1rem;
+            font-size: 0.9rem;
         }
         
+        /* Progress Elements */
+        .progress-container {
+            display: none;
+            width: 80%;
+            max-width: 400px;
+            background-color: rgba(30, 30, 30, 0.8);
+            border-radius: 5px;
+            padding: 3px;
+            margin: 1rem auto;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+        }
+        
+        .progress-bar {
+            height: 15px;
+            background: linear-gradient(to right, #8B4513, var(--primary-color));
+            border-radius: 3px;
+            width: 0%;
+            transition: width 0.5s linear;
+        }
+        
+        .ritual-status {
+            display: none;
+            color: var(--primary-color);
+            text-align: center;
+            margin: 1rem 0;
+            font-size: 1.2rem;
+        }
+        
+        .user-name-display {
+            display: none;
+            color: var(--primary-color);
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 2rem;
+            text-align: center;
+            margin: 1rem 0;
+        }
+        
+        .matrix-countdown {
+            display: none;
+            color: var(--primary-color);
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 2rem;
+            text-align: center;
+            margin: 1rem 0;
+        }
+        
+        /* Final Effects */
         .final-effect {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: radial-gradient(circle at center, rgba(248, 208, 48, 0.8) 0%, rgba(0,0,0,1) 70%);
-            z-index: 100;
+            background: radial-gradient(circle at center, rgba(255, 215, 0, 0.8) 0%, rgba(0,0,0,1) 70%);
             display: none;
             justify-content: center;
             align-items: center;
             flex-direction: column;
-            animation: finalGlow 5s ease-out;
-        }
-        
-        @keyframes finalGlow {
-            0% { background: rgba(0,0,0,0.9); }
-            20% { background: radial-gradient(circle at center, rgba(248, 208, 48, 0.9) 0%, rgba(0,0,0,1) 70%); }
-            80% { background: radial-gradient(circle at center, rgba(248, 208, 48, 0.9) 0%, rgba(0,0,0,1) 70%); }
-            100% { background: rgba(0,0,0,0.9); }
-        }
-        
-        .gold-coins {
-            position: fixed;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 101;
-            display: none;
-        }
-        
-        .gold-coin {
-            position: absolute;
-            width: 50px;
-            height: 50px;
-            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="%23FFD700"/><circle cx="50" cy="50" r="40" fill="%23FFC000"/><text x="50" y="60" font-family="Arial" font-size="40" text-anchor="middle" fill="%23800000">財</text></svg>');
-            background-size: contain;
-            animation: coinFall linear;
-        }
-        
-        @keyframes coinFall {
-            to { transform: translateY(100vh); }
+            z-index: 100;
         }
         
         .final-message {
-            color: #f8d030;
-            font-size: 3.5rem;
-            text-align: center;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            color: var(--primary-color);
+            font-size: 3rem;
             font-family: 'Ma Shan Zheng', cursive;
-            margin-bottom: 30px;
+            text-shadow: 0 0 10px rgba(0,0,0,0.8);
+            margin-bottom: 2rem;
             opacity: 0;
             animation: finalMessage 5s ease-out;
-            background-color: rgba(10, 10, 10, 0.7);
-            padding: 20px 40px;
-            border-radius: 10px;
         }
         
         @keyframes finalMessage {
@@ -565,24 +467,58 @@
             100% { opacity: 0; }
         }
         
-        .form-section {
-            transition: all 0.5s ease;
+        .gold-coins {
+            position: fixed;
+            top: 0;
+            left: 0;
             width: 100%;
-            max-width: 600px;
-            background-color: rgba(10, 10, 10, 0.7);
-            border-radius: 10px;
-            padding: 30px;
-            border: 1px solid rgba(224, 192, 128, 0.3);
-            box-shadow: 0 0 30px rgba(0, 0, 0, 0.7);
+            height: 100%;
+            pointer-events: none;
+            z-index: 101;
+            display: none;
         }
         
-        .hidden {
-            opacity: 0;
-            height: 0;
-            overflow: hidden;
-            margin: 0;
-            padding: 0;
-            border: none;
+        .gold-coin {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="%23FFD700"/><circle cx="50" cy="50" r="40" fill="%23FFC000"/><text x="50" y="60" font-family="Arial" font-size="40" text-anchor="middle" fill="%23800000">財</text></svg>');
+            background-size: contain;
+            animation: coinFall linear;
+        }
+        
+        @keyframes coinFall {
+            to { transform: translateY(100vh); }
+        }
+        
+        .final-completion {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .final-completion h2 {
+            color: var(--primary-color);
+            font-size: 2.5rem;
+            font-family: 'Ma Shan Zheng', cursive;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        
+        .final-completion p {
+            color: var(--light-text);
+            font-size: 1.2rem;
+            text-align: center;
+            max-width: 80%;
+            line-height: 1.6;
         }
         
         .failure-message {
@@ -591,7 +527,7 @@
             left: 50%;
             transform: translate(-50%, -50%);
             background-color: rgba(80, 10, 10, 0.9);
-            padding: 30px;
+            padding: 2rem;
             border-radius: 10px;
             border: 1px solid rgba(255, 0, 0, 0.5);
             box-shadow: 0 0 30px rgba(255, 0, 0, 0.5);
@@ -602,433 +538,132 @@
         }
         
         .failure-message h2 {
-            color: #f8d030;
+            color: var(--primary-color);
             font-family: 'Ma Shan Zheng', cursive;
-            font-size: 2rem;
-            margin-top: 0;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            margin-bottom: 1rem;
         }
         
-        .failure-message p {
-            font-size: 1.2rem;
-            line-height: 1.6;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
-        }
-        
-        /* Taoist background elements */
-        .taoist-symbols {
+        /* Background Elements */
+        .circle {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            border-radius: 50%;
+            border: 1px solid rgba(255, 215, 0, 0.1);
             pointer-events: none;
             z-index: 0;
-            opacity: 0.1;
         }
         
-        .taoist-symbol {
-            position: absolute;
-            font-size: 3rem;
-            color: #f8d030;
-            animation: float 15s infinite ease-in-out paused;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
-        }
-        
-        @keyframes float {
-            0%, 100% { transform: translateY(0) rotate(0deg); }
-            50% { transform: translateY(-20px) rotate(5deg); }
-        }
-        
-        .bagua {
-            position: fixed;
-            width: 300px;
-            height: 300px;
-            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><circle cx="100" cy="100" r="95" fill="none" stroke="%23e0c080" stroke-width="2" opacity="0.1"/><path d="M100,5 A95,95 0 0,1 100,195 A95,95 0 0,1 100,5 Z" fill="%23e0c080" opacity="0.05"/><path d="M100,5 A95,95 0 0,0 100,195 A95,95 0 0,0 100,5 Z" fill="%23e0c080" opacity="0.05"/><circle cx="100" cy="60" r="10" fill="%23e0c080" opacity="0.1"/><circle cx="100" cy="140" r="10" fill="%23e0c080" opacity="0.1"/></svg>');
-            background-size: contain;
+        .circle-1 {
+            width: 600px;
+            height: 600px;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            animation: rotate 200s linear infinite paused;
-            opacity: 0.2;
-            z-index: 0;
-        }
-
-        /* Progress bar styles */
-        .progress-container {
-            position: fixed;
-            bottom: 180px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 80%;
-            max-width: 500px;
-            background-color: rgba(20, 20, 20, 0.8);
-            border-radius: 10px;
-            padding: 3px;
-            border: 1px solid rgba(224, 192, 128, 0.3);
-            display: none;
-            z-index: 20;
-        }
-
-        .progress-bar {
-            height: 20px;
-            background: linear-gradient(to right, #8B4513, #f8d030);
-            border-radius: 8px;
-            width: 0%;
-            transition: width 1s linear;
-            box-shadow: 0 0 10px rgba(248, 208, 48, 0.5);
-        }
-
-        .ritual-status {
-            position: fixed;
-            bottom: 220px;
-            left: 0;
-            width: 100%;
-            font-size: 1.5rem;
-            color: #f8d030;
-            text-align: center;
-            z-index: 20;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
-            display: none;
-        }
-
-        .ritual-complete {
-            position: fixed;
-            bottom: 240px;
-            left: 0;
-            width: 100%;
-            font-size: 2rem;
-            color: #f8d030;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
-            text-align: center;
-            display: none;
-            font-family: 'Ma Shan Zheng', cursive;
-            z-index: 20;
-            line-height: 1.5;
-        }
-
-        .matrix-countdown {
-            position: fixed;
-            bottom: 230px;
-            left: 0;
-            width: 100%;
-            font-size: 3rem;
-            color: #f8d030;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
-            text-align: center;
-            display: none;
-            z-index: 20;
-            font-family: 'Ma Shan Zheng', cursive;
-            line-height: 1.5;
-        }
-        .user-name-display {
-            position: fixed;
-            bottom: 160px;
-            left: 0;
-            width: 100%;
-            font-size: 2.5rem;
-            color: #f8d030;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
-            text-align: center;
-            display: none;
-            font-family: 'Ma Shan Zheng', cursive;
-            z-index: 20;
-            line-height: 1.5;
-        }
-
-        /* Mystical elements */
-        .mystical-light {
-            position: fixed;
-            width: 200px;
-            height: 200px;
-            background: radial-gradient(circle, rgba(248, 208, 48, 0.2) 0%, rgba(248, 208, 48, 0) 70%);
-            border-radius: 50%;
-            z-index: 0;
-            opacity: 0;
-            transition: opacity 2s;
-        }
-
-        .light-1 {
-            top: 20%;
-            left: 20%;
-            animation: floatLight 15s infinite ease-in-out paused;
-        }
-
-        .light-2 {
-            bottom: 20%;
-            right: 20%;
-            animation: floatLight 18s infinite ease-in-out paused 3s;
-        }
-
-        .light-3 {
-            top: 30%;
-            right: 15%;
-            animation: floatLight 20s infinite ease-in-out paused 5s;
-        }
-
-        @keyframes floatLight {
-            0%, 100% { transform: translate(0, 0); }
-            25% { transform: translate(20px, 10px); }
-            50% { transform: translate(-10px, 20px); }
-            75% { transform: translate(15px, -10px); }
-        }
-
-        .energy-beam {
-            position: fixed;
-            bottom: 0;
-            left: 50%;
-            width: 10px;
-            height: 0;
-            background: linear-gradient(to top, rgba(248, 208, 48, 0.8), transparent);
-            transform: translateX(-50%);
-            z-index: 5;
-            opacity: 0;
-            transition: all 1s;
-        }
-
-        .energy-particles {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 4;
-            pointer-events: none;
-            display: none;
-        }
-
-        .energy-particle {
-            position: absolute;
-            width: 5px;
-            height: 5px;
-            background-color: #f8d030;
-            border-radius: 50%;
-            opacity: 0.6;
-            animation: energyRise linear;
-        }
-
-        @keyframes energyRise {
-            to { transform: translateY(-100vh); }
-        }
-
-        .divine-light {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(circle at center, rgba(248, 208, 48, 0.1) 0%, rgba(0,0,0,0) 70%);
-            z-index: 3;
-            opacity: 0;
-            transition: opacity 2s;
-        }
-
-        /* Enhanced effects */
-        .cosmic-rays {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 0;
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 2s;
-        }
-
-        .cosmic-ray {
-            position: absolute;
-            width: 2px;
-            height: 100%;
-            background: linear-gradient(to bottom, transparent, rgba(248, 208, 48, 0.3), transparent);
-            animation: cosmicRayGlow 3s infinite ease-in-out;
-        }
-
-        @keyframes cosmicRayGlow {
-            0%, 100% { opacity: 0.3; }
-            50% { opacity: 0.8; }
-        }
-
-        .sparkle {
-            position: absolute;
-            width: 10px;
-            height: 10px;
-            background-color: #f8d030;
-            border-radius: 50%;
-            opacity: 0;
-            animation: sparkleAnim 2s infinite;
-        }
-
-        @keyframes sparkleAnim {
-            0%, 100% { opacity: 0; transform: scale(0.5); }
-            50% { opacity: 0.8; transform: scale(1.2); }
-        }
-
-        .energy-orb {
-            position: absolute;
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(248, 208, 48, 0.3) 0%, rgba(248, 208, 48, 0) 70%);
-            animation: orbPulse 4s infinite ease-in-out;
-        }
-
-        @keyframes orbPulse {
-            0%, 100% { transform: scale(1); opacity: 0.3; }
-            50% { transform: scale(1.2); opacity: 0.6; }
+            animation: rotate 80s linear infinite;
         }
         
-        /* End ritual button */
+        .circle-2 {
+            width: 400px;
+            height: 400px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation: rotate-reverse 60s linear infinite;
+        }
+        
+        .circle-3 {
+            width: 200px;
+            height: 200px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation: rotate 40s linear infinite;
+        }
+        
+        @keyframes rotate-reverse {
+            from { transform: translate(-50%, -50%) rotate(360deg); }
+            to { transform: translate(-50%, -50%) rotate(0deg); }
+        }
+        
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        .particle {
+            position: absolute;
+            font-size: 1rem;
+            color: var(--primary-color);
+            opacity: 0.6;
+            animation: float 15s infinite ease-in-out;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(10px, -10px); }
+        }
+        
+        /* End Ritual Button */
         .end-ritual-btn {
             position: fixed;
-            bottom: 30px;
+            bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
             background-color: rgba(80, 10, 10, 0.8);
-            color: #f8d030;
+            color: var(--primary-color);
             border: 1px solid rgba(255, 0, 0, 0.5);
-            padding: 10px 20px;
+            padding: 0.5rem 1rem;
             border-radius: 5px;
             cursor: pointer;
-            z-index: 100;
+            z-index: 20;
             display: none;
             font-family: 'Ma Shan Zheng', cursive;
-            font-size: 1.2rem;
         }
         
-        .end-ritual-btn:hover {
-            background-color: rgba(100, 20, 20, 0.9);
-            box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
-        }
-        
-        /* Final completion message */
-        .final-completion {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.9);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            display: none;
-        }
-        
-        .final-completion h2 {
-            color: #f8d030;
-            font-size: 3rem;
-            text-align: center;
-            margin-bottom: 30px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
-            font-family: 'Ma Shan Zheng', cursive;
-        }
-        
-        .final-completion p {
-            color: #e0c080;
-            font-size: 1.5rem;
-            text-align: center;
-            max-width: 80%;
-            line-height: 1.6;
-            margin-bottom: 40px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
-        }
-        
-        /* Responsive adjustments */
+        /* Responsive Adjustments */
         @media (max-width: 1024px) {
-            .main-container {
+            .app-container {
                 flex-direction: column;
             }
             
             .instructions-panel, .ritual-panel {
                 width: 100%;
-                height: auto;
             }
             
             .instructions-panel {
                 max-height: 40vh;
                 overflow-y: auto;
                 border-right: none;
-                border-bottom: 1px solid rgba(224, 192, 128, 0.2);
+                border-bottom: 1px solid rgba(255, 215, 0, 0.1);
             }
             
             .ritual-panel {
-                height: 60vh;
-            }
-            
-            .wealth-incantation {
-                left: 50%;
-                transform: translate(-50%, -50%);
-                bottom: 20px;
-                top: auto;
+                min-height: 60vh;
             }
             
             .bazi-display {
                 top: 10px;
                 right: 10px;
-                padding: 10px;
+                padding: 0.5rem;
             }
             
             .bazi-cell {
-                padding: 5px;
+                padding: 0.3rem;
             }
-        }
-        
-        /* Ancient Chinese scroll border */
-        .instructions-panel {
-            position: relative;
-        }
-        
-        .instructions-panel::before, .instructions-panel::after {
-            content: '';
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            top: 0;
-            left: 0;
-            pointer-events: none;
-            z-index: 22;
-        }
-        
-        .instructions-panel::before {
-            border-top: 1px solid rgba(224, 192, 128, 0.2);
-            border-bottom: 1px solid rgba(224, 192, 128, 0.2);
-            animation: borderGlow 6s infinite alternate;
-        }
-        
-        .instructions-panel::after {
-            border-left: 1px solid rgba(224, 192, 128, 0.2);
-            border-right: 1px solid rgba(224, 192, 128, 0.2);
-            animation: borderGlow 8s infinite alternate-reverse;
-        }
-        
-        @keyframes borderGlow {
-            0% { border-color: rgba(224, 192, 128, 0.2); }
-            100% { border-color: rgba(248, 208, 48, 0.4); }
         }
     </style>
 </head>
 <body>
-    <div class="particles" id="particles"></div>
-    <div class="gold-coins" id="goldCoins"></div>
-    
     <div class="circle circle-1"></div>
     <div class="circle circle-2"></div>
     <div class="circle circle-3"></div>
     
-    <div class="bagua"></div>
-    <div class="taoist-symbols" id="taoistSymbols"></div>
-    
-    <!-- Mystical elements -->
-    <div class="mystical-light light-1"></div>
-    <div class="mystical-light light-2"></div>
-    <div class="mystical-light light-3"></div>
-    <div class="energy-beam" id="energyBeam"></div>
-    <div class="energy-particles" id="energyParticles"></div>
-    <div class="divine-light" id="divineLight"></div>
-    <div class="cosmic-rays" id="cosmicRays"></div>
+    <div class="particles" id="particles"></div>
+    <div class="gold-coins" id="goldCoins"></div>
     
     <div class="final-effect" id="finalEffect">
         <div class="final-message">聚财阵法已生效！</div>
@@ -1046,16 +681,18 @@
         <p>请择日重新启动阵法</p>
     </div>
     
-    <div class="main-container">
+    <div class="app-container">
         <!-- Left Panel - Instructions -->
         <div class="instructions-panel">
-            <h1>天罡聚财阵</h1>
+            <div class="instructions-header">
+                <h1>天罡聚财阵</h1>
+            </div>
             
             <div class="instructions-content">
                 <h2>天罡聚财阵法使用说明</h2>
                 <ol>
                     <li><strong>阵法起源</strong>：此阵法源于古代道家秘传，结合北斗七星与五行相生原理，能汇聚天地财气。</li>
-                    <li><strong>神奇之处</strong>：阵法一旦激活，便开启为期 9 小时的能量场，调和财运磁场，吸引财气与贵人扶助。阵法成功后，其灵效将在未来三个月内渐次显现，助您悄然开启财富之门。</li>
+                    <li><strong>神奇之处</strong>：阵法一旦激活，便开启为期9小时的能量场，调和财运磁场，吸引财气与贵人扶助。阵法成功后，其灵效将在未来三个月内渐次显现，助您悄然开启财富之门。</li>
                     <li><strong>使用方法</strong>：
                         <ul>
                             <li>填写您的真实姓名和准确生辰信息，点击"开始点香仪式"按钮</li>
@@ -1083,85 +720,79 @@
             </div>
             
             <!-- Form Section -->
-            <div class="section form-section" id="formSection">
-                <div class="form-container">
-                    <div class="form-group">
-                        <label for="name">您的姓名</label>
-                        <input type="text" id="name" placeholder="请输入您的真实姓名">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="year">出生年份</label>
-                        <select id="year">
-                            <option value="">-- 选择年份 --</option>
-                            <!-- 年份选项由JavaScript生成 -->
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="month">出生月份</label>
-                        <select id="month">
-                            <option value="">-- 选择月份 --</option>
-                            <option value="1">正月</option>
-                            <option value="2">二月</option>
-                            <option value="3">三月</option>
-                            <option value="4">四月</option>
-                            <option value="5">五月</option>
-                            <option value="6">六月</option>
-                            <option value="7">七月</option>
-                            <option value="8">八月</option>
-                            <option value="9">九月</option>
-                            <option value="10">十月</option>
-                            <option value="11">冬月</option>
-                            <option value="12">腊月</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="day">出生日期</label>
-                        <select id="day">
-                            <option value="">-- 选择日期 --</option>
-                            <!-- 日期选项由JavaScript生成 -->
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="hour">出生时辰</label>
-                        <select id="hour">
-                            <option value="">-- 选择时辰 --</option>
-                            <option value="0">子时 (23:00-01:00)</option>
-                            <option value="1">丑时 (01:00-03:00)</option>
-                            <option value="2">寅时 (03:00-05:00)</option>
-                            <option value="3">卯时 (05:00-07:00)</option>
-                            <option value="4">辰时 (07:00-09:00)</option>
-                            <option value="5">巳时 (09:00-11:00)</option>
-                            <option value="6">午时 (11:00-13:00)</option>
-                            <option value="7">未时 (13:00-15:00)</option>
-                            <option value="8">申时 (15:00-17:00)</option>
-                            <option value="9">酉时 (17:00-19:00)</option>
-                            <option value="10">戌时 (19:00-21:00)</option>
-                            <option value="11">亥时 (21:00-23:00)</option>
-                        </select>
-                    </div>
+            <div class="form-container" id="formSection">
+                <div class="form-group">
+                    <label for="name">您的姓名</label>
+                    <input type="text" id="name" placeholder="请输入您的真实姓名">
+                </div>
+                
+                <div class="form-group">
+                    <label for="year">出生年份</label>
+                    <select id="year">
+                        <option value="">-- 选择年份 --</option>
+                        <!-- 年份选项由JavaScript生成 -->
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="month">出生月份</label>
+                    <select id="month">
+                        <option value="">-- 选择月份 --</option>
+                        <option value="1">正月</option>
+                        <option value="2">二月</option>
+                        <option value="3">三月</option>
+                        <option value="4">四月</option>
+                        <option value="5">五月</option>
+                        <option value="6">六月</option>
+                        <option value="7">七月</option>
+                        <option value="8">八月</option>
+                        <option value="9">九月</option>
+                        <option value="10">十月</option>
+                        <option value="11">冬月</option>
+                        <option value="12">腊月</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="day">出生日期</label>
+                    <select id="day">
+                        <option value="">-- 选择日期 --</option>
+                        <!-- 日期选项由JavaScript生成 -->
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="hour">出生时辰</label>
+                    <select id="hour">
+                        <option value="">-- 选择时辰 --</option>
+                        <option value="0">子时 (23:00-01:00)</option>
+                        <option value="1">丑时 (01:00-03:00)</option>
+                        <option value="2">寅时 (03:00-05:00)</option>
+                        <option value="3">卯时 (05:00-07:00)</option>
+                        <option value="4">辰时 (07:00-09:00)</option>
+                        <option value="5">巳时 (09:00-11:00)</option>
+                        <option value="6">午时 (11:00-13:00)</option>
+                        <option value="7">未时 (13:00-15:00)</option>
+                        <option value="8">申时 (15:00-17:00)</option>
+                        <option value="9">酉时 (17:00-19:00)</option>
+                        <option value="10">戌时 (19:00-21:00)</option>
+                        <option value="11">亥时 (21:00-23:00)</option>
+                    </select>
                 </div>
                 
                 <button id="startRitual">开始点香仪式</button>
             </div>
             
-            <div class="ritual-progress" id="ritualProgress"></div>
+            <!-- Ritual Progress Elements -->
+            <div class="ritual-status" id="ritualStatus"></div>
+            <div class="user-name-display" id="userNameDisplay"></div>
+            <div class="matrix-countdown" id="matrixCountdown"></div>
             
             <div class="progress-container" id="progressContainer">
                 <div class="progress-bar" id="progressBar"></div>
             </div>
             
-            <div class="ritual-status" id="ritualStatus"></div>
-            
-            <div class="ritual-complete" id="ritualComplete"></div>
-            
-            <div class="user-name-display" id="userNameDisplay"></div>
-            
-            <div class="matrix-countdown" id="matrixCountdown"></div>
-            
+            <!-- Ritual Elements -->
             <div class="matrix-container" id="matrixContainer">
                 <div class="matrix"></div>
                 <div class="user-position"></div>
@@ -1192,866 +823,624 @@
     
     <script>
         // 配置变量
-const INCENSE_DURATION = 60; // 点香时间(秒) - 60秒
-const MATRIX_DURATION = 9 * 60 * 60; // 阵法持续时间(秒) - 9小时
-const EXTINGUISH_PROBABILITY = 0.1; // 每根香熄灭的概率(10%)
-const EXTINGUISH_CHECK_INTERVAL = 30 * 60; // 检查香是否熄灭的间隔(秒)
-const EXTINGUISH_CHECK_DURATION = 5 * 60 * 60; // 检查香是否熄灭的总持续时间(秒) - 5小时
-
-// 页面加载完成后初始化
-document.addEventListener('DOMContentLoaded', function() {
-    // 生成年份选项 (1900-当前年份)
-    const yearSelect = document.getElementById('year');
-    const currentYear = new Date().getFullYear();
-    for (let year = currentYear; year >= 1900; year--) {
-        const option = document.createElement('option');
-        option.value = year;
-        option.textContent = year;
-        yearSelect.appendChild(option);
-    }
-
-    // 生成日期选项 (1-31)
-    const daySelect = document.getElementById('day');
-    for (let day = 1; day <= 31; day++) {
-        const option = document.createElement('option');
-        option.value = day;
-        option.textContent = day;
-        daySelect.appendChild(option);
-    }
-
-    // 检查是否有保存的进度
-    checkSavedProgress();
-
-    // 初始化粒子效果
-    createParticles();
-    createTaoistSymbols();
-});
-
-// 检查是否有保存的进度
-function checkSavedProgress() {
-    const savedProgress = localStorage.getItem('wealthMatrixProgress');
-    if (savedProgress) {
-        const progress = JSON.parse(savedProgress);
-        if (confirm('检测到未完成的阵法进度，是否继续？')) {
-            restoreProgress(progress);
-        } else {
-            localStorage.removeItem('wealthMatrixProgress');
+        const INCENSE_DURATION = 60; // 点香时间(秒) - 60秒
+        const MATRIX_DURATION = 9 * 60 * 60; // 阵法持续时间(秒) - 9小时
+        const EXTINGUISH_PROBABILITY = 0.1; // 每根香熄灭的概率(10%)
+        const EXTINGUISH_CHECK_INTERVAL = 30 * 60; // 检查香是否熄灭的间隔(秒)
+        const EXTINGUISH_CHECK_DURATION = 5 * 60 * 60; // 检查香是否熄灭的总持续时间(秒) - 5小时
+        
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 生成年份选项 (1900-当前年份)
+            const yearSelect = document.getElementById('year');
+            const currentYear = new Date().getFullYear();
+            for (let year = currentYear; year >= 1900; year--) {
+                const option = document.createElement('option');
+                option.value = year;
+                option.textContent = year;
+                yearSelect.appendChild(option);
+            }
+        
+            // 生成日期选项 (1-31)
+            const daySelect = document.getElementById('day');
+            for (let day = 1; day <= 31; day++) {
+                const option = document.createElement('option');
+                option.value = day;
+                option.textContent = day;
+                daySelect.appendChild(option);
+            }
+        
+            // 检查是否有保存的进度
+            checkSavedProgress();
+        
+            // 初始化粒子效果
+            createParticles();
+        });
+        
+        // 检查是否有保存的进度
+        function checkSavedProgress() {
+            const savedProgress = localStorage.getItem('wealthMatrixProgress');
+            if (savedProgress) {
+                const progress = JSON.parse(savedProgress);
+                if (confirm('检测到未完成的阵法进度，是否继续？')) {
+                    restoreProgress(progress);
+                } else {
+                    localStorage.removeItem('wealthMatrixProgress');
+                }
+            }
         }
-    }
-}
-
-// 恢复进度
-function restoreProgress(progress) {
-    // 隐藏输入表单
-    document.getElementById('formSection').classList.add('hidden');
-    
-    // 设置用户信息
-    document.getElementById('name').value = progress.name;
-    document.getElementById('year').value = progress.year;
-    document.getElementById('month').value = progress.month;
-    document.getElementById('day').value = progress.day;
-    document.getElementById('hour').value = progress.hour;
-    
-    // 显示香炉
-    const incenseContainer = document.getElementById('incenseContainer');
-    incenseContainer.style.display = 'block';
-    
-    // 恢复香的状态
-    const incenses = [
-        document.getElementById('incense1'),
-        document.getElementById('incense2'),
-        document.getElementById('incense3')
-    ];
-    
-    progress.incenseLit.forEach((lit, index) => {
-        if (lit) {
-            incenses[index].classList.add('lit');
+        
+        // 恢复进度
+        function restoreProgress(progress) {
+            // 隐藏输入表单
+            document.getElementById('formSection').style.display = 'none';
+            
+            // 设置用户信息
+            document.getElementById('name').value = progress.name;
+            document.getElementById('year').value = progress.year;
+            document.getElementById('month').value = progress.month;
+            document.getElementById('day').value = progress.day;
+            document.getElementById('hour').value = progress.hour;
+            
+            // 显示香炉
+            const incenseContainer = document.getElementById('incenseContainer');
+            incenseContainer.style.display = 'block';
+            
+            // 恢复香的状态
+            const incenses = [
+                document.getElementById('incense1'),
+                document.getElementById('incense2'),
+                document.getElementById('incense3')
+            ];
+            
+            progress.incenseLit.forEach((lit, index) => {
+                if (lit) {
+                    incenses[index].classList.add('lit');
+                }
+            });
+            
+            // 显示八字信息
+            displayBaziInfo(progress.year, progress.month, progress.day, progress.hour);
+            
+            // 根据进度状态继续仪式
+            if (progress.phase === 'incense') {
+                document.getElementById('ritualStatus').textContent = 
+                    `已点燃 ${progress.incenseLit.filter(lit => lit).length}/3 根香`;
+                document.getElementById('ritualStatus').style.display = 'block';
+                setupIncenseClickHandlers(progress.name);
+            } else if (progress.phase === 'incenseCountdown') {
+                continueIncenseCountdown(progress);
+            } else if (progress.phase === 'matrix') {
+                continueMatrixCountdown(progress);
+            }
+            
+            // 显示结束阵法按钮
+            document.getElementById('endRitualBtn').style.display = 'block';
         }
-    });
-    
-    // 显示八字信息
-    displayBaziInfo(progress.year, progress.month, progress.day, progress.hour);
-    
-    // 根据进度状态继续仪式
-    if (progress.phase === 'incense') {
-        document.getElementById('ritualProgress').textContent = 
-            `已点燃 ${progress.incenseLit.filter(lit => lit).length}/3 根香`;
-        setupIncenseClickHandlers(progress.name);
-    } else if (progress.phase === 'incenseCountdown') {
-        continueIncenseCountdown(progress);
-    } else if (progress.phase === 'matrix') {
-        continueMatrixCountdown(progress);
-    }
-    
-    // 显示结束阵法按钮
-    document.getElementById('endRitualBtn').style.display = 'block';
-}
-
-// 开始点香仪式
-document.getElementById('startRitual').addEventListener('click', function() {
-    const name = document.getElementById('name').value.trim();
-    const year = parseInt(document.getElementById('year').value);
-    const month = parseInt(document.getElementById('month').value);
-    const day = parseInt(document.getElementById('day').value);
-    const hour = parseInt(document.getElementById('hour').value);
-    
-    if (!name || isNaN(year) || isNaN(month) || isNaN(day) || isNaN(hour)) {
-        alert('请填写完整且有效的出生信息');
-        return;
-    }
-    
-    // 隐藏输入表单
-    document.getElementById('formSection').classList.add('hidden');
-    
-    // 显示进度信息
-    const progressElement = document.getElementById('ritualProgress');
-    progressElement.textContent = '请点击每根香进行点燃...';
-    
-    // 显示香炉
-    const incenseContainer = document.getElementById('incenseContainer');
-    incenseContainer.style.display = 'block';
-    
-    // 显示八字信息
-    displayBaziInfo(year, month, day, hour);
-    
-    // 设置香点击事件
-    setupIncenseClickHandlers(name);
-    
-    // 显示结束阵法按钮
-    document.getElementById('endRitualBtn').style.display = 'block';
-    
-    // 保存进度
-    saveProgress({
-        phase: 'incense',
-        name: name,
-        year: year,
-        month: month,
-        day: day,
-        hour: hour,
-        incenseLit: [false, false, false],
-        startTime: Date.now()
-    });
-});
-
-// 显示八字信息
-function displayBaziInfo(year, month, day, hour) {
-    const baziDisplay = document.getElementById('baziDisplay');
-    const baziGrid = document.getElementById('baziGrid');
-    
-    try {
-        // 创建阳历日期对象
-        const solarDate = new Date(year, month - 1, day);
         
-        // 转换为农历日期
-        const lunarDate = Lunar.fromDate(solarDate);
-        
-        // 设置时辰
-        const timeZhi = LunarUtil.ZHI[hour % 12];
-        
-        // 获取八字信息
-        const bazi = lunarDate.getEightChar();
-        
-        // 清空现有内容
-        baziGrid.innerHTML = '';
-        
-        // 八字四柱
-        const pillars = [
-            { name: '年柱', value: bazi.yearGan + bazi.yearZhi, element: '' },
-            { name: '月柱', value: bazi.monthGan + bazi.monthZhi, element: '' },
-            { name: '日柱', value: bazi.dayGan + bazi.dayZhi, element: '' },
-            { name: '时柱', value: bazi.timeGan + timeZhi, element: '' }
-        ];
-        
-        // 添加八字到网格
-        pillars.forEach(pillar => {
-            const cell = document.createElement('div');
-            cell.className = 'bazi-cell';
-            cell.innerHTML = `<strong>${pillar.name}</strong><span>${pillar.value}</span>`;
-            baziGrid.appendChild(cell);
+        // 开始点香仪式
+        document.getElementById('startRitual').addEventListener('click', function() {
+            const name = document.getElementById('name').value.trim();
+            const year = parseInt(document.getElementById('year').value);
+            const month = parseInt(document.getElementById('month').value);
+            const day = parseInt(document.getElementById('day').value);
+            const hour = parseInt(document.getElementById('hour').value);
+            
+            if (!name || isNaN(year) || isNaN(month) || isNaN(day) || isNaN(hour)) {
+                alert('请填写完整且有效的出生信息');
+                return;
+            }
+            
+            // 隐藏输入表单
+            document.getElementById('formSection').style.display = 'none';
+            
+            // 显示进度信息
+            const ritualStatus = document.getElementById('ritualStatus');
+            ritualStatus.textContent = '请点击每根香进行点燃...';
+            ritualStatus.style.display = 'block';
+            
+            // 显示香炉
+            const incenseContainer = document.getElementById('incenseContainer');
+            incenseContainer.style.display = 'block';
+            
+            // 显示八字信息
+            displayBaziInfo(year, month, day, hour);
+            
+            // 设置香点击事件
+            setupIncenseClickHandlers(name);
+            
+            // 显示结束阵法按钮
+            document.getElementById('endRitualBtn').style.display = 'block';
+            
+            // 保存进度
+            saveProgress({
+                phase: 'incense',
+                name: name,
+                year: year,
+                month: month,
+                day: day,
+                hour: hour,
+                incenseLit: [false, false, false],
+                startTime: Date.now()
+            });
         });
         
         // 显示八字信息
-        baziDisplay.style.display = 'block';
-    } catch (error) {
-        console.error('计算八字时出错:', error);
-        baziDisplay.style.display = 'none';
-    }
-}
-
-// 设置香点击事件处理
-function setupIncenseClickHandlers(name) {
-    const incenses = [
-        document.getElementById('incense1'),
-        document.getElementById('incense2'),
-        document.getElementById('incense3')
-    ];
-    
-    let litCount = 0;
-    
-    incenses.forEach((incense, index) => {
-        incense.addEventListener('click', function() {
-            if (!this.classList.contains('lit')) {
-                this.classList.add('lit');
-                litCount++;
+        function displayBaziInfo(year, month, day, hour) {
+            const baziDisplay = document.getElementById('baziDisplay');
+            const baziGrid = document.getElementById('baziGrid');
+            
+            try {
+                // 创建阳历日期对象
+                const solarDate = new Date(year, month - 1, day);
                 
-                // 更新进度信息
-                document.getElementById('ritualProgress').textContent = 
-                    `已点燃 ${litCount}/3 根香${litCount < 3 ? '，请继续点击下一根' : ''}`;
+                // 转换为农历日期
+                const lunarDate = Lunar.fromDate(solarDate);
                 
-                // 播放音效
-                playSound('ignite');
+                // 获取八字信息
+                const bazi = lunarDate.getEightChar();
+                
+                // 获取时辰地支
+                const timeZhi = LunarUtil.ZHI[hour % 12];
+                
+                // 清空现有内容
+                baziGrid.innerHTML = '';
+                
+                // 八字四柱
+                const pillars = [
+                    { name: '年柱', value: bazi.getYearGan() + bazi.getYearZhi() },
+                    { name: '月柱', value: bazi.getMonthGan() + bazi.getMonthZhi() },
+                    { name: '日柱', value: bazi.getDayGan() + bazi.getDayZhi() },
+                    { name: '时柱', value: bazi.getTimeGan() + timeZhi }
+                ];
+                
+                // 添加八字到网格
+                pillars.forEach(pillar => {
+                    const cell = document.createElement('div');
+                    cell.className = 'bazi-cell';
+                    cell.innerHTML = `<strong>${pillar.name}</strong><span>${pillar.value}</span>`;
+                    baziGrid.appendChild(cell);
+                });
+                
+                // 显示八字信息
+                baziDisplay.style.display = 'block';
+            } catch (error) {
+                console.error('计算八字时出错:', error);
+                baziDisplay.style.display = 'none';
+            }
+        }
+        
+        // 设置香点击事件处理
+        function setupIncenseClickHandlers(name) {
+            const incenses = [
+                document.getElementById('incense1'),
+                document.getElementById('incense2'),
+                document.getElementById('incense3')
+            ];
+            
+            let litCount = 0;
+            
+            incenses.forEach((incense, index) => {
+                incense.addEventListener('click', function() {
+                    if (!this.classList.contains('lit')) {
+                        this.classList.add('lit');
+                        litCount++;
+                        
+                        // 更新进度信息
+                        document.getElementById('ritualStatus').textContent = 
+                            `已点燃 ${litCount}/3 根香${litCount < 3 ? '，请继续点击下一根' : ''}`;
+                        
+                        // 更新保存的进度
+                        const savedProgress = JSON.parse(localStorage.getItem('wealthMatrixProgress'));
+                        if (savedProgress) {
+                            savedProgress.incenseLit[index] = true;
+                            if (litCount === 3) {
+                                savedProgress.phase = 'incenseCountdown';
+                                savedProgress.incenseStartTime = Date.now();
+                            }
+                            saveProgress(savedProgress);
+                        }
+                        
+                        // 如果全部点燃，开始倒计时
+                        if (litCount === 3) {
+                            startIncenseCountdown(name);
+                        }
+                    }
+                });
+            });
+        }
+        
+        // 点香倒计时
+        function startIncenseCountdown(name) {
+            // 更新进度信息
+            document.getElementById('ritualStatus').textContent = '香已全部点燃，仪式进行中...';
+            
+            // 显示进度条
+            const progressContainer = document.getElementById('progressContainer');
+            const progressBar = document.getElementById('progressBar');
+            progressContainer.style.display = 'block';
+            
+            // 显示聚财灵咒
+            const incantation = document.getElementById('wealthIncantation');
+            incantation.style.display = 'block';
+            
+            const startTime = Date.now();
+            let elapsedSeconds = 0;
+            let progress = 0;
+            const progressIncrement = 100 / INCENSE_DURATION;
+            
+            const countdown = setInterval(() => {
+                elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
+                const remainingSeconds = INCENSE_DURATION - elapsedSeconds;
+                
+                if (remainingSeconds <= 0) {
+                    clearInterval(countdown);
+                    incenseCeremonyComplete(name);
+                    return;
+                }
+                
+                progress = elapsedSeconds * progressIncrement;
+                progressBar.style.width = `${progress}%`;
                 
                 // 更新保存的进度
                 const savedProgress = JSON.parse(localStorage.getItem('wealthMatrixProgress'));
                 if (savedProgress) {
-                    savedProgress.incenseLit[index] = true;
-                    if (litCount === 3) {
-                        savedProgress.phase = 'incenseCountdown';
-                        savedProgress.incenseStartTime = Date.now();
-                    }
+                    savedProgress.elapsedSeconds = elapsedSeconds;
                     saveProgress(savedProgress);
                 }
+            }, 1000);
+            
+            // 保存进度
+            saveProgress({
+                phase: 'incenseCountdown',
+                name: name,
+                year: document.getElementById('year').value,
+                month: document.getElementById('month').value,
+                day: document.getElementById('day').value,
+                hour: document.getElementById('hour').value,
+                incenseLit: [true, true, true],
+                startTime: startTime,
+                elapsedSeconds: 0
+            });
+        }
+        
+        // 继续点香倒计时
+        function continueIncenseCountdown(progress) {
+            const name = progress.name;
+            const startTime = Date.now() - (progress.elapsedSeconds * 1000);
+            
+            // 更新进度信息
+            document.getElementById('ritualStatus').textContent = '香已全部点燃，仪式进行中...';
+            document.getElementById('ritualStatus').style.display = 'block';
+            
+            // 显示进度条
+            const progressContainer = document.getElementById('progressContainer');
+            const progressBar = document.getElementById('progressBar');
+            progressContainer.style.display = 'block';
+            progressBar.style.width = `${(progress.elapsedSeconds / INCENSE_DURATION) * 100}%`;
+            
+            // 显示聚财灵咒
+            const incantation = document.getElementById('wealthIncantation');
+            incantation.style.display = 'block';
+            
+            let elapsedSeconds = progress.elapsedSeconds;
+            const progressIncrement = 100 / INCENSE_DURATION;
+            
+            const countdown = setInterval(() => {
+                elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
+                const remainingSeconds = INCENSE_DURATION - elapsedSeconds;
                 
-                // 如果全部点燃，开始倒计时
-                if (litCount === 3) {
-                    startIncenseCountdown(name);
+                if (remainingSeconds <= 0) {
+                    clearInterval(countdown);
+                    incenseCeremonyComplete(name);
+                    return;
                 }
+                
+                const progress = elapsedSeconds * progressIncrement;
+                progressBar.style.width = `${progress}%`;
+                
+                // 更新保存的进度
+                const savedProgress = JSON.parse(localStorage.getItem('wealthMatrixProgress'));
+                if (savedProgress) {
+                    savedProgress.elapsedSeconds = elapsedSeconds;
+                    saveProgress(savedProgress);
+                }
+            }, 1000);
+        }
+        
+        // 点香仪式完成
+        function incenseCeremonyComplete(name) {
+            // 隐藏聚财灵咒
+            document.getElementById('wealthIncantation').style.display = 'none';
+            
+            // 隐藏进度条
+            document.getElementById('progressContainer').style.display = 'none';
+            
+            // 显示用户名字
+            const userNameDisplay = document.getElementById('userNameDisplay');
+            userNameDisplay.textContent = name;
+            userNameDisplay.style.display = 'block';
+            
+            // 激活阵法
+            activateMatrix(name);
+        }
+        
+        // 激活阵法
+        function activateMatrix(name) {
+            // 显示阵法
+            document.getElementById('matrixContainer').style.display = 'block';
+            
+            // 开始24小时倒计时
+            startMatrixCountdown();
+            
+            // 开始检查香是否熄灭
+            startExtinguishCheck();
+            
+            // 显示24小时倒计时
+            const matrixCountdown = document.getElementById('matrixCountdown');
+            matrixCountdown.style.display = 'block';
+            
+            // 保存进度
+            saveProgress({
+                phase: 'matrix',
+                name: name,
+                year: document.getElementById('year').value,
+                month: document.getElementById('month').value,
+                day: document.getElementById('day').value,
+                hour: document.getElementById('hour').value,
+                incenseLit: [true, true, true],
+                startTime: Date.now(),
+                matrixStartTime: Date.now()
+            });
+        }
+        
+        // 继续阵法倒计时
+        function continueMatrixCountdown(progress) {
+            const name = progress.name;
+            const startTime = progress.matrixStartTime ? progress.matrixStartTime : Date.now();
+            
+            // 显示阵法
+            document.getElementById('matrixContainer').style.display = 'block';
+            
+            // 显示用户名字
+            const userNameDisplay = document.getElementById('userNameDisplay');
+            userNameDisplay.textContent = name;
+            userNameDisplay.style.display = 'block';
+            
+            // 开始24小时倒计时
+            continueMatrixTimer(startTime);
+            
+            // 开始检查香是否熄灭
+            startExtinguishCheck();
+            
+            // 显示24小时倒计时
+            const matrixCountdown = document.getElementById('matrixCountdown');
+            matrixCountdown.style.display = 'block';
+        }
+        
+        // 检查香是否熄灭
+        function startExtinguishCheck() {
+            const incenses = [
+                document.getElementById('incense1'),
+                document.getElementById('incense2'),
+                document.getElementById('incense3')
+            ];
+            
+            let extinguishedCount = 0;
+            const startTime = Date.now();
+            
+            const checkInterval = setInterval(() => {
+                // 如果已经过了5小时，停止检查
+                if (Date.now() - startTime > EXTINGUISH_CHECK_DURATION * 1000) {
+                    clearInterval(checkInterval);
+                    return;
+                }
+                
+                incenses.forEach(incense => {
+                    if (incense.classList.contains('lit')) {
+                        // 10%概率熄灭
+                        if (Math.random() < EXTINGUISH_PROBABILITY) {
+                            incense.classList.remove('lit');
+                            extinguishedCount++;
+                            
+                            // 更新进度信息
+                            document.getElementById('ritualStatus').textContent = 
+                                `警告：${extinguishedCount}/3 根香已熄灭`;
+                            document.getElementById('ritualStatus').style.display = 'block';
+                            
+                            // 更新保存的进度
+                            const savedProgress = JSON.parse(localStorage.getItem('wealthMatrixProgress'));
+                            if (savedProgress) {
+                                savedProgress.incenseLit = incenses.map(inc => inc.classList.contains('lit'));
+                                saveProgress(savedProgress);
+                            }
+                            
+                            // 如果全部熄灭，阵法失败
+                            if (extinguishedCount === 3) {
+                                clearInterval(checkInterval);
+                                matrixFailed();
+                            }
+                        }
+                    }
+                });
+            }, EXTINGUISH_CHECK_INTERVAL * 1000);
+        }
+        
+        // 阵法失败
+        function matrixFailed() {
+            // 显示失败信息
+            document.getElementById('failureMessage').style.display = 'block';
+            
+            // 隐藏其他元素
+            document.getElementById('matrixContainer').style.display = 'none';
+            document.getElementById('incenseContainer').style.display = 'none';
+            document.getElementById('matrixCountdown').style.display = 'none';
+            document.getElementById('userNameDisplay').style.display = 'none';
+            document.getElementById('endRitualBtn').style.display = 'none';
+            
+            // 更新进度信息
+            document.getElementById('ritualStatus').textContent = '阵法失败：三根香全部熄灭';
+            
+            // 删除保存的进度
+            localStorage.removeItem('wealthMatrixProgress');
+            
+            // 5秒后自动刷新页面
+            setTimeout(() => {
+                location.reload();
+            }, 5000);
+        }
+        
+        // 24小时阵法倒计时
+        function startMatrixCountdown() {
+            const startTime = Date.now();
+            
+            const countdownElement = document.getElementById('matrixCountdown');
+            
+            const countdown = setInterval(() => {
+                const elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
+                const remainingSeconds = MATRIX_DURATION - elapsedSeconds;
+                
+                if (remainingSeconds <= 0) {
+                    clearInterval(countdown);
+                    showFinalEffect();
+                    return;
+                }
+                
+                const hours = Math.floor(remainingSeconds / 3600);
+                const minutes = Math.floor((remainingSeconds % 3600) / 60);
+                const seconds = remainingSeconds % 60;
+                
+                countdownElement.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                
+                // 更新保存的进度
+                const savedProgress = JSON.parse(localStorage.getItem('wealthMatrixProgress'));
+                if (savedProgress) {
+                    savedProgress.matrixElapsedSeconds = elapsedSeconds;
+                    saveProgress(savedProgress);
+                }
+            }, 1000);
+        }
+        
+        // 继续24小时阵法倒计时
+        function continueMatrixTimer(startTime) {
+            const countdownElement = document.getElementById('matrixCountdown');
+            
+            const countdown = setInterval(() => {
+                const elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
+                const remainingSeconds = MATRIX_DURATION - elapsedSeconds;
+                
+                if (remainingSeconds <= 0) {
+                    clearInterval(countdown);
+                    showFinalEffect();
+                    return;
+                }
+                
+                const hours = Math.floor(remainingSeconds / 3600);
+                const minutes = Math.floor((remainingSeconds % 3600) / 60);
+                const seconds = remainingSeconds % 60;
+                
+                countdownElement.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                
+                // 更新保存的进度
+                const savedProgress = JSON.parse(localStorage.getItem('wealthMatrixProgress'));
+                if (savedProgress) {
+                    savedProgress.matrixElapsedSeconds = elapsedSeconds;
+                    saveProgress(savedProgress);
+                }
+            }, 1000);
+        }
+        
+        // 显示最终效果
+        function showFinalEffect() {
+            const finalEffect = document.getElementById('finalEffect');
+            const goldCoins = document.getElementById('goldCoins');
+            
+            finalEffect.style.display = 'flex';
+            goldCoins.style.display = 'block';
+            
+            // 创建金币雨
+            createCoinRain();
+            
+            // 删除保存的进度
+            localStorage.removeItem('wealthMatrixProgress');
+            
+            // 隐藏结束阵法按钮
+            document.getElementById('endRitualBtn').style.display = 'none';
+            
+            // 5秒后显示完成页面
+            setTimeout(() => {
+                finalEffect.style.display = 'none';
+                goldCoins.style.display = 'none';
+                
+                // 显示完成页面
+                document.getElementById('finalCompletion').style.display = 'flex';
+                
+                // 隐藏其他元素
+                document.getElementById('matrixContainer').style.display = 'none';
+                document.getElementById('incenseContainer').style.display = 'none';
+                document.getElementById('matrixCountdown').style.display = 'none';
+                document.getElementById('userNameDisplay').style.display = 'none';
+                document.getElementById('ritualStatus').textContent = '';
+            }, 5000);
+        }
+        
+        // 创建粒子效果
+        function createParticles() {
+            const particles = document.getElementById('particles');
+            particles.innerHTML = '';
+            
+            const symbols = ['★', '☆', '✧', '✦', '✪', '✫', '✬', '✭', '✮', '✯'];
+            
+            for (let i = 0; i < 100; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+                particle.style.left = `${Math.random() * 100}vw`;
+                particle.style.top = `${Math.random() * 100}vh`;
+                particle.style.animationDelay = `${Math.random() * 5}s`;
+                particle.style.animationDuration = `${Math.random() * 10 + 10}s`;
+                particles.appendChild(particle);
+            }
+        }
+        
+        // 创建金币雨
+        function createCoinRain() {
+            const goldCoins = document.getElementById('goldCoins');
+            goldCoins.innerHTML = '';
+            
+            for (let i = 0; i < 50; i++) {
+                setTimeout(() => {
+                    const coin = document.createElement('div');
+                    coin.className = 'gold-coin';
+                    coin.style.left = `${Math.random() * 100}vw`;
+                    coin.style.top = '-50px';
+                    coin.style.animationDuration = `${Math.random() * 2 + 1}s`;
+                    coin.style.animationDelay = `${Math.random() * 0.5}s`;
+                    goldCoins.appendChild(coin);
+                    
+                    // 动画结束后移除金币
+                    setTimeout(() => {
+                        coin.remove();
+                    }, 3000);
+                }, i * 100);
+            }
+        }
+        
+        // 保存进度到localStorage
+        function saveProgress(progress) {
+            localStorage.setItem('wealthMatrixProgress', JSON.stringify(progress));
+        }
+        
+        // 结束阵法按钮点击事件
+        document.getElementById('endRitualBtn').addEventListener('click', function() {
+            if (confirm('确定要结束阵法吗？这将清除所有进度。')) {
+                // 删除保存的进度
+                localStorage.removeItem('wealthMatrixProgress');
+                
+                // 刷新页面
+                location.reload();
             }
         });
-    });
-}
-
-// 播放音效
-function playSound(type) {
-    // 这里可以添加音效播放代码
-    // 实际使用时需要添加音频文件并创建Audio对象
-    try {
-        const audio = new Audio(`sounds/${type}.mp3`);
-        audio.play().catch(e => console.log('音频播放失败:', e));
-    } catch (e) {
-        console.log('音频播放错误:', e);
-    }
-}
-
-// 点香倒计时
-function startIncenseCountdown(name) {
-    // 更新进度信息
-    document.getElementById('ritualProgress').textContent = '';
-    document.getElementById('ritualStatus').textContent = '香已全部点燃，仪式进行中...';
-    document.getElementById('ritualStatus').style.display = 'block';
-    
-    // 显示进度条
-    const progressContainer = document.getElementById('progressContainer');
-    const progressBar = document.getElementById('progressBar');
-    progressContainer.style.display = 'block';
-    
-    // 显示聚财灵咒
-    const incantation = document.getElementById('wealthIncantation');
-    incantation.style.display = 'block';
-    
-    // 激活背景元素
-    activateBackgroundElements();
-    
-    const startTime = Date.now();
-    let elapsedSeconds = 0;
-    let progress = 0;
-    const progressIncrement = 100 / INCENSE_DURATION;
-    
-    const countdown = setInterval(() => {
-        elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
-        const remainingSeconds = INCENSE_DURATION - elapsedSeconds;
-        
-        if (remainingSeconds <= 0) {
-            clearInterval(countdown);
-            incenseCeremonyComplete(name);
-            return;
-        }
-        
-        progress = elapsedSeconds * progressIncrement;
-        progressBar.style.width = `${progress}%`;
-        
-        // 更新保存的进度
-        const savedProgress = JSON.parse(localStorage.getItem('wealthMatrixProgress'));
-        if (savedProgress) {
-            savedProgress.elapsedSeconds = elapsedSeconds;
-            saveProgress(savedProgress);
-        }
-    }, 1000);
-    
-    // 保存进度
-    saveProgress({
-        phase: 'incenseCountdown',
-        name: name,
-        year: document.getElementById('year').value,
-        month: document.getElementById('month').value,
-        day: document.getElementById('day').value,
-        hour: document.getElementById('hour').value,
-        incenseLit: [true, true, true],
-        startTime: startTime,
-        elapsedSeconds: 0
-    });
-}
-
-// 继续点香倒计时
-function continueIncenseCountdown(progress) {
-    const name = progress.name;
-    const startTime = Date.now() - (progress.elapsedSeconds * 1000);
-    const remainingSeconds = INCENSE_DURATION - progress.elapsedSeconds;
-    
-    // 更新进度信息
-    document.getElementById('ritualProgress').textContent = '';
-    document.getElementById('ritualStatus').textContent = '香已全部点燃，仪式进行中...';
-    document.getElementById('ritualStatus').style.display = 'block';
-    
-    // 显示进度条
-    const progressContainer = document.getElementById('progressContainer');
-    const progressBar = document.getElementById('progressBar');
-    progressContainer.style.display = 'block';
-    progressBar.style.width = `${(progress.elapsedSeconds / INCENSE_DURATION) * 100}%`;
-    
-    // 显示聚财灵咒
-    const incantation = document.getElementById('wealthIncantation');
-    incantation.style.display = 'block';
-    
-    // 激活背景元素
-    activateBackgroundElements();
-    
-    let elapsedSeconds = progress.elapsedSeconds;
-    const progressIncrement = 100 / INCENSE_DURATION;
-    
-    const countdown = setInterval(() => {
-        elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
-        const remainingSeconds = INCENSE_DURATION - elapsedSeconds;
-        
-        if (remainingSeconds <= 0) {
-            clearInterval(countdown);
-            incenseCeremonyComplete(name);
-            return;
-        }
-        
-        const progress = elapsedSeconds * progressIncrement;
-        progressBar.style.width = `${progress}%`;
-        
-        // 更新保存的进度
-        const savedProgress = JSON.parse(localStorage.getItem('wealthMatrixProgress'));
-        if (savedProgress) {
-            savedProgress.elapsedSeconds = elapsedSeconds;
-            saveProgress(savedProgress);
-        }
-    }, 1000);
-}
-
-// 激活背景元素
-function activateBackgroundElements() {
-    // 激活神秘光芒
-    const lights = document.querySelectorAll('.mystical-light');
-    lights.forEach(light => {
-        light.style.opacity = '0.5';
-        light.style.animationPlayState = 'running';
-    });
-    
-    // 激活八卦图
-    document.querySelector('.bagua').style.animationPlayState = 'running';
-    
-    // 激活道家符号
-    const taoistSymbols = document.querySelectorAll('.taoist-symbol');
-    taoistSymbols.forEach(symbol => {
-        symbol.style.animationPlayState = 'running';
-    });
-    
-    // 激活圆圈
-    const circles = document.querySelectorAll('.circle');
-    circles.forEach(circle => {
-        circle.style.animationPlayState = 'running';
-    });
-    
-    // 激活宇宙射线
-    document.getElementById('cosmicRays').style.opacity = '0.5';
-    createCosmicRays();
-}
-
-// 创建宇宙射线
-function createCosmicRays() {
-    const cosmicRays = document.getElementById('cosmicRays');
-    cosmicRays.innerHTML = '';
-    
-    for (let i = 0; i < 8; i++) {
-        const ray = document.createElement('div');
-        ray.className = 'cosmic-ray';
-        ray.style.left = `${Math.random() * 100}%`;
-        ray.style.animationDelay = `${Math.random() * 3}s`;
-        cosmicRays.appendChild(ray);
-    }
-}
-
-// 点香仪式完成
-function incenseCeremonyComplete(name) {
-    // 隐藏聚财灵咒
-    document.getElementById('wealthIncantation').style.display = 'none';
-    
-    // 隐藏进度条和状态
-    document.getElementById('progressContainer').style.display = 'none';
-    document.getElementById('ritualStatus').style.display = 'none';
-    
-    // 显示用户名字
-    const userNameDisplay = document.getElementById('userNameDisplay');
-    userNameDisplay.textContent = name;
-    userNameDisplay.style.display = 'block';
-    
-    // 激活能量效果
-    activateEnergyEffects();
-    
-    // 激活阵法
-    activateMatrix(name);
-}
-
-// 激活能量效果
-function activateEnergyEffects() {
-    // 显示能量光束
-    const energyBeam = document.getElementById('energyBeam');
-    energyBeam.style.height = '100vh';
-    energyBeam.style.opacity = '0.6';
-    
-    // 显示神圣光芒
-    document.getElementById('divineLight').style.opacity = '0.3';
-    
-    // 创建能量粒子
-    const energyParticles = document.getElementById('energyParticles');
-    energyParticles.style.display = 'block';
-    
-    for (let i = 0; i < 100; i++) {
-        setTimeout(() => {
-            const particle = document.createElement('div');
-            particle.className = 'energy-particle';
-            particle.style.left = `${Math.random() * 100}vw`;
-            particle.style.bottom = '0';
-            particle.style.animationDuration = `${Math.random() * 5 + 5}s`;
-            particle.style.animationDelay = `${Math.random() * 2}s`;
-            energyParticles.appendChild(particle);
-            
-            // 动画结束后移除粒子
-            setTimeout(() => {
-                particle.remove();
-            }, 7000);
-        }, i * 100);
-    }
-    
-    // 创建闪光效果
-    createSparkles();
-}
-
-// 创建闪光效果
-function createSparkles() {
-    const container = document.querySelector('.ritual-panel');
-    
-    for (let i = 0; i < 30; i++) {
-        const sparkle = document.createElement('div');
-        sparkle.className = 'sparkle';
-        sparkle.style.left = `${Math.random() * 100}%`;
-        sparkle.style.top = `${Math.random() * 100}%`;
-        sparkle.style.animationDelay = `${Math.random() * 2}s`;
-        container.appendChild(sparkle);
-    }
-    
-    // 创建能量球
-    for (let i = 0; i < 5; i++) {
-        const orb = document.createElement('div');
-        orb.className = 'energy-orb';
-        orb.style.left = `${Math.random() * 100}%`;
-        orb.style.top = `${Math.random() * 100}%`;
-        orb.style.animationDelay = `${Math.random() * 2}s`;
-        container.appendChild(orb);
-    }
-}
-
-// 激活阵法
-function activateMatrix(name) {
-    // 显示阵法
-    document.getElementById('matrixContainer').style.display = 'block';
-    
-    // 创建粒子效果
-    createParticles();
-    
-    // 创建阵法符号
-    createSymbols();
-    
-    // 创建道家符号背景
-    createTaoistSymbols();
-    
-    // 开始24小时倒计时
-    startMatrixCountdown();
-    
-    // 开始检查香是否熄灭
-    startExtinguishCheck();
-    
-    // 显示24小时倒计时
-    const matrixCountdown = document.getElementById('matrixCountdown');
-    matrixCountdown.style.display = 'block';
-    
-    // 保存进度
-    saveProgress({
-        phase: 'matrix',
-        name: name,
-        year: document.getElementById('year').value,
-        month: document.getElementById('month').value,
-        day: document.getElementById('day').value,
-        hour: document.getElementById('hour').value,
-        incenseLit: [true, true, true],
-        startTime: Date.now(),
-        matrixStartTime: Date.now()
-    });
-}
-
-// 继续阵法倒计时
-function continueMatrixCountdown(progress) {
-    const name = progress.name;
-    const startTime = progress.matrixStartTime ? progress.matrixStartTime : Date.now();
-    
-    // 显示阵法
-    document.getElementById('matrixContainer').style.display = 'block';
-    
-    // 创建粒子效果
-    createParticles();
-    
-    // 创建阵法符号
-    createSymbols();
-    
-    // 创建道家符号背景
-    createTaoistSymbols();
-    
-    // 显示用户名字
-    const userNameDisplay = document.getElementById('userNameDisplay');
-    userNameDisplay.textContent = name;
-    userNameDisplay.style.display = 'block';
-    
-    // 激活能量效果
-    activateEnergyEffects();
-    
-    // 开始24小时倒计时
-    continueMatrixTimer(startTime);
-    
-    // 开始检查香是否熄灭
-    startExtinguishCheck();
-    
-    // 显示24小时倒计时
-    const matrixCountdown = document.getElementById('matrixCountdown');
-    matrixCountdown.style.display = 'block';
-}
-
-// 检查香是否熄灭
-function startExtinguishCheck() {
-    const incenses = [
-        document.getElementById('incense1'),
-        document.getElementById('incense2'),
-        document.getElementById('incense3')
-    ];
-    
-    let extinguishedCount = 0;
-    const startTime = Date.now();
-    
-    const checkInterval = setInterval(() => {
-        // 如果已经过了5小时，停止检查
-        if (Date.now() - startTime > EXTINGUISH_CHECK_DURATION * 1000) {
-            clearInterval(checkInterval);
-            return;
-        }
-        
-        incenses.forEach(incense => {
-            if (incense.classList.contains('lit')) {
-                // 10%概率熄灭
-                if (Math.random() < EXTINGUISH_PROBABILITY) {
-                    incense.classList.remove('lit');
-                    extinguishedCount++;
-                    
-                    // 更新进度信息
-                    document.getElementById('ritualProgress').textContent = 
-                        `警告：${extinguishedCount}/3 根香已熄灭`;
-                    
-                    // 播放音效
-                    playSound('extinguish');
-                    
-                    // 更新保存的进度
-                    const savedProgress = JSON.parse(localStorage.getItem('wealthMatrixProgress'));
-                    if (savedProgress) {
-                        savedProgress.incenseLit = incenses.map(inc => inc.classList.contains('lit'));
-                        saveProgress(savedProgress);
-                    }
-                    
-                    // 如果全部熄灭，阵法失败
-                    if (extinguishedCount === 3) {
-                        clearInterval(checkInterval);
-                        matrixFailed();
-                    }
-                }
-            }
-        });
-    }, EXTINGUISH_CHECK_INTERVAL * 1000);
-}
-
-// 阵法失败
-function matrixFailed() {
-    // 显示失败信息
-    document.getElementById('failureMessage').style.display = 'block';
-    
-    // 隐藏其他元素
-    document.getElementById('matrixContainer').style.display = 'none';
-    document.getElementById('incenseContainer').style.display = 'none';
-    document.getElementById('matrixCountdown').style.display = 'none';
-    document.getElementById('ritualComplete').style.display = 'none';
-    document.getElementById('userNameDisplay').style.display = 'none';
-    document.getElementById('endRitualBtn').style.display = 'none';
-    
-    // 停止所有动画
-    stopAllAnimations();
-    
-    // 更新进度信息
-    document.getElementById('ritualProgress').textContent = '阵法失败：三根香全部熄灭';
-    
-    // 删除保存的进度
-    localStorage.removeItem('wealthMatrixProgress');
-    
-    // 5秒后自动刷新页面
-    setTimeout(() => {
-        location.reload();
-    }, 5000);
-}
-
-// 停止所有动画
-function stopAllAnimations() {
-    // 停止神秘光芒
-    const lights = document.querySelectorAll('.mystical-light');
-    lights.forEach(light => {
-        light.style.opacity = '0';
-        light.style.animationPlayState = 'paused';
-    });
-    
-    // 停止八卦图
-    document.querySelector('.bagua').style.animationPlayState = 'paused';
-    
-    // 停止道家符号
-    const taoistSymbols = document.querySelectorAll('.taoist-symbol');
-    taoistSymbols.forEach(symbol => {
-        symbol.style.animationPlayState = 'paused';
-    });
-    
-    // 停止圆圈
-    const circles = document.querySelectorAll('.circle');
-    circles.forEach(circle => {
-        circle.style.animationPlayState = 'paused';
-    });
-    
-    // 隐藏能量效果
-    document.getElementById('energyBeam').style.height = '0';
-    document.getElementById('energyBeam').style.opacity = '0';
-    document.getElementById('divineLight').style.opacity = '0';
-    document.getElementById('energyParticles').style.display = 'none';
-    document.getElementById('cosmicRays').style.opacity = '0';
-    
-    // 移除闪光效果
-    const sparkles = document.querySelectorAll('.sparkle, .energy-orb');
-    sparkles.forEach(sparkle => sparkle.remove());
-}
-
-// 24小时阵法倒计时
-function startMatrixCountdown() {
-    const startTime = Date.now();
-    
-    const countdownElement = document.getElementById('matrixCountdown');
-    
-    const countdown = setInterval(() => {
-        const elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
-        const remainingSeconds = MATRIX_DURATION - elapsedSeconds;
-        
-        if (remainingSeconds <= 0) {
-            clearInterval(countdown);
-            showFinalEffect();
-            return;
-        }
-        
-        const hours = Math.floor(remainingSeconds / 3600);
-        const minutes = Math.floor((remainingSeconds % 3600) / 60);
-        const seconds = remainingSeconds % 60;
-        
-        countdownElement.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-        
-        // 更新保存的进度
-        const savedProgress = JSON.parse(localStorage.getItem('wealthMatrixProgress'));
-        if (savedProgress) {
-            savedProgress.matrixElapsedSeconds = elapsedSeconds;
-            saveProgress(savedProgress);
-        }
-    }, 1000);
-}
-
-// 继续24小时阵法倒计时
-function continueMatrixTimer(startTime) {
-    const countdownElement = document.getElementById('matrixCountdown');
-    
-    const countdown = setInterval(() => {
-        const elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
-        const remainingSeconds = MATRIX_DURATION - elapsedSeconds;
-        
-        if (remainingSeconds <= 0) {
-            clearInterval(countdown);
-            showFinalEffect();
-            return;
-        }
-        
-        const hours = Math.floor(remainingSeconds / 3600);
-        const minutes = Math.floor((remainingSeconds % 3600) / 60);
-        const seconds = remainingSeconds % 60;
-        
-        countdownElement.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-        
-        // 更新保存的进度
-        const savedProgress = JSON.parse(localStorage.getItem('wealthMatrixProgress'));
-        if (savedProgress) {
-            savedProgress.matrixElapsedSeconds = elapsedSeconds;
-            saveProgress(savedProgress);
-        }
-    }, 1000);
-}
-
-// 显示最终效果
-function showFinalEffect() {
-    const finalEffect = document.getElementById('finalEffect');
-    const goldCoins = document.getElementById('goldCoins');
-    
-    finalEffect.style.display = 'flex';
-    goldCoins.style.display = 'block';
-    
-    // 创建金币雨
-    createCoinRain();
-    
-    // 删除保存的进度
-    localStorage.removeItem('wealthMatrixProgress');
-    
-    // 隐藏结束阵法按钮
-    document.getElementById('endRitualBtn').style.display = 'none';
-    
-    // 5秒后显示完成页面
-    setTimeout(() => {
-        finalEffect.style.display = 'none';
-        goldCoins.style.display = 'none';
-        
-        // 显示完成页面
-        document.getElementById('finalCompletion').style.display = 'flex';
-        
-        // 隐藏其他元素
-        document.getElementById('matrixContainer').style.display = 'none';
-        document.getElementById('incenseContainer').style.display = 'none';
-        document.getElementById('matrixCountdown').style.display = 'none';
-        document.getElementById('ritualComplete').style.display = 'none';
-        document.getElementById('userNameDisplay').style.display = 'none';
-        document.getElementById('ritualProgress').textContent = '';
-        
-        // 停止所有动画
-        stopAllAnimations();
-    }, 5000);
-}
-
-// 创建粒子效果
-function createParticles() {
-    const particles = document.getElementById('particles');
-    particles.innerHTML = '';
-    
-    for (let i = 0; i < 150; i++) {
-        const particle = document.createElement('div');
-        particle.className = 'symbol';
-        particle.textContent = ['★', '☆', '✧', '✦', '✪', '✫', '✬', '✭', '✮', '✯'][Math.floor(Math.random() * 10)];
-        particle.style.left = `${Math.random() * 100}vw`;
-        particle.style.top = `${Math.random() * 100}vh`;
-        particle.style.animationDelay = `${Math.random() * 5}s`;
-        particle.style.fontSize = `${Math.random() * 1 + 1}rem`;
-        particles.appendChild(particle);
-    }
-}
-
-// 创建道家符号背景
-function createTaoistSymbols() {
-    const container = document.getElementById('taoistSymbols');
-    container.innerHTML = '';
-    
-    const taoistChars = ['道', '德', '阴', '阳', '乾', '坤', '震', '巽', '坎', '离', '艮', '兑', '☯', '☰', '☱', '☲', '☳', '☴', '☵', '☶', '☷'];
-    
-    for (let i = 0; i < 30; i++) {
-        const symbol = document.createElement('div');
-        symbol.className = 'taoist-symbol';
-        symbol.textContent = taoistChars[Math.floor(Math.random() * taoistChars.length)];
-        symbol.style.left = `${Math.random() * 100}vw`;
-        symbol.style.top = `${Math.random() * 100}vh`;
-        symbol.style.fontSize = `${Math.random() * 2 + 2}rem`;
-        symbol.style.animationDuration = `${Math.random() * 10 + 10}s`;
-        symbol.style.animationDelay = `${Math.random() * 5}s`;
-        container.appendChild(symbol);
-    }
-}
-
-// 创建阵法符号
-function createSymbols() {
-    const container = document.querySelector('.ritual-panel');
-    
-    // 清除旧符号
-    const oldSymbols = document.querySelectorAll('.symbol:not(.particles *):not(.taoist-symbols *)');
-    oldSymbols.forEach(symbol => symbol.remove());
-    
-    for (let i = 0; i < 12; i++) {
-        const symbol = document.createElement('div');
-        symbol.className = 'symbol';
-        symbol.textContent = ['䷀', '䷁', '䷂', '䷃', '䷄', '䷅', '䷆', '䷇', '䷈', '䷉', '䷊', '䷋'][i];
-        
-        // 将符号均匀分布在圆周上
-        const angle = (i / 12) * 2 * Math.PI;
-        const radius = Math.min(window.innerWidth, window.innerHeight) * 0.4;
-        const centerX = window.innerWidth / 2;
-        const centerY = window.innerHeight / 2;
-        
-        symbol.style.left = `${centerX + radius * Math.cos(angle) - 15}px`;
-        symbol.style.top = `${centerY + radius * Math.sin(angle) - 15}px`;
-        symbol.style.animationDelay = `${i * 0.2}s`;
-        
-        container.appendChild(symbol);
-    }
-}
-
-// 创建金币雨
-function createCoinRain() {
-    const goldCoins = document.getElementById('goldCoins');
-    goldCoins.innerHTML = '';
-    
-    for (let i = 0; i < 50; i++) {
-        setTimeout(() => {
-            const coin = document.createElement('div');
-            coin.className = 'gold-coin';
-            coin.style.left = `${Math.random() * 100}vw`;
-            coin.style.top = '-50px';
-            coin.style.animationDuration = `${Math.random() * 2 + 1}s`;
-            coin.style.animationDelay = `${Math.random() * 0.5}s`;
-            goldCoins.appendChild(coin);
-            
-            // 动画结束后移除金币
-            setTimeout(() => {
-                coin.remove();
-            }, 3000);
-        }, i * 100);
-    }
-}
-
-// 保存进度到localStorage
-function saveProgress(progress) {
-    localStorage.setItem('wealthMatrixProgress', JSON.stringify(progress));
-}
-
-// 结束阵法按钮点击事件
-document.getElementById('endRitualBtn').addEventListener('click', function() {
-    if (confirm('确定要结束阵法吗？这将清除所有进度。')) {
-        // 删除保存的进度
-        localStorage.removeItem('wealthMatrixProgress');
-        
-        // 刷新页面
-        location.reload();
-    }
-});
     </script>
 </body>
 </html>
