@@ -9,6 +9,8 @@
         
         * {
             box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
         
         body {
@@ -17,7 +19,7 @@
             background-color: #000;
             color: #e0c080;
             font-family: 'Noto Serif SC', serif;
-            overflow-x: hidden;
+            overflow: hidden;
             min-height: 100vh;
             background-image: 
                 radial-gradient(circle at center, rgba(17, 17, 17, 0.8) 0%, rgba(0, 0, 0, 0.2) 70%),
@@ -30,17 +32,35 @@
             100% { background-position: 100px 100px, 200px 200px; }
         }
         
-        .container {
+        .main-container {
+            display: flex;
+            width: 100vw;
+            height: 100vh;
             position: relative;
-            width: 100%;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            text-align: center;
             z-index: 10;
-            min-height: 100vh;
+        }
+        
+        .instructions-panel {
+            width: 35%;
+            height: 100vh;
+            overflow-y: auto;
+            padding: 30px;
+            background-color: rgba(5, 5, 15, 0.8);
+            border-right: 1px solid rgba(224, 192, 128, 0.2);
+            box-shadow: 5px 0 15px rgba(0, 0, 0, 0.5);
+            position: relative;
+            z-index: 20;
+        }
+        
+        .ritual-panel {
+            width: 65%;
+            height: 100vh;
             display: flex;
             flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            z-index: 15;
         }
         
         h1 {
@@ -52,6 +72,7 @@
             color: #f8d030;
             position: relative;
             z-index: 20;
+            text-align: center;
         }
         
         .section {
@@ -851,6 +872,92 @@
             margin-bottom: 40px;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
         }
+        
+        /* Responsive adjustments */
+        @media (max-width: 1024px) {
+            .main-container {
+                flex-direction: column;
+            }
+            
+            .instructions-panel, .ritual-panel {
+                width: 100%;
+                height: auto;
+            }
+            
+            .instructions-panel {
+                max-height: 40vh;
+                overflow-y: auto;
+                border-right: none;
+                border-bottom: 1px solid rgba(224, 192, 128, 0.2);
+            }
+            
+            .ritual-panel {
+                height: 60vh;
+            }
+            
+            .wealth-incantation {
+                left: 50%;
+                transform: translate(-50%, -50%);
+                bottom: 20px;
+                top: auto;
+            }
+        }
+        
+        /* Ancient Chinese scroll effect for instructions */
+        .instructions-panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 30px;
+            background: linear-gradient(to bottom, rgba(5,5,15,1), rgba(5,5,15,0));
+            z-index: 21;
+        }
+        
+        .instructions-panel::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 30px;
+            background: linear-gradient(to top, rgba(5,5,15,1), rgba(5,5,15,0));
+            z-index: 21;
+        }
+        
+        /* Mystical border effects */
+        .instructions-panel {
+            position: relative;
+        }
+        
+        .instructions-panel::before, .instructions-panel::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: 22;
+        }
+        
+        .instructions-panel::before {
+            border-top: 1px solid rgba(224, 192, 128, 0.2);
+            border-bottom: 1px solid rgba(224, 192, 128, 0.2);
+            animation: borderGlow 6s infinite alternate;
+        }
+        
+        .instructions-panel::after {
+            border-left: 1px solid rgba(224, 192, 128, 0.2);
+            border-right: 1px solid rgba(224, 192, 128, 0.2);
+            animation: borderGlow 8s infinite alternate-reverse;
+        }
+        
+        @keyframes borderGlow {
+            0% { border-color: rgba(224, 192, 128, 0.2); }
+            100% { border-color: rgba(248, 208, 48, 0.4); }
+        }
     </style>
 </head>
 <body>
@@ -889,136 +996,140 @@
         <p>请择日重新启动阵法</p>
     </div>
     
-    <div class="container">
-        <h1>天罡聚财阵</h1>
-        
-        <div class="section instructions" id="instructions">
-            <h2>天罡聚财阵法使用说明</h2>
-            <span class="toggle-instructions-text" id="toggleInstructionsText">收起</span>
-            <ol>
-                <li><strong>阵法起源</strong>：此阵法源于古代道家秘传，结合北斗七星与五行相生原理，能汇聚天地财气。</li>
-                <li><strong>神奇之处</strong>：阵法一旦激活，便开启为期 9 小时的能量场，调和财运磁场，吸引财气与贵人扶助。阵法成功后，其灵效将在未来三个月内渐次显现，助您悄然开启财富之门。</li>
-                <li><strong>使用方法</strong>：
-                    <ul>
-                        <li>填写您的真实姓名和准确生辰信息，点击"开始点香仪式"按钮</li>
-                        <li>在心中默念您的财富愿望，保持网页开启9小时不关闭</li>
-                    </ul>
-                </li>
-                <li><strong>注意事项</strong>：
-                    <ul>
-                        <li>心诚则灵，请保持虔诚心态。仪式期间请勿刷新或关闭页面</li>
-                        <li>最佳激活时间为辰时(7-9点)或酉时(17-19点)</li>
-                        <li>在阵法运行过程中，香火可能会有几率熄灭。若出现熄灭情况，您可点击香重新点燃。请务必保持三根香持续燃烧，若阵法结束时三香皆灭，则视为阵法失败。</li>
-                    </ul>
-                </li>
-            </ol>
-            <p style="text-align: center; font-style: italic; color: #f8d030; margin-top: 20px;">
-                "天罡所指，财源广进；七星连珠，富贵临门"
-            </p>
+    <div class="main-container">
+        <div class="instructions-panel">
+            <h1>天罡聚财阵</h1>
+            
+            <div class="section instructions" id="instructions">
+                <h2>天罡聚财阵法使用说明</h2>
+                <span class="toggle-instructions-text" id="toggleInstructionsText">收起</span>
+                <ol>
+                    <li><strong>阵法起源</strong>：此阵法源于古代道家秘传，结合北斗七星与五行相生原理，能汇聚天地财气。</li>
+                    <li><strong>神奇之处</strong>：阵法一旦激活，便开启为期 9 小时的能量场，调和财运磁场，吸引财气与贵人扶助。阵法成功后，其灵效将在未来三个月内渐次显现，助您悄然开启财富之门。</li>
+                    <li><strong>使用方法</strong>：
+                        <ul>
+                            <li>填写您的真实姓名和准确生辰信息，点击"开始点香仪式"按钮</li>
+                            <li>在心中默念您的财富愿望，保持网页开启9小时不关闭</li>
+                        </ul>
+                    </li>
+                    <li><strong>注意事项</strong>：
+                        <ul>
+                            <li>心诚则灵，请保持虔诚心态。仪式期间请勿刷新或关闭页面</li>
+                            <li>最佳激活时间为辰时(7-9点)或酉时(17-19点)</li>
+                            <li>在阵法运行过程中，香火可能会有几率熄灭。若出现熄灭情况，您可点击香重新点燃。请务必保持三根香持续燃烧，若阵法结束时三香皆灭，则视为阵法失败。</li>
+                        </ul>
+                    </li>
+                </ol>
+                <p style="text-align: center; font-style: italic; color: #f8d030; margin-top: 20px;">
+                    "天罡所指，财源广进；七星连珠，富贵临门"
+                </p>
+            </div>
         </div>
         
-        <div class="section form-section" id="formSection">
-            <div class="form-container">
-                <div class="form-group">
-                    <label for="name">您的姓名</label>
-                    <input type="text" id="name" placeholder="请输入您的真实姓名">
+        <div class="ritual-panel">
+            <div class="section form-section" id="formSection">
+                <div class="form-container">
+                    <div class="form-group">
+                        <label for="name">您的姓名</label>
+                        <input type="text" id="name" placeholder="请输入您的真实姓名">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="year">出生年份</label>
+                        <select id="year">
+                            <option value="">-- 选择年份 --</option>
+                            <!-- 年份选项由JavaScript生成 -->
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="month">出生月份</label>
+                        <select id="month">
+                            <option value="">-- 选择月份 --</option>
+                            <option value="1">正月</option>
+                            <option value="2">二月</option>
+                            <option value="3">三月</option>
+                            <option value="4">四月</option>
+                            <option value="5">五月</option>
+                            <option value="6">六月</option>
+                            <option value="7">七月</option>
+                            <option value="8">八月</option>
+                            <option value="9">九月</option>
+                            <option value="10">十月</option>
+                            <option value="11">冬月</option>
+                            <option value="12">腊月</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="day">出生日期</label>
+                        <select id="day">
+                            <option value="">-- 选择日期 --</option>
+                            <!-- 日期选项由JavaScript生成 -->
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="hour">出生时辰</label>
+                        <select id="hour">
+                            <option value="">-- 选择时辰 --</option>
+                            <option value="0">子时 (23:00-01:00)</option>
+                            <option value="1">丑时 (01:00-03:00)</option>
+                            <option value="2">寅时 (03:00-05:00)</option>
+                            <option value="3">卯时 (05:00-07:00)</option>
+                            <option value="4">辰时 (07:00-09:00)</option>
+                            <option value="5">巳时 (09:00-11:00)</option>
+                            <option value="6">午时 (11:00-13:00)</option>
+                            <option value="7">未时 (13:00-15:00)</option>
+                            <option value="8">申时 (15:00-17:00)</option>
+                            <option value="9">酉时 (17:00-19:00)</option>
+                            <option value="10">戌时 (19:00-21:00)</option>
+                            <option value="11">亥时 (21:00-23:00)</option>
+                        </select>
+                    </div>
                 </div>
                 
-                <div class="form-group">
-                    <label for="year">出生年份</label>
-                    <select id="year">
-                        <option value="">-- 选择年份 --</option>
-                        <!-- 年份选项由JavaScript生成 -->
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label for="month">出生月份</label>
-                    <select id="month">
-                        <option value="">-- 选择月份 --</option>
-                        <option value="1">正月</option>
-                        <option value="2">二月</option>
-                        <option value="3">三月</option>
-                        <option value="4">四月</option>
-                        <option value="5">五月</option>
-                        <option value="6">六月</option>
-                        <option value="7">七月</option>
-                        <option value="8">八月</option>
-                        <option value="9">九月</option>
-                        <option value="10">十月</option>
-                        <option value="11">冬月</option>
-                        <option value="12">腊月</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label for="day">出生日期</label>
-                    <select id="day">
-                        <option value="">-- 选择日期 --</option>
-                        <!-- 日期选项由JavaScript生成 -->
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label for="hour">出生时辰</label>
-                    <select id="hour">
-                        <option value="">-- 选择时辰 --</option>
-                        <option value="0">子时 (23:00-01:00)</option>
-                        <option value="1">丑时 (01:00-03:00)</option>
-                        <option value="2">寅时 (03:00-05:00)</option>
-                        <option value="3">卯时 (05:00-07:00)</option>
-                        <option value="4">辰时 (07:00-09:00)</option>
-                        <option value="5">巳时 (09:00-11:00)</option>
-                        <option value="6">午时 (11:00-13:00)</option>
-                        <option value="7">未时 (13:00-15:00)</option>
-                        <option value="8">申时 (15:00-17:00)</option>
-                        <option value="9">酉时 (17:00-19:00)</option>
-                        <option value="10">戌时 (19:00-21:00)</option>
-                        <option value="11">亥时 (21:00-23:00)</option>
-                    </select>
-                </div>
+                <button id="startRitual">开始点香仪式</button>
             </div>
             
-            <button id="startRitual">开始点香仪式</button>
+            <div class="ritual-progress" id="ritualProgress"></div>
+            
+            <div class="progress-container" id="progressContainer">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+            
+            <div class="ritual-status" id="ritualStatus"></div>
+            
+            <div class="ritual-complete" id="ritualComplete"></div>
+            
+            <div class="user-name-display" id="userNameDisplay"></div>
+            
+            <div class="matrix-countdown" id="matrixCountdown"></div>
+            
+            <div class="matrix-container" id="matrixContainer">
+                <div class="matrix"></div>
+                <div class="user-position"></div>
+            </div>
+            
+            <div class="incense-container" id="incenseContainer">
+                <div class="incense" id="incense1"></div>
+                <div class="incense" id="incense2"></div>
+                <div class="incense" id="incense3"></div>
+            </div>
+            
+            <div class="wealth-incantation" id="wealthIncantation">
+                <h3>聚财灵咒</h3>
+                <p>天清地灵，财炁共鸣</p>
+                <p>五方福德，速聚吾庭</p>
+                <p>招宝童子引路，利市仙官降临</p>
+                <p>北斗注禄，南斗增金</p>
+                <p>三茅真君护法，玄坛赵帅显灵</p>
+                <p>铜马驮宝至，金蟾吐珠明</p>
+                <p>财源如江海，利达通三界</p>
+                <p>吾奉太上老君急急如律令！</p>
+                <p class="hint">请在心中默念此灵咒</p>
+            </div>
         </div>
-        
-        <div class="ritual-progress" id="ritualProgress"></div>
-        
-        <div class="progress-container" id="progressContainer">
-            <div class="progress-bar" id="progressBar"></div>
-        </div>
-        
-        <div class="ritual-status" id="ritualStatus"></div>
-        
-        <div class="ritual-complete" id="ritualComplete"></div>
-        
-        <div class="user-name-display" id="userNameDisplay"></div>
-        
-        <div class="matrix-countdown" id="matrixCountdown"></div>
-        
-        <div class="matrix-container" id="matrixContainer">
-            <div class="matrix"></div>
-            <div class="user-position"></div>
-        </div>
-    </div>
-    
-    <div class="incense-container" id="incenseContainer">
-        <div class="incense" id="incense1"></div>
-        <div class="incense" id="incense2"></div>
-        <div class="incense" id="incense3"></div>
-    </div>
-    
-    <div class="wealth-incantation" id="wealthIncantation">
-        <h3>聚财灵咒</h3>
-        <p>天清地灵，财炁共鸣</p>
-        <p>五方福德，速聚吾庭</p>
-        <p>招宝童子引路，利市仙官降临</p>
-        <p>北斗注禄，南斗增金</p>
-        <p>三茅真君护法，玄坛赵帅显灵</p>
-        <p>铜马驮宝至，金蟾吐珠明</p>
-        <p>财源如江海，利达通三界</p>
-        <p>吾奉太上老君急急如律令！</p>
-        <p class="hint">请在心中默念此灵咒</p>
     </div>
     
     <button class="end-ritual-btn" id="endRitualBtn">结束阵法</button>
@@ -1423,7 +1534,7 @@
         
         // 创建闪光效果
         function createSparkles() {
-            const container = document.querySelector('.container');
+            const container = document.querySelector('.ritual-panel');
             
             for (let i = 0; i < 30; i++) {
                 const sparkle = document.createElement('div');
@@ -1770,7 +1881,7 @@
         
         // 创建阵法符号
         function createSymbols() {
-            const container = document.querySelector('.container');
+            const container = document.querySelector('.ritual-panel');
             
             // 清除旧符号
             const oldSymbols = document.querySelectorAll('.symbol:not(.particles *):not(.taoist-symbols *)');
