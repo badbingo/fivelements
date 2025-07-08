@@ -740,18 +740,18 @@
             }
             
             .matrix-countdown {
-            display: none;
             color: var(--primary-color);
             font-family: 'Ma Shan Zheng', cursive;
             font-size: 3rem;
             text-align: center;
+            margin: 1rem 0;
             position: fixed;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
             z-index: 100;
             text-shadow: 0 0 10px rgba(0,0,0,0.8);
-            width: 100%;
+            display: none; /* 初始状态为隐藏 */
             }
         }
     </style>
@@ -1017,53 +1017,6 @@ function restoreProgress(progress) {
     document.getElementById('endRitualBtn').style.display = 'block';
 }
 
-// 开始点香仪式
-document.getElementById('startRitual').addEventListener('click', function() {
-    const name = document.getElementById('name').value.trim();
-    const year = parseInt(document.getElementById('year').value);
-    const month = parseInt(document.getElementById('month').value);
-    const day = parseInt(document.getElementById('day').value);
-    const hour = parseInt(document.getElementById('hour').value);
-    
-    if (!name || isNaN(year) || isNaN(month) || isNaN(day) || isNaN(hour)) {
-        alert('请填写完整且有效的出生信息');
-        return;
-    }
-    
-    // 隐藏输入表单
-    document.getElementById('formSection').style.display = 'none';
-    
-    // 显示进度信息
-    const ritualStatus = document.getElementById('ritualStatus');
-    ritualStatus.textContent = '请点击每根香进行点燃...';
-    ritualStatus.style.display = 'block';
-    
-    // 显示香炉
-    const incenseContainer = document.getElementById('incenseContainer');
-    incenseContainer.style.display = 'block';
-    
-    // 显示八字信息
-    displayBaziInfo(year, month, day, hour, name);
-    
-    // 设置香点击事件
-    setupIncenseClickHandlers(name);
-    
-    // 显示结束阵法按钮
-    document.getElementById('endRitualBtn').style.display = 'block';
-    
-    // 保存进度
-    saveProgress({
-        phase: 'incense',
-        name: name,
-        year: year,
-        month: month,
-        day: day,
-        hour: hour,
-        incenseLit: [false, false, false],
-        startTime: Date.now()
-    });
-});
-
 // 显示八字信息
 function displayBaziInfo(year, month, day, hour, name) {
     const baziDisplay = document.getElementById('centeredBaziDisplay');
@@ -1273,7 +1226,7 @@ function activateMatrix(name) {
     // 显示阵法
     document.getElementById('matrixContainer').style.display = 'block';
     
-    // 开始24小时倒计时
+    // 开始9小时倒计时
     startMatrixCountdown();
     
     // 开始检查香是否熄灭
@@ -1306,7 +1259,7 @@ function continueMatrixCountdown(progress) {
     userNameDisplay.textContent = name;
     userNameDisplay.style.display = 'block';
     
-    // 开始24小时倒计时
+    // 开始9小时倒计时
     continueMatrixTimer(startTime);
     
     // 开始检查香是否熄灭
@@ -1386,13 +1339,14 @@ function matrixFailed() {
     }, 5000);
 }
 
-// 24小时阵法倒计时
+// 9小时阵法倒计时
 function startMatrixCountdown() {
     const startTime = Date.now();
     const countdownElement = document.getElementById('matrixCountdown');
     
     // 确保倒计时元素可见
     countdownElement.style.display = 'block';
+    countdownElement.textContent = "正在启动...";
     
     const countdown = setInterval(() => {
         const elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
@@ -1420,12 +1374,13 @@ function startMatrixCountdown() {
     }, 1000);
 }
 
-// 继续24小时阵法倒计时
+// 继续9小时阵法倒计时
 function continueMatrixTimer(startTime) {
     const countdownElement = document.getElementById('matrixCountdown');
     
     // 确保倒计时元素可见
     countdownElement.style.display = 'block';
+    countdownElement.textContent = "正在恢复...";
     
     const countdown = setInterval(() => {
         const elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
