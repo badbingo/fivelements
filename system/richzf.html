@@ -922,632 +922,629 @@
     
     <script>
         // 配置变量
-        const INCENSE_DURATION = 60; // 点香时间(秒) - 60秒
-        const MATRIX_DURATION = 9 * 60 * 60; // 阵法持续时间(秒) - 9小时
-        const EXTINGUISH_PROBABILITY = 0.1; // 每根香熄灭的概率(10%)
-        const EXTINGUISH_CHECK_INTERVAL = 30 * 60; // 检查香是否熄灭的间隔(秒)
-        const EXTINGUISH_CHECK_DURATION = 5 * 60 * 60; // 检查香是否熄灭的总持续时间(秒) - 5小时
-        
-        // 页面加载完成后初始化
-        document.addEventListener('DOMContentLoaded', function() {
-            // 生成年份选项 (1900-当前年份)
-            const yearSelect = document.getElementById('year');
-            const currentYear = new Date().getFullYear();
-            for (let year = currentYear; year >= 1900; year--) {
-                const option = document.createElement('option');
-                option.value = year;
-                option.textContent = year;
-                yearSelect.appendChild(option);
-            }
-        
-            // 生成日期选项 (1-31)
-            const daySelect = document.getElementById('day');
-            for (let day = 1; day <= 31; day++) {
-                const option = document.createElement('option');
-                option.value = day;
-                option.textContent = day;
-                daySelect.appendChild(option);
-            }
-        
-            // 检查是否有保存的进度
-            checkSavedProgress();
-        
-            // 初始化粒子效果
-            createParticles();
-        });
-        
-        // 检查是否有保存的进度
-        function checkSavedProgress() {
-            const savedProgress = localStorage.getItem('wealthMatrixProgress');
-            if (savedProgress) {
-                const progress = JSON.parse(savedProgress);
-                if (confirm('检测到未完成的阵法进度，是否继续？')) {
-                    restoreProgress(progress);
-                } else {
-                    localStorage.removeItem('wealthMatrixProgress');
-                }
-            }
+const INCENSE_DURATION = 60; // 点香时间(秒) - 60秒
+const MATRIX_DURATION = 9 * 60 * 60; // 阵法持续时间(秒) - 9小时
+const EXTINGUISH_PROBABILITY = 0.1; // 每根香熄灭的概率(10%)
+const EXTINGUISH_CHECK_INTERVAL = 30 * 60; // 检查香是否熄灭的间隔(秒)
+const EXTINGUISH_CHECK_DURATION = 5 * 60 * 60; // 检查香是否熄灭的总持续时间(秒) - 5小时
+
+// 页面加载完成后初始化
+document.addEventListener('DOMContentLoaded', function() {
+    // 生成年份选项 (1900-当前年份)
+    const yearSelect = document.getElementById('year');
+    const currentYear = new Date().getFullYear();
+    for (let year = currentYear; year >= 1900; year--) {
+        const option = document.createElement('option');
+        option.value = year;
+        option.textContent = year;
+        yearSelect.appendChild(option);
+    }
+
+    // 生成日期选项 (1-31)
+    const daySelect = document.getElementById('day');
+    for (let day = 1; day <= 31; day++) {
+        const option = document.createElement('option');
+        option.value = day;
+        option.textContent = day;
+        daySelect.appendChild(option);
+    }
+
+    // 检查是否有保存的进度
+    checkSavedProgress();
+
+    // 初始化粒子效果
+    createParticles();
+});
+
+// 检查是否有保存的进度
+function checkSavedProgress() {
+    const savedProgress = localStorage.getItem('wealthMatrixProgress');
+    if (savedProgress) {
+        const progress = JSON.parse(savedProgress);
+        if (confirm('检测到未完成的阵法进度，是否继续？')) {
+            restoreProgress(progress);
+        } else {
+            localStorage.removeItem('wealthMatrixProgress');
         }
-        
-        // 恢复进度
-        function restoreProgress(progress) {
-            // 隐藏输入表单
-            document.getElementById('formSection').style.display = 'none';
-            
-            // 设置用户信息
-            document.getElementById('name').value = progress.name;
-            document.getElementById('year').value = progress.year;
-            document.getElementById('month').value = progress.month;
-            document.getElementById('day').value = progress.day;
-            document.getElementById('hour').value = progress.hour;
-            
-            // 显示香炉
-            const incenseContainer = document.getElementById('incenseContainer');
-            incenseContainer.style.display = 'block';
-            
-            // 恢复香的状态
-            const incenses = [
-                document.getElementById('incense1'),
-                document.getElementById('incense2'),
-                document.getElementById('incense3')
-            ];
-            
-            progress.incenseLit.forEach((lit, index) => {
-                if (lit) {
-                    incenses[index].classList.add('lit');
-                }
-            });
-            
-            // 显示八字信息
-            displayBaziInfo(progress.year, progress.month, progress.day, progress.hour, progress.name);
-            
-            // 根据进度状态继续仪式
-            if (progress.phase === 'incense') {
-                document.getElementById('ritualStatus').textContent = 
-                    `已点燃 ${progress.incenseLit.filter(lit => lit).length}/3 根香`;
-                document.getElementById('ritualStatus').style.display = 'block';
-                setupIncenseClickHandlers(progress.name);
-            } else if (progress.phase === 'incenseCountdown') {
-                continueIncenseCountdown(progress);
-            } else if (progress.phase === 'matrix') {
-                continueMatrixCountdown(progress);
-            }
-            
-            // 显示结束阵法按钮
-            document.getElementById('endRitualBtn').style.display = 'block';
+    }
+}
+
+// 恢复进度
+function restoreProgress(progress) {
+    // 隐藏输入表单
+    document.getElementById('formSection').style.display = 'none';
+    
+    // 设置用户信息
+    document.getElementById('name').value = progress.name;
+    document.getElementById('year').value = progress.year;
+    document.getElementById('month').value = progress.month;
+    document.getElementById('day').value = progress.day;
+    document.getElementById('hour').value = progress.hour;
+    
+    // 显示香炉
+    const incenseContainer = document.getElementById('incenseContainer');
+    incenseContainer.style.display = 'block';
+    
+    // 恢复香的状态
+    const incenses = [
+        document.getElementById('incense1'),
+        document.getElementById('incense2'),
+        document.getElementById('incense3')
+    ];
+    
+    progress.incenseLit.forEach((lit, index) => {
+        if (lit) {
+            incenses[index].classList.add('lit');
         }
+    });
+    
+    // 显示八字信息
+    displayBaziInfo(progress.year, progress.month, progress.day, progress.hour, progress.name);
+    
+    // 根据进度状态继续仪式
+    if (progress.phase === 'incense') {
+        document.getElementById('ritualStatus').textContent = 
+            `已点燃 ${progress.incenseLit.filter(lit => lit).length}/3 根香`;
+        document.getElementById('ritualStatus').style.display = 'block';
+        setupIncenseClickHandlers(progress.name);
+    } else if (progress.phase === 'incenseCountdown') {
+        continueIncenseCountdown(progress);
+    } else if (progress.phase === 'matrix') {
+        continueMatrixCountdown(progress);
+    }
+    
+    // 显示结束阵法按钮
+    document.getElementById('endRitualBtn').style.display = 'block';
+}
+
+// 开始点香仪式
+document.getElementById('startRitual').addEventListener('click', function() {
+    const name = document.getElementById('name').value.trim();
+    const year = parseInt(document.getElementById('year').value);
+    const month = parseInt(document.getElementById('month').value);
+    const day = parseInt(document.getElementById('day').value);
+    const hour = parseInt(document.getElementById('hour').value);
+    
+    if (!name || isNaN(year) || isNaN(month) || isNaN(day) || isNaN(hour)) {
+        alert('请填写完整且有效的出生信息');
+        return;
+    }
+    
+    // 隐藏输入表单
+    document.getElementById('formSection').style.display = 'none';
+    
+    // 显示进度信息
+    const ritualStatus = document.getElementById('ritualStatus');
+    ritualStatus.textContent = '请点击每根香进行点燃...';
+    ritualStatus.style.display = 'block';
+    
+    // 显示香炉
+    const incenseContainer = document.getElementById('incenseContainer');
+    incenseContainer.style.display = 'block';
+    
+    // 显示八字信息
+    displayBaziInfo(year, month, day, hour, name);
+    
+    // 设置香点击事件
+    setupIncenseClickHandlers(name);
+    
+    // 显示结束阵法按钮
+    document.getElementById('endRitualBtn').style.display = 'block';
+    
+    // 保存进度
+    saveProgress({
+        phase: 'incense',
+        name: name,
+        year: year,
+        month: month,
+        day: day,
+        hour: hour,
+        incenseLit: [false, false, false],
+        startTime: Date.now()
+    });
+});
+
+// 显示八字信息
+function displayBaziInfo(year, month, day, hour, name) {
+    const baziDisplay = document.getElementById('centeredBaziDisplay');
+    const baziGrid = document.getElementById('baziGrid');
+    const baziHeader = document.getElementById('baziHeader');
+    
+    // 设置用户名字为标题
+    baziHeader.textContent = name || '八字命盘';
+    
+    try {
+        // 创建阳历日期对象
+        const solarDate = new Date(year, month - 1, day);
         
-        // 开始点香仪式
-        document.getElementById('startRitual').addEventListener('click', function() {
-            const name = document.getElementById('name').value.trim();
-            const year = parseInt(document.getElementById('year').value);
-            const month = parseInt(document.getElementById('month').value);
-            const day = parseInt(document.getElementById('day').value);
-            const hour = parseInt(document.getElementById('hour').value);
-            
-            if (!name || isNaN(year) || isNaN(month) || isNaN(day) || isNaN(hour)) {
-                alert('请填写完整且有效的出生信息');
-                return;
-            }
-            
-            // 隐藏输入表单
-            document.getElementById('formSection').style.display = 'none';
-            
-            // 显示进度信息
-            const ritualStatus = document.getElementById('ritualStatus');
-            ritualStatus.textContent = '请点击每根香进行点燃...';
-            ritualStatus.style.display = 'block';
-            
-            // 显示香炉
-            const incenseContainer = document.getElementById('incenseContainer');
-            incenseContainer.style.display = 'block';
-            
-            // 显示八字信息
-            displayBaziInfo(year, month, day, hour, name);
-            
-            // 设置香点击事件
-            setupIncenseClickHandlers(name);
-            
-            // 显示结束阵法按钮
-            document.getElementById('endRitualBtn').style.display = 'block';
-            
-            // 保存进度
-            saveProgress({
-                phase: 'incense',
-                name: name,
-                year: year,
-                month: month,
-                day: day,
-                hour: hour,
-                incenseLit: [false, false, false],
-                startTime: Date.now()
-            });
+        // 转换为农历日期
+        const lunarDate = Lunar.fromDate(solarDate);
+        
+        // 获取八字信息
+        const bazi = lunarDate.getEightChar();
+        
+        // 获取时辰地支
+        const timeZhi = LunarUtil.ZHI[hour % 12];
+        
+        // 清空现有内容
+        baziGrid.innerHTML = '';
+        
+        // 八字四柱
+        const pillars = [
+            { name: '年柱', value: bazi.getYearGan() + bazi.getYearZhi() },
+            { name: '月柱', value: bazi.getMonthGan() + bazi.getMonthZhi() },
+            { name: '日柱', value: bazi.getDayGan() + bazi.getDayZhi() },
+            { name: '时柱', value: bazi.getTimeGan() + timeZhi }
+        ];
+        
+        // 添加八字到网格
+        pillars.forEach(pillar => {
+            const cell = document.createElement('div');
+            cell.className = 'bazi-cell';
+            cell.innerHTML = `<strong>${pillar.name}</strong><span>${pillar.value}</span>`;
+            baziGrid.appendChild(cell);
         });
         
         // 显示八字信息
-        function displayBaziInfo(year, month, day, hour, name) {
-            const baziDisplay = document.getElementById('centeredBaziDisplay');
-            const baziGrid = document.getElementById('baziGrid');
-            const baziHeader = document.getElementById('baziHeader');
-            
-            // 设置用户名字为标题
-            baziHeader.textContent = name || '八字命盘';
-            
-            try {
-                // 创建阳历日期对象
-                const solarDate = new Date(year, month - 1, day);
+        baziDisplay.style.display = 'block';
+    } catch (error) {
+        console.error('计算八字时出错:', error);
+        baziDisplay.style.display = 'none';
+    }
+}
+
+// 设置香点击事件处理
+function setupIncenseClickHandlers(name) {
+    const incenses = [
+        document.getElementById('incense1'),
+        document.getElementById('incense2'),
+        document.getElementById('incense3')
+    ];
+    
+    let litCount = 0;
+    
+    incenses.forEach((incense, index) => {
+        incense.addEventListener('click', function() {
+            if (!this.classList.contains('lit')) {
+                this.classList.add('lit');
+                litCount++;
                 
-                // 转换为农历日期
-                const lunarDate = Lunar.fromDate(solarDate);
+                // 更新进度信息
+                document.getElementById('ritualStatus').textContent = 
+                    `已点燃 ${litCount}/3 根香${litCount < 3 ? '，请继续点击下一根' : ''}`;
                 
-                // 获取八字信息
-                const bazi = lunarDate.getEightChar();
-                
-                // 获取时辰地支
-                const timeZhi = LunarUtil.ZHI[hour % 12];
-                
-                // 清空现有内容
-                baziGrid.innerHTML = '';
-                
-                // 八字四柱
-                const pillars = [
-                    { name: '年柱', value: bazi.getYearGan() + bazi.getYearZhi() },
-                    { name: '月柱', value: bazi.getMonthGan() + bazi.getMonthZhi() },
-                    { name: '日柱', value: bazi.getDayGan() + bazi.getDayZhi() },
-                    { name: '时柱', value: bazi.getTimeGan() + timeZhi }
-                ];
-                
-                // 添加八字到网格
-                pillars.forEach(pillar => {
-                    const cell = document.createElement('div');
-                    cell.className = 'bazi-cell';
-                    cell.innerHTML = `<strong>${pillar.name}</strong><span>${pillar.value}</span>`;
-                    baziGrid.appendChild(cell);
-                });
-                
-                // 显示八字信息
-                baziDisplay.style.display = 'block';
-            } catch (error) {
-                console.error('计算八字时出错:', error);
-                baziDisplay.style.display = 'none';
-            }
-        }
-        
-        // 设置香点击事件处理
-        function setupIncenseClickHandlers(name) {
-            const incenses = [
-                document.getElementById('incense1'),
-                document.getElementById('incense2'),
-                document.getElementById('incense3')
-            ];
-            
-            let litCount = 0;
-            
-            incenses.forEach((incense, index) => {
-                incense.addEventListener('click', function() {
-                    if (!this.classList.contains('lit')) {
-                        this.classList.add('lit');
-                        litCount++;
-                        
-                        // 更新进度信息
-                        document.getElementById('ritualStatus').textContent = 
-                            `已点燃 ${litCount}/3 根香${litCount < 3 ? '，请继续点击下一根' : ''}`;
-                        
-                        // 更新保存的进度
-                        const savedProgress = JSON.parse(localStorage.getItem('wealthMatrixProgress'));
-                        if (savedProgress) {
-                            savedProgress.incenseLit[index] = true;
-                            if (litCount === 3) {
-                                savedProgress.phase = 'incenseCountdown';
-                                savedProgress.incenseStartTime = Date.now();
-                            }
-                            saveProgress(savedProgress);
-                        }
-                        
-                        // 如果全部点燃，开始倒计时
-                        if (litCount === 3) {
-                            startIncenseCountdown(name);
-                        }
+                // 更新保存的进度
+                const savedProgress = JSON.parse(localStorage.getItem('wealthMatrixProgress'));
+                if (savedProgress) {
+                    savedProgress.incenseLit[index] = true;
+                    if (litCount === 3) {
+                        savedProgress.phase = 'incenseCountdown';
+                        savedProgress.incenseStartTime = Date.now();
                     }
-                });
-            });
-        }
-        
-        // 点香倒计时
-        function startIncenseCountdown(name) {
-            // 更新进度信息
-            document.getElementById('ritualStatus').textContent = '香已全部点燃，仪式进行中...';
-            
-            // 显示进度条
-            const progressContainer = document.getElementById('progressContainer');
-            const progressBar = document.getElementById('progressBar');
-            progressContainer.style.display = 'block';
-            
-            // 显示聚财灵咒
-            const incantation = document.getElementById('wealthIncantation');
-            incantation.style.display = 'block';
-            
-            const startTime = Date.now();
-            let elapsedSeconds = 0;
-            let progress = 0;
-            const progressIncrement = 100 / INCENSE_DURATION;
-            
-            const countdown = setInterval(() => {
-                elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
-                const remainingSeconds = INCENSE_DURATION - elapsedSeconds;
-                
-                if (remainingSeconds <= 0) {
-                    clearInterval(countdown);
-                    incenseCeremonyComplete(name);
-                    return;
-                }
-                
-                progress = elapsedSeconds * progressIncrement;
-                progressBar.style.width = `${progress}%`;
-                
-                // 更新保存的进度
-                const savedProgress = JSON.parse(localStorage.getItem('wealthMatrixProgress'));
-                if (savedProgress) {
-                    savedProgress.elapsedSeconds = elapsedSeconds;
                     saveProgress(savedProgress);
                 }
-            }, 1000);
-            
-            // 保存进度
-            saveProgress({
-                phase: 'incenseCountdown',
-                name: name,
-                year: document.getElementById('year').value,
-                month: document.getElementById('month').value,
-                day: document.getElementById('day').value,
-                hour: document.getElementById('hour').value,
-                incenseLit: [true, true, true],
-                startTime: startTime,
-                elapsedSeconds: 0
-            });
-        }
-        
-        // 继续点香倒计时
-        function continueIncenseCountdown(progress) {
-            const name = progress.name;
-            const startTime = Date.now() - (progress.elapsedSeconds * 1000);
-            
-            // 更新进度信息
-            document.getElementById('ritualStatus').textContent = '香已全部点燃，仪式进行中...';
-            document.getElementById('ritualStatus').style.display = 'block';
-            
-            // 显示进度条
-            const progressContainer = document.getElementById('progressContainer');
-            const progressBar = document.getElementById('progressBar');
-            progressContainer.style.display = 'block';
-            progressBar.style.width = `${(progress.elapsedSeconds / INCENSE_DURATION) * 100}%`;
-            
-            // 显示聚财灵咒
-            const incantation = document.getElementById('wealthIncantation');
-            incantation.style.display = 'block';
-            
-            let elapsedSeconds = progress.elapsedSeconds;
-            const progressIncrement = 100 / INCENSE_DURATION;
-            
-            const countdown = setInterval(() => {
-                elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
-                const remainingSeconds = INCENSE_DURATION - elapsedSeconds;
                 
-                if (remainingSeconds <= 0) {
-                    clearInterval(countdown);
-                    incenseCeremonyComplete(name);
-                    return;
+                // 如果全部点燃，开始倒计时
+                if (litCount === 3) {
+                    startIncenseCountdown(name);
                 }
-                
-                const progress = elapsedSeconds * progressIncrement;
-                progressBar.style.width = `${progress}%`;
-                
-                // 更新保存的进度
-                const savedProgress = JSON.parse(localStorage.getItem('wealthMatrixProgress'));
-                if (savedProgress) {
-                    savedProgress.elapsedSeconds = elapsedSeconds;
-                    saveProgress(savedProgress);
-                }
-            }, 1000);
-        }
-        
-        // 点香仪式完成
-        function incenseCeremonyComplete(name) {
-            // 隐藏聚财灵咒
-            document.getElementById('wealthIncantation').style.display = 'none';
-            
-            // 隐藏进度条
-            document.getElementById('progressContainer').style.display = 'none';
-            
-            // 显示用户名字
-            const userNameDisplay = document.getElementById('userNameDisplay');
-            userNameDisplay.textContent = name;
-            userNameDisplay.style.display = 'block';
-            
-            // 激活阵法
-            activateMatrix(name);
-        }
-        
-        // 激活阵法
-        function activateMatrix(name) {
-            // 显示阵法
-            document.getElementById('matrixContainer').style.display = 'block';
-            
-            // 开始24小时倒计时
-            startMatrixCountdown();
-            
-            // 开始检查香是否熄灭
-            startExtinguishCheck();
-            
-            // 显示24小时倒计时
-            const matrixCountdown = document.getElementById('matrixCountdown');
-            matrixCountdown.style.display = 'block';
-            
-            // 保存进度
-            saveProgress({
-                phase: 'matrix',
-                name: name,
-                year: document.getElementById('year').value,
-                month: document.getElementById('month').value,
-                day: document.getElementById('day').value,
-                hour: document.getElementById('hour').value,
-                incenseLit: [true, true, true],
-                startTime: Date.now(),
-                matrixStartTime: Date.now()
-            });
-        }
-        
-        // 继续阵法倒计时
-        function continueMatrixCountdown(progress) {
-            const name = progress.name;
-            const startTime = progress.matrixStartTime ? progress.matrixStartTime : Date.now();
-            
-            // 显示阵法
-            document.getElementById('matrixContainer').style.display = 'block';
-            
-            // 显示用户名字
-            const userNameDisplay = document.getElementById('userNameDisplay');
-            userNameDisplay.textContent = name;
-            userNameDisplay.style.display = 'block';
-            
-            // 开始24小时倒计时
-            continueMatrixTimer(startTime);
-            
-            // 开始检查香是否熄灭
-            startExtinguishCheck();
-            
-            // 显示24小时倒计时
-            const matrixCountdown = document.getElementById('matrixCountdown');
-            matrixCountdown.style.display = 'block';
-        }
-        
-        // 检查香是否熄灭
-        function startExtinguishCheck() {
-            const incenses = [
-                document.getElementById('incense1'),
-                document.getElementById('incense2'),
-                document.getElementById('incense3')
-            ];
-            
-            let extinguishedCount = 0;
-            const startTime = Date.now();
-            
-            const checkInterval = setInterval(() => {
-                // 如果已经过了5小时，停止检查
-                if (Date.now() - startTime > EXTINGUISH_CHECK_DURATION * 1000) {
-                    clearInterval(checkInterval);
-                    return;
-                }
-                
-                incenses.forEach(incense => {
-                    if (incense.classList.contains('lit')) {
-                        // 10%概率熄灭
-                        if (Math.random() < EXTINGUISH_PROBABILITY) {
-                            incense.classList.remove('lit');
-                            extinguishedCount++;
-                            
-                            // 更新进度信息
-                            document.getElementById('ritualStatus').textContent = 
-                                `警告：${extinguishedCount}/3 根香已熄灭`;
-                            document.getElementById('ritualStatus').style.display = 'block';
-                            
-                            // 更新保存的进度
-                            const savedProgress = JSON.parse(localStorage.getItem('wealthMatrixProgress'));
-                            if (savedProgress) {
-                                savedProgress.incenseLit = incenses.map(inc => inc.classList.contains('lit'));
-                                saveProgress(savedProgress);
-                            }
-                            
-                            // 如果全部熄灭，阵法失败
-                            if (extinguishedCount === 3) {
-                                clearInterval(checkInterval);
-                                matrixFailed();
-                            }
-                        }
-                    }
-                });
-            }, EXTINGUISH_CHECK_INTERVAL * 1000);
-        }
-        
-        // 阵法失败
-        function matrixFailed() {
-            // 显示失败信息
-            document.getElementById('failureMessage').style.display = 'block';
-            
-            // 隐藏其他元素
-            document.getElementById('matrixContainer').style.display = 'none';
-            document.getElementById('incenseContainer').style.display = 'none';
-            document.getElementById('matrixCountdown').style.display = 'none';
-            document.getElementById('userNameDisplay').style.display = 'none';
-            document.getElementById('endRitualBtn').style.display = 'none';
-            document.getElementById('centeredBaziDisplay').style.display = 'none';
-            
-            // 更新进度信息
-            document.getElementById('ritualStatus').textContent = '阵法失败：三根香全部熄灭';
-            
-            // 删除保存的进度
-            localStorage.removeItem('wealthMatrixProgress');
-            
-            // 5秒后自动刷新页面
-            setTimeout(() => {
-                location.reload();
-            }, 5000);
-        }
-        
-        // 24小时阵法倒计时
-        function startMatrixCountdown() {
-            const startTime = Date.now();
-            const countdownElement = document.getElementById('matrixCountdown');
-            
-            // Make sure countdown is visible
-            countdownElement.style.display = 'block';
-            
-            const countdown = setInterval(() => {
-                const elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
-                const remainingSeconds = MATRIX_DURATION - elapsedSeconds;
-                
-                if (remainingSeconds <= 0) {
-                    clearInterval(countdown);
-                    showFinalEffect();
-                    return;
-                }
-                
-                const hours = Math.floor(remainingSeconds / 3600);
-                const minutes = Math.floor((remainingSeconds % 3600) / 60);
-                const seconds = remainingSeconds % 60;
-                
-                countdownElement.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-                
-                // 更新保存的进度
-                const savedProgress = JSON.parse(localStorage.getItem('wealthMatrixProgress'));
-                if (savedProgress) {
-                    savedProgress.matrixElapsedSeconds = elapsedSeconds;
-                    saveProgress(savedProgress);
-                }
-            }, 1000);
-        }
-        
-        // 继续24小时阵法倒计时
-        function continueMatrixTimer(startTime) {
-            const countdownElement = document.getElementById('matrixCountdown');
-            
-            const countdown = setInterval(() => {
-                const elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
-                const remainingSeconds = MATRIX_DURATION - elapsedSeconds;
-                
-                if (remainingSeconds <= 0) {
-                    clearInterval(countdown);
-                    showFinalEffect();
-                    return;
-                }
-                
-                const hours = Math.floor(remainingSeconds / 3600);
-                const minutes = Math.floor((remainingSeconds % 3600) / 60);
-                const seconds = remainingSeconds % 60;
-                
-                countdownElement.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-                
-                // 更新保存的进度
-                const savedProgress = JSON.parse(localStorage.getItem('wealthMatrixProgress'));
-                if (savedProgress) {
-                    savedProgress.matrixElapsedSeconds = elapsedSeconds;
-                    saveProgress(savedProgress);
-                }
-            }, 1000);
-        }
-        
-        // 显示最终效果
-        function showFinalEffect() {
-            const finalEffect = document.getElementById('finalEffect');
-            const goldCoins = document.getElementById('goldCoins');
-            
-            finalEffect.style.display = 'flex';
-            goldCoins.style.display = 'block';
-            
-            // 创建金币雨
-            createCoinRain();
-            
-            // 删除保存的进度
-            localStorage.removeItem('wealthMatrixProgress');
-            
-            // 隐藏结束阵法按钮
-            document.getElementById('endRitualBtn').style.display = 'none';
-            
-            // 5秒后显示完成页面
-            setTimeout(() => {
-                finalEffect.style.display = 'none';
-                goldCoins.style.display = 'none';
-                
-                // 显示完成页面
-                document.getElementById('finalCompletion').style.display = 'flex';
-                
-                // 隐藏其他元素
-                document.getElementById('matrixContainer').style.display = 'none';
-                document.getElementById('incenseContainer').style.display = 'none';
-                document.getElementById('matrixCountdown').style.display = 'none';
-                document.getElementById('userNameDisplay').style.display = 'none';
-                document.getElementById('ritualStatus').textContent = '';
-                document.getElementById('centeredBaziDisplay').style.display = 'none';
-            }, 5000);
-        }
-        
-        // 创建粒子效果
-        function createParticles() {
-            const particles = document.getElementById('particles');
-            particles.innerHTML = '';
-            
-            const symbols = ['★', '☆', '✧', '✦', '✪', '✫', '✬', '✭', '✮', '✯'];
-            
-            for (let i = 0; i < 100; i++) {
-                const particle = document.createElement('div');
-                particle.className = 'particle';
-                particle.textContent = symbols[Math.floor(Math.random() * symbols.length)];
-                particle.style.left = `${Math.random() * 100}vw`;
-                particle.style.top = `${Math.random() * 100}vh`;
-                particle.style.animationDelay = `${Math.random() * 5}s`;
-                particle.style.animationDuration = `${Math.random() * 10 + 10}s`;
-                particles.appendChild(particle);
-            }
-        }
-        
-        // 创建金币雨
-        function createCoinRain() {
-            const goldCoins = document.getElementById('goldCoins');
-            goldCoins.innerHTML = '';
-            
-            for (let i = 0; i < 50; i++) {
-                setTimeout(() => {
-                    const coin = document.createElement('div');
-                    coin.className = 'gold-coin';
-                    coin.style.left = `${Math.random() * 100}vw`;
-                    coin.style.top = '-50px';
-                    coin.style.animationDuration = `${Math.random() * 2 + 1}s`;
-                    coin.style.animationDelay = `${Math.random() * 0.5}s`;
-                    goldCoins.appendChild(coin);
-                    
-                    // 动画结束后移除金币
-                    setTimeout(() => {
-                        coin.remove();
-                    }, 3000);
-                }, i * 100);
-            }
-        }
-        
-        // 保存进度到localStorage
-        function saveProgress(progress) {
-            localStorage.setItem('wealthMatrixProgress', JSON.stringify(progress));
-        }
-        
-        // 结束阵法按钮点击事件
-        document.getElementById('endRitualBtn').addEventListener('click', function() {
-            if (confirm('确定要结束阵法吗？这将清除所有进度。')) {
-                // 删除保存的进度
-                localStorage.removeItem('wealthMatrixProgress');
-                
-                // 刷新页面
-                location.reload();
             }
         });
+    });
+}
+
+// 点香倒计时
+function startIncenseCountdown(name) {
+    // 更新进度信息
+    document.getElementById('ritualStatus').textContent = '香已全部点燃，仪式进行中...';
+    
+    // 显示进度条
+    const progressContainer = document.getElementById('progressContainer');
+    const progressBar = document.getElementById('progressBar');
+    progressContainer.style.display = 'block';
+    
+    // 显示聚财灵咒
+    const incantation = document.getElementById('wealthIncantation');
+    incantation.style.display = 'block';
+    
+    const startTime = Date.now();
+    let elapsedSeconds = 0;
+    let progress = 0;
+    const progressIncrement = 100 / INCENSE_DURATION;
+    
+    const countdown = setInterval(() => {
+        elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
+        const remainingSeconds = INCENSE_DURATION - elapsedSeconds;
+        
+        if (remainingSeconds <= 0) {
+            clearInterval(countdown);
+            incenseCeremonyComplete(name);
+            return;
+        }
+        
+        progress = elapsedSeconds * progressIncrement;
+        progressBar.style.width = `${progress}%`;
+        
+        // 更新保存的进度
+        const savedProgress = JSON.parse(localStorage.getItem('wealthMatrixProgress'));
+        if (savedProgress) {
+            savedProgress.elapsedSeconds = elapsedSeconds;
+            saveProgress(savedProgress);
+        }
+    }, 1000);
+    
+    // 保存进度
+    saveProgress({
+        phase: 'incenseCountdown',
+        name: name,
+        year: document.getElementById('year').value,
+        month: document.getElementById('month').value,
+        day: document.getElementById('day').value,
+        hour: document.getElementById('hour').value,
+        incenseLit: [true, true, true],
+        startTime: startTime,
+        elapsedSeconds: 0
+    });
+}
+
+// 继续点香倒计时
+function continueIncenseCountdown(progress) {
+    const name = progress.name;
+    const startTime = Date.now() - (progress.elapsedSeconds * 1000);
+    
+    // 更新进度信息
+    document.getElementById('ritualStatus').textContent = '香已全部点燃，仪式进行中...';
+    document.getElementById('ritualStatus').style.display = 'block';
+    
+    // 显示进度条
+    const progressContainer = document.getElementById('progressContainer');
+    const progressBar = document.getElementById('progressBar');
+    progressContainer.style.display = 'block';
+    progressBar.style.width = `${(progress.elapsedSeconds / INCENSE_DURATION) * 100}%`;
+    
+    // 显示聚财灵咒
+    const incantation = document.getElementById('wealthIncantation');
+    incantation.style.display = 'block';
+    
+    let elapsedSeconds = progress.elapsedSeconds;
+    const progressIncrement = 100 / INCENSE_DURATION;
+    
+    const countdown = setInterval(() => {
+        elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
+        const remainingSeconds = INCENSE_DURATION - elapsedSeconds;
+        
+        if (remainingSeconds <= 0) {
+            clearInterval(countdown);
+            incenseCeremonyComplete(name);
+            return;
+        }
+        
+        const progress = elapsedSeconds * progressIncrement;
+        progressBar.style.width = `${progress}%`;
+        
+        // 更新保存的进度
+        const savedProgress = JSON.parse(localStorage.getItem('wealthMatrixProgress'));
+        if (savedProgress) {
+            savedProgress.elapsedSeconds = elapsedSeconds;
+            saveProgress(savedProgress);
+        }
+    }, 1000);
+}
+
+// 点香仪式完成
+function incenseCeremonyComplete(name) {
+    // 隐藏聚财灵咒
+    document.getElementById('wealthIncantation').style.display = 'none';
+    
+    // 隐藏进度条
+    document.getElementById('progressContainer').style.display = 'none';
+    
+    // 显示用户名字
+    const userNameDisplay = document.getElementById('userNameDisplay');
+    userNameDisplay.textContent = name;
+    userNameDisplay.style.display = 'block';
+    
+    // 激活阵法
+    activateMatrix(name);
+}
+
+// 激活阵法
+function activateMatrix(name) {
+    // 显示阵法
+    document.getElementById('matrixContainer').style.display = 'block';
+    
+    // 开始24小时倒计时
+    startMatrixCountdown();
+    
+    // 开始检查香是否熄灭
+    startExtinguishCheck();
+    
+    // 保存进度
+    saveProgress({
+        phase: 'matrix',
+        name: name,
+        year: document.getElementById('year').value,
+        month: document.getElementById('month').value,
+        day: document.getElementById('day').value,
+        hour: document.getElementById('hour').value,
+        incenseLit: [true, true, true],
+        startTime: Date.now(),
+        matrixStartTime: Date.now()
+    });
+}
+
+// 继续阵法倒计时
+function continueMatrixCountdown(progress) {
+    const name = progress.name;
+    const startTime = progress.matrixStartTime ? progress.matrixStartTime : Date.now();
+    
+    // 显示阵法
+    document.getElementById('matrixContainer').style.display = 'block';
+    
+    // 显示用户名字
+    const userNameDisplay = document.getElementById('userNameDisplay');
+    userNameDisplay.textContent = name;
+    userNameDisplay.style.display = 'block';
+    
+    // 开始24小时倒计时
+    continueMatrixTimer(startTime);
+    
+    // 开始检查香是否熄灭
+    startExtinguishCheck();
+}
+
+// 检查香是否熄灭
+function startExtinguishCheck() {
+    const incenses = [
+        document.getElementById('incense1'),
+        document.getElementById('incense2'),
+        document.getElementById('incense3')
+    ];
+    
+    let extinguishedCount = 0;
+    const startTime = Date.now();
+    
+    const checkInterval = setInterval(() => {
+        // 如果已经过了5小时，停止检查
+        if (Date.now() - startTime > EXTINGUISH_CHECK_DURATION * 1000) {
+            clearInterval(checkInterval);
+            return;
+        }
+        
+        incenses.forEach(incense => {
+            if (incense.classList.contains('lit')) {
+                // 10%概率熄灭
+                if (Math.random() < EXTINGUISH_PROBABILITY) {
+                    incense.classList.remove('lit');
+                    extinguishedCount++;
+                    
+                    // 更新进度信息
+                    document.getElementById('ritualStatus').textContent = 
+                        `警告：${extinguishedCount}/3 根香已熄灭`;
+                    document.getElementById('ritualStatus').style.display = 'block';
+                    
+                    // 更新保存的进度
+                    const savedProgress = JSON.parse(localStorage.getItem('wealthMatrixProgress'));
+                    if (savedProgress) {
+                        savedProgress.incenseLit = incenses.map(inc => inc.classList.contains('lit'));
+                        saveProgress(savedProgress);
+                    }
+                    
+                    // 如果全部熄灭，阵法失败
+                    if (extinguishedCount === 3) {
+                        clearInterval(checkInterval);
+                        matrixFailed();
+                    }
+                }
+            }
+        });
+    }, EXTINGUISH_CHECK_INTERVAL * 1000);
+}
+
+// 阵法失败
+function matrixFailed() {
+    // 显示失败信息
+    document.getElementById('failureMessage').style.display = 'block';
+    
+    // 隐藏其他元素
+    document.getElementById('matrixContainer').style.display = 'none';
+    document.getElementById('incenseContainer').style.display = 'none';
+    document.getElementById('matrixCountdown').style.display = 'none';
+    document.getElementById('userNameDisplay').style.display = 'none';
+    document.getElementById('endRitualBtn').style.display = 'none';
+    document.getElementById('centeredBaziDisplay').style.display = 'none';
+    
+    // 更新进度信息
+    document.getElementById('ritualStatus').textContent = '阵法失败：三根香全部熄灭';
+    
+    // 删除保存的进度
+    localStorage.removeItem('wealthMatrixProgress');
+    
+    // 5秒后自动刷新页面
+    setTimeout(() => {
+        location.reload();
+    }, 5000);
+}
+
+// 24小时阵法倒计时
+function startMatrixCountdown() {
+    const startTime = Date.now();
+    const countdownElement = document.getElementById('matrixCountdown');
+    
+    // 确保倒计时元素可见
+    countdownElement.style.display = 'block';
+    
+    const countdown = setInterval(() => {
+        const elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
+        const remainingSeconds = MATRIX_DURATION - elapsedSeconds;
+        
+        if (remainingSeconds <= 0) {
+            clearInterval(countdown);
+            showFinalEffect();
+            return;
+        }
+        
+        const hours = Math.floor(remainingSeconds / 3600);
+        const minutes = Math.floor((remainingSeconds % 3600) / 60);
+        const seconds = remainingSeconds % 60;
+        
+        // 更新倒计时显示
+        countdownElement.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        
+        // 更新保存的进度
+        const savedProgress = JSON.parse(localStorage.getItem('wealthMatrixProgress'));
+        if (savedProgress) {
+            savedProgress.matrixElapsedSeconds = elapsedSeconds;
+            saveProgress(savedProgress);
+        }
+    }, 1000);
+}
+
+// 继续24小时阵法倒计时
+function continueMatrixTimer(startTime) {
+    const countdownElement = document.getElementById('matrixCountdown');
+    
+    // 确保倒计时元素可见
+    countdownElement.style.display = 'block';
+    
+    const countdown = setInterval(() => {
+        const elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
+        const remainingSeconds = MATRIX_DURATION - elapsedSeconds;
+        
+        if (remainingSeconds <= 0) {
+            clearInterval(countdown);
+            showFinalEffect();
+            return;
+        }
+        
+        const hours = Math.floor(remainingSeconds / 3600);
+        const minutes = Math.floor((remainingSeconds % 3600) / 60);
+        const seconds = remainingSeconds % 60;
+        
+        // 更新倒计时显示
+        countdownElement.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        
+        // 更新保存的进度
+        const savedProgress = JSON.parse(localStorage.getItem('wealthMatrixProgress'));
+        if (savedProgress) {
+            savedProgress.matrixElapsedSeconds = elapsedSeconds;
+            saveProgress(savedProgress);
+        }
+    }, 1000);
+}
+
+// 显示最终效果
+function showFinalEffect() {
+    const finalEffect = document.getElementById('finalEffect');
+    const goldCoins = document.getElementById('goldCoins');
+    
+    finalEffect.style.display = 'flex';
+    goldCoins.style.display = 'block';
+    
+    // 创建金币雨
+    createCoinRain();
+    
+    // 删除保存的进度
+    localStorage.removeItem('wealthMatrixProgress');
+    
+    // 隐藏结束阵法按钮
+    document.getElementById('endRitualBtn').style.display = 'none';
+    
+    // 5秒后显示完成页面
+    setTimeout(() => {
+        finalEffect.style.display = 'none';
+        goldCoins.style.display = 'none';
+        
+        // 显示完成页面
+        document.getElementById('finalCompletion').style.display = 'flex';
+        
+        // 隐藏其他元素
+        document.getElementById('matrixContainer').style.display = 'none';
+        document.getElementById('incenseContainer').style.display = 'none';
+        document.getElementById('matrixCountdown').style.display = 'none';
+        document.getElementById('userNameDisplay').style.display = 'none';
+        document.getElementById('ritualStatus').textContent = '';
+        document.getElementById('centeredBaziDisplay').style.display = 'none';
+    }, 5000);
+}
+
+// 创建粒子效果
+function createParticles() {
+    const particles = document.getElementById('particles');
+    particles.innerHTML = '';
+    
+    const symbols = ['★', '☆', '✧', '✦', '✪', '✫', '✬', '✭', '✮', '✯'];
+    
+    for (let i = 0; i < 100; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        particle.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+        particle.style.left = `${Math.random() * 100}vw`;
+        particle.style.top = `${Math.random() * 100}vh`;
+        particle.style.animationDelay = `${Math.random() * 5}s`;
+        particle.style.animationDuration = `${Math.random() * 10 + 10}s`;
+        particles.appendChild(particle);
+    }
+}
+
+// 创建金币雨
+function createCoinRain() {
+    const goldCoins = document.getElementById('goldCoins');
+    goldCoins.innerHTML = '';
+    
+    for (let i = 0; i < 50; i++) {
+        setTimeout(() => {
+            const coin = document.createElement('div');
+            coin.className = 'gold-coin';
+            coin.style.left = `${Math.random() * 100}vw`;
+            coin.style.top = '-50px';
+            coin.style.animationDuration = `${Math.random() * 2 + 1}s`;
+            coin.style.animationDelay = `${Math.random() * 0.5}s`;
+            goldCoins.appendChild(coin);
+            
+            // 动画结束后移除金币
+            setTimeout(() => {
+                coin.remove();
+            }, 3000);
+        }, i * 100);
+    }
+}
+
+// 保存进度到localStorage
+function saveProgress(progress) {
+    localStorage.setItem('wealthMatrixProgress', JSON.stringify(progress));
+}
+
+// 结束阵法按钮点击事件
+document.getElementById('endRitualBtn').addEventListener('click', function() {
+    if (confirm('确定要结束阵法吗？这将清除所有进度。')) {
+        // 删除保存的进度
+        localStorage.removeItem('wealthMatrixProgress');
+        
+        // 刷新页面
+        location.reload();
+    }
+});
     </script>
 </body>
 </html>
