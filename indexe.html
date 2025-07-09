@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>麦八字导航</title>
     <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=ZCOOL+QingKe+HuangYou&family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -20,6 +20,7 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
         
         body {
@@ -32,6 +33,7 @@
                 radial-gradient(circle at 90% 80%, rgba(156, 39, 176, 0.1) 0%, transparent 20%),
                 radial-gradient(circle at 50% 50%, rgba(233, 30, 99, 0.05) 0%, transparent 30%);
             background-attachment: fixed;
+            touch-action: manipulation;
         }
         
         .container {
@@ -67,6 +69,11 @@
             z-index: 10;
             transition: all 0.3s ease;
             animation: float 6s ease-in-out infinite;
+            cursor: grab;
+        }
+        
+        .central-node:active {
+            cursor: grabbing;
         }
         
         .central-node:hover {
@@ -249,6 +256,29 @@
             animation: float-particle linear infinite;
         }
         
+        .tooltip {
+            position: absolute;
+            background: rgba(26, 26, 46, 0.9);
+            border: 1px solid var(--secondary-color);
+            border-radius: 5px;
+            padding: 0.5rem 1rem;
+            color: var(--light-color);
+            font-size: 0.9rem;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 100;
+            box-shadow: 0 0 10px rgba(156, 39, 176, 0.5);
+            backdrop-filter: blur(5px);
+        }
+        
+        footer {
+            margin-top: 2rem;
+            text-align: center;
+            font-size: 0.8rem;
+            color: rgba(248, 248, 255, 0.6);
+        }
+        
         @keyframes float {
             0%, 100% {
                 transform: translateY(0);
@@ -284,30 +314,7 @@
             }
         }
         
-        .tooltip {
-            position: absolute;
-            background: rgba(26, 26, 46, 0.9);
-            border: 1px solid var(--secondary-color);
-            border-radius: 5px;
-            padding: 0.5rem 1rem;
-            color: var(--light-color);
-            font-size: 0.9rem;
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.3s;
-            z-index: 100;
-            box-shadow: 0 0 10px rgba(156, 39, 176, 0.5);
-            backdrop-filter: blur(5px);
-        }
-        
-        footer {
-            margin-top: 2rem;
-            text-align: center;
-            font-size: 0.8rem;
-            color: rgba(248, 248, 255, 0.6);
-        }
-        
-        /* Responsive adjustments */
+        /* 移动端专用样式 */
         @media (max-width: 768px) {
             .central-node {
                 width: 120px;
@@ -324,6 +331,123 @@
                 width: 80px;
                 height: 80px;
             }
+        }
+        
+        /* 小屏幕手机专用样式 */
+        @media (max-width: 480px) {
+            .container {
+                padding: 1rem;
+                padding-bottom: max(1rem, env(safe-area-inset-bottom));
+            }
+            
+            .mindmap {
+                height: auto;
+                min-height: 100vh;
+                position: relative;
+                overflow: visible;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                padding-top: 20px;
+            }
+            
+            .central-node {
+                position: relative;
+                top: auto;
+                left: auto;
+                margin: 20px auto;
+                width: 100px;
+                height: 100px;
+                animation: none;
+            }
+            
+            .node {
+                position: relative;
+                width: 80px;
+                height: 80px;
+                margin: 15px auto;
+                left: auto !important;
+                top: auto !important;
+                transform: none !important;
+            }
+            
+            .sub-node {
+                position: relative;
+                width: 60px;
+                height: 60px;
+                margin: 10px auto;
+                left: auto !important;
+                top: auto !important;
+                transform: none !important;
+            }
+            
+            .connector {
+                display: none;
+            }
+            
+            .node-group {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+                margin: 10px 0;
+                width: 100%;
+            }
+            
+            .particle {
+                display: none;
+            }
+            
+            .node::after, 
+            .sub-node::after {
+                content: "";
+                position: absolute;
+                width: 60px;
+                height: 60px;
+            }
+            
+            .central-icon {
+                font-size: 2rem;
+            }
+            
+            .central-text {
+                font-size: 1.1rem;
+            }
+            
+            .node-icon {
+                font-size: 1.4rem;
+            }
+            
+            .node-text {
+                font-size: 0.8rem;
+            }
+            
+            .sub-node-icon {
+                font-size: 1.1rem;
+            }
+            
+            .sub-node-text {
+                font-size: 0.65rem;
+            }
+            
+            footer {
+                margin-top: 1rem;
+                font-size: 0.7rem;
+            }
+        }
+        
+        /* 安全区域适配 */
+        @supports(padding: max(0px)) {
+            .container {
+                padding-left: max(1rem, env(safe-area-inset-left));
+                padding-right: max(1rem, env(safe-area-inset-right));
+                padding-bottom: max(1rem, env(safe-area-inset-bottom));
+            }
+        }
+        
+        /* 移动端触摸反馈 */
+        .node:active, .sub-node:active {
+            transform: scale(0.95) !important;
+            opacity: 0.9;
         }
     </style>
 </head>
@@ -350,22 +474,30 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Create particles
-            const particlesContainer = document.getElementById('particles');
-            for (let i = 0; i < 50; i++) {
-                const particle = document.createElement('div');
-                particle.classList.add('particle');
-                particle.style.left = `${Math.random() * 100}%`;
-                particle.style.top = `${Math.random() * 100}%`;
-                particle.style.width = `${Math.random() * 3 + 1}px`;
-                particle.style.height = particle.style.width;
-                particle.style.animationDuration = `${Math.random() * 10 + 10}s`;
-                particle.style.animationDelay = `${Math.random() * 5}s`;
-                particle.style.backgroundColor = `hsl(${Math.random() * 60 + 270}, 70%, 70%)`;
-                particlesContainer.appendChild(particle);
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            
+            if(isMobile) {
+                document.body.classList.add('mobile-mode');
             }
             
-            // Define nodes data with adjusted angles and distances for wider spread
+            // Create particles (only for desktop)
+            if(!isMobile) {
+                const particlesContainer = document.getElementById('particles');
+                for (let i = 0; i < 30; i++) {
+                    const particle = document.createElement('div');
+                    particle.classList.add('particle');
+                    particle.style.left = `${Math.random() * 100}%`;
+                    particle.style.top = `${Math.random() * 100}%`;
+                    particle.style.width = `${Math.random() * 3 + 1}px`;
+                    particle.style.height = particle.style.width;
+                    particle.style.animationDuration = `${Math.random() * 10 + 10}s`;
+                    particle.style.animationDelay = `${Math.random() * 5}s`;
+                    particle.style.backgroundColor = `hsl(${Math.random() * 60 + 270}, 70%, 70%)`;
+                    particlesContainer.appendChild(particle);
+                }
+            }
+            
+            // Define nodes data
             const nodes = [
                 {
                     id: 'bazi',
@@ -466,7 +598,7 @@
             let centerX = centralRect.left + centralRect.width / 2;
             let centerY = centralRect.top + centralRect.height / 2;
             
-            // Store all nodes and connectors for animation
+            // Store all nodes and connectors
             const nodeElements = [];
             const connectorElements = [];
             const subNodeElements = [];
@@ -474,6 +606,16 @@
             
             // Create nodes and connectors
             nodes.forEach(node => {
+                if(isMobile) {
+                    // 移动端使用简化的垂直布局
+                    createMobileNode(node);
+                } else {
+                    // 桌面端使用原始思维导图布局
+                    createDesktopNode(node);
+                }
+            });
+            
+            function createDesktopNode(node) {
                 // Calculate node position
                 const angleRad = (node.angle * Math.PI) / 180;
                 const nodeX = centerX + node.distance * Math.cos(angleRad);
@@ -594,9 +736,80 @@
                     mindmap.appendChild(subConnector);
                     subConnectorElements.push({element: subConnector, subNode: subNode, parentNode: node});
                 });
-            });
+            }
             
-            // Add animation to central node
+            function createMobileNode(node) {
+                // 创建节点组容器
+                let nodeGroup = document.createElement('div');
+                nodeGroup.className = 'node-group';
+                
+                // 创建主节点
+                const nodeElement = document.createElement('div');
+                nodeElement.className = 'node';
+                nodeElement.id = node.id;
+                
+                // Add icon and text
+                nodeElement.innerHTML = `
+                    <i class="${node.icon} node-icon"></i>
+                    <div class="node-text">${node.text}</div>
+                `;
+                
+                // Add click event
+                nodeElement.addEventListener('click', () => {
+                    window.open(node.url, '_blank');
+                });
+                
+                // 添加触摸反馈
+                nodeElement.addEventListener('touchstart', () => {
+                    nodeElement.style.transform = 'scale(0.95)';
+                });
+                
+                nodeElement.addEventListener('touchend', () => {
+                    nodeElement.style.transform = 'scale(1)';
+                });
+                
+                nodeGroup.appendChild(nodeElement);
+                nodeElements.push({element: nodeElement, node: node});
+                
+                // 创建子节点
+                if(node.subNodes.length > 0) {
+                    const subGroup = document.createElement('div');
+                    subGroup.className = 'node-group';
+                    
+                    node.subNodes.forEach(subNode => {
+                        const subNodeElement = document.createElement('div');
+                        subNodeElement.className = 'sub-node';
+                        subNodeElement.id = subNode.id;
+                        
+                        subNodeElement.innerHTML = `
+                            <i class="${subNode.icon} sub-node-icon"></i>
+                            <div class="sub-node-text">${subNode.text}</div>
+                        `;
+                        
+                        subNodeElement.addEventListener('click', () => {
+                            window.open(subNode.url, '_blank');
+                        });
+                        
+                        // 添加触摸反馈
+                        subNodeElement.addEventListener('touchstart', () => {
+                            subNodeElement.style.transform = 'scale(0.95)';
+                        });
+                        
+                        subNodeElement.addEventListener('touchend', () => {
+                            subNodeElement.style.transform = 'scale(1)';
+                        });
+                        
+                        subGroup.appendChild(subNodeElement);
+                        subNodeElements.push({element: subNodeElement, subNode: subNode, parentNode: node});
+                    });
+                    
+                    nodeGroup.appendChild(subGroup);
+                }
+                
+                mindmap.appendChild(nodeGroup);
+            }
+            
+            // Add tooltip to central node
             centralNode.addEventListener('mouseenter', (e) => {
                 tooltip.textContent = '麦八字中心';
                 tooltip.style.left = `${e.pageX + 10}px`;
@@ -613,47 +826,51 @@
                 tooltip.style.top = `${e.pageY + 10}px`;
             });
             
-            // Make central node draggable
-            let isDragging = false;
-            let offsetX, offsetY;
+            // Make central node draggable (desktop only)
+            if(!isMobile) {
+                let isDragging = false;
+                let offsetX, offsetY;
+                
+                centralNode.addEventListener('mousedown', (e) => {
+                    isDragging = true;
+                    offsetX = e.clientX - centralNode.getBoundingClientRect().left;
+                    offsetY = e.clientY - centralNode.getBoundingClientRect().top;
+                    centralNode.style.cursor = 'grabbing';
+                    e.preventDefault();
+                });
+                
+                document.addEventListener('mousemove', (e) => {
+                    if (!isDragging) return;
+                    
+                    const x = e.clientX - offsetX;
+                    const y = e.clientY - offsetY;
+                    
+                    // Limit movement to visible area
+                    const maxX = window.innerWidth - centralNode.offsetWidth;
+                    const maxY = window.innerHeight - centralNode.offsetHeight;
+                    
+                    centralNode.style.left = `${Math.max(0, Math.min(x, maxX))}px`;
+                    centralNode.style.top = `${Math.max(0, Math.min(y, maxY))}px`;
+                    
+                    // Update center position
+                    const rect = centralNode.getBoundingClientRect();
+                    centerX = rect.left + rect.width / 2;
+                    centerY = rect.top + rect.height / 2;
+                    
+                    // Update all connectors and nodes
+                    updateConnectorsAndNodes();
+                });
+                
+                document.addEventListener('mouseup', () => {
+                    isDragging = false;
+                    centralNode.style.cursor = 'grab';
+                });
+            }
             
-            centralNode.addEventListener('mousedown', (e) => {
-                isDragging = true;
-                offsetX = e.clientX - centralNode.getBoundingClientRect().left;
-                offsetY = e.clientY - centralNode.getBoundingClientRect().top;
-                centralNode.style.cursor = 'grabbing';
-                e.preventDefault();
-            });
-            
-            document.addEventListener('mousemove', (e) => {
-                if (!isDragging) return;
-                
-                const x = e.clientX - offsetX;
-                const y = e.clientY - offsetY;
-                
-                // Limit movement to visible area
-                const maxX = window.innerWidth - centralNode.offsetWidth;
-                const maxY = window.innerHeight - centralNode.offsetHeight;
-                
-                centralNode.style.left = `${Math.max(0, Math.min(x, maxX))}px`;
-                centralNode.style.top = `${Math.max(0, Math.min(y, maxY))}px`;
-                
-                // Update center position
-                const rect = centralNode.getBoundingClientRect();
-                centerX = rect.left + rect.width / 2;
-                centerY = rect.top + rect.height / 2;
-                
-                // Update all connectors and nodes
-                updateConnectorsAndNodes();
-            });
-            
-            document.addEventListener('mouseup', () => {
-                isDragging = false;
-                centralNode.style.cursor = 'grab';
-            });
-            
-            // Function to update all connectors and nodes
+            // Function to update all connectors and nodes (desktop only)
             function updateConnectorsAndNodes() {
+                if(isMobile) return;
+                
                 // Update main nodes and connectors
                 nodeElements.forEach(item => {
                     const angleRad = (item.node.angle * Math.PI) / 180;
@@ -701,15 +918,17 @@
                 });
             }
             
-            // Add gentle floating animation to all nodes
+            // Add gentle floating animation to all nodes (desktop only)
             function animateNodes() {
+                if(isMobile) return;
+                
                 const time = Date.now() * 0.001;
-                const floatIntensity = 8; // Increased intensity for more visible movement
+                const floatIntensity = 8;
                 
                 nodeElements.forEach((item, index) => {
                     const offset = index * 0.5;
                     const y = Math.sin(time + offset) * floatIntensity;
-                    const x = Math.cos(time + offset * 0.7) * floatIntensity * 0.8; // Increased horizontal movement
+                    const x = Math.cos(time + offset * 0.7) * floatIntensity * 0.8;
                     
                     item.element.style.transform = `translate(${x}px, ${y}px)`;
                 });
@@ -717,7 +936,7 @@
                 subNodeElements.forEach((item, index) => {
                     const offset = index * 0.3;
                     const y = Math.sin(time * 1.3 + offset) * floatIntensity * 0.8;
-                    const x = Math.cos(time * 1.3 + offset * 0.7) * floatIntensity * 0.6; // Increased horizontal movement
+                    const x = Math.cos(time * 1.3 + offset * 0.7) * floatIntensity * 0.6;
                     
                     item.element.style.transform = `translate(${x}px, ${y}px)`;
                 });
@@ -725,11 +944,15 @@
                 requestAnimationFrame(animateNodes);
             }
             
-            // Start animation
-            animateNodes();
+            // Start animation (desktop only)
+            if(!isMobile) {
+                animateNodes();
+            }
             
             // Add window resize event to reposition nodes
             window.addEventListener('resize', function() {
+                if(isMobile) return;
+                
                 const centralRect = centralNode.getBoundingClientRect();
                 centerX = centralRect.left + centralRect.width / 2;
                 centerY = centralRect.top + centralRect.height / 2;
