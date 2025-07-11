@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -18,9 +18,23 @@
         theme: {
           extend: {
             colors: {
-              primary: '#6a11cb',
-              secondary: '#2575fc',
-              accent: '#00b894',
+              primary: {
+                light: '#9c7bff',
+                DEFAULT: '#7c4dff',
+                dark: '#5e35b1',
+              },
+              secondary: {
+                light: '#64b5f6',
+                DEFAULT: '#2196f3',
+                dark: '#1565c0',
+              },
+              accent: {
+                light: '#69f0ae',
+                DEFAULT: '#00e676',
+                dark: '#00c853',
+              },
+              dark: '#1a1a2e',
+              light: '#f8f9fa'
             },
             fontFamily: {
               sans: ['"Noto Serif SC"', 'serif'],
@@ -65,28 +79,75 @@
         }
       }
       
-      .gradient-bg {
-        background: linear-gradient(135deg, rgba(106,17,203,0.1) 0%, rgba(37,117,252,0.05) 100%);
+      .glass-card {
+        background: rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.2);
       }
       
-      .highlight-text {
-        font-size: 4rem;
-        line-height: 1;
-        background: linear-gradient(45deg, #6a11cb, #2575fc);
-        -webkit-background-clip: text;
-        background-clip: text;
-        color: transparent;
-        font-weight: 700;
+      .wish-card {
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s ease;
       }
       
-      .energy-level {
-        height: 8px;
-        border-radius: 4px;
-        background: linear-gradient(90deg, #6a11cb, #2575fc);
+      .wish-card::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+        transform: rotate(30deg);
+        opacity: 0;
+        transition: all 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
+      }
+      
+      .wish-card:hover::before {
+        opacity: 1;
+        transform: rotate(30deg) translate(20%, 20%);
+      }
+      
+      .wish-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+      }
+      
+      .energy-bar {
+        height: 6px;
+        border-radius: 3px;
+        background: linear-gradient(90deg, #7c4dff, #2196f3);
+        position: relative;
+        overflow: hidden;
+      }
+      
+      .energy-bar::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(90deg, 
+          rgba(255,255,255,0.1) 0%, 
+          rgba(255,255,255,0.3) 50%, 
+          rgba(255,255,255,0.1) 100%);
+        background-size: 200% 100%;
+        animation: shine 2s infinite;
+      }
+      
+      @keyframes shine {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
       }
       
       .mantra-text {
-        font-size: 3rem;
+        font-size: 4rem;
+        font-weight: 700;
+        text-shadow: 0 0 10px rgba(124, 77, 255, 0.5);
         animation: mantraFloat 3s ease-in-out infinite;
       }
       
@@ -95,26 +156,38 @@
         50% { transform: translateY(-20px); }
       }
       
-      .fade-in {
-        animation: fadeIn 0.5s ease-in;
+      .pulse {
+        animation: pulse 2s infinite;
       }
       
-      @keyframes fadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
+      @keyframes pulse {
+        0% { box-shadow: 0 0 0 0 rgba(124, 77, 255, 0.7); }
+        70% { box-shadow: 0 0 0 15px rgba(124, 77, 255, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(124, 77, 255, 0); }
       }
       
-      .scale-up {
-        animation: scaleUp 0.3s ease-out;
+      .type-badge {
+        position: relative;
+        overflow: hidden;
       }
       
-      @keyframes scaleUp {
-        from { transform: scale(0.95); }
-        to { transform: scale(1); }
+      .type-badge::after {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: linear-gradient(
+          to bottom right,
+          rgba(255,255,255,0.3) 0%,
+          rgba(255,255,255,0) 60%
+        );
+        transform: rotate(30deg);
       }
     </style>
     <script>
-      // 配置后端地址（必须修改！）
+      // 配置后端地址
       const API_BASE = 'https://bazi-backend.owenjass.workers.dev';
       const API_URL = `${API_BASE}/api`;
       
@@ -122,78 +195,83 @@
       const { motion, AnimatePresence } = window.Motion;
     </script>
 </head>
-<body class="bg-gray-50 text-gray-800 font-sans min-h-screen flex flex-col">
-    <!-- Header with user area -->
-    <header class="bg-white shadow-sm py-4 px-6 flex justify-between items-center">
-        <div class="flex items-center space-x-2">
-            <span class="material-icons text-primary text-3xl">water_drop</span>
-            <h1 class="text-xl font-bold">命缘池</h1>
+<body class="bg-gradient-to-br from-dark to-gray-900 text-light min-h-screen flex flex-col">
+    <!-- Particles Background -->
+    <div id="particles-js" class="fixed inset-0 z-0"></div>
+    
+    <!-- Header -->
+    <header class="relative z-10 bg-dark bg-opacity-80 backdrop-blur-md py-4 px-6 flex justify-between items-center border-b border-gray-800">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
+                <span class="material-icons-round text-white">water_drop</span>
+            </div>
+            <h1 class="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">命缘池</h1>
         </div>
         
         <div class="flex items-center space-x-4" id="userArea">
-            <div class="hidden" id="userWelcome">欢迎, <span id="usernameDisplay" class="font-medium"></span></div>
-            <button class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-opacity-90 transition" id="loginBtn">登录/注册</button>
-            <button class="px-4 py-2 bg-secondary text-white rounded-lg hover:bg-opacity-90 transition hidden" id="manageBtn">
-                <span class="material-icons mr-1">manage_accounts</span> 管理
+            <div class="hidden text-gray-300" id="userWelcome">欢迎, <span id="usernameDisplay" class="font-medium text-white"></span></div>
+            <button class="px-4 py-2 bg-gradient-to-r from-primary to-secondary text-white rounded-full hover:opacity-90 transition shadow-lg" id="loginBtn">登录/注册</button>
+            <button class="px-4 py-2 bg-gray-800 text-white rounded-full hover:bg-gray-700 transition hidden shadow-lg flex items-center" id="manageBtn">
+                <span class="material-icons-round mr-1">manage_accounts</span> 管理
             </button>
-            <button class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition hidden" id="logoutBtn">
-                <span class="material-icons mr-1">logout</span> 退出
+            <button class="px-4 py-2 bg-gray-800 text-gray-300 rounded-full hover:bg-gray-700 transition hidden shadow-lg flex items-center" id="logoutBtn">
+                <span class="material-icons-round mr-1">logout</span> 退出
             </button>
         </div>
     </header>
 
     <!-- Auth Modal -->
-    <div class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden" id="authModal">
+    <div class="fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center hidden" id="authModal">
         <motion.div 
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
             transition={{ duration: 0.2 }}
-            class="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden"
+            class="bg-gray-900 rounded-xl shadow-2xl w-full max-w-md overflow-hidden border border-gray-800"
         >
-            <div class="p-6">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-2xl font-bold flex items-center">
-                        <span class="material-icons text-primary mr-2">account_circle</span>
+            <div class="p-8">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold flex items-center text-white">
+                        <span class="material-icons-round text-primary mr-2">account_circle</span>
                         命缘池
                     </h2>
-                    <button id="closeAuth" class="text-gray-500 hover:text-gray-700">
-                        <span class="material-icons">close</span>
+                    <button id="closeAuth" class="text-gray-400 hover:text-white">
+                        <span class="material-icons-round">close</span>
                     </button>
                 </div>
                 
-                <p class="text-gray-600 mb-6">登录或注册以管理您的愿望</p>
+                <p class="text-gray-400 mb-6">登录或注册以管理您的愿望</p>
                 
-                <div class="flex border-b mb-6">
-                    <div class="auth-tab active py-2 px-4 text-center cursor-pointer border-b-2 border-primary text-primary font-medium" id="loginTab">登录</div>
-                    <div class="auth-tab py-2 px-4 text-center cursor-pointer text-gray-500 hover:text-gray-700" id="registerTab">注册</div>
+                <div class="flex border-b border-gray-800 mb-6">
+                    <div class="auth-tab active py-2 px-4 text-center cursor-pointer border-b-2 border-primary text-white font-medium" id="loginTab">登录</div>
+                    <div class="auth-tab py-2 px-4 text-center cursor-pointer text-gray-400 hover:text-white" id="registerTab">注册</div>
                 </div>
                 
                 <!-- Login Form -->
                 <form id="loginForm" class="auth-form active">
                     <div class="mb-4">
-                        <label for="loginUsername" class="block text-gray-700 mb-2">用户名</label>
+                        <label for="loginUsername" class="block text-gray-300 mb-2">用户名</label>
                         <input type="text" id="loginUsername" placeholder="请输入用户名" required
-                            class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                            class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-white">
                     </div>
                     
                     <div class="mb-4">
-                        <label for="loginPassword" class="block text-gray-700 mb-2">密码</label>
+                        <label for="loginPassword" class="block text-gray-300 mb-2">密码</label>
                         <div class="relative">
                             <input type="password" id="loginPassword" placeholder="请输入密码" required
-                                class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
-                            <span class="material-icons absolute right-3 top-2.5 text-gray-400 cursor-pointer" 
+                                class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-white">
+                            <span class="material-icons-round absolute right-3 top-3 text-gray-400 cursor-pointer hover:text-white" 
                                   onclick="togglePassword('loginPassword', this)">visibility</span>
                         </div>
                     </div>
                     
-                    <button type="submit" class="w-full bg-primary text-white py-2 rounded-lg hover:bg-opacity-90 transition mb-4" id="submitLogin">
+                    <button type="submit" class="w-full bg-gradient-to-r from-primary to-secondary text-white py-3 rounded-lg hover:opacity-90 transition mb-4 shadow-lg" id="submitLogin">
                         <span id="loginText">登录</span>
-                        <span class="material-icons animate-spin hidden" id="loginSpinner">autorenew</span>
+                        <span class="material-icons-round animate-spin hidden" id="loginSpinner">autorenew</span>
                     </button>
                     
-                    <div class="text-center text-sm">
-                        <a href="#" id="forgotPasswordLink" class="text-primary hover:underline">忘记密码?</a>
+                    <div class="text-center text-sm text-gray-400">
+                        <a href="#" id="forgotPasswordLink" class="hover:text-primary transition">忘记密码?</a>
                     </div>
                     
                     <div id="loginMessage" class="mt-4 p-3 rounded-lg hidden"></div>
@@ -202,40 +280,40 @@
                 <!-- Register Form -->
                 <form id="registerForm" class="auth-form hidden">
                     <div class="mb-4">
-                        <label for="registerUsername" class="block text-gray-700 mb-2">用户名</label>
+                        <label for="registerUsername" class="block text-gray-300 mb-2">用户名</label>
                         <input type="text" id="registerUsername" placeholder="请输入用户名(4-16位)" required minlength="4" maxlength="16"
-                            class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                            class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-white">
                     </div>
                     
                     <div class="mb-4">
-                        <label for="registerEmail" class="block text-gray-700 mb-2">电子邮箱</label>
+                        <label for="registerEmail" class="block text-gray-300 mb-2">电子邮箱</label>
                         <input type="email" id="registerEmail" placeholder="请输入电子邮箱" required
-                            class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                            class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-white">
                     </div>
                     
                     <div class="mb-4">
-                        <label for="registerPassword" class="block text-gray-700 mb-2">密码</label>
+                        <label for="registerPassword" class="block text-gray-300 mb-2">密码</label>
                         <div class="relative">
                             <input type="password" id="registerPassword" placeholder="请输入密码(至少6位)" required minlength="6"
-                                class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
-                            <span class="material-icons absolute right-3 top-2.5 text-gray-400 cursor-pointer" 
+                                class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-white">
+                            <span class="material-icons-round absolute right-3 top-3 text-gray-400 cursor-pointer hover:text-white" 
                                   onclick="togglePassword('registerPassword', this)">visibility</span>
                         </div>
                     </div>
                     
                     <div class="mb-6">
-                        <label for="registerConfirmPassword" class="block text-gray-700 mb-2">确认密码</label>
+                        <label for="registerConfirmPassword" class="block text-gray-300 mb-2">确认密码</label>
                         <div class="relative">
                             <input type="password" id="registerConfirmPassword" placeholder="请再次输入密码" required
-                                class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
-                            <span class="material-icons absolute right-3 top-2.5 text-gray-400 cursor-pointer" 
+                                class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-white">
+                            <span class="material-icons-round absolute right-3 top-3 text-gray-400 cursor-pointer hover:text-white" 
                                   onclick="togglePassword('registerConfirmPassword', this)">visibility</span>
                         </div>
                     </div>
                     
-                    <button type="submit" class="w-full bg-primary text-white py-2 rounded-lg hover:bg-opacity-90 transition" id="submitRegister">
+                    <button type="submit" class="w-full bg-gradient-to-r from-primary to-secondary text-white py-3 rounded-lg hover:opacity-90 transition shadow-lg" id="submitRegister">
                         <span id="registerText">注册</span>
-                        <span class="material-icons animate-spin hidden" id="registerSpinner">autorenew</span>
+                        <span class="material-icons-round animate-spin hidden" id="registerSpinner">autorenew</span>
                     </button>
                     
                     <div id="registerMessage" class="mt-4 p-3 rounded-lg hidden"></div>
@@ -245,13 +323,13 @@
     </div>
 
     <!-- Main Content -->
-    <main class="flex-grow container mx-auto px-4 py-8">
+    <main class="flex-grow container mx-auto px-4 py-8 relative z-10">
         <!-- Hero Section -->
         <section class="text-center mb-12">
             <motion.h1 
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
-                class="text-5xl font-bold mb-4"
+                class="text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent"
             >
                 命缘池
             </motion.h1>
@@ -259,7 +337,7 @@
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.2 }}
-                class="text-xl text-gray-600"
+                class="text-xl text-gray-300"
             >
                 以八字为引，聚众生愿力，助你梦想成真
             </motion.p>
@@ -272,36 +350,39 @@
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.1 }}
-                class="card-1 bg-white rounded-xl shadow-md p-6 gradient-bg"
+                class="card-1 glass-card rounded-2xl p-6 relative overflow-hidden"
             >
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-xl font-bold flex items-center">
-                        <span class="material-icons text-primary mr-2">bolt</span>
-                        今日能量
-                    </h2>
-                    <button id="refreshStatsBtn" class="text-gray-500 hover:text-primary transition">
-                        <span class="material-icons">refresh</span>
-                    </button>
-                </div>
-                
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition cursor-pointer" onclick="fetchWishes('new')">
-                        <div class="highlight-text text-center mb-2" id="newWishesCount">0</div>
-                        <p class="text-center text-gray-600">新增愿望</p>
+                <div class="absolute inset-0 bg-gradient-to-br from-primary/10 to-secondary/10 opacity-30"></div>
+                <div class="relative z-10">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-xl font-bold flex items-center text-white">
+                            <span class="material-icons-round text-primary mr-2">bolt</span>
+                            今日能量
+                        </h2>
+                        <button id="refreshStatsBtn" class="text-gray-400 hover:text-white transition">
+                            <span class="material-icons-round">refresh</span>
+                        </button>
                     </div>
                     
-                    <div class="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition cursor-pointer" onclick="fetchBlessings()">
-                        <div class="highlight-text text-center mb-2" id="blessingsCount">0</div>
-                        <p class="text-center text-gray-600">加持次数</p>
-                    </div>
-                    
-                    <div class="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition cursor-pointer" onclick="fetchFulfillments()">
-                        <div class="highlight-text text-center mb-2" id="fulfilledCount">0</div>
-                        <p class="text-center text-gray-600">还愿次数</p>
-                    </div>
-                    
-                    <div class="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition">
-                        <p class="text-sm text-gray-500 text-center">最后更新: <span id="lastUpdated">刚刚</span></p>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-gray-900 bg-opacity-50 p-4 rounded-xl shadow-lg hover:shadow-xl transition cursor-pointer border border-gray-800 hover:border-primary/30" onclick="fetchWishes('new')">
+                            <div class="text-4xl font-bold text-center mb-2 text-primary" id="newWishesCount">0</div>
+                            <p class="text-center text-gray-300">新增愿望</p>
+                        </div>
+                        
+                        <div class="bg-gray-900 bg-opacity-50 p-4 rounded-xl shadow-lg hover:shadow-xl transition cursor-pointer border border-gray-800 hover:border-secondary/30" onclick="fetchBlessings()">
+                            <div class="text-4xl font-bold text-center mb-2 text-secondary" id="blessingsCount">0</div>
+                            <p class="text-center text-gray-300">加持次数</p>
+                        </div>
+                        
+                        <div class="bg-gray-900 bg-opacity-50 p-4 rounded-xl shadow-lg hover:shadow-xl transition cursor-pointer border border-gray-800 hover:border-accent/30" onclick="fetchFulfillments()">
+                            <div class="text-4xl font-bold text-center mb-2 text-accent" id="fulfilledCount">0</div>
+                            <p class="text-center text-gray-300">还愿次数</p>
+                        </div>
+                        
+                        <div class="bg-gray-900 bg-opacity-50 p-4 rounded-xl shadow-lg border border-gray-800">
+                            <p class="text-sm text-gray-400 text-center">最后更新: <span id="lastUpdated" class="text-gray-300">刚刚</span></p>
+                        </div>
                     </div>
                 </div>
             </motion.div>
@@ -311,18 +392,21 @@
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.2 }}
-                class="card-2 bg-white rounded-xl shadow-md p-6 gradient-bg"
+                class="card-2 glass-card rounded-2xl p-6 relative overflow-hidden"
             >
-                <h2 class="text-xl font-bold flex items-center mb-4">
-                    <span class="material-icons text-primary mr-2">info</span>
-                    缘起
-                </h2>
-                <p class="text-gray-700 mb-4">
-                    命缘池源自古老道家"愿力汇聚"之法，结合八字命理能量学，创造出一个集体意识能量场。
-                </p>
-                <p class="text-gray-700">
-                    在此投入愿望之时，您的八字化作独一无二的能量标识，携同六字真言之力启动加持。而众生心念汇聚而来的加持之力，将如涟漪般扩散，不断放大愿望的共振频率。
-                </p>
+                <div class="absolute inset-0 bg-gradient-to-br from-primary/10 to-secondary/10 opacity-30"></div>
+                <div class="relative z-10">
+                    <h2 class="text-xl font-bold flex items-center mb-4 text-white">
+                        <span class="material-icons-round text-primary mr-2">info</span>
+                        缘起
+                    </h2>
+                    <p class="text-gray-300 mb-4">
+                        命缘池源自古老道家"愿力汇聚"之法，结合八字命理能量学，创造出一个集体意识能量场。
+                    </p>
+                    <p class="text-gray-300">
+                        在此投入愿望之时，您的八字化作独一无二的能量标识，携同六字真言之力启动加持。而众生心念汇聚而来的加持之力，将如涟漪般扩散，不断放大愿望的共振频率。
+                    </p>
+                </div>
             </motion.div>
             
             <!-- Card 3: Wish Form - Personal Info -->
@@ -330,47 +414,50 @@
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.3 }}
-                class="card-3 bg-white rounded-xl shadow-md p-6"
+                class="card-3 glass-card rounded-2xl p-6 relative overflow-hidden"
             >
-                <h2 class="text-xl font-bold flex items-center mb-4">
-                    <span class="material-icons text-primary mr-2">person</span>
-                    个人信息
-                </h2>
-                <form id="wishForm">
-                    <div class="mb-4">
-                        <label for="name" class="block text-gray-700 mb-2">您的姓名</label>
-                        <input type="text" id="name" placeholder="请输入您的真实姓名" required
-                            class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
-                    </div>
-                    
-                    <div class="mb-4">
-                        <label for="birthday" class="block text-gray-700 mb-2">出生日期</label>
-                        <input type="date" id="birthday" required
-                            class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
-                    </div>
-                    
-                    <div class="mb-4">
-                        <label for="birthtime" class="block text-gray-700 mb-2">出生时间</label>
-                        <select id="birthtime" required
-                            class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
-                            <option value="">请选择出生时辰</option>
-                            <option value="23-1">子时 (23:00-1:00)</option>
-                            <option value="1-3">丑时 (1:00-3:00)</option>
-                            <option value="3-5">寅时 (3:00-5:00)</option>
-                            <option value="5-7">卯时 (5:00-7:00)</option>
-                            <option value="7-9">辰时 (7:00-9:00)</option>
-                            <option value="9-11">巳时 (9:00-11:00)</option>
-                            <option value="11-13">午时 (11:00-13:00)</option>
-                            <option value="13-15">未时 (13:00-15:00)</option>
-                            <option value="15-17">申时 (15:00-17:00)</option>
-                            <option value="17-19">酉时 (17:00-19:00)</option>
-                            <option value="19-21">戌时 (19:00-21:00)</option>
-                            <option value="21-23">亥时 (21:00-23:00)</option>
-                        </select>
-                    </div>
-                    
-                    <div id="baziInfo" class="text-sm text-primary hidden"></div>
-                </form>
+                <div class="absolute inset-0 bg-gradient-to-br from-primary/10 to-secondary/10 opacity-30"></div>
+                <div class="relative z-10">
+                    <h2 class="text-xl font-bold flex items-center mb-4 text-white">
+                        <span class="material-icons-round text-primary mr-2">person</span>
+                        个人信息
+                    </h2>
+                    <form id="wishForm">
+                        <div class="mb-4">
+                            <label for="name" class="block text-gray-300 mb-2">您的姓名</label>
+                            <input type="text" id="name" placeholder="请输入您的真实姓名" required
+                                class="w-full px-4 py-3 bg-gray-900 bg-opacity-50 border border-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-white placeholder-gray-500">
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="birthday" class="block text-gray-300 mb-2">出生日期</label>
+                            <input type="date" id="birthday" required
+                                class="w-full px-4 py-3 bg-gray-900 bg-opacity-50 border border-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-white">
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="birthtime" class="block text-gray-300 mb-2">出生时间</label>
+                            <select id="birthtime" required
+                                class="w-full px-4 py-3 bg-gray-900 bg-opacity-50 border border-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-white">
+                                <option value="" class="bg-gray-900">请选择出生时辰</option>
+                                <option value="23-1" class="bg-gray-900">子时 (23:00-1:00)</option>
+                                <option value="1-3" class="bg-gray-900">丑时 (1:00-3:00)</option>
+                                <option value="3-5" class="bg-gray-900">寅时 (3:00-5:00)</option>
+                                <option value="5-7" class="bg-gray-900">卯时 (5:00-7:00)</option>
+                                <option value="7-9" class="bg-gray-900">辰时 (7:00-9:00)</option>
+                                <option value="9-11" class="bg-gray-900">巳时 (9:00-11:00)</option>
+                                <option value="11-13" class="bg-gray-900">午时 (11:00-13:00)</option>
+                                <option value="13-15" class="bg-gray-900">未时 (13:00-15:00)</option>
+                                <option value="15-17" class="bg-gray-900">申时 (15:00-17:00)</option>
+                                <option value="17-19" class="bg-gray-900">酉时 (17:00-19:00)</option>
+                                <option value="19-21" class="bg-gray-900">戌时 (19:00-21:00)</option>
+                                <option value="21-23" class="bg-gray-900">亥时 (21:00-23:00)</option>
+                            </select>
+                        </div>
+                        
+                        <div id="baziInfo" class="text-sm text-primary hidden"></div>
+                    </form>
+                </div>
             </motion.div>
             
             <!-- Card 4: Wish Form - Wish Info -->
@@ -378,49 +465,52 @@
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.4 }}
-                class="card-4 bg-white rounded-xl shadow-md p-6"
+                class="card-4 glass-card rounded-2xl p-6 relative overflow-hidden"
             >
-                <h2 class="text-xl font-bold flex items-center mb-4">
-                    <span class="material-icons text-primary mr-2">star</span>
-                    愿望信息
-                </h2>
-                <form id="wishForm">
-                    <div class="mb-4">
-                        <label for="wishContent" class="block text-gray-700 mb-2">愿望内容</label>
-                        <textarea id="wishContent" rows="3" maxlength="200" placeholder="写下您真诚的愿望(限200字以内)..." required
-                            class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"></textarea>
-                        <p class="text-sm text-gray-500">已输入 <span id="charCount">0</span>/200 字</p>
-                    </div>
-                    
-                    <div class="mb-4">
-                        <label for="wishType" class="block text-gray-700 mb-2">愿望类型</label>
-                        <select id="wishType"
-                            class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
-                            <option value="love">姻缘感情</option>
-                            <option value="wealth">财富事业</option>
-                            <option value="health">健康平安</option>
-                            <option value="study">学业成长</option>
-                            <option value="family">家庭和睦</option>
-                            <option value="other">其他愿望</option>
-                        </select>
-                    </div>
-                    
-                    <div class="mb-4">
-                        <label class="block text-gray-700 mb-2">愿望可见性</label>
-                        <div class="flex space-x-4">
-                            <label class="inline-flex items-center">
-                                <input type="radio" name="visibility" value="public" checked
-                                    class="text-primary focus:ring-primary">
-                                <span class="ml-2">公开愿望</span>
-                            </label>
-                            <label class="inline-flex items-center">
-                                <input type="radio" name="visibility" value="private"
-                                    class="text-primary focus:ring-primary">
-                                <span class="ml-2">隐藏愿望</span>
-                            </label>
+                <div class="absolute inset-0 bg-gradient-to-br from-primary/10 to-secondary/10 opacity-30"></div>
+                <div class="relative z-10">
+                    <h2 class="text-xl font-bold flex items-center mb-4 text-white">
+                        <span class="material-icons-round text-primary mr-2">star</span>
+                        愿望信息
+                    </h2>
+                    <form id="wishForm">
+                        <div class="mb-4">
+                            <label for="wishContent" class="block text-gray-300 mb-2">愿望内容</label>
+                            <textarea id="wishContent" rows="3" maxlength="200" placeholder="写下您真诚的愿望(限200字以内)..." required
+                                class="w-full px-4 py-3 bg-gray-900 bg-opacity-50 border border-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-white placeholder-gray-500"></textarea>
+                            <p class="text-sm text-gray-500 mt-1">已输入 <span id="charCount" class="text-gray-300">0</span>/200 字</p>
                         </div>
-                    </div>
-                </form>
+                        
+                        <div class="mb-4">
+                            <label for="wishType" class="block text-gray-300 mb-2">愿望类型</label>
+                            <select id="wishType"
+                                class="w-full px-4 py-3 bg-gray-900 bg-opacity-50 border border-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-white">
+                                <option value="love" class="bg-gray-900">姻缘感情</option>
+                                <option value="wealth" class="bg-gray-900">财富事业</option>
+                                <option value="health" class="bg-gray-900">健康平安</option>
+                                <option value="study" class="bg-gray-900">学业成长</option>
+                                <option value="family" class="bg-gray-900">家庭和睦</option>
+                                <option value="other" class="bg-gray-900">其他愿望</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="block text-gray-300 mb-2">愿望可见性</label>
+                            <div class="flex space-x-4">
+                                <label class="inline-flex items-center">
+                                    <input type="radio" name="visibility" value="public" checked
+                                        class="text-primary focus:ring-primary">
+                                    <span class="ml-2 text-gray-300">公开愿望</span>
+                                </label>
+                                <label class="inline-flex items-center">
+                                    <input type="radio" name="visibility" value="private"
+                                        class="text-primary focus:ring-primary">
+                                    <span class="ml-2 text-gray-300">隐藏愿望</span>
+                                </label>
+                            </div>
+                        </div>
+                    </form>
+                </div>
             </motion.div>
             
             <!-- Card 5: Wish Levels -->
@@ -428,61 +518,64 @@
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.5 }}
-                class="card-5 bg-white rounded-xl shadow-md p-6 gradient-bg"
+                class="card-5 glass-card rounded-2xl p-6 relative overflow-hidden"
             >
-                <h2 class="text-xl font-bold flex items-center mb-6">
-                    <span class="material-icons text-primary mr-2">signal_cellular_alt</span>
-                    愿望能量等级
-                </h2>
-                
-                <div class="space-y-4">
-                    <div>
-                        <div class="flex justify-between mb-1">
-                            <span class="text-sm font-medium">初愿 (0-4加持)</span>
-                            <span class="text-sm text-gray-500">20%</span>
-                        </div>
-                        <div class="w-full bg-gray-200 rounded-full h-2.5">
-                            <div class="bg-primary h-2.5 rounded-full" style="width: 20%"></div>
-                        </div>
-                    </div>
+                <div class="absolute inset-0 bg-gradient-to-br from-primary/10 to-secondary/10 opacity-30"></div>
+                <div class="relative z-10">
+                    <h2 class="text-xl font-bold flex items-center mb-6 text-white">
+                        <span class="material-icons-round text-primary mr-2">signal_cellular_alt</span>
+                        愿望能量等级
+                    </h2>
                     
-                    <div>
-                        <div class="flex justify-between mb-1">
-                            <span class="text-sm font-medium">小成 (5-9加持)</span>
-                            <span class="text-sm text-gray-500">40%</span>
+                    <div class="space-y-4">
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span class="text-sm font-medium text-gray-300">初愿 (0-4加持)</span>
+                                <span class="text-sm text-gray-500">20%</span>
+                            </div>
+                            <div class="w-full bg-gray-800 rounded-full h-2">
+                                <div class="bg-gradient-to-r from-purple-500 to-blue-500 h-2 rounded-full" style="width: 20%"></div>
+                            </div>
                         </div>
-                        <div class="w-full bg-gray-200 rounded-full h-2.5">
-                            <div class="bg-primary h-2.5 rounded-full" style="width: 40%"></div>
+                        
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span class="text-sm font-medium text-gray-300">小成 (5-9加持)</span>
+                                <span class="text-sm text-gray-500">40%</span>
+                            </div>
+                            <div class="w-full bg-gray-800 rounded-full h-2">
+                                <div class="bg-gradient-to-r from-blue-500 to-teal-500 h-2 rounded-full" style="width: 40%"></div>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <div>
-                        <div class="flex justify-between mb-1">
-                            <span class="text-sm font-medium">中成 (10-14加持)</span>
-                            <span class="text-sm text-gray-500">60%</span>
+                        
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span class="text-sm font-medium text-gray-300">中成 (10-14加持)</span>
+                                <span class="text-sm text-gray-500">60%</span>
+                            </div>
+                            <div class="w-full bg-gray-800 rounded-full h-2">
+                                <div class="bg-gradient-to-r from-teal-500 to-green-500 h-2 rounded-full" style="width: 60%"></div>
+                            </div>
                         </div>
-                        <div class="w-full bg-gray-200 rounded-full h-2.5">
-                            <div class="bg-primary h-2.5 rounded-full" style="width: 60%"></div>
+                        
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span class="text-sm font-medium text-gray-300">大成 (15-19加持)</span>
+                                <span class="text-sm text-gray-500">80%</span>
+                            </div>
+                            <div class="w-full bg-gray-800 rounded-full h-2">
+                                <div class="bg-gradient-to-r from-green-500 to-yellow-500 h-2 rounded-full" style="width: 80%"></div>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <div>
-                        <div class="flex justify-between mb-1">
-                            <span class="text-sm font-medium">大成 (15-19加持)</span>
-                            <span class="text-sm text-gray-500">80%</span>
-                        </div>
-                        <div class="w-full bg-gray-200 rounded-full h-2.5">
-                            <div class="bg-primary h-2.5 rounded-full" style="width: 80%"></div>
-                        </div>
-                    </div>
-                    
-                    <div>
-                        <div class="flex justify-between mb-1">
-                            <span class="text-sm font-medium">圆满 (20+加持)</span>
-                            <span class="text-sm text-gray-500">100%</span>
-                        </div>
-                        <div class="w-full bg-gray-200 rounded-full h-2.5">
-                            <div class="bg-primary h-2.5 rounded-full" style="width: 100%"></div>
+                        
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span class="text-sm font-medium text-gray-300">圆满 (20+加持)</span>
+                                <span class="text-sm text-gray-500">100%</span>
+                            </div>
+                            <div class="w-full bg-gray-800 rounded-full h-2">
+                                <div class="bg-gradient-to-r from-yellow-500 to-pink-500 h-2 rounded-full" style="width: 100%"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -493,61 +586,64 @@
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.6 }}
-                class="card-6 bg-white rounded-xl shadow-md p-6"
+                class="card-6 glass-card rounded-2xl p-6 relative overflow-hidden"
             >
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-xl font-bold flex items-center">
-                        <span class="material-icons text-primary mr-2">water_drop</span>
-                        愿望池
-                    </h2>
-                    
-                    <div class="flex space-x-2">
-                        <div class="relative">
-                            <input type="text" id="wishSearch" placeholder="搜索姓名..." 
-                                class="pl-4 pr-10 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
-                            <button id="searchBtn" class="absolute right-2 top-2 text-gray-500 hover:text-primary">
-                                <span class="material-icons">search</span>
-                            </button>
-                            <button id="clearSearchBtn" class="absolute right-2 top-2 text-gray-500 hover:text-primary hidden">
-                                <span class="material-icons">close</span>
-                            </button>
+                <div class="absolute inset-0 bg-gradient-to-br from-primary/10 to-secondary/10 opacity-30"></div>
+                <div class="relative z-10">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-xl font-bold flex items-center text-white">
+                            <span class="material-icons-round text-primary mr-2">water_drop</span>
+                            愿望池
+                        </h2>
+                        
+                        <div class="flex space-x-2">
+                            <div class="relative">
+                                <input type="text" id="wishSearch" placeholder="搜索姓名..." 
+                                    class="pl-4 pr-10 py-2 bg-gray-900 bg-opacity-50 border border-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-white placeholder-gray-500">
+                                <button id="searchBtn" class="absolute right-2 top-2 text-gray-400 hover:text-white">
+                                    <span class="material-icons-round">search</span>
+                                </button>
+                                <button id="clearSearchBtn" class="absolute right-2 top-2 text-gray-400 hover:text-white hidden">
+                                    <span class="material-icons-round">close</span>
+                                </button>
+                            </div>
+                            
+                            <select id="wishFilter" 
+                                class="px-4 py-2 bg-gray-900 bg-opacity-50 border border-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-white">
+                                <option value="all" class="bg-gray-900">全部愿望</option>
+                                <option value="love" class="bg-gray-900">姻缘感情</option>
+                                <option value="wealth" class="bg-gray-900">财富事业</option>
+                                <option value="health" class="bg-gray-900">健康平安</option>
+                                <option value="study" class="bg-gray-900">学业成长</option>
+                                <option value="family" class="bg-gray-900">家庭和睦</option>
+                            </select>
+                            
+                            <select id="sortFilter" 
+                                class="px-4 py-2 bg-gray-900 bg-opacity-50 border border-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-white">
+                                <option value="newest" class="bg-gray-900">最新愿望</option>
+                                <option value="oldest" class="bg-gray-900">最早愿望</option>
+                                <option value="most" class="bg-gray-900">最多加持</option>
+                                <option value="least" class="bg-gray-900">最少加持</option>
+                            </select>
                         </div>
-                        
-                        <select id="wishFilter" 
-                            class="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
-                            <option value="all">全部愿望</option>
-                            <option value="love">姻缘感情</option>
-                            <option value="wealth">财富事业</option>
-                            <option value="health">健康平安</option>
-                            <option value="study">学业成长</option>
-                            <option value="family">家庭和睦</option>
-                        </select>
-                        
-                        <select id="sortFilter" 
-                            class="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
-                            <option value="newest">最新愿望</option>
-                            <option value="oldest">最早愿望</option>
-                            <option value="most">最多加持</option>
-                            <option value="least">最少加持</option>
-                        </select>
                     </div>
-                </div>
-                
-                <div class="wish-pool grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <div class="wish-loading col-span-3 flex flex-col items-center justify-center py-12">
-                        <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mb-4"></div>
-                        <p>正在连接命缘池能量场...</p>
+                    
+                    <div class="wish-pool grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div class="wish-loading col-span-3 flex flex-col items-center justify-center py-12">
+                            <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mb-4"></div>
+                            <p class="text-gray-400">正在连接命缘池能量场...</p>
+                        </div>
                     </div>
-                </div>
-                
-                <div class="flex justify-center items-center mt-6 space-x-4">
-                    <button id="prevPage" disabled class="px-4 py-2 bg-gray-200 rounded-lg disabled:opacity-50">
-                        <span class="material-icons">chevron_left</span>
-                    </button>
-                    <span id="pageInfo" class="text-gray-600">第 1 页</span>
-                    <button id="nextPage" class="px-4 py-2 bg-gray-200 rounded-lg">
-                        <span class="material-icons">chevron_right</span>
-                    </button>
+                    
+                    <div class="flex justify-center items-center mt-6 space-x-4">
+                        <button id="prevPage" disabled class="px-4 py-2 bg-gray-800 rounded-full disabled:opacity-50 text-gray-400">
+                            <span class="material-icons-round">chevron_left</span>
+                        </button>
+                        <span id="pageInfo" class="text-gray-400">第 1 页</span>
+                        <button id="nextPage" class="px-4 py-2 bg-gray-800 rounded-full text-gray-400 hover:text-white">
+                            <span class="material-icons-round">chevron_right</span>
+                        </button>
+                    </div>
                 </div>
             </motion.div>
         </div>
@@ -559,8 +655,8 @@
             transition={{ delay: 0.7 }}
             class="text-center mb-12"
         >
-            <button type="submit" form="wishForm" class="px-8 py-3 bg-primary text-white rounded-lg hover:bg-opacity-90 transition text-lg">
-                <span class="material-icons align-middle mr-2">send</span>
+            <button type="submit" form="wishForm" class="px-8 py-3 bg-gradient-to-r from-primary to-secondary text-white rounded-full hover:opacity-90 transition text-lg shadow-lg flex items-center mx-auto">
+                <span class="material-icons-round align-middle mr-2">send</span>
                 投入命缘池
             </button>
         </motion.div>
@@ -570,14 +666,17 @@
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.8 }}
-            class="bg-white rounded-xl shadow-md p-6 mb-12"
+            class="glass-card rounded-2xl p-6 mb-12 relative overflow-hidden"
         >
-            <h2 class="text-xl font-bold flex items-center mb-6">
-                <span class="material-icons text-primary mr-2">pie_chart</span>
-                愿望分布
-            </h2>
-            <div class="h-64">
-                <canvas id="wishchart"></canvas>
+            <div class="absolute inset-0 bg-gradient-to-br from-primary/10 to-secondary/10 opacity-30"></div>
+            <div class="relative z-10">
+                <h2 class="text-xl font-bold flex items-center mb-6 text-white">
+                    <span class="material-icons-round text-primary mr-2">pie_chart</span>
+                    愿望分布
+                </h2>
+                <div class="h-64">
+                    <canvas id="wishchart"></canvas>
+                </div>
             </div>
         </motion.div>
         
@@ -586,59 +685,62 @@
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.9 }}
-            class="bg-white rounded-xl shadow-md p-6"
+            class="glass-card rounded-2xl p-6 relative overflow-hidden"
         >
-            <h2 class="text-xl font-bold flex items-center mb-6">
-                <span class="material-icons text-primary mr-2">info</span>
-                诚心须知
-            </h2>
-            
-            <div class="space-y-4">
-                <div class="p-4 bg-blue-50 rounded-lg">
-                    <h3 class="font-medium flex items-center mb-2">
-                        <span class="material-icons text-blue-500 mr-2">lightbulb</span>
-                        心诚则灵
-                    </h3>
-                    <ul class="list-disc pl-5 space-y-1 text-gray-700">
-                        <li>请确保八字信息准确无误，这是愿望的能量标识</li>
-                        <li>愿望内容需真诚具体，避免模糊或负面表述</li>
-                        <li>在加持他人愿望时，请保持善念，能量会回馈于你</li>
-                        <li>愿望达成后请及时还愿，完成能量循环</li>
-                        <li>每个愿望有效期为30天，到期后自动从池中移除</li>
-                    </ul>
-                </div>
+            <div class="absolute inset-0 bg-gradient-to-br from-primary/10 to-secondary/10 opacity-30"></div>
+            <div class="relative z-10">
+                <h2 class="text-xl font-bold flex items-center mb-6 text-white">
+                    <span class="material-icons-round text-primary mr-2">info</span>
+                    诚心须知
+                </h2>
                 
-                <div class="p-4 bg-yellow-50 rounded-lg">
-                    <h3 class="font-medium flex items-center mb-2">
-                        <span class="material-icons text-yellow-500 mr-2">warning</span>
-                        重要说明
-                    </h3>
-                    <p class="text-gray-700 mb-3">
-                        每个愿望都有六字真言（唵嘛呢叭咪吽）加持，这是佛教密宗核心咒语，具有净化业障、开启智慧、积累功德的核心作用，其功能涵盖身心修行与世俗利益双重维度‌。该真言通过持诵可净化身、语、意三业，消除贪嗔痴等根本烦恼，同时获得观世音菩萨加持，实现健康、财富、智慧等现实愿求。‌‌
-                    </p>
-                    <blockquote class="pl-4 border-l-4 border-primary italic text-gray-600">
-                        《道德经》云："天道无亲，常与善人"。命缘池的能量运作遵循自然法则，多行善事能增强愿望实现的几率。
-                    </blockquote>
+                <div class="space-y-4">
+                    <div class="p-4 bg-gray-900 bg-opacity-50 rounded-xl border border-gray-800">
+                        <h3 class="font-medium flex items-center mb-2 text-white">
+                            <span class="material-icons-round text-blue-400 mr-2">lightbulb</span>
+                            心诚则灵
+                        </h3>
+                        <ul class="list-disc pl-5 space-y-1 text-gray-300">
+                            <li>请确保八字信息准确无误，这是愿望的能量标识</li>
+                            <li>愿望内容需真诚具体，避免模糊或负面表述</li>
+                            <li>在加持他人愿望时，请保持善念，能量会回馈于你</li>
+                            <li>愿望达成后请及时还愿，完成能量循环</li>
+                            <li>每个愿望有效期为30天，到期后自动从池中移除</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="p-4 bg-gray-900 bg-opacity-50 rounded-xl border border-gray-800">
+                        <h3 class="font-medium flex items-center mb-2 text-white">
+                            <span class="material-icons-round text-yellow-400 mr-2">warning</span>
+                            重要说明
+                        </h3>
+                        <p class="text-gray-300 mb-3">
+                            每个愿望都有六字真言（唵嘛呢叭咪吽）加持，这是佛教密宗核心咒语，具有净化业障、开启智慧、积累功德的核心作用，其功能涵盖身心修行与世俗利益双重维度‌。该真言通过持诵可净化身、语、意三业，消除贪嗔痴等根本烦恼，同时获得观世音菩萨加持，实现健康、财富、智慧等现实愿求。‌‌
+                        </p>
+                        <blockquote class="pl-4 border-l-4 border-primary italic text-gray-400">
+                            《道德经》云："天道无亲，常与善人"。命缘池的能量运作遵循自然法则，多行善事能增强愿望实现的几率。
+                        </blockquote>
+                    </div>
                 </div>
             </div>
         </motion.div>
     </main>
 
     <!-- Footer -->
-    <footer class="bg-gray-100 py-6 mt-12">
+    <footer class="relative z-10 bg-dark bg-opacity-80 backdrop-blur-md py-6 mt-12 border-t border-gray-800">
         <div class="container mx-auto px-4 text-center">
             <div class="flex justify-center space-x-4 mb-2">
-                <a href="wishingwell.html" class="text-gray-700 hover:text-primary">命缘池</a>
-                <span class="text-gray-400">|</span>
-                <a href="curse.html" class="text-gray-700 hover:text-primary">怨化池</a>
+                <a href="wishingwell.html" class="text-gray-400 hover:text-primary transition">命缘池</a>
+                <span class="text-gray-600">|</span>
+                <a href="curse.html" class="text-gray-400 hover:text-primary transition">怨化池</a>
             </div>
-            <p class="text-gray-600 text-sm">&copy; 2025 麦八字. 保留所有权利.</p>
-            <p class="text-gray-600 text-sm">汇聚善念，共振美好</p>
+            <p class="text-gray-500 text-sm">&copy; 2025 麦八字. 保留所有权利.</p>
+            <p class="text-gray-500 text-sm">汇聚善念，共振美好</p>
         </div>
     </footer>
 
     <!-- Mantra Overlay -->
-    <div class="fixed inset-0 bg-black bg-opacity-80 z-50 flex items-center justify-center hidden" id="mantraOverlay">
+    <div class="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center hidden" id="mantraOverlay">
         <div class="text-center text-white">
             <div class="grid grid-cols-3 gap-8 mb-12">
                 <div class="mantra-text" data-text="唵">唵</div>
@@ -648,20 +750,20 @@
                 <div class="mantra-text" data-text="咪">咪</div>
                 <div class="mantra-text" data-text="吽">吽</div>
             </div>
-            <p class="text-xl">六字真言加持中...</p>
+            <p class="text-xl text-gray-300">六字真言加持中...</p>
         </div>
     </div>
 
     <!-- User Cards Modal -->
-    <div class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden" id="userCardsModal">
-        <div class="bg-white rounded-xl shadow-xl w-full max-w-4xl max-h-[80vh] overflow-hidden">
-            <div class="p-6 border-b flex justify-between items-center">
-                <h3 class="text-xl font-bold flex items-center">
-                    <span class="material-icons text-primary mr-2">collections</span>
+    <div class="fixed inset-0 bg-black bg-opacity-80 z-50 flex items-center justify-center hidden" id="userCardsModal">
+        <div class="bg-gray-900 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[80vh] overflow-hidden border border-gray-800">
+            <div class="p-6 border-b border-gray-800 flex justify-between items-center">
+                <h3 class="text-xl font-bold flex items-center text-white">
+                    <span class="material-icons-round text-primary mr-2">collections</span>
                     我的愿望卡片
                 </h3>
-                <button class="close-cards text-gray-500 hover:text-gray-700">
-                    <span class="material-icons">close</span>
+                <button class="close-cards text-gray-400 hover:text-white">
+                    <span class="material-icons-round">close</span>
                 </button>
             </div>
             <div class="p-6 overflow-y-auto" id="userCardsList"></div>
@@ -669,31 +771,31 @@
     </div>
     
     <!-- Fulfill Modal -->
-    <div id="fulfillModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden">
-        <div class="bg-white rounded-xl shadow-xl p-6 w-full max-w-md">
+    <div id="fulfillModal" class="fixed inset-0 bg-black bg-opacity-80 z-50 flex items-center justify-center hidden">
+        <div class="bg-gray-900 rounded-2xl shadow-2xl p-6 w-full max-w-md border border-gray-800">
             <div class="flex justify-between items-center mb-4">
-                <h3 class="text-xl font-bold flex items-center">
-                    <span class="material-icons text-primary mr-2">celebration</span>
+                <h3 class="text-xl font-bold flex items-center text-white">
+                    <span class="material-icons-round text-primary mr-2">celebration</span>
                     感恩还愿
                 </h3>
-                <button class="close-modal text-gray-500 hover:text-gray-700">
-                    <span class="material-icons">close</span>
+                <button class="close-modal text-gray-400 hover:text-white">
+                    <span class="material-icons-round">close</span>
                 </button>
             </div>
             
-            <p class="mb-6 text-gray-700">您的愿望已经实现，请选择还愿金额：</p>
+            <p class="mb-6 text-gray-300">您的愿望已经实现，请选择还愿金额：</p>
             
             <div class="grid grid-cols-2 gap-4 mb-6">
-                <button class="fulfill-option px-4 py-3 border rounded-lg hover:bg-primary hover:text-white transition" data-amount="1">
+                <button class="fulfill-option px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg hover:bg-primary hover:text-white transition" data-amount="1">
                     1元
                 </button>
-                <button class="fulfill-option px-4 py-3 border rounded-lg hover:bg-primary hover:text-white transition" data-amount="5">
+                <button class="fulfill-option px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg hover:bg-primary hover:text-white transition" data-amount="5">
                     5元
                 </button>
-                <button class="fulfill-option px-4 py-3 border rounded-lg hover:bg-primary hover:text-white transition" data-amount="10">
+                <button class="fulfill-option px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg hover:bg-primary hover:text-white transition" data-amount="10">
                     10元
                 </button>
-                <button class="fulfill-option px-4 py-3 border rounded-lg hover:bg-primary hover:text-white transition" data-amount="20">
+                <button class="fulfill-option px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg hover:bg-primary hover:text-white transition" data-amount="20">
                     20元
                 </button>
             </div>
@@ -702,6 +804,26 @@
 
     <!-- JavaScript -->
     <script>
+      // 初始化粒子背景
+      particlesJS("particles-js", {
+        particles: {
+          number: { value: 80, density: { enable: true, value_area: 800 } },
+          color: { value: "#7c4dff" },
+          shape: { type: "circle" },
+          opacity: { value: 0.5, random: true },
+          size: { value: 3, random: true },
+          line_linked: { enable: true, distance: 150, color: "#7c4dff", opacity: 0.4, width: 1 },
+          move: { enable: true, speed: 2, direction: "none", random: true, straight: false, out_mode: "out" }
+        },
+        interactivity: {
+          detect_on: "canvas",
+          events: {
+            onhover: { enable: true, mode: "repulse" },
+            onclick: { enable: true, mode: "push" }
+          }
+        }
+      });
+
       // 保持原有的所有JavaScript功能不变
       document.addEventListener('DOMContentLoaded', function() {
         // 配置后端地址
@@ -768,11 +890,11 @@
             document.querySelectorAll('.toast').forEach(toast => toast.remove());
             
             const toast = document.createElement('div');
-            toast.className = `toast fixed bottom-4 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-lg shadow-lg text-white ${
-                type === 'success' ? 'bg-green-500' : 'bg-red-500'
-            }`;
+            toast.className = `toast fixed bottom-4 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-full shadow-lg text-white ${
+                type === 'success' ? 'bg-gradient-to-r from-primary to-secondary' : 'bg-gradient-to-r from-red-500 to-pink-500'
+            } flex items-center`;
             toast.innerHTML = `
-                <span class="material-icons align-middle mr-2">${
+                <span class="material-icons-round mr-2">${
                     type === 'success' ? 'check_circle' : 'error'
                 }</span>
                 ${message}
@@ -820,21 +942,17 @@
         // 切换登录/注册标签页
         function switchAuthTab(tab) {
             if (tab === 'login') {
-                loginTab.classList.add('active');
-                loginTab.classList.remove('text-gray-500');
-                loginTab.classList.add('text-primary', 'border-primary');
-                registerTab.classList.remove('active');
-                registerTab.classList.add('text-gray-500');
-                registerTab.classList.remove('text-primary', 'border-primary');
+                loginTab.classList.add('active', 'text-white', 'border-primary');
+                loginTab.classList.remove('text-gray-400');
+                registerTab.classList.remove('active', 'text-white', 'border-primary');
+                registerTab.classList.add('text-gray-400');
                 loginForm.classList.remove('hidden');
                 registerForm.classList.add('hidden');
             } else {
-                loginTab.classList.remove('active');
-                loginTab.classList.add('text-gray-500');
-                loginTab.classList.remove('text-primary', 'border-primary');
-                registerTab.classList.add('active');
-                registerTab.classList.remove('text-gray-500');
-                registerTab.classList.add('text-primary', 'border-primary');
+                loginTab.classList.remove('active', 'text-white', 'border-primary');
+                loginTab.classList.add('text-gray-400');
+                registerTab.classList.add('active', 'text-white', 'border-primary');
+                registerTab.classList.remove('text-gray-400');
                 loginForm.classList.add('hidden');
                 registerForm.classList.remove('hidden');
             }
@@ -1012,7 +1130,7 @@
         function showAuthMessage(element, message, type) {
             element.textContent = message;
             element.className = `mt-4 p-3 rounded-lg ${
-                type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                type === 'success' ? 'bg-green-900 bg-opacity-50 text-green-300' : 'bg-red-900 bg-opacity-50 text-red-300'
             }`;
             element.style.display = 'block';
             
@@ -1082,7 +1200,7 @@
             cardsList.innerHTML = `
                 <div class="wish-loading flex flex-col items-center justify-center py-12">
                     <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mb-4"></div>
-                    <p>正在加载您的愿望卡片...</p>
+                    <p class="text-gray-400">正在加载您的愿望卡片...</p>
                 </div>
             `;
             
@@ -1109,11 +1227,11 @@
                 if (wishes.length === 0) {
                     cardsList.innerHTML = `
                         <div class="empty-cards flex flex-col items-center justify-center py-12 text-center">
-                            <span class="material-icons text-4xl text-gray-400 mb-4">inbox</span>
-                            <p class="text-gray-600 mb-4">您还没有创建任何愿望卡片</p>
+                            <span class="material-icons-round text-4xl text-gray-500 mb-4">inbox</span>
+                            <p class="text-gray-400 mb-4">您还没有创建任何愿望卡片</p>
                             <button onclick="document.getElementById('wishForm').scrollIntoView()" 
-                                    class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-opacity-90 transition">
-                                <span class="material-icons align-middle mr-1">add</span> 创建新愿望
+                                    class="px-4 py-2 bg-gradient-to-r from-primary to-secondary text-white rounded-full hover:opacity-90 transition shadow-lg">
+                                <span class="material-icons-round align-middle mr-1">add</span> 创建新愿望
                             </button>
                         </div>
                     `;
@@ -1123,7 +1241,7 @@
                 cardsList.innerHTML = '';
                 wishes.forEach(wish => {
                     const card = document.createElement('div');
-                    card.className = 'user-card-item bg-white rounded-lg shadow-sm overflow-hidden mb-4 transition hover:shadow-md';
+                    card.className = 'user-card-item bg-gray-800 rounded-xl shadow-lg overflow-hidden mb-4 transition hover:shadow-xl border border-gray-700 hover:border-primary/50';
                     card.dataset.id = wish.id;
                     card.dataset.type = wish.type;
                     
@@ -1133,13 +1251,13 @@
                     const daysLeft = Math.max(0, Math.ceil((expiresAt - new Date()) / (86400000)));
                     
                     const statusLabel = wish.is_fulfilled ? 
-                        '<span class="card-status absolute top-2 right-2 px-2 py-1 rounded text-xs bg-green-100 text-green-700"><span class="material-icons align-middle text-sm mr-1">check_circle</span> 已还愿</span>' :
-                        `<span class="card-status absolute top-2 right-2 px-2 py-1 rounded text-xs bg-blue-100 text-blue-700"><span class="material-icons align-middle text-sm mr-1 animate-spin">autorenew</span> 进行中</span>`;
+                        '<span class="card-status absolute top-3 right-3 px-2 py-1 rounded-full text-xs bg-green-900 bg-opacity-50 text-green-300 border border-green-700 flex items-center"><span class="material-icons-round text-sm mr-1">check_circle</span> 已还愿</span>' :
+                        `<span class="card-status absolute top-3 right-3 px-2 py-1 rounded-full text-xs bg-blue-900 bg-opacity-50 text-blue-300 border border-blue-700 flex items-center"><span class="material-icons-round text-sm mr-1 animate-spin">autorenew</span> 进行中</span>`;
                     
                     const level = wish.level || 1;
                     const levelPercent = level * 20;
                     const levelNames = ['初愿', '小成', '中成', '大成', '圆满'];
-                    const levelColor = ['#6a11cb', '#2575fc', '#00b894', '#fdcb6e', '#e84393'][level - 1];
+                    const levelColors = ['from-purple-500 to-blue-500', 'from-blue-500 to-teal-500', 'from-teal-500 to-green-500', 'from-green-500 to-yellow-500', 'from-yellow-500 to-pink-500'];
                     
                     const typeIcons = {
                         'love': 'favorite',
@@ -1151,47 +1269,57 @@
                     };
                     const typeIcon = typeIcons[wish.type] || 'star';
                     
+                    const typeColors = {
+                        'love': 'bg-pink-900 bg-opacity-50 text-pink-300 border-pink-700',
+                        'wealth': 'bg-green-900 bg-opacity-50 text-green-300 border-green-700',
+                        'health': 'bg-blue-900 bg-opacity-50 text-blue-300 border-blue-700',
+                        'study': 'bg-purple-900 bg-opacity-50 text-purple-300 border-purple-700',
+                        'family': 'bg-orange-900 bg-opacity-50 text-orange-300 border-orange-700',
+                        'other': 'bg-gray-700 bg-opacity-50 text-gray-300 border-gray-600'
+                    };
+                    const typeColor = typeColors[wish.type] || 'bg-gray-700 bg-opacity-50 text-gray-300 border-gray-600';
+                    
                     card.innerHTML = `
                         ${statusLabel}
-                        <div class="p-4">
-                            <div class="wish-header mb-3">
-                                <div class="wish-user flex items-center text-sm">
-                                    <span class="material-icons text-gray-500 mr-1 text-sm">person</span> 
-                                    <span class="user-name font-medium">${wish.user_name || '匿名用户'}</span>
-                                    <span class="wish-type-badge ml-2 px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs flex items-center">
-                                        <span class="material-icons text-sm mr-1">${typeIcon}</span> 
-                                        ${getWishTypeName(wish.type)}
-                                    </span>
+                        <div class="p-5">
+                            <div class="wish-header mb-4">
+                                <div class="wish-user flex items-center text-sm mb-2">
+                                    <span class="material-icons-round text-gray-400 mr-2 text-sm">person</span> 
+                                    <span class="user-name font-medium text-white">${wish.user_name || '匿名用户'}</span>
                                 </div>
+                                <span class="wish-type-badge px-3 py-1 rounded-full text-xs ${typeColor} flex items-center w-max">
+                                    <span class="material-icons-round text-sm mr-1">${typeIcon}</span> 
+                                    ${getWishTypeName(wish.type)}
+                                </span>
                             </div>
                             
-                            <div class="wish-content mb-4">
-                                <p class="wish-text text-gray-700">${wish.content}</p>
+                            <div class="wish-content mb-5">
+                                <p class="wish-text text-gray-300">${wish.content}</p>
                             </div>
                             
-                            <div class="card-progress mb-3">
-                                <div class="w-full bg-gray-200 rounded-full h-2 mb-1">
-                                    <div class="h-2 rounded-full" style="width: ${levelPercent}%; background: ${levelColor}"></div>
-                                </div>
-                                <div class="flex justify-between text-xs text-gray-500">
+                            <div class="card-progress mb-4">
+                                <div class="flex justify-between text-sm text-gray-400 mb-1">
                                     <span>${levelNames[level - 1]}等级</span>
                                     <span>${wish.blessings || 0}次加持</span>
                                 </div>
+                                <div class="w-full bg-gray-700 rounded-full h-2">
+                                    <div class="h-2 rounded-full bg-gradient-to-r ${levelColors[level - 1]}"></div>
+                                </div>
                             </div>
                             
-                            <div class="card-meta flex justify-between text-xs text-gray-500 mb-4">
-                                <span class="flex items-center"><span class="material-icons text-sm mr-1">event</span> ${formatDate(wish.created_at)}</span>
-                                <span class="flex items-center"><span class="material-icons text-sm mr-1">schedule</span> 剩余${daysLeft}天</span>
+                            <div class="card-meta flex justify-between text-xs text-gray-500 mb-5">
+                                <span class="flex items-center"><span class="material-icons-round text-sm mr-1">event</span> ${formatDate(wish.created_at)}</span>
+                                <span class="flex items-center"><span class="material-icons-round text-sm mr-1">schedule</span> 剩余${daysLeft}天</span>
                             </div>
                             
-                            <div class="user-card-actions flex space-x-2">
+                            <div class="user-card-actions flex space-x-3">
                                 ${!wish.is_fulfilled ? `
-                                <button class="btn-fulfill-small px-3 py-1 bg-green-100 text-green-700 rounded text-sm flex items-center hover:bg-green-200">
-                                    <span class="material-icons text-sm mr-1">celebration</span> 还愿
+                                <button class="btn-fulfill-small px-4 py-2 bg-green-900 bg-opacity-50 text-green-300 rounded-full text-sm flex items-center hover:bg-green-800 hover:text-white transition border border-green-700">
+                                    <span class="material-icons-round text-sm mr-1">celebration</span> 还愿
                                 </button>
                                 ` : ''}
-                                <button class="btn-delete px-3 py-1 bg-red-100 text-red-700 rounded text-sm flex items-center hover:bg-red-200">
-                                    <span class="material-icons text-sm mr-1">delete</span> 删除
+                                <button class="btn-delete px-4 py-2 bg-red-900 bg-opacity-50 text-red-300 rounded-full text-sm flex items-center hover:bg-red-800 hover:text-white transition border border-red-700">
+                                    <span class="material-icons-round text-sm mr-1">delete</span> 删除
                                 </button>
                             </div>
                         </div>
@@ -1212,7 +1340,7 @@
                         });
                     }
                     
-                    card.querySelector('.p-4').addEventListener('click', () => {
+                    card.querySelector('.p-5').addEventListener('click', () => {
                         showWishDetail(wish);
                     });
                     
@@ -1221,10 +1349,10 @@
                 
                 if (wishes.length > 3) {
                     const newCardBtn = document.createElement('div');
-                    newCardBtn.className = 'user-card-item bg-white rounded-lg shadow-sm overflow-hidden mb-4 transition hover:shadow-md cursor-pointer';
+                    newCardBtn.className = 'user-card-item bg-gray-800 rounded-xl shadow-lg overflow-hidden mb-4 transition hover:shadow-xl border-2 border-dashed border-gray-600 hover:border-primary cursor-pointer';
                     newCardBtn.innerHTML = `
-                        <div class="p-8 flex flex-col items-center justify-center text-gray-400 hover:text-primary">
-                            <span class="material-icons text-4xl mb-2">add_circle</span>
+                        <div class="p-8 flex flex-col items-center justify-center text-gray-500 hover:text-primary transition">
+                            <span class="material-icons-round text-4xl mb-2">add_circle</span>
                             <p>创建新愿望</p>
                         </div>
                     `;
@@ -1241,14 +1369,14 @@
                 console.error('加载用户卡片失败:', error);
                 cardsList.innerHTML = `
                     <div class="wish-loading flex flex-col items-center justify-center py-12 text-center">
-                        <span class="material-icons text-4xl text-red-500 mb-4">error</span>
-                        <p class="text-gray-700 mb-4">加载失败：${error.message}</p>
-                        <div class="flex space-x-2">
-                            <button onclick="showUserCards()" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-opacity-90 transition">
-                                <span class="material-icons align-middle mr-1">refresh</span> 重新加载
+                        <span class="material-icons-round text-4xl text-red-400 mb-4">error</span>
+                        <p class="text-gray-400 mb-4">加载失败：${error.message}</p>
+                        <div class="flex space-x-3">
+                            <button onclick="showUserCards()" class="px-4 py-2 bg-gradient-to-r from-primary to-secondary text-white rounded-full hover:opacity-90 transition shadow-lg">
+                                <span class="material-icons-round align-middle mr-1">refresh</span> 重新加载
                             </button>
-                            <button onclick="location.reload()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">
-                                <span class="material-icons align-middle mr-1">replay</span> 刷新页面
+                            <button onclick="location.reload()" class="px-4 py-2 bg-gray-700 text-gray-300 rounded-full hover:bg-gray-600 transition">
+                                <span class="material-icons-round align-middle mr-1">replay</span> 刷新页面
                             </button>
                         </div>
                     </div>
@@ -1293,7 +1421,7 @@
             
             try {
                 cardElement.style.opacity = '0.5';
-                cardElement.querySelector('.btn-delete').innerHTML = '<span class="material-icons animate-spin text-sm mr-1">autorenew</span> 删除中...';
+                cardElement.querySelector('.btn-delete').innerHTML = '<span class="material-icons-round animate-spin text-sm mr-1">autorenew</span> 删除中...';
                 cardElement.querySelector('.btn-delete').disabled = true;
                 
                 const response = await fetch(`${API_BASE}/api/wishes/${wishId}`, {
@@ -1315,8 +1443,8 @@
                     if (cardsList.children.length === 0) {
                         cardsList.innerHTML = `
                             <div class="empty-cards flex flex-col items-center justify-center py-12 text-center">
-                                <span class="material-icons text-4xl text-gray-400 mb-4">inbox</span>
-                                <p class="text-gray-600">您还没有创建任何愿望卡片</p>
+                                <span class="material-icons-round text-4xl text-gray-500 mb-4">inbox</span>
+                                <p class="text-gray-400">您还没有创建任何愿望卡片</p>
                             </div>
                         `;
                     }
@@ -1327,7 +1455,7 @@
             } catch (error) {
                 console.error('删除愿望失败:', error);
                 cardElement.style.opacity = '';
-                cardElement.querySelector('.btn-delete').innerHTML = '<span class="material-icons text-sm mr-1">delete</span> 删除';
+                cardElement.querySelector('.btn-delete').innerHTML = '<span class="material-icons-round text-sm mr-1">delete</span> 删除';
                 cardElement.querySelector('.btn-delete').disabled = false;
                 showToast(`删除失败: ${error.message}`, 'error');
             }
@@ -1362,7 +1490,7 @@
                 wishPool.innerHTML = `
                     <div class="wish-loading col-span-3 flex flex-col items-center justify-center py-12">
                         <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mb-4"></div>
-                        <p>正在连接命缘池能量场...</p>
+                        <p class="text-gray-400">正在连接命缘池能量场...</p>
                     </div>
                 `;
 
@@ -1383,10 +1511,10 @@
                 console.error('加载愿望时出错:', err);
                 wishPool.innerHTML = `
                     <div class="wish-loading col-span-3 flex flex-col items-center justify-center py-12">
-                        <span class="material-icons text-4xl text-red-500 mb-4">error</span>
-                        <p class="text-gray-700 mb-4">加载失败：${err.message}</p>
-                        <button onclick="loadAllWishes()" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-opacity-90 transition">
-                            <span class="material-icons align-middle mr-1">refresh</span> 重新加载
+                        <span class="material-icons-round text-4xl text-red-400 mb-4">error</span>
+                        <p class="text-gray-400 mb-4">加载失败：${err.message}</p>
+                        <button onclick="loadAllWishes()" class="px-4 py-2 bg-gradient-to-r from-primary to-secondary text-white rounded-full hover:opacity-90 transition shadow-lg">
+                            <span class="material-icons-round align-middle mr-1">refresh</span> 重新加载
                         </button>
                     </div>
                 `;
@@ -1446,8 +1574,8 @@
             if (wishes.length === 0) {
                 wishPool.innerHTML = `
                     <div class="wish-loading col-span-3 flex flex-col items-center justify-center py-12">
-                        <span class="material-icons text-4xl text-primary mb-4">water_drop</span>
-                        <p class="text-gray-700 mb-2">没有找到符合条件的愿望</p>
+                        <span class="material-icons-round text-4xl text-primary mb-4">water_drop</span>
+                        <p class="text-gray-400 mb-2">没有找到符合条件的愿望</p>
                         ${currentSearchTerm ? `<p class="text-gray-500">没有找到与"${currentSearchTerm}"相关的愿望</p>` : '<p class="text-gray-500">请尝试其他筛选条件</p>'}
                     </div>
                 `;
@@ -1464,12 +1592,12 @@
             };
             
             const typeColors = {
-                'love': 'bg-pink-100 text-pink-700',
-                'wealth': 'bg-green-100 text-green-700',
-                'health': 'bg-blue-100 text-blue-700',
-                'study': 'bg-purple-100 text-purple-700',
-                'family': 'bg-orange-100 text-orange-700',
-                'other': 'bg-gray-100 text-gray-700'
+                'love': 'bg-pink-900 bg-opacity-50 text-pink-300 border-pink-700',
+                'wealth': 'bg-green-900 bg-opacity-50 text-green-300 border-green-700',
+                'health': 'bg-blue-900 bg-opacity-50 text-blue-300 border-blue-700',
+                'study': 'bg-purple-900 bg-opacity-50 text-purple-300 border-purple-700',
+                'family': 'bg-orange-900 bg-opacity-50 text-orange-300 border-orange-700',
+                'other': 'bg-gray-700 bg-opacity-50 text-gray-300 border-gray-600'
             };
             
             const typeIcons = {
@@ -1481,9 +1609,15 @@
                 'other': 'star'
             };
             
+            const levelColors = ['from-purple-500 to-blue-500', 
+                               'from-blue-500 to-teal-500',
+                               'from-teal-500 to-green-500',
+                               'from-green-500 to-yellow-500',
+                               'from-yellow-500 to-pink-500'];
+            
             wishes.forEach(wish => {
                 const wishCard = document.createElement('div');
-                wishCard.className = 'wish-card bg-white rounded-lg shadow-sm overflow-hidden transition hover:shadow-md';
+                wishCard.className = 'wish-card bg-gray-800 rounded-xl shadow-lg overflow-hidden transition hover:shadow-xl border border-gray-700 hover:border-primary/50';
                 wishCard.dataset.id = wish.id;
                 wishCard.dataset.level = wish.level || 1;
                 wishCard.dataset.type = wish.type;
@@ -1495,50 +1629,51 @@
                 const daysLeft = Math.max(0, Math.ceil((expiresAt - new Date()) / (86400000)));
                 
                 const level = wish.level || 1;
-                const levelColors = ['bg-gradient-to-r from-purple-500 to-blue-500', 
-                                   'bg-gradient-to-r from-blue-500 to-teal-500',
-                                   'bg-gradient-to-r from-teal-500 to-green-500',
-                                   'bg-gradient-to-r from-green-500 to-yellow-500',
-                                   'bg-gradient-to-r from-yellow-500 to-pink-500'];
                 
                 wishCard.innerHTML = `
-                    <div class="p-4">
-                        <div class="wish-header flex justify-between items-center mb-3">
-                            <div class="wish-user flex items-center text-sm">
-                                <span class="material-icons text-gray-500 mr-1 text-sm">person</span> 
-                                <span class="user-name font-medium">${wish.user_name || '匿名用户'}</span>
+                    <div class="p-5">
+                        <div class="wish-header flex justify-between items-center mb-4">
+                            <div class="wish-user flex items-center">
+                                <span class="material-icons-round text-gray-400 mr-2">person</span> 
+                                <span class="user-name font-medium text-white">${wish.user_name || '匿名用户'}</span>
                             </div>
-                            <span class="wish-type px-2 py-1 rounded-full text-xs ${typeColors[wish.type]} flex items-center">
-                                <span class="material-icons text-sm mr-1">${typeIcons[wish.type]}</span>
+                            <span class="wish-type px-3 py-1 rounded-full text-xs ${typeColors[wish.type]} flex items-center">
+                                <span class="material-icons-round text-sm mr-1">${typeIcons[wish.type]}</span>
                                 ${typeNames[wish.type] || '其他愿望'}
                             </span>
                         </div>
                         
-                        <div class="wish-content mb-4">
-                            <p class="wish-text text-gray-700">${wish.content}</p>
+                        <div class="wish-content mb-5">
+                            <p class="wish-text text-gray-300">${wish.content}</p>
                         </div>
                         
-                        <div class="wish-meta flex justify-between items-center mb-4 text-sm">
+                        <div class="wish-meta flex justify-between items-center mb-5 text-sm">
                             <div class="wish-bazi flex items-center text-gray-500">
-                                <span class="material-icons text-sm mr-1 text-gray-400">fingerprint</span>
+                                <span class="material-icons-round text-gray-400 mr-1">fingerprint</span>
                                 <span class="bazi-text">${wish.bazi}</span>
                             </div>
-                            <div class="wish-stats text-gray-500">
-                                <span class="bless-count font-medium">${wish.blessings || 0}</span> 次加持
+                            <div class="wish-stats text-gray-400">
+                                <span class="bless-count font-medium text-white">${wish.blessings || 0}</span> 次加持
                             </div>
                         </div>
                         
-                        <div class="wish-actions flex space-x-2">
-                            <button class="btn-bless px-3 py-1 bg-primary text-white rounded text-sm flex items-center hover:bg-opacity-90">
-                                <span class="material-icons text-sm mr-1">hands</span> 加持
+                        <div class="wish-actions flex space-x-3">
+                            <button class="btn-bless px-4 py-2 bg-gradient-to-r from-primary to-secondary text-white rounded-full hover:opacity-90 transition text-sm flex items-center shadow-lg">
+                                <span class="material-icons-round text-sm mr-1">hands</span> 加持
                             </button>
-                            <button class="btn-fulfill px-3 py-1 bg-green-100 text-green-700 rounded text-sm flex items-center hover:bg-green-200">
-                                <span class="material-icons text-sm mr-1">celebration</span> 还愿
+                            <button class="btn-fulfill px-4 py-2 bg-green-900 bg-opacity-50 text-green-300 rounded-full hover:bg-green-800 hover:text-white transition text-sm flex items-center border border-green-700">
+                                <span class="material-icons-round text-sm mr-1">celebration</span> 还愿
                             </button>
                         </div>
                         
-                        <div class="wish-energy mt-3">
-                            <div class="h-2 rounded-full ${levelColors[level - 1]}"></div>
+                        <div class="wish-energy mt-4">
+                            <div class="flex justify-between text-xs text-gray-400 mb-1">
+                                <span>剩余${daysLeft}天</span>
+                                <span>${levelNames[level - 1]}等级</span>
+                            </div>
+                            <div class="w-full bg-gray-700 rounded-full h-2">
+                                <div class="h-2 rounded-full bg-gradient-to-r ${levelColors[level - 1]}"></div>
+                            </div>
                         </div>
                     </div>
                 `;
@@ -1604,7 +1739,7 @@
             
                 const blessBtn = cardElement.querySelector('.btn-bless');
                 blessBtn.disabled = true;
-                blessBtn.innerHTML = '<span class="material-icons animate-spin text-sm mr-1">autorenew</span> 加持中...';
+                blessBtn.innerHTML = '<span class="material-icons-round animate-spin text-sm mr-1">autorenew</span> 加持中...';
             
                 await showMantraEffect();
             
@@ -1633,9 +1768,9 @@
                     if (errorData.code === 400 && errorData.error.includes('最高加持次数')) {
                         cardElement.querySelector('.bless-count').textContent = 25;
                         cardElement.dataset.level = 5;
-                        cardElement.querySelector('.wish-energy div').classList.add('bg-gradient-to-r', 'from-yellow-500', 'to-pink-500');
+                        cardElement.querySelector('.wish-energy div').className = 'h-2 rounded-full bg-gradient-to-r from-yellow-500 to-pink-500';
                         blessBtn.disabled = true;
-                        blessBtn.innerHTML = '<span class="material-icons text-sm mr-1">check_circle</span> 圆满';
+                        blessBtn.innerHTML = '<span class="material-icons-round text-sm mr-1">check_circle</span> 圆满';
                         cardElement.classList.add('ring-2', 'ring-yellow-400');
                         showToast(errorData.error, 'info');
                         return;
@@ -1651,18 +1786,18 @@
                 cardElement.querySelector('.bless-count').textContent = result.blessings;
                 cardElement.dataset.level = result.level;
                 
-                const levelColors = ['bg-gradient-to-r from-purple-500 to-blue-500', 
-                                   'bg-gradient-to-r from-blue-500 to-teal-500',
-                                   'bg-gradient-to-r from-teal-500 to-green-500',
-                                   'bg-gradient-to-r from-green-500 to-yellow-500',
-                                   'bg-gradient-to-r from-yellow-500 to-pink-500'];
+                const levelColors = ['from-purple-500 to-blue-500', 
+                                   'from-blue-500 to-teal-500',
+                                   'from-teal-500 to-green-500',
+                                   'from-green-500 to-yellow-500',
+                                   'from-yellow-500 to-pink-500'];
                 
                 const energyBar = cardElement.querySelector('.wish-energy div');
-                energyBar.className = `h-2 rounded-full ${levelColors[result.level - 1]}`;
+                energyBar.className = `h-2 rounded-full bg-gradient-to-r ${levelColors[result.level - 1]}`;
                 
                 if (result.blessings >= 25 || result.isMax) {
                     blessBtn.disabled = true;
-                    blessBtn.innerHTML = '<span class="material-icons text-sm mr-1">check_circle</span> 圆满';
+                    blessBtn.innerHTML = '<span class="material-icons-round text-sm mr-1">check_circle</span> 圆满';
                     cardElement.classList.add('ring-2', 'ring-yellow-400');
                 }
                 
@@ -1681,7 +1816,7 @@
                     const currentBlessings = parseInt(cardElement.querySelector('.bless-count').textContent);
                     if (currentBlessings < 25) {
                         blessBtn.disabled = false;
-                        blessBtn.innerHTML = '<span class="material-icons text-sm mr-1">hands</span> 加持';
+                        blessBtn.innerHTML = '<span class="material-icons-round text-sm mr-1">hands</span> 加持';
                     }
                 }
             }
@@ -1768,7 +1903,7 @@
 
             const submitBtn = e.target.querySelector('button[type="submit"]');
             submitBtn.disabled = true;
-            submitBtn.innerHTML = '<span class="material-icons animate-spin align-middle mr-1">autorenew</span> 提交中...';
+            submitBtn.innerHTML = '<span class="material-icons-round animate-spin align-middle mr-1">autorenew</span> 提交中...';
 
             try {
                 const payload = verifyJWT(token);
@@ -1814,7 +1949,7 @@
                 }
             } finally {
                 submitBtn.disabled = false;
-                submitBtn.innerHTML = '<span class="material-icons align-middle mr-1">send</span> 投入命缘池';
+                submitBtn.innerHTML = '<span class="material-icons-round align-middle mr-1">send</span> 投入命缘池';
             }
         }
 
@@ -1883,7 +2018,7 @@
             const birthtime = document.getElementById('birthtime').value;
             
             if (birthday && birthtime) {
-                baziInfo.innerHTML = '<span class="material-icons animate-spin align-middle mr-1">autorenew</span> 计算中...';
+                baziInfo.innerHTML = '<span class="material-icons-round animate-spin align-middle mr-1">autorenew</span> 计算中...';
                 baziInfo.classList.remove('hidden');
                 
                 setTimeout(() => {
@@ -1891,7 +2026,7 @@
                     if (bazi) {
                         baziInfo.innerHTML = `您的八字：<strong class="text-primary">${bazi}</strong>`;
                     } else {
-                        baziInfo.innerHTML = '<span class="text-red-500">八字计算失败，请检查输入</span>';
+                        baziInfo.innerHTML = '<span class="text-red-400">八字计算失败，请检查输入</span>';
                     }
                 }, 300);
             } else {
@@ -1974,12 +2109,12 @@
                     datasets: [{
                         data: data,
                         backgroundColor: [
-                            '#6a11cb', 
-                            '#2575fc', 
-                            '#00b894', 
-                            '#fdcb6e', 
-                            '#e17055', 
-                            '#b2bec3'
+                            'rgba(124, 77, 255, 0.7)', 
+                            'rgba(33, 150, 243, 0.7)', 
+                            'rgba(0, 230, 118, 0.7)', 
+                            'rgba(253, 203, 110, 0.7)', 
+                            'rgba(255, 152, 0, 0.7)', 
+                            'rgba(158, 158, 158, 0.7)'
                         ],
                         borderWidth: 0
                     }]
@@ -1991,7 +2126,7 @@
                         legend: {
                             position: 'bottom',
                             labels: {
-                                color: '#4b5563',
+                                color: '#e2e8f0',
                                 font: {
                                     family: "'Noto Serif SC', serif"
                                 }
@@ -2007,12 +2142,14 @@
                                     return `${label}: ${value} (${percentage}%)`;
                                 }
                             },
-                            backgroundColor: 'rgba(10, 10, 20, 0.9)',
+                            backgroundColor: 'rgba(26, 32, 44, 0.9)',
                             titleFont: {
-                                family: "'Noto Serif SC', serif"
+                                family: "'Noto Serif SC', serif",
+                                color: '#f8fafc'
                             },
                             bodyFont: {
-                                family: "'Noto Serif SC', serif"
+                                family: "'Noto Serif SC', serif",
+                                color: '#e2e8f0'
                             }
                         }
                     }
@@ -2147,7 +2284,7 @@
 
         // 关闭模态框
         function setupModalClose() {
-            const closeButtons = document.querySelectorAll('.close-modal');
+            const closeButtons = document.querySelectorAll('.close-modal, .close-cards');
             
             closeButtons.forEach(button => {
                 button.addEventListener('click', function() {
