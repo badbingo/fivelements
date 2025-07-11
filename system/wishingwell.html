@@ -6,274 +6,515 @@
     <meta name="description" content="命缘池 - 八字能量许愿系统，汇聚众生愿力，助你梦想成真">
     <meta name="keywords" content="命缘池,许愿,八字,加持,还愿,能量池">
     <title>命缘池 - 八字能量许愿系统</title>
+    <!-- Fonts & Icons -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="../css/wwstyle.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: '#6a11cb',
+              secondary: '#2575fc',
+              accent: '#00b894',
+            },
+            fontFamily: {
+              sans: ['"Noto Serif SC"', 'serif'],
+            },
+          }
+        }
+      }
+    </script>
+    <!-- Framer Motion -->
+    <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
+    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="../js/wwpay.js"></script>
-    <script src="../js/lunar.js"></script>
+    <!-- Particles.js -->
     <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
-   
+    <!-- Lunar.js -->
+    <script src="../js/lunar.js"></script>
+    <!-- Payment script -->
+    <script src="../js/wwpay.js"></script>
+    <style>
+      /* Custom styles */
+      .bento-grid {
+        display: grid;
+        grid-template-columns: repeat(12, 1fr);
+        grid-auto-rows: minmax(100px, auto);
+        gap: 1.5rem;
+      }
+      
+      .card-1 { grid-column: span 4; grid-row: span 2; }
+      .card-2 { grid-column: span 8; grid-row: span 1; }
+      .card-3 { grid-column: span 4; grid-row: span 1; }
+      .card-4 { grid-column: span 4; grid-row: span 1; }
+      .card-5 { grid-column: span 4; grid-row: span 2; }
+      .card-6 { grid-column: span 8; grid-row: span 2; }
+      
+      @media (max-width: 1024px) {
+        .bento-grid {
+          grid-template-columns: repeat(6, 1fr);
+        }
+        .card-1, .card-2, .card-3, .card-4, .card-5, .card-6 {
+          grid-column: span 6;
+          grid-row: span 1;
+        }
+      }
+      
+      .gradient-bg {
+        background: linear-gradient(135deg, rgba(106,17,203,0.1) 0%, rgba(37,117,252,0.05) 100%);
+      }
+      
+      .highlight-text {
+        font-size: 4rem;
+        line-height: 1;
+        background: linear-gradient(45deg, #6a11cb, #2575fc);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        font-weight: 700;
+      }
+      
+      .energy-level {
+        height: 8px;
+        border-radius: 4px;
+        background: linear-gradient(90deg, #6a11cb, #2575fc);
+      }
+      
+      .mantra-text {
+        font-size: 3rem;
+        animation: mantraFloat 3s ease-in-out infinite;
+      }
+      
+      @keyframes mantraFloat {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-20px); }
+      }
+      
+      .fade-in {
+        animation: fadeIn 0.5s ease-in;
+      }
+      
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      
+      .scale-up {
+        animation: scaleUp 0.3s ease-out;
+      }
+      
+      @keyframes scaleUp {
+        from { transform: scale(0.95); }
+        to { transform: scale(1); }
+      }
+    </style>
     <script>
       // 配置后端地址（必须修改！）
       const API_BASE = 'https://bazi-backend.owenjass.workers.dev';
       const API_URL = `${API_BASE}/api`;
+      
+      // Framer Motion animations
+      const { motion, AnimatePresence } = window.Motion;
     </script>
 </head>
-<body>
-    
-    <!-- 用户信息区域 -->
-    <div class="user-area">
-        <div class="user-welcome" id="userWelcome">欢迎, <span id="usernameDisplay"></span></div>
-        <button class="login-btn" id="loginBtn">登录/注册</button>
-        <button class="manage-btn" id="manageBtn" style="display:none;"><i class="fas fa-id-card"></i> 管理</button>
-        <button class="logout-btn" id="logoutBtn" style="display:none;"><i class="fas fa-sign-out-alt"></i> 退出</button>
-    </div>
-
-    <!-- 半透明登录注册弹窗 -->
-    <div class="auth-modal" id="authModal">
-        <div class="auth-container">
-            <span class="close-auth" id="closeAuth">&times;</span>
-            <div class="auth-header">
-                <h2><i class="fas fa-user-circle"></i> 命缘池</h2>
-                <p>登录或注册以管理您的愿望</p>
-            </div>
-            
-            <div class="auth-tabs">
-                <div class="auth-tab active" id="loginTab">登录</div>
-                <div class="auth-tab" id="registerTab">注册</div>
-            </div>
-            
-           <!-- 登录表单 -->
-            <form id="loginForm" class="auth-form active">
-                <div class="form-group">
-                    <label for="loginUsername">用户名</label>
-                    <input type="text" id="loginUsername" placeholder="请输入用户名" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="loginPassword">密码</label>
-                    <div class="password-container">
-                        <input type="password" id="loginPassword" placeholder="请输入密码" required>
-                        <i class="fas fa-eye password-toggle" onclick="togglePassword('loginPassword', this)"></i>
-                    </div>
-                </div>
-                
-                <button type="submit" class="auth-btn" id="submitLogin">
-                    <span id="loginText">登录</span>
-                    <i class="fas fa-spinner fa-spin" id="loginSpinner" style="display:none;"></i>
-                </button>
-                
-                <div class="forgot-password">
-                    <a href="#" id="forgotPasswordLink">忘记密码?</a>
-                </div>
-                
-                <div id="loginMessage" class="auth-message"></div>
-            </form>
-            
-            <!-- 注册表单 -->
-            <form id="registerForm" class="auth-form">
-                <div class="form-group">
-                    <label for="registerUsername">用户名</label>
-                    <input type="text" id="registerUsername" placeholder="请输入用户名(4-16位)" required minlength="4" maxlength="16">
-                </div>
-                
-                <div class="form-group">
-                    <label for="registerEmail">电子邮箱</label>
-                    <input type="email" id="registerEmail" placeholder="请输入电子邮箱" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="registerPassword">密码</label>
-                    <div class="password-container">
-                        <input type="password" id="registerPassword" placeholder="请输入密码(至少6位)" required minlength="6">
-                        <i class="fas fa-eye password-toggle" onclick="togglePassword('registerPassword', this)"></i>
-                    </div>
-                </div>
-                
-                <div class="form-group">
-                    <label for="registerConfirmPassword">确认密码</label>
-                    <div class="password-container">
-                        <input type="password" id="registerConfirmPassword" placeholder="请再次输入密码" required>
-                        <i class="fas fa-eye password-toggle" onclick="togglePassword('registerConfirmPassword', this)"></i>
-                    </div>
-                </div>
-                
-                <button type="submit" class="auth-btn" id="submitRegister">
-                    <span id="registerText">注册</span>
-                    <i class="fas fa-spinner fa-spin" id="registerSpinner" style="display:none;"></i>
-                </button>
-                
-                <div id="registerMessage" class="auth-message"></div>
-            </form>
+<body class="bg-gray-50 text-gray-800 font-sans min-h-screen flex flex-col">
+    <!-- Header with user area -->
+    <header class="bg-white shadow-sm py-4 px-6 flex justify-between items-center">
+        <div class="flex items-center space-x-2">
+            <span class="material-icons text-primary text-3xl">water_drop</span>
+            <h1 class="text-xl font-bold">命缘池</h1>
         </div>
-    </div>
+        
+        <div class="flex items-center space-x-4" id="userArea">
+            <div class="hidden" id="userWelcome">欢迎, <span id="usernameDisplay" class="font-medium"></span></div>
+            <button class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-opacity-90 transition" id="loginBtn">登录/注册</button>
+            <button class="px-4 py-2 bg-secondary text-white rounded-lg hover:bg-opacity-90 transition hidden" id="manageBtn">
+                <span class="material-icons mr-1">manage_accounts</span> 管理
+            </button>
+            <button class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition hidden" id="logoutBtn">
+                <span class="material-icons mr-1">logout</span> 退出
+            </button>
+        </div>
+    </header>
 
-    <main class="content-container">
-        <section class="content-title">
-            <h1>命缘池</h1>
-            <p>以八字为引，聚众生愿力，助你梦想成真</p>
-        </section>
-
-        <!-- 命缘池介绍 -->
-        <section class="full-width-section">
-            <div class="section-header">
-                <i class="fas fa-hand-holding-water"></i>
-                <h2>缘起</h2>
-            </div>
-            
-            <div class="card">
-                <div class="mingyuan-intro">
-                    <div class="intro-text">
-                        <p>命缘池源自古老道家"愿力汇聚"之法，结合八字命理能量学，创造出一个集体意识能量场。</p>
-                        <p>在此投入愿望之时，您的八字化作独一无二的能量标识，携同六字真言之力启动加持。而众生心念汇聚而来的加持之力，将如涟漪般扩散，不断放大愿望的共振频率。</p>
-                        <p>每5次加持，愿望能量将提升一个等级，越多人帮你加持能量越强。30天内若达成所愿，请务必还愿以完成能量循环。</p>
-                    </div>
-                    <div class="intro-image">
-                        <div class="energy-chart">
-                            <canvas id="energyChart"></canvas>
-                        </div>
-                    </div>
+    <!-- Auth Modal -->
+    <div class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden" id="authModal">
+        <motion.div 
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            transition={{ duration: 0.2 }}
+            class="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden"
+        >
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-bold flex items-center">
+                        <span class="material-icons text-primary mr-2">account_circle</span>
+                        命缘池
+                    </h2>
+                    <button id="closeAuth" class="text-gray-500 hover:text-gray-700">
+                        <span class="material-icons">close</span>
+                    </button>
                 </div>
                 
-                <div class="wish-levels">
-                    <h3><i class="fas fa-signal"></i> 愿望能量等级</h3>
-                    <div class="level-bars">
-                        <div class="level-bar" data-level="1">
-                            <div class="bar-fill"></div>
-                            <span>初愿 (0-4加持)</span>
-                        </div>
-                        <div class="level-bar" data-level="2">
-                            <div class="bar-fill"></div>
-                            <span>小成 (5-9加持)</span>
-                        </div>
-                        <div class="level-bar" data-level="3">
-                            <div class="bar-fill"></div>
-                            <span>中成 (10-14加持)</span>
-                        </div>
-                        <div class="level-bar" data-level="4">
-                            <div class="bar-fill"></div>
-                            <span>大成 (15-19加持)</span>
-                        </div>
-                        <div class="level-bar" data-level="5">
-                            <div class="bar-fill"></div>
-                            <span>圆满 (20+加持)</span>
-                        </div>
-                    </div>
+                <p class="text-gray-600 mb-6">登录或注册以管理您的愿望</p>
+                
+                <div class="flex border-b mb-6">
+                    <div class="auth-tab active py-2 px-4 text-center cursor-pointer border-b-2 border-primary text-primary font-medium" id="loginTab">登录</div>
+                    <div class="auth-tab py-2 px-4 text-center cursor-pointer text-gray-500 hover:text-gray-700" id="registerTab">注册</div>
                 </div>
-            </div>
-        </section>
-
-        <!-- 许愿表单 -->
-        <section class="full-width-section">
-            <div class="section-header">
-                <i class="fas fa-magic"></i>
-                <h2>投入愿望</h2>
-            </div>
-            
-            <div class="card">
-                <form id="wishForm" class="mingyuan-form">
-                    <div class="form-columns">
-                        <!-- 左边列：个人信息 -->
-                        <div class="form-column left-column">
-                            <div class="form-group">
-                                <label for="name"><i class="fas fa-user"></i> 您的姓名</label>
-                                <input type="text" id="name" placeholder="请输入您的真实姓名" required>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="birthday"><i class="fas fa-calendar-alt"></i> 出生日期</label>
-                                <input type="date" id="birthday" required>
-                                <p class="form-hint">请选择您的出生年月日</p>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="birthtime"><i class="fas fa-clock"></i> 出生时间</label>
-                                <select id="birthtime" required>
-                                    <option value="">请选择出生时辰</option>
-                                    <option value="23-1">子时 (23:00-1:00)</option>
-                                    <option value="1-3">丑时 (1:00-3:00)</option>
-                                    <option value="3-5">寅时 (3:00-5:00)</option>
-                                    <option value="5-7">卯时 (5:00-7:00)</option>
-                                    <option value="7-9">辰时 (7:00-9:00)</option>
-                                    <option value="9-11">巳时 (9:00-11:00)</option>
-                                    <option value="11-13">午时 (11:00-13:00)</option>
-                                    <option value="13-15">未时 (13:00-15:00)</option>
-                                    <option value="15-17">申时 (15:00-17:00)</option>
-                                    <option value="17-19">酉时 (17:00-19:00)</option>
-                                    <option value="19-21">戌时 (19:00-21:00)</option>
-                                    <option value="21-23">亥时 (21:00-23:00)</option>
-                                </select>
-                                <p class="form-hint">请选择您的出生时辰</p>
-                            </div>
-                        </div>
-                        
-                        <!-- 右边列：愿望信息 -->
-                        <div class="form-column right-column">
-                            <div class="form-group">
-                                <label for="wishContent"><i class="fas fa-star"></i> 愿望内容</label>
-                                <textarea id="wishContent" rows="4" maxlength="200" placeholder="写下您真诚的愿望(限200字以内)..." required></textarea>
-                                <p class="form-hint">已输入 <span id="charCount">0</span>/200 字</p>
-                                <p class="bazi-info" id="baziInfo"></p>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="wishType"><i class="fas fa-tags"></i> 愿望类型</label>
-                                <select id="wishType">
-                                    <option value="love">姻缘感情</option>
-                                    <option value="wealth">财富事业</option>
-                                    <option value="health">健康平安</option>
-                                    <option value="study">学业成长</option>
-                                    <option value="family">家庭和睦</option>
-                                    <option value="other">其他愿望</option>
-                                </select>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label><i class="fas fa-eye"></i> 愿望可见性</label>
-                                <div class="radio-group">
-                                    <label class="radio-option">
-                                        <input type="radio" name="visibility" value="public" checked>
-                                        <span class="radio-custom"></span>
-                                        <span class="radio-label">公开愿望</span>
-                                    </label>
-                                    <label class="radio-option">
-                                        <input type="radio" name="visibility" value="private">
-                                        <span class="radio-custom"></span>
-                                        <span class="radio-label">隐藏愿望</span>
-                                    </label>
-                                </div>
-                            </div>
+                
+                <!-- Login Form -->
+                <form id="loginForm" class="auth-form active">
+                    <div class="mb-4">
+                        <label for="loginUsername" class="block text-gray-700 mb-2">用户名</label>
+                        <input type="text" id="loginUsername" placeholder="请输入用户名" required
+                            class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="loginPassword" class="block text-gray-700 mb-2">密码</label>
+                        <div class="relative">
+                            <input type="password" id="loginPassword" placeholder="请输入密码" required
+                                class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                            <span class="material-icons absolute right-3 top-2.5 text-gray-400 cursor-pointer" 
+                                  onclick="togglePassword('loginPassword', this)">visibility</span>
                         </div>
                     </div>
                     
-                    <div class="form-actions">
-                        <button type="submit" class="btn-mingyuan">
-                            <i class="fas fa-paper-plane"></i> 投入命缘池
-                        </button>
+                    <button type="submit" class="w-full bg-primary text-white py-2 rounded-lg hover:bg-opacity-90 transition mb-4" id="submitLogin">
+                        <span id="loginText">登录</span>
+                        <span class="material-icons animate-spin hidden" id="loginSpinner">autorenew</span>
+                    </button>
+                    
+                    <div class="text-center text-sm">
+                        <a href="#" id="forgotPasswordLink" class="text-primary hover:underline">忘记密码?</a>
                     </div>
+                    
+                    <div id="loginMessage" class="mt-4 p-3 rounded-lg hidden"></div>
+                </form>
+                
+                <!-- Register Form -->
+                <form id="registerForm" class="auth-form hidden">
+                    <div class="mb-4">
+                        <label for="registerUsername" class="block text-gray-700 mb-2">用户名</label>
+                        <input type="text" id="registerUsername" placeholder="请输入用户名(4-16位)" required minlength="4" maxlength="16"
+                            class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="registerEmail" class="block text-gray-700 mb-2">电子邮箱</label>
+                        <input type="email" id="registerEmail" placeholder="请输入电子邮箱" required
+                            class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="registerPassword" class="block text-gray-700 mb-2">密码</label>
+                        <div class="relative">
+                            <input type="password" id="registerPassword" placeholder="请输入密码(至少6位)" required minlength="6"
+                                class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                            <span class="material-icons absolute right-3 top-2.5 text-gray-400 cursor-pointer" 
+                                  onclick="togglePassword('registerPassword', this)">visibility</span>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <label for="registerConfirmPassword" class="block text-gray-700 mb-2">确认密码</label>
+                        <div class="relative">
+                            <input type="password" id="registerConfirmPassword" placeholder="请再次输入密码" required
+                                class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                            <span class="material-icons absolute right-3 top-2.5 text-gray-400 cursor-pointer" 
+                                  onclick="togglePassword('registerConfirmPassword', this)">visibility</span>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="w-full bg-primary text-white py-2 rounded-lg hover:bg-opacity-90 transition" id="submitRegister">
+                        <span id="registerText">注册</span>
+                        <span class="material-icons animate-spin hidden" id="registerSpinner">autorenew</span>
+                    </button>
+                    
+                    <div id="registerMessage" class="mt-4 p-3 rounded-lg hidden"></div>
                 </form>
             </div>
+        </motion.div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="flex-grow container mx-auto px-4 py-8">
+        <!-- Hero Section -->
+        <section class="text-center mb-12">
+            <motion.h1 
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                class="text-5xl font-bold mb-4"
+            >
+                命缘池
+            </motion.h1>
+            <motion.p 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.2 }}
+                class="text-xl text-gray-600"
+            >
+                以八字为引，聚众生愿力，助你梦想成真
+            </motion.p>
         </section>
 
-        <!-- 愿望池展示 -->
-        <section class="full-width-section">
-            <div class="section-header">
-                <i class="fas fa-water"></i>
-                <h2>愿望池</h2>
-                <div class="filter-controls wish-search-controls">
-                    <div class="wish-search-row">
-                        <!-- 搜索框 -->
-                        <div class="wish-search-container">
-                            <input type="text" id="wishSearch" placeholder="搜索姓名..." class="wish-search-input">
-                            <button id="searchBtn" class="wish-search-btn"><i class="fas fa-search"></i></button>
-                            <button id="clearSearchBtn" class="wish-clear-search-btn" style="display:none;"><i class="fas fa-times"></i></button>
+        <!-- Bento Grid Layout -->
+        <div class="bento-grid mb-12">
+            <!-- Card 1: Energy Stats -->
+            <motion.div 
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.1 }}
+                class="card-1 bg-white rounded-xl shadow-md p-6 gradient-bg"
+            >
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-bold flex items-center">
+                        <span class="material-icons text-primary mr-2">bolt</span>
+                        今日能量
+                    </h2>
+                    <button id="refreshStatsBtn" class="text-gray-500 hover:text-primary transition">
+                        <span class="material-icons">refresh</span>
+                    </button>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition cursor-pointer" onclick="fetchWishes('new')">
+                        <div class="highlight-text text-center mb-2" id="newWishesCount">0</div>
+                        <p class="text-center text-gray-600">新增愿望</p>
+                    </div>
+                    
+                    <div class="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition cursor-pointer" onclick="fetchBlessings()">
+                        <div class="highlight-text text-center mb-2" id="blessingsCount">0</div>
+                        <p class="text-center text-gray-600">加持次数</p>
+                    </div>
+                    
+                    <div class="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition cursor-pointer" onclick="fetchFulfillments()">
+                        <div class="highlight-text text-center mb-2" id="fulfilledCount">0</div>
+                        <p class="text-center text-gray-600">还愿次数</p>
+                    </div>
+                    
+                    <div class="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition">
+                        <p class="text-sm text-gray-500 text-center">最后更新: <span id="lastUpdated">刚刚</span></p>
+                    </div>
+                </div>
+            </motion.div>
+            
+            <!-- Card 2: Introduction -->
+            <motion.div 
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.2 }}
+                class="card-2 bg-white rounded-xl shadow-md p-6 gradient-bg"
+            >
+                <h2 class="text-xl font-bold flex items-center mb-4">
+                    <span class="material-icons text-primary mr-2">info</span>
+                    缘起
+                </h2>
+                <p class="text-gray-700 mb-4">
+                    命缘池源自古老道家"愿力汇聚"之法，结合八字命理能量学，创造出一个集体意识能量场。
+                </p>
+                <p class="text-gray-700">
+                    在此投入愿望之时，您的八字化作独一无二的能量标识，携同六字真言之力启动加持。而众生心念汇聚而来的加持之力，将如涟漪般扩散，不断放大愿望的共振频率。
+                </p>
+            </motion.div>
+            
+            <!-- Card 3: Wish Form - Personal Info -->
+            <motion.div 
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.3 }}
+                class="card-3 bg-white rounded-xl shadow-md p-6"
+            >
+                <h2 class="text-xl font-bold flex items-center mb-4">
+                    <span class="material-icons text-primary mr-2">person</span>
+                    个人信息
+                </h2>
+                <form id="wishForm">
+                    <div class="mb-4">
+                        <label for="name" class="block text-gray-700 mb-2">您的姓名</label>
+                        <input type="text" id="name" placeholder="请输入您的真实姓名" required
+                            class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="birthday" class="block text-gray-700 mb-2">出生日期</label>
+                        <input type="date" id="birthday" required
+                            class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="birthtime" class="block text-gray-700 mb-2">出生时间</label>
+                        <select id="birthtime" required
+                            class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                            <option value="">请选择出生时辰</option>
+                            <option value="23-1">子时 (23:00-1:00)</option>
+                            <option value="1-3">丑时 (1:00-3:00)</option>
+                            <option value="3-5">寅时 (3:00-5:00)</option>
+                            <option value="5-7">卯时 (5:00-7:00)</option>
+                            <option value="7-9">辰时 (7:00-9:00)</option>
+                            <option value="9-11">巳时 (9:00-11:00)</option>
+                            <option value="11-13">午时 (11:00-13:00)</option>
+                            <option value="13-15">未时 (13:00-15:00)</option>
+                            <option value="15-17">申时 (15:00-17:00)</option>
+                            <option value="17-19">酉时 (17:00-19:00)</option>
+                            <option value="19-21">戌时 (19:00-21:00)</option>
+                            <option value="21-23">亥时 (21:00-23:00)</option>
+                        </select>
+                    </div>
+                    
+                    <div id="baziInfo" class="text-sm text-primary hidden"></div>
+                </form>
+            </motion.div>
+            
+            <!-- Card 4: Wish Form - Wish Info -->
+            <motion.div 
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.4 }}
+                class="card-4 bg-white rounded-xl shadow-md p-6"
+            >
+                <h2 class="text-xl font-bold flex items-center mb-4">
+                    <span class="material-icons text-primary mr-2">star</span>
+                    愿望信息
+                </h2>
+                <form id="wishForm">
+                    <div class="mb-4">
+                        <label for="wishContent" class="block text-gray-700 mb-2">愿望内容</label>
+                        <textarea id="wishContent" rows="3" maxlength="200" placeholder="写下您真诚的愿望(限200字以内)..." required
+                            class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"></textarea>
+                        <p class="text-sm text-gray-500">已输入 <span id="charCount">0</span>/200 字</p>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="wishType" class="block text-gray-700 mb-2">愿望类型</label>
+                        <select id="wishType"
+                            class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                            <option value="love">姻缘感情</option>
+                            <option value="wealth">财富事业</option>
+                            <option value="health">健康平安</option>
+                            <option value="study">学业成长</option>
+                            <option value="family">家庭和睦</option>
+                            <option value="other">其他愿望</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="block text-gray-700 mb-2">愿望可见性</label>
+                        <div class="flex space-x-4">
+                            <label class="inline-flex items-center">
+                                <input type="radio" name="visibility" value="public" checked
+                                    class="text-primary focus:ring-primary">
+                                <span class="ml-2">公开愿望</span>
+                            </label>
+                            <label class="inline-flex items-center">
+                                <input type="radio" name="visibility" value="private"
+                                    class="text-primary focus:ring-primary">
+                                <span class="ml-2">隐藏愿望</span>
+                            </label>
+                        </div>
+                    </div>
+                </form>
+            </motion.div>
+            
+            <!-- Card 5: Wish Levels -->
+            <motion.div 
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.5 }}
+                class="card-5 bg-white rounded-xl shadow-md p-6 gradient-bg"
+            >
+                <h2 class="text-xl font-bold flex items-center mb-6">
+                    <span class="material-icons text-primary mr-2">signal_cellular_alt</span>
+                    愿望能量等级
+                </h2>
+                
+                <div class="space-y-4">
+                    <div>
+                        <div class="flex justify-between mb-1">
+                            <span class="text-sm font-medium">初愿 (0-4加持)</span>
+                            <span class="text-sm text-gray-500">20%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2.5">
+                            <div class="bg-primary h-2.5 rounded-full" style="width: 20%"></div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <div class="flex justify-between mb-1">
+                            <span class="text-sm font-medium">小成 (5-9加持)</span>
+                            <span class="text-sm text-gray-500">40%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2.5">
+                            <div class="bg-primary h-2.5 rounded-full" style="width: 40%"></div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <div class="flex justify-between mb-1">
+                            <span class="text-sm font-medium">中成 (10-14加持)</span>
+                            <span class="text-sm text-gray-500">60%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2.5">
+                            <div class="bg-primary h-2.5 rounded-full" style="width: 60%"></div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <div class="flex justify-between mb-1">
+                            <span class="text-sm font-medium">大成 (15-19加持)</span>
+                            <span class="text-sm text-gray-500">80%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2.5">
+                            <div class="bg-primary h-2.5 rounded-full" style="width: 80%"></div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <div class="flex justify-between mb-1">
+                            <span class="text-sm font-medium">圆满 (20+加持)</span>
+                            <span class="text-sm text-gray-500">100%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2.5">
+                            <div class="bg-primary h-2.5 rounded-full" style="width: 100%"></div>
+                        </div>
+                    </div>
+                </div>
+            </motion.div>
+            
+            <!-- Card 6: Wish Pool -->
+            <motion.div 
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.6 }}
+                class="card-6 bg-white rounded-xl shadow-md p-6"
+            >
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-bold flex items-center">
+                        <span class="material-icons text-primary mr-2">water_drop</span>
+                        愿望池
+                    </h2>
+                    
+                    <div class="flex space-x-2">
+                        <div class="relative">
+                            <input type="text" id="wishSearch" placeholder="搜索姓名..." 
+                                class="pl-4 pr-10 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                            <button id="searchBtn" class="absolute right-2 top-2 text-gray-500 hover:text-primary">
+                                <span class="material-icons">search</span>
+                            </button>
+                            <button id="clearSearchBtn" class="absolute right-2 top-2 text-gray-500 hover:text-primary hidden">
+                                <span class="material-icons">close</span>
+                            </button>
                         </div>
                         
-                        <!-- 愿望类型筛选 - 保持原有样式 -->
-                        <select id="wishFilter" class="form-control">
+                        <select id="wishFilter" 
+                            class="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
                             <option value="all">全部愿望</option>
                             <option value="love">姻缘感情</option>
                             <option value="wealth">财富事业</option>
@@ -282,8 +523,8 @@
                             <option value="family">家庭和睦</option>
                         </select>
                         
-                        <!-- 排序筛选 - 保持原有样式 -->
-                        <select id="sortFilter" class="form-control">
+                        <select id="sortFilter" 
+                            class="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
                             <option value="newest">最新愿望</option>
                             <option value="oldest">最早愿望</option>
                             <option value="most">最多加持</option>
@@ -291,1619 +532,1029 @@
                         </select>
                     </div>
                 </div>
-            </div>
-            
-            <div class="wish-pool">
-                <div class="wish-loading">
-                    <div class="loader"></div>
-                    <p>正在连接命缘池能量场...</p>
-                </div>
-            </div>
-            
-            <div class="pagination">
-                <button id="prevPage" disabled><i class="fas fa-chevron-left"></i></button>
-                <span id="pageInfo">第 1 页</span>
-                <button id="nextPage"><i class="fas fa-chevron-right"></i></button>
-            </div>
-        </section>
-
-        <!-- 能量统计 -->
-        <section class="full-width-section">
-            <div class="section-header">
-                <i class="fas fa-chart-line"></i>
-                <h2>能量统计</h2>
-            </div>
-            
-           <div class="card-grid">
-              <div class="card hover-card" id="energyStatsCard">
-                <div class="card-title">
-                  <i class="fas fa-bolt" style="color: #f39c12;"></i> 今日能量
-                  <button id="refreshStatsBtn" class="refresh-btn">
-                    <i class="fas fa-sync-alt"></i>
-                  </button>
-                </div>
-                <div class="card-content">
-                  <!-- 新增愿望 -->
-                  <div class="stat-card" onclick="fetchWishes('new')">
-                    <div class="stat-value" id="newWishesCount">0</div>
-                    <div class="stat-label">
-                      新增愿望
-                      <span class="stat-trend" id="wishesTrend"></span>
+                
+                <div class="wish-pool grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div class="wish-loading col-span-3 flex flex-col items-center justify-center py-12">
+                        <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mb-4"></div>
+                        <p>正在连接命缘池能量场...</p>
                     </div>
-                  </div>
-                  
-                  <!-- 加持次数（重点修改部分） -->
-                  <div class="stat-card highlight" onclick="fetchBlessings()">
-                    <div class="stat-value" id="blessingsCount">0</div>
-                    <div class="stat-label">
-                      加持次数
-                    </div>
-                  </div>
-                  
-                  <!-- 还愿次数 -->
-                  <div class="stat-card" onclick="fetchFulfillments()">
-                    <div class="stat-value" id="fulfilledCount">0</div>
-                    <div class="stat-label">
-                      还愿次数
-                    
-                    </div>
-                  </div>
                 </div>
                 
-                <div class="card-footer">
-                  最后更新: <span id="lastUpdated">刚刚</span>
+                <div class="flex justify-center items-center mt-6 space-x-4">
+                    <button id="prevPage" disabled class="px-4 py-2 bg-gray-200 rounded-lg disabled:opacity-50">
+                        <span class="material-icons">chevron_left</span>
+                    </button>
+                    <span id="pageInfo" class="text-gray-600">第 1 页</span>
+                    <button id="nextPage" class="px-4 py-2 bg-gray-200 rounded-lg">
+                        <span class="material-icons">chevron_right</span>
+                    </button>
                 </div>
-              </div>
+            </motion.div>
+        </div>
         
-                
-                <div class="card hover-card">
-                    <div class="card-title">
-                        <i class="fas fa-chart-pie" style="color: #e84393;"></i> 愿望分布
-                    </div>
-                    <div class="card-content">
-                        <canvas id="wishchart"></canvas>
-                    </div>
-                </div>
+        <!-- Submit Button -->
+        <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.7 }}
+            class="text-center mb-12"
+        >
+            <button type="submit" form="wishForm" class="px-8 py-3 bg-primary text-white rounded-lg hover:bg-opacity-90 transition text-lg">
+                <span class="material-icons align-middle mr-2">send</span>
+                投入命缘池
+            </button>
+        </motion.div>
+        
+        <!-- Wish Distribution Chart -->
+        <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.8 }}
+            class="bg-white rounded-xl shadow-md p-6 mb-12"
+        >
+            <h2 class="text-xl font-bold flex items-center mb-6">
+                <span class="material-icons text-primary mr-2">pie_chart</span>
+                愿望分布
+            </h2>
+            <div class="h-64">
+                <canvas id="wishchart"></canvas>
             </div>
-        </section>
-
-        <!-- 使用说明 -->
-        <section class="full-width-section">
-            <div class="section-header">
-                <i class="fas fa-book"></i>
-                <h2>诚心须知</h2>
-            </div>
+        </motion.div>
+        
+        <!-- Instructions -->
+        <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.9 }}
+            class="bg-white rounded-xl shadow-md p-6"
+        >
+            <h2 class="text-xl font-bold flex items-center mb-6">
+                <span class="material-icons text-primary mr-2">info</span>
+                诚心须知
+            </h2>
             
-            <div class="card">
-                <div class="note-box important">
-                    <h4><i class="fas fa-lightbulb"></i> 心诚则灵</h4>
-                    <ul>
+            <div class="space-y-4">
+                <div class="p-4 bg-blue-50 rounded-lg">
+                    <h3 class="font-medium flex items-center mb-2">
+                        <span class="material-icons text-blue-500 mr-2">lightbulb</span>
+                        心诚则灵
+                    </h3>
+                    <ul class="list-disc pl-5 space-y-1 text-gray-700">
                         <li>请确保八字信息准确无误，这是愿望的能量标识</li>
                         <li>愿望内容需真诚具体，避免模糊或负面表述</li>
                         <li>在加持他人愿望时，请保持善念，能量会回馈于你</li>
                         <li>愿望达成后请及时还愿，完成能量循环</li>
                         <li>每个愿望有效期为30天，到期后自动从池中移除</li>
                     </ul>
-                    
-                    <div class="disclaimer-box">
-                        <h4><i class="fas fa-info-circle"></i> 重要说明</h4>
-                        <p>每个愿望都有六字真言（唵嘛呢叭咪吽）加持，这是佛教密宗核心咒语，具有净化业障、开启智慧、积累功德的核心作用，其功能涵盖身心修行与世俗利益双重维度‌。该真言通过持诵可净化身、语、意三业，消除贪嗔痴等根本烦恼，同时获得观世音菩萨加持，实现健康、财富、智慧等现实愿求。‌‌</p>
-                        <blockquote>
-                            《道德经》云："天道无亲，常与善人"。命缘池的能量运作遵循自然法则，多行善事能增强愿望实现的几率。
-                        </blockquote>
-                    </div>
+                </div>
+                
+                <div class="p-4 bg-yellow-50 rounded-lg">
+                    <h3 class="font-medium flex items-center mb-2">
+                        <span class="material-icons text-yellow-500 mr-2">warning</span>
+                        重要说明
+                    </h3>
+                    <p class="text-gray-700 mb-3">
+                        每个愿望都有六字真言（唵嘛呢叭咪吽）加持，这是佛教密宗核心咒语，具有净化业障、开启智慧、积累功德的核心作用，其功能涵盖身心修行与世俗利益双重维度‌。该真言通过持诵可净化身、语、意三业，消除贪嗔痴等根本烦恼，同时获得观世音菩萨加持，实现健康、财富、智慧等现实愿求。‌‌
+                    </p>
+                    <blockquote class="pl-4 border-l-4 border-primary italic text-gray-600">
+                        《道德经》云："天道无亲，常与善人"。命缘池的能量运作遵循自然法则，多行善事能增强愿望实现的几率。
+                    </blockquote>
                 </div>
             </div>
-        </section>
+        </motion.div>
     </main>
 
-   <footer class="main-footer">
-    <div class="container">
-        <div class="footer-navigation">
-            <a href="wishingwell.html">命缘池</a> | 
-            <a href="curse.html">怨化池</a>
-        </div>
-        <p>&copy; 2025 麦八字. 保留所有权利.</p>
-        <p>汇聚善念，共振美好</p>
-    </div>
-</footer>
-
-    <!-- 六字真言特效 -->
-    <div class="mantra-overlay" id="mantraOverlay">
-        <div class="mantra-container">
-            <div class="mantra-beam"></div>
-            <div class="mantra-text" data-text="唵">唵</div>
-            <div class="mantra-text" data-text="嘛">嘛</div>
-            <div class="mantra-text" data-text="呢">呢</div>
-            <div class="mantra-text" data-text="叭">叭</div>
-            <div class="mantra-text" data-text="咪">咪</div>
-            <div class="mantra-text" data-text="吽">吽</div>
-        </div>
-    </div>
-
-    <!-- 放在 body 的靠前位置 -->
-    <div class="user-cards-modal" id="userCardsModal">
-        <div class="user-cards-container">
-            <div class="user-cards-header">
-                <h3><i class="fas fa-id-card"></i> 我的愿望卡片</h3>
-                <span class="close-cards">&times;</span>
+    <!-- Footer -->
+    <footer class="bg-gray-100 py-6 mt-12">
+        <div class="container mx-auto px-4 text-center">
+            <div class="flex justify-center space-x-4 mb-2">
+                <a href="wishingwell.html" class="text-gray-700 hover:text-primary">命缘池</a>
+                <span class="text-gray-400">|</span>
+                <a href="curse.html" class="text-gray-700 hover:text-primary">怨化池</a>
             </div>
-            <div class="user-cards-list" id="userCardsList"></div>
+            <p class="text-gray-600 text-sm">&copy; 2025 麦八字. 保留所有权利.</p>
+            <p class="text-gray-600 text-sm">汇聚善念，共振美好</p>
+        </div>
+    </footer>
+
+    <!-- Mantra Overlay -->
+    <div class="fixed inset-0 bg-black bg-opacity-80 z-50 flex items-center justify-center hidden" id="mantraOverlay">
+        <div class="text-center text-white">
+            <div class="grid grid-cols-3 gap-8 mb-12">
+                <div class="mantra-text" data-text="唵">唵</div>
+                <div class="mantra-text" data-text="嘛">嘛</div>
+                <div class="mantra-text" data-text="呢">呢</div>
+                <div class="mantra-text" data-text="叭">叭</div>
+                <div class="mantra-text" data-text="咪">咪</div>
+                <div class="mantra-text" data-text="吽">吽</div>
+            </div>
+            <p class="text-xl">六字真言加持中...</p>
+        </div>
+    </div>
+
+    <!-- User Cards Modal -->
+    <div class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden" id="userCardsModal">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-4xl max-h-[80vh] overflow-hidden">
+            <div class="p-6 border-b flex justify-between items-center">
+                <h3 class="text-xl font-bold flex items-center">
+                    <span class="material-icons text-primary mr-2">collections</span>
+                    我的愿望卡片
+                </h3>
+                <button class="close-cards text-gray-500 hover:text-gray-700">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+            <div class="p-6 overflow-y-auto" id="userCardsList"></div>
         </div>
     </div>
     
-   <!-- 还愿模态框 -->
-    <div id="fulfillModal" class="modal">
-      <div class="modal-content">
-        <span class="close-modal">&times;</span>
-        <h3><i class="fas fa-hand-holding-heart"></i> 感恩还愿</h3>
-        <p>您的愿望已经实现，请选择还愿金额：</p>
-        
-        <!-- 金额选择 -->
-        <div class="fulfill-options">
-          <button class="fulfill-option" data-amount="1">1元</button>
-          <button class="fulfill-option" data-amount="5">5元</button>
-          <button class="fulfill-option" data-amount="10">10元</button>
-          <button class="fulfill-option" data-amount="20">20元</button>
-        </div>    
+    <!-- Fulfill Modal -->
+    <div id="fulfillModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-xl shadow-xl p-6 w-full max-w-md">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold flex items-center">
+                    <span class="material-icons text-primary mr-2">celebration</span>
+                    感恩还愿
+                </h3>
+                <button class="close-modal text-gray-500 hover:text-gray-700">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+            
+            <p class="mb-6 text-gray-700">您的愿望已经实现，请选择还愿金额：</p>
+            
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <button class="fulfill-option px-4 py-3 border rounded-lg hover:bg-primary hover:text-white transition" data-amount="1">
+                    1元
+                </button>
+                <button class="fulfill-option px-4 py-3 border rounded-lg hover:bg-primary hover:text-white transition" data-amount="5">
+                    5元
+                </button>
+                <button class="fulfill-option px-4 py-3 border rounded-lg hover:bg-primary hover:text-white transition" data-amount="10">
+                    10元
+                </button>
+                <button class="fulfill-option px-4 py-3 border rounded-lg hover:bg-primary hover:text-white transition" data-amount="20">
+                    20元
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
     <script>
-        
-document.addEventListener('DOMContentLoaded', function() {
-    // 配置后端地址
-    const API_BASE = 'https://bazi-backend.owenjass.workers.dev';
-    const API_URL = `${API_BASE}/api/wishes`;
+      // 保持原有的所有JavaScript功能不变
+      document.addEventListener('DOMContentLoaded', function() {
+        // 配置后端地址
+        const API_BASE = 'https://bazi-backend.owenjass.workers.dev';
+        const API_URL = `${API_BASE}/api/wishes`;
 
-    // 全局变量
-    let allWishes = [];
-    let currentPage = 1;
-    const wishesPerPage = 9;
-    let currentSearchTerm = '';
-    
-    // 获取DOM元素
-    const userWelcome = document.getElementById('userWelcome');
-    const usernameDisplay = document.getElementById('usernameDisplay');
-    const loginBtn = document.getElementById('loginBtn');
-    const logoutBtn = document.getElementById('logoutBtn');
-    const manageBtn = document.getElementById('manageBtn');
-    const authModal = document.getElementById('authModal');
-    const closeAuth = document.getElementById('closeAuth');
-    const loginTab = document.getElementById('loginTab');
-    const registerTab = document.getElementById('registerTab');
-    const loginForm = document.getElementById('loginForm');
-    const registerForm = document.getElementById('registerForm');
-    const loginMessage = document.getElementById('loginMessage');
-    const registerMessage = document.getElementById('registerMessage');
-    const submitLogin = document.getElementById('submitLogin');
-    const submitRegister = document.getElementById('submitRegister');
-    const loginSpinner = document.getElementById('loginSpinner');
-    const registerSpinner = document.getElementById('registerSpinner');
-    const wishFilter = document.getElementById('wishFilter');
-    const sortFilter = document.getElementById('sortFilter');
-    const wishPool = document.querySelector('.wish-pool');
-    const prevPageBtn = document.getElementById('prevPage');
-    const nextPageBtn = document.getElementById('nextPage');
-    const pageInfo = document.getElementById('pageInfo');
-    const wishForm = document.getElementById('wishForm');
-    const baziInfo = document.getElementById('baziInfo');
-    const wishSearch = document.getElementById('wishSearch');
-    const searchBtn = document.getElementById('searchBtn');
-    const clearSearchBtn = document.getElementById('clearSearchBtn');
-    const refreshStatsBtn = document.getElementById('refreshStatsBtn');
-    const charCount = document.getElementById('charCount');
-    const wishContent = document.getElementById('wishContent');
+        // 全局变量
+        let allWishes = [];
+        let currentPage = 1;
+        const wishesPerPage = 9;
+        let currentSearchTerm = '';
+        
+        // 获取DOM元素
+        const userWelcome = document.getElementById('userWelcome');
+        const usernameDisplay = document.getElementById('usernameDisplay');
+        const loginBtn = document.getElementById('loginBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const manageBtn = document.getElementById('manageBtn');
+        const authModal = document.getElementById('authModal');
+        const closeAuth = document.getElementById('closeAuth');
+        const loginTab = document.getElementById('loginTab');
+        const registerTab = document.getElementById('registerTab');
+        const loginForm = document.getElementById('loginForm');
+        const registerForm = document.getElementById('registerForm');
+        const loginMessage = document.getElementById('loginMessage');
+        const registerMessage = document.getElementById('registerMessage');
+        const submitLogin = document.getElementById('submitLogin');
+        const submitRegister = document.getElementById('submitRegister');
+        const loginSpinner = document.getElementById('loginSpinner');
+        const registerSpinner = document.getElementById('registerSpinner');
+        const wishFilter = document.getElementById('wishFilter');
+        const sortFilter = document.getElementById('sortFilter');
+        const wishPool = document.querySelector('.wish-pool');
+        const prevPageBtn = document.getElementById('prevPage');
+        const nextPageBtn = document.getElementById('nextPage');
+        const pageInfo = document.getElementById('pageInfo');
+        const wishForm = document.getElementById('wishForm');
+        const baziInfo = document.getElementById('baziInfo');
+        const wishSearch = document.getElementById('wishSearch');
+        const searchBtn = document.getElementById('searchBtn');
+        const clearSearchBtn = document.getElementById('clearSearchBtn');
+        const refreshStatsBtn = document.getElementById('refreshStatsBtn');
+        const charCount = document.getElementById('charCount');
+        const wishContent = document.getElementById('wishContent');
 
-    /* ==================== 辅助函数 ==================== */
+        /* ==================== 辅助函数 ==================== */
 
-    // 切换密码可见性
-    window.togglePassword = function(inputId, icon) {
-        const input = document.getElementById(inputId);
-        if (!input) return;
-        
-        if (input.type === "password") {
-            input.type = "text";
-            icon.classList.replace('fa-eye', 'fa-eye-slash');
-        } else {
-            input.type = "password";
-            icon.classList.replace('fa-eye-slash', 'fa-eye');
-        }
-    };
-
-    // 显示Toast消息
-    function showToast(message, type = 'success') {
-        document.querySelectorAll('.toast').forEach(toast => toast.remove());
-        
-        const toast = document.createElement('div');
-        toast.className = `toast ${type}`;
-        toast.innerHTML = `
-            <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
-            ${message}
-        `;
-        
-        document.body.appendChild(toast);
-        
-        setTimeout(() => toast.classList.add('show'), 100);
-        
-        setTimeout(() => {
-            toast.classList.remove('show');
-            setTimeout(() => toast.remove(), 300);
-        }, 3000);
-    }
-
-    // 显示成功消息
-    function showSuccessMessage(message) {
-        showToast(message, 'success');
-    }
-    
-    // 显示错误消息
-    function showErrorMessage(message) {
-        showToast(message, 'error');
-    }
-
-    /* ==================== 登录注册功能 ==================== */
-
-    // 检查登录状态
-    function checkLoginStatus() {
-        const token = localStorage.getItem('token');
-        const username = localStorage.getItem('username');
-        
-        if (token && username) {
-            userWelcome.style.display = 'block';
-            usernameDisplay.textContent = username;
-            loginBtn.style.display = 'none';
-            logoutBtn.style.display = 'block';
-            manageBtn.style.display = 'block'; // 显示管理按钮
-        } else {
-            userWelcome.style.display = 'none';
-            loginBtn.style.display = 'block';
-            logoutBtn.style.display = 'none';
-            manageBtn.style.display = 'none'; // 隐藏管理按钮
-        }
-    }
-
-    // 切换登录/注册标签页
-    function switchAuthTab(tab) {
-        if (tab === 'login') {
-            loginTab.classList.add('active');
-            registerTab.classList.remove('active');
-            loginForm.classList.add('active');
-            registerForm.classList.remove('active');
-        } else {
-            loginTab.classList.remove('active');
-            registerTab.classList.add('active');
-            loginForm.classList.remove('active');
-            registerForm.classList.add('active');
-        }
-        
-        // 清空消息
-        loginMessage.style.display = 'none';
-        registerMessage.style.display = 'none';
-    }
-
-    // 显示/隐藏登录弹窗
-    function toggleAuthModal(show) {
-        if (show) {
-            authModal.classList.add('active');
-            document.body.style.overflow = 'hidden';
-        } else {
-            authModal.classList.remove('active');
-            document.body.style.overflow = '';
-        }
-    }
-
-    // 处理登录
-    async function handleLogin(e) {
-        e.preventDefault();
-        
-        const username = document.getElementById('loginUsername').value.trim();
-        const password = document.getElementById('loginPassword').value.trim();
-        
-        if (!username || !password) {
-            showAuthMessage(loginMessage, '请输入用户名和密码', 'error');
-            return;
-        }
-        
-        submitLogin.disabled = true;
-        loginSpinner.style.display = 'inline-block';
-        document.getElementById('loginText').style.display = 'none';
-        
-        try {
-            const response = await fetch(`${API_BASE}/api/login`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name: username, password })
-            });
+        // 切换密码可见性
+        window.togglePassword = function(inputId, icon) {
+            const input = document.getElementById(inputId);
+            if (!input) return;
             
-            const result = await response.json();
-            
-            if (!response.ok) {
-                throw new Error(result.error || '登录失败');
+            if (input.type === "password") {
+                input.type = "text";
+                icon.textContent = 'visibility_off';
+            } else {
+                input.type = "password";
+                icon.textContent = 'visibility';
             }
+        };
+
+        // 显示Toast消息
+        function showToast(message, type = 'success') {
+            document.querySelectorAll('.toast').forEach(toast => toast.remove());
             
-            localStorage.setItem('token', result.token);
-            localStorage.setItem('username', username);
+            const toast = document.createElement('div');
+            toast.className = `toast fixed bottom-4 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-lg shadow-lg text-white ${
+                type === 'success' ? 'bg-green-500' : 'bg-red-500'
+            }`;
+            toast.innerHTML = `
+                <span class="material-icons align-middle mr-2">${
+                    type === 'success' ? 'check_circle' : 'error'
+                }</span>
+                ${message}
+            `;
             
-            const savedData = sessionStorage.getItem('tempWishFormData');
-            if (savedData) {
-                const formData = JSON.parse(savedData);
-                document.getElementById('name').value = formData.name || '';
-                document.getElementById('birthday').value = formData.birthday || '';
-                document.getElementById('birthtime').value = formData.birthtime || '';
-                document.getElementById('wishContent').value = formData.content || '';
-                document.getElementById('wishType').value = formData.type || 'love';
-                
-                if (formData.visibility) {
-                    const radio = document.querySelector(`input[name="visibility"][value="${formData.visibility}"]`);
-                    if (radio) radio.checked = true;
-                }
-                
-                document.getElementById('charCount').textContent = formData.content?.length || 0;
-                sessionStorage.removeItem('tempWishFormData');
-            }
-            
-            showAuthMessage(loginMessage, '登录成功！', 'success');
-            checkLoginStatus();
-            
-            document.getElementById('loginUsername').value = '';
-            document.getElementById('loginPassword').value = '';
+            document.body.appendChild(toast);
             
             setTimeout(() => {
-                toggleAuthModal(false);
-                if (savedData) {
-                    showToast('登录成功！您可以继续提交愿望', 'success');
-                }
-            }, 2000);
-            
-        } catch (error) {
-            console.error('登录错误:', error);
-            showAuthMessage(loginMessage, error.message, 'error');
-            document.getElementById('loginUsername').value = username;
-        } finally {
-            submitLogin.disabled = false;
-            loginSpinner.style.display = 'none';
-            document.getElementById('loginText').style.display = 'inline';
+                toast.classList.add('opacity-0', 'transition-opacity', 'duration-300');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
         }
-    }
 
-    // 处理注册
-    async function handleRegister(e) {
-        e.preventDefault();
-        
-        const username = document.getElementById('registerUsername').value.trim();
-        const email = document.getElementById('registerEmail').value.trim();
-        const password = document.getElementById('registerPassword').value.trim();
-        const confirmPassword = document.getElementById('registerConfirmPassword').value.trim();
-        
-        if (!username || username.length < 4 || username.length > 16) {
-            showAuthMessage(registerMessage, '用户名长度应为4-16位', 'error');
-            return;
+        // 显示成功消息
+        function showSuccessMessage(message) {
+            showToast(message, 'success');
         }
         
-        if (!email || !validateEmail(email)) {
-            showAuthMessage(registerMessage, '请输入有效的电子邮箱', 'error');
-            return;
+        // 显示错误消息
+        function showErrorMessage(message) {
+            showToast(message, 'error');
         }
-        
-        if (!password || password.length < 6) {
-            showAuthMessage(registerMessage, '密码长度至少为6位', 'error');
-            return;
-        }
-        
-        if (password !== confirmPassword) {
-            showAuthMessage(registerMessage, '两次输入的密码不一致', 'error');
-            return;
-        }
-        
-        submitRegister.disabled = true;
-        registerSpinner.style.display = 'inline-block';
-        document.getElementById('registerText').style.display = 'none';
-        
-        try {
-            const response = await fetch(`${API_BASE}/api/register`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name: username, email, password })
-            });
+
+        /* ==================== 登录注册功能 ==================== */
+
+        // 检查登录状态
+        function checkLoginStatus() {
+            const token = localStorage.getItem('token');
+            const username = localStorage.getItem('username');
             
-            const result = await response.json();
-            
-            if (!response.ok) {
-                throw new Error(result.error || '注册失败');
+            if (token && username) {
+                userWelcome.style.display = 'block';
+                usernameDisplay.textContent = username;
+                loginBtn.style.display = 'none';
+                logoutBtn.style.display = 'block';
+                manageBtn.style.display = 'block'; // 显示管理按钮
+            } else {
+                userWelcome.style.display = 'none';
+                loginBtn.style.display = 'block';
+                logoutBtn.style.display = 'none';
+                manageBtn.style.display = 'none'; // 隐藏管理按钮
+            }
+        }
+
+        // 切换登录/注册标签页
+        function switchAuthTab(tab) {
+            if (tab === 'login') {
+                loginTab.classList.add('active');
+                loginTab.classList.remove('text-gray-500');
+                loginTab.classList.add('text-primary', 'border-primary');
+                registerTab.classList.remove('active');
+                registerTab.classList.add('text-gray-500');
+                registerTab.classList.remove('text-primary', 'border-primary');
+                loginForm.classList.remove('hidden');
+                registerForm.classList.add('hidden');
+            } else {
+                loginTab.classList.remove('active');
+                loginTab.classList.add('text-gray-500');
+                loginTab.classList.remove('text-primary', 'border-primary');
+                registerTab.classList.add('active');
+                registerTab.classList.remove('text-gray-500');
+                registerTab.classList.add('text-primary', 'border-primary');
+                loginForm.classList.add('hidden');
+                registerForm.classList.remove('hidden');
             }
             
-            localStorage.setItem('token', result.token);
-            localStorage.setItem('username', username);
-            
-            showAuthMessage(registerMessage, '注册成功！已自动登录', 'success');
-            checkLoginStatus();
-            
-            document.getElementById('registerUsername').value = '';
-            document.getElementById('registerEmail').value = '';
-            document.getElementById('registerPassword').value = '';
-            document.getElementById('registerConfirmPassword').value = '';
-            
-            setTimeout(() => {
-                toggleAuthModal(false);
-                switchAuthTab('login');
-            }, 2000);
-            
-        } catch (error) {
-            showAuthMessage(registerMessage, error.message, 'error');
-        } finally {
-            submitRegister.disabled = false;
-            registerSpinner.style.display = 'none';
-            document.getElementById('registerText').style.display = 'inline';
+            // 清空消息
+            loginMessage.style.display = 'none';
+            registerMessage.style.display = 'none';
         }
-    }
 
-    // 处理退出登录
-    function handleLogout() {
-        localStorage.removeItem('token');
-        localStorage.removeItem('username');
-        checkLoginStatus();
-        switchAuthTab('login');
-    }
-
-    // 显示认证消息
-    function showAuthMessage(element, message, type) {
-        element.textContent = message;
-        element.className = 'auth-message ' + type;
-        element.style.display = 'block';
-        
-        setTimeout(() => {
-            element.style.display = 'none';
-        }, 3000);
-    }
-
-    // 验证邮箱格式
-    function validateEmail(email) {
-        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return re.test(email);
-    }
-
-    // 初始化登录注册事件
-    function initAuthEvents() {
-        loginBtn.addEventListener('click', () => {
-            toggleAuthModal(true);
-            switchAuthTab('login');
-        });
-        
-        closeAuth.addEventListener('click', () => toggleAuthModal(false));
-        
-        authModal.addEventListener('click', (e) => {
-            if (e.target === authModal) {
-                toggleAuthModal(false);
+        // 显示/隐藏登录弹窗
+        function toggleAuthModal(show) {
+            if (show) {
+                authModal.classList.remove('hidden');
+                document.body.style.overflow = 'hidden';
+            } else {
+                authModal.classList.add('hidden');
+                document.body.style.overflow = '';
             }
-        });
-        
-        loginTab.addEventListener('click', () => switchAuthTab('login'));
-        registerTab.addEventListener('click', () => switchAuthTab('register'));
-        
-        loginForm.addEventListener('submit', handleLogin);
-        registerForm.addEventListener('submit', handleRegister);
+        }
 
-        document.getElementById('forgotPasswordLink').addEventListener('click', function(e) {
+        // 处理登录
+        async function handleLogin(e) {
             e.preventDefault();
-            const width = 500;
-            const height = 400;
-            const left = (screen.width - width) / 2;
-            const top = (screen.height - height) / 2;
             
-            window.open(
-                'forgot.html', 
-                'ForgotPassword', 
-                `width=${width},height=${height},left=${left},top=${top},resizable=no`
-            );
-        });
-        
-        logoutBtn.addEventListener('click', handleLogout);
-    }
-
-    /* ==================== 愿望卡片管理功能 ==================== */
-
-    // 显示用户卡片浮窗
-    async function showUserCards() {
-        const token = localStorage.getItem('token');
-        if (!token) {
-            toggleAuthModal(true);
-            switchAuthTab('login');
-            return;
+            const username = document.getElementById('loginUsername').value.trim();
+            const password = document.getElementById('loginPassword').value.trim();
+            
+            if (!username || !password) {
+                showAuthMessage(loginMessage, '请输入用户名和密码', 'error');
+                return;
+            }
+            
+            submitLogin.disabled = true;
+            loginSpinner.classList.remove('hidden');
+            document.getElementById('loginText').style.display = 'none';
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: username, password })
+                });
+                
+                const result = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(result.error || '登录失败');
+                }
+                
+                localStorage.setItem('token', result.token);
+                localStorage.setItem('username', username);
+                
+                const savedData = sessionStorage.getItem('tempWishFormData');
+                if (savedData) {
+                    const formData = JSON.parse(savedData);
+                    document.getElementById('name').value = formData.name || '';
+                    document.getElementById('birthday').value = formData.birthday || '';
+                    document.getElementById('birthtime').value = formData.birthtime || '';
+                    document.getElementById('wishContent').value = formData.content || '';
+                    document.getElementById('wishType').value = formData.type || 'love';
+                    
+                    if (formData.visibility) {
+                        const radio = document.querySelector(`input[name="visibility"][value="${formData.visibility}"]`);
+                        if (radio) radio.checked = true;
+                    }
+                    
+                    document.getElementById('charCount').textContent = formData.content?.length || 0;
+                    sessionStorage.removeItem('tempWishFormData');
+                }
+                
+                showAuthMessage(loginMessage, '登录成功！', 'success');
+                checkLoginStatus();
+                
+                document.getElementById('loginUsername').value = '';
+                document.getElementById('loginPassword').value = '';
+                
+                setTimeout(() => {
+                    toggleAuthModal(false);
+                    if (savedData) {
+                        showToast('登录成功！您可以继续提交愿望', 'success');
+                    }
+                }, 2000);
+                
+            } catch (error) {
+                console.error('登录错误:', error);
+                showAuthMessage(loginMessage, error.message, 'error');
+                document.getElementById('loginUsername').value = username;
+            } finally {
+                submitLogin.disabled = false;
+                loginSpinner.classList.add('hidden');
+                document.getElementById('loginText').style.display = 'inline';
+            }
         }
 
-        const modal = document.getElementById('userCardsModal');
-        const cardsList = document.getElementById('userCardsList');
-        
-        cardsList.innerHTML = `
-            <div class="wish-loading">
-                <div class="loader"></div>
-                <p>正在加载您的愿望卡片...</p>
-            </div>
-        `;
-        
-        modal.classList.add('active');
-        
-        try {
-            const response = await fetch(`${API_BASE}/api/user/wishes`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
+        // 处理注册
+        async function handleRegister(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('registerUsername').value.trim();
+            const email = document.getElementById('registerEmail').value.trim();
+            const password = document.getElementById('registerPassword').value.trim();
+            const confirmPassword = document.getElementById('registerConfirmPassword').value.trim();
+            
+            if (!username || username.length < 4 || username.length > 16) {
+                showAuthMessage(registerMessage, '用户名长度应为4-16位', 'error');
+                return;
+            }
+            
+            if (!email || !validateEmail(email)) {
+                showAuthMessage(registerMessage, '请输入有效的电子邮箱', 'error');
+                return;
+            }
+            
+            if (!password || password.length < 6) {
+                showAuthMessage(registerMessage, '密码长度至少为6位', 'error');
+                return;
+            }
+            
+            if (password !== confirmPassword) {
+                showAuthMessage(registerMessage, '两次输入的密码不一致', 'error');
+                return;
+            }
+            
+            submitRegister.disabled = true;
+            registerSpinner.classList.remove('hidden');
+            document.getElementById('registerText').style.display = 'none';
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: username, email, password })
+                });
+                
+                const result = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(result.error || '注册失败');
+                }
+                
+                localStorage.setItem('token', result.token);
+                localStorage.setItem('username', username);
+                
+                showAuthMessage(registerMessage, '注册成功！已自动登录', 'success');
+                checkLoginStatus();
+                
+                document.getElementById('registerUsername').value = '';
+                document.getElementById('registerEmail').value = '';
+                document.getElementById('registerPassword').value = '';
+                document.getElementById('registerConfirmPassword').value = '';
+                
+                setTimeout(() => {
+                    toggleAuthModal(false);
+                    switchAuthTab('login');
+                }, 2000);
+                
+            } catch (error) {
+                showAuthMessage(registerMessage, error.message, 'error');
+            } finally {
+                submitRegister.disabled = false;
+                registerSpinner.classList.add('hidden');
+                document.getElementById('registerText').style.display = 'inline';
+            }
+        }
+
+        // 处理退出登录
+        function handleLogout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('username');
+            checkLoginStatus();
+            switchAuthTab('login');
+        }
+
+        // 显示认证消息
+        function showAuthMessage(element, message, type) {
+            element.textContent = message;
+            element.className = `mt-4 p-3 rounded-lg ${
+                type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+            }`;
+            element.style.display = 'block';
+            
+            setTimeout(() => {
+                element.style.display = 'none';
+            }, 3000);
+        }
+
+        // 验证邮箱格式
+        function validateEmail(email) {
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return re.test(email);
+        }
+
+        // 初始化登录注册事件
+        function initAuthEvents() {
+            loginBtn.addEventListener('click', () => {
+                toggleAuthModal(true);
+                switchAuthTab('login');
+            });
+            
+            closeAuth.addEventListener('click', () => toggleAuthModal(false));
+            
+            authModal.addEventListener('click', (e) => {
+                if (e.target === authModal) {
+                    toggleAuthModal(false);
                 }
             });
             
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || '获取愿望失败');
+            loginTab.addEventListener('click', () => switchAuthTab('login'));
+            registerTab.addEventListener('click', () => switchAuthTab('register'));
+            
+            loginForm.addEventListener('submit', handleLogin);
+            registerForm.addEventListener('submit', handleRegister);
+
+            document.getElementById('forgotPasswordLink').addEventListener('click', function(e) {
+                e.preventDefault();
+                const width = 500;
+                const height = 400;
+                const left = (screen.width - width) / 2;
+                const top = (screen.height - height) / 2;
+                
+                window.open(
+                    'forgot.html', 
+                    'ForgotPassword', 
+                    `width=${width},height=${height},left=${left},top=${top},resizable=no`
+                );
+            });
+            
+            logoutBtn.addEventListener('click', handleLogout);
+        }
+
+        /* ==================== 愿望卡片管理功能 ==================== */
+
+        // 显示用户卡片浮窗
+        async function showUserCards() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                toggleAuthModal(true);
+                switchAuthTab('login');
+                return;
+            }
+
+            const modal = document.getElementById('userCardsModal');
+            const cardsList = document.getElementById('userCardsList');
+            
+            cardsList.innerHTML = `
+                <div class="wish-loading flex flex-col items-center justify-center py-12">
+                    <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mb-4"></div>
+                    <p>正在加载您的愿望卡片...</p>
+                </div>
+            `;
+            
+            modal.classList.remove('hidden');
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/user/wishes`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || '获取愿望失败');
+                }
+                
+                const wishes = await response.json();
+                
+                if (!Array.isArray(wishes)) {
+                    throw new Error('返回数据格式不正确');
+                }
+                
+                if (wishes.length === 0) {
+                    cardsList.innerHTML = `
+                        <div class="empty-cards flex flex-col items-center justify-center py-12 text-center">
+                            <span class="material-icons text-4xl text-gray-400 mb-4">inbox</span>
+                            <p class="text-gray-600 mb-4">您还没有创建任何愿望卡片</p>
+                            <button onclick="document.getElementById('wishForm').scrollIntoView()" 
+                                    class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-opacity-90 transition">
+                                <span class="material-icons align-middle mr-1">add</span> 创建新愿望
+                            </button>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                cardsList.innerHTML = '';
+                wishes.forEach(wish => {
+                    const card = document.createElement('div');
+                    card.className = 'user-card-item bg-white rounded-lg shadow-sm overflow-hidden mb-4 transition hover:shadow-md';
+                    card.dataset.id = wish.id;
+                    card.dataset.type = wish.type;
+                    
+                    const createdDate = new Date(wish.created_at);
+                    const expiresAt = new Date(createdDate);
+                    expiresAt.setDate(expiresAt.getDate() + 30);
+                    const daysLeft = Math.max(0, Math.ceil((expiresAt - new Date()) / (86400000)));
+                    
+                    const statusLabel = wish.is_fulfilled ? 
+                        '<span class="card-status absolute top-2 right-2 px-2 py-1 rounded text-xs bg-green-100 text-green-700"><span class="material-icons align-middle text-sm mr-1">check_circle</span> 已还愿</span>' :
+                        `<span class="card-status absolute top-2 right-2 px-2 py-1 rounded text-xs bg-blue-100 text-blue-700"><span class="material-icons align-middle text-sm mr-1 animate-spin">autorenew</span> 进行中</span>`;
+                    
+                    const level = wish.level || 1;
+                    const levelPercent = level * 20;
+                    const levelNames = ['初愿', '小成', '中成', '大成', '圆满'];
+                    const levelColor = ['#6a11cb', '#2575fc', '#00b894', '#fdcb6e', '#e84393'][level - 1];
+                    
+                    const typeIcons = {
+                        'love': 'favorite',
+                        'wealth': 'attach_money',
+                        'health': 'favorite',
+                        'study': 'school',
+                        'family': 'home',
+                        'other': 'star'
+                    };
+                    const typeIcon = typeIcons[wish.type] || 'star';
+                    
+                    card.innerHTML = `
+                        ${statusLabel}
+                        <div class="p-4">
+                            <div class="wish-header mb-3">
+                                <div class="wish-user flex items-center text-sm">
+                                    <span class="material-icons text-gray-500 mr-1 text-sm">person</span> 
+                                    <span class="user-name font-medium">${wish.user_name || '匿名用户'}</span>
+                                    <span class="wish-type-badge ml-2 px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs flex items-center">
+                                        <span class="material-icons text-sm mr-1">${typeIcon}</span> 
+                                        ${getWishTypeName(wish.type)}
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <div class="wish-content mb-4">
+                                <p class="wish-text text-gray-700">${wish.content}</p>
+                            </div>
+                            
+                            <div class="card-progress mb-3">
+                                <div class="w-full bg-gray-200 rounded-full h-2 mb-1">
+                                    <div class="h-2 rounded-full" style="width: ${levelPercent}%; background: ${levelColor}"></div>
+                                </div>
+                                <div class="flex justify-between text-xs text-gray-500">
+                                    <span>${levelNames[level - 1]}等级</span>
+                                    <span>${wish.blessings || 0}次加持</span>
+                                </div>
+                            </div>
+                            
+                            <div class="card-meta flex justify-between text-xs text-gray-500 mb-4">
+                                <span class="flex items-center"><span class="material-icons text-sm mr-1">event</span> ${formatDate(wish.created_at)}</span>
+                                <span class="flex items-center"><span class="material-icons text-sm mr-1">schedule</span> 剩余${daysLeft}天</span>
+                            </div>
+                            
+                            <div class="user-card-actions flex space-x-2">
+                                ${!wish.is_fulfilled ? `
+                                <button class="btn-fulfill-small px-3 py-1 bg-green-100 text-green-700 rounded text-sm flex items-center hover:bg-green-200">
+                                    <span class="material-icons text-sm mr-1">celebration</span> 还愿
+                                </button>
+                                ` : ''}
+                                <button class="btn-delete px-3 py-1 bg-red-100 text-red-700 rounded text-sm flex items-center hover:bg-red-200">
+                                    <span class="material-icons text-sm mr-1">delete</span> 删除
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    
+                    const deleteBtn = card.querySelector('.btn-delete');
+                    deleteBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        deleteUserWish(wish.id, card);
+                    });
+                    
+                    if (!wish.is_fulfilled) {
+                        const fulfillBtn = card.querySelector('.btn-fulfill-small');
+                        fulfillBtn.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            handleFulfillWish(wish);
+                            modal.classList.add('hidden');
+                        });
+                    }
+                    
+                    card.querySelector('.p-4').addEventListener('click', () => {
+                        showWishDetail(wish);
+                    });
+                    
+                    cardsList.appendChild(card);
+                });
+                
+                if (wishes.length > 3) {
+                    const newCardBtn = document.createElement('div');
+                    newCardBtn.className = 'user-card-item bg-white rounded-lg shadow-sm overflow-hidden mb-4 transition hover:shadow-md cursor-pointer';
+                    newCardBtn.innerHTML = `
+                        <div class="p-8 flex flex-col items-center justify-center text-gray-400 hover:text-primary">
+                            <span class="material-icons text-4xl mb-2">add_circle</span>
+                            <p>创建新愿望</p>
+                        </div>
+                    `;
+                    newCardBtn.addEventListener('click', () => {
+                        modal.classList.add('hidden');
+                        document.getElementById('wishForm').scrollIntoView({
+                            behavior: 'smooth'
+                        });
+                    });
+                    cardsList.appendChild(newCardBtn);
+                }
+                
+            } catch (error) {
+                console.error('加载用户卡片失败:', error);
+                cardsList.innerHTML = `
+                    <div class="wish-loading flex flex-col items-center justify-center py-12 text-center">
+                        <span class="material-icons text-4xl text-red-500 mb-4">error</span>
+                        <p class="text-gray-700 mb-4">加载失败：${error.message}</p>
+                        <div class="flex space-x-2">
+                            <button onclick="showUserCards()" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-opacity-90 transition">
+                                <span class="material-icons align-middle mr-1">refresh</span> 重新加载
+                            </button>
+                            <button onclick="location.reload()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">
+                                <span class="material-icons align-middle mr-1">replay</span> 刷新页面
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // 辅助函数
+        function getWishTypeName(type) {
+            const typeNames = {
+                'love': '姻缘',
+                'wealth': '财富', 
+                'health': '健康',
+                'study': '学业', 
+                'family': '家庭', 
+                'other': '其他'
+            };
+            return typeNames[type] || '其他';
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return `${date.getFullYear()}-${(date.getMonth()+1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
+        }
+
+        function showWishDetail(wish) {
+            console.log('查看愿望详情:', wish);
+        }
+
+        // 删除用户愿望
+        async function deleteUserWish(wishId, cardElement) {
+            if (!confirm('确定要删除这个愿望吗？删除后将无法恢复。')) {
+                return;
             }
             
-            const wishes = await response.json();
+            const token = localStorage.getItem('token');
+            if (!token) {
+                toggleAuthModal(true);
+                switchAuthTab('login');
+                return;
+            }
             
+            try {
+                cardElement.style.opacity = '0.5';
+                cardElement.querySelector('.btn-delete').innerHTML = '<span class="material-icons animate-spin text-sm mr-1">autorenew</span> 删除中...';
+                cardElement.querySelector('.btn-delete').disabled = true;
+                
+                const response = await fetch(`${API_BASE}/api/wishes/${wishId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('删除失败');
+                }
+                
+                cardElement.classList.add('opacity-0', 'transition-opacity', 'duration-300');
+                setTimeout(() => {
+                    cardElement.remove();
+                    
+                    const cardsList = document.getElementById('userCardsList');
+                    if (cardsList.children.length === 0) {
+                        cardsList.innerHTML = `
+                            <div class="empty-cards flex flex-col items-center justify-center py-12 text-center">
+                                <span class="material-icons text-4xl text-gray-400 mb-4">inbox</span>
+                                <p class="text-gray-600">您还没有创建任何愿望卡片</p>
+                            </div>
+                        `;
+                    }
+                }, 300);
+                
+                showToast('愿望已成功删除', 'success');
+                loadAllWishes();
+            } catch (error) {
+                console.error('删除愿望失败:', error);
+                cardElement.style.opacity = '';
+                cardElement.querySelector('.btn-delete').innerHTML = '<span class="material-icons text-sm mr-1">delete</span> 删除';
+                cardElement.querySelector('.btn-delete').disabled = false;
+                showToast(`删除失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 初始化用户卡片浮窗
+        function initUserCardsModal() {
+            try {
+                const modal = document.getElementById('userCardsModal');
+                const closeBtn = modal.querySelector('.close-cards');
+                
+                closeBtn.addEventListener('click', () => {
+                    modal.classList.add('hidden');
+                });
+                
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        modal.classList.add('hidden');
+                    }
+                });
+                
+            } catch (error) {
+                console.error('初始化用户卡片浮窗失败:', error);
+            }
+        }
+
+        /* ==================== 愿望池功能 ==================== */
+
+        // 加载所有愿望
+        async function loadAllWishes() {
+            try {
+                wishPool.innerHTML = `
+                    <div class="wish-loading col-span-3 flex flex-col items-center justify-center py-12">
+                        <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mb-4"></div>
+                        <p>正在连接命缘池能量场...</p>
+                    </div>
+                `;
+
+                const response = await fetch(API_URL + '?visibility=public&sort=newest');
+                const data = await response.json();
+                
+                allWishes = Array.isArray(data) ? data : data.data || [];
+                
+                if (!Array.isArray(allWishes)) {
+                    throw new Error('返回的不是愿望数组');
+                }
+                
+                sortFilter.value = 'newest';
+                renderFilteredWishes();
+                updatePagination();
+                
+            } catch (err) {
+                console.error('加载愿望时出错:', err);
+                wishPool.innerHTML = `
+                    <div class="wish-loading col-span-3 flex flex-col items-center justify-center py-12">
+                        <span class="material-icons text-4xl text-red-500 mb-4">error</span>
+                        <p class="text-gray-700 mb-4">加载失败：${err.message}</p>
+                        <button onclick="loadAllWishes()" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-opacity-90 transition">
+                            <span class="material-icons align-middle mr-1">refresh</span> 重新加载
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        // 渲染筛选后的愿望
+        function renderFilteredWishes() {
+            const selectedType = wishFilter.value;
+            let filteredWishes = [...allWishes];
+            
+            if (selectedType !== 'all') {
+                filteredWishes = allWishes.filter(wish => wish.type === selectedType);
+            }
+            
+            if (currentSearchTerm) {
+                filteredWishes = filteredWishes.filter(wish => 
+                    wish.user_name && wish.user_name.toLowerCase().includes(currentSearchTerm.toLowerCase())
+                );
+            }
+            
+            const selectedSort = sortFilter.value || 'newest';
+            
+            switch(selectedSort) {
+                case 'newest':
+                    filteredWishes.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+                    break;
+                case 'oldest':
+                    filteredWishes.sort((a, b) => new Date(a.created_at || 0) - new Date(b.created_at || 0));
+                    break;
+                case 'most':
+                    filteredWishes.sort((a, b) => (b.blessings || 0) - (a.blessings || 0));
+                    break;
+                case 'least':
+                    filteredWishes.sort((a, b) => (a.blessings || 0) - (b.blessings || 0));
+                    break;
+                default:
+                    filteredWishes.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+            }
+            
+            const startIndex = (currentPage - 1) * wishesPerPage;
+            const paginatedWishes = filteredWishes.slice(startIndex, startIndex + wishesPerPage);
+            
+            renderWishCards(paginatedWishes);
+            updatePagination();
+        }
+
+        // 渲染愿望卡片
+        function renderWishCards(wishes) {
             if (!Array.isArray(wishes)) {
-                throw new Error('返回数据格式不正确');
+                console.error('renderWishCards 接收到的不是数组:', wishes);
+                return;
             }
+            
+            wishPool.innerHTML = '';
             
             if (wishes.length === 0) {
-                cardsList.innerHTML = `
-                    <div class="empty-cards">
-                        <i class="fas fa-box-open"></i>
-                        <p>您还没有创建任何愿望卡片</p>
-                        <button onclick="document.getElementById('wishForm').scrollIntoView()" 
-                                class="btn-mingyuan" style="margin-top:15px">
-                            <i class="fas fa-plus"></i> 创建新愿望
-                        </button>
+                wishPool.innerHTML = `
+                    <div class="wish-loading col-span-3 flex flex-col items-center justify-center py-12">
+                        <span class="material-icons text-4xl text-primary mb-4">water_drop</span>
+                        <p class="text-gray-700 mb-2">没有找到符合条件的愿望</p>
+                        ${currentSearchTerm ? `<p class="text-gray-500">没有找到与"${currentSearchTerm}"相关的愿望</p>` : '<p class="text-gray-500">请尝试其他筛选条件</p>'}
                     </div>
                 `;
                 return;
             }
             
-            cardsList.innerHTML = '';
+            const typeNames = {
+                'love': '姻缘感情', 
+                'wealth': '财富事业', 
+                'health': '健康平安',
+                'study': '学业成长', 
+                'family': '家庭和睦', 
+                'other': '其他愿望'
+            };
+            
+            const typeColors = {
+                'love': 'bg-pink-100 text-pink-700',
+                'wealth': 'bg-green-100 text-green-700',
+                'health': 'bg-blue-100 text-blue-700',
+                'study': 'bg-purple-100 text-purple-700',
+                'family': 'bg-orange-100 text-orange-700',
+                'other': 'bg-gray-100 text-gray-700'
+            };
+            
+            const typeIcons = {
+                'love': 'favorite',
+                'wealth': 'attach_money',
+                'health': 'favorite',
+                'study': 'school',
+                'family': 'home',
+                'other': 'star'
+            };
+            
             wishes.forEach(wish => {
-                const card = document.createElement('div');
-                card.className = 'user-card-item';
-                card.dataset.id = wish.id;
-                card.dataset.type = wish.type;
+                const wishCard = document.createElement('div');
+                wishCard.className = 'wish-card bg-white rounded-lg shadow-sm overflow-hidden transition hover:shadow-md';
+                wishCard.dataset.id = wish.id;
+                wishCard.dataset.level = wish.level || 1;
+                wishCard.dataset.type = wish.type;
+                wishCard.dataset.visibility = wish.visibility;
                 
                 const createdDate = new Date(wish.created_at);
                 const expiresAt = new Date(createdDate);
                 expiresAt.setDate(expiresAt.getDate() + 30);
                 const daysLeft = Math.max(0, Math.ceil((expiresAt - new Date()) / (86400000)));
                 
-                const statusLabel = wish.is_fulfilled ? 
-                    '<span class="card-status" style="background:#55efc420;color:#55efc4"><i class="fas fa-check-circle"></i> 已还愿</span>' :
-                    `<span class="card-status"><i class="fas fa-spinner fa-pulse"></i> 进行中</span>`;
-                
                 const level = wish.level || 1;
-                const levelPercent = level * 20;
-                const levelNames = ['初愿', '小成', '中成', '大成', '圆满'];
-                const levelColor = ['#6a11cb', '#2575fc', '#00b894', '#fdcb6e', '#e84393'][level - 1];
+                const levelColors = ['bg-gradient-to-r from-purple-500 to-blue-500', 
+                                   'bg-gradient-to-r from-blue-500 to-teal-500',
+                                   'bg-gradient-to-r from-teal-500 to-green-500',
+                                   'bg-gradient-to-r from-green-500 to-yellow-500',
+                                   'bg-gradient-to-r from-yellow-500 to-pink-500'];
                 
-                const typeIcons = {
-                    'love': 'fas fa-heart',
-                    'wealth': 'fas fa-coins',
-                    'health': 'fas fa-heartbeat',
-                    'study': 'fas fa-graduation-cap',
-                    'family': 'fas fa-home',
-                    'other': 'fas fa-star'
-                };
-                const typeIcon = typeIcons[wish.type] || 'fas fa-star';
-                
-                card.innerHTML = `
-                    ${statusLabel}
-                    <div class="user-card-content">
-                        <div class="wish-header">
-                            <div class="wish-user">
-                                <i class="fas fa-user"></i> 
-                                <span class="user-name">${wish.user_name || '匿名用户'}</span>
-                                <span class="wish-type-badge">
-                                    <i class="${typeIcon}"></i> 
-                                    ${getWishTypeName(wish.type)}
-                                </span>
+                wishCard.innerHTML = `
+                    <div class="p-4">
+                        <div class="wish-header flex justify-between items-center mb-3">
+                            <div class="wish-user flex items-center text-sm">
+                                <span class="material-icons text-gray-500 mr-1 text-sm">person</span> 
+                                <span class="user-name font-medium">${wish.user_name || '匿名用户'}</span>
+                            </div>
+                            <span class="wish-type px-2 py-1 rounded-full text-xs ${typeColors[wish.type]} flex items-center">
+                                <span class="material-icons text-sm mr-1">${typeIcons[wish.type]}</span>
+                                ${typeNames[wish.type] || '其他愿望'}
+                            </span>
+                        </div>
+                        
+                        <div class="wish-content mb-4">
+                            <p class="wish-text text-gray-700">${wish.content}</p>
+                        </div>
+                        
+                        <div class="wish-meta flex justify-between items-center mb-4 text-sm">
+                            <div class="wish-bazi flex items-center text-gray-500">
+                                <span class="material-icons text-sm mr-1 text-gray-400">fingerprint</span>
+                                <span class="bazi-text">${wish.bazi}</span>
+                            </div>
+                            <div class="wish-stats text-gray-500">
+                                <span class="bless-count font-medium">${wish.blessings || 0}</span> 次加持
                             </div>
                         </div>
                         
-                        <div class="wish-content">
-                            <p class="wish-text">${wish.content}</p>
-                        </div>
-                        
-                        <div class="card-progress">
-                            <div class="card-energy-level">
-                                <div class="card-energy-level-fill" 
-                                     style="width: ${levelPercent}%; background: ${levelColor}"></div>
-                            </div>
-                            <div class="level-info">
-                                <span>${levelNames[level - 1]}等级</span>
-                                <span>${wish.blessings || 0}次加持</span>
-                            </div>
-                        </div>
-                        
-                        <div class="card-meta">
-                            <span><i class="fas fa-calendar-plus"></i> ${formatDate(wish.created_at)}</span>
-                            <span><i class="fas fa-calendar-check"></i> 剩余${daysLeft}天</span>
-                        </div>
-                        
-                        <div class="user-card-actions">
-                            ${!wish.is_fulfilled ? `
-                            <button class="btn-fulfill-small">
-                                <i class="fas fa-hand-holding-heart"></i> 还愿
+                        <div class="wish-actions flex space-x-2">
+                            <button class="btn-bless px-3 py-1 bg-primary text-white rounded text-sm flex items-center hover:bg-opacity-90">
+                                <span class="material-icons text-sm mr-1">hands</span> 加持
                             </button>
-                            ` : ''}
-                            <button class="btn-delete">
-                                <i class="fas fa-trash-alt"></i> 删除
+                            <button class="btn-fulfill px-3 py-1 bg-green-100 text-green-700 rounded text-sm flex items-center hover:bg-green-200">
+                                <span class="material-icons text-sm mr-1">celebration</span> 还愿
                             </button>
+                        </div>
+                        
+                        <div class="wish-energy mt-3">
+                            <div class="h-2 rounded-full ${levelColors[level - 1]}"></div>
                         </div>
                     </div>
                 `;
                 
-                const deleteBtn = card.querySelector('.btn-delete');
-                deleteBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    deleteUserWish(wish.id, card);
-                });
+                const blessBtn = wishCard.querySelector('.btn-bless');
+                blessBtn.addEventListener('click', () => handleBlessWish(wishCard, wish));
                 
-                if (!wish.is_fulfilled) {
-                    const fulfillBtn = card.querySelector('.btn-fulfill-small');
-                    fulfillBtn.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        handleFulfillWish(wish);
-                        modal.classList.remove('active');
-                    });
-                }
+                const fulfillBtn = wishCard.querySelector('.btn-fulfill');
+                fulfillBtn.addEventListener('click', () => handleFulfillWish(wish));
                 
-                card.querySelector('.user-card-content').addEventListener('click', () => {
-                    showWishDetail(wish);
-                });
-                
-                cardsList.appendChild(card);
+                wishPool.appendChild(wishCard);
             });
-            
-            if (wishes.length > 3) {
-                const newCardBtn = document.createElement('div');
-                newCardBtn.className = 'user-card-item new-card-btn';
-                newCardBtn.innerHTML = `
-                    <div class="user-card-content">
-                        <div class="add-new-card">
-                            <i class="fas fa-plus-circle"></i>
-                            <p>创建新愿望</p>
-                        </div>
-                    </div>
-                `;
-                newCardBtn.addEventListener('click', () => {
-                    modal.classList.remove('active');
-                    document.getElementById('wishForm').scrollIntoView({
-                        behavior: 'smooth'
-                    });
-                });
-                cardsList.appendChild(newCardBtn);
-            }
-            
-        } catch (error) {
-            console.error('加载用户卡片失败:', error);
-            cardsList.innerHTML = `
-                <div class="wish-loading">
-                    <i class="fas fa-exclamation-triangle" style="color: #ff6b6b;"></i>
-                    <p>加载失败：${error.message}</p>
-                    <div class="retry-buttons">
-                        <button onclick="showUserCards()" class="btn-mingyuan">
-                            <i class="fas fa-sync-alt"></i> 重新加载
-                        </button>
-                        <button onclick="location.reload()" class="btn-mingyuan">
-                            <i class="fas fa-redo"></i> 刷新页面
-                        </button>
-                    </div>
-                </div>
-            `;
-        }
-    }
-
-    // 辅助函数
-    function getWishTypeName(type) {
-        const typeNames = {
-            'love': '姻缘',
-            'wealth': '财富', 
-            'health': '健康',
-            'study': '学业', 
-            'family': '家庭', 
-            'other': '其他'
-        };
-        return typeNames[type] || '其他';
-    }
-
-    function formatDate(dateString) {
-        const date = new Date(dateString);
-        return `${date.getFullYear()}-${(date.getMonth()+1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
-    }
-
-    function showWishDetail(wish) {
-        console.log('查看愿望详情:', wish);
-    }
-
-    // 删除用户愿望
-    async function deleteUserWish(wishId, cardElement) {
-        if (!confirm('确定要删除这个愿望吗？删除后将无法恢复。')) {
-            return;
-        }
-        
-        const token = localStorage.getItem('token');
-        if (!token) {
-            toggleAuthModal(true);
-            switchAuthTab('login');
-            return;
-        }
-        
-        try {
-            cardElement.style.opacity = '0.5';
-            cardElement.querySelector('.btn-delete').innerHTML = '<i class="fas fa-spinner fa-spin"></i> 删除中...';
-            cardElement.querySelector('.btn-delete').disabled = true;
-            
-            const response = await fetch(`${API_BASE}/api/wishes/${wishId}`, {
-                method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-            
-            if (!response.ok) {
-                throw new Error('删除失败');
-            }
-            
-            cardElement.classList.add('fade-out');
-            setTimeout(() => {
-                cardElement.remove();
-                
-                const cardsList = document.getElementById('userCardsList');
-                if (cardsList.children.length === 0) {
-                    cardsList.innerHTML = `
-                        <div class="empty-cards">
-                            <i class="fas fa-box-open"></i>
-                            <p>您还没有创建任何愿望卡片</p>
-                        </div>
-                    `;
-                }
-            }, 300);
-            
-            showToast('愿望已成功删除', 'success');
-            loadAllWishes();
-        } catch (error) {
-            console.error('删除愿望失败:', error);
-            cardElement.style.opacity = '';
-            cardElement.querySelector('.btn-delete').innerHTML = '<i class="fas fa-trash-alt"></i> 删除';
-            cardElement.querySelector('.btn-delete').disabled = false;
-            showToast(`删除失败: ${error.message}`, 'error');
-        }
-    }
-
-    // 初始化用户卡片浮窗
-    function initUserCardsModal() {
-        try {
-            const modal = document.getElementById('userCardsModal');
-            const closeBtn = modal.querySelector('.close-cards');
-            
-            closeBtn.addEventListener('click', () => {
-                modal.classList.remove('active');
-            });
-            
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) {
-                    modal.classList.remove('active');
-                }
-            });
-            
-        } catch (error) {
-            console.error('初始化用户卡片浮窗失败:', error);
-        }
-    }
-
-    /* ==================== 愿望池功能 ==================== */
-
-    // 加载所有愿望
-    async function loadAllWishes() {
-        try {
-            wishPool.innerHTML = `
-                <div class="wish-loading">
-                    <div class="loader"></div>
-                    <p>正在连接命缘池能量场...</p>
-                </div>
-            `;
-
-            const response = await fetch(API_URL + '?visibility=public&sort=newest');
-            const data = await response.json();
-            
-            allWishes = Array.isArray(data) ? data : data.data || [];
-            
-            if (!Array.isArray(allWishes)) {
-                throw new Error('返回的不是愿望数组');
-            }
-            
-            sortFilter.value = 'newest';
-            renderFilteredWishes();
-            updatePagination();
-            
-        } catch (err) {
-            console.error('加载愿望时出错:', err);
-            wishPool.innerHTML = `
-                <div class="wish-loading">
-                    <i class="fas fa-exclamation-triangle" style="color: #ff6b6b;"></i>
-                    <p>加载失败：${err.message}</p>
-                    <button onclick="loadAllWishes()" class="btn-mingyuan">
-                        <i class="fas fa-sync-alt"></i> 重新加载
-                    </button>
-                </div>
-            `;
-        }
-    }
-
-    // 渲染筛选后的愿望
-    function renderFilteredWishes() {
-        const selectedType = wishFilter.value;
-        let filteredWishes = [...allWishes];
-        
-        if (selectedType !== 'all') {
-            filteredWishes = allWishes.filter(wish => wish.type === selectedType);
-        }
-        
-        if (currentSearchTerm) {
-            filteredWishes = filteredWishes.filter(wish => 
-                wish.user_name && wish.user_name.toLowerCase().includes(currentSearchTerm.toLowerCase())
-            );
-        }
-        
-        const selectedSort = sortFilter.value || 'newest';
-        
-        switch(selectedSort) {
-            case 'newest':
-                filteredWishes.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
-                break;
-            case 'oldest':
-                filteredWishes.sort((a, b) => new Date(a.created_at || 0) - new Date(b.created_at || 0));
-                break;
-            case 'most':
-                filteredWishes.sort((a, b) => (b.blessings || 0) - (a.blessings || 0));
-                break;
-            case 'least':
-                filteredWishes.sort((a, b) => (a.blessings || 0) - (b.blessings || 0));
-                break;
-            default:
-                filteredWishes.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
-        }
-        
-        const startIndex = (currentPage - 1) * wishesPerPage;
-        const paginatedWishes = filteredWishes.slice(startIndex, startIndex + wishesPerPage);
-        
-        renderWishCards(paginatedWishes);
-        updatePagination();
-    }
-
-    // 渲染愿望卡片
-    function renderWishCards(wishes) {
-        if (!Array.isArray(wishes)) {
-            console.error('renderWishCards 接收到的不是数组:', wishes);
-            return;
-        }
-        
-        wishPool.innerHTML = '';
-        
-        if (wishes.length === 0) {
-            wishPool.innerHTML = `
-                <div class="wish-loading">
-                    <i class="fas fa-water" style="font-size: 2rem; color: #6a11cb;"></i>
-                    <p>没有找到符合条件的愿望</p>
-                    ${currentSearchTerm ? `<p>没有找到与"${currentSearchTerm}"相关的愿望</p>` : '<p>请尝试其他筛选条件</p>'}
-                </div>
-            `;
-            return;
-        }
-        
-        const typeNames = {
-            'love': '姻缘感情', 
-            'wealth': '财富事业', 
-            'health': '健康平安',
-            'study': '学业成长', 
-            'family': '家庭和睦', 
-            'other': '其他愿望'
-        };
-        
-        wishes.forEach(wish => {
-            const wishCard = document.createElement('div');
-            wishCard.className = 'wish-card';
-            wishCard.dataset.id = wish.id;
-            wishCard.dataset.level = wish.level || 1;
-            wishCard.dataset.type = wish.type;
-            wishCard.dataset.visibility = wish.visibility;
-            
-            const createdDate = new Date(wish.created_at);
-            const expiresAt = new Date(createdDate);
-            expiresAt.setDate(expiresAt.getDate() + 30);
-            const daysLeft = Math.max(0, Math.ceil((expiresAt - new Date()) / (86400000)));
-            
-            wishCard.innerHTML = `
-                <div class="wish-header">
-                    <div class="wish-user">
-                        <i class="fas fa-user"></i> <span class="user-name">${wish.user_name || '匿名用户'}</span>
-                    </div>
-                    <span class="wish-type">${typeNames[wish.type] || '其他愿望'}</span>
-                    <span class="wish-time">剩余<span class="days-left">${daysLeft}</span>天</span>
-                </div>
-                <div class="wish-content">
-                    <p class="wish-text">${wish.content}</p>
-                    <p class="wish-hidden">愿望已隐藏</p>
-                </div>
-                <div class="wish-meta">
-                    <div class="wish-bazi">
-                        <i class="fas fa-user-secret"></i> <span class="bazi-text">${wish.bazi}</span>
-                    </div>
-                    <div class="wish-stats">
-                        <span class="bless-count">${wish.blessings || 0}</span> 次加持
-                    </div>
-                </div>
-                <div class="wish-actions">
-                    <button class="btn-bless">
-                        <i class="fas fa-hands-helping"></i> 加持
-                    </button>
-                    <button class="btn-fulfill">
-                        <i class="fas fa-hand-holding-heart"></i> 还愿
-                    </button>
-                </div>
-                <div class="wish-energy">
-                    <div class="energy-level" data-level="${wish.level || 1}"></div>
-                </div>
-            `;
-            
-            const blessBtn = wishCard.querySelector('.btn-bless');
-            blessBtn.addEventListener('click', () => handleBlessWish(wishCard, wish));
-            
-            const fulfillBtn = wishCard.querySelector('.btn-fulfill');
-            fulfillBtn.addEventListener('click', () => handleFulfillWish(wish));
-            
-            wishPool.appendChild(wishCard);
-        });
-    }
-
-    // 更新分页信息
-    function updatePagination() {
-        const selectedType = wishFilter.value;
-        let filteredWishes = [...allWishes];
-        
-        if (selectedType !== 'all') {
-            filteredWishes = allWishes.filter(wish => wish.type === selectedType);
-        }
-        
-        if (currentSearchTerm) {
-            filteredWishes = filteredWishes.filter(wish => 
-                wish.user_name && wish.user_name.toLowerCase().includes(currentSearchTerm.toLowerCase())
-            );
-        }
-        
-        const totalPages = Math.ceil(filteredWishes.length / wishesPerPage);
-        
-        pageInfo.textContent = `第 ${currentPage} 页 / 共 ${totalPages} 页`;
-        prevPageBtn.disabled = currentPage <= 1;
-        nextPageBtn.disabled = currentPage >= totalPages || totalPages === 0;
-    }
-
-    /* ==================== 愿望操作 ==================== */
-
-    // 处理加持愿望
-    async function handleBlessWish(cardElement, wish) {
-        try {
-            if (wish.blessings >= 25) {
-                showToast('该愿望已达到最高加持次数(25次)，无法继续加持', 'info');
-                return;
-            }
-
-            const token = localStorage.getItem('token');
-            if (!token) {
-                toggleAuthModal(true);
-                switchAuthTab('login');
-                return;
-            }
-
-            const lastBlessKey = `lastBless_${wish.id}`;
-            const lastBlessTime = localStorage.getItem(lastBlessKey);
-            const now = Date.now();
-            
-            if (lastBlessTime && (now - parseInt(lastBlessTime)) < 3600000) {
-                const nextBlessTime = new Date(parseInt(lastBlessTime) + 3600000);
-                showToast(`每小时只能加持一次，请于 ${nextBlessTime.toLocaleTimeString()} 后再试`, 'info');
-                return;
-            }
-        
-            const blessBtn = cardElement.querySelector('.btn-bless');
-            blessBtn.disabled = true;
-            blessBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 加持中...';
-        
-            await showMantraEffect();
-        
-            const blessUrl = `${API_BASE}/api/bless/${wish.id}`;
-            
-            const response = await fetch(blessUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({})
-            });
-        
-            if (!response.ok) {
-                const errorData = await response.json();
-                if (errorData.code === 401) {
-                    showLoginModal();
-                    return;
-                }
-                if (errorData.code === 429) {
-                    localStorage.setItem(lastBlessKey, new Date(errorData.nextBlessTime).getTime() - 3600000);
-                    showToast(errorData.error, 'info');
-                    return;
-                }
-                if (errorData.code === 400 && errorData.error.includes('最高加持次数')) {
-                    cardElement.querySelector('.bless-count').textContent = 25;
-                    cardElement.dataset.level = 5;
-                    cardElement.querySelector('.energy-level').style.width = '100%';
-                    blessBtn.disabled = true;
-                    blessBtn.innerHTML = '<i class="fas fa-check-circle"></i> 圆满';
-                    cardElement.classList.add('max-blessed');
-                    showToast(errorData.error, 'info');
-                    return;
-                }
-                throw new Error(`加持失败 (${response.status}): ${JSON.stringify(errorData)}`);
-            }
-        
-            const result = await response.json();
-            console.log('加持结果:', result);
-        
-            localStorage.setItem(lastBlessKey, now.toString());
-        
-            cardElement.querySelector('.bless-count').textContent = result.blessings;
-            cardElement.dataset.level = result.level;
-            cardElement.querySelector('.energy-level').style.width = `${result.level * 20}%`;
-            
-            if (result.blessings >= 25 || result.isMax) {
-                blessBtn.disabled = true;
-                blessBtn.innerHTML = '<i class="fas fa-check-circle"></i> 圆满';
-                cardElement.classList.add('max-blessed');
-            }
-            
-            cardElement.classList.add('level-up');
-            setTimeout(() => cardElement.classList.remove('level-up'), 1000);
-            
-            const levelNames = ['初愿', '小成', '中成', '大成', '圆满'];
-            showSuccessMessage(`加持成功！当前能量：${levelNames[result.level - 1]}`);
-        
-        } catch (error) {
-            console.error('加持出错:', error);
-            showErrorMessage(error.message);
-        } finally {
-            const blessBtn = cardElement.querySelector('.btn-bless');
-            if (blessBtn) {
-                const currentBlessings = parseInt(cardElement.querySelector('.bless-count').textContent);
-                if (currentBlessings < 25) {
-                    blessBtn.disabled = false;
-                    blessBtn.innerHTML = '<i class="fas fa-hands-helping"></i> 加持';
-                }
-            }
-        }
-    }
-
-    // 处理还愿
-    async function handleFulfillWish(wish) {
-        try {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                toggleAuthModal(true);
-                switchAuthTab('login');
-                return;
-            }
-
-            const updateResponse = await fetch(`${API_BASE}/api/wishes/${wish.id}/fulfill`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            if (!updateResponse.ok) {
-                throw new Error('更新还愿状态失败');
-            }
-
-            const modal = document.getElementById('fulfillModal');
-            if (!modal) {
-                throw new Error('找不到还愿模态框');
-            }
-            
-            modal.dataset.wishId = wish.id;
-            modal.style.display = 'block';
-        
-            if (window.wwPay) {
-                window.wwPay.resetPaymentState();
-            }
-        } catch (error) {
-            console.error('还愿初始化失败:', error);
-            alert('还愿失败: ' + error.message);
-        }
-    }
-
-    /* ==================== 许愿表单 ==================== */
-
-    // 处理表单提交
-    async function handleSubmitWish(e) {
-        e.preventDefault();
-        
-        const token = localStorage.getItem('token');
-        if (!token) {
-            const formData = {
-                name: document.getElementById('name').value,
-                birthday: document.getElementById('birthday').value,
-                birthtime: document.getElementById('birthtime').value,
-                content: document.getElementById('wishContent').value,
-                type: document.getElementById('wishType').value,
-                visibility: document.querySelector('input[name="visibility"]:checked').value
-            };
-            sessionStorage.setItem('tempWishFormData', JSON.stringify(formData));
-            
-            toggleAuthModal(true);
-            switchAuthTab('login');
-            showAuthMessage(loginMessage, '请先登录后才能许愿', 'info');
-            return;
         }
 
-        const name = document.getElementById('name').value.trim() || '匿名用户';
-        const birthday = document.getElementById('birthday').value;
-        const birthtime = document.getElementById('birthtime').value;
-        const content = document.getElementById('wishContent').value.trim();
-        
-        if (!content || !birthday || !birthtime) {
-            showErrorMessage('请填写完整的愿望内容和出生信息');
-            return;
-        }
-
-        const bazi = calculateBazi(birthday, birthtime);
-        if (!bazi) {
-            showErrorMessage('八字计算失败，请检查出生日期和时间');
-            return;
-        }
-
-        const submitBtn = e.target.querySelector('button[type="submit"]');
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 提交中...';
-
-        try {
-            const payload = verifyJWT(token);
-            if (!payload || !payload.id) {
-                throw new Error('无效的用户信息');
-            }
-
-            const response = await fetch(API_URL, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    content,
-                    user_name: name,
-                    birth_date: birthday,
-                    birth_time: birthtime,
-                    type: document.getElementById('wishType').value,
-                    visibility: document.querySelector('input[name="visibility"]:checked').value,
-                    solar_date: new Date().toISOString().split('T')[0],
-                    bazi: bazi,
-                    user_id: payload.id
-                })
-            });
-
-            if (!response.ok) {
-                throw new Error(await response.text());
-            }
-
-            showSuccessMessage('愿望已成功投入命缘池！');
-            wishForm.reset();
-            baziInfo.style.display = 'none';
-            
-            loadAllWishes();
-        } catch (error) {
-            console.error('提交错误:', error);
-            showErrorMessage(`提交失败: ${error.message}`);
-            if (error.message.includes('未授权') || error.message.includes('无效的用户信息')) {
-                toggleAuthModal(true);
-                switchAuthTab('login');
-            }
-        } finally {
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> 投入命缘池';
-        }
-    }
-
-    function verifyJWT(token) {
-        try {
-            const [encodedHeader, encodedPayload, signature] = token.split('.');
-            const payloadStr = atob(encodedPayload.replace(/-/g, '+').replace(/_/g, '/'));
-            return JSON.parse(payloadStr);
-        } catch (err) {
-            console.error('JWT解析错误:', err);
-            return null;
-        }
-    }
-    
-    // 计算八字
-    function calculateBazi(birthday, birthtime) {
-        if (!birthday || !birthtime) return null;
-        
-        try {
-            const [year, month, day] = birthday.split('-').map(Number);
-            const [hourStr] = birthtime.split('-');
-            const hour = parseInt(hourStr, 10);
-            
-            const timeIndex = Math.floor(((hour + 1) % 24) / 2);
-            const timeNames = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
-            const timeZhi = timeNames[timeIndex];
-            
-            const solarDate = new Date(year, month - 1, day);
-            const lunarDate = Lunar.fromDate(solarDate);
-            
-            const ganzhiYear = lunarDate.getYearInGanZhi();
-            const ganzhiMonth = lunarDate.getMonthInGanZhi();
-            const ganzhiDay = lunarDate.getDayInGanZhi();
-            
-            const dayGan = ganzhiDay.substring(0, 1);
-            const timeGan = getTimeGan(dayGan, timeZhi);
-            
-            return `${ganzhiYear} ${ganzhiMonth} ${ganzhiDay} ${timeGan}${timeZhi}`;
-        } catch (error) {
-            console.error('八字计算错误:', error);
-            return null;
-        }
-    }
-
-    // 五鼠遁计算时干
-    function getTimeGan(dayGan, timeZhi) {
-        const ganOrder = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
-        const zhiOrder = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
-        
-        const startGanMap = {
-            '甲': '甲', '乙': '丙', '丙': '戊', '丁': '庚', 
-            '戊': '壬', '己': '甲', '庚': '丙', '辛': '戊', 
-            '壬': '庚', '癸': '壬'
-        };
-        
-        const startGan = startGanMap[dayGan];
-        const startIndex = ganOrder.indexOf(startGan);
-        const timeIndex = zhiOrder.indexOf(timeZhi);
-        
-        return ganOrder[(startIndex + timeIndex) % 10];
-    }
-
-    // 更新八字信息显示
-    function updateBaziInfo() {
-        const birthday = document.getElementById('birthday').value;
-        const birthtime = document.getElementById('birthtime').value;
-        
-        if (birthday && birthtime) {
-            baziInfo.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 计算中...';
-            baziInfo.style.display = 'block';
-            
-            setTimeout(() => {
-                const bazi = calculateBazi(birthday, birthtime);
-                if (bazi) {
-                    baziInfo.innerHTML = `您的八字：<strong>${bazi}</strong>`;
-                } else {
-                    baziInfo.innerHTML = '<span style="color:#ff6b6b">八字计算失败，请检查输入</span>';
-                }
-            }, 300);
-        } else {
-            baziInfo.style.display = 'none';
-        }
-    }
-
-    /* ==================== 统计功能 ==================== */
-
-    // 获取统计数据
-    async function fetchStats() {
-        try {
-            const apiUrl = `${API_BASE}/api/stats?t=${Date.now()}`;
-            console.log('正在请求统计接口:', apiUrl);
-            
-            const response = await fetch(apiUrl);
-            
-            if (!response.ok) {
-                throw new Error(`请求失败: ${response.status} ${response.statusText}`);
-            }
-            
-            const data = await response.json();
-            console.log('接口返回数据:', data);
-            
-            const stats = data.today || {};
-            const fulfilledCount = stats.fulfilled !== undefined ? stats.fulfilled : 0;
-            
-            console.log('计算出的还愿次数:', fulfilledCount);
-            
-            document.getElementById('fulfilledCount').textContent = fulfilledCount;
-            document.getElementById('newWishesCount').textContent = stats.newWishes || 0;
-            document.getElementById('blessingsCount').textContent = stats.blessings || 0;
-            
-            const now = new Date();
-            document.getElementById('lastUpdated').textContent = 
-                `最后更新: ${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
-            
-            if (data.distribution) {
-                renderDistributionChart(data.distribution);
-            }
-            
-        } catch (err) {
-            console.error('加载统计数据失败:', err);
-            document.getElementById('fulfilledCount').textContent = '?';
-            document.getElementById('lastUpdated').textContent = '更新失败';
-            showToast(`统计加载失败: ${err.message}`, 'error');
-        }
-    }
-
-    // 渲染愿望分布图表
-    function renderDistributionChart(distribution) {
-        const ctx = document.getElementById('wishchart').getContext('2d');
-        
-        if (window.wishDistributionChart) {
-            window.wishDistributionChart.destroy();
-        }
-        
-        const labels = {
-            'love': '姻缘感情',
-            'wealth': '财富事业',
-            'health': '健康平安',
-            'study': '学业成长',
-            'family': '家庭和睦',
-            'other': '其他愿望'
-        };
-        
-        const data = [
-            distribution.love || 0,
-            distribution.wealth || 0,
-            distribution.health || 0,
-            distribution.study || 0,
-            distribution.family || 0,
-            distribution.other || 0
-        ];
-        
-        window.wishDistributionChart = new Chart(ctx, {
-            type: 'pie',
-            data: {
-                labels: Object.values(labels),
-                datasets: [{
-                    data: data,
-                    backgroundColor: [
-                        '#6a11cb', 
-                        '#2575fc', 
-                        '#00b894', 
-                        '#fdcb6e', 
-                        '#e17055', 
-                        '#b2bec3'
-                    ],
-                    borderWidth: 0
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            color: '#b8c2cc',
-                            font: {
-                                family: "'Noto Serif SC', serif"
-                            }
-                        }
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                const label = context.label || '';
-                                const value = context.raw || 0;
-                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                const percentage = Math.round((value / total) * 100);
-                                return `${label}: ${value} (${percentage}%)`;
-                            }
-                        },
-                        backgroundColor: 'rgba(10, 10, 20, 0.9)',
-                        titleFont: {
-                            family: "'Noto Serif SC', serif"
-                        },
-                        bodyFont: {
-                            family: "'Noto Serif SC', serif"
-                        }
-                    }
-                }
-            }
-        });
-    }
-
-    /* ==================== 图表初始化 ==================== */
-
-    // 能量图表配置
-    function initEnergyChart() {
-        try {
-            const ctx = document.getElementById('energyChart');
-            if (!ctx) {
-                console.error('找不到energyChart canvas元素');
-                return;
-            }
-            
-            const container = ctx.closest('.energy-chart');
-            if (container) {
-                container.style.height = container.style.height || '300px';
-            }
-
-            if (window.energyChart && typeof window.energyChart.destroy === 'function') {
-                window.energyChart.destroy();
-            } else if (window.energyChart) {
-                console.warn('发现无效的图表实例，正在清除');
-                window.energyChart = null;
-            }
-
-            window.energyChart = new Chart(ctx.getContext('2d'), {
-                type: 'line',
-                data: {
-                    labels: ['1月', '2月', '3月', '4月', '5月', '6月', '7月'],
-                    datasets: [{
-                        label: '能量强度',
-                        data: [65, 79, 90, 81, 56, 75, 65],
-                        borderColor: '#6a11cb',
-                        backgroundColor: 'rgba(106, 17, 203, 0.1)',
-                        borderWidth: 2,
-                        tension: 0.4,
-                        pointRadius: 4,
-                        pointBackgroundColor: '#6a11cb',
-                        fill: true
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: { 
-                            backgroundColor: 'rgba(10, 10, 20, 0.9)',
-                            titleFont: { family: "'Noto Serif SC', serif" },
-                            bodyFont: { family: "'Noto Serif SC', serif" }
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: { color: 'rgba(255, 255, 255, 0.1)' },
-                            ticks: { color: '#b8c2cc' }
-                        },
-                        x: {
-                            grid: { color: 'rgba(255, 255, 255, 0.1)' },
-                            ticks: { color: '#b8c2cc' }
-                        }
-                    }
-                }
-            });
-        } catch (error) {
-            console.error('初始化能量图表失败:', error);
-        }
-    }
-    
-    /* ==================== 特效功能 ==================== */
-
-    // 显示六字真言特效
-    async function showMantraEffect() {
-        return new Promise((resolve) => {
-            const overlay = document.getElementById('mantraOverlay');
-            const container = overlay.querySelector('.mantra-container');
-            
-            overlay.classList.remove('active');
-            document.querySelectorAll('.mantra-particle, .mantra-symbol, .mantra-circle').forEach(el => el.remove());
-            
-            createMantraBackground(container);
-            
-            setTimeout(() => {
-                overlay.classList.add('active');
-                
-                const texts = document.querySelectorAll('.mantra-text');
-                texts.forEach((text, index) => {
-                    setTimeout(() => {
-                        text.classList.add('active');
-                        if(index % 2 === 0) createParticleBurst(text);
-                    }, index * 300);
-                });
-                
-                setTimeout(() => {
-                    overlay.classList.remove('active');
-                    setTimeout(resolve, 800);
-                }, 7000);
-            }, 50);
-        });
-    }
-
-    // 创建背景元素
-    function createMantraBackground(container) {
-        for(let i = 0; i < 3; i++) {
-            const beam = document.createElement('div');
-            beam.className = 'mantra-beam';
-            beam.style.left = `${Math.random() * 100}%`;
-            beam.style.animationDelay = `${Math.random() * 5}s`;
-            container.appendChild(beam);
-        }
-        
-        for(let i = 0; i < 5; i++) {
-            const circle = document.createElement('div');
-            circle.className = 'mantra-circle';
-            circle.style.width = `${Math.random() * 200 + 100}px`;
-            circle.style.height = circle.style.width;
-            circle.style.left = `${Math.random() * 100}%`;
-            circle.style.top = `${Math.random() * 100}%`;
-            circle.style.animationDelay = `${Math.random() * 3}s`;
-            container.appendChild(circle);
-        }
-        
-        const symbols = ['☯', '☵', '☲', '☶', '☷', '☰', '☱', '☳', '☴', '卍', '⛩', '🪬', '📿', '⛥', '⛧', '⛤'];
-        for(let i = 0; i < 25; i++) {
-            const symbol = document.createElement('div');
-            symbol.className = 'mantra-symbol';
-            symbol.textContent = symbols[Math.floor(Math.random() * symbols.length)];
-            symbol.style.left = `${Math.random() * 100}%`;
-            symbol.style.fontSize = `${Math.random() * 3 + 2}rem`;
-            symbol.style.animation = `symbolFloat ${Math.random() * 15 + 10}s linear ${Math.random() * 5}s infinite`;
-            container.appendChild(symbol);
-        }
-    }
-
-    /* ==================== 初始化 ==================== */
-
-    // 初始化事件监听
-    function initEventListeners() {
-        // 管理按钮点击事件
-        manageBtn.addEventListener('click', showUserCards);
-        
-        // 搜索功能
-        searchBtn.addEventListener('click', () => {
-            currentSearchTerm = wishSearch.value.trim();
-            if (currentSearchTerm) {
-                currentPage = 1;
-                renderFilteredWishes();
-                clearSearchBtn.style.display = 'inline-block';
-            }
-        });
-
-        clearSearchBtn.addEventListener('click', () => {
-            wishSearch.value = '';
-            currentSearchTerm = '';
-            currentPage = 1;
-            renderFilteredWishes();
-            clearSearchBtn.style.display = 'none';
-        });
-
-        wishSearch.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                currentSearchTerm = wishSearch.value.trim();
-                if (currentSearchTerm) {
-                    currentPage = 1;
-                    renderFilteredWishes();
-                    clearSearchBtn.style.display = 'inline-block';
-                }
-            }
-        });
-        
-        // 筛选和分页
-        wishFilter.addEventListener('change', () => {
-            currentPage = 1;
-            renderFilteredWishes();
-            updatePagination();
-        });
-        
-        sortFilter.addEventListener('change', () => {
-            currentPage = 1;
-            renderFilteredWishes();
-        });
-        
-        prevPageBtn.addEventListener('click', () => {
-            if (currentPage > 1) {
-                currentPage--;
-                renderFilteredWishes();
-                updatePagination();
-            }
-        });
-        
-        nextPageBtn.addEventListener('click', () => {
+        // 更新分页信息
+        function updatePagination() {
             const selectedType = wishFilter.value;
             let filteredWishes = [...allWishes];
             
@@ -1919,88 +1570,617 @@ document.addEventListener('DOMContentLoaded', function() {
             
             const totalPages = Math.ceil(filteredWishes.length / wishesPerPage);
             
-            if (currentPage < totalPages) {
-                currentPage++;
-                renderFilteredWishes();
-                updatePagination();
+            pageInfo.textContent = `第 ${currentPage} 页 / 共 ${totalPages} 页`;
+            prevPageBtn.disabled = currentPage <= 1;
+            nextPageBtn.disabled = currentPage >= totalPages || totalPages === 0;
+        }
+
+        /* ==================== 愿望操作 ==================== */
+
+        // 处理加持愿望
+        async function handleBlessWish(cardElement, wish) {
+            try {
+                if (wish.blessings >= 25) {
+                    showToast('该愿望已达到最高加持次数(25次)，无法继续加持', 'info');
+                    return;
+                }
+
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    toggleAuthModal(true);
+                    switchAuthTab('login');
+                    return;
+                }
+
+                const lastBlessKey = `lastBless_${wish.id}`;
+                const lastBlessTime = localStorage.getItem(lastBlessKey);
+                const now = Date.now();
+                
+                if (lastBlessTime && (now - parseInt(lastBlessTime)) < 3600000) {
+                    const nextBlessTime = new Date(parseInt(lastBlessTime) + 3600000);
+                    showToast(`每小时只能加持一次，请于 ${nextBlessTime.toLocaleTimeString()} 后再试`, 'info');
+                    return;
+                }
+            
+                const blessBtn = cardElement.querySelector('.btn-bless');
+                blessBtn.disabled = true;
+                blessBtn.innerHTML = '<span class="material-icons animate-spin text-sm mr-1">autorenew</span> 加持中...';
+            
+                await showMantraEffect();
+            
+                const blessUrl = `${API_BASE}/api/bless/${wish.id}`;
+                
+                const response = await fetch(blessUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({})
+                });
+            
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    if (errorData.code === 401) {
+                        showLoginModal();
+                        return;
+                    }
+                    if (errorData.code === 429) {
+                        localStorage.setItem(lastBlessKey, new Date(errorData.nextBlessTime).getTime() - 3600000);
+                        showToast(errorData.error, 'info');
+                        return;
+                    }
+                    if (errorData.code === 400 && errorData.error.includes('最高加持次数')) {
+                        cardElement.querySelector('.bless-count').textContent = 25;
+                        cardElement.dataset.level = 5;
+                        cardElement.querySelector('.wish-energy div').classList.add('bg-gradient-to-r', 'from-yellow-500', 'to-pink-500');
+                        blessBtn.disabled = true;
+                        blessBtn.innerHTML = '<span class="material-icons text-sm mr-1">check_circle</span> 圆满';
+                        cardElement.classList.add('ring-2', 'ring-yellow-400');
+                        showToast(errorData.error, 'info');
+                        return;
+                    }
+                    throw new Error(`加持失败 (${response.status}): ${JSON.stringify(errorData)}`);
+                }
+            
+                const result = await response.json();
+                console.log('加持结果:', result);
+            
+                localStorage.setItem(lastBlessKey, now.toString());
+            
+                cardElement.querySelector('.bless-count').textContent = result.blessings;
+                cardElement.dataset.level = result.level;
+                
+                const levelColors = ['bg-gradient-to-r from-purple-500 to-blue-500', 
+                                   'bg-gradient-to-r from-blue-500 to-teal-500',
+                                   'bg-gradient-to-r from-teal-500 to-green-500',
+                                   'bg-gradient-to-r from-green-500 to-yellow-500',
+                                   'bg-gradient-to-r from-yellow-500 to-pink-500'];
+                
+                const energyBar = cardElement.querySelector('.wish-energy div');
+                energyBar.className = `h-2 rounded-full ${levelColors[result.level - 1]}`;
+                
+                if (result.blessings >= 25 || result.isMax) {
+                    blessBtn.disabled = true;
+                    blessBtn.innerHTML = '<span class="material-icons text-sm mr-1">check_circle</span> 圆满';
+                    cardElement.classList.add('ring-2', 'ring-yellow-400');
+                }
+                
+                cardElement.classList.add('scale-105', 'transition-transform', 'duration-300');
+                setTimeout(() => cardElement.classList.remove('scale-105'), 300);
+                
+                const levelNames = ['初愿', '小成', '中成', '大成', '圆满'];
+                showSuccessMessage(`加持成功！当前能量：${levelNames[result.level - 1]}`);
+            
+            } catch (error) {
+                console.error('加持出错:', error);
+                showErrorMessage(error.message);
+            } finally {
+                const blessBtn = cardElement.querySelector('.btn-bless');
+                if (blessBtn) {
+                    const currentBlessings = parseInt(cardElement.querySelector('.bless-count').textContent);
+                    if (currentBlessings < 25) {
+                        blessBtn.disabled = false;
+                        blessBtn.innerHTML = '<span class="material-icons text-sm mr-1">hands</span> 加持';
+                    }
+                }
             }
-        });
-        
-        // 愿望表单
-        document.getElementById('birthday').addEventListener('change', updateBaziInfo);
-        document.getElementById('birthtime').addEventListener('change', updateBaziInfo);
-        wishContent.addEventListener('input', () => {
-            charCount.textContent = wishContent.value.length;
-        });
+        }
 
-        // 统计刷新
-        refreshStatsBtn.addEventListener('click', fetchStats);
+        // 处理还愿
+        async function handleFulfillWish(wish) {
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    toggleAuthModal(true);
+                    switchAuthTab('login');
+                    return;
+                }
 
-        // 表单提交
-        wishForm.addEventListener('submit', handleSubmitWish);
-    }
+                const updateResponse = await fetch(`${API_BASE}/api/wishes/${wish.id}/fulfill`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
 
-    // 加载lunar.js库
-    function loadLunarJS() {
-        return new Promise((resolve, reject) => {
-            if (typeof Lunar !== 'undefined') {
-                resolve();
+                if (!updateResponse.ok) {
+                    throw new Error('更新还愿状态失败');
+                }
+
+                const modal = document.getElementById('fulfillModal');
+                if (!modal) {
+                    throw new Error('找不到还愿模态框');
+                }
+                
+                modal.dataset.wishId = wish.id;
+                modal.classList.remove('hidden');
+            
+                if (window.wwPay) {
+                    window.wwPay.resetPaymentState();
+                }
+            } catch (error) {
+                console.error('还愿初始化失败:', error);
+                alert('还愿失败: ' + error.message);
+            }
+        }
+
+        /* ==================== 许愿表单 ==================== */
+
+        // 处理表单提交
+        async function handleSubmitWish(e) {
+            e.preventDefault();
+            
+            const token = localStorage.getItem('token');
+            if (!token) {
+                const formData = {
+                    name: document.getElementById('name').value,
+                    birthday: document.getElementById('birthday').value,
+                    birthtime: document.getElementById('birthtime').value,
+                    content: document.getElementById('wishContent').value,
+                    type: document.getElementById('wishType').value,
+                    visibility: document.querySelector('input[name="visibility"]:checked').value
+                };
+                sessionStorage.setItem('tempWishFormData', JSON.stringify(formData));
+                
+                toggleAuthModal(true);
+                switchAuthTab('login');
+                showAuthMessage(loginMessage, '请先登录后才能许愿', 'info');
                 return;
             }
-    
-            const script = document.createElement('script');
-            script.src = 'https://cdn.jsdelivr.net/npm/lunar-javascript@1.7.3/dist/lunar.min.js';
-            script.onload = () => {
-                console.log('lunar.js 1.7.3 加载成功');
-                resolve();
-            };
-            script.onerror = (error) => {
-                console.error('lunar.js 1.7.3 加载失败:', error);
-                reject(error);
-            };
-            document.head.appendChild(script);
-        });
-    }
 
-    // 关闭模态框
-    function setupModalClose() {
-        const closeButtons = document.querySelectorAll('.close-modal');
+            const name = document.getElementById('name').value.trim() || '匿名用户';
+            const birthday = document.getElementById('birthday').value;
+            const birthtime = document.getElementById('birthtime').value;
+            const content = document.getElementById('wishContent').value.trim();
+            
+            if (!content || !birthday || !birthtime) {
+                showErrorMessage('请填写完整的愿望内容和出生信息');
+                return;
+            }
+
+            const bazi = calculateBazi(birthday, birthtime);
+            if (!bazi) {
+                showErrorMessage('八字计算失败，请检查出生日期和时间');
+                return;
+            }
+
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="material-icons animate-spin align-middle mr-1">autorenew</span> 提交中...';
+
+            try {
+                const payload = verifyJWT(token);
+                if (!payload || !payload.id) {
+                    throw new Error('无效的用户信息');
+                }
+
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        content,
+                        user_name: name,
+                        birth_date: birthday,
+                        birth_time: birthtime,
+                        type: document.getElementById('wishType').value,
+                        visibility: document.querySelector('input[name="visibility"]:checked').value,
+                        solar_date: new Date().toISOString().split('T')[0],
+                        bazi: bazi,
+                        user_id: payload.id
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(await response.text());
+                }
+
+                showSuccessMessage('愿望已成功投入命缘池！');
+                wishForm.reset();
+                baziInfo.style.display = 'none';
+                
+                loadAllWishes();
+            } catch (error) {
+                console.error('提交错误:', error);
+                showErrorMessage(`提交失败: ${error.message}`);
+                if (error.message.includes('未授权') || error.message.includes('无效的用户信息')) {
+                    toggleAuthModal(true);
+                    switchAuthTab('login');
+                }
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<span class="material-icons align-middle mr-1">send</span> 投入命缘池';
+            }
+        }
+
+        function verifyJWT(token) {
+            try {
+                const [encodedHeader, encodedPayload, signature] = token.split('.');
+                const payloadStr = atob(encodedPayload.replace(/-/g, '+').replace(/_/g, '/'));
+                return JSON.parse(payloadStr);
+            } catch (err) {
+                console.error('JWT解析错误:', err);
+                return null;
+            }
+        }
         
-        closeButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                const modal = this.closest('.modal');
-                if (modal) {
-                    modal.style.display = 'none';
+        // 计算八字
+        function calculateBazi(birthday, birthtime) {
+            if (!birthday || !birthtime) return null;
+            
+            try {
+                const [year, month, day] = birthday.split('-').map(Number);
+                const [hourStr] = birthtime.split('-');
+                const hour = parseInt(hourStr, 10);
+                
+                const timeIndex = Math.floor(((hour + 1) % 24) / 2);
+                const timeNames = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
+                const timeZhi = timeNames[timeIndex];
+                
+                const solarDate = new Date(year, month - 1, day);
+                const lunarDate = Lunar.fromDate(solarDate);
+                
+                const ganzhiYear = lunarDate.getYearInGanZhi();
+                const ganzhiMonth = lunarDate.getMonthInGanZhi();
+                const ganzhiDay = lunarDate.getDayInGanZhi();
+                
+                const dayGan = ganzhiDay.substring(0, 1);
+                const timeGan = getTimeGan(dayGan, timeZhi);
+                
+                return `${ganzhiYear} ${ganzhiMonth} ${ganzhiDay} ${timeGan}${timeZhi}`;
+            } catch (error) {
+                console.error('八字计算错误:', error);
+                return null;
+            }
+        }
+
+        // 五鼠遁计算时干
+        function getTimeGan(dayGan, timeZhi) {
+            const ganOrder = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
+            const zhiOrder = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
+            
+            const startGanMap = {
+                '甲': '甲', '乙': '丙', '丙': '戊', '丁': '庚', 
+                '戊': '壬', '己': '甲', '庚': '丙', '辛': '戊', 
+                '壬': '庚', '癸': '壬'
+            };
+            
+            const startGan = startGanMap[dayGan];
+            const startIndex = ganOrder.indexOf(startGan);
+            const timeIndex = zhiOrder.indexOf(timeZhi);
+            
+            return ganOrder[(startIndex + timeIndex) % 10];
+        }
+
+        // 更新八字信息显示
+        function updateBaziInfo() {
+            const birthday = document.getElementById('birthday').value;
+            const birthtime = document.getElementById('birthtime').value;
+            
+            if (birthday && birthtime) {
+                baziInfo.innerHTML = '<span class="material-icons animate-spin align-middle mr-1">autorenew</span> 计算中...';
+                baziInfo.classList.remove('hidden');
+                
+                setTimeout(() => {
+                    const bazi = calculateBazi(birthday, birthtime);
+                    if (bazi) {
+                        baziInfo.innerHTML = `您的八字：<strong class="text-primary">${bazi}</strong>`;
+                    } else {
+                        baziInfo.innerHTML = '<span class="text-red-500">八字计算失败，请检查输入</span>';
+                    }
+                }, 300);
+            } else {
+                baziInfo.classList.add('hidden');
+            }
+        }
+
+        /* ==================== 统计功能 ==================== */
+
+        // 获取统计数据
+        async function fetchStats() {
+            try {
+                const apiUrl = `${API_BASE}/api/stats?t=${Date.now()}`;
+                console.log('正在请求统计接口:', apiUrl);
+                
+                const response = await fetch(apiUrl);
+                
+                if (!response.ok) {
+                    throw new Error(`请求失败: ${response.status} ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                console.log('接口返回数据:', data);
+                
+                const stats = data.today || {};
+                const fulfilledCount = stats.fulfilled !== undefined ? stats.fulfilled : 0;
+                
+                console.log('计算出的还愿次数:', fulfilledCount);
+                
+                document.getElementById('fulfilledCount').textContent = fulfilledCount;
+                document.getElementById('newWishesCount').textContent = stats.newWishes || 0;
+                document.getElementById('blessingsCount').textContent = stats.blessings || 0;
+                
+                const now = new Date();
+                document.getElementById('lastUpdated').textContent = 
+                    `最后更新: ${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
+                
+                if (data.distribution) {
+                    renderDistributionChart(data.distribution);
+                }
+                
+            } catch (err) {
+                console.error('加载统计数据失败:', err);
+                document.getElementById('fulfilledCount').textContent = '?';
+                document.getElementById('lastUpdated').textContent = '更新失败';
+                showToast(`统计加载失败: ${err.message}`, 'error');
+            }
+        }
+
+        // 渲染愿望分布图表
+        function renderDistributionChart(distribution) {
+            const ctx = document.getElementById('wishchart').getContext('2d');
+            
+            if (window.wishDistributionChart) {
+                window.wishDistributionChart.destroy();
+            }
+            
+            const labels = {
+                'love': '姻缘感情',
+                'wealth': '财富事业',
+                'health': '健康平安',
+                'study': '学业成长',
+                'family': '家庭和睦',
+                'other': '其他愿望'
+            };
+            
+            const data = [
+                distribution.love || 0,
+                distribution.wealth || 0,
+                distribution.health || 0,
+                distribution.study || 0,
+                distribution.family || 0,
+                distribution.other || 0
+            ];
+            
+            window.wishDistributionChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: Object.values(labels),
+                    datasets: [{
+                        data: data,
+                        backgroundColor: [
+                            '#6a11cb', 
+                            '#2575fc', 
+                            '#00b894', 
+                            '#fdcb6e', 
+                            '#e17055', 
+                            '#b2bec3'
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: '#4b5563',
+                                font: {
+                                    family: "'Noto Serif SC', serif"
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.raw || 0;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = Math.round((value / total) * 100);
+                                    return `${label}: ${value} (${percentage}%)`;
+                                }
+                            },
+                            backgroundColor: 'rgba(10, 10, 20, 0.9)',
+                            titleFont: {
+                                family: "'Noto Serif SC', serif"
+                            },
+                            bodyFont: {
+                                family: "'Noto Serif SC', serif"
+                            }
+                        }
+                    }
                 }
             });
-        });
+        }
 
-        window.addEventListener('click', function(event) {
-            if (event.target.classList.contains('modal')) {
-                event.target.style.display = 'none';
-            }
-        });
-    }
+        /* ==================== 特效功能 ==================== */
 
-    // 主初始化函数
-    async function initialize() {
-        await loadLunarJS();
-        initAuthEvents();
-        checkLoginStatus();
-        initUserCardsModal();
-        initEventListeners();
-        
-        loadAllWishes();
-        fetchStats();
-        initEnergyChart();
-        setupModalClose();
-        setInterval(fetchStats, 5 * 60 * 1000);
-    }
+        // 显示六字真言特效
+        async function showMantraEffect() {
+            return new Promise((resolve) => {
+                const overlay = document.getElementById('mantraOverlay');
+                
+                overlay.classList.remove('hidden');
+                
+                setTimeout(() => {
+                    const texts = document.querySelectorAll('.mantra-text');
+                    texts.forEach((text, index) => {
+                        setTimeout(() => {
+                            text.classList.add('scale-110', 'text-primary');
+                        }, index * 300);
+                    });
+                    
+                    setTimeout(() => {
+                        overlay.classList.add('opacity-0', 'transition-opacity', 'duration-500');
+                        setTimeout(() => {
+                            overlay.classList.add('hidden');
+                            overlay.classList.remove('opacity-0');
+                            texts.forEach(text => {
+                                text.classList.remove('scale-110', 'text-primary');
+                            });
+                            resolve();
+                        }, 500);
+                    }, 3000);
+                }, 50);
+            });
+        }
 
-    // 启动应用
-    initialize();
-});
-        
+        /* ==================== 初始化 ==================== */
+
+        // 初始化事件监听
+        function initEventListeners() {
+            // 管理按钮点击事件
+            manageBtn.addEventListener('click', showUserCards);
+            
+            // 搜索功能
+            searchBtn.addEventListener('click', () => {
+                currentSearchTerm = wishSearch.value.trim();
+                if (currentSearchTerm) {
+                    currentPage = 1;
+                    renderFilteredWishes();
+                    clearSearchBtn.classList.remove('hidden');
+                }
+            });
+
+            clearSearchBtn.addEventListener('click', () => {
+                wishSearch.value = '';
+                currentSearchTerm = '';
+                currentPage = 1;
+                renderFilteredWishes();
+                clearSearchBtn.classList.add('hidden');
+            });
+
+            wishSearch.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    currentSearchTerm = wishSearch.value.trim();
+                    if (currentSearchTerm) {
+                        currentPage = 1;
+                        renderFilteredWishes();
+                        clearSearchBtn.classList.remove('hidden');
+                    }
+                }
+            });
+            
+            // 筛选和分页
+            wishFilter.addEventListener('change', () => {
+                currentPage = 1;
+                renderFilteredWishes();
+                updatePagination();
+            });
+            
+            sortFilter.addEventListener('change', () => {
+                currentPage = 1;
+                renderFilteredWishes();
+            });
+            
+            prevPageBtn.addEventListener('click', () => {
+                if (currentPage > 1) {
+                    currentPage--;
+                    renderFilteredWishes();
+                    updatePagination();
+                }
+            });
+            
+            nextPageBtn.addEventListener('click', () => {
+                const selectedType = wishFilter.value;
+                let filteredWishes = [...allWishes];
+                
+                if (selectedType !== 'all') {
+                    filteredWishes = allWishes.filter(wish => wish.type === selectedType);
+                }
+                
+                if (currentSearchTerm) {
+                    filteredWishes = filteredWishes.filter(wish => 
+                        wish.user_name && wish.user_name.toLowerCase().includes(currentSearchTerm.toLowerCase())
+                    );
+                }
+                
+                const totalPages = Math.ceil(filteredWishes.length / wishesPerPage);
+                
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    renderFilteredWishes();
+                    updatePagination();
+                }
+            });
+            
+            // 愿望表单
+            document.getElementById('birthday').addEventListener('change', updateBaziInfo);
+            document.getElementById('birthtime').addEventListener('change', updateBaziInfo);
+            wishContent.addEventListener('input', () => {
+                charCount.textContent = wishContent.value.length;
+            });
+
+            // 统计刷新
+            refreshStatsBtn.addEventListener('click', fetchStats);
+
+            // 表单提交
+            wishForm.addEventListener('submit', handleSubmitWish);
+        }
+
+        // 关闭模态框
+        function setupModalClose() {
+            const closeButtons = document.querySelectorAll('.close-modal');
+            
+            closeButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const modal = this.closest('.modal');
+                    if (modal) {
+                        modal.classList.add('hidden');
+                    }
+                });
+            });
+
+            window.addEventListener('click', function(event) {
+                if (event.target.classList.contains('modal')) {
+                    event.target.classList.add('hidden');
+                }
+            });
+        }
+
+        // 主初始化函数
+        async function initialize() {
+            initAuthEvents();
+            checkLoginStatus();
+            initUserCardsModal();
+            initEventListeners();
+            
+            loadAllWishes();
+            fetchStats();
+            setupModalClose();
+            setInterval(fetchStats, 5 * 60 * 1000);
+        }
+
+        // 启动应用
+        initialize();
+      });
     </script>
 </body>
 </html>
