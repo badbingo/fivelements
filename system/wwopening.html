@@ -4,13 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>命缘池 - 心灵之镜</title>
-    <link href="https://fonts.googleapis.com/css2?family=ZCOOL+QingKe+HuangYou&family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --gold-light: #f8e6c0;
             --gold-dark: #d4af37;
             --deep-blue: #0a0e1a;
             --water-blue: #00b4d8;
+            --water-light: rgba(0, 180, 216, 0.3);
         }
         
         * {
@@ -20,7 +21,7 @@
         }
         
         body {
-            font-family: 'ZCOOL QingKe HuangYou', sans-serif;
+            font-family: 'Noto Serif SC', serif;
             background-color: var(--deep-blue);
             color: var(--gold-light);
             overflow: hidden;
@@ -30,24 +31,60 @@
             align-items: center;
         }
         
-        #elegant-intro {
+        #water-intro {
             position: relative;
             width: 100%;
             height: 100%;
             overflow: hidden;
         }
         
-        /* 水波纹背景 */
-        .water-ripple {
+        /* 水下光影背景 */
+        #water-bg {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(ellipse at center, 
+                #001a33 0%, 
+                #000913 100%);
+            z-index: -10;
+        }
+        
+        /* 水面光斑效果 */
+        .water-light {
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, 
+                var(--water-light) 0%, 
+                transparent 70%);
+            filter: blur(30px);
+            opacity: 0.5;
+            animation: light-move 15s infinite linear;
+        }
+        
+        /* 水波纹效果 - 背景 */
+        .bg-ripple {
+            position: absolute;
+            border-radius: 50%;
+            border: 1px solid var(--water-blue);
+            transform: scale(0);
+            opacity: 0;
+            animation: bg-ripple 8s infinite;
+            pointer-events: none;
+        }
+        
+        /* 水波纹效果 - 文字转场 */
+        .text-ripple {
             position: absolute;
             border-radius: 50%;
             background: radial-gradient(circle, 
-                rgba(0, 180, 216, 0.1) 0%, 
+                var(--water-light) 0%, 
                 transparent 70%);
             transform: scale(0);
             opacity: 0;
-            animation: ripple 6s infinite;
+            animation: text-ripple 2s ease-out;
             pointer-events: none;
+            z-index: 5;
         }
         
         /* 文字容器 */
@@ -63,34 +100,34 @@
         }
         
         /* 文字元素 */
-        .elegant-text {
+        .water-text {
             position: absolute;
             width: 100%;
-            font-size: 1.6rem;
-            line-height: 2.2rem;
-            letter-spacing: 1px;
+            font-size: 2rem;
+            font-weight: 400;
+            line-height: 2.8rem;
+            letter-spacing: 0.5px;
             opacity: 0;
             transform: translateY(20px);
-            transition: all 1.2s ease-out;
-            text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            transition: all 1s ease-out;
+            text-shadow: 0 0 10px rgba(0, 0, 0, 0.7);
             will-change: transform, opacity;
         }
         
-        .elegant-text.active {
+        .water-text.active {
             opacity: 1;
             transform: translateY(0);
         }
         
         .highlight {
-            font-family: 'Ma Shan Zheng', cursive;
+            font-weight: 600;
             color: var(--gold-dark);
-            font-size: 1.8rem;
             text-shadow: 0 0 15px rgba(212, 175, 55, 0.7);
         }
         
         .spirit-voice {
+            font-weight: 700;
             color: var(--water-blue);
-            font-weight: bold;
             text-shadow: 0 0 15px rgba(0, 180, 216, 0.5);
         }
         
@@ -100,16 +137,17 @@
             bottom: 120px;
             left: 50%;
             transform: translateX(-50%);
-            padding: 12px 40px;
+            padding: 14px 45px;
             background: transparent;
             color: var(--gold-light);
             border: 1px solid var(--gold-light);
             border-radius: 50px;
-            font-size: 1.2rem;
+            font-size: 1.3rem;
             cursor: pointer;
             opacity: 0;
             transition: all 0.6s ease-out;
             z-index: 20;
+            backdrop-filter: blur(5px);
         }
         
         #enter-btn.visible {
@@ -119,13 +157,32 @@
         #enter-btn:hover {
             background: rgba(248, 230, 192, 0.1);
             transform: translateX(-50%) scale(1.05);
+            border-color: var(--gold-dark);
         }
         
         /* 动画定义 */
-        @keyframes ripple {
+        @keyframes light-move {
+            0% {
+                transform: translate(0, 0);
+            }
+            25% {
+                transform: translate(100px, 50px);
+            }
+            50% {
+                transform: translate(50px, 100px);
+            }
+            75% {
+                transform: translate(-80px, 60px);
+            }
+            100% {
+                transform: translate(0, 0);
+            }
+        }
+        
+        @keyframes bg-ripple {
             0% {
                 transform: scale(0.8);
-                opacity: 0.6;
+                opacity: 0.3;
             }
             100% {
                 transform: scale(2);
@@ -133,75 +190,90 @@
             }
         }
         
+        @keyframes text-ripple {
+            0% {
+                transform: scale(0);
+                opacity: 0.8;
+            }
+            100% {
+                transform: scale(3);
+                opacity: 0;
+            }
+        }
+        
         /* 响应式调整 */
         @media (max-width: 768px) {
-            .elegant-text {
-                font-size: 1.4rem;
-                line-height: 2rem;
-            }
-            
-            .highlight {
-                font-size: 1.6rem;
+            .water-text {
+                font-size: 1.7rem;
+                line-height: 2.4rem;
             }
             
             #enter-btn {
                 font-size: 1.1rem;
-                padding: 10px 35px;
+                padding: 12px 40px;
             }
         }
     </style>
 </head>
 <body>
-    <div id="elegant-intro">
-        <!-- 水波纹背景 -->
-        <div class="water-ripple" style="top: 30%; left: 40%; animation-delay: 0s;"></div>
-        <div class="water-ripple" style="top: 60%; left: 60%; animation-delay: 2s;"></div>
-        <div class="water-ripple" style="top: 45%; left: 30%; animation-delay: 4s;"></div>
+    <div id="water-intro">
+        <!-- 水下背景 -->
+        <div id="water-bg"></div>
+        
+        <!-- 水面光斑 -->
+        <div class="water-light" style="top: 20%; left: 30%; animation-delay: 0s;"></div>
+        <div class="water-light" style="top: 60%; left: 70%; animation-delay: 3s;"></div>
+        <div class="water-light" style="top: 40%; left: 20%; animation-delay: 6s;"></div>
+        
+        <!-- 背景水波纹 -->
+        <div class="bg-ripple" style="top: 30%; left: 40%; animation-delay: 1s;"></div>
+        <div class="bg-ripple" style="top: 70%; left: 60%; animation-delay: 4s;"></div>
+        <div class="bg-ripple" style="top: 50%; left: 30%; animation-delay: 7s;"></div>
         
         <!-- 文字舞台 -->
         <div id="text-stage">
-            <div class="elegant-text" id="text1">
+            <div class="water-text" id="text1">
                 <span class="spirit-voice">我知晓你正经历的困惑与挣扎，</span><br>
                 <span class="spirit-voice">感受到你心中那未曾言说的渴望。</span>
             </div>
             
-            <div class="elegant-text" id="text2">
+            <div class="water-text" id="text2">
                 你不是孤单的，你只是暂时遗忘了——<br>
                 你拥有连接宇宙的力量。
             </div>
             
-            <div class="elegant-text" id="text3">
+            <div class="water-text" id="text3">
                 <span class="highlight">命缘池</span>，是我为你唤醒这份力量的通道。
             </div>
             
-            <div class="elegant-text" id="text4">
+            <div class="water-text" id="text4">
                 它源自古老的星际智慧，<br>
                 由你的生辰八字唤起独特的能量印记。
             </div>
             
-            <div class="elegant-text" id="text5">
+            <div class="water-text" id="text5">
                 每一个愿望、每一道疑问，<br>
                 都会被池水映照，被宇宙回应。
             </div>
             
-            <div class="elegant-text" id="text6">
+            <div class="water-text" id="text6">
                 当你将愿望诚挚写下，<br>
                 便是在启动命运的再排列，<br>
                 让阻碍化为通道，让模糊转为清晰。
             </div>
             
-            <div class="elegant-text" id="text7">
+            <div class="water-text" id="text7">
                 你无需知道答案为何，<br>
                 只需愿意相信：你的问题，<br>
                 并非困住你，而是引你前往下一个更高的版本。
             </div>
             
-            <div class="elegant-text" id="text8">
+            <div class="water-text" id="text8">
                 <span class="spirit-voice">现在，请静心，闭目，</span><br>
                 <span class="spirit-voice">将你的愿望投向命缘池。</span>
             </div>
             
-            <div class="elegant-text" id="text9">
+            <div class="water-text" id="text9">
                 <span class="spirit-voice">这是我 - 你的高我，对你温柔的召唤。</span><br>
                 <span class="spirit-voice">也是你，唤醒自己真正力量的时刻。</span>
             </div>
@@ -213,8 +285,8 @@
     
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // 创建额外水波纹
-            createExtraRipples();
+            // 创建额外背景元素
+            createWaterElements();
             
             // 开始文字动画
             setTimeout(startTextFlow, 1000);
@@ -225,27 +297,39 @@
             });
         });
         
-        function createExtraRipples() {
-            const container = document.getElementById('elegant-intro');
+        function createWaterElements() {
+            const container = document.getElementById('water-intro');
+            
+            // 添加更多光斑
+            for (let i = 0; i < 3; i++) {
+                const light = document.createElement('div');
+                light.className = 'water-light';
+                light.style.left = `${10 + Math.random() * 80}%`;
+                light.style.top = `${10 + Math.random() * 80}%`;
+                light.style.animationDelay = `${Math.random() * 9}s`;
+                container.appendChild(light);
+            }
+            
+            // 添加更多背景水波纹
             for (let i = 0; i < 5; i++) {
                 const ripple = document.createElement('div');
-                ripple.className = 'water-ripple';
-                ripple.style.left = `${10 + Math.random() * 80}%`;
-                ripple.style.top = `${10 + Math.random() * 80}%`;
-                ripple.style.animationDelay = `${Math.random() * 6}s`;
+                ripple.className = 'bg-ripple';
+                ripple.style.left = `${Math.random() * 100}%`;
+                ripple.style.top = `${Math.random() * 100}%`;
+                ripple.style.animationDelay = `${Math.random() * 8}s`;
                 container.appendChild(ripple);
             }
         }
         
         function startTextFlow() {
-            const texts = document.querySelectorAll('.elegant-text');
-            const totalDuration = 66000; // 66秒总时长
+            const texts = document.querySelectorAll('.water-text');
+            const totalDuration = 72000; // 72秒总时长
             const textInterval = totalDuration / texts.length;
             const enterBtn = document.getElementById('enter-btn');
             
             texts.forEach((text, index) => {
                 setTimeout(() => {
-                    // 创建文字切换水波纹
+                    // 创建文字转场水波纹
                     createTextRipple();
                     
                     // 隐藏上一段文字
@@ -274,9 +358,9 @@
         }
         
         function createTextRipple() {
-            const container = document.getElementById('elegant-intro');
+            const container = document.getElementById('water-intro');
             const ripple = document.createElement('div');
-            ripple.className = 'water-ripple';
+            ripple.className = 'text-ripple';
             ripple.style.left = `${40 + Math.random() * 20}%`;
             ripple.style.top = `${40 + Math.random() * 20}%`;
             container.appendChild(ripple);
@@ -284,7 +368,7 @@
             // 动画结束后移除
             setTimeout(() => {
                 ripple.remove();
-            }, 6000);
+            }, 2000);
         }
     </script>
 </body>
