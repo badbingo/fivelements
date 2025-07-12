@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>命缘池 - 心灵与宇宙的对话</title>
+    <title>命缘池 - 宇宙命运之门</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --gold: #d4af37;
-            --dark-gold: #a67c00;
-            --deep-space: #000010;
-            --cosmic-blue: #003366;
-            --soul-glow: #9d65c9;
+            --cosmic-purple: #6a00ff;
+            --stellar-gold: #ffcc00;
+            --nebula-blue: #00b4ff;
+            --void-black: #000013;
+            --quantum-pink: #ff00aa;
         }
         
         * {
@@ -22,327 +22,346 @@
         
         body {
             font-family: 'Noto Serif SC', serif;
-            background-color: var(--deep-space);
-            color: #e0e0e0;
+            background-color: var(--void-black);
+            color: white;
             overflow: hidden;
             height: 100vh;
         }
         
-        #soul-journey {
+        #quantum-portal {
             position: relative;
             width: 100%;
             height: 100%;
             overflow: hidden;
         }
         
-        /* 宇宙背景 */
-        #cosmic-bg {
+        /* 量子场背景 */
+        #quantum-field {
             position: absolute;
             width: 100%;
             height: 100%;
             background: radial-gradient(ellipse at center, 
-                var(--deep-space) 0%, 
+                var(--void-black) 0%, 
                 #000000 100%);
             z-index: -10;
         }
         
-        /* 灵魂星云 */
-        #soul-nebula {
+        /* 星门效果 */
+        #stargate {
             position: absolute;
-            width: 200%;
-            height: 200%;
-            background: 
-                radial-gradient(circle at 30% 40%, 
-                    rgba(157, 101, 201, 0.2) 0%, 
-                    transparent 60%),
-                radial-gradient(circle at 70% 60%, 
-                    rgba(0, 150, 255, 0.2) 0%, 
-                    transparent 60%);
-            animation: nebula-rotate 180s infinite linear;
-            z-index: -9;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            box-shadow: 
+                0 0 0 0 rgba(106, 0, 255, 0),
+                inset 0 0 0 0 rgba(0, 180, 255, 0);
+            opacity: 0;
+            transition: all 3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: -5;
         }
         
-        /* 中央文字舞台 */
-        #soul-stage {
+        #stargate.active {
+            width: 120vmax;
+            height: 120vmax;
+            box-shadow: 
+                0 0 200px 80px var(--cosmic-purple),
+                inset 0 0 150px 60px var(--nebula-blue);
+            opacity: 0.9;
+            animation: stargate-pulse 8s infinite alternate;
+        }
+        
+        /* 宇宙文字容器 */
+        #cosmic-text {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
             width: 90%;
-            max-width: 800px;
+            max-width: 900px;
             text-align: center;
             z-index: 10;
+            perspective: 1000px;
         }
         
-        /* 心灵卡片 */
-        .soul-card {
+        /* 星际文字卡片 */
+        .cosmic-card {
             position: absolute;
             width: 100%;
-            padding: 30px;
-            background: rgba(0, 0, 0, 0.6);
-            border-radius: 15px;
-            backdrop-filter: blur(12px);
+            padding: 40px;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 20px;
+            backdrop-filter: blur(15px);
             box-shadow: 
-                0 0 30px rgba(0, 0, 0, 0.7),
-                0 0 0 1px rgba(255, 255, 255, 0.1);
+                0 0 40px rgba(106, 0, 255, 0.3),
+                0 0 0 2px rgba(255, 204, 0, 0.2);
             opacity: 0;
-            transform: translateY(30px) scale(0.95);
+            transform: translateY(50px) rotateX(15deg);
             transition: all 1.5s cubic-bezier(0.2, 0.8, 0.4, 1);
+            transform-style: preserve-3d;
             will-change: transform, opacity;
         }
         
-        .soul-card.active {
+        .cosmic-card.active {
             opacity: 1;
-            transform: translateY(0) scale(1);
+            transform: translateY(0) rotateX(0);
         }
         
-        .soul-text {
-            font-size: 1.8rem;
+        .cosmic-text {
+            font-size: 2.2rem;
             line-height: 1.8;
-            letter-spacing: 0.5px;
-            text-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
+            letter-spacing: 0.8px;
+            text-shadow: 0 0 15px rgba(0, 0, 0, 0.9);
         }
         
-        .golden-word {
-            color: var(--gold);
+        .stellar-highlight {
+            color: var(--stellar-gold);
             font-weight: bold;
-            text-shadow: 0 0 15px rgba(212, 175, 55, 0.8);
+            text-shadow: 0 0 25px rgba(255, 204, 0, 0.9);
         }
         
-        .soul-voice {
-            color: var(--soul-glow);
+        .quantum-voice {
+            color: var(--quantum-pink);
             font-weight: bold;
-            text-shadow: 0 0 20px rgba(157, 101, 201, 0.7);
-            animation: soul-pulse 5s infinite ease-in-out;
+            text-shadow: 0 0 25px rgba(255, 0, 170, 0.7);
+            animation: quantum-flicker 5s infinite ease-in-out;
         }
         
-        /* 命缘池光效 */
-        #destiny-light {
+        /* 星际粒子 */
+        .quantum-particle {
             position: absolute;
-            bottom: -200px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 700px;
-            height: 350px;
+            width: 4px;
+            height: 4px;
             border-radius: 50%;
-            background: radial-gradient(ellipse at center, 
-                rgba(157, 101, 201, 0.1) 0%, 
-                rgba(0, 80, 150, 0.3) 50%, 
-                transparent 80%);
-            box-shadow: 
-                0 0 100px 40px rgba(157, 101, 201, 0.2),
-                inset 0 0 60px 20px rgba(0, 180, 255, 0.3);
-            z-index: -8;
+            background: white;
             opacity: 0;
-            transition: all 3s ease-in-out;
+            filter: blur(1px);
+            animation: particle-drift 8s infinite;
+            z-index: -1;
         }
         
-        #destiny-light.active {
-            opacity: 1;
-            bottom: -150px;
-        }
-        
-        .light-ripple {
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 700px;
-            height: 350px;
-            border: 2px solid rgba(157, 101, 201, 0.3);
-            border-radius: 50%;
-            opacity: 0;
-            animation: light-wave 7s infinite;
-        }
-        
-        /* 召唤按钮 */
-        #soul-call {
+        /* 召唤门户 */
+        #portal-invite {
             position: absolute;
             bottom: 150px;
             left: 50%;
             transform: translateX(-50%);
-            padding: 16px 45px;
-            background: rgba(157, 101, 201, 0.15);
-            color: var(--soul-glow);
-            border: 2px solid var(--soul-glow);
+            padding: 20px 60px;
+            background: rgba(106, 0, 255, 0.2);
+            color: white;
+            border: 2px solid var(--quantum-pink);
             border-radius: 50px;
-            font-size: 1.4rem;
+            font-size: 1.6rem;
             cursor: pointer;
             opacity: 0;
             transition: all 0.8s ease-out;
             backdrop-filter: blur(10px);
             z-index: 20;
-            box-shadow: 0 0 30px rgba(157, 101, 201, 0.3);
+            box-shadow: 
+                0 0 40px rgba(255, 0, 170, 0.3),
+                inset 0 0 20px rgba(255, 0, 170, 0.2);
         }
         
-        #soul-call.visible {
+        #portal-invite.visible {
             opacity: 1;
         }
         
-        #soul-call:hover {
-            background: rgba(157, 101, 201, 0.25);
+        #portal-invite:hover {
+            background: rgba(255, 0, 170, 0.3);
             transform: translateX(-50%) scale(1.05);
-            box-shadow: 0 0 50px rgba(157, 101, 201, 0.5);
+            box-shadow: 
+                0 0 60px rgba(255, 0, 170, 0.5),
+                inset 0 0 30px rgba(255, 0, 170, 0.3);
         }
         
         /* 动画定义 */
-        @keyframes nebula-rotate {
+        @keyframes stargate-pulse {
             0% {
-                transform: rotate(0deg);
+                box-shadow: 
+                    0 0 200px 80px var(--cosmic-purple),
+                    inset 0 0 150px 60px var(--nebula-blue);
             }
             100% {
-                transform: rotate(360deg);
+                box-shadow: 
+                    0 0 250px 100px var(--cosmic-purple),
+                    inset 0 0 180px 80px var(--nebula-blue);
             }
         }
         
-        @keyframes light-wave {
-            0% {
-                transform: translateX(-50%) scale(0.9);
-                opacity: 0.5;
-            }
-            100% {
-                transform: translateX(-50%) scale(1.4);
-                opacity: 0;
-            }
-        }
-        
-        @keyframes soul-pulse {
+        @keyframes quantum-flicker {
             0%, 100% {
-                text-shadow: 0 0 15px rgba(157, 101, 201, 0.7);
+                text-shadow: 0 0 20px rgba(255, 0, 170, 0.7);
             }
             50% {
-                text-shadow: 0 0 30px rgba(157, 101, 201, 1);
+                text-shadow: 
+                    0 0 30px rgba(255, 0, 170, 1),
+                    0 0 60px rgba(255, 0, 170, 0.5);
+            }
+        }
+        
+        @keyframes particle-drift {
+            0% {
+                transform: translate(0, 0);
+                opacity: 0;
+            }
+            20% {
+                opacity: 0.8;
+            }
+            100% {
+                transform: translate(var(--tx), var(--ty));
+                opacity: 0;
             }
         }
         
         /* 响应式调整 */
         @media (max-width: 768px) {
-            .soul-text {
-                font-size: 1.5rem;
+            .cosmic-text {
+                font-size: 1.7rem;
             }
             
-            #destiny-light {
-                width: 500px;
-                height: 250px;
+            .cosmic-card {
+                padding: 30px;
             }
             
-            .light-ripple {
-                width: 500px;
-                height: 250px;
-            }
-            
-            #soul-call {
-                font-size: 1.2rem;
-                padding: 14px 35px;
+            #portal-invite {
+                font-size: 1.3rem;
+                padding: 16px 45px;
             }
         }
     </style>
 </head>
 <body>
-    <div id="soul-journey">
-        <!-- 宇宙背景 -->
-        <div id="cosmic-bg"></div>
-        <div id="soul-nebula"></div>
+    <div id="quantum-portal">
+        <!-- 量子场背景 -->
+        <div id="quantum-field"></div>
         
-        <!-- 命缘池光效 -->
-        <div id="destiny-light">
-            <div class="light-ripple"></div>
-            <div class="light-ripple" style="animation-delay: 2s;"></div>
-            <div class="light-ripple" style="animation-delay: 4s;"></div>
-        </div>
+        <!-- 星际之门 -->
+        <div id="stargate"></div>
         
-        <!-- 心灵文字舞台 -->
-        <div id="soul-stage">
-            <div class="soul-card" id="card1">
-                <div class="soul-text">
-                    <span class="soul-voice">我知晓你正经历的困惑与挣扎，</span><br>
-                    <span class="soul-voice">感受到你心中那未曾言说的渴望。</span>
+        <!-- 量子粒子 -->
+        <div id="particle-field"></div>
+        
+        <!-- 宇宙文字舞台 -->
+        <div id="cosmic-text">
+            <div class="cosmic-card" id="card1">
+                <div class="cosmic-text">
+                    <span class="quantum-voice">我知晓你正经历的困惑与挣扎，</span><br>
+                    <span class="quantum-voice">感受到你心中那未曾言说的渴望。</span>
                 </div>
             </div>
             
-            <div class="soul-card" id="card2">
-                <div class="soul-text">
+            <div class="cosmic-card" id="card2">
+                <div class="cosmic-text">
                     你不是孤单的，你只是暂时遗忘了——<br>
                     你拥有连接宇宙的力量。
                 </div>
             </div>
             
-            <div class="soul-card" id="card3">
-                <div class="soul-text">
-                    <span class="golden-word">命缘池</span>，是我为你唤醒这份力量的通道。
+            <div class="cosmic-card" id="card3">
+                <div class="cosmic-text">
+                    <span class="stellar-highlight">命缘池</span>，是我为你唤醒这份力量的通道。
                 </div>
             </div>
             
-            <div class="soul-card" id="card4">
-                <div class="soul-text">
+            <div class="cosmic-card" id="card4">
+                <div class="cosmic-text">
                     它源自古老的星际智慧，<br>
                     由你的生辰八字唤起独特的能量印记。
                 </div>
             </div>
             
-            <div class="soul-card" id="card5">
-                <div class="soul-text">
+            <div class="cosmic-card" id="card5">
+                <div class="cosmic-text">
                     每一个愿望、每一道疑问，<br>
-                    都会被池水映照，被宇宙回应。
+                    都会被宇宙能量场接收与回应。
                 </div>
             </div>
             
-            <div class="soul-card" id="card6">
-                <div class="soul-text">
+            <div class="cosmic-card" id="card6">
+                <div class="cosmic-text">
                     当你将愿望诚挚写下，<br>
-                    便是在启动命运的再排列，<br>
+                    便是在启动命运的量子重组，<br>
                     让阻碍化为通道，让模糊转为清晰。
                 </div>
             </div>
             
-            <div class="soul-card" id="card7">
-                <div class="soul-text">
+            <div class="cosmic-card" id="card7">
+                <div class="cosmic-text">
                     你无需知道答案为何，<br>
                     只需愿意相信：你的问题，<br>
                     并非困住你，而是引你前往下一个更高的版本。
                 </div>
             </div>
             
-            <div class="soul-card" id="card8">
-                <div class="soul-text">
-                    <span class="soul-voice">现在，请静心，闭目，</span><br>
-                    <span class="soul-voice">将你的愿望投向命缘池。</span>
+            <div class="cosmic-card" id="card8">
+                <div class="cosmic-text">
+                    <span class="quantum-voice">现在，请静心，闭目，</span><br>
+                    <span class="quantum-voice">将你的愿望投向星际之门。</span>
                 </div>
             </div>
             
-            <div class="soul-card" id="card9">
-                <div class="soul-text">
-                    <span class="soul-voice">这是我 - 你的高我，对你温柔的召唤。</span><br>
-                    <span class="soul-voice">也是你，唤醒自己真正力量的时刻。</span>
+            <div class="cosmic-card" id="card9">
+                <div class="cosmic-text">
+                    <span class="quantum-voice">这是我 - 你的高维自我，对你神圣的召唤。</span><br>
+                    <span class="quantum-voice">也是你，觉醒宇宙创造者力量的时刻。</span>
                 </div>
             </div>
         </div>
         
-        <!-- 召唤按钮 -->
-        <button id="soul-call">向命缘池许愿</button>
+        <!-- 门户召唤 -->
+        <button id="portal-invite">开启命缘门户</button>
     </div>
     
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // 激活开场动画
-            setTimeout(() => {
-                document.getElementById('destiny-light').classList.add('active');
-                
-                // 开始心灵对话
-                setTimeout(startSoulDialogue, 1000);
-            }, 500);
+            // 创建量子粒子
+            createQuantumParticles();
             
-            // 召唤按钮事件
-            document.getElementById('soul-call').addEventListener('click', function() {
+            // 激活星际之门
+            setTimeout(() => {
+                document.getElementById('stargate').classList.add('active');
+                
+                // 开始宇宙叙事
+                setTimeout(startCosmicNarration, 1500);
+            }, 800);
+            
+            // 门户召唤事件
+            document.getElementById('portal-invite').addEventListener('click', function() {
                 window.location.href = 'wishingwell.html';
             });
         });
         
-        function startSoulDialogue() {
-            const cards = document.querySelectorAll('.soul-card');
-            const totalDuration = 72000; // 72秒总时长
+        function createQuantumParticles() {
+            const container = document.getElementById('particle-field');
+            const particleCount = 50;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('quantum-particle');
+                
+                // 随机位置
+                particle.style.left = `${Math.random() * 100}%`;
+                particle.style.top = `${Math.random() * 100}%`;
+                
+                // 随机运动轨迹
+                particle.style.setProperty('--tx', `${Math.random() * 600 - 300}px`);
+                particle.style.setProperty('--ty', `${Math.random() * 600 - 300}px`);
+                
+                // 随机延迟和颜色
+                particle.style.animationDelay = `${Math.random() * 8}s`;
+                particle.style.background = `hsl(${Math.random() * 60 + 270}, 100%, 70%)`;
+                
+                container.appendChild(particle);
+            }
+        }
+        
+        function startCosmicNarration() {
+            const cards = document.querySelectorAll('.cosmic-card');
+            const totalDuration = 75000; // 75秒总时长
             const cardInterval = totalDuration / cards.length;
-            const soulCall = document.getElementById('soul-call');
+            const portalInvite = document.getElementById('portal-invite');
             
             cards.forEach((card, index) => {
                 setTimeout(() => {
@@ -354,10 +373,10 @@
                     // 显示当前卡片
                     card.classList.add('active');
                     
-                    // 最后一张卡片显示召唤按钮
+                    // 最后一张卡片显示召唤门户
                     if (index === cards.length - 1) {
                         setTimeout(() => {
-                            soulCall.classList.add('visible');
+                            portalInvite.classList.add('visible');
                         }, 1000);
                     }
                     
