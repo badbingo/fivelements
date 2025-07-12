@@ -504,6 +504,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const charCount = document.getElementById('charCount');
     const wishContent = document.getElementById('wishContent');
 
+    const lunarDateElement = document.getElementById('lunarDate');
+    const lunarYiElement = document.getElementById('lunarYi');
+    const lunarJiElement = document.getElementById('lunarJi');
+
     /* ==================== 生肖背景功能 ==================== */
 
     // 地支对应的生肖
@@ -688,7 +692,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // 显示农历日期
             const lunarDateStr = `${lunar.getYearInChinese()}年 ${lunar.getMonthInChinese()}月${lunar.getDayInChinese()}`;
-            lunarDateElement.textContent = lunarDateStr;
+            if (lunarDateElement) lunarDateElement.textContent = lunarDateStr;
             
             // 获取宜忌信息
             const yiJi = lunar.getDayYiJi();
@@ -696,14 +700,14 @@ document.addEventListener('DOMContentLoaded', function() {
             const jiList = yiJi.ji || [];
             
             // 显示宜忌信息
-            lunarYiElement.textContent = yiList.slice(0, 3).join('、') || '无';
-            lunarJiElement.textContent = jiList.slice(0, 3).join('、') || '无';
+            if (lunarYiElement) lunarYiElement.textContent = yiList.slice(0, 3).join('、') || '无';
+            if (lunarJiElement) lunarJiElement.textContent = jiList.slice(0, 3).join('、') || '无';
             
         } catch (error) {
             console.error('获取农历信息失败:', error);
-            lunarDateElement.textContent = '获取失败';
-            lunarYiElement.textContent = '获取失败';
-            lunarJiElement.textContent = '获取失败';
+            if (lunarDateElement) lunarDateElement.textContent = '获取失败';
+            if (lunarYiElement) lunarYiElement.textContent = '获取失败';
+            if (lunarJiElement) lunarJiElement.textContent = '获取失败';
         }
     }
     
