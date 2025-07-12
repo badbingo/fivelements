@@ -448,7 +448,7 @@
         </div>    
     <script>
         
-    document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function() {
     // 配置后端地址
     const API_BASE = 'https://bazi-backend.owenjass.workers.dev';
     const API_URL = `${API_BASE}/api/wishes`;
@@ -597,7 +597,7 @@
         cardElement.style.backgroundRepeat = 'repeat';
         cardElement.style.backgroundSize = '100px 100px';
     }
-
+    
     /* ==================== 辅助函数 ==================== */
 
     // 切换密码可见性
@@ -657,12 +657,12 @@
             usernameDisplay.textContent = username;
             loginBtn.style.display = 'none';
             logoutBtn.style.display = 'block';
-            manageBtn.style.display = 'block';
+            manageBtn.style.display = 'block'; // 显示管理按钮
         } else {
             userWelcome.style.display = 'none';
             loginBtn.style.display = 'block';
             logoutBtn.style.display = 'none';
-            manageBtn.style.display = 'none';
+            manageBtn.style.display = 'none'; // 隐藏管理按钮
         }
     }
 
@@ -680,6 +680,7 @@
             registerForm.classList.add('active');
         }
         
+        // 清空消息
         loginMessage.style.display = 'none';
         registerMessage.style.display = 'none';
     }
@@ -865,6 +866,44 @@
         return re.test(email);
     }
 
+    // 初始化登录注册事件
+    function initAuthEvents() {
+        loginBtn.addEventListener('click', () => {
+            toggleAuthModal(true);
+            switchAuthTab('login');
+        });
+        
+        closeAuth.addEventListener('click', () => toggleAuthModal(false));
+        
+        authModal.addEventListener('click', (e) => {
+            if (e.target === authModal) {
+                toggleAuthModal(false);
+            }
+        });
+        
+        loginTab.addEventListener('click', () => switchAuthTab('login'));
+        registerTab.addEventListener('click', () => switchAuthTab('register'));
+        
+        loginForm.addEventListener('submit', handleLogin);
+        registerForm.addEventListener('submit', handleRegister);
+
+        document.getElementById('forgotPasswordLink').addEventListener('click', function(e) {
+            e.preventDefault();
+            const width = 500;
+            const height = 400;
+            const left = (screen.width - width) / 2;
+            const top = (screen.height - height) / 2;
+            
+            window.open(
+                'forgot.html', 
+                'ForgotPassword', 
+                `width=${width},height=${height},left=${left},top=${top},resizable=no`
+            );
+        });
+        
+        logoutBtn.addEventListener('click', handleLogout);
+    }
+
     /* ==================== 愿望卡片管理功能 ==================== */
 
     // 显示用户卡片浮窗
@@ -997,9 +1036,6 @@
                         </div>
                     </div>
                 `;
-                
-                // 更新卡片背景
-                updateWishCardBackground(card, wish.type, wish.bazi);
                 
                 const deleteBtn = card.querySelector('.btn-delete');
                 deleteBtn.addEventListener('click', (e) => {
