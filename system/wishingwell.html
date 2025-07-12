@@ -115,20 +115,20 @@
         <section class="content-title">
             <h1>命缘池</h1>
             <p>以八字为引，聚众生愿力，助你愿望成真</p>
-            <!-- 新增的农历宜忌显示区域 -->
-            <div class="lunar-date-info">
-                <div class="lunar-date-container">
-                    <div class="lunar-date">
-                        <i class="fas fa-moon"></i> 农历: <span id="lunarDate"></span>
-                    </div>
-                    <div class="lunar-yiji">
-                        <span class="yi"><i class="fas fa-thumbs-up"></i> 宜: <span id="lunarYi"></span></span>
-                        <span class="ji"><i class="fas fa-thumbs-down"></i> 忌: <span id="lunarJi"></span></span>
-                    </div>
+        </section>
+        
+        <div class="lunar-date-info">
+            <div class="lunar-date-container">
+                <div class="lunar-date">
+                    <i class="fas fa-moon"></i> 农历: <span id="lunarDate"></span>
+                </div>
+                <div class="lunar-yiji">
+                    <span class="yi"><i class="fas fa-thumbs-up"></i> 宜: <span id="lunarYi"></span></span>
+                    <span class="ji"><i class="fas fa-thumbs-down"></i> 忌: <span id="lunarJi"></span></span>
                 </div>
             </div>
-        </section>
-
+        </div>
+        
         <!-- 命缘池介绍 -->
         <section class="full-width-section">
             <div class="section-header">
@@ -139,8 +139,8 @@
             <div class="card">
                 <div class="mingyuan-intro">
                     <div class="intro-text">
-                        <p>命缘池，乃上古道门所传"愿力汇聚"之秘法，以生辰八字为钥，启动个体命理之频，借天地元气、宇宙灵识，共筑一方灵性之境。凡得入池者，皆非偶然，乃命运召唤而至，有缘之人自来无误。</p>
-                        <p>于池前静心许愿之时，你之八字便化为能量符印，随愿而动，投入池中灵脉。池中自有十二灵兽应愿守护，六字真言"唵嘛呢叭咪吽"清心净念，使愿力得以纯化、升频。愿念真诚，则天地自感，善念如涟漪层层荡开，汇聚成形，随仙家法则而回响。</p>
+                        <p>命缘池，乃上古道门所传“愿力汇聚”之秘法，以生辰八字为钥，启动个体命理之频，借天地元气、宇宙灵识，共筑一方灵性之境。凡得入池者，皆非偶然，乃命运召唤而至，有缘之人自来无误。</p>
+                        <p>于池前静心许愿之时，你之八字便化为能量符印，随愿而动，投入池中灵脉。池中自有十二灵兽应愿守护，六字真言“唵嘛呢叭咪吽”清心净念，使愿力得以纯化、升频。愿念真诚，则天地自感，善念如涟漪层层荡开，汇聚成形，随仙家法则而回响。</p>
                         <p>每五次加持，愿力更进一步。得多人加持，频率愈强，显化愈疾。若三十日内得偿所愿，切记还愿——愿之始于心，亦当终于心。</p>
                     </div>
                     <div class="intro-image">
@@ -503,38 +503,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const refreshStatsBtn = document.getElementById('refreshStatsBtn');
     const charCount = document.getElementById('charCount');
     const wishContent = document.getElementById('wishContent');
-    const lunarDateElement = document.getElementById('lunarDate');
-    const lunarYiElement = document.getElementById('lunarYi');
-    const lunarJiElement = document.getElementById('lunarJi');
-
-    /* ==================== 农历日期功能 ==================== */
-    
-    // 更新农历日期和宜忌信息
-    function updateLunarDateInfo() {
-        try {
-            const today = new Date();
-            const lunar = Lunar.fromDate(today);
-            
-            // 显示农历日期
-            const lunarDateStr = `${lunar.getYearInChinese()}年 ${lunar.getMonthInChinese()}月${lunar.getDayInChinese()}`;
-            lunarDateElement.textContent = lunarDateStr;
-            
-            // 获取宜忌信息
-            const yiJi = lunar.getDayYiJi();
-            const yiList = yiJi.yi || [];
-            const jiList = yiJi.ji || [];
-            
-            // 显示宜忌信息
-            lunarYiElement.textContent = yiList.slice(0, 3).join('、') || '无';
-            lunarJiElement.textContent = jiList.slice(0, 3).join('、') || '无';
-            
-        } catch (error) {
-            console.error('获取农历信息失败:', error);
-            lunarDateElement.textContent = '获取失败';
-            lunarYiElement.textContent = '获取失败';
-            lunarJiElement.textContent = '获取失败';
-        }
-    }
 
     /* ==================== 生肖背景功能 ==================== */
 
@@ -711,6 +679,34 @@ document.addEventListener('DOMContentLoaded', function() {
         showToast(message, 'error');
     }
 
+
+    // 更新农历日期和宜忌信息
+    function updateLunarDateInfo() {
+        try {
+            const today = new Date();
+            const lunar = Lunar.fromDate(today);
+            
+            // 显示农历日期
+            const lunarDateStr = `${lunar.getYearInChinese()}年 ${lunar.getMonthInChinese()}月${lunar.getDayInChinese()}`;
+            lunarDateElement.textContent = lunarDateStr;
+            
+            // 获取宜忌信息
+            const yiJi = lunar.getDayYiJi();
+            const yiList = yiJi.yi || [];
+            const jiList = yiJi.ji || [];
+            
+            // 显示宜忌信息
+            lunarYiElement.textContent = yiList.slice(0, 3).join('、') || '无';
+            lunarJiElement.textContent = jiList.slice(0, 3).join('、') || '无';
+            
+        } catch (error) {
+            console.error('获取农历信息失败:', error);
+            lunarDateElement.textContent = '获取失败';
+            lunarYiElement.textContent = '获取失败';
+            lunarJiElement.textContent = '获取失败';
+        }
+    }
+    
     /* ==================== 登录注册功能 ==================== */
 
     // 检查登录状态
@@ -930,6 +926,44 @@ document.addEventListener('DOMContentLoaded', function() {
     function validateEmail(email) {
         const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         return re.test(email);
+    }
+
+    // 初始化登录注册事件
+    function initAuthEvents() {
+        loginBtn.addEventListener('click', () => {
+            toggleAuthModal(true);
+            switchAuthTab('login');
+        });
+        
+        closeAuth.addEventListener('click', () => toggleAuthModal(false));
+        
+        authModal.addEventListener('click', (e) => {
+            if (e.target === authModal) {
+                toggleAuthModal(false);
+            }
+        });
+        
+        loginTab.addEventListener('click', () => switchAuthTab('login'));
+        registerTab.addEventListener('click', () => switchAuthTab('register'));
+        
+        loginForm.addEventListener('submit', handleLogin);
+        registerForm.addEventListener('submit', handleRegister);
+
+        document.getElementById('forgotPasswordLink').addEventListener('click', function(e) {
+            e.preventDefault();
+            const width = 500;
+            const height = 400;
+            const left = (screen.width - width) / 2;
+            const top = (screen.height - height) / 2;
+            
+            window.open(
+                'forgot.html', 
+                'ForgotPassword', 
+                `width=${width},height=${height},left=${left},top=${top},resizable=no`
+            );
+        });
+        
+        logoutBtn.addEventListener('click', handleLogout);
     }
 
     /* ==================== 愿望卡片管理功能 ==================== */
@@ -1200,6 +1234,27 @@ document.addEventListener('DOMContentLoaded', function() {
             cardElement.querySelector('.btn-delete').innerHTML = '<i class="fas fa-trash-alt"></i> 删除';
             cardElement.querySelector('.btn-delete').disabled = false;
             showToast(`删除失败: ${error.message}`, 'error');
+        }
+    }
+
+    // 初始化用户卡片浮窗
+    function initUserCardsModal() {
+        try {
+            const modal = document.getElementById('userCardsModal');
+            const closeBtn = modal.querySelector('.close-cards');
+            
+            closeBtn.addEventListener('click', () => {
+                modal.classList.remove('active');
+            });
+            
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.classList.remove('active');
+                }
+            });
+            
+        } catch (error) {
+            console.error('初始化用户卡片浮窗失败:', error);
         }
     }
 
@@ -2118,11 +2173,11 @@ document.addEventListener('DOMContentLoaded', function() {
         initEnergyChart();
         setupModalClose();
         setInterval(fetchStats, 5 * 60 * 1000);
-        
+
         // 更新农历日期信息
         updateLunarDateInfo();
     }
-
+    
     // 启动应用
     initialize();
 });
