@@ -502,13 +502,12 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     // 根据愿望类型和八字信息获取对应的生肖代表文字
-    function getSymbolText(wishType, bazi) {
-        if (!bazi) return '鼠'; // 默认值
-        
-        // 从八字中提取日柱的天干
-        const dayGan = bazi.split(' ')[2]?.substring(0, 1) || '甲';
-        
-        // 根据愿望类型和天干获取对应的神煞
+   function getSymbolIcon(wishType, bazi) {
+    // 从八字中提取日柱的天干
+    const dayGan = bazi.split(' ')[2]?.substring(0, 1) || '甲';
+    
+    // 根据愿望类型和天干获取对应的神煞
+    const diZhi = (() => {
         switch(wishType) {
             case 'love': // 姻缘感情 - 桃花
                 return getPeachBlossom(dayGan);
@@ -523,8 +522,27 @@ document.addEventListener('DOMContentLoaded', function() {
             default: // 其他愿望 - 天乙贵人
                 return getTianYiNoble(dayGan);
         }
-    }
+    })();
 
+    // 地支对应的字体图标class
+    const zodiacIconMap = {
+        '子': 'icon-rat',       // 鼠
+        '丑': 'icon-ox',        // 牛
+        '寅': 'icon-tiger',     // 虎
+        '卯': 'icon-rabbit',    // 兔
+        '辰': 'icon-dragon',    // 龙
+        '巳': 'icon-snake',     // 蛇
+        '午': 'icon-horse',     // 马
+        '未': 'icon-goat',      // 羊
+        '申': 'icon-monkey',    // 猴
+        '酉': 'icon-rooster',   // 鸡
+        '戌': 'icon-dog',       // 狗
+        '亥': 'icon-pig'        // 猪
+    };
+
+    return zodiacIconMap[diZhi] || 'icon-rat';
+}
+    
     // 获取桃花位对应的生肖
     function getPeachBlossom(dayGan) {
         const peachMap = {
@@ -586,17 +604,21 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // 更新愿望卡片背景
-    function updateWishCardBackground(cardElement, wishType, bazi) {
-        // 获取对应的地支
-        const diZhi = getSymbolText(wishType, bazi);
-        // 获取对应的生肖
-        const zodiac = zodiacMap[diZhi] || '鼠';
-        
-        // 设置卡片背景样式
-        cardElement.style.backgroundImage = `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><text x="50" y="50" font-size="60" text-anchor="middle" dominant-baseline="middle" fill="rgba(255,255,255,0.1)">${zodiac}</text></svg>')`;
-        cardElement.style.backgroundRepeat = 'repeat';
-        cardElement.style.backgroundSize = '100px 100px';
-    }
+   function updateWishCardBackground(cardElement, wishType, bazi) {
+    // 获取对应的字体图标class
+    const iconClass = getSymbolIcon(wishType, bazi);
+    
+    // 创建背景元素
+    const bgIcon = document.createElement('div');
+    bgIcon.className = `wish-card-bg-icon ${iconClass}`;
+    
+    // 移除旧的背景元素
+    const oldBg = cardElement.querySelector('.wish-card-bg-icon');
+    if (oldBg) oldBg.remove();
+    
+    // 添加新的背景元素
+    cardElement.appendChild(bgIcon);
+}
     
     /* ==================== 辅助函数 ==================== */
 
