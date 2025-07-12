@@ -42,7 +42,8 @@
         #skip-btn {
             position: absolute;
             bottom: 30px;
-            right: 30px;
+            left: 50%;
+            transform: translateX(-50%);
             padding: 6px 12px;
             background: rgba(0, 0, 0, 0.3);
             color: var(--gold-light);
@@ -50,10 +51,14 @@
             border-radius: 15px;
             font-size: 0.8rem;
             cursor: pointer;
-            opacity: 0.7;
+            opacity: 0;
             transition: all 0.3s ease;
             z-index: 30;
             backdrop-filter: blur(2px);
+        }
+        
+        #skip-btn.visible {
+            opacity: 0.7;
         }
         
         #skip-btn:hover {
@@ -285,7 +290,6 @@
             
             #skip-btn {
                 bottom: 20px;
-                right: 20px;
                 font-size: 0.7rem;
                 padding: 5px 10px;
             }
@@ -294,9 +298,6 @@
 </head>
 <body>
     <div id="taoist-intro">
-        <!-- 跳过按钮 -->
-        <button id="skip-btn">跳过</button>
-        
         <!-- 道境背景 -->
         <div id="taoist-bg"></div>
         
@@ -315,6 +316,9 @@
             <h1 id="main-title">命缘池</h1>
             <p id="sub-title">道门秘法 · 愿力汇聚</p>
         </div>
+        
+        <!-- 跳过按钮 -->
+        <button id="skip-btn">跳过</button>
         
         <!-- 文字舞台 -->
         <div id="text-stage">
@@ -368,6 +372,11 @@
         document.addEventListener('DOMContentLoaded', function() {
             // 创建道气元素
             createTaoistElements();
+            
+            // 标题显示后显示跳过按钮
+            setTimeout(() => {
+                document.getElementById('skip-btn').classList.add('visible');
+            }, 3500); // 标题动画结束后显示
             
             // 显示文字舞台
             setTimeout(() => {
