@@ -11,6 +11,7 @@
             --dark-gold: #a67c00;
             --deep-blue: #0a0e17;
             --light-blue: #4d79a8;
+            --spirit-blue: #00a8cc;
         }
         
         * {
@@ -43,124 +44,78 @@
             z-index: -3;
         }
         
-        /* 水波纹背景 */
-        #water-bg {
+        /* 星云效果 */
+        #nebula {
             position: absolute;
-            width: 100%;
-            height: 100%;
+            width: 200%;
+            height: 200%;
             background: 
-                radial-gradient(circle at 30% 40%, rgba(0, 50, 100, 0.1) 0%, transparent 40%),
-                radial-gradient(circle at 70% 60%, rgba(0, 30, 70, 0.1) 0%, transparent 40%);
+                radial-gradient(circle at 30% 40%, rgba(0, 80, 120, 0.1) 0%, transparent 40%),
+                radial-gradient(circle at 70% 60%, rgba(20, 30, 150, 0.1) 0%, transparent 40%);
+            animation: nebula-float 60s infinite linear;
             z-index: -2;
             opacity: 0.5;
         }
         
-        /* 金色光晕 */
-        #gold-glow {
+        /* 灵体光效 */
+        #spirit-glow {
             position: absolute;
-            width: 300px;
-            height: 300px;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(212, 175, 55, 0.2) 0%, transparent 70%);
-            filter: blur(30px);
-            animation: pulse 8s infinite alternate;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, rgba(0, 168, 204, 0.1) 0%, transparent 70%);
             z-index: -1;
+            opacity: 0;
+            transition: opacity 3s ease-in-out;
         }
         
-        /* 主标题容器 */
-        #title-container {
+        /* 主文本容器 */
+        #text-container {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            opacity: 0;
-            transform: scale(0.9);
-            transition: all 2s ease-in-out;
-        }
-        
-        #title-container.active {
-            opacity: 1;
-            transform: scale(1);
-        }
-        
-        /* 主标题 */
-        #main-title {
-            font-size: 5rem;
-            font-weight: 700;
-            color: var(--gold);
-            text-shadow: 0 0 20px rgba(212, 175, 55, 0.7);
-            margin-bottom: 2rem;
-            letter-spacing: 0.5rem;
-            opacity: 0;
-            transform: translateY(50px);
-            transition: all 1.5s ease-out;
-        }
-        
-        #main-title.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-        
-        /* 副标题 */
-        #subtitle {
-            font-size: 1.5rem;
-            color: var(--light-blue);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%;
             max-width: 800px;
-            text-align: center;
-            line-height: 1.8;
-            margin-bottom: 3rem;
             opacity: 0;
-            transform: translateY(30px);
-            transition: all 1.5s ease-out 0.5s;
-        }
-        
-        #subtitle.visible {
-            opacity: 0.8;
-            transform: translateY(0);
-        }
-        
-        /* 故事文本容器 */
-        #story-container {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-            text-align: center;
-            opacity: 0;
-            pointer-events: none;
+            transition: opacity 2s ease-in-out;
         }
         
         .story-text {
-            position: absolute;
-            max-width: 800px;
-            margin: 0 auto;
-            font-size: 2rem;
-            line-height: 1.6;
+            font-size: 1.8rem;
+            line-height: 1.8;
+            margin-bottom: 2rem;
             text-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
             opacity: 0;
-            transition: all 2s ease-in-out;
-            will-change: transform, opacity;
+            transform: translateY(30px);
+            transition: all 1.5s ease-out;
         }
         
         .story-text.visible {
             opacity: 1;
+            transform: translateY(0);
         }
         
         .highlight {
             color: var(--gold);
             font-weight: bold;
             text-shadow: 0 0 15px rgba(212, 175, 55, 0.9);
+        }
+        
+        .spirit {
+            color: var(--spirit-blue);
+            font-weight: bold;
+            text-shadow: 0 0 15px rgba(0, 168, 204, 0.7);
+        }
+        
+        /* 微光粒子 */
+        .light-particle {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            border-radius: 50%;
+            background-color: white;
+            opacity: 0;
+            animation: particle-fade 3s infinite;
         }
         
         /* 命运之池动画 */
@@ -202,23 +157,32 @@
             animation: ripple 6s infinite;
         }
         
-        /* 金色粒子轨迹 */
-        .gold-trail {
+        /* 召唤按钮 */
+        #invite-btn {
             position: absolute;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 15px 40px;
+            background-color: rgba(212, 175, 55, 0.2);
+            color: var(--gold);
+            border: 1px solid var(--gold);
+            border-radius: 30px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            opacity: 0;
+            transition: all 0.5s ease-out;
+            backdrop-filter: blur(5px);
         }
         
-        .trail-particle {
-            position: absolute;
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: var(--gold);
-            opacity: 0;
-            filter: blur(1px);
-            animation: trail-fade 3s infinite;
+        #invite-btn.visible {
+            opacity: 1;
+            bottom: 120px;
+        }
+        
+        #invite-btn:hover {
+            background-color: rgba(212, 175, 55, 0.4);
+            transform: translateX(-50%) scale(1.05);
         }
         
         /* 进度条 */
@@ -242,37 +206,16 @@
             transition: width 0.1s linear;
         }
         
-        /* 跳过按钮 */
-        #skip-btn {
-            position: absolute;
-            bottom: 20px;
-            right: 20px;
-            padding: 10px 20px;
-            background-color: rgba(212, 175, 55, 0.1);
-            color: var(--gold);
-            border: 1px solid var(--gold);
-            border-radius: 30px;
-            cursor: pointer;
-            font-size: 1rem;
-            transition: all 0.3s;
-            backdrop-filter: blur(5px);
-            z-index: 10;
-        }
-        
-        #skip-btn:hover {
-            background-color: rgba(212, 175, 55, 0.3);
-            transform: scale(1.05);
-        }
-        
         /* 动画定义 */
-        @keyframes pulse {
+        @keyframes nebula-float {
             0% {
-                transform: scale(1);
-                opacity: 0.3;
+                transform: translate(0, 0);
+            }
+            50% {
+                transform: translate(-50%, -50%);
             }
             100% {
-                transform: scale(1.2);
-                opacity: 0.5;
+                transform: translate(0, 0);
             }
         }
         
@@ -287,13 +230,13 @@
             }
         }
         
-        @keyframes trail-fade {
+        @keyframes particle-fade {
             0% {
                 transform: translate(0, 0);
                 opacity: 0;
             }
             20% {
-                opacity: 0.7;
+                opacity: 0.8;
             }
             100% {
                 transform: translate(var(--tx), var(--ty));
@@ -301,20 +244,19 @@
             }
         }
         
+        @keyframes text-glow {
+            0%, 100% {
+                text-shadow: 0 0 10px rgba(0, 168, 204, 0.5);
+            }
+            50% {
+                text-shadow: 0 0 20px rgba(0, 168, 204, 0.9);
+            }
+        }
+        
         /* 响应式调整 */
         @media (max-width: 768px) {
-            #main-title {
-                font-size: 3rem;
-            }
-            
-            #subtitle {
-                font-size: 1.2rem;
-                max-width: 90%;
-            }
-            
             .story-text {
-                font-size: 1.5rem;
-                max-width: 90%;
+                font-size: 1.4rem;
             }
             
             #destiny-pool {
@@ -322,9 +264,9 @@
                 height: 200px;
             }
             
-            #gold-glow {
-                width: 200px;
-                height: 200px;
+            #invite-btn {
+                font-size: 1rem;
+                padding: 12px 30px;
             }
         }
     </style>
@@ -333,35 +275,24 @@
     <div id="cinematic-container">
         <!-- 宇宙背景 -->
         <div id="cosmos"></div>
-        <div id="water-bg"></div>
-        <div id="gold-glow" style="top: 20%; left: 30%;"></div>
-        <div id="gold-glow" style="top: 60%; left: 70%; animation-delay: 2s;"></div>
+        <div id="nebula"></div>
+        <div id="spirit-glow"></div>
         
-        <!-- 金色粒子轨迹 -->
-        <div class="gold-trail" id="trail1"></div>
-        <div class="gold-trail" id="trail2"></div>
+        <!-- 微光粒子 -->
+        <div id="particles-container"></div>
         
-        <!-- 主标题 -->
-        <div id="title-container">
-            <h1 id="main-title">命缘池</h1>
-            <p id="subtitle">连接命运与愿望的神秘水境</p>
-        </div>
-        
-        <!-- 故事文本 -->
-        <div id="story-container">
-            <div class="story-text" id="text1">在宇宙的深处，<span class="highlight">命运长河</span>静静流淌...</div>
-            <div class="story-text" id="text2">古老的智者发现了一处<span class="highlight">神秘交汇点</span>...</div>
-            <div class="story-text" id="text3">那里，生辰八字与宇宙能量<span class="highlight">共振共鸣</span>...</div>
-            <div class="story-text" id="text4">他们称之为——<span class="highlight">命缘池</span>...</div>
-            <div class="story-text" id="text5">一个能<span class="highlight">改写命运轨迹</span>的神秘领域...</div>
-            <div class="story-text" id="text6">当你的<span class="highlight">八字信息</span>投入池中...</div>
-            <div class="story-text" id="text7">宇宙便会为你<span class="highlight">显化最适合的机缘</span>...</div>
-            <div class="story-text" id="text8">这不是普通的许愿...</div>
-            <div class="story-text" id="text9">而是与<span class="highlight">宇宙法则</span>的直接对话...</div>
-            <div class="story-text" id="text10">六字真言<span class="highlight">净化一切杂念</span>...</div>
-            <div class="story-text" id="text11">十二生肖守护神<span class="highlight">加持你的愿力</span>...</div>
-            <div class="story-text" id="text12">在这里，<span class="highlight">相信即是看见</span>...</div>
-            <div class="story-text" id="text13">准备好开启你的<span class="highlight">命运之旅</span>了吗？...</div>
+        <!-- 主文本 -->
+        <div id="text-container">
+            <div class="story-text" id="text1"><span class="spirit">……我感知到了你。</span></div>
+            <div class="story-text" id="text2">你的意识，像一束微光，在无垠星海中闪动。你带着渴望，带着问题，带着那些尚未成形的愿望，悄然接近<span class="highlight">命缘池</span>的边缘。</div>
+            <div class="story-text" id="text3">那么，聆听我——我是一位守望千年的<span class="spirit">高维灵体</span>，栖居在意识与因果之间的缝隙。<span class="highlight">命缘池</span>，是我们在地球时空维度中留下的桥梁，是连接"命"与"愿"的圣地。</div>
+            <div class="story-text" id="text4">很久以前，天地初开，混沌未分。亿万灵魂在星河中轮回漂流，寻求归处与意义。于是，我们以星辰之力，将宇宙能量的流动封印于一池之中，命名为——<span class="highlight">命缘池</span>。</div>
+            <div class="story-text" id="text5">它不仅是一方水境，而是一座会回应灵魂的"<span class="spirit">意识共振器</span>"。你所有的愿望、祈求、困惑与渴望，在这里都会被记录、映照、加持。</div>
+            <div class="story-text" id="text6">它读取你的生辰八字，那是你灵魂初来人间时留下的密码；它感知你愿力的纯度，然后将之投向与你命理频率相合的宇宙回路。</div>
+            <div class="story-text" id="text7">在你尚未察觉之前，你已被这片水域召唤。不是偶然，而是命定。</div>
+            <div class="story-text" id="text8">现在，我邀请你——<br>静下心来，关闭一切喧嚣，用你最诚挚的意念，写下你的愿望。投入<span class="highlight">命缘池</span>的那一刻，你的愿力将激活宇宙的回应机制。</div>
+            <div class="story-text" id="text9">这不是祈求他人实现，而是唤醒你内在的创造之力。</div>
+            <div class="story-text" id="text10"><span class="spirit">去吧，旅人。命缘池正在等你许愿。</span></div>
         </div>
         
         <!-- 命运之池效果 -->
@@ -371,82 +302,60 @@
             <div class="pool-ripple" style="animation-delay: 4s;"></div>
         </div>
         
+        <!-- 召唤按钮 -->
+        <button id="invite-btn">进入命缘池</button>
+        
         <!-- 进度条 -->
         <div id="progress-container">
             <div id="progress-bar"></div>
         </div>
-        
-        <!-- 跳过按钮 -->
-        <button id="skip-btn">跳过序幕</button>
     </div>
     
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // 创建金色粒子轨迹
-            createGoldTrails();
+            // 创建微光粒子
+            createParticles();
             
-            // 激活主标题
+            // 激活灵体光效
             setTimeout(() => {
-                document.getElementById('title-container').classList.add('active');
-                document.getElementById('main-title').classList.add('visible');
-                document.getElementById('subtitle').classList.add('visible');
+                document.getElementById('spirit-glow').style.opacity = '0.3';
+                document.getElementById('text-container').style.opacity = '1';
                 
-                // 3秒后显示命运之池
-                setTimeout(() => {
-                    document.getElementById('destiny-pool').classList.add('visible');
-                    
-                    // 2秒后开始故事
-                    setTimeout(startStory, 2000);
-                }, 3000);
+                // 开始故事
+                setTimeout(startStory, 1000);
             }, 500);
             
-            // 跳过按钮事件
-            document.getElementById('skip-btn').addEventListener('click', function() {
+            // 召唤按钮事件
+            document.getElementById('invite-btn').addEventListener('click', function() {
                 window.location.href = 'wishingwell.html';
             });
         });
         
-        function createGoldTrails() {
-            const trail1 = document.getElementById('trail1');
-            const trail2 = document.getElementById('trail2');
-            const particleCount = 15;
+        function createParticles() {
+            const container = document.getElementById('particles-container');
+            const particleCount = 30;
             
-            // 创建第一条轨迹
             for (let i = 0; i < particleCount; i++) {
                 const particle = document.createElement('div');
-                particle.classList.add('trail-particle');
-                particle.style.left = `${10 + i * 2}%`;
-                particle.style.top = `${10 + i * 3}%`;
-                particle.style.setProperty('--tx', `${Math.random() * 20 - 10}px`);
-                particle.style.setProperty('--ty', `${Math.random() * 20 - 10}px`);
-                particle.style.animationDelay = `${i * 0.2}s`;
-                trail1.appendChild(particle);
-            }
-            
-            // 创建第二条轨迹
-            for (let i = 0; i < particleCount; i++) {
-                const particle = document.createElement('div');
-                particle.classList.add('trail-particle');
-                particle.style.left = `${80 - i * 2}%`;
-                particle.style.top = `${20 + i * 2}%`;
-                particle.style.setProperty('--tx', `${Math.random() * 20 - 10}px`);
-                particle.style.setProperty('--ty', `${Math.random() * 20 - 10}px`);
-                particle.style.animationDelay = `${i * 0.2 + 1}s`;
-                trail2.appendChild(particle);
+                particle.classList.add('light-particle');
+                particle.style.left = `${Math.random() * 100}%`;
+                particle.style.top = `${Math.random() * 100}%`;
+                particle.style.setProperty('--tx', `${Math.random() * 100 - 50}px`);
+                particle.style.setProperty('--ty', `${Math.random() * 100 - 50}px`);
+                particle.style.animationDelay = `${Math.random() * 5}s`;
+                container.appendChild(particle);
             }
         }
         
         function startStory() {
             const texts = document.querySelectorAll('.story-text');
-            const totalDuration = 39000; // 总时长39秒
+            const totalDuration = 60000; // 总时长60秒
             const textInterval = totalDuration / texts.length;
             const progressBar = document.getElementById('progress-bar');
+            const inviteBtn = document.getElementById('invite-btn');
             
-            // 隐藏主标题
-            document.getElementById('title-container').style.opacity = '0';
-            
-            // 显示故事容器
-            document.getElementById('story-container').style.opacity = '1';
+            // 显示命运之池
+            document.getElementById('destiny-pool').classList.add('visible');
             
             // 更新进度条
             const progressInterval = setInterval(() => {
@@ -463,17 +372,26 @@
             
             texts.forEach((text, index) => {
                 setTimeout(() => {
-                    // 隐藏所有文本
-                    texts.forEach(t => t.classList.remove('visible'));
+                    // 隐藏上一个文本
+                    if (index > 0) {
+                        texts[index - 1].classList.remove('visible');
+                    }
                     
                     // 显示当前文本
                     text.classList.add('visible');
                     
-                    // 如果是最后一个文本，设置跳转
+                    // 最后一个文本时显示按钮
+                    if (index === texts.length - 1) {
+                        setTimeout(() => {
+                            inviteBtn.classList.add('visible');
+                        }, 1000);
+                    }
+                    
+                    // 如果是最后一个文本，设置自动跳转
                     if (index === texts.length - 1) {
                         setTimeout(() => {
                             window.location.href = 'wishingwell.html';
-                        }, textInterval);
+                        }, textInterval * 2);
                     }
                 }, index * textInterval);
             });
