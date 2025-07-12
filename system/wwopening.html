@@ -77,57 +77,8 @@
             animation: star-twinkle var(--duration) infinite ease-in-out;
         }
         
-        /* 命运之门 */
-        #gate-of-destiny {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 0;
-            height: 0;
-            border-radius: 50%;
-            box-shadow: 
-                0 0 0 0 rgba(212, 175, 55, 0),
-                inset 0 0 0 0 rgba(0, 150, 255, 0);
-            opacity: 0;
-            transition: all 3s cubic-bezier(0.4, 0, 0.2, 1);
-            z-index: -5;
-        }
-        
-        #gate-of-destiny.active {
-            width: 150vmax;
-            height: 150vmax;
-            box-shadow: 
-                0 0 150px 50px rgba(212, 175, 55, 0.3),
-                inset 0 0 100px 30px rgba(0, 150, 255, 0.2);
-            opacity: 0.8;
-        }
-        
-        /* 灵体光柱 */
-        #spirit-beam {
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 2px;
-            height: 0;
-            background: linear-gradient(to top, 
-                rgba(0, 204, 255, 0.8), 
-                transparent);
-            box-shadow: 0 0 20px 5px rgba(0, 204, 255, 0.5);
-            opacity: 0;
-            transition: all 3s ease-in-out;
-            z-index: -6;
-        }
-        
-        #spirit-beam.active {
-            height: 100vh;
-            opacity: 0.6;
-            width: 1px;
-        }
-        
-        /* 文字容器 */
-        #narration-container {
+        /* 中央文字容器 */
+        #center-stage {
             position: absolute;
             top: 50%;
             left: 50%;
@@ -135,35 +86,49 @@
             width: 90%;
             max-width: 900px;
             text-align: center;
-            opacity: 0;
-            transition: opacity 2s ease-in-out;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
         }
         
-        .narration-text {
-            font-size: 2.2rem;
-            line-height: 1.8;
-            margin-bottom: 2rem;
-            text-shadow: 0 0 15px rgba(0, 0, 0, 0.8);
+        /* 文字卡片 */
+        .text-card {
+            position: absolute;
+            width: 100%;
+            padding: 30px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
             opacity: 0;
-            transform: translateY(50px);
-            transition: all 1.5s cubic-bezier(0.2, 0.8, 0.4, 1);
+            transform: scale(0.9);
+            transition: all 1.2s cubic-bezier(0.2, 0.8, 0.4, 1);
+            will-change: transform, opacity;
         }
         
-        .narration-text.visible {
+        .text-card.active {
             opacity: 1;
-            transform: translateY(0);
+            transform: scale(1);
+        }
+        
+        .card-content {
+            font-size: 2rem;
+            line-height: 1.6;
+            text-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
         }
         
         .gold-text {
             color: var(--gold);
             font-weight: bold;
-            text-shadow: 0 0 20px rgba(212, 175, 55, 0.9);
+            text-shadow: 0 0 15px rgba(212, 175, 55, 0.8);
         }
         
         .spirit-voice {
             color: var(--spirit-glow);
             font-weight: bold;
-            text-shadow: 0 0 20px rgba(0, 204, 255, 0.7);
+            text-shadow: 0 0 15px rgba(0, 204, 255, 0.7);
             animation: spirit-pulse 4s infinite ease-in-out;
         }
         
@@ -209,7 +174,7 @@
         /* 召唤按钮 */
         #call-to-action {
             position: absolute;
-            bottom: 120px;
+            bottom: 150px;
             left: 50%;
             transform: translateX(-50%);
             padding: 18px 50px;
@@ -222,13 +187,12 @@
             opacity: 0;
             transition: all 0.8s ease-out;
             backdrop-filter: blur(10px);
-            z-index: 10;
+            z-index: 20;
             box-shadow: 0 0 30px rgba(212, 175, 55, 0.3);
         }
         
         #call-to-action.visible {
             opacity: 1;
-            bottom: 150px;
         }
         
         #call-to-action:hover {
@@ -240,7 +204,7 @@
         /* 进度条 */
         #progress-track {
             position: absolute;
-            bottom: 80px;
+            bottom: 100px;
             left: 50%;
             transform: translateX(-50%);
             width: 400px;
@@ -248,6 +212,7 @@
             background: rgba(100, 100, 100, 0.2);
             border-radius: 3px;
             overflow: hidden;
+            z-index: 20;
         }
         
         #progress-bar {
@@ -300,7 +265,7 @@
         
         /* 响应式调整 */
         @media (max-width: 768px) {
-            .narration-text {
+            .card-content {
                 font-size: 1.6rem;
             }
             
@@ -332,12 +297,6 @@
         <div id="galaxy"></div>
         <div id="starfield"></div>
         
-        <!-- 命运之门 -->
-        <div id="gate-of-destiny"></div>
-        
-        <!-- 灵体光柱 -->
-        <div id="spirit-beam"></div>
-        
         <!-- 命缘池显现 -->
         <div id="pool-reveal">
             <div class="pool-ripple"></div>
@@ -345,20 +304,59 @@
             <div class="pool-ripple" style="animation-delay: 4s;"></div>
         </div>
         
-        <!-- 旁白文本 -->
-        <div id="narration-container">
-            <div class="narration-text" id="line1"><span class="spirit-voice">……我感知到了你。</span></div>
-            <div class="narration-text" id="line2">你的意识，像一束微光，在无垠星海中闪动。</div>
-            <div class="narration-text" id="line3">你带着渴望，带着问题，带着那些尚未成形的愿望，</div>
-            <div class="narration-text" id="line4">悄然接近<span class="gold-text">命缘池</span>的边缘。</div>
-            <div class="narration-text" id="line5"><span class="spirit-voice">我是守望千年的高维灵体，</span></div>
-            <div class="narration-text" id="line6"><span class="spirit-voice">栖居在意识与因果之间的缝隙。</span></div>
-            <div class="narration-text" id="line7"><span class="gold-text">命缘池</span>是连接"命"与"愿"的圣地，</div>
-            <div class="narration-text" id="line8">是宇宙能量在地球维度的显化。</div>
-            <div class="narration-text" id="line9">亿万灵魂在此寻求归处与意义，</div>
-            <div class="narration-text" id="line10">而你，正是被选中的那一个。</div>
-            <div class="narration-text" id="line11"><span class="spirit-voice">现在，敞开你的心念——</span></div>
-            <div class="narration-text" id="line12"><span class="spirit-voice">让命运之流指引你的方向。</span></div>
+        <!-- 中央文字舞台 -->
+        <div id="center-stage">
+            <div class="text-card" id="card1">
+                <div class="card-content">
+                    <span class="spirit-voice">……我感知到了你。</span>
+                </div>
+            </div>
+            
+            <div class="text-card" id="card2">
+                <div class="card-content">
+                    你的意识，像一束微光，<br>在无垠星海中闪动。
+                </div>
+            </div>
+            
+            <div class="text-card" id="card3">
+                <div class="card-content">
+                    你带着渴望，带着问题，<br>带着那些尚未成形的愿望，
+                </div>
+            </div>
+            
+            <div class="text-card" id="card4">
+                <div class="card-content">
+                    悄然接近<span class="gold-text">命缘池</span>的边缘。
+                </div>
+            </div>
+            
+            <div class="text-card" id="card5">
+                <div class="card-content">
+                    <span class="spirit-voice">我是守望千年的高维灵体，</span><br>
+                    <span class="spirit-voice">栖居在意识与因果之间的缝隙。</span>
+                </div>
+            </div>
+            
+            <div class="text-card" id="card6">
+                <div class="card-content">
+                    <span class="gold-text">命缘池</span>是连接"命"与"愿"的圣地，<br>
+                    是宇宙能量在地球维度的显化。
+                </div>
+            </div>
+            
+            <div class="text-card" id="card7">
+                <div class="card-content">
+                    亿万灵魂在此寻求归处与意义，<br>
+                    而你，正是被选中的那一个。
+                </div>
+            </div>
+            
+            <div class="text-card" id="card8">
+                <div class="card-content">
+                    <span class="spirit-voice">现在，敞开你的心念——</span><br>
+                    <span class="spirit-voice">让命运之流指引你的方向。</span>
+                </div>
+            </div>
         </div>
         
         <!-- 召唤按钮 -->
@@ -377,15 +375,11 @@
             
             // 激活开场动画
             setTimeout(() => {
-                // 激活宇宙元素
-                document.getElementById('gate-of-destiny').classList.add('active');
-                document.getElementById('spirit-beam').classList.add('active');
                 document.getElementById('pool-reveal').classList.add('active');
-                document.getElementById('narration-container').style.opacity = '1';
                 
-                // 开始旁白叙事
-                setTimeout(startNarration, 2000);
-            }, 1000);
+                // 开始文字叙事
+                setTimeout(startNarration, 1000);
+            }, 500);
             
             // 召唤按钮事件
             document.getElementById('call-to-action').addEventListener('click', function() {
@@ -418,9 +412,9 @@
         }
         
         function startNarration() {
-            const lines = document.querySelectorAll('.narration-text');
-            const totalDuration = 75000; // 75秒总时长
-            const lineInterval = totalDuration / lines.length;
+            const cards = document.querySelectorAll('.text-card');
+            const totalDuration = 60000; // 60秒总时长
+            const cardInterval = totalDuration / cards.length;
             const progressBar = document.getElementById('progress-bar');
             const callToAction = document.getElementById('call-to-action');
             
@@ -437,30 +431,30 @@
             
             const startTime = Date.now();
             
-            lines.forEach((line, index) => {
+            cards.forEach((card, index) => {
                 setTimeout(() => {
-                    // 隐藏上一行
+                    // 隐藏上一张卡片
                     if (index > 0) {
-                        lines[index - 1].classList.remove('visible');
+                        cards[index - 1].classList.remove('active');
                     }
                     
-                    // 显示当前行
-                    line.classList.add('visible');
+                    // 显示当前卡片
+                    card.classList.add('active');
                     
-                    // 最后一行显示召唤按钮
-                    if (index === lines.length - 1) {
+                    // 最后一张卡片显示召唤按钮
+                    if (index === cards.length - 1) {
                         setTimeout(() => {
                             callToAction.classList.add('visible');
                         }, 1000);
                     }
                     
                     // 自动跳转
-                    if (index === lines.length - 1) {
+                    if (index === cards.length - 1) {
                         setTimeout(() => {
                             window.location.href = 'wishingwell.html';
-                        }, lineInterval * 1.5);
+                        }, cardInterval * 1.5);
                     }
-                }, index * lineInterval);
+                }, index * cardInterval);
             });
         }
     </script>
