@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>命缘池 - 连接命运与愿望的神秘水境</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --gold: #d4af37;
+            --dark-gold: #a67c00;
+            --deep-blue: #0a0e17;
+            --light-blue: #4d79a8;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Noto Serif SC', serif;
+            background-color: #000;
+            color: #e0e0e0;
+            overflow: hidden;
+            height: 100vh;
+            perspective: 1000px;
+        }
+        
+        #cinematic-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        
+        /* 宇宙背景 */
+        #cosmos {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(ellipse at center, var(--deep-blue) 0%, #000000 100%);
+            z-index: -3;
+        }
+        
+        /* 星云效果 */
+        #nebula {
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            background: 
+                radial-gradient(circle at 30% 40%, rgba(75, 20, 120, 0.3) 0%, transparent 40%),
+                radial-gradient(circle at 70% 60%, rgba(20, 70, 150, 0.3) 0%, transparent 40%),
+                radial-gradient(circle at 50% 20%, rgba(150, 50, 50, 0.2) 0%, transparent 30%);
+            animation: nebula-float 60s infinite linear;
+            z-index: -2;
+            opacity: 0.7;
+        }
+        
+        /* 星空 */
+        #stars {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        
+        .star {
+            position: absolute;
+            background-color: #fff;
+            border-radius: 50%;
+            animation: twinkle var(--duration) infinite ease-in-out;
+        }
+        
+        /* 主标题容器 */
+        #title-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transform: scale(0.9);
+            transition: all 2s ease-in-out;
+        }
+        
+        #title-container.active {
+            opacity: 1;
+            transform: scale(1);
+        }
+        
+        /* 主标题 */
+        #main-title {
+            font-size: 5rem;
+            font-weight: 700;
+            color: var(--gold);
+            text-shadow: 0 0 20px rgba(212, 175, 55, 0.7);
+            margin-bottom: 2rem;
+            letter-spacing: 0.5rem;
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all 1.5s ease-out;
+        }
+        
+        #main-title.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* 副标题 */
+        #subtitle {
+            font-size: 1.5rem;
+            color: var(--light-blue);
+            max-width: 800px;
+            text-align: center;
+            line-height: 1.8;
+            margin-bottom: 3rem;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 1.5s ease-out 0.5s;
+        }
+        
+        #subtitle.visible {
+            opacity: 0.8;
+            transform: translateY(0);
+        }
+        
+        /* 故事文本容器 */
+        #story-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            text-align: center;
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .story-text {
+            position: absolute;
+            max-width: 800px;
+            margin: 0 auto;
+            font-size: 2rem;
+            line-height: 1.6;
+            text-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
+            opacity: 0;
+            transition: all 2s ease-in-out;
+            will-change: transform, opacity;
+        }
+        
+        .story-text.visible {
+            opacity: 1;
+        }
+        
+        .highlight {
+            color: var(--gold);
+            font-weight: bold;
+            text-shadow: 0 0 15px rgba(212, 175, 55, 0.9);
+        }
+        
+        /* 命运之池动画 */
+        #destiny-pool {
+            position: absolute;
+            bottom: -150px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 600px;
+            height: 300px;
+            border-radius: 50%;
+            background: radial-gradient(ellipse at center, 
+                rgba(0, 50, 100, 0.3) 0%, 
+                rgba(0, 20, 50, 0.5) 40%, 
+                rgba(0, 10, 30, 0.8) 100%);
+            box-shadow: 
+                0 0 60px rgba(0, 100, 200, 0.5),
+                inset 0 0 30px rgba(0, 150, 255, 0.3);
+            z-index: -1;
+            opacity: 0;
+            transition: all 3s ease-in-out;
+        }
+        
+        #destiny-pool.visible {
+            opacity: 1;
+            bottom: -100px;
+        }
+        
+        .pool-ripple {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 600px;
+            height: 300px;
+            border: 2px solid rgba(100, 180, 255, 0.3);
+            border-radius: 50%;
+            transform: translateX(-50%) scale(0);
+            opacity: 0;
+            animation: ripple 6s infinite;
+        }
+        
+        /* 八字符文 */
+        .bazi-symbol {
+            position: absolute;
+            font-size: 3rem;
+            color: rgba(212, 175, 55, 0.3);
+            z-index: -1;
+            animation: float 15s infinite linear;
+        }
+        
+        /* 进度条 */
+        #progress-container {
+            position: absolute;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 300px;
+            height: 2px;
+            background-color: rgba(100, 100, 100, 0.3);
+            border-radius: 2px;
+            overflow: hidden;
+            opacity: 0.7;
+        }
+        
+        #progress-bar {
+            height: 100%;
+            width: 0;
+            background: linear-gradient(to right, var(--dark-gold), var(--gold));
+            transition: width 0.1s linear;
+        }
+        
+        /* 跳过按钮 */
+        #skip-btn {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            background-color: rgba(212, 175, 55, 0.1);
+            color: var(--gold);
+            border: 1px solid var(--gold);
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s;
+            backdrop-filter: blur(5px);
+            z-index: 10;
+        }
+        
+        #skip-btn:hover {
+            background-color: rgba(212, 175, 55, 0.3);
+            transform: scale(1.05);
+        }
+        
+        /* 粒子效果 */
+        #particles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        
+        /* 动画定义 */
+        @keyframes nebula-float {
+            0% {
+                transform: translate(0, 0);
+            }
+            50% {
+                transform: translate(-50%, -50%);
+            }
+            100% {
+                transform: translate(0, 0);
+            }
+        }
+        
+        @keyframes twinkle {
+            0%, 100% {
+                opacity: 0.2;
+            }
+            50% {
+                opacity: 1;
+            }
+        }
+        
+        @keyframes ripple {
+            0% {
+                transform: translateX(-50%) scale(0.8);
+                opacity: 0.5;
+            }
+            100% {
+                transform: translateX(-50%) scale(1.5);
+                opacity: 0;
+            }
+        }
+        
+        @keyframes float {
+            0%, 100% {
+                transform: translate(0, 0) rotate(0deg);
+            }
+            25% {
+                transform: translate(50px, -30px) rotate(10deg);
+            }
+            50% {
+                transform: translate(0, -50px) rotate(0deg);
+            }
+            75% {
+                transform: translate(-50px, -30px) rotate(-10deg);
+            }
+        }
+        
+        @keyframes text-glow {
+            0%, 100% {
+                text-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+            }
+            50% {
+                text-shadow: 0 0 20px rgba(212, 175, 55, 0.9);
+            }
+        }
+        
+        /* 响应式调整 */
+        @media (max-width: 768px) {
+            #main-title {
+                font-size: 3rem;
+            }
+            
+            #subtitle {
+                font-size: 1.2rem;
+                max-width: 90%;
+            }
+            
+            .story-text {
+                font-size: 1.5rem;
+                max-width: 90%;
+            }
+            
+            #destiny-pool {
+                width: 400px;
+                height: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="cinematic-container">
+        <!-- 宇宙背景 -->
+        <div id="cosmos"></div>
+        <div id="nebula"></div>
+        <div id="stars"></div>
+        
+        <!-- 主标题 -->
+        <div id="title-container">
+            <h1 id="main-title">命缘池</h1>
+            <p id="subtitle">连接命运与愿望的神秘水境</p>
+        </div>
+        
+        <!-- 故事文本 -->
+        <div id="story-container">
+            <div class="story-text" id="text1">在宇宙的深处，<span class="highlight">命运长河</span>静静流淌...</div>
+            <div class="story-text" id="text2">古老的东方智者发现了一处<span class="highlight">神秘交汇点</span>...</div>
+            <div class="story-text" id="text3">那里，生辰八字与宇宙能量<span class="highlight">共振共鸣</span>...</div>
+            <div class="story-text" id="text4">他们称之为——<span class="highlight">命缘池</span>...</div>
+            <div class="story-text" id="text5">一个能<span class="highlight">改写命运轨迹</span>的神秘领域...</div>
+            <div class="story-text" id="text6">当你的<span class="highlight">八字信息</span>投入池中...</div>
+            <div class="story-text" id="text7">宇宙便会为你<span class="highlight">显化最适合的机缘</span>...</div>
+            <div class="story-text" id="text8">这不是普通的许愿...</div>
+            <div class="story-text" id="text9">而是与<span class="highlight">宇宙法则</span>的直接对话...</div>
+            <div class="story-text" id="text10">"唵嘛呢叭咪吽"——六字真言<span class="highlight">净化一切杂念</span>...</div>
+            <div class="story-text" id="text11">十二生肖守护神<span class="highlight">加持你的愿力</span>...</div>
+            <div class="story-text" id="text12">在这里，<span class="highlight">相信即是看见</span>...</div>
+            <div class="story-text" id="text13">在这里，<span class="highlight">心念创造现实</span>...</div>
+            <div class="story-text" id="text14">准备好开启你的<span class="highlight">命运之旅</span>了吗？...</div>
+        </div>
+        
+        <!-- 命运之池效果 -->
+        <div id="destiny-pool">
+            <div class="pool-ripple"></div>
+            <div class="pool-ripple" style="animation-delay: 2s;"></div>
+            <div class="pool-ripple" style="animation-delay: 4s;"></div>
+        </div>
+        
+        <!-- 八字符文 -->
+        <div id="bazi-symbols"></div>
+        
+        <!-- 进度条 -->
+        <div id="progress-container">
+            <div id="progress-bar"></div>
+        </div>
+        
+        <!-- 跳过按钮 -->
+        <button id="skip-btn">跳过序幕</button>
+        
+        <!-- 粒子效果 -->
+        <div id="particles"></div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 创建星空背景
+            createStars();
+            
+            // 创建八字符文
+            createBaziSymbols();
+            
+            // 创建粒子效果
+            createParticles();
+            
+            // 激活主标题
+            setTimeout(() => {
+                document.getElementById('title-container').classList.add('active');
+                document.getElementById('main-title').classList.add('visible');
+                document.getElementById('subtitle').classList.add('visible');
+                
+                // 3秒后显示命运之池
+                setTimeout(() => {
+                    document.getElementById('destiny-pool').classList.add('visible');
+                    
+                    // 2秒后开始故事
+                    setTimeout(startStory, 2000);
+                }, 3000);
+            }, 500);
+            
+            // 跳过按钮事件
+            document.getElementById('skip-btn').addEventListener('click', function() {
+                window.location.href = 'wishingwell.html';
+            });
+        });
+        
+        function createStars() {
+            const starsContainer = document.getElementById('stars');
+            const starCount = 300;
+            
+            for (let i = 0; i < starCount; i++) {
+                const star = document.createElement('div');
+                star.classList.add('star');
+                
+                // 随机大小
+                const size = Math.random() * 3;
+                star.style.width = `${size}px`;
+                star.style.height = `${size}px`;
+                
+                // 随机位置
+                star.style.left = `${Math.random() * 100}%`;
+                star.style.top = `${Math.random() * 100}%`;
+                
+                // 随机闪烁时间
+                star.style.setProperty('--duration', `${5 + Math.random() * 15}s`);
+                
+                starsContainer.appendChild(star);
+            }
+        }
+        
+        function createBaziSymbols() {
+            const baziContainer = document.getElementById('bazi-symbols');
+            const symbols = ['乾', '坤', '震', '巽', '坎', '离', '艮', '兑', '甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
+            
+            for (let i = 0; i < 20; i++) {
+                const symbol = document.createElement('div');
+                symbol.classList.add('bazi-symbol');
+                symbol.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+                
+                // 随机位置
+                symbol.style.left = `${5 + Math.random() * 90}%`;
+                symbol.style.top = `${5 + Math.random() * 90}%`;
+                
+                // 随机动画延迟
+                symbol.style.animationDelay = `${Math.random() * 15}s`;
+                
+                baziContainer.appendChild(symbol);
+            }
+        }
+        
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            const particleCount = 50;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.style.position = 'absolute';
+                particle.style.width = `${1 + Math.random() * 3}px`;
+                particle.style.height = particle.style.width;
+                particle.style.backgroundColor = `rgba(212, 175, 55, ${0.2 + Math.random() * 0.3})`;
+                particle.style.borderRadius = '50%';
+                
+                // 随机起始位置
+                particle.style.left = `${Math.random() * 100}%`;
+                particle.style.top = `${Math.random() * 100}%`;
+                
+                // 动画
+                particle.style.animation = `float ${15 + Math.random() * 30}s infinite linear`;
+                particle.style.animationDelay = `${Math.random() * 15}s`;
+                
+                particlesContainer.appendChild(particle);
+            }
+        }
+        
+        function startStory() {
+            const texts = document.querySelectorAll('.story-text');
+            const totalDuration = 42000; // 总时长42秒
+            const textInterval = totalDuration / texts.length;
+            const progressBar = document.getElementById('progress-bar');
+            
+            // 隐藏主标题
+            document.getElementById('title-container').style.opacity = '0';
+            
+            // 显示故事容器
+            document.getElementById('story-container').style.opacity = '1';
+            
+            // 更新进度条
+            const progressInterval = setInterval(() => {
+                const elapsed = Date.now() - startTime;
+                const progress = (elapsed / totalDuration) * 100;
+                progressBar.style.width = `${Math.min(progress, 100)}%`;
+                
+                if (progress >= 100) {
+                    clearInterval(progressInterval);
+                }
+            }, 100);
+            
+            const startTime = Date.now();
+            
+            texts.forEach((text, index) => {
+                setTimeout(() => {
+                    // 隐藏所有文本
+                    texts.forEach(t => t.classList.remove('visible'));
+                    
+                    // 显示当前文本
+                    text.classList.add('visible');
+                    
+                    // 如果是最后一个文本，设置跳转
+                    if (index === texts.length - 1) {
+                        setTimeout(() => {
+                            window.location.href = 'wishingwell.html';
+                        }, textInterval);
+                    }
+                }, index * textInterval);
+            });
+        }
+    </script>
+</body>
+</html>
