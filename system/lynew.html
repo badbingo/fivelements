@@ -727,307 +727,305 @@
         };
         
         // DeepSeek API配置
-        const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
-        const apiKey = 'sk-b2950087a9d5427392762814114b22a9';
-        
-        // DOM元素
-        const coins = document.querySelectorAll('.coin');
-        const shakeBtn = document.getElementById('shakeBtn');
-        const resetBtn = document.getElementById('resetBtn');
-        const hexagramDisplay = document.getElementById('hexagramDisplay');
-        const resultContainer = document.getElementById('resultContainer');
-        const progress = document.getElementById('progress');
-        const currentStep = document.getElementById('currentStep');
-        const steps = document.querySelectorAll('.step');
-        const questionInput = document.getElementById('questionInput');
-        const saveQuestionBtn = document.getElementById('saveQuestion');
-        const aiBtn = document.getElementById('aiBtn');
-        const aiContent = document.getElementById('aiContent');
-        
-        // 状态变量
-        let currentLines = [];
-        let step = 0;
-        let userQuestion = "";
-        let currentHexagram = null;
-        
-        // 保存问题
-        saveQuestionBtn.addEventListener('click', () => {
-            userQuestion = questionInput.value.trim();
-            if (userQuestion) {
-                alert("问题已确认！开始摇卦吧");
-                questionInput.disabled = true;
-                saveQuestionBtn.disabled = true;
-            } else {
-                alert("请输入占卜问题");
-            }
-        });
-        
-        // 摇卦函数
-        function shakeCoins() {
-            if (!userQuestion) {
-                alert("请先输入并确认占卜问题");
-                return;
-            }
+            const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
+            const apiKey = 'sk-b2950087a9d5427392762814114b22a9';
+    
+            // DOM元素
+            const coins = document.querySelectorAll('.coin');
+            const shakeBtn = document.getElementById('shakeBtn');
+            const resetBtn = document.getElementById('resetBtn');
+            const hexagramDisplay = document.getElementById('hexagramDisplay');
+            const resultContainer = document.getElementById('resultContainer');
+            const progress = document.getElementById('progress');
+            const currentStep = document.getElementById('currentStep');
+            const steps = document.querySelectorAll('.step');
+            const questionInput = document.getElementById('questionInput');
+            const saveQuestionBtn = document.getElementById('saveQuestion');
+            const aiBtn = document.getElementById('aiBtn');
+            const aiContent = document.getElementById('aiContent');
             
-            if (step >= 6) return;
+            // 状态变量
+            let currentLines = [];
+            let step = 0;
+            let userQuestion = "";
+            let currentHexagram = null;
             
-            // 禁用按钮
-            shakeBtn.disabled = true;
-            
-            // 重置硬币状态
-            coins.forEach(coin => {
-                coin.classList.remove('flipping');
-                void coin.offsetWidth; // 触发重绘
-                coin.classList.add('flipping');
+            // 保存问题
+            saveQuestionBtn.addEventListener('click', () => {
+                userQuestion = questionInput.value.trim();
+                if (userQuestion) {
+                    alert("问题已确认！开始摇卦吧");
+                    questionInput.disabled = true;
+                    saveQuestionBtn.disabled = true;
+                } else {
+                    alert("请输入占卜问题");
+                }
             });
             
-            // 更新进度
-            step++;
-            updateProgress();
-            
-            // 模拟摇卦结果
-            setTimeout(() => {
-                // 生成三枚硬币的结果（0:反面, 1:正面）
-                const results = [
-                    Math.random() < 0.5 ? 0 : 1,
-                    Math.random() < 0.5 ? 0 : 1,
-                    Math.random() < 0.5 ? 0 : 1
-                ];
-                
-                // 计算爻的类型
-                const sum = results.reduce((acc, val) => acc + val, 0);
-                let lineType;
-                
-                // 根据结果确定爻的类型
-                if (sum === 0) { // 三个反面 (0+0+0=0)
-                    lineType = 'yin'; // 老阴
-                } else if (sum === 1) { // 一个正面 (1+0+0=1)
-                    lineType = 'yang'; // 少阳
-                } else if (sum === 2) { // 两个正面 (1+1+0=2)
-                    lineType = 'yin'; // 少阴
-                } else { // 三个正面 (1+1+1=3)
-                    lineType = 'yang'; // 老阳
+            // 摇卦函数
+            function shakeCoins() {
+                if (!userQuestion) {
+                    alert("请先输入并确认占卜问题");
+                    return;
                 }
                 
-                // 保存结果
-                currentLines.push(lineType);
+                if (step >= 6) return;
                 
-                // 更新UI显示
-                updateCoinDisplay(results);
+                // 禁用按钮
+                shakeBtn.disabled = true;
                 
-                // 如果六爻完成，显示卦象
-                if (step === 6) {
-                    setTimeout(() => {
-                        displayHexagram();
-                        aiBtn.disabled = false; // 完成六爻后启用AI按钮
-                    }, 1000);
-                } else {
-                    shakeBtn.disabled = false;
-                }
-            }, 1600);
-        }
-        
-        // 更新硬币显示
-        function updateCoinDisplay(results) {
-            coins.forEach((coin, index) => {
-                // 设置硬币结果
-                if (results[index] === 0) {
-                    coin.style.transform = 'rotateY(180deg)';
-                } else {
-                    coin.style.transform = 'rotateY(0deg)';
-                }
-            });
-        }
-        
-        // 更新进度显示
-        function updateProgress() {
-            // 更新进度条
-            const progressPercent = (step / 6) * 100;
-            progress.style.width = `${progressPercent}%`;
-            
-            // 更新步骤显示
-            currentStep.textContent = step;
-            
-            // 更新步骤指示器
-            steps.forEach((stepElement, index) => {
-                if (index < step) {
-                    stepElement.classList.add('completed');
-                    stepElement.classList.remove('active');
-                } else if (index === step - 1) {
-                    stepElement.classList.add('active');
-                    stepElement.classList.remove('completed');
-                } else {
-                    stepElement.classList.remove('active', 'completed');
-                }
-            });
-        }
-        
-        // 显示卦象
-        function displayHexagram() {
-            // 清空卦象显示区
-            hexagramDisplay.innerHTML = '';
-            
-            // 从下到上显示卦象
-            for (let i = 5; i >= 0; i--) {
-                const lineType = currentLines[i];
-                const lineElement = document.createElement('div');
-                lineElement.style.animationDelay = `${(5-i)*0.1}s`;
-                
-                if (lineType === 'yang') {
-                    lineElement.className = 'hexagram-line yang-line';
-                    hexagramDisplay.appendChild(lineElement);
-                } else {
-                    const brokenLine = document.createElement('div');
-                    brokenLine.className = 'yin-broken';
-                    brokenLine.style.animationDelay = `${(5-i)*0.1}s';
-                    brokenLine.innerHTML = `
-                        <div class="yin-segment"></div>
-                        <div class="yin-segment"></div>
-                    `;
-                    hexagramDisplay.appendChild(brokenLine);
-                }
-            }
-            
-            // 随机选择一个卦来显示（实际应用中应根据卦象查找）
-            const hexagramKeys = Object.keys(hexagrams);
-            const randomKey = hexagramKeys[Math.floor(Math.random() * hexagramKeys.length)];
-            currentHexagram = hexagrams[randomKey];
-            
-            // 显示卦辞和解释
-            resultContainer.innerHTML = `
-                <div class="hexagram-name">${currentHexagram.name}</div>
-                <div class="hexagram-title">卦辞</div>
-                <div class="judgment">${currentHexagram.judgment}</div>
-                <div class="hexagram-title">爻辞</div>
-                ${currentHexagram.lines.map(line => `<div class="line-text">${line}</div>`).join('')}
-                <div class="hexagram-title">卦象解释</div>
-                <div class="explanation">${currentHexagram.explanation}</div>
-            `;
-        }
-        
-        // 调用DeepSeek API
-        aiBtn.addEventListener('click', async () => {
-            if (!currentHexagram || !userQuestion) {
-                alert("请先完成占卜过程");
-                return;
-            }
-            
-            // 禁用按钮，防止重复点击
-            aiBtn.disabled = true;
-            
-            aiContent.innerHTML = `
-                <div class="ai-loading">
-                    <div class="spinner"></div>
-                    <p>AI正在深度分析卦象，请稍候...</p>
-                </div>
-            `;
-            
-            try {
-                // 构造请求数据
-                const requestData = {
-                    model: "deepseek-chat",
-                    messages: [
-                        {
-                            role: "system",
-                            content: "你是一位精通《周易》的专家，擅长根据卦象和爻辞解读占卜结果。请根据用户的问题和卦象提供专业、详细的解卦分析。"
-                        },
-                        {
-                            role: "user",
-                            content: `用户占卜问题：${userQuestion}
-                                
-        占卜结果：
-        卦名：${currentHexagram.name}
-        卦辞：${currentHexagram.judgment}
-        爻辞：${currentHexagram.lines.join('\n')}
-        卦象解释：${currentHexagram.explanation}
-        
-        请结合用户的具体问题和以上卦象信息，提供详细的解卦分析：`
-                        }
-                    ],
-                    temperature: 0.7,
-                    max_tokens: 1000,
-                    top_p: 1
-                };
-                
-                // 发送API请求
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${apiKey}`
-                    },
-                    body: JSON.stringify(requestData)
+                // 重置硬币状态
+                coins.forEach(coin => {
+                    coin.classList.remove('flipping');
+                    void coin.offsetWidth; // 触发重绘
+                    coin.classList.add('flipping');
                 });
                 
-                if (!response.ok) {
-                    throw new Error(`API请求失败: ${response.status}`);
+                // 更新进度
+                step++;
+                updateProgress();
+                
+                // 模拟摇卦结果
+                setTimeout(() => {
+                    // 生成三枚硬币的结果（0:反面, 1:正面）
+                    const results = [
+                        Math.random() < 0.5 ? 0 : 1,
+                        Math.random() < 0.5 ? 0 : 1,
+                        Math.random() < 0.5 ? 0 : 1
+                    ];
+                    
+                    // 计算爻的类型
+                    const sum = results.reduce((acc, val) => acc + val, 0);
+                    let lineType;
+                    
+                    // 根据结果确定爻的类型
+                    if (sum === 0) { // 三个反面 (0+0+0=0)
+                        lineType = 'yin'; // 老阴
+                    } else if (sum === 1) { // 一个正面 (1+0+0=1)
+                        lineType = 'yang'; // 少阳
+                    } else if (sum === 2) { // 两个正面 (1+1+0=2)
+                        lineType = 'yin'; // 少阴
+                    } else { // 三个正面 (1+1+1=3)
+                        lineType = 'yang'; // 老阳
+                    }
+                    
+                    // 保存结果
+                    currentLines.push(lineType);
+                    
+                    // 更新UI显示
+                    updateCoinDisplay(results);
+                    
+                    // 如果六爻完成，显示卦象
+                    if (step === 6) {
+                        setTimeout(() => {
+                            displayHexagram();
+                            aiBtn.disabled = false;
+                        }, 1000);
+                    } else {
+                        shakeBtn.disabled = false;
+                    }
+                }, 1600);
+            }
+            
+            // 更新硬币显示
+            function updateCoinDisplay(results) {
+                coins.forEach((coin, index) => {
+                    // 设置硬币结果
+                    if (results[index] === 0) {
+                        coin.style.transform = 'rotateY(180deg)';
+                    } else {
+                        coin.style.transform = 'rotateY(0deg)';
+                    }
+                });
+            }
+            
+            // 更新进度显示
+            function updateProgress() {
+                // 更新进度条
+                const progressPercent = (step / 6) * 100;
+                progress.style.width = `${progressPercent}%`;
+                
+                // 更新步骤显示
+                currentStep.textContent = step;
+                
+                // 更新步骤指示器
+                steps.forEach((stepElement, index) => {
+                    if (index < step) {
+                        stepElement.classList.add('completed');
+                        stepElement.classList.remove('active');
+                    } else if (index === step - 1) {
+                        stepElement.classList.add('active');
+                        stepElement.classList.remove('completed');
+                    } else {
+                        stepElement.classList.remove('active', 'completed');
+                    }
+                });
+            }
+            
+            // 显示卦象
+            function displayHexagram() {
+                // 清空卦象显示区
+                hexagramDisplay.innerHTML = '';
+                
+                // 从下到上显示卦象
+                for (let i = 5; i >= 0; i--) {
+                    const lineType = currentLines[i];
+                    const lineElement = document.createElement('div');
+                    lineElement.style.animationDelay = `${(5-i)*0.1}s`;
+                    
+                    if (lineType === 'yang') {
+                        lineElement.className = 'hexagram-line yang-line';
+                        hexagramDisplay.appendChild(lineElement);
+                    } else {
+                        const brokenLine = document.createElement('div');
+                        brokenLine.className = 'yin-broken';
+                        brokenLine.style.animationDelay = `${(5-i)*0.1}s`;
+                        brokenLine.innerHTML = `
+                            <div class="yin-segment"></div>
+                            <div class="yin-segment"></div>
+                        `;
+                        hexagramDisplay.appendChild(brokenLine);
+                    }
                 }
                 
-                const data = await response.json();
-                const aiResponse = data.choices[0].message.content;
+                // 随机选择一个卦来显示（实际应用中应根据卦象查找）
+                const hexagramKeys = Object.keys(hexagrams);
+                const randomKey = hexagramKeys[Math.floor(Math.random() * hexagramKeys.length)];
+                currentHexagram = hexagrams[randomKey];
                 
-                // 显示AI解卦结果
-                aiContent.innerHTML = `
-                    <div class="ai-analysis-result">
-                        <p><strong>问题分析：</strong>${userQuestion}</p>
-                        <p><strong>卦象解读：</strong>${currentHexagram.name} (${currentHexagram.judgment})</p>
-                        <div class="ai-insight">
-                            ${aiResponse.split('\n').map(p => `<p>${p}</p>`).join('')}
-                        </div>
-                    </div>
-                `;
-                
-            } catch (error) {
-                console.error("API调用失败:", error);
-                aiContent.innerHTML = `
-                    <div class="ai-error">
-                        <p>AI解卦服务暂时不可用</p>
-                        <p>错误信息: ${error.message}</p>
-                        <p>请稍后再试或查看控制台获取更多信息</p>
-                    </div>
+                // 显示卦辞和解释
+                resultContainer.innerHTML = `
+                    <div class="hexagram-name">${currentHexagram.name}</div>
+                    <div class="hexagram-title">卦辞</div>
+                    <div class="judgment">${currentHexagram.judgment}</div>
+                    <div class="hexagram-title">爻辞</div>
+                    ${currentHexagram.lines.map(line => `<div class="line-text">${line}</div>`).join('')}
+                    <div class="hexagram-title">卦象解释</div>
+                    <div class="explanation">${currentHexagram.explanation}</div>
                 `;
             }
-        });
-        
-        // 重置系统
-        function resetSystem() {
-            currentLines = [];
-            step = 0;
-            currentHexagram = null;
             
-            // 重置硬币
-            coins.forEach(coin => {
-                coin.classList.remove('flipping');
-                coin.style.transform = 'rotateY(0deg)';
+            // 重置系统
+            function resetSystem() {
+                currentLines = [];
+                step = 0;
+                currentHexagram = null;
+                
+                // 重置硬币
+                coins.forEach(coin => {
+                    coin.classList.remove('flipping');
+                    coin.style.transform = 'rotateY(0deg)';
+                });
+                
+                // 重置进度
+                updateProgress();
+                
+                // 启用按钮
+                shakeBtn.disabled = false;
+                aiBtn.disabled = true;
+                
+                // 清空结果显示
+                hexagramDisplay.innerHTML = '<div class="placeholder-text"><p>摇卦完成后，卦象和解释将显示在此处</p><p><i class="fas fa-arrow-down" style="margin-top: 20px; font-size: 2rem;"></i></p></div>';
+                resultContainer.innerHTML = '<div class="placeholder-text"><p>请完成六爻摇卦以查看完整的卦辞和解释</p><p>系统包含全部64卦的详细内容</p></div>';
+                
+                // 重置问题输入
+                questionInput.disabled = false;
+                saveQuestionBtn.disabled = false;
+                userQuestion = "";
+                questionInput.value = "";
+                
+                // 重置AI区域
+                aiContent.innerHTML = '<p>完成占卜后，点击下方按钮获取AI对卦象的深度解读</p><p>AI将结合您的具体问题提供专业分析和建议</p>';
+            }
+            
+            // 调用DeepSeek API
+            aiBtn.addEventListener('click', async () => {
+                if (!currentHexagram || !userQuestion) {
+                    alert("请先完成占卜过程");
+                    return;
+                }
+                
+                aiContent.innerHTML = `
+                    <div class="ai-loading">
+                        <div class="spinner"></div>
+                        <p>AI正在深度分析卦象，请稍候...</p>
+                    </div>
+                `;
+                
+                try {
+                    // 构造请求数据
+                    const requestData = {
+                        model: "deepseek-chat",
+                        messages: [
+                            {
+                                role: "system",
+                                content: "你是一位精通《周易》的专家，擅长根据卦象和爻辞解读占卜结果。请根据用户的问题和卦象提供专业、详细的解卦分析。"
+                            },
+                            {
+                                role: "user",
+                                content: `用户占卜问题：${userQuestion}
+                                    
+                    占卜结果：
+                    卦名：${currentHexagram.name}
+                    卦辞：${currentHexagram.judgment}
+                    爻辞：${currentHexagram.lines.join('\n')}
+                    卦象解释：${currentHexagram.explanation}
+                    
+                    请结合用户的具体问题和以上卦象信息，提供详细的解卦分析：`
+                            }
+                        ],
+                        temperature: 0.7,
+                        max_tokens: 1000,
+                        top_p: 1
+                    };
+                    
+                    // 发送API请求
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${apiKey}`
+                        },
+                        body: JSON.stringify(requestData)
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`API请求失败: ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                    const aiResponse = data.choices[0].message.content;
+                    
+                    // 显示AI解卦结果
+                    aiContent.innerHTML = `
+                        <div class="ai-analysis-result">
+                            <p><strong>问题分析：</strong>${userQuestion}</p>
+                            <p><strong>卦象解读：</strong>${currentHexagram.name} (${currentHexagram.judgment})</p>
+                            <div class="ai-insight">
+                                ${aiResponse.split('\n').map(p => `<p>${p}</p>`).join('')}
+                            </div>
+                        </div>
+                    `;
+                    
+                } catch (error) {
+                    console.error("API调用失败:", error);
+                    aiContent.innerHTML = `
+                        <div class="ai-error">
+                            <p>AI解卦服务暂时不可用</p>
+                            <p>错误信息: ${error.message}</p>
+                            <p>请稍后再试或查看控制台获取更多信息</p>
+                        </div>
+                    `;
+                }
             });
             
-            // 重置进度
-            updateProgress();
+            // 事件监听
+            shakeBtn.addEventListener('click', shakeCoins);
+            resetBtn.addEventListener('click', resetSystem);
             
-            // 启用/禁用按钮
-            shakeBtn.disabled = false;
-            aiBtn.disabled = true; // 重置后AI按钮保持禁用状态
-            
-            // 清空结果显示
-            hexagramDisplay.innerHTML = '<div class="placeholder-text"><p>摇卦完成后，卦象和解释将显示在此处</p><p><i class="fas fa-arrow-down" style="margin-top: 20px; font-size: 2rem;"></i></p></div>';
-            resultContainer.innerHTML = '<div class="placeholder-text"><p>请完成六爻摇卦以查看完整的卦辞和解释</p><p>系统包含全部64卦的详细内容</p></div>';
-            
-            // 重置问题输入
-            questionInput.disabled = false;
-            saveQuestionBtn.disabled = false;
-            userQuestion = "";
-            questionInput.value = "";
-            
-            // 重置AI区域
-            aiContent.innerHTML = '<p>完成占卜后，点击下方按钮获取AI对卦象的深度解读</p><p>AI将结合您的具体问题提供专业分析和建议</p>';
-        }
-        
-        // 事件监听
-        shakeBtn.addEventListener('click', shakeCoins);
-        resetBtn.addEventListener('click', resetSystem);
-        
-        // 初始化
-        resetSystem();
+            // 初始化
+            resetSystem();
+
     </script>
 </body>
 </html>
