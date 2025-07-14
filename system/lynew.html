@@ -748,6 +748,7 @@
         let step = 0;
         let userQuestion = "";
         let currentHexagram = null;
+        let hasRequestedAI = false; // 新增：标记是否已请求过AI分析
         
         // 保存问题
         saveQuestionBtn.addEventListener('click', () => {
@@ -818,7 +819,9 @@
                 if (step === 6) {
                     setTimeout(() => {
                         displayHexagram();
-                        aiBtn.disabled = false; // 摇卦完成后启用AI按钮
+                        aiBtn.disabled = false;
+                        hasRequestedAI = false; // 重置AI请求标记
+                        aiBtn.classList.remove('viewed'); // 重置按钮样式
                     }, 1000);
                 } else {
                     shakeBtn.disabled = false;
@@ -909,6 +912,7 @@
             currentLines = [];
             step = 0;
             currentHexagram = null;
+            hasRequestedAI = false;
             
             // 重置硬币
             coins.forEach(coin => {
@@ -919,9 +923,10 @@
             // 重置进度
             updateProgress();
             
-            // 启用摇卦按钮，禁用AI按钮
+            // 启用按钮
             shakeBtn.disabled = false;
             aiBtn.disabled = true;
+            aiBtn.classList.remove('viewed');
             
             // 清空结果显示
             hexagramDisplay.innerHTML = '<div class="placeholder-text"><p>摇卦完成后，卦象和解释将显示在此处</p><p><i class="fas fa-arrow-down" style="margin-top: 20px; font-size: 2rem;"></i></p></div>';
@@ -939,14 +944,20 @@
         
         // 调用DeepSeek API
         aiBtn.addEventListener('click', async () => {
-            // 点击后立即禁用按钮
-            aiBtn.disabled = true;
-            
             if (!currentHexagram || !userQuestion) {
                 alert("请先完成占卜过程");
-                aiBtn.disabled = false; // 如果条件不满足，重新启用按钮
                 return;
             }
+            
+            if (hasRequestedAI) {
+                alert("您已经获取过本次占卜的AI分析，如需重新分析请先重置");
+                return;
+            }
+            
+            // 禁用按钮并标记为已请求
+            aiBtn.disabled = true;
+            hasRequestedAI = true;
+            aiBtn.classList.add('viewed');
             
             aiContent.innerHTML = `
                 <div class="ai-loading">
@@ -1019,8 +1030,10 @@
                         <p>请稍后再试或查看控制台获取更多信息</p>
                     </div>
                 `;
-                // API调用失败时也可以选择重新启用按钮
-                // aiBtn.disabled = false;
+                // 出错时恢复按钮状态
+                aiBtn.disabled = false;
+                hasRequestedAI = false;
+                aiBtn.classList.remove('viewed');
             }
         });
         
