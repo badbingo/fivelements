@@ -728,7 +728,7 @@
         // DeepSeek API配置
         const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
         const apiKey = 'sk-b2950087a9d5427392762814114b22a9';
-
+        
         // DOM元素
         const coins = document.querySelectorAll('.coin');
         const shakeBtn = document.getElementById('shakeBtn');
@@ -818,7 +818,7 @@
                 if (step === 6) {
                     setTimeout(() => {
                         displayHexagram();
-                        aiBtn.disabled = false;
+                        aiBtn.disabled = false; // 摇卦完成后启用AI按钮
                     }, 1000);
                 } else {
                     shakeBtn.disabled = false;
@@ -878,7 +878,7 @@
                 } else {
                     const brokenLine = document.createElement('div');
                     brokenLine.className = 'yin-broken';
-                    brokenLine.style.animationDelay = `${(5-i)*0.1}s`;
+                    brokenLine.style.animationDelay = `${(5-i)*0.1}s';
                     brokenLine.innerHTML = `
                         <div class="yin-segment"></div>
                         <div class="yin-segment"></div>
@@ -919,7 +919,7 @@
             // 重置进度
             updateProgress();
             
-            // 启用按钮
+            // 启用摇卦按钮，禁用AI按钮
             shakeBtn.disabled = false;
             aiBtn.disabled = true;
             
@@ -939,8 +939,12 @@
         
         // 调用DeepSeek API
         aiBtn.addEventListener('click', async () => {
+            // 点击后立即禁用按钮
+            aiBtn.disabled = true;
+            
             if (!currentHexagram || !userQuestion) {
                 alert("请先完成占卜过程");
+                aiBtn.disabled = false; // 如果条件不满足，重新启用按钮
                 return;
             }
             
@@ -964,13 +968,13 @@
                             role: "user",
                             content: `用户占卜问题：${userQuestion}
                                 
-占卜结果：
-卦名：${currentHexagram.name}
-卦辞：${currentHexagram.judgment}
-爻辞：${currentHexagram.lines.join('\n')}
-卦象解释：${currentHexagram.explanation}
-
-请结合用户的具体问题和以上卦象信息，提供详细的解卦分析：`
+        占卜结果：
+        卦名：${currentHexagram.name}
+        卦辞：${currentHexagram.judgment}
+        爻辞：${currentHexagram.lines.join('\n')}
+        卦象解释：${currentHexagram.explanation}
+        
+        请结合用户的具体问题和以上卦象信息，提供详细的解卦分析：`
                         }
                     ],
                     temperature: 0.7,
@@ -1015,6 +1019,8 @@
                         <p>请稍后再试或查看控制台获取更多信息</p>
                     </div>
                 `;
+                // API调用失败时也可以选择重新启用按钮
+                // aiBtn.disabled = false;
             }
         });
         
