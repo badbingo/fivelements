@@ -935,15 +935,25 @@
             
             // 重置AI区域
             aiContent.innerHTML = '<p>完成占卜后，点击下方按钮获取AI对卦象的深度解读</p><p>AI将结合您的具体问题提供专业分析和建议</p>';
+            
+            // 重置AI按钮点击状态
+            aiBtnClicked = false;
         }
         
         // 调用DeepSeek API
+        let aiBtnClicked = false;
         aiBtn.addEventListener('click', async () => {
             if (!currentHexagram || !userQuestion) {
                 alert("请先完成占卜过程");
                 return;
             }
             
+            if (aiBtnClicked) {
+                alert("每次摇卦后只能获取一次AI解卦分析，请点击重新开始按钮后再次尝试");
+                return;
+            }
+            
+            aiBtnClicked = true;
             aiContent.innerHTML = `
                 <div class="ai-loading">
                     <div class="spinner"></div>
