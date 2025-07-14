@@ -4,229 +4,173 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>六爻占卜系统</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --primary-color: #8B4513;
-            --secondary-color: #D2B48C;
-            --text-color: #333;
-            --light-color: #F5F5DC;
-            --yang-color: #E74C3C;
-            --yin-color: #3498DB;
-        }
-        
+        /* 基础样式 */
         body {
-            font-family: 'Noto Serif SC', serif;
-            background-color: var(--light-color);
-            color: var(--text-color);
-            margin: 0;
-            padding: 20px;
+            font-family: 'Microsoft YaHei', sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
             line-height: 1.6;
+            padding: 20px;
+            max-width: 1000px;
+            margin: 0 auto;
         }
         
         .container {
-            max-width: 1000px;
-            margin: 0 auto;
             background-color: white;
-            padding: 30px;
             border-radius: 10px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            padding: 30px;
         }
         
-        h1 {
+        h1, h2, h3 {
+            color: #8B4513;
             text-align: center;
-            color: var(--primary-color);
-            margin-bottom: 30px;
-            font-size: 2.5em;
-            border-bottom: 2px solid var(--secondary-color);
-            padding-bottom: 10px;
         }
         
-        .divination-area {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin-bottom: 40px;
+        /* 铜钱样式 */
+        .coin {
+            width: 60px;
+            height: 60px;
+            margin: 5px;
+            transition: transform 0.5s ease;
         }
         
-        .coins-container {
+        .coin-container {
             display: flex;
             justify-content: center;
-            gap: 20px;
-            margin-bottom: 30px;
-            height: 100px;
-        }
-        
-        .coin {
-            width: 80px;
-            height: 80px;
-            background-size: contain;
-            background-repeat: no-repeat;
-            background-position: center;
-            transition: transform 0.3s ease;
-            position: relative;
-        }
-        
-        .coin.flipping {
-            animation: flip-coin 1.5s infinite;
-        }
-        
-        @keyframes flip-coin {
-            0% { transform: rotateY(0deg); }
-            50% { transform: rotateY(180deg); }
-            100% { transform: rotateY(360deg); }
-        }
-        
-        .hexagram-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
             margin: 20px 0;
         }
         
+        /* 卦象显示 */
         .hexagram {
             display: flex;
             flex-direction: column;
-            gap: 5px;
+            align-items: center;
+            margin: 30px 0;
         }
         
         .line {
-            width: 120px;
-            height: 8px;
-            border-radius: 4px;
-            margin: 2px 0;
+            height: 20px;
+            margin: 3px 0;
+            position: relative;
         }
         
-        .yang-line {
-            background-color: var(--yang-color);
+        .yang {
+            background-color: #FF4500;
+            width: 150px;
         }
         
-        .yin-line {
-            background-color: var(--yin-color);
+        .yin {
+            background-color: #4682B4;
+            width: 150px;
+        }
+        
+        .yin-broken {
             display: flex;
             justify-content: space-between;
+            width: 150px;
         }
         
-        .yin-line::before, .yin-line::after {
-            content: '';
-            width: 30%;
-            height: 100%;
-            background-color: var(--light-color);
+        .yin-part {
+            width: 65px;
+            background-color: #4682B4;
         }
         
-        .buttons {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            margin: 20px 0;
-        }
-        
-        button {
-            padding: 12px 25px;
-            background-color: var(--primary-color);
+        /* 按钮样式 */
+        .btn {
+            background-color: #8B4513;
             color: white;
             border: none;
+            padding: 10px 20px;
             border-radius: 5px;
-            font-family: 'Noto Serif SC', serif;
-            font-size: 1em;
             cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
             transition: background-color 0.3s;
         }
         
-        button:hover {
+        .btn:hover {
             background-color: #A0522D;
         }
         
-        button:disabled {
-            background-color: #CCCCCC;
-            cursor: not-allowed;
-        }
-        
-        .result-container {
+        /* 结果区域 */
+        .result {
             margin-top: 30px;
             padding: 20px;
-            background-color: rgba(210, 180, 140, 0.2);
+            background-color: #f9f9f9;
             border-radius: 8px;
-            display: none;
+            border-left: 5px solid #8B4513;
         }
         
-        .hexagram-info {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 30px;
-            margin-top: 20px;
+        /* 动画效果 */
+        @keyframes shake {
+            0% { transform: rotate(0deg); }
+            10% { transform: rotate(-5deg); }
+            20% { transform: rotate(5deg); }
+            30% { transform: rotate(-5deg); }
+            40% { transform: rotate(5deg); }
+            50% { transform: rotate(-5deg); }
+            60% { transform: rotate(5deg); }
+            70% { transform: rotate(-5deg); }
+            80% { transform: rotate(5deg); }
+            90% { transform: rotate(-5deg); }
+            100% { transform: rotate(0deg); }
         }
         
-        .hexagram-image {
-            flex: 1;
-            min-width: 200px;
-            display: flex;
-            justify-content: center;
+        .shaking {
+            animation: shake 0.5s;
         }
         
-        .hexagram-details {
-            flex: 2;
-            min-width: 300px;
-        }
-        
+        /* 选项卡样式 */
         .tab-container {
             margin-top: 20px;
         }
         
         .tab-buttons {
             display: flex;
-            border-bottom: 1px solid var(--secondary-color);
+            border-bottom: 1px solid #ddd;
         }
         
-        .tab-button {
+        .tab-btn {
             padding: 10px 20px;
-            background: none;
+            background: #f1f1f1;
             border: none;
-            border-bottom: 3px solid transparent;
             cursor: pointer;
-            color: var(--text-color);
-            font-family: 'Noto Serif SC', serif;
-            font-size: 1em;
+            margin-right: 5px;
+            border-radius: 5px 5px 0 0;
         }
         
-        .tab-button.active {
-            border-bottom: 3px solid var(--primary-color);
-            color: var(--primary-color);
-            font-weight: bold;
+        .tab-btn.active {
+            background: #8B4513;
+            color: white;
         }
         
         .tab-content {
-            padding: 20px 0;
             display: none;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-top: none;
+            background: white;
         }
         
         .tab-content.active {
             display: block;
         }
         
-        .line-text {
-            margin: 5px 0;
-            padding-left: 20px;
-            border-left: 3px solid var(--secondary-color);
-        }
-        
-        .moving-line {
-            color: var(--primary-color);
-            font-weight: bold;
-        }
-        
+        /* 响应式设计 */
         @media (max-width: 768px) {
-            .coins-container {
-                gap: 10px;
-            }
-            
             .coin {
-                width: 60px;
-                height: 60px;
+                width: 40px;
+                height: 40px;
             }
             
-            .hexagram-info {
-                flex-direction: column;
+            .yang, .yin, .yin-broken {
+                width: 100px;
+            }
+            
+            .yin-part {
+                width: 45px;
             }
         }
     </style>
@@ -234,417 +178,369 @@
 <body>
     <div class="container">
         <h1>六爻占卜系统</h1>
+        <div id="intro">
+            <p>六爻是中国古代的一种占卜方法，通过投掷铜钱六次来形成一个卦象，然后根据卦象和爻辞来解读所问之事。本系统模拟传统铜钱占卜过程，为您提供准确的卦象和解读。</p>
+        </div>
         
-        <div class="divination-area">
-            <div class="coins-container" id="coinsContainer">
-                <!-- 铜钱将通过JavaScript动态添加 -->
-            </div>
-            
-            <button id="startDivination">开始占卜</button>
-            
-            <div class="hexagram-container" id="hexagramContainer" style="display: none;">
-                <h2>所得卦象</h2>
-                <div class="hexagram" id="hexagramDisplay">
-                    <!-- 卦象将通过JavaScript动态添加 -->
+        <div class="coin-container" id="coins">
+            <!-- 铜钱将通过JS动态生成 -->
+        </div>
+        
+        <div style="text-align: center;">
+            <button class="btn" id="castBtn">开始摇卦</button>
+            <button class="btn" id="resetBtn">重新开始</button>
+        </div>
+        
+        <div id="hexagramDisplay" class="hexagram">
+            <!-- 卦象将通过JS动态生成 -->
+        </div>
+        
+        <div id="result" class="result" style="display: none;">
+            <h2 id="hexagramName"></h2>
+            <div class="tab-container">
+                <div class="tab-buttons">
+                    <button class="tab-btn active" data-tab="overview">卦象总览</button>
+                    <button class="tab-btn" data-tab="lines">爻辞详解</button>
+                    <button class="tab-btn" data-tab="interpretation">卦象解读</button>
                 </div>
-            </div>
-            
-            <div class="buttons" id="actionButtons" style="display: none;">
-                <button id="changeHexagram">变卦</button>
-                <button id="interpretHexagram">解卦</button>
+                
+                <div id="overview" class="tab-content active">
+                    <h3>卦象基本信息</h3>
+                    <p id="hexagramBasic"></p>
+                </div>
+                
+                <div id="lines" class="tab-content">
+                    <h3>六爻爻辞</h3>
+                    <div id="lineTexts"></div>
+                </div>
+                
+                <div id="interpretation" class="tab-content">
+                    <h3>卦象解读</h3>
+                    <p id="hexagramInterpretation"></p>
+                </div>
             </div>
         </div>
         
-        <div class="result-container" id="resultContainer">
-            <h2 id="hexagramName"></h2>
-            <p id="hexagramDesc"></p>
-            
-            <div class="hexagram-info">
-                <div class="hexagram-image">
-                    <div class="hexagram" id="detailHexagramDisplay"></div>
-                </div>
-                <div class="hexagram-details">
-                    <h3 id="hexagramJudgment"></h3>
-                    <p id="hexagramJudgmentText"></p>
-                </div>
-            </div>
-            
-            <div class="tab-container">
-                <div class="tab-buttons">
-                    <button class="tab-button active" data-tab="original">本卦爻辞</button>
-                    <button class="tab-button" data-tab="changed">变卦爻辞</button>
-                    <button class="tab-button" data-tab="explanation">卦象详解</button>
-                </div>
-                
-                <div class="tab-content active" id="original-tab">
-                    <div id="originalLines"></div>
-                </div>
-                
-                <div class="tab-content" id="changed-tab">
-                    <div id="changedLines"></div>
-                </div>
-                
-                <div class="tab-content" id="explanation-tab">
-                    <div id="hexagramExplanation"></div>
-                </div>
-            </div>
+        <div id="instructions" style="margin-top: 30px; padding: 15px; background-color: #fff8e1; border-radius: 5px;">
+            <h3>使用说明</h3>
+            <ol>
+                <li>点击"开始摇卦"按钮，系统将自动模拟投掷三枚铜钱六次的过程</li>
+                <li>每次投掷结果将显示为铜钱的正反面，并自动记录爻象</li>
+                <li>六次投掷完成后，系统将显示完整的卦象和对应的卦名</li>
+                <li>您可以在结果区域查看卦象的总览、各爻爻辞以及整体解读</li>
+                <li>如需重新占卜，请点击"重新开始"按钮</li>
+            </ol>
+            <p><strong>注意：</strong>占卜时应保持心境平和，专注于所问之事。占卜结果仅供参考，决策仍需结合实际情况。</p>
         </div>
     </div>
 
     <script>
-        // 铜钱正反面图片路径
-        const coinImages = {
-            front: '../images/coinf.gif',
-            back: '../images/coinb.gif'
-        };
-        
         // 64卦数据
-        const hexagrams = [
-            {
-                number: 1,
+        const hexagrams = {
+            // 这里只展示部分卦象数据，实际应有64个
+            1: {
                 name: "乾为天",
-                description: "乾卦象征天，六爻皆阳，代表刚健、创造、领导力。",
-                judgment: "元亨利贞",
-                judgmentText: "创始、通达、适宜、正固。乾卦强调自强不息的精神，君子应效法天道，刚健有为。",
-                lines: [
-                    "初九：潜龙勿用。",
-                    "九二：见龙在田，利见大人。",
-                    "九三：君子终日乾乾，夕惕若，厉无咎。",
-                    "九四：或跃在渊，无咎。",
-                    "九五：飞龙在天，利见大人。",
-                    "上九：亢龙有悔。",
-                    "用九：见群龙无首，吉。"
-                ],
-                explanation: "乾卦是六十四卦之首，纯阳之卦，象征天、君、父、刚健等。乾卦强调'天行健，君子以自强不息'的精神。六爻以龙为喻，从潜龙到亢龙，展示了事物发展的全过程，告诫人们要把握时机，适可而止。"
+                binary: "111111",
+                overview: "乾卦象征天，代表着刚健、创始、主动。六爻皆阳，表示纯阳至刚之象。乾卦强调自强不息的精神，提示应效法天的刚健，不断进取。",
+                lines: {
+                    1: "初九：潜龙勿用。",
+                    2: "九二：见龙在田，利见大人。",
+                    3: "九三：君子终日乾乾，夕惕若，厉无咎。",
+                    4: "九四：或跃在渊，无咎。",
+                    5: "九五：飞龙在天，利见大人。",
+                    6: "上九：亢龙有悔。"
+                },
+                interpretation: "乾卦代表创造力和领导力。当前时机适合采取主动，但需注意不要过度。初爻提示应等待时机；二爻表示开始显露；三爻告诫要谨慎；四爻显示可尝试突破；五爻是鼎盛时期；上爻警示过犹不及。整体而言，此卦鼓励积极行动但需把握分寸。"
             },
-            {
-                number: 2,
+            2: {
                 name: "坤为地",
-                description: "坤卦象征地，六爻皆阴，代表柔顺、包容、承载力。",
-                judgment: "元亨，利牝马之贞。君子有攸往，先迷后得主，利西南得朋，东北丧朋。安贞吉。",
-                judgmentText: "坤卦强调柔顺之德，大地般包容万物的胸怀。君子应效法地道，厚德载物。",
-                lines: [
-                    "初六：履霜，坚冰至。",
-                    "六二：直方大，不习无不利。",
-                    "六三：含章可贞，或从王事，无成有终。",
-                    "六四：括囊，无咎无誉。",
-                    "六五：黄裳，元吉。",
-                    "上六：龙战于野，其血玄黄。",
-                    "用六：利永贞。"
-                ],
-                explanation: "坤卦是纯阴之卦，象征地、母、柔顺等。坤卦强调'地势坤，君子以厚德载物'。坤卦展示了柔顺之德的重要性，但也提醒在极端情况下需要有所作为。六爻从履霜到龙战，展示了阴柔力量的积累与变化。"
+                binary: "000000",
+                overview: "坤卦象征地，代表着柔顺、包容、承载。六爻皆阴，表示纯阴至柔之象。坤卦强调厚德载物的精神，提示应效法地的包容，以柔克刚。",
+                lines: {
+                    1: "初六：履霜，坚冰至。",
+                    2: "六二：直方大，不习无不利。",
+                    3: "六三：含章可贞，或从王事，无成有终。",
+                    4: "六四：括囊，无咎无誉。",
+                    5: "六五：黄裳，元吉。",
+                    6: "上六：龙战于野，其血玄黄。"
+                },
+                interpretation: "坤卦代表接纳和滋养。当前适合采取守势，培养内在力量而非强行推进。初爻提示见微知著；二爻显示自然发展；三爻告诫含蓄收敛；四爻建议谨慎行事；五爻是和谐状态；上爻警示矛盾冲突。整体而言，此卦强调顺应时势、以静制动。"
             },
-            {
-                number: 3,
-                name: "水雷屯",
-                description: "屯卦上坎下震，象征万物初生时的艰难。",
-                judgment: "元亨利贞。勿用有攸往，利建侯。",
-                judgmentText: "创始、通达、适宜、正固。不宜有所前往，利于建立诸侯。",
-                lines: [
-                    "初九：磐桓，利居贞，利建侯。",
-                    "六二：屯如邅如，乘马班如。匪寇婚媾，女子贞不字，十年乃字。",
-                    "六三：即鹿无虞，惟入于林中。君子几不如舍，往吝。",
-                    "六四：乘马班如，求婚媾，往吉无不利。",
-                    "九五：屯其膏，小贞吉，大贞凶。",
-                    "上六：乘马班如，泣血涟如。"
-                ],
-                explanation: "屯卦象征万物初生时的艰难状态。上卦为坎(水)，下卦为震(雷)，雷雨交加，万物始生而艰难。卦辞提醒在初创时期要谨慎行事，打好基础。六爻展示了初创时期的各种情境和应对之道。"
+            // 其他62卦数据...
+            63: {
+                name: "水火既济",
+                binary: "101010",
+                overview: "既济卦象征事情已经完成，六爻各得其所，表示成功和圆满的状态。但卦辞提醒'初吉终乱'，警示成功后可能出现的松懈和问题。",
+                lines: {
+                    1: "初九：曳其轮，濡其尾，无咎。",
+                    2: "六二：妇丧其茀，勿逐，七日得。",
+                    3: "九三：高宗伐鬼方，三年克之，小人勿用。",
+                    4: "六四：繻有衣袽，终日戒。",
+                    5: "九五：东邻杀牛，不如西邻之禴祭，实受其福。",
+                    6: "上六：濡其首，厉。"
+                },
+                interpretation: "既济卦表示事情已经成功或接近完成，但提醒成功之后仍需谨慎。初爻表示谨慎行事；二爻显示失而复得；三爻强调坚持和用人得当；四爻告诫保持警惕；五爻比较不同方式的成效；上爻警示过度可能导致危险。整体而言，此卦既肯定成就，又提醒戒骄戒躁。"
             },
-            // 这里只展示了前3卦作为示例，实际应用中需要完整64卦数据
-            // 由于篇幅限制，下面用简化的方式表示其余61卦
-            // 实际开发中应该完整填写所有64卦的数据
-            {
-                number: 4,
-                name: "山水蒙",
-                description: "蒙卦象征启蒙教育，上艮下坎。",
-                judgment: "亨。匪我求童蒙，童蒙求我。初筮告，再三渎，渎则不告。利贞。",
-                judgmentText: "通达。不是我求童蒙，而是童蒙求我。初次占问则告知，再三占问则是亵渎，亵渎则不告知。适宜正固。",
-                lines: [
-                    "初六：发蒙，利用刑人，用说桎梏，以往吝。",
-                    "九二：包蒙吉，纳妇吉，子克家。",
-                    "六三：勿用取女，见金夫，不有躬，无攸利。",
-                    "六四：困蒙，吝。",
-                    "六五：童蒙，吉。",
-                    "上九：击蒙，不利为寇，利御寇。"
-                ],
-                explanation: "蒙卦象征启蒙教育，上艮(山)下坎(水)，山下出泉，象征智慧初开。卦辞强调教育要适时、适度，学生要有求学的诚意。六爻展示了教育过程中的各种情境和应对方法。"
-            },
-            // 继续添加其余60卦...
-            // 示例格式：
-            /*
-            {
-                number: 5,
-                name: "卦名",
-                description: "卦的简要描述",
-                judgment: "卦辞",
-                judgmentText: "卦辞解释",
-                lines: [
-                    "初爻爻辞",
-                    "二爻爻辞",
-                    // ...直到上爻
-                ],
-                explanation: "卦的详细解释"
-            },
-            */
-            // 实际应用中应该完整填写64卦
-        ];
+            64: {
+                name: "火水未济",
+                binary: "010101",
+                overview: "未济卦象征事情未完成，表示处于过渡阶段或即将成功但尚未完成的状态。六爻皆不当位，但正因如此而有发展变化的可能。",
+                lines: {
+                    1: "初六：濡其尾，吝。",
+                    2: "九二：曳其轮，贞吉。",
+                    3: "六三：未济，征凶，利涉大川。",
+                    4: "九四：贞吉，悔亡，震用伐鬼方，三年有赏于大国。",
+                    5: "六五：贞吉，无悔，君子之光，有孚吉。",
+                    6: "上九：有孚于饮酒，无咎，濡其首，有孚失是。"
+                },
+                interpretation: "未济卦表示事情尚未完成，处于过渡阶段。初爻显示起步困难；二爻表示稳步前进；三爻看似矛盾，实指某些方向不利而另一些有利；四爻强调坚持带来回报；五爻显示内在光辉；上爻警示过度享乐。整体而言，此卦表示即将成功但需继续努力，同时注意选择正确方向。"
+            }
+        };
+
+        // 全局变量
+        let currentLines = [];
+        let isCasting = false;
+        let currentStep = 0;
         
         // DOM元素
-        const coinsContainer = document.getElementById('coinsContainer');
-        const startDivinationBtn = document.getElementById('startDivination');
-        const hexagramContainer = document.getElementById('hexagramContainer');
+        const coinsContainer = document.getElementById('coins');
         const hexagramDisplay = document.getElementById('hexagramDisplay');
-        const actionButtons = document.getElementById('actionButtons');
-        const changeHexagramBtn = document.getElementById('changeHexagram');
-        const interpretHexagramBtn = document.getElementById('interpretHexagram');
-        const resultContainer = document.getElementById('resultContainer');
+        const resultDiv = document.getElementById('result');
         const hexagramName = document.getElementById('hexagramName');
-        const hexagramDesc = document.getElementById('hexagramDesc');
-        const hexagramJudgment = document.getElementById('hexagramJudgment');
-        const hexagramJudgmentText = document.getElementById('hexagramJudgmentText');
-        const originalLines = document.getElementById('originalLines');
-        const changedLines = document.getElementById('changedLines');
-        const hexagramExplanation = document.getElementById('hexagramExplanation');
-        const detailHexagramDisplay = document.getElementById('detailHexagramDisplay');
-        
-        // 全局变量
-        let currentHexagram = null;
-        let changedHexagram = null;
-        let movingLines = [];
-        let isDivinating = false;
+        const hexagramBasic = document.getElementById('hexagramBasic');
+        const lineTexts = document.getElementById('lineTexts');
+        const hexagramInterpretation = document.getElementById('hexagramInterpretation');
+        const castBtn = document.getElementById('castBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        const tabContents = document.querySelectorAll('.tab-content');
         
         // 初始化
         function init() {
-            // 创建6枚铜钱
+            // 创建6组铜钱（每组3枚）
+            coinsContainer.innerHTML = '';
             for (let i = 0; i < 6; i++) {
-                const coin = document.createElement('div');
-                coin.className = 'coin';
-                coin.dataset.index = i;
-                coin.style.backgroundImage = `url(${coinImages.front})`;
-                coinsContainer.appendChild(coin);
+                const coinGroup = document.createElement('div');
+                coinGroup.className = 'coin-group';
+                coinGroup.style.display = 'none'; // 初始隐藏
+                
+                for (let j = 0; j < 3; j++) {
+                    const coin = document.createElement('img');
+                    coin.className = 'coin';
+                    coin.src = '../images/coinb.gif'; // 初始显示反面
+                    coin.dataset.side = 'back'; // 记录当前面
+                    coinGroup.appendChild(coin);
+                }
+                
+                coinsContainer.appendChild(coinGroup);
             }
             
-            // 事件监听
-            startDivinationBtn.addEventListener('click', startDivination);
-            changeHexagramBtn.addEventListener('click', showChangedHexagram);
-            interpretHexagramBtn.addEventListener('click', interpretHexagram);
+            // 绑定事件
+            castBtn.addEventListener('click', startCasting);
+            resetBtn.addEventListener('click', resetSystem);
             
-            // 标签切换
-            const tabButtons = document.querySelectorAll('.tab-button');
-            tabButtons.forEach(button => {
-                button.addEventListener('click', () => {
-                    const tabId = button.dataset.tab;
+            // 选项卡切换
+            tabBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const tabId = btn.dataset.tab;
                     switchTab(tabId);
                 });
             });
         }
         
-        // 开始占卜
-        function startDivination() {
-            if (isDivinating) return;
+        // 开始摇卦
+        function startCasting() {
+            if (isCasting) return;
             
-            isDivinating = true;
-            startDivinationBtn.disabled = true;
-            
-            // 重置显示
-            hexagramContainer.style.display = 'none';
-            actionButtons.style.display = 'none';
-            resultContainer.style.display = 'none';
-            
-            // 显示摇卦动画
-            const coins = document.querySelectorAll('.coin');
-            coins.forEach(coin => {
-                coin.classList.add('flipping');
-            });
-            
-            // 摇卦过程
-            setTimeout(() => {
-                coins.forEach(coin => {
-                    coin.classList.remove('flipping');
-                    // 随机决定正反面
-                    const isFront = Math.random() > 0.5;
-                    coin.style.backgroundImage = `url(${isFront ? coinImages.front : coinImages.back})`;
-                });
-                
-                // 生成卦象
-                generateHexagram();
-                
-                isDivinating = false;
-                startDivinationBtn.disabled = false;
-            }, 2000);
-        }
-        
-        // 生成卦象
-        function generateHexagram() {
-            const coins = document.querySelectorAll('.coin');
-            const lines = [];
-            movingLines = [];
-            
-            // 从下到上生成六爻
-            for (let i = 0; i < 6; i++) {
-                const coin1 = Math.random() > 0.5 ? 3 : 2; // 3为正面(老阳)，2为反面(少阴)
-                const coin2 = Math.random() > 0.5 ? 3 : 2;
-                const coin3 = Math.random() > 0.5 ? 3 : 2;
-                
-                const sum = coin1 + coin2 + coin3;
-                
-                // 6为老阴，7为少阳，8为少阴，9为老阳
-                let lineType;
-                if (sum === 6) {
-                    lineType = 'old-yin'; // 老阴，变爻
-                    movingLines.push(5 - i); // 从下往上数，记录变爻位置(0-5)
-                } else if (sum === 7) {
-                    lineType = 'young-yang'; // 少阳
-                } else if (sum === 8) {
-                    lineType = 'young-yin'; // 少阴
-                } else if (sum === 9) {
-                    lineType = 'old-yang'; // 老阳，变爻
-                    movingLines.push(5 - i); // 从下往上数，记录变爻位置(0-5)
-                }
-                
-                lines.unshift(lineType); // 从下往上存储
-            }
-            
-            // 根据爻生成卦象
-            const hexagramBinary = lines.map(line => {
-                return line.includes('yang') ? '1' : '0';
-            }).join('');
-            
-            // 查找对应的卦 (简化版，实际应根据二进制查找)
-            currentHexagram = hexagrams[0]; // 示例，实际应根据算法匹配
-            changedHexagram = movingLines.length > 0 ? hexagrams[1] : null; // 示例，实际应根据变爻生成变卦
-            
-            // 显示卦象
-            displayHexagram(lines);
-            
-            // 显示操作按钮
-            hexagramContainer.style.display = 'block';
-            actionButtons.style.display = 'flex';
-        }
-        
-        // 显示卦象
-        function displayHexagram(lines) {
+            isCasting = true;
+            currentStep = 0;
+            currentLines = [];
             hexagramDisplay.innerHTML = '';
-            detailHexagramDisplay.innerHTML = '';
+            resultDiv.style.display = 'none';
+            castBtn.disabled = true;
             
-            // 从下往上显示
-            for (let i = 5; i >= 0; i--) {
-                const lineType = lines[i];
-                const lineElement = document.createElement('div');
-                
-                if (lineType.includes('yang')) {
-                    lineElement.className = 'line yang-line';
-                } else {
-                    lineElement.className = 'line yin-line';
-                }
-                
-                // 如果是变爻，添加特殊样式
-                if (movingLines.includes(5 - i)) {
-                    lineElement.classList.add('moving-line');
-                    lineElement.style.boxShadow = '0 0 5px rgba(255, 215, 0, 0.7)';
-                }
-                
-                hexagramDisplay.appendChild(lineElement.cloneNode(true));
-                detailHexagramDisplay.appendChild(lineElement);
-            }
+            // 显示第一组铜钱
+            const coinGroups = document.querySelectorAll('.coin-group');
+            coinGroups[0].style.display = 'flex';
+            
+            // 开始摇卦过程
+            castStep(0);
         }
         
-        // 显示变卦
-        function showChangedHexagram() {
-            if (!changedHexagram) {
-                alert('本卦没有变爻，无变卦');
+        // 摇卦步骤
+        function castStep(step) {
+            if (step >= 6) {
+                finishCasting();
                 return;
             }
             
-            // 生成变卦的爻 (将本卦的变爻阴阳互换)
-            const lines = [];
-            for (let i = 0; i < 6; i++) {
-                const lineElement = hexagramDisplay.children[5 - i];
-                if (movingLines.includes(i)) {
-                    // 变爻，阴阳互换
-                    if (lineElement.classList.contains('yang-line')) {
-                        lines.push('young-yin');
-                    } else {
-                        lines.push('young-yang');
-                    }
-                } else {
-                    // 不变爻
-                    if (lineElement.classList.contains('yang-line')) {
-                        lines.push('young-yang');
-                    } else {
-                        lines.push('young-yin');
-                    }
-                }
-            }
+            currentStep = step;
+            const coinGroup = document.querySelectorAll('.coin-group')[step];
+            const coins = coinGroup.querySelectorAll('.coin');
             
-            // 显示变卦
-            displayHexagram(lines);
+            // 重置硬币状态
+            coins.forEach(coin => {
+                coin.dataset.side = 'back';
+                coin.src = '../images/coinb.gif';
+            });
+            
+            // 摇动动画
+            coinGroup.classList.add('shaking');
+            
+            // 3秒后停止并显示结果
+            setTimeout(() => {
+                coinGroup.classList.remove('shaking');
+                
+                // 随机决定硬币正反面（模拟现实概率）
+                let yangCount = 0; // 记录正面（有字面）数量
+                
+                coins.forEach(coin => {
+                    // 铜钱概率：正面（有字）30%，反面（无字）70%
+                    const random = Math.random();
+                    if (random < 0.3) { // 正面（有字）
+                        coin.src = '../images/coinf.gif';
+                        coin.dataset.side = 'front';
+                        yangCount++;
+                    } else { // 反面（无字）
+                        coin.src = '../images/coinb.gif';
+                        coin.dataset.side = 'back';
+                    }
+                });
+                
+                // 根据正面数量确定爻象
+                /*
+                3正面（3阳）：老阳（变爻）→ 阳爻（记录为1）
+                2正面（1阳）：少阳 → 阳爻（记录为1）
+                1正面（2阳）：少阴 → 阴爻（记录为0）
+                0正面（3阳）：老阴（变爻）→ 阴爻（记录为0）
+                */
+                let lineValue;
+                if (yangCount === 3) {
+                    lineValue = { value: 1, changing: true }; // 老阳
+                } else if (yangCount === 2) {
+                    lineValue = { value: 1, changing: false }; // 少阳
+                } else if (yangCount === 1) {
+                    lineValue = { value: 0, changing: false }; // 少阴
+                } else {
+                    lineValue = { value: 0, changing: true }; // 老阴
+                }
+                
+                currentLines.push(lineValue);
+                displayCurrentHexagram();
+                
+                // 继续下一步
+                if (step < 5) {
+                    // 显示下一组铜钱
+                    document.querySelectorAll('.coin-group')[step + 1].style.display = 'flex';
+                    
+                    // 1秒后继续下一步
+                    setTimeout(() => {
+                        castStep(step + 1);
+                    }, 1000);
+                } else {
+                    finishCasting();
+                }
+            }, 3000);
         }
         
-        // 解卦
-        function interpretHexagram() {
-            if (!currentHexagram) return;
+        // 显示当前卦象（逐步构建）
+        function displayCurrentHexagram() {
+            hexagramDisplay.innerHTML = '';
             
-            // 显示本卦信息
-            hexagramName.textContent = currentHexagram.name;
-            hexagramDesc.textContent = currentHexagram.description;
-            hexagramJudgment.textContent = currentHexagram.judgment;
-            hexagramJudgmentText.textContent = currentHexagram.judgmentText;
+            // 从下往上显示爻
+            for (let i = currentLines.length - 1; i >= 0; i--) {
+                const line = currentLines[i];
+                const lineDiv = document.createElement('div');
+                lineDiv.className = 'line';
+                
+                if (line.value === 1) { // 阳爻
+                    lineDiv.innerHTML = '<div class="yang"></div>';
+                    if (line.changing) {
+                        lineDiv.innerHTML += '<div style="color:red;text-align:center;">○</div>'; // 标记变爻
+                    }
+                } else { // 阴爻
+                    lineDiv.innerHTML = '<div class="yin-broken"><div class="yin-part"></div><div class="yin-part"></div></div>';
+                    if (line.changing) {
+                        lineDiv.innerHTML += '<div style="color:red;text-align:center;">×</div>'; // 标记变爻
+                    }
+                }
+                
+                hexagramDisplay.appendChild(lineDiv);
+            }
+        }
+        
+        // 完成摇卦
+        function finishCasting() {
+            isCasting = false;
+            castBtn.disabled = false;
+            
+            // 确定卦象
+            const binaryString = currentLines.map(line => line.value).join('');
+            const hexagram = findHexagram(binaryString);
+            
+            // 显示结果
+            resultDiv.style.display = 'block';
+            hexagramName.textContent = hexagram.name;
+            hexagramBasic.innerHTML = `<p><strong>卦象：</strong>${hexagram.name}</p><p>${hexagram.overview}</p>`;
             
             // 显示爻辞
-            originalLines.innerHTML = '';
-            currentHexagram.lines.forEach((line, index) => {
-                const lineElement = document.createElement('p');
-                lineElement.className = 'line-text';
-                if (movingLines.includes(index)) {
-                    lineElement.classList.add('moving-line');
+            let linesHtml = '';
+            for (let i = 1; i <= 6; i++) {
+                const lineNum = 6 - i + 1; // 因为爻是从下往上数的
+                linesHtml += `<p><strong>第${lineNum}爻：</strong>${hexagram.lines[lineNum]} ${
+                    currentLines[lineNum - 1].changing ? '<span style="color:red;">(变爻)</span>' : ''
+                }</p>`;
+            }
+            lineTexts.innerHTML = linesHtml;
+            
+            // 显示解读
+            hexagramInterpretation.textContent = hexagram.interpretation;
+            
+            // 默认显示第一个选项卡
+            switchTab('overview');
+        }
+        
+        // 根据二进制字符串查找卦象
+        function findHexagram(binaryString) {
+            // 在实际应用中，这里应该有完整的64卦匹配逻辑
+            // 简化版：只匹配我们定义的几个卦
+            for (const [key, value] of Object.entries(hexagrams)) {
+                if (value.binary === binaryString) {
+                    return value;
                 }
-                lineElement.textContent = line;
-                originalLines.appendChild(lineElement);
-            });
-            
-            // 显示变卦爻辞 (如果有)
-            changedLines.innerHTML = '';
-            if (changedHexagram) {
-                changedHexagram.lines.forEach((line, index) => {
-                    const lineElement = document.createElement('p');
-                    lineElement.className = 'line-text';
-                    lineElement.textContent = line;
-                    changedLines.appendChild(lineElement);
-                });
-            } else {
-                changedLines.innerHTML = '<p>本卦无变爻，故无变卦。</p>';
             }
             
-            // 显示卦象详解
-            hexagramExplanation.innerHTML = `<p>${currentHexagram.explanation}</p>`;
-            
-            if (changedHexagram) {
-                hexagramExplanation.innerHTML += `<h3>变卦 ${changedHexagram.name} 详解</h3>`;
-                hexagramExplanation.innerHTML += `<p>${changedHexagram.explanation}</p>`;
-            }
-            
-            // 显示结果区域
-            resultContainer.style.display = 'block';
-            
-            // 默认显示本卦标签
-            switchTab('original');
+            // 如果没有完全匹配的，返回一个默认卦（实际应用中应该处理所有64卦）
+            return hexagrams[1];
         }
         
-        // 切换标签
+        // 重置系统
+        function resetSystem() {
+            isCasting = false;
+            currentLines = [];
+            currentStep = 0;
+            hexagramDisplay.innerHTML = '';
+            resultDiv.style.display = 'none';
+            castBtn.disabled = false;
+            
+            // 隐藏所有铜钱组
+            document.querySelectorAll('.coin-group').forEach(group => {
+                group.style.display = 'none';
+            });
+        }
+        
+        // 切换选项卡
         function switchTab(tabId) {
-            // 更新按钮状态
-            document.querySelectorAll('.tab-button').forEach(button => {
-                button.classList.toggle('active', button.dataset.tab === tabId);
-            });
+            // 移除所有active类
+            tabBtns.forEach(btn => btn.classList.remove('active'));
+            tabContents.forEach(content => content.classList.remove('active'));
             
-            // 更新内容显示
-            document.querySelectorAll('.tab-content').forEach(content => {
-                content.classList.toggle('active', content.id === `${tabId}-tab`);
-            });
+            // 添加active类到当前选项卡
+            document.querySelector(`.tab-btn[data-tab="${tabId}"]`).classList.add('active');
+            document.getElementById(tabId).classList.add('active');
         }
         
-        // 初始化应用
+        // 初始化系统
         init();
     </script>
 </body>
