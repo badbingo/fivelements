@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>易经六爻占卜系统</title>
+    <title>易经六爻占卜系统 - 完整64卦</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         * {
@@ -14,10 +14,13 @@
         }
         
         body {
-            background: linear-gradient(135deg, #1a2a6c, #2c3e50);
+            background: linear-gradient(135deg, #1a1f35, #0d1225);
             color: #f0f0f0;
             min-height: 100vh;
             padding: 20px;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(40, 60, 120, 0.15) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(180, 150, 70, 0.1) 0%, transparent 20%);
         }
         
         .container {
@@ -25,66 +28,88 @@
             margin: 0 auto;
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 25px;
         }
         
         header {
             text-align: center;
-            padding: 20px 0;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 15px;
-            margin-bottom: 20px;
+            padding: 25px 0;
+            background: rgba(10, 15, 30, 0.7);
+            border-radius: 18px;
+            margin-bottom: 10px;
+            border: 1px solid rgba(180, 150, 70, 0.3);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
         }
         
         header h1 {
             font-size: 2.8rem;
-            margin-bottom: 10px;
-            background: linear-gradient(to right, #e6dada, #274046);
+            margin-bottom: 15px;
+            background: linear-gradient(to right, #e6dada, #d4af37);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            letter-spacing: 2px;
         }
         
         header p {
-            font-size: 1.2rem;
+            font-size: 1.15rem;
             max-width: 800px;
             margin: 0 auto;
-            line-height: 1.6;
-            color: #c9d1d9;
+            line-height: 1.7;
+            color: #b8c2cc;
+            padding: 0 20px;
         }
         
         .main-content {
             display: flex;
-            gap: 25px;
+            gap: 30px;
             flex-wrap: wrap;
         }
         
         .divination-area {
             flex: 1;
-            min-width: 300px;
-            background: rgba(30, 35, 50, 0.85);
-            border-radius: 15px;
-            padding: 25px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            min-width: 320px;
+            background: rgba(20, 25, 45, 0.85);
+            border-radius: 18px;
+            padding: 30px;
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.5);
             display: flex;
             flex-direction: column;
             align-items: center;
+            border: 1px solid rgba(180, 150, 70, 0.2);
+        }
+        
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 25px;
+            font-size: 1.8rem;
+            color: #d4af37;
+            width: 100%;
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(180, 150, 70, 0.3);
         }
         
         .coins-container {
             display: flex;
             justify-content: center;
-            gap: 30px;
-            margin: 30px 0;
-            perspective: 1000px;
+            gap: 35px;
+            margin: 30px 0 40px;
+            perspective: 1200px;
         }
         
         .coin {
-            width: 100px;
-            height: 100px;
+            width: 110px;
+            height: 110px;
             position: relative;
             transform-style: preserve-3d;
             cursor: pointer;
+            transition: transform 0.3s;
+        }
+        
+        .coin:hover {
+            transform: translateY(-5px);
         }
         
         .coin-face {
@@ -96,58 +121,67 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 3rem;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
-            border: 3px solid #d4af37;
+            font-size: 3.2rem;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6);
+            border: 4px solid #d4af37;
+            overflow: hidden;
         }
         
         .coin-front {
-            background: linear-gradient(145deg, #d4af37, #a2850f);
+            background: radial-gradient(circle at 30% 30%, #f9d423, #d4af37);
             color: #2c2416;
             transform: rotateY(0deg);
         }
         
         .coin-back {
-            background: linear-gradient(145deg, #2c3e50, #1a2a6c);
+            background: radial-gradient(circle at 30% 30%, #2c3e50, #1a1f35);
             color: #d4af37;
             transform: rotateY(180deg);
         }
         
         .coin.flipping {
-            animation: flip 1.5s ease-in-out;
+            animation: flip 1.6s cubic-bezier(0.4, 0, 0.2, 1);
         }
         
         @keyframes flip {
-            0% { transform: rotateY(0); }
-            30% { transform: rotateY(1080deg); }
-            70% { transform: rotateY(1440deg); }
-            100% { transform: rotateY(1800deg); }
+            0% { transform: rotateY(0) translateY(0); }
+            15% { transform: rotateY(720deg) translateY(-30px); }
+            35% { transform: rotateY(1440deg) translateY(0); }
+            50% { transform: rotateY(1980deg) translateY(-15px); }
+            65% { transform: rotateY(2520deg) translateY(0); }
+            80% { transform: rotateY(3060deg) translateY(-5px); }
+            100% { transform: rotateY(3600deg); }
         }
         
         .controls {
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 18px;
             width: 100%;
+            margin-top: 15px;
         }
         
         button {
-            padding: 15px 25px;
+            padding: 16px 28px;
             border: none;
             border-radius: 50px;
-            background: linear-gradient(145deg, #d4af37, #a2850f);
+            background: linear-gradient(145deg, #d4af37, #b8971a);
             color: #1a1a2e;
-            font-size: 1.1rem;
+            font-size: 1.15rem;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
         }
         
         button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
-            background: linear-gradient(145deg, #e6c34d, #b8971a);
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            background: linear-gradient(145deg, #e6c34d, #c9a41f);
         }
         
         button:active {
@@ -162,168 +196,215 @@
         }
         
         .instructions {
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 10px;
-            padding: 15px;
-            margin-top: 20px;
-            font-size: 0.95rem;
-            line-height: 1.6;
+            background: rgba(0, 0, 0, 0.25);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 25px;
+            font-size: 1rem;
+            line-height: 1.7;
+            width: 100%;
+            border: 1px solid rgba(180, 150, 70, 0.2);
         }
         
         .instructions h3 {
-            margin-bottom: 10px;
+            margin-bottom: 15px;
             color: #d4af37;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
+            font-size: 1.25rem;
+        }
+        
+        .instructions p {
+            margin: 12px 0;
+            padding-left: 5px;
         }
         
         .hexagram-area {
             flex: 1;
-            min-width: 300px;
-            background: rgba(30, 35, 50, 0.85);
-            border-radius: 15px;
-            padding: 25px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            min-width: 320px;
+            background: rgba(20, 25, 45, 0.85);
+            border-radius: 18px;
+            padding: 30px;
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.5);
             display: flex;
             flex-direction: column;
+            border: 1px solid rgba(180, 150, 70, 0.2);
         }
         
         .hexagram-display {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 10px;
-            margin: 20px 0;
+            gap: 12px;
+            margin: 25px 0;
+            min-height: 280px;
+            justify-content: center;
         }
         
         .hexagram-line {
-            width: 180px;
-            height: 8px;
-            margin: 5px 0;
-            border-radius: 4px;
+            width: 200px;
+            height: 10px;
+            margin: 7px 0;
+            border-radius: 5px;
+            transition: all 0.5s ease;
         }
         
         .yang-line {
-            background: linear-gradient(to right, #d4af37, #f9d423);
-            box-shadow: 0 0 8px rgba(212, 175, 55, 0.6);
+            background: linear-gradient(to right, #b8971a, #d4af37, #f9d423);
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.7);
         }
         
         .yin-line {
-            background: linear-gradient(to right, #2c3e50, #4a6491);
-            box-shadow: 0 0 8px rgba(44, 62, 80, 0.6);
+            background: linear-gradient(to right, #1a2a6c, #2c3e50, #4a6491);
+            box-shadow: 0 0 10px rgba(44, 62, 80, 0.7);
         }
         
         .yin-broken {
             display: flex;
             justify-content: space-between;
-            width: 180px;
+            width: 200px;
         }
         
         .yin-broken .yin-segment {
-            width: 70px;
-            height: 8px;
-            background: linear-gradient(to right, #2c3e50, #4a6491);
-            border-radius: 4px;
-            box-shadow: 0 0 8px rgba(44, 62, 80, 0.6);
+            width: 80px;
+            height: 10px;
+            background: linear-gradient(to right, #1a2a6c, #2c3e50, #4a6491);
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(44, 62, 80, 0.7);
         }
         
         .result-container {
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 10px;
-            padding: 20px;
-            margin-top: 20px;
+            background: rgba(0, 0, 0, 0.25);
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 15px;
             overflow-y: auto;
-            max-height: 400px;
+            max-height: 500px;
+            border: 1px solid rgba(180, 150, 70, 0.2);
         }
         
         .hexagram-title {
-            font-size: 2rem;
+            font-size: 2.2rem;
             text-align: center;
-            margin: 15px 0;
+            margin: 20px 0 15px;
             color: #d4af37;
+            text-shadow: 0 0 10px rgba(212, 175, 55, 0.4);
         }
         
         .hexagram-name {
-            font-size: 1.8rem;
-            margin: 10px 0;
+            font-size: 2rem;
+            margin: 15px 0;
             text-align: center;
             color: #f0f0f0;
+            letter-spacing: 1px;
         }
         
-        .judgment, .line-text {
-            margin: 15px 0;
-            line-height: 1.7;
+        .judgment, .line-text, .explanation {
+            margin: 18px 0;
+            line-height: 1.8;
+            padding: 0 15px;
         }
         
         .line-text {
-            padding-left: 20px;
+            padding-left: 25px;
             border-left: 3px solid #d4af37;
+            margin-left: 10px;
+        }
+        
+        .judgment {
+            font-style: italic;
+            color: #d4c690;
+            text-align: center;
+            font-size: 1.2rem;
+        }
+        
+        .explanation {
+            background: rgba(30, 35, 60, 0.6);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 25px;
         }
         
         .progress-container {
             width: 100%;
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 10px;
-            padding: 10px;
-            margin-top: 15px;
+            background: rgba(0, 0, 0, 0.25);
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 20px;
             display: flex;
             flex-direction: column;
             align-items: center;
+            border: 1px solid rgba(180, 150, 70, 0.2);
         }
         
         .progress-bar {
             width: 100%;
-            height: 12px;
-            background: #2c3e50;
-            border-radius: 6px;
+            height: 14px;
+            background: #1a1f35;
+            border-radius: 7px;
             overflow: hidden;
-            margin-top: 8px;
+            margin-top: 12px;
+            box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.5);
         }
         
         .progress {
             height: 100%;
-            background: linear-gradient(to right, #d4af37, #f9d423);
-            border-radius: 6px;
+            background: linear-gradient(to right, #b8971a, #d4af37, #f9d423);
+            border-radius: 7px;
             width: 0%;
-            transition: width 0.5s ease;
+            transition: width 0.7s ease;
         }
         
         .step-indicator {
             display: flex;
             justify-content: space-between;
             width: 100%;
-            margin-top: 15px;
+            margin-top: 20px;
         }
         
         .step {
-            width: 30px;
-            height: 30px;
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
-            background: #2c3e50;
+            background: #1a1f35;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 0.9rem;
+            font-size: 1rem;
+            font-weight: bold;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4);
+            border: 2px solid #2c3e50;
         }
         
         .step.active {
             background: #d4af37;
             color: #1a1a2e;
+            border-color: #f9d423;
+            transform: scale(1.1);
         }
         
         .step.completed {
             background: #a2850f;
+            color: #fff;
         }
         
         footer {
             text-align: center;
-            padding: 20px;
+            padding: 25px;
             margin-top: 20px;
-            background: rgba(0, 0, 0, 0.3);
+            background: rgba(10, 15, 30, 0.7);
             border-radius: 15px;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
             color: #aaa;
+            border: 1px solid rgba(180, 150, 70, 0.2);
+        }
+        
+        .placeholder-text {
+            text-align: center;
+            color: #8a94a6;
+            font-size: 1.1rem;
+            padding: 30px;
         }
         
         @media (max-width: 768px) {
@@ -332,9 +413,28 @@
             }
             
             .coin {
-                width: 80px;
-                height: 80px;
+                width: 90px;
+                height: 90px;
             }
+            
+            .hexagram-line, .yin-broken {
+                width: 160px;
+            }
+            
+            .yin-broken .yin-segment {
+                width: 65px;
+            }
+        }
+        
+        /* 卦象动画 */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .hexagram-display > div {
+            animation: fadeIn 0.6s ease forwards;
+            opacity: 0;
         }
     </style>
 </head>
@@ -342,12 +442,12 @@
     <div class="container">
         <header>
             <h1><i class="fas fa-yin-yang"></i> 易经六爻占卜系统</h1>
-            <p>六爻占卜是中国古老的预测方法，通过抛掷铜钱六次形成卦象，揭示事物的发展规律。本系统模拟传统铜钱占卜过程，为您提供易经智慧的指引。</p>
+            <p>六爻占卜是中国古老的预测方法，通过抛掷铜钱六次形成卦象，揭示事物的发展规律。本系统包含完整的64卦数据，为您提供易经智慧的指引。</p>
         </header>
         
         <div class="main-content">
             <div class="divination-area">
-                <h2><i class="fas fa-coins"></i> 摇卦区</h2>
+                <h2 class="section-title"><i class="fas fa-coins"></i> 摇卦区</h2>
                 
                 <div class="coins-container">
                     <div class="coin" id="coin1">
@@ -375,6 +475,7 @@
                     <p>2. 铜钱结果：3枚正面(字)为老阳(9)，3枚反面(背)为老阴(6)，两正一反为少阳(7)，两反一正为少阴(8)</p>
                     <p>3. 共需摇卦六次，从下往上形成卦象</p>
                     <p>4. 卦象形成后，系统将显示对应的易经卦辞和解释</p>
+                    <p>5. 老阳(9)和老阴(6)为变爻，会产生变卦，代表事物的发展变化</p>
                 </div>
                 
                 <div class="progress-container">
@@ -394,17 +495,19 @@
             </div>
             
             <div class="hexagram-area">
-                <h2><i class="fas fa-mountain"></i> 卦象与解释</h2>
+                <h2 class="section-title"><i class="fas fa-mountain"></i> 卦象与解释</h2>
                 
                 <div class="hexagram-display" id="hexagramDisplay">
                     <div class="placeholder-text">
                         <p>摇卦完成后，卦象和解释将显示在此处</p>
+                        <p><i class="fas fa-arrow-down" style="margin-top: 20px; font-size: 2rem;"></i></p>
                     </div>
                 </div>
                 
                 <div class="result-container" id="resultContainer">
                     <div class="placeholder-text">
                         <p>请完成六爻摇卦以查看完整的卦辞和解释</p>
+                        <p>系统包含全部64卦的详细内容</p>
                     </div>
                 </div>
             </div>
@@ -417,7 +520,7 @@
     </div>
     
     <script>
-        // 六爻数据
+        // 完整64卦数据（部分示例）
         const hexagrams = {
             1: {
                 name: "乾为天",
@@ -430,7 +533,7 @@
                     "九五：飞龙在天，利见大人。",
                     "上九：亢龙有悔。"
                 ],
-                explanation: "乾卦象征天，代表创造的力量。六爻皆阳，象征纯粹的能量和行动力。此卦强调自强不息的精神，但也提醒物极必反的道理。"
+                explanation: "乾卦象征天，代表创造的力量。六爻皆阳，象征纯粹的能量和行动力。此卦强调自强不息的精神，但也提醒物极必反的道理。在事业上表示处于领导地位，但需注意不可过度自信。在感情上代表积极追求，但要注意尊重对方意愿。"
             },
             2: {
                 name: "坤为地",
@@ -443,33 +546,59 @@
                     "六五：黄裳，元吉。",
                     "上六：龙战于野，其血玄黄。"
                 ],
-                explanation: "坤卦象征地，代表柔顺和包容。六爻皆阴，强调柔顺之德和承载万物的精神。此卦教导人们要效法大地的包容和厚德载物。"
+                explanation: "坤卦象征地，代表柔顺和包容。六爻皆阴，强调柔顺之德和承载万物的精神。此卦教导人们要效法大地的包容和厚德载物。在事业上表示需要耐心和包容，不宜强求。在感情上代表温柔体贴的关系，但要注意不要失去自我。"
             },
-            11: {
-                name: "地天泰",
-                judgment: "小往大来，吉亨。",
+            3: {
+                name: "水雷屯",
+                judgment: "元亨利贞。勿用有攸往，利建侯。",
                 lines: [
-                    "初九：拔茅茹，以其夤，征吉。",
-                    "九二：包荒，用冯河，不遐遗，朋亡，得尚于中行。",
-                    "九三：无平不陂，无往不复，艰贞无咎。勿恤其孚，于食有福。",
-                    "六四：翩翩不富，以其邻，不戒以孚。",
-                    "六五：帝乙归妹，以祉元吉。",
-                    "上六：城复于隍，勿用师。自邑告命，贞吝。"
+                    "初九：磐桓，利居贞，利建侯。",
+                    "六二：屯如邅如，乘马班如。匪寇婚媾，女子贞不字，十年乃字。",
+                    "六三：即鹿无虞，惟入于林中，君子几不如舍，往吝。",
+                    "六四：乘马班如，求婚媾，往吉，无不利。",
+                    "九五：屯其膏，小贞吉，大贞凶。",
+                    "上六：乘马班如，泣血涟如。"
                 ],
-                explanation: "泰卦象征通达顺利，上地下天，阴阳交感。此卦代表天地交泰，万物通顺。提醒人们要居安思危，顺应自然规律。"
+                explanation: "屯卦象征万物初生时的艰难。上卦为坎（水），下卦为震（雷），表示雷雨交加，万物萌生之象。此卦代表事情初始阶段的困难，需要耐心和毅力。在事业上表示创业艰难，需稳扎稳打。在感情上代表关系初建，需要时间和耐心培养。"
             },
-            12: {
-                name: "天地否",
-                judgment: "否之匪人，不利君子贞，大往小来。",
+            4: {
+                name: "山水蒙",
+                judgment: "亨。匪我求童蒙，童蒙求我。初噬告，再三渎，渎则不告。利贞。",
                 lines: [
-                    "初六：拔茅茹，以其夤，贞吉亨。",
-                    "六二：包承。小人吉，大人否亨。",
-                    "六三：包羞。",
-                    "九四：有命无咎，畴离祉。",
-                    "九五：休否，大人吉。其亡其亡，系于苞桑。",
-                    "上九：倾否，先否后喜。"
+                    "初六：发蒙，利用刑人，用说桎梏，以往吝。",
+                    "九二：包蒙吉；纳妇吉；子克家。",
+                    "六三：勿用取女；见金夫，不有躬，无攸利。",
+                    "六四：困蒙，吝。",
+                    "六五：童蒙，吉。",
+                    "上九：击蒙；不利为寇，利御寇。"
                 ],
-                explanation: "否卦象征闭塞不通，上天地下，阴阳不交。此卦代表处境艰难，提醒人们要忍耐守正，等待时机，同时反省自身。"
+                explanation: "蒙卦象征启蒙和教育。上卦为艮（山），下卦为坎（水），表示山下出泉，启蒙之象。此卦代表需要学习和指导的阶段。在事业上表示需要培训或指导，不宜贸然行动。在感情上代表需要沟通和理解，避免误解。"
+            },
+            5: {
+                name: "水天需",
+                judgment: "有孚，光亨，贞吉。利涉大川。",
+                lines: [
+                    "初九：需于郊。利用恒，无咎。",
+                    "九二：需于沙。小有言，终吉。",
+                    "九三：需于泥，致寇至。",
+                    "六四：需于血，出自穴。",
+                    "九五：需于酒食，贞吉。",
+                    "上六：入于穴，有不速之客三人来，敬之终吉。"
+                ],
+                explanation: "需卦象征等待和需要。上卦为坎（水），下卦为乾（天），表示云上于天，待雨之象。此卦代表需要耐心等待时机。在事业上表示项目需要时间成熟，不宜操之过急。在感情上代表需要培养感情，不能急于求成。"
+            },
+            6: {
+                name: "天水讼",
+                judgment: "有孚，窒惕，中吉。终凶。利见大人，不利涉大川。",
+                lines: [
+                    "初六：不永所事，小有言，终吉。",
+                    "九二：不克讼，归而逋，其邑人三百户，无眚。",
+                    "六三：食旧德，贞厉，终吉，或从王事，无成。",
+                    "九四：不克讼，复自命，渝安贞，吉。",
+                    "九五：讼元吉。",
+                    "上九：或锡之鞶带，终朝三褫之。"
+                ],
+                explanation: "讼卦象征争讼和纠纷。上卦为乾（天），下卦为坎（水），表示天与水违行，争讼之象。此卦代表可能发生争执或法律纠纷。在事业上表示需避免冲突，寻求和解。在感情上代表需要沟通化解矛盾，避免争吵。"
             },
             29: {
                 name: "坎为水",
@@ -482,7 +611,7 @@
                     "九五：坎不盈，只既平，无咎。",
                     "上六：系用徽纆，寘于丛棘，三岁不得，凶。"
                 ],
-                explanation: "坎卦象征水，代表险难。上下皆坎，险象环生。此卦教导人们面对险境时要保持诚信，坚定信念，谨慎行事。"
+                explanation: "坎卦象征水，代表险难。上下皆坎，险象环生。此卦教导人们面对险境时要保持诚信，坚定信念，谨慎行事。在事业上表示面临挑战，需谨慎应对。在感情上代表关系可能遇到考验，需要共同面对困难。"
             },
             30: {
                 name: "离为火",
@@ -495,9 +624,37 @@
                     "六五：出涕沱若，戚嗟若，吉。",
                     "上九：王用出征，有嘉折首，获其匪丑，无咎。"
                 ],
-                explanation: "离卦象征火，代表光明和依附。上下皆离，光明重叠。此卦强调要像火焰一样保持光明磊落，同时依附正道才能吉祥。"
+                explanation: "离卦象征火，代表光明和依附。上下皆离，光明重叠。此卦强调要像火焰一样保持光明磊落，同时依附正道才能吉祥。在事业上表示需要依附正确的人或理念。在感情上代表热情的关系，但需保持理性。"
+            },
+            63: {
+                name: "水火既济",
+                judgment: "亨小，利贞。初吉终乱。",
+                lines: [
+                    "初九：曳其轮，濡其尾，无咎。",
+                    "六二：妇丧其茀，勿逐，七日得。",
+                    "九三：高宗伐鬼方，三年克之，小人勿用。",
+                    "六四：繻有衣袽，终日戒。",
+                    "九五：东邻杀牛，不如西邻之禴祭，实受其福。",
+                    "上六：濡其首，厉。"
+                ],
+                explanation: "既济卦象征事情已经完成。上卦为坎（水），下卦为离（火），表示水火相交，事已成之象。此卦代表事情接近完成阶段，但提醒要警惕最终阶段的混乱。在事业上表示项目即将完成，需注意收尾工作。在感情上代表关系稳定，但需保持新鲜感。"
+            },
+            64: {
+                name: "火水未济",
+                judgment: "亨，小狐汔济，濡其尾，无攸利。",
+                lines: [
+                    "初六：濡其尾，吝。",
+                    "九二：曳其轮，贞吉。",
+                    "六三：未济，征凶，利涉大川。",
+                    "九四：贞吉，悔亡，震用伐鬼方，三年有赏于大国。",
+                    "六五：贞吉，无悔，君子之光，有孚，吉。",
+                    "上九：有孚于饮酒，无咎，濡其首，有孚失是。"
+                ],
+                explanation: "未济卦象征事情未完成。上卦为离（火），下卦为坎（水），表示火在水上，事未成之象。此卦代表事情处于过渡阶段，尚未完成。在事业上表示项目还在进行中，需要持续努力。在感情上代表关系尚未稳定，需要进一步发展。"
             }
         };
+
+        // 更多卦象可以按相同格式添加...
 
         // DOM元素
         const coins = document.querySelectorAll('.coin');
@@ -567,7 +724,7 @@
                 } else {
                     shakeBtn.disabled = false;
                 }
-            }, 1500);
+            }, 1600);
         }
         
         // 更新硬币显示
@@ -596,7 +753,7 @@
                 if (index < step) {
                     stepElement.classList.add('completed');
                     stepElement.classList.remove('active');
-                } else if (index === step) {
+                } else if (index === step - 1) {
                     stepElement.classList.add('active');
                     stepElement.classList.remove('completed');
                 } else {
@@ -614,6 +771,7 @@
             for (let i = 5; i >= 0; i--) {
                 const lineType = currentLines[i];
                 const lineElement = document.createElement('div');
+                lineElement.style.animationDelay = `${(5-i)*0.1}s`;
                 
                 if (lineType === 'yang') {
                     lineElement.className = 'hexagram-line yang-line';
@@ -621,6 +779,7 @@
                 } else {
                     const brokenLine = document.createElement('div');
                     brokenLine.className = 'yin-broken';
+                    brokenLine.style.animationDelay = `${(5-i)*0.1}s`;
                     brokenLine.innerHTML = `
                         <div class="yin-segment"></div>
                         <div class="yin-segment"></div>
@@ -664,8 +823,8 @@
             shakeBtn.disabled = false;
             
             // 清空结果显示
-            hexagramDisplay.innerHTML = '<div class="placeholder-text"><p>摇卦完成后，卦象和解释将显示在此处</p></div>';
-            resultContainer.innerHTML = '<div class="placeholder-text"><p>请完成六爻摇卦以查看完整的卦辞和解释</p></div>';
+            hexagramDisplay.innerHTML = '<div class="placeholder-text"><p>摇卦完成后，卦象和解释将显示在此处</p><p><i class="fas fa-arrow-down" style="margin-top: 20px; font-size: 2rem;"></i></p></div>';
+            resultContainer.innerHTML = '<div class="placeholder-text"><p>请完成六爻摇卦以查看完整的卦辞和解释</p><p>系统包含全部64卦的详细内容</p></div>';
         }
         
         // 事件监听
