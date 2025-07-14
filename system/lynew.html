@@ -975,24 +975,14 @@
                         {
                             role: "user",
                             content: `用户占卜问题：${userQuestion}
-            请详细解释《易经》中的${currentHexagram.name}卦，并结合用户的问题给出针对性解答，请按照以下结构用中文回答：
-                    
-            1. 卦象概述：
-               用一段话简要说明此卦的核心含义，以及与用户问题的关联
-            
-            2. 象征意义：
-               详细解释卦象的象征意义，包括上下卦的组合含义
-            
-            3. 传统卦辞：
-               解释此卦的传统卦辞和爻辞含义
-            
-            4. 问题解答：
-               针对用户的问题，详细分析此卦对问题的解答
-            
-            5. 注意事项：
-               提醒占卜者需要注意的关键点
-            
-            请结合用户的具体问题和以上卦象信息，提供详细专业的解卦分析，适合命理学习者，使用清晰的分段：`
+                                
+占卜结果：
+卦名：${currentHexagram.name}
+卦辞：${currentHexagram.judgment}
+爻辞：${currentHexagram.lines.join('\n')}
+卦象解释：${currentHexagram.explanation}
+
+请结合用户的具体问题和以上卦象信息，提供详细的解卦分析：`
                         }
                     ],
                     temperature: 0.7,
@@ -1020,10 +1010,25 @@
                 // 显示AI解卦结果
                 aiContent.innerHTML = `
                     <div class="ai-analysis-result">
-                        <p><strong>问题分析：</strong>${userQuestion}</p>
-                        <p><strong>卦象解读：</strong>${currentHexagram.name} (${currentHexagram.judgment})</p>
-                        <div class="ai-insight">
-                            ${aiResponse.split('\n').map(p => `<p>${p}</p>`).join('')}
+                        <h3 class="ai-section-title" style="color: #d4af37; font-size: 1.5rem; margin-bottom: 15px;">问题分析</h3>
+                        <p class="ai-question" style="font-size: 1.1rem; color: #f0f0f0; margin-bottom: 20px;">${userQuestion}</p>
+                        
+                        <h3 class="ai-section-title" style="color: #d4af37; font-size: 1.5rem; margin-bottom: 15px;">卦象解读</h3>
+                        <p class="hexagram-name" style="font-size: 1.3rem; color: #f9d423; margin-bottom: 10px;">${currentHexagram.name}</p>
+                        <p class="hexagram-judgment" style="font-style: italic; color: #d4c690; margin-bottom: 20px;">${currentHexagram.judgment}</p>
+                        
+                        <h3 class="ai-section-title" style="color: #d4af37; font-size: 1.5rem; margin-bottom: 15px;">AI深度解析</h3>
+                        <div class="ai-insight" style="line-height: 1.8;">
+                            ${aiResponse.split('\n').map(p => p.trim() ? `<p style="margin-bottom: 15px; color: #b8c2cc;">${p}</p>` : '<br>').join('')}
+                        </div>
+                        
+                        <div class="ai-key-points" style="margin-top: 25px; padding: 15px; background: rgba(30, 35, 60, 0.6); border-radius: 8px;">
+                            <h4 style="color: #d4af37; font-size: 1.2rem; margin-bottom: 10px;">关键建议</h4>
+                            <ul style="padding-left: 20px;">
+                                <li style="margin-bottom: 8px; color: #f0f0f0;">保持开放心态</li>
+                                <li style="margin-bottom: 8px; color: #f0f0f0;">注意时机选择</li>
+                                <li style="margin-bottom: 8px; color: #f0f0f0;">重视人际关系</li>
+                            </ul>
                         </div>
                     </div>
                 `;
