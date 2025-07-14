@@ -874,14 +874,20 @@
                 
                 if (lineType === 'yang') {
                     lineElement.className = 'hexagram-line yang-line';
+                    lineElement.style.boxShadow = '0 0 15px rgba(249, 212, 35, 0.7)';
+                    lineElement.style.borderRadius = '5px';
+                    lineElement.style.margin = '10px 0';
                     hexagramDisplay.appendChild(lineElement);
                 } else {
                     const brokenLine = document.createElement('div');
                     brokenLine.className = 'yin-broken';
                     brokenLine.style.animationDelay = `${(5-i)*0.1}s`;
+                    brokenLine.style.display = 'flex';
+                    brokenLine.style.justifyContent = 'center';
+                    brokenLine.style.gap = '40px';
                     brokenLine.innerHTML = `
-                        <div class="yin-segment"></div>
-                        <div class="yin-segment"></div>
+                        <div class="yin-segment" style="width: 80px; height: 10px; background: linear-gradient(to right, #1a2a6c, #2c3e50, #4a6491); border-radius: 5px; box-shadow: 0 0 10px rgba(44, 62, 80, 0.7);"></div>
+                        <div class="yin-segment" style="width: 80px; height: 10px; background: linear-gradient(to right, #1a2a6c, #2c3e50, #4a6491); border-radius: 5px; box-shadow: 0 0 10px rgba(44, 62, 80, 0.7);"></div>
                     `;
                     hexagramDisplay.appendChild(brokenLine);
                 }
@@ -894,13 +900,39 @@
             
             // 显示卦辞和解释
             resultContainer.innerHTML = `
-                <div class="hexagram-name">${currentHexagram.name}</div>
-                <div class="hexagram-title">卦辞</div>
-                <div class="judgment">${currentHexagram.judgment}</div>
-                <div class="hexagram-title">爻辞</div>
-                ${currentHexagram.lines.map(line => `<div class="line-text">${line}</div>`).join('')}
-                <div class="hexagram-title">卦象解释</div>
-                <div class="explanation">${currentHexagram.explanation}</div>
+                <div style="background: rgba(30, 35, 60, 0.8); padding: 25px; border-radius: 12px; margin: 20px 0; box-shadow: 0 8px 32px rgba(0,0,0,0.3);">
+                    <h3 style="color: #f9d423; font-size: 1.8rem; text-align: center; margin-bottom: 15px; border-bottom: 2px solid #d4af37; padding-bottom: 10px;">${currentHexagram.name}</h3>
+                    
+                    <div style="margin: 25px 0;">
+                        <h4 style="color: #d4af37; font-size: 1.4rem; margin-bottom: 10px;">卦辞</h4>
+                        <p style="font-style: italic; color: #d4c690; font-size: 1.2rem; line-height: 1.8; padding: 10px 15px; background: rgba(20, 25, 45, 0.6); border-radius: 8px;">${currentHexagram.judgment}</p>
+                    </div>
+                    
+                    <div style="margin: 25px 0;">
+                        <h4 style="color: #d4af37; font-size: 1.4rem; margin-bottom: 10px;">爻辞</h4>
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
+                            ${currentHexagram.lines.map((line, index) => 
+                                `<div style="padding: 12px; background: rgba(20, 25, 45, 0.6); border-radius: 8px; border-left: 3px solid #d4af37;">
+                                    <p style="color: #f9d423; margin-bottom: 5px;">第${index+1}爻</p>
+                                    <p style="color: #b8c2cc; line-height: 1.6;">${line}</p>
+                                </div>`
+                            ).join('')}
+                        </div>
+                    </div>
+                    
+                    <div style="margin: 25px 0;">
+                        <h4 style="color: #d4af37; font-size: 1.4rem; margin-bottom: 10px;">卦象解释</h4>
+                        <div style="padding: 20px; background: rgba(20, 25, 45, 0.6); border-radius: 8px; color: #d4c690; line-height: 1.8;">
+                            ${currentHexagram.explanation}
+                        </div>
+                    </div>
+                    
+                    <div style="text-align: center; margin-top: 30px;">
+                        <div style="display: inline-block; padding: 10px 20px; background: linear-gradient(145deg, #d4af37, #b8971a); color: #1a1a2e; border-radius: 50px; font-weight: bold;">
+                            ${currentHexagram.number}卦
+                        </div>
+                    </div>
+                </div>
             `;
         }
         
