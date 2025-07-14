@@ -1,0 +1,1554 @@
+// DeepSeek API配置
+        const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
+        const apiKey = 'sk-b2950087a9d5427392762814114b22a9';
+
+        // 新增：安全的随机数生成函数
+        function getSecureRandom() {
+            if(window.crypto && window.crypto.getRandomValues) {
+                const buf = new Uint32Array(1);
+                window.crypto.getRandomValues(buf);
+                return buf[0] / 4294967295; // 转换为0~1之间的浮点数
+            }
+            return Math.random(); // 兼容不支持crypto的旧浏览器
+        }
+        
+        // 六爻卦象数据 - 完整64卦
+        const guaData = {
+            "111111": { name: "乾为天", interpretation: "乾卦象征天，代表刚健、创始、主动。占得此卦者，往往表示事情将会顺利发展，但需要保持积极进取的态度。" },
+            "000000": { name: "坤为地", interpretation: "坤卦象征地，代表柔顺、包容、被动。占得此卦者，宜以柔克刚，顺应时势，不宜强求。" },
+            "100010": { name: "水雷屯", interpretation: "屯卦象征万物初生，充满艰难。占得此卦者，表示事情刚开始，会遇到困难，需要耐心和毅力。" },
+            "010001": { name: "山水蒙", interpretation: "蒙卦象征启蒙、教育。占得此卦者，表示需要学习或指导，事情尚在萌芽阶段，不可急躁。" },
+            "111010": { name: "水天需", interpretation: "需卦象征等待。占得此卦者，表示时机未到，需要耐心等待，不可贸然行动。" },
+            "010111": { name: "天水讼", interpretation: "讼卦象征争讼、纠纷。占得此卦者，表示可能会有争执，宜以和为贵，避免冲突。" },
+            "010000": { name: "地水师", interpretation: "师卦象征军队、战争。占得此卦者，表示需要团结众人，有组织地行动，方能成功。" },
+            "000010": { name: "水地比", interpretation: "比卦象征亲近、团结。占得此卦者，表示宜与人合作，互相帮助，共同发展。" },
+            "111011": { name: "风天小畜", interpretation: "小畜卦象征小有积蓄。占得此卦者，表示会有小的收获，但大发展尚需时日。" },
+            "110111": { name: "天泽履", interpretation: "履卦象征谨慎行事。占得此卦者，表示需要小心谨慎，按规矩办事，方能平安顺利。" },
+            "101111": { name: "天火同人", interpretation: "同人卦象征志同道合。占得此卦者，表示宜与人合作，共同发展。" },
+            "111101": { name: "火天大有", interpretation: "大有卦象征大丰收。占得此卦者，表示将有大收获，但需谨慎守成。" },
+            "100000": { name: "地雷复", interpretation: "复卦象征回复、循环。占得此卦者，表示事物将进入一个新的循环周期。" },
+            "000001": { name: "山地剥", interpretation: "剥卦象征剥落、衰落。占得此卦者，表示事物将经历一个衰退期，需谨慎应对。" },
+            "100111": { name: "火雷噬嗑", interpretation: "噬嗑卦象征咬合、克服困难。占得此卦者，表示需要通过努力克服障碍。" },
+            "111001": { name: "山雷颐", interpretation: "颐卦象征颐养、修养。占得此卦者，表示宜静养身心，不宜妄动。" },
+            "110000": { name: "泽雷随", interpretation: "随卦象征随从、顺应。占得此卦者，表示宜随顺时势，不宜强求。" },
+            "000011": { name: "山风蛊", interpretation: "蛊卦象征腐败、革新。占得此卦者，表示需要除旧布新，改革弊端。" },
+            "110001": { name: "地泽临", interpretation: "临卦象征临近、督导。占得此卦者，表示需要亲临指导，密切关注。" },
+            "100011": { name: "风地观", interpretation: "观卦象征观察、审视。占得此卦者，表示需要冷静观察，审时度势。" },
+            "101000": { name: "火雷噬嗑", interpretation: "噬嗑卦象征咬合、克服困难。占得此卦者，表示需要通过努力克服障碍。" },
+            "000101": { name: "山火贲", interpretation: "贲卦象征装饰、美化。占得此卦者，表示需要注重外表修饰，但不可过分。" },
+            "100001": { name: "山地剥", image: "bo.png", interpretation: "剥卦象征剥落、衰落。占得此卦者，表示事物将经历一个衰退期，需谨慎应对。" },
+            "011111": { name: "地雷复", interpretation: "复卦象征回复、循环。占得此卦者，表示事物将进入一个新的循环周期。" },
+            "100101": { name: "天雷无妄", interpretation: "无妄卦象征不妄为、顺其自然。占得此卦者，表示应顺其自然，不可妄为。" },
+            "101001": { name: "山天大畜", interpretation: "大畜卦象征大量积蓄。占得此卦者，表示将有大的积累和收获。" },
+            "100111": { name: "山雷颐", interpretation: "颐卦象征颐养、修养。占得此卦者，表示宜静养身心，不宜妄动。" },
+            "110001": { name: "泽风大过", interpretation: "大过卦象征大的过度。占得此卦者，表示事物发展已超过常规，需要特别谨慎。" },
+            "010010": { name: "坎为水", interpretation: "坎卦象征水、险陷。占得此卦者，表示将面临险境，需要谨慎行事。" },
+            "101101": { name: "离为火", interpretation: "离卦象征火、光明。占得此卦者，表示将获得光明和智慧，但需防止过火。" },
+            "110010": { name: "泽山咸", interpretation: "咸卦象征感应、交流。占得此卦者，表示人与人之间将有良好的感应和交流。" },
+            "010110": { name: "雷风恒", interpretation: "恒卦象征恒久、持久。占得此卦者，表示需要持之以恒，方能成功。" },
+            "001011": { name: "天山遁", interpretation: "遁卦象征退避、隐退。占得此卦者，表示宜暂时退避，不宜强进。" },
+            "110100": { name: "雷天大壮", interpretation: "大壮卦象征强盛、壮大。占得此卦者，表示力量强大，但需防止过刚。" },
+            "001101": { name: "火地晋", interpretation: "晋卦象征前进、晋升。占得此卦者，表示将有进步和发展。" },
+            "101100": { name: "地火明夷", interpretation: "明夷卦象征光明受损。占得此卦者，表示将面临困境，需要韬光养晦。" },
+            "101011": { name: "风火家人", interpretation: "家人卦象征家庭、亲情。占得此卦者，表示家庭和睦，亲情浓厚。" },
+            "110101": { name: "火泽睽", interpretation: "睽卦象征背离、分离。占得此卦者，表示人际关系可能出现隔阂和矛盾。" },
+            "001010": { name: "水山蹇", interpretation: "蹇卦象征艰难、险阻。占得此卦者，表示将面临艰难险阻，需要谨慎应对。" },
+            "010100": { name: "雷水解", interpretation: "解卦象征解除、解脱。占得此卦者，表示困难将得到解决。" },
+            "100110": { name: "山泽损", interpretation: "损卦象征损失、减损。占得此卦者，表示将有所损失，但可能是必要的。" },
+            "011001": { name: "风雷益", interpretation: "益卦象征增益、受益。占得此卦者，表示将有所收获和增益。" },
+            "111110": { name: "泽天夬", interpretation: "夬卦象征决断、裁决。占得此卦者，表示需要果断决策，不可犹豫。" },
+            "011111": { name: "天风姤", interpretation: "姤卦象征相遇、邂逅。占得此卦者，表示将有意外相遇或机遇。" },
+            "000110": { name: "泽地萃", interpretation: "萃卦象征聚集、会合。占得此卦者，表示将有聚会或合作机会。" },
+            "011000": { name: "地风升", interpretation: "升卦象征上升、进步。占得此卦者，表示将有上升和发展的机会。" },
+            "010110": { name: "泽水困", interpretation: "困卦象征困境、束缚。占得此卦者，表示将面临困境，需要忍耐。" },
+            "011010": { name: "水风井", interpretation: "井卦象征水井、源泉。占得此卦者，表示将获得稳定的资源和帮助。" },
+            "101110": { name: "泽火革", interpretation: "革卦象征变革、革新。占得此卦者，表示将面临重大变革。" },
+            "011101": { name: "火风鼎", interpretation: "鼎卦象征鼎器、稳固。占得此卦者，表示基础稳固，可以有所作为。" },
+            "100011": { name: "震为雷", interpretation: "震卦象征雷、震动。占得此卦者，表示将面临震动和变化。" },
+            "110000": { name: "艮为山", interpretation: "艮卦象征山、静止。占得此卦者，表示宜静不宜动，需要停止前进。" },
+            "001001": { name: "风山渐", interpretation: "渐卦象征渐进、逐步发展。占得此卦者，表示需要循序渐进，不可急躁。" },
+            "100100": { name: "雷泽归妹", interpretation: "归妹卦象征嫁娶、结合。占得此卦者，表示将有结合或合作的机会。" },
+            "101111": { name: "雷火丰", interpretation: "丰卦象征丰盛、繁荣。占得此卦者，表示将获得丰盛的成果。" },
+            "111101": { name: "火山旅", interpretation: "旅卦象征旅行、漂泊。占得此卦者，表示将面临变动或旅行。" },
+            "001110": { name: "巽为风", interpretation: "巽卦象征风、顺从。占得此卦者，表示宜顺从时势，不可强求。" },
+            "011100": { name: "兑为泽", interpretation: "兑卦象征泽、喜悦。占得此卦者，表示将有喜悦和顺利。" },
+            "001111": { name: "风水涣", interpretation: "涣卦象征涣散、分散。占得此卦者，表示将面临分散和涣散的局面。" },
+            "111100": { name: "水泽节", interpretation: "节卦象征节制、节约。占得此卦者，表示需要节制和约束。" },
+            "110011": { name: "风泽中孚", interpretation: "中孚卦象征诚信、信任。占得此卦者，表示诚信为本，可获得信任。" },
+            "001100": { name: "雷山小过", interpretation: "小过卦象征小的过度。占得此卦者，表示将有小的过失或过度。" },
+            "101010": { name: "水火既济", interpretation: "既济卦象征完成、成功。占得此卦者，表示事情将顺利完成。" },
+            "010101": { name: "火水未济", interpretation: "未济卦象征未完成、未成功。占得此卦者，表示事情尚未完成，需要继续努力。" }
+        };
+        
+        // 完整的64卦爻辞数据
+        const yaoData = {
+            "111111": [
+                "初九：潜龙勿用。",
+                "九二：见龙在田，利见大人。",
+                "九三：君子终日乾乾，夕惕若，厉无咎。",
+                "九四：或跃在渊，无咎。",
+                "九五：飞龙在天，利见大人。",
+                "上九：亢龙有悔。"
+            ],
+            "000000": [
+                "初六：履霜，坚冰至。",
+                "六二：直方大，不习无不利。",
+                "六三：含章可贞，或从王事，无成有终。",
+                "六四：括囊，无咎无誉。",
+                "六五：黄裳元吉。",
+                "上六：龙战于野，其血玄黄。"
+            ],
+            "100010": [
+                "初九：磐桓，利居贞，利建侯。",
+                "六二：屯如邅如，乘马班如。匪寇婚媾，女子贞不字，十年乃字。",
+                "六三：即鹿无虞，惟入于林中，君子几不如舍，往吝。",
+                "六四：乘马班如，求婚媾，往吉，无不利。",
+                "九五：屯其膏，小贞吉，大贞凶。",
+                "上六：乘马班如，泣血涟如。"
+            ],
+            "010001": [
+                "初六：发蒙，利用刑人，用说桎梏，以往吝。",
+                "九二：包蒙吉，纳妇吉，子克家。",
+                "六三：勿用取女，见金夫，不有躬，无攸利。",
+                "六四：困蒙，吝。",
+                "六五：童蒙，吉。",
+                "上九：击蒙，不利为寇，利御寇。"
+            ],
+            "111010": [
+                "初九：需于郊，利用恒，无咎。",
+                "九二：需于沙，小有言，终吉。",
+                "九三：需于泥，致寇至。",
+                "六四：需于血，出自穴。",
+                "九五：需于酒食，贞吉。",
+                "上六：入于穴，有不速之客三人来，敬之终吉。"
+            ],
+            "010111": [
+                "初六：不永所事，小有言，终吉。",
+                "九二：不克讼，归而逋，其邑人三百户，无眚。",
+                "六三：食旧德，贞厉，终吉。或从王事，无成。",
+                "九四：不克讼，复即命，渝安贞，吉。",
+                "九五：讼，元吉。",
+                "上九：或锡之鞶带，终朝三褫之。"
+            ],
+            "010000": [
+                "初六：师出以律，否臧凶。",
+                "九二：在师中，吉，无咎，王三锡命。",
+                "六三：师或舆尸，凶。",
+                "六四：师左次，无咎。",
+                "六五：田有禽，利执言，无咎。长子帅师，弟子舆尸，贞凶。",
+                "上六：大君有命，开国承家，小人勿用。"
+            ],
+            "000010": [
+                "初六：有孚比之，无咎。有孚盈缶，终来有它，吉。",
+                "六二：比之自内，贞吉。",
+                "六三：比之匪人。",
+                "六四：外比之，贞吉。",
+                "九五：显比，王用三驱，失前禽。邑人不诫，吉。",
+                "上六：比之无首，凶。"
+            ],
+            "111011": [
+                "初九：复自道，何其咎，吉。",
+                "九二：牵复，吉。",
+                "九三：舆说辐，夫妻反目。",
+                "六四：有孚，血去惕出，无咎。",
+                "九五：有孚挛如，富以其邻。",
+                "上九：既雨既处，尚德载，妇贞厉。月几望，君子征凶。"
+            ],
+            "110111": [
+                "初九：素履，往无咎。",
+                "九二：履道坦坦，幽人贞吉。",
+                "六三：眇能视，跛能履，履虎尾，咥人，凶。武人为于大君。",
+                "九四：履虎尾，愬愬终吉。",
+                "九五：夬履，贞厉。",
+                "上九：视履考祥，其旋元吉。"
+            ],
+            "101111": [
+                "初九：同人于门，无咎。",
+                "六二：同人于宗，吝。",
+                "九三：伏戎于莽，升其高陵，三岁不兴。",
+                "九四：乘其墉，弗克攻，吉。",
+                "九五：同人，先号啕而后笑。大师克相遇。",
+                "上九：同人于郊，无悔。"
+            ],
+            "111101": [
+                "初九：无交害，匪咎，艰则无咎。",
+                "九二：大车以载，有攸往，无咎。",
+                "九三：公用亨于天子，小人弗克。",
+                "九四：匪其彭，无咎。",
+                "六五：厥孚交如，威如，吉。",
+                "上九：自天佑之，吉无不利。"
+            ],
+            "100000": [
+                "初九：不远复，无祗悔，元吉。",
+                "六二：休复，吉。",
+                "六三：频复，厉无咎。",
+                "六四：中行独复。",
+                "六五：敦复，无悔。",
+                "上六：迷复，凶，有灾眚。用行师，终有大败，以其国君凶。至于十年不克征。"
+            ],
+            "000001": [
+                "初六：剥床以足，蔑贞凶。",
+                "六二：剥床以辨，蔑贞凶。",
+                "六三：剥之，无咎。",
+                "六四：剥床以肤，凶。",
+                "六五：贯鱼以宫人宠，无不利。",
+                "上九：硕果不食，君子得舆，小人剥庐。"
+            ],
+            "100111": [
+                "初九：无妄，往吉。",
+                "六二：不耕获，不菑畲，则利有攸往。",
+                "六三：无妄之灾，或系之牛，行人之得，邑人之灾。",
+                "九四：可贞，无咎。",
+                "九五：无妄之疾，勿药有喜。",
+                "上九：无妄，行有眚，无攸利。"
+            ],
+            "111001": [
+                "初九：舍尔灵龟，观我朵颐，凶。",
+                "六二：颠颐，拂经于丘颐，征凶。",
+                "六三：拂颐，贞凶，十年勿用，无攸利。",
+                "六四：颠颐，吉。虎视眈眈，其欲逐逐，无咎。",
+                "六五：拂经，居贞吉，不可涉大川。",
+                "上九：由颐，厉吉，利涉大川。"
+            ],
+            "110000": [
+                "初九：官有渝，贞吉。出门交有功。",
+                "六二：系小子，失丈夫。",
+                "六三：系丈夫，失小子。随有求得，利居贞。",
+                "九四：随有获，贞凶。有孚在道，以明，何咎。",
+                "九五：孚于嘉，吉。",
+                "上六：拘系之，乃从维之。王用亨于西山。"
+            ],
+            "000011": [
+                "初六：干父之蛊，有子，考无咎，厉终吉。",
+                "九二：干母之蛊，不可贞。",
+                "九三：干父之蛊，小有悔，无大咎。",
+                "六四：裕父之蛊，往见吝。",
+                "六五：干父之蛊，用誉。",
+                "上九：不事王侯，高尚其事。"
+            ],
+            "110001": [
+                "初九：咸临，贞吉。",
+                "九二：咸临，吉无不利。",
+                "六三：甘临，无攸利。既忧之，无咎。",
+                "六四：至临，无咎。",
+                "六五：知临，大君之宜，吉。",
+                "上六：敦临，吉无咎。"
+            ],
+            "100011": [
+                "初六：童观，小人无咎，君子吝。",
+                "六二：窥观，利女贞。",
+                "六三：观我生，进退。",
+                "六四：观国之光，利用宾于王。",
+                "九五：观我生，君子无咎。",
+                "上九：观其生，君子无咎。"
+            ],
+            "101000": [
+                "初九：有厉利已。",
+                "六二：噬肤灭鼻，无咎。",
+                "六三：噬腊肉，遇毒。小吝，无咎。",
+                "九四：噬干胏，得金矢。利艰贞，吉。",
+                "六五：噬干肉，得黄金。贞厉，无咎。",
+                "上九：何校灭耳，凶。"
+            ],
+            "000101": [
+                "初九：贲其趾，舍车而徒。",
+                "六二：贲其须。",
+                "九三：贲如濡如，永贞吉。",
+                "六四：贲如皤如，白马翰如，匪寇婚媾。",
+                "六五：贲于丘园，束帛戋戋，吝，终吉。",
+                "上九：白贲，无咎。"
+            ],
+            "100001": [
+                "初六：剥床以足，蔑贞凶。",
+                "六二：剥床以辨，蔑贞凶。",
+                "六三：剥之，无咎。",
+                "六四：剥床以肤，凶。",
+                "六五：贯鱼以宫人宠，无不利。",
+                "上九：硕果不食，君子得舆，小人剥庐。"
+            ],
+            "011111": [
+                "初九：不远复，无祗悔，元吉。",
+                "六二：休复，吉。",
+                "六三：频复，厉无咎。",
+                "六四：中行独复。",
+                "六五：敦复，无悔。",
+                "上六：迷复，凶，有灾眚。用行师，终有大败，以其国君凶。至于十年不克征。"
+            ],
+            "100101": [
+                "初九：无妄，往吉。",
+                "六二：不耕获，不菑畲，则利有攸往。",
+                "六三：无妄之灾，或系之牛，行人之得，邑人之灾。",
+                "九四：可贞，无咎。",
+                "九五：无妄之疾，勿药有喜。",
+                "上九：无妄，行有眚，无攸利。"
+            ],
+            "101001": [
+                "初九：有厉利已。",
+                "九二：舆说輹。",
+                "九三：良马逐，利艰贞。曰闲舆卫，利有攸往。",
+                "六四：童牛之牿，元吉。",
+                "六五：豶豕之牙，吉。",
+                "上九：何天之衢，亨。"
+            ],
+            "100111": [
+                "初九：舍尔灵龟，观我朵颐，凶。",
+                "六二：颠颐，拂经于丘颐，征凶。",
+                "六三：拂颐，贞凶，十年勿用，无攸利。",
+                "六四：颠颐，吉。虎视眈眈，其欲逐逐，无咎。",
+                "六五：拂经，居贞吉，不可涉大川。",
+                "上九：由颐，厉吉，利涉大川。"
+            ],
+            "110001": [
+                "初六：藉用白茅，无咎。",
+                "九二：枯杨生稊，老夫得其女妻，无不利。",
+                "九三：栋桡，凶。",
+                "九四：栋隆，吉。有它吝。",
+                "九五：枯杨生华，老妇得其士夫，无咎无誉。",
+                "上六：过涉灭顶，凶，无咎。"
+            ],
+            "010010": [
+                "初六：习坎，入于坎窞，凶。",
+                "九二：坎有险，求小得。",
+                "六三：来之坎坎，险且枕，入于坎窞，勿用。",
+                "六四：樽酒簋贰，用缶，纳约自牖，终无咎。",
+                "九五：坎不盈，祗既平，无咎。",
+                "上六：系用徽纆，寘于丛棘，三岁不得，凶。"
+            ],
+            "101101": [
+                "初九：履错然，敬之无咎。",
+                "六二：黄离，元吉。",
+                "九三：日昃之离，不鼓缶而歌，则大耋之嗟，凶。",
+                "九四：突如其来如，焚如，死如，弃如。",
+                "六五：出涕沱若，戚嗟若，吉。",
+                "上九：王用出征，有嘉折首，获匪其丑，无咎。"
+            ],
+            "110010": [
+                "初六：咸其拇。",
+                "六二：咸其腓，凶，居吉。",
+                "九三：咸其股，执其随，往吝。",
+                "九四：贞吉悔亡，憧憧往来，朋从尔思。",
+                "九五：咸其脢，无悔。",
+                "上六：咸其辅颊舌。"
+            ],
+            "010110": [
+                "初六：浚恒，贞凶，无攸利。",
+                "九二：悔亡。",
+                "九三：不恒其德，或承之羞，贞吝。",
+                "九四：田无禽。",
+                "六五：恒其德，贞。妇人吉，夫子凶。",
+                "上六：振恒，凶。"
+            ],
+            "001011": [
+                "初六：遁尾，厉，勿用有攸往。",
+                "六二：执之用黄牛之革，莫之胜说。",
+                "九三：系遁，有疾厉，畜臣妾吉。",
+                "九四：好遁，君子吉，小人否。",
+                "九五：嘉遁，贞吉。",
+                "上九：肥遁，无不利。"
+            ],
+            "110100": [
+                "初九：壮于趾，征凶，有孚。",
+                "九二：贞吉。",
+                "九三：小人用壮，君子用罔，贞厉。羝羊触藩，羸其角。",
+                "九四：贞吉悔亡，藩决不羸，壮于大舆之輹。",
+                "六五：丧羊于易，无悔。",
+                "上六：羝羊触藩，不能退，不能遂，无攸利，艰则吉。"
+            ],
+            "001101": [
+                "初六：晋如摧如，贞吉。罔孚，裕无咎。",
+                "六二：晋如愁如，贞吉。受兹介福，于其王母。",
+                "六三：众允，悔亡。",
+                "九四：晋如鼫鼠，贞厉。",
+                "六五：悔亡，失得勿恤，往吉无不利。",
+                "上九：晋其角，维用伐邑，厉吉无咎，贞吝。"
+            ],
+            "101100": [
+                "初九：明夷于飞，垂其翼。君子于行，三日不食。有攸往，主人有言。",
+                "六二：明夷，夷于左股，用拯马壮，吉。",
+                "九三：明夷于南狩，得其大首，不可疾贞。",
+                "六四：入于左腹，获明夷之心，于出门庭。",
+                "六五：箕子之明夷，利贞。",
+                "上六：不明晦，初登于天，后入于地。"
+            ],
+            "101011": [
+                "初九：闲有家，悔亡。",
+                "六二：无攸遂，在中馈，贞吉。",
+                "九三：家人嗃嗃，悔厉吉。妇子嘻嘻，终吝。",
+                "六四：富家，大吉。",
+                "九五：王假有家，勿恤吉。",
+                "上九：有孚威如，终吉。"
+            ],
+            "110101": [
+                "初九：悔亡，丧马勿逐，自复。见恶人无咎。",
+                "九二：遇主于巷，无咎。",
+                "六三：见舆曳，其牛掣，其人天且劓，无初有终。",
+                "九四：睽孤，遇元夫，交孚，厉无咎。",
+                "六五：悔亡，厥宗噬肤，往何咎。",
+                "上九：睽孤，见豕负涂，载鬼一车，先张之弧，后说之弧，匪寇婚媾，往遇雨则吉。"
+            ],
+            "001010": [
+                "初六：往蹇来誉。",
+                "六二：王臣蹇蹇，匪躬之故。",
+                "九三：往蹇来反。",
+                "六四：往蹇来连。",
+                "九五：大蹇朋来。",
+                "上六：往蹇来硕，吉，利见大人。"
+            ],
+            "010100": [
+                "初六：无咎。",
+                "九二：田获三狐，得黄矢，贞吉。",
+                "六三：负且乘，致寇至，贞吝。",
+                "九四：解而拇，朋至斯孚。",
+                "六五：君子维有解，吉。有孚于小人。",
+                "上六：公用射隼于高墉之上，获之，无不利。"
+            ],
+            "100110": [
+                "初九：已事遄往，无咎，酌损之。",
+                "九二：利贞，征凶，弗损益之。",
+                "六三：三人行，则损一人。一人行，则得其友。",
+                "六四：损其疾，使遄有喜，无咎。",
+                "六五：或益之十朋之龟，弗克违，元吉。",
+                "上九：弗损益之，无咎，贞吉，利有攸往，得臣无家。"
+            ],
+            "011001": [
+                "初九：利用为大作，元吉，无咎。",
+                "六二：或益之十朋之龟，弗克违，永贞吉。王用享于帝，吉。",
+                "六三：益之用凶事，无咎。有孚中行，告公用圭。",
+                "六四：中行，告公从。利用为依迁国。",
+                "九五：有孚惠心，勿问元吉。有孚惠我德。",
+                "上九：莫益之，或击之，立心勿恒，凶。"
+            ],
+            "111110": [
+                "初九：壮于前趾，往不胜为咎。",
+                "九二：惕号，莫夜有戎，勿恤。",
+                "九三：壮于頄，有凶。君子夬夬，独行遇雨，若濡有愠，无咎。",
+                "九四：臀无肤，其行次且。牵羊悔亡，闻言不信。",
+                "九五：苋陆夬夬，中行无咎。",
+                "上六：无号，终有凶。"
+            ],
+            "011111": [
+                "初六：系于金柅，贞吉。有攸往，见凶，羸豕踟躅。",
+                "九二：包有鱼，无咎，不利宾。",
+                "九三：臀无肤，其行次且，厉，无大咎。",
+                "九四：包无鱼，起凶。",
+                "九五：以杞包瓜，含章，有陨自天。",
+                "上九：姤其角，吝，无咎。"
+            ],
+            "000110": [
+                "初六：有孚不终，乃乱乃萃，若号一握为笑，勿恤，往无咎。",
+                "六二：引吉，无咎，孚乃利用禴。",
+                "六三：萃如嗟如，无攸利，往无咎，小吝。",
+                "九四：大吉，无咎。",
+                "九五：萃有位，无咎。匪孚，元永贞，悔亡。",
+                "上六：赍咨涕洟，无咎。"
+            ],
+            "011000": [
+                "初六：允升，大吉。",
+                "九二：孚乃利用禴，无咎。",
+                "九三：升虚邑。",
+                "六四：王用亨于岐山，吉无咎。",
+                "六五：贞吉，升阶。",
+                "上六：冥升，利于不息之贞。"
+            ],
+            "010110": [
+                "初六：臀困于株木，入于幽谷，三岁不觌。",
+                "九二：困于酒食，朱绂方来，利用享祀，征凶，无咎。",
+                "六三：困于石，据于蒺藜，入于其宫，不见其妻，凶。",
+                "九四：来徐徐，困于金车，吝，有终。",
+                "九五：劓刖，困于赤绂，乃徐有说，利用祭祀。",
+                "上六：困于葛藟，于臲卼，曰动悔。有悔，征吉。"
+            ],
+            "011010": [
+                "初六：井泥不食，旧井无禽。",
+                "九二：井谷射鲋，瓮敝漏。",
+                "九三：井渫不食，为我心恻，可用汲，王明，并受其福。",
+                "六四：井甃，无咎。",
+                "九五：井冽，寒泉食。",
+                "上六：井收勿幕，有孚元吉。"
+            ],
+            "101110": [
+                "初九：巩用黄牛之革。",
+                "六二：己日乃革之，征吉，无咎。",
+                "九三：征凶，贞厉。革言三就，有孚。",
+                "九四：悔亡，有孚改命，吉。",
+                "九五：大人虎变，未占有孚。",
+                "上六：君子豹变，小人革面，征凶，居贞吉。"
+            ],
+            "011101": [
+                "初六：鼎颠趾，利出否，得妾以其子，无咎。",
+                "九二：鼎有实，我仇有疾，不我能即，吉。",
+                "九三：鼎耳革，其行塞，雉膏不食，方雨亏悔，终吉。",
+                "九四：鼎折足，覆公餗，其形渥，凶。",
+                "六五：鼎黄耳金铉，利贞。",
+                "上九：鼎玉铉，大吉，无不利。"
+            ],
+            "100011": [
+                "初九：震来虩虩，后笑言哑哑，吉。",
+                "六二：震来厉，亿丧贝，跻于九陵，勿逐，七日得。",
+                "六三：震苏苏，震行无眚。",
+                "九四：震遂泥。",
+                "六五：震往来厉，亿无丧，有事。",
+                "上六：震索索，视矍矍，征凶。震不于其躬，于其邻，无咎。婚媾有言。"
+            ],
+            "110000": [
+                "初六：艮其趾，无咎，利永贞。",
+                "六二：艮其腓，不拯其随，其心不快。",
+                "九三：艮其限，列其夤，厉薰心。",
+                "六四：艮其身，无咎。",
+                "六五：艮其辅，言有序，悔亡。",
+                "上九：敦艮，吉。"
+            ],
+            "001001": [
+                "初六：鸿渐于干，小子厉，有言，无咎。",
+                "六二：鸿渐于磐，饮食衎衎，吉。",
+                "九三：鸿渐于陆，夫征不复，妇孕不育，凶。利御寇。",
+                "六四：鸿渐于木，或得其桷，无咎。",
+                "九五：鸿渐于陵，妇三岁不孕，终莫之胜，吉。",
+                "上九：鸿渐于逵，其羽可用为仪，吉。"
+            ],
+            "100100": [
+                "初九：归妹以娣，跛能履，征吉。",
+                "九二：眇能视，利幽人之贞。",
+                "六三：归妹以须，反归以娣。",
+                "九四：归妹愆期，迟归有时。",
+                "六五：帝乙归妹，其君之袂，不如其娣之袂良。月几望，吉。",
+                "上六：女承筐无实，士刲羊无血，无攸利。"
+            ],
+            "101111": [
+                "初九：遇其配主，虽旬无咎，往有尚。",
+                "六二：丰其蔀，日中见斗，往得疑疾，有孚发若，吉。",
+                "九三：丰其沛，日中见沬，折其右肱，无咎。",
+                "九四：丰其蔀，日中见斗，遇其夷主，吉。",
+                "六五：来章，有庆誉，吉。",
+                "上六：丰其屋，蔀其家，窥其户，阒其无人，三岁不觌，凶。"
+            ],
+            "111101": [
+                "初六：旅琐琐，斯其所取灾。",
+                "六二：旅即次，怀其资，得童仆贞。",
+                "九三：旅焚其次，丧其童仆，贞厉。",
+                "九四：旅于处，得其资斧，我心不快。",
+                "六五：射雉一矢亡，终以誉命。",
+                "上九：鸟焚其巢，旅人先笑后号啕。丧牛于易，凶。"
+            ],
+            "001110": [
+                "初六：进退，利武人之贞。",
+                "九二：巽在床下，用史巫纷若，吉无咎。",
+                "九三：频巽，吝。",
+                "六四：悔亡，田获三品。",
+                "九五：贞吉悔亡，无不利。无初有终，先庚三日，后庚三日，吉。",
+                "上九：巽在床下，丧其资斧，贞凶。"
+            ],
+            "011100": [
+                "初九：和兑，吉。",
+                "九二：孚兑，吉，悔亡。",
+                "六三：来兑，凶。",
+                "九四：商兑未宁，介疾有喜。",
+                "九五：孚于剥，有厉。",
+                "上六：引兑。"
+            ],
+            "001111": [
+                "初六：用拯马壮，吉。",
+                "九二：涣奔其机，悔亡。",
+                "六三：涣其躬，无悔。",
+                "六四：涣其群，元吉。涣有丘，匪夷所思。",
+                "九五：涣汗其大号，涣王居，无咎。",
+                "上九：涣其血，去逖出，无咎。"
+            ],
+            "111100": [
+                "初九：不出户庭，无咎。",
+                "九二：不出门庭，凶。",
+                "六三：不节若，则嗟若，无咎。",
+                "六四：安节，亨。",
+                "九五：甘节，吉，往有尚。",
+                "上六：苦节，贞凶，悔亡。"
+            ],
+            "110011": [
+                "初九：虞吉，有它不燕。",
+                "九二：鸣鹤在阴，其子和之，我有好爵，吾与尔靡之。",
+                "六三：得敌，或鼓或罢，或泣或歌。",
+                "六四：月几望，马匹亡，无咎。",
+                "九五：有孚挛如，无咎。",
+                "上九：翰音登于天，贞凶。"
+            ],
+            "001100": [
+                "初六：飞鸟以凶。",
+                "六二：过其祖，遇其妣。不及其君，遇其臣，无咎。",
+                "九三：弗过防之，从或戕之，凶。",
+                "九四：无咎，弗过遇之。往厉必戒，勿用永贞。",
+                "六五：密云不雨，自我西郊，公弋取彼在穴。",
+                "上六：弗遇过之，飞鸟离之，凶，是谓灾眚。"
+            ],
+            "101010": [
+                "初九：曳其轮，濡其尾，无咎。",
+                "六二：妇丧其茀，勿逐，七日得。",
+                "九三：高宗伐鬼方，三年克之，小人勿用。",
+                "六四：繻有衣袽，终日戒。",
+                "九五：东邻杀牛，不如西邻之禴祭，实受其福。",
+                "上六：濡其首，厉。"
+            ],
+            "010101": [
+                "初六：濡其尾，吝。",
+                "九二：曳其轮，贞吉。",
+                "六三：未济，征凶，利涉大川。",
+                "九四：贞吉，悔亡，震用伐鬼方，三年有赏于大国。",
+                "六五：贞吉，无悔，君子之光，有孚吉。",
+                "上九：有孚于饮酒，无咎，濡其首，有孚失是。"
+            ]
+        };
+        
+        // 变爻解释
+        const yaoChangeData = {
+            "9": "老阳，阳爻变阴爻",
+            "8": "少阴，阴爻不变",
+            "7": "少阳，阳爻不变",
+            "6": "老阴，阴爻变阳爻"
+        };
+        
+        // 全局变量
+let currentHexagram = [];
+let currentQuestion = "";
+let currentMethod = "coin";
+let castCount = 0;
+let history = JSON.parse(localStorage.getItem('divinationHistory')) || [];
+
+// DOM加载完成后执行
+document.addEventListener('DOMContentLoaded', function() {
+            
+    // 初始化方法切换
+    const methodBtns = document.querySelectorAll('.method-btn');
+    methodBtns.forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault(); // Prevent default behavior that might move the page
+            
+            methodBtns.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            currentMethod = this.dataset.method;
+            
+            document.querySelectorAll('.method-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            document.getElementById(`${currentMethod}-method`).classList.add('active');
+            
+            // 重置状态
+            resetDivination();
+        });
+    });
+    
+    // 钱币点击事件
+    const coins = document.querySelectorAll('.coin');
+    coins.forEach(coin => {
+        coin.addEventListener('click', function() {
+            flipCoin(this);
+        });
+    });
+    
+    // 自动摇卦按钮
+    document.getElementById('auto-cast-btn').addEventListener('click', function() {
+        if (currentMethod === 'coin') {
+            autoCastCoins();
+        }
+    });
+    
+    // 摇卦按钮
+    document.getElementById('cast-btn').addEventListener('click', function() {
+        if (currentMethod === 'coin') {
+            castWithCoins();
+        }
+    });
+    
+    // 时间起卦按钮
+    document.getElementById('time-cast-btn').addEventListener('click', function() {
+        if (currentMethod === 'time') {
+            castWithTime();
+        }
+    });
+    
+    // 数字起卦按钮
+    document.getElementById('number-cast-btn').addEventListener('click', function() {
+        if (currentMethod === 'number') {
+            castWithNumbers();
+        }
+    });
+    
+    // 重置按钮
+    document.getElementById('reset-btn').addEventListener('click', resetDivination);
+    
+    // 新占卜按钮
+    document.getElementById('new-divination').addEventListener('click', resetDivination);
+    
+    // 保存卦象按钮
+    document.getElementById('save-hexagram').addEventListener('click', saveHexagram);
+    
+    // 清除历史记录按钮
+    document.getElementById('clear-history').addEventListener('click', clearHistory);
+    
+    // 如果有历史记录，显示历史部分
+    if (history.length > 0) {
+        document.getElementById('history-section').style.display = 'block';
+        renderHistory();
+    }
+});
+
+// 安全随机数生成函数
+function getSecureRandom() {
+    if (window.crypto && window.crypto.getRandomValues) {
+        const buf = new Uint32Array(1);
+        window.crypto.getRandomValues(buf);
+        return buf[0] / 4294967295;
+    }
+    return Math.random();
+}
+
+// 钱币翻转动画
+function flipCoin(coin) {
+    coin.classList.add('flipping');
+    setTimeout(() => {
+        coin.classList.remove('flipping');
+        // 随机决定是正面还是反面
+        const isHead = getSecureRandom() > 0.5;
+        if (isHead) {
+            coin.dataset.side = 'head';
+            coin.style.transform = 'rotateY(0deg)';
+        } else {
+            coin.dataset.side = 'tail';
+            coin.style.transform = 'rotateY(180deg)';
+        }
+        
+        // 添加选中效果
+        coin.classList.add('selected');
+        
+        // 更新状态显示
+        updateCoinStatus();
+    }, 1000);
+}
+
+// 更新钱币状态显示
+function updateCoinStatus() {
+    const coins = document.querySelectorAll('.coin');
+    let allCoinsSet = true;
+    let headCount = 0;
+    
+    coins.forEach(coin => {
+        if (!coin.dataset.side) {
+            allCoinsSet = false;
+        } else if (coin.dataset.side === 'head') {
+            headCount++;
+        }
+    });
+    
+    if (allCoinsSet) {
+        let statusText = "";
+        switch (headCount) {
+            case 0: statusText = "三枚反面：老阴（变爻）"; break;
+            case 1: statusText = "一枚正面：少阴（不变）"; break;
+            case 2: statusText = "两枚正面：少阳（不变）"; break;
+            case 3: statusText = "三枚正面：老阳（变爻）"; break;
+        }
+        document.getElementById('cast-status').textContent = statusText;
+    } else {
+        document.getElementById('cast-status').textContent = `请点击所有钱币确定正反面（已点击 ${countSetCoins()} / 3）`;
+    }
+}
+
+// 计算已设置的钱币数量
+function countSetCoins() {
+    const coins = document.querySelectorAll('.coin');
+    let count = 0;
+    coins.forEach(coin => {
+        if (coin.dataset.side) {
+            count++;
+        }
+    });
+    return count;
+}
+
+// 自动摇卦函数
+function autoCastCoins() {
+    // 先验证是否输入了占卜问题
+    const question = document.getElementById('question').value.trim();
+    if (!question) {
+        alert('请先输入您的占卜问题');
+        return;
+    }
+
+    if (castCount >= 6) {
+        alert('六次摇卦已完成，请查看结果或重置');
+        return;
+    }
+    
+    // 如果是第一次摇卦，记录问题
+    if (castCount === 0) {
+        currentQuestion = question;
+        const now = new Date();
+        document.getElementById('divination-time').textContent = now.toLocaleString();
+        document.getElementById('divination-method').textContent = "钱币摇卦";
+    }
+
+    // 快速完成6次摇卦
+    function autoCastFull() {
+        if (castCount >= 6) {
+            // 全部完成后自动显示结果
+            showResult();
+            
+            // 自动滚动到结果区域
+            setTimeout(() => {
+                document.getElementById('hexagram-section').scrollIntoView({ 
+                    behavior: 'smooth' 
+                });
+            }, 500);
+            return;
+        }
+
+        const coins = document.querySelectorAll('.coin');
+        
+        // 一次性摇三个钱币
+        coins.forEach(coin => {
+            // 使用安全随机数
+            const isHead = getSecureRandom() > 0.5;
+            coin.dataset.side = isHead ? 'head' : 'tail';
+            coin.style.transform = isHead ? 'rotateY(0deg)' : 'rotateY(180deg)';
+            coin.classList.add('selected');
+        });
+        
+        // 更新状态显示
+        document.getElementById('cast-status').textContent = 
+            `正在自动进行第 ${castCount + 1} 次摇卦...`;
+        
+        // 延迟后记录本次摇卦结果
+        setTimeout(() => {
+            castWithCoins();
+            // 继续下一次摇卦
+            setTimeout(autoCastFull, 500);
+        }, 800);
+    }
+    
+    autoCastFull();
+}
+
+// 使用钱币摇卦
+function castWithCoins() {
+    const question = document.getElementById('question').value.trim();
+    if (!question) {
+        alert('请输入占卜问题');
+        return;
+    }
+    
+    // 第一次摇卦时设置问题
+    if (castCount === 0) {
+        currentQuestion = question;
+        // 设置占卜时间和方法
+        const now = new Date();
+        document.getElementById('divination-time').textContent = now.toLocaleString();
+        document.getElementById('divination-method').textContent = "钱币摇卦";
+    }
+    
+    const coins = document.querySelectorAll('.coin');
+    let allCoinsSet = true;
+    let headCount = 0;
+    
+    coins.forEach(coin => {
+        if (!coin.dataset.side) {
+            allCoinsSet = false;
+        } else if (coin.dataset.side === 'head') {
+            headCount++;
+        }
+    });
+    
+    if (!allCoinsSet) {
+        alert('请先点击所有钱币确定正反面');
+        return;
+    }
+    
+    // 确定爻的性质
+    let yaoType;
+    let changing;
+    const randomFactor = getSecureRandom();
+    
+    switch (headCount) {
+        case 0: // 三个反面
+            yaoType = randomFactor > 0.15 ? '6' : '8';
+            changing = randomFactor > 0.15;
+            break;
+        case 1: // 一个正面
+            if (randomFactor > 0.75) {
+                yaoType = '9';
+                changing = true;
+            } else if (randomFactor > 0.45) {
+                yaoType = '6';
+                changing = true;
+            } else if (randomFactor > 0.2) {
+                yaoType = '8';
+                changing = false;
+            } else {
+                yaoType = '7';
+                changing = false;
+            }
+            break;
+        case 2: // 两个正面
+            if (randomFactor > 0.75) {
+                yaoType = '9';
+                changing = true;
+            } else if (randomFactor > 0.5) {
+                yaoType = '7';
+                changing = false;
+            } else if (randomFactor > 0.25) {
+                yaoType = '8';
+                changing = false;
+            } else {
+                yaoType = '6';
+                changing = true;
+            }
+            break;
+        case 3: // 三个正面
+            yaoType = randomFactor > 0.15 ? '9' : '7';
+            changing = randomFactor > 0.15;
+            break;
+    }
+    
+    const yao = {
+        type: yaoType,
+        line: (yaoType === '7' || yaoType === '9') ? '111' : '000',
+        changing: changing
+    };
+    
+    currentHexagram.push(yao);
+    castCount++;
+    
+    // 更新摇卦次数显示
+    document.getElementById('cast-count').textContent = castCount;
+    
+    // 重置钱币状态
+    coins.forEach(coin => {
+        delete coin.dataset.side;
+        coin.style.transform = 'rotateY(0deg)';
+        coin.classList.remove('selected');
+    });
+    
+    // 更新状态显示
+    document.getElementById('cast-status').textContent = `第 ${castCount} 次摇卦完成，请继续点击钱币`;
+    
+    // 更新UI
+    updateHexagramDisplay();
+    
+    // 如果已经摇了6次，显示结果
+    if (castCount === 6) {
+        showResult();
+    }
+}
+
+// 时间起卦函数
+function castWithTime() {
+    const question = document.getElementById('question').value.trim();
+    if (!question) {
+        alert('请输入占卜问题');
+        return;
+    }
+    
+    currentQuestion = question;
+    let timeInput = document.getElementById('time').value;
+    let dateTime;
+    
+    // 如果没有输入时间，使用当前时间
+    if (!timeInput) {
+        dateTime = new Date();
+        // 设置输入框值为当前时间
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        timeInput = `${year}-${month}-${day}T${hours}:${minutes}`;
+        document.getElementById('time').value = timeInput;
+    } else {
+        dateTime = new Date(timeInput);
+    }
+    
+    // 设置占卜时间和方法
+    document.getElementById('divination-time').textContent = dateTime.toLocaleString();
+    document.getElementById('divination-method').textContent = "时间起卦";
+    
+    // 计算卦象
+    const year = dateTime.getFullYear();
+    const month = dateTime.getMonth() + 1;
+    const day = dateTime.getDate();
+    const hour = dateTime.getHours();
+    const minute = dateTime.getMinutes();
+    
+    // 上卦数 = (年 + 月 + 日) % 8
+    const upperNum = (year + month + day) % 8 || 8;
+    
+    // 下卦数 = (时 + 分) % 8
+    const lowerNum = (hour + minute) % 8 || 8;
+    
+    // 动爻 = (年 + 月 + 日 + 时 + 分) % 6
+    const changingYao = (year + month + day + hour + minute) % 6 || 6;
+    
+    // 生成卦象
+    generateHexagramFromNumbers(upperNum, lowerNum, changingYao);
+}
+
+// 数字起卦函数
+function castWithNumbers() {
+    const question = document.getElementById('question').value.trim();
+    if (!question) {
+        alert('请输入占卜问题');
+        return;
+    }
+    
+    currentQuestion = question;
+    const number1 = parseInt(document.getElementById('number1').value);
+    const number2 = parseInt(document.getElementById('number2').value);
+    
+    if (isNaN(number1)) {
+        alert('请输入第一组数字');
+        return;
+    }
+    
+    if (isNaN(number2)) {
+        alert('请输入第二组数字');
+        return;
+    }
+    
+    // 设置占卜时间和方法
+    const now = new Date();
+    document.getElementById('divination-time').textContent = now.toLocaleString();
+    document.getElementById('divination-method').textContent = "数字起卦";
+    
+    // 计算卦象
+    // 上卦数 = 第一组数字 % 8
+    const upperNum = number1 % 8 || 8;
+    
+    // 下卦数 = 第二组数字 % 8
+    const lowerNum = number2 % 8 || 8;
+    
+    // 动爻 = (第一组数字 + 第二组数字) % 6
+    const changingYao = (number1 + number2) % 6 || 6;
+    
+    // 生成卦象
+    generateHexagramFromNumbers(upperNum, lowerNum, changingYao);
+}
+
+// 根据数字生成卦象
+function generateHexagramFromNumbers(upperNum, lowerNum, changingYao) {
+    // 八卦对应的二进制编码
+    const trigrams = {
+        1: '111', // 乾
+        2: '011', // 兑
+        3: '101', // 离
+        4: '001', // 震
+        5: '110', // 巽
+        6: '010', // 坎
+        7: '100', // 艮
+        8: '000'  // 坤
+    };
+    
+    // 获取上下卦的二进制编码
+    const upperCode = trigrams[upperNum];
+    const lowerCode = trigrams[lowerNum];
+    
+    // 修正：将上下卦顺序调换，因为易经卦象是上卦在上（显示时在下面），下卦在下（显示时在上面）
+    const hexagramCode = lowerCode + upperCode;
+    
+    // 生成六爻数据
+    currentHexagram = [];
+    for (let i = 0; i < 6; i++) {
+        const isYang = hexagramCode[i] === '1';
+        const isChanging = (6 - i) === changingYao; // 动爻位置从下往上数
+        
+        currentHexagram.push({
+            type: isYang ? (isChanging ? '9' : '7') : (isChanging ? '6' : '8'),
+            line: isYang ? '111' : '000',
+            changing: isChanging
+        });
+    }
+    
+    castCount = 6;
+    updateHexagramDisplay();
+    showResult();
+}
+
+// 更新卦象显示（保持不变）
+function updateHexagramDisplay() {
+    const hexagramDisplay = document.getElementById('hexagram-display');
+    hexagramDisplay.innerHTML = '';
+    
+    // 从下往上显示爻（初爻在最下面）
+    for (let i = 5; i >= 0; i--) {
+        if (i < currentHexagram.length) {
+            const yao = currentHexagram[i];
+            const lineDiv = document.createElement('div');
+            lineDiv.className = 'hexagram-line';
+            
+            // 绘制爻线
+            if (yao.line === '111') {
+                lineDiv.classList.add('solid-line');
+            } else {
+                lineDiv.classList.add('broken-line');
+                lineDiv.innerHTML = `
+                    <div class="broken-line-part"></div>
+                    <div class="broken-line-part"></div>
+                `;
+            }
+            
+            // 标记变爻
+            if (yao.changing) {
+                lineDiv.classList.add('yao-change');
+            }
+            
+            // 添加爻位标识
+            const numberSpan = document.createElement('span');
+            numberSpan.className = 'line-number';
+            
+            // 爻位名称（从下往上：初爻、二爻...上爻）
+            const positionNames = ['初爻', '二爻', '三爻', '四爻', '五爻', '上爻'];
+            numberSpan.textContent = positionNames[5 - i];
+            
+            lineDiv.appendChild(numberSpan);
+            hexagramDisplay.appendChild(lineDiv);
+        }
+    }
+}
+
+
+// 生成卦象SVG
+function generateHexagramSvg(hexagramCode) {
+    const svgWidth = 150;
+    const svgHeight = 220;
+    const lineHeight = 10;
+    const spacing = 25;
+    const lineColor = '#5a3921';
+    const bgColor = '#f8f3e6';
+    
+    let svgContent = '';
+    const positionNames = ['初', '二', '三', '四', '五', '上'];
+    const changingYaoPositions = [];
+    
+    // 找出变爻位置
+    currentHexagram.forEach((yao, index) => {
+        if (yao.changing) {
+            changingYaoPositions.push(5 - index);
+        }
+    });
+    
+    // 从下往上绘制
+    for (let i = 0; i < 6; i++) {
+        const yPos = 180 - i * spacing;
+        const isYang = hexagramCode[i] === '1';
+        const isChanging = changingYaoPositions.includes(i);
+        
+        // 变爻添加特殊标记
+        if (isChanging) {
+            svgContent += `
+                <circle cx="75" cy="${yPos}" r="15" fill="rgba(255,215,0,0.2)" />
+            `;
+        }
+        
+        // 绘制爻线
+        if (isYang) {
+            svgContent += `
+                <line x1="30" y1="${yPos}" x2="120" y2="${yPos}" 
+                      stroke="${lineColor}" stroke-width="${lineHeight}" 
+                      stroke-linecap="round" />
+            `;
+        } else {
+            svgContent += `
+                <line x1="30" y1="${yPos}" x2="75" y2="${yPos}" 
+                      stroke="${lineColor}" stroke-width="${lineHeight}" 
+                      stroke-linecap="round" />
+                <line x1="90" y1="${yPos}" x2="120" y2="${yPos}" 
+                      stroke="${lineColor}" stroke-width="${lineHeight}" 
+                      stroke-linecap="round" />
+            `;
+        }
+        
+        // 爻位标注
+        svgContent += `
+            <text x="125" y="${yPos + 5}" font-family="SimSun, serif" font-size="12" fill="#666">
+                ${positionNames[i]}
+            </text>
+        `;
+    }
+    
+    // 添加卦名标注
+    const guaName = guaData[hexagramCode]?.name || "未知卦";
+    svgContent += `
+        <text x="75" y="210" text-anchor="middle" 
+              font-family="SimSun, serif" font-size="14" font-weight="bold" fill="#8B4513">
+            ${guaName}
+        </text>
+    `;
+    
+    return `
+        <svg width="${svgWidth}" height="${svgHeight}" viewBox="0 0 150 220" 
+             xmlns="http://www.w3.org/2000/svg" class="hexagram-svg">
+            <rect width="100%" height="100%" rx="10" fill="${bgColor}" 
+                  stroke="#d4a017" stroke-width="2"/>
+            ${svgContent}
+        </svg>
+    `;
+}
+
+// 获取卦象结构描述
+function getGuaStructure(hexagramCode) {
+    const upper = hexagramCode.substring(0, 3);
+    const lower = hexagramCode.substring(3);
+    return `上卦：${upper.replace(/0/g,'阴').replace(/1/g,'阳')}，下卦：${lower.replace(/0/g,'阴').replace(/1/g,'阳')}`;
+}
+
+// 获取变爻解释
+function getYaoChangeInterpretation(count) {
+    const interpretations = {
+        1: "事物发展将出现关键转折点",
+        2: "阴阳力量正在转换平衡",
+        3: "重大变革即将发生",
+        4: "多方面因素同时变化",
+        5: "整体格局将发生转变",
+        6: "乾坤颠倒，彻底变化"
+    };
+    return interpretations[count] || "卦象正在发生动态变化";
+}
+
+// 显示结果
+function showResult() {
+    // 显示结果区域
+    document.getElementById('hexagram-section').style.display = 'block';
+    
+    // 生成卦象编码
+    let hexagramCode = '';
+    currentHexagram.forEach(yao => {
+        // 阳爻: 7和9，阴爻: 6和8
+        hexagramCode += (yao.type === '7' || yao.type === '9') ? '1' : '0';
+    });
+    
+    // 获取卦象数据
+    const guaInfo = guaData[hexagramCode] || { 
+        name: "未知卦", 
+        interpretation: "暂无解释" 
+    };
+    
+    // 显示卦名
+    document.getElementById('gua-name').textContent = guaInfo.name;
+    
+    // 动态生成SVG卦象图
+    document.getElementById('gua-image-container').innerHTML = generateHexagramSvg(hexagramCode);
+    
+    // 显示卦象解释
+    document.getElementById('gua-interpretation').innerHTML = `
+        <p>${guaInfo.interpretation}</p>
+        <div class="gua-structure">
+            <i class="fas fa-project-diagram"></i> ${getGuaStructure(hexagramCode)}
+        </div>
+    `;
+    
+    // 显示问题
+    document.getElementById('question-display').textContent = currentQuestion;
+    
+    // 处理变爻分析
+    const changingYao = [];
+    currentHexagram.forEach((yao, index) => {
+        if (yao.changing) {
+            changingYao.push(index + 1); // 爻位从1开始
+        }
+    });
+    
+    let yaoAnalysisHtml = '';
+    if (changingYao.length > 0) {
+        yaoAnalysisHtml += `
+            <div class="changing-yao-header">
+                <i class="fas fa-exchange-alt"></i>
+                <h4>本次占卜有 ${changingYao.length} 个变爻：第 ${changingYao.join('、')} 爻</h4>
+            </div>
+            <p>${getYaoChangeInterpretation(changingYao.length)}</p>
+        `;
+        
+        changingYao.forEach(pos => {
+            const index = pos - 1;
+            const yao = currentHexagram[index];
+            yaoAnalysisHtml += `
+                <div class="yao-item">
+                    <div class="yao-position">第${pos}爻</div>
+                    <div class="yao-content">
+                        <p>${yaoChangeData[yao.type] || '未知变化'}</p>
+                        ${yaoData[hexagramCode] && yaoData[hexagramCode][index] ? 
+                         `<p class="yao-text">${yaoData[hexagramCode][index]}</p>` : ''}
+                    </div>
+                </div>
+            `;
+        });
+        
+        yaoAnalysisHtml += `
+            <div class="yao-change-meaning">
+                <i class="fas fa-info-circle"></i>
+                <p>变爻表示事物发展中的动态变化，需要特别关注这些爻位的含义。</p>
+            </div>
+        `;
+    } else {
+        yaoAnalysisHtml = `
+            <div class="no-changing-yao">
+                <i class="fas fa-info-circle"></i>
+                <p>本次占卜没有变爻，表示事情将保持现状发展。</p>
+            </div>
+        `;
+    }
+    
+    document.getElementById('yao-analysis').innerHTML = yaoAnalysisHtml;
+
+    // 显示加载指示器并获取卦辞详解
+    document.getElementById('gua-detail-content').textContent = "正在获取卦辞详解...";
+    document.getElementById('loading-indicator').style.display = 'block';
+    
+    // 从API获取卦辞详解
+    fetchGuaDetailFromAPI(currentQuestion, guaInfo.name, hexagramCode, changingYao);
+    
+    // 滚动到结果区域
+    setTimeout(() => {
+        document.getElementById('hexagram-section').scrollIntoView({ 
+            behavior: 'smooth' 
+        });
+    }, 500);
+}
+
+// 从DeepSeek API获取卦辞详解
+async function fetchGuaDetailFromAPI(question, guaName, hexagramCode, changingYao) {
+    try {
+        const prompt = `用户占卜问题："${question}"
+        
+请详细解释《易经》中的${guaName}卦（卦象编码：${hexagramCode}），并结合用户的问题给出针对性解答，请按照以下结构用中文回答：
+        
+1. 卦象概述：
+   用一段话简要说明此卦的核心含义，以及与用户问题的关联
+
+2. 象征意义：
+   详细解释卦象的象征意义，包括上下卦的组合含义
+
+3. 变爻分析：
+   ${changingYao.length > 0 ? '重点分析第' + changingYao.join('、') + '爻的变化含义及其对用户问题的启示' : '本次占卜无变爻，说明事情将保持现状'}
+
+4. 传统卦辞：
+   解释此卦的传统卦辞和爻辞含义
+
+5. 问题解答：
+   针对用户的问题，详细分析此卦对问题的解答
+
+6. 注意事项：
+   提醒占卜者需要注意的关键点
+
+请使用纯文本格式回答，不要使用Markdown符号（如#，*，-等）。内容要详细专业，适合命理学习者，使用清晰的分段。`;
+        
+        const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`
+            },
+            body: JSON.stringify({
+                model: "deepseek-chat",
+                messages: [
+                    {
+                        role: "user",
+                        content: prompt
+                    }
+                ],
+                temperature: 0.7
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error(`API请求失败: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        const rawContent = data.choices[0].message.content;
+        
+        // 格式化卦辞详解
+        const formattedContent = formatGuaDetail(rawContent);
+        document.getElementById('gua-detail-content').innerHTML = formattedContent;
+        document.getElementById('loading-indicator').style.display = 'none';
+    } catch (error) {
+        console.error('获取卦辞详解失败:', error);
+        document.getElementById('gua-detail-content').innerHTML = 
+            `<div class="detail-highlight"><i class="fas fa-exclamation-triangle"></i> 获取卦辞详解失败: ${error.message}</div>
+             <p class="detail-para">${guaData[hexagramCode]?.interpretation || '暂无解释'}</p>`;
+        document.getElementById('loading-indicator').style.display = 'none';
+    }
+}
+
+// 卦辞格式化函数
+function formatGuaDetail(text) {
+    // 分割段落
+    let paragraphs = text.split('\n').filter(p => p.trim() !== '');
+    
+    // 如果没有明显分段，尝试按句号分
+    if (paragraphs.length <= 1) {
+        paragraphs = text.split(/[。！？]/).filter(p => p.trim() !== '');
+    }
+    
+    // 识别标题和关键部分
+    let html = '';
+    paragraphs.forEach(para => {
+        para = para.trim();
+        if (!para) return;
+        
+        // 识别标题（包含数字或冒号的部分）
+        if (/^\d+[、.]/.test(para) || /[:：]$/.test(para)) {
+            html += `<h4 class="detail-title">${para}</h4>`;
+        } 
+        // 识别重点内容
+        else if (para.includes('建议') || para.includes('注意') || para.includes('关键')) {
+            html += `<div class="detail-highlight"><i class="fas fa-lightbulb"></i> ${para}</div>`;
+        }
+        // 识别列表项
+        else if (para.startsWith('-') || para.startsWith('•')) {
+            if (!html.includes('<ul>')) html += '<ul>';
+            html += `<li>${para.substring(1).trim()}</li>`;
+        }
+        // 普通段落
+        else {
+            // 如果上一项是ul，先闭合
+            if (html.includes('<ul>') && !html.includes('</ul>')) {
+                html += '</ul>';
+            }
+            html += `<p class="detail-para">${para}</p>`;
+        }
+    });
+    
+    // 确保ul标签闭合
+    if (html.includes('<ul>') && !html.includes('</ul>')) {
+        html += '</ul>';
+    }
+    
+    return html;
+}
+
+// 保存卦象到历史记录
+function saveHexagram() {
+    if (currentHexagram.length === 0) return;
+    
+    // 生成卦象编码
+    let hexagramCode = '';
+    currentHexagram.forEach(yao => {
+        hexagramCode += (yao.type === '7' || yao.type === '9') ? '1' : '0';
+    });
+    
+    const guaInfo = guaData[hexagramCode] || { name: "未知卦" };
+    
+    // 创建历史记录
+    const record = {
+        question: currentQuestion,
+        hexagram: hexagramCode,
+        name: guaInfo.name,
+        time: new Date().toLocaleString(),
+        method: currentMethod
+    };
+    
+    // 添加到历史记录
+    history.unshift(record);
+    
+    // 保存到本地存储
+    localStorage.setItem('divinationHistory', JSON.stringify(history));
+    
+    // 更新历史显示
+    renderHistory();
+    
+    // 显示历史部分
+    document.getElementById('history-section').style.display = 'block';
+    
+    alert('卦象已保存到历史记录');
+}
+
+// 渲染历史记录
+function renderHistory() {
+    const historyList = document.getElementById('history-list');
+    historyList.innerHTML = '';
+    
+    if (history.length === 0) {
+        historyList.innerHTML = '<p>暂无历史记录</p>';
+        return;
+    }
+    
+    history.forEach((record, index) => {
+        const item = document.createElement('div');
+        item.className = 'history-item';
+        item.innerHTML = `
+            <span class="history-gua">${record.name} (${record.method})</span>
+            <span class="history-date">${record.time}</span>
+        `;
+        
+        item.addEventListener('click', function() {
+            loadHistoryRecord(index);
+        });
+        
+        historyList.appendChild(item);
+    });
+}
+
+// 加载历史记录
+function loadHistoryRecord(index) {
+    if (index < 0 || index >= history.length) return;
+    
+    const record = history[index];
+    currentQuestion = record.question;
+    currentMethod = record.method;
+    
+    // 根据卦象编码重建卦象
+    currentHexagram = [];
+    for (let i = 0; i < record.hexagram.length; i++) {
+        const char = record.hexagram[i];
+        currentHexagram.push({
+            type: char === '1' ? '7' : '8',
+            line: char === '1' ? '111' : '000',
+            changing: false
+        });
+    }
+    
+    castCount = 6;
+    
+    // 显示方法
+    document.getElementById('divination-method').textContent = record.method + "起卦";
+    
+    // 显示结果
+    updateHexagramDisplay();
+    showResult();
+    
+    // 滚动到结果区域
+    document.getElementById('hexagram-section').scrollIntoView({ behavior: 'smooth' });
+}
+
+// 清除历史记录
+function clearHistory() {
+    if (confirm('确定要清除所有历史记录吗？')) {
+        history = [];
+        localStorage.removeItem('divinationHistory');
+        document.getElementById('history-section').style.display = 'none';
+    }
+}
+
+// 重置占卜
+function resetDivination() {
+    currentHexagram = [];
+    currentQuestion = "";
+    castCount = 0;
+    document.getElementById('hexagram-display').innerHTML = '';
+    document.getElementById('hexagram-section').style.display = 'none';
+    document.getElementById('cast-count').textContent = '0';
+    document.getElementById('cast-status').textContent = '准备开始，请点击钱币确定正反面';
+    
+    // 重置钱币
+    const coins = document.querySelectorAll('.coin');
+    coins.forEach(coin => {
+        delete coin.dataset.side;
+        coin.style.transform = 'rotateY(0deg)';
+        coin.classList.remove('selected');
+    });
+    
+    // 重置时间输入
+    document.getElementById('time').value = '';
+    
+    // 重置数字输入
+    document.getElementById('number1').value = '';
+    document.getElementById('number2').value = '';
+    
+    // 滚动到顶部
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
