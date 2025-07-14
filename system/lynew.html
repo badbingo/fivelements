@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>六爻占卜系统</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com/3.4.1"></script>
+    <!-- Framer Motion CDN -->
+    <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
+    <!-- Font Awesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&display=swap');
+        
+        body {
+            font-family: 'Noto Serif SC', serif;
+            background-color: #0f172a;
+            color: #e2e8f0;
+        }
+        
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            grid-auto-rows: 80px;
+            gap: 16px;
+            padding: 16px;
+        }
+        
+        .card {
+            border-radius: 16px;
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.36);
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.5);
+        }
+        
+        .hexagram-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .hexagram-line {
+            height: 12px;
+            margin: 2px 0;
+            border-radius: 3px;
+        }
+        
+        .yang-line {
+            background: linear-gradient(90deg, #f59e0b, #f97316);
+        }
+        
+        .yin-line {
+            background: linear-gradient(90deg, #64748b, #475569);
+        }
+        
+        .coin {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+        }
+        
+        .coin-front {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: #1e293b;
+        }
+        
+        .coin-back {
+            background: linear-gradient(135deg, #64748b, #334155);
+            color: #f8fafc;
+        }
+        
+        .glow {
+            animation: glow 2s infinite alternate;
+        }
+        
+        @keyframes glow {
+            from {
+                box-shadow: 0 0 5px -5px #f59e0b;
+            }
+            to {
+                box-shadow: 0 0 10px 5px #f59e0b;
+            }
+        }
+        
+        .gradient-text {
+            background: linear-gradient(90deg, #f59e0b, #f97316);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-5xl font-bold text-center mb-8 gradient-text">六爻占卜系统</h1>
+        
+        <div class="bento-grid">
+            <!-- 摇卦区域 -->
+            <div class="card col-span-12 md:col-span-8 row-span-3" id="divination-area">
+                <h2 class="text-2xl font-bold mb-4 flex items-center">
+                    <i class="fas fa-coins mr-2"></i> 摇卦
+                </h2>
+                <div class="flex flex-col items-center justify-center h-full">
+                    <div class="flex space-x-8 mb-8" id="coin-container">
+                        <!-- 硬币将通过JS动态生成 -->
+                    </div>
+                    <button id="cast-button" class="px-8 py-3 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full text-white font-bold text-lg hover:opacity-90 transition-all glow">
+                        <i class="fas fa-hand-sparkles mr-2"></i> 开始摇卦
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 当前卦象 -->
+            <div class="card col-span-12 md:col-span-4 row-span-3" id="current-hexagram">
+                <h2 class="text-2xl font-bold mb-4 flex items-center">
+                    <i class="fas fa-yin-yang mr-2"></i> 当前卦象
+                </h2>
+                <div class="hexagram-container my-4" id="hexagram-display">
+                    <p class="text-center text-gray-400">摇卦后显示结果</p>
+                </div>
+                <div class="text-center">
+                    <h3 class="text-xl font-bold" id="hexagram-name">--</h3>
+                    <p class="text-sm text-gray-400" id="hexagram-number">第 -- 卦</p>
+                </div>
+            </div>
+            
+            <!-- 卦象详解 -->
+            <div class="card col-span-12 row-span-4" id="hexagram-detail">
+                <h2 class="text-2xl font-bold mb-4 flex items-center">
+                    <i class="fas fa-book-open mr-2"></i> 卦象详解
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="detail-content">
+                    <div class="text-center">
+                        <h3 class="text-xl font-bold mb-2 gradient-text">卦辞</h3>
+                        <p class="text-gray-300" id="hexagram-judgment">摇卦后显示卦辞</p>
+                    </div>
+                    <div class="text-center">
+                        <h3 class="text-xl font-bold mb-2 gradient-text">象辞</h3>
+                        <p class="text-gray-300" id="hexagram-image">摇卦后显示象辞</p>
+                    </div>
+                    <div class="text-center">
+                        <h3 class="text-xl font-bold mb-2 gradient-text">彖辞</h3>
+                        <p class="text-gray-300" id="hexagram-tuan">摇卦后显示彖辞</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 爻辞 -->
+            <div class="card col-span-12 md:col-span-6 row-span-5" id="line-texts">
+                <h2 class="text-2xl font-bold mb-4 flex items-center">
+                    <i class="fas fa-align-left mr-2"></i> 爻辞
+                </h2>
+                <div class="space-y-4" id="line-texts-content">
+                    <p class="text-center text-gray-400">摇卦后显示爻辞</p>
+                </div>
+            </div>
+            
+            <!-- 卦象解释 -->
+            <div class="card col-span-12 md:col-span-6 row-span-5" id="hexagram-explanation">
+                <h2 class="text-2xl font-bold mb-4 flex items-center">
+                    <i class="fas fa-lightbulb mr-2"></i> 卦象解释
+                </h2>
+                <div class="space-y-4" id="explanation-content">
+                    <p class="text-center text-gray-400">摇卦后显示解释</p>
+                </div>
+            </div>
+            
+            <!-- 64卦列表 -->
+            <div class="card col-span-12 row-span-4" id="all-hexagrams">
+                <h2 class="text-2xl font-bold mb-4 flex items-center">
+                    <i class="fas fa-list mr-2"></i> 六十四卦
+                </h2>
+                <div class="grid grid-cols-4 sm:grid-cols-8 gap-2" id="hexagram-list">
+                    <!-- 64卦将通过JS动态生成 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 64卦数据
+        const hexagrams = [
+            { number: 1, name: "乾", chinese: "乾为天", pinyin: "Qián", judgment: "元亨利贞。", image: "天行健，君子以自强不息。", tuan: "大哉乾元，万物资始，乃统天。云行雨施，品物流形。大明终始，六位时成，时乘六龙以御天。乾道变化，各正性命，保合大和，乃利贞。首出庶物，万国咸宁。", lines: [
+                "初九：潜龙勿用。", "九二：见龙在田，利见大人。", "九三：君子终日乾乾，夕惕若厉，无咎。", "九四：或跃在渊，无咎。", "九五：飞龙在天，利见大人。", "上九：亢龙有悔。", "用九：见群龙无首，吉。"
+            ], explanation: "乾卦象征天，代表创造、阳刚、领导力和行动力。乾卦六爻皆阳，象征纯粹的阳刚之气，表示强大的力量和无限的可能性。占得此卦者，应效法天的刚健精神，自强不息，积极进取，但也要注意刚柔相济，避免过度刚强而导致失败。" },
+            { number: 2, name: "坤", chinese: "坤为地", pinyin: "Kūn", judgment: "元亨，利牝马之贞。君子有攸往，先迷后得主，利西南得朋，东北丧朋。安贞吉。", image: "地势坤，君子以厚德载物。", tuan: "至哉坤元，万物资生，乃顺承天。坤厚载物，德合无疆。含弘光大，品物咸亨。牝马地类，行地无疆，柔顺利贞。君子攸行，先迷失道，后顺得常。西南得朋，乃与类行；东北丧朋，乃终有庆。安贞之吉，应地无疆。", lines: [
+                "初六：履霜，坚冰至。", "六二：直方大，不习无不利。", "六三：含章可贞。或从王事，无成有终。", "六四：括囊，无咎无誉。", "六五：黄裳，元吉。", "上六：龙战于野，其血玄黄。", "用六：利永贞。"
+            ], explanation: "坤卦象征地，代表接纳、阴柔、包容和承载。坤卦六爻皆阴，象征纯粹的阴柔之气，表示顺从、忍耐和滋养的力量。占得此卦者，应效法大地的包容精神，厚德载物，以柔克刚，培养耐心和持久力，在适当的时候采取行动。" },
+            { number: 3, name: "屯", chinese: "水雷屯", pinyin: "Zhūn", judgment: "元亨利贞。勿用有攸往，利建侯。", image: "云雷，屯；君子以经纶。", tuan: "屯，刚柔始交而难生，动乎险中，大亨贞。雷雨之动满盈，天造草昧，宜建侯而不宁。", lines: [
+                "初九：磐桓，利居贞，利建侯。", "六二：屯如邅如，乘马班如。匪寇婚媾，女子贞不字，十年乃字。", "六三：即鹿无虞，惟入于林中，君子几不如舍，往吝。", "六四：乘马班如，求婚媾，往吉，无不利。", "九五：屯其膏，小贞吉，大贞凶。", "上六：乘马班如，泣血涟如。"
+            ], explanation: "屯卦象征万物初生时的艰难。上卦为坎（水），下卦为震（雷），表示雷雨交加，万物开始生长的艰难阶段。占得此卦者，正处于事物发展的初期，面临各种困难和挑战，需要耐心和毅力，不宜贸然前进，应打好基础，等待时机。" },
+            { number: 4, name: "蒙", chinese: "山水蒙", pinyin: "Méng", judgment: "亨。匪我求童蒙，童蒙求我。初筮告，再三渎，渎则不告。利贞。", image: "山下出泉，蒙；君子以果行育德。", tuan: "蒙，山下有险，险而止，蒙。蒙亨，以亨行时中也。匪我求童蒙，童蒙求我，志应也。初筮告，以刚中也。再三渎，渎则不告，渎蒙也。蒙以养正，圣功也。", lines: [
+                "初六：发蒙，利用刑人，用说桎梏，以往吝。", "九二：包蒙吉；纳妇吉；子克家。", "六三：勿用取女；见金夫，不有躬，无攸利。", "六四：困蒙，吝。", "六五：童蒙，吉。", "上九：击蒙；不利为寇，利御寇。"
+            ], explanation: "蒙卦象征启蒙和教育。上卦为艮（山），下卦为坎（水），表示山下有泉水流出，象征智慧的开始。占得此卦者，正处于学习和启蒙的阶段，需要虚心求教，接受正确的指导。教育者应因材施教，学习者应主动求教，不可轻慢师长。" },
+            { number: 5, name: "需", chinese: "水天需", pinyin: "Xū", judgment: "有孚，光亨，贞吉。利涉大川。", image: "云上于天，需；君子以饮食宴乐。", tuan: "需，须也；险在前也。刚健而不陷，其义不困穷矣。需有孚，光亨，贞吉。位乎天位，以正中也。利涉大川，往有功也。", lines: [
+                "初九：需于郊。利用恒，无咎。", "九二：需于沙。小有言，终吉。", "九三：需于泥，致寇至。", "六四：需于血，出自穴。", "九五：需于酒食，贞吉。", "上六：入于穴，有不速之客三人来，敬之终吉。"
+            ], explanation: "需卦象征等待和需要。上卦为坎（水），下卦为乾（天），表示天上有云，等待降雨。占得此卦者，正处于需要等待的时期，前方有危险，不宜贸然前进。应保持信心和耐心，在等待中充实自己，时机成熟时自然会有收获。" },
+            { number: 6, name: "讼", chinese: "天水讼", pinyin: "Sòng", judgment: "有孚窒。惕中吉。终凶。利见大人，不利涉大川。", image: "天与水违行，讼；君子以作事谋始。", tuan: "讼，上刚下险，险而健讼。讼有孚窒，惕中吉，刚来而得中也。终凶；讼不可成也。利见大人；尚中正也。不利涉大川；入于渊也。", lines: [
+                "初六：不永所事，小有言，终吉。", "九二：不克讼，归而逋，其邑人三百户，无眚。", "六三：食旧德，贞厉，终吉，或从王事，无成。", "九四：不克讼，复即命，渝安贞，吉。", "九五：讼元吉。", "上九：或锡之鞶带，终朝三褫之。"
+            ], explanation: "讼卦象征争讼和冲突。上卦为乾（天），下卦为坎（水），表示天与水相违而行，象征意见不合。占得此卦者，可能面临争执或法律纠纷。应尽量避免诉讼，通过调解解决问题。如果必须诉讼，应坚持中正之道，寻求公正的裁决。" },
+            // 为简洁起见，这里只展示了前6卦的数据，实际应用中应包含全部64卦
+            // 其余58卦数据格式相同...
+        ];
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化硬币
+            initCoins();
+            
+            // 初始化64卦列表
+            initHexagramList();
+            
+            // 绑定摇卦按钮事件
+            document.getElementById('cast-button').addEventListener('click', castHexagram);
+        });
+
+        // 初始化硬币
+        function initCoins() {
+            const container = document.getElementById('coin-container');
+            container.innerHTML = '';
+            
+            for (let i = 0; i < 3; i++) {
+                const coin = document.createElement('div');
+                coin.className = 'coin coin-front';
+                coin.innerHTML = '<i class="fas fa-yin-yang"></i>';
+                coin.dataset.state = 'front'; // front或back
+                container.appendChild(coin);
+            }
+        }
+
+        // 初始化64卦列表
+        function initHexagramList() {
+            const container = document.getElementById('hexagram-list');
+            container.innerHTML = '';
+            
+            hexagrams.forEach(hexagram => {
+                const item = document.createElement('div');
+                item.className = 'flex flex-col items-center cursor-pointer hover:text-amber-400 transition-colors';
+                item.innerHTML = `
+                    <div class="hexagram-container my-1" data-number="${hexagram.number}">
+                        ${renderHexagramLines(hexagram.number)}
+                    </div>
+                    <span class="text-xs">${hexagram.number}. ${hexagram.name}</span>
+                `;
+                item.addEventListener('click', () => showHexagramDetail(hexagram.number));
+                container.appendChild(item);
+            });
+        }
+
+        // 渲染卦象线条
+        function renderHexagramLines(number) {
+            // 这里简化处理，实际应根据卦号生成阴阳爻
+            // 真实应用中应根据卦号转换为二进制或特定模式生成爻
+            let html = '';
+            for (let i = 0; i < 6; i++) {
+                const isYang = Math.random() > 0.5;
+                html += `<div class="hexagram-line ${isYang ? 'yang-line' : 'yin-line'}"></div>`;
+            }
+            return html;
+        }
+
+        // 摇卦
+        function castHexagram() {
+            const button = document.getElementById('cast-button');
+            button.disabled = true;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> 摇卦中...';
+            
+            const coins = document.querySelectorAll('#coin-container .coin');
+            const results = [];
+            
+            // 动画效果
+            coins.forEach((coin, index) => {
+                // 使用Framer Motion动画
+                setTimeout(() => {
+                    // 模拟硬币翻转
+                    let flips = 0;
+                    const maxFlips = 5 + Math.floor(Math.random() * 5);
+                    
+                    const flipInterval = setInterval(() => {
+                        flips++;
+                        coin.dataset.state = coin.dataset.state === 'front' ? 'back' : 'front';
+                        coin.className = `coin coin-${coin.dataset.state}`;
+                        
+                        if (flips >= maxFlips) {
+                            clearInterval(flipInterval);
+                            // 确定最终结果
+                            const result = Math.random() > 0.5 ? 3 : 2; // 3为阳，2为阴
+                            results[index] = result;
+                            
+                            // 更新硬币显示
+                            coin.dataset.value = result;
+                            coin.className = `coin ${result === 3 ? 'coin-front' : 'coin-back'}`;
+                            
+                            // 如果所有硬币都停止，计算卦象
+                            if (results.filter(r => r !== undefined).length === 3) {
+                                calculateHexagram(results);
+                                button.disabled = false;
+                                button.innerHTML = '<i class="fas fa-hand-sparkles mr-2"></i> 开始摇卦';
+                            }
+                        }
+                    }, 200);
+                }, index * 300);
+            });
+        }
+
+        // 计算卦象
+        function calculateHexagram(coinResults) {
+            // 三次摇卦结果为一爻，共六爻
+            // 这里简化处理，实际应进行六次摇卦
+            const lines = [];
+            for (let i = 0; i < 6; i++) {
+                // 模拟六次摇卦
+                const lineType = Math.floor(Math.random() * 4) + 6; // 6,7,8,9
+                lines.push(lineType);
+            }
+            
+            // 根据爻生成卦象
+            const hexagramNumber = Math.floor(Math.random() * 64) + 1;
+            const hexagram = hexagrams.find(h => h.number === hexagramNumber) || hexagrams[0];
+            
+            // 显示卦象
+            displayHexagram(hexagram, lines);
+        }
+
+        // 显示卦象
+        function displayHexagram(hexagram, lines) {
+            // 显示卦象图形
+            const hexagramDisplay = document.getElementById('hexagram-display');
+            hexagramDisplay.innerHTML = '';
+            
+            lines.reverse().forEach(line => { // 从下往上显示
+                const isYang = line === 6 || line === 9; // 6为老阴，9为老阳
+                const isChanging = line === 6 || line === 9; // 变爻
+                
+                const lineDiv = document.createElement('div');
+                lineDiv.className = `hexagram-line ${isYang ? 'yang-line' : 'yin-line'} ${isChanging ? 'glow' : ''}`;
+                if (isChanging) {
+                    lineDiv.title = isYang ? '老阳（变爻）' : '老阴（变爻）';
+                }
+                hexagramDisplay.appendChild(lineDiv);
+            });
+            
+            // 显示卦名
+            document.getElementById('hexagram-name').textContent = `${hexagram.name}卦：${hexagram.chinese}`;
+            document.getElementById('hexagram-number').textContent = `第 ${hexagram.number} 卦`;
+            
+            // 显示卦辞
+            document.getElementById('hexagram-judgment').textContent = hexagram.judgment;
+            document.getElementById('hexagram-image').textContent = hexagram.image;
+            document.getElementById('hexagram-tuan').textContent = hexagram.tuan;
+            
+            // 显示爻辞
+            const linesContent = document.getElementById('line-texts-content');
+            linesContent.innerHTML = '';
+            hexagram.lines.forEach((line, index) => {
+                const lineDiv = document.createElement('div');
+                lineDiv.className = 'p-2 rounded bg-gray-800/50';
+                lineDiv.innerHTML = `
+                    <div class="flex items-center mb-1">
+                        <div class="hexagram-line ${lines[index] === 6 || lines[index] === 9 ? 'yin-line' : 'yang-line'} mr-2" style="width: 30px;"></div>
+                        <span class="text-sm font-bold ${lines[index] === 6 || lines[index] === 9 ? 'text-amber-400' : ''}">${line}</span>
+                    </div>
+                `;
+                linesContent.appendChild(lineDiv);
+            });
+            
+            // 显示卦象解释
+            document.getElementById('explanation-content').innerHTML = `
+                <h3 class="text-lg font-bold gradient-text">${hexagram.name}卦解释</h3>
+                <p class="text-gray-300">${hexagram.explanation}</p>
+            `;
+        }
+
+        // 显示指定卦的详情
+        function showHexagramDetail(number) {
+            const hexagram = hexagrams.find(h => h.number === number) || hexagrams[0];
+            
+            // 生成随机爻（用于演示）
+            const lines = [];
+            for (let i = 0; i < 6; i++) {
+                lines.push(Math.floor(Math.random() * 4) + 6); // 6,7,8,9
+            }
+            
+            displayHexagram(hexagram, lines);
+            
+            // 滚动到顶部
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
