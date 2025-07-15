@@ -10,11 +10,198 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../css/wwstyle.css">
+    <style>
+        /* 充值弹窗样式 */
+        .recharge-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+        }
+        
+        .recharge-container {
+            background-color: #f8f5f0;
+            margin: 10% auto;
+            padding: 20px;
+            border: 1px solid #d4c8b5;
+            width: 90%;
+            max-width: 500px;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+        
+        .recharge-header {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #5d4a36;
+        }
+        
+        .recharge-header h2 {
+            margin-bottom: 5px;
+        }
+        
+        .close-recharge {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .close-recharge:hover {
+            color: #5d4a36;
+        }
+        
+        .recharge-form .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .recharge-form label {
+            display: block;
+            margin-bottom: 5px;
+            color: #5d4a36;
+        }
+        
+        .recharge-form input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #d4c8b5;
+            border-radius: 4px;
+            background-color: #fff;
+        }
+        
+        .payment-methods {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+        }
+        
+        .payment-option {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+            padding: 8px 12px;
+            border: 1px solid #d4c8b5;
+            border-radius: 4px;
+            background-color: #fff;
+        }
+        
+        .payment-option:hover {
+            background-color: #f0e9df;
+        }
+        
+        .payment-option i {
+            font-size: 20px;
+        }
+        
+        .payment-option input[type="radio"] {
+            margin-right: 5px;
+        }
+        
+        .recharge-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: #5d4a36;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+        
+        .recharge-btn:hover {
+            background-color: #4a3a2a;
+        }
+        
+        .recharge-message {
+            margin-top: 15px;
+            text-align: center;
+            font-size: 14px;
+        }
+    </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="../js/wwpay.js"></script>
     <script src="../js/lunar.js"></script>
+    <script>
+        // 充值功能
+        document.addEventListener('DOMContentLoaded', function() {
+            const rechargeBtn = document.getElementById('rechargeBtn');
+            const rechargeModal = document.getElementById('rechargeModal');
+            const closeRecharge = document.getElementById('closeRecharge');
+            const rechargeForm = document.getElementById('rechargeForm');
+            
+            // 显示充值弹窗
+            rechargeBtn.addEventListener('click', function() {
+                rechargeModal.style.display = 'block';
+            });
+            
+            // 关闭充值弹窗
+            closeRecharge.addEventListener('click', function() {
+                rechargeModal.style.display = 'none';
+            });
+            
+            // 处理充值表单提交
+            rechargeForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const amount = document.getElementById('rechargeAmount').value;
+                const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
+                const rechargeSpinner = document.getElementById('rechargeSpinner');
+                const rechargeText = document.getElementById('rechargeText');
+                const rechargeMessage = document.getElementById('rechargeMessage');
+                
+                rechargeSpinner.style.display = 'inline-block';
+                rechargeText.style.display = 'none';
+                
+                try {
+                    // 调用后端API记录充值
+                    const response = await fetch(`${API_URL}/recharge`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        },
+                        body: JSON.stringify({
+                            amount: parseFloat(amount),
+                            paymentMethod: paymentMethod
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        rechargeMessage.textContent = '充值成功！';
+                        rechargeMessage.style.color = 'green';
+                        setTimeout(() => {
+                            rechargeModal.style.display = 'none';
+                            rechargeForm.reset();
+                            rechargeMessage.textContent = '';
+                        }, 2000);
+                    } else {
+                        throw new Error(data.message || '充值失败');
+                    }
+                } catch (error) {
+                    rechargeMessage.textContent = error.message;
+                    rechargeMessage.style.color = 'red';
+                } finally {
+                    rechargeSpinner.style.display = 'none';
+                    rechargeText.style.display = 'inline';
+                }
+            });
+            
+            // 登录成功后显示充值按钮
+            if (localStorage.getItem('token')) {
+                rechargeBtn.style.display = 'inline-block';
+            }
+        });
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
    
     <script>
@@ -34,6 +221,45 @@
         <button class="logout-btn" id="logoutBtn" style="display:none;"><i class="fas fa-sign-out-alt"></i> 退出</button>
     </div>
 
+    <!-- 充值弹窗 -->
+    <div class="recharge-modal" id="rechargeModal">
+        <div class="recharge-container">
+            <span class="close-recharge" id="closeRecharge">&times;</span>
+            <div class="recharge-header">
+                <h2><i class="fas fa-coins"></i> 账户充值</h2>
+                <p>请填写充值金额并选择支付方式</p>
+            </div>
+            
+            <form id="rechargeForm" class="recharge-form">
+                <div class="form-group">
+                    <label for="rechargeAmount">充值金额</label>
+                    <input type="number" id="rechargeAmount" placeholder="请输入充值金额" min="1" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>支付方式</label>
+                    <div class="payment-methods">
+                        <label class="payment-option">
+                            <input type="radio" name="paymentMethod" value="alipay" checked>
+                            <i class="fab fa-alipay"></i> 支付宝
+                        </label>
+                        <label class="payment-option">
+                            <input type="radio" name="paymentMethod" value="wechat">
+                            <i class="fab fa-weixin"></i> 微信支付
+                        </label>
+                    </div>
+                </div>
+                
+                <button type="submit" class="recharge-btn">
+                    <span id="rechargeText">立即充值</span>
+                    <i class="fas fa-spinner fa-spin" id="rechargeSpinner" style="display:none;"></i>
+                </button>
+                
+                <div id="rechargeMessage" class="recharge-message"></div>
+            </form>
+        </div>
+    </div>
+    
     <!-- 半透明登录注册弹窗 -->
     <div class="auth-modal" id="authModal">
         <div class="auth-container">
@@ -42,45 +268,12 @@
                 <h2><i class="fas fa-user-circle"></i> 命缘池</h2>
                 <p>登录或注册以管理您的愿望</p>
             </div>
-
-            <!-- 充值弹窗 -->
-    <div class="recharge-modal" id="rechargeModal">
-        <div class="recharge-container">
-            <span class="close-recharge" id="closeRecharge">&times;</span>
-            <div class="recharge-header">
-                <h2><i class="fas fa-coins"></i> 命缘池充值</h2>
-                <p>请选择充值金额和支付方式</p>
-            </div>
             
-            <div class="recharge-amount">
-                <h4>充值金额</h4>
-                <div class="amount-options">
-                    <button class="amount-option" data-amount="10">10元</button>
-                    <button class="amount-option" data-amount="50">50元</button>
-                    <button class="amount-option" data-amount="100">100元</button>
-                    <button class="amount-option" data-amount="200">200元</button>
-                    <button class="amount-option" data-amount="500">500元</button>
-                </div>
-                <div class="custom-amount">
-                    <label for="customAmount">自定义金额：</label>
-                    <input type="number" id="customAmount" min="1" max="1000" placeholder="输入金额(1-1000元)">
-                </div>
-            </div>
-            
-            <div class="payment-methods" id="paymentMethodsSection">
-                <!-- 支付方式将通过JS动态加载 -->
-            </div>
-            
-            <button id="confirmRechargeBtn" class="btn-mingyuan">
-                <i class="fas fa-check-circle"></i> 确认充值
-            </button>
-        </div>
-    </div>
-                
             <div class="auth-tabs">
                 <div class="auth-tab active" id="loginTab">登录</div>
                 <div class="auth-tab" id="registerTab">注册</div>
             </div>
+            
            <!-- 登录表单 -->
             <form id="loginForm" class="auth-form active">
                 <div class="form-group">
@@ -146,38 +339,29 @@
         </div>
     </div>
 
-            <div class="lunar-date-info">
-            <div class="lunar-date-container">
-                <div class="lunar-date">
-                    <i class="fas fa-moon"></i> 农历: <span id="lunarDate"></span>
-                </div>
-                <div class="lunar-yiji">
-                    <span class="yi"><i class="fas fa-thumbs-up"></i> 宜: <span id="lunarYi"></span></span>
-                    <span class="ji"><i class="fas fa-thumbs-down"></i> 忌: <span id="lunarJi"></span></span>
-                </div>
-            </div>
-        </div>
-    
     <main class="content-container">
         <section class="content-title">
             <h1>命缘池</h1>
-            <p>以八字为引，聚众生愿力，助你愿望成真</p>
+            <p>以八字为引，聚众生愿力，助你梦想成真</p>
         </section>
-        
+
         <!-- 命缘池介绍 -->
         <section class="full-width-section">
+            <div class="section-header">
+                <i class="fas fa-hand-holding-water"></i>
+                <h2>缘起</h2>
+            </div>
             
             <div class="card">
                 <div class="mingyuan-intro">
                     <div class="intro-text">
-                        <p>命缘池，乃上古道门所传“愿力汇聚”之秘法，以生辰八字为钥，启动个体命理之频，借天地元气、宇宙灵识，共筑一方灵性之境。凡得入池者，皆非偶然，乃命运召唤而至，有缘之人自来无误。</p>
-                        <p>于池前静心许愿之时，你之八字便化为能量符印，随愿而动，投入池中灵脉。池中自有十二灵兽应愿守护，六字真言“唵嘛呢叭咪吽”清心净念，使愿力得以纯化、升频。愿念真诚，则天地自感，善念如涟漪层层荡开，汇聚成形，随仙家法则而回响。</p>
-                        <p>每五次加持，愿力更进一步。得多人加持，频率愈强，显化愈疾。若三十日内得偿所愿，切记还愿——愿之始于心，亦当终于心。</p>
+                        <p>命缘池源自古老道家"愿力汇聚"之法，结合八字命理能量学，创造出一个集体意识能量场。</p>
+                        <p>在此投入愿望之时，您的八字化作独一无二的能量标识，携同六字真言之力启动加持。而众生心念汇聚而来的加持之力，将如涟漪般扩散，不断放大愿望的共振频率。</p>
+                        <p>每5次加持，愿望能量将提升一个等级，越多人帮你加持能量越强。30天内若达成所愿，请务必还愿以完成能量循环。</p>
                     </div>
                     <div class="intro-image">
                         <div class="energy-chart">
                             <canvas id="energyChart"></canvas>
-                            <div class="energy-chart-label">能量强度表</div>
                         </div>
                     </div>
                 </div>
@@ -264,14 +448,14 @@
                             </div>
                             
                             <div class="form-group">
-                                <label for="wishType"><i class="fas fa-tags"></i> 愿望类型，能量加持</label>
+                                <label for="wishType"><i class="fas fa-tags"></i> 愿望类型</label>
                                 <select id="wishType">
-                                    <option value="love">姻缘感情 → 桃花能量</option>
-                                    <option value="wealth">财富事业 → 禄神能量</option>
-                                    <option value="health">健康平安 → 印星能量</option>
-                                    <option value="study">学业成长 → 文昌贵人能量</option>
-                                    <option value="family">家庭和睦 → 天德合能量</option>
-                                    <option value="other">其他愿望 → 天乙贵人能量</option>
+                                    <option value="love">姻缘感情</option>
+                                    <option value="wealth">财富事业</option>
+                                    <option value="health">健康平安</option>
+                                    <option value="study">学业成长</option>
+                                    <option value="family">家庭和睦</option>
+                                    <option value="other">其他愿望</option>
                                 </select>
                             </div>
                             
@@ -428,13 +612,12 @@
                         <li>愿望达成后请及时还愿，完成能量循环</li>
                         <li>每个愿望有效期为30天，到期后自动从池中移除</li>
                     </ul>
-                    <br>
+                    
                     <div class="disclaimer-box">
                         <h4><i class="fas fa-info-circle"></i> 重要说明</h4>
-                        <p>每个愿望将依据您的生辰八字，唤起对应的十二生肖守护灵。生肖之力调和五行，稳固磁场，助愿力与命理共振，提升愿望显化的速度与稳定性。同时，每一愿皆受六字真言“唵嘛呢叭咪吽”加持，此乃密宗大咒，具净身语意、消除烦恼、积聚福德之效，使愿心清净，直通宇宙能场。</p>
-                        <br>
+                        <p>每个愿望都有六字真言（唵嘛呢叭咪吽）加持，这是佛教密宗核心咒语，具有净化业障、开启智慧、积累功德的核心作用，其功能涵盖身心修行与世俗利益双重维度‌。该真言通过持诵可净化身、语、意三业，消除贪嗔痴等根本烦恼，同时获得观世音菩萨加持，实现健康、财富、智慧等现实愿求。‌‌</p>
                         <blockquote>
-                        《道德经》云："天道无亲，常与善人"。命缘池的能量运作遵循自然法则，多行善事能增强愿望实现的几率。
+                            《道德经》云："天道无亲，常与善人"。命缘池的能量运作遵循自然法则，多行善事能增强愿望实现的几率。
                         </blockquote>
                     </div>
                 </div>
@@ -537,138 +720,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const charCount = document.getElementById('charCount');
     const wishContent = document.getElementById('wishContent');
 
-    const lunarDateElement = document.getElementById('lunarDate');
-    const lunarYiElement = document.getElementById('lunarYi');
-    const lunarJiElement = document.getElementById('lunarJi');
-
-    /* ==================== 生肖背景功能 ==================== */
-
-    // 地支对应的生肖
-    const zodiacMap = {
-        '子': '鼠', '丑': '牛', '寅': '虎', '卯': '兔',
-        '辰': '龙', '巳': '蛇', '午': '马', '未': '羊',
-        '申': '猴', '酉': '鸡', '戌': '狗', '亥': '猪'
-    };
-
-    // 根据愿望类型和八字信息获取对应的生肖代表文字
-   function getSymbolIcon(wishType, bazi) {
-    // 从八字中提取日柱的天干
-    const dayGan = bazi.split(' ')[2]?.substring(0, 1) || '甲';
-    
-    // 根据愿望类型和天干获取对应的神煞
-    const diZhi = (() => {
-        switch(wishType) {
-            case 'love': // 姻缘感情 - 桃花
-                return getPeachBlossom(dayGan);
-            case 'wealth': // 财富事业 - 禄神
-                return getLuGod(dayGan);
-            case 'health': // 健康平安 - 印星
-                return getYinStar(dayGan);
-            case 'study': // 学业成长 - 文昌
-                return getWenChang(dayGan);
-            case 'family': // 家庭和睦 - 天德合 (原太极贵人)
-                return getTianDeHe(dayGan); // 修改为天德合
-            default: // 其他愿望 - 天乙贵人
-                return getTianYiNoble(dayGan);
-        }
-    })();
-
-    // 地支对应的字体图标class
-    const zodiacIconMap = {
-        '子': 'icon-rat',       // 鼠
-        '丑': 'icon-ox',        // 牛
-        '寅': 'icon-tiger',     // 虎
-        '卯': 'icon-rabbit',    // 兔
-        '辰': 'icon-dragon',    // 龙
-        '巳': 'icon-snake',     // 蛇
-        '午': 'icon-horse',     // 马
-        '未': 'icon-goat',      // 羊
-        '申': 'icon-monkey',    // 猴
-        '酉': 'icon-rooster',   // 鸡
-        '戌': 'icon-dog',       // 狗
-        '亥': 'icon-pig'        // 猪
-    };
-
-    return zodiacIconMap[diZhi] || 'icon-rat';
-}
-    
-    // 获取桃花位对应的生肖
-    function getPeachBlossom(dayGan) {
-        const peachMap = {
-            '甲': '卯', '乙': '子', '丙': '酉', '丁': '午',
-            '戊': '酉', '己': '午', '庚': '卯', '辛': '子',
-            '壬': '酉', '癸': '午'
-        };
-        return peachMap[dayGan] || '子';
-    }
-
-    // 获取禄神对应的生肖
-    function getLuGod(dayGan) {
-        const luMap = {
-            '甲': '寅', '乙': '卯', '丙': '巳', '丁': '午',
-            '戊': '巳', '己': '午', '庚': '申', '辛': '酉',
-            '壬': '亥', '癸': '子'
-        };
-        return luMap[dayGan] || '子';
-    }
-
-    // 获取印星对应的生肖
-    function getYinStar(dayGan) {
-        const yinMap = {
-            '甲': '亥', '乙': '子', '丙': '寅', '丁': '卯',
-            '戊': '寅', '己': '卯', '庚': '巳', '辛': '午',
-            '壬': '申', '癸': '酉'
-        };
-        return yinMap[dayGan] || '子';
-    }
-
-    // 获取文昌对应的生肖
-    function getWenChang(dayGan) {
-        const wenChangMap = {
-            '甲': '巳', '乙': '午', '丙': '申', '丁': '酉',
-            '戊': '申', '己': '酉', '庚': '亥', '辛': '子',
-            '壬': '寅', '癸': '卯'
-        };
-        return wenChangMap[dayGan] || '子';
-    }
-
-    // 新增天德合计算函数
-    function getTianDeHe(dayGan) {
-        const tianDeHeMap = {
-            '甲': '寅', '乙': '申', '丙': '巳', '丁': '亥',
-            '戊': '巳', '己': '亥', '庚': '申', '辛': '寅',
-            '壬': '亥', '癸': '巳'
-        };
-        return tianDeHeMap[dayGan] || '寅';
-    }
-
-    // 获取天乙贵人对应的生肖
-    function getTianYiNoble(dayGan) {
-        const tianYiMap = {
-            '甲': '丑', '乙': '子', '丙': '亥', '丁': '酉',
-            '戊': '丑', '己': '子', '庚': '未', '辛': '午',
-            '壬': '巳', '癸': '卯'
-        };
-        return tianYiMap[dayGan] || '子';
-    }
-
-    // 更新愿望卡片背景
-   function updateWishCardBackground(cardElement, wishType, bazi) {
-    // 获取对应的字体图标class
-    const iconClass = getSymbolIcon(wishType, bazi);
-    
-    // 创建背景元素
-    const bgIcon = document.createElement('div');
-    bgIcon.className = `wish-card-bg-icon ${iconClass}`;
-    
-    // 移除旧的背景元素
-    const oldBg = cardElement.querySelector('.wish-card-bg-icon');
-    if (oldBg) oldBg.remove();
-    
-    // 添加新的背景元素
-    cardElement.appendChild(bgIcon);
-}
-    
     /* ==================== 辅助函数 ==================== */
 
     // 切换密码可见性
@@ -716,33 +767,6 @@ document.addEventListener('DOMContentLoaded', function() {
         showToast(message, 'error');
     }
 
-
-    // 更新农历日期和宜忌信息
-    function updateLunarDateInfo() {
-        try {
-            const today = new Date();
-            const lunar = Lunar.fromDate(today);
-            
-            // 显示农历日期
-            const lunarDateStr = `${lunar.getYearInChinese()}年 ${lunar.getMonthInChinese()}月${lunar.getDayInChinese()}`;
-            if (lunarDateElement) lunarDateElement.textContent = lunarDateStr;
-            
-            // 获取宜忌信息 - 修改为使用 getDayYi() 和 getDayJi()
-            const yiList = lunar.getDayYi() || [];
-            const jiList = lunar.getDayJi() || [];
-            
-            // 显示宜忌信息
-            if (lunarYiElement) lunarYiElement.textContent = yiList.slice(0, 3).join('、') || '无';
-            if (lunarJiElement) lunarJiElement.textContent = jiList.slice(0, 3).join('、') || '无';
-            
-        } catch (error) {
-            console.error('获取农历信息失败:', error);
-            if (lunarDateElement) lunarDateElement.textContent = '获取失败';
-            if (lunarYiElement) lunarYiElement.textContent = '获取失败';
-            if (lunarJiElement) lunarJiElement.textContent = '获取失败';
-        }
-    }
-    
     /* ==================== 登录注册功能 ==================== */
 
     // 检查登录状态
@@ -1449,9 +1473,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
             `;
             
-            // 更新卡片背景
-            updateWishCardBackground(wishCard, wish.type, wish.bazi);
-            
             const blessBtn = wishCard.querySelector('.btn-bless');
             blessBtn.addEventListener('click', () => handleBlessWish(wishCard, wish));
             
@@ -1950,7 +1971,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     labels: ['1月', '2月', '3月', '4月', '5月', '6月', '7月'],
                     datasets: [{
                         label: '能量强度',
-                        data: [45, 49, 60, 51, 66, 75, 79],
+                        data: [65, 79, 90, 81, 56, 75, 65],
                         borderColor: '#6a11cb',
                         backgroundColor: 'rgba(106, 17, 203, 0.1)',
                         borderWidth: 2,
@@ -1997,16 +2018,9 @@ document.addEventListener('DOMContentLoaded', function() {
             const overlay = document.getElementById('mantraOverlay');
             const container = overlay.querySelector('.mantra-container');
             
-            // 清除旧的特效元素
             overlay.classList.remove('active');
-            document.querySelectorAll('.mantra-particle, .mantra-symbol, .mantra-circle, .mantra-bg').forEach(el => el.remove());
+            document.querySelectorAll('.mantra-particle, .mantra-symbol, .mantra-circle').forEach(el => el.remove());
             
-            // 创建背景GIF
-            const bgGif = document.createElement('div');
-            bgGif.className = 'mantra-bg';
-            container.appendChild(bgGif);
-            
-            // 创建其他特效元素
             createMantraBackground(container);
             
             setTimeout(() => {
@@ -2198,184 +2212,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 主初始化函数
     async function initialize() {
-    await loadLunarJS();
-    initAuthEvents();
-    checkLoginStatus();
-    initUserCardsModal();
-    initEventListeners();
-    
-    loadAllWishes();
-    fetchStats();
-    initEnergyChart();
-    setupModalClose();
-    setInterval(fetchStats, 5 * 60 * 1000);
-
-    // 更新农历日期信息
-    updateLunarDateInfo();
-
-    // ========== 新增的充值功能初始化 ==========
-    // 获取DOM元素
-    const rechargeBtn = document.getElementById('rechargeBtn');
-    const closeRecharge = document.getElementById('closeRecharge');
-    const rechargeModal = document.getElementById('rechargeModal');
-    const confirmRechargeBtn = document.getElementById('confirmRechargeBtn');
-    const customAmountInput = document.getElementById('customAmount');
-    const amountOptions = document.querySelectorAll('.amount-option');
-    
-    // 充值按钮点击事件
-    if (rechargeBtn) {
-        rechargeBtn.addEventListener('click', () => {
-            if (!window.wwPay) {
-                showToast('支付系统正在初始化，请稍后再试', 'error');
-                return;
-            }
-            window.wwPay.showRechargeModal();
-            
-            // 每次打开弹窗时检查用户余额
-            updateUserBalance();
-        });
-    }
-    
-    // 关闭充值弹窗
-    if (closeRecharge) {
-        closeRecharge.addEventListener('click', () => {
-            if (window.wwPay) window.wwPay.hideRechargeModal();
-        });
-    }
-    
-    // 点击模态框外部关闭
-    if (rechargeModal) {
-        rechargeModal.addEventListener('click', (e) => {
-            if (e.target === rechargeModal && window.wwPay) {
-                window.wwPay.hideRechargeModal();
-            }
-        });
-    }
-    
-    // 金额选项点击事件
-    amountOptions.forEach(option => {
-        option.addEventListener('click', function() {
-            // 移除所有active类
-            amountOptions.forEach(btn => btn.classList.remove('active'));
-            // 给当前选项添加active类
-            this.classList.add('active');
-            // 清空自定义金额输入
-            if (customAmountInput) customAmountInput.value = '';
-            // 设置选中金额
-            if (window.wwPay) {
-                window.wwPay.state.selectedAmount = parseFloat(this.dataset.amount);
-            }
-        });
-    });
-    
-    // 自定义金额输入事件
-    if (customAmountInput) {
-        customAmountInput.addEventListener('input', function() {
-            if (this.value) {
-                // 当输入自定义金额时，取消选中固定金额选项
-                amountOptions.forEach(btn => btn.classList.remove('active'));
-                if (window.wwPay) {
-                    window.wwPay.state.selectedAmount = parseFloat(this.value);
-                }
-            }
-        });
-    }
-    
-    // 确认充值按钮点击事件
-    if (confirmRechargeBtn) {
-        confirmRechargeBtn.addEventListener('click', async function() {
-            if (!window.wwPay) {
-                showToast('支付系统未准备好', 'error');
-                return;
-            }
-            
-            // 获取金额
-            let amount = window.wwPay.state.selectedAmount;
-            const customAmount = parseFloat(customAmountInput.value);
-            
-            // 优先使用自定义金额
-            if (!isNaN(customAmount) {
-                amount = customAmount;
-            }
-            
-            // 验证金额
-            if (!amount || isNaN(amount)) {
-                showToast('请选择或输入充值金额', 'error');
-                return;
-            }
-            
-            if (amount < 1 || amount > 1000) {
-                showToast('充值金额必须在1-1000元之间', 'error');
-                return;
-            }
-            
-            // 处理充值
-            window.wwPay.processRecharge(amount, async (rechargedAmount) => {
-                // 充值成功后的回调
-                showToast(`充值成功！${rechargedAmount}元已到账`, 'success');
-                
-                // 更新用户余额显示
-                await updateUserBalance();
-                
-                // 3秒后关闭充值弹窗
-                setTimeout(() => {
-                    window.wwPay.hideRechargeModal();
-                }, 3000);
-            });
-        });
-    }
-}
-
-// 更新用户余额显示
-async function updateUserBalance() {
-    try {
-        const token = localStorage.getItem('token');
-        if (!token) return;
+        await loadLunarJS();
+        initAuthEvents();
+        checkLoginStatus();
+        initUserCardsModal();
+        initEventListeners();
         
-        const response = await fetch(`${API_BASE}/api/user/balance`, {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
-        
-        if (!response.ok) throw new Error('获取余额失败');
-        
-        const data = await response.json();
-        const balanceElement = document.getElementById('balanceAmount');
-        if (balanceElement) {
-            balanceElement.textContent = data.balance.toFixed(2);
-        }
-    } catch (error) {
-        console.error('更新余额显示失败:', error);
+        loadAllWishes();
+        fetchStats();
+        initEnergyChart();
+        setupModalClose();
+        setInterval(fetchStats, 5 * 60 * 1000);
     }
-}
 
-// 在用户登录状态检查中调用余额更新
-async function checkLoginStatus() {
-    const token = localStorage.getItem('token');
-    const username = localStorage.getItem('username');
-    
-    if (token && username) {
-        userWelcome.style.display = 'block';
-        usernameDisplay.textContent = username;
-        loginBtn.style.display = 'none';
-        logoutBtn.style.display = 'block';
-        manageBtn.style.display = 'block';
-        rechargeBtn.style.display = 'block';
-        document.getElementById('userBalance').style.display = 'block';
-        
-        // 获取用户余额
-        await updateUserBalance();
-    } else {
-        userWelcome.style.display = 'none';
-        loginBtn.style.display = 'block';
-        logoutBtn.style.display = 'none';
-        manageBtn.style.display = 'none';
-        rechargeBtn.style.display = 'none';
-        document.getElementById('userBalance').style.display = 'none';
-    }
-}
-    
     // 启动应用
     initialize();
 });
