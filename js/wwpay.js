@@ -77,41 +77,75 @@ class WWPay {
   // 处理充值请求
   async processRecharge(amount, paymentMethod) {
     try {
-      this.log(`处理充值请求: 金额 ${amount}, 方式 ${paymentMethod}`);
+      this.log(`发起充值流程: ${amount}元, 方式: ${paymentMethod}`);
       
-      const response = await fetch(`${this.config.paymentGateway.apiBase}/recharge`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({
-          amount: parseFloat(amount),
-          paymentMethod: paymentMethod
-        })
-      });
+      // 1. 创建充值订单
+      const orderResponse = await this.createRechargeOrder(amount, paymentMethod);
       
-      const data = await response.json();
+      // 2. 跳转支付平台
+      await this.redirectToPaymentGateway(orderResponse);
       
-      if (response.ok) {
-        this.log('充值成功:', data);
-        // 更新本地用户余额
-        if (data.user && data.user.balance) {
-          localStorage.setItem('userBalance', data.user.balance);
-          // 触发余额更新事件
-          const event = new CustomEvent('balanceUpdated', { detail: { balance: data.user.balance } });
-          document.dispatchEvent(event);
-        }
-        return { success: true, data };
-      } else {
-        throw new Error(data.message || '充值失败');
-      }
+      // 3. 启动支付状态轮询
+      this.startPaymentStatusCheck(orderResponse.orderId);
+      
     } catch (error) {
-      this.log('充值错误:', error);
-      return { success: false, error: error.message };
+      this.handlePaymentError(error);
     }
   }
 
+  async createRechargeOrder(amount, method) {
+    const response = await fetch(`${this.config.paymentGateway.apiBase}/api/recharge/orders`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      },
+      body: JSON.stringify({
+        amount: parseFloat(amount),
+        paymentMethod: method
+      })
+    });
+    
+    if (!response.ok) {
+      throw new Error(await response.text());
+    }
+    
+    return response.json();
+  }
+  
+  async redirectToPaymentGateway(order) {
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = this.config.paymentGateway.apiUrl;
+    
+    const params = {
+      pid: this.config.paymentGateway.pid,
+      type: order.paymentMethod,
+      out_trade_no: order.orderId,
+      notify_url: `${this.config.paymentGateway.apiBase}/api/recharge/notify`,
+      return_url: this.config.paymentGateway.successUrl,
+      name: `账户充值-${order.orderId}`,
+      money: order.amount.toFixed(2),
+      sign_type: 'MD5'
+    };
+    
+    // 生成签名
+    params.sign = this.generateSignature(params);
+    
+    // 添加隐藏表单字段
+    Object.entries(params).forEach(([key, value]) => {
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = key;
+      input.value = value;
+      form.appendChild(input);
+    });
+    
+    document.body.appendChild(form);
+    form.submit();
+  }
+
+  
   initEventListeners() {
     document.removeEventListener('click', this.handleDocumentClick);
     document.addEventListener('click', this.handleDocumentClick);
