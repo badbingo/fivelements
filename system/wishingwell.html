@@ -90,7 +90,7 @@
         <div class="user-welcome" id="userWelcome">欢迎, <span id="usernameDisplay"></span></div>
         <button class="login-btn" id="loginBtn">登录/注册</button>
         <button class="manage-btn" id="manageBtn" style="display:none;"><i class="fas fa-id-card"></i> 管理</button>
-        <button class="recharge-btn" id="rechargeBtn" style="display:none;"></button>
+        
         <button class="logout-btn" id="logoutBtn" style="display:none;"><i class="fas fa-sign-out-alt"></i> 退出</button>
     </div>
 
@@ -1993,13 +1993,35 @@ document.addEventListener('DOMContentLoaded', function() {
             document.body.appendChild(modal);
             
             // 更新用户信息
-            function updateUserInfo() {
-                const user = JSON.parse(localStorage.getItem('user'));
-                if(user) {
-                    document.getElementById('infoUsername').textContent = user.username;
-                    document.getElementById('infoWishCount').textContent = user.wishCount || 0;
-                    document.getElementById('infoBlessCount').textContent = user.blessCount || 0;
-                    document.getElementById('infoBalance').textContent = `¥${user.balance || 0}`;
+            async function updateUserInfo() {
+                try {
+                    const response = await fetch(`${API_URL}/user/info`, {
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        }
+                    });
+                    
+                    if (!response.ok) throw new Error('获取用户信息失败');
+                    
+                    const userData = await response.json();
+                    
+                    document.getElementById('infoUsername').textContent = userData.username || '未设置';
+                    document.getElementById('infoWishCount').textContent = userData.wishCount || 0;
+                    document.getElementById('infoBlessCount').textContent = userData.blessCount || 0;
+                    document.getElementById('infoBalance').textContent = `¥${userData.balance || 0}`;
+                    
+                    // 更新本地存储
+                    localStorage.setItem('user', JSON.stringify(userData));
+                } catch (error) {
+                    console.error('获取用户信息错误:', error);
+                    // 回退到本地存储数据
+                    const user = JSON.parse(localStorage.getItem('user'));
+                    if(user) {
+                        document.getElementById('infoUsername').textContent = user.username || '未设置';
+                        document.getElementById('infoWishCount').textContent = user.wishCount || 0;
+                        document.getElementById('infoBlessCount').textContent = user.blessCount || 0;
+                        document.getElementById('infoBalance').textContent = `¥${user.balance || 0}`;
+                    }
                 }
             }
             
@@ -2030,7 +2052,26 @@ document.addEventListener('DOMContentLoaded', function() {
         // 修改showUserCards函数
         function showUserCards() {
             userInfoModal.show();
-            // 原有代码...
+            renderUserWishes(); // 确保显示用户所有愿望卡片
+        }
+        
+        // 渲染用户愿望卡片
+        async function renderUserWishes() {
+            try {
+                const response = await fetch(`${API_URL}/wishes/user`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+                
+                if (!response.ok) throw new Error('获取愿望卡片失败');
+                
+                const wishes = await response.json();
+                // 使用原有渲染逻辑显示所有愿望卡片
+                renderWishes(wishes); 
+            } catch (error) {
+                console.error('获取愿望卡片错误:', error);
+            }
         }
         
         // 搜索功能
