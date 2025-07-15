@@ -47,32 +47,19 @@
                 rechargeText.style.display = 'none';
                 
                 try {
-                    // 调用后端API记录充值
-                    const response = await fetch(`${API_URL}/recharge`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${localStorage.getItem('token')}`
-                        },
-                        body: JSON.stringify({
-                            amount: parseFloat(amount),
-                            paymentMethod: paymentMethod
-                        })
-                    });
+                    // 初始化支付系统
+                    const wwPay = new WWPay();
                     
-                    const data = await response.json();
+                    // 1. 创建充值订单
+                    const orderResponse = await wwPay.createRechargeOrder(amount, paymentMethod);
                     
-                    if (response.ok) {
-                        rechargeMessage.textContent = '充值成功！';
-                        rechargeMessage.style.color = 'green';
-                        setTimeout(() => {
-                            rechargeModal.style.display = 'none';
-                            rechargeForm.reset();
-                            rechargeMessage.textContent = '';
-                        }, 2000);
-                    } else {
-                        throw new Error(data.message || '充值失败');
-                    }
+                    // 2. 跳转支付平台
+                    await wwPay.redirectToPaymentGateway(orderResponse);
+                    
+                    // 3. 显示支付处理中提示
+                    rechargeMessage.textContent = '正在跳转支付平台...';
+                    rechargeMessage.style.color = 'blue';
+                    
                 } catch (error) {
                     rechargeMessage.textContent = error.message;
                     rechargeMessage.style.color = 'red';
