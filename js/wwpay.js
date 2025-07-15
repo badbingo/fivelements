@@ -92,6 +92,33 @@ class WWPay {
       this.handlePaymentError(error);
     }
   }
+  
+  async verifyPayment(orderId, amount) {
+    try {
+      const response = await fetch(`${this.config.paymentGateway.apiBase}/api/recharge/verify`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          orderId,
+          amount
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error(await response.text());
+      }
+      
+      const data = await response.json();
+      return data.success;
+      
+    } catch (error) {
+      this.logError('支付验证失败', error);
+      return false;
+    }
+  }
 
   async createRechargeOrder(amount, method) {
     const response = await fetch(`${this.config.paymentGateway.apiBase}/api/recharge/orders`, {
