@@ -1,10 +1,9 @@
 /**
- * 命缘池支付系统 - 完整版 v11.0
- * 包含功能：
- * 1. 还愿支付系统
- * 2. 账户充值系统
- * 3. 支付状态管理
- * 4. 错误处理和重试机制
+ * wwpay.js命缘池支付系统 - 完整修复版 v10.3
+ * 修复问题：
+ * 1. 修复所有语法错误
+ * 2. 增强错误处理
+ * 3. 完善支付流程
  */
 
 class WWPay {
@@ -18,8 +17,6 @@ class WWPay {
     this.handlePaymentError = this.handlePaymentError.bind(this);
     this.generateSignature = this.generateSignature.bind(this);
     this.cleanupPaymentState = this.cleanupPaymentState.bind(this);
-    this.showRechargeModal = this.showRechargeModal.bind(this);
-    this.handleRechargeSubmit = this.handleRechargeSubmit.bind(this);
 
     // 系统配置
     this.config = {
@@ -63,8 +60,7 @@ class WWPay {
       processing: false,
       statusCheckInterval: null,
       paymentCompleted: false,
-      lastPayment: null,
-      isRechargeMode: false
+      lastPayment: null
     };
 
     // 初始化
@@ -80,11 +76,6 @@ class WWPay {
   initEventListeners() {
     document.removeEventListener('click', this.handleDocumentClick);
     document.addEventListener('click', this.handleDocumentClick);
-    
-    // 充值按钮点击事件
-    document.getElementById('rechargeBtn')?.addEventListener('click', this.showRechargeModal);
-    document.getElementById('closeRecharge')?.addEventListener('click', () => this.toggleRechargeModal(false));
-    document.getElementById('submitRecharge')?.addEventListener('click', this.handleRechargeSubmit);
   }
 
   injectStyles() {
@@ -94,195 +85,195 @@ class WWPay {
     const style = document.createElement('style');
     style.id = styleId;
     style.textContent = `
-      /* 原有样式... */
+      .wwpay-methods-container {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        width: 100%;
+        margin: 20px 0;
+      }
       
-      /* 充值按钮样式 */
-      .recharge-btn {
-        background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
-        color: #fff;
+      .wwpay-method-btn {
+        flex: 1;
+        max-width: 200px;
+        padding: 15px 10px;
+        border-radius: 10px;
         border: none;
-        padding: 8px 15px;
-        border-radius: 20px;
         cursor: pointer;
-        font-size: 14px;
-        margin-right: 10px;
-        transition: all 0.3s ease;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        transition: all 0.3s;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        position: relative;
+        overflow: hidden;
       }
-
-      .recharge-btn:hover {
-        background: linear-gradient(135deg, #fda085 0%, #f6d365 100%);
+      
+      .wwpay-method-btn::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background: rgba(255,255,255,0.8);
+        transform: scaleX(0);
+        transition: transform 0.3s;
+      }
+      
+      .wwpay-method-btn.active {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+      }
+      
+      .wwpay-method-btn.active::after {
+        transform: scaleX(1);
+      }
+      
+      .wwpay-method-btn i {
+        font-size: 24px;
+        margin-bottom: 8px;
+      }
+      
+      .wwpay-method-name {
+        font-size: 16px;
+        font-weight: bold;
+        margin-bottom: 4px;
+      }
+      
+      .wwpay-method-hint {
+        font-size: 12px;
+        opacity: 0.8;
+      }
+      
+      .wwpay-method-btn.active .wwpay-method-hint {
+        opacity: 1;
+      }
+      
+      #confirm-payment-btn {
+        display: block;
+        width: 100%;
+        max-width: 300px;
+        margin: 25px auto 0;
+        padding: 12px;
+        background: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        cursor: pointer;
+        transition: all 0.3s;
+      }
+      
+      #confirm-payment-btn:hover:not(:disabled) {
+        background: #45a049;
         transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
       }
-
-      /* 充值模态框样式 */
-      .recharge-modal {
-        display: none;
+      
+      #confirm-payment-btn:disabled {
+        background: #cccccc;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+      }
+      
+      .wwpay-loading {
         position: fixed;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
-        background-color: rgba(0,0,0,0.7);
-        z-index: 1000;
+        background: rgba(0,0,0,0.85);
+        z-index: 9999;
+        display: flex;
         justify-content: center;
         align-items: center;
+        color: white;
+        font-size: 20px;
+        flex-direction: column;
       }
-
-      .recharge-container {
-        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-        padding: 25px;
-        border-radius: 10px;
-        width: 90%;
-        max-width: 400px;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-        position: relative;
-        border: 1px solid rgba(255,255,255,0.1);
+      
+      .wwpay-loading .loader {
+        border: 5px solid rgba(255,255,255,0.2);
+        border-top: 5px solid #ffffff;
+        border-radius: 50%;
+        width: 60px;
+        height: 60px;
+        animation: wwpay-spin 1s linear infinite;
+        margin-bottom: 25px;
       }
-
-      .recharge-header {
-        text-align: center;
-        margin-bottom: 20px;
-        color: #fff;
+      
+      @keyframes wwpay-spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
       }
-
-      .recharge-header h2 {
-        margin: 0;
-        font-size: 1.5rem;
-        color: #f6d365;
+      
+      .wwpay-guaranteed-toast {
+        position: fixed;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #28a745;
+        color: white;
+        padding: 15px 25px;
+        border-radius: 8px;
+        font-size: 16px;
+        z-index: 100000;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        animation: wwpay-toast-fadein 0.3s;
       }
-
-      .recharge-header p {
-        margin: 5px 0 0;
-        color: #b8c2cc;
-        font-size: 0.9rem;
+      
+      .wwpay-guaranteed-toast.error {
+        background: #dc3545;
       }
-
-      .close-recharge {
-        position: absolute;
-        top: 15px;
-        right: 20px;
-        color: #b8c2cc;
-        font-size: 24px;
-        cursor: pointer;
-        transition: color 0.3s;
+      
+      .wwpay-guaranteed-toast.warning {
+        background: #ffc107;
+        color: #212529;
       }
-
-      .close-recharge:hover {
-        color: #f6d365;
+      
+      @keyframes wwpay-toast-fadein {
+        from { opacity: 0; transform: translate(-50%, 20px); }
+        to { opacity: 1; transform: translate(-50%, 0); }
       }
-
-      .recharge-form {
-        color: #fff;
+      
+      .wish-card-removing {
+        transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        opacity: 0 !important;
+        max-height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: hidden !important;
+        pointer-events: none !important;
       }
-
-      .recharge-form .form-group {
-        margin-bottom: 20px;
-      }
-
-      .recharge-form label {
-        display: block;
-        margin-bottom: 8px;
-        font-size: 0.9rem;
-        color: #b8c2cc;
-      }
-
-      .recharge-form input[type="number"] {
-        width: 100%;
-        padding: 10px 15px;
-        border-radius: 5px;
-        border: 1px solid rgba(255,255,255,0.2);
-        background-color: rgba(0,0,0,0.3);
-        color: #fff;
-        font-size: 1rem;
-      }
-
-      .recharge-form input[type="number"]:focus {
-        outline: none;
-        border-color: #f6d365;
-        box-shadow: 0 0 0 2px rgba(246, 211, 101, 0.3);
-      }
-
-      .payment-methods {
+      
+      .fulfillment-notification {
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: #4CAF50;
+        color: white;
+        padding: 15px 30px;
+        border-radius: 4px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        z-index: 10000;
+        transition: all 0.3s ease;
+        opacity: 1;
         display: flex;
-        gap: 10px;
-        margin-top: 10px;
+        align-items: center;
       }
-
-      .payment-method {
-        flex: 1;
-        padding: 12px;
-        border-radius: 5px;
-        background-color: rgba(0,0,0,0.3);
-        border: 1px solid rgba(255,255,255,0.1);
-        cursor: pointer;
-        text-align: center;
-        transition: all 0.3s;
+      
+      .fulfillment-notification.fade-out {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-20px);
       }
-
-      .payment-method:hover {
-        background-color: rgba(0,0,0,0.5);
-        border-color: rgba(246, 211, 101, 0.5);
-      }
-
-      .payment-method.active {
-        background-color: rgba(246, 211, 101, 0.2);
-        border-color: #f6d365;
-        color: #f6d365;
-      }
-
-      .payment-method i {
-        margin-right: 5px;
-        font-size: 1.2rem;
-      }
-
-      .btn-recharge {
-        width: 100%;
-        padding: 12px;
-        background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
-        color: #1a1a2e;
-        border: none;
-        border-radius: 5px;
-        font-weight: bold;
-        cursor: pointer;
-        font-size: 1rem;
-        margin-top: 10px;
-        transition: all 0.3s;
-      }
-
-      .btn-recharge:hover:not(:disabled) {
-        background: linear-gradient(135deg, #fda085 0%, #f6d365 100%);
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-      }
-
-      .btn-recharge:disabled {
-        background: #6c757d;
-        cursor: not-allowed;
-        transform: none;
-        box-shadow: none;
-      }
-
-      .recharge-message {
-        margin-top: 15px;
-        padding: 10px;
-        border-radius: 5px;
-        font-size: 0.9rem;
-        text-align: center;
-        display: none;
-      }
-
-      .recharge-message.success {
-        background-color: rgba(40, 167, 69, 0.2);
-        color: #28a745;
-        border: 1px solid #28a745;
-      }
-
-      .recharge-message.error {
-        background-color: rgba(220, 53, 69, 0.2);
-        color: #dc3545;
-        border: 1px solid #dc3545;
+      
+      .fulfillment-notification svg {
+        width: 20px;
+        height: 20px;
+        margin-right: 10px;
       }
     `;
     document.head.appendChild(style);
@@ -301,7 +292,6 @@ class WWPay {
   cleanupLocalStorage() {
     localStorage.removeItem('pending-fulfillment');
     localStorage.removeItem('last-payment');
-    localStorage.removeItem('pending-recharge');
   }
 
   /* ========== 事件处理方法 ========== */
@@ -323,12 +313,6 @@ class WWPay {
       const confirmBtn = e.target.closest('#confirm-payment-btn');
       if (confirmBtn) {
         this.processPayment();
-      }
-      
-      // 充值模态框外部点击关闭
-      const rechargeModal = document.getElementById('rechargeModal');
-      if (rechargeModal && e.target === rechargeModal) {
-        this.toggleRechargeModal(false);
       }
     } catch (error) {
       this.safeLogError('事件处理出错', error);
@@ -354,7 +338,6 @@ class WWPay {
 
       this.state.selectedAmount = amount;
       this.state.currentWishId = wishId;
-      this.state.isRechargeMode = false;
 
       this.showPaymentMethods();
     } catch (error) {
@@ -382,151 +365,6 @@ class WWPay {
     }
   }
 
-  /* ========== 充值功能 ========== */
-
-  showRechargeModal() {
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        this.showToast('请先登录后再充值', 'error');
-        document.getElementById('authModal').style.display = 'flex';
-        return;
-      }
-      
-      // 重置状态
-      this.state = {
-        selectedAmount: null,
-        selectedMethod: 'alipay',
-        currentWishId: null,
-        processing: false,
-        statusCheckInterval: null,
-        paymentCompleted: false,
-        lastPayment: null,
-        isRechargeMode: true
-      };
-      
-      // 重置表单
-      document.getElementById('rechargeAmount').value = '';
-      document.getElementById('rechargeMessage').style.display = 'none';
-      
-      // 选中默认支付方式
-      document.querySelectorAll('.payment-method').forEach(method => {
-        method.classList.remove('active');
-        if (method.dataset.method === 'alipay') {
-          method.classList.add('active');
-        }
-      });
-      
-      this.toggleRechargeModal(true);
-    } catch (error) {
-      this.safeLogError('显示充值模态框失败', error);
-      this.showToast('打开充值页面失败', 'error');
-    }
-  }
-
-  toggleRechargeModal(show) {
-    const modal = document.getElementById('rechargeModal');
-    if (modal) {
-      modal.style.display = show ? 'flex' : 'none';
-      document.body.style.overflow = show ? 'hidden' : '';
-    }
-  }
-
-  async handleRechargeSubmit() {
-    try {
-      const amountInput = document.getElementById('rechargeAmount');
-      const amount = parseFloat(amountInput.value);
-      
-      if (!amount || amount <= 0) {
-        this.showRechargeMessage('请输入有效的充值金额', 'error');
-        return;
-      }
-      
-      const token = localStorage.getItem('token');
-      if (!token) {
-        this.toggleRechargeModal(false);
-        document.getElementById('authModal').style.display = 'flex';
-        return;
-      }
-      
-      // 获取选中的支付方式
-      const selectedMethod = document.querySelector('.payment-method.active')?.dataset.method || 'alipay';
-      
-      // 更新状态
-      this.state.selectedAmount = amount;
-      this.state.selectedMethod = selectedMethod;
-      this.state.isRechargeMode = true;
-      
-      // 禁用按钮
-      const submitBtn = document.getElementById('submitRecharge');
-      submitBtn.disabled = true;
-      document.getElementById('rechargeText').style.display = 'none';
-      document.getElementById('rechargeSpinner').style.display = 'inline-block';
-      
-      // 创建充值订单
-      const orderResponse = await fetch(`${this.config.paymentGateway.apiBase}/api/recharge/create`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          amount: amount,
-          payment_method: selectedMethod
-        })
-      });
-      
-      if (!orderResponse.ok) {
-        throw new Error(await orderResponse.text());
-      }
-      
-      const orderData = await orderResponse.json();
-      
-      // 准备支付数据
-      const paymentData = {
-        pid: this.config.paymentGateway.pid,
-        type: selectedMethod,
-        out_trade_no: orderData.order_id,
-        notify_url: location.href,
-        return_url: this.config.paymentGateway.successUrl,
-        name: `命缘池充值-${amount}元`,
-        money: amount.toFixed(2),
-        param: encodeURIComponent(localStorage.getItem('username') || ''),
-        sign_type: this.config.paymentGateway.signType
-      };
-      
-      // 生成签名
-      paymentData.sign = this.generateSignature(paymentData);
-      
-      // 提交支付
-      await this.submitPaymentForm(paymentData);
-      
-    } catch (error) {
-      this.showRechargeMessage(`充值失败: ${error.message}`, 'error');
-      console.error('充值失败:', error);
-    } finally {
-      const submitBtn = document.getElementById('submitRecharge');
-      if (submitBtn) {
-        submitBtn.disabled = false;
-        document.getElementById('rechargeText').style.display = 'inline';
-        document.getElementById('rechargeSpinner').style.display = 'none';
-      }
-    }
-  }
-
-  showRechargeMessage(message, type) {
-    const messageElement = document.getElementById('rechargeMessage');
-    if (messageElement) {
-      messageElement.textContent = message;
-      messageElement.className = `recharge-message ${type}`;
-      messageElement.style.display = 'block';
-      
-      setTimeout(() => {
-        messageElement.style.display = 'none';
-      }, 5000);
-    }
-  }
-
   /* ========== 核心支付方法 ========== */
 
   async processPayment() {
@@ -541,8 +379,7 @@ class WWPay {
         wishId: this.state.currentWishId,
         amount: this.state.selectedAmount,
         method: this.state.selectedMethod,
-        timestamp: Date.now(),
-        isRecharge: this.state.isRechargeMode
+        timestamp: Date.now()
       };
       localStorage.setItem('last-payment', JSON.stringify(this.state.lastPayment));
 
@@ -560,13 +397,11 @@ class WWPay {
     try {
       const orderId = this.generateOrderId();
       
-      if (!this.state.isRechargeMode) {
-        // 异步记录还愿
-        this.recordFulfillment().catch(error => {
-          this.safeLogError('异步记录还愿失败', error);
-          this.savePendingFulfillment();
-        });
-      }
+      // 异步记录还愿
+      this.recordFulfillment().catch(error => {
+        this.safeLogError('异步记录还愿失败', error);
+        this.savePendingFulfillment();
+      });
 
       const paymentData = {
         pid: this.config.paymentGateway.pid,
@@ -574,14 +409,11 @@ class WWPay {
         out_trade_no: orderId,
         notify_url: location.href,
         return_url: this.config.paymentGateway.successUrl,
-        name: this.state.isRechargeMode 
-          ? `充值-${this.state.selectedAmount}元` 
-          : `还愿-${this.state.currentWishId}`,
+        name: `还愿-${this.state.currentWishId}`,
         money: this.state.selectedAmount.toFixed(2),
         param: encodeURIComponent(JSON.stringify({
           wishId: this.state.currentWishId,
-          amount: this.state.selectedAmount,
-          isRecharge: this.state.isRechargeMode
+          amount: this.state.selectedAmount
         })),
         sign_type: this.config.paymentGateway.signType
       };
@@ -699,16 +531,8 @@ class WWPay {
 
   async checkPaymentStatus() {
     try {
-      const endpoint = this.state.isRechargeMode 
-        ? '/api/recharge/status' 
-        : '/api/payments/status';
-        
-      const param = this.state.isRechargeMode 
-        ? `orderId=${this.state.lastPayment?.out_trade_no}`
-        : `wishId=${this.state.currentWishId}`;
-      
       const response = await fetch(
-        `${this.config.paymentGateway.apiBase}${endpoint}?${param}`,
+        `${this.config.paymentGateway.apiBase}/api/payments/status?wishId=${this.state.currentWishId}`,
         {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
@@ -739,54 +563,25 @@ class WWPay {
 
   async handlePaymentSuccess() {
     try {
-      this.showGuaranteedToast('处理成功！正在更新状态...');
+      this.showGuaranteedToast('还愿成功！正在更新状态...');
       
-      if (this.state.isRechargeMode) {
-        // 充值成功处理
-        this.showGuaranteedToast('充值成功！正在更新余额...');
-        await this.verifyRechargeCompleted();
-      } else {
-        // 还愿成功处理
-        const fulfillmentResult = await this.ensureFulfillmentRecorded();
-        if (!fulfillmentResult.success) {
-          throw new Error(fulfillmentResult.message);
-        }
-        
-        const verified = await this.verifyWishRemoved();
-        if (!verified) {
-          throw new Error('愿望删除验证失败');
-        }
+      // 1. 确保记录到fulfillments表
+      const fulfillmentResult = await this.ensureFulfillmentRecorded();
+      if (!fulfillmentResult.success) {
+        throw new Error(fulfillmentResult.message);
+      }
+      
+      // 2. 验证愿望已从wishes表删除
+      const verified = await this.verifyWishRemoved();
+      if (!verified) {
+        throw new Error('愿望删除验证失败');
       }
 
-      // 准备跳转
+      // 3. 准备跳转
       this.prepareSuccessRedirect();
       
     } catch (error) {
       this.handlePaymentSuccessError(error);
-    }
-  }
-
-  async verifyRechargeCompleted() {
-    try {
-      const response = await fetch(
-        `${this.config.paymentGateway.apiBase}/api/user/balance`,
-        {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
-          }
-        }
-      );
-      
-      const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(data.error || '获取余额失败');
-      }
-      
-      this.showGuaranteedToast(`充值成功！当前余额: ${data.balance}元`);
-      return true;
-    } catch (error) {
-      throw new Error(`验证充值状态失败: ${error.message}`);
     }
   }
 
@@ -839,14 +634,8 @@ class WWPay {
 
   prepareSuccessRedirect() {
     const successUrl = new URL(this.config.paymentGateway.successUrl);
-    
-    if (this.state.isRechargeMode) {
-      successUrl.searchParams.append('recharge_success', 'true');
-      successUrl.searchParams.append('amount', this.state.selectedAmount);
-    } else {
-      successUrl.searchParams.append('fulfillment_success', 'true');
-      successUrl.searchParams.append('wish_id', this.state.currentWishId);
-    }
+    successUrl.searchParams.append('fulfillment_success', 'true');
+    successUrl.searchParams.append('wish_id', this.state.currentWishId);
     
     this.showGuaranteedToast('处理完成！即将跳转...', 'success');
     setTimeout(() => {
@@ -857,90 +646,103 @@ class WWPay {
 
   /* ========== 数据库操作 ========== */
 
-  async recordFulfillment(retryCount = 3) {
-    const baseDelay = 1000;
-    const url = `${this.config.paymentGateway.apiBase}/api/wishes/fulfill`;
-    
-    if (!this.state.currentWishId || typeof this.state.currentWishId !== 'number' || this.state.currentWishId <= 0) {
-      const errorMsg = `无效的愿望ID: ${this.state.currentWishId}`;
-      this.safeLogError(errorMsg);
-      this.showToast('愿望ID无效，无法记录还愿', 'error');
-      this.savePendingFulfillment();
-      throw new Error(errorMsg);
-    }
-    
-    const wishCard = document.querySelector(`[data-wish-id="${this.state.currentWishId}"]`);
-    if (!wishCard) {
-      const errorMsg = `找不到愿望卡片: ${this.state.currentWishId}`;
-      this.safeLogError(errorMsg);
-      this.showToast('愿望不存在或已被删除', 'error');
-      this.savePendingFulfillment();
-      throw new Error(errorMsg);
-    }
-    
-    const requestData = {
-      wishId: this.state.currentWishId,
-      amount: this.state.selectedAmount,
-      paymentMethod: this.state.selectedMethod
-    };
-    
-    for (let attempt = 1; attempt <= retryCount; attempt++) {
-      try {
-        this.log(`[还愿记录] 尝试 ${attempt}/${retryCount} | 愿望ID: ${this.state.currentWishId} | 金额: ${this.state.selectedAmount} | 方式: ${this.state.selectedMethod}`);
+ async recordFulfillment(retryCount = 3) {
+  const baseDelay = 1000; // 基础延迟1秒
+  const url = `${this.config.paymentGateway.apiBase}/api/wishes/fulfill`;
+  
+  // 1. 验证愿望ID是否有效
+  if (!this.state.currentWishId || typeof this.state.currentWishId !== 'number' || this.state.currentWishId <= 0) {
+    const errorMsg = `无效的愿望ID: ${this.state.currentWishId}`;
+    this.safeLogError(errorMsg);
+    this.showToast('愿望ID无效，无法记录还愿', 'error');
+    this.savePendingFulfillment(); // 保存为待处理记录
+    throw new Error(errorMsg);
+  }
+  
+  // 2. 验证愿望在本地是否存在
+  const wishCard = document.querySelector(`[data-wish-id="${this.state.currentWishId}"]`);
+  if (!wishCard) {
+    const errorMsg = `找不到愿望卡片: ${this.state.currentWishId}`;
+    this.safeLogError(errorMsg);
+    this.showToast('愿望不存在或已被删除', 'error');
+    this.savePendingFulfillment(); // 保存为待处理记录
+    throw new Error(errorMsg);
+  }
+  
+  // 3. 创建请求数据
+  const requestData = {
+    wishId: this.state.currentWishId,
+    amount: this.state.selectedAmount,
+    paymentMethod: this.state.selectedMethod
+  };
+  
+  // 4. 重试循环
+  for (let attempt = 1; attempt <= retryCount; attempt++) {
+    try {
+      // 详细日志
+      this.log(`[还愿记录] 尝试 ${attempt}/${retryCount} | 愿望ID: ${this.state.currentWishId} | 金额: ${this.state.selectedAmount} | 方式: ${this.state.selectedMethod}`);
+      
+      // 发送请求
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+        },
+        body: JSON.stringify(requestData)
+      });
+      
+      // 处理HTTP响应
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`HTTP错误 ${response.status}: ${errorText}`);
+      }
+      
+      const data = await response.json();
+      
+      // 检查后端响应
+      if (!data.success) {
+        throw new Error(`后端错误: ${data.error || data.message || '未知错误'}`);
+      }
+      
+      // 记录成功
+      this.log(`[还愿记录] 成功! fulfillmentId: ${data.fulfillmentId}`);
+      return data;
+      
+    } catch (error) {
+      const errorMsg = `记录还愿失败 (尝试 ${attempt}/${retryCount}): ${error.message}`;
+      
+      // 最后一次尝试失败
+      if (attempt === retryCount) {
+        this.safeLogError(errorMsg, error);
         
-        const response = await fetch(url, {
-          method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
-          },
-          body: JSON.stringify(requestData)
+        // 保存到待处理列表
+        const pending = JSON.parse(localStorage.getItem('pendingFulfillments') || '[]');
+        pending.push({
+          wishId: this.state.currentWishId,
+          amount: this.state.selectedAmount,
+          method: this.state.selectedMethod,
+          timestamp: Date.now(),
+          error: error.message,
+          attempts: 0 // 重试次数计数器
         });
         
-        if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(`HTTP错误 ${response.status}: ${errorText}`);
-        }
+        localStorage.setItem('pendingFulfillments', JSON.stringify(pending));
+        this.log(`已保存到待处理列表，当前待处理记录: ${pending.length}`);
         
-        const data = await response.json();
+        // 启动后台重试
+        this.startBackgroundRetry();
         
-        if (!data.success) {
-          throw new Error(`后端错误: ${data.error || data.message || '未知错误'}`);
-        }
-        
-        this.log(`[还愿记录] 成功! fulfillmentId: ${data.fulfillmentId}`);
-        return data;
-        
-      } catch (error) {
-        const errorMsg = `记录还愿失败 (尝试 ${attempt}/${retryCount}): ${error.message}`;
-        
-        if (attempt === retryCount) {
-          this.safeLogError(errorMsg, error);
-          
-          const pending = JSON.parse(localStorage.getItem('pendingFulfillments') || '[]');
-          pending.push({
-            wishId: this.state.currentWishId,
-            amount: this.state.selectedAmount,
-            method: this.state.selectedMethod,
-            timestamp: Date.now(),
-            error: error.message,
-            attempts: 0
-          });
-          
-          localStorage.setItem('pendingFulfillments', JSON.stringify(pending));
-          this.log(`已保存到待处理列表，当前待处理记录: ${pending.length}`);
-          
-          this.startBackgroundRetry();
-          
-          throw new Error(`所有尝试均失败: ${error.message}`);
-        }
-        
-        const delay = baseDelay * Math.pow(2, attempt - 1) + Math.random() * 500;
-        this.log(`${errorMsg} - ${Math.round(delay)}ms后重试`);
-        await this.delay(delay);
+        throw new Error(`所有尝试均失败: ${error.message}`);
       }
+      
+      // 指数退避 + 随机抖动
+      const delay = baseDelay * Math.pow(2, attempt - 1) + Math.random() * 500;
+      this.log(`${errorMsg} - ${Math.round(delay)}ms后重试`);
+      await this.delay(delay);
     }
   }
+}
 
   async forceDeleteWish() {
     try {
@@ -971,6 +773,63 @@ class WWPay {
     }
   }
 
+  /* ========== 愿望卡片处理 ========== */
+
+  async safeRemoveWishCard(wishId, retries = 3) {
+    for (let i = 0; i < retries; i++) {
+      try {
+        const card = this.findWishCard(wishId);
+        if (!card) {
+          this.log('未找到愿望卡片，可能已移除');
+          return true;
+        }
+
+        await this.applyRemovalAnimation(card);
+        return true;
+      } catch (error) {
+        this.log(`移除卡片失败 (${i+1}/${retries}): ${error.message}`);
+        await this.delay(500);
+      }
+    }
+    throw new Error('多次尝试移除卡片失败');
+  }
+
+  findWishCard(wishId) {
+    const selectors = [
+      `.wish-card[data-wish-id="${wishId}"]`,
+      `[data-wish-id="${wishId}"]`,
+      `#wish-${wishId}`
+    ];
+    
+    for (const selector of selectors) {
+      const card = document.querySelector(selector);
+      if (card) return card;
+    }
+    return null;
+  }
+
+  applyRemovalAnimation(card) {
+    return new Promise((resolve) => {
+      card.classList.add('wish-card-removing');
+      
+      const onTransitionEnd = () => {
+        card.removeEventListener('transitionend', onTransitionEnd);
+        card.remove();
+        resolve();
+      };
+      
+      card.addEventListener('transitionend', onTransitionEnd);
+      
+      setTimeout(() => {
+        if (card.parentNode) {
+          card.removeEventListener('transitionend', onTransitionEnd);
+          card.remove();
+        }
+        resolve();
+      }, 800);
+    });
+  }
+
   /* ========== 状态管理 ========== */
 
   cleanupPaymentState() {
@@ -987,8 +846,7 @@ class WWPay {
       processing: false,
       statusCheckInterval: null,
       paymentCompleted: false,
-      lastPayment: null,
-      isRechargeMode: false
+      lastPayment: null
     };
   }
 
@@ -997,7 +855,7 @@ class WWPay {
       this.showToast('请选择还愿金额', 'error');
       return false;
     }
-    if (!this.state.isRechargeMode && !this.state.currentWishId) {
+    if (!this.state.currentWishId) {
       this.showToast('无法识别当前愿望', 'error');
       return false;
     }
@@ -1186,7 +1044,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // 1. 处理还愿成功通知
     const urlParams = new URLSearchParams(window.location.search);
     const wishId = urlParams.get('wish_id');
-    const rechargeAmount = urlParams.get('amount');
     
     if (urlParams.get('fulfillment_success') === 'true') {
       showFulfillmentNotification(wishId);
@@ -1194,14 +1051,6 @@ document.addEventListener('DOMContentLoaded', () => {
       // 清理URL参数
       urlParams.delete('fulfillment_success');
       urlParams.delete('wish_id');
-      const cleanUrl = `${window.location.pathname}${urlParams.toString() ? '?' + urlParams.toString() : ''}`;
-      window.history.replaceState(null, '', cleanUrl);
-    } else if (urlParams.get('recharge_success') === 'true') {
-      showRechargeSuccessNotification(rechargeAmount);
-      
-      // 清理URL参数
-      urlParams.delete('recharge_success');
-      urlParams.delete('amount');
       const cleanUrl = `${window.location.pathname}${urlParams.toString() ? '?' + urlParams.toString() : ''}`;
       window.history.replaceState(null, '', cleanUrl);
     }
@@ -1241,23 +1090,6 @@ function showFulfillmentNotification(wishId) {
   }, 3000);
 }
 
-function showRechargeSuccessNotification(amount) {
-  const notification = document.createElement('div');
-  notification.className = 'fulfillment-notification';
-  notification.innerHTML = `
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
-    </svg>
-    <span>充值成功！已到账 ${amount} 元</span>
-  `;
-  document.body.appendChild(notification);
-  
-  setTimeout(() => {
-    notification.classList.add('fade-out');
-    setTimeout(() => notification.remove(), 1000);
-  }, 3000);
-}
-
 function checkPendingFulfillments() {
   const pending = localStorage.getItem('pending-fulfillment');
   if (!pending || !window.wwPay) return;
@@ -1267,8 +1099,7 @@ function checkPendingFulfillments() {
     window.wwPay.state = {
       currentWishId: data.wishId,
       selectedAmount: data.amount,
-      selectedMethod: data.method,
-      isRechargeMode: false
+      selectedMethod: data.method
     };
     
     window.wwPay.recordFulfillment()
@@ -1306,8 +1137,7 @@ window.startWishPayment = async function(wishId, amount, method = 'alipay') {
     currentWishId: wishId,
     processing: false,
     statusCheckInterval: null,
-    paymentCompleted: false,
-    isRechargeMode: false
+    paymentCompleted: false
   };
   
   try {
@@ -1315,31 +1145,5 @@ window.startWishPayment = async function(wishId, amount, method = 'alipay') {
   } catch (error) {
     console.error('支付流程出错:', error);
     window.wwPay.showGuaranteedToast('支付流程出错，请重试', 'error');
-  }
-};
-
-// 全局充值方法
-window.startRecharge = async function(amount, method = 'alipay') {
-  if (!window.wwPay) {
-    console.error('支付系统未初始化');
-    alert('支付系统正在初始化，请稍后再试');
-    return;
-  }
-  
-  window.wwPay.state = {
-    selectedAmount: amount,
-    selectedMethod: method,
-    currentWishId: null,
-    processing: false,
-    statusCheckInterval: null,
-    paymentCompleted: false,
-    isRechargeMode: true
-  };
-  
-  try {
-    await window.wwPay.processPayment();
-  } catch (error) {
-    console.error('充值流程出错:', error);
-    window.wwPay.showGuaranteedToast('充值流程出错，请重试', 'error');
   }
 };
