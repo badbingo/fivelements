@@ -2191,6 +2191,29 @@ document.addEventListener('DOMContentLoaded', function() {
         wishForm.addEventListener('submit', handleSubmitWish);
     }
 
+        async function updateUserBalance() {
+          try {
+            const token = localStorage.getItem('token');
+            if (!token) return;
+            
+            const response = await fetch(`${API_BASE}/api/user/balance`, {
+              headers: {
+                'Authorization': `Bearer ${token}`
+              }
+            });
+            
+            if (response.ok) {
+              const data = await response.json();
+              const balanceElement = document.getElementById('userBalance');
+              if (balanceElement) {
+                balanceElement.textContent = `余额: ¥${data.balance.toFixed(2)}`;
+              }
+            }
+          } catch (error) {
+            console.error('获取余额失败:', error);
+          }
+        }
+        
     // 加载lunar.js库
     function loadLunarJS() {
         return new Promise((resolve, reject) => {
@@ -2246,6 +2269,9 @@ document.addEventListener('DOMContentLoaded', function() {
         initEnergyChart();
         setupModalClose();
         setInterval(fetchStats, 5 * 60 * 1000);
+
+        // 登录成功后调用
+        updateUserBalance();
 
         // 更新农历日期信息
         updateLunarDateInfo();
