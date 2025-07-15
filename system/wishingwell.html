@@ -752,24 +752,51 @@ document.addEventListener('DOMContentLoaded', function() {
     
     /* ==================== 登录注册功能 ==================== */
 
-    // 检查登录状态
-    function checkLoginStatus() {
+        // 检查登录状态时显示/隐藏充值按钮
+      function checkLoginStatus() {
         const token = localStorage.getItem('token');
         const username = localStorage.getItem('username');
         
         if (token && username) {
-            userWelcome.style.display = 'block';
-            usernameDisplay.textContent = username;
-            loginBtn.style.display = 'none';
-            logoutBtn.style.display = 'block';
-            manageBtn.style.display = 'block'; // 显示管理按钮
+          userWelcome.style.display = 'block';
+          usernameDisplay.textContent = username;
+          loginBtn.style.display = 'none';
+          logoutBtn.style.display = 'block';
+          manageBtn.style.display = 'block';
+          rechargeBtn.style.display = 'block'; // 显示充值按钮
         } else {
-            userWelcome.style.display = 'none';
-            loginBtn.style.display = 'block';
-            logoutBtn.style.display = 'none';
-            manageBtn.style.display = 'none'; // 隐藏管理按钮
+          userWelcome.style.display = 'none';
+          loginBtn.style.display = 'block';
+          logoutBtn.style.display = 'none';
+          manageBtn.style.display = 'none';
+          rechargeBtn.style.display = 'none'; // 隐藏充值按钮
         }
-    }
+      }
+      
+      // 初始化充值按钮
+      const rechargeBtn = document.getElementById('rechargeBtn');
+      if (rechargeBtn) {
+        rechargeBtn.addEventListener('click', () => {
+          if (window.wwPay) {
+            window.wwPay.showRechargeModal();
+          }
+        });
+      }
+      
+      // 关闭模态框事件
+      document.querySelectorAll('.close-modal').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const modal = this.closest('.modal');
+          if (modal) modal.style.display = 'none';
+        });
+      });
+      
+      window.addEventListener('click', function(event) {
+        if (event.target.classList.contains('modal')) {
+          event.target.style.display = 'none';
+        }
+      });
+    });
 
     // 切换登录/注册标签页
     function switchAuthTab(tab) {
