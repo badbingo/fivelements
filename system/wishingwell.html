@@ -90,7 +90,7 @@
         <div class="user-welcome" id="userWelcome">欢迎, <span id="usernameDisplay"></span></div>
         <button class="login-btn" id="loginBtn">登录/注册</button>
         <button class="manage-btn" id="manageBtn" style="display:none;"><i class="fas fa-id-card"></i> 管理</button>
-        <button class="recharge-btn" id="rechargeBtn" style="display:none;">💰 充值</button>
+        <button class="recharge-btn" id="rechargeBtn" style="display:none;"></button>
         <button class="logout-btn" id="logoutBtn" style="display:none;"><i class="fas fa-sign-out-alt"></i> 退出</button>
     </div>
 
@@ -1954,6 +1954,84 @@ document.addEventListener('DOMContentLoaded', function() {
     function initEventListeners() {
         // 管理按钮点击事件
         manageBtn.addEventListener('click', showUserCards);
+        
+        // 初始化用户信息弹窗
+        function initUserInfoModal() {
+            const modal = document.createElement('div');
+            modal.id = 'userInfoModal';
+            modal.className = 'modal';
+            
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <span class="close-modal">&times;</span>
+                    <h3><i class="fas fa-user-circle"></i> 用户信息</h3>
+                    
+                    <div class="user-info-container">
+                        <div class="user-info-row">
+                            <span class="info-label">用户名:</span>
+                            <span class="info-value" id="infoUsername"></span>
+                        </div>
+                        <div class="user-info-row">
+                            <span class="info-label">愿望卡数量:</span>
+                            <span class="info-value" id="infoWishCount"></span>
+                        </div>
+                        <div class="user-info-row">
+                            <span class="info-label">加持次数:</span>
+                            <span class="info-value" id="infoBlessCount"></span>
+                        </div>
+                        <div class="user-info-row">
+                            <span class="info-label">账户余额:</span>
+                            <span class="info-value" id="infoBalance"></span>
+                            <button class="recharge-btn-small" id="rechargeBtnSmall">充值</button>
+                        </div>
+                    </div>
+                    
+                    <h3 style="margin-top:30px;"><i class="fas fa-star"></i> 我的愿望卡片</h3>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            // 更新用户信息
+            function updateUserInfo() {
+                const user = JSON.parse(localStorage.getItem('user'));
+                if(user) {
+                    document.getElementById('infoUsername').textContent = user.username;
+                    document.getElementById('infoWishCount').textContent = user.wishCount || 0;
+                    document.getElementById('infoBlessCount').textContent = user.blessCount || 0;
+                    document.getElementById('infoBalance').textContent = `¥${user.balance || 0}`;
+                }
+            }
+            
+            // 显示用户信息
+            function showUserInfo() {
+                updateUserInfo();
+                document.getElementById('userInfoModal').style.display = 'block';
+            }
+            
+            // 绑定关闭事件
+            document.querySelector('#userInfoModal .close-modal').addEventListener('click', function() {
+                document.getElementById('userInfoModal').style.display = 'none';
+            });
+            
+            // 绑定充值按钮
+            document.getElementById('rechargeBtnSmall').addEventListener('click', function() {
+                document.getElementById('userInfoModal').style.display = 'none';
+                document.getElementById('rechargeModal').style.display = 'block';
+            });
+            
+            return {
+                show: showUserInfo
+            };
+        }
+        
+        const userInfoModal = initUserInfoModal();
+        
+        // 修改showUserCards函数
+        function showUserCards() {
+            userInfoModal.show();
+            // 原有代码...
+        }
         
         // 搜索功能
         searchBtn.addEventListener('click', () => {
