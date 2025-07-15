@@ -632,8 +632,9 @@ class WWPay {
 
   async checkPaymentStatus() {
     try {
+      // 检查充值订单状态
       const response = await fetch(
-        `${this.config.paymentGateway.apiBase}/api/payments/status?wishId=${this.state.currentWishId}`,
+        `${this.config.paymentGateway.apiBase}/api/recharge/status?orderId=${this.state.lastPayment?.orderId}`,
         {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
@@ -645,6 +646,25 @@ class WWPay {
       
       if (!response.ok) {
         throw new Error(data.error || '支付状态检查失败');
+      }
+      
+      // 验证数据库更新状态
+      if (data.status === 'paid') {
+        const userResponse = await fetch(
+          `${this.config.paymentGateway.apiBase}/api/user`,
+          {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+            }
+          }
+        );
+        
+        const userData = await userResponse.json();
+        if (!userResponse.ok || !userData.balance) {
+          throw new Error('账户余额更新验证失败');
+        }
+        
+        return { status: 'success', user: userData };
       }
       
       return data;
@@ -664,18 +684,20 @@ class WWPay {
 
   async handlePaymentSuccess() {
     try {
-      this.showGuaranteedToast('还愿成功！正在更新状态...');
+      this.showGuaranteedToast('充值成功！正在更新状态...');
       
-      // 1. 确保记录到fulfillments表
-      const fulfillmentResult = await this.ensureFulfillmentRecorded();
-      if (!fulfillmentResult.success) {
-        throw new Error(fulfillmentResult.message);
+      // 1. 验证支付状态和余额更新
+      const statusData = await this.checkPaymentStatus();
+      if (statusData.status !== 'success') {
+        throw new Error('支付状态验证失败');
       }
       
-      // 2. 验证愿望已从wishes表删除
-      const verified = await this.verifyWishRemoved();
-      if (!verified) {
-        throw new Error('愿望删除验证失败');
+      // 2. 更新本地UI显示新余额
+      if (statusData.user?.balance) {
+        const balanceElement = document.querySelector('.user-balance');
+        if (balanceElement) {
+          balanceElement.textContent = `${statusData.user.balance}元`;
+        }
       }
 
       // 3. 准备跳转
