@@ -147,13 +147,14 @@ class WWPay {
     
     const params = {
       pid: this.config.paymentGateway.pid,
-      type: order.paymentMethod,
+      type: order.paymentMethod === 'wechat' ? 'wxpay' : order.paymentMethod,
       out_trade_no: order.orderId,
       notify_url: `${this.config.paymentGateway.apiBase}/api/recharge/notify`,
       return_url: this.config.paymentGateway.successUrl,
       name: `账户充值-${order.orderId}`,
       money: order.amount.toFixed(2),
-      sign_type: 'MD5'
+      sign_type: 'MD5',
+      sitename: '命缘池'
     };
     
     // 生成签名
