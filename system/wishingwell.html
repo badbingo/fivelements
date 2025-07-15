@@ -21,6 +21,65 @@
       // 配置后端地址（必须修改！）
       const API_BASE = 'https://bazi-backend.owenjass.workers.dev';
       const API_URL = `${API_BASE}/api`;
+      
+      // 充值功能
+      document.addEventListener('DOMContentLoaded', function() {
+          const rechargeBtn = document.getElementById('rechargeBtn');
+          const rechargeModal = document.getElementById('rechargeModal');
+          const closeRecharge = document.getElementById('closeRecharge');
+          const rechargeForm = document.getElementById('rechargeForm');
+          
+          // 显示充值弹窗
+          rechargeBtn.addEventListener('click', function() {
+              rechargeModal.style.display = 'block';
+          });
+          
+          // 关闭充值弹窗
+          closeRecharge.addEventListener('click', function() {
+              rechargeModal.style.display = 'none';
+          });
+          
+          // 处理充值表单提交
+          rechargeForm.addEventListener('submit', async function(e) {
+              e.preventDefault();
+              
+              const amount = document.getElementById('rechargeAmount').value;
+              const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
+              const rechargeSpinner = document.getElementById('rechargeSpinner');
+              const rechargeText = document.getElementById('rechargeText');
+              const rechargeMessage = document.getElementById('rechargeMessage');
+              
+              rechargeSpinner.style.display = 'inline-block';
+              rechargeText.style.display = 'none';
+              
+              try {
+                  // 初始化支付系统
+                  const wwPay = new WWPay();
+                  
+                  // 1. 创建充值订单
+                  const orderResponse = await wwPay.createRechargeOrder(amount, paymentMethod);
+                  
+                  // 2. 跳转支付平台
+                  await wwPay.redirectToPaymentGateway(orderResponse);
+                  
+                  // 3. 显示支付处理中提示
+                  rechargeMessage.textContent = '正在跳转支付平台...';
+                  rechargeMessage.style.color = 'blue';
+                  
+              } catch (error) {
+                  rechargeMessage.textContent = error.message;
+                  rechargeMessage.style.color = 'red';
+              } finally {
+                  rechargeSpinner.style.display = 'none';
+                  rechargeText.style.display = 'inline';
+              }
+          });
+          
+          // 登录成功后显示充值按钮
+          if (localStorage.getItem('token')) {
+              rechargeBtn.style.display = 'inline-block';
+          }
+      });
     </script>
 </head>
 <body>
@@ -30,7 +89,47 @@
         <div class="user-welcome" id="userWelcome">欢迎, <span id="usernameDisplay"></span></div>
         <button class="login-btn" id="loginBtn">登录/注册</button>
         <button class="manage-btn" id="manageBtn" style="display:none;"><i class="fas fa-id-card"></i> 管理</button>
+        <button class="recharge-btn" id="rechargeBtn" style="display:none;"><i class="fas fa-coins"></i> 充值</button>
         <button class="logout-btn" id="logoutBtn" style="display:none;"><i class="fas fa-sign-out-alt"></i> 退出</button>
+    </div>
+
+    <!-- 充值弹窗 -->
+    <div class="recharge-modal" id="rechargeModal">
+        <div class="recharge-container">
+            <span class="close-recharge" id="closeRecharge">&times;</span>
+            <div class="recharge-header">
+                <h2><i class="fas fa-coins"></i> 账户充值</h2>
+                <p>请填写充值金额并选择支付方式</p>
+            </div>
+            
+            <form id="rechargeForm" class="recharge-form">
+                <div class="form-group">
+                    <label for="rechargeAmount">充值金额</label>
+                    <input type="number" id="rechargeAmount" placeholder="请输入充值金额" min="1" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>支付方式</label>
+                    <div class="payment-methods">
+                        <label class="payment-option">
+                            <input type="radio" name="paymentMethod" value="alipay" checked>
+                            支付宝
+                        </label>
+                        <label class="payment-option">
+                            <input type="radio" name="paymentMethod" value="wechat">
+                            微信支付
+                        </label>
+                    </div>
+                </div>
+                
+                <button type="submit" class="recharge-btn">
+                    <span id="rechargeText">立即充值</span>
+                    <span id="rechargeSpinner" style="display:none;">处理中...</span>
+                </button>
+                
+                <div id="rechargeMessage" class="recharge-message"></div>
+            </form>
+        </div>
     </div>
 
     <!-- 半透明登录注册弹窗 -->
