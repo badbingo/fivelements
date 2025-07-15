@@ -84,19 +84,38 @@
               // 获取用户余额并更新显示
               async function updateBalance() {
                   try {
-                      const response = await fetch(`${API_URL}/user/balance`, {
+                      const response = await fetch(`${API_URL}/user`, {
                           headers: {
                               'Authorization': `Bearer ${localStorage.getItem('token')}`
                           }
                       });
+                      
+                      if (!response.ok) {
+                          throw new Error(`HTTP error! status: ${response.status}`);
+                      }
+                      
                       const data = await response.json();
-                      document.getElementById('balanceAmount').textContent = data.balance;
-                      document.getElementById('modalBalanceAmount').textContent = data.balance;
+                      
+                      // 调试日志
+                      console.log('用户数据:', data);
+                      
+                      if (data.balance !== undefined) {
+                          document.getElementById('balanceAmount').textContent = data.balance;
+                          document.getElementById('modalBalanceAmount').textContent = data.balance;
+                      } else {
+                          console.error('API响应中缺少balance字段');
+                      }
                   } catch (error) {
                       console.error('获取余额失败:', error);
+                      // 显示错误提示
+                      document.getElementById('balanceAmount').textContent = '获取失败';
+                      document.getElementById('modalBalanceAmount').textContent = '获取失败';
                   }
               }
+              
+              // 立即执行并设置定时刷新
               updateBalance();
+              setInterval(updateBalance, 30000); // 每30秒刷新一次
           }
       });
     </script>
