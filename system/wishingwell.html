@@ -25,56 +25,12 @@
 </head>
 <body>
     
-    <!-- 在用户信息区域的按钮部分添加充值按钮 -->
+    <!-- 用户信息区域 -->
     <div class="user-area">
-        <div class="user-welcome" id="userWelcome">
-            欢迎, <span id="usernameDisplay"></span>
-            <span class="user-balance" id="userBalance" style="margin-left: 10px;"></span>
-        </div>
+        <div class="user-welcome" id="userWelcome">欢迎, <span id="usernameDisplay"></span></div>
         <button class="login-btn" id="loginBtn">登录/注册</button>
         <button class="manage-btn" id="manageBtn" style="display:none;"><i class="fas fa-id-card"></i> 管理</button>
-        <button class="recharge-btn" id="rechargeBtn" style="display:none;"><i class="fas fa-coins"></i> 充值</button>
         <button class="logout-btn" id="logoutBtn" style="display:none;"><i class="fas fa-sign-out-alt"></i> 退出</button>
-    </div>
-    
-    <!-- 在body末尾添加充值模态框 -->
-    <div id="rechargeModal" class="modal">
-        <div class="modal-content">
-            <span class="close-modal">&times;</span>
-            <h3><i class="fas fa-coins"></i> 账户充值</h3>
-            
-            <div class="form-group">
-                <label for="rechargeAmount">充值金额 (元)</label>
-                <input type="number" id="rechargeAmount" min="1" max="10000" placeholder="请输入充值金额">
-            </div>
-            
-            <div class="payment-methods" id="payment-methods-section">
-                <h4 style="text-align: center; margin-bottom: 20px;">
-                    <i class="fas fa-wallet" style="margin-right: 8px;"></i>选择支付方式
-                </h4>
-                <div class="wwpay-methods-container">
-                    <button class="wwpay-method-btn active" data-type="alipay" 
-                            style="background: #1677ff; color: white;">
-                        <i class="fab fa-alipay"></i>
-                        <span class="wwpay-method-name">支付宝</span>
-                        <span class="wwpay-method-hint">全球支付</span>
-                    </button>
-                    <button class="wwpay-method-btn" data-type="wxpay" 
-                            style="background: #09bb07; color: white;">
-                        <i class="fab fa-weixin"></i>
-                        <span class="wwpay-method-name">微信支付</span>
-                        <span class="wwpay-method-hint">国内支付</span>
-                    </button>
-                </div>
-            </div>
-            
-            <div style="text-align: center;">
-                <button id="confirmRechargeBtn" class="btn-mingyuan">
-                    <i class="fas fa-check-circle" style="margin-right: 8px;"></i> 
-                    确认充值
-                </button>
-            </div>
-        </div>
     </div>
 
     <!-- 半透明登录注册弹窗 -->
@@ -755,51 +711,24 @@ document.addEventListener('DOMContentLoaded', function() {
     
     /* ==================== 登录注册功能 ==================== */
 
-        // 检查登录状态时显示/隐藏充值按钮
-      function checkLoginStatus() {
+    // 检查登录状态
+    function checkLoginStatus() {
         const token = localStorage.getItem('token');
         const username = localStorage.getItem('username');
         
         if (token && username) {
-          userWelcome.style.display = 'block';
-          usernameDisplay.textContent = username;
-          loginBtn.style.display = 'none';
-          logoutBtn.style.display = 'block';
-          manageBtn.style.display = 'block';
-          rechargeBtn.style.display = 'block'; // 显示充值按钮
+            userWelcome.style.display = 'block';
+            usernameDisplay.textContent = username;
+            loginBtn.style.display = 'none';
+            logoutBtn.style.display = 'block';
+            manageBtn.style.display = 'block'; // 显示管理按钮
         } else {
-          userWelcome.style.display = 'none';
-          loginBtn.style.display = 'block';
-          logoutBtn.style.display = 'none';
-          manageBtn.style.display = 'none';
-          rechargeBtn.style.display = 'none'; // 隐藏充值按钮
+            userWelcome.style.display = 'none';
+            loginBtn.style.display = 'block';
+            logoutBtn.style.display = 'none';
+            manageBtn.style.display = 'none'; // 隐藏管理按钮
         }
-      }
-      
-      // 初始化充值按钮
-      const rechargeBtn = document.getElementById('rechargeBtn');
-      if (rechargeBtn) {
-        rechargeBtn.addEventListener('click', () => {
-          if (window.wwPay) {
-            window.wwPay.showRechargeModal();
-          }
-        });
-      }
-      
-      // 关闭模态框事件
-      document.querySelectorAll('.close-modal').forEach(btn => {
-        btn.addEventListener('click', function() {
-          const modal = this.closest('.modal');
-          if (modal) modal.style.display = 'none';
-        });
-      });
-      
-      window.addEventListener('click', function(event) {
-        if (event.target.classList.contains('modal')) {
-          event.target.style.display = 'none';
-        }
-      });
-    });
+    }
 
     // 切换登录/注册标签页
     function switchAuthTab(tab) {
@@ -2190,7 +2119,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // 表单提交
         wishForm.addEventListener('submit', handleSubmitWish);
     }
-        
+
     // 加载lunar.js库
     function loadLunarJS() {
         return new Promise((resolve, reject) => {
