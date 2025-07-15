@@ -365,6 +365,182 @@ class WWPay {
     }
   }
 
+  // 新增充值方法
+  async processRecharge(amount, callback) {
+    if (!this.validateRechargeAmount(amount)) {
+      this.showToast('充值金额必须在1-1000元之间', 'error');
+      return;
+    }
+
+    try {
+      this.showFullscreenLoading('正在准备充值...');
+      
+      const orderId = this.generateOrderId();
+      const paymentData = {
+        pid: this.config.paymentGateway.pid,
+        type: this.state.selectedMethod,
+        out_trade_no: orderId,
+        notify_url: location.href,
+        return_url: this.config.paymentGateway.successUrl,
+        name: `命缘池充值-${orderId}`,
+        money: amount.toFixed(2),
+        param: encodeURIComponent(JSON.stringify({
+          type: 'recharge',
+          amount: amount,
+          userId: localStorage.getItem('userId')
+        })),
+        sign_type: this.config.paymentGateway.signType
+      };
+      
+      paymentData.sign = this.generateSignature(paymentData);
+      
+      await this.submitPaymentForm(paymentData);
+      
+      // 启动支付状态检查
+      this.startRechargeStatusCheck(orderId, amount, callback);
+      
+    } catch (error) {
+      this.handlePaymentError(error);
+    }
+  }
+  
+  validateRechargeAmount(amount) {
+    return amount >= 1 && amount <= 1000;
+  }
+  
+  startRechargeStatusCheck(orderId, amount, callback) {
+    let checks = 0;
+    const maxChecks = this.config.paymentGateway.maxChecks;
+    const checkInterval = this.config.paymentGateway.checkInterval;
+    
+    this.state.statusCheckInterval = setInterval(async () => {
+      checks++;
+      
+      if (checks >= maxChecks) {
+        this.clearPaymentStatusCheck();
+        this.showGuaranteedToast('支付超时，请检查支付状态', 'warning');
+        this.hideFullscreenLoading();
+        return;
+      }
+      
+      try {
+        const statusData = await this.checkRechargeStatus(orderId);
+        
+        if (statusData.status === 'success') {
+          this.clearPaymentStatusCheck();
+          this.state.paymentCompleted = true;
+          this.showGuaranteedToast(`充值成功！已到账${amount}元`, 'success');
+          this.hideFullscreenLoading();
+          
+          // 执行回调函数
+          if (typeof callback === 'function') {
+            callback(amount);
+          }
+          
+          // 3秒后关闭充值弹窗
+          setTimeout(() => {
+            this.hideRechargeModal();
+          }, 3000);
+          
+        } else if (statusData.status === 'failed') {
+          throw new Error(statusData.message || '充值失败');
+        }
+      } catch (error) {
+        this.clearPaymentStatusCheck();
+        this.safeLogError('充值状态检查失败', error);
+        this.showGuaranteedToast(error.message, 'error');
+        this.hideFullscreenLoading();
+      }
+    }, checkInterval);
+  }
+  
+  async checkRechargeStatus(orderId) {
+    try {
+      const response = await fetch(
+        `${this.config.paymentGateway.apiBase}/api/recharge/status?orderId=${orderId}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+          }
+        }
+      );
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || '充值状态检查失败');
+      }
+      
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  }
+  
+  showRechargeModal() {
+    const modal = document.getElementById('rechargeModal');
+    if (!modal) return;
+    
+    // 重置状态
+    document.querySelectorAll('.amount-option').forEach(btn => {
+      btn.classList.remove('active');
+    });
+    document.getElementById('customAmount').value = '';
+    this.state.selectedAmount = null;
+    
+    // 显示支付方式
+    this.showPaymentMethods('recharge');
+    
+    modal.classList.add('active');
+  }
+  
+  hideRechargeModal() {
+    const modal = document.getElementById('rechargeModal');
+    if (modal) modal.classList.remove('active');
+  }
+  
+  // 修改现有的showPaymentMethods方法，支持充值场景
+  showPaymentMethods(context = 'fulfill') {
+    try {
+      const oldSection = document.getElementById('payment-methods-section');
+      if (oldSection) oldSection.remove();
+      
+      const methodsHtml = `
+        <div class="payment-methods" id="payment-methods-section">
+          <h4 style="text-align: center; margin-bottom: 20px; color: white;">
+            <i class="fas fa-wallet" style="margin-right: 8px;"></i>选择支付方式
+          </h4>
+          <div class="wwpay-methods-container">
+            ${this.config.paymentMethods.map(method => `
+              <button class="wwpay-method-btn ${method.id === this.state.selectedMethod ? 'active' : ''}" 
+                      data-type="${method.id}" 
+                      style="background: ${method.id === this.state.selectedMethod ? method.activeColor : method.color}; 
+                             color: white;">
+                <i class="${method.icon}"></i>
+                <span class="wwpay-method-name">${method.name}</span>
+                <span class="wwpay-method-hint">${method.hint}</span>
+              </button>
+            `).join('')}
+          </div>
+        </div>
+      `;
+      
+      let container;
+      if (context === 'fulfill') {
+        container = document.querySelector('#fulfillModal .modal-content');
+      } else {
+        container = document.querySelector('#rechargeModal .recharge-container');
+      }
+      
+      if (container) {
+        container.insertAdjacentHTML('beforeend', methodsHtml);
+      }
+    } catch (error) {
+      this.safeLogError('支付方式显示失败', error);
+    }
+  }
+}
+
   /* ========== 核心支付方法 ========== */
 
   async processPayment() {
