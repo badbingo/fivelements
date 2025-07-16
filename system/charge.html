@@ -205,44 +205,60 @@
                 statusElement.innerHTML = '正在更新余额 <span class="loader"></span>';
                 
                 const token = localStorage.getItem('token');
+                if (!token) {
+                    throw new Error('用户未登录');
+                }
+                
                 const response = await fetch(`/api/recharge/complete?orderId=${orderId}`, {
                     headers: {
-                        'Authorization': `Bearer ${token}`
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
                     }
                 });
                 
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(errorText || '网络响应不正常');
+                // 检查响应内容类型
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    const text = await response.text();
+                    throw new Error(`预期JSON响应，得到: ${text.slice(0, 100)}`);
                 }
                 
                 const data = await response.json();
                 
+                if (!response.ok) {
+                    throw new Error(data.error || `HTTP错误 ${response.status}`);
+                }
+                
                 if (data.success) {
                     statusElement.textContent = '账户余额已更新！即将返回许愿池...';
                     
-                    // 更新显示的余额
                     if (data.newBalance !== undefined) {
                         document.getElementById('currentBalance').textContent = data.newBalance.toFixed(2);
                     } else {
                         await updateBalanceDisplay();
                     }
                     
-                    // 3秒后自动跳转
                     setTimeout(() => {
                         window.location.href = '../wishingwell.html';
                     }, 3000);
                 } else {
-                    statusElement.textContent = `余额更新失败: ${data.error || '未知错误'}`;
-                    contactBtn.style.display = 'inline-block';
+                    throw new Error(data.error || '未知错误');
                 }
             } catch (error) {
                 console.error('更新余额失败:', error);
-                statusElement.textContent = '网络错误，请稍后刷新页面或联系客服';
+                
+                let errorMessage = '网络错误，请稍后刷新页面或联系客服';
+                if (error.message.includes('Unauthorized')) {
+                    errorMessage = '登录已过期，请重新登录';
+                } else if (error.message.includes('INVALID_ORDER')) {
+                    errorMessage = '订单已处理，请勿重复提交';
+                }
+                
+                statusElement.textContent = errorMessage;
                 contactBtn.style.display = 'inline-block';
                 
-                // 显示详细错误（开发环境）
-                if (error.message) {
+                // 显示详细错误（仅开发环境）
+                if (window.location.hostname === 'localhost') {
                     statusElement.textContent += ` (${error.message})`;
                 }
             }
