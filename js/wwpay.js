@@ -74,106 +74,23 @@ class WWPay {
 
   /* ========== 初始化方法 ========== */
 
-  // 前端wwpay.js修改processRecharge方法
+  // 处理充值请求
   async processRecharge(amount, paymentMethod) {
     try {
-      // 1. 获取用户ID
-      const userId = this.getCurrentUserId();
+      this.log(`发起充值流程: ${amount}元, 方式: ${paymentMethod}`);
       
-      // 2. 生成订单号
-      const orderId = `R${Date.now()}${Math.random().toString(36).substr(2, 8)}`;
+      // 1. 创建充值订单
+      const orderResponse = await this.createRechargeOrder(amount, paymentMethod);
       
-      // 3. 创建充值订单
-      const response = await fetch(`${this.config.paymentGateway.apiBase}/api/recharge/orders`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          orderId,
-          userId,
-          amount,
-          paymentMethod
-        })
-      });
+      // 2. 跳转支付平台
+      await this.redirectToPaymentGateway(orderResponse);
       
-      if (!response.ok) {
-        throw new Error(await response.text());
-      }
-      
-      // 4. 跳转支付
-      await this.redirectToPaymentGateway({
-        orderId,
-        amount,
-        paymentMethod,
-        userId
-      });
-      
-      // 5. 启动状态检查
-      this.startPaymentStatusCheck(orderId);
+      // 3. 启动支付状态轮询
+      this.startPaymentStatusCheck(orderResponse.orderId);
       
     } catch (error) {
       this.handlePaymentError(error);
     }
-  }
-  
-  // 修改支付跳转方法
-  async redirectToPaymentGateway(params) {
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = this.config.paymentGateway.apiUrl;
-    
-    const paymentParams = {
-      pid: this.config.paymentGateway.pid,
-      type: params.paymentMethod === 'wechat' ? 'wxpay' : params.paymentMethod,
-      out_trade_no: params.orderId,
-      notify_url: `${window.location.origin}/api/recharge/notify`,
-      return_url: this.config.paymentGateway.successUrl,
-      name: `账户充值-${params.orderId}`,
-      money: params.amount.toFixed(2),
-      sign_type: 'MD5',
-      sitename: '命缘池',
-      // 添加用户标识参数
-      user_id: params.userId,
-      user_email: this.getCurrentUserEmail() // 确保支付平台会回传这个参数
-    };
-    
-    // 生成签名
-    paymentParams.sign = this.generateSignature(paymentParams);
-    
-    // 添加隐藏字段
-    Object.entries(paymentParams).forEach(([key, value]) => {
-      const input = document.createElement('input');
-      input.type = 'hidden';
-      input.name = key;
-      input.value = value;
-      form.appendChild(input);
-    });
-    
-    // 在跳转前写入订单（状态为pending）
-    try {
-      await fetch(`${this.config.paymentGateway.apiBase}/api/recharge/orders`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          orderId: params.orderId,
-          userId: params.userId,
-          amount: params.amount,
-          paymentMethod: params.paymentMethod
-        })
-      });
-    } catch (error) {
-      console.error('订单记录失败:', error);
-    }
-    
-    document.body.appendChild(form);
-    form.submit();
   }
   
   async verifyPayment(orderId, amount) {
@@ -184,7 +101,6 @@ class WWPay {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
-        credentials: 'include',
         body: JSON.stringify({
           orderId,
           amount
@@ -211,7 +127,6 @@ class WWPay {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${localStorage.getItem('token')}`
       },
-      credentials: 'include',
       body: JSON.stringify({
         amount: parseFloat(amount),
         paymentMethod: method
@@ -745,70 +660,6 @@ class WWPay {
     }
   }
 
-  async checkRechargeStatus(orderId) {
-  try {
-    const response = await fetch(
-      `${this.config.paymentGateway.apiBase}/api/recharge/status?orderId=${orderId}`,
-      {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      }
-    );
-    
-    const data = await response.json();
-    
-    if (!response.ok) {
-      throw new Error(data.error || '支付状态检查失败');
-    }
-    
-    return data;
-  } catch (error) {
-    throw error;
-  }
-}
-
-// 修改startPaymentStatusCheck方法
-startPaymentStatusCheck(orderId) {
-  let checks = 0;
-  const maxChecks = 30; // 增加检查次数
-  const checkInterval = 3000; // 增加间隔
-  
-  this.state.statusCheckInterval = setInterval(async () => {
-    if (this.state.paymentCompleted) {
-      this.clearPaymentStatusCheck();
-      return;
-    }
-    
-    checks++;
-    
-    if (checks >= maxChecks) {
-      this.clearPaymentStatusCheck();
-      this.showGuaranteedToast('支付超时，请检查支付状态', 'warning');
-      this.hideFullscreenLoading();
-      return;
-    }
-    
-    try {
-      const statusData = await this.checkRechargeStatus(orderId);
-      
-      if (statusData.status === 'paid') {
-        this.clearPaymentStatusCheck();
-        this.state.paymentCompleted = true;
-        this.showGuaranteedToast(`充值成功！当前余额: ${statusData.balance}元`);
-        this.hideFullscreenLoading();
-      } else if (statusData.status === 'failed') {
-        throw new Error('支付失败');
-      }
-    } catch (error) {
-      this.clearPaymentStatusCheck();
-      this.safeLogError('支付状态检查失败', error);
-      this.showGuaranteedToast(error.message, 'error');
-      this.hideFullscreenLoading();
-    }
-  }, checkInterval);
-}
-  
   /* ========== 支付成功处理 ========== */
 
   async handlePaymentSuccess() {
