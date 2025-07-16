@@ -74,19 +74,23 @@ class WWPay {
 
   /* ========== 初始化方法 ========== */
 
-  // 处理充值请求
+  // 前端wwpay.js修改processRecharge方法
   async processRecharge(amount, paymentMethod) {
     try {
       this.log(`发起充值流程: ${amount}元, 方式: ${paymentMethod}`);
       
-      // 1. 创建充值订单
-      const orderResponse = await this.createRechargeOrder(amount, paymentMethod);
+      // 1. 创建充值订单(只在前端生成订单号，不写入数据库)
+      const orderId = this.generateOrderId();
       
       // 2. 跳转支付平台
-      await this.redirectToPaymentGateway(orderResponse);
+      await this.redirectToPaymentGateway({
+        orderId,
+        amount,
+        paymentMethod
+      });
       
       // 3. 启动支付状态轮询
-      this.startPaymentStatusCheck(orderResponse.orderId);
+      this.startPaymentStatusCheck(orderId);
       
     } catch (error) {
       this.handlePaymentError(error);
