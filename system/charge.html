@@ -33,7 +33,15 @@
         fetch(`/api/recharge/complete?orderId=${orderId}`)
             .then(response => {
                 if (!response.ok) {
-                    throw new Error('HTTP error ' + response.status);
+                    // 尝试获取错误详情
+                    return response.text().then(text => {
+                        try {
+                            const json = JSON.parse(text);
+                            throw new Error(json.error || 'HTTP error ' + response.status);
+                        } catch {
+                            throw new Error(text || 'HTTP error ' + response.status);
+                        }
+                    });
                 }
                 const contentType = response.headers.get('content-type');
                 if (!contentType || !contentType.includes('application/json')) {
