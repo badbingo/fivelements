@@ -149,7 +149,7 @@ class WWPay {
       pid: this.config.paymentGateway.pid,
       type: order.paymentMethod === 'wechat' ? 'wxpay' : order.paymentMethod,
       out_trade_no: order.orderId,
-      notify_url: `${this.config.paymentGateway.apiBase}/api/recharge/notify`,
+      notify_url: `${window.location.origin}/api/recharge/notify`,
       return_url: this.config.paymentGateway.successUrl,
       name: `账户充值-${order.orderId}`,
       money: order.amount.toFixed(2),
