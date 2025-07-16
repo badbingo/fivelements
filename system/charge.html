@@ -199,44 +199,46 @@
         // 更新余额到服务器
         async function updateBalance() {
           const statusElement = document.getElementById('status-message');
-          const contactBtn = document.getElementById('contactBtn');
           
           try {
-            statusElement.innerHTML = '正在处理 <span class="loader"></span>';
+            statusElement.innerHTML = '处理中 <span class="loader"></span>';
             
             const response = await fetch(`/api/recharge/complete?orderId=${orderId}`, {
               headers: {
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
+                'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                'Accept': 'application/json' // 明确要求JSON响应
               }
             });
         
-            // 统一处理响应
-            const data = await response.json();
-            console.log('API响应:', data);
+            // 1. 检查响应类型
+            const contentType = response.headers.get('content-type');
+            if (!contentType?.includes('application/json')) {
+              const text = await response.text();
+              throw new Error(`期望JSON响应，但收到: ${text.slice(0, 100)}...`);
+            }
         
+            // 2. 解析JSON
+            const data = await response.json();
+            
+            // 3. 处理业务逻辑
             if (!data.success) {
               throw new Error(data.error || '操作失败');
             }
         
-            // 处理成功情况
-            const displayBalance = data.newBalance ?? data.currentBalance;
-            document.getElementById('currentBalance').textContent = displayBalance.toFixed(2);
+            // 更新UI
+            statusElement.textContent = '充值成功！';
             
-            if (data.alreadyCompleted) {
-              statusElement.textContent = `充值已完成！当前余额: ${displayBalance.toFixed(2)}元`;
-            } else {
-              statusElement.textContent = '充值成功！';
-            }
-        
-            // 3秒后跳转
-            setTimeout(() => {
-              window.location.href = '../wishingwell.html';
-            }, 3000);
-        
           } catch (error) {
-            console.error('处理错误:', error);
-            statusElement.textContent = `处理失败: ${error.message}`;
-            contactBtn.style.display = 'inline-block';
+            // 4. 增强错误处理
+            let errorMessage = '处理失败';
+            if (error.message.includes('JSON')) {
+              errorMessage = '服务器返回数据异常';
+            } else if (error.message.includes('Network')) {
+              errorMessage = '网络连接失败';
+            }
+            
+            statusElement.textContent = `${errorMessage}，请稍后重试`;
+            console.error('完整错误:', error);
           }
         }
         
