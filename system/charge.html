@@ -204,39 +204,46 @@
             try {
                 statusElement.innerHTML = '正在更新余额 <span class="loader"></span>';
                 
+                // 1. 获取JWT token
                 const token = localStorage.getItem('token');
                 if (!token) {
-                    throw new Error('用户未登录');
+                    throw new Error('用户未登录，请重新登录');
                 }
                 
+                // 2. 调用API
                 const response = await fetch(`/api/recharge/complete?orderId=${orderId}`, {
                     headers: {
                         'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
+                        'Accept': 'application/json'
                     }
                 });
                 
-                // 检查响应内容类型
+                // 3. 检查响应类型
                 const contentType = response.headers.get('content-type');
                 if (!contentType || !contentType.includes('application/json')) {
                     const text = await response.text();
-                    throw new Error(`预期JSON响应，得到: ${text.slice(0, 100)}`);
+                    console.error('非JSON响应:', text);
+                    throw new Error(`服务器返回了非JSON响应: ${text.substring(0, 100)}...`);
                 }
                 
+                // 4. 解析JSON
                 const data = await response.json();
                 
                 if (!response.ok) {
-                    throw new Error(data.error || `HTTP错误 ${response.status}`);
+                    // 处理业务逻辑错误
+                    if (data.code === 'ORDER_NOT_FOUND') {
+                        throw new Error('订单不存在或已完成');
+                    } else if (data.code === 'INVALID_TOKEN') {
+                        throw new Error('登录已过期，请重新登录');
+                    } else {
+                        throw new Error(data.error || `服务器错误: ${response.status}`);
+                    }
                 }
                 
+                // 5. 处理成功响应
                 if (data.success) {
                     statusElement.textContent = '账户余额已更新！即将返回许愿池...';
-                    
-                    if (data.newBalance !== undefined) {
-                        document.getElementById('currentBalance').textContent = data.newBalance.toFixed(2);
-                    } else {
-                        await updateBalanceDisplay();
-                    }
+                    document.getElementById('currentBalance').textContent = data.newBalance.toFixed(2);
                     
                     setTimeout(() => {
                         window.location.href = '../wishingwell.html';
@@ -244,21 +251,26 @@
                 } else {
                     throw new Error(data.error || '未知错误');
                 }
+                
             } catch (error) {
                 console.error('更新余额失败:', error);
                 
-                let errorMessage = '网络错误，请稍后刷新页面或联系客服';
-                if (error.message.includes('Unauthorized')) {
-                    errorMessage = '登录已过期，请重新登录';
-                } else if (error.message.includes('INVALID_ORDER')) {
-                    errorMessage = '订单已处理，请勿重复提交';
+                // 友好的错误提示
+                let userMessage = '网络错误，请稍后刷新页面或联系客服';
+                
+                if (error.message.includes('未登录')) {
+                    userMessage = '登录已过期，请重新登录';
+                } else if (error.message.includes('订单不存在')) {
+                    userMessage = '订单已完成，无需重复处理';
+                } else if (error.message.includes('非JSON响应')) {
+                    userMessage = '服务器维护中，请稍后再试';
                 }
                 
-                statusElement.textContent = errorMessage;
+                statusElement.textContent = userMessage;
                 contactBtn.style.display = 'inline-block';
                 
-                // 显示详细错误（仅开发环境）
-                if (window.location.hostname === 'localhost') {
+                // 开发环境下显示完整错误
+                if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
                     statusElement.textContent += ` (${error.message})`;
                 }
             }
