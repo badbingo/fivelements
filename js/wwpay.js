@@ -78,12 +78,31 @@ class WWPay {
   async processRecharge(amount, paymentMethod) {
     try {
       // 1. 获取用户ID
-      const userId = this.getCurrentUserId(); // 实现这个方法获取当前用户ID
+      const userId = this.getCurrentUserId();
       
-      // 2. 生成订单号（但不立即写入数据库）
+      // 2. 生成订单号
       const orderId = `R${Date.now()}${Math.random().toString(36).substr(2, 8)}`;
       
-      // 3. 直接跳转支付
+      // 3. 创建充值订单
+      const response = await fetch(`${this.config.paymentGateway.apiBase}/api/recharge/orders`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          orderId,
+          userId,
+          amount,
+          paymentMethod
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error(await response.text());
+      }
+      
+      // 4. 跳转支付
       await this.redirectToPaymentGateway({
         orderId,
         amount,
@@ -91,7 +110,7 @@ class WWPay {
         userId
       });
       
-      // 4. 启动状态检查
+      // 5. 启动状态检查
       this.startPaymentStatusCheck(orderId);
       
     } catch (error) {
