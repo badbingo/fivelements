@@ -86,7 +86,8 @@ class WWPay {
       await this.redirectToPaymentGateway(orderResponse);
       
       // 3. 启动支付状态轮询
-      this.startPaymentStatusCheck(orderResponse.orderId);
+      // 不再需要轮询状态检查
+// this.startPaymentStatusCheck(orderResponse.orderId);
       
     } catch (error) {
       this.handlePaymentError(error);
@@ -150,7 +151,7 @@ class WWPay {
       type: order.paymentMethod === 'wechat' ? 'wxpay' : order.paymentMethod,
       out_trade_no: order.orderId,
       notify_url: `${window.location.origin}/api/recharge/notify`,
-      return_url: this.config.paymentGateway.successUrl,
+      return_url: `${window.location.origin}/system/charge.html?orderId=${order.orderId}&amount=${order.amount.toFixed(2)}`,
       name: `账户充值-${order.orderId}`,
       money: order.amount.toFixed(2),
       sign_type: 'MD5',
