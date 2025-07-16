@@ -202,75 +202,64 @@
             const contactBtn = document.getElementById('contactBtn');
             
             try {
-                statusElement.innerHTML = '正在更新余额 <span class="loader"></span>';
+                statusElement.innerHTML = '正在处理 <span class="loader"></span>';
                 
-                // 1. 获取JWT token
                 const token = localStorage.getItem('token');
-                if (!token) {
-                    throw new Error('用户未登录，请重新登录');
-                }
-                
-                // 2. 调用API
                 const response = await fetch(`/api/recharge/complete?orderId=${orderId}`, {
                     headers: {
                         'Authorization': `Bearer ${token}`,
-                        'Accept': 'application/json'
+                        'Content-Type': 'application/json'
                     }
                 });
-                
-                // 3. 检查响应类型
-                const contentType = response.headers.get('content-type');
-                if (!contentType || !contentType.includes('application/json')) {
-                    const text = await response.text();
-                    console.error('非JSON响应:', text);
-                    throw new Error(`服务器返回了非JSON响应: ${text.substring(0, 100)}...`);
-                }
-                
-                // 4. 解析JSON
-                const data = await response.json();
-                
+        
+                // 首先检查响应状态
                 if (!response.ok) {
-                    // 处理业务逻辑错误
-                    if (data.code === 'ORDER_NOT_FOUND') {
-                        throw new Error('订单不存在或已完成');
-                    } else if (data.code === 'INVALID_TOKEN') {
-                        throw new Error('登录已过期，请重新登录');
-                    } else {
-                        throw new Error(data.error || `服务器错误: ${response.status}`);
-                    }
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.error || `HTTP错误 ${response.status}`);
                 }
-                
-                // 5. 处理成功响应
+        
+                // 然后确保是JSON响应
+                const contentType = response.headers.get('content-type');
+                if (!contentType?.includes('application/json')) {
+                    const text = await response.text();
+                    console.warn('收到非JSON响应:', text);
+                    throw new Error('服务器返回格式异常');
+                }
+        
+                const data = await response.json();
+                console.log('API响应数据:', data); // 调试日志
+        
+                // 成功处理
                 if (data.success) {
-                    statusElement.textContent = '账户余额已更新！即将返回许愿池...';
-                    document.getElementById('currentBalance').textContent = data.newBalance.toFixed(2);
+                    statusElement.textContent = '充值成功！';
+                    document.getElementById('currentBalance').textContent = 
+                        (data.newBalance || data.currentBalance).toFixed(2);
                     
                     setTimeout(() => {
-                        window.location.href = 'wishingwell.html';
-                    }, 3000);
-                } else {
-                    throw new Error(data.error || '未知错误');
+                        window.location.href = '../wishingwell.html';
+                    }, 2000);
+                    return;
                 }
-                
+        
+                // 业务逻辑错误
+                throw new Error(data.error || '操作未成功');
+        
             } catch (error) {
-                console.error('更新余额失败:', error);
+                console.error('处理错误:', error);
                 
-                // 友好的错误提示
-                let userMessage = '网络错误，请稍后刷新页面或联系客服';
-                
-                if (error.message.includes('未登录')) {
-                    userMessage = '登录已过期，请重新登录';
-                } else if (error.message.includes('订单不存在')) {
-                    userMessage = '订单已完成，无需重复处理';
-                } else if (error.message.includes('非JSON响应')) {
-                    userMessage = '服务器维护中，请稍后再试';
+                // 更友好的错误提示
+                let errorMessage = '处理请求时出错';
+                if (error.message.includes('HTTP')) {
+                    errorMessage = '网络连接异常';
+                } else if (error.message.includes('JSON')) {
+                    errorMessage = '服务器响应异常';
                 }
                 
-                statusElement.textContent = userMessage;
+                statusElement.textContent = `${errorMessage}，请稍后刷新页面`;
                 contactBtn.style.display = 'inline-block';
                 
-                // 开发环境下显示完整错误
-                if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                // 开发环境显示详细错误
+                if (window.location.hostname === 'localhost') {
                     statusElement.textContent += ` (${error.message})`;
                 }
             }
