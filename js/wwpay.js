@@ -100,8 +100,7 @@ class WWPay {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Accept': 'application/json'
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
         body: JSON.stringify({
           orderId,
@@ -109,10 +108,8 @@ class WWPay {
         })
       });
       
-      // 检查响应类型
-      const contentType = response.headers.get('content-type');
-      if (!contentType?.includes('application/json')) {
-        throw new Error(`期望JSON响应但收到: ${contentType}`);
+      if (!response.ok) {
+        throw new Error(await response.text());
       }
       
       const data = await response.json();
@@ -129,20 +126,13 @@ class WWPay {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        'Accept': 'application/json'
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
       },
       body: JSON.stringify({
         amount: parseFloat(amount),
         paymentMethod: method
       })
     });
-    
-    // 检查响应类型
-    const contentType = response.headers.get('content-type');
-    if (!contentType?.includes('application/json')) {
-      throw new Error(`期望JSON响应但收到: ${contentType}`);
-    }
     
     if (!response.ok) {
       throw new Error(await response.text());
