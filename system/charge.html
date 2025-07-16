@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>充值成功 - 命缘池</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <script src="../js/index.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>充值成功</h1>
+        <div class="success-message">
+            <p>您的充值已成功完成！</p>
+            <p>充值金额: <span id="amount"></span>元</p>
+            <p>订单号: <span id="orderId"></span></p>
+            <p>账户余额将在3秒后自动更新...</p>
+        </div>
+        <button onclick="window.location.href='../wishingwell.html'">返回许愿池</button>
+    </div>
+
+    <script>
+        // 从URL获取订单信息
+        const urlParams = new URLSearchParams(window.location.search);
+        const orderId = urlParams.get('orderId');
+        const amount = urlParams.get('amount');
+
+        // 显示订单信息
+        document.getElementById('orderId').textContent = orderId;
+        document.getElementById('amount').textContent = amount;
+
+        // 立即更新余额并跳转
+        fetch(`/api/recharge/complete?orderId=${orderId}`)
+            .then(response => response.json())
+            .then(data => {
+                if(data.success) {
+                    // 显示成功信息
+                    document.querySelector('.success-message p:last-child').textContent = 
+                        '账户余额已更新！即将返回许愿池...';
+                    
+                    // 3秒后跳转
+                    setTimeout(() => {
+                        window.location.href = '../wishingwell.html';
+                    }, 3000);
+                } else {
+                    // 显示错误信息
+                    document.querySelector('.success-message p:last-child').textContent = 
+                        '余额更新失败，请联系客服处理订单：' + orderId;
+                    
+                    // 显示联系按钮
+                    const contactBtn = document.createElement('button');
+                    contactBtn.textContent = '联系客服';
+                    contactBtn.onclick = () => window.location.href = 'mailto:support@mybazi.net';
+                    document.querySelector('.container').appendChild(contactBtn);
+                }
+            })
+            .catch(error => {
+                console.error('更新失败:', error);
+                document.querySelector('.success-message p:last-child').textContent = 
+                    '网络错误，请稍后刷新页面或联系客服';
+            });
+    </script>
+</body>
+</html>
