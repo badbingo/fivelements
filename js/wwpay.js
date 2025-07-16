@@ -682,31 +682,50 @@ class WWPay {
 
   /* ========== 支付成功处理 ========== */
 
-  async handlePaymentSuccess() {
-    try {
-      this.showGuaranteedToast('充值成功！正在更新状态...');
-      
-      // 1. 验证支付状态和余额更新
-      const statusData = await this.checkPaymentStatus();
-      if (statusData.status !== 'success') {
-        throw new Error('支付状态验证失败');
-      }
-      
-      // 2. 更新本地UI显示新余额
-      if (statusData.user?.balance) {
-        const balanceElement = document.querySelector('.user-balance');
-        if (balanceElement) {
-          balanceElement.textContent = `${statusData.user.balance}元`;
-        }
-      }
-
-      // 3. 准备跳转
-      this.prepareSuccessRedirect();
-      
-    } catch (error) {
-      this.handlePaymentSuccessError(error);
+  // 修改支付成功处理逻辑，增加表更新验证
+  handlePaymentSuccess: function(response) {
+    // 验证订单状态
+    if (!response || !response.success) {
+      return this.handlePaymentError('Invalid payment response');
     }
-  }
+  
+    // 强制刷新用户余额
+    this.refreshUserBalance();
+  
+    // 验证相关表更新
+    this.verifyDatabaseUpdates(response.orderId)
+      .then(() => {
+        // 显示成功提示
+        this.showToast('支付成功', 'success');
+        // 准备跳转
+        this.prepareSuccessRedirect();
+      })
+      .catch(err => {
+        this.handlePaymentSuccessError(err);
+      });
+  },
+  
+  // 新增方法：验证数据库更新
+  verifyDatabaseUpdates: function(orderId) {
+    return new Promise((resolve, reject) => {
+      // 检查recharge_orders表
+      this.checkOrderStatus(orderId)
+        .then(() => {
+          // 检查recharges表
+          return this.checkRechargeRecord(orderId);
+        })
+        .then(() => {
+          // 检查transactions表
+          return this.checkTransactionRecord(orderId);
+        })
+        .then(() => {
+          // 检查payment_notifications表
+          return this.checkNotificationRecord(orderId);
+        })
+        .then(resolve)
+        .catch(reject);
+    });
+  },
 
   async ensureFulfillmentRecorded() {
     try {
@@ -1270,3 +1289,15 @@ window.startWishPayment = async function(wishId, amount, method = 'alipay') {
     window.wwPay.showGuaranteedToast('支付流程出错，请重试', 'error');
   }
 };
+
+// 修改支付配置
+paymentConfig: {
+  gatewayUrl: 'https://pay.zpay.com/gateway',
+  merchantId: 'YOUR_MERCHANT_ID',
+  notifyUrl: '/api/recharge/notify',
+  returnUrl: window.location.href,
+  // 新增验证参数
+  verifyParams: ['orderId', 'amount', 'status', 'signature'],
+  // 新增日志级别
+  logLevel: 'debug'
+},
