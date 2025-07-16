@@ -199,7 +199,6 @@
         // 更新余额到服务器
         async function updateBalance() {
           const statusElement = document.getElementById('status-message');
-          const balanceElement = document.getElementById('currentBalance');
           
           try {
             statusElement.innerHTML = '处理中 <span class="loader"></span>';
@@ -207,71 +206,41 @@
             const response = await fetch(`/api/recharge/complete?orderId=${orderId}`, {
               headers: {
                 'Authorization': `Bearer ${localStorage.getItem('token')}`,
-                'Accept': 'application/json'
+                'Accept': 'application/json' // 明确要求JSON响应
               }
             });
         
-            // 检查响应状态
-            if (!response.ok) {
-              const errorData = await response.json();
-              throw new Error(errorData.error || '请求失败');
+            // 1. 检查响应类型
+            const contentType = response.headers.get('content-type');
+            if (!contentType?.includes('application/json')) {
+              const text = await response.text();
+              throw new Error(`期望JSON响应，但收到: ${text.slice(0, 100)}...`);
             }
         
+            // 2. 解析JSON
             const data = await response.json();
             
-            // 处理不同情况
-            if (data.success) {
-              if (data.alreadyCompleted) {
-                statusElement.textContent = '充值已完成';
-              } else {
-                statusElement.textContent = '充值成功！';
-              }
-              balanceElement.textContent = data.balance.toFixed(2);
-            } else {
-              throw new Error(data.error || '处理失败');
+            // 3. 处理业务逻辑
+            if (!data.success) {
+              throw new Error(data.error || '操作失败');
             }
+        
+            // 更新UI
+            statusElement.textContent = '充值成功！';
             
           } catch (error) {
-            console.error('充值处理错误:', error);
-            statusElement.textContent = error.message;
-            
-            // 显示联系客服按钮
-            document.getElementById('contactBtn').style.display = 'inline-block';
-            
-            // 5秒后重试
-            setTimeout(updateBalance, 5000);
-          }
-        }
-
-        async function checkOrderStatus() {
-          try {
-            const response = await fetch(`/api/recharge/status?orderId=${orderId}`, {
-              headers: {
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
-              }
-            });
-            
-            const data = await response.json();
-            
-            if (data.status === 'completed') {
-              // 如果订单已完成，直接更新余额显示
-              updateBalanceDisplay();
-              document.getElementById('status-message').textContent = '充值已完成';
-            } else if (data.status === 'pending') {
-              // 如果订单待处理，开始更新流程
-              updateBalance();
-            } else {
-              // 其他状态显示错误
-              document.getElementById('status-message').textContent = '订单状态异常';
+            // 4. 增强错误处理
+            let errorMessage = '处理失败';
+            if (error.message.includes('JSON')) {
+              errorMessage = '服务器返回数据异常';
+            } else if (error.message.includes('Network')) {
+              errorMessage = '网络连接失败';
             }
-          } catch (error) {
-            console.error('检查订单状态失败:', error);
-            setTimeout(checkOrderStatus, 2000); // 2秒后重试
+            
+            statusElement.textContent = `${errorMessage}，请稍后重试`;
+            console.error('完整错误:', error);
           }
         }
-
-        // 修改DOMContentLoaded事件
-        document.addEventListener('DOMContentLoaded', checkOrderStatus);
         
         // 联系客服按钮事件
         document.getElementById('contactBtn').addEventListener('click', () => {
