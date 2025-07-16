@@ -13,9 +13,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../css/wwstyle.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="../js/wwpay.js"></script>
-    <script src="../js/lunar.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+    <script src="../js/wwpay.js" defer></script>
+<script src="../js/lunar.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
    
     <script>
       // 配置后端地址（必须修改！）
@@ -23,11 +23,18 @@
       const API_URL = `${API_BASE}/api`;
       
       // 充值功能
-      document.addEventListener('DOMContentLoaded', function() {
-          const rechargeBtn = document.getElementById('rechargeBtn');
-          const rechargeModal = document.getElementById('rechargeModal');
-          const closeRecharge = document.getElementById('closeRecharge');
-          const rechargeForm = document.getElementById('rechargeForm');
+document.addEventListener('DOMContentLoaded', function() {
+    // 确保WWPay类可用
+    if (typeof WWPay === 'undefined') {
+        console.error('WWPay类未定义，请检查wwpay.js是否加载成功');
+        return;
+    }
+    
+    const wwPay = new WWPay();
+    const rechargeBtn = document.getElementById('rechargeBtn');
+    const rechargeModal = document.getElementById('rechargeModal');
+    const closeRecharge = document.getElementById('closeRecharge');
+    const rechargeForm = document.getElementById('rechargeForm');
           
           // 显示充值弹窗
           rechargeBtn.addEventListener('click', function() {
