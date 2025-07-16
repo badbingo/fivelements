@@ -664,6 +664,70 @@ class WWPay {
     }
   }
 
+  async checkRechargeStatus(orderId) {
+  try {
+    const response = await fetch(
+      `${this.config.paymentGateway.apiBase}/api/recharge/status?orderId=${orderId}`,
+      {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      }
+    );
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.error || '支付状态检查失败');
+    }
+    
+    return data;
+  } catch (error) {
+    throw error;
+  }
+}
+
+// 修改startPaymentStatusCheck方法
+startPaymentStatusCheck(orderId) {
+  let checks = 0;
+  const maxChecks = 30; // 增加检查次数
+  const checkInterval = 3000; // 增加间隔
+  
+  this.state.statusCheckInterval = setInterval(async () => {
+    if (this.state.paymentCompleted) {
+      this.clearPaymentStatusCheck();
+      return;
+    }
+    
+    checks++;
+    
+    if (checks >= maxChecks) {
+      this.clearPaymentStatusCheck();
+      this.showGuaranteedToast('支付超时，请检查支付状态', 'warning');
+      this.hideFullscreenLoading();
+      return;
+    }
+    
+    try {
+      const statusData = await this.checkRechargeStatus(orderId);
+      
+      if (statusData.status === 'paid') {
+        this.clearPaymentStatusCheck();
+        this.state.paymentCompleted = true;
+        this.showGuaranteedToast(`充值成功！当前余额: ${statusData.balance}元`);
+        this.hideFullscreenLoading();
+      } else if (statusData.status === 'failed') {
+        throw new Error('支付失败');
+      }
+    } catch (error) {
+      this.clearPaymentStatusCheck();
+      this.safeLogError('支付状态检查失败', error);
+      this.showGuaranteedToast(error.message, 'error');
+      this.hideFullscreenLoading();
+    }
+  }, checkInterval);
+}
+  
   /* ========== 支付成功处理 ========== */
 
   async handlePaymentSuccess() {
