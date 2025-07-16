@@ -13,9 +13,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../css/wwstyle.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="../js/wwpay.js"></script>
-    <script src="../js/lunar.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+    <script src="../js/wwpay.js" defer></script>
+<script src="../js/lunar.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
    
     <script>
       // 配置后端地址（必须修改！）
@@ -23,11 +23,18 @@
       const API_URL = `${API_BASE}/api`;
       
       // 充值功能
-      document.addEventListener('DOMContentLoaded', function() {
-          const rechargeBtn = document.getElementById('rechargeBtn');
-          const rechargeModal = document.getElementById('rechargeModal');
-          const closeRecharge = document.getElementById('closeRecharge');
-          const rechargeForm = document.getElementById('rechargeForm');
+document.addEventListener('DOMContentLoaded', function() {
+    // 确保WWPay类可用
+    if (typeof WWPay === 'undefined') {
+        console.error('WWPay类未定义，请检查wwpay.js是否加载成功');
+        return;
+    }
+    
+    const wwPay = new WWPay();
+    const rechargeBtn = document.getElementById('rechargeBtn');
+    const rechargeModal = document.getElementById('rechargeModal');
+    const closeRecharge = document.getElementById('closeRecharge');
+    const rechargeForm = document.getElementById('rechargeForm');
           
           // 显示充值弹窗
           rechargeBtn.addEventListener('click', function() {
@@ -75,9 +82,56 @@
               }
           });
           
-          // 登录成功后显示充值按钮
+          // 登录成功后显示充值按钮和余额
           if (localStorage.getItem('token')) {
-              rechargeBtn.style.display = 'inline-block';
+              // 确保DOM元素存在
+              const userBalanceEl = document.getElementById('userBalance');
+              const modalBalanceEl = document.getElementById('modalBalance');
+              
+              if (rechargeBtn) rechargeBtn.style.display = 'inline-block';
+              if (userBalanceEl) userBalanceEl.style.display = 'block';
+              if (modalBalanceEl) modalBalanceEl.style.display = 'block';
+              
+              // 获取用户余额并更新显示
+              async function updateBalance() {
+                  try {
+                      const response = await fetch(`${API_URL}/user/balance`, {
+                          headers: {
+                              'Authorization': `Bearer ${localStorage.getItem('token')}`
+                          }
+                      });
+                      
+                      if (!response.ok) {
+                          throw new Error(`HTTP error! status: ${response.status}`);
+                      }
+                      
+                      const data = await response.json();
+                      
+                      // 调试日志
+                      console.log('用户数据:', data);
+                      
+                      const balanceAmountEl = document.getElementById('balanceAmount');
+                      const modalBalanceAmountEl = document.getElementById('modalBalanceAmount');
+                      
+                      if (data.balance !== undefined) {
+                          if (balanceAmountEl) balanceAmountEl.textContent = data.balance;
+                          if (modalBalanceAmountEl) modalBalanceAmountEl.textContent = data.balance;
+                      } else {
+                          console.error('API响应中缺少balance字段');
+                      }
+                  } catch (error) {
+                      console.error('获取余额失败:', error);
+                      // 显示错误提示
+                      const balanceAmountEl = document.getElementById('balanceAmount');
+                      const modalBalanceAmountEl = document.getElementById('modalBalanceAmount');
+                      if (balanceAmountEl) balanceAmountEl.textContent = '获取失败';
+                      if (modalBalanceAmountEl) modalBalanceAmountEl.textContent = '获取失败';
+                  }
+              }
+              
+              // 立即执行并设置定时刷新
+              updateBalance();
+              setInterval(updateBalance, 30000); // 每30秒刷新一次
           }
       });
     </script>
@@ -138,6 +192,10 @@
             <div class="auth-header">
                 <h2><i class="fas fa-user-circle"></i> 命缘池</h2>
                 <p>登录或注册以管理您的愿望</p>
+            </div>
+            <div class="user-balance" style="display:none; margin:15px 0;" id="modalBalance">
+                <i class="fas fa-coins"></i> 当前余额: <span id="modalBalanceAmount">0</span> 元
+                <button class="recharge-btn" id="modalRechargeBtn" style="margin-left:10px;"><i class="fas fa-coins"></i> 充值</button>
             </div>
             
             <div class="auth-tabs">
