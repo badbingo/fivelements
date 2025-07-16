@@ -77,24 +77,82 @@ class WWPay {
   // 前端wwpay.js修改processRecharge方法
   async processRecharge(amount, paymentMethod) {
     try {
-      this.log(`发起充值流程: ${amount}元, 方式: ${paymentMethod}`);
+      // 1. 获取用户ID
+      const userId = this.getCurrentUserId(); // 实现这个方法获取当前用户ID
       
-      // 1. 创建充值订单(只在前端生成订单号，不写入数据库)
-      const orderId = this.generateOrderId();
+      // 2. 生成订单号（但不立即写入数据库）
+      const orderId = `R${Date.now()}${Math.random().toString(36).substr(2, 8)}`;
       
-      // 2. 跳转支付平台
+      // 3. 直接跳转支付
       await this.redirectToPaymentGateway({
         orderId,
         amount,
-        paymentMethod
+        paymentMethod,
+        userId
       });
       
-      // 3. 启动支付状态轮询
+      // 4. 启动状态检查
       this.startPaymentStatusCheck(orderId);
       
     } catch (error) {
       this.handlePaymentError(error);
     }
+  }
+  
+  // 修改支付跳转方法
+  async redirectToPaymentGateway(params) {
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = this.config.paymentGateway.apiUrl;
+    
+    const paymentParams = {
+      pid: this.config.paymentGateway.pid,
+      type: params.paymentMethod === 'wechat' ? 'wxpay' : params.paymentMethod,
+      out_trade_no: params.orderId,
+      notify_url: `${window.location.origin}/api/recharge/notify`,
+      return_url: this.config.paymentGateway.successUrl,
+      name: `账户充值-${params.orderId}`,
+      money: params.amount.toFixed(2),
+      sign_type: 'MD5',
+      sitename: '命缘池',
+      // 添加用户标识参数
+      user_id: params.userId,
+      user_email: this.getCurrentUserEmail() // 确保支付平台会回传这个参数
+    };
+    
+    // 生成签名
+    paymentParams.sign = this.generateSignature(paymentParams);
+    
+    // 添加隐藏字段
+    Object.entries(paymentParams).forEach(([key, value]) => {
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = key;
+      input.value = value;
+      form.appendChild(input);
+    });
+    
+    // 在跳转前写入订单（状态为pending）
+    try {
+      await fetch(`${this.config.paymentGateway.apiBase}/api/recharge/orders`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          orderId: params.orderId,
+          userId: params.userId,
+          amount: params.amount,
+          paymentMethod: params.paymentMethod
+        })
+      });
+    } catch (error) {
+      console.error('订单记录失败:', error);
+    }
+    
+    document.body.appendChild(form);
+    form.submit();
   }
   
   async verifyPayment(orderId, amount) {
