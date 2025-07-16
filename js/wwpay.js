@@ -90,6 +90,7 @@ class WWPay {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
+        credentials: 'include',
         body: JSON.stringify({
           orderId,
           userId,
@@ -159,6 +160,7 @@ class WWPay {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
+        credentials: 'include',
         body: JSON.stringify({
           orderId: params.orderId,
           userId: params.userId,
@@ -182,6 +184,7 @@ class WWPay {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
+        credentials: 'include',
         body: JSON.stringify({
           orderId,
           amount
@@ -208,6 +211,7 @@ class WWPay {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${localStorage.getItem('token')}`
       },
+      credentials: 'include',
       body: JSON.stringify({
         amount: parseFloat(amount),
         paymentMethod: method
