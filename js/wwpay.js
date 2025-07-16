@@ -1301,3 +1301,13 @@ paymentConfig: {
   // 新增日志级别
   logLevel: 'debug'
 },
+
+// 在文件末尾添加全局导出
+if (typeof window !== 'undefined') {
+  window.WWPay = WWPay;
+}
+
+// 或者使用模块导出
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = WWPay;
+}
