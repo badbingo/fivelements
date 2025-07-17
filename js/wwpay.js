@@ -1131,13 +1131,17 @@ class WWPay {
           </div>
           <div id="confirm-payment-container" style="margin-top: 20px; text-align: center;">
             <button id="confirm-payment-btn" disabled>确认支付</button>
-          </div>`;
+          </div>
+        </div>`;
       
       const modal = document.getElementById('fulfillModal');
       if (modal) {
         modal.insertAdjacentHTML('beforeend', methodsHtml);
         this.updateConfirmButtonState();
       }
+    } catch (error) {
+      this.safeLogError('显示支付方式失败', error);
+    }
           <div style="text-align: center;">
             <button id="confirm-payment-btn">
               <i class="fas fa-check-circle" style="margin-right: 8px;"></i> 
