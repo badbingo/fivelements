@@ -1059,10 +1059,14 @@ class WWPay {
     }
   }
 
-  showPaymentMethods() {
+  async showPaymentMethods() {
     try {
       const oldSection = document.getElementById('payment-methods-section');
       if (oldSection) oldSection.remove();
+      
+      // 获取当前用户余额
+      const balance = await this.getUserBalance();
+      const showBalanceOption = balance >= this.state.selectedAmount;
       
       const methodsHtml = `
         <div class="payment-methods" id="payment-methods-section">
@@ -1070,6 +1074,16 @@ class WWPay {
             <i class="fas fa-wallet" style="margin-right: 8px;"></i>选择支付方式
           </h4>
           <div class="wwpay-methods-container">
+            ${showBalanceOption ? `
+              <button class="wwpay-method-btn ${'balance' === this.state.selectedMethod ? 'active' : ''}" 
+                      data-type="balance" 
+                      style="background: ${'balance' === this.state.selectedMethod ? '#4CAF50' : '#8BC34A'}; 
+                             color: white;">
+                <i class="fas fa-wallet"></i>
+                <span class="wwpay-method-name">使用余额</span>
+                <span class="wwpay-method-hint">当前余额: ${balance}元</span>
+              </button>
+            ` : ''}
             ${this.config.paymentMethods.map(method => `
               <button class="wwpay-method-btn ${method.id === this.state.selectedMethod ? 'active' : ''}" 
                       data-type="${method.id}" 
@@ -1100,6 +1114,35 @@ class WWPay {
   }
 
   /* ========== 工具方法 ========== */
+  
+  async getUserBalance() {
+    try {
+      const response = await fetch(`${this.config.paymentGateway.apiBase}/api/user/balance`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error('获取余额失败');
+      }
+      
+      const data = await response.json();
+      return data.balance || 0;
+    } catch (error) {
+      this.safeLogError('获取用户余额失败', error);
+      return 0;
+    }
+  }
+  
+  updateBalanceDisplay() {
+    const balanceElements = document.querySelectorAll('.balance-display');
+    this.getUserBalance().then(balance => {
+      balanceElements.forEach(el => {
+        el.textContent = balance;
+      });
+    });
+  }
 
   delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
