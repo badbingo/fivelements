@@ -1130,7 +1130,7 @@ class WWPay {
             `).join('')}
           </div>
           <div id="confirm-payment-container" style="margin-top: 20px; text-align: center;">
-            <button id="confirm-payment-btn" disabled>确认支付</button>
+            <button id="confirm-payment-btn" disabled>确认支付 ${this.state.selectedAmount}元</button>
           </div>
         </div>`;
       
@@ -1141,36 +1141,6 @@ class WWPay {
       }
     } catch (error) {
       this.safeLogError('显示支付方式失败', error);
-    }
-  }
-          <div id="confirm-payment-container" style="margin-top: 20px; text-align: center;">
-            <button id="confirm-payment-btn" disabled>确认支付</button>
-          </div>
-        </div>`;
-      
-      const modal = document.getElementById('fulfillModal');
-      if (modal) {
-        modal.insertAdjacentHTML('beforeend', methodsHtml);
-        this.updateConfirmButtonState();
-      }
-    } catch (error) {
-      this.safeLogError('显示支付方式失败', error);
-    }
-          <div style="text-align: center;">
-            <button id="confirm-payment-btn">
-              <i class="fas fa-check-circle" style="margin-right: 8px;"></i> 
-              确认支付 ${this.state.selectedAmount}元
-            </button>
-          </div>
-        </div>
-      `;
-      
-      const modalContent = document.querySelector('#fulfillModal .modal-content');
-      if (modalContent) {
-        modalContent.insertAdjacentHTML('beforeend', methodsHtml);
-      }
-    } catch (error) {
-      this.safeLogError('支付方式显示失败', error);
     }
   }
 
