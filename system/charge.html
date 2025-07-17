@@ -196,57 +196,92 @@
         // 初始化显示余额
         updateBalanceDisplay();
         
-        // 更新余额到服务器
+        // 更新余额到服务器(带重试机制)
         async function updateBalance() {
           const statusElement = document.getElementById('status-message');
+          const maxRetries = 3;
+          let retryCount = 0;
           
-          try {
-            statusElement.innerHTML = '处理中 <span class="loader"></span>';
-            
-            const response = await fetch(`/api/recharge/complete?orderId=${orderId}`, {
-              headers: {
-                'Authorization': `Bearer ${localStorage.getItem('token')}`,
-                'Accept': 'application/json' // 明确要求JSON响应
+          const tryUpdate = async () => {
+            try {
+              statusElement.innerHTML = `处理中${retryCount > 0 ? `(第${retryCount}次重试)` : ''} <span class="loader"></span>`;
+              
+              const response = await fetch(`/api/recharge/complete?orderId=${orderId}`, {
+                headers: {
+                  'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                  'Accept': 'application/json'
+                }
+              });
+          
+              // 检查响应类型
+              const contentType = response.headers.get('content-type');
+              if (!contentType?.includes('application/json')) {
+                const text = await response.text();
+                throw new Error(`期望JSON响应，但收到: ${text.slice(0, 100)}...`);
               }
-            });
-        
-            // 1. 检查响应类型
-            const contentType = response.headers.get('content-type');
-            if (!contentType?.includes('application/json')) {
-              const text = await response.text();
-              throw new Error(`期望JSON响应，但收到: ${text.slice(0, 100)}...`);
+          
+              // 解析JSON
+              const data = await response.json();
+              
+              if (!data.success) {
+                throw new Error(data.error || '操作失败');
+              }
+          
+              // 成功时更新UI
+              statusElement.textContent = '充值成功！';
+              document.getElementById('contactBtn').style.display = 'none';
+              return true;
+              
+            } catch (error) {
+              // 增强错误处理
+              let errorMessage = '处理失败';
+              if (error.message.includes('JSON')) {
+                errorMessage = '服务器返回数据异常';
+              } else if (error.message.includes('Network')) {
+                errorMessage = '网络连接失败';
+              }
+              
+              statusElement.textContent = `${errorMessage}${retryCount < maxRetries ? '，正在重试...' : ''}`;
+              console.error('完整错误:', error);
+              
+              if (retryCount < maxRetries) {
+                retryCount++;
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                return tryUpdate();
+              } else {
+                document.getElementById('contactBtn').style.display = 'inline-block';
+                return false;
+              }
             }
-        
-            // 2. 解析JSON
-            const data = await response.json();
-            
-            // 3. 处理业务逻辑
-            if (!data.success) {
-              throw new Error(data.error || '操作失败');
-            }
-        
-            // 更新UI
-            statusElement.textContent = '充值成功！';
-            
-          } catch (error) {
-            // 4. 增强错误处理
-            let errorMessage = '处理失败';
-            if (error.message.includes('JSON')) {
-              errorMessage = '服务器返回数据异常';
-            } else if (error.message.includes('Network')) {
-              errorMessage = '网络连接失败';
-            }
-            
-            statusElement.textContent = `${errorMessage}，请稍后重试`;
-            console.error('完整错误:', error);
+          };
+          
+          // 显示重试按钮
+          const showRetryButton = () => {
+            const retryBtn = document.createElement('button');
+            retryBtn.textContent = '重试';
+            retryBtn.style.marginLeft = '10px';
+            retryBtn.onclick = () => {
+              retryCount = 0;
+              updateBalance();
+            };
+            statusElement.appendChild(retryBtn);
+          };
+          
+          // 初始尝试
+          const success = await tryUpdate();
+          if (!success) {
+            showRetryButton();
           }
+          
+          // 无论成功与否都更新余额显示
+          await updateBalanceDisplay();
         }
         
         // 联系客服按钮事件
         document.getElementById('contactBtn').addEventListener('click', () => {
             const subject = `充值问题 - 订单号: ${orderId}`;
             const body = `我遇到了充值余额更新问题:\n订单号: ${orderId}\n充值金额: ${amount}元\n问题描述: `;
-            window.location.href = `mailto:owenjass@qq.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+            window.location.href = `mailto:support@mybazi.net?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
         });
         
         // 页面加载后立即更新余额
