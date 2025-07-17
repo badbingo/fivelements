@@ -504,8 +504,8 @@ class WWPay {
       }
       
       // 显示/隐藏余额支付按钮
-      const balanceBtn = document.querySelector('.wwpay-method-btn[data-type="balance"]');
-      if (balanceBtn) {
+      const balanceBtns = document.querySelectorAll('.wwpay-method-btn[data-type="balance"]');
+      balanceBtns.forEach(balanceBtn => {
         if (data.balance >= this.state.selectedAmount) {
           balanceBtn.classList.remove('disabled');
           balanceBtn.querySelector('.wwpay-method-hint').textContent = '可用余额支付';
@@ -513,7 +513,7 @@ class WWPay {
           balanceBtn.classList.add('disabled');
           balanceBtn.querySelector('.wwpay-method-hint').textContent = '余额不足';
         }
-      }
+      });
     } catch (error) {
       this.safeLogError('检查余额失败', error);
     }
@@ -540,6 +540,9 @@ class WWPay {
       
       return { success: true };
     } catch (error) {
+      if (error.message.includes('NetworkError')) {
+        throw new Error('网络连接失败，请检查网络后重试');
+      }
       throw error;
     }
   }
