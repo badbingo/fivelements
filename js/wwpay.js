@@ -605,7 +605,7 @@ class WWPay {
       
       // 发送请求获取余额
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10秒超时
+      const timeoutId = setTimeout(() => controller.abort(), 20000); // 20秒超时，增加超时时间以适应较慢的网络
       
       try {
         const response = await fetch(`${this.config.paymentGateway.apiBase}/api/users/balance`, {
@@ -620,6 +620,9 @@ class WWPay {
             throw new Error('获取余额超时');
           } else if (!navigator.onLine) {
             throw new Error('网络连接已断开');
+          } else if (error.message && error.message.includes('NetworkError')) {
+            // 特别处理 NetworkError 类型的错误
+            throw new Error('网络请求失败，请检查网络连接');
           } else {
             throw error;
           }
@@ -673,27 +676,51 @@ class WWPay {
     } catch (error) {
       this.safeLogError('检查余额失败', error);
       
+      // 获取更具体的错误信息
+      let errorMessage = '未知错误';
+      if (error.message) {
+        if (error.message.includes('NetworkError')) {
+          errorMessage = '网络连接错误';
+        } else if (error.message.includes('超时')) {
+          errorMessage = '请求超时';
+        } else if (error.message.includes('断开')) {
+          errorMessage = '网络已断开';
+        } else if (error.message.includes('CORS') || error.message.includes('跨域')) {
+          errorMessage = '跨域请求错误';
+        } else if (error.message.includes('Failed to fetch')) {
+          errorMessage = '请求失败';
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
+      // 记录详细错误信息到控制台
+      console.error('[WWPay] 余额检查错误详情:', error);
+      
       // 如果还有重试次数，则延迟后重试
       if (retryCount > 0) {
-        this.log(`余额检查失败，${retryCount}秒后重试...`);
+        this.log(`余额检查失败(${errorMessage})，${retryCount}秒后重试...`);
         const modalBalanceAmount = document.getElementById('modalBalanceAmount');
         if (modalBalanceAmount) {
           modalBalanceAmount.textContent = `重试中(${retryCount})...`;
           modalBalanceAmount.style.color = '#ffc107'; // 警告色
         }
         
-        // 延迟后重试
+        // 延迟后重试，增加重试间隔时间
         setTimeout(() => {
           this.checkBalanceForPayment(retryCount - 1);
-        }, 1000);
+        }, 2000); // 增加到2秒，给网络更多恢复时间
         return 0;
       }
       
-      // 重试次数用完，显示错误状态
+      // 重试次数用完，显示错误状态和具体错误信息
       const modalBalanceAmount = document.getElementById('modalBalanceAmount');
       if (modalBalanceAmount) {
-        modalBalanceAmount.textContent = '加载失败';
+        // 显示简短的错误信息
+        modalBalanceAmount.textContent = errorMessage.length > 10 ? '加载失败' : errorMessage;
         modalBalanceAmount.style.color = '#dc3545';
+        // 添加完整错误信息的悬停提示
+        modalBalanceAmount.title = errorMessage;
       }
       
       // 不要隐藏余额支付按钮，只是标记为禁用
@@ -701,9 +728,16 @@ class WWPay {
       if (balanceBtn) {
         balanceBtn.classList.add('disabled');
         const balanceHint = balanceBtn.querySelector('.wwpay-method-hint');
-        if (balanceHint) balanceHint.textContent = '余额加载失败';
-        // 不隐藏按钮，让用户可以看到并点击重试
-        // balanceBtn.style.display = 'none';
+        if (balanceHint) {
+          // 显示简短的错误信息
+          balanceHint.textContent = errorMessage.length > 10 ? '余额加载失败' : errorMessage;
+          // 添加完整错误信息的悬停提示
+          balanceHint.title = errorMessage;
+        }
+        // 确保按钮显示为禁用状态，而不是隐藏
+        balanceBtn.style.opacity = '0.5';
+        balanceBtn.style.cursor = 'not-allowed';
+        balanceBtn.style.display = 'flex';
       }
       
       // 如果当前选择的是余额支付，自动切换到支付宝支付
@@ -1527,8 +1561,9 @@ class WWPay {
           background: #ffffff;
           border-radius: 16px;
           box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-          max-height: 80vh;
+          max-height: 65vh;
           overflow-y: auto;
+          overflow-x: hidden;
         ">
           <!-- 顶部标题栏 -->
           <div style="
@@ -1632,12 +1667,16 @@ class WWPay {
             </h5>
           </div>
           
-          <!-- 支付方式按钮组 - 更紧凑的网格布局 -->
+          <!-- 支付方式按钮组 - 并排一行布局 -->
           <div class="wwpay-methods-container" style="
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            gap: 8px;
             margin-bottom: 15px;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            padding-bottom: 5px;
           ">
             ${this.config.paymentMethods.map(method => `
               <button class="wwpay-method-btn ${method.id === this.state.selectedMethod ? 'active' : ''}" 
@@ -1647,7 +1686,7 @@ class WWPay {
                         color: white;
                         border: none;
                         border-radius: 10px;
-                        padding: 15px;
+                        padding: 10px 5px;
                         display: flex;
                         flex-direction: column;
                         align-items: center;
@@ -1655,12 +1694,16 @@ class WWPay {
                         cursor: pointer;
                         transition: all 0.3s ease;
                         box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+                        flex: 1;
+                        min-width: 0;
+                        max-width: 33%;
+                        word-break: break-word;
                         ${method.id === this.state.selectedMethod ? 'transform: translateY(-2px);' : ''}
-                        ${method.id === 'balance' && (this.state.balance < this.state.selectedAmount || this.state.balance === undefined) ? 'opacity: 0.5; cursor: not-allowed;' : ''}
+                        ${method.id === 'balance' && (this.state.balance < this.state.selectedAmount || this.state.balance === undefined) ? 'opacity: 0.5; cursor: not-allowed; pointer-events: none;' : ''}
                       ">
-                <i class="${method.icon}" style="font-size: 24px; margin-bottom: 10px;"></i>
-                <span class="wwpay-method-name" style="font-weight: bold; margin-bottom: 5px; font-size: 15px;">${method.name}</span>
-                <span class="wwpay-method-hint" style="font-size: 12px; opacity: 0.9;">${method.hint}</span>
+                <i class="${method.icon}" style="font-size: 20px; margin-bottom: 6px;"></i>
+                <span class="wwpay-method-name" style="font-weight: bold; margin-bottom: 2px; font-size: 13px;">${method.name}</span>
+                <span class="wwpay-method-hint" style="font-size: 10px; opacity: 0.9; text-align: center;">${method.hint}</span>
               </button>
             `).join('')}
           </div>
