@@ -788,12 +788,6 @@ class WWPay {
           userBalanceElement.textContent = result.newBalance.toFixed(2);
         }
         
-        // 更新模态框中的余额显示
-        const modalBalanceAmount = document.getElementById('modalBalanceAmount');
-        if (modalBalanceAmount) {
-          modalBalanceAmount.textContent = result.newBalance.toFixed(2);
-        }
-        
         // 更新状态中的余额
         this.state.balance = result.newBalance;
       }
