@@ -493,9 +493,13 @@ class WWPay {
         throw new Error(`未知的支付方式: ${selectedMethod}`);
       }
       
-      // 如果选择了余额支付，但余额不足，显示提示
+      // 如果选择了余额支付，但余额不足，显示提示并自动切换到支付宝
       if (selectedMethod === 'balance' && this.state.balance < this.state.selectedAmount) {
-        this.showToast('余额不足，请选择其他支付方式或充值', 'warning');
+        this.showToast(`余额不足，当前余额${this.state.balance}元，需要${this.state.selectedAmount}元`, 'warning');
+        // 延迟1秒后自动切换到支付宝支付
+        setTimeout(() => {
+          this.handlePaymentMethodSelect('alipay');
+        }, 1000);
         return;
       }
       
@@ -522,7 +526,12 @@ class WWPay {
       // 更新确认支付按钮文本和状态
       const confirmBtn = document.getElementById('confirm-payment-btn');
       if (confirmBtn) {
-        confirmBtn.innerHTML = `<i class="fas fa-check-circle" style="margin-right: 8px;"></i> 确认${selectedMethodConfig.name}支付 ${this.state.selectedAmount}元`;
+        // 根据支付方式显示不同的按钮文本
+        let buttonText = `确认${selectedMethodConfig.name} ${this.state.selectedAmount}元`;
+        if (selectedMethod === 'balance') {
+          buttonText = `确认余额支付 ${this.state.selectedAmount}元 (剩余${(this.state.balance - this.state.selectedAmount).toFixed(2)}元)`;
+        }
+        confirmBtn.innerHTML = `<i class="fas fa-check-circle" style="margin-right: 8px;"></i> ${buttonText}`;
       }
       
       // 更新确认支付按钮状态
@@ -762,8 +771,7 @@ class WWPay {
       // 更新余额显示
       if (result.newBalance !== undefined) {
         // 更新模态框中的余额显示
-// 获取余额显示元素,避免重复声明
-const balanceDisplayElement = document.getElementById('modalBalanceAmount');
+        const modalBalanceAmount = document.getElementById('modalBalanceAmount');
         if (modalBalanceAmount) {
           modalBalanceAmount.textContent = result.newBalance.toFixed(2);
         }
@@ -781,7 +789,7 @@ const balanceDisplayElement = document.getElementById('modalBalanceAmount');
         }
         
         // 更新模态框中的余额显示
-let modalBalanceAmount = document.getElementById('modalBalanceAmount');
+        const modalBalanceAmount = document.getElementById('modalBalanceAmount');
         if (modalBalanceAmount) {
           modalBalanceAmount.textContent = result.newBalance.toFixed(2);
         }
@@ -1491,24 +1499,31 @@ let modalBalanceAmount = document.getElementById('modalBalanceAmount');
       const oldSection = document.getElementById('payment-methods-section');
       if (oldSection) oldSection.remove();
       
-      // 创建新的支付界面 - 全新设计
+      // 创建新的支付界面 - 紧凑设计，添加滚动条
       const paymentSectionHtml = `
         <div class="payment-section" id="payment-methods-section" style="
-          margin-top: 20px;
-          padding: 0 15px 20px;
+          margin-top: 15px;
+          padding: 0 12px 15px;
           background: #ffffff;
           border-radius: 16px;
           box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+          max-height: 80vh;
+          overflow-y: auto;
         ">
           <!-- 顶部标题栏 -->
           <div style="
             text-align: center;
-            padding: 20px 0;
+            padding: 15px 0;
             border-bottom: 1px solid #f0f0f0;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
+            position: sticky;
+            top: 0;
+            background: #ffffff;
+            z-index: 10;
+            border-radius: 16px 16px 0 0;
           ">
             <h4 style="
-              font-size: 18px;
+              font-size: 16px;
               color: #333;
               margin: 0;
               font-weight: 600;
@@ -1517,20 +1532,20 @@ let modalBalanceAmount = document.getElementById('modalBalanceAmount');
               支付详情
             </h4>
             <div style="
-              font-size: 14px;
+              font-size: 13px;
               color: #666;
-              margin-top: 5px;
+              margin-top: 3px;
             ">
               还愿金额: <span style="font-weight: bold; color: #ff6b6b;">${this.state.selectedAmount}元</span>
             </div>
           </div>
           
-          <!-- 余额信息卡片 - 更现代的设计 -->
+          <!-- 余额信息卡片 - 更紧凑的设计 -->
           <div class="balance-card" style="
             background: linear-gradient(135deg, #4a6cf7, #2c3e8f);
-            border-radius: 12px;
-            padding: 18px;
-            margin-bottom: 25px;
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 15px;
             box-shadow: 0 4px 15px rgba(74, 108, 247, 0.2);
             color: white;
             position: relative;
@@ -1541,8 +1556,8 @@ let modalBalanceAmount = document.getElementById('modalBalanceAmount');
               position: absolute;
               top: -15px;
               right: -15px;
-              width: 100px;
-              height: 100px;
+              width: 80px;
+              height: 80px;
               border-radius: 50%;
               background: rgba(255,255,255,0.1);
             "></div>
@@ -1550,46 +1565,46 @@ let modalBalanceAmount = document.getElementById('modalBalanceAmount');
               position: absolute;
               bottom: -20px;
               left: -20px;
-              width: 80px;
-              height: 80px;
+              width: 60px;
+              height: 60px;
               border-radius: 50%;
               background: rgba(255,255,255,0.08);
             "></div>
             
             <div style="display: flex; align-items: center; justify-content: space-between; position: relative; z-index: 2;">
               <div style="display: flex; align-items: center;">
-                <i class="fas fa-wallet" style="font-size: 22px; margin-right: 12px;"></i>
-                <span style="font-size: 16px; font-weight: 500;">我的余额</span>
+                <i class="fas fa-wallet" style="font-size: 18px; margin-right: 8px;"></i>
+                <span style="font-size: 14px; font-weight: 500;">我的余额</span>
               </div>
               <div style="text-align: right;">
-                <span id="modalBalanceAmount" style="font-weight: bold; font-size: 22px;">加载中...</span>
+                <span id="modalBalanceAmount" style="font-weight: bold; font-size: 18px;">加载中...</span>
                 <span style="margin-left: 3px; opacity: 0.9;">元</span>
               </div>
             </div>
           </div>
           
-          <!-- 支付方式标题 - 更清晰的分隔 -->
-          <div style="margin-bottom: 15px;">
+          <!-- 支付方式标题 - 更紧凑的分隔 -->
+          <div style="margin-bottom: 10px;">
             <h5 style="
-              font-size: 16px;
+              font-size: 14px;
               color: #333;
               margin: 0;
-              padding-bottom: 10px;
+              padding-bottom: 8px;
               border-bottom: 1px dashed #eee;
               display: flex;
               align-items: center;
             ">
-              <i class="fas fa-list-ul" style="margin-right: 8px; color: #4a6cf7;"></i>
+              <i class="fas fa-list-ul" style="margin-right: 6px; color: #4a6cf7;"></i>
               选择支付方式
             </h5>
           </div>
           
-          <!-- 支付方式按钮组 - 更整洁的网格布局 -->
+          <!-- 支付方式按钮组 - 更紧凑的网格布局 -->
           <div class="wwpay-methods-container" style="
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            margin-bottom: 25px;
+            gap: 10px;
+            margin-bottom: 15px;
           ">
             ${this.config.paymentMethods.map(method => `
               <button class="wwpay-method-btn ${method.id === this.state.selectedMethod ? 'active' : ''}" 
@@ -1608,7 +1623,7 @@ let modalBalanceAmount = document.getElementById('modalBalanceAmount');
                         transition: all 0.3s ease;
                         box-shadow: 0 4px 10px rgba(0,0,0,0.1);
                         ${method.id === this.state.selectedMethod ? 'transform: translateY(-2px);' : ''}
-                        ${method.id === 'balance' ? 'display: none;' : ''}
+                        ${method.id === 'balance' && this.state.balance < this.state.selectedAmount ? 'opacity: 0.5; cursor: not-allowed;' : ''}
                       ">
                 <i class="${method.icon}" style="font-size: 24px; margin-bottom: 10px;"></i>
                 <span class="wwpay-method-name" style="font-weight: bold; margin-bottom: 5px; font-size: 15px;">${method.name}</span>
@@ -1617,26 +1632,26 @@ let modalBalanceAmount = document.getElementById('modalBalanceAmount');
             `).join('')}
           </div>
           
-          <!-- 确认支付按钮 - 更突出的设计 -->
-          <div style="text-align: center; margin-top: 25px;">
+          <!-- 确认支付按钮 - 更紧凑的设计 -->
+          <div style="text-align: center; margin-top: 15px; position: sticky; bottom: 0; background: #ffffff; padding: 10px 0; border-top: 1px solid #f0f0f0; border-radius: 0 0 16px 16px;">
             <button id="confirm-payment-btn" style="
               background: linear-gradient(135deg, #28a745, #218838);
               color: white;
               border: none;
-              border-radius: 10px;
-              padding: 15px 30px;
-              font-size: 17px;
+              border-radius: 8px;
+              padding: 12px 20px;
+              font-size: 15px;
               font-weight: bold;
               cursor: pointer;
               transition: all 0.3s ease;
               width: 100%;
-              max-width: 320px;
-              box-shadow: 0 6px 12px rgba(40, 167, 69, 0.25);
+              max-width: 280px;
+              box-shadow: 0 4px 8px rgba(40, 167, 69, 0.25);
               position: relative;
               overflow: hidden;
             " disabled>
               <span style="position: relative; z-index: 2;">
-                <i class="fas fa-check-circle" style="margin-right: 8px;"></i> 
+                <i class="fas fa-check-circle" style="margin-right: 6px;"></i> 
                 确认支付 ${this.state.selectedAmount}元
               </span>
               <span style="
@@ -1650,20 +1665,20 @@ let modalBalanceAmount = document.getElementById('modalBalanceAmount');
                 animation: button-shine 3s infinite;
               "></span>
             </button>
-          </div>
-          
-          <!-- 安全提示 - 更专业的设计 -->
-          <div style="
-            text-align: center;
-            margin-top: 20px;
-            color: #666;
-            font-size: 13px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-          ">
-            <i class="fas fa-shield-alt" style="margin-right: 6px; color: #4a6cf7;"></i>
-            <span>支付信息已加密，安全无忧</span>
+            
+            <!-- 安全提示 - 更紧凑的设计 -->
+            <div style="
+              text-align: center;
+              margin-top: 8px;
+              color: #666;
+              font-size: 12px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            ">
+              <i class="fas fa-shield-alt" style="margin-right: 4px; color: #4a6cf7;"></i>
+              <span>支付信息已加密，安全无忧</span>
+            </div>
           </div>
         </div>
         
