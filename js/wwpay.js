@@ -21,6 +21,9 @@ class WWPay {
     this.checkBalanceForPayment = this.checkBalanceForPayment.bind(this);
     this.processBalancePayment = this.processBalancePayment.bind(this);
 
+    // API基础URL
+    this.API_URL = 'https://bazi-backend.owenjass.workers.dev/api';
+    
     // 系统配置
     this.config = {
       paymentGateway: {
@@ -106,7 +109,7 @@ class WWPay {
   
   async verifyPayment(orderId, amount) {
     try {
-      const response = await fetch(`${this.config.paymentGateway.apiBase}/api/recharge/verify`, {
+      const response = await fetch(`${this.API_URL}/recharge/verify`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -132,7 +135,7 @@ class WWPay {
   }
 
   async createRechargeOrder(amount, method) {
-    const response = await fetch(`${this.config.paymentGateway.apiBase}/api/recharge/orders`, {
+    const response = await fetch(`${this.API_URL}/recharge/orders`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -605,19 +608,24 @@ class WWPay {
       
       // 发送请求获取余额
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30秒超时，进一步增加超时时间以适应非常慢的网络
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30秒超时，适应非常慢的网络环境
       
       try {
-        const response = await fetch(`${this.config.paymentGateway.apiBase}/api/users/balance`, {
+        // 添加随机参数防止缓存
+        const cacheBuster = `?_=${Date.now()}`;
+        const response = await fetch(`${this.API_URL}/users/balance${cacheBuster}`, {
           headers: {
             'Authorization': `Bearer ${token}`,
-            'Cache-Control': 'no-cache, no-store'
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
           },
           signal: controller.signal
         }).catch(error => {
           // 处理网络错误
           if (error.name === 'AbortError') {
             console.error('[WWPay] 获取余额超时:', error);
+            console.error('[WWPay] API地址:', this.config.paymentGateway.apiBase);
             throw new Error('获取余额超时，服务器响应时间过长');
           } else if (!navigator.onLine) {
             console.error('[WWPay] 网络连接已断开:', error);
@@ -625,18 +633,22 @@ class WWPay {
           } else if (error.message && error.message.includes('NetworkError')) {
             // 特别处理 NetworkError 类型的错误
             console.error('[WWPay] 网络请求失败:', error);
+            console.error('[WWPay] API地址:', this.config.paymentGateway.apiBase);
             throw new Error('网络请求失败，请检查网络连接');
           } else if (error.message && (error.message.includes('CORS') || error.message.includes('cross-origin'))) {
             // 处理CORS错误
             console.error('[WWPay] CORS错误:', error);
+            console.error('[WWPay] API地址:', this.config.paymentGateway.apiBase);
             throw new Error('跨域请求被阻止，请联系管理员');
           } else if (error.message && error.message.includes('Failed to fetch')) {
             // 处理fetch失败错误
             console.error('[WWPay] 无法连接到服务器:', error);
+            console.error('[WWPay] API地址:', this.config.paymentGateway.apiBase);
             throw new Error('无法连接到服务器，请稍后再试');
           } else {
             // 记录详细错误信息到控制台
             console.error('[WWPay] 详细错误信息:', error);
+            console.error('[WWPay] API地址:', this.config.paymentGateway.apiBase);
             throw error;
           }
         });
@@ -644,15 +656,25 @@ class WWPay {
         clearTimeout(timeoutId);
         
         if (!response.ok) {
+          const errorText = await response.text().catch(() => '无错误详情');
+          console.error('[WWPay] 服务器响应错误:', response.status, errorText);
           throw new Error(`获取余额失败 (${response.status})`);
         }
         
         const data = await response.json();
-        this.state.balance = data.balance;
+        
+        // 验证响应数据格式
+        if (data.balance === undefined) {
+          console.error('[WWPay] 余额数据格式错误:', data);
+          throw new Error('服务器返回的余额数据格式错误');
+        }
+        
+        // 确保余额是数字类型
+        this.state.balance = typeof data.balance === 'number' ? data.balance : parseFloat(data.balance) || 0;
         
         // 更新余额显示
         if (modalBalanceAmount) {
-          modalBalanceAmount.textContent = data.balance.toFixed(2);
+          modalBalanceAmount.textContent = this.state.balance.toFixed(2);
           modalBalanceAmount.style.color = ''; // 恢复默认颜色
         }
         
@@ -721,10 +743,10 @@ class WWPay {
           modalBalanceAmount.title = `上次错误: ${errorMessage}`;
         }
         
-        // 延迟后重试，进一步增加重试间隔时间
+        // 延迟后重试，使用更长的重试间隔时间
         setTimeout(() => {
           this.checkBalanceForPayment(retryCount - 1);
-        }, 3000); // 增加到3秒，给网络更多恢复时间
+        }, 3000); // 3秒间隔，给网络更多恢复时间
         return 0;
       }
       
@@ -735,7 +757,7 @@ class WWPay {
         modalBalanceAmount.textContent = errorMessage.length > 15 ? '加载失败' : errorMessage;
         modalBalanceAmount.style.color = '#dc3545';
         // 添加完整错误信息的悬停提示
-        modalBalanceAmount.title = errorMessage;
+        modalBalanceAmount.title = `错误详情: ${errorMessage}`;
         // 添加错误图标
         modalBalanceAmount.innerHTML = `<i class="fas fa-exclamation-circle" style="margin-right:4px;"></i>${modalBalanceAmount.textContent}`;
       }
@@ -757,8 +779,9 @@ class WWPay {
         balanceBtn.style.opacity = '0.5';
         balanceBtn.style.cursor = 'not-allowed';
         balanceBtn.style.display = 'flex';
-        // 添加错误边框
-        balanceBtn.style.border = '1px solid #dc3545';
+        // 添加明显的错误边框
+        balanceBtn.style.border = '2px solid #dc3545';
+        balanceBtn.style.boxShadow = '0 0 8px rgba(220, 53, 69, 0.5)';
       }
       
       // 如果当前选择的是余额支付，自动切换到支付宝支付
@@ -770,11 +793,11 @@ class WWPay {
     }
   }
   
-  async processBalancePayment() {
+  async processBalancePayment(retryCount = 2) {
     // 创建一个可以取消的控制器
     const controller = new AbortController();
-    // 设置超时定时器
-    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15秒超时
+    // 设置超时定时器 - 增加到20秒以适应慢网络
+    const timeoutId = setTimeout(() => controller.abort(), 20000); // 20秒超时
     
     try {
       // 验证网络连接
@@ -792,13 +815,24 @@ class WWPay {
         timestamp: Date.now() // 添加时间戳防止缓存
       };
       
+      // 验证请求数据
+      if (!requestData.wishId) {
+        throw new Error('愿望ID无效，请刷新页面重试');
+      }
+      
+      if (!requestData.amount || requestData.amount <= 0) {
+        throw new Error('支付金额无效，请重新选择金额');
+      }
+      
       // 发送请求
-      const response = await fetch(`${this.config.paymentGateway.apiBase}/api/payments/balance`, {
+      const response = await fetch(`${this.API_URL}/payments/balance?_=${Date.now()}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Cache-Control': 'no-cache, no-store'
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
         },
         body: JSON.stringify(requestData),
         signal: controller.signal,
@@ -827,9 +861,21 @@ class WWPay {
         try {
           const errorData = JSON.parse(errorText);
           errorMessage = errorData.message || errorData.error || errorMessage;
+          
+          // 特殊错误处理
+          if (errorMessage.includes('余额不足')) {
+            // 余额不足，刷新余额显示
+            await this.checkBalanceForPayment(1);
+            throw new Error('余额不足，请先充值');
+          } else if (errorMessage.includes('愿望不存在') || errorMessage.includes('已还愿')) {
+            // 愿望状态问题，刷新页面
+            throw new Error(errorMessage + '，请刷新页面');
+          }
         } catch (e) {
           // 如果解析JSON失败，使用HTTP状态码提示
-          errorMessage = `余额支付失败 (${response.status})`;
+          if (e.message !== errorMessage) { // 避免重复抛出相同错误
+            errorMessage = `余额支付失败 (${response.status}): ${errorMessage}`;
+          }
         }
         throw new Error(errorMessage);
       }
@@ -844,44 +890,56 @@ class WWPay {
         throw new Error(result.message || '支付处理失败');
       }
       
-      // 更新内部状态的余额
+      // 确保余额是数字类型
+      let newBalance = 0;
       if (result.newBalance !== undefined) {
-        this.state.balance = result.newBalance;
+        newBalance = typeof result.newBalance === 'number' ? 
+          result.newBalance : parseFloat(result.newBalance) || 0;
+        this.state.balance = newBalance;
       }
       
       // 更新余额显示
-      if (result.newBalance !== undefined) {
+      if (newBalance !== undefined) {
         // 更新模态框中的余额显示
         const modalBalanceAmount = document.getElementById('modalBalanceAmount');
         if (modalBalanceAmount) {
-          modalBalanceAmount.textContent = result.newBalance.toFixed(2);
+          modalBalanceAmount.textContent = newBalance.toFixed(2);
         }
         
         // 更新页面上的余额显示
         const balanceElement = document.getElementById('current-balance');
         if (balanceElement) {
-          balanceElement.textContent = result.newBalance.toFixed(2);
+          balanceElement.textContent = newBalance.toFixed(2);
         }
         
         // 更新用户界面上的余额显示
         const userBalanceElement = document.getElementById('user-balance');
         if (userBalanceElement) {
-          userBalanceElement.textContent = result.newBalance.toFixed(2);
+          userBalanceElement.textContent = newBalance.toFixed(2);
         }
-        
-        // 更新状态中的余额
-        this.state.balance = result.newBalance;
       }
       
-      return { success: true };
+      return { success: true, newBalance };
     } catch (error) {
       this.hideFullscreenLoading();
+      
       // 处理网络错误
       if (error.name === 'AbortError') {
+        if (retryCount > 0) {
+          this.showToast('支付请求超时，正在重试...', 'warning');
+          return this.processBalancePayment(retryCount - 1);
+        }
         throw new Error('支付请求超时，请稍后重试');
       } else if (error.message.includes('NetworkError') || error.message.includes('Network') || !navigator.onLine) {
+        if (retryCount > 0) {
+          this.showToast('网络连接不稳定，正在重试...', 'warning');
+          return this.processBalancePayment(retryCount - 1);
+        }
         throw new Error('网络连接失败，请检查网络后重试');
       }
+      
+      // 记录详细错误信息
+      this.safeLogError('余额支付失败', error);
       throw error;
     }
   }
@@ -1321,7 +1379,7 @@ class WWPay {
   async forceDeleteWish() {
     try {
       this.log('尝试强制删除愿望...');
-      const response = await fetch(`${this.config.paymentGateway.apiBase}/api/wishes/force-fulfill`, {
+      const response = await fetch(`${this.API_URL}/wishes/force-fulfill`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -1806,6 +1864,11 @@ class WWPay {
             background: rgba(255,255,255,0.5) !important;
             transform: translateY(-1px);
             box-shadow: 0 3px 6px rgba(0,0,0,0.2) !important;
+          }
+          
+          #retryBalanceBtn:active {
+            transform: translateY(1px);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.2) !important;
           }
         </style>
       `;
