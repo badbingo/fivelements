@@ -18,6 +18,8 @@ class WWPay {
     this.generateSignature = this.generateSignature.bind(this);
     this.cleanupPaymentState = this.cleanupPaymentState.bind(this);
     this.processRecharge = this.processRecharge.bind(this);
+    this.checkBalanceForPayment = this.checkBalanceForPayment.bind(this);
+    this.processBalancePayment = this.processBalancePayment.bind(this);
 
     // 系统配置
     this.config = {
@@ -48,6 +50,14 @@ class WWPay {
           color: '#09bb07',
           activeColor: '#07a807',
           hint: '国内支付'
+        },
+        {
+          id: 'balance',
+          name: '余额支付',
+          icon: 'fas fa-wallet',
+          color: '#6c757d',
+          activeColor: '#5a6268',
+          hint: '账户余额'
         }
       ],
       debug: true
@@ -441,7 +451,19 @@ class WWPay {
       this.state.selectedAmount = amount;
       this.state.currentWishId = wishId;
 
+      // 移除之前的金额选择按钮高亮
+      document.querySelectorAll('.fulfill-option').forEach(option => {
+        option.classList.remove('active');
+      });
+      
+      // 高亮当前选择的金额按钮
+      optionElement.classList.add('active');
+      
+      // 显示支付方式
       this.showPaymentMethods();
+      
+      // 检查余额是否足够
+      this.checkBalanceForPayment();
     } catch (error) {
       this.showToast(`操作失败: ${error.message}`, 'error');
     }
@@ -462,11 +484,107 @@ class WWPay {
       buttonElement.classList.add('active');
       
       this.state.selectedMethod = selectedMethod;
+      
+      // 检查余额是否足够
+      this.checkBalanceForPayment();
     } catch (error) {
       this.safeLogError('选择支付方式失败', error);
     }
   }
 
+  /* ========== 余额支付相关方法 ========== */
+  
+  async checkBalanceForPayment() {
+    try {
+      const response = await fetch(`${this.config.paymentGateway.apiBase}/api/users/balance`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error('获取余额失败');
+      }
+      
+      const data = await response.json();
+      this.state.balance = data.balance;
+      
+      // 更新余额显示
+      const balanceElement = document.getElementById('current-balance');
+      if (balanceElement) {
+        balanceElement.textContent = data.balance.toFixed(2);
+      }
+      
+      // 显示/隐藏余额支付按钮
+      const balancePaymentBtn = document.getElementById('balance-payment-btn');
+      if (balancePaymentBtn) {
+        if (data.balance >= this.state.selectedAmount) {
+          balancePaymentBtn.style.display = 'inline-block';
+        } else {
+          balancePaymentBtn.style.display = 'none';
+        }
+      }
+      
+      // 更新余额支付方式提示
+      const balanceBtns = document.querySelectorAll('.wwpay-method-btn[data-type="balance"]');
+      balanceBtns.forEach(balanceBtn => {
+        if (data.balance >= this.state.selectedAmount) {
+          balanceBtn.classList.remove('disabled');
+          balanceBtn.querySelector('.wwpay-method-hint').textContent = '可用余额支付';
+        } else {
+          balanceBtn.classList.add('disabled');
+          balanceBtn.querySelector('.wwpay-method-hint').textContent = '余额不足';
+        }
+      });
+    } catch (error) {
+      this.safeLogError('检查余额失败', error);
+    }
+  }
+  
+  async processBalancePayment() {
+    try {
+      const response = await fetch(`${this.config.paymentGateway.apiBase}/api/payments/balance`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          wishId: this.state.currentWishId,
+          amount: this.state.selectedAmount
+        })
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || '余额支付失败');
+      }
+      
+      const result = await response.json();
+      
+      // 更新余额显示
+      if (result.newBalance !== undefined) {
+        const balanceElement = document.getElementById('current-balance');
+        if (balanceElement) {
+          balanceElement.textContent = result.newBalance.toFixed(2);
+        }
+        
+        // 更新用户界面上的余额显示
+        const userBalanceElement = document.getElementById('user-balance');
+        if (userBalanceElement) {
+          userBalanceElement.textContent = result.newBalance.toFixed(2);
+        }
+      }
+      
+      return { success: true };
+    } catch (error) {
+      if (error.message.includes('NetworkError')) {
+        throw new Error('网络连接失败，请检查网络后重试');
+      }
+      throw error;
+    }
+  }
+  
   /* ========== 核心支付方法 ========== */
 
   async processPayment() {
@@ -485,10 +603,18 @@ class WWPay {
       };
       localStorage.setItem('last-payment', JSON.stringify(this.state.lastPayment));
 
-      const result = await this.createPaymentOrder();
-      
-      if (result.success) {
-        this.startPaymentStatusCheck();
+      // 处理余额支付
+      if (this.state.selectedMethod === 'balance') {
+        const result = await this.processBalancePayment();
+        if (result.success) {
+          this.handlePaymentSuccess();
+          return;
+        }
+      } else {
+        const result = await this.createPaymentOrder();
+        if (result.success) {
+          this.startPaymentStatusCheck();
+        }
       }
     } catch (error) {
       this.handlePaymentError(error);
@@ -1066,11 +1192,11 @@ class WWPay {
       
       const methodsHtml = `
         <div class="payment-methods" id="payment-methods-section">
-          <h4 style="text-align: center; margin-bottom: 20px; color: white;">
-            <i class="fas fa-wallet" style="margin-right: 8px;"></i>选择支付方式
-          </h4>
+           <h4 style="text-align: center; margin-bottom: 20px; color: white;">
+             <i class="fas fa-wallet" style="margin-right: 8px;"></i>当前余额：¥<span id="current-balance">加载中...</span>
+           </h4>
           <div class="wwpay-methods-container">
-            ${this.config.paymentMethods.map(method => `
+            ${this.config.paymentMethods.filter(method => method.id !== 'balance').map(method => `
               <button class="wwpay-method-btn ${method.id === this.state.selectedMethod ? 'active' : ''}" 
                       data-type="${method.id}" 
                       style="background: ${method.id === this.state.selectedMethod ? method.activeColor : method.color}; 
@@ -1081,7 +1207,15 @@ class WWPay {
               </button>
             `).join('')}
           </div>
-          <div style="text-align: center;">
+          <div class="payment-options" id="payment-options-section" style="margin-top: 20px; text-align: center;">
+            <button class="payment-option-btn" id="balance-payment-btn" style="display: none; margin-right: 10px; background: #28a745; color: white; border: none; padding: 10px 15px; border-radius: 5px;">
+              <i class="fas fa-coins" style="margin-right: 5px;"></i>使用余额
+            </button>
+            <button class="payment-option-btn" id="online-payment-btn" style="background: #007bff; color: white; border: none; padding: 10px 15px; border-radius: 5px;">
+              <i class="fas fa-credit-card" style="margin-right: 5px;"></i>在线支付
+            </button>
+          </div>
+          <div style="text-align: center; margin-top: 20px;">
             <button id="confirm-payment-btn">
               <i class="fas fa-check-circle" style="margin-right: 8px;"></i> 
               确认支付 ${this.state.selectedAmount}元
@@ -1093,7 +1227,36 @@ class WWPay {
       const modalContent = document.querySelector('#fulfillModal .modal-content');
       if (modalContent) {
         modalContent.insertAdjacentHTML('beforeend', methodsHtml);
+        
+        // 添加事件监听器
+        const balancePaymentBtn = document.getElementById('balance-payment-btn');
+        const onlinePaymentBtn = document.getElementById('online-payment-btn');
+        
+        if (balancePaymentBtn && onlinePaymentBtn) {
+          balancePaymentBtn.addEventListener('click', () => {
+            this.state.selectedMethod = 'balance';
+            balancePaymentBtn.classList.add('active');
+            onlinePaymentBtn.classList.remove('active');
+          });
+          
+          onlinePaymentBtn.addEventListener('click', () => {
+            this.state.selectedMethod = 'alipay';
+            onlinePaymentBtn.classList.add('active');
+            balancePaymentBtn.classList.remove('active');
+            
+            // 显示支付方式选择
+            document.querySelectorAll('.wwpay-method-btn').forEach(btn => {
+              btn.style.display = 'block';
+            });
+          });
+          
+          // 默认选中在线支付
+          onlinePaymentBtn.classList.add('active');
+        }
       }
+      
+      // 检查余额是否足够
+      this.checkBalanceForPayment();
     } catch (error) {
       this.safeLogError('支付方式显示失败', error);
     }
