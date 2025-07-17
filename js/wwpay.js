@@ -18,6 +18,8 @@ class WWPay {
     this.generateSignature = this.generateSignature.bind(this);
     this.cleanupPaymentState = this.cleanupPaymentState.bind(this);
     this.processRecharge = this.processRecharge.bind(this);
+    this.checkBalanceForPayment = this.checkBalanceForPayment.bind(this);
+    this.processBalancePayment = this.processBalancePayment.bind(this);
 
     // 系统配置
     this.config = {
@@ -53,8 +55,8 @@ class WWPay {
           id: 'balance',
           name: '余额支付',
           icon: 'fas fa-wallet',
-          color: '#6f42c1',
-          activeColor: '#5a32a3',
+          color: '#6c757d',
+          activeColor: '#5a6268',
           hint: '账户余额'
         }
       ],
@@ -457,36 +459,91 @@ class WWPay {
 
   handlePaymentMethodSelect(buttonElement) {
     try {
-      if (!buttonElement?.dataset?.type) {
-        throw new Error('无效的按钮元素');
-      }
-      
       document.querySelectorAll('.wwpay-method-btn').forEach(btn => {
         const methodId = btn.dataset.type;
         const method = this.config.paymentMethods.find(m => m.id === methodId);
-        if (method) {
-          btn.style.background = method.color;
-          btn.classList.remove('active');
-        }
+        btn.style.background = method.color;
+        btn.classList.remove('active');
       });
       
       const selectedMethod = buttonElement.dataset.type;
       const selectedMethodConfig = this.config.paymentMethods.find(m => m.id === selectedMethod);
-      
-      if (!selectedMethodConfig) {
-        throw new Error('找不到支付方法配置');
-      }
-      
       buttonElement.style.background = selectedMethodConfig.activeColor;
       buttonElement.classList.add('active');
       
       this.state.selectedMethod = selectedMethod;
+      
+      // 检查余额是否足够
+      this.checkBalanceForPayment();
     } catch (error) {
       this.safeLogError('选择支付方式失败', error);
-      this.showToast('选择支付方式失败，请重试', 'error');
     }
   }
 
+  /* ========== 余额支付相关方法 ========== */
+  
+  async checkBalanceForPayment() {
+    try {
+      const response = await fetch(`${this.config.paymentGateway.apiBase}/api/users/balance`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error('获取余额失败');
+      }
+      
+      const data = await response.json();
+      this.state.balance = data.balance;
+      
+      // 更新余额显示
+      const balanceElement = document.getElementById('current-balance');
+      if (balanceElement) {
+        balanceElement.textContent = data.balance.toFixed(2);
+      }
+      
+      // 显示/隐藏余额支付按钮
+      const balanceBtn = document.querySelector('.wwpay-method-btn[data-type="balance"]');
+      if (balanceBtn) {
+        if (data.balance >= this.state.selectedAmount) {
+          balanceBtn.classList.remove('disabled');
+          balanceBtn.querySelector('.wwpay-method-hint').textContent = '可用余额支付';
+        } else {
+          balanceBtn.classList.add('disabled');
+          balanceBtn.querySelector('.wwpay-method-hint').textContent = '余额不足';
+        }
+      }
+    } catch (error) {
+      this.safeLogError('检查余额失败', error);
+    }
+  }
+  
+  async processBalancePayment() {
+    try {
+      const response = await fetch(`${this.config.paymentGateway.apiBase}/api/payments/balance`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          wishId: this.state.currentWishId,
+          amount: this.state.selectedAmount
+        })
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || '余额支付失败');
+      }
+      
+      return { success: true };
+    } catch (error) {
+      throw error;
+    }
+  }
+  
   /* ========== 核心支付方法 ========== */
 
   async processPayment() {
@@ -505,37 +562,18 @@ class WWPay {
       };
       localStorage.setItem('last-payment', JSON.stringify(this.state.lastPayment));
 
-      // 余额支付特殊处理
+      // 处理余额支付
       if (this.state.selectedMethod === 'balance') {
-        const balance = await this.getUserBalance();
-        if (balance < this.state.selectedAmount) {
-          throw new Error('余额不足');
+        const result = await this.processBalancePayment();
+        if (result.success) {
+          this.handlePaymentSuccess();
+          return;
         }
-        
-        const response = await fetch(`${this.config.paymentGateway.apiBase}/api/recharge/balance`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          },
-          body: JSON.stringify({
-            wishId: this.state.currentWishId,
-            amount: this.state.selectedAmount
-          })
-        });
-        
-        if (!response.ok) {
-          throw new Error(await response.text());
+      } else {
+        const result = await this.createPaymentOrder();
+        if (result.success) {
+          this.startPaymentStatusCheck();
         }
-        
-        await this.handlePaymentSuccess();
-        return;
-      }
-
-      const result = await this.createPaymentOrder();
-      
-      if (result.success) {
-        this.startPaymentStatusCheck();
       }
     } catch (error) {
       this.handlePaymentError(error);
@@ -1106,58 +1144,47 @@ class WWPay {
     }
   }
 
-  async showPaymentMethods() {
+  showPaymentMethods() {
     try {
-      // 清除所有现有的支付选项
-      const existingSections = document.querySelectorAll('#payment-methods-section');
-      existingSections.forEach(section => section.remove());
+      const oldSection = document.getElementById('payment-methods-section');
+      if (oldSection) oldSection.remove();
       
-      // 获取当前用户余额
-      const balance = await this.getUserBalance();
-      const showBalanceOption = balance >= this.state.selectedAmount;
-      
-      // 确保只生成一次支付选项
-      if (!document.getElementById('payment-methods-section')) {
-        const methodsHtml = `
-          <div class="payment-methods" id="payment-methods-section">
-            <h4 style="text-align: center; margin-bottom: 20px; color: white;">
-              <i class="fas fa-wallet" style="margin-right: 8px;"></i>选择支付方式
-            </h4>
-            <div class="wwpay-methods-container">
-              ${showBalanceOption ? `
-                <button class="wwpay-method-btn ${'balance' === this.state.selectedMethod ? 'active' : ''}" 
-                        data-type="balance" 
-                        style="background: ${'balance' === this.state.selectedMethod ? '#4CAF50' : '#8BC34A'}; 
-                               color: white;">
-                  <i class="fas fa-wallet"></i>
-                  <span class="wwpay-method-name">使用余额</span>
-                  <span class="wwpay-method-hint">当前余额: ${balance}元</span>
-                </button>
-              ` : ''}
-              ${this.config.paymentMethods.map(method => `
-                <button class="wwpay-method-btn ${method.id === this.state.selectedMethod ? 'active' : ''}" 
-                        data-type="${method.id}" 
-                        style="background: ${method.id === this.state.selectedMethod ? method.activeColor : method.color}; 
-                               color: white;">
-                  <i class="${method.icon}"></i>
-                  <span class="wwpay-method-name">${method.name}</span>
-                  <span class="wwpay-method-hint">${method.hint}</span>
-                </button>
-              `).join('')}
-            </div>
-            <div style="text-align: center;">
-              <button id="confirm-payment-btn">
-                <i class="fas fa-check-circle" style="margin-right: 8px;"></i> 
-                确认支付 ${this.state.selectedAmount}元
+      const methodsHtml = `
+        <div class="payment-methods" id="payment-methods-section">
+           <h4 style="text-align: center; margin-bottom: 20px; color: white;">
+             <i class="fas fa-wallet" style="margin-right: 8px;"></i>当前余额：¥<span id="current-balance">加载中...</span>
+           </h4>
+          <div class="wwpay-methods-container">
+            <button class="wwpay-method-btn ${this.state.selectedMethod === 'balance' ? 'active' : ''} disabled" 
+                    data-type="balance"
+                    style="background: ${this.state.selectedMethod === 'balance' ? '#28a745' : '#4CAF50'};">
+              <i class="fas fa-coins"></i>
+              <span class="wwpay-method-name">余额支付</span>
+              <span class="wwpay-method-hint">余额加载中...</span>
+            </button>
+            ${this.config.paymentMethods.map(method => `
+              <button class="wwpay-method-btn ${method.id === this.state.selectedMethod ? 'active' : ''}" 
+                      data-type="${method.id}" 
+                      style="background: ${method.id === this.state.selectedMethod ? method.activeColor : method.color}; 
+                             color: white;">
+                <i class="${method.icon}"></i>
+                <span class="wwpay-method-name">${method.name}</span>
+                <span class="wwpay-method-hint">${method.hint}</span>
               </button>
-            </div>
+            `).join('')}
           </div>
-        `;
-        
-        const modalContent = document.querySelector('#fulfillModal .modal-content');
-        if (modalContent) {
-          modalContent.insertAdjacentHTML('beforeend', methodsHtml);
-        }
+          <div style="text-align: center;">
+            <button id="confirm-payment-btn">
+              <i class="fas fa-check-circle" style="margin-right: 8px;"></i> 
+              确认支付 ${this.state.selectedAmount}元
+            </button>
+          </div>
+        </div>
+      `;
+      
+      const modalContent = document.querySelector('#fulfillModal .modal-content');
+      if (modalContent) {
+        modalContent.insertAdjacentHTML('beforeend', methodsHtml);
       }
     } catch (error) {
       this.safeLogError('支付方式显示失败', error);
@@ -1165,35 +1192,6 @@ class WWPay {
   }
 
   /* ========== 工具方法 ========== */
-  
-  async getUserBalance() {
-    try {
-      const response = await fetch(`${this.config.paymentGateway.apiBase}/api/user/balance`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-      
-      if (!response.ok) {
-        throw new Error('获取余额失败');
-      }
-      
-      const data = await response.json();
-      return data.balance || 0;
-    } catch (error) {
-      this.safeLogError('获取用户余额失败', error);
-      return 0;
-    }
-  }
-  
-  updateBalanceDisplay() {
-    const balanceElements = document.querySelectorAll('.balance-display');
-    this.getUserBalance().then(balance => {
-      balanceElements.forEach(el => {
-        el.textContent = balance;
-      });
-    });
-  }
 
   delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
