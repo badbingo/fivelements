@@ -605,7 +605,7 @@ class WWPay {
       
       // 发送请求获取余额
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 20000); // 20秒超时，增加超时时间以适应较慢的网络
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30秒超时，进一步增加超时时间以适应非常慢的网络
       
       try {
         const response = await fetch(`${this.config.paymentGateway.apiBase}/api/users/balance`, {
@@ -617,13 +617,21 @@ class WWPay {
         }).catch(error => {
           // 处理网络错误
           if (error.name === 'AbortError') {
-            throw new Error('获取余额超时');
+            throw new Error('获取余额超时，服务器响应时间过长');
           } else if (!navigator.onLine) {
-            throw new Error('网络连接已断开');
+            throw new Error('网络连接已断开，请检查您的网络设置');
           } else if (error.message && error.message.includes('NetworkError')) {
             // 特别处理 NetworkError 类型的错误
             throw new Error('网络请求失败，请检查网络连接');
+          } else if (error.message && (error.message.includes('CORS') || error.message.includes('cross-origin'))) {
+            // 处理CORS错误
+            throw new Error('跨域请求被阻止，请联系管理员');
+          } else if (error.message && error.message.includes('Failed to fetch')) {
+            // 处理fetch失败错误
+            throw new Error('无法连接到服务器，请稍后再试');
           } else {
+            // 记录详细错误信息到控制台
+            console.error('[WWPay] 详细错误信息:', error);
             throw error;
           }
         });
@@ -699,45 +707,53 @@ class WWPay {
       
       // 如果还有重试次数，则延迟后重试
       if (retryCount > 0) {
-        this.log(`余额检查失败(${errorMessage})，${retryCount}秒后重试...`);
+        this.log(`余额检查失败(${errorMessage})，${retryCount}次重试机会，3秒后重试...`);
         const modalBalanceAmount = document.getElementById('modalBalanceAmount');
         if (modalBalanceAmount) {
-          modalBalanceAmount.textContent = `重试中(${retryCount})...`;
+          modalBalanceAmount.innerHTML = `<i class="fas fa-sync-alt fa-spin" style="margin-right:4px;"></i>重试中(剩余${retryCount}次)...`;
           modalBalanceAmount.style.color = '#ffc107'; // 警告色
+          // 添加完整错误信息的悬停提示
+          modalBalanceAmount.title = `上次错误: ${errorMessage}`;
         }
         
-        // 延迟后重试，增加重试间隔时间
+        // 延迟后重试，进一步增加重试间隔时间
         setTimeout(() => {
           this.checkBalanceForPayment(retryCount - 1);
-        }, 2000); // 增加到2秒，给网络更多恢复时间
+        }, 3000); // 增加到3秒，给网络更多恢复时间
         return 0;
       }
       
       // 重试次数用完，显示错误状态和具体错误信息
       const modalBalanceAmount = document.getElementById('modalBalanceAmount');
       if (modalBalanceAmount) {
-        // 显示简短的错误信息
-        modalBalanceAmount.textContent = errorMessage.length > 10 ? '加载失败' : errorMessage;
+        // 显示简短的错误信息，但保留更多信息
+        modalBalanceAmount.textContent = errorMessage.length > 15 ? '加载失败' : errorMessage;
         modalBalanceAmount.style.color = '#dc3545';
         // 添加完整错误信息的悬停提示
         modalBalanceAmount.title = errorMessage;
+        // 添加错误图标
+        modalBalanceAmount.innerHTML = `<i class="fas fa-exclamation-circle" style="margin-right:4px;"></i>${modalBalanceAmount.textContent}`;
       }
       
-      // 不要隐藏余额支付按钮，只是标记为禁用
+      // 不要隐藏余额支付按钮，只是标记为禁用并显示错误状态
       const balanceBtn = document.querySelector('.wwpay-method-btn[data-type="balance"]');
       if (balanceBtn) {
         balanceBtn.classList.add('disabled');
         const balanceHint = balanceBtn.querySelector('.wwpay-method-hint');
         if (balanceHint) {
           // 显示简短的错误信息
-          balanceHint.textContent = errorMessage.length > 10 ? '余额加载失败' : errorMessage;
+          balanceHint.textContent = errorMessage.length > 15 ? '余额加载失败' : errorMessage;
           // 添加完整错误信息的悬停提示
           balanceHint.title = errorMessage;
+          // 添加错误图标
+          balanceHint.innerHTML = `<i class="fas fa-exclamation-triangle" style="margin-right:3px;"></i>${balanceHint.textContent}`;
         }
         // 确保按钮显示为禁用状态，而不是隐藏
         balanceBtn.style.opacity = '0.5';
         balanceBtn.style.cursor = 'not-allowed';
         balanceBtn.style.display = 'flex';
+        // 添加错误边框
+        balanceBtn.style.border = '1px solid #dc3545';
       }
       
       // 如果当前选择的是余额支付，自动切换到支付宝支付
@@ -1636,16 +1652,17 @@ class WWPay {
                 <span style="margin-left: 3px; opacity: 0.9;">元</span>
                 <button id="retryBalanceBtn" style="
                   margin-left: 8px;
-                  background: rgba(255,255,255,0.2);
-                  border: none;
+                  background: rgba(255,255,255,0.3);
+                  border: 1px solid rgba(255,255,255,0.4);
                   color: white;
                   cursor: pointer;
                   font-size: 14px;
-                  padding: 2px 5px;
+                  padding: 3px 8px;
                   border-radius: 4px;
                   transition: all 0.2s ease;
-                ">
-                  <i class="fas fa-sync-alt"></i>
+                  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                " title="点击重试获取余额">
+                  <i class="fas fa-sync-alt"></i> 重试
                 </button>
               </div>
             </div>
@@ -1778,6 +1795,12 @@ class WWPay {
           .wwpay-method-btn.active {
             transform: translateY(-2px);
             box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+          }
+          
+          #retryBalanceBtn:hover {
+            background: rgba(255,255,255,0.5) !important;
+            transform: translateY(-1px);
+            box-shadow: 0 3px 6px rgba(0,0,0,0.2) !important;
           }
         </style>
       `;
