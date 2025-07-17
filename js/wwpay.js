@@ -1,2640 +1,1308 @@
-/* ==================== 全局样式 ==================== */
-:root {
-    --primary-color: #6a11cb;
-    --secondary-color: #2575fc;
-    --text-color: #e0e0e0;
-    --text-light: #b8c2cc;
-    --text-dark: #8a94a6;
-    --bg-dark: rgba(10, 10, 20, 0.7);
-    --bg-light: rgba(20, 20, 30, 0.7);
-    --border-color: rgba(106, 17, 203, 0.3);
+/**
+ * 命缘池支付系统 - 完整修复版 v10.3
+ * 修复问题：
+ * 1. 修复所有语法错误
+ * 2. 增强错误处理
+ * 3. 完善支付流程
+ */
+
+class WWPay {
+  constructor() {
+    // 绑定所有方法上下文
+    this.handleDocumentClick = this.handleDocumentClick.bind(this);
+    this.handleFulfillOptionClick = this.handleFulfillOptionClick.bind(this);
+    this.handlePaymentMethodSelect = this.handlePaymentMethodSelect.bind(this);
+    this.processPayment = this.processPayment.bind(this);
+    this.handlePaymentSuccess = this.handlePaymentSuccess.bind(this);
+    this.handlePaymentError = this.handlePaymentError.bind(this);
+    this.generateSignature = this.generateSignature.bind(this);
+    this.cleanupPaymentState = this.cleanupPaymentState.bind(this);
+    this.processRecharge = this.processRecharge.bind(this);
+    this.processBalancePayment = this.processBalancePayment.bind(this);
+
+    // 系统配置
+    this.config = {
+      paymentGateway: {
+        apiBase: 'https://bazi-backend.owenjass.workers.dev',
+        apiUrl: 'https://zpayz.cn/submit.php',
+        pid: '2025051013380915',
+        key: 'UsXrSwn0wft5SeLB0LaQfecvJmpkS18T',
+        signType: 'MD5',
+        successUrl: 'https://mybazi.net/system/wishingwell.html',
+        checkInterval: 2000,
+        maxChecks: 15,
+        retryDelay: 1000
+      },
+      paymentMethods: [
+        {
+          id: 'balance',
+          name: '账户余额',
+          icon: 'fas fa-wallet',
+          color: '#9c27b0',
+          activeColor: '#7b1fa2',
+          hint: '使用账户余额支付'
+        },
+        {
+          id: 'alipay',
+          name: '支付宝',
+          icon: 'fab fa-alipay',
+          color: '#1677ff',
+          activeColor: '#1268d9',
+          hint: '全球支付'
+        },
+        {
+          id: 'wxpay', 
+          name: '微信支付',
+          icon: 'fab fa-weixin',
+          color: '#09bb07',
+          activeColor: '#07a807',
+          hint: '国内支付'
+        }
+      ],
+      debug: true
+    };
+
+    // 状态管理
+    this.state = {
+      selectedAmount: null,
+      selectedMethod: 'alipay',
+      currentWishId: null,
+      processing: false,
+      statusCheckInterval: null,
+      paymentCompleted: false,
+      lastPayment: null
+    };
+
+    // 初始化
+    this.initEventListeners();
+    this.injectStyles();
+    this.setupErrorHandling();
+    this.cleanupLocalStorage();
+    this.log('支付系统初始化完成');
+  }
+
+  /* ========== 初始化方法 ========== */
+
+  // 处理充值请求
+  async processRecharge(amount, paymentMethod) {
+    try {
+      this.log(`发起充值流程: ${amount}元, 方式: ${paymentMethod}`);
+      
+      // 1. 创建充值订单
+      const orderResponse = await this.createRechargeOrder(amount, paymentMethod);
+      
+      // 2. 跳转支付平台
+      await this.redirectToPaymentGateway(orderResponse);
+      
+      // 3. 启动支付状态轮询
+      // 不再需要轮询状态检查
+// this.startPaymentStatusCheck(orderResponse.orderId);
+      
+    } catch (error) {
+      this.handlePaymentError(error);
+    }
+  }
+  
+  async verifyPayment(orderId, amount) {
+    try {
+      const response = await fetch(`${this.config.paymentGateway.apiBase}/api/recharge/verify`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          orderId,
+          amount
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error(await response.text());
+      }
+      
+      const data = await response.json();
+      return data.success;
+      
+    } catch (error) {
+      this.logError('支付验证失败', error);
+      return false;
+    }
+  }
+
+  async createRechargeOrder(amount, method) {
+    const response = await fetch(`${this.config.paymentGateway.apiBase}/api/recharge/orders`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      },
+      body: JSON.stringify({
+        amount: parseFloat(amount),
+        paymentMethod: method
+      })
+    });
     
-    /* 愿望卡片等级颜色 */
-    --level-1: rgba(20, 20, 30, 0.7);
-    --level-2: rgba(26, 58, 95, 0.7);
-    --level-3: rgba(93, 64, 55, 0.7);
-    --level-4: rgba(127, 0, 0, 0.7);
-    --level-5: rgba(150, 110, 20, 0.8);
+    if (!response.ok) {
+      throw new Error(await response.text());
+    }
     
-    /* 能量条等级颜色 */
-    --bar-1: #6a11cb;
-    --bar-2: #2575fc;
-    --bar-3: #d35400;
-    --bar-4: #c0392b;
-    --bar-5: #f1c40f;
-}
-
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-body {
-    font-family: 'Noto Serif SC', serif;
-    line-height: 1.6;
-    color: var(--text-color);
-    background: #000000;
-    position: relative;
-    min-height: 100vh;
-    overflow-x: hidden;
-}
-
-/* ==================== 背景动画 ==================== */
-@keyframes twinkle {
-    0%, 100% { opacity: 0.2; }
-    50% { opacity: 1; }
-}
-
-.stars {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: -2;
-    overflow: hidden;
-}
-
-.star {
-    position: absolute;
-    background-color: white;
-    border-radius: 50%;
-    animation: twinkle 3s infinite;
-}
-
-#particles-js {
-    position: fixed;
-    width: 100%;
-    height: 100%;
-    top: 0;
-    left: 0;
-    z-index: -1;
-}
-
-.background-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: radial-gradient(
-        circle at center, 
-        rgba(106, 17, 203, 0.15) 0%, 
-        rgba(10, 10, 20, 0.95) 100%
-    );
-    z-index: -1;
-    opacity: 0.8;
-}
-
-/* ==================== 主内容容器 ==================== */
-.content-container {
-    max-width: 1200px;
-    margin: 30px auto 80px;
-    padding: 50px 60px;
-    background: #1a237e;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border-radius: 20px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-    border: 1px solid var(--border-color);
-    position: relative;
-    overflow: hidden;
-    transition: all 0.5s ease;
-    background-image: url('../images/dragon.gif');
-    background-repeat: no-repeat;
-    background-position: top center;
-    background-size: auto;
-}
-
-.content-container:hover {
-    box-shadow: 0 15px 40px rgba(106, 17, 203, 0.4);
-    /* 确保背景颜色不变 */
-    background-color: #1a237e;
-    background-image: url('../images/dragon.gif');
-}
-
-.content-container::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(135deg, rgba(106, 17, 203, 0.1) 0%, rgba(37, 117, 252, 0.05) 100%);
-    z-index: -1;
-}
-
-/* ==================== 标题区域 ==================== */
-.content-title {
-    text-align: center;
-    margin-bottom: 30px;
-    position: relative;
-}
-
-.content-title h1 {
-    font-size: 4.5rem;
-    font-family: 'Ma Shan Zheng', cursive;
-    font-weight: 800;
-    color: white;
-    padding: 20px 50px;
-    display: inline-block;
-
-    text-shadow: 0 2px 10px rgba(106, 17, 203, 0.5);
-    margin-bottom: 10px;
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    position: relative;
-    overflow: hidden;
-}
-
-.content-title h1:hover {
-    transform: translateY(-5px) rotate(1deg);
-
-}
-
-.content-title h1::after {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-
-    transform: rotate(30deg);
-    animation: shine 5s infinite;
-}
-
-@keyframes shine {
-    0% { left: -50%; }
-    100% { left: 150%; }
-}
-
-.content-title p {
-    color: var(--text-light);
-    font-size: 1.2rem;
-    max-width: 800px;
-    margin: 0 auto;
-    line-height: 1.8;
-    position: relative;
-    padding: 15px 0;
-}
-
-.content-title p::before,
-.content-title p::after {
-    content: '';
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 100px;
-    height: 2px;
-    background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
-}
-
-.content-title p::before {
-    top: 0;
-}
-
-.content-title p::after {
-    bottom: 0;
-}
-
-/* ==================== 章节标题 ==================== */
-.section-header {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    margin-bottom: 30px;
-    position: relative;
-}
-
-.section-header i {
-    font-size: 1.8rem;
-    color: var(--primary-color);
-    text-shadow: 0 0 10px rgba(106, 17, 203, 0.5);
-    animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.1); }
-    100% { transform: scale(1); }
-}
-
-.section-header h2 {
-    font-size: 1.8rem;
-    font-weight: 700;
-    color: var(--text-color);
-    position: relative;
-    padding-bottom: 10px;
-}
-
-.section-header h2::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 50px;
-    height: 3px;
-    background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
-    border-radius: 3px;
-    animation: expand 3s infinite;
-}
-
-@keyframes expand {
-    0%, 100% { width: 50px; }
-    50% { width: 80px; }
-}
-
-/* ==================== 卡片基础样式 ==================== */
-.card {
-    background: var(--bg-light);
-    border-radius: 10px;
-    padding: 25px;
-    margin-bottom: 30px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-    border: 1px solid var(--border-color);
-    backdrop-filter: blur(5px);
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
-}
-
-.card:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 20px 40px rgba(106, 17, 203, 0.5);
-    background: var(--bg-light) !important;
+    return response.json();
+  }
+  
+  async redirectToPaymentGateway(order) {
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = this.config.paymentGateway.apiUrl;
     
-    &::after {
+    const params = {
+      pid: this.config.paymentGateway.pid,
+      type: order.paymentMethod === 'wechat' ? 'wxpay' : order.paymentMethod,
+      out_trade_no: order.orderId,
+      notify_url: `${window.location.origin}/api/recharge/notify`,
+      return_url: `${window.location.origin}/system/charge.html?orderId=${order.orderId}&amount=${order.amount.toFixed(2)}`,
+      name: `账户充值-${order.orderId}`,
+      money: order.amount.toFixed(2),
+      sign_type: 'MD5',
+      sitename: '命缘池'
+    };
+    
+    // 生成签名
+    params.sign = this.generateSignature(params);
+    
+    // 添加隐藏表单字段
+    Object.entries(params).forEach(([key, value]) => {
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = key;
+      input.value = value;
+      form.appendChild(input);
+    });
+    
+    document.body.appendChild(form);
+    form.submit();
+  }
+
+  
+  initEventListeners() {
+    document.removeEventListener('click', this.handleDocumentClick);
+    document.addEventListener('click', this.handleDocumentClick);
+  }
+
+  injectStyles() {
+    const styleId = 'wwpay-styles';
+    if (document.getElementById(styleId)) return;
+    
+    const style = document.createElement('style');
+    style.id = styleId;
+    style.textContent = `
+      .wwpay-methods-container {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        width: 100%;
+        margin: 20px 0;
+      }
+      
+      .wwpay-method-btn {
+        flex: 1;
+        max-width: 200px;
+        padding: 15px 10px;
+        border-radius: 10px;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        transition: all 0.3s;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        position: relative;
+        overflow: hidden;
+      }
+      
+      .wwpay-method-btn::after {
         content: '';
         position: absolute;
-        top: -2px;
-        left: -2px;
-        right: -2px;
-        bottom: -2px;
-        border-radius: 12px;
-        background: var(--bg-light) !important;
-        z-index: -1;
-        filter: blur(5px);
-        opacity: 0.7;
-    }
-}
-
-.card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(
-        135deg,
-        rgba(106, 17, 203, 0.1) 0%,
-        rgba(37, 117, 252, 0.05) 100%
-    );
-    z-index: -1;
-}
-
-.card-title {
-    font-size: 1.3rem;
-    font-weight: 700;
-    color: var(--text-color);
-    margin-bottom: 20px;
-    position: relative;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.card-title::after {
-    content: '';
-    position: absolute;
-    bottom: -10px;
-    left: 0;
-    width: 40px;
-    height: 3px;
-    background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
-    transition: all 0.3s ease;
-}
-
-.card:hover .card-title::after {
-    width: 80px;
-}
-
-.card-content {
-    padding: 20px 0;
-}
-
-.card-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-}
-
-/* ==================== 命缘池介绍区域 ==================== */
-.mingyuan-intro {
-    display: flex;
-    gap: 30px;
-    align-items: center;
-}
-
-.mingyuan-intro .intro-text {
-    flex: 1;
-    font-size: 1.1rem;
-    line-height: 1.8;
-}
-
-.mingyuan-intro .intro-text p {
-    margin-bottom: 20px;
-    position: relative;
-    padding-left: 20px;
-}
-
-.mingyuan-intro .intro-text p::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 8px;
-    width: 8px;
-    height: 8px;
-    background: var(--primary-color);
-    border-radius: 50%;
-}
-
-.mingyuan-intro .intro-image {
-    flex: 0 0 400px;
-}
-
-.energy-chart {
-    background: rgba(0, 0, 0, 0.3);
-    border-radius: 10px;
-    padding: 20px;
-    height: 250px;
-    position: relative;
-}
-
-.energy-chart::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: url('data:image/svg+xml;utf8,<svg width="20" height="20" xmlns="http://www.w3.org/2000/svg"><path d="M0 0 L20 20 M20 0 L0 20" stroke="rgba(106,17,203,0.1)" stroke-width="1"/></svg>');
-    opacity: 0.3;
-    z-index: -1;
-}
-
-/* ==================== 愿望等级条 ==================== */
-.wish-levels {
-    margin-top: 40px;
-}
-
-.wish-levels h3 {
-    color: var(--primary-color);
-    margin-bottom: 20px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.level-bars {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-.level-bar {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-}
-
-.level-bar .bar-fill {
-    height: 20px;
-    width: 0;
-    border-radius: 10px;
-    position: relative;
-    overflow: hidden;
-    transition: width 1s ease;
-    box-shadow: inset 0 0 5px rgba(0,0,0,0.3);
-}
-
-.level-bar .bar-fill::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(90deg, 
-        rgba(255,255,255,0.1) 0%, 
-        rgba(255,255,255,0.3) 50%, 
-        rgba(255,255,255,0.1) 100%);
-    animation: shine 2s infinite;
-}
-
-.level-bar[data-level="1"] .bar-fill { 
-    width: 20%; 
-    background: var(--bar-1);
-}
-.level-bar[data-level="2"] .bar-fill { 
-    width: 40%; 
-    background: var(--bar-2);
-}
-.level-bar[data-level="3"] .bar-fill { 
-    width: 60%; 
-    background: var(--bar-3);
-}
-.level-bar[data-level="4"] .bar-fill { 
-    width: 80%; 
-    background: var(--bar-4);
-}
-.level-bar[data-level="5"] .bar-fill { 
-    width: 100%; 
-    background: var(--bar-5);
-}
-
-.level-bar span {
-    min-width: 120px;
-    color: var(--text-light);
-}
-
-/* ==================== 许愿表单 ==================== */
-
-.form-group {
-    margin-bottom: 25px;
-    position: relative;
-}
-
-label {
-    display: block;
-    margin-bottom: 10px;
-    color: var(--text-light);
-    font-size: 1rem;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-input[type="text"],
-textarea,
-select,
-input[type="date"] {
-    width: 100%;
-    padding: 12px 15px;
-    background: rgba(0, 0, 0, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 6px;
-    color: var(--text-color);
-    font-size: 1rem;
-    transition: all 0.3s ease;
-    font-family: 'Noto Serif SC', serif;
-}
-
-textarea {
-    min-height: 120px;
-    resize: vertical;
-}
-
-input[type="text"]:focus,
-textarea:focus,
-select:focus,
-input[type="date"]:focus {
-    outline: none;
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 2px rgba(106, 17, 203, 0.3);
-}
-
-.form-hint {
-    font-size: 0.85rem;
-    color: var(--text-dark);
-    margin-top: 8px;
-}
-
-.radio-group {
-    display: flex;
-    gap: 20px;
-}
-
-.radio-option {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    cursor: pointer;
-}
-
-.radio-custom {
-    width: 18px;
-    height: 18px;
-    border: 2px solid var(--primary-color);
-    border-radius: 50%;
-    display: inline-block;
-    position: relative;
-    transition: all 0.3s ease;
-}
-
-.radio-option input[type="radio"] {
-    display: none;
-}
-
-.radio-option:hover .radio-custom {
-    transform: scale(1.1);
-    box-shadow: 0 0 5px rgba(106, 17, 203, 0.5);
-}
-
-.radio-option input[type="radio"]:checked + .radio-custom::after {
-    content: '';
-    position: absolute;
-    top: 2px;
-    left: 2px;
-    width: 10px;
-    height: 10px;
-    background: var(--primary-color);
-    border-radius: 50%;
-    animation: pulse 1.5s infinite;
-}
-
-.form-actions {
-    grid-column: 1 / -1;
-    text-align: center;
-    margin-top: 20px;
-}
-
-/* ==================== 按钮样式 ==================== */
-.btn-mingyuan {
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-    color: white;
-    border: none;
-    padding: 15px 40px;
-    font-size: 1.1rem;
-    border-radius: 50px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(106, 17, 203, 0.3);
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    position: relative;
-    overflow: hidden;
-}
-
-.btn-mingyuan:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 25px rgba(106, 17, 203, 0.4);
-}
-
-.btn-mingyuan::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(
-        90deg,
-        transparent,
-        rgba(255, 255, 255, 0.2),
-        transparent
-    );
-    transition: all 0.5s ease;
-}
-
-.btn-mingyuan:hover::before {
-    left: 100%;
-}
-
-/* ==================== 筛选控件 ==================== */
-.filter-controls {
-    display: flex;
-    gap: 15px;
-    margin-left: auto;
-}
-
-.filter-controls select {
-    background: rgba(0, 0, 0, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: var(--text-color);
-    padding: 8px 15px;
-    border-radius: 6px;
-    font-family: inherit;
-    transition: all 0.3s ease;
-}
-
-.filter-controls select:hover {
-    border-color: var(--primary-color);
-}
-
-.filter-controls select:focus {
-    outline: none;
-    box-shadow: 0 0 0 2px rgba(106, 17, 203, 0.3);
-}
-
-/* ==================== 愿望池 ==================== */
-.wish-pool {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 25px;
-    margin-top: 30px;
-}
-
-/* ==================== 愿望卡片美化 ==================== */
-.wish-card {
-    background: rgba(30, 30, 40, 0.85);
-    border-radius: 12px;
-    padding: 20px;
-    position: relative;
-    overflow: hidden;
-    transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-    border: 1px solid rgba(106, 17, 203, 0.3);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-    display: flex;
-    flex-direction: column;
-    z-index: 1;
-}
-
-.wish-card::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, 
-        rgba(255,255,255,0.05) 0%, 
-        rgba(255,255,255,0) 50%, 
-        rgba(0,0,0,0.1) 100%);
-    border-radius: 12px;
-    z-index: -1;
-}
-
-.wish-card:hover {
-    transform: translateY(-8px) rotate(1deg);
-    box-shadow: 0 15px 35px rgba(106, 17, 203, 0.3);
-    border-color: rgba(106, 17, 203, 0.6);
-    /* 确保背景颜色不变 */
-    background: rgba(30, 30, 40, 0.85);
-}
-
-.wish-card[data-level="1"] { 
-    background: linear-gradient(135deg, rgba(20, 20, 30, 0.9), rgba(40, 40, 60, 0.9));
-    border-color: rgba(106, 17, 203, 0.4);
-}
-.wish-card[data-level="2"] { 
-    background: linear-gradient(135deg, rgba(26, 58, 95, 0.9), rgba(36, 78, 125, 0.9));
-    border-color: rgba(37, 117, 252, 0.4);
-}
-.wish-card[data-level="3"] { 
-    background: linear-gradient(135deg, rgba(93, 64, 55, 0.9), rgba(123, 84, 75, 0.9));
-    border-color: rgba(211, 84, 0, 0.4);
-}
-.wish-card[data-level="4"] { 
-    background: linear-gradient(135deg, rgba(127, 0, 0, 0.9), rgba(157, 30, 30, 0.9));
-    border-color: rgba(231, 76, 60, 0.4);
-}
-.wish-card[data-level="5"] { 
-    background: linear-gradient(135deg, rgba(150, 110, 20, 0.9), rgba(180, 140, 50, 0.9));
-    border-color: rgba(241, 196, 15, 0.6);
-}
-
-.wish-card.level-up {
-    animation: levelUp 0.8s ease;
-}
-
-@keyframes levelUp {
-    0% { transform: translateY(0) scale(1); box-shadow: 0 0 0 rgba(106, 17, 203, 0); }
-    20% { transform: translateY(-15px) scale(1.05); box-shadow: 0 10px 30px rgba(106, 17, 203, 0.5); }
-    40% { transform: translateY(0) scale(1); box-shadow: 0 0 0 rgba(106, 17, 203, 0); }
-    60% { transform: translateY(-10px) scale(1.03); box-shadow: 0 8px 25px rgba(106, 17, 203, 0.4); }
-    100% { transform: translateY(0) scale(1); box-shadow: 0 10px 30px rgba(106, 17, 203, 0.2); }
-}
-
-.wish-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-
-    background-position: center;
-    background-repeat: no-repeat;
-    opacity: 0.08;
-    z-index: -1;
-    pointer-events: none;
-    mix-blend-mode: overlay;
-}
-
-.wish-card::after {
-    content: '';
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    width: 30px;
-    height: 30px;
-    background: radial-gradient(circle, rgba(106,17,203,0.3) 0%, transparent 70%);
-    border-radius: 50%;
-}
-
-/* 卡片头部样式 */
-.wish-header {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 15px;
-    font-size: 0.9rem;
-    flex-wrap: wrap;
-    gap: 8px;
-    position: relative;
-    z-index: 2;
-}
-
-.wish-user {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    color: rgba(255,255,255,0.9);
-    font-size: 0.85rem;
-    order: 1;
-    flex: 1 1 100%;
-}
-
-.wish-user .fa-user {
-    color: var(--primary-color);
-    text-shadow: 0 0 5px rgba(106, 17, 203, 0.5);
-}
-
-.user-name {
-    font-weight: 500;
-    color: white;
-}
-
-.wish-type {
-    background: rgba(106, 17, 203, 0.3);
-    padding: 3px 12px;
-    border-radius: 20px;
-    color: white;
-    order: 2;
-    font-size: 0.8rem;
-    backdrop-filter: blur(5px);
-    border: 1px solid rgba(255,255,255,0.1);
-}
-
-.wish-time {
-    color: rgba(255,255,255,0.7);
-    order: 3;
-    font-size: 0.8rem;
-}
-
-/* 愿望内容样式 */
-.wish-content {
-    margin-bottom: 20px;
-    min-height: 80px;
-    flex: 1;
-    position: relative;
-    z-index: 2;
-}
-
-.wish-text {
-    line-height: 1.7;
-    color: rgba(255,255,255,0.9);
-    font-size: 0.95rem;
-    text-shadow: 0 1px 1px rgba(0,0,0,0.2);
-}
-
-.wish-hidden {
-    color: rgba(255,255,255,0.6);
-    font-style: italic;
-    display: none;
-    text-align: center;
-    padding: 20px 0;
-}
-
-/* 卡片底部元信息 */
-.wish-meta {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
-    font-size: 0.9rem;
-    color: rgba(255,255,255,0.7);
-    position: relative;
-    z-index: 2;
-}
-
-.wish-bazi {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    font-size: 0.8rem;
-    background: rgba(0,0,0,0.3);
-    padding: 3px 8px;
-    border-radius: 4px;
-}
-
-.wish-bazi i {
-    color: var(--primary-color);
-}
-
-.wish-stats {
-    color: rgba(255,255,255,0.9);
-    font-weight: 500;
-}
-
-/* 卡片按钮样式 */
-.wish-actions {
-    display: flex;
-    gap: 10px;
-    position: relative;
-    z-index: 2;
-}
-
-.btn-bless, .btn-fulfill {
-    flex: 1;
-    padding: 10px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    font-size: 0.95rem;
-    position: relative;
-    overflow: hidden;
-    backdrop-filter: blur(5px);
-    border: 1px solid rgba(255,255,255,0.1);
-}
-
-.btn-bless {
-    background: linear-gradient(135deg, rgba(106, 17, 203, 0.5), rgba(106, 17, 203, 0.3));
-    color: white;
-}
-
-.btn-bless:hover {
-    background: linear-gradient(135deg, rgba(106, 17, 203, 0.7), rgba(106, 17, 203, 0.5));
-    transform: translateY(-2px);
-}
-
-.btn-fulfill {
-    background: linear-gradient(135deg, rgba(37, 117, 252, 0.5), rgba(37, 117, 252, 0.3));
-    color: white;
-}
-
-.btn-fulfill:hover {
-    background: linear-gradient(135deg, rgba(37, 117, 252, 0.7), rgba(37, 117, 252, 0.5));
-    transform: translateY(-2px);
-}
-
-.btn-bless::after, .btn-fulfill::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(
-        90deg,
-        transparent,
-        rgba(255, 255, 255, 0.3),
-        transparent
-    );
-    transition: all 0.6s ease;
-}
-
-.btn-bless:hover::after, .btn-fulfill:hover::after {
-    left: 100%;
-}
-
-/* 能量条样式 */
-.wish-energy {
-    margin-top: 15px;
-    height: 6px;
-    background: rgba(0,0,0,0.3);
-    border-radius: 3px;
-    overflow: hidden;
-    position: relative;
-    z-index: 2;
-    box-shadow: inset 0 1px 2px rgba(0,0,0,0.2);
-}
-
-.energy-level {
-    height: 100%;
-    width: 0;
-    transition: width 0.7s cubic-bezier(0.65, 0, 0.35, 1);
-    position: relative;
-}
-
-.energy-level::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(90deg, 
-        rgba(255,255,255,0.1) 0%, 
-        rgba(255,255,255,0.3) 50%, 
-        rgba(255,255,255,0.1) 100%);
-    animation: shine 2s infinite;
-}
-
-.wish-card[data-level="1"] .energy-level { 
-    width: 20%; 
-    background: linear-gradient(90deg, var(--bar-1), #8a4ce6);
-}
-.wish-card[data-level="2"] .energy-level { 
-    width: 40%; 
-    background: linear-gradient(90deg, var(--bar-2), #4a8cf7);
-}
-.wish-card[data-level="3"] .energy-level { 
-    width: 60%; 
-    background: linear-gradient(90deg, var(--bar-3), #e67e22);
-}
-.wish-card[data-level="4"] .energy-level { 
-    width: 80%; 
-    background: linear-gradient(90deg, var(--bar-4), #e74c3c);
-}
-.wish-card[data-level="5"] .energy-level { 
-    width: 100%; 
-    background: linear-gradient(90deg, var(--bar-5), #f1c40f);
-    animation: rainbow 3s linear infinite;
-}
-
-@keyframes rainbow {
-    0% { filter: hue-rotate(0deg); }
-    100% { filter: hue-rotate(360deg); }
-}
-
-.wish-card.max-blessed {
-    border: 1px solid #00b894;
-    box-shadow: 0 0 25px rgba(0, 184, 148, 0.4);
-    animation: glow 2s ease-in-out infinite alternate;
-}
-
-@keyframes glow {
-    from { box-shadow: 0 0 15px rgba(0, 184, 148, 0.4); }
-    to { box-shadow: 0 0 30px rgba(0, 184, 148, 0.6); }
-}
-
-/* ==================== 加载状态 ==================== */
-.wish-loading {
-    grid-column: 1 / -1;
-    text-align: center;
-    padding: 50px;
-    color: var(--text-dark);
-}
-
-.loader {
-    width: 40px;
-    height: 40px;
-    border: 4px solid rgba(106, 17, 203, 0.2);
-    border-top: 4px solid var(--primary-color);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin: 0 auto 20px;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-/* ==================== 分页 ==================== */
-.pagination {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 20px;
-    margin-top: 40px;
-}
-
-.pagination button {
-    background: rgba(106, 17, 203, 0.3);
-    border: none;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    color: var(--text-light);
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.pagination button:hover {
-    background: rgba(106, 17, 203, 0.5);
-    color: white;
-    transform: scale(1.1);
-}
-
-.pagination button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    transform: none;
-}
-
-#pageInfo {
-    color: var(--text-light);
-}
-
-/* ==================== 统计卡片 ==================== */
-.stat-card {
-    text-align: center;
-    padding: 20px;
-    background: rgba(0, 0, 0, 0.3);
-    border-radius: 10px;
-    margin-bottom: 15px;
-    position: relative;
-    overflow: hidden;
-    transition: all 0.3s ease;
-}
-
-.stat-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 5px 15px rgba(106, 17, 203, 0.2);
-    /* 确保背景颜色不变 */
-    background: rgba(0, 0, 0, 0.3);
-}
-
-.stat-value {
-    font-size: 2.5rem;
-    font-weight: bold;
-    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    margin-bottom: 5px;
-    position: relative;
-}
-
-.stat-label {
-    color: var(--text-dark);
-    font-size: 0.9rem;
-}
-
-.wish-chart {
-    height: 250px;
-}
-
-/* ==================== 用户信息弹窗 ==================== */
-.user-info-container {
-    background: rgba(0, 0, 0, 0.3);
-    border-radius: 10px;
-    padding: 20px;
-    margin-bottom: 20px;
-}
-
-.user-info-row {
-    display: flex;
-    align-items: center;
-    margin-bottom: 15px;
-    padding-bottom: 15px;
-    border-bottom: 1px solid rgba(106, 17, 203, 0.2);
-}
-
-.user-info-row:last-child {
-    margin-bottom: 0;
-    padding-bottom: 0;
-    border-bottom: none;
-}
-
-.info-label {
-    width: 120px;
-    color: var(--text-dark);
-    font-size: 0.95rem;
-}
-
-.info-value {
-    flex: 1;
-    color: var(--text-color);
-    font-size: 1.05rem;
-}
-
-.recharge-btn-small {
-    margin-left: 15px;
-    padding: 5px 15px;
-    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-    border: none;
-    border-radius: 20px;
-    color: white;
-    font-size: 0.9rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.recharge-btn-small:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(106, 17, 203, 0.4);
-}
-
-/* ==================== 模态框 ==================== */
-.modal {
-    display: none;
-    position: fixed;
-    z-index: 1000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.7);
-    backdrop-filter: blur(5px);
-    -webkit-backdrop-filter: blur(5px);
-}
-
-.modal-content {
-    background: var(--bg-light);
-    margin: 10% auto;
-    padding: 30px;
-    border-radius: 10px;
-    max-width: 500px;
-    position: relative;
-    border: 1px solid rgba(106, 17, 203, 0.5);
-    box-shadow: 0 5px 30px rgba(106, 17, 203, 0.3);
-    animation: modalFadeIn 0.3s ease;
-}
-
-@keyframes modalFadeIn {
-    from { opacity: 0; transform: translateY(-20px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-.close-modal {
-    position: absolute;
-    top: 15px;
-    right: 20px;
-    font-size: 1.5rem;
-    color: var(--text-dark);
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.close-modal:hover {
-    color: white;
-    transform: rotate(90deg);
-}
-
-.modal-content h3 {
-    color: var(--primary-color);
-    margin-bottom: 20px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.fulfill-options {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 15px;
-    margin: 25px 0;
-}
-
-.fulfill-option {
-    padding: 15px;
-    background: rgba(106, 17, 203, 0.2);
-    border: 1px solid rgba(106, 17, 203, 0.3);
-    border-radius: 6px;
-    color: var(--text-light);
-    cursor: pointer;
-    transition: all 0.3s ease;
-    text-align: center;
-    font-size: 1.1rem;
-    position: relative;
-    overflow: hidden;
-}
-
-.fulfill-option:hover {
-    background: rgba(106, 17, 203, 0.4);
-    color: white;
-    transform: translateY(-3px);
-}
-
-.fulfill-option::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(
-        90deg,
-        transparent,
-        rgba(255, 255, 255, 0.2),
-        transparent
-    );
-    transition: all 0.5s ease;
-}
-
-.fulfill-option:hover::before {
-    left: 100%;
-}
-
-.fulfill-note {
-    font-size: 0.9rem;
-    color: var(--text-dark);
-    text-align: center;
-}
-
-/* ==================== 页脚 ==================== */
-.main-footer {
-    background: linear-gradient(135deg, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.9));
-    color: var(--text-light);
-    padding: 50px 0 30px;
-    text-align: center;
-    box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.3);
-    position: relative;
-    overflow: hidden;
-}
-
-.main-footer::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: url('data:image/svg+xml;utf8,<svg width="20" height="20" xmlns="http://www.w3.org/2000/svg"><circle cx="2" cy="2" r="1" fill="rgba(106,17,203,0.3)"/></svg>') repeat;
-    opacity: 0.05;
-    z-index: 0;
-}
-
-.main-footer .container {
-    position: relative;
-    z-index: 1;
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 20px;
-}
-
-.main-footer p {
-    margin-bottom: 15px;
-    color: rgba(255, 255, 255, 0.9);
-    font-size: 0.95rem;
-}
-
-.copyright {
-    margin-top: 30px;
-    padding-top: 20px;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.7);
-    font-size: 0.9rem;
-}
-
-.footer-navigation {
-    margin-bottom: 10px;
-}
-
-.footer-navigation a {
-    color: #8a5cf5;
-    text-decoration: none;
-    font-weight: 500;
-}
-
-.footer-navigation a:hover {
-    text-decoration: underline;
-    color: #7a4ce5;
-}
-
-/* ==================== Toast消息 ==================== */
-.toast {
-    position: fixed;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%) translateY(100px);
-    padding: 12px 24px;
-    border-radius: 50px;
-    box-shadow: 0 5px 20px rgba(0,0,0,0.2);
-    z-index: 1000;
-    opacity: 0;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 0.95rem;
-    background: rgba(10, 10, 20, 0.9);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 1px solid var(--border-color);
-}
-
-.toast.success {
-    color: white;
-    border-color: rgba(106, 17, 203, 0.5);
-}
-
-.toast.error {
-    color: white;
-    border-color: rgba(255, 107, 107, 0.5);
-}
-
-.toast.show {
-    transform: translateX(-50%) translateY(0);
-    opacity: 1;
-}
-
-.fa-spinner.fa-spin {
-    animation: fa-spin 1s infinite linear;
-}
-
-@keyframes fa-spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-.wish-loading .btn-mingyuan {
-    margin-top: 15px;
-    padding: 10px 20px;
-    font-size: 1rem;
-}
-
-.wish-loading i.fa-water {
-    animation: pulse 2s infinite;
-}
-
-/* ==================== 六字真言特效 ==================== */
-
-.mantra-bg {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%) scale(2.0); /* 缩放至70%大小 */
-    width: 100%;
-    height: 100%;
-    background: url('../images/6words.jpg') center/contain no-repeat;
-    opacity: 0.5;
-    z-index: -1;
-}
-.mantra-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: radial-gradient(circle at center, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.95) 100%);
-    z-index: 9999;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.8s ease-out;
-    overflow: hidden;
-}
-
-.mantra-overlay.active {
-    opacity: 1;
-    pointer-events: auto;
-}
-
-.mantra-container {
-    position: relative;
-    width: 90%;
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    flex-wrap: wrap;
-}
-
-.mantra-row {
-    display: flex;
-    justify-content: center;
-    width: 100%;
-}
-
-.mantra-text {
-    font-size: 8vw;
-    font-weight: 900;
-    color: transparent;
-    background: linear-gradient(45deg, 
-        #6a11cb 0%, #2575fc 20%, 
-        #00b894 40%, #fdcb6e 60%, 
-        #e17055 80%, #6a11cb 100%);
-    background-size: 400% 400%;
-    -webkit-background-clip: text;
-    background-clip: text;
-    animation: mantraGradient 6s ease infinite, 
-               mantraFloat 4s ease-in-out infinite alternate;
-    text-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
-    margin: 15px 0;
-    position: relative;
-    z-index: 2;
-    opacity: 0;
-    transform: translateY(30px) scale(0.9);
-    filter: drop-shadow(0 0 10px currentColor);
-}
-
-.mantra-text.active {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-}
-
-@keyframes mantraGradient {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-}
-
-@keyframes mantraFloat {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-15px); }
-}
-
-.mantra-particle {
-    position: absolute;
-    width: 15px;
-    height: 15px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(106,17,203,0.8) 70%);
-    pointer-events: none;
-    z-index: 1;
-    box-shadow: 0 0 15px 5px rgba(106, 17, 203, 0.5);
-}
-
-.mantra-symbol {
-    position: absolute;
-    font-size: 4rem;
-    opacity: 0;
-    z-index: 0;
-    color: rgba(255,255,255,0.15);
-    filter: drop-shadow(0 0 5px rgba(106, 17, 203, 0.7));
-}
-
-.mantra-beam {
-    position: absolute;
-    width: 2px;
-    height: 100%;
-    background: linear-gradient(to top, 
-        transparent 0%, 
-        rgba(106, 17, 203, 0.5) 30%, 
-        transparent 100%);
-    top: 0;
-    z-index: 0;
-    animation: beamScan 8s linear infinite;
-}
-
-.mantra-circle {
-    position: absolute;
-    border: 2px solid rgba(106, 17, 203, 0.5);
-    border-radius: 50%;
-    animation: circlePulse 6s ease-out infinite;
-}
-
-@keyframes beamScan {
-    0% { transform: rotate(0deg); left: 0; }
-    100% { transform: rotate(360deg); left: 100%; }
-}
-
-@keyframes circlePulse {
-    0% { transform: scale(0.5); opacity: 0; }
-    50% { opacity: 0.7; }
-    100% { transform: scale(3); opacity: 0; }
-}
-
-@keyframes symbolFloat {
-    0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
-    20% { opacity: 0.3; }
-    80% { opacity: 0.3; }
-    100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; }
-}
-
-/* ==================== 用户卡片浮窗 ==================== */
-.user-cards-modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.7);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 2000;
-    opacity: 0;
-    visibility: hidden;
-    transition: all 0.3s;
-}
-
-.user-cards-modal.active {
-    opacity: 1;
-    visibility: visible;
-}
-
-.user-cards-container {
-    background: rgba(30, 30, 30, 0.95);
-    border-radius: 15px;
-    width: 90%;
-    max-width: 800px;
-    max-height: 80vh;
-    padding: 25px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-    border: 1px solid rgba(138, 92, 245, 0.3);
-    backdrop-filter: blur(10px);
-    transform: translateY(20px);
-    transition: all 0.3s;
-    overflow-y: auto;
-}
-
-.user-cards-modal.active .user-cards-container {
-    transform: translateY(0);
-}
-
-.user-cards-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    padding-bottom: 15px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.user-cards-header h3 {
-    color: #8a5cf5;
-    margin: 0;
-}
-
-.close-cards {
-    color: #b0b0b0;
-    font-size: 1.5rem;
-    cursor: pointer;
-    transition: all 0.3s;
-    width: 30px;
-    height: 30px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-}
-
-.close-cards:hover {
-    color: #f0f0f0;
-    background: rgba(255, 255, 255, 0.1);
-}
-
-.user-cards-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 15px;
-    padding: 5px;
-}
-
-.user-card-item {
-    background: rgba(42, 42, 42, 0.7);
-    border-radius: 10px;
-    padding: 15px;
-    position: relative;
-    border-left: 3px solid #8a5cf5;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-}
-
-.user-card-item:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
-    border-left-color: #9b71f7;
-    /* 确保背景颜色不变 */
-    background: rgba(42, 42, 42, 0.7);
-}
-
-.card-status {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    font-size: 0.7rem;
-    padding: 3px 8px;
-    border-radius: 10px;
-    background: rgba(138, 92, 245, 0.2);
-    color: #8a5cf5;
-}
-
-.wish-type-badge {
-    background: rgba(138, 92, 245, 0.1);
-    color: #8a5cf5;
-    padding: 2px 8px;
-    border-radius: 10px;
-    font-size: 0.7rem;
-    margin-left: 8px;
-}
-
-.card-progress {
-    margin: 10px 0;
-}
-
-.card-energy-level {
-    height: 4px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 2px;
-    margin: 8px 0;
-    overflow: hidden;
-}
-
-.card-energy-level-fill {
-    height: 100%;
-    background: linear-gradient(90deg, #6a11cb, #2575fc);
-    width: 0%;
-    transition: width 0.5s ease;
-}
-
-.level-info {
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.8rem;
-    color: #b0b0b0;
-    margin-top: 5px;
-}
-
-.user-card-actions {
-    display: flex;
-    justify-content: flex-end;
-    margin-top: auto;
-    padding-top: 10px;
-    border-top: 1px solid rgba(138, 92, 245, 0.2);
-}
-
-.btn-delete, .btn-fulfill-small {
-    border: none;
-    padding: 5px 10px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 0.8rem;
-    transition: all 0.3s;
-    margin-left: 8px;
-}
-
-.btn-delete {
-    background: #ff6b6b;
-    color: white;
-}
-
-.btn-delete:hover {
-    background: #e74c3c;
-}
-
-.btn-fulfill-small {
-    background: rgba(85, 239, 196, 0.2);
-    color: #55efc4;
-}
-
-.btn-fulfill-small:hover {
-    background: rgba(85, 239, 196, 0.4);
-}
-
-.add-new-card {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-    color: #8a5cf5;
-    cursor: pointer;
-}
-
-.add-new-card i {
-    font-size: 2rem;
-    margin-bottom: 10px;
-}
-
-.new-card-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(138, 92, 245, 0.05);
-    border: 1px dashed rgba(138, 92, 245, 0.3);
-}
-
-.new-card-btn:hover {
-    background: rgba(138, 92, 245, 0.1);
-    transform: none;
-}
-
-.retry-buttons {
-    display: flex;
-    gap: 10px;
-    margin-top: 15px;
-    justify-content: center;
-}
-
-.retry-buttons button {
-    padding: 8px 15px;
-}
-
-/* ==================== 用户信息区域 ==================== */
-.user-area {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 1000;
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
-
-.user-welcome {
-    color: #f0f0f0;
-    font-size: 0.9rem;
-    background: rgba(30, 30, 30, 0.8);
-    padding: 8px 15px;
-    border-radius: 20px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-    display: none;
-}
-
-.login-btn, .logout-btn {
-    background: #8a5cf5;
-    color: white;
-    border: none;
-    padding: 8px 15px;
-    border-radius: 20px;
-    cursor: pointer;
-    font-family: 'Noto Serif SC', serif;
-    font-size: 0.9rem;
-    transition: all 0.3s;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-}
-
-.login-btn:hover, .logout-btn:hover {
-    background: #7a4ce5;
-    transform: translateY(-2px);
-}
-
-.logout-btn {
-    background: #ff6b6b;
-}
-
-.logout-btn:hover {
-    background: #e74c3c;
-}
-
-/* ==================== 登录注册弹窗 ==================== */
-.auth-modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.7);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 2000;
-    opacity: 0;
-    visibility: hidden;
-    transition: all 0.3s;
-}
-
-.auth-modal.active {
-    opacity: 1;
-    visibility: visible;
-}
-
-.auth-container {
-    background: rgba(30, 30, 30, 0.95);
-    border-radius: 15px;
-    width: 90%;
-    max-width: 400px;
-    padding: 30px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-    border: 1px solid rgba(138, 92, 245, 0.3);
-    backdrop-filter: blur(10px);
-    transform: translateY(20px);
-    transition: all 0.3s;
-}
-
-.auth-modal.active .auth-container {
-    transform: translateY(0);
-}
-
-.auth-header {
-    text-align: center;
-    margin-bottom: 25px;
-}
-
-.auth-header h2 {
-    color: #8a5cf5;
-    margin-bottom: 10px;
-}
-
-.auth-header p {
-    color: #b0b0b0;
-    font-size: 0.9rem;
-}
-
-.auth-tabs {
-    display: flex;
-    margin-bottom: 20px;
-    border-bottom: 1px solid #333;
-}
-
-.auth-tab {
-    flex: 1;
-    text-align: center;
-    padding: 12px;
-    cursor: pointer;
-    color: #b0b0b0;
-    transition: all 0.3s;
-    font-weight: 500;
-}
-
-.auth-tab.active {
-    color: #8a5cf5;
-    border-bottom: 2px solid #8a5cf5;
-}
-
-.auth-form {
-    display: none;
-}
-
-.auth-form.active {
-    display: block;
-}
-
-.form-group {
-    margin-bottom: 20px;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 8px;
-    color: #f0f0f0;
-    font-size: 0.9rem;
-}
-
-.form-group input {
-    width: 100%;
-    padding: 12px 15px;
-    background: rgba(42, 42, 42, 0.7);
-    border: 1px solid #333;
-    border-radius: 8px;
-    color: #f0f0f0;
-    font-family: 'Noto Serif SC', serif;
-    transition: all 0.3s;
-}
-
-.form-group input:focus {
-    outline: none;
-    border-color: #8a5cf5;
-    box-shadow: 0 0 0 3px rgba(138, 92, 245, 0.2);
-}
-
-.auth-btn {
-    width: 100%;
-    padding: 12px;
-    background: #8a5cf5;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-family: 'Noto Serif SC', serif;
-    font-size: 1rem;
-    transition: all 0.3s;
-    margin-top: 10px;
-}
-
-.auth-btn:hover {
-    background: #7a4ce5;
-}
-
-.auth-btn.loading {
-    pointer-events: none;
-    opacity: 0.7;
-}
-
-.auth-message {
-    margin-top: 15px;
-    padding: 10px;
-    border-radius: 5px;
-    text-align: center;
-    font-size: 0.9rem;
-    display: none;
-}
-
-.auth-message.error {
-    background: rgba(255, 107, 107, 0.2);
-    color: #ff6b6b;
-    border: 1px solid #ff6b6b;
-}
-
-.auth-message.success {
-    background: rgba(85, 239, 196, 0.2);
-    color: #55efc4;
-    border: 1px solid #55efc4;
-}
-
-.close-auth {
-    position: absolute;
-    top: 15px;
-    right: 15px;
-    color: #b0b0b0;
-    font-size: 1.5rem;
-    cursor: pointer;
-    transition: all 0.3s;
-    width: 30px;
-    height: 30px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-}
-
-.close-auth:hover {
-    color: #f0f0f0;
-    background: rgba(255, 255, 255, 0.1);
-}
-
-.forgot-password {
-    text-align: right;
-    margin-top: 5px;
-    margin-bottom: 15px;
-}
-
-.forgot-password a {
-    color: white;
-    font-size: 0.9rem;
-    text-decoration: none;
-}
-
-.forgot-password a:hover {
-    text-decoration: underline;
-    opacity: 0.8;
-}
-
-/* ==================== 搜索框样式 ==================== */
-.wish-search-controls {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-    flex-wrap: wrap;
-}
-
-.wish-search-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    width: 100%;
-}
-
-.wish-search-container {
-    position: relative;
-    display: flex;
-    align-items: center;
-    flex: 3;
-    min-width: 200px;
-}
-
-.wish-search-input {
-    padding: 8px 15px;
-    border: 1px solid #ddd;
-    border-radius: 20px;
-    font-family: 'Noto Serif SC', serif;
-    width: 100%;
-    transition: all 0.3s;
-}
-
-.wish-search-input:focus {
-    outline: none;
-    border-color: #6a11cb;
-    box-shadow: 0 0 5px rgba(106, 17, 203, 0.3);
-}
-
-.wish-search-btn, .wish-clear-search-btn {
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: #666;
-    position: absolute;
-    right: 10px;
-    transition: all 0.3s;
-}
-
-.wish-clear-search-btn {
-    right: 35px;
-    display: none;
-}
-
-.wish-search-btn:hover, .wish-clear-search-btn:hover {
-    color: #6a11cb;
-}
-
-#wishFilter, #sortFilter {
-    flex: 1;
-    min-width: 120px;
-    max-width: 140px;
-}
-
-/* ==================== 响应式设计 ==================== */
-@media (max-width: 992px) {
-    .content-container {
-        padding: 40px;
-    }
-    
-    .mingyuan-intro {
-        flex-direction: column;
-    }
-    
-    .mingyuan-intro .intro-image {
-        flex: 1;
+        bottom: 0;
+        left: 0;
         width: 100%;
-    }
-    
-    .mingyuan-form {
-        grid-template-columns: 1fr;
-    }
-}
-
-@media (max-width: 768px) {
-    .content-container {
-        padding: 30px;
-        margin: 20px auto;
-        border-radius: 15px;
-    }
-    
-    .card-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .wish-pool {
-        grid-template-columns: 1fr;
-    }
-    
-    .filter-controls {
-        margin-top: 15px;
+        height: 4px;
+        background: rgba(255,255,255,0.8);
+        transform: scaleX(0);
+        transition: transform 0.3s;
+      }
+      
+      .wwpay-method-btn.active {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+      }
+      
+      .wwpay-method-btn.active::after {
+        transform: scaleX(1);
+      }
+      
+      .wwpay-method-btn i {
+        font-size: 24px;
+        margin-bottom: 8px;
+      }
+      
+      .wwpay-method-name {
+        font-size: 16px;
+        font-weight: bold;
+        margin-bottom: 4px;
+      }
+      
+      .wwpay-method-hint {
+        font-size: 12px;
+        opacity: 0.8;
+      }
+      
+      .wwpay-method-btn.active .wwpay-method-hint {
+        opacity: 1;
+      }
+      
+      #confirm-payment-btn {
+        display: block;
         width: 100%;
-        justify-content: space-between;
-    }
-    
-    .fulfill-options {
-        grid-template-columns: 1fr;
-    }
-    
-    .section-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 10px;
-    }
-    
-    .section-header h2 {
-        font-size: 1.5rem;
-    }
-
-    .mantra-text {
-        font-size: 10vw;
-    }
-
-    .wish-search-row {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 8px;
-    }
-    
-    .wish-search-container, 
-    #wishFilter, 
-    #sortFilter {
-        width: 100%;
-        max-width: 100%;
-    }
-
-    .user-cards-list {
-        grid-template-columns: 1fr;
-    }
-    
-    .user-card-item {
+        max-width: 300px;
+        margin: 25px auto 0;
         padding: 12px;
-    }
-}
-
-@media (max-width: 576px) {
-    .content-container {
-        padding: 20px;
-        margin: 10px auto;
-        border-radius: 10px;
-    }
-    
-    .content-title h1 {
-        font-size: 1.8rem;
+        background: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        cursor: pointer;
+        transition: all 0.3s;
+      }
+      
+      #confirm-payment-btn:hover:not(:disabled) {
+        background: #45a049;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      }
+      
+      #confirm-payment-btn:disabled {
+        background: #cccccc;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+      }
+      
+      .wwpay-loading {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.85);
+        z-index: 9999;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: white;
+        font-size: 20px;
+        flex-direction: column;
+      }
+      
+      .wwpay-loading .loader {
+        border: 5px solid rgba(255,255,255,0.2);
+        border-top: 5px solid #ffffff;
+        border-radius: 50%;
+        width: 60px;
+        height: 60px;
+        animation: wwpay-spin 1s linear infinite;
+        margin-bottom: 25px;
+      }
+      
+      @keyframes wwpay-spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      
+      .wwpay-guaranteed-toast {
+        position: fixed;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #28a745;
+        color: white;
+        padding: 15px 25px;
+        border-radius: 8px;
+        font-size: 16px;
+        z-index: 100000;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        animation: wwpay-toast-fadein 0.3s;
+      }
+      
+      .wwpay-guaranteed-toast.error {
+        background: #dc3545;
+      }
+      
+      .wwpay-guaranteed-toast.warning {
+        background: #ffc107;
+        color: #212529;
+      }
+      
+      @keyframes wwpay-toast-fadein {
+        from { opacity: 0; transform: translate(-50%, 20px); }
+        to { opacity: 1; transform: translate(-50%, 0); }
+      }
+      
+      .wish-card-removing {
+        transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        opacity: 0 !important;
+        max-height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: hidden !important;
+        pointer-events: none !important;
+      }
+      
+      .fulfillment-notification {
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: #4CAF50;
+        color: white;
         padding: 15px 30px;
+        border-radius: 4px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        z-index: 10000;
+        transition: all 0.3s ease;
+        opacity: 1;
+        display: flex;
+        align-items: center;
+      }
+      
+      .fulfillment-notification.fade-out {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-20px);
+      }
+      
+      .fulfillment-notification svg {
+        width: 20px;
+        height: 20px;
+        margin-right: 10px;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  setupErrorHandling() {
+    window.addEventListener('error', (event) => {
+      this.safeLogError('全局错误', event.error);
+    });
+
+    window.addEventListener('unhandledrejection', (event) => {
+      this.safeLogError('未处理的Promise拒绝', event.reason);
+    });
+  }
+
+  cleanupLocalStorage() {
+    localStorage.removeItem('pending-fulfillment');
+    localStorage.removeItem('last-payment');
+  }
+
+  /* ========== 事件处理方法 ========== */
+
+  handleDocumentClick(e) {
+    try {
+      const fulfillOption = e.target.closest('.fulfill-option');
+      if (fulfillOption) {
+        this.handleFulfillOptionClick(fulfillOption);
+        return;
+      }
+
+      const methodBtn = e.target.closest('.wwpay-method-btn');
+      if (methodBtn) {
+        this.handlePaymentMethodSelect(methodBtn);
+        return;
+      }
+
+      const confirmBtn = e.target.closest('#confirm-payment-btn');
+      if (confirmBtn) {
+        this.processPayment();
+      }
+    } catch (error) {
+      this.safeLogError('事件处理出错', error);
     }
+  }
+
+  handleFulfillOptionClick(optionElement) {
+    try {
+      if (!optionElement?.dataset?.amount) {
+        throw new Error('无效的选项元素');
+      }
+
+      const amount = parseFloat(optionElement.dataset.amount);
+      if (isNaN(amount)) {
+        throw new Error('金额必须是数字');
+      }
+
+      const modal = document.getElementById('fulfillModal');
+      if (!modal) throw new Error('找不到还愿模态框');
+      
+      const wishId = modal.dataset.wishId;
+      if (!wishId) throw new Error('未关联愿望ID');
+
+      this.state.selectedAmount = amount;
+      this.state.currentWishId = wishId;
+
+      this.showPaymentMethods();
+    } catch (error) {
+      this.showToast(`操作失败: ${error.message}`, 'error');
+    }
+  }
+
+  handlePaymentMethodSelect(buttonElement) {
+    try {
+      document.querySelectorAll('.wwpay-method-btn').forEach(btn => {
+        const methodId = btn.dataset.type;
+        const method = this.config.paymentMethods.find(m => m.id === methodId);
+        btn.style.background = method.color;
+        btn.classList.remove('active');
+      });
+      
+      const selectedMethod = buttonElement.dataset.type;
+      const selectedMethodConfig = this.config.paymentMethods.find(m => m.id === selectedMethod);
+      buttonElement.style.background = selectedMethodConfig.activeColor;
+      buttonElement.classList.add('active');
+      
+      this.state.selectedMethod = selectedMethod;
+    } catch (error) {
+      this.safeLogError('选择支付方式失败', error);
+    }
+  }
+
+  /* ========== 核心支付方法 ========== */
+
+  async processPayment() {
+    if (!this.validatePaymentState() || this.state.processing) return;
+
+    try {
+      this.state.processing = true;
+      this.updateConfirmButtonState();
+      this.showFullscreenLoading('正在准备支付...');
+      
+      // 生成唯一请求ID防止重复
+      const requestId = Date.now().toString(36) + Math.random().toString(36).substr(2);
+      this.state.lastPayment = {
+        wishId: this.state.currentWishId,
+        amount: this.state.selectedAmount,
+        method: this.state.selectedMethod,
+        timestamp: Date.now(),
+        requestId: requestId
+      };
+      localStorage.setItem('last-payment', JSON.stringify(this.state.lastPayment));
+
+      // 根据支付方式选择处理流程
+      if (this.state.selectedMethod === 'balance') {
+        await this.processBalancePayment();
+      } else {
+        const result = await this.createPaymentOrder();
+        if (result.success) {
+          this.startPaymentStatusCheck();
+        }
+      }
+    } catch (error) {
+      this.handlePaymentError(error);
+    }
+  }
+  
+  async processBalancePayment() {
+    try {
+      const response = await fetch(`${this.config.paymentGateway.apiBase}/api/wishes/balance-fulfill`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'X-Request-ID': this.state.lastPayment.requestId
+        },
+        body: JSON.stringify({
+          wishId: this.state.currentWishId,
+          amount: this.state.selectedAmount
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error(await response.text());
+      }
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        this.showGuaranteedToast('还愿成功！余额已扣除', 'success');
+        this.prepareSuccessRedirect();
+      } else {
+        throw new Error(data.message || '余额支付失败');
+      }
+    } catch (error) {
+      throw new Error(`余额支付失败: ${error.message}`);
+    }
+  }
+
+  async createPaymentOrder() {
+    try {
+      const orderId = this.generateOrderId();
+      
+      // 异步记录还愿
+      this.recordFulfillment().catch(error => {
+        this.safeLogError('异步记录还愿失败', error);
+        this.savePendingFulfillment();
+      });
+
+      const paymentData = {
+        pid: this.config.paymentGateway.pid,
+        type: this.state.selectedMethod,
+        out_trade_no: orderId,
+        notify_url: location.href,
+        return_url: this.config.paymentGateway.successUrl,
+        name: `还愿-${this.state.currentWishId}`,
+        money: this.state.selectedAmount.toFixed(2),
+        param: encodeURIComponent(JSON.stringify({
+          wishId: this.state.currentWishId,
+          amount: this.state.selectedAmount
+        })),
+        sign_type: this.config.paymentGateway.signType
+      };
+      
+      // 生成签名
+      paymentData.sign = this.generateSignature(paymentData);
+      
+      if (!paymentData.sign) {
+        throw new Error('签名生成失败');
+      }
+
+      await this.submitPaymentForm(paymentData);
+      
+      return { success: true, orderId };
+    } catch (error) {
+      throw new Error(`创建订单失败: ${error.message}`);
+    }
+  }
+
+  generateSignature(params) {
+    try {
+      if (!params || typeof params !== 'object') {
+        throw new Error('无效的签名参数');
+      }
+
+      // 过滤空值和排除签名字段
+      const filtered = {};
+      Object.keys(params)
+        .filter(k => params[k] !== '' && !['sign', 'sign_type'].includes(k))
+        .sort()
+        .forEach(k => filtered[k] = params[k]);
+
+      // 构建签名字符串
+      const signStr = Object.entries(filtered)
+        .map(([k, v]) => `${k}=${v}`)
+        .join('&') + this.config.paymentGateway.key;
+
+      // 使用CryptoJS生成MD5签名
+      if (typeof CryptoJS === 'undefined') {
+        throw new Error('CryptoJS未加载');
+      }
+
+      return CryptoJS.MD5(signStr).toString();
+    } catch (error) {
+      console.error('生成签名失败:', error);
+      throw new Error(`签名生成失败: ${error.message}`);
+    }
+  }
+
+  async submitPaymentForm(paymentData) {
+    return new Promise((resolve) => {
+      this.showFullscreenLoading('正在连接支付网关...');
+      
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = this.config.paymentGateway.apiUrl;
+      form.style.display = 'none';
+      
+      Object.entries(paymentData).forEach(([key, value]) => {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = key;
+        input.value = value;
+        form.appendChild(input);
+      });
+      
+      document.body.appendChild(form);
+      form.submit();
+      
+      setTimeout(resolve, 100);
+    });
+  }
+
+  /* ========== 支付状态检查 ========== */
+
+  startPaymentStatusCheck() {
+    let checks = 0;
+    const maxChecks = this.config.paymentGateway.maxChecks;
+    const checkInterval = this.config.paymentGateway.checkInterval;
     
-    .content-title p {
-        font-size: 1rem;
+    this.state.statusCheckInterval = setInterval(async () => {
+      if (this.state.paymentCompleted) {
+        this.clearPaymentStatusCheck();
+        return;
+      }
+      
+      checks++;
+      
+      if (checks >= maxChecks) {
+        this.clearPaymentStatusCheck();
+        this.showGuaranteedToast('支付超时，请检查支付状态', 'warning');
+        this.hideFullscreenLoading();
+        return;
+      }
+      
+      try {
+        const statusData = await this.checkPaymentStatus();
+        
+        if (statusData.status === 'success') {
+          this.clearPaymentStatusCheck();
+          this.state.paymentCompleted = true;
+          await this.handlePaymentSuccess();
+          this.hideFullscreenLoading();
+        } else if (statusData.status === 'failed') {
+          throw new Error(statusData.message || '支付失败');
+        }
+      } catch (error) {
+        this.clearPaymentStatusCheck();
+        this.safeLogError('支付状态检查失败', error);
+        this.showGuaranteedToast(error.message, 'error');
+        this.hideFullscreenLoading();
+      }
+    }, checkInterval);
+  }
+
+  async checkPaymentStatus() {
+    try {
+      const response = await fetch(
+        `${this.config.paymentGateway.apiBase}/api/payments/status?wishId=${this.state.currentWishId}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+          }
+        }
+      );
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || '支付状态检查失败');
+      }
+      
+      return data;
+    } catch (error) {
+      throw error;
     }
-    
-    .radio-group {
-        flex-direction: column;
-        gap: 10px;
+  }
+
+  clearPaymentStatusCheck() {
+    if (this.state.statusCheckInterval) {
+      clearInterval(this.state.statusCheckInterval);
+      this.state.statusCheckInterval = null;
     }
-    
-    .modal-content {
-        margin: 20% auto;
-        width: 90%;
+  }
+
+  /* ========== 支付成功处理 ========== */
+
+  async handlePaymentSuccess() {
+    try {
+      this.showGuaranteedToast('还愿成功！正在更新状态...');
+      
+      // 1. 确保记录到fulfillments表
+      const fulfillmentResult = await this.ensureFulfillmentRecorded();
+      if (!fulfillmentResult.success) {
+        throw new Error(fulfillmentResult.message);
+      }
+      
+      // 2. 验证愿望已从wishes表删除
+      const verified = await this.verifyWishRemoved();
+      if (!verified) {
+        throw new Error('愿望删除验证失败');
+      }
+
+      // 3. 准备跳转
+      this.prepareSuccessRedirect();
+      
+    } catch (error) {
+      this.handlePaymentSuccessError(error);
     }
+  }
 
-    .mantra-text {
-        font-size: 12vw;
+  async ensureFulfillmentRecorded() {
+    try {
+      // 先检查是否有未完成的记录
+      const pending = localStorage.getItem('pending-fulfillment');
+      if (pending) {
+        const pendingData = JSON.parse(pending);
+        if (pendingData.wishId === this.state.currentWishId) {
+          const result = await this.recordFulfillment();
+          localStorage.removeItem('pending-fulfillment');
+          return result;
+        }
+      }
+      
+      // 正常记录流程
+      return await this.recordFulfillment();
+    } catch (error) {
+      this.savePendingFulfillment();
+      throw error;
     }
+  }
 
-    .user-area {
-        top: 10px;
-        right: 10px;
-    }
-    
-    .user-welcome {
-        display: none;
-    }
-    
-    .auth-container {
-        padding: 20px;
-        width: 95%;
-    }
-}
-
-/* 许愿表单两栏布局样式 */
-.mingyuan-form .form-columns {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-    margin-bottom: 20px;
-}
-
-.mingyuan-form .form-column {
-    flex: 1;
-    min-width: 300px;
-}
-
-/* 左侧列样式 */
-.mingyuan-form .left-column {
-    padding-right: 15px;
-    border-right: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-/* 右侧列样式 */
-.mingyuan-form .right-column {
-    padding-left: 15px;
-}
-
-/* 响应式调整 */
-@media (max-width: 768px) {
-    .mingyuan-form .form-columns {
-        flex-direction: column;
-    }
-    
-    .mingyuan-form .left-column {
-        padding-right: 0;
-        border-right: none;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        padding-bottom: 20px;
-        margin-bottom: 20px;
-    }
-    
-    .mingyuan-form .right-column {
-        padding-left: 0;
-    }
-}
-
-/* 保持原有表单元素样式不变 */
-.mingyuan-form .form-group {
-    margin-bottom: 20px;
-}
-
-.mingyuan-form label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: 500;
-    color: #e0e0e0;
-}
-
-.mingyuan-form input[type="text"],
-.mingyuan-form input[type="date"],
-.mingyuan-form input[type="password"],
-.mingyuan-form input[type="email"],
-.mingyuan-form select,
-.mingyuan-form textarea {
-    width: 100%;
-    padding: 12px 15px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 6px;
-    background-color: rgba(255, 255, 255, 0.05);
-    color: #ffffff;
-    font-family: 'Noto Serif SC', serif;
-    font-size: 16px;
-    transition: all 0.3s ease;
-}
-
-.mingyuan-form textarea {
-    min-height: 120px;
-    resize: vertical;
-}
-
-.mingyuan-form input:focus,
-.mingyuan-form select:focus,
-.mingyuan-form textarea:focus {
-    outline: none;
-    border-color: #6a11cb;
-    box-shadow: 0 0 0 2px rgba(106, 17, 203, 0.3);
-}
-
-.mingyuan-form .form-hint {
-    margin-top: 6px;
-    font-size: 13px;
-    color: #a0a0a0;
-}
-
-/* 单选按钮组样式保持不变 */
-.mingyuan-form .radio-group {
-    display: flex;
-    gap: 20px;
-    margin-top: 8px;
-}
-
-.mingyuan-form .radio-option {
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-}
-
-.mingyuan-form .radio-option input {
-    margin-right: 8px;
-}
-
-.mingyuan-form .radio-custom {
-    display: inline-block;
-    width: 18px;
-    height: 18px;
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    border-radius: 50%;
-    margin-right: 8px;
-    position: relative;
-}
-
-.mingyuan-form .radio-option input:checked + .radio-custom::after {
-    content: '';
-    position: absolute;
-    top: 3px;
-    left: 3px;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: #6a11cb;
-}
-
-.mingyuan-form .radio-label {
-    font-size: 15px;
-    color: #e0e0e0;
-}
-
-
-.password-container {
-    position: relative;
-}
-
-.password-toggle {
-    position: absolute;
-    right: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    cursor: pointer;
-    color: #666;
-    z-index: 2;
-}
-
-.password-toggle:hover {
-    color: #333;
-}
-
-.manage-btn {
-    background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
-    color: white;
-    border: none;
-    padding: 8px 15px;
-    border-radius: 20px;
-    cursor: pointer;
-    font-family: 'Noto Serif SC', serif;
-    font-size: 14px;
-    margin-left: 10px;
-    transition: all 0.3s ease;
-}
-
-.manage-btn:hover {
-    background: linear-gradient(135deg, #2575fc 0%, #6a11cb 100%);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
-
-.manage-btn i {
-    margin-right: 5px;
-}
-
-/* 生肖字体图标样式 */
-.wish-card-bg-icon {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 250px; /* 调整为卡片大小的70% */
-    opacity: 0.2;
-    z-index: 0;
-    pointer-events: none;
-}
-
-/* 定义生肖字体图标 - 这里需要替换为您实际使用的字体图标类名 */
-.icon-rat:before { content: "🐀"; }
-.icon-ox:before { content: "🐂"; }
-.icon-tiger:before { content: "🐅"; }
-.icon-rabbit:before { content: "🐇"; }
-.icon-dragon:before { content: "🐉"; }
-.icon-snake:before { content: "🐍"; }
-.icon-horse:before { content: "🐎"; }
-.icon-goat:before { content: "🐐"; }
-.icon-monkey:before { content: "🐒"; }
-.icon-rooster:before { content: "🐓"; }
-.icon-dog:before { content: "🐕"; }
-.icon-pig:before { content: "🐖"; }
-
-/* 确保卡片有相对定位以便绝对定位的背景图标 */
-.wish-card {
-    position: relative;
-    overflow: hidden;
-    /* 保持原有的背景颜色和其他样式 */
-}
-
-
-  /* 新增的农历日期信息样式 */
-        .lunar-date-info {
-            margin: 15px 0 25px;
-            font-size: 0.95rem;
-            color: #b8c2cc;
+  async verifyWishRemoved() {
+    for (let i = 0; i < 5; i++) {
+      try {
+        const response = await fetch(
+          `${this.config.paymentGateway.apiBase}/api/wishes/check?wishId=${this.state.currentWishId}`
+        );
+        
+        const data = await response.json();
+        
+        // 验证：愿望不存在且已还愿
+        if (!data.exists && data.fulfilled) {
+          return true;
         }
         
-        .lunar-date-container {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 15px;
-            background: rgba(106, 17, 203, 0.1);
-            padding: 10px 15px;
-            border-radius: 8px;
-            border: 1px solid rgba(106, 17, 203, 0.3);
+        // 如果愿望还存在但标记为已还愿，尝试强制删除
+        if (data.exists && data.fulfilled) {
+          await this.forceDeleteWish();
         }
+      } catch (error) {
+        this.log(`验证失败 (${i+1}/5): ${error.message}`);
+      }
+      await this.delay(1000);
+    }
+    return false;
+  }
+
+  prepareSuccessRedirect() {
+    const successUrl = new URL(this.config.paymentGateway.successUrl);
+    successUrl.searchParams.append('fulfillment_success', 'true');
+    successUrl.searchParams.append('wish_id', this.state.currentWishId);
+    
+    this.showGuaranteedToast('处理完成！即将跳转...', 'success');
+    setTimeout(() => {
+      this.cleanupPaymentState();
+      window.location.href = successUrl.toString();
+    }, 1500);
+  }
+
+  /* ========== 数据库操作 ========== */
+
+ async recordFulfillment(retryCount = 3) {
+  const baseDelay = 1000; // 基础延迟1秒
+  const url = `${this.config.paymentGateway.apiBase}/api/wishes/fulfill`;
+  
+  // 1. 验证愿望ID是否有效
+  if (!this.state.currentWishId || typeof this.state.currentWishId !== 'number' || this.state.currentWishId <= 0) {
+    const errorMsg = `无效的愿望ID: ${this.state.currentWishId}`;
+    this.safeLogError(errorMsg);
+    this.showToast('愿望ID无效，无法记录还愿', 'error');
+    this.savePendingFulfillment(); // 保存为待处理记录
+    throw new Error(errorMsg);
+  }
+  
+  // 2. 验证愿望在本地是否存在
+  const wishCard = document.querySelector(`[data-wish-id="${this.state.currentWishId}"]`);
+  if (!wishCard) {
+    const errorMsg = `找不到愿望卡片: ${this.state.currentWishId}`;
+    this.safeLogError(errorMsg);
+    this.showToast('愿望不存在或已被删除', 'error');
+    this.savePendingFulfillment(); // 保存为待处理记录
+    throw new Error(errorMsg);
+  }
+  
+  // 3. 创建请求数据
+  const requestData = {
+    wishId: this.state.currentWishId,
+    amount: this.state.selectedAmount,
+    paymentMethod: this.state.selectedMethod
+  };
+  
+  // 4. 重试循环
+  for (let attempt = 1; attempt <= retryCount; attempt++) {
+    try {
+      // 详细日志
+      this.log(`[还愿记录] 尝试 ${attempt}/${retryCount} | 愿望ID: ${this.state.currentWishId} | 金额: ${this.state.selectedAmount} | 方式: ${this.state.selectedMethod}`);
+      
+      // 发送请求
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+        },
+        body: JSON.stringify(requestData)
+      });
+      
+      // 处理HTTP响应
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`HTTP错误 ${response.status}: ${errorText}`);
+      }
+      
+      const data = await response.json();
+      
+      // 检查后端响应
+      if (!data.success) {
+        throw new Error(`后端错误: ${data.error || data.message || '未知错误'}`);
+      }
+      
+      // 记录成功
+      this.log(`[还愿记录] 成功! fulfillmentId: ${data.fulfillmentId}`);
+      return data;
+      
+    } catch (error) {
+      const errorMsg = `记录还愿失败 (尝试 ${attempt}/${retryCount}): ${error.message}`;
+      
+      // 最后一次尝试失败
+      if (attempt === retryCount) {
+        this.safeLogError(errorMsg, error);
         
-        .lunar-date {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
+        // 保存到待处理列表
+        const pending = JSON.parse(localStorage.getItem('pendingFulfillments') || '[]');
+        pending.push({
+          wishId: this.state.currentWishId,
+          amount: this.state.selectedAmount,
+          method: this.state.selectedMethod,
+          timestamp: Date.now(),
+          error: error.message,
+          attempts: 0 // 重试次数计数器
+        });
         
-        .lunar-yiji {
-            display: flex;
-            gap: 15px;
-        }
+        localStorage.setItem('pendingFulfillments', JSON.stringify(pending));
+        this.log(`已保存到待处理列表，当前待处理记录: ${pending.length}`);
         
-        .lunar-yiji .yi {
-            color: #00b894;
-        }
+        // 启动后台重试
+        this.startBackgroundRetry();
         
-        .lunar-yiji .ji {
-            color: #ff7675;
+        throw new Error(`所有尝试均失败: ${error.message}`);
+      }
+      
+      // 指数退避 + 随机抖动
+      const delay = baseDelay * Math.pow(2, attempt - 1) + Math.random() * 500;
+      this.log(`${errorMsg} - ${Math.round(delay)}ms后重试`);
+      await this.delay(delay);
+    }
+  }
+}
+
+  async forceDeleteWish() {
+    try {
+      this.log('尝试强制删除愿望...');
+      const response = await fetch(`${this.config.paymentGateway.apiBase}/api/wishes/force-fulfill`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+        },
+        body: JSON.stringify({
+          wishId: this.state.currentWishId,
+          amount: this.state.selectedAmount,
+          paymentMethod: this.state.selectedMethod
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || '强制删除失败');
+      }
+      
+      this.log('强制删除成功');
+      return true;
+    } catch (error) {
+      throw new Error(`强制删除愿望失败: ${error.message}`);
+    }
+  }
+
+  /* ========== 愿望卡片处理 ========== */
+
+  async safeRemoveWishCard(wishId, retries = 3) {
+    for (let i = 0; i < retries; i++) {
+      try {
+        const card = this.findWishCard(wishId);
+        if (!card) {
+          this.log('未找到愿望卡片，可能已移除');
+          return true;
         }
-        
-        .lunar-date i,
-        .lunar-yiji i {
-            font-size: 0.9em;
+
+        await this.applyRemovalAnimation(card);
+        return true;
+      } catch (error) {
+        this.log(`移除卡片失败 (${i+1}/${retries}): ${error.message}`);
+        await this.delay(500);
+      }
+    }
+    throw new Error('多次尝试移除卡片失败');
+  }
+
+  findWishCard(wishId) {
+    const selectors = [
+      `.wish-card[data-wish-id="${wishId}"]`,
+      `[data-wish-id="${wishId}"]`,
+      `#wish-${wishId}`
+    ];
+    
+    for (const selector of selectors) {
+      const card = document.querySelector(selector);
+      if (card) return card;
+    }
+    return null;
+  }
+
+  applyRemovalAnimation(card) {
+    return new Promise((resolve) => {
+      card.classList.add('wish-card-removing');
+      
+      const onTransitionEnd = () => {
+        card.removeEventListener('transitionend', onTransitionEnd);
+        card.remove();
+        resolve();
+      };
+      
+      card.addEventListener('transitionend', onTransitionEnd);
+      
+      setTimeout(() => {
+        if (card.parentNode) {
+          card.removeEventListener('transitionend', onTransitionEnd);
+          card.remove();
         }
-        
-        @media (max-width: 768px) {
-            .lunar-date-container {
-                flex-direction: column;
-                gap: 8px;
-                align-items: center;
-            }
-            
-            .lunar-yiji {
-                gap: 10px;
-            }
-        }
+        resolve();
+      }, 800);
+    });
+  }
 
-        .energy-chart-label {
-            text-align: center;
-            font-size: 12px;
-            color: #b8c2cc;
-            margin-top: 20px;
-            font-family: 'Noto Serif SC', serif;
-            width: 100%;  /* 确保容器宽度足够 */
-            display: block; /* 确保文本可以居中 */
-        }
+  /* ========== 状态管理 ========== */
 
-/* 用户余额和充值按钮样式 */
-.user-balance {
-    background: rgba(106, 17, 203, 0.1);
-    padding: 10px 15px;
-    border-radius: 8px;
-    border: 1px solid rgba(106, 17, 203, 0.3);
-    color: var(--text-color);
-    font-size: 0.9rem;
-    display: flex;
-    align-items: center;
-    margin-top: 10px;
+  cleanupPaymentState() {
+    localStorage.removeItem('last-payment');
+    localStorage.removeItem('pending-fulfillment');
+    this.resetPaymentState();
+  }
+
+  resetPaymentState() {
+    this.state = {
+      selectedAmount: null,
+      selectedMethod: 'alipay',
+      currentWishId: null,
+      processing: false,
+      statusCheckInterval: null,
+      paymentCompleted: false,
+      lastPayment: null
+    };
+  }
+
+  validatePaymentState() {
+    if (!this.state.selectedAmount) {
+      this.showToast('请选择还愿金额', 'error');
+      return false;
+    }
+    if (!this.state.currentWishId) {
+      this.showToast('无法识别当前愿望', 'error');
+      return false;
+    }
+    return true;
+  }
+
+  updateConfirmButtonState() {
+    const confirmBtn = document.getElementById('confirm-payment-btn');
+    if (confirmBtn) {
+      confirmBtn.disabled = this.state.processing;
+      confirmBtn.innerHTML = this.state.processing 
+        ? '<i class="fas fa-spinner fa-spin" style="margin-right: 8px;"></i> 处理中...' 
+        : `<i class="fas fa-check-circle" style="margin-right: 8px;"></i> 确认支付 ${this.state.selectedAmount}元`;
+    }
+  }
+
+  savePendingFulfillment() {
+    localStorage.setItem('pending-fulfillment', JSON.stringify({
+      wishId: this.state.currentWishId,
+      amount: this.state.selectedAmount,
+      method: this.state.selectedMethod,
+      timestamp: Date.now()
+    }));
+  }
+
+  /* ========== UI 方法 ========== */
+
+  showGuaranteedToast(message, type = 'success') {
+    this.removeAllToasts();
+    
+    const toast = document.createElement('div');
+    toast.className = `wwpay-guaranteed-toast ${type}`;
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      setTimeout(() => toast.remove(), 500);
+    }, 3000);
+    
+    this.log(`[TOAST] ${type}: ${message}`);
+  }
+
+  removeAllToasts() {
+    document.querySelectorAll('.wwpay-toast, .wwpay-guaranteed-toast').forEach(el => {
+      try {
+        el.remove();
+      } catch (e) {
+        this.safeLogError('移除Toast失败', e);
+      }
+    });
+  }
+
+  showFullscreenLoading(message) {
+    this.hideFullscreenLoading();
+    
+    this.loadingElement = document.createElement('div');
+    this.loadingElement.className = 'wwpay-loading';
+    this.loadingElement.innerHTML = `
+      <div class="loader"></div>
+      <p>${message}</p>
+    `;
+    document.body.appendChild(this.loadingElement);
+  }
+
+  hideFullscreenLoading() {
+    if (this.loadingElement) {
+      this.loadingElement.remove();
+      this.loadingElement = null;
+    }
+  }
+
+  showToast(message, type = 'info') {
+    try {
+      this.removeAllToasts();
+      
+      const icon = type === 'success' ? 'check-circle' : 
+                  type === 'error' ? 'exclamation-circle' : 'info-circle';
+      
+      const toast = document.createElement('div');
+      toast.className = `wwpay-toast ${type}`;
+      toast.innerHTML = `
+        <i class="fas fa-${icon}"></i>
+        <span>${message}</span>
+      `;
+      
+      document.body.appendChild(toast);
+      toast.offsetHeight;
+      toast.classList.add('show');
+      
+      setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+      
+    } catch (error) {
+      this.safeLogError('显示Toast失败', error);
+      alert(message);
+    }
+  }
+
+  showPaymentMethods() {
+    try {
+      const oldSection = document.getElementById('payment-methods-section');
+      if (oldSection) oldSection.remove();
+      
+      const methodsHtml = `
+        <div class="payment-methods" id="payment-methods-section">
+          <h4 style="text-align: center; margin-bottom: 20px; color: white;">
+            <i class="fas fa-wallet" style="margin-right: 8px;"></i>选择支付方式
+          </h4>
+          <div class="wwpay-methods-container">
+            ${this.config.paymentMethods.map(method => `
+              <button class="wwpay-method-btn ${method.id === this.state.selectedMethod ? 'active' : ''}" 
+                      data-type="${method.id}" 
+                      style="background: ${method.id === this.state.selectedMethod ? method.activeColor : method.color}; 
+                             color: white;">
+                <i class="${method.icon}"></i>
+                <span class="wwpay-method-name">${method.name}</span>
+                <span class="wwpay-method-hint">${method.hint}</span>
+              </button>
+            `).join('')}
+          </div>
+          <div id="confirm-payment-container" style="margin-top: 20px; text-align: center;">
+            <button id="confirm-payment-btn" disabled>确认支付</button>
+          </div>`;
+      
+      const modal = document.getElementById('fulfillModal');
+      if (modal) {
+        modal.insertAdjacentHTML('beforeend', methodsHtml);
+        this.updateConfirmButtonState();
+      }
+          <div style="text-align: center;">
+            <button id="confirm-payment-btn">
+              <i class="fas fa-check-circle" style="margin-right: 8px;"></i> 
+              确认支付 ${this.state.selectedAmount}元
+            </button>
+          </div>
+        </div>
+      `;
+      
+      const modalContent = document.querySelector('#fulfillModal .modal-content');
+      if (modalContent) {
+        modalContent.insertAdjacentHTML('beforeend', methodsHtml);
+      }
+    } catch (error) {
+      this.safeLogError('支付方式显示失败', error);
+    }
+  }
+
+  /* ========== 工具方法 ========== */
+
+  delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  generateOrderId() {
+    const now = new Date();
+    return `${now.getFullYear()}${(now.getMonth()+1).toString().padStart(2,'0')}${now.getDate().toString().padStart(2,'0')}${now.getHours().toString().padStart(2,'0')}${now.getMinutes().toString().padStart(2,'0')}${now.getSeconds().toString().padStart(2,'0')}${Math.floor(Math.random()*9000)+1000}`;
+  }
+
+  log(...messages) {
+    if (this.config.debug) {
+      console.log('[WWPay]', ...messages);
+    }
+  }
+
+  safeLogError(context, error) {
+    try {
+      console.error(`[WWPay] ${context}:`, error);
+    } catch (e) {
+      console.error('[WWPay] 记录错误失败:', e);
+    }
+  }
+
+  handlePaymentError(error) {
+    this.safeLogError('支付处理失败', error);
+    this.showGuaranteedToast(`支付失败: ${error.message}`, 'error');
+    this.hideFullscreenLoading();
+    this.state.processing = false;
+    this.updateConfirmButtonState();
+  }
+
+  handlePaymentSuccessError(error) {
+    this.safeLogError('支付成功处理异常', error);
+    this.showGuaranteedToast('支付已完成！请手动刷新查看', 'warning');
+    window.location.href = this.config.paymentGateway.successUrl;
+  }
 }
 
-.user-balance i {
-    color: #f1c40f;
-    margin-right: 5px;
+// ========== 全局初始化 ==========
+
+document.addEventListener('DOMContentLoaded', () => {
+  try {
+    // 1. 处理还愿成功通知
+    const urlParams = new URLSearchParams(window.location.search);
+    const wishId = urlParams.get('wish_id');
+    
+    if (urlParams.get('fulfillment_success') === 'true') {
+      showFulfillmentNotification(wishId);
+      
+      // 清理URL参数
+      urlParams.delete('fulfillment_success');
+      urlParams.delete('wish_id');
+      const cleanUrl = `${window.location.pathname}${urlParams.toString() ? '?' + urlParams.toString() : ''}`;
+      window.history.replaceState(null, '', cleanUrl);
+    }
+
+    // 2. 初始化支付系统
+    if (!window.wwPay) {
+      if (typeof CryptoJS === 'undefined') {
+        loadCryptoJS().then(() => {
+          window.wwPay = new WWPay();
+          checkPendingFulfillments();
+        }).catch(console.error);
+      } else {
+        window.wwPay = new WWPay();
+        checkPendingFulfillments();
+      }
+    }
+  } catch (error) {
+    console.error('初始化失败:', error);
+    alert('系统初始化失败，请刷新页面重试');
+  }
+});
+
+function showFulfillmentNotification(wishId) {
+  const notification = document.createElement('div');
+  notification.className = 'fulfillment-notification';
+  notification.innerHTML = `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+    </svg>
+    <span>还愿已成功，愿望 #${wishId} 已被移除</span>
+  `;
+  document.body.appendChild(notification);
+  
+  setTimeout(() => {
+    notification.classList.add('fade-out');
+    setTimeout(() => notification.remove(), 1000);
+  }, 3000);
 }
 
-.recharge-btn {
-    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-    color: white;
-    border: none;
-    padding: 6px 12px;
-    border-radius: 20px;
-    cursor: pointer;
-    font-size: 0.8rem;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    gap: 5px;
+function checkPendingFulfillments() {
+  const pending = localStorage.getItem('pending-fulfillment');
+  if (!pending || !window.wwPay) return;
+
+  try {
+    const data = JSON.parse(pending);
+    window.wwPay.state = {
+      currentWishId: data.wishId,
+      selectedAmount: data.amount,
+      selectedMethod: data.method
+    };
+    
+    window.wwPay.recordFulfillment()
+      .then(() => localStorage.removeItem('pending-fulfillment'))
+      .catch(console.error);
+  } catch (error) {
+    console.error('处理待还愿记录失败:', error);
+    localStorage.removeItem('pending-fulfillment');
+  }
 }
 
-.recharge-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 10px rgba(106, 17, 203, 0.3);
+function loadCryptoJS() {
+  return new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js';
+    script.integrity = 'sha512-E8QSvWZ0eCLGk4km3hxSsNmGWbLtSCSUcewDQPQWZF6pEU8GlT8a5fF32wOl1i8ftdMhssTrF/OhyGWwonTcXA==';
+    script.crossOrigin = 'anonymous';
+    script.onload = resolve;
+    script.onerror = () => reject('加载CryptoJS失败');
+    document.head.appendChild(script);
+  });
 }
 
-/* 充值弹窗样式 */
-.recharge-modal {
-    display: none;
-    position: fixed;
-    z-index: 1000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.7);
-    backdrop-filter: blur(5px);
-}
-
-.recharge-container {
-    background: rgba(20, 40, 80, 0.95);
-    margin: 10% auto;
-    padding: 30px;
-    border: 2px solid #f1c40f;
-    width: 90%;
-    max-width: 500px;
-    border-radius: 10px;
-    box-shadow: 0 10px 30px rgba(106, 17, 203, 0.3);
-}
-
-.recharge-header {
-    text-align: center;
-    margin-bottom: 20px;
-}
-
-.recharge-header h2 {
-    color: #ffffff;
-    margin-bottom: 5px;
-    text-shadow: 0 0 5px rgba(106, 17, 203, 0.8);
-}
-
-.recharge-header p {
-    color: #e0e0e0;
-}
-
-.close-recharge {
-    color: #ffffff;
-    float: right;
-    font-size: 28px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    text-shadow: 0 0 5px rgba(106, 17, 203, 0.8);
-}
-
-.close-recharge:hover {
-    color: #f1c40f;
-}
-
-.recharge-form .form-group {
-    margin-bottom: 20px;
-}
-
-.recharge-form label {
-    display: block;
-    margin-bottom: 8px;
-    color: #ffffff;
-    font-weight: 500;
-}
-
-.recharge-form input[type="number"] {
-    width: 100%;
-    padding: 12px 15px;
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    border-radius: 6px;
-    color: #ffffff;
-    font-family: 'Noto Serif SC', serif;
-    transition: all 0.3s ease;
-}
-
-.recharge-form input[type="number"]:focus {
-    outline: none;
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 2px rgba(106, 17, 203, 0.3);
-}
-
-.payment-methods {
-    display: flex;
-    gap: 15px;
-    margin-top: 15px;
-}
-
-.payment-option {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    cursor: pointer;
-    padding: 15px 20px;
-    border-radius: 6px;
-    transition: all 0.3s ease;
-    text-align: center;
-    min-width: 150px;
-}
-
-.payment-option[for="alipay"] {
-    background: #007AFF !important;
-    border: 2px solid #f1c40f !important;
-    box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.5) !important;
-}
-
-.payment-option[for="wechat"] {
-    background: #09BB07 !important;
-    border: 2px solid #f1c40f !important;
-    box-shadow: 0 0 0 2px rgba(9, 187, 7, 0.5) !important;
-}
-
-.payment-option[for="alipay"]:hover {
-    background: #0066CC;
-    transform: translateY(-3px);
-    border: 2px solid #f8d64e;
-    box-shadow: 0 5px 15px rgba(0, 102, 204, 0.5);
-}
-
-.payment-option[for="wechat"]:hover {
-    background: #07A305;
-    transform: translateY(-3px);
-    border: 2px solid #f8d64e;
-    box-shadow: 0 5px 15px rgba(7, 163, 5, 0.5);
-}
-
-.payment-option i {
-    font-size: 24px;
-    color: #ffffff;
-}
-
-.payment-option input[type="radio"] {
-    margin-right: 5px;
-}
-
-.payment-tag {
-    font-size: 12px;
-    background: rgba(255, 255, 255, 0.2);
-    padding: 2px 6px;
-    border-radius: 4px;
-    margin-top: 5px;
-}
-
-.recharge-form .recharge-btn {
-    width: 100%;
-    padding: 12px;
-    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-    color: white;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 1rem;
-    margin-top: 30px;
-    transition: all 0.3s ease;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.main-page .recharge-btn {
-    width: auto;
-    padding: 12px 30px;
-    margin-left: auto;
-}
-
-.recharge-form .recharge-btn:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 25px rgba(106, 17, 203, 0.4);
-}
-
-.recharge-message {
-    margin-top: 15px;
-    padding: 10px;
-    border-radius: 5px;
-    text-align: center;
-    font-size: 0.9rem;
-}
+// 全局支付方法
+window.startWishPayment = async function(wishId, amount, method = 'alipay') {
+  if (!window.wwPay) {
+    console.error('支付系统未初始化');
+    alert('支付系统正在初始化，请稍后再试');
+    return;
+  }
+  
+  window.wwPay.state = {
+    selectedAmount: amount,
+    selectedMethod: method,
+    currentWishId: wishId,
+    processing: false,
+    statusCheckInterval: null,
+    paymentCompleted: false
+  };
+  
+  try {
+    await window.wwPay.processPayment();
+  } catch (error) {
+    console.error('支付流程出错:', error);
+    window.wwPay.showGuaranteedToast('支付流程出错，请重试', 'error');
+  }
+};
