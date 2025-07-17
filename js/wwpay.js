@@ -1066,10 +1066,13 @@ class WWPay {
       
     const methodsHtml = `
       <div class="payment-methods" id="payment-methods-section">
-        <h4 style="text-align: center; margin-bottom: 20px; color: white;">
+        <!-- 第一行：标题靠左 -->
+        <h4 style="margin-bottom: 20px; color: white;">
           <i class="fas fa-wallet" style="margin-right: 8px;"></i>选择支付方式
         </h4>
-        <div class="wwpay-methods-container" style="text-align: center; margin-bottom: 20px;">
+        
+        <!-- 第二行：支付按钮居中 -->
+        <div style="text-align: center; margin: 20px 0;">
           ${this.config.paymentMethods.map(method => `
             <button class="wwpay-method-btn ${method.id === this.state.selectedMethod ? 'active' : ''}" 
                     data-type="${method.id}" 
@@ -1081,7 +1084,9 @@ class WWPay {
             </button>
           `).join('')}
         </div>
-        <div style="text-align: center;">
+        
+        <!-- 第三行：确认按钮居中 -->
+        <div style="text-align: center; margin-top: 20px;">
           <button id="confirm-payment-btn">
             <i class="fas fa-check-circle" style="margin-right: 8px;"></i> 
             确认支付 ${this.state.selectedAmount}元
