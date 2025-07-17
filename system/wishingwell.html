@@ -13,9 +13,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../css/wwstyle.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="../js/wwpay.js"></script>
-    <script src="../js/lunar.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+    <script src="../js/wwpay.js" defer></script>
+<script src="../js/lunar.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
    
     <script>
       // 配置后端地址（必须修改！）
@@ -23,11 +23,18 @@
       const API_URL = `${API_BASE}/api`;
       
       // 充值功能
-      document.addEventListener('DOMContentLoaded', function() {
-          const rechargeBtn = document.getElementById('rechargeBtn');
-          const rechargeModal = document.getElementById('rechargeModal');
-          const closeRecharge = document.getElementById('closeRecharge');
-          const rechargeForm = document.getElementById('rechargeForm');
+document.addEventListener('DOMContentLoaded', function() {
+    // 确保WWPay类可用
+    if (typeof WWPay === 'undefined') {
+        console.error('WWPay类未定义，请检查wwpay.js是否加载成功');
+        return;
+    }
+    
+    const wwPay = new WWPay();
+    const rechargeBtn = document.getElementById('rechargeBtn');
+    const rechargeModal = document.getElementById('rechargeModal');
+    const closeRecharge = document.getElementById('closeRecharge');
+    const rechargeForm = document.getElementById('rechargeForm');
           
           // 显示充值弹窗
           rechargeBtn.addEventListener('click', function() {
@@ -64,7 +71,7 @@
                   
                   // 3. 显示支付处理中提示
                   rechargeMessage.textContent = '正在跳转支付平台...';
-                  rechargeMessage.style.color = 'blue';
+                  rechargeMessage.style.color = 'white';
                   
               } catch (error) {
                   rechargeMessage.textContent = error.message;
@@ -77,9 +84,13 @@
           
           // 登录成功后显示充值按钮和余额
           if (localStorage.getItem('token')) {
-              rechargeBtn.style.display = 'inline-block';
-              document.getElementById('userBalance').style.display = 'block';
-              document.getElementById('modalBalance').style.display = 'block';
+              // 确保DOM元素存在
+              const userBalanceEl = document.getElementById('userBalance');
+              const modalBalanceEl = document.getElementById('modalBalance');
+              
+              if (rechargeBtn) rechargeBtn.style.display = 'inline-block';
+              if (userBalanceEl) userBalanceEl.style.display = 'block';
+              if (modalBalanceEl) modalBalanceEl.style.display = 'block';
               
               // 获取用户余额并更新显示
               async function updateBalance() {
@@ -99,17 +110,22 @@
                       // 调试日志
                       console.log('用户数据:', data);
                       
+                      const balanceAmountEl = document.getElementById('balanceAmount');
+                      const modalBalanceAmountEl = document.getElementById('modalBalanceAmount');
+                      
                       if (data.balance !== undefined) {
-                          document.getElementById('balanceAmount').textContent = data.balance;
-                          document.getElementById('modalBalanceAmount').textContent = data.balance;
+                          if (balanceAmountEl) balanceAmountEl.textContent = data.balance;
+                          if (modalBalanceAmountEl) modalBalanceAmountEl.textContent = data.balance;
                       } else {
                           console.error('API响应中缺少balance字段');
                       }
                   } catch (error) {
                       console.error('获取余额失败:', error);
                       // 显示错误提示
-                      document.getElementById('balanceAmount').textContent = '获取失败';
-                      document.getElementById('modalBalanceAmount').textContent = '获取失败';
+                      const balanceAmountEl = document.getElementById('balanceAmount');
+                      const modalBalanceAmountEl = document.getElementById('modalBalanceAmount');
+                      if (balanceAmountEl) balanceAmountEl.textContent = '获取失败';
+                      if (modalBalanceAmountEl) modalBalanceAmountEl.textContent = '获取失败';
                   }
               }
               
@@ -150,11 +166,11 @@
                     <div class="payment-methods">
                         <label class="payment-option">
                             <input type="radio" name="paymentMethod" value="alipay" checked>
-                            支付宝
+                            <i class="fab fa-alipay"></i> 支付宝 <span class="payment-tag">全球支付</span>
                         </label>
                         <label class="payment-option">
                             <input type="radio" name="paymentMethod" value="wechat">
-                            微信支付
+                            <i class="fab fa-weixin"></i> 微信支付 <span class="payment-tag">国内支付</span>
                         </label>
                     </div>
                 </div>
@@ -357,6 +373,10 @@
                                     <option value="21-23">亥时 (21:00-23:00)</option>
                                 </select>
                                 <p class="form-hint">请选择您的出生时辰</p>
+                                <div class="user-balance" style="display:none; margin-top:10px;" id="userBalance">
+                                    <i class="fas fa-coins"></i> 当前余额: <span id="balanceAmount">0</span> 元
+                                    <button class="recharge-btn" id="rechargeBtn" style="margin-left:10px;"><i class="fas fa-coins"></i> 充值</button>
+                                </div>
                             </div>
                         </div>
                         
@@ -410,10 +430,7 @@
 
         <!-- 愿望池展示 -->
         <section class="full-width-section">
-            <div class="user-balance" style="display:none; margin-bottom:20px;" id="userBalance">
-                <i class="fas fa-coins"></i> 当前余额: <span id="balanceAmount">0</span> 元
-                <button class="recharge-btn" id="rechargeBtn" style="margin-left:10px;"><i class="fas fa-coins"></i> 充值</button>
-            </div>
+            
             <div class="section-header">
                 <i class="fas fa-water"></i>
                 <h2>愿望池</h2>
@@ -592,12 +609,6 @@
       <div class="modal-content">
         <span class="close-modal">&times;</span>
         <h3><i class="fas fa-hand-holding-heart"></i> 感恩还愿</h3>
-        <!-- 显示当前余额 -->
-        <div class="balance-display" style="text-align: center; margin-bottom: 15px; padding: 8px; background-color: rgba(255, 255, 255, 0.1); border-radius: 5px;">
-          <p style="margin: 0; font-size: 14px;">
-            <i class="fas fa-wallet" style="margin-right: 5px;"></i>当前余额：<span id="modalBalanceAmount">加载中...</span>元
-          </p>
-        </div>
         <p>您的愿望已经实现，请选择还愿金额：</p>
         
         <!-- 金额选择 -->
