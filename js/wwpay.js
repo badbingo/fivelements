@@ -1064,31 +1064,31 @@ class WWPay {
       const oldSection = document.getElementById('payment-methods-section');
       if (oldSection) oldSection.remove();
       
-      const methodsHtml = `
-        <div class="payment-methods" id="payment-methods-section">
-          <h4 style="text-align: center; margin-bottom: 20px; color: white;">
-            <i class="fas fa-wallet" style="margin-right: 8px;"></i>选择支付方式
-          </h4>
-          <div class="wwpay-methods-container">
-            ${this.config.paymentMethods.map(method => `
-              <button class="wwpay-method-btn ${method.id === this.state.selectedMethod ? 'active' : ''}" 
-                      data-type="${method.id}" 
-                      style="background: ${method.id === this.state.selectedMethod ? method.activeColor : method.color}; 
-                             color: white;">
-                <i class="${method.icon}"></i>
-                <span class="wwpay-method-name">${method.name}</span>
-                <span class="wwpay-method-hint">${method.hint}</span>
-              </button>
-            `).join('')}
-          </div>
-          <div style="text-align: center;">
-            <button id="confirm-payment-btn">
-              <i class="fas fa-check-circle" style="margin-right: 8px;"></i> 
-              确认支付 ${this.state.selectedAmount}元
+    const methodsHtml = `
+      <div class="payment-methods" id="payment-methods-section">
+        <h4 style="text-align: center; margin-bottom: 20px; color: white;">
+          <i class="fas fa-wallet" style="margin-right: 8px;"></i>选择支付方式
+        </h4>
+        <div class="wwpay-methods-container" style="text-align: center; margin-bottom: 20px;">
+          ${this.config.paymentMethods.map(method => `
+            <button class="wwpay-method-btn ${method.id === this.state.selectedMethod ? 'active' : ''}" 
+                    data-type="${method.id}" 
+                    style="display: inline-block; margin: 0 10px; background: ${method.id === this.state.selectedMethod ? method.activeColor : method.color}; 
+                           color: white;">
+              <i class="${method.icon}"></i>
+              <span class="wwpay-method-name">${method.name}</span>
+              <span class="wwpay-method-hint">${method.hint}</span>
             </button>
-          </div>
+          `).join('')}
         </div>
-      `;
+        <div style="text-align: center;">
+          <button id="confirm-payment-btn">
+            <i class="fas fa-check-circle" style="margin-right: 8px;"></i> 
+            确认支付 ${this.state.selectedAmount}元
+          </button>
+        </div>
+      </div>
+    `;
       
       const modalContent = document.querySelector('#fulfillModal .modal-content');
       if (modalContent) {
