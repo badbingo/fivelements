@@ -449,21 +449,33 @@ class WWPay {
 
   handlePaymentMethodSelect(buttonElement) {
     try {
+      if (!buttonElement?.dataset?.type) {
+        throw new Error('无效的按钮元素');
+      }
+      
       document.querySelectorAll('.wwpay-method-btn').forEach(btn => {
         const methodId = btn.dataset.type;
         const method = this.config.paymentMethods.find(m => m.id === methodId);
-        btn.style.background = method.color;
-        btn.classList.remove('active');
+        if (method) {
+          btn.style.background = method.color;
+          btn.classList.remove('active');
+        }
       });
       
       const selectedMethod = buttonElement.dataset.type;
       const selectedMethodConfig = this.config.paymentMethods.find(m => m.id === selectedMethod);
+      
+      if (!selectedMethodConfig) {
+        throw new Error('找不到支付方法配置');
+      }
+      
       buttonElement.style.background = selectedMethodConfig.activeColor;
       buttonElement.classList.add('active');
       
       this.state.selectedMethod = selectedMethod;
     } catch (error) {
       this.safeLogError('选择支付方式失败', error);
+      this.showToast('选择支付方式失败，请重试', 'error');
     }
   }
 
@@ -1061,52 +1073,56 @@ class WWPay {
 
   async showPaymentMethods() {
     try {
-      const oldSection = document.getElementById('payment-methods-section');
-      if (oldSection) oldSection.remove();
+      // 清除所有现有的支付选项
+      const existingSections = document.querySelectorAll('#payment-methods-section');
+      existingSections.forEach(section => section.remove());
       
       // 获取当前用户余额
       const balance = await this.getUserBalance();
       const showBalanceOption = balance >= this.state.selectedAmount;
       
-      const methodsHtml = `
-        <div class="payment-methods" id="payment-methods-section">
-          <h4 style="text-align: center; margin-bottom: 20px; color: white;">
-            <i class="fas fa-wallet" style="margin-right: 8px;"></i>选择支付方式
-          </h4>
-          <div class="wwpay-methods-container">
-            ${showBalanceOption ? `
-              <button class="wwpay-method-btn ${'balance' === this.state.selectedMethod ? 'active' : ''}" 
-                      data-type="balance" 
-                      style="background: ${'balance' === this.state.selectedMethod ? '#4CAF50' : '#8BC34A'}; 
-                             color: white;">
-                <i class="fas fa-wallet"></i>
-                <span class="wwpay-method-name">使用余额</span>
-                <span class="wwpay-method-hint">当前余额: ${balance}元</span>
+      // 确保只生成一次支付选项
+      if (!document.getElementById('payment-methods-section')) {
+        const methodsHtml = `
+          <div class="payment-methods" id="payment-methods-section">
+            <h4 style="text-align: center; margin-bottom: 20px; color: white;">
+              <i class="fas fa-wallet" style="margin-right: 8px;"></i>选择支付方式
+            </h4>
+            <div class="wwpay-methods-container">
+              ${showBalanceOption ? `
+                <button class="wwpay-method-btn ${'balance' === this.state.selectedMethod ? 'active' : ''}" 
+                        data-type="balance" 
+                        style="background: ${'balance' === this.state.selectedMethod ? '#4CAF50' : '#8BC34A'}; 
+                               color: white;">
+                  <i class="fas fa-wallet"></i>
+                  <span class="wwpay-method-name">使用余额</span>
+                  <span class="wwpay-method-hint">当前余额: ${balance}元</span>
+                </button>
+              ` : ''}
+              ${this.config.paymentMethods.map(method => `
+                <button class="wwpay-method-btn ${method.id === this.state.selectedMethod ? 'active' : ''}" 
+                        data-type="${method.id}" 
+                        style="background: ${method.id === this.state.selectedMethod ? method.activeColor : method.color}; 
+                               color: white;">
+                  <i class="${method.icon}"></i>
+                  <span class="wwpay-method-name">${method.name}</span>
+                  <span class="wwpay-method-hint">${method.hint}</span>
+                </button>
+              `).join('')}
+            </div>
+            <div style="text-align: center;">
+              <button id="confirm-payment-btn">
+                <i class="fas fa-check-circle" style="margin-right: 8px;"></i> 
+                确认支付 ${this.state.selectedAmount}元
               </button>
-            ` : ''}
-            ${this.config.paymentMethods.map(method => `
-              <button class="wwpay-method-btn ${method.id === this.state.selectedMethod ? 'active' : ''}" 
-                      data-type="${method.id}" 
-                      style="background: ${method.id === this.state.selectedMethod ? method.activeColor : method.color}; 
-                             color: white;">
-                <i class="${method.icon}"></i>
-                <span class="wwpay-method-name">${method.name}</span>
-                <span class="wwpay-method-hint">${method.hint}</span>
-              </button>
-            `).join('')}
+            </div>
           </div>
-          <div style="text-align: center;">
-            <button id="confirm-payment-btn">
-              <i class="fas fa-check-circle" style="margin-right: 8px;"></i> 
-              确认支付 ${this.state.selectedAmount}元
-            </button>
-          </div>
-        </div>
-      `;
-      
-      const modalContent = document.querySelector('#fulfillModal .modal-content');
-      if (modalContent) {
-        modalContent.insertAdjacentHTML('beforeend', methodsHtml);
+        `;
+        
+        const modalContent = document.querySelector('#fulfillModal .modal-content');
+        if (modalContent) {
+          modalContent.insertAdjacentHTML('beforeend', methodsHtml);
+        }
       }
     } catch (error) {
       this.safeLogError('支付方式显示失败', error);
