@@ -18,7 +18,6 @@ class WWPay {
     this.generateSignature = this.generateSignature.bind(this);
     this.cleanupPaymentState = this.cleanupPaymentState.bind(this);
     this.processRecharge = this.processRecharge.bind(this);
-    this.processBalancePayment = this.processBalancePayment.bind(this);
 
     // 系统配置
     this.config = {
@@ -34,14 +33,6 @@ class WWPay {
         retryDelay: 1000
       },
       paymentMethods: [
-        {
-          id: 'balance',
-          name: '账户余额',
-          icon: 'fas fa-wallet',
-          color: '#9c27b0',
-          activeColor: '#7b1fa2',
-          hint: '使用账户余额支付'
-        },
         {
           id: 'alipay',
           name: '支付宝',
@@ -479,67 +470,28 @@ class WWPay {
   /* ========== 核心支付方法 ========== */
 
   async processPayment() {
-    if (!this.validatePaymentState() || this.state.processing) return;
+    if (!this.validatePaymentState()) return;
 
     try {
       this.state.processing = true;
       this.updateConfirmButtonState();
       this.showFullscreenLoading('正在准备支付...');
       
-      // 生成唯一请求ID防止重复
-      const requestId = Date.now().toString(36) + Math.random().toString(36).substr(2);
       this.state.lastPayment = {
         wishId: this.state.currentWishId,
         amount: this.state.selectedAmount,
         method: this.state.selectedMethod,
-        timestamp: Date.now(),
-        requestId: requestId
+        timestamp: Date.now()
       };
       localStorage.setItem('last-payment', JSON.stringify(this.state.lastPayment));
 
-      // 根据支付方式选择处理流程
-      if (this.state.selectedMethod === 'balance') {
-        await this.processBalancePayment();
-      } else {
-        const result = await this.createPaymentOrder();
-        if (result.success) {
-          this.startPaymentStatusCheck();
-        }
+      const result = await this.createPaymentOrder();
+      
+      if (result.success) {
+        this.startPaymentStatusCheck();
       }
     } catch (error) {
       this.handlePaymentError(error);
-    }
-  }
-  
-  async processBalancePayment() {
-    try {
-      const response = await fetch(`${this.config.paymentGateway.apiBase}/api/wishes/balance-fulfill`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'X-Request-ID': this.state.lastPayment.requestId
-        },
-        body: JSON.stringify({
-          wishId: this.state.currentWishId,
-          amount: this.state.selectedAmount
-        })
-      });
-      
-      if (!response.ok) {
-        throw new Error(await response.text());
-      }
-      
-      const data = await response.json();
-      
-      if (data.success) {
-        this.showGuaranteedToast('还愿成功！余额已扣除', 'success');
-        this.prepareSuccessRedirect();
-      } else {
-        throw new Error(data.message || '余额支付失败');
-      }
-    } catch (error) {
-      throw new Error(`余额支付失败: ${error.message}`);
     }
   }
 
@@ -1129,18 +1081,21 @@ class WWPay {
               </button>
             `).join('')}
           </div>
-          <div id="confirm-payment-container" style="margin-top: 20px; text-align: center;">
-            <button id="confirm-payment-btn" disabled>确认支付 ${this.state.selectedAmount}元</button>
+          <div style="text-align: center;">
+            <button id="confirm-payment-btn">
+              <i class="fas fa-check-circle" style="margin-right: 8px;"></i> 
+              确认支付 ${this.state.selectedAmount}元
+            </button>
           </div>
-        </div>`;
+        </div>
+      `;
       
-      const modal = document.getElementById('fulfillModal');
-      if (modal) {
-        modal.insertAdjacentHTML('beforeend', methodsHtml);
-        this.updateConfirmButtonState();
+      const modalContent = document.querySelector('#fulfillModal .modal-content');
+      if (modalContent) {
+        modalContent.insertAdjacentHTML('beforeend', methodsHtml);
       }
     } catch (error) {
-      this.safeLogError('显示支付方式失败', error);
+      this.safeLogError('支付方式显示失败', error);
     }
   }
 
