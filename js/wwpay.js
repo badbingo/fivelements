@@ -617,17 +617,22 @@ class WWPay {
         }).catch(error => {
           // 处理网络错误
           if (error.name === 'AbortError') {
+            console.error('[WWPay] 获取余额超时:', error);
             throw new Error('获取余额超时，服务器响应时间过长');
           } else if (!navigator.onLine) {
+            console.error('[WWPay] 网络连接已断开:', error);
             throw new Error('网络连接已断开，请检查您的网络设置');
           } else if (error.message && error.message.includes('NetworkError')) {
             // 特别处理 NetworkError 类型的错误
+            console.error('[WWPay] 网络请求失败:', error);
             throw new Error('网络请求失败，请检查网络连接');
           } else if (error.message && (error.message.includes('CORS') || error.message.includes('cross-origin'))) {
             // 处理CORS错误
+            console.error('[WWPay] CORS错误:', error);
             throw new Error('跨域请求被阻止，请联系管理员');
           } else if (error.message && error.message.includes('Failed to fetch')) {
             // 处理fetch失败错误
+            console.error('[WWPay] 无法连接到服务器:', error);
             throw new Error('无法连接到服务器，请稍后再试');
           } else {
             // 记录详细错误信息到控制台
