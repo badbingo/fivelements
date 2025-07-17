@@ -147,6 +147,9 @@
     </div>
 
     <script>
+        // API基础URL
+        const API_URL = 'https://bazi-backend.owenjass.workers.dev/api';
+        
         // 从URL获取订单信息
         const urlParams = new URLSearchParams(window.location.search);
         const orderId = urlParams.get('orderId');
@@ -165,16 +168,33 @@
                     return null;
                 }
                 
-                const response = await fetch('/api/user/balance', {
+                // 添加随机参数防止缓存
+                const cacheBuster = `?_=${Date.now()}`;
+                const response = await fetch(`${API_URL}/users/balance${cacheBuster}`, {
                     headers: {
-                        'Authorization': `Bearer ${token}`
+                        'Authorization': `Bearer ${token}`,
+                        'Cache-Control': 'no-cache, no-store, must-revalidate',
+                        'Pragma': 'no-cache',
+                        'Expires': '0'
                     }
                 });
                 
-                if (!response.ok) throw new Error('获取余额失败');
+                if (!response.ok) {
+                    const errorText = await response.text().catch(() => '无错误详情');
+                    console.error('获取余额失败:', response.status, errorText);
+                    throw new Error(`获取余额失败 (${response.status})`);
+                }
                 
                 const data = await response.json();
-                return data.balance || 0;
+                
+                // 验证响应数据格式
+                if (data.balance === undefined) {
+                    console.error('API响应中缺少balance字段:', data);
+                    throw new Error('API响应中缺少余额信息');
+                }
+                
+                // 确保余额是数字类型
+                return typeof data.balance === 'number' ? data.balance : parseFloat(data.balance) || 0;
             } catch (error) {
                 console.error('获取余额错误:', error);
                 return null;
@@ -183,13 +203,30 @@
         
         // 更新余额显示
         async function updateBalanceDisplay() {
-            const balance = await getCurrentBalance();
-            const balanceElement = document.getElementById('currentBalance');
-            
-            if (balance !== null) {
-                balanceElement.textContent = balance.toFixed(2);
-            } else {
-                balanceElement.textContent = '获取失败';
+            try {
+                const balance = await getCurrentBalance();
+                const balanceElement = document.getElementById('currentBalance');
+                
+                if (balance !== null) {
+                    balanceElement.textContent = balance.toFixed(2);
+                    balanceElement.style.color = ''; // 恢复默认颜色
+                    balanceElement.removeAttribute('title'); // 移除可能的错误提示
+                } else {
+                    balanceElement.textContent = '获取失败';
+                    balanceElement.style.color = '#dc3545'; // 红色错误提示
+                    balanceElement.title = '无法获取余额信息，请刷新页面重试';
+                }
+            } catch (error) {
+                console.error('更新余额显示失败:', error);
+                const balanceElement = document.getElementById('currentBalance');
+                if (balanceElement) {
+                    balanceElement.textContent = '获取失败';
+                    balanceElement.style.color = '#dc3545'; // 红色错误提示
+                    balanceElement.title = `错误: ${error.message}`; // 添加错误详情提示
+                }
+                
+                // 5秒后自动重试
+                setTimeout(updateBalanceDisplay, 5000);
             }
         }
         
@@ -206,11 +243,17 @@
             try {
               statusElement.innerHTML = `处理中${retryCount > 0 ? `(第${retryCount}次重试)` : ''} <span class="loader"></span>`;
               
-              const response = await fetch(`/api/recharge/complete?orderId=${orderId}`, {
+              // 添加随机参数防止缓存
+              const cacheBuster = `&_=${Date.now()}`;
+              const response = await fetch(`${API_URL}/recharge/complete?orderId=${orderId}${cacheBuster}`, {
                 headers: {
                   'Authorization': `Bearer ${localStorage.getItem('token')}`,
-                  'Accept': 'application/json'
-                }
+                  'Accept': 'application/json',
+                  'Cache-Control': 'no-cache, no-store, must-revalidate',
+                  'Pragma': 'no-cache',
+                  'Expires': '0'
+                },
+                timeout: 15000 // 15秒超时
               });
           
               // 检查响应类型
@@ -236,12 +279,12 @@
               // 增强错误处理
               let errorMessage = '处理失败';
               if (error.message.includes('JSON')) {
-                errorMessage = '服务器返回数据';
+                errorMessage = '服务器返回数据异常';
               } else if (error.message.includes('Network')) {
                 errorMessage = '网络连接失败';
               }
               
-              statusElement.textContent = `${errorMessage}${retryCount < maxRetries ? '，正在验证...' : ''}`;
+              statusElement.textContent = `${errorMessage}${retryCount < maxRetries ? '，正在重试...' : ''}`;
               console.error('完整错误:', error);
               
               if (retryCount < maxRetries) {
