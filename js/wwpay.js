@@ -18,6 +18,7 @@ class WWPay {
     this.generateSignature = this.generateSignature.bind(this);
     this.cleanupPaymentState = this.cleanupPaymentState.bind(this);
     this.processRecharge = this.processRecharge.bind(this);
+    this.processBalancePayment = this.processBalancePayment.bind(this);
 
     // 系统配置
     this.config = {
@@ -33,6 +34,14 @@ class WWPay {
         retryDelay: 1000
       },
       paymentMethods: [
+        {
+          id: 'balance',
+          name: '账户余额',
+          icon: 'fas fa-wallet',
+          color: '#9c27b0',
+          activeColor: '#7b1fa2',
+          hint: '使用账户余额支付'
+        },
         {
           id: 'alipay',
           name: '支付宝',
@@ -485,13 +494,48 @@ class WWPay {
       };
       localStorage.setItem('last-payment', JSON.stringify(this.state.lastPayment));
 
-      const result = await this.createPaymentOrder();
-      
-      if (result.success) {
-        this.startPaymentStatusCheck();
+      // 根据支付方式选择处理流程
+      if (this.state.selectedMethod === 'balance') {
+        await this.processBalancePayment();
+      } else {
+        const result = await this.createPaymentOrder();
+        if (result.success) {
+          this.startPaymentStatusCheck();
+        }
       }
     } catch (error) {
       this.handlePaymentError(error);
+    }
+  }
+  
+  async processBalancePayment() {
+    try {
+      const response = await fetch(`${this.config.paymentGateway.apiBase}/api/wishes/balance-fulfill`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          wishId: this.state.currentWishId,
+          amount: this.state.selectedAmount
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error(await response.text());
+      }
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        this.showGuaranteedToast('还愿成功！余额已扣除', 'success');
+        this.prepareSuccessRedirect();
+      } else {
+        throw new Error(data.message || '余额支付失败');
+      }
+    } catch (error) {
+      throw new Error(`余额支付失败: ${error.message}`);
     }
   }
 
