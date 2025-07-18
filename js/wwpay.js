@@ -1,5 +1,5 @@
 /**
- * 命缘池支付系统 - 完整修复版 v10.3
+ * 命缘池支付系统 - 完整修复版 v10.2
  * 修复问题：
  * 1. 修复所有语法错误
  * 2. 增强错误处理
@@ -33,23 +33,31 @@ class WWPay {
         retryDelay: 1000
       },
       paymentMethods: [
-        {
-          id: 'alipay',
-          name: '支付宝',
-          icon: 'fab fa-alipay',
-          color: '#1677ff',
-          activeColor: '#1268d9',
-          hint: '全球支付'
-        },
-        {
-          id: 'wxpay', 
-          name: '微信支付',
-          icon: 'fab fa-weixin',
-          color: '#09bb07',
-          activeColor: '#07a807',
-          hint: '国内支付'
-        }
-      ],
+    {
+      id: 'alipay',
+      name: '支付宝',
+      icon: 'fab fa-alipay',
+      color: '#1677ff',
+      activeColor: '#1268d9',
+      hint: '全球支付'
+    },
+    {
+      id: 'wxpay', 
+      name: '微信支付',
+      icon: 'fab fa-weixin',
+      color: '#09bb07',
+      activeColor: '#07a807',
+      hint: '国内支付'
+    },
+    {
+      id: 'balance',
+      name: '余额支付',
+      icon: 'fas fa-wallet',
+      color: '#6c757d',
+      activeColor: '#495057',
+      hint: '账户余额'
+    }
+  ],
       debug: true
     };
 
@@ -475,6 +483,20 @@ class WWPay {
     try {
       this.state.processing = true;
       this.updateConfirmButtonState();
+      
+      // 如果是余额支付，先检查余额
+      if (this.state.selectedMethod === 'balance') {
+        this.showFullscreenLoading('正在检查账户余额...');
+        const balanceCheck = await this.checkUserBalance(this.state.selectedAmount);
+        if (!balanceCheck.success) {
+          this.showToast(balanceCheck.message || '余额不足，请选择其他支付方式', 'error');
+          this.state.processing = false;
+          this.updateConfirmButtonState();
+          this.hideFullscreenLoading();
+          return;
+        }
+      }
+      
       this.showFullscreenLoading('正在准备支付...');
       
       this.state.lastPayment = {
@@ -498,6 +520,17 @@ class WWPay {
   async createPaymentOrder() {
     try {
       const orderId = this.generateOrderId();
+      
+      // 如果是余额支付，直接扣款
+      if (this.state.selectedMethod === 'balance') {
+        const paymentResult = await this.processBalancePayment(this.state.selectedAmount, this.state.currentWishId);
+        if (paymentResult.success) {
+          this.handlePaymentSuccess();
+          return { success: true, orderId: 'balance-' + Date.now() };
+        } else {
+          throw new Error(paymentResult.message || '余额支付失败');
+        }
+      }
       
       // 异步记录还愿
       this.recordFulfillment().catch(error => {
@@ -661,6 +694,69 @@ class WWPay {
     }
   }
 
+  /* ========== 余额相关方法 ========== */
+  
+  async checkUserBalance(amount) {
+    try {
+      const response = await fetch(`${this.config.paymentGateway.apiBase}/api/user/balance/check`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ amount })
+      });
+      
+      if (!response.ok) {
+        throw new Error(await response.text());
+      }
+      
+      return await response.json();
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error(await response.text());
+      }
+      
+      return response.json();
+    } catch (error) {
+      this.logError('余额检查失败', error);
+      return { success: false, message: error.message };
+    }
+  }
+  
+  async processBalancePayment(amount, wishId) {
+    try {
+      const response = await fetch(`${this.config.paymentGateway.apiBase}/api/user/balance/pay`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ amount, wishId })
+      });
+      
+      if (!response.ok) {
+        throw new Error(await response.text());
+      }
+      
+      return await response.json();,
+          wishId: wishId
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error(await response.text());
+      }
+      
+      return response.json();
+    } catch (error) {
+      this.logError('余额支付失败', error);
+      return { success: false, message: error.message };
+    }
+  }
+  
   /* ========== 支付成功处理 ========== */
 
   async handlePaymentSuccess() {
@@ -1065,29 +1161,29 @@ class WWPay {
       if (oldSection) oldSection.remove();
       
     const methodsHtml = `
-      <div class="payment-methods" id="payment-methods-section" style="display: flex; flex-direction: column; gap: 20px;">
-        <!-- 第一层：标题（靠左） -->
-        <h4 style="color: white; margin: 0;">
+      <div class="payment-methods" id="payment-methods-section">
+        <!-- 第一行：标题靠左 -->
+        <h4 style="margin-bottom: 20px; color: white;">
           <i class="fas fa-wallet" style="margin-right: 8px;"></i>选择支付方式
         </h4>
-    
-        <!-- 第二层：支付按钮（居中） -->
-        <div style="display: flex; justify-content: center; gap: 15px;">
+        
+        <!-- 第二行：支付按钮居中 -->
+        <div style="text-align: center; margin: 20px 0;">
           ${this.config.paymentMethods.map(method => `
             <button class="wwpay-method-btn ${method.id === this.state.selectedMethod ? 'active' : ''}" 
                     data-type="${method.id}" 
-                    style="background: ${method.id === this.state.selectedMethod ? method.activeColor : method.color}; 
-                           color: white; padding: 10px 20px; border: none; border-radius: 5px;">
+                    style="display: inline-block; margin: 0 10px; background: ${method.id === this.state.selectedMethod ? method.activeColor : method.color}; 
+                           color: white;">
               <i class="${method.icon}"></i>
               <span class="wwpay-method-name">${method.name}</span>
               <span class="wwpay-method-hint">${method.hint}</span>
             </button>
           `).join('')}
         </div>
-    
-        <!-- 第三层：确认按钮（居中） -->
-        <div style="display: flex; justify-content: center;">
-          <button id="confirm-payment-btn" style="padding: 10px 30px; background: #1890ff; color: white; border: none; border-radius: 5px;">
+        
+        <!-- 第三行：确认按钮居中 -->
+        <div style="text-align: center; margin-top: 20px;">
+          <button id="confirm-payment-btn">
             <i class="fas fa-check-circle" style="margin-right: 8px;"></i> 
             确认支付 ${this.state.selectedAmount}元
           </button>
