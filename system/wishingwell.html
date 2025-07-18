@@ -71,7 +71,7 @@ document.addEventListener('DOMContentLoaded', function() {
                   
                   // 3. 显示支付处理中提示
                   rechargeMessage.textContent = '正在跳转支付平台...';
-                  rechargeMessage.style.color = 'white';
+                  rechargeMessage.style.color = 'blue';
                   
               } catch (error) {
                   rechargeMessage.textContent = error.message;
@@ -166,11 +166,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="payment-methods">
                         <label class="payment-option">
                             <input type="radio" name="paymentMethod" value="alipay" checked>
-                            <i class="fab fa-alipay"></i> 支付宝 <span class="payment-tag">全球支付</span>
+                            支付宝
                         </label>
                         <label class="payment-option">
                             <input type="radio" name="paymentMethod" value="wechat">
-                            <i class="fab fa-weixin"></i> 微信支付 <span class="payment-tag">国内支付</span>
+                            微信支付
                         </label>
                     </div>
                 </div>
@@ -192,6 +192,10 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="auth-header">
                 <h2><i class="fas fa-user-circle"></i> 命缘池</h2>
                 <p>登录或注册以管理您的愿望</p>
+            </div>
+            <div class="user-balance" style="display:none; margin:15px 0;" id="modalBalance">
+                <i class="fas fa-coins"></i> 当前余额: <span id="modalBalanceAmount">0</span> 元
+                <button class="recharge-btn" id="modalRechargeBtn" style="margin-left:10px;"><i class="fas fa-coins"></i> 充值</button>
             </div>
             
             <div class="auth-tabs">
@@ -369,10 +373,6 @@ document.addEventListener('DOMContentLoaded', function() {
                                     <option value="21-23">亥时 (21:00-23:00)</option>
                                 </select>
                                 <p class="form-hint">请选择您的出生时辰</p>
-                                <div class="user-balance" style="display:none; margin-top:10px;" id="userBalance">
-                                    <i class="fas fa-coins"></i> 当前余额: <span id="balanceAmount">0</span> 元
-                                    <button class="recharge-btn" id="rechargeBtn" style="margin-left:10px;"><i class="fas fa-coins"></i> 充值</button>
-                                </div>
                             </div>
                         </div>
                         
@@ -426,7 +426,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
         <!-- 愿望池展示 -->
         <section class="full-width-section">
-            
+            <div class="user-balance" style="display:none; margin-bottom:20px;" id="userBalance">
+                <i class="fas fa-coins"></i> 当前余额: <span id="balanceAmount">0</span> 元
+                <button class="recharge-btn" id="rechargeBtn" style="margin-left:10px;"><i class="fas fa-coins"></i> 充值</button>
+            </div>
             <div class="section-header">
                 <i class="fas fa-water"></i>
                 <h2>愿望池</h2>
@@ -606,6 +609,9 @@ document.addEventListener('DOMContentLoaded', function() {
         <span class="close-modal">&times;</span>
         <h3><i class="fas fa-hand-holding-heart"></i> 感恩还愿</h3>
         <p>您的愿望已经实现，请选择还愿金额：</p>
+        <div class="modal-balance" style="margin-bottom:15px;">
+            <i class="fas fa-coins"></i> 当前余额: <span id="modalBalanceAmount">0</span> 元
+        </div>
         
         <!-- 金额选择 -->
         <div class="fulfill-options">
@@ -1740,6 +1746,9 @@ document.addEventListener('DOMContentLoaded', function() {
             
             modal.dataset.wishId = wish.id;
             modal.style.display = 'block';
+            
+            // 打开还愿弹窗时更新余额显示
+            updateBalance();
         
             if (window.wwPay) {
                 window.wwPay.resetPaymentState();
