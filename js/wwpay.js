@@ -640,10 +640,7 @@ class WWPay {
             'Authorization': `Bearer ${token}`,
             'Cache-Control': 'no-cache, no-store'
           },
-          signal: controller.signal,
-          credentials: 'omit',
-          mode: 'no-cors',
-          redirect: 'follow'
+          signal: controller.signal
         }).catch(error => {
           // 处理网络错误
           if (error.name === 'AbortError') {
@@ -673,26 +670,16 @@ class WWPay {
         
         clearTimeout(timeoutId);
         
-        // 由于使用 no-cors 模式无法获取真实余额，这里使用固定值21元作为当前余额
-        let data = { balance: 21 };
-        
-        // 处理 no-cors 模式下的不透明响应
-        try {
-          // 在 no-cors 模式下，response.type 将是 'opaque'
-          if (response.type === 'opaque') {
-            // 由于无法读取响应内容，我们使用固定的余额值
-            console.log('[WWPay] 使用 no-cors 模式，无法读取响应内容，使用固定余额值21元');
-          } else {
-            if (!response.ok) {
-              throw new Error(`获取余额失败 (${response.status})`);
-            }
-            
-            data = await response.json();
-          }
-        } catch (parseError) {
-          console.error('[WWPay] 解析响应失败:', parseError);
-          // 使用默认值继续
+        // 处理响应
+        if (!response.ok) {
+          throw new Error(`获取余额失败 (${response.status})`);
         }
+        
+        // 解析响应获取真实余额
+        const data = await response.json().catch(parseError => {
+          console.error('[WWPay] 解析响应失败:', parseError);
+          throw new Error('解析余额数据失败');
+        });
         
         this.state.balance = data.balance;
         
@@ -847,11 +834,7 @@ class WWPay {
           'Cache-Control': 'no-cache, no-store'
         },
         body: JSON.stringify(requestData),
-        signal: controller.signal,
-        // 修改跨域请求配置
-        credentials: 'omit',
-        mode: 'no-cors',
-        redirect: 'follow'
+        signal: controller.signal
       }).catch(error => {
         // 处理网络级别错误
         if (error.name === 'AbortError') {
@@ -866,48 +849,25 @@ class WWPay {
       // 清除超时定时器
       clearTimeout(timeoutId);
       
-      // 默认结果
-      let result = {
-        success: true,
-        message: '支付成功',
-        newBalance: this.state.balance - this.state.selectedAmount
-      };
-      
-      // 处理 no-cors 模式下的不透明响应
-      try {
-        // 在 no-cors 模式下，response.type 将是 'opaque'
-        if (response.type === 'opaque') {
-          // 由于无法读取响应内容，我们假设请求成功
-          console.log('[WWPay] 使用 no-cors 模式，无法读取响应内容，使用固定余额值');
-          // 计算新的余额（从固定值21减去支付金额）
-          result.newBalance = 21 - this.state.selectedAmount;
-          console.log(`[WWPay] 支付金额: ${this.state.selectedAmount}, 新余额: ${result.newBalance}`);
-        } else {
-          // 处理HTTP错误
-          if (!response.ok) {
-            const errorText = await response.text();
-            let errorMessage = '余额支付失败';
-            try {
-              const errorData = JSON.parse(errorText);
-              errorMessage = errorData.message || errorData.error || errorMessage;
-            } catch (e) {
-              // 如果解析JSON失败，使用HTTP状态码提示
-              errorMessage = `余额支付失败 (${response.status})`;
-            }
-            throw new Error(errorMessage);
-          }
-          
-          // 解析响应数据
-          result = await response.json();
+      // 处理HTTP错误
+      if (!response.ok) {
+        const errorText = await response.text();
+        let errorMessage = '余额支付失败';
+        try {
+          const errorData = JSON.parse(errorText);
+          errorMessage = errorData.message || errorData.error || errorMessage;
+        } catch (e) {
+          // 如果解析JSON失败，使用HTTP状态码提示
+          errorMessage = `余额支付失败 (${response.status})`;
         }
-      } catch (error) {
-        if (error.message.includes('解析支付结果失败')) {
-          // 使用默认结果继续
-          console.error('[WWPay] 解析响应失败:', error);
-        } else {
-          throw error;
-        }
+        throw new Error(errorMessage);
       }
+      
+      // 解析响应数据
+      const result = await response.json().catch(error => {
+        console.error('[WWPay] 解析支付结果失败:', error);
+        throw new Error('解析支付结果失败');
+      });
       
       // 验证响应数据
       if (!result.success) {
