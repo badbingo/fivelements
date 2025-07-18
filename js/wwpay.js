@@ -48,6 +48,14 @@ class WWPay {
           color: '#09bb07',
           activeColor: '#07a807',
           hint: '国内支付'
+        },
+        {
+          id: 'balance',
+          name: '余额支付',
+          icon: 'fas fa-wallet',
+          color: '#ff9500',
+          activeColor: '#e68a00',
+          hint: '账户余额'
         }
       ],
       debug: true
@@ -485,6 +493,31 @@ class WWPay {
       };
       localStorage.setItem('last-payment', JSON.stringify(this.state.lastPayment));
 
+      // 余额支付处理
+      if (this.state.selectedMethod === 'balance') {
+        const response = await fetch(`${this.config.paymentGateway.apiBase}/api/payments/balance`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+          body: JSON.stringify({
+            wishId: this.state.currentWishId,
+            amount: this.state.selectedAmount
+          })
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || '余额支付失败');
+        }
+        
+        const data = await response.json();
+        this.handlePaymentSuccess();
+        return { success: true };
+      }
+      
+      // 其他支付方式
       const result = await this.createPaymentOrder();
       
       if (result.success) {
