@@ -110,12 +110,16 @@ class WWPay {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Cache-Control': 'no-cache, no-store'
         },
         body: JSON.stringify({
           orderId,
           amount
-        })
+        }),
+        credentials: 'same-origin',
+        mode: 'cors',
+        redirect: 'follow'
       });
       
       if (!response.ok) {
@@ -136,12 +140,16 @@ class WWPay {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        'Cache-Control': 'no-cache, no-store'
       },
       body: JSON.stringify({
         amount: parseFloat(amount),
         paymentMethod: method
-      })
+      }),
+      credentials: 'same-origin',
+      mode: 'cors',
+      redirect: 'follow'
     });
     
     if (!response.ok) {
@@ -613,7 +621,10 @@ class WWPay {
             'Authorization': `Bearer ${token}`,
             'Cache-Control': 'no-cache, no-store'
           },
-          signal: controller.signal
+          signal: controller.signal,
+          credentials: 'same-origin',
+          mode: 'cors',
+          redirect: 'follow'
         }).catch(error => {
           // 处理网络错误
           if (error.name === 'AbortError') {
@@ -803,7 +814,7 @@ class WWPay {
         body: JSON.stringify(requestData),
         signal: controller.signal,
         // 修改跨域请求配置
-        credentials: 'include',
+        credentials: 'same-origin',
         mode: 'cors',
         redirect: 'follow'
       }).catch(error => {
@@ -1109,8 +1120,12 @@ class WWPay {
         `${this.config.paymentGateway.apiBase}/api/payments/status?wishId=${this.state.currentWishId}`,
         {
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
-          }
+            'Authorization': `Bearer ${localStorage.getItem('token') || ''}`,
+            'Cache-Control': 'no-cache, no-store'
+          },
+          credentials: 'same-origin',
+          mode: 'cors',
+          redirect: 'follow'
         }
       );
       
@@ -1261,9 +1276,13 @@ class WWPay {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+          'Authorization': `Bearer ${localStorage.getItem('token') || ''}`,
+          'Cache-Control': 'no-cache, no-store'
         },
-        body: JSON.stringify(requestData)
+        body: JSON.stringify(requestData),
+        credentials: 'same-origin',
+        mode: 'cors',
+        redirect: 'follow'
       });
       
       // 处理HTTP响应
@@ -1325,13 +1344,17 @@ class WWPay {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+          'Authorization': `Bearer ${localStorage.getItem('token') || ''}`,
+          'Cache-Control': 'no-cache, no-store'
         },
         body: JSON.stringify({
           wishId: this.state.currentWishId,
           amount: this.state.selectedAmount,
           paymentMethod: this.state.selectedMethod
-        })
+        }),
+        credentials: 'same-origin',
+        mode: 'cors',
+        redirect: 'follow'
       });
       
       const data = await response.json();
