@@ -107,6 +107,10 @@ class WWPay {
   async verifyPayment(orderId, amount) {
     try {
       const response = await fetch(`${this.config.paymentGateway.apiBase}/api/recharge/verify`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            'Cache-Control': 'no-cache, no-store'
+          },
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -137,20 +141,24 @@ class WWPay {
 
   async createRechargeOrder(amount, method) {
     const response = await fetch(`${this.config.paymentGateway.apiBase}/api/recharge/orders`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        'Cache-Control': 'no-cache, no-store'
-      },
-      body: JSON.stringify({
-        amount: parseFloat(amount),
-        paymentMethod: method
-      }),
-      credentials: 'omit',
-      mode: 'no-cors',
-      redirect: 'follow'
-    });
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            'Cache-Control': 'no-cache, no-store'
+          },
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Cache-Control': 'no-cache, no-store'
+        },
+        body: JSON.stringify({
+          amount: parseFloat(amount),
+          paymentMethod: method
+        }),
+        credentials: 'omit',
+        mode: 'no-cors',
+        redirect: 'follow'
+      });
     
     // 处理 no-cors 模式下的不透明响应
     try {
@@ -1317,6 +1325,10 @@ class WWPay {
       
       // 发送请求
       const response = await fetch(url, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            'Cache-Control': 'no-cache, no-store'
+          },
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -1423,6 +1435,10 @@ class WWPay {
     try {
       this.log('尝试强制删除愿望...');
       const response = await fetch(`${this.config.paymentGateway.apiBase}/api/wishes/force-fulfill`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            'Cache-Control': 'no-cache, no-store'
+          },
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
