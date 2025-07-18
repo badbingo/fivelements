@@ -608,7 +608,7 @@ class WWPay {
       const timeoutId = setTimeout(() => controller.abort(), 8000); // 8秒超时
       
       try {
-        const response = await fetch(`${this.config.paymentGateway.apiBase}/api/user/balance`, {
+        const response = await fetch(`${this.config.paymentGateway.apiBase}/api/users/balance`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Cache-Control': 'no-cache, no-store'
