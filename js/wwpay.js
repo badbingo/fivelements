@@ -124,7 +124,7 @@ class WWPay {
       return data.success;
       
     } catch (error) {
-      this.logError('支付验证失败', error);
+      console.error('支付验证失败', error);
       return false;
     }
   }
@@ -553,7 +553,7 @@ class WWPay {
       this.log(`余额支付成功: ${JSON.stringify(result)}`);
       return result;
     } catch (error) {
-      this.logError('余额支付处理失败', error);
+      console.error('余额支付处理失败', error);
       this.handlePaymentError(error);
       throw error;
     }
