@@ -650,11 +650,18 @@ class WWPay {
         }
         
         const data = await response.json();
-        if (typeof data.balance !== 'number') {
+        // 确保balance字段存在且可以转换为数字
+        if (data.balance === undefined || data.balance === null) {
+          throw new Error('缺少余额字段');
+        }
+        
+        // 显式转换为浮点数
+        const balanceValue = parseFloat(data.balance);
+        if (isNaN(balanceValue)) {
           throw new Error('无效的余额格式');
         }
         
-        this.state.balance = data.balance;
+        this.state.balance = balanceValue;
         
         // 更新余额显示
         if (modalBalanceAmount) {
