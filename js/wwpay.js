@@ -33,31 +33,23 @@ class WWPay {
         retryDelay: 1000
       },
       paymentMethods: [
-    {
-      id: 'alipay',
-      name: '支付宝',
-      icon: 'fab fa-alipay',
-      color: '#1677ff',
-      activeColor: '#1268d9',
-      hint: '全球支付'
-    },
-    {
-      id: 'wxpay', 
-      name: '微信支付',
-      icon: 'fab fa-weixin',
-      color: '#09bb07',
-      activeColor: '#07a807',
-      hint: '国内支付'
-    },
-    {
-      id: 'balance',
-      name: '余额支付',
-      icon: 'fas fa-wallet',
-      color: '#6c757d',
-      activeColor: '#495057',
-      hint: '账户余额'
-    }
-  ],
+        {
+          id: 'alipay',
+          name: '支付宝',
+          icon: 'fab fa-alipay',
+          color: '#1677ff',
+          activeColor: '#1268d9',
+          hint: '全球支付'
+        },
+        {
+          id: 'wxpay', 
+          name: '微信支付',
+          icon: 'fab fa-weixin',
+          color: '#09bb07',
+          activeColor: '#07a807',
+          hint: '国内支付'
+        }
+      ],
       debug: true
     };
 
@@ -483,20 +475,6 @@ class WWPay {
     try {
       this.state.processing = true;
       this.updateConfirmButtonState();
-      
-      // 如果是余额支付，先检查余额
-      if (this.state.selectedMethod === 'balance') {
-        this.showFullscreenLoading('正在检查账户余额...');
-        const balanceCheck = await this.checkUserBalance(this.state.selectedAmount);
-        if (!balanceCheck.success) {
-          this.showToast(balanceCheck.message || '余额不足，请选择其他支付方式', 'error');
-          this.state.processing = false;
-          this.updateConfirmButtonState();
-          this.hideFullscreenLoading();
-          return;
-        }
-      }
-      
       this.showFullscreenLoading('正在准备支付...');
       
       this.state.lastPayment = {
@@ -520,17 +498,6 @@ class WWPay {
   async createPaymentOrder() {
     try {
       const orderId = this.generateOrderId();
-      
-      // 如果是余额支付，直接扣款
-      if (this.state.selectedMethod === 'balance') {
-        const paymentResult = await this.processBalancePayment(this.state.selectedAmount, this.state.currentWishId);
-        if (paymentResult.success) {
-          this.handlePaymentSuccess();
-          return { success: true, orderId: 'balance-' + Date.now() };
-        } else {
-          throw new Error(paymentResult.message || '余额支付失败');
-        }
-      }
       
       // 异步记录还愿
       this.recordFulfillment().catch(error => {
@@ -694,69 +661,6 @@ class WWPay {
     }
   }
 
-  /* ========== 余额相关方法 ========== */
-  
-  async checkUserBalance(amount) {
-    try {
-      const response = await fetch(`${this.config.paymentGateway.apiBase}/api/user/balance/check`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({ amount })
-      });
-      
-      if (!response.ok) {
-        throw new Error(await response.text());
-      }
-      
-      return await response.json();
-        })
-      });
-      
-      if (!response.ok) {
-        throw new Error(await response.text());
-      }
-      
-      return response.json();
-    } catch (error) {
-      this.logError('余额检查失败', error);
-      return { success: false, message: error.message };
-    }
-  }
-  
-  async processBalancePayment(amount, wishId) {
-    try {
-      const response = await fetch(`${this.config.paymentGateway.apiBase}/api/user/balance/pay`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({ amount, wishId })
-      });
-      
-      if (!response.ok) {
-        throw new Error(await response.text());
-      }
-      
-      return await response.json();,
-          wishId: wishId
-        })
-      });
-      
-      if (!response.ok) {
-        throw new Error(await response.text());
-      }
-      
-      return response.json();
-    } catch (error) {
-      this.logError('余额支付失败', error);
-      return { success: false, message: error.message };
-    }
-  }
-  
   /* ========== 支付成功处理 ========== */
 
   async handlePaymentSuccess() {
