@@ -551,61 +551,98 @@ class WWPay {
 
   /* ========== 余额支付相关方法 ========== */
   
+  // 新版余额支付状态管理
   updateConfirmButtonState() {
-    try {
-      const confirmBtn = document.getElementById('confirm-payment-btn');
-      if (!confirmBtn) return;
-      
-      // 如果正在处理支付，禁用按钮
-      if (this.state.processing) {
+    const confirmBtn = document.getElementById('confirm-payment-btn');
+    if (!confirmBtn) return;
+    
+    // 统一状态管理
+    const states = {
+      processing: () => {
         confirmBtn.disabled = true;
+        confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 处理中';
+      },
+      balanceInsufficient: () => {
+        confirmBtn.disabled = true;
+        confirmBtn.textContent = '余额不足';
+      },
+      ready: () => {
+        confirmBtn.disabled = false;
+        confirmBtn.textContent = '确认支付';
+      },
+      error: (msg) => {
+        confirmBtn.disabled = true;
+        confirmBtn.textContent = msg || '支付不可用';
+      }
+    };
+    
+    try {
+      if (this.state.processing) {
+        states.processing();
         return;
       }
       
-      // 如果选择了余额支付，检查余额是否足够
       if (this.state.selectedMethod === 'balance') {
         if (this.state.balance >= this.state.selectedAmount) {
-          confirmBtn.disabled = false;
+          states.ready();
         } else {
-          confirmBtn.disabled = true;
+          states.balanceInsufficient();
         }
       } else {
-        // 其他支付方式，只要选择了金额就启用按钮
-        confirmBtn.disabled = false;
+        states.ready();
       }
     } catch (error) {
-      this.safeLogError('更新确认按钮状态失败', error);
+      states.error('系统错误');
+      this.safeLogError('支付状态更新失败', error);
     }
   }
   
+  // 新版余额检查方法
   async checkBalanceForPayment(retryCount = 3) {
-    try {
-      // 先显示加载状态
-      const modalBalanceAmount = document.getElementById('modalBalanceAmount');
-      if (modalBalanceAmount) {
-        modalBalanceAmount.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-      }
+    const modalBalanceAmount = document.getElementById('modalBalanceAmount');
+    const balanceBtn = document.querySelector('.wwpay-method-btn[data-type="balance"]');
+    
+    // 状态显示函数
+    const showStatus = (status, message) => {
+      if (!modalBalanceAmount) return;
       
-      // 检查是否已登录
+      const statusMap = {
+        loading: () => {
+          modalBalanceAmount.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${message || '加载中'}`;
+          modalBalanceAmount.style.color = '';
+        },
+        success: (msg) => {
+          modalBalanceAmount.textContent = msg;
+          modalBalanceAmount.style.color = '#28a745';
+        },
+        error: (msg) => {
+          modalBalanceAmount.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${msg}`;
+          modalBalanceAmount.style.color = '#dc3545';
+        },
+        warning: (msg) => {
+          modalBalanceAmount.textContent = msg;
+          modalBalanceAmount.style.color = '#ffc107';
+        }
+      };
+      
+      statusMap[status]?.(message);
+    };
+    
+    try {
+      // 1. 检查登录状态
       const token = localStorage.getItem('token');
       if (!token) {
-        // 未登录状态
-        if (modalBalanceAmount) {
-          modalBalanceAmount.textContent = '未登录';
-        }
-        
-        // 隐藏余额支付按钮
-        const balanceBtn = document.querySelector('.wwpay-method-btn[data-type="balance"]');
-        if (balanceBtn) {
-          balanceBtn.style.display = 'none';
-        }
-        
+        showStatus('error', '未登录');
+        if (balanceBtn) balanceBtn.style.display = 'none';
         return;
       }
       
-      // 发送请求获取余额
+      // 2. 显示加载状态
+      showStatus('loading', '查询余额中');
+      
+      // 3. 发送请求（带超时和取消功能）
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 8000); // 8秒超时
+      const timeoutId = setTimeout(() => controller.abort(), 5000); // 缩短超时到5秒
       
       try {
         const response = await fetch(`${this.config.paymentGateway.apiBase}/api/user/balance`, {
