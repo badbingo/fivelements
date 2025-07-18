@@ -117,7 +117,7 @@ class WWPay {
           orderId,
           amount
         }),
-        credentials: 'same-origin',
+        credentials: 'omit',
         mode: 'cors',
         redirect: 'follow'
       });
@@ -147,7 +147,7 @@ class WWPay {
         amount: parseFloat(amount),
         paymentMethod: method
       }),
-      credentials: 'same-origin',
+      credentials: 'omit',
       mode: 'cors',
       redirect: 'follow'
     });
@@ -622,7 +622,7 @@ class WWPay {
             'Cache-Control': 'no-cache, no-store'
           },
           signal: controller.signal,
-          credentials: 'same-origin',
+          credentials: 'omit',
           mode: 'cors',
           redirect: 'follow'
         }).catch(error => {
@@ -814,7 +814,7 @@ class WWPay {
         body: JSON.stringify(requestData),
         signal: controller.signal,
         // 修改跨域请求配置
-        credentials: 'same-origin',
+        credentials: 'omit',
         mode: 'cors',
         redirect: 'follow'
       }).catch(error => {
@@ -1123,7 +1123,7 @@ class WWPay {
             'Authorization': `Bearer ${localStorage.getItem('token') || ''}`,
             'Cache-Control': 'no-cache, no-store'
           },
-          credentials: 'same-origin',
+          credentials: 'omit',
           mode: 'cors',
           redirect: 'follow'
         }
@@ -1280,7 +1280,7 @@ class WWPay {
           'Cache-Control': 'no-cache, no-store'
         },
         body: JSON.stringify(requestData),
-        credentials: 'same-origin',
+        credentials: 'omit',
         mode: 'cors',
         redirect: 'follow'
       });
@@ -1352,7 +1352,7 @@ class WWPay {
           amount: this.state.selectedAmount,
           paymentMethod: this.state.selectedMethod
         }),
-        credentials: 'same-origin',
+        credentials: 'omit',
         mode: 'cors',
         redirect: 'follow'
       });
