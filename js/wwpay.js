@@ -519,6 +519,8 @@ class WWPay {
         throw new Error('请先登录');
       }
 
+      this.log(`发起余额支付请求: 愿望ID=${this.state.currentWishId}, 金额=${this.state.selectedAmount}`);
+      
       const response = await fetch(`${this.config.paymentGateway.apiBase}/api/payments/balance`, {
         method: 'POST',
         headers: {
@@ -532,12 +534,26 @@ class WWPay {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || '余额支付失败');
+        let errorData;
+        try {
+          errorData = await response.json();
+          this.logError(`余额支付失败: ${errorData.error || response.statusText}`, {
+            status: response.status,
+            wishId: this.state.currentWishId,
+            amount: this.state.selectedAmount
+          });
+          throw new Error(errorData.error || '余额支付失败');
+        } catch (parseError) {
+          this.logError('解析错误响应失败', parseError);
+          throw new Error(`支付请求失败: ${response.status} ${response.statusText}`);
+        }
       }
 
-      return await response.json();
+      const result = await response.json();
+      this.log(`余额支付成功: ${JSON.stringify(result)}`);
+      return result;
     } catch (error) {
+      this.logError('余额支付处理失败', error);
       this.handlePaymentError(error);
       throw error;
     }
