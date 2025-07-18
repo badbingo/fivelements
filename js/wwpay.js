@@ -605,10 +605,10 @@ class WWPay {
       
       // 发送请求获取余额
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30秒超时，进一步增加超时时间以适应非常慢的网络
+      const timeoutId = setTimeout(() => controller.abort(), 8000); // 8秒超时
       
       try {
-        const response = await fetch(`${this.config.paymentGateway.apiBase}/api/users/balance`, {
+        const response = await fetch(`${this.config.paymentGateway.apiBase}/api/user/balance`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Cache-Control': 'no-cache, no-store'
@@ -644,10 +644,16 @@ class WWPay {
         clearTimeout(timeoutId);
         
         if (!response.ok) {
+          const errorText = await response.text().catch(() => '无错误详情');
+          console.error(`[WWPay] 获取余额失败 (${response.status}): ${errorText}`);
           throw new Error(`获取余额失败 (${response.status})`);
         }
         
         const data = await response.json();
+        if (typeof data.balance !== 'number') {
+          throw new Error('无效的余额格式');
+        }
+        
         this.state.balance = data.balance;
         
         // 更新余额显示
@@ -771,109 +777,109 @@ class WWPay {
   }
   
   async processBalancePayment() {
-    // 创建一个可以取消的控制器
-    const controller = new AbortController();
-    // 设置超时定时器
-    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15秒超时
-    
-    try {
-      // 验证网络连接
-      if (!navigator.onLine) {
-        throw new Error('网络连接已断开，请检查网络后重试');
-      }
-      
-      this.showFullscreenLoading('正在处理余额支付...');
-      this.state.processing = true;
-      
-      // 准备请求数据
-      const requestData = {
-        wishId: this.state.currentWishId,
-        amount: this.state.selectedAmount,
-        timestamp: Date.now() // 添加时间戳防止缓存
-      };
-      
-      // 发送请求
-      const response = await fetch(`${this.config.paymentGateway.apiBase}/api/payments/balance`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Cache-Control': 'no-cache, no-store'
-        },
-        body: JSON.stringify(requestData),
-        signal: controller.signal,
-        // 添加重试和超时策略
-        credentials: 'same-origin',
-        mode: 'cors',
-        redirect: 'follow'
-      }).catch(error => {
-        // 处理网络级别错误
-        if (error.name === 'AbortError') {
-          throw new Error('支付请求超时，请稍后重试');
-        } else if (error.message.includes('NetworkError') || error.message.includes('network')) {
-          throw new Error('网络连接失败，请检查网络后重试');
-        } else {
-          throw new Error(`支付请求失败: ${error.message}`);
-        }
-      });
-      
-      // 清除超时定时器
-      clearTimeout(timeoutId);
-      
-      // 处理HTTP错误
-      if (!response.ok) {
-        const errorText = await response.text();
-        let errorMessage = '余额支付失败';
-        try {
-          const errorData = JSON.parse(errorText);
-          errorMessage = errorData.message || errorData.error || errorMessage;
-        } catch (e) {
-          // 如果解析JSON失败，使用HTTP状态码提示
-          errorMessage = `余额支付失败 (${response.status})`;
-        }
-        throw new Error(errorMessage);
-      }
-      
-      // 解析响应数据
-      const result = await response.json().catch(error => {
-        throw new Error('解析支付结果失败，请联系客服确认支付状态');
-      });
-      
-      // 验证响应数据
-      if (!result.success) {
-        throw new Error(result.message || '支付处理失败');
-      }
-      
-      // 更新内部状态的余额
-      if (result.newBalance !== undefined) {
-        this.state.balance = result.newBalance;
-      }
-      
-      // 更新余额显示
-      if (result.newBalance !== undefined) {
-        // 更新模态框中的余额显示
-        const modalBalanceAmount = document.getElementById('modalBalanceAmount');
-        if (modalBalanceAmount) {
-          modalBalanceAmount.textContent = result.newBalance.toFixed(2);
-        }
-        
-        // 更新页面上的余额显示
-        const balanceElement = document.getElementById('current-balance');
-        if (balanceElement) {
-          balanceElement.textContent = result.newBalance.toFixed(2);
-        }
-        
-        // 更新用户界面上的余额显示
-        const userBalanceElement = document.getElementById('user-balance');
-        if (userBalanceElement) {
-          userBalanceElement.textContent = result.newBalance.toFixed(2);
-        }
-        
-        // 更新状态中的余额
-        this.state.balance = result.newBalance;
-      }
-      
-      return { success: true };
+     // 创建一个可以取消的控制器
+     const controller = new AbortController();
+     // 设置超时定时器
+     const timeoutId = setTimeout(() => controller.abort(), 15000); // 15秒超时
+     
+     try {
+       // 验证网络连接
+       if (!navigator.onLine) {
+         throw new Error('网络连接已断开，请检查网络后重试');
+       }
+       
+       this.showFullscreenLoading('正在处理余额支付...');
+       this.state.processing = true;
+       
+       // 准备请求数据
+       const requestData = {
+         wishId: this.state.currentWishId,
+         amount: this.state.selectedAmount,
+         timestamp: Date.now() // 添加时间戳防止缓存
+       };
+       
+       // 发送请求
+       const response = await fetch(`${this.config.paymentGateway.apiBase}/api/payments/balance`, {
+         method: 'POST',
+         headers: {
+           'Content-Type': 'application/json',
+           'Authorization': `Bearer ${localStorage.getItem('token')}`,
+           'Cache-Control': 'no-cache, no-store'
+         },
+         body: JSON.stringify(requestData),
+         signal: controller.signal,
+         // 添加重试和超时策略
+         credentials: 'same-origin',
+         mode: 'cors',
+         redirect: 'follow'
+       }).catch(error => {
+         // 处理网络级别错误
+         if (error.name === 'AbortError') {
+           throw new Error('支付请求超时，请稍后重试');
+         } else if (error.message.includes('NetworkError') || error.message.includes('network')) {
+           throw new Error('网络连接失败，请检查网络后重试');
+         } else {
+           throw new Error(`支付请求失败: ${error.message}`);
+         }
+       });
+     
+       // 清除超时定时器
+       clearTimeout(timeoutId);
+     
+       // 处理HTTP错误
+       if (!response.ok) {
+         const errorText = await response.text();
+         let errorMessage = '余额支付失败';
+         try {
+           const errorData = JSON.parse(errorText);
+           errorMessage = errorData.message || errorData.error || errorMessage;
+         } catch (e) {
+           // 如果解析JSON失败，使用HTTP状态码提示
+           errorMessage = `余额支付失败 (${response.status})`;
+         }
+         throw new Error(errorMessage);
+       }
+     
+       // 解析响应数据
+       const result = await response.json().catch(error => {
+         throw new Error('解析支付结果失败，请联系客服确认支付状态');
+       });
+     
+       // 验证响应数据
+       if (!result.success) {
+         throw new Error(result.message || '支付处理失败');
+       }
+     
+       // 更新内部状态的余额
+       if (result.newBalance !== undefined) {
+         this.state.balance = result.newBalance;
+       }
+     
+       // 更新余额显示
+       if (result.newBalance !== undefined) {
+         // 更新模态框中的余额显示
+         const modalBalanceAmount = document.getElementById('modalBalanceAmount');
+         if (modalBalanceAmount) {
+           modalBalanceAmount.textContent = result.newBalance.toFixed(2);
+         }
+       
+         // 更新页面上的余额显示
+         const balanceElement = document.getElementById('current-balance');
+         if (balanceElement) {
+           balanceElement.textContent = result.newBalance.toFixed(2);
+         }
+       
+         // 更新用户界面上的余额显示
+         const userBalanceElement = document.getElementById('user-balance');
+         if (userBalanceElement) {
+           userBalanceElement.textContent = result.newBalance.toFixed(2);
+         }
+       
+         // 更新状态中的余额
+         this.state.balance = result.newBalance;
+       }
+     
+       return { success: true };
     } catch (error) {
       this.hideFullscreenLoading();
       // 处理网络错误
