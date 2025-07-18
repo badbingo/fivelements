@@ -71,7 +71,7 @@ document.addEventListener('DOMContentLoaded', function() {
                   
                   // 3. 显示支付处理中提示
                   rechargeMessage.textContent = '正在跳转支付平台...';
-                  rechargeMessage.style.color = 'blue';
+                  rechargeMessage.style.color = 'white';
                   
               } catch (error) {
                   rechargeMessage.textContent = error.message;
@@ -93,7 +93,7 @@ document.addEventListener('DOMContentLoaded', function() {
               if (modalBalanceEl) modalBalanceEl.style.display = 'block';
               
               // 获取用户余额并更新显示
-              window.updateBalance = async function() {
+              async function updateBalance() {
                   try {
                       const response = await fetch(`${API_URL}/user/balance`, {
                           headers: {
@@ -166,11 +166,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="payment-methods">
                         <label class="payment-option">
                             <input type="radio" name="paymentMethod" value="alipay" checked>
-                            支付宝
+                            <i class="fab fa-alipay"></i> 支付宝 <span class="payment-tag">全球支付</span>
                         </label>
                         <label class="payment-option">
                             <input type="radio" name="paymentMethod" value="wechat">
-                            微信支付
+                            <i class="fab fa-weixin"></i> 微信支付 <span class="payment-tag">国内支付</span>
                         </label>
                     </div>
                 </div>
@@ -192,10 +192,6 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="auth-header">
                 <h2><i class="fas fa-user-circle"></i> 命缘池</h2>
                 <p>登录或注册以管理您的愿望</p>
-            </div>
-            <div class="user-balance" style="display:none; margin:15px 0;" id="modalBalance">
-                <i class="fas fa-coins"></i> 当前余额: <span id="modalBalanceAmount">0</span> 元
-                <button class="recharge-btn" id="modalRechargeBtn" style="margin-left:10px;"><i class="fas fa-coins"></i> 充值</button>
             </div>
             
             <div class="auth-tabs">
@@ -373,6 +369,10 @@ document.addEventListener('DOMContentLoaded', function() {
                                     <option value="21-23">亥时 (21:00-23:00)</option>
                                 </select>
                                 <p class="form-hint">请选择您的出生时辰</p>
+                                <div class="user-balance" style="display:none; margin-top:10px;" id="userBalance">
+                                    <i class="fas fa-coins"></i> 当前余额: <span id="balanceAmount">0</span> 元
+                                    <button class="recharge-btn" id="rechargeBtn" style="margin-left:10px;"><i class="fas fa-coins"></i> 充值</button>
+                                </div>
                             </div>
                         </div>
                         
@@ -426,10 +426,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         <!-- 愿望池展示 -->
         <section class="full-width-section">
-            <div class="user-balance" style="display:none; margin-bottom:20px;" id="userBalance">
-                <i class="fas fa-coins"></i> 当前余额: <span id="balanceAmount">0</span> 元
-                <button class="recharge-btn" id="rechargeBtn" style="margin-left:10px;"><i class="fas fa-coins"></i> 充值</button>
-            </div>
+            
             <div class="section-header">
                 <i class="fas fa-water"></i>
                 <h2>愿望池</h2>
@@ -574,11 +571,6 @@ document.addEventListener('DOMContentLoaded', function() {
             <a href="wishingwell.html">命缘池</a> | 
             <a href="curse.html">怨化池</a>
         </div>
-                    <div class="user-balance" style="display:none; margin:15px 0;" id="modalBalance">
-                <i class="fas fa-coins"></i> 当前余额: <span id="modalBalanceAmount">0</span> 元
-                <button class="recharge-btn" id="modalRechargeBtn" style="margin-left:10px;"><i class="fas fa-coins"></i> 充值</button>
-            </div>
-        
         <p>&copy; 2025 麦八字. 保留所有权利.</p>
         <p>汇聚善念，共振美好</p>
     </div>
@@ -613,12 +605,13 @@ document.addEventListener('DOMContentLoaded', function() {
       <div class="modal-content">
         <span class="close-modal">&times;</span>
         <h3><i class="fas fa-hand-holding-heart"></i> 感恩还愿</h3>
-        <p>如果您的愿望已实现，请选择还愿金额：</p>
-          
-            <div class="user-balance" style="display:none; margin:15px 0;" id="modalBalance">
-                <i class="fas fa-coins"></i> 当前余额: <span id="modalBalanceAmount">0</span> 元
-            </div>
-
+        <p>您的愿望已经实现，请选择还愿金额：</p>
+        
+        <!-- 添加当前余额显示 -->
+        <div class="user-balance" style="margin-bottom:15px;" id="modalBalance">
+          <i class="fas fa-coins"></i> 当前余额: <span id="modalBalanceAmount">0</span> 元
+        </div>
+        
         <!-- 金额选择 -->
         <div class="fulfill-options">
           <button class="fulfill-option" data-amount="1">1元</button>
@@ -1750,13 +1743,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 throw new Error('找不到还愿模态框');
             }
             
+            // 更新模态框中的余额显示
+            const balance = document.getElementById('balanceAmount').textContent;
+            document.getElementById('modalBalanceAmount').textContent = balance;
+            
             modal.dataset.wishId = wish.id;
             modal.style.display = 'block';
-            
-            // 打开还愿弹窗时更新余额显示
-            setTimeout(() => {
-                updateBalance();
-            }, 100);
         
             if (window.wwPay) {
                 window.wwPay.resetPaymentState();
