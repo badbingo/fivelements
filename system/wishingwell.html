@@ -1726,6 +1726,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
+            // 更新还愿状态
             const updateResponse = await fetch(`${API_BASE}/api/wishes/${wish.id}/fulfill`, {
                 method: 'POST',
                 headers: {
@@ -1746,6 +1747,31 @@ document.addEventListener('DOMContentLoaded', function() {
             // 更新模态框中的余额显示
             const balance = document.getElementById('balanceAmount').textContent;
             document.getElementById('modalBalanceAmount').textContent = balance;
+            
+            // 初始化支付系统
+            if (window.wwpay) {
+                window.wwpay.init({
+                    wishId: wish.id,
+                    onSuccess: () => {
+                        // 还愿成功后的处理
+                        updateWishStatus(wish.id, 'fulfilled');
+                        $('#fulfillModal').modal('hide');
+                        showToast('还愿成功！', 'success');
+                        
+                        // 更新余额显示
+                        const balanceAmount = document.getElementById('balanceAmount');
+                        const modalBalanceAmount = document.getElementById('modalBalanceAmount');
+                        if (balanceAmount && modalBalanceAmount) {
+                            const currentBalance = parseFloat(balanceAmount.textContent) - parseFloat(modalBalanceAmount.textContent);
+                            balanceAmount.textContent = currentBalance.toFixed(2);
+                            modalBalanceAmount.textContent = currentBalance.toFixed(2);
+                        }
+                    },
+                    onError: (error) => {
+                        showToast(`支付失败: ${error.message}`, 'error');
+                    }
+                });
+            }
             
             modal.dataset.wishId = wish.id;
             modal.style.display = 'block';
