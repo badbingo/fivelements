@@ -734,10 +734,16 @@ class WWPay {
           modalBalanceAmount.title = `上次错误: ${errorMessage}`;
         }
         
-        // 延迟后重试，进一步增加重试间隔时间
+        // 根据错误类型动态调整重试间隔
+        let retryDelay = 3000; // 默认3秒
+        if (errorMessage.includes('超时') || errorMessage.includes('NetworkError')) {
+          retryDelay = 5000; // 网络问题延长到5秒
+        }
+        
+        // 延迟后重试
         setTimeout(() => {
           this.checkBalanceForPayment(retryCount - 1);
-        }, 3000); // 增加到3秒，给网络更多恢复时间
+        }, retryDelay);
         return 0;
       }
       
