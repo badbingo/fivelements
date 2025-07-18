@@ -174,7 +174,11 @@
                 if (!response.ok) throw new Error('获取余额失败');
                 
                 const data = await response.json();
-                return data.balance || 0;
+                // 确保正确处理real类型
+                if (data.balance === undefined || data.balance === null) {
+                  return 0;
+                }
+                return parseFloat(data.balance) || 0;
             } catch (error) {
                 console.error('获取余额错误:', error);
                 return null;
@@ -183,14 +187,31 @@
         
         // 更新余额显示
         async function updateBalanceDisplay() {
-            const balance = await getCurrentBalance();
-            const balanceElement = document.getElementById('currentBalance');
-            
-            if (balance !== null) {
-                balanceElement.textContent = balance.toFixed(2);
-            } else {
-                balanceElement.textContent = '获取失败';
-            }
+            try {
+                 const balance = await getCurrentBalance();
+                 const balanceElement = document.getElementById('currentBalance');
+                 
+                 if (balance !== null) {
+                     balanceElement.textContent = balance.toFixed(2);
+                     balanceElement.style.color = ''; // 恢复默认颜色
+                     balanceElement.removeAttribute('title'); // 移除可能的错误提示
+                 } else {
+                     balanceElement.textContent = '获取失败';
+                     balanceElement.style.color = '#dc3545'; // 红色错误提示
+                     balanceElement.title = '无法获取余额信息，请刷新页面重试';
+                 }
+             } catch (error) {
+                 console.error('更新余额显示失败:', error);
+                 const balanceElement = document.getElementById('currentBalance');
+                 if (balanceElement) {
+                     balanceElement.textContent = '获取失败';
+                     balanceElement.style.color = '#dc3545'; // 红色错误提示
+                     balanceElement.title = `错误: ${error.message}`; // 添加错误详情提示
+                 }
+                 
+                 // 5秒后自动重试
+                 setTimeout(updateBalanceDisplay, 5000);
+             }
         }
         
         // 初始化显示余额
