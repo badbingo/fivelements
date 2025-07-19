@@ -94,31 +94,42 @@ class WWPay {
   logError(context, error) {
     try {
       // 确保错误对象是有效的
-      let errorMessage, errorCode, errorStack;
+      let errorMessage, errorCode, errorStack, errorStatus;
       
       // 处理不同类型的错误对象
       if (error instanceof Error) {
         errorMessage = error.message;
         errorStack = error.stack || 'No stack trace available';
         errorCode = error.code || 'UNKNOWN_ERROR';
+        errorStatus = error.status || (error.response ? error.response.status : null);
       } else if (typeof error === 'string') {
         errorMessage = error;
         errorStack = 'No stack trace available';
         errorCode = 'STRING_ERROR';
+        errorStatus = error.includes('401') ? 401 : null;
       } else if (error && typeof error === 'object') {
         errorMessage = error.message || error.error || JSON.stringify(error);
         errorStack = error.stack || 'No stack trace available';
         errorCode = error.code || error.status || 'OBJECT_ERROR';
+        errorStatus = error.status || (error.response ? error.response.status : null);
       } else {
         errorMessage = error ? String(error) : 'Unknown error';
         errorStack = 'No stack trace available';
         errorCode = 'UNKNOWN_TYPE_ERROR';
+        errorStatus = null;
+      }
+      
+      // 特殊处理401错误
+      if (errorStatus === 401 || errorCode === 'USER_NOT_AUTHENTICATED' || 
+          (errorMessage && errorMessage.includes('登录') && errorMessage.includes('过期'))) {
+        errorCode = 'USER_NOT_AUTHENTICATED';
       }
       
       // 记录错误信息
       console.error(`[WWPay] ERROR [${new Date().toISOString()}] ${context}:`, {
         error: errorMessage,
         code: errorCode,
+        status: errorStatus,
         stack: errorStack,
         paymentState: this.state ? { ...this.state } : 'No state available'
       });
@@ -128,7 +139,12 @@ class WWPay {
         console.error(`[WWPay] ERROR [${new Date().toISOString()}] ${context}: 无法记录详细错误信息`, 
           typeof error === 'object' ? JSON.stringify(error) : String(error));
       } catch (finalError) {
-        console.error(`[WWPay] CRITICAL ERROR: 完全无法记录错误信息`);
+        // 最后的容错处理
+        try {
+          console.error(`[WWPay] CRITICAL ERROR: 无法记录错误信息 - ${context}`);
+        } catch (ultimateError) {
+          // 什么都不做，已经尽力了
+        }
       }
     }
   }
@@ -594,7 +610,10 @@ class WWPay {
     if (!token) {
       const error = new Error('请先登录');
       error.code = 'USER_NOT_AUTHENTICATED';
-      this.redirectToLogin();
+      // 显示友好提示，但不立即跳转
+      this.showToast('请先登录后再使用余额支付', 'warning');
+      // 延迟跳转，给用户时间看到提示
+      setTimeout(() => this.redirectToLogin(), 1500);
       throw error;
     }
     
@@ -602,8 +621,11 @@ class WWPay {
     try {
       await this.checkWishStatus(this.state.currentWishId);
     } catch (statusError) {
-      // 如果是认证错误，已经在checkWishStatus中处理了重定向
+      // 如果是认证错误，显示提示并延迟跳转
       if (statusError.code === 'USER_NOT_AUTHENTICATED') {
+        this.showToast('登录已过期，请重新登录', 'warning');
+        // 延迟跳转，给用户时间看到提示
+        setTimeout(() => this.redirectToLogin(), 1500);
         throw statusError;
       }
       // 其他错误继续抛出
@@ -894,13 +916,15 @@ validatePaymentState() {
         
         // 特殊处理认证错误，避免显示重复的错误提示
         if (error.code === 'USER_NOT_AUTHENTICATED') {
-          // 已经在 checkPaymentStatus 中处理了重定向，这里不需要显示额外的提示
+          // 已经在 processBalancePayment 或 checkPaymentStatus 中处理了重定向和提示
+          // 这里只需要隐藏加载动画
           this.hideFullscreenLoading();
           return;
         }
         
         // 显示友好的错误信息
-        this.showGuaranteedToast(this.getUserFriendlyError(error), 'error');
+        const friendlyError = this.getUserFriendlyError(error);
+        this.showGuaranteedToast(friendlyError, 'error');
         this.hideFullscreenLoading();
       }
     }, checkInterval);
@@ -1428,6 +1452,7 @@ validatePaymentState() {
       if (!token) {
         const error = new Error('用户未登录');
         error.code = 'USER_NOT_AUTHENTICATED';
+        // 不在这里调用redirectToLogin，让调用者决定是否重定向
         throw error;
       }
       
@@ -1442,8 +1467,7 @@ validatePaymentState() {
         if (response.status === 401) {
           const error = new Error('登录已过期，请重新登录');
           error.code = 'USER_NOT_AUTHENTICATED';
-          // 自动重定向到登录页面
-          this.redirectToLogin();
+          // 不在这里调用redirectToLogin，让调用者决定是否重定向
           throw error;
         }
         throw new Error(`检查愿望状态失败: ${response.status}`);
@@ -1504,14 +1528,17 @@ validatePaymentState() {
     
     // 特殊处理认证错误，避免显示重复的错误提示
     if (error.code === 'USER_NOT_AUTHENTICATED') {
-      // 已经在其他地方处理了重定向，这里不需要显示额外的提示
+      // 已经在 processBalancePayment 或 checkPaymentStatus 中处理了重定向和提示
+      // 这里只需要隐藏加载动画和更新按钮状态
       this.hideFullscreenLoading();
       this.state.processing = false;
       this.updateConfirmButtonState();
       return;
     }
     
-    this.showGuaranteedToast(`支付失败: ${this.getUserFriendlyError(error)}`, 'error');
+    // 获取友好的错误信息并显示
+    const friendlyError = this.getUserFriendlyError(error);
+    this.showGuaranteedToast(`支付失败: ${friendlyError}`, 'error');
     this.hideFullscreenLoading();
     this.state.processing = false;
     this.updateConfirmButtonState();
