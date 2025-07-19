@@ -18,6 +18,10 @@ class WWPay {
     this.generateSignature = this.generateSignature.bind(this);
     this.cleanupPaymentState = this.cleanupPaymentState.bind(this);
     this.processRecharge = this.processRecharge.bind(this);
+        // 初始化日志方法
+    this.log = this.log.bind(this);
+    this.logError = this.logError.bind(this);
+    this.safeLogError = this.safeLogError.bind(this);
 
     // 系统配置
     this.config = {
@@ -80,6 +84,28 @@ class WWPay {
     this.log('支付系统初始化完成');
   }
 
+// 日志方法
+  log(...messages) {
+    if (this.config.debug) {
+      console.log('[WWPay]', new Date().toISOString(), ...messages);
+    }
+  }
+
+  logError(context, error) {
+    console.error(`[WWPay] ERROR [${new Date().toISOString()}] ${context}:`, {
+      error: error.message,
+      stack: error.stack,
+      paymentState: this.state
+    });
+  }
+
+  safeLogError(context, error) {
+    try {
+      this.logError(context, error);
+    } catch (logError) {
+      console.error('[WWPay] CRITICAL: Failed to log error', logError);
+    }
+  }
   /* ========== 初始化方法 ========== */
 
   // 处理充值请求
@@ -478,159 +504,184 @@ class WWPay {
   /* ========== 核心支付方法 ========== */
 
   async processPayment() {
-    // 1. 验证支付状态
-    if (!this.validatePaymentState()) {
+    try {
+      // 1. 验证支付状态
+      if (!this.validatePaymentState()) {
         this.log('支付状态验证失败');
-        return { success: false, error: 'INVALID_PAYMENT_STATE' };
-    }
+        throw new Error('INVALID_PAYMENT_STATE');
+      }
 
-    try {
-        // 2. 更新处理状态
-        this.state.processing = true;
-        this.updateConfirmButtonState();
-        this.showFullscreenLoading('正在准备支付...');
-        
-        // 3. 记录支付信息
-        this.state.lastPayment = {
-            wishId: this.state.currentWishId,
-            amount: this.state.selectedAmount,
-            method: this.state.selectedMethod,
-            timestamp: Date.now()
-        };
-        localStorage.setItem('last-payment', JSON.stringify(this.state.lastPayment));
+      // 2. 更新处理状态
+      this.state.processing = true;
+      this.updateConfirmButtonState();
+      this.showFullscreenLoading('正在准备支付...');
+      
+      // 3. 记录支付信息
+      this.state.lastPayment = {
+        wishId: this.state.currentWishId,
+        amount: this.state.selectedAmount,
+        method: this.state.selectedMethod,
+        timestamp: Date.now()
+      };
+      localStorage.setItem('last-payment', JSON.stringify(this.state.lastPayment));
 
-        // 4. 处理不同类型的支付
-        if (this.state.selectedMethod === 'balance') {
-            return await this.processBalancePayment();
-        } else {
-            return await this.processThirdPartyPayment();
-        }
+      // 4. 处理不同类型的支付
+      if (this.state.selectedMethod === 'balance') {
+        return await this.processBalancePayment();
+      } else {
+        return await this.processThirdPartyPayment();
+      }
     } catch (error) {
-        // 5. 错误处理
-        this.handlePaymentError(error);
-        return { 
-            success: false, 
-            error: 'PAYMENT_FAILED',
-            message: error.message,
-            details: this.config.debug ? error.stack : undefined
-        };
+      // 5. 错误处理
+      this.handlePaymentError(error);
+      return { 
+        success: false, 
+        error: 'PAYMENT_FAILED',
+        message: this.getUserFriendlyError(error),
+        code: error.code || 'UNKNOWN_ERROR'
+      };
     } finally {
-        // 6. 清理状态
-        this.state.processing = false;
-        this.updateConfirmButtonState();
-        this.hideFullscreenLoading();
+      // 6. 清理状态
+      this.state.processing = false;
+      this.updateConfirmButtonState();
+      this.hideFullscreenLoading();
     }
-}
+  }
 
-async processBalancePayment() {
+  async processBalancePayment() {
     try {
-        this.log('开始余额支付流程', {
-            wishId: this.state.currentWishId,
-            amount: this.state.selectedAmount
-        });
+      this.log('开始余额支付流程', {
+        wishId: this.state.currentWishId,
+        amount: this.state.selectedAmount
+      });
 
-        // 1. 验证必要参数
-        if (!this.state.currentWishId || !this.state.selectedAmount) {
-            throw new Error('MISSING_REQUIRED_FIELDS');
-        }
+      // 1. 验证必要参数
+      if (!this.state.currentWishId || !this.state.selectedAmount) {
+        throw new Error('MISSING_REQUIRED_FIELDS');
+      }
 
-        // 2. 获取JWT令牌
-        const token = localStorage.getItem('token');
-        if (!token) {
-            throw new Error('USER_NOT_AUTHENTICATED');
-        }
+      // 2. 获取JWT令牌
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('USER_NOT_AUTHENTICATED');
+      }
 
-        // 3. 准备请求数据
-        const payload = {
-            wishId: this.state.currentWishId,
-            amount: parseFloat(this.state.selectedAmount).toFixed(2),
-            timestamp: Date.now()
+      // 3. 准备请求数据
+      const payload = {
+        wishId: this.state.currentWishId,
+        amount: parseFloat(this.state.selectedAmount).toFixed(2),
+        timestamp: Date.now()
+      };
+
+      // 4. 发送支付请求（添加超时处理）
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+      const response = await fetch(`${this.config.paymentGateway.apiBase}/api/payments/balance`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(payload),
+        signal: controller.signal
+      }).finally(() => clearTimeout(timeoutId));
+
+      // 5. 处理网络层错误
+      if (response.status === 0) {
+        throw { 
+          message: 'NETWORK_ERROR',
+          code: 'NETWORK_FAILURE',
+          isNetworkError: true 
         };
+      }
 
-        // 4. 发送支付请求（添加超时处理）
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10秒超时
-
-        const response = await fetch(`${this.config.paymentGateway.apiBase}/api/payments/balance`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify(payload),
-            signal: controller.signal
-        }).finally(() => clearTimeout(timeoutId));
-
-        // 5. 处理网络层错误
-        if (response.status === 0) {
-            throw new Error('NETWORK_ERROR');
-        }
-
-        // 6. 解析响应数据
-        let responseData;
-        try {
-            responseData = await response.json();
-        } catch (e) {
-            throw new Error('INVALID_RESPONSE_FORMAT');
-        }
-
-        // 7. 处理业务逻辑错误
-        if (!response.ok) {
-            const errorCode = responseData.error || 'PAYMENT_FAILED';
-            const errorMessage = responseData.message || '支付处理失败';
-            
-            // 特殊处理余额不足情况
-            if (errorCode === 'INSUFFICIENT_BALANCE') {
-                this.showToast('账户余额不足', 'error');
-                return {
-                    success: false,
-                    error: errorCode,
-                    currentBalance: responseData.currentBalance,
-                    requiredAmount: responseData.requiredAmount
-                };
-            }
-            
-            throw new Error(errorCode);
-        }
-
-        // 8. 验证响应数据
-        if (!responseData.success || !responseData.transactionId) {
-            throw new Error('INVALID_RESPONSE_DATA');
-        }
-
-        // 9. 更新本地状态
-        if (responseData.newBalance !== undefined) {
-            this.updateUserBalance(responseData.newBalance);
-        }
-
-        // 10. 返回成功结果
-        return {
-            success: true,
-            transactionId: responseData.transactionId,
-            newBalance: responseData.newBalance
+      // 6. 解析响应数据
+      let responseData;
+      try {
+        responseData = await response.json();
+      } catch (e) {
+        throw { 
+          message: 'INVALID_RESPONSE_FORMAT', 
+          code: 'SERVER_ERROR',
+          originalError: e 
         };
+      }
+
+      // 7. 处理业务逻辑错误
+      if (!response.ok) {
+        throw { 
+          message: responseData.message || 'PAYMENT_FAILED',
+          code: responseData.error || 'SERVER_ERROR',
+          serverResponse: responseData
+        };
+      }
+
+      // 8. 验证响应数据
+      if (!responseData.success || !responseData.transactionId) {
+        throw { 
+          message: 'INVALID_RESPONSE_DATA',
+          code: 'SERVER_ERROR',
+          responseData 
+        };
+      }
+
+      // 9. 更新本地状态
+      if (responseData.newBalance !== undefined) {
+        this.updateUserBalance(responseData.newBalance);
+      }
+
+      // 10. 返回成功结果
+      return {
+        success: true,
+        transactionId: responseData.transactionId,
+        newBalance: responseData.newBalance,
+        message: '支付成功'
+      };
 
     } catch (error) {
-        this.logError('余额支付失败', error);
-        
-        // 转换特定错误消息
-        let userMessage = '支付处理失败';
-        switch(error.message) {
-            case 'NETWORK_ERROR':
-                userMessage = '网络连接失败，请检查网络设置';
-                break;
-            case 'INSUFFICIENT_BALANCE':
-                userMessage = '账户余额不足';
-                break;
-            case 'USER_NOT_AUTHENTICATED':
-                userMessage = '请先登录';
-                break;
-        }
-
-        this.showToast(userMessage, 'error');
-        throw new Error('PaymentFailed'); // 保持外层错误处理兼容性
+      this.logError('余额支付失败', error);
+      throw error; // 重新抛出以便外层处理
     }
-}
+  }
+
+  // 辅助方法
+  getUserFriendlyError(error) {
+    const errorMap = {
+      'NETWORK_ERROR': '网络连接失败，请检查网络设置',
+      'INSUFFICIENT_BALANCE': '账户余额不足',
+      'USER_NOT_AUTHENTICATED': '请先登录',
+      'INVALID_RESPONSE_FORMAT': '服务器返回数据格式错误',
+      'default': '支付处理失败，请稍后重试'
+    };
+    
+    return errorMap[error.code] || errorMap[error.message] || errorMap.default;
+  }
+
+  handlePaymentError(error) {
+    const userMessage = this.getUserFriendlyError(error);
+    
+    // 显示给用户
+    this.showToast(userMessage, 'error');
+    
+    // 记录完整错误
+    this.safeLogError('支付处理失败', {
+      error: error.message,
+      code: error.code,
+      stack: error.stack,
+      paymentState: this.state,
+      ...(error.serverResponse && { serverResponse: error.serverResponse })
+    });
+
+    // 特殊错误处理
+    if (error.code === 'USER_NOT_AUTHENTICATED') {
+      this.redirectToLogin();
+    }
+    
+    if (error.isNetworkError) {
+      this.scheduleRetry();
+    }
+  }
 
 async processThirdPartyPayment() {
     this.log('开始第三方支付流程');
