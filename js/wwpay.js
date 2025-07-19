@@ -1322,9 +1322,16 @@ validatePaymentState() {
     }
   }
 
+  getUserFriendlyError(error) {
+    if (error.message.includes('db.transaction is not a function')) {
+      return '支付系统内部错误，请稍后再试';
+    }
+    return error.message || '支付处理失败';
+  }
+
   handlePaymentError(error) {
     this.safeLogError('支付处理失败', error);
-    this.showGuaranteedToast(`支付失败: ${error.message}`, 'error');
+    this.showGuaranteedToast(`支付失败: ${this.getUserFriendlyError(error)}`, 'error');
     this.hideFullscreenLoading();
     this.state.processing = false;
     this.updateConfirmButtonState();
