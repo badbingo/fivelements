@@ -1191,7 +1191,7 @@ class WWPay {
    
    async processBalancePayment(orderId) {
      try {
-       this.log('开始余额支付流程');
+       this.log('开始余额支付流程', '订单ID:', orderId, '愿望ID:', this.state.currentWishId, '金额:', this.state.selectedAmount);
        
        // 注意：processing状态检查已在processPayment中完成，这里不再重复检查
        
@@ -1202,6 +1202,7 @@ class WWPay {
        }
        
        // 2. 调用余额支付接口
+       this.log('发送余额支付请求到后端API');
        const response = await fetch(`${this.config.paymentGateway.apiBase}/api/payments/balance`, {
          method: 'POST',
          headers: {
@@ -1214,6 +1215,7 @@ class WWPay {
            orderId: orderId
          })
        });
+       this.log('收到后端API响应');
        
        // 3. 处理响应
        const result = await response.json();
