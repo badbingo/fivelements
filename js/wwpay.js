@@ -1460,7 +1460,8 @@ validatePaymentState() {
         throw error;
       }
       
-      const response = await fetch(`${this.config.paymentGateway.apiBase}/api/wishes/status?wishId=${wishId}`, {
+      // 修改为调用正确的后端接口路径 /api/wishes/check
+      const response = await fetch(`${this.config.paymentGateway.apiBase}/api/wishes/check?wishId=${wishId}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -1485,11 +1486,12 @@ validatePaymentState() {
          throw error;
        }
        
-       if (!data.exists) {
-         const error = new Error('愿望不存在');
-         error.code = 'WISH_NOT_FOUND';
-         throw error;
-       }
+       // 检查愿望是否存在
+      if (!data.exists) {
+        const error = new Error('愿望不存在');
+        error.code = 'WISH_NOT_FOUND';
+        throw error;
+      }
       
       return data;
     } catch (error) {
