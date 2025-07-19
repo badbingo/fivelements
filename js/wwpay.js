@@ -523,63 +523,113 @@ class WWPay {
 }
 
 async processBalancePayment() {
-    this.log('开始余额支付流程');
-    
-    // 1. 准备支付数据
-    const paymentData = {
-        wishId: this.state.currentWishId,
-        amount: this.state.selectedAmount,
-        timestamp: Date.now()
-    };
+    try {
+        this.log('开始余额支付流程', {
+            wishId: this.state.currentWishId,
+            amount: this.state.selectedAmount
+        });
 
-    // 2. 显示处理中状态
-    this.showToast('正在处理余额支付...', 'info');
+        // 1. 验证必要参数
+        if (!this.state.currentWishId || !this.state.selectedAmount) {
+            throw new Error('MISSING_REQUIRED_FIELDS');
+        }
 
-    // 3. 发送支付请求
-    const response = await fetch(`${this.config.paymentGateway.apiBase}/api/payments/balance`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify(paymentData)
-    });
+        // 2. 获取JWT令牌
+        const token = localStorage.getItem('token');
+        if (!token) {
+            throw new Error('USER_NOT_AUTHENTICATED');
+        }
 
-    // 4. 处理响应
-    if (!response.ok) {
-        // 处理CORS错误
+        // 3. 准备请求数据
+        const payload = {
+            wishId: this.state.currentWishId,
+            amount: parseFloat(this.state.selectedAmount).toFixed(2),
+            timestamp: Date.now()
+        };
+
+        // 4. 发送支付请求（添加超时处理）
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10秒超时
+
+        const response = await fetch(`${this.config.paymentGateway.apiBase}/api/payments/balance`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(payload),
+            signal: controller.signal
+        }).finally(() => clearTimeout(timeoutId));
+
+        // 5. 处理网络层错误
         if (response.status === 0) {
-            throw new Error('跨域请求被阻止，请检查服务器CORS配置');
+            throw new Error('NETWORK_ERROR');
         }
 
-        // 尝试解析错误信息
-        let errorData;
+        // 6. 解析响应数据
+        let responseData;
         try {
-            errorData = await response.json();
+            responseData = await response.json();
         } catch (e) {
-            errorData = { error: '支付失败', message: '服务器返回无效响应' };
+            throw new Error('INVALID_RESPONSE_FORMAT');
         }
 
-        throw new Error(errorData.error || errorData.message || '余额支付失败');
+        // 7. 处理业务逻辑错误
+        if (!response.ok) {
+            const errorCode = responseData.error || 'PAYMENT_FAILED';
+            const errorMessage = responseData.message || '支付处理失败';
+            
+            // 特殊处理余额不足情况
+            if (errorCode === 'INSUFFICIENT_BALANCE') {
+                this.showToast('账户余额不足', 'error');
+                return {
+                    success: false,
+                    error: errorCode,
+                    currentBalance: responseData.currentBalance,
+                    requiredAmount: responseData.requiredAmount
+                };
+            }
+            
+            throw new Error(errorCode);
+        }
+
+        // 8. 验证响应数据
+        if (!responseData.success || !responseData.transactionId) {
+            throw new Error('INVALID_RESPONSE_DATA');
+        }
+
+        // 9. 更新本地状态
+        if (responseData.newBalance !== undefined) {
+            this.updateUserBalance(responseData.newBalance);
+        }
+
+        // 10. 返回成功结果
+        return {
+            success: true,
+            transactionId: responseData.transactionId,
+            newBalance: responseData.newBalance
+        };
+
+    } catch (error) {
+        this.logError('余额支付失败', error);
+        
+        // 转换特定错误消息
+        let userMessage = '支付处理失败';
+        switch(error.message) {
+            case 'NETWORK_ERROR':
+                userMessage = '网络连接失败，请检查网络设置';
+                break;
+            case 'INSUFFICIENT_BALANCE':
+                userMessage = '账户余额不足';
+                break;
+            case 'USER_NOT_AUTHENTICATED':
+                userMessage = '请先登录';
+                break;
+        }
+
+        this.showToast(userMessage, 'error');
+        throw new Error('PaymentFailed'); // 保持外层错误处理兼容性
     }
-
-    // 5. 处理成功响应
-    const result = await response.json();
-    this.log('余额支付成功:', result);
-
-    // 6. 更新本地状态
-    if (result.newBalance !== undefined) {
-        this.updateUserBalance(result.newBalance);
-    }
-
-    // 7. 触发支付成功处理
-    await this.handlePaymentSuccess();
-
-    return { 
-        success: true,
-        transactionId: result.transactionId,
-        newBalance: result.newBalance
-    };
 }
 
 async processThirdPartyPayment() {
