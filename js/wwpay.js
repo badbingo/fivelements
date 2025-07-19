@@ -94,20 +94,42 @@ class WWPay {
   logError(context, error) {
     try {
       // 确保错误对象是有效的
-      const errorMessage = error instanceof Error ? error.message : 
-                          (typeof error === 'string' ? error : 
-                          (error && error.message ? error.message : JSON.stringify(error)));
+      let errorMessage, errorCode, errorStack;
       
-      const errorStack = error instanceof Error ? error.stack : 'No stack trace available';
+      // 处理不同类型的错误对象
+      if (error instanceof Error) {
+        errorMessage = error.message;
+        errorStack = error.stack || 'No stack trace available';
+        errorCode = error.code || 'UNKNOWN_ERROR';
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+        errorStack = 'No stack trace available';
+        errorCode = 'STRING_ERROR';
+      } else if (error && typeof error === 'object') {
+        errorMessage = error.message || error.error || JSON.stringify(error);
+        errorStack = error.stack || 'No stack trace available';
+        errorCode = error.code || error.status || 'OBJECT_ERROR';
+      } else {
+        errorMessage = error ? String(error) : 'Unknown error';
+        errorStack = 'No stack trace available';
+        errorCode = 'UNKNOWN_TYPE_ERROR';
+      }
       
+      // 记录错误信息
       console.error(`[WWPay] ERROR [${new Date().toISOString()}] ${context}:`, {
         error: errorMessage,
+        code: errorCode,
         stack: errorStack,
-        paymentState: this.state
+        paymentState: this.state ? { ...this.state } : 'No state available'
       });
     } catch (e) {
       // 如果记录错误时出错，使用更简单的方式记录
-      console.error(`[WWPay] ERROR [${new Date().toISOString()}] ${context}: 无法记录详细错误信息`, error);
+      try {
+        console.error(`[WWPay] ERROR [${new Date().toISOString()}] ${context}: 无法记录详细错误信息`, 
+          typeof error === 'object' ? JSON.stringify(error) : String(error));
+      } catch (finalError) {
+        console.error(`[WWPay] CRITICAL ERROR: 完全无法记录错误信息`);
+      }
     }
   }
 
@@ -869,7 +891,16 @@ validatePaymentState() {
       } catch (error) {
         this.clearPaymentStatusCheck();
         this.safeLogError('支付状态检查失败', error);
-        this.showGuaranteedToast(error.message, 'error');
+        
+        // 特殊处理认证错误，避免显示重复的错误提示
+        if (error.code === 'USER_NOT_AUTHENTICATED') {
+          // 已经在 checkPaymentStatus 中处理了重定向，这里不需要显示额外的提示
+          this.hideFullscreenLoading();
+          return;
+        }
+        
+        // 显示友好的错误信息
+        this.showGuaranteedToast(this.getUserFriendlyError(error), 'error');
         this.hideFullscreenLoading();
       }
     }, checkInterval);
@@ -877,14 +908,31 @@ validatePaymentState() {
 
   async checkPaymentStatus() {
     try {
+      // 检查token是否存在
+      const token = localStorage.getItem('token');
+      if (!token) {
+        const error = new Error('用户未登录');
+        error.code = 'USER_NOT_AUTHENTICATED';
+        this.redirectToLogin();
+        throw error;
+      }
+      
       const response = await fetch(
         `${this.config.paymentGateway.apiBase}/api/payments/status?wishId=${this.state.currentWishId}`,
         {
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+            'Authorization': `Bearer ${token}`
           }
         }
       );
+      
+      // 特殊处理401错误
+      if (response.status === 401) {
+        const error = new Error('登录已过期，请重新登录');
+        error.code = 'USER_NOT_AUTHENTICATED';
+        this.redirectToLogin();
+        throw error;
+      }
       
       const data = await response.json();
       
@@ -894,6 +942,7 @@ validatePaymentState() {
       
       return data;
     } catch (error) {
+      this.logError('支付状态检查失败', error);
       throw error;
     }
   }
@@ -1452,6 +1501,16 @@ validatePaymentState() {
 
   handlePaymentError(error) {
     this.safeLogError('支付处理失败', error);
+    
+    // 特殊处理认证错误，避免显示重复的错误提示
+    if (error.code === 'USER_NOT_AUTHENTICATED') {
+      // 已经在其他地方处理了重定向，这里不需要显示额外的提示
+      this.hideFullscreenLoading();
+      this.state.processing = false;
+      this.updateConfirmButtonState();
+      return;
+    }
+    
     this.showGuaranteedToast(`支付失败: ${this.getUserFriendlyError(error)}`, 'error');
     this.hideFullscreenLoading();
     this.state.processing = false;
