@@ -478,55 +478,168 @@ class WWPay {
   /* ========== 核心支付方法 ========== */
 
   async processPayment() {
-    if (!this.validatePaymentState()) return;
+    // 1. 验证支付状态
+    if (!this.validatePaymentState()) {
+        this.log('支付状态验证失败');
+        return { success: false, error: 'INVALID_PAYMENT_STATE' };
+    }
 
     try {
-      this.state.processing = true;
-      this.updateConfirmButtonState();
-      this.showFullscreenLoading('正在准备支付...');
-      
-      this.state.lastPayment = {
+        // 2. 更新处理状态
+        this.state.processing = true;
+        this.updateConfirmButtonState();
+        this.showFullscreenLoading('正在准备支付...');
+        
+        // 3. 记录支付信息
+        this.state.lastPayment = {
+            wishId: this.state.currentWishId,
+            amount: this.state.selectedAmount,
+            method: this.state.selectedMethod,
+            timestamp: Date.now()
+        };
+        localStorage.setItem('last-payment', JSON.stringify(this.state.lastPayment));
+
+        // 4. 处理不同类型的支付
+        if (this.state.selectedMethod === 'balance') {
+            return await this.processBalancePayment();
+        } else {
+            return await this.processThirdPartyPayment();
+        }
+    } catch (error) {
+        // 5. 错误处理
+        this.handlePaymentError(error);
+        return { 
+            success: false, 
+            error: 'PAYMENT_FAILED',
+            message: error.message,
+            details: this.config.debug ? error.stack : undefined
+        };
+    } finally {
+        // 6. 清理状态
+        this.state.processing = false;
+        this.updateConfirmButtonState();
+        this.hideFullscreenLoading();
+    }
+}
+
+async processBalancePayment() {
+    this.log('开始余额支付流程');
+    
+    // 1. 准备支付数据
+    const paymentData = {
         wishId: this.state.currentWishId,
         amount: this.state.selectedAmount,
-        method: this.state.selectedMethod,
         timestamp: Date.now()
-      };
-      localStorage.setItem('last-payment', JSON.stringify(this.state.lastPayment));
+    };
 
-      // 余额支付处理
-      if (this.state.selectedMethod === 'balance') {
-        const response = await fetch(`${this.config.paymentGateway.apiBase}/api/payments/balance`, {
-          method: 'POST',
-          headers: {
+    // 2. 显示处理中状态
+    this.showToast('正在处理余额支付...', 'info');
+
+    // 3. 发送支付请求
+    const response = await fetch(`${this.config.paymentGateway.apiBase}/api/payments/balance`, {
+        method: 'POST',
+        headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${localStorage.getItem('token')}`
-          },
-          body: JSON.stringify({
-            wishId: this.state.currentWishId,
-            amount: this.state.selectedAmount
-          })
-        });
-        
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || '余额支付失败');
+        },
+        body: JSON.stringify(paymentData)
+    });
+
+    // 4. 处理响应
+    if (!response.ok) {
+        // 处理CORS错误
+        if (response.status === 0) {
+            throw new Error('跨域请求被阻止，请检查服务器CORS配置');
         }
-        
-        const data = await response.json();
-        this.handlePaymentSuccess();
-        return { success: true };
-      }
-      
-      // 其他支付方式
-      const result = await this.createPaymentOrder();
-      
-      if (result.success) {
-        this.startPaymentStatusCheck();
-      }
-    } catch (error) {
-      this.handlePaymentError(error);
+
+        // 尝试解析错误信息
+        let errorData;
+        try {
+            errorData = await response.json();
+        } catch (e) {
+            errorData = { error: '支付失败', message: '服务器返回无效响应' };
+        }
+
+        throw new Error(errorData.error || errorData.message || '余额支付失败');
     }
-  }
+
+    // 5. 处理成功响应
+    const result = await response.json();
+    this.log('余额支付成功:', result);
+
+    // 6. 更新本地状态
+    if (result.newBalance !== undefined) {
+        this.updateUserBalance(result.newBalance);
+    }
+
+    // 7. 触发支付成功处理
+    await this.handlePaymentSuccess();
+
+    return { 
+        success: true,
+        transactionId: result.transactionId,
+        newBalance: result.newBalance
+    };
+}
+
+async processThirdPartyPayment() {
+    this.log('开始第三方支付流程');
+    
+    // 1. 创建支付订单
+    const orderResponse = await this.createPaymentOrder();
+    if (!orderResponse.success) {
+        throw new Error(orderResponse.error || '创建支付订单失败');
+    }
+
+    // 2. 显示重定向提示
+    this.showToast('正在跳转支付平台...', 'info');
+
+    // 3. 提交支付表单
+    await this.submitPaymentForm(orderResponse.paymentData);
+
+    // 4. 启动支付状态检查
+    this.startPaymentStatusCheck(orderResponse.orderId);
+
+    return { 
+        success: true, 
+        orderId: orderResponse.orderId,
+        message: '已跳转至支付平台' 
+    };
+}
+
+// 辅助方法
+updateUserBalance(newBalance) {
+    this.log('更新用户余额:', newBalance);
+    // 更新全局状态或触发事件
+    const event = new CustomEvent('balance-updated', { detail: { newBalance } });
+    document.dispatchEvent(event);
+}
+
+validatePaymentState() {
+    if (!this.state.selectedAmount || this.state.selectedAmount <= 0) {
+        this.showToast('请选择有效的支付金额', 'error');
+        return false;
+    }
+    
+    if (!this.state.currentWishId) {
+        this.showToast('无效的愿望ID', 'error');
+        return false;
+    }
+    
+    if (!this.state.selectedMethod) {
+        this.showToast('请选择支付方式', 'error');
+        return false;
+    }
+    
+    const token = localStorage.getItem('token');
+    if (!token) {
+        this.showToast('请先登录', 'error');
+        this.redirectToLogin();
+        return false;
+    }
+    
+    return true;
+}
 
   async createPaymentOrder() {
     try {
