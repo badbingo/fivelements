@@ -496,10 +496,20 @@ class WWPay {
       const result = await this.createPaymentOrder();
       
       if (result.success) {
-        this.startPaymentStatusCheck();
+        // 对于余额支付，processing状态已在processBalancePayment中处理完成
+        if (this.state.selectedMethod === 'balance') {
+          this.state.processing = false;
+        } else {
+          this.startPaymentStatusCheck();
+        }
       }
     } catch (error) {
       this.handlePaymentError(error);
+    } finally {
+      // 确保在任何情况下都重置processing状态（除非是非余额支付的成功情况）
+      if (this.state.selectedMethod === 'balance' || this.state.processing) {
+        this.state.processing = false;
+      }
     }
   }
 
@@ -1179,11 +1189,7 @@ class WWPay {
      try {
        this.log('开始余额支付流程');
        
-       // 防重复提交检查
-       if (this.state.processing) {
-         throw new Error('支付正在处理中，请勿重复提交');
-       }
-       this.state.processing = true;
+       // 注意：processing状态检查已在processPayment中完成，这里不再重复检查
        
        // 1. 获取JWT令牌
        const token = localStorage.getItem('token');
@@ -1242,13 +1248,9 @@ class WWPay {
        // 9. 准备跳转
        this.prepareSuccessRedirect();
        
-       // 10. 重置处理状态
-       this.state.processing = false;
-       
        return { success: true, orderId, message: '余额支付成功' };
        
      } catch (error) {
-       this.state.processing = false; // 重置处理状态
        this.safeLogError('余额支付失败', error);
        throw error;
      }
