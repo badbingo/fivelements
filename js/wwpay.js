@@ -35,6 +35,13 @@ class WWPay {
           icon: '<i class="fab fa-weixin"></i>',
           description: '使用微信支付',
           enabled: true
+        },
+        {
+          id: 'balance',
+          name: '余额支付',
+          icon: '<i class="fas fa-wallet"></i>',
+          description: '使用账户余额支付',
+          enabled: true
         }
       ],
       fulfillOptions: [
@@ -108,6 +115,15 @@ class WWPay {
     
     // 显示支付方法
     this.showPaymentMethods();
+  }
+  
+  /**
+   * 设置当前愿望ID
+   * @param {string} wishId - 愿望ID
+   */
+  setCurrentWishId(wishId) {
+    this.log('设置当前愿望ID', wishId);
+    this.state.currentWishId = wishId;
   }
   
   /**
@@ -472,8 +488,78 @@ class WWPay {
       };
       localStorage.setItem('last-payment', JSON.stringify(this.state.lastPayment));
       
-      // 4. 处理第三方支付
-      await this.processThirdPartyPayment();
+      // 4. 根据支付方式处理支付
+      if (this.state.selectedMethod === 'balance') {
+        // 处理余额支付
+        await this.processBalancePayment();
+      } else {
+        // 处理第三方支付
+        await this.processThirdPartyPayment();
+      }
+      
+    } catch (error) {
+      this.handlePaymentError(error);
+    }
+  }
+  
+  /**
+   * 处理余额支付
+   */
+  async processBalancePayment() {
+    this.log('开始余额支付流程');
+    
+    try {
+      // 1. 获取JWT令牌
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('请先登录');
+      }
+      
+      // 2. 调用余额支付接口
+      const response = await fetch(`${this.config.paymentGateway.apiBase}/api/payments/balance`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          wishId: this.state.currentWishId,
+          amount: this.state.selectedAmount
+        })
+      });
+      
+      // 3. 处理响应
+      const result = await response.json();
+      
+      if (!response.ok) {
+        // 处理特定错误
+        if (result.error === '余额不足') {
+          throw new Error('INSUFFICIENT_BALANCE');
+        } else {
+          throw new Error(result.error || '支付失败');
+        }
+      }
+      
+      // 4. 支付成功处理
+      this.hideFullscreenLoading();
+      this.showToast('支付成功', 'success');
+      
+      // 5. 显示成功通知
+      this.showFulfillmentNotification();
+      
+      // 6. 关闭模态框
+      const modal = document.getElementById('fulfillModal');
+      if (modal) {
+        modal.style.display = 'none';
+      }
+      
+      // 7. 执行成功回调
+      if (typeof this.onSuccessCallback === 'function') {
+        this.onSuccessCallback();
+      }
+      
+      // 8. 重置支付状态
+      this.resetPaymentState();
       
     } catch (error) {
       this.handlePaymentError(error);
@@ -1396,6 +1482,23 @@ class WWPay {
         }
       }
       // 隐藏加载动画和更新按钮状态
+      this.hideFullscreenLoading();
+      this.state.processing = false;
+      this.updateConfirmButtonState();
+      return;
+    }
+    
+    // 特殊处理余额不足错误
+    if (error.message === 'INSUFFICIENT_BALANCE' || error.code === 'INSUFFICIENT_BALANCE') {
+      this.showToast('余额不足，请充值后再试', 'error');
+      // 可以在这里添加跳转到充值页面的逻辑
+      if (typeof redirectToCharge === 'function') {
+        setTimeout(() => {
+          if (confirm('余额不足，是否前往充值页面？')) {
+            redirectToCharge();
+          }
+        }, 1000);
+      }
       this.hideFullscreenLoading();
       this.state.processing = false;
       this.updateConfirmButtonState();
