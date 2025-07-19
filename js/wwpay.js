@@ -1459,7 +1459,7 @@ function showFulfillmentNotification(wishId) {
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
       <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
     </svg>
-    <span>还愿已成功，愿望 #${wishId} 已被移除</span>
+    <span>还愿成功！感谢您对愿望 #${wishId} 的感恩回馈</span>
   `;
   document.body.appendChild(notification);
   
