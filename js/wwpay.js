@@ -999,6 +999,18 @@ class WWPay {
 
   /* ========== UI 方法 ========== */
 
+  // 设置当前愿望ID
+  setCurrentWishId(wishId) {
+    this.state.currentWishId = wishId;
+    this.log('设置当前愿望ID:', wishId);
+  }
+
+  // 选择金额
+  selectAmount(amount) {
+    this.state.selectedAmount = amount;
+    this.log('选择金额:', amount);
+  }
+
   showGuaranteedToast(message, type = 'success') {
     this.removeAllToasts();
     
@@ -1075,8 +1087,18 @@ class WWPay {
 
   async showPaymentMethods() {
      try {
-       const oldSection = document.getElementById('payment-methods-section');
-       if (oldSection) oldSection.remove();
+       // 强制清理所有可能的支付方式区域
+       const oldSections = document.querySelectorAll('#payment-methods-section, .payment-methods, .payment-methods-container > *');
+       oldSections.forEach(section => section.remove());
+       
+       // 清理payment-methods-container内容
+       const container = document.querySelector('.payment-methods-container');
+       if (container) {
+         container.innerHTML = '';
+       }
+       
+       // 等待DOM更新
+       await new Promise(resolve => setTimeout(resolve, 50));
        
        // 检查用户余额
        const userBalance = await this.getUserBalance();
@@ -1133,9 +1155,16 @@ class WWPay {
    </div>
  `;
        
-       const modalContent = document.querySelector('#fulfillModal .modal-content');
-       if (modalContent) {
-         modalContent.insertAdjacentHTML('beforeend', methodsHtml);
+       // 优先插入到专门的支付方式容器中
+       const paymentContainer = document.querySelector('.payment-methods-container');
+       if (paymentContainer) {
+         paymentContainer.innerHTML = methodsHtml;
+       } else {
+         // 如果没有专门容器，则插入到modal-content末尾
+         const modalContent = document.querySelector('#fulfillModal .modal-content');
+         if (modalContent) {
+           modalContent.insertAdjacentHTML('beforeend', methodsHtml);
+         }
        }
      } catch (error) {
        this.safeLogError('支付方式显示失败', error);
@@ -1149,6 +1178,12 @@ class WWPay {
    async processBalancePayment(orderId) {
      try {
        this.log('开始余额支付流程');
+       
+       // 防重复提交检查
+       if (this.state.processing) {
+         throw new Error('支付正在处理中，请勿重复提交');
+       }
+       this.state.processing = true;
        
        // 1. 获取JWT令牌
        const token = localStorage.getItem('token');
@@ -1187,6 +1222,7 @@ class WWPay {
        // 4. 支付成功处理
        this.log('余额支付成功');
        this.state.paymentCompleted = true;
+       this.state.processing = false; // 重置处理状态
        
        // 5. 余额支付接口已经处理了还愿记录，无需再次调用
        // await this.recordFulfillment(); // 已移除，避免重复调用
@@ -1206,9 +1242,13 @@ class WWPay {
        // 9. 准备跳转
        this.prepareSuccessRedirect();
        
+       // 10. 重置处理状态
+       this.state.processing = false;
+       
        return { success: true, orderId, message: '余额支付成功' };
        
      } catch (error) {
+       this.state.processing = false; // 重置处理状态
        this.safeLogError('余额支付失败', error);
        throw error;
      }
