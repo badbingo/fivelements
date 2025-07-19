@@ -610,10 +610,15 @@ class WWPay {
     if (!token) {
       const error = new Error('请先登录');
       error.code = 'USER_NOT_AUTHENTICATED';
-      // 显示友好提示，但不立即跳转
+      // 显示友好提示，不跳转到user.html
       this.showToast('请先登录后再使用余额支付', 'warning');
-      // 延迟跳转，给用户时间看到提示
-      setTimeout(() => this.redirectToLogin(), 1500);
+      // 触发页面内登录模态框
+      if (typeof toggleAuthModal === 'function') {
+        toggleAuthModal(true);
+        if (typeof switchAuthTab === 'function') {
+          switchAuthTab('login');
+        }
+      }
       throw error;
     }
     
@@ -621,11 +626,16 @@ class WWPay {
     try {
       await this.checkWishStatus(this.state.currentWishId);
     } catch (statusError) {
-      // 如果是认证错误，显示提示并延迟跳转
+      // 如果是认证错误，显示提示并触发页面内登录
       if (statusError.code === 'USER_NOT_AUTHENTICATED') {
         this.showToast('登录已过期，请重新登录', 'warning');
-        // 延迟跳转，给用户时间看到提示
-        setTimeout(() => this.redirectToLogin(), 1500);
+        // 触发页面内登录模态框
+        if (typeof toggleAuthModal === 'function') {
+          toggleAuthModal(true);
+          if (typeof switchAuthTab === 'function') {
+            switchAuthTab('login');
+          }
+        }
         throw statusError;
       }
       // 其他错误继续抛出
@@ -916,8 +926,16 @@ validatePaymentState() {
         
         // 特殊处理认证错误，避免显示重复的错误提示
         if (error.code === 'USER_NOT_AUTHENTICATED') {
-          // 已经在 processBalancePayment 或 checkPaymentStatus 中处理了重定向和提示
-          // 这里只需要隐藏加载动画
+          // 显示友好提示并触发页面内登录
+          this.showToast('登录已过期，请重新登录', 'warning');
+          // 触发页面内登录模态框
+          if (typeof toggleAuthModal === 'function') {
+            toggleAuthModal(true);
+            if (typeof switchAuthTab === 'function') {
+              switchAuthTab('login');
+            }
+          }
+          // 隐藏加载动画
           this.hideFullscreenLoading();
           return;
         }
@@ -937,7 +955,7 @@ validatePaymentState() {
       if (!token) {
         const error = new Error('用户未登录');
         error.code = 'USER_NOT_AUTHENTICATED';
-        this.redirectToLogin();
+        // 不直接跳转，让调用者决定如何处理
         throw error;
       }
       
@@ -954,7 +972,7 @@ validatePaymentState() {
       if (response.status === 401) {
         const error = new Error('登录已过期，请重新登录');
         error.code = 'USER_NOT_AUTHENTICATED';
-        this.redirectToLogin();
+        // 不直接跳转，让调用者决定如何处理
         throw error;
       }
       
@@ -1528,8 +1546,16 @@ validatePaymentState() {
     
     // 特殊处理认证错误，避免显示重复的错误提示
     if (error.code === 'USER_NOT_AUTHENTICATED') {
-      // 已经在 processBalancePayment 或 checkPaymentStatus 中处理了重定向和提示
-      // 这里只需要隐藏加载动画和更新按钮状态
+      // 显示友好提示并触发页面内登录
+      this.showToast('登录已过期，请重新登录', 'warning');
+      // 触发页面内登录模态框
+      if (typeof toggleAuthModal === 'function') {
+        toggleAuthModal(true);
+        if (typeof switchAuthTab === 'function') {
+          switchAuthTab('login');
+        }
+      }
+      // 隐藏加载动画和更新按钮状态
       this.hideFullscreenLoading();
       this.state.processing = false;
       this.updateConfirmButtonState();
