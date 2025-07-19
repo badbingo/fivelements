@@ -622,11 +622,6 @@ document.addEventListener('DOMContentLoaded', function() {
         
         <!-- 支付方式容器 -->
         <div class="payment-methods-container"></div>
-        
-        <!-- 确认按钮 -->
-        <div class="payment-confirm-container">
-          <button id="confirmPaymentBtn" class="btn-primary disabled" disabled>确认支付</button>
-        </div>
       </div>
     </div>
     
@@ -1591,9 +1586,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const blessBtn = wishCard.querySelector('.btn-bless');
             blessBtn.addEventListener('click', () => handleBlessWish(wishCard, wish));
             
-            const fulfillBtn = wishCard.querySelector('.btn-fulfill');
-            fulfillBtn.addEventListener('click', () => handleFulfillWish(wish));
-            
             wishPool.appendChild(wishCard);
         });
     }
@@ -1766,7 +1758,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (window.wwPay) {
                 window.wwPay.resetPaymentState();
                 window.wwPay.setCurrentWishId(wish.id);
-                window.wwPay.showPaymentMethods();
+                // 不在模态框打开时显示支付方式，等用户选择金额后再显示
             }
         } catch (error) {
             console.error('还愿初始化失败:', error);
@@ -2368,16 +2360,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     });
                 }
                 
-                // 绑定还愿金额选择事件
-                const fulfillOptions = document.querySelectorAll('.fulfill-option');
-                fulfillOptions.forEach(option => {
-                    option.addEventListener('click', function() {
-                        const amount = parseFloat(this.dataset.amount);
-                        if (window.wwPay) {
-                            window.wwPay.selectAmount(amount);
-                        }
-                    });
-                });
+                // 注意：金额选择事件已在WWPay类中处理，无需重复绑定
                 
                 // 将redirectToCharge函数暴露给全局
                 window.redirectToCharge = redirectToCharge;
