@@ -560,8 +560,11 @@ class WWPay {
     if (!token) {
       throw { code: 'USER_NOT_AUTHENTICATED', message: '请先登录' };
     }
+    
+    // 3. 支付前检查愿望状态
+    await this.checkWishStatus(this.state.currentWishId);
 
-    // 3. 准备请求数据
+    // 4. 准备请求数据
     const payload = {
       wishId: this.state.currentWishId,
       amount: parseFloat(this.state.selectedAmount).toFixed(2)
@@ -583,18 +586,24 @@ class WWPay {
     if (!response.ok) {
       // 如果是余额不足错误，提供更友好的提示
       if (data.error === '余额不足') {
-        throw { 
-          code: 'INSUFFICIENT_BALANCE', 
-          message: `余额不足 (当前余额: ${data.currentBalance || '未知'}, 需要: ${data.requiredAmount || '未知'})`,
-          serverResponse: data
-        };
+        const error = new Error(`余额不足 (当前余额: ${data.currentBalance || '未知'}, 需要: ${data.requiredAmount || '未知'})`);
+        error.code = 'INSUFFICIENT_BALANCE';
+        error.serverResponse = data;
+        throw error;
       }
       
-      throw { 
-        code: data.error || 'PAYMENT_FAILED',
-        message: data.message || '支付失败',
-        serverResponse: data
-      };
+      // 如果是愿望已还愿错误
+      if (data.error === '愿望已还愿') {
+        const error = new Error('该愿望已经还愿，无需重复支付');
+        error.code = 'WISH_ALREADY_FULFILLED';
+        error.serverResponse = data;
+        throw error;
+      }
+      
+      const error = new Error(data.message || data.error || '支付失败');
+      error.code = data.error || 'PAYMENT_FAILED';
+      error.serverResponse = data;
+      throw error;
     }
 
     // 6. 更新本地状态
@@ -1322,11 +1331,61 @@ validatePaymentState() {
     }
   }
 
+  async checkWishStatus(wishId) {
+    try {
+      const response = await fetch(`${this.config.paymentGateway.apiBase}/api/wishes/status?wishId=${wishId}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`检查愿望状态失败: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      if (data.fulfilled) {
+         const error = new Error('该愿望已经还愿');
+         error.code = 'WISH_ALREADY_FULFILLED';
+         throw error;
+       }
+       
+       if (!data.exists) {
+         const error = new Error('愿望不存在');
+         error.code = 'WISH_NOT_FOUND';
+         throw error;
+       }
+      
+      return data;
+    } catch (error) {
+      this.logError('检查愿望状态失败', error);
+      throw error;
+    }
+  }
+
   getUserFriendlyError(error) {
-    if (error.message.includes('db.transaction is not a function')) {
+    if (error.message && error.message.includes('db.transaction is not a function')) {
       return '支付系统内部错误，请稍后再试';
     }
-    return error.message || '支付处理失败';
+    
+    // 根据错误代码提供友好的错误信息
+    switch (error.code) {
+      case 'WISH_ALREADY_FULFILLED':
+        return '该愿望已经还愿，无需重复支付';
+      case 'WISH_NOT_FOUND':
+        return '愿望不存在或已被删除';
+      case 'INSUFFICIENT_BALANCE':
+        return error.message || '余额不足';
+      case 'USER_NOT_AUTHENTICATED':
+        return '请先登录后再进行支付';
+      case 'MISSING_REQUIRED_FIELDS':
+        return '请选择还愿金额和愿望';
+      case 'INVALID_PAYMENT_STATE':
+        return '支付状态异常，请刷新页面重试';
+      default:
+        return error.message || '支付处理失败，请稍后重试';
+    }
   }
 
   handlePaymentError(error) {
