@@ -92,11 +92,23 @@ class WWPay {
   }
 
   logError(context, error) {
-    console.error(`[WWPay] ERROR [${new Date().toISOString()}] ${context}:`, {
-      error: error.message,
-      stack: error.stack,
-      paymentState: this.state
-    });
+    try {
+      // 确保错误对象是有效的
+      const errorMessage = error instanceof Error ? error.message : 
+                          (typeof error === 'string' ? error : 
+                          (error && error.message ? error.message : JSON.stringify(error)));
+      
+      const errorStack = error instanceof Error ? error.stack : 'No stack trace available';
+      
+      console.error(`[WWPay] ERROR [${new Date().toISOString()}] ${context}:`, {
+        error: errorMessage,
+        stack: errorStack,
+        paymentState: this.state
+      });
+    } catch (e) {
+      // 如果记录错误时出错，使用更简单的方式记录
+      console.error(`[WWPay] ERROR [${new Date().toISOString()}] ${context}: 无法记录详细错误信息`, error);
+    }
   }
 
   safeLogError(context, error) {
@@ -558,11 +570,23 @@ class WWPay {
     // 2. 获取JWT令牌
     const token = localStorage.getItem('token');
     if (!token) {
-      throw { code: 'USER_NOT_AUTHENTICATED', message: '请先登录' };
+      const error = new Error('请先登录');
+      error.code = 'USER_NOT_AUTHENTICATED';
+      this.redirectToLogin();
+      throw error;
     }
     
     // 3. 支付前检查愿望状态
-    await this.checkWishStatus(this.state.currentWishId);
+    try {
+      await this.checkWishStatus(this.state.currentWishId);
+    } catch (statusError) {
+      // 如果是认证错误，已经在checkWishStatus中处理了重定向
+      if (statusError.code === 'USER_NOT_AUTHENTICATED') {
+        throw statusError;
+      }
+      // 其他错误继续抛出
+      throw statusError;
+    }
 
     // 4. 准备请求数据
     const payload = {
@@ -570,7 +594,7 @@ class WWPay {
       amount: parseFloat(this.state.selectedAmount).toFixed(2)
     };
 
-    // 4. 发送支付请求
+    // 5. 发送支付请求
     const response = await fetch(`${this.config.paymentGateway.apiBase}/api/payments/balance`, {
       method: 'POST',
       headers: {
@@ -580,7 +604,15 @@ class WWPay {
       body: JSON.stringify(payload)
     });
 
-    // 5. 处理响应
+    // 6. 处理响应
+    // 特殊处理401错误
+    if (response.status === 401) {
+      const error = new Error('登录已过期，请重新登录');
+      error.code = 'USER_NOT_AUTHENTICATED';
+      this.redirectToLogin();
+      throw error;
+    }
+    
     const data = await response.json();
     
     if (!response.ok) {
@@ -696,6 +728,16 @@ validatePaymentState() {
     
     return true;
 }
+
+  redirectToLogin() {
+    this.log('重定向到登录页面');
+    // 保存当前URL作为登录后的重定向目标
+    const currentUrl = window.location.href;
+    localStorage.setItem('login_redirect', currentUrl);
+    
+    // 重定向到用户登录页面
+    window.location.href = '/system/user.html';
+  }
 
   async createPaymentOrder() {
     try {
@@ -1333,13 +1375,28 @@ validatePaymentState() {
 
   async checkWishStatus(wishId) {
     try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        const error = new Error('用户未登录');
+        error.code = 'USER_NOT_AUTHENTICATED';
+        throw error;
+      }
+      
       const response = await fetch(`${this.config.paymentGateway.apiBase}/api/wishes/status?wishId=${wishId}`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+          'Authorization': `Bearer ${token}`
         }
       });
       
       if (!response.ok) {
+        // 特殊处理401错误
+        if (response.status === 401) {
+          const error = new Error('登录已过期，请重新登录');
+          error.code = 'USER_NOT_AUTHENTICATED';
+          // 自动重定向到登录页面
+          this.redirectToLogin();
+          throw error;
+        }
         throw new Error(`检查愿望状态失败: ${response.status}`);
       }
       
@@ -1369,6 +1426,11 @@ validatePaymentState() {
       return '支付系统内部错误，请稍后再试';
     }
     
+    // 处理401错误
+    if (error.message && error.message.includes('401')) {
+      return '登录已过期，正在为您跳转到登录页面...';
+    }
+    
     // 根据错误代码提供友好的错误信息
     switch (error.code) {
       case 'WISH_ALREADY_FULFILLED':
@@ -1378,7 +1440,7 @@ validatePaymentState() {
       case 'INSUFFICIENT_BALANCE':
         return error.message || '余额不足';
       case 'USER_NOT_AUTHENTICATED':
-        return '请先登录后再进行支付';
+        return '登录已过期，正在为您跳转到登录页面...';
       case 'MISSING_REQUIRED_FIELDS':
         return '请选择还愿金额和愿望';
       case 'INVALID_PAYMENT_STATE':
