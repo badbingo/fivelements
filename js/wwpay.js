@@ -977,6 +977,10 @@ class WWPay {
   }
 
   validatePaymentState() {
+    if (this.state.processing) {
+      this.showToast('支付正在处理中，请勿重复操作', 'warning');
+      return false;
+    }
     if (!this.state.selectedAmount) {
       this.showToast('请选择还愿金额', 'error');
       return false;
