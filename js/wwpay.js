@@ -1514,14 +1514,16 @@ window.startWishPayment = async function(wishId, amount, method = 'alipay') {
     return;
   }
   
-  window.wwPay.state = {
-    selectedAmount: amount,
-    selectedMethod: method,
-    currentWishId: wishId,
-    processing: false,
-    statusCheckInterval: null,
-    paymentCompleted: false
-  };
+  // 检查是否正在处理中，防止重复调用
+  if (window.wwPay.state.processing) {
+    console.log('支付正在处理中，忽略重复调用');
+    return;
+  }
+  
+  // 只更新必要的状态，不重置processing状态
+  window.wwPay.state.selectedAmount = amount;
+  window.wwPay.state.selectedMethod = method;
+  window.wwPay.state.currentWishId = wishId;
   
   try {
     await window.wwPay.processPayment();
