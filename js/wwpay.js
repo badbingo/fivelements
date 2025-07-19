@@ -549,139 +549,64 @@ class WWPay {
   }
 
   async processBalancePayment() {
-    try {
-      this.log('开始余额支付流程', {
-        wishId: this.state.currentWishId,
-        amount: this.state.selectedAmount
-      });
-
-      // 1. 验证必要参数
-      if (!this.state.currentWishId || !this.state.selectedAmount) {
-        throw new Error('MISSING_REQUIRED_FIELDS');
-      }
-
-      // 2. 获取JWT令牌
-      const token = localStorage.getItem('token');
-      if (!token) {
-        throw new Error('USER_NOT_AUTHENTICATED');
-      }
-
-      // 3. 准备请求数据
-      const payload = {
-        wishId: this.state.currentWishId,
-        amount: parseFloat(this.state.selectedAmount).toFixed(2),
-        timestamp: Date.now()
-      };
-
-      // 4. 发送支付请求（添加超时处理）
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000);
-
-      const response = await fetch(`${this.config.paymentGateway.apiBase}/api/payments/balance`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(payload),
-        signal: controller.signal
-      }).finally(() => clearTimeout(timeoutId));
-
-      // 5. 处理网络层错误
-      if (response.status === 0) {
-        throw { 
-          message: 'NETWORK_ERROR',
-          code: 'NETWORK_FAILURE',
-          isNetworkError: true 
-        };
-      }
-
-      // 6. 解析响应数据
-      let responseData;
-      try {
-        responseData = await response.json();
-      } catch (e) {
-        throw { 
-          message: 'INVALID_RESPONSE_FORMAT', 
-          code: 'SERVER_ERROR',
-          originalError: e 
-        };
-      }
-
-      // 7. 处理业务逻辑错误
-      if (!response.ok) {
-        throw { 
-          message: responseData.message || 'PAYMENT_FAILED',
-          code: responseData.error || 'SERVER_ERROR',
-          serverResponse: responseData
-        };
-      }
-
-      // 8. 验证响应数据
-      if (!responseData.success || !responseData.transactionId) {
-        throw { 
-          message: 'INVALID_RESPONSE_DATA',
-          code: 'SERVER_ERROR',
-          responseData 
-        };
-      }
-
-      // 9. 更新本地状态
-      if (responseData.newBalance !== undefined) {
-        this.updateUserBalance(responseData.newBalance);
-      }
-
-      // 10. 返回成功结果
-      return {
-        success: true,
-        transactionId: responseData.transactionId,
-        newBalance: responseData.newBalance,
-        message: '支付成功'
-      };
-
-    } catch (error) {
-      this.logError('余额支付失败', error);
-      throw error; // 重新抛出以便外层处理
+  try {
+    // 1. 验证必要参数
+    if (!this.state.currentWishId || !this.state.selectedAmount) {
+      throw { code: 'MISSING_REQUIRED_FIELDS', message: '请选择还愿金额和愿望' };
     }
-  }
 
-  // 辅助方法
-  getUserFriendlyError(error) {
-    const errorMap = {
-      'NETWORK_ERROR': '网络连接失败，请检查网络设置',
-      'INSUFFICIENT_BALANCE': '账户余额不足',
-      'USER_NOT_AUTHENTICATED': '请先登录',
-      'INVALID_RESPONSE_FORMAT': '服务器返回数据格式错误',
-      'default': '支付处理失败，请稍后重试'
+    // 2. 获取JWT令牌
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw { code: 'USER_NOT_AUTHENTICATED', message: '请先登录' };
+    }
+
+    // 3. 准备请求数据
+    const payload = {
+      wishId: this.state.currentWishId,
+      amount: parseFloat(this.state.selectedAmount).toFixed(2)
     };
-    
-    return errorMap[error.code] || errorMap[error.message] || errorMap.default;
-  }
 
-  handlePaymentError(error) {
-    const userMessage = this.getUserFriendlyError(error);
-    
-    // 显示给用户
-    this.showToast(userMessage, 'error');
-    
-    // 记录完整错误
-    this.safeLogError('支付处理失败', {
-      error: error.message,
-      code: error.code,
-      stack: error.stack,
-      paymentState: this.state,
-      ...(error.serverResponse && { serverResponse: error.serverResponse })
+    // 4. 发送支付请求
+    const response = await fetch(`${this.config.paymentGateway.apiBase}/api/payments/balance`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(payload)
     });
 
-    // 特殊错误处理
-    if (error.code === 'USER_NOT_AUTHENTICATED') {
-      this.redirectToLogin();
-    }
+    // 5. 处理响应
+    const data = await response.json();
     
-    if (error.isNetworkError) {
-      this.scheduleRetry();
+    if (!response.ok) {
+      throw { 
+        code: data.error || 'PAYMENT_FAILED',
+        message: data.message || '支付失败',
+        serverResponse: data
+      };
     }
+
+    // 6. 更新本地状态
+    if (data.newBalance !== undefined) {
+      this.updateUserBalance(data.newBalance);
+    }
+
+    // 7. 处理支付成功
+    await this.handlePaymentSuccess();
+    
+    return {
+      success: true,
+      transactionId: data.transactionId,
+      newBalance: data.newBalance
+    };
+
+  } catch (error) {
+    this.handlePaymentError(error);
+    throw error;
   }
+}
 
 async processThirdPartyPayment() {
     this.log('开始第三方支付流程');
