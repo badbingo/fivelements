@@ -260,7 +260,7 @@ class WWPay {
         opacity: 1;
       }
       
-      #confirm-payment-btn {
+      #confirmPaymentBtn {
         display: block;
         width: 100%;
         max-width: 300px;
@@ -275,13 +275,13 @@ class WWPay {
         transition: all 0.3s;
       }
       
-      #confirm-payment-btn:hover:not(:disabled) {
+      #confirmPaymentBtn:hover:not(:disabled) {
         background: #45a049;
         transform: translateY(-2px);
         box-shadow: 0 4px 8px rgba(0,0,0,0.2);
       }
       
-      #confirm-payment-btn:disabled {
+      #confirmPaymentBtn:disabled {
         background: #cccccc;
         cursor: not-allowed;
         transform: none;
@@ -420,7 +420,7 @@ class WWPay {
         return;
       }
 
-      const confirmBtn = e.target.closest('#confirm-payment-btn');
+      const confirmBtn = e.target.closest('#confirmPaymentBtn');
       if (confirmBtn) {
         this.processPayment();
       }
@@ -993,7 +993,7 @@ class WWPay {
   }
 
   updateConfirmButtonState() {
-    const confirmBtn = document.getElementById('confirm-payment-btn');
+    const confirmBtn = document.getElementById('confirmPaymentBtn');
     if (confirmBtn) {
       confirmBtn.disabled = this.state.processing;
       confirmBtn.innerHTML = this.state.processing 
@@ -1158,7 +1158,7 @@ class WWPay {
  
      <!-- 第三层：确认按钮（居中） -->
      <div style="display: flex; justify-content: center;">
-       <button id="confirm-payment-btn" 
+       <button id="confirmPaymentBtn" 
                style="padding: 12px 40px; background: #52c41a; color: white; border: none; 
                       border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer;
                       transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(82, 196, 26, 0.3);">
@@ -1360,7 +1360,7 @@ class WWPay {
        
        <!-- 确认按钮 -->
        <div style="display: flex; justify-content: center;">
-         <button id="confirm-payment-btn" 
+         <button id="confirmPaymentBtn" 
                  style="padding: 12px 40px; background: #52c41a; color: white; border: none; 
                         border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer;
                         transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(82, 196, 26, 0.3);">
