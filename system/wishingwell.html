@@ -1277,7 +1277,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 fulfillBtn.addEventListener('click', (e) => {
                     e.stopPropagation();
                     handleFulfillWish(wish);
-                    modal.classList.remove('active');
                 });
                 
                 card.querySelector('.user-card-content').addEventListener('click', () => {
@@ -1628,6 +1627,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!token) {
                 toggleAuthModal(true);
                 switchAuthTab('login');
+                isFulfillProcessing = false;
                 return;
             }
 
@@ -1719,7 +1719,15 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // 处理还愿
+    let isFulfillProcessing = false;
     async function handleFulfillWish(wish) {
+        // 防止重复调用
+        if (isFulfillProcessing) {
+            console.log('还愿处理中，忽略重复调用');
+            return;
+        }
+        
+        isFulfillProcessing = true;
         try {
             const token = localStorage.getItem('token');
             if (!token) {
@@ -1762,9 +1770,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 window.wwPay.setCurrentWishId(wish.id);
                 // 不在模态框打开时显示支付方式，等用户选择金额后再显示
             }
+            
+            // 成功处理后重置状态
+            isFulfillProcessing = false;
         } catch (error) {
             console.error('还愿初始化失败:', error);
             alert('还愿失败: ' + error.message);
+            // 错误处理后重置状态
+            isFulfillProcessing = false;
         }
     }
 
