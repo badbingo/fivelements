@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
     }
     
-    const wwPay = new WWPay();
+    // 使用全局的wwPay实例
     const rechargeBtn = document.getElementById('rechargeBtn');
     const rechargeModal = document.getElementById('rechargeModal');
     const closeRecharge = document.getElementById('closeRecharge');
@@ -60,14 +60,13 @@ document.addEventListener('DOMContentLoaded', function() {
               rechargeText.style.display = 'none';
               
               try {
-                  // 初始化支付系统
-                  const wwPay = new WWPay();
+                  // 使用全局的wwPay实例
                   
                   // 1. 创建充值订单
-                  const orderResponse = await wwPay.createRechargeOrder(amount, paymentMethod);
+                  const orderResponse = await window.wwPay.createRechargeOrder(amount, paymentMethod);
                   
                   // 2. 跳转支付平台
-                  await wwPay.redirectToPaymentGateway(orderResponse);
+                  await window.wwPay.redirectToPaymentGateway(orderResponse);
                   
                   // 3. 显示支付处理中提示
                   rechargeMessage.textContent = '正在跳转支付平台...';
