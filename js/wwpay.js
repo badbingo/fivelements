@@ -18,6 +18,7 @@ class WWPay {
     this.generateSignature = this.generateSignature.bind(this);
     this.cleanupPaymentState = this.cleanupPaymentState.bind(this);
     this.processRecharge = this.processRecharge.bind(this);
+    this.init = this.init.bind(this);
         // 初始化日志方法
     this.log = this.log.bind(this);
     this.logError = this.logError.bind(this);
@@ -157,6 +158,29 @@ class WWPay {
     }
   }
   /* ========== 初始化方法 ========== */
+
+  // 初始化支付系统
+  init(options) {
+    this.log('初始化支付系统', options);
+    
+    // 设置愿望ID
+    if (options && options.wishId) {
+      this.state.currentWishId = options.wishId;
+    }
+    
+    // 保存成功回调
+    if (options && typeof options.onSuccess === 'function') {
+      this.onSuccessCallback = options.onSuccess;
+    }
+    
+    // 重置支付状态
+    this.resetPaymentState();
+    
+    // 显示支付方法
+    this.showPaymentMethods();
+    
+    return this;
+  }
 
   // 处理充值请求
   async processRecharge(amount, paymentMethod) {
@@ -1022,7 +1046,17 @@ validatePaymentState() {
         throw new Error('愿望删除验证失败');
       }
 
-      // 3. 准备跳转
+      // 3. 调用成功回调
+      if (typeof this.onSuccessCallback === 'function') {
+        try {
+          this.log('调用成功回调');
+          this.onSuccessCallback();
+        } catch (callbackError) {
+          this.safeLogError('成功回调执行失败', callbackError);
+        }
+      }
+
+      // 4. 准备跳转
       this.prepareSuccessRedirect();
       
     } catch (error) {
@@ -1271,6 +1305,9 @@ validatePaymentState() {
       paymentCompleted: false,
       lastPayment: null
     };
+    
+    // 重置成功回调
+    this.onSuccessCallback = null;
   }
 
   validatePaymentState() {
