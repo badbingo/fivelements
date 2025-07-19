@@ -581,6 +581,15 @@ class WWPay {
     const data = await response.json();
     
     if (!response.ok) {
+      // 如果是余额不足错误，提供更友好的提示
+      if (data.error === '余额不足') {
+        throw { 
+          code: 'INSUFFICIENT_BALANCE', 
+          message: `余额不足 (当前余额: ${data.currentBalance || '未知'}, 需要: ${data.requiredAmount || '未知'})`,
+          serverResponse: data
+        };
+      }
+      
       throw { 
         code: data.error || 'PAYMENT_FAILED',
         message: data.message || '支付失败',
@@ -603,6 +612,18 @@ class WWPay {
     };
 
   } catch (error) {
+    // 如果是网络错误，尝试重试
+    if (error.message.includes('Failed to fetch') || error.message.includes('CORS')) {
+      this.log('余额支付网络错误，尝试重试...');
+      try {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        return await this.processBalancePayment();
+      } catch (retryError) {
+        this.handlePaymentError(retryError);
+        throw retryError;
+      }
+    }
+    
     this.handlePaymentError(error);
     throw error;
   }
