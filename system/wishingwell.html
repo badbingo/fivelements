@@ -607,18 +607,26 @@ document.addEventListener('DOMContentLoaded', function() {
         <h3><i class="fas fa-hand-holding-heart"></i> 感恩还愿</h3>
         <p>您的愿望已经实现，请选择还愿金额：</p>
         
-        <!-- 添加当前余额显示 -->
-        <div class="user-balance" style="margin-bottom:15px;" id="modalBalance">
-          <i class="fas fa-coins"></i> 当前余额: <span id="modalBalanceAmount">0</span> 元
-        </div>
-        
         <!-- 金额选择 -->
         <div class="fulfill-options">
           <button class="fulfill-option" data-amount="1">1元</button>
           <button class="fulfill-option" data-amount="5">5元</button>
           <button class="fulfill-option" data-amount="10">10元</button>
           <button class="fulfill-option" data-amount="20">20元</button>
-        </div>    
+        </div>
+        
+        <!-- 支付方式容器 -->
+        <div class="payment-methods-container"></div>
+        
+        <!-- 确认按钮 -->
+        <div class="payment-confirm-container">
+          <button id="confirmPaymentBtn" class="btn-primary disabled" disabled>确认支付</button>
+        </div>
+      </div>
+    </div>
+        </div>
+      </div>
+    </div>    
     <script>
         
 document.addEventListener('DOMContentLoaded', function() {
@@ -1726,7 +1734,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            // 更新还愿状态
             const updateResponse = await fetch(`${API_BASE}/api/wishes/${wish.id}/fulfill`, {
                 method: 'POST',
                 headers: {
@@ -1744,40 +1751,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 throw new Error('找不到还愿模态框');
             }
             
-            // 更新模态框中的余额显示
-            const balance = document.getElementById('balanceAmount').textContent;
-            document.getElementById('modalBalanceAmount').textContent = balance;
-            
-            // 初始化支付系统
-            if (window.wwpay) {
-                window.wwpay.init({
-                    wishId: wish.id,
-                    onSuccess: () => {
-                        // 还愿成功后的处理
-                        updateWishStatus(wish.id, 'fulfilled');
-                        $('#fulfillModal').modal('hide');
-                        showToast('还愿成功！', 'success');
-                        
-                        // 更新余额显示
-                        const balanceAmount = document.getElementById('balanceAmount');
-                        const modalBalanceAmount = document.getElementById('modalBalanceAmount');
-                        if (balanceAmount && modalBalanceAmount) {
-                            const currentBalance = parseFloat(balanceAmount.textContent) - parseFloat(modalBalanceAmount.textContent);
-                            balanceAmount.textContent = currentBalance.toFixed(2);
-                            modalBalanceAmount.textContent = currentBalance.toFixed(2);
-                        }
-                    },
-                    onError: (error) => {
-                        showToast(`支付失败: ${error.message}`, 'error');
-                    }
-                });
-            }
-            
             modal.dataset.wishId = wish.id;
             modal.style.display = 'block';
         
             if (window.wwPay) {
                 window.wwPay.resetPaymentState();
+                window.wwPay.setCurrentWishId(wish.id);
+                window.wwPay.showPaymentMethods();
             }
         } catch (error) {
             console.error('还愿初始化失败:', error);
@@ -2354,6 +2334,52 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // 跳转到充值页面
+    function redirectToCharge() {
+        window.location.href = '/system/charge.html';
+    }
+    
+    // 初始化支付系统
+    function initPaymentSystem() {
+        // 加载支付脚本
+        const script = document.createElement('script');
+        script.src = '/js/wwpay.js';
+        script.onload = () => {
+            console.log('wwpay.js 加载成功');
+            if (typeof WWPay === 'function') {
+                window.wwPay = new WWPay();
+                
+                // 绑定确认支付按钮点击事件
+                const confirmBtn = document.getElementById('confirmPaymentBtn');
+                if (confirmBtn) {
+                    confirmBtn.addEventListener('click', function() {
+                        if (window.wwPay) {
+                            window.wwPay.processPayment();
+                        }
+                    });
+                }
+                
+                // 绑定还愿金额选择事件
+                const fulfillOptions = document.querySelectorAll('.fulfill-option');
+                fulfillOptions.forEach(option => {
+                    option.addEventListener('click', function() {
+                        const amount = parseFloat(this.dataset.amount);
+                        if (window.wwPay) {
+                            window.wwPay.selectAmount(amount);
+                        }
+                    });
+                });
+                
+                // 将redirectToCharge函数暴露给全局
+                window.redirectToCharge = redirectToCharge;
+            }
+        };
+        script.onerror = (error) => {
+            console.error('wwpay.js 加载失败:', error);
+        };
+        document.head.appendChild(script);
+    }
+    
     // 主初始化函数
     async function initialize() {
         await loadLunarJS();
@@ -2361,6 +2387,7 @@ document.addEventListener('DOMContentLoaded', function() {
         checkLoginStatus();
         initUserCardsModal();
         initEventListeners();
+        initPaymentSystem();
         
         loadAllWishes();
         fetchStats();
