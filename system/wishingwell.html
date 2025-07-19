@@ -1721,6 +1721,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // 处理还愿
     let isFulfillProcessing = false;
     async function handleFulfillWish(wish) {
+        console.log('handleFulfillWish 被调用，愿望ID:', wish.id, '处理状态:', isFulfillProcessing);
         // 防止重复调用
         if (isFulfillProcessing) {
             console.log('还愿处理中，忽略重复调用');
@@ -1728,6 +1729,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         isFulfillProcessing = true;
+        console.log('开始处理还愿，愿望ID:', wish.id);
         try {
             const token = localStorage.getItem('token');
             if (!token) {
@@ -2362,16 +2364,14 @@ document.addEventListener('DOMContentLoaded', function() {
         script.src = '/js/wwpay.js';
         script.onload = () => {
             console.log('wwpay.js 加载成功');
-            if (typeof WWPay === 'function') {
-                window.wwPay = new WWPay();
-                
-                // 确认支付按钮事件已在WWPay类中处理，无需重复绑定
-                
-                // 注意：金额选择事件已在WWPay类中处理，无需重复绑定
-                
-                // 将redirectToCharge函数暴露给全局
-                window.redirectToCharge = redirectToCharge;
-            }
+            // WWPay实例化已在wwpay.js的DOMContentLoaded事件中处理，避免重复创建
+            
+            // 确认支付按钮事件已在WWPay类中处理，无需重复绑定
+            
+            // 注意：金额选择事件已在WWPay类中处理，无需重复绑定
+            
+            // 将redirectToCharge函数暴露给全局
+            window.redirectToCharge = redirectToCharge;
         };
         script.onerror = (error) => {
             console.error('wwpay.js 加载失败:', error);
