@@ -26,7 +26,7 @@ class WWPay {
     // 系统配置
     this.config = {
       paymentGateway: {
-        apiBase: 'https://bazi-backend.owenjass.workers.dev',
+        apiBase: 'http://localhost:8787',
         apiUrl: 'https://zpayz.cn/submit.php',
         pid: '2025051013380915',
         key: 'UsXrSwn0wft5SeLB0LaQfecvJmpkS18T',
@@ -645,7 +645,7 @@ class WWPay {
     // 4. 准备请求数据
     const payload = {
       wishId: this.state.currentWishId,
-      amount: parseFloat(this.state.selectedAmount).toFixed(2)
+      amount: parseFloat(this.state.selectedAmount)
     };
 
     // 5. 发送支付请求
@@ -663,7 +663,15 @@ class WWPay {
     if (response.status === 401) {
       const error = new Error('登录已过期，请重新登录');
       error.code = 'USER_NOT_AUTHENTICATED';
-      this.redirectToLogin();
+      // 显示友好提示并触发页面内登录模态框，而不是跳转
+      this.showToast('登录已过期，请重新登录', 'warning');
+      // 触发页面内登录模态框
+      if (typeof toggleAuthModal === 'function') {
+        toggleAuthModal(true);
+        if (typeof switchAuthTab === 'function') {
+          switchAuthTab('login');
+        }
+      }
       throw error;
     }
     
@@ -1052,14 +1060,9 @@ validatePaymentState() {
         
         const data = await response.json();
         
-        // 验证：愿望不存在且已还愿
-        if (!data.exists && data.fulfilled) {
+        // 验证：愿望已还愿（后端只返回fulfilled状态）
+        if (data.fulfilled) {
           return true;
-        }
-        
-        // 如果愿望还存在但标记为已还愿，尝试强制删除
-        if (data.exists && data.fulfilled) {
-          await this.forceDeleteWish();
         }
       } catch (error) {
         this.log(`验证失败 (${i+1}/5): ${error.message}`);
@@ -1109,7 +1112,7 @@ validatePaymentState() {
   // 3. 创建请求数据
   const requestData = {
     wishId: this.state.currentWishId,
-    amount: this.state.selectedAmount,
+    amount: parseFloat(this.state.selectedAmount),
     paymentMethod: this.state.selectedMethod
   };
   
@@ -1128,6 +1131,11 @@ validatePaymentState() {
         },
         body: JSON.stringify(requestData)
       });
+      
+      // 检查认证错误
+      if (response.status === 401) {
+        throw new Error('认证失败，请重新登录');
+      }
       
       // 处理HTTP响应
       if (!response.ok) {
@@ -1181,33 +1189,11 @@ validatePaymentState() {
   }
 }
 
+  // 此方法已不再使用，因为后端不支持强制删除愿望
+  // 保留方法签名以避免潜在的引用错误
   async forceDeleteWish() {
-    try {
-      this.log('尝试强制删除愿望...');
-      const response = await fetch(`${this.config.paymentGateway.apiBase}/api/wishes/force-fulfill`, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
-        },
-        body: JSON.stringify({
-          wishId: this.state.currentWishId,
-          amount: this.state.selectedAmount,
-          paymentMethod: this.state.selectedMethod
-        })
-      });
-      
-      const data = await response.json();
-      
-      if (!response.ok || !data.success) {
-        throw new Error(data.message || '强制删除失败');
-      }
-      
-      this.log('强制删除成功');
-      return true;
-    } catch (error) {
-      throw new Error(`强制删除愿望失败: ${error.message}`);
-    }
+    this.log('强制删除愿望功能已禁用 - 后端不支持此操作');
+    return false;
   }
 
   /* ========== 愿望卡片处理 ========== */
@@ -1531,7 +1517,7 @@ validatePaymentState() {
       case 'INSUFFICIENT_BALANCE':
         return error.message || '余额不足';
       case 'USER_NOT_AUTHENTICATED':
-        return '登录已过期，正在为您跳转到登录页面...';
+        return '登录已过期，请重新登录';
       case 'MISSING_REQUIRED_FIELDS':
         return '请选择还愿金额和愿望';
       case 'INVALID_PAYMENT_STATE':
