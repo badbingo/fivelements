@@ -824,6 +824,8 @@
         const usernameDisplay = document.getElementById('usernameDisplay');
         const userBalance = document.getElementById('userBalance');
         const balanceAmount = document.getElementById('balanceAmount');
+        const balanceArea = document.getElementById('balanceArea');
+        const aiBtn = document.getElementById('aiBtn');
         
         // 每日使用限制
         let dailyUsageCount = 0;
@@ -927,7 +929,6 @@
         const steps = document.querySelectorAll('.step');
         const questionInput = document.getElementById('questionInput');
         const saveQuestionBtn = document.getElementById('saveQuestion');
-        const aiBtn = document.getElementById('aiBtn');
         const aiContent = document.getElementById('aiAnalysis');
         
         // 状态变量
@@ -1185,7 +1186,6 @@
         function checkLoginStatus() {
             const token = localStorage.getItem('token');
             const username = localStorage.getItem('username');
-            const balanceArea = document.getElementById('balanceArea');
             
             if (token && username) {
                 loginBtn.style.display = 'none';
@@ -1701,38 +1701,41 @@
         resetBtn.addEventListener('click', resetSystem);
         
         // 初始化
-        resetSystem();
-        
-        // 初始化认证和充值系统
-        initAuthEvents();
-        initRechargeSystem();
-        checkLoginStatus();
-        
-        // 调试信息
-        console.log('页面初始化完成');
-        console.log('登录按钮:', loginBtn);
-        console.log('AI按钮:', document.getElementById('aiBtn'));
-        console.log('余额区域:', document.getElementById('balanceArea'));
-        console.log('WWPay类:', typeof WWPay !== 'undefined' ? 'loaded' : 'not loaded');
-        
-        // 测试函数
-        window.testLogin = function() {
-            console.log('手动触发登录按钮点击');
-            if (loginBtn) {
-                loginBtn.click();
-            } else {
-                console.error('登录按钮未找到');
-            }
-        };
-        
-        window.testElements = function() {
-            console.log('=== 元素检查 ===');
-            console.log('loginBtn存在:', !!loginBtn);
-            console.log('aiBtn存在:', !!document.getElementById('aiBtn'));
-            console.log('balanceArea存在:', !!document.getElementById('balanceArea'));
-            console.log('userWelcome存在:', !!document.getElementById('userWelcome'));
-            console.log('rechargeBtn存在:', !!document.getElementById('rechargeBtn'));
-        };
+        // 等待DOM加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            resetSystem();
+            
+            // 初始化认证和充值系统
+            initAuthEvents();
+            initRechargeSystem();
+            checkLoginStatus();
+            
+            // 调试信息
+            console.log('页面初始化完成');
+            console.log('登录按钮:', loginBtn);
+            console.log('AI按钮:', document.getElementById('aiBtn'));
+            console.log('余额区域:', document.getElementById('balanceArea'));
+            console.log('WWPay类:', typeof WWPay !== 'undefined' ? 'loaded' : 'not loaded');
+            
+            // 测试函数
+            window.testLogin = function() {
+                console.log('手动触发登录按钮点击');
+                if (loginBtn) {
+                    loginBtn.click();
+                } else {
+                    console.error('登录按钮未找到');
+                }
+            };
+            
+            window.testElements = function() {
+                console.log('=== 元素检查 ===');
+                console.log('loginBtn存在:', !!loginBtn);
+                console.log('aiBtn存在:', !!document.getElementById('aiBtn'));
+                console.log('balanceArea存在:', !!document.getElementById('balanceArea'));
+                console.log('userWelcome存在:', !!document.getElementById('userWelcome'));
+                console.log('rechargeBtn存在:', !!document.getElementById('rechargeBtn'));
+            };
+        });
     </script>
 </body>
 </html>
