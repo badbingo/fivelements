@@ -221,9 +221,15 @@
           const maxRetries = 3;
           let retryCount = 0;
           
+          // 增加初始延迟，等待支付通知处理
+          if (retryCount === 0) {
+            statusElement.innerHTML = '等待支付确认中... <span class="loader"></span>';
+            await new Promise(resolve => setTimeout(resolve, 5000)); // 5秒初始延迟
+          }
+          
           const tryUpdate = async () => {
             try {
-              statusElement.innerHTML = `处理中${retryCount > 0 ? `(第${retryCount}次重试)` : ''} <span class="loader"></span>`;
+              statusElement.innerHTML = `验证支付状态${retryCount > 0 ? `(第${retryCount}次重试)` : ''} <span class="loader"></span>`;
               
               const response = await fetch(`/api/recharge/complete?orderId=${orderId}`, {
                 headers: {
@@ -232,10 +238,6 @@
                   'Cache-Control': 'no-cache, no-store'
                 }
               });
-              
-              if (!response.ok) {
-                throw new Error(`请求失败 (${response.status})`);
-              }
               
               // 检查响应类型
               const contentType = response.headers.get('content-type');
@@ -246,6 +248,15 @@
           
               // 解析JSON
               const data = await response.json();
+              
+              // 处理202状态码（支付确认中）
+              if (response.status === 202 && data.status === 'pending') {
+                throw new Error('支付确认中，请稍候');
+              }
+              
+              if (!response.ok) {
+                throw new Error(data.error || `请求失败 (${response.status})`);
+              }
               
               if (!data.success) {
                 throw new Error(data.error || '操作失败');
@@ -262,7 +273,9 @@
             } catch (error) {
               // 增强错误处理
               let errorMessage = '处理失败';
-              if (error.message.includes('JSON') || error.message.includes('期望JSON响应')) {
+              if (error.message.includes('支付确认中')) {
+                errorMessage = '支付确认中';
+              } else if (error.message.includes('JSON') || error.message.includes('期望JSON响应')) {
                 errorMessage = '服务器响应格式异常';
               } else if (error.message.includes('Network') || error.message.includes('Failed to fetch')) {
                 errorMessage = '网络连接失败';
@@ -280,7 +293,7 @@
               if (retryCount < maxRetries) {
                 retryCount++;
                 statusElement.textContent = `${errorMessage}，正在重试(${retryCount}/${maxRetries})...`;
-                await new Promise(resolve => setTimeout(resolve, 2000)); // 增加重试间隔
+                await new Promise(resolve => setTimeout(resolve, 3000)); // 增加重试间隔到3秒
                 return tryUpdate();
               } else {
                 statusElement.textContent = `${errorMessage}，请联系客服或刷新页面重试`;
