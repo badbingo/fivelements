@@ -630,8 +630,7 @@ document.addEventListener('DOMContentLoaded', function() {
     <script>
         
 document.addEventListener('DOMContentLoaded', function() {
-    // 配置后端地址
-    const API_BASE = 'https://bazi-backend.owenjass.workers.dev';
+    // 使用全局API_BASE配置
     const API_URL = `${API_BASE}/api/wishes`;
 
     // 全局变量
@@ -1263,9 +1262,6 @@ document.addEventListener('DOMContentLoaded', function() {
                         </div>
                         
                         <div class="user-card-actions">
-                            <button class="btn-fulfill-small">
-                                <i class="fas fa-hand-holding-heart"></i> ${wish.is_fulfilled ? '再次还愿' : '还愿'}
-                            </button>
                             <button class="btn-delete">
                                 <i class="fas fa-trash-alt"></i> 删除
                             </button>
@@ -1279,12 +1275,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     deleteUserWish(wish.id, card);
                 });
                 
-                // 允许所有愿望（包括已还愿的）进行还愿
-                const fulfillBtn = card.querySelector('.btn-fulfill-small');
-                fulfillBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    handleFulfillWish(wish);
-                });
+                // 删除还愿按钮相关代码
                 
                 card.querySelector('.user-card-content').addEventListener('click', () => {
                     showWishDetail(wish);
