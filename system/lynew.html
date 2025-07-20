@@ -39,6 +39,7 @@
             background: rgba(10, 15, 30, 0.7);
             border-radius: 18px;
             margin-bottom: 10px;
+            margin-top: 60px;
             border: 1px solid rgba(180, 150, 70, 0.3);
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
         }
@@ -702,7 +703,7 @@
             
             <!-- 使用说明 -->
             <div style="margin-top: 20px; padding: 15px; background: rgba(212, 175, 55, 0.1); border-radius: 10px; border: 1px solid rgba(212, 175, 55, 0.3);">
-                <p style="color: #d4af37; font-size: 1.1rem; margin: 0;"><i class="fas fa-info-circle"></i> 每日可免费使用一次AI解卦，超出需付费2元/次</p>
+                <p id="dailyUsageInfo" style="color: #d4af37; font-size: 1.1rem; margin: 0;"><i class="fas fa-info-circle"></i> 每日可免费使用3次AI解卦，超出需付费2元/次</p>
             </div>
         </header>
         
@@ -821,8 +822,9 @@
         
         // 每日使用限制
         let dailyUsageCount = 0;
-        const DAILY_FREE_LIMIT = 1;
+        const DAILY_FREE_LIMIT = 3;
         const AI_ANALYSIS_COST = 2;
+        const dailyUsageInfo = document.getElementById('dailyUsageInfo');
         
         // API配置
         const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
@@ -1198,6 +1200,10 @@
                 userBalance.style.display = 'none';
                 rechargeBtn.style.display = 'none';
                 logoutBtn.style.display = 'none';
+                
+                // 重置使用次数并更新显示
+                dailyUsageCount = 0;
+                updateDailyUsageInfo();
             }
         }
         
@@ -1391,6 +1397,16 @@
             }
         }
         
+        // 更新每日使用信息显示
+        function updateDailyUsageInfo() {
+            const remainingFree = Math.max(0, DAILY_FREE_LIMIT - dailyUsageCount);
+            if (remainingFree > 0) {
+                dailyUsageInfo.innerHTML = `<i class="fas fa-info-circle"></i> 您今天还有${remainingFree}次免费AI解卦，超出需付费${AI_ANALYSIS_COST}元/次`;
+            } else {
+                dailyUsageInfo.innerHTML = `<i class="fas fa-exclamation-triangle"></i> 您今天的免费AI解卦已使用完，继续使用需付费${AI_ANALYSIS_COST}元/次`;
+            }
+        }
+        
         // 获取今日使用次数
         async function getDailyUsage() {
             try {
@@ -1403,9 +1419,11 @@
                 if (response.ok) {
                     const data = await response.json();
                     dailyUsageCount = data.count || 0;
+                    updateDailyUsageInfo();
                 }
             } catch (error) {
                 console.error('获取使用次数失败:', error);
+                updateDailyUsageInfo();
             }
         }
         
@@ -1450,6 +1468,7 @@
                     } else {
                         dailyUsageCount++;
                     }
+                    updateDailyUsageInfo();
                 }
             } catch (error) {
                 console.error('记录使用失败:', error);
