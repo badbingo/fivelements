@@ -39,7 +39,6 @@
             background: rgba(10, 15, 30, 0.7);
             border-radius: 18px;
             margin-bottom: 10px;
-            margin-top: 60px;
             border: 1px solid rgba(180, 150, 70, 0.3);
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
         }
@@ -685,25 +684,27 @@
         </div>
     </div>
 
+    <!-- 用户信息区域 -->
+    <div class="user-area" style="position: fixed; top: 20px; right: 20px; z-index: 1000;">
+        <div class="user-welcome" id="userWelcome" style="display:none; color: #d4af37; margin-bottom: 5px;">欢迎, <span id="usernameDisplay"></span></div>
+        <div class="user-balance" id="userBalance" style="display:none; margin: 5px 0; color: #f0f0f0;">
+            <i class="fas fa-coins"></i> 余额: ¥<span id="balanceAmount">0</span>
+        </div>
+        <div style="margin-top: 10px;">
+            <button id="loginBtn" class="auth-btn" style="margin-right: 5px;">登录</button>
+            <button id="rechargeBtn" class="recharge-btn" style="display:none; margin-right: 5px;">充值</button>
+            <button id="logoutBtn" class="logout-btn" style="display:none;">退出</button>
+        </div>
+    </div>
+
     <div class="container">
         <header style="position: relative;">
-            <!-- 用户信息区域 -->
-            <div class="user-area" style="position: absolute; top: 20px; right: 20px; z-index: 100;">
-                <div class="user-welcome" id="userWelcome" style="display:none; color: #d4af37; margin-bottom: 5px;">欢迎, <span id="usernameDisplay"></span></div>
-                <div class="user-balance" id="userBalance" style="display:none; margin: 5px 0; color: #f0f0f0;">
-                    <i class="fas fa-coins"></i> 余额: ¥<span id="balanceAmount">0</span>
-                </div>
-                <button class="login-btn" id="loginBtn" style="padding: 8px 16px; background: linear-gradient(145deg, #d4af37, #b8971a); color: #1a1a2e; border: none; border-radius: 20px; cursor: pointer; font-weight: 600;">登录/注册</button>
-                <button class="recharge-btn" id="rechargeBtn" style="display:none; padding: 8px 16px; background: linear-gradient(145deg, #2575fc, #6a11cb); color: white; border: none; border-radius: 20px; cursor: pointer; margin-left: 10px;"><i class="fas fa-plus"></i> 充值</button>
-                <button class="logout-btn" id="logoutBtn" style="display:none; padding: 8px 16px; background: #e74c3c; color: white; border: none; border-radius: 20px; cursor: pointer; margin-left: 10px;"><i class="fas fa-sign-out-alt"></i> 退出</button>
-            </div>
-            
             <h1><i class="fas fa-yin-yang"></i> 易经六爻占卜系统</h1>
             <p>六爻占卜是中国古老的预测方法，通过抛掷铜钱六次形成卦象，揭示事物的发展规律。</p>
             
             <!-- 使用说明 -->
             <div style="margin-top: 20px; padding: 15px; background: rgba(212, 175, 55, 0.1); border-radius: 10px; border: 1px solid rgba(212, 175, 55, 0.3);">
-                <p id="dailyUsageInfo" style="color: #d4af37; font-size: 1.1rem; margin: 0;"><i class="fas fa-info-circle"></i> 每日可免费使用3次AI解卦，超出需付费2元/次</p>
+                <p id="dailyUsageInfo" style="color: #d4af37; font-size: 1.1rem; margin: 0;"><i class="fas fa-info-circle"></i> 每日可免费使用1次AI解卦，超出需付费2元/次</p>
             </div>
         </header>
         
@@ -822,7 +823,7 @@
         
         // 每日使用限制
         let dailyUsageCount = 0;
-        const DAILY_FREE_LIMIT = 3;
+        const DAILY_FREE_LIMIT = 1;
         const AI_ANALYSIS_COST = 2;
         const dailyUsageInfo = document.getElementById('dailyUsageInfo');
         
@@ -1151,7 +1152,7 @@
             
             // 重置AI按钮点击状态
             aiBtnClicked = false;
-            aiBtn.disabled = false;
+            aiBtn.disabled = true;
         }
         
         // ==================== 登录注册系统功能 ====================
