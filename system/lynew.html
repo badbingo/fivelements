@@ -492,11 +492,11 @@
         .recharge-container {
             position: relative;
             background: linear-gradient(135deg, #1a1f35, #0d1225);
-            margin: 5% auto;
+            margin: 8% auto;
             padding: 0;
             border-radius: 20px;
             width: 90%;
-            max-width: 500px;
+            max-width: 420px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
             border: 1px solid rgba(180, 150, 70, 0.3);
             overflow: hidden;
@@ -520,40 +520,43 @@
         
         .recharge-header {
             text-align: center;
-            padding: 30px 30px 20px;
+            padding: 25px 25px 15px;
             background: rgba(10, 15, 30, 0.8);
         }
         
         .recharge-header h2 {
             color: #d4af37;
-            margin-bottom: 10px;
-            font-size: 1.8rem;
+            margin-bottom: 8px;
+            font-size: 1.6rem;
         }
         
         .recharge-header p {
             color: #b8c2cc;
-            font-size: 1rem;
+            font-size: 0.9rem;
         }
         
         .recharge-form {
-            padding: 30px;
+            padding: 25px;
         }
         
         .payment-methods {
             display: flex;
-            flex-direction: column;
-            gap: 10px;
+            flex-direction: row;
+            gap: 15px;
         }
         
         .payment-option {
             display: flex;
             align-items: center;
-            padding: 15px;
+            justify-content: center;
+            flex: 1;
+            padding: 12px 8px;
             border: 2px solid #2c3e50;
             border-radius: 10px;
             cursor: pointer;
             transition: all 0.3s;
             background: rgba(30, 35, 60, 0.6);
+            font-size: 0.9rem;
         }
         
         .payment-option:hover {
@@ -566,12 +569,12 @@
         }
         
         .payment-tag {
-            margin-left: auto;
+            margin-left: 5px;
             background: #d4af37;
             color: #1a1a2e;
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 0.8rem;
+            padding: 2px 6px;
+            border-radius: 8px;
+            font-size: 0.7rem;
             font-weight: 600;
         }
         
@@ -1716,6 +1719,7 @@
                     const data = await response.json();
                     userBalance = data.balance || 0;
                     document.getElementById('balanceAmount').textContent = userBalance.toFixed(2);
+                    updateUsageInfo();
                 }
             } catch (error) {
                 console.error('获取余额失败:', error);
@@ -1740,10 +1744,14 @@
         
         function updateUsageInfo() {
             const usageInfo = document.getElementById('dailyUsageInfo');
+            const aiBtn = document.getElementById('aiBtn');
+            
             if (dailyUsageCount === 0) {
                 usageInfo.innerHTML = '<i class="fas fa-gift"></i> 今日还可免费使用1次AI解卦';
+                aiBtn.innerHTML = '<i class="fas fa-robot"></i> 获取AI解卦分析（今日1次免费）';
             } else {
                 usageInfo.innerHTML = '<span style="color: #FFD700; font-weight: bold;"><i class="fas fa-coins"></i> 今日免费次数已用完，继续使用需付费2元/次</span>';
+                aiBtn.innerHTML = '<i class="fas fa-robot"></i> 获取AI解卦分析（每次2元）';
             }
         }
         
@@ -1762,9 +1770,8 @@
             
             // 需要付费
             if (userBalance < 2) {
-                if (confirm('余额不足，需要充值后才能继续使用AI解卦功能。是否前往充值？')) {
-                    document.getElementById('rechargeModal').style.display = 'flex';
-                }
+                alert('余额不足，请充值后继续使用AI解卦功能');
+                document.getElementById('rechargeModal').style.display = 'flex';
                 return false;
             }
             
