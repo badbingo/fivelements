@@ -143,6 +143,7 @@
         </div>
         
         <button onclick="window.location.href='wishingwell.html'">返回许愿池</button>
+        <button onclick="window.location.href='lynew.html'">返回六爻占卜</button>
         <button id="contactBtn" style="display: none; background-color: #f44336;">联系客服</button>
     </div>
 
@@ -165,53 +166,50 @@
                     return null;
                 }
                 
-                const response = await fetch('/api/user/balance', {
+                const response = await fetch('/api/users/balance', {
                     headers: {
-                        'Authorization': `Bearer ${token}`
+                        'Authorization': `Bearer ${token}`,
+                        'Cache-Control': 'no-cache, no-store'
                     }
                 });
                 
-                if (!response.ok) throw new Error('获取余额失败');
+                if (!response.ok) throw new Error(`获取余额失败 (${response.status})`);
                 
                 const data = await response.json();
-                // 确保正确处理real类型
-                if (data.balance === undefined || data.balance === null) {
-                  return 0;
-                }
-                return parseFloat(data.balance) || 0;
+                return data.balance || 0;
             } catch (error) {
                 console.error('获取余额错误:', error);
-                return null;
+                return null; // 返回null表示获取失败
             }
         }
         
         // 更新余额显示
         async function updateBalanceDisplay() {
             try {
-                 const balance = await getCurrentBalance();
-                 const balanceElement = document.getElementById('currentBalance');
-                 
-                 if (balance !== null) {
-                     balanceElement.textContent = balance.toFixed(2);
-                     balanceElement.style.color = ''; // 恢复默认颜色
-                     balanceElement.removeAttribute('title'); // 移除可能的错误提示
-                 } else {
-                     balanceElement.textContent = '获取失败';
-                     balanceElement.style.color = '#dc3545'; // 红色错误提示
-                     balanceElement.title = '无法获取余额信息，请刷新页面重试';
-                 }
-             } catch (error) {
-                 console.error('更新余额显示失败:', error);
-                 const balanceElement = document.getElementById('currentBalance');
-                 if (balanceElement) {
-                     balanceElement.textContent = '获取失败';
-                     balanceElement.style.color = '#dc3545'; // 红色错误提示
-                     balanceElement.title = `错误: ${error.message}`; // 添加错误详情提示
-                 }
-                 
-                 // 5秒后自动重试
-                 setTimeout(updateBalanceDisplay, 5000);
-             }
+                const balance = await getCurrentBalance();
+                const balanceElement = document.getElementById('currentBalance');
+                
+                if (balance !== null) {
+                    balanceElement.textContent = balance.toFixed(2);
+                    balanceElement.style.color = ''; // 恢复默认颜色
+                    balanceElement.removeAttribute('title'); // 移除可能的错误提示
+                } else {
+                    balanceElement.textContent = '获取失败';
+                    balanceElement.style.color = '#dc3545'; // 红色错误提示
+                    balanceElement.title = '无法获取余额信息，请刷新页面重试';
+                }
+            } catch (error) {
+                console.error('更新余额显示失败:', error);
+                const balanceElement = document.getElementById('currentBalance');
+                if (balanceElement) {
+                    balanceElement.textContent = '获取失败';
+                    balanceElement.style.color = '#dc3545'; // 红色错误提示
+                    balanceElement.title = `错误: ${error.message}`; // 添加错误详情提示
+                }
+                
+                // 5秒后自动重试
+                setTimeout(updateBalanceDisplay, 5000);
+            }
         }
         
         // 初始化显示余额
@@ -230,10 +228,15 @@
               const response = await fetch(`/api/recharge/complete?orderId=${orderId}`, {
                 headers: {
                   'Authorization': `Bearer ${localStorage.getItem('token')}`,
-                  'Accept': 'application/json'
+                  'Accept': 'application/json',
+                  'Cache-Control': 'no-cache, no-store'
                 }
               });
-          
+              
+              if (!response.ok) {
+                throw new Error(`请求失败 (${response.status})`);
+              }
+              
               // 检查响应类型
               const contentType = response.headers.get('content-type');
               if (!contentType?.includes('application/json')) {
@@ -249,27 +252,38 @@
               }
           
               // 成功时更新UI
-              statusElement.textContent = '充值成功！';
+              statusElement.innerHTML = '<span style="color: #4CAF50;">✓ 充值成功！余额已更新</span>';
               document.getElementById('contactBtn').style.display = 'none';
+              
+              // 延迟更新余额显示，确保服务器数据同步
+              setTimeout(updateBalanceDisplay, 1000);
               return true;
               
             } catch (error) {
               // 增强错误处理
               let errorMessage = '处理失败';
-              if (error.message.includes('JSON')) {
-                errorMessage = '服务器返回数据';
-              } else if (error.message.includes('Network')) {
+              if (error.message.includes('JSON') || error.message.includes('期望JSON响应')) {
+                errorMessage = '服务器响应格式异常';
+              } else if (error.message.includes('Network') || error.message.includes('Failed to fetch')) {
                 errorMessage = '网络连接失败';
+              } else if (error.message.includes('请求失败')) {
+                errorMessage = '服务器请求失败';
               }
               
-              statusElement.textContent = `${errorMessage}${retryCount < maxRetries ? '，正在验证...' : ''}`;
-              console.error('完整错误:', error);
+              console.error('完整错误信息:', {
+                message: error.message,
+                stack: error.stack,
+                orderId: orderId,
+                retryCount: retryCount
+              });
               
               if (retryCount < maxRetries) {
                 retryCount++;
-                await new Promise(resolve => setTimeout(resolve, 1000));
+                statusElement.textContent = `${errorMessage}，正在重试(${retryCount}/${maxRetries})...`;
+                await new Promise(resolve => setTimeout(resolve, 2000)); // 增加重试间隔
                 return tryUpdate();
               } else {
+                statusElement.textContent = `${errorMessage}，请联系客服或刷新页面重试`;
                 document.getElementById('contactBtn').style.display = 'inline-block';
                 return false;
               }
@@ -278,10 +292,16 @@
           
           // 显示重试按钮
           const showRetryButton = () => {
+            // 避免重复添加重试按钮
+            if (document.getElementById('retryBtn')) return;
+            
             const retryBtn = document.createElement('button');
-            retryBtn.textContent = '重试';
+            retryBtn.id = 'retryBtn';
+            retryBtn.textContent = '手动重试';
             retryBtn.style.marginLeft = '10px';
+            retryBtn.style.backgroundColor = '#ff9800';
             retryBtn.onclick = () => {
+              retryBtn.remove();
               retryCount = 0;
               updateBalance();
             };
