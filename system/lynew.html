@@ -1957,7 +1957,7 @@
                     messages: [
                         {
                             role: "system",
-                            content: "你是一位精通《周易》的专家，擅长根据卦象和爻辞解读占卜结果。请严格按照以下6个部分的结构来分析卦象：\n\n1. 卦象概述：用一段话简要说明此卦的核心含义，以及与用户问题的关联\n\n2. 象征意义：详细解释卦象的象征意义，包括上下卦的组合含义\n\n3. 变爻分析：爻的变化含义及其对用户问题的启示（如果本次占卜无变爻，说明事情将保持现状）\n\n4. 传统卦辞：解释此卦的传统卦辞和爻辞含义\n\n5. 问题解答：针对用户的问题，详细分析此卦对问题的解答\n\n6. 注意事项：提醒占卜者需要注意的关键点\n\n请确保每个部分都有明确的标题，内容详实且具有指导意义。"
+                            content: "你是一位精通《周易》八卦理论的资深命理师，具备深厚的易学功底和丰富的占卜解读经验。请严格按照以下六个层次的结构来进行专业的卦象分析：\n\n第一部分 卦象概述\n用简洁明了的语言阐述此卦的核心寓意和基本性质，并明确指出该卦象与占卜者所提问题之间的内在关联。要体现出卦象的整体特征和主要倾向。\n\n第二部分 象征意义\n深入解析卦象的象征内涵，详细说明上卦和下卦各自代表的含义，以及两卦相合所形成的复合象征。要从阴阳五行、天地人三才等角度进行全面阐释，体现易学的哲学深度。\n\n第三部分 变爻分析\n仔细分析爻位的变化规律及其蕴含的时运信息，解读变爻对占卜问题的具体启示和指导意义。如果本次占卜中没有出现变爻，则需要说明这表示当前情况相对稳定，事态将维持现有状态发展。\n\n第四部分 传统卦辞\n引用并详细解释该卦的经典卦辞和各爻爻辞的深层含义，结合古代圣贤的智慧来阐明卦象的传统解读方法。要体现出对古典易学文献的准确理解和恰当运用。\n\n第五部分 问题解答\n针对占卜者提出的具体问题，运用卦象的指导原理进行详细分析和解答。要从多个角度提供实用的建议和行动指南，帮助占卜者更好地理解当前处境和未来走向。\n\n第六部分 注意事项\n基于卦象的警示信息，提醒占卜者在相关事务中需要特别关注的要点和可能遇到的挑战。要给出具体可行的防范措施和应对策略。\n\n请确保每个部分的内容都具有专业性和实用性，语言表达要庄重而不失亲和，体现出深厚的易学造诣和对占卜者的真诚关怀。"
                         },
                         {
                             role: "user",
@@ -2014,14 +2014,18 @@
                         <h3 class="ai-section-title" style="color: #d4af37; font-size: 1.5rem; margin-bottom: 15px;">AI解卦分析</h3>
                         <div class="ai-insight" style="line-height: 1.8; background: rgba(20, 25, 40, 0.6); padding: 20px; border-radius: 12px;">
                             ${aiResponse.split('\n').map(p => {
-                                const trimmed = p.trim();
-                                if (!trimmed) return '<br>';
-                                // 检查是否是标题（包含数字和点号开头）
-                                if (/^\d+\s*[.、]/.test(trimmed)) {
-                                    return `<h4 style="color: #d4af37; font-size: 1.2rem; margin: 20px 0 10px 0; border-bottom: 1px solid rgba(212, 175, 55, 0.3); padding-bottom: 5px;">${trimmed}</h4>`;
-                                }
-                                return `<p style="margin-bottom: 15px; color: #b8c2cc;">${trimmed}</p>`;
-                            }).join('')}
+                                 const trimmed = p.trim();
+                                 if (!trimmed) return '<br>';
+                                 // 检查是否是标题（第一部分、第二部分等格式）
+                                 if (/^第[一二三四五六七八九十]+部分/.test(trimmed)) {
+                                     return `<h4 style="color: #d4af37; font-size: 1.3rem; margin: 25px 0 15px 0; border-bottom: 2px solid rgba(212, 175, 55, 0.5); padding-bottom: 8px; font-weight: bold;">${trimmed}</h4>`;
+                                 }
+                                 // 检查数字开头的标题格式
+                                 if (/^\d+\s*[.、]/.test(trimmed)) {
+                                     return `<h4 style="color: #d4af37; font-size: 1.2rem; margin: 20px 0 10px 0; border-bottom: 1px solid rgba(212, 175, 55, 0.3); padding-bottom: 5px;">${trimmed}</h4>`;
+                                 }
+                                 return `<p style="margin-bottom: 15px; color: #b8c2cc; line-height: 1.7;">${trimmed}</p>`;
+                             }).join('')}
                         </div>
                     </div>
                 `;
