@@ -137,13 +137,7 @@ document.addEventListener('DOMContentLoaded', function() {
 </head>
 <body>
     
-    <!-- 用户信息区域 -->
-    <div class="user-area">
-        <div class="user-welcome" id="userWelcome">欢迎, <span id="usernameDisplay"></span></div>
-        <button class="login-btn" id="loginBtn">登录/注册</button>
-        <button class="manage-btn" id="manageBtn" style="display:none;"><i class="fas fa-id-card"></i> 管理</button>
-        <button class="logout-btn" id="logoutBtn" style="display:none;"><i class="fas fa-sign-out-alt"></i> 退出</button>
-    </div>
+
 
     <!-- 充值弹窗 -->
     <div class="recharge-modal" id="rechargeModal">
@@ -275,7 +269,15 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
         </div>
     
-    <main class="content-container">
+    <main class="content-container" style="position: relative;">
+        <!-- 用户信息区域 - 移动到主container右上角 -->
+        <div class="user-area" style="position: absolute; top: 20px; right: 20px; z-index: 100;">
+            <div class="user-welcome" id="userWelcome">欢迎, <span id="usernameDisplay"></span></div>
+            <button class="login-btn" id="loginBtn">登录/注册</button>
+            <button class="manage-btn" id="manageBtn" style="display:none;"><i class="fas fa-id-card"></i> 管理</button>
+            <button class="logout-btn" id="logoutBtn" style="display:none;"><i class="fas fa-sign-out-alt"></i> 退出</button>
+        </div>
+        
         <section class="content-title">
             <h1>命缘池</h1>
             <p>以八字为引，聚众生愿力，助你愿望成真</p>
@@ -988,6 +990,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (savedData) {
                     showToast('登录成功！您可以继续提交愿望', 'success');
                 }
+                // 登录成功后刷新页面以更新余额
+                window.location.reload();
             }, 2000);
             
         } catch (error) {
@@ -1078,6 +1082,8 @@ document.addEventListener('DOMContentLoaded', function() {
         localStorage.removeItem('username');
         checkLoginStatus();
         switchAuthTab('login');
+        // 退出登录后刷新页面
+        window.location.reload();
     }
 
     // 显示认证消息
