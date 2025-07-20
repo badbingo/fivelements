@@ -1668,10 +1668,19 @@
         }
         
         function handleLogout() {
+            const username = localStorage.getItem('username');
             localStorage.removeItem('token');
             localStorage.removeItem('username');
+            
+            // 清理用户相关的本地存储数据
+            if (username) {
+                localStorage.removeItem(`${username}_lastUsageDate`);
+                localStorage.removeItem(`${username}_dailyUsageCount`);
+            }
+            
             currentUser = null;
             userBalance = 0;
+            dailyUsageCount = 0;
             location.reload();
         }
         
@@ -1727,17 +1736,58 @@
             }
         }
         
-        function loadDailyUsage() {
-            const today = new Date().toDateString();
-            const savedDate = localStorage.getItem('lastUsageDate');
-            const savedCount = parseInt(localStorage.getItem('dailyUsageCount') || '0');
-            
-            if (savedDate === today) {
-                dailyUsageCount = savedCount;
-            } else {
+        async function loadDailyUsage() {
+            const token = localStorage.getItem('token');
+            if (!token) {
                 dailyUsageCount = 0;
-                localStorage.setItem('lastUsageDate', today);
-                localStorage.setItem('dailyUsageCount', '0');
+                updateUsageInfo();
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/user/daily-usage`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    dailyUsageCount = data.dailyUsageCount || 0;
+                } else {
+                    // 如果后端不支持，回退到本地存储但基于用户
+                    const username = localStorage.getItem('username');
+                    const today = new Date().toDateString();
+                    const userKey = `${username}_lastUsageDate`;
+                    const countKey = `${username}_dailyUsageCount`;
+                    const savedDate = localStorage.getItem(userKey);
+                    const savedCount = parseInt(localStorage.getItem(countKey) || '0');
+                    
+                    if (savedDate === today) {
+                        dailyUsageCount = savedCount;
+                    } else {
+                        dailyUsageCount = 0;
+                        localStorage.setItem(userKey, today);
+                        localStorage.setItem(countKey, '0');
+                    }
+                }
+            } catch (error) {
+                console.error('获取每日使用次数失败:', error);
+                // 回退到本地存储但基于用户
+                const username = localStorage.getItem('username');
+                const today = new Date().toDateString();
+                const userKey = `${username}_lastUsageDate`;
+                const countKey = `${username}_dailyUsageCount`;
+                const savedDate = localStorage.getItem(userKey);
+                const savedCount = parseInt(localStorage.getItem(countKey) || '0');
+                
+                if (savedDate === today) {
+                    dailyUsageCount = savedCount;
+                } else {
+                    dailyUsageCount = 0;
+                    localStorage.setItem(userKey, today);
+                    localStorage.setItem(countKey, '0');
+                }
             }
             
             updateUsageInfo();
@@ -1753,6 +1803,41 @@
             } else {
                 usageInfo.innerHTML = '<span style="color: #FFD700; font-weight: bold;"><i class="fas fa-coins"></i> 今日免费次数已用完，继续使用需付费2元/次</span>';
                 aiBtn.innerHTML = '<i class="fas fa-robot"></i> 获取AI解卦分析（每次2元）';
+            }
+        }
+        
+        async function updateDailyUsageCount() {
+            const token = localStorage.getItem('token');
+            if (!token) return;
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/user/update-daily-usage`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ dailyUsageCount })
+                });
+                
+                if (!response.ok) {
+                    // 如果后端不支持，回退到本地存储但基于用户
+                    const username = localStorage.getItem('username');
+                    const today = new Date().toDateString();
+                    const countKey = `${username}_dailyUsageCount`;
+                    const userKey = `${username}_lastUsageDate`;
+                    localStorage.setItem(countKey, dailyUsageCount.toString());
+                    localStorage.setItem(userKey, today);
+                }
+            } catch (error) {
+                console.error('更新每日使用次数失败:', error);
+                // 回退到本地存储但基于用户
+                const username = localStorage.getItem('username');
+                const today = new Date().toDateString();
+                const countKey = `${username}_dailyUsageCount`;
+                const userKey = `${username}_lastUsageDate`;
+                localStorage.setItem(countKey, dailyUsageCount.toString());
+                localStorage.setItem(userKey, today);
             }
         }
         
@@ -1875,7 +1960,7 @@
                 
                 // 更新使用次数
                 dailyUsageCount++;
-                localStorage.setItem('dailyUsageCount', dailyUsageCount.toString());
+                await updateDailyUsageCount();
                 updateUsageInfo();
                 
                 // 显示AI解卦结果
