@@ -1243,6 +1243,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         
                         <div class="wish-content">
                             <p class="wish-text">${wish.content}</p>
+                            <p class="wish-hidden">愿望已隐藏</p>
                         </div>
                         
                         <div class="card-progress">
@@ -1268,6 +1269,18 @@ document.addEventListener('DOMContentLoaded', function() {
                         </div>
                     </div>
                 `;
+                
+                // 根据可见性设置显示内容
+                const wishText = card.querySelector('.wish-text');
+                const wishHidden = card.querySelector('.wish-hidden');
+                
+                if (wish.visibility === 'private') {
+                    wishText.style.display = 'none';
+                    wishHidden.style.display = 'block';
+                } else {
+                    wishText.style.display = 'block';
+                    wishHidden.style.display = 'none';
+                }
                 
                 const deleteBtn = card.querySelector('.btn-delete');
                 deleteBtn.addEventListener('click', (e) => {
@@ -1579,6 +1592,18 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // 更新卡片背景
             updateWishCardBackground(wishCard, wish.type, wish.bazi);
+            
+            // 根据可见性设置显示内容
+            const wishText = wishCard.querySelector('.wish-text');
+            const wishHidden = wishCard.querySelector('.wish-hidden');
+            
+            if (wish.visibility === 'private') {
+                wishText.style.display = 'none';
+                wishHidden.style.display = 'block';
+            } else {
+                wishText.style.display = 'block';
+                wishHidden.style.display = 'none';
+            }
             
             const blessBtn = wishCard.querySelector('.btn-bless');
             blessBtn.addEventListener('click', () => handleBlessWish(wishCard, wish));
