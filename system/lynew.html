@@ -1978,6 +1978,8 @@
                 event.preventDefault();
                 const amount = parseFloat(document.getElementById('rechargeAmount').value);
                 const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
+                const rechargeSpinner = document.getElementById('rechargeSpinner');
+                const rechargeText = document.getElementById('rechargeText');
                 
                 if (!amount || amount < 1) {
                     alert('请输入有效的充值金额');
@@ -1990,30 +1992,31 @@
                     return;
                 }
                 
+                // 显示加载状态
+                if (rechargeSpinner) rechargeSpinner.style.display = 'inline-block';
+                if (rechargeText) rechargeText.style.display = 'none';
+                
                 try {
-                    // 这里应该调用实际的支付接口
-                    // 暂时模拟充值成功
-                    const response = await fetch(`${API_BASE}/api/user/recharge`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`
-                        },
-                        body: JSON.stringify({ amount, paymentMethod })
-                    });
-                    
-                    if (response.ok) {
-                        userBalance += amount;
-                        document.getElementById('balanceAmount').textContent = userBalance.toFixed(2);
-                        document.getElementById('rechargeModal').style.display = 'none';
-                        alert(`充值成功！已充值 ¥${amount}`);
-                        document.getElementById('rechargeForm').reset();
-                    } else {
-                        alert('充值失败，请稍后重试');
+                    // 确保WWPay类可用
+                    if (typeof window.wwPay === 'undefined') {
+                        // 如果wwPay实例不存在，创建一个
+                        if (typeof WWPay !== 'undefined') {
+                            window.wwPay = new WWPay();
+                        } else {
+                            throw new Error('支付系统未加载，请刷新页面重试');
+                        }
                     }
+                    
+                    // 使用wwpay.js的第三方支付流程
+                    await window.wwPay.processRecharge(amount, paymentMethod);
+                    
                 } catch (error) {
                     console.error('充值错误:', error);
-                    alert('网络错误，请稍后重试');
+                    alert(error.message || '充值失败，请稍后重试');
+                } finally {
+                    // 恢复按钮状态
+                    if (rechargeSpinner) rechargeSpinner.style.display = 'none';
+                    if (rechargeText) rechargeText.style.display = 'inline';
                 }
             });
             
@@ -2041,6 +2044,11 @@
             resetSystem();
             initAuthEvents();
             checkLoginStatus();
+            
+            // 初始化支付系统
+            if (typeof WWPay !== 'undefined' && typeof window.wwPay === 'undefined') {
+                window.wwPay = new WWPay();
+            }
         }
         
         // 页面加载完成后初始化
