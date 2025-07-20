@@ -1371,7 +1371,8 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             
             if (!response.ok) {
-                throw new Error('删除失败');
+                const errorData = await response.json().catch(() => ({ error: '删除失败' }));
+                throw new Error(errorData.error || '删除失败');
             }
             
             cardElement.classList.add('fade-out');
