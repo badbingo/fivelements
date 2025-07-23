@@ -1160,6 +1160,7 @@
             });
             
             // 统一处理所有合化的加减分
+            let combinationDeduction = 0;
             const combinationTypes = ['tianGanWuHe', 'diZhiLiuHe', 'diZhiSanHe'];
             combinationTypes.forEach(type => {
                 combined[type].forEach(comb => {
@@ -1167,13 +1168,29 @@
                     let multiplier = (type === 'diZhiSanHe' ? (comb.count === 3 ? 5 : 3) : (type === 'tianGanWuHe' ? 3 : 2));
                     if (getSupportElements(dayElement).includes(heElement)) {
                         supportStrength += multiplier;
-                        console.log(`${type} ${comb.gan1 || comb.zhi1 || comb.type} 合化${heElement} 生助日主，增加生扶 ${multiplier}`);
+                        combinationDeduction -= multiplier; // 增强，扣分为负
+                        console.log(`${type} ${comb.gan1 || comb.zhi1 || comb.type || comb.branches} 合化${heElement} 生助日主，增加生扶 ${multiplier}`);
                     } else if (getWeakenElements(dayElement).includes(heElement)) {
-                        weakenStrength += multiplier;
-                        console.log(`${type} ${comb.gan1 || comb.zhi1 || comb.type} 合化${heElement} 克泄日主，增加克泄 ${multiplier}`);
+                        supportStrength -= multiplier; // 改为减生扶以表示削弱
+                        combinationDeduction += multiplier; // 削弱，扣分为正
+                        console.log(`${type} ${comb.gan1 || comb.zhi1 || comb.type || comb.branches} 合化${heElement} 克泄日主，减少生扶 ${multiplier}`);
+                    } else {
+                        console.log(`${type} ${comb.gan1 || comb.zhi1 || comb.type || comb.branches} 合化${heElement} 中性影响`);
                     }
                 });
             });
+            combined.deduction = combinationDeduction;
+            // 设置整体effect
+            if (combinationDeduction > 0) {
+                combined.effect = 'weaken';
+            } else if (combinationDeduction < 0) {
+                combined.effect = 'strengthen';
+            } else {
+                combined.effect = 'neutral';
+            }
+            
+            // 确保合化信息显示在界面上
+            window.combinedInfo = combined;
             
             // 移除通用effect调整，已在具体合化中处理
             
@@ -1382,10 +1399,56 @@
             
             // 判断合化是否有利于日主
             if (dayElement && !combined.effect) {
-                if (getSupportElements(dayElement).includes(elementMap[dayElement])) {
+                // 检查所有合化的影响
+                let hasStrengthening = false;
+                let hasWeakening = false;
+                
+                // 检查天干五合
+                combined.tianGanWuHe.forEach(comb => {
+                    if (getSupportElements(dayElement).includes(comb.element)) {
+                        hasStrengthening = true;
+                        console.log(`天干五合 ${comb.gan1}${comb.gan2} 合化${comb.element} 生助日主`);
+                    } else if (getWeakenElements(dayElement).includes(comb.element)) {
+                        hasWeakening = true;
+                        console.log(`天干五合 ${comb.gan1}${comb.gan2} 合化${comb.element} 克泄日主`);
+                    }
+                });
+                
+                // 检查地支六合
+                combined.diZhiLiuHe.forEach(comb => {
+                    if (getSupportElements(dayElement).includes(comb.element)) {
+                        hasStrengthening = true;
+                        console.log(`地支六合 ${comb.zhi1}${comb.zhi2} 合化${comb.element} 生助日主`);
+                    } else if (getWeakenElements(dayElement).includes(comb.element)) {
+                        hasWeakening = true;
+                        console.log(`地支六合 ${comb.zhi1}${comb.zhi2} 合化${comb.element} 克泄日主`);
+                    }
+                });
+                
+                // 检查地支三合
+                combined.diZhiSanHe.forEach(comb => {
+                    if (getSupportElements(dayElement).includes(comb.element)) {
+                        hasStrengthening = true;
+                        console.log(`地支三合 ${comb.type || comb.branches} 合化${comb.element} 生助日主`);
+                    } else if (getWeakenElements(dayElement).includes(comb.element)) {
+                        hasWeakening = true;
+                        console.log(`地支三合 ${comb.type || comb.branches} 合化${comb.element} 克泄日主`);
+                    }
+                });
+                
+                // 设置最终影响
+                if (hasStrengthening && !hasWeakening) {
                     combined.effect = 'strengthen';
-                } else if (getWeakenElements(dayElement).includes(elementMap[dayElement])) {
+                    console.log('合化总体对日主影响: 增强');
+                } else if (hasWeakening && !hasStrengthening) {
                     combined.effect = 'weaken';
+                    console.log('合化总体对日主影响: 削弱');
+                } else if (hasStrengthening && hasWeakening) {
+                    combined.effect = 'mixed';
+                    console.log('合化总体对日主影响: 混合');
+                } else {
+                    combined.effect = 'neutral';
+                    console.log('合化总体对日主影响: 中性');
                 }
             }
             
@@ -2435,7 +2498,14 @@
         // 显示身强身弱图表
         function displayStrengthChart(baziData) {
             console.log('显示身强身弱分析，数据:', baziData.strengthAnalysis);
-            console.log('合化信息:', baziData.strengthAnalysis.combined);
+            
+            // 使用window.combinedInfo获取最新的合化信息
+            if (window.combinedInfo) {
+                console.log('从window.combinedInfo获取合化信息:', window.combinedInfo);
+                baziData.strengthAnalysis.combined = window.combinedInfo;
+            } else {
+                console.log('合化信息:', baziData.strengthAnalysis.combined);
+            }
             
             // 打印完整的strengthAnalysis对象，用于调试
             console.log('完整的strengthAnalysis对象:', JSON.stringify(baziData.strengthAnalysis, null, 2));
@@ -2480,11 +2550,7 @@
                         isFullSanhe: metalMatchCount === 3
                     };
                     
-                    // 特别处理巳酉丑三合金对己土日主的影响
-                    if (baziData.pillars.day.charAt(0) === '己') {
-                        baziData.strengthAnalysis.combined.effect = 'weaken';
-                        console.log('巳酉丑三合金对己土日主的影响: 削弱日主');
-                    }
+                    // 移除特殊处理，使用统一effect
                 }
             }
             
