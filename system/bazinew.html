@@ -14,8 +14,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Chart.js -->
+    <!-- Chart.js 和插件 -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
     
     <style>
         :root {
@@ -808,13 +809,15 @@
             <div class="card">
                 <div class="card-header">
                     <i class="fas fa-chart-pie"></i>
-                    <h2>五行力量分布</h2>
+                    <h2>五行力量分布与分析</h2>
                 </div>
-                <div class="chart-container">
-                    <canvas id="elements-chart"></canvas>
-                </div>
-                <div class="chart-description" id="elements-description">
-                    <!-- 五行分析描述 -->
+                <div class="elements-analysis-frame" style="display: flex; flex-direction: row; gap: 20px; flex-wrap: wrap; margin-top: 20px;">
+                    <div class="chart-container" style="flex: 1; min-width: 300px; min-height: 350px; margin: 0;">
+                        <canvas id="elements-chart"></canvas>
+                    </div>
+                    <div class="chart-description" id="elements-description" style="flex: 1; min-width: 300px; background-color: #f9f9f9; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin: 0;">
+                        <!-- 五行分析描述 -->
+                    </div>
                 </div>
             </div>
 
@@ -2821,6 +2824,39 @@
                 elementsChart.destroy();
             }
             
+            // 增强的五行颜色
+            const elementColors = {
+                wood: {
+                    main: '#27ae60',
+                    light: 'rgba(39, 174, 96, 0.7)',
+                    border: 'rgba(39, 174, 96, 1)'
+                },
+                fire: {
+                    main: '#e74c3c',
+                    light: 'rgba(231, 76, 60, 0.7)',
+                    border: 'rgba(231, 76, 60, 1)'
+                },
+                earth: {
+                    main: '#f39c12',
+                    light: 'rgba(243, 156, 18, 0.7)',
+                    border: 'rgba(243, 156, 18, 1)'
+                },
+                metal: {
+                    main: '#7f8c8d',
+                    light: 'rgba(127, 140, 141, 0.7)',
+                    border: 'rgba(127, 140, 141, 1)'
+                },
+                water: {
+                    main: '#3498db',
+                    light: 'rgba(52, 152, 219, 0.7)',
+                    border: 'rgba(52, 152, 219, 1)'
+                }
+            };
+            
+            // 计算总分
+            const total = Object.values(elements).reduce((sum, val) => sum + val, 0);
+            
+            // 创建增强的环形图
             elementsChart = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
@@ -2828,45 +2864,83 @@
                     datasets: [{
                         data: [elements.wood, elements.fire, elements.earth, elements.metal, elements.water],
                         backgroundColor: [
-                            '#27ae60', // 木 - 绿色
-                            '#e74c3c', // 火 - 红色
-                            '#f39c12', // 土 - 黄色
-                            '#95a5a6', // 金 - 银色
-                            '#3498db'  // 水 - 蓝色
+                            elementColors.wood.light,
+                            elementColors.fire.light,
+                            elementColors.earth.light,
+                            elementColors.metal.light,
+                            elementColors.water.light
+                        ],
+                        borderColor: [
+                            elementColors.wood.border,
+                            elementColors.fire.border,
+                            elementColors.earth.border,
+                            elementColors.metal.border,
+                            elementColors.water.border
                         ],
                         borderWidth: 2,
-                        borderColor: '#fff'
+                        hoverBorderWidth: 4,
+                        hoverBorderColor: '#fff',
+                        hoverOffset: 10
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    cutout: '65%',
                     plugins: {
                         legend: {
-                            position: 'bottom',
+                            position: 'right',
                             labels: {
                                 padding: 20,
                                 font: {
-                                    size: 14
-                                }
+                                    size: 14,
+                                    weight: 'bold'
+                                },
+                                usePointStyle: true,
+                                pointStyle: 'circle'
                             }
                         },
                         tooltip: {
+                            backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                            titleColor: '#333',
+                            bodyColor: '#333',
+                            borderColor: '#ddd',
+                            borderWidth: 1,
+                            cornerRadius: 8,
+                            padding: 12,
+                            boxPadding: 6,
+                            usePointStyle: true,
                             callbacks: {
                                 label: function(context) {
                                     const total = context.dataset.data.reduce((sum, val) => sum + val, 0);
                                     const percentage = ((context.parsed / total) * 100).toFixed(1);
-                                    return `${context.label}: ${context.parsed} (${percentage}%)`;
+                                    return `${context.label}: ${context.parsed}点 (${percentage}%)`;
                                 }
                             }
+                        },
+                        datalabels: {
+                            color: '#fff',
+                            font: {
+                                weight: 'bold',
+                                size: 14
+                            },
+                            formatter: (value, ctx) => {
+                                const percentage = ((value / total) * 100).toFixed(0);
+                                return percentage > 5 ? `${percentage}%` : '';
+                            }
                         }
+                    },
+                    animation: {
+                        animateScale: true,
+                        animateRotate: true,
+                        duration: 2000,
+                        easing: 'easeOutQuart'
                     }
                 }
             });
             
-            // 显示五行分析描述
+            // 显示增强的五行分析描述
             const description = document.getElementById('elements-description');
-            const total = Object.values(elements).reduce((sum, val) => sum + val, 0);
             const strongest = Object.keys(elements).reduce((a, b) => elements[a] > elements[b] ? a : b);
             const weakest = Object.keys(elements).reduce((a, b) => elements[a] < elements[b] ? a : b);
             
@@ -2874,11 +2948,142 @@
                 wood: '木', fire: '火', earth: '土', metal: '金', water: '水'
             };
             
+            // 五行特性
+            const elementProperties = {
+                wood: {
+                    nature: '生长、向上',
+                    character: '仁爱、正直、进取',
+                    career: '教育、文化、艺术、法律、环保、植物相关行业',
+                    health: '肝胆系统、眼睛、肌腱、神经',
+                    favorable: '东方、绿色环境、春季',
+                    icon: 'fa-tree'
+                },
+                fire: {
+                    nature: '上升、扩张',
+                    character: '热情、活力、直觉、表达力强',
+                    career: '娱乐、餐饮、照明、能源、传媒、营销',
+                    health: '心脏、血液循环、眼睛、面部',
+                    favorable: '南方、阳光充足环境、夏季',
+                    icon: 'fa-fire'
+                },
+                earth: {
+                    nature: '稳定、中和',
+                    character: '踏实、稳重、包容、忠诚',
+                    career: '房地产、农业、食品、保险、服务业',
+                    health: '脾胃、消化系统、肌肉',
+                    favorable: '中央位置、黄色环境、季节交替时期',
+                    icon: 'fa-mountain'
+                },
+                metal: {
+                    nature: '收敛、向内',
+                    character: '果断、公正、条理、自律',
+                    career: '金融、IT、机械、汽车、珠宝、军警',
+                    health: '肺部、大肠、皮肤、鼻子',
+                    favorable: '西方、白色环境、秋季',
+                    icon: 'fa-coins'
+                },
+                water: {
+                    nature: '向下、流动',
+                    character: '智慧、灵活、交际、适应力强',
+                    career: '贸易、运输、旅游、水产、外交、销售',
+                    health: '肾脏、膀胱、耳朵、骨骼、生殖系统',
+                    favorable: '北方、水域环境、冬季',
+                    icon: 'fa-water'
+                }
+            };
+            
+            // 计算五行平衡度
+            const avg = total / 5;
+            const deviation = Object.values(elements).reduce((sum, val) => sum + Math.abs(val - avg), 0) / total;
+            const balancePercentage = (1 - deviation) * 100;
+            let balanceLevel;
+            if (balancePercentage >= 85) balanceLevel = '极佳';
+            else if (balancePercentage >= 70) balanceLevel = '良好';
+            else if (balancePercentage >= 50) balanceLevel = '一般';
+            else balanceLevel = '失衡';
+            
             description.innerHTML = `
-                <h4><i class="fas fa-chart-bar"></i> 五行分析</h4>
-                <p><strong>最强五行：</strong>${elementNames[strongest]} (${elements[strongest]}点，占${((elements[strongest]/total)*100).toFixed(1)}%)</p>
-                <p><strong>最弱五行：</strong>${elementNames[weakest]} (${elements[weakest]}点，占${((elements[weakest]/total)*100).toFixed(1)}%)</p>
-                <p><strong>五行建议：</strong>${getFiveElementsAdvice(strongest, weakest)}</p>
+                <h4 style="color: #2c3e50; margin-bottom: 15px; font-size: 1.2rem; border-bottom: 2px solid #3498db; padding-bottom: 8px;">
+                    <i class="fas fa-chart-bar"></i> 五行分析
+                </h4>
+                
+                <div style="background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(240,240,240,0.7)); padding: 12px; border-radius: 8px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                    <div style="display: flex; justify-content: space-between; flex-wrap: wrap; margin-bottom: 10px;">
+                        <div style="min-width: 120px; margin-bottom: 5px;">
+                            <span style="font-weight: bold; color: ${elementColors[strongest].main};">最强五行：</span>
+                            <span style="background-color: ${elementColors[strongest].light}; padding: 2px 8px; border-radius: 4px; color: #fff; font-weight: bold;">
+                                ${elementNames[strongest]} (${((elements[strongest]/total)*100).toFixed(1)}%)
+                            </span>
+                        </div>
+                        <div style="min-width: 120px; margin-bottom: 5px;">
+                            <span style="font-weight: bold; color: ${elementColors[weakest].main};">最弱五行：</span>
+                            <span style="background-color: ${elementColors[weakest].light}; padding: 2px 8px; border-radius: 4px; color: #fff; font-weight: bold;">
+                                ${elementNames[weakest]} (${((elements[weakest]/total)*100).toFixed(1)}%)
+                            </span>
+                        </div>
+                        <div style="min-width: 120px; margin-bottom: 5px;">
+                            <span style="font-weight: bold; color: #2c3e50;">平衡度：</span>
+                            <span style="background-color: ${balanceLevel === '极佳' ? '#27ae60' : balanceLevel === '良好' ? '#2ecc71' : balanceLevel === '一般' ? '#f39c12' : '#e74c3c'}; padding: 2px 8px; border-radius: 4px; color: #fff; font-weight: bold;">
+                                ${balanceLevel} (${balancePercentage.toFixed(0)}%)
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 10px;">
+                        <p style="margin: 0; line-height: 1.5;">
+                            <strong>五行分布：</strong> 
+                            木 ${elements.wood}点 (${((elements.wood/total)*100).toFixed(1)}%), 
+                            火 ${elements.fire}点 (${((elements.fire/total)*100).toFixed(1)}%), 
+                            土 ${elements.earth}点 (${((elements.earth/total)*100).toFixed(1)}%), 
+                            金 ${elements.metal}点 (${((elements.metal/total)*100).toFixed(1)}%), 
+                            水 ${elements.water}点 (${((elements.water/total)*100).toFixed(1)}%)
+                        </p>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 15px;">
+                    <h5 style="color: ${elementColors[strongest].main}; font-size: 1.05rem; margin-bottom: 8px;">
+                        <i class="fas ${elementProperties[strongest].icon}"></i> ${elementNames[strongest]}的特性与影响
+                    </h5>
+                    <div style="background-color: rgba(${strongest === 'wood' ? '39, 174, 96' : strongest === 'fire' ? '231, 76, 60' : strongest === 'earth' ? '243, 156, 18' : strongest === 'metal' ? '127, 140, 141' : '52, 152, 219'}, 0.1); padding: 10px; border-radius: 6px; margin-bottom: 10px;">
+                        <p style="margin: 0 0 5px 0; font-size: 0.9rem;"><strong>性格特点：</strong>${elementProperties[strongest].character}</p>
+                        <p style="margin: 0 0 5px 0; font-size: 0.9rem;"><strong>事业方向：</strong>${elementProperties[strongest].career}</p>
+                        <p style="margin: 0 0 5px 0; font-size: 0.9rem;"><strong>健康关注：</strong>${elementProperties[strongest].health}</p>
+                        <p style="margin: 0; font-size: 0.9rem;"><strong>有利环境：</strong>${elementProperties[strongest].favorable}</p>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 15px;">
+                    <h5 style="color: #2c3e50; font-size: 1.05rem; margin-bottom: 8px;">
+                        <i class="fas fa-balance-scale"></i> 五行平衡建议
+                    </h5>
+                    <div style="background-color: rgba(52, 152, 219, 0.1); padding: 10px; border-radius: 6px;">
+                        <p style="margin: 0 0 8px 0; font-size: 0.9rem;">${getFiveElementsAdvice(strongest, weakest)}</p>
+                        <p style="margin: 0; font-size: 0.9rem;"><strong>补充${elementNames[weakest]}的方法：</strong>
+                            ${weakest === 'wood' ? '多接触绿色植物，在东方位置活动，春季出行' : 
+                              weakest === 'fire' ? '增加红色装饰，在南方位置活动，夏季出行' : 
+                              weakest === 'earth' ? '使用黄色、棕色物品，在中央位置活动' : 
+                              weakest === 'metal' ? '佩戴金属饰品，在西方位置活动，秋季出行' : 
+                              '多喝水，在北方位置活动，冬季出行'}
+                        </p>
+                    </div>
+                </div>
+                
+                <div>
+                    <h5 style="color: #2c3e50; font-size: 1.05rem; margin-bottom: 8px;">
+                        <i class="fas fa-briefcase"></i> 事业与健康指导
+                    </h5>
+                    <div style="background-color: rgba(52, 152, 219, 0.1); padding: 10px; border-radius: 6px;">
+                        <p style="margin: 0 0 8px 0; font-size: 0.9rem;"><strong>事业发展：</strong>
+                            适合从事与${elementNames[strongest]}相关的行业，如${elementProperties[strongest].career}。
+                            ${weakest === strongest ? '' : `可以考虑结合${elementNames[weakest]}的特性，如${elementProperties[weakest].career.split('、')[0]}等。`}
+                        </p>
+                        <p style="margin: 0; font-size: 0.9rem;"><strong>健康关注：</strong>
+                            需要特别关注${elementProperties[strongest].health}的健康。
+                            ${weakest === strongest ? '' : `同时也要注意${elementProperties[weakest].health}的保养。`}
+                        </p>
+                    </div>
+                </div>
             `;
         }
 
@@ -3137,26 +3342,78 @@
              const fateLevel = baziData.fateLevel;
              
              fateLevelContent.innerHTML = `
-                 <div style="text-align: center; margin-bottom: 20px;">
-                     <div style="font-size: 3rem; font-weight: bold; color: var(--gold-color); margin-bottom: 10px;">
+                 <div style="text-align: center; margin-bottom: 10px;">
+                     <div style="font-size: 2.5rem; font-weight: bold; color: var(--gold-color); margin-bottom: 5px;">
                          ${fateLevel.score}分
                      </div>
-                     <div style="font-size: 1.5rem; font-weight: 600; color: var(--primary-color); margin-bottom: 10px;">
+                     <div style="font-size: 1.3rem; font-weight: 600; color: var(--primary-color); margin-bottom: 5px;">
                          ${fateLevel.level}
                      </div>
-                     <div style="color: var(--text-secondary);">
+                     <div style="color: var(--text-secondary); font-size: 0.95rem;">
                          ${fateLevel.description}
                      </div>
                  </div>
-                 <div style="background: var(--light-bg); padding: 15px; border-radius: 8px;">
-                     <h5>评分说明：</h5>
-                     <ul style="margin: 10px 0; padding-left: 20px;">
-                         <li>85分以上：上上等命格，天赋异禀</li>
-                         <li>70-84分：上等命格，聪明才智</li>
-                         <li>55-69分：中上等命格，资质良好</li>
-                         <li>40-54分：中等命格，需要努力</li>
-                         <li>40分以下：中下等命格，需要坚持</li>
-                     </ul>
+                 <div style="background: linear-gradient(135deg, rgba(255,255,255,0.15), rgba(255,255,255,0.05)); backdrop-filter: blur(10px); padding: 15px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); border: 1px solid rgba(255,255,255,0.2); margin-top: 10px;">
+                     <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                         <div style="width: 4px; height: 20px; background: linear-gradient(to bottom, var(--primary-color), var(--gold-color)); border-radius: 2px; margin-right: 8px;"></div>
+                         <h5 style="color: var(--primary-color); font-weight: 700; margin: 0; font-size: 1.1rem;">命格分析说明</h5>
+                     </div>
+                     
+                     <div style="background: rgba(255,255,255,0.08); border-radius: 8px; padding: 10px; margin-bottom: 10px; border-left: 3px solid var(--primary-color);">
+                         <p style="margin: 0; color: var(--text-color); font-size: 0.9rem; line-height: 1.4;">您的命格评分综合了五个关键维度，全面反映了您的先天命局特质与潜能。</p>
+                     </div>
+                     
+                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px;">
+                         <div style="background: rgba(var(--primary-rgb), 0.05); border-radius: 8px; padding: 10px; transition: all 0.3s ease; border: 1px solid rgba(var(--primary-rgb), 0.1);">
+                             <div style="display: flex; align-items: center; margin-bottom: 5px;">
+                                 <div style="width: 24px; height: 24px; border-radius: 50%; background: rgba(var(--primary-rgb), 0.15); display: flex; justify-content: center; align-items: center; margin-right: 8px;">
+                                     <span style="color: var(--primary-color); font-weight: 600; font-size: 0.8rem;">01</span>
+                                 </div>
+                                 <h6 style="margin: 0; color: var(--primary-color); font-weight: 600; font-size: 0.9rem;">日主状态</h6>
+                             </div>
+                             <p style="margin: 0; color: var(--text-color); line-height: 1.4; padding-left: 32px; font-size: 0.85rem;">评估您的日主是否处于有利季节，这决定了您先天能量的强弱和基础运势。</p>
+                         </div>
+                         
+                         <div style="background: rgba(var(--primary-rgb), 0.05); border-radius: 8px; padding: 10px; transition: all 0.3s ease; border: 1px solid rgba(var(--primary-rgb), 0.1);">
+                             <div style="display: flex; align-items: center; margin-bottom: 5px;">
+                                 <div style="width: 24px; height: 24px; border-radius: 50%; background: rgba(var(--primary-rgb), 0.15); display: flex; justify-content: center; align-items: center; margin-right: 8px;">
+                                     <span style="color: var(--primary-color); font-weight: 600; font-size: 0.8rem;">02</span>
+                                 </div>
+                                 <h6 style="margin: 0; color: var(--primary-color); font-weight: 600; font-size: 0.9rem;">五行协调</h6>
+                             </div>
+                             <p style="margin: 0; color: var(--text-color); line-height: 1.4; padding-left: 32px; font-size: 0.85rem;">反映您命盘中五行能量的平衡程度，越协调表示性格越全面，适应能力越强。</p>
+                         </div>
+                         
+                         <div style="background: rgba(var(--primary-rgb), 0.05); border-radius: 8px; padding: 10px; transition: all 0.3s ease; border: 1px solid rgba(var(--primary-rgb), 0.1);">
+                             <div style="display: flex; align-items: center; margin-bottom: 5px;">
+                                 <div style="width: 24px; height: 24px; border-radius: 50%; background: rgba(var(--primary-rgb), 0.15); display: flex; justify-content: center; align-items: center; margin-right: 8px;">
+                                     <span style="color: var(--primary-color); font-weight: 600; font-size: 0.8rem;">03</span>
+                                 </div>
+                                 <h6 style="margin: 0; color: var(--primary-color); font-weight: 600; font-size: 0.9rem;">命局格局</h6>
+                             </div>
+                             <p style="margin: 0; color: var(--text-color); line-height: 1.4; padding-left: 32px; font-size: 0.85rem;">分析您八字中是否存在特殊格局，这些格局往往预示着特殊的人生际遇和才能。</p>
+                         </div>
+                         
+                         <div style="background: rgba(var(--primary-rgb), 0.05); border-radius: 8px; padding: 10px; transition: all 0.3s ease; border: 1px solid rgba(var(--primary-rgb), 0.1);">
+                             <div style="display: flex; align-items: center; margin-bottom: 5px;">
+                                 <div style="width: 24px; height: 24px; border-radius: 50%; background: rgba(var(--primary-rgb), 0.15); display: flex; justify-content: center; align-items: center; margin-right: 8px;">
+                                     <span style="color: var(--primary-color); font-weight: 600; font-size: 0.8rem;">04</span>
+                                 </div>
+                                 <h6 style="margin: 0; color: var(--primary-color); font-weight: 600; font-size: 0.9rem;">十神影响</h6>
+                             </div>
+                             <p style="margin: 0; color: var(--text-color); line-height: 1.4; padding-left: 32px; font-size: 0.85rem;">体现您命盘中各种人际关系和外部环境对您的影响力和相互作用。</p>
+                         </div>
+                         
+                         <div style="background: rgba(var(--primary-rgb), 0.05); border-radius: 8px; padding: 10px; transition: all 0.3s ease; border: 1px solid rgba(var(--primary-rgb), 0.1);">
+                             <div style="display: flex; align-items: center; margin-bottom: 5px;">
+                                 <div style="width: 24px; height: 24px; border-radius: 50%; background: rgba(var(--primary-rgb), 0.15); display: flex; justify-content: center; align-items: center; margin-right: 8px;">
+                                     <span style="color: var(--primary-color); font-weight: 600; font-size: 0.8rem;">05</span>
+                                 </div>
+                                 <h6 style="margin: 0; color: var(--primary-color); font-weight: 600; font-size: 0.9rem;">地支关系</h6>
+                             </div>
+                             <p style="margin: 0; color: var(--text-color); line-height: 1.4; padding-left: 32px; font-size: 0.85rem;">评估您命盘中地支之间的相互作用，这影响着您的人生机遇和贵人相助的可能性。</p>
+                         </div>
+                     </div>
                  </div>
              `;
          }
@@ -3167,25 +3424,78 @@
              const wealthLevel = baziData.wealthLevel;
              
              wealthLevelContent.innerHTML = `
-                 <div style="text-align: center; margin-bottom: 20px;">
-                     <div style="font-size: 3rem; font-weight: bold; color: var(--success-color); margin-bottom: 10px;">
+                 <div style="text-align: center; margin-bottom: 10px;">
+                     <div style="font-size: 2.5rem; font-weight: bold; color: var(--success-color); margin-bottom: 5px;">
                          ${wealthLevel.score}分
                      </div>
-                     <div style="font-size: 1.5rem; font-weight: 600; color: var(--primary-color); margin-bottom: 10px;">
+                     <div style="font-size: 1.3rem; font-weight: 600; color: var(--primary-color); margin-bottom: 5px;">
                          ${wealthLevel.level}
                      </div>
-                     <div style="color: var(--text-secondary);">
+                     <div style="color: var(--text-secondary); font-size: 0.95rem;">
                          ${wealthLevel.description}
                      </div>
                  </div>
-                 <div style="background: var(--light-bg); padding: 15px; border-radius: 8px;">
-                     <h5>财富等级说明：</h5>
-                     <ul style="margin: 10px 0; padding-left: 20px;">
-                         <li>富贵：财运亨通，富贵双全</li>
-                         <li>小康：财运不错，生活富足</li>
-                         <li>温饱：财运平平，温饱无忧</li>
-                         <li>清贫：财运较弱，需要努力</li>
-                     </ul>
+                 <div style="background: linear-gradient(135deg, rgba(255,255,255,0.15), rgba(255,255,255,0.05)); backdrop-filter: blur(10px); padding: 15px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); border: 1px solid rgba(255,255,255,0.2); margin-top: 10px;">
+                     <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                         <div style="width: 4px; height: 20px; background: linear-gradient(to bottom, var(--primary-color), var(--success-color)); border-radius: 2px; margin-right: 8px;"></div>
+                         <h5 style="color: var(--primary-color); font-weight: 700; margin: 0; font-size: 1.1rem;">财富分析说明</h5>
+                     </div>
+                     
+                     <div style="background: rgba(255,255,255,0.08); border-radius: 8px; padding: 10px; margin-bottom: 10px; border-left: 3px solid var(--success-color);">
+                         <p style="margin: 0; color: var(--text-color); font-size: 0.9rem; line-height: 1.4;">您的财富评分综合了五个关键维度，全面反映了您的财富获取能力与潜在机会。</p>
+                     </div>
+                     
+                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px;">
+                         <div style="background: rgba(var(--success-rgb), 0.05); border-radius: 8px; padding: 10px; transition: all 0.3s ease; border: 1px solid rgba(var(--success-rgb), 0.1);">
+                             <div style="display: flex; align-items: center; margin-bottom: 5px;">
+                                 <div style="width: 24px; height: 24px; border-radius: 50%; background: rgba(var(--success-rgb), 0.15); display: flex; justify-content: center; align-items: center; margin-right: 8px;">
+                                     <span style="color: var(--success-color); font-weight: 600; font-size: 0.8rem;">01</span>
+                                 </div>
+                                 <h6 style="margin: 0; color: var(--success-color); font-weight: 600; font-size: 0.9rem;">财富潜力</h6>
+                             </div>
+                             <p style="margin: 0; color: var(--text-color); line-height: 1.4; padding-left: 32px; font-size: 0.85rem;">评估您命盘中财富星的数量和强度，这决定了您获取财富的基本潜力和能力。</p>
+                         </div>
+                         
+                         <div style="background: rgba(var(--success-rgb), 0.05); border-radius: 8px; padding: 10px; transition: all 0.3s ease; border: 1px solid rgba(var(--success-rgb), 0.1);">
+                             <div style="display: flex; align-items: center; margin-bottom: 5px;">
+                                 <div style="width: 24px; height: 24px; border-radius: 50%; background: rgba(var(--success-rgb), 0.15); display: flex; justify-content: center; align-items: center; margin-right: 8px;">
+                                     <span style="color: var(--success-color); font-weight: 600; font-size: 0.8rem;">02</span>
+                                 </div>
+                                 <h6 style="margin: 0; color: var(--success-color); font-weight: 600; font-size: 0.9rem;">财富时机</h6>
+                             </div>
+                             <p style="margin: 0; color: var(--text-color); line-height: 1.4; padding-left: 32px; font-size: 0.85rem;">分析财富星在命盘中的位置，这影响您在不同人生阶段的财运强弱和财富积累时机。</p>
+                         </div>
+                         
+                         <div style="background: rgba(var(--success-rgb), 0.05); border-radius: 8px; padding: 10px; transition: all 0.3s ease; border: 1px solid rgba(var(--success-rgb), 0.1);">
+                             <div style="display: flex; align-items: center; margin-bottom: 5px;">
+                                 <div style="width: 24px; height: 24px; border-radius: 50%; background: rgba(var(--success-rgb), 0.15); display: flex; justify-content: center; align-items: center; margin-right: 8px;">
+                                     <span style="color: var(--success-color); font-weight: 600; font-size: 0.8rem;">03</span>
+                                 </div>
+                                 <h6 style="margin: 0; color: var(--success-color); font-weight: 600; font-size: 0.9rem;">财富阻碍</h6>
+                             </div>
+                             <p style="margin: 0; color: var(--text-color); line-height: 1.4; padding-left: 32px; font-size: 0.85rem;">评估命盘中对财运产生不利影响的因素，这可能导致财富流失或积累困难的情况。</p>
+                         </div>
+                         
+                         <div style="background: rgba(var(--success-rgb), 0.05); border-radius: 8px; padding: 10px; transition: all 0.3s ease; border: 1px solid rgba(var(--success-rgb), 0.1);">
+                             <div style="display: flex; align-items: center; margin-bottom: 5px;">
+                                 <div style="width: 24px; height: 24px; border-radius: 50%; background: rgba(var(--success-rgb), 0.15); display: flex; justify-content: center; align-items: center; margin-right: 8px;">
+                                     <span style="color: var(--success-color); font-weight: 600; font-size: 0.8rem;">04</span>
+                                 </div>
+                                 <h6 style="margin: 0; color: var(--success-color); font-weight: 600; font-size: 0.9rem;">财富助力</h6>
+                             </div>
+                             <p style="margin: 0; color: var(--text-color); line-height: 1.4; padding-left: 32px; font-size: 0.85rem;">分析命盘中有助于财富积累的因素，这些因素能帮助您更好地把握财富机会和增强财运。</p>
+                         </div>
+                         
+                         <div style="background: rgba(var(--success-rgb), 0.05); border-radius: 8px; padding: 10px; transition: all 0.3s ease; border: 1px solid rgba(var(--success-rgb), 0.1);">
+                             <div style="display: flex; align-items: center; margin-bottom: 5px;">
+                                 <div style="width: 24px; height: 24px; border-radius: 50%; background: rgba(var(--success-rgb), 0.15); display: flex; justify-content: center; align-items: center; margin-right: 8px;">
+                                     <span style="color: var(--success-color); font-weight: 600; font-size: 0.8rem;">05</span>
+                                 </div>
+                                 <h6 style="margin: 0; color: var(--success-color); font-weight: 600; font-size: 0.9rem;">运势影响</h6>
+                             </div>
+                             <p style="margin: 0; color: var(--text-color); line-height: 1.4; padding-left: 32px; font-size: 0.85rem;">考虑当前大运和流年对您财运的影响，这决定了近期财富机会的多少和财运的强弱。</p>
+                         </div>
+                     </div>
                  </div>
              `;
          }
