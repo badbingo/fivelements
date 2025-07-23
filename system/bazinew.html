@@ -144,6 +144,13 @@
             border-radius: 8px;
             font-size: 1rem;
             transition: var(--transition);
+            -webkit-appearance: none; /* 修复Safari下拉框样式 */
+            -moz-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml;utf8,<svg fill='%232c3e50' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 20px;
         }
 
         .form-group input:focus,
@@ -196,87 +203,204 @@
             margin: 30px 0;
         }
 
-        /* Bazi Table */
+        /* Bazi Table - 优化版 */
         .bazi-table {
             width: 100%;
-            border-collapse: collapse;
-            margin: 20px 0;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin: 25px 0;
             font-size: 1.1rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            overflow: hidden;
+            background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,255,255,0.7));
+            backdrop-filter: blur(10px);
         }
 
         .bazi-table th,
         .bazi-table td {
-            padding: 15px;
+            padding: 15px 12px;
             text-align: center;
-            border: 2px solid var(--border-color);
+            border: none;
+            position: relative;
+            height: auto;
+            vertical-align: middle;
+            transition: all 0.3s ease;
         }
-
+        
+        .bazi-table tr:not(:last-child) td,
+        .bazi-table tr:not(:last-child) th {
+            border-bottom: 1px solid rgba(233, 236, 239, 0.8);
+        }
+        
         .bazi-table th {
-            background: linear-gradient(135deg, var(--primary-color), #34495e);
+            background: linear-gradient(135deg, #2c3e50, #34495e);
             color: white;
             font-weight: 600;
+            letter-spacing: 1px;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+            padding: 18px 15px;
         }
 
         .bazi-table td {
-            background: white;
+            background: transparent;
             font-weight: 500;
+        }
+        
+        .bazi-table td:first-child {
+            font-weight: 600;
+            background: rgba(52, 152, 219, 0.05);
+            border-right: 1px solid rgba(233, 236, 239, 0.8);
         }
 
         .bazi-table .pillar-header {
-            background: linear-gradient(135deg, var(--gold-color), #e67e22);
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            color: white;
         }
 
         .bazi-table .stem {
-            color: var(--accent-color);
-            font-weight: 700;
+            position: relative;
+            padding: 15px 0;
         }
 
         .bazi-table .branch {
-            color: var(--secondary-color);
-            font-weight: 700;
+            position: relative;
+            padding: 15px 0;
+        }
+        
+        /* 添加柱子之间的分隔线 */
+        .bazi-table th:not(:last-child),
+        .bazi-table td:not(:last-child) {
+            border-right: 1px solid rgba(233, 236, 239, 0.5);
+        }
+        
+        /* 鼠标悬停效果 */
+        .bazi-table tbody tr:hover td {
+            background-color: rgba(52, 152, 219, 0.05);
         }
 
-        /* Chart Container */
+        /* Chart Container - 优化版 */
         .chart-container {
             position: relative;
             height: 400px;
-            margin: 30px 0;
+            margin: 35px 0;
+            border-radius: 12px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.85));
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            padding: 20px;
+            backdrop-filter: blur(5px);
+            overflow: hidden;
+        }
+        
+        .chart-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, var(--secondary-color), var(--accent-color));
         }
 
         .chart-description {
-            margin-top: 20px;
-            padding: 20px;
-            background: var(--light-bg);
-            border-radius: 8px;
+            margin-top: 25px;
+            padding: 25px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,255,255,0.7));
+            border-radius: 12px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+            backdrop-filter: blur(5px);
             border-left: 4px solid var(--secondary-color);
         }
+        
+        .chart-description h4 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            font-size: 1.2em;
+            display: flex;
+            align-items: center;
+        }
+        
+        .chart-description h4 i {
+            margin-right: 10px;
+            color: var(--secondary-color);
+        }
+        
+        .chart-description p {
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+        
+        .chart-description strong {
+            color: var(--primary-color);
+        }
 
-        /* Analysis Sections */
+        /* Analysis Sections - 优化版 */
         .analysis-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            margin: 30px 0;
+            gap: 25px;
+            margin: 35px 0;
         }
 
         .analysis-card {
-            background: white;
-            border-radius: var(--border-radius);
-            padding: 25px;
-            box-shadow: var(--shadow);
+            background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.85));
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
             border-left: 4px solid var(--secondary-color);
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .analysis-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100px;
+            height: 100px;
+            background: radial-gradient(circle at top right, rgba(52, 152, 219, 0.1), transparent 70%);
+            border-radius: 0 0 0 100%;
+        }
+
+        .analysis-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
         }
 
         .analysis-card h3 {
             color: var(--primary-color);
-            margin-bottom: 15px;
+            margin-bottom: 18px;
             display: flex;
             align-items: center;
+            font-size: 1.4em;
+            position: relative;
+            padding-bottom: 12px;
+        }
+        
+        .analysis-card h3::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 50px;
+            height: 3px;
+            background: linear-gradient(90deg, var(--secondary-color), transparent);
+            border-radius: 3px;
         }
 
         .analysis-card h3 i {
-            margin-right: 10px;
+            margin-right: 12px;
             color: var(--secondary-color);
+            font-size: 1.1em;
+        }
+        
+        .analysis-card p {
+            line-height: 1.7;
+            color: var(--text-primary);
+            margin-bottom: 12px;
         }
 
         /* Loading Animation */
@@ -294,64 +418,128 @@
             to { transform: rotate(360deg); }
         }
 
-        /* Tab System */
+        /* Tab System - 优化版 */
         .tab-container {
-            margin: 30px 0;
+            margin: 35px 0;
         }
 
         .tab-nav {
             display: flex;
-            background: white;
-            border-radius: var(--border-radius) var(--border-radius) 0 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.85));
+            border-radius: 12px 12px 0 0;
             overflow: hidden;
-            box-shadow: var(--shadow);
+            box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+            position: relative;
+            z-index: 2;
+            backdrop-filter: blur(5px);
         }
 
         .tab-btn {
             flex: 1;
-            padding: 15px 20px;
+            padding: 18px 20px;
             border: none;
-            background: #f8f9fa;
+            background: transparent;
             cursor: pointer;
-            transition: var(--transition);
+            transition: all 0.3s ease;
             font-weight: 500;
             border-bottom: 3px solid transparent;
+            position: relative;
+            overflow: hidden;
+            color: var(--text-secondary);
+            font-size: 1.05em;
+        }
+        
+        .tab-btn::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--secondary-color), rgba(52, 152, 219, 0.5));
+            transition: all 0.3s ease;
+            transform: translateX(-50%);
+            border-radius: 3px 3px 0 0;
+        }
+
+        .tab-btn:hover {
+            color: var(--primary-color);
+            background: rgba(52, 152, 219, 0.05);
+        }
+        
+        .tab-btn:hover::before {
+            width: 30%;
         }
 
         .tab-btn.active {
-            background: white;
-            border-bottom-color: var(--secondary-color);
+            background: linear-gradient(135deg, rgba(255,255,255,1), rgba(255,255,255,0.9));
             color: var(--secondary-color);
+            font-weight: 600;
+        }
+        
+        .tab-btn.active::before {
+            width: 80%;
         }
 
         .tab-content {
-            background: white;
-            padding: 30px;
-            border-radius: 0 0 var(--border-radius) var(--border-radius);
-            box-shadow: var(--shadow);
+            background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.85));
+            padding: 35px;
+            border-radius: 0 0 12px 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
             display: none;
+            position: relative;
+            z-index: 1;
+            margin-top: -1px;
+            backdrop-filter: blur(5px);
         }
 
         .tab-content.active {
             display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Analysis Button */
+        /* Analysis Button - 优化版 */
         .analysis-btn {
             width: 100%;
-            padding: 20px;
-            margin: 15px 0;
-            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
-            border: 2px solid var(--border-color);
-            border-radius: var(--border-radius);
+            padding: 22px 25px;
+            margin: 18px 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.85));
+            border: none;
+            border-radius: 12px;
             cursor: pointer;
-            transition: var(--transition);
+            transition: all 0.3s ease;
             text-align: left;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(5px);
+        }
+        
+        .analysis-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(to bottom, var(--secondary-color), transparent);
+            opacity: 0;
+            transition: all 0.3s ease;
         }
 
         .analysis-btn:hover {
-            border-color: var(--secondary-color);
-            background: linear-gradient(135deg, rgba(52, 152, 219, 0.1), rgba(52, 152, 219, 0.05));
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            background: linear-gradient(135deg, rgba(255,255,255,1), rgba(255,255,255,0.9));
+        }
+        
+        .analysis-btn:hover::before {
+            opacity: 1;
         }
 
         .analysis-btn.loading {
@@ -363,33 +551,53 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
         }
 
         .analysis-btn-title {
-            font-size: 1.2rem;
+            font-size: 1.25rem;
             font-weight: 600;
             color: var(--primary-color);
             display: flex;
             align-items: center;
+            transition: all 0.3s ease;
+        }
+        
+        .analysis-btn:hover .analysis-btn-title {
+            color: var(--secondary-color);
+            transform: translateX(5px);
         }
 
         .analysis-btn-title i {
-            margin-right: 10px;
+            margin-right: 12px;
             color: var(--secondary-color);
+            transition: all 0.3s ease;
+        }
+        
+        .analysis-btn:hover .analysis-btn-title i {
+            transform: scale(1.2);
         }
 
         .analysis-btn-desc {
             color: var(--text-secondary);
             font-size: 0.95rem;
+            line-height: 1.5;
+            transition: all 0.3s ease;
+        }
+        
+        .analysis-btn:hover .analysis-btn-desc {
+            color: var(--text-primary);
         }
 
         .analysis-content {
-            margin-top: 20px;
-            padding: 20px;
-            background: var(--light-bg);
-            border-radius: 8px;
+            margin-top: 25px;
+            padding: 25px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,255,255,0.7));
+            border-radius: 12px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+            backdrop-filter: blur(5px);
             display: none;
+            animation: fadeIn 0.5s ease;
         }
 
         .analysis-content.show {
@@ -403,8 +611,10 @@
             }
             
             .page-container {
-                width: 1200px;
+                width: 100%;
+                max-width: 1200px;
                 margin: 0 auto;
+                padding: 0 15px;
             }
         }
         
@@ -428,6 +638,50 @@
             .analysis-grid {
                 grid-template-columns: 1fr;
             }
+            
+            /* 移动设备上的表单元素样式调整 */
+            .form-group input,
+            .form-group select {
+                font-size: 16px; /* 防止iOS上自动缩放 */
+                padding: 12px 40px 12px 15px; /* 增加右侧padding，为下拉箭头留出空间 */
+                width: 100%;
+                max-width: 100%;
+                box-sizing: border-box;
+            }
+            
+            /* 确保下拉箭头在移动设备上可见 */
+            .form-group select {
+                background-position: right 15px center;
+                background-size: 16px;
+            }
+            
+            /* 调整卡片内边距 */
+            .card {
+                padding: 20px 15px;
+            }
+        }
+        
+        /* 小屏幕设备的额外调整 */
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .card-header h2 {
+                font-size: 1.3rem;
+            }
+            
+            .btn {
+                width: 100%;
+                padding: 12px 20px;
+                font-size: 1rem;
+            }
+            
+            /* 确保表单元素在小屏幕上更易于点击 */
+            .form-group input,
+            .form-group select {
+                height: 48px; /* 增加高度使触摸更容易 */
+            }
         }
 
         /* Hidden by default */
@@ -438,9 +692,10 @@
         .result-section.show {
             display: block;
         }
-    /* 添加固定宽度的外层容器 */
+    /* 添加外层容器 */
     .page-container {
-        width: 1200px;
+        width: 100%;
+        max-width: 1200px;
         margin: 0 auto;
         overflow-x: hidden;
     }
@@ -450,6 +705,25 @@
         width: 100%;
         margin: 0 auto;
         padding: 20px;
+    }
+    
+    /* Safari特定样式 */
+    @media not all and (min-resolution:.001dpcm) { 
+        @supports (-webkit-appearance:none) {
+            .form-group select {
+                background-color: white; /* 确保背景色为白色 */
+                text-indent: 1px; /* 修复文本对齐问题 */
+                text-overflow: ''; /* 处理文本溢出 */
+                padding-right: 30px; /* 为下拉箭头留出空间 */
+            }
+            
+            /* 修复Safari上的触摸事件 */
+            .form-group select:hover,
+            .form-group select:focus {
+                cursor: pointer;
+                border-color: var(--secondary-color);
+            }
+        }
     }
     </style>
 </head>
@@ -1168,11 +1442,11 @@
                     let multiplier = (type === 'diZhiSanHe' ? (comb.count === 3 ? 5 : 3) : (type === 'tianGanWuHe' ? 3 : 2));
                     if (getSupportElements(dayElement).includes(heElement)) {
                         supportStrength += multiplier;
-                        combinationDeduction -= multiplier; // 增强，扣分为负
+                        combinationDeduction += multiplier; // 增强，正值
                         console.log(`${type} ${comb.gan1 || comb.zhi1 || comb.type || comb.branches} 合化${heElement} 生助日主，增加生扶 ${multiplier}`);
                     } else if (getWeakenElements(dayElement).includes(heElement)) {
-                        supportStrength -= multiplier; // 改为减生扶以表示削弱
-                        combinationDeduction += multiplier; // 削弱，扣分为正
+                        supportStrength -= multiplier;
+                        combinationDeduction -= multiplier; // 削弱，负值
                         console.log(`${type} ${comb.gan1 || comb.zhi1 || comb.type || comb.branches} 合化${heElement} 克泄日主，减少生扶 ${multiplier}`);
                     } else {
                         console.log(`${type} ${comb.gan1 || comb.zhi1 || comb.type || comb.branches} 合化${heElement} 中性影响`);
@@ -1182,9 +1456,9 @@
             combined.deduction = combinationDeduction;
             // 设置整体effect
             if (combinationDeduction > 0) {
-                combined.effect = 'weaken';
-            } else if (combinationDeduction < 0) {
                 combined.effect = 'strengthen';
+            } else if (combinationDeduction < 0) {
+                combined.effect = 'weaken';
             } else {
                 combined.effect = 'neutral';
             }
@@ -1214,7 +1488,7 @@
             let type, description;
             
             // 判断是否从格
-            const isFollowing = checkFollowingPattern(dayElement, monthBranch, strengthRatio, supportStrength, weakenStrength);
+            const isFollowing = checkFollowingPattern(dayElement, monthBranch, strengthRatio, supportStrength, weakenStrength, monthScore);
             
             if (isFollowing.isFollowing) {
                 type = isFollowing.type;
@@ -1522,7 +1796,16 @@
         }
         
         // 检查是否从格
-        function checkFollowingPattern(dayElement, monthBranch, strengthRatio, supportStrength, weakenStrength) {
+        function checkFollowingPattern(dayElement, monthBranch, strengthRatio, supportStrength, weakenStrength, monthScore) {
+            const effective_weaken = weakenStrength + (monthScore < 0 ? -monthScore : 0);
+            if (supportStrength <= 5 && effective_weaken >= 15) {
+                console.log(`从弱格判断: 生扶力量${supportStrength} <= 5, 有效克泄力量${effective_weaken} >= 15`);
+                return {
+                    isFollowing: true,
+                    type: '从弱',
+                    description: '日主极弱，生扶力量不足，命局以克泄日主的五行为用神，顺势而为，喜用财官。'
+                };
+            }
             const branchElementMap = {
                 '子': 'water', '丑': 'earth',
                 '寅': 'wood', '卯': 'wood',
@@ -2357,6 +2640,111 @@
         function displayBaziChart(baziData) {
             const baziChart = document.getElementById('bazi-chart');
             const { pillars, hiddenStems } = baziData;
+            const dayStem = pillars.day[0]; // 日主天干
+            
+            // 五行颜色映射
+            const elementColors = {
+                '木': '#27ae60', // 绿色
+                '火': '#e74c3c', // 红色
+                '土': '#f39c12', // 黄色
+                '金': '#95a5a6', // 银色
+                '水': '#3498db'  // 蓝色
+            };
+            
+            // 天干地支五行映射
+            const elementMap = {
+                '甲': '木', '乙': '木',
+                '丙': '火', '丁': '火',
+                '戊': '土', '己': '土',
+                '庚': '金', '辛': '金',
+                '壬': '水', '癸': '水',
+                '寅': '木', '卯': '木',
+                '巳': '火', '午': '火',
+                '辰': '土', '戌': '土', '丑': '土', '未': '土',
+                '申': '金', '酉': '金',
+                '子': '水', '亥': '水'
+            };
+            
+            // 十神计算函数
+            function getTenGod(dayStem, target) {
+                const ganList = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
+                
+                // 如果是地支，获取其主气天干
+                if (!ganList.includes(target)) {
+                    const mainQiMap = {
+                        '子': '癸', '丑': '己', '寅': '甲', '卯': '乙',
+                        '辰': '戊', '巳': '丙', '午': '丁', '未': '己',
+                        '申': '庚', '酉': '辛', '戌': '戊', '亥': '壬'
+                    };
+                    target = mainQiMap[target];
+                    if (!target) return '未知';
+                }
+                
+                const dayIndex = ganList.indexOf(dayStem);
+                const targetIndex = ganList.indexOf(target);
+                
+                if (dayIndex === -1 || targetIndex === -1) return '未知';
+                
+                const diff = (targetIndex - dayIndex + 10) % 10;
+                
+                // 十神顺序
+                const tenGods = [
+                    '比肩', '劫财', '食神', '伤官', 
+                    '偏财', '正财', '七杀', '正官', 
+                    '偏印', '正印'
+                ];
+                
+                return tenGods[diff] || '未知';
+            }
+            
+            // 生成带颜色和十神的天干
+                function coloredStem(stem, isDay = false) {
+                    const element = elementMap[stem] || '';
+                    const color = elementColors[element] || '#000';
+                    const tenGod = isDay ? '' : getTenGod(dayStem, stem);
+                    const tenGodText = isDay ? '' : `<small style="display:block;font-size:0.5em;color:#666;margin-top:3px;text-align:center;">${tenGod}</small>`;
+                    const bgColor = isDay ? `background:linear-gradient(135deg, rgba(${getElementRGB(element)}, 0.15), rgba(${getElementRGB(element)}, 0.05));` : '';
+                    return `<div style="display:inline-block;${bgColor}border-radius:8px;padding:5px 10px;">
+                        <span style="color:${color};font-weight:bold;font-size:1.8em;font-family:'SimHei','黑体',sans-serif;text-shadow:0 1px 2px rgba(0,0,0,0.1);">${stem}</span>
+                        ${tenGodText}
+                    </div>`;
+                }
+                
+                // 生成带颜色和十神的地支
+                function coloredBranch(branch) {
+                    const element = elementMap[branch] || '';
+                    const color = elementColors[element] || '#000';
+                    const tenGod = getTenGod(dayStem, branch);
+                    return `<div style="display:inline-block;border-radius:8px;padding:5px 10px;">
+                        <span style="color:${color};font-weight:bold;font-size:1.8em;font-family:'SimHei','黑体',sans-serif;text-shadow:0 1px 2px rgba(0,0,0,0.1);">${branch}</span>
+                        <small style="display:block;font-size:0.5em;color:#666;margin-top:3px;text-align:center;">${tenGod}</small>
+                    </div>`;
+                }
+                
+                // 生成带颜色和十神的藏干
+                function coloredHiddenStems(stems) {
+                    return stems.map((stem, index) => {
+                        const element = elementMap[stem] || '';
+                        const color = elementColors[element] || '#000';
+                        const tenGod = getTenGod(dayStem, stem);
+                        return `<div style="display:inline-block;margin:0 2px;border-radius:6px;padding:3px 6px;background:rgba(${getElementRGB(element)}, 0.05);">
+                            <span style="color:${color};font-size:1.3em;font-family:'SimHei','黑体',sans-serif;text-shadow:0 1px 1px rgba(0,0,0,0.05);">${stem}</span>
+                            <small style="display:block;font-size:0.5em;color:#666;margin-top:2px;text-align:center;">${tenGod}</small>
+                        </div>`;
+                    }).join('');
+                }
+                
+                // 获取五行对应的RGB值
+                function getElementRGB(element) {
+                    switch(element) {
+                        case '木': return '39, 174, 96'; // 绿色
+                        case '火': return '231, 76, 60'; // 红色
+                        case '土': return '243, 156, 18'; // 黄色
+                        case '金': return '149, 165, 166'; // 银色
+                        case '水': return '52, 152, 219'; // 蓝色
+                        default: return '0, 0, 0';
+                    }
+                }
             
             baziChart.innerHTML = `
                 <table class="bazi-table">
@@ -2372,30 +2760,42 @@
                     <tbody>
                         <tr>
                             <td><strong>天干</strong></td>
-                            <td class="stem">${pillars.year[0]}</td>
-                            <td class="stem">${pillars.month[0]}</td>
-                            <td class="stem">${pillars.day[0]}</td>
-                            <td class="stem">${pillars.hour[0]}</td>
+                            <td class="stem">${coloredStem(pillars.year[0])}</td>
+                            <td class="stem">${coloredStem(pillars.month[0])}</td>
+                            <td class="stem">${coloredStem(pillars.day[0], true)}</td>
+                            <td class="stem">${coloredStem(pillars.hour[0])}</td>
                         </tr>
                         <tr>
                             <td><strong>地支</strong></td>
-                            <td class="branch">${pillars.year[1]}</td>
-                            <td class="branch">${pillars.month[1]}</td>
-                            <td class="branch">${pillars.day[1]}</td>
-                            <td class="branch">${pillars.hour[1]}</td>
+                            <td class="branch">${coloredBranch(pillars.year[1])}</td>
+                            <td class="branch">${coloredBranch(pillars.month[1])}</td>
+                            <td class="branch">${coloredBranch(pillars.day[1])}</td>
+                            <td class="branch">${coloredBranch(pillars.hour[1])}</td>
                         </tr>
                         <tr>
                             <td><strong>藏干</strong></td>
-                            <td>${hiddenStems.year.join(' ')}</td>
-                            <td>${hiddenStems.month.join(' ')}</td>
-                            <td>${hiddenStems.day.join(' ')}</td>
-                            <td>${hiddenStems.hour.join(' ')}</td>
+                            <td>${coloredHiddenStems(hiddenStems.year)}</td>
+                            <td>${coloredHiddenStems(hiddenStems.month)}</td>
+                            <td>${coloredHiddenStems(hiddenStems.day)}</td>
+                            <td>${coloredHiddenStems(hiddenStems.hour)}</td>
                         </tr>
                     </tbody>
                 </table>
-                <div style="margin-top: 20px; padding: 15px; background: var(--light-bg); border-radius: 8px;">
-                    <strong>年命纳音：</strong>${baziData.lunar.getYearNaYin()}<br>
-                    <strong>日主：</strong>${pillars.day[0]}${getElementName(pillars.day[0])}命
+                <div style="margin-top: 25px; padding: 20px; background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,255,255,0.7)); border-radius: 12px; box-shadow: 0 3px 10px rgba(0,0,0,0.05); backdrop-filter: blur(5px);">
+                    <div style="display: flex; flex-wrap: wrap; justify-content: space-around; align-items: center;">
+                        <div style="flex: 1; min-width: 200px; padding: 10px; text-align: center; border-right: 1px solid rgba(233, 236, 239, 0.5);">
+                            <div style="font-size: 0.9em; color: #7f8c8d; margin-bottom: 5px;">年命纳音</div>
+                            <div style="font-size: 1.3em; font-weight: 600; color: #2c3e50;">${baziData.lunar.getYearNaYin()}</div>
+                        </div>
+                        <div style="flex: 1; min-width: 200px; padding: 10px; text-align: center;">
+                            <div style="font-size: 0.9em; color: #7f8c8d; margin-bottom: 5px;">日主</div>
+                            <div style="font-size: 1.3em; font-weight: 600;">
+                                <span style="display: inline-block; padding: 5px 15px; border-radius: 20px; background: linear-gradient(135deg, rgba(${getElementRGB(elementMap[pillars.day[0]])}, 0.2), rgba(${getElementRGB(elementMap[pillars.day[0]])}, 0.05)); color: ${elementColors[elementMap[pillars.day[0]]] || '#000'}; text-shadow: 0 1px 1px rgba(0,0,0,0.1);">
+                                    ${pillars.day[0]}${getElementName(pillars.day[0])}命
+                                </span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             `;
         }
