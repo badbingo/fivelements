@@ -811,11 +811,14 @@
                     <i class="fas fa-chart-pie"></i>
                     <h2>五行力量分布与分析</h2>
                 </div>
-                <div class="elements-analysis-frame" style="display: flex; flex-direction: row; gap: 20px; flex-wrap: wrap; margin-top: 20px;">
-                    <div class="chart-container" style="flex: 1; min-width: 300px; min-height: 350px; margin: 0;">
+                <div class="elements-analysis-frame" style="display: flex; flex-direction: column; gap: 20px; margin-top: 20px;">
+                    <div class="chart-container" style="width: 100%; min-height: 350px; margin: 0 auto;">
                         <canvas id="elements-chart"></canvas>
                     </div>
-                    <div class="chart-description" id="elements-description" style="flex: 1; min-width: 300px; background-color: #f9f9f9; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin: 0;">
+                    <div id="elements-summary" style="width: 100%; background-color: #f9f9f9; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin: 0 auto;">
+                        <!-- 五行分布概览将在这里显示 -->
+                    </div>
+                    <div class="chart-description" id="elements-description" style="width: 100%; background-color: #f9f9f9; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin: 0 auto;">
                         <!-- 五行分析描述 -->
                     </div>
                 </div>
@@ -2918,15 +2921,24 @@
                             }
                         },
                         tooltip: {
-                            backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                            backgroundColor: 'rgba(255, 255, 255, 0.95)',
                             titleColor: '#333',
                             bodyColor: '#333',
                             borderColor: '#ddd',
                             borderWidth: 1,
-                            cornerRadius: 8,
-                            padding: 12,
-                            boxPadding: 6,
+                            cornerRadius: 10,
+                            padding: 15,
+                            boxPadding: 8,
                             usePointStyle: true,
+                            titleFont: {
+                                size: 16,
+                                weight: 'bold',
+                                family: "'Noto Serif SC', serif"
+                            },
+                            bodyFont: {
+                                size: 14,
+                                family: "'Noto Serif SC', serif"
+                            },
                             callbacks: {
                                 label: function(context) {
                                     const total = context.dataset.data.reduce((sum, val) => sum + val, 0);
@@ -2937,14 +2949,25 @@
                         },
                         datalabels: {
                             color: '#fff',
+                            textShadow: '0 1px 2px rgba(0,0,0,0.2)',
                             font: {
                                 weight: 'bold',
-                                size: 14
+                                size: 16,
+                                family: "'Noto Serif SC', serif"
                             },
                             formatter: (value, ctx) => {
                                 const percentage = ((value / total) * 100).toFixed(0);
                                 return percentage > 5 ? `${percentage}%` : '';
-                            }
+                            },
+                            anchor: 'center',
+                            align: 'center',
+                            offset: 0,
+                            borderWidth: 2,
+                            borderRadius: 4,
+                            backgroundColor: function(context) {
+                                return context.dataset.backgroundColor[context.dataIndex];
+                            },
+                            opacity: 0.9
                         }
                     },
                     animation: {
@@ -2958,6 +2981,7 @@
             
             // 显示增强的五行分析描述
             const description = document.getElementById('elements-description');
+            const summary = document.getElementById('elements-summary');
             const strongest = Object.keys(elements).reduce((a, b) => elements[a] > elements[b] ? a : b);
             const weakest = Object.keys(elements).reduce((a, b) => elements[a] < elements[b] ? a : b);
             
@@ -2965,47 +2989,62 @@
                 wood: '木', fire: '火', earth: '土', metal: '金', water: '水'
             };
             
-            // 五行特性
+            // 增强的五行特性
             const elementProperties = {
                 wood: {
-                    nature: '生长、向上',
-                    character: '仁爱、正直、进取',
-                    career: '教育、文化、艺术、法律、环保、植物相关行业',
-                    health: '肝胆系统、眼睛、肌腱、神经',
-                    favorable: '东方、绿色环境、春季',
-                    icon: 'fa-tree'
+                    nature: '生长、向上、扩展',
+                    character: '仁爱、正直、进取、创新、灵活、善变',
+                    career: '教育、文化、艺术、法律、环保、植物相关行业、创意设计、新兴产业',
+                    health: '肝胆系统、眼睛、肌腱、神经、头部',
+                    favorable: '东方、绿色环境、春季、清晨',
+                    icon: 'fa-tree',
+                    personality: '思维活跃，创新能力强，善于规划，有远见，但可能缺乏耐心，情绪波动较大',
+                    career_detail: '适合需要创造力和变革的工作，不适合固定模式的工作',
+                    health_advice: '注意情绪管理，避免过度紧张和压力，保持规律作息，多做舒缓运动'
                 },
                 fire: {
-                    nature: '上升、扩张',
-                    character: '热情、活力、直觉、表达力强',
-                    career: '娱乐、餐饮、照明、能源、传媒、营销',
-                    health: '心脏、血液循环、眼睛、面部',
-                    favorable: '南方、阳光充足环境、夏季',
-                    icon: 'fa-fire'
+                    nature: '上升、扩张、热烈',
+                    character: '热情、活力、直觉、表达力强、乐观、冲动',
+                    career: '娱乐、餐饮、照明、能源、传媒、营销、表演、公关',
+                    health: '心脏、血液循环、眼睛、面部、小肠',
+                    favorable: '南方、阳光充足环境、夏季、中午',
+                    icon: 'fa-fire',
+                    personality: '热情洋溢，富有感染力，直觉敏锐，善于表达，但可能冲动，缺乏耐心',
+                    career_detail: '适合需要热情和表现力的工作，不适合需要冷静分析的工作',
+                    health_advice: '注意心脏健康，避免情绪过度激动，保持充足睡眠，适当控制饮食'
                 },
                 earth: {
-                    nature: '稳定、中和',
-                    character: '踏实、稳重、包容、忠诚',
-                    career: '房地产、农业、食品、保险、服务业',
-                    health: '脾胃、消化系统、肌肉',
-                    favorable: '中央位置、黄色环境、季节交替时期',
-                    icon: 'fa-mountain'
+                    nature: '稳定、中和、包容',
+                    character: '踏实、稳重、包容、忠诚、保守、固执',
+                    career: '房地产、农业、食品、保险、服务业、医疗、教育、行政管理',
+                    health: '脾胃、消化系统、肌肉、口腔',
+                    favorable: '中央位置、黄色环境、季节交替时期、下午',
+                    icon: 'fa-mountain',
+                    personality: '稳重踏实，责任感强，忠诚可靠，但可能固执，缺乏变通',
+                    career_detail: '适合需要耐心和稳定的工作，不适合需要频繁变动的工作',
+                    health_advice: '注意消化系统健康，保持规律饮食，避免过度思虑，适当运动'
                 },
                 metal: {
-                    nature: '收敛、向内',
-                    character: '果断、公正、条理、自律',
-                    career: '金融、IT、机械、汽车、珠宝、军警',
-                    health: '肺部、大肠、皮肤、鼻子',
-                    favorable: '西方、白色环境、秋季',
-                    icon: 'fa-coins'
+                    nature: '收敛、向内、坚硬',
+                    character: '果断、公正、条理、自律、理性、刚毅',
+                    career: '金融、IT、机械、汽车、珠宝、军警、法律、精密工业',
+                    health: '肺部、大肠、皮肤、鼻子、呼吸系统',
+                    favorable: '西方、白色环境、秋季、傍晚',
+                    icon: 'fa-coins',
+                    personality: '条理分明，做事果断，公正严明，但可能过于刚硬，缺乏柔性',
+                    career_detail: '适合需要精确和规范的工作，不适合需要灵活变通的工作',
+                    health_advice: '注意呼吸系统健康，保持环境清洁，避免过度压抑情绪，适当放松'
                 },
                 water: {
-                    nature: '向下、流动',
-                    character: '智慧、灵活、交际、适应力强',
-                    career: '贸易、运输、旅游、水产、外交、销售',
+                    nature: '向下、流动、适应',
+                    character: '智慧、灵活、交际、适应力强、深沉、多变',
+                    career: '贸易、运输、旅游、水产、外交、销售、咨询、信息传播',
                     health: '肾脏、膀胱、耳朵、骨骼、生殖系统',
-                    favorable: '北方、水域环境、冬季',
-                    icon: 'fa-water'
+                    favorable: '北方、水域环境、冬季、夜晚',
+                    icon: 'fa-water',
+                    personality: '思维灵活，适应力强，善于沟通，但可能多虑，缺乏决断',
+                    career_detail: '适合需要交流和变通的工作，不适合固定模式的工作',
+                    health_advice: '注意肾脏健康，保持充足睡眠，避免过度疲劳，保持水分摄入'
                 }
             };
             
@@ -3019,88 +3058,91 @@
             else if (balancePercentage >= 50) balanceLevel = '一般';
             else balanceLevel = '失衡';
             
-            description.innerHTML = `
-                <h4 style="color: #2c3e50; margin-bottom: 15px; font-size: 1.2rem; border-bottom: 2px solid #3498db; padding-bottom: 8px;">
-                    <i class="fas fa-chart-bar"></i> 五行分析
-                </h4>
-                
-                <div style="background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(240,240,240,0.7)); padding: 12px; border-radius: 8px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
-                    <div style="display: flex; justify-content: space-between; flex-wrap: wrap; margin-bottom: 10px;">
-                        <div style="min-width: 120px; margin-bottom: 5px;">
+            // 获取第二强和第二弱的五行
+            const sortedElements = Object.entries(elements).sort((a, b) => b[1] - a[1]);
+            const secondStrongest = sortedElements[1][0];
+            const secondWeakest = sortedElements[3][0];
+            
+            // 显示五行分布概览（放在图表下方）
+            summary.innerHTML = `
+                <div style="background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(240,240,240,0.7)); padding: 15px; border-radius: 10px; box-shadow: 0 3px 8px rgba(0,0,0,0.08);">
+                    <div style="display: flex; justify-content: space-between; flex-wrap: wrap; margin-bottom: 12px;">
+                        <div style="min-width: 120px; margin-bottom: 8px;">
                             <span style="font-weight: bold; color: ${elementColors[strongest].main};">最强五行：</span>
-                            <span style="background-color: ${elementColors[strongest].light}; padding: 2px 8px; border-radius: 4px; color: #fff; font-weight: bold;">
+                            <span style="background: linear-gradient(135deg, ${elementColors[strongest].gradient[0]}, ${elementColors[strongest].gradient[1]}); padding: 3px 10px; border-radius: 20px; color: #fff; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
                                 ${elementNames[strongest]} (${((elements[strongest]/total)*100).toFixed(1)}%)
                             </span>
                         </div>
-                        <div style="min-width: 120px; margin-bottom: 5px;">
+                        <div style="min-width: 120px; margin-bottom: 8px;">
                             <span style="font-weight: bold; color: ${elementColors[weakest].main};">最弱五行：</span>
-                            <span style="background-color: ${elementColors[weakest].light}; padding: 2px 8px; border-radius: 4px; color: #fff; font-weight: bold;">
+                            <span style="background: linear-gradient(135deg, ${elementColors[weakest].gradient[0]}, ${elementColors[weakest].gradient[1]}); padding: 3px 10px; border-radius: 20px; color: #fff; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
                                 ${elementNames[weakest]} (${((elements[weakest]/total)*100).toFixed(1)}%)
                             </span>
                         </div>
-                        <div style="min-width: 120px; margin-bottom: 5px;">
+                        <div style="min-width: 120px; margin-bottom: 8px;">
                             <span style="font-weight: bold; color: #2c3e50;">平衡度：</span>
-                            <span style="background-color: ${balanceLevel === '极佳' ? '#27ae60' : balanceLevel === '良好' ? '#2ecc71' : balanceLevel === '一般' ? '#f39c12' : '#e74c3c'}; padding: 2px 8px; border-radius: 4px; color: #fff; font-weight: bold;">
+                            <span style="background: linear-gradient(135deg, ${balanceLevel === '极佳' ? 'rgba(39, 174, 96, 0.9), rgba(46, 204, 113, 0.9)' : balanceLevel === '良好' ? 'rgba(46, 204, 113, 0.9), rgba(39, 174, 96, 0.9)' : balanceLevel === '一般' ? 'rgba(243, 156, 18, 0.9), rgba(230, 126, 34, 0.9)' : 'rgba(231, 76, 60, 0.9), rgba(192, 57, 43, 0.9)'}); padding: 3px 10px; border-radius: 20px; color: #fff; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
                                 ${balanceLevel} (${balancePercentage.toFixed(0)}%)
                             </span>
                         </div>
                     </div>
                     
-                    <div style="margin-top: 10px;">
-                        <p style="margin: 0; line-height: 1.5;">
-                            <strong>五行分布：</strong> 
-                            木 ${elements.wood}点 (${((elements.wood/total)*100).toFixed(1)}%), 
-                            火 ${elements.fire}点 (${((elements.fire/total)*100).toFixed(1)}%), 
-                            土 ${elements.earth}点 (${((elements.earth/total)*100).toFixed(1)}%), 
-                            金 ${elements.metal}点 (${((elements.metal/total)*100).toFixed(1)}%), 
-                            水 ${elements.water}点 (${((elements.water/total)*100).toFixed(1)}%)
+                    <div style="margin-top: 12px;">
+                        <p style="margin: 0; line-height: 1.6; font-size: 0.95rem;">
+                            <strong>五行分布：</strong><br>
+                            <span style="display: inline-block; margin: 5px 5px 5px 0; padding: 4px 10px; background-color: ${elementColors.wood.light}; color: white; border-radius: 15px; font-weight: bold;">木 ${elements.wood}点 (${((elements.wood/total)*100).toFixed(1)}%)</span>
+                            <span style="display: inline-block; margin: 5px 5px 5px 0; padding: 4px 10px; background-color: ${elementColors.fire.light}; color: white; border-radius: 15px; font-weight: bold;">火 ${elements.fire}点 (${((elements.fire/total)*100).toFixed(1)}%)</span>
+                            <span style="display: inline-block; margin: 5px 5px 5px 0; padding: 4px 10px; background-color: ${elementColors.earth.light}; color: white; border-radius: 15px; font-weight: bold;">土 ${elements.earth}点 (${((elements.earth/total)*100).toFixed(1)}%)</span>
+                            <span style="display: inline-block; margin: 5px 5px 5px 0; padding: 4px 10px; background-color: ${elementColors.metal.light}; color: white; border-radius: 15px; font-weight: bold;">金 ${elements.metal}点 (${((elements.metal/total)*100).toFixed(1)}%)</span>
+                            <span style="display: inline-block; margin: 5px 5px 5px 0; padding: 4px 10px; background-color: ${elementColors.water.light}; color: white; border-radius: 15px; font-weight: bold;">水 ${elements.water}点 (${((elements.water/total)*100).toFixed(1)}%)</span>
+                        </p>
+                    </div>
+                </div>
+            `;
+            
+            // 显示五行分析描述
+            description.innerHTML = `
+                <h4 style="color: #2c3e50; margin-bottom: 15px; font-size: 1.2rem; border-bottom: 2px solid #3498db; padding-bottom: 8px;">
+                    <i class="fas fa-chart-bar"></i> 五行分析
+                </h4>
+                
+                <div style="margin-bottom: 18px;">
+                    <h5 style="color: ${elementColors[strongest].main}; font-size: 1.1rem; margin-bottom: 10px; display: flex; align-items: center;">
+                        <i class="fas ${elementProperties[strongest].icon}" style="margin-right: 8px;"></i> ${elementNames[strongest]}的特性与影响
+                    </h5>
+                    <div style="background: linear-gradient(135deg, rgba(${strongest === 'wood' ? '46, 204, 113, 0.15' : strongest === 'fire' ? '231, 76, 60, 0.15' : strongest === 'earth' ? '243, 156, 18, 0.15' : strongest === 'metal' ? '149, 165, 166, 0.15' : '52, 152, 219, 0.15'}, 1), rgba(${strongest === 'wood' ? '46, 204, 113, 0.05' : strongest === 'fire' ? '231, 76, 60, 0.05' : strongest === 'earth' ? '243, 156, 18, 0.05' : strongest === 'metal' ? '149, 165, 166, 0.05' : '52, 152, 219, 0.05'}, 1)); padding: 15px; border-radius: 10px; margin-bottom: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); border-left: 4px solid ${elementColors[strongest].main};">
+                        <p style="margin: 0 0 8px 0; font-size: 0.95rem;"><strong>性质：</strong>${elementProperties[strongest].nature}</p>
+                        <p style="margin: 0 0 8px 0; font-size: 0.95rem;"><strong>性格特点：</strong>${elementProperties[strongest].character}</p>
+                        <p style="margin: 0 0 8px 0; font-size: 0.95rem;"><strong>性格分析：</strong>${elementProperties[strongest].personality}</p>
+                        <p style="margin: 0 0 8px 0; font-size: 0.95rem;"><strong>事业方向：</strong>${elementProperties[strongest].career}</p>
+                        <p style="margin: 0 0 8px 0; font-size: 0.95rem;"><strong>事业特点：</strong>${elementProperties[strongest].career_detail}</p>
+                        <p style="margin: 0 0 8px 0; font-size: 0.95rem;"><strong>健康关注：</strong>${elementProperties[strongest].health}</p>
+                        <p style="margin: 0 0 8px 0; font-size: 0.95rem;"><strong>健康建议：</strong>${elementProperties[strongest].health_advice}</p>
+                        <p style="margin: 0; font-size: 0.95rem;"><strong>有利环境：</strong>${elementProperties[strongest].favorable}</p>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 18px;">
+                    <h5 style="color: #2c3e50; font-size: 1.1rem; margin-bottom: 10px; display: flex; align-items: center;">
+                        <i class="fas fa-balance-scale" style="margin-right: 8px;"></i> 五行平衡建议
+                    </h5>
+                    <div style="background: linear-gradient(135deg, rgba(52, 152, 219, 0.15), rgba(52, 152, 219, 0.05)); padding: 15px; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); border-left: 4px solid #3498db;">
+                        <p style="margin: 0 0 10px 0; font-size: 0.95rem;">${getFiveElementsAdvice(strongest, weakest)}</p>
+                        <p style="margin: 0 0 10px 0; font-size: 0.95rem;"><strong>五行组合特点：</strong>
+                            ${strongest}${secondStrongest !== strongest ? `和${secondStrongest}` : ''}较强，表现为${elementProperties[strongest].character.split('、')[0]}${secondStrongest !== strongest ? `和${elementProperties[secondStrongest].character.split('、')[0]}` : ''}的特质突出。
+                            ${weakest === strongest ? '' : `${weakest}较弱，可能缺乏${elementProperties[weakest].character.split('、')[0]}的特质。`}
+                        </p>
+                        <p style="margin: 0; font-size: 0.95rem;"><strong>补充${elementNames[weakest]}的方法：</strong>
+                            ${weakest === 'wood' ? '多接触绿色植物，在东方位置活动，春季出行，佩戴绿色饰品，多吃绿色蔬菜' : 
+                              weakest === 'fire' ? '增加红色装饰，在南方位置活动，夏季出行，佩戴红色饰品，适当晒太阳' : 
+                              weakest === 'earth' ? '使用黄色、棕色物品，在中央位置活动，季节交替时多出门，多吃黄色食物' : 
+                              weakest === 'metal' ? '佩戴金属饰品，在西方位置活动，秋季出行，使用白色物品，保持环境整洁' : 
+                              '多喝水，在北方位置活动，冬季出行，使用蓝色或黑色物品，接触水域环境'}
                         </p>
                     </div>
                 </div>
                 
-                <div style="margin-bottom: 15px;">
-                    <h5 style="color: ${elementColors[strongest].main}; font-size: 1.05rem; margin-bottom: 8px;">
-                        <i class="fas ${elementProperties[strongest].icon}"></i> ${elementNames[strongest]}的特性与影响
-                    </h5>
-                    <div style="background-color: rgba(${strongest === 'wood' ? '39, 174, 96' : strongest === 'fire' ? '231, 76, 60' : strongest === 'earth' ? '243, 156, 18' : strongest === 'metal' ? '127, 140, 141' : '52, 152, 219'}, 0.1); padding: 10px; border-radius: 6px; margin-bottom: 10px;">
-                        <p style="margin: 0 0 5px 0; font-size: 0.9rem;"><strong>性格特点：</strong>${elementProperties[strongest].character}</p>
-                        <p style="margin: 0 0 5px 0; font-size: 0.9rem;"><strong>事业方向：</strong>${elementProperties[strongest].career}</p>
-                        <p style="margin: 0 0 5px 0; font-size: 0.9rem;"><strong>健康关注：</strong>${elementProperties[strongest].health}</p>
-                        <p style="margin: 0; font-size: 0.9rem;"><strong>有利环境：</strong>${elementProperties[strongest].favorable}</p>
-                    </div>
-                </div>
-                
-                <div style="margin-bottom: 15px;">
-                    <h5 style="color: #2c3e50; font-size: 1.05rem; margin-bottom: 8px;">
-                        <i class="fas fa-balance-scale"></i> 五行平衡建议
-                    </h5>
-                    <div style="background-color: rgba(52, 152, 219, 0.1); padding: 10px; border-radius: 6px;">
-                        <p style="margin: 0 0 8px 0; font-size: 0.9rem;">${getFiveElementsAdvice(strongest, weakest)}</p>
-                        <p style="margin: 0; font-size: 0.9rem;"><strong>补充${elementNames[weakest]}的方法：</strong>
-                            ${weakest === 'wood' ? '多接触绿色植物，在东方位置活动，春季出行' : 
-                              weakest === 'fire' ? '增加红色装饰，在南方位置活动，夏季出行' : 
-                              weakest === 'earth' ? '使用黄色、棕色物品，在中央位置活动' : 
-                              weakest === 'metal' ? '佩戴金属饰品，在西方位置活动，秋季出行' : 
-                              '多喝水，在北方位置活动，冬季出行'}
-                        </p>
-                    </div>
-                </div>
-                
-                <div>
-                    <h5 style="color: #2c3e50; font-size: 1.05rem; margin-bottom: 8px;">
-                        <i class="fas fa-briefcase"></i> 事业与健康指导
-                    </h5>
-                    <div style="background-color: rgba(52, 152, 219, 0.1); padding: 10px; border-radius: 6px;">
-                        <p style="margin: 0 0 8px 0; font-size: 0.9rem;"><strong>事业发展：</strong>
-                            适合从事与${elementNames[strongest]}相关的行业，如${elementProperties[strongest].career}。
-                            ${weakest === strongest ? '' : `可以考虑结合${elementNames[weakest]}的特性，如${elementProperties[weakest].career.split('、')[0]}等。`}
-                        </p>
-                        <p style="margin: 0; font-size: 0.9rem;"><strong>健康关注：</strong>
-                            需要特别关注${elementProperties[strongest].health}的健康。
-                            ${weakest === strongest ? '' : `同时也要注意${elementProperties[weakest].health}的保养。`}
-                        </p>
-                    </div>
-                </div>
+
             `;
         }
 
