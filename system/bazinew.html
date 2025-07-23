@@ -1159,60 +1159,29 @@
                 weakenStrength += elements[element];
             });
             
-            // 应用合化扣分
-            if (combined.deduction && combined.deduction > 0) {
-                supportStrength -= combined.deduction; // 从生扶力量中扣除合化影响
-                console.log(`合化影响扣分: ${combined.deduction}，调整后生扶力量: ${supportStrength}`);
-            }
-            
-            // 调整合化后的力量值
-            if (combined.hasOwnProperty('effect')) {
-                if (combined.effect === 'strengthen') {
-                    supportStrength += 2; // 合化增强日主
-                } else if (combined.effect === 'weaken') {
-                    weakenStrength += 2; // 合化削弱日主
-                }
-            }
-            
-            // 特别处理三合的影响
-            if (combined.hasOwnProperty('sanhe')) {
-                console.log('处理三合局对身强身弱的影响:', combined.sanhe);
-                const sanhe = combined.sanhe;
-                const sanheElement = sanhe.element;
-                
-                console.log(`三合五行: ${sanheElement}, 合局地支: ${sanhe.branches || sanhe.type}, 合局程度: ${sanhe.count}`);
-                
-                // 增加三合局的影响力度
-                const sanheMultiplier = sanhe.count === 3 ? 2.0 : 1.5; // 全三合影响更大
-                
-                // 根据三合的五行与日主的关系调整力量
-                if (getSupportElements(dayElement).includes(sanheElement)) {
-                    // 三合五行生扶日主
-                    const addStrength = sanhe.count * sanheMultiplier;
-                    supportStrength += addStrength; // 根据三合的数量增加生扶力量
-                    console.log(`三合${sanheElement}生扶日主${dayElement}，增加生扶力量 ${addStrength}`);
-                } else if (getWeakenElements(dayElement).includes(sanheElement)) {
-                    // 三合五行克泄日主
-                    const addStrength = sanhe.count * sanheMultiplier;
-                    weakenStrength += addStrength; // 根据三合的数量增加克泄力量
-                    console.log(`三合${sanheElement}克泄日主${dayElement}，增加克泄力量 ${addStrength}`);
-                }
-                
-                // 特别处理巳酉丑三合金对己土日主的影响
-                if (sanhe.type === '巳酉丑' && dayStem === '己') {
-                    weakenStrength += 3; // 三合金对己土的克制更强
-                    console.log('巳酉丑三合金对己土日主的特殊影响，额外增加克泄力量 3');
-                }
-                
-                // 设置合化效果
-                if (!combined.effect) {
-                    if (getSupportElements(dayElement).includes(sanheElement)) {
-                        combined.effect = 'strengthen';
-                        console.log(`三合${sanheElement}生扶日主${dayElement}，设置合化效果为增强日主`);
-                    } else if (getWeakenElements(dayElement).includes(sanheElement)) {
-                        combined.effect = 'weaken';
-                        console.log(`三合${sanheElement}克泄日主${dayElement}，设置合化效果为削弱日主`);
+            // 统一处理所有合化的加减分
+            const combinationTypes = ['tianGanWuHe', 'diZhiLiuHe', 'diZhiSanHe'];
+            combinationTypes.forEach(type => {
+                combined[type].forEach(comb => {
+                    const heElement = comb.element;
+                    let multiplier = (type === 'diZhiSanHe' ? (comb.count === 3 ? 5 : 3) : (type === 'tianGanWuHe' ? 3 : 2));
+                    if (getSupportElements(dayElement).includes(heElement)) {
+                        supportStrength += multiplier;
+                        console.log(`${type} ${comb.gan1 || comb.zhi1 || comb.type} 合化${heElement} 生助日主，增加生扶 ${multiplier}`);
+                    } else if (getWeakenElements(dayElement).includes(heElement)) {
+                        weakenStrength += multiplier;
+                        console.log(`${type} ${comb.gan1 || comb.zhi1 || comb.type} 合化${heElement} 克泄日主，增加克泄 ${multiplier}`);
                     }
+                });
+            });
+            
+            // 移除通用effect调整，已在具体合化中处理
+            
+            // 三合加减已在统一处理中完成，保留特别处理
+            if (combined.hasOwnProperty('sanhe')) {
+                if (combined.sanhe.type === '巳酉丑' && dayStem === '己') {
+                    weakenStrength += 3;
+                    console.log('巳酉丑三合金对己土日主的特殊影响，额外增加克泄力量 3');
                 }
             }
             
@@ -1326,59 +1295,41 @@
                 console.error('获取八字信息失败:', e);
             }
             
-            // 检查天干五合
+            // 检查相邻天干五合
             for (let i = 0; i < allStems.length - 1; i++) {
-                for (let j = i + 1; j < allStems.length; j++) {
-                    const stem1 = allStems[i];
-                    const stem2 = allStems[j];
-                    const pair1 = stem1 + stem2;
-                    const pair2 = stem2 + stem1;
-                    
-                    if (tianGanHeHua[pair1] || tianGanHeHua[pair2]) {
-                        const hehuaElement = tianGanHeHua[pair1] || tianGanHeHua[pair2];
-                        combined.tianGanWuHe.push({
-                            gan1: stem1,
-                            gan2: stem2,
-                            element: hehuaElement,
-                            positions: [i, j]
-                        });
-                        
-                        // 天干五合扣分
-                        const dayElement = stemElementMap[dayStem];
-                        if (getWeakenElements(dayElement).includes(hehuaElement)) {
-                            combined.deduction += 3; // 合化削弱日主，扣3分
-                        }
-                        
-                        console.log(`发现天干五合: ${stem1}${stem2} 合化为${hehuaElement}`);
-                    }
+                const stem1 = allStems[i];
+                const stem2 = allStems[i+1];
+                const pair1 = stem1 + stem2;
+                const pair2 = stem2 + stem1;
+                
+                if (tianGanHeHua[pair1] || tianGanHeHua[pair2]) {
+                    const hehuaElement = tianGanHeHua[pair1] || tianGanHeHua[pair2];
+                    combined.tianGanWuHe.push({
+                        gan1: stem1,
+                        gan2: stem2,
+                        element: hehuaElement,
+                        positions: [i, i+1]
+                    });
+                    console.log(`发现相邻天干五合: ${stem1}${stem2} 合化为${hehuaElement}`);
                 }
             }
             
-            // 检查地支六合
+            // 检查相邻地支六合
             for (let i = 0; i < allBranches.length - 1; i++) {
-                for (let j = i + 1; j < allBranches.length; j++) {
-                    const branch1 = allBranches[i];
-                    const branch2 = allBranches[j];
-                    const pair1 = branch1 + branch2;
-                    const pair2 = branch2 + branch1;
-                    
-                    if (diZhiLiuHe[pair1] || diZhiLiuHe[pair2]) {
-                        const hehuaElement = diZhiLiuHe[pair1] || diZhiLiuHe[pair2];
-                        combined.diZhiLiuHe.push({
-                            zhi1: branch1,
-                            zhi2: branch2,
-                            element: hehuaElement,
-                            positions: [i, j]
-                        });
-                        
-                        // 地支六合扣分
-                        const dayElement = stemElementMap[dayStem];
-                        if (getWeakenElements(dayElement).includes(hehuaElement)) {
-                            combined.deduction += 2; // 合化削弱日主，扣2分
-                        }
-                        
-                        console.log(`发现地支六合: ${branch1}${branch2} 合化为${hehuaElement}`);
-                    }
+                const branch1 = allBranches[i];
+                const branch2 = allBranches[i+1];
+                const pair1 = branch1 + branch2;
+                const pair2 = branch2 + branch1;
+                
+                if (diZhiLiuHe[pair1] || diZhiLiuHe[pair2]) {
+                    const hehuaElement = diZhiLiuHe[pair1] || diZhiLiuHe[pair2];
+                    combined.diZhiLiuHe.push({
+                        zhi1: branch1,
+                        zhi2: branch2,
+                        element: hehuaElement,
+                        positions: [i, i+1]
+                    });
+                    console.log(`发现相邻地支六合: ${branch1}${branch2} 合化为${hehuaElement}`);
                 }
             }
             
@@ -1393,141 +1344,38 @@
                 'water': '水'
             };
             
-            // 获取八字中的所有地支（使用已保存的地支数组）
-            const branches = window.allBranches || [];
-            
-            // 检查是否有三合局
-            if (branches && branches.length > 0) {
-                console.log('检查三合局，地支:', branches);
+            // 检查连续地支三合（只检查全三合，连续三个位置的地支set匹配）
+            if (allBranches && allBranches.length >= 3) {
+                console.log('检查连续三合局，地支:', branches);
                 
-                // 记录最佳匹配的三合局
                 let bestMatch = null;
-                let maxCount = 0;
                 
-                // 记录所有找到的三合局，而不仅仅是最佳匹配
-                let allSanheMatches = [];
-                
-                for (const sanhe of diZhiSanHe) {
-                    const sanheBranches = sanhe.branches;
-                    
-                    // 跳过巳酉丑三合金局，由特别检查处理
-                    if (sanheBranches.join('') === '巳酉丑') {
-                        continue;
-                    }
-                    
-                    let count = 0;
-                    let matchedBranches = [];
-                    
-                    // 检查每个三合局组合
-                    for (const branch of sanheBranches) {
-                        if (branches.includes(branch)) {
-                            count++;
-                            matchedBranches.push(branch);
+                for (let i = 0; i <= allBranches.length - 3; i++) {
+                    const trio = allBranches.slice(i, i+3).sort().join('');
+                    for (const sanhe of diZhiSanHe) {
+                        const sanheSorted = sanhe.branches.sort().join('');
+                        if (trio === sanheSorted) {
+                            bestMatch = {
+                                type: sanhe.branches.join(''),
+                                element: sanhe.element,
+                                count: 3,
+                                branches: allBranches.slice(i, i+3).join(''),
+                                isFullSanhe: true
+                            };
+                            combined.diZhiSanHe.push(bestMatch);
+                            console.log(`发现连续全三合局: ${bestMatch.branches} 合化为${sanhe.element}`);
+                            break;
                         }
                     }
-                    
-                    console.log(`检查三合局 ${sanheBranches.join('')}:`, matchedBranches, count);
-                    
-                    // 记录所有至少半合的三合局
-                    if (count >= 2) {
-                        const sanheMatch = {
-                            type: sanheBranches.join(''),
-                            element: sanhe.element,
-                            count: count,
-                            branches: matchedBranches.join(''),
-                            isFullSanhe: count === 3 // 是否全三合
-                        };
-                        
-                        allSanheMatches.push(sanheMatch);
-                        combined.diZhiSanHe.push(sanheMatch);
-                        
-                        // 地支三合扣分
-                        const dayElement = stemElementMap[dayStem];
-                        if (getWeakenElements(dayElement).includes(sanhe.element)) {
-                            if (count === 3) {
-                                combined.deduction += 5; // 全三合扣5分
-                            } else {
-                                combined.deduction += 3; // 半三合扣3分
-                            }
-                        }
-                        
-                        // 记录最佳匹配
-                        if (count > maxCount) {
-                            maxCount = count;
-                            bestMatch = sanheMatch;
-                        }
-                    }
+                    if (bestMatch) break; // 只记录一个最佳
                 }
                 
-                // 特别检查巳酉丑三合金局
-                console.log('开始特别检查巳酉丑三合金局');
-                console.log('diZhiSanHe数组:', diZhiSanHe);
-                const specialSanhe = diZhiSanHe.find(sanhe => sanhe.branches.join('') === '巳酉丑');
-                console.log('找到的specialSanhe:', specialSanhe);
-                if (specialSanhe) {
-                    console.log('进入specialSanhe if条件');
-                    const specialBranches = specialSanhe.branches;
-                    console.log('specialBranches:', specialBranches);
-                    let count = 0;
-                    let matchedBranches = [];
-                    for (const branch of specialBranches) {
-                        console.log('检查branch:', branch, '是否在branches:', branches.includes(branch));
-                        if (branches.includes(branch)) {
-                            count++;
-                            matchedBranches.push(branch);
-                        }
-                    }
-                    console.log('计算count:', count, 'matchedBranches:', matchedBranches);
-                    // 修正：只有三个地支全在时才作为全三合局
-                    if (count === 3) {
-                        console.log(`修正：发现巳酉丑三合金局，匹配数量: ${count}，匹配地支: ${matchedBranches.join(',')}`);
-                        const sanheMatch = {
-                            type: specialBranches.join(''),
-                            element: specialSanhe.element,
-                            count: count,
-                            branches: matchedBranches.join(''),
-                            isFullSanhe: true
-                        };
-                        combined.diZhiSanHe.push(sanheMatch);
-                        // 地支三合扣分
-                        const dayElement = stemElementMap[dayStem];
-                        if (getWeakenElements(dayElement).includes(specialSanhe.element)) {
-                            combined.deduction += 5;
-                        }
-                        // 直接赋值为最佳匹配
-                        maxCount = count;
-                        bestMatch = sanheMatch;
-                    }
-                }
-                
-                // 如果找到匹配的三合局
                 if (bestMatch) {
                     combined.sanhe = bestMatch;
-                    console.log('发现三合局:', combined.sanhe);
-                    console.log('已设置combined.sanhe:', combined.sanhe);
-                    console.log('当前bestMatch:', bestMatch);
-                    
-                    // 特别处理巳酉丑三合金对己土日主的影响
-                    if (bestMatch.type === '巳酉丑' && dayStem === '己') {
-                        combined.effect = 'weaken'; // 金克土，削弱日主
-                        console.log('巳酉丑三合金对己土日主的影响: 削弱日主');
-                    }
-                    
-                    // 根据三合局的五行与日主的关系，设置合化效果
-                    const dayElement = stemElementMap[dayStem];
-                    const sanheElement = bestMatch.element;
-                    
-                    if (getSupportElements(dayElement).includes(sanheElement)) {
-                        // 三合五行生扶日主
-                        if (!combined.effect) combined.effect = 'strengthen';
-                        console.log(`三合${sanheElement}生扶日主${dayElement}，增强日主`);
-                    } else if (getWeakenElements(dayElement).includes(sanheElement)) {
-                        // 三合五行克泄日主
-                        if (!combined.effect) combined.effect = 'weaken';
-                        console.log(`三合${sanheElement}克泄日主${dayElement}，削弱日主`);
-                    }
                 }
             }
+            
+            // 移除半三合和特别检查，只全连续三合
             
             // 简化的合化判断
             const dayElement = stemElementMap[dayStem];
