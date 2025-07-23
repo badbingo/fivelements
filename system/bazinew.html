@@ -2824,37 +2824,53 @@
                 elementsChart.destroy();
             }
             
-            // 增强的五行颜色
+            // 增强的五行颜色 - 更专业的配色方案
             const elementColors = {
                 wood: {
-                    main: '#27ae60',
-                    light: 'rgba(39, 174, 96, 0.7)',
-                    border: 'rgba(39, 174, 96, 1)'
+                    main: '#2ecc71',
+                    light: 'rgba(46, 204, 113, 0.8)',
+                    border: 'rgba(46, 204, 113, 1)',
+                    gradient: ['rgba(46, 204, 113, 0.9)', 'rgba(39, 174, 96, 0.9)']
                 },
                 fire: {
                     main: '#e74c3c',
-                    light: 'rgba(231, 76, 60, 0.7)',
-                    border: 'rgba(231, 76, 60, 1)'
+                    light: 'rgba(231, 76, 60, 0.8)',
+                    border: 'rgba(231, 76, 60, 1)',
+                    gradient: ['rgba(231, 76, 60, 0.9)', 'rgba(192, 57, 43, 0.9)']
                 },
                 earth: {
                     main: '#f39c12',
-                    light: 'rgba(243, 156, 18, 0.7)',
-                    border: 'rgba(243, 156, 18, 1)'
+                    light: 'rgba(243, 156, 18, 0.8)',
+                    border: 'rgba(243, 156, 18, 1)',
+                    gradient: ['rgba(243, 156, 18, 0.9)', 'rgba(211, 84, 0, 0.9)']
                 },
                 metal: {
-                    main: '#7f8c8d',
-                    light: 'rgba(127, 140, 141, 0.7)',
-                    border: 'rgba(127, 140, 141, 1)'
+                    main: '#95a5a6',
+                    light: 'rgba(149, 165, 166, 0.8)',
+                    border: 'rgba(149, 165, 166, 1)',
+                    gradient: ['rgba(149, 165, 166, 0.9)', 'rgba(127, 140, 141, 0.9)']
                 },
                 water: {
                     main: '#3498db',
-                    light: 'rgba(52, 152, 219, 0.7)',
-                    border: 'rgba(52, 152, 219, 1)'
+                    light: 'rgba(52, 152, 219, 0.8)',
+                    border: 'rgba(52, 152, 219, 1)',
+                    gradient: ['rgba(52, 152, 219, 0.9)', 'rgba(41, 128, 185, 0.9)']
                 }
             };
             
+            // 注册Chart.js插件
+            Chart.register(ChartDataLabels);
+            
             // 计算总分
             const total = Object.values(elements).reduce((sum, val) => sum + val, 0);
+            
+            // 创建渐变背景
+            const createGradient = (ctx, colors) => {
+                const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+                gradient.addColorStop(0, colors[0]);
+                gradient.addColorStop(1, colors[1]);
+                return gradient;
+            };
             
             // 创建增强的环形图
             elementsChart = new Chart(ctx, {
@@ -2864,11 +2880,11 @@
                     datasets: [{
                         data: [elements.wood, elements.fire, elements.earth, elements.metal, elements.water],
                         backgroundColor: [
-                            elementColors.wood.light,
-                            elementColors.fire.light,
-                            elementColors.earth.light,
-                            elementColors.metal.light,
-                            elementColors.water.light
+                            createGradient(ctx, elementColors.wood.gradient),
+                            createGradient(ctx, elementColors.fire.gradient),
+                            createGradient(ctx, elementColors.earth.gradient),
+                            createGradient(ctx, elementColors.metal.gradient),
+                            createGradient(ctx, elementColors.water.gradient)
                         ],
                         borderColor: [
                             elementColors.wood.border,
@@ -2886,18 +2902,19 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    cutout: '65%',
+                    cutout: '60%', // 稍微减小中心孔，使图表更加突出
                     plugins: {
                         legend: {
                             position: 'right',
                             labels: {
                                 padding: 20,
                                 font: {
-                                    size: 14,
-                                    weight: 'bold'
+                                    size: 16,
+                                    weight: 'bold',
+                                    family: "'Noto Serif SC', serif"
                                 },
                                 usePointStyle: true,
-                                pointStyle: 'circle'
+                                pointStyle: 'rectRounded'
                             }
                         },
                         tooltip: {
