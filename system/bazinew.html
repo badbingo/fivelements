@@ -18,6 +18,9 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
     
+    <!-- 自定义Loading样式 -->
+    <link rel="stylesheet" href="../css/loading.css">
+    
     <style>
         :root {
             --primary-color: #2c3e50;
@@ -303,6 +306,28 @@
             background: linear-gradient(90deg, var(--secondary-color), var(--accent-color));
         }
 
+/* Loading Spinner Styles */
+.loading-spinner {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 20px;
+}
+
+.spinner-circle {
+    width: 20px;
+    height: 20px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
         .chart-description {
             margin-top: 25px;
             padding: 25px;
@@ -409,14 +434,52 @@
             display: inline-block;
             width: 20px;
             height: 20px;
-            border: 3px solid rgba(52, 152, 219, 0.3);
+        }
+
+        /* Beautiful Spinner */
+        .beautiful-spinner {
+            width: 20px;
+            height: 20px;
+            position: relative;
+            display: inline-block;
+        }
+
+        .beautiful-spinner::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 2px solid transparent;
+            border-top: 2px solid #3498db;
+            border-right: 2px solid #e74c3c;
             border-radius: 50%;
-            border-top-color: var(--secondary-color);
-            animation: spin 1s ease-in-out infinite;
+            animation: beautiful-spin 1s linear infinite;
+        }
+
+        .beautiful-spinner::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: calc(100% - 6px);
+            height: calc(100% - 6px);
+            border: 2px solid transparent;
+            border-top: 2px solid #f39c12;
+            border-left: 2px solid #9b59b6;
+            border-radius: 50%;
+            animation: beautiful-spin 0.8s linear infinite reverse;
+        }
+
+        @keyframes beautiful-spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
         @keyframes spin {
-            to { transform: rotate(360deg); }
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
         /* Tab System - 优化版 */
@@ -729,6 +792,12 @@
     </style>
 </head>
 <body>
+    <!-- 加载遮罩 -->
+    <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+        <div class="loading"></div>
+        <p id="loadingMessage">正在处理，请稍候...</p>
+    </div>
+    
     <div class="page-container">
     <div class="container">
         <!-- Header -->
@@ -876,6 +945,17 @@
                 </div>
                 
                 <div class="tab-content active" id="fortune-tab">
+                    <div class="analysis-btn" data-analysis="full-analysis">
+                        <div class="analysis-btn-header">
+                            <div class="analysis-btn-title">
+                                <i class="fas fa-magic"></i> 命理全解
+                            </div>
+                            <div class="loading" style="display: none;"></div>
+                        </div>
+                        <div class="analysis-btn-desc">全面解析八字命理，包含性格、事业、财运、婚姻等多方面</div>
+                    </div>
+                    <div class="analysis-content" id="full-analysis-content"></div>
+                    
                     <div class="analysis-btn" data-analysis="annual-fortune">
                         <div class="analysis-btn-header">
                             <div class="analysis-btn-title">
@@ -978,6 +1058,7 @@
 
     <!-- Scripts -->
     <script src="../js/lunar.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script>
         // 全局变量
         let currentBaziData = null;
@@ -1047,20 +1128,24 @@
                         }
                         
                         // 显示加载状态
-                        loadingElement.style.display = 'block';
-                        this.classList.add('loading');
+                        loadingElement.innerHTML = '<span style="display: flex; align-items: center; margin-left: 10px;"><i class="fas fa-spinner fa-spin" style="color: #3498db; font-size: 1.2em;"></i></span>';
+                        loadingElement.style.display = 'inline-block';
+                        // 移除 this.classList.add('loading'); 以避免潜在的旋转效果
                         
                         try {
-                            // 调用API获取分析内容
-                            const analysisContent = await getBaziAnalysis(analysisType, currentBaziData);
+                            // 使用本地已获取的八字信息、身强身弱信息和起运时间信息
+                            // 通过DeepSeek API获取专业命理分析
+                            const analysisContent = await getBaziAnalysisFromDeepSeek(analysisType, currentBaziData);
                             
                             // 隐藏加载状态
                             loadingElement.style.display = 'none';
                             this.classList.remove('loading');
                             
                             // 显示分析内容
-                            contentElement.innerHTML = `<div class="analysis-content">${analysisContent}</div>`;
+                            contentElement.innerHTML = marked.parse(analysisContent);
+contentElement.classList.add('show');
                             contentElement.classList.add('show');
+                            console.log('成功获取API分析内容:', analysisType);
                         } catch (error) {
                             console.error('获取分析内容失败:', error);
                             
@@ -1068,8 +1153,9 @@
                             loadingElement.style.display = 'none';
                             this.classList.remove('loading');
                             
-                            // 显示备用内容
-                            contentElement.innerHTML = getAnalysisContent(analysisType);
+                            // 显示错误提示和备用内容
+                            const errorMessage = `<div class="api-error-message">API调用失败: ${error.message || '未知错误'}，使用备用内容</div>`;
+                            contentElement.innerHTML = errorMessage + marked.parse(getAnalysisContent(analysisType));
                             contentElement.classList.add('show');
                         }
                     }
@@ -1084,8 +1170,11 @@
             }
             
             // 显示加载状态
-            calculateBtn.innerHTML = '<div class="loading"></div> 计算中...';
+            calculateBtn.innerHTML = '<div class="loading"></div> <span>计算中...</span>';
             calculateBtn.disabled = true;
+            
+            // 显示全局加载遮罩
+            showLoading('正在进行八字测算，请稍候...');
             
             try {
                 // 获取表单数据
@@ -1108,13 +1197,60 @@
             } finally {
                 calculateBtn.innerHTML = '<i class="fas fa-calculator"></i> 开始八字测算';
                 calculateBtn.disabled = false;
+                
+                // 隐藏全局加载遮罩
+                hideLoading();
             }
         }
 
+        // 显示加载状态
+        function showLoading(message = '正在处理，请稍候...') {
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            const loadingMessage = document.getElementById('loadingMessage');
+            
+            if (loadingMessage) {
+                loadingMessage.textContent = message;
+            }
+            
+            loadingOverlay.style.display = 'flex';
+        }
+        
+        // 隐藏加载状态
+        function hideLoading() {
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            loadingOverlay.style.display = 'none';
+        }
+        
         // 处理重新计算
         function handleRecalculate() {
             inputSection.style.display = 'block';
             resultSection.classList.remove('show');
+            
+            // 清空API反馈内容的缓存
+            const cacheKeys = [
+                'full-analysis', 'annual-fortune', 'monthly-fortune', 'decade-fortune',
+                'personality', 'career', 'wealth', 'marriage', 
+                'health', 'luck', 'children', 'disaster'
+            ];
+            cacheKeys.forEach(analysisType => {
+                // 清空localStorage中的缓存
+                const keys = Object.keys(localStorage);
+                keys.forEach(key => {
+                    if (key.includes(analysisType)) {
+                        localStorage.removeItem(key);
+                    }
+                });
+                
+                // 清空页面显示内容
+                const contentElement = document.getElementById(analysisType + '-content');
+                if (contentElement) {
+                    contentElement.innerHTML = '';
+                    contentElement.classList.remove('show');
+                }
+            });
+            
+            // 重置当前八字数据
+            currentBaziData = null;
             
             // 重置表单
             document.getElementById('name').value = '';
@@ -3559,9 +3695,42 @@
              `;
          }
 
-         // 获取分析内容
+         // 获取分析内容（备用内容，当API调用失败时使用）
          function getAnalysisContent(analysisType) {
              const analysisData = {
+                 'full-analysis': {
+                     title: '命理全解',
+                     content: `
+                         <h4>八字命理全面解析</h4>
+                         <div style="padding: 15px; margin-bottom: 15px; background: #f0f8ff; border-left: 4px solid #3498db; border-radius: 8px;">
+                             <h5><i class="fas fa-user"></i> 性格特质</h5>
+                             <p>性格温和稳重，做事认真负责，具有较强的责任感和使命感。思维缜密，善于分析问题，但有时过于追求完美。</p>
+                         </div>
+                         <div style="padding: 15px; margin-bottom: 15px; background: #fff5eb; border-left: 4px solid #e67e22; border-radius: 8px;">
+                             <h5><i class="fas fa-briefcase"></i> 事业发展</h5>
+                             <p>适合从事需要耐心和细致的工作，如教育、医疗、金融等领域。职业生涯中期将迎来重要转折点，有望获得晋升或创业机会。</p>
+                         </div>
+                         <div style="padding: 15px; margin-bottom: 15px; background: #f9f9f9; border-left: 4px solid #f1c40f; border-radius: 8px;">
+                             <h5><i class="fas fa-coins"></i> 财富运势</h5>
+                             <p>财运稳健，收入来源主要为工作薪资，中年后有机会获得额外财富。投资方面宜稳健为主，避免高风险投机。</p>
+                         </div>
+                         <div style="padding: 15px; margin-bottom: 15px; background: #ffebee; border-left: 4px solid #e74c3c; border-radius: 8px;">
+                             <h5><i class="fas fa-heart"></i> 感情婚姻</h5>
+                             <p>感情生活较为稳定，婚后家庭和睦。与伴侣相处需注重沟通，避免因工作忙碌而忽略家庭。</p>
+                         </div>
+                         <div style="padding: 15px; margin-bottom: 15px; background: #e8f5e9; border-left: 4px solid #27ae60; border-radius: 8px;">
+                             <h5><i class="fas fa-heartbeat"></i> 健康状况</h5>
+                             <p>体质中等，需要注意消化系统和呼吸系统的保养。建议保持规律作息，适当运动，避免过度劳累。</p>
+                         </div>
+                         <div style="padding: 15px; background: #e3f2fd; border-left: 4px solid #3498db; border-radius: 8px;">
+                             <h5><i class="fas fa-star"></i> 人生建议</h5>
+                             <p>1. 事业上保持稳健发展，同时不要错过关键机遇</p>
+                             <p>2. 财务管理注重长期规划，建立多元化收入</p>
+                             <p>3. 感情上增加沟通，平衡工作与家庭</p>
+                             <p>4. 健康方面定期体检，保持良好生活习惯</p>
+                         </div>
+                     `
+                 },
                  'annual-fortune': {
                      title: '流年分析',
                      content: `
@@ -3719,6 +3888,213 @@
              };
              
              return analysisData[analysisType]?.content || '<p>分析内容正在生成中...</p>';
+         }
+         
+         // 通过DeepSeek API获取八字分析
+         async function getBaziAnalysisFromDeepSeek(analysisType, data) {
+             // 生成缓存键
+             const cacheKey = `${generateBaziHashKey(data)}:${analysisType}`;
+             
+             // 检查缓存
+             const cachedResponse = localStorage.getItem(cacheKey);
+             if (cachedResponse) {
+                 return cachedResponse;
+             }
+             
+             // DeepSeek API配置
+             const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
+             const apiKey = 'sk-f2d1b566bb8d47bbb90b97b64e1153d7';
+             
+             // 获取当前日期
+             const today = new Date();
+             const currentDateStr = `${today.getFullYear()}-${(today.getMonth() + 1).toString().padStart(2, '0')}-${today.getDate().toString().padStart(2, '0')}`;
+            const baziFullInfo = `${userName}，${genderStr}，八字信息是：${yearPillarStr}，${monthPillarStr}，${dayPillarStr}，${hourPillarStr}，命主为${strengthStr}，${startingAgeStr}。作为一个专业命理师请帮我分析：命主十年大运。`;
+            const baziInfo = {
+            baziFullInfo,
+            yearPillar: yearPillarStr,
+            monthPillar: monthPillarStr,
+            dayPillar: dayPillarStr,
+            hourPillar: hourPillarStr,
+            strength: strengthStr,
+            startingAge: startingAgeStr,
+            elementsDistribution: data.elementsDistribution || {}
+            };
+             
+             // 根据分析类型构建提示词
+             let prompt = `请作为专业命理师，使用标准Markdown语法，基于以下本地计算的准确八字信息进行深度分析。当前日期：${currentDateStr}\n\n`;
+             
+             // 添加八字核心信息（使用完整的baziFullInfo）
+             prompt += `### 八字信息\n`;
+             prompt += `${baziFullInfo}\n\n`;
+             
+             // 添加五行分布信息
+             if (baziInfo.elementsDistribution && Object.keys(baziInfo.elementsDistribution).length > 0) {
+                 prompt += `- 五行分布：`;
+                 Object.entries(baziInfo.elementsDistribution).forEach(([element, count]) => {
+                     prompt += `${element}${count}个 `;
+                 });
+                 prompt += `\n\n`;
+             }
+             
+             prompt += `**重要说明：以上八字、身强身弱判断和起运时间均为本地精确计算结果。您必须严格基于这些信息进行分析，绝对不要自行重新计算或使用其他值。**\n\n`;
+             
+             // 根据分析类型添加特定提示
+             switch (analysisType) {
+                 case 'full-analysis':
+                     prompt += `请基于以上八字信息，进行全面的命理解析。分析内容应包括：\n`;
+                     prompt += `1. 性格特质与天赋才能分析\n`;
+                     prompt += `2. 事业发展方向与职业规划建议\n`;
+                     prompt += `3. 财富运势与理财投资指导\n`;
+                     prompt += `4. 感情婚姻状况与伴侣特征\n`;
+                     prompt += `5. 健康状况评估与养生建议\n`;
+                     prompt += `6. 人生各阶段重要转折点预测\n`;
+                     prompt += `7. 提升运势的实用方法与建议\n`;
+                     break;
+                     
+                 case 'annual-fortune':
+                     prompt += `请基于以上本地计算的准确八字信息（包括身强身弱和起运时间），进行详细的流年运势分析。请不要重新计算八字、身强身弱或起运时间，直接使用提供的信息。分析内容应包括：\n`;
+                     prompt += `1. 2024年甲辰年整体运势概述\n`;
+                     prompt += `2. 事业发展与工作机遇分析\n`;
+                     prompt += `3. 财运分析（正财与偏财）\n`;
+                     prompt += `4. 感情与人际关系运势\n`;
+                     prompt += `5. 健康状况预警与建议\n`;
+                     prompt += `6. 流年吉凶月份预测\n`;
+                     prompt += `7. 化解不利因素的实用建议\n`;
+                     break;
+                     
+                 case 'monthly-fortune':
+                     prompt += `请基于以上本地计算的准确八字信息（包括身强身弱和起运时间），进行详细的流月运势分析。请不要重新计算八字、身强身弱或起运时间，直接使用提供的信息。分析内容应包括：\n`;
+                     prompt += `1. 2024年各月运势总体趋势\n`;
+                     prompt += `2. 按季节分析（春、夏、秋、冬）各月运势特点\n`;
+                     prompt += `3. 重点月份的机遇与挑战\n`;
+                     prompt += `4. 每月事业、财运、感情、健康关键点\n`;
+                     prompt += `5. 月份吉凶日预测方法\n`;
+                     prompt += `6. 不同月份的行动建议\n`;
+                     break;
+                     
+                 case 'decade-fortune':
+                     prompt += `请基于以上本地计算的准确八字信息（包括身强身弱和起运时间），进行详细的十年大运分析。请不要重新计算八字、身强身弱或起运时间，直接使用提供的信息。分析内容应包括：\n`;
+                     prompt += `1. 人生各阶段大运走势概述\n`;
+                     prompt += `2. 青年期（20-30岁）运势与发展方向\n`;
+                     prompt += `3. 壮年期（30-40岁）事业与财富高峰期分析\n`;
+                     prompt += `4. 中年期（40-50岁）稳定发展期特点\n`;
+                     prompt += `5. 晚年期（50岁以后）运势变化\n`;
+                     prompt += `6. 大运交接期的注意事项\n`;
+                     prompt += `7. 如何把握各阶段机遇的建议\n`;
+                     break;
+                     
+                 case 'personality':
+                     prompt += `请基于以上本地计算的准确八字信息（包括身强身弱和起运时间），进行详细的性格分析。请不要重新计算八字、身强身弱或起运时间，直接使用提供的信息。分析内容应包括：\n`;
+                     prompt += `1. 核心性格特质与天赋才能\n`;
+                     prompt += `2. 性格优势与特长详解\n`;
+                     prompt += `3. 性格中需要注意的弱点\n`;
+                     prompt += `4. 人际交往模式与沟通风格\n`;
+                     prompt += `5. 思维方式与决策特点\n`;
+                     prompt += `6. 情绪管理能力分析\n`;
+                     prompt += `7. 性格发展与自我提升建议\n`;
+                     break;
+                     
+                 case 'career':
+                     prompt += `请基于以上本地计算的准确八字信息（包括身强身弱和起运时间），进行详细的事业财富分析。请不要重新计算八字、身强身弱或起运时间，直接使用提供的信息。分析内容应包括：\n`;
+                     prompt += `1. 最适合的职业领域与行业\n`;
+                     prompt += `2. 职业发展路径与关键转折点\n`;
+                     prompt += `3. 事业成功的关键因素\n`;
+                     prompt += `4. 财富来源与积累模式\n`;
+                     prompt += `5. 正财与偏财运势分析\n`;
+                     prompt += `6. 投资理财建议与风险提示\n`;
+                     prompt += `7. 事业与财富平衡的人生规划\n`;
+                     break;
+                     
+                 case 'marriage':
+                     prompt += `请基于以上本地计算的准确八字信息（包括身强身弱和起运时间），进行详细的婚姻分析。请不要重新计算八字、身强身弱或起运时间，直接使用提供的信息。分析内容应包括：\n`;
+                     prompt += `1. 婚姻运势与缘分总体评估\n`;
+                     prompt += `2. 理想伴侣的性格与特质描述\n`;
+                     prompt += `3. 婚姻生活的特点与模式\n`;
+                     prompt += `4. 婚姻中可能面临的挑战\n`;
+                     prompt += `5. 最佳婚姻时机与年龄段\n`;
+                     prompt += `6. 婚姻关系经营的建议\n`;
+                     prompt += `7. 提升婚姻质量的实用方法\n`;
+                     break;
+                     
+                 case 'children':
+                     prompt += `请基于以上本地计算的准确八字信息（包括身强身弱和起运时间），进行详细的子女分析。请不要重新计算八字、身强身弱或起运时间，直接使用提供的信息。分析内容应包括：\n`;
+                     prompt += `1. 子女缘分与数量预测\n`;
+                     prompt += `2. 子女可能的性格特点\n`;
+                     prompt += `3. 亲子关系的特点与互动模式\n`;
+                     prompt += `4. 子女教育的最佳方式\n`;
+                     prompt += `5. 子女成长中的关键阶段\n`;
+                     prompt += `6. 如何培养子女的天赋与能力\n`;
+                     prompt += `7. 亲子关系和谐的实用建议\n`;
+                     break;
+                     
+                 case 'health':
+                     prompt += `请基于以上本地计算的准确八字信息（包括身强身弱和起运时间），进行详细的健康分析。请不要重新计算八字、身强身弱或起运时间，直接使用提供的信息。分析内容应包括：\n`;
+                     prompt += `1. 先天体质与健康状况评估\n`;
+                     prompt += `2. 需要特别关注的身体系统\n`;
+                     prompt += `3. 不同年龄段的健康风险\n`;
+                     prompt += `4. 季节性健康变化与注意事项\n`;
+                     prompt += `5. 适合的运动与锻炼方式\n`;
+                     prompt += `6. 饮食调理与营养建议\n`;
+                     prompt += `7. 预防疾病的养生保健方法\n`;
+                     break;
+                     
+                 default:
+                     prompt += `请基于以上本地计算的准确八字信息（包括身强身弱和起运时间），进行全面的命理分析。请不要重新计算八字、身强身弱或起运时间，直接使用提供的信息。\n`;
+             }
+             
+             prompt += `\n请用人性化、清晰的语言表达，避免过于专业的术语，使普通人也能理解。分析要全面、深入、具体，不要笼统。`;
+             
+             try {
+                 // 调用DeepSeek API
+                 const response = await fetch(apiUrl, {
+                     method: 'POST',
+                     headers: {
+                         'Content-Type': 'application/json',
+                         'Authorization': `Bearer ${apiKey}`
+                     },
+                     body: JSON.stringify({
+                         model: "deepseek-chat",
+                         messages: [
+                             {
+                                 role: "user",
+                                 content: prompt
+                             }
+                         ],
+                         temperature: 0.7,
+                         max_tokens: 2000
+                     })
+                 });
+                 
+                 if (!response.ok) {
+                     throw new Error(`API请求失败: ${response.status}`);
+                 }
+                 
+                 const data = await response.json();
+                 
+                 if (!data.choices || !data.choices[0] || !data.choices[0].message || !data.choices[0].message.content) {
+                     throw new Error('API返回数据格式不正确');
+                 }
+                 
+                 const analysisContent = data.choices[0].message.content;
+                 
+                 // 检查内容是否为空
+                 if (!analysisContent.trim()) {
+                     throw new Error('API返回内容为空');
+                 }
+                 
+                 // 缓存结果
+                 localStorage.setItem(cacheKey, analysisContent);
+                 
+                 return analysisContent;
+             } catch (error) {
+                 console.error('DeepSeek API调用失败:', error);
+                 throw error;
+             }
+         }
+         
+         // 生成八字哈希键（用于缓存）
+         function generateBaziHashKey(data) {
+             return `${data.name}-${data.gender}-${data.birthDate}-${data.birthTime}`;
          }
      </script>
     </div> <!-- 闭合 container -->
