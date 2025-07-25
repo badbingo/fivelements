@@ -1,5 +1,5 @@
 /**
- * 命缘池支付系统 - 完整修复版 v10.3
+ * 命缘池支付系统 - 完整修复版 v10.2
  * 修复问题：
  * 1. 修复所有语法错误
  * 2. 增强错误处理
@@ -17,6 +17,7 @@ class WWPay {
     this.handlePaymentError = this.handlePaymentError.bind(this);
     this.generateSignature = this.generateSignature.bind(this);
     this.cleanupPaymentState = this.cleanupPaymentState.bind(this);
+    this.processRecharge = this.processRecharge.bind(this);
 
     // 系统配置
     this.config = {
@@ -47,6 +48,14 @@ class WWPay {
           color: '#09bb07',
           activeColor: '#07a807',
           hint: '国内支付'
+        },
+        {
+          id: 'balance',
+          name: '余额支付',
+          icon: 'fas fa-wallet',
+          color: '#722ed1',
+          activeColor: '#531dab',
+          hint: '账户余额'
         }
       ],
       debug: true
@@ -73,6 +82,107 @@ class WWPay {
 
   /* ========== 初始化方法 ========== */
 
+  // 处理充值请求
+  async processRecharge(amount, paymentMethod) {
+    try {
+      this.log(`发起充值流程: ${amount}元, 方式: ${paymentMethod}`);
+      
+      // 1. 创建充值订单
+      const orderResponse = await this.createRechargeOrder(amount, paymentMethod);
+      
+      // 2. 跳转支付平台
+      await this.redirectToPaymentGateway(orderResponse);
+      
+      // 3. 启动支付状态轮询
+      // 不再需要轮询状态检查
+// this.startPaymentStatusCheck(orderResponse.orderId);
+      
+    } catch (error) {
+      this.handlePaymentError(error);
+    }
+  }
+  
+  async verifyPayment(orderId, amount) {
+    try {
+      const response = await fetch(`${this.config.paymentGateway.apiBase}/api/recharge/verify`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          orderId,
+          amount
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error(await response.text());
+      }
+      
+      const data = await response.json();
+      return data.success;
+      
+    } catch (error) {
+      this.logError('支付验证失败', error);
+      return false;
+    }
+  }
+
+  async createRechargeOrder(amount, method) {
+    const response = await fetch(`${this.config.paymentGateway.apiBase}/api/recharge/orders`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      },
+      body: JSON.stringify({
+        amount: parseFloat(amount),
+        paymentMethod: method
+      })
+    });
+    
+    if (!response.ok) {
+      throw new Error(await response.text());
+    }
+    
+    return response.json();
+  }
+  
+  async redirectToPaymentGateway(order) {
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = this.config.paymentGateway.apiUrl;
+    
+    const params = {
+      pid: this.config.paymentGateway.pid,
+      type: order.paymentMethod === 'wechat' ? 'wxpay' : order.paymentMethod,
+      out_trade_no: order.orderId,
+      notify_url: `${window.location.origin}/api/recharge/notify`,
+      return_url: `${window.location.origin}/system/charge.html?orderId=${order.orderId}&amount=${order.amount.toFixed(2)}`,
+      name: `账户充值-${order.orderId}`,
+      money: order.amount.toFixed(2),
+      sign_type: 'MD5',
+      sitename: '命缘池'
+    };
+    
+    // 生成签名
+    params.sign = this.generateSignature(params);
+    
+    // 添加隐藏表单字段
+    Object.entries(params).forEach(([key, value]) => {
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = key;
+      input.value = value;
+      form.appendChild(input);
+    });
+    
+    document.body.appendChild(form);
+    form.submit();
+  }
+
+  
   initEventListeners() {
     document.removeEventListener('click', this.handleDocumentClick);
     document.addEventListener('click', this.handleDocumentClick);
@@ -150,7 +260,7 @@ class WWPay {
         opacity: 1;
       }
       
-      #confirm-payment-btn {
+      #confirmPaymentBtn {
         display: block;
         width: 100%;
         max-width: 300px;
@@ -165,13 +275,13 @@ class WWPay {
         transition: all 0.3s;
       }
       
-      #confirm-payment-btn:hover:not(:disabled) {
+      #confirmPaymentBtn:hover:not(:disabled) {
         background: #45a049;
         transform: translateY(-2px);
         box-shadow: 0 4px 8px rgba(0,0,0,0.2);
       }
       
-      #confirm-payment-btn:disabled {
+      #confirmPaymentBtn:disabled {
         background: #cccccc;
         cursor: not-allowed;
         transform: none;
@@ -310,7 +420,7 @@ class WWPay {
         return;
       }
 
-      const confirmBtn = e.target.closest('#confirm-payment-btn');
+      const confirmBtn = e.target.closest('#confirmPaymentBtn');
       if (confirmBtn) {
         this.processPayment();
       }
@@ -386,52 +496,68 @@ class WWPay {
       const result = await this.createPaymentOrder();
       
       if (result.success) {
-        this.startPaymentStatusCheck();
+        // 对于余额支付，processing状态已在processBalancePayment中处理完成
+        if (this.state.selectedMethod === 'balance') {
+          this.state.processing = false;
+        } else {
+          this.startPaymentStatusCheck();
+        }
       }
     } catch (error) {
       this.handlePaymentError(error);
+    } finally {
+      // 确保在任何情况下都重置processing状态（除非是非余额支付的成功情况）
+      if (this.state.selectedMethod === 'balance' || this.state.processing) {
+        this.state.processing = false;
+      }
     }
   }
 
   async createPaymentOrder() {
-    try {
-      const orderId = this.generateOrderId();
-      
-      // 异步记录还愿
-      this.recordFulfillment().catch(error => {
-        this.safeLogError('异步记录还愿失败', error);
-        this.savePendingFulfillment();
-      });
-
-      const paymentData = {
-        pid: this.config.paymentGateway.pid,
-        type: this.state.selectedMethod,
-        out_trade_no: orderId,
-        notify_url: location.href,
-        return_url: this.config.paymentGateway.successUrl,
-        name: `还愿-${this.state.currentWishId}`,
-        money: this.state.selectedAmount.toFixed(2),
-        param: encodeURIComponent(JSON.stringify({
-          wishId: this.state.currentWishId,
-          amount: this.state.selectedAmount
-        })),
-        sign_type: this.config.paymentGateway.signType
-      };
-      
-      // 生成签名
-      paymentData.sign = this.generateSignature(paymentData);
-      
-      if (!paymentData.sign) {
-        throw new Error('签名生成失败');
-      }
-
-      await this.submitPaymentForm(paymentData);
-      
-      return { success: true, orderId };
-    } catch (error) {
-      throw new Error(`创建订单失败: ${error.message}`);
-    }
-  }
+     try {
+       const orderId = this.generateOrderId();
+       
+       // 如果是余额支付，直接处理
+       if (this.state.selectedMethod === 'balance') {
+         return await this.processBalancePayment(orderId);
+       }
+       
+       // 对于非余额支付，异步记录还愿
+       // 注意：余额支付的还愿记录在processBalancePayment中处理
+       this.recordFulfillment().catch(error => {
+         this.safeLogError('异步记录还愿失败', error);
+         this.savePendingFulfillment();
+       });
+ 
+       const paymentData = {
+         pid: this.config.paymentGateway.pid,
+         type: this.state.selectedMethod,
+         out_trade_no: orderId,
+         notify_url: location.href,
+         return_url: this.config.paymentGateway.successUrl,
+         name: `还愿-${this.state.currentWishId}`,
+         money: this.state.selectedAmount.toFixed(2),
+         param: encodeURIComponent(JSON.stringify({
+           wishId: this.state.currentWishId,
+           amount: this.state.selectedAmount
+         })),
+         sign_type: this.config.paymentGateway.signType
+       };
+       
+       // 生成签名
+       paymentData.sign = this.generateSignature(paymentData);
+       
+       if (!paymentData.sign) {
+         throw new Error('签名生成失败');
+       }
+ 
+       await this.submitPaymentForm(paymentData);
+       
+       return { success: true, orderId };
+     } catch (error) {
+       throw new Error(`创建订单失败: ${error.message}`);
+     }
+   }
 
   generateSignature(params) {
     try {
@@ -851,6 +977,10 @@ class WWPay {
   }
 
   validatePaymentState() {
+    if (this.state.processing) {
+      this.showToast('支付正在处理中，请勿重复操作', 'warning');
+      return false;
+    }
     if (!this.state.selectedAmount) {
       this.showToast('请选择还愿金额', 'error');
       return false;
@@ -863,7 +993,7 @@ class WWPay {
   }
 
   updateConfirmButtonState() {
-    const confirmBtn = document.getElementById('confirm-payment-btn');
+    const confirmBtn = document.getElementById('confirmPaymentBtn');
     if (confirmBtn) {
       confirmBtn.disabled = this.state.processing;
       confirmBtn.innerHTML = this.state.processing 
@@ -882,6 +1012,18 @@ class WWPay {
   }
 
   /* ========== UI 方法 ========== */
+
+  // 设置当前愿望ID
+  setCurrentWishId(wishId) {
+    this.state.currentWishId = wishId;
+    this.log('设置当前愿望ID:', wishId);
+  }
+
+  // 选择金额
+  selectAmount(amount) {
+    this.state.selectedAmount = amount;
+    this.log('选择金额:', amount);
+  }
 
   showGuaranteedToast(message, type = 'success') {
     this.removeAllToasts();
@@ -957,51 +1099,294 @@ class WWPay {
     }
   }
 
-  showPaymentMethods() {
-    try {
-      const oldSection = document.getElementById('payment-methods-section');
-      if (oldSection) oldSection.remove();
-      
-      const methodsHtml = `
-        <div class="payment-methods" id="payment-methods-section">
-          <h4 style="text-align: center; margin-bottom: 20px; color: white;">
-            <i class="fas fa-wallet" style="margin-right: 8px;"></i>选择支付方式
-          </h4>
-          <div class="wwpay-methods-container">
-            ${this.config.paymentMethods.map(method => `
-              <button class="wwpay-method-btn ${method.id === this.state.selectedMethod ? 'active' : ''}" 
-                      data-type="${method.id}" 
-                      style="background: ${method.id === this.state.selectedMethod ? method.activeColor : method.color}; 
-                             color: white;">
-                <i class="${method.icon}"></i>
-                <span class="wwpay-method-name">${method.name}</span>
-                <span class="wwpay-method-hint">${method.hint}</span>
-              </button>
-            `).join('')}
-          </div>
-          <div style="text-align: center;">
-            <button id="confirm-payment-btn">
-              <i class="fas fa-check-circle" style="margin-right: 8px;"></i> 
-              确认支付 ${this.state.selectedAmount}元
-            </button>
-          </div>
-        </div>
-      `;
-      
-      const modalContent = document.querySelector('#fulfillModal .modal-content');
-      if (modalContent) {
-        modalContent.insertAdjacentHTML('beforeend', methodsHtml);
-      }
-    } catch (error) {
-      this.safeLogError('支付方式显示失败', error);
-    }
-  }
+  async showPaymentMethods() {
+     try {
+       // 强制清理所有可能的支付方式区域
+       const oldSections = document.querySelectorAll('#payment-methods-section, .payment-methods, .payment-methods-container > *');
+       oldSections.forEach(section => section.remove());
+       
+       // 清理payment-methods-container内容
+       const container = document.querySelector('.payment-methods-container');
+       if (container) {
+         container.innerHTML = '';
+       }
+       
+       // 等待DOM更新
+       await new Promise(resolve => setTimeout(resolve, 50));
+       
+       // 检查用户余额
+       const userBalance = await this.getUserBalance();
+       const availableMethods = await this.getAvailablePaymentMethods(userBalance);
+       
+       // 如果当前选择的支付方式不可用，切换到第一个可用的方式
+       if (!availableMethods.find(m => m.id === this.state.selectedMethod)) {
+         this.state.selectedMethod = availableMethods[0]?.id || 'alipay';
+       }
+       
+     const methodsHtml = `
+   <div class="payment-methods" id="payment-methods-section" style="display: flex; flex-direction: column; gap: 20px;">
+     <!-- 第一层：标题和余额显示 -->
+     <div style="display: flex; justify-content: space-between; align-items: center;">
+       <h4 style="color: white; margin: 0;">
+         <i class="fas fa-wallet" style="margin-right: 8px;"></i>选择支付方式
+       </h4>
+       ${userBalance !== null ? `
+         <span style="color: #ffd700; font-size: 14px;">
+           <i class="fas fa-coins" style="margin-right: 5px;"></i>
+           余额: ¥${userBalance.toFixed(2)}
+         </span>
+       ` : ''}
+     </div>
+ 
+     <!-- 第二层：支付按钮（居中） -->
+     <div style="display: flex; justify-content: center; gap: 15px; flex-wrap: wrap;">
+       ${availableMethods.map(method => `
+         <button class="wwpay-method-btn ${method.id === this.state.selectedMethod ? 'active' : ''}" 
+                 data-type="${method.id}" 
+                 style="background: ${method.id === this.state.selectedMethod ? method.activeColor : method.color}; 
+                        color: white; padding: 12px 20px; border: none; border-radius: 8px; 
+                        min-width: 120px; text-align: center; cursor: pointer;
+                        transition: all 0.3s ease;">
+           <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
+             <i class="${method.icon}" style="font-size: 20px;"></i>
+             <span class="wwpay-method-name" style="font-size: 14px; font-weight: bold;">${method.name}</span>
+             <span class="wwpay-method-hint" style="font-size: 11px; opacity: 0.9;">${method.hint}</span>
+           </div>
+         </button>
+       `).join('')}
+     </div>
+ 
+     <!-- 第三层：确认按钮（居中） -->
+     <div style="display: flex; justify-content: center;">
+       <button id="confirmPaymentBtn" 
+               style="padding: 12px 40px; background: #52c41a; color: white; border: none; 
+                      border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer;
+                      transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(82, 196, 26, 0.3);">
+         <i class="fas fa-check-circle" style="margin-right: 8px;"></i> 
+         确认支付 ¥${this.state.selectedAmount}
+       </button>
+     </div>
+   </div>
+ `;
+       
+       // 优先插入到专门的支付方式容器中
+       const paymentContainer = document.querySelector('.payment-methods-container');
+       if (paymentContainer) {
+         paymentContainer.innerHTML = methodsHtml;
+       } else {
+         // 如果没有专门容器，则插入到modal-content末尾
+         const modalContent = document.querySelector('#fulfillModal .modal-content');
+         if (modalContent) {
+           modalContent.insertAdjacentHTML('beforeend', methodsHtml);
+         }
+       }
+     } catch (error) {
+       this.safeLogError('支付方式显示失败', error);
+       // 如果获取余额失败，显示默认的支付方式（不包含余额支付）
+       this.showDefaultPaymentMethods();
+     }
+   }
 
-  /* ========== 工具方法 ========== */
+  /* ========== 余额支付处理 ========== */
+   
+   async processBalancePayment(orderId) {
+     try {
+       this.log('开始余额支付流程', '订单ID:', orderId, '愿望ID:', this.state.currentWishId, '金额:', this.state.selectedAmount);
+       
+       // 注意：processing状态检查已在processPayment中完成，这里不再重复检查
+       
+       // 1. 获取JWT令牌
+       const token = localStorage.getItem('token');
+       if (!token) {
+         throw new Error('请先登录');
+       }
+       
+       // 2. 调用余额支付接口
+       this.log('发送余额支付请求到后端API');
+       const response = await fetch(`${this.config.paymentGateway.apiBase}/api/payments/balance`, {
+         method: 'POST',
+         headers: {
+           'Content-Type': 'application/json',
+           'Authorization': `Bearer ${token}`
+         },
+         body: JSON.stringify({
+           wishId: this.state.currentWishId,
+           amount: this.state.selectedAmount,
+           orderId: orderId
+         })
+       });
+       this.log('收到后端API响应');
+       
+       // 3. 处理响应
+       const result = await response.json();
+       
+       if (!response.ok) {
+         // 处理特定错误
+         if (result.error === '余额不足') {
+           throw new Error('余额不足，请充值后再试');
+         } else if (result.error === '愿望不存在') {
+           throw new Error('愿望不存在或已被删除');
+         } else {
+           throw new Error(result.error || '余额支付失败');
+         }
+       }
+       
+       // 4. 支付成功处理
+       this.log('余额支付成功');
+       this.state.paymentCompleted = true;
+       this.state.processing = false; // 重置处理状态
+       
+       // 5. 余额支付接口已经处理了还愿记录，无需再次调用
+       // await this.recordFulfillment(); // 已移除，避免重复调用
+       
+       // 6. 显示成功通知
+       this.showGuaranteedToast('余额支付成功！', 'success');
+       
+       // 7. 关闭模态框
+       const modal = document.getElementById('fulfillModal');
+       if (modal) {
+         modal.style.display = 'none';
+       }
+       
+       // 8. 刷新余额显示（如果页面有余额显示）
+       this.refreshBalanceDisplay();
+       
+       // 9. 准备跳转
+       this.prepareSuccessRedirect();
+       
+       return { success: true, orderId, message: '余额支付成功' };
+       
+     } catch (error) {
+       this.safeLogError('余额支付失败', error);
+       throw error;
+     }
+   }
+   
+   async refreshBalanceDisplay() {
+     try {
+       // 刷新页面上的余额显示
+       const balanceElements = document.querySelectorAll('.user-balance, #user-balance, .balance-display');
+       if (balanceElements.length > 0) {
+         const newBalance = await this.getUserBalance();
+         if (newBalance !== null) {
+           balanceElements.forEach(el => {
+             if (el.textContent.includes('¥') || el.textContent.includes('余额')) {
+               el.textContent = `余额: ¥${newBalance.toFixed(2)}`;
+             }
+           });
+         }
+       }
+     } catch (error) {
+       this.safeLogError('刷新余额显示失败', error);
+     }
+   }
 
-  delay(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-  }
+   /* ========== 余额和支付方式管理 ========== */
+   
+   async getUserBalance() {
+     try {
+       const token = localStorage.getItem('token');
+       if (!token) {
+         this.log('用户未登录，无法获取余额');
+         return null;
+       }
+       
+       const response = await fetch(`${this.config.paymentGateway.apiBase}/api/users/balance`, {
+         headers: {
+           'Authorization': `Bearer ${token}`
+         }
+       });
+       
+       if (!response.ok) {
+         throw new Error(`获取余额失败: ${response.status}`);
+       }
+       
+       const data = await response.json();
+       return data.balance || 0;
+     } catch (error) {
+       this.safeLogError('获取用户余额失败', error);
+       return null;
+     }
+   }
+   
+   async getAvailablePaymentMethods(userBalance) {
+     const methods = [...this.config.paymentMethods];
+     
+     // 如果余额不足或无法获取余额，移除余额支付选项
+     if (userBalance === null || userBalance < this.state.selectedAmount) {
+       return methods.filter(method => method.id !== 'balance');
+     }
+     
+     return methods;
+   }
+   
+   showDefaultPaymentMethods() {
+     try {
+       const oldSection = document.getElementById('payment-methods-section');
+       if (oldSection) oldSection.remove();
+       
+       // 只显示支付宝和微信支付
+       const defaultMethods = this.config.paymentMethods.filter(method => 
+         method.id === 'alipay' || method.id === 'wxpay'
+       );
+       
+       // 确保选择的支付方式是可用的
+       if (this.state.selectedMethod === 'balance') {
+         this.state.selectedMethod = 'alipay';
+       }
+       
+       const methodsHtml = `
+     <div class="payment-methods" id="payment-methods-section" style="display: flex; flex-direction: column; gap: 20px;">
+       <!-- 标题 -->
+       <h4 style="color: white; margin: 0;">
+         <i class="fas fa-wallet" style="margin-right: 8px;"></i>选择支付方式
+       </h4>
+       
+       <!-- 支付按钮 -->
+       <div style="display: flex; justify-content: center; gap: 15px;">
+         ${defaultMethods.map(method => `
+           <button class="wwpay-method-btn ${method.id === this.state.selectedMethod ? 'active' : ''}" 
+                   data-type="${method.id}" 
+                   style="background: ${method.id === this.state.selectedMethod ? method.activeColor : method.color}; 
+                          color: white; padding: 12px 20px; border: none; border-radius: 8px; 
+                          min-width: 120px; text-align: center; cursor: pointer;
+                          transition: all 0.3s ease;">
+             <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
+               <i class="${method.icon}" style="font-size: 20px;"></i>
+               <span class="wwpay-method-name" style="font-size: 14px; font-weight: bold;">${method.name}</span>
+               <span class="wwpay-method-hint" style="font-size: 11px; opacity: 0.9;">${method.hint}</span>
+             </div>
+           </button>
+         `).join('')}
+       </div>
+       
+       <!-- 确认按钮 -->
+       <div style="display: flex; justify-content: center;">
+         <button id="confirmPaymentBtn" 
+                 style="padding: 12px 40px; background: #52c41a; color: white; border: none; 
+                        border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer;
+                        transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(82, 196, 26, 0.3);">
+           <i class="fas fa-check-circle" style="margin-right: 8px;"></i> 
+           确认支付 ¥${this.state.selectedAmount}
+         </button>
+       </div>
+     </div>
+   `;
+       
+       const modalContent = document.querySelector('#fulfillModal .modal-content');
+       if (modalContent) {
+         modalContent.insertAdjacentHTML('beforeend', methodsHtml);
+       }
+     } catch (error) {
+       this.safeLogError('显示默认支付方式失败', error);
+     }
+   }
+
+   /* ========== 工具方法 ========== */
+ 
+   delay(ms) {
+     return new Promise(resolve => setTimeout(resolve, ms));
+   }
 
   generateOrderId() {
     const now = new Date();
@@ -1080,7 +1465,7 @@ function showFulfillmentNotification(wishId) {
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
       <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
     </svg>
-    <span>还愿已成功，愿望 #${wishId} 已被移除</span>
+    <span>还愿成功！感谢您对愿望 #${wishId} 的感恩回馈</span>
   `;
   document.body.appendChild(notification);
   
@@ -1131,14 +1516,16 @@ window.startWishPayment = async function(wishId, amount, method = 'alipay') {
     return;
   }
   
-  window.wwPay.state = {
-    selectedAmount: amount,
-    selectedMethod: method,
-    currentWishId: wishId,
-    processing: false,
-    statusCheckInterval: null,
-    paymentCompleted: false
-  };
+  // 检查是否正在处理中，防止重复调用
+  if (window.wwPay.state.processing) {
+    console.log('支付正在处理中，忽略重复调用');
+    return;
+  }
+  
+  // 只更新必要的状态，不重置processing状态
+  window.wwPay.state.selectedAmount = amount;
+  window.wwPay.state.selectedMethod = method;
+  window.wwPay.state.currentWishId = wishId;
   
   try {
     await window.wwPay.processPayment();
