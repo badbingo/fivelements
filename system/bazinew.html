@@ -3908,7 +3908,18 @@ contentElement.classList.add('show');
              // 获取当前日期
              const today = new Date();
              const currentDateStr = `${today.getFullYear()}-${(today.getMonth() + 1).toString().padStart(2, '0')}-${today.getDate().toString().padStart(2, '0')}`;
-            const baziFullInfo = `${userName}，${genderStr}，八字信息是：${yearPillarStr}，${monthPillarStr}，${dayPillarStr}，${hourPillarStr}，命主为${strengthStr}，${startingAgeStr}。作为一个专业命理师请帮我分析：命主十年大运。`;
+             
+             // 从data对象中获取八字信息
+             const userName = data.name || '用户';
+             const genderStr = data.gender === 'male' ? '男' : (data.gender === 'female' ? '女' : '未知');
+             const yearPillarStr = data.pillars?.year || '年柱未知';
+             const monthPillarStr = data.pillars?.month || '月柱未知';
+             const dayPillarStr = data.pillars?.day || '日柱未知';
+             const hourPillarStr = data.pillars?.hour || '时柱未知';
+             const strengthStr = data.strengthAnalysis?.type || '身强身弱未知';
+             const startingAgeStr = data.luckTiming?.description || '起运时间未知';
+             
+            const baziFullInfo = `${userName}，${genderStr}，八字信息是：${yearPillarStr}，${monthPillarStr}，${dayPillarStr}，${hourPillarStr}，命主为${strengthStr}，${startingAgeStr}。`;
             const baziInfo = {
             baziFullInfo,
             yearPillar: yearPillarStr,
