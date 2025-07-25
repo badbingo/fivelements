@@ -3769,7 +3769,7 @@ contentElement.classList.add('show');
                  'annual-fortune': {
                      title: '流年分析',
                      content: `
-                         <h4>2024年甲辰年运势分析</h4>
+                         <h4>当前流年运势分析</h4>
                          <p><strong>整体运势：</strong>今年运势较为平稳，有小幅上升趋势。甲木遇辰土，需要注意脾胃健康。</p>
                          <p><strong>事业运：</strong>工作上会有新的机遇出现，但需要谨慎把握，不宜冒进。</p>
                          <p><strong>财运：</strong>财运中等，正财稳定，偏财需谨慎。</p>
@@ -3780,7 +3780,7 @@ contentElement.classList.add('show');
                  'monthly-fortune': {
                      title: '流月分析',
                      content: `
-                         <h4>2024年各月运势预测</h4>
+                         <h4>当前年份各月运势预测</h4>
                          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-top: 15px;">
                              <div style="padding: 15px; background: #f8f9fa; border-radius: 8px;">
                                  <h5>春季（1-3月）</h5>
@@ -3944,6 +3944,11 @@ contentElement.classList.add('show');
              const today = new Date();
              const currentDateStr = `${today.getFullYear()}-${(today.getMonth() + 1).toString().padStart(2, '0')}-${today.getDate().toString().padStart(2, '0')}`;
              
+             // 获取当前年份的天干地支
+             const currentLunar = Lunar.fromDate(today);
+             const currentYearGanZhi = currentLunar.getYearInGanZhi();
+             const currentYear = today.getFullYear();
+             
              // 从data对象中获取八字信息
              const userName = data.name || '用户';
              const genderStr = data.gender === 'male' ? '男' : (data.gender === 'female' ? '女' : '未知');
@@ -3999,7 +4004,7 @@ contentElement.classList.add('show');
                      
                  case 'annual-fortune':
                      prompt += `请基于以上本地计算的准确八字信息（包括身强身弱和起运时间），进行详细的流年运势分析。请不要重新计算八字、身强身弱或起运时间，直接使用提供的信息。分析内容应包括：\n`;
-                     prompt += `1. 2024年甲辰年整体运势概述\n`;
+                     prompt += `1. ${currentYear}年${currentYearGanZhi}年整体运势概述\n`;
                      prompt += `2. 事业发展与工作机遇分析\n`;
                      prompt += `3. 财运分析（正财与偏财）\n`;
                      prompt += `4. 感情与人际关系运势\n`;
@@ -4010,7 +4015,7 @@ contentElement.classList.add('show');
                      
                  case 'monthly-fortune':
                      prompt += `请基于以上本地计算的准确八字信息（包括身强身弱和起运时间），进行详细的流月运势分析。请不要重新计算八字、身强身弱或起运时间，直接使用提供的信息。分析内容应包括：\n`;
-                     prompt += `1. 2024年各月运势总体趋势\n`;
+                     prompt += `1. ${currentYear}年各月运势总体趋势\n`;
                      prompt += `2. 按季节分析（春、夏、秋、冬）各月运势特点\n`;
                      prompt += `3. 重点月份的机遇与挑战\n`;
                      prompt += `4. 每月事业、财运、感情、健康关键点\n`;
