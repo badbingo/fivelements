@@ -18,6 +18,9 @@ class WWPay {
     this.generateSignature = this.generateSignature.bind(this);
     this.cleanupPaymentState = this.cleanupPaymentState.bind(this);
 
+    // API基础URL
+    this.API_URL = 'https://bazi-backend.owenjass.workers.dev/api';
+    
     // 系统配置
     this.config = {
       paymentGateway: {
@@ -747,7 +750,7 @@ class WWPay {
   async forceDeleteWish() {
     try {
       this.log('尝试强制删除愿望...');
-      const response = await fetch(`${this.config.paymentGateway.apiBase}/api/wishes/force-fulfill`, {
+      const response = await fetch(`${this.API_URL}/wishes/force-fulfill`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',

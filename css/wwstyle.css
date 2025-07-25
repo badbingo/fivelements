@@ -109,6 +109,9 @@ body {
 
 .content-container:hover {
     box-shadow: 0 15px 40px rgba(106, 17, 203, 0.4);
+    /* 确保背景颜色不变 */
+    background-color: #1a237e;
+    background-image: url('../images/dragon.gif');
 }
 
 .content-container::before {
@@ -125,20 +128,20 @@ body {
 /* ==================== 标题区域 ==================== */
 .content-title {
     text-align: center;
-    margin-bottom: 60px;
+    margin-bottom: 30px;
     position: relative;
 }
 
 .content-title h1 {
-    font-size: 2.5rem;
+    font-size: 4.5rem;
+    font-family: 'Ma Shan Zheng', cursive;
     font-weight: 800;
     color: white;
     padding: 20px 50px;
     display: inline-block;
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+
     text-shadow: 0 2px 10px rgba(106, 17, 203, 0.5);
-    clip-path: polygon(0 0, 100% 0, 95% 50%, 100% 100%, 5% 100%, 0 50%);
-    margin-bottom: 20px;
+    margin-bottom: 10px;
     transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     position: relative;
     overflow: hidden;
@@ -146,7 +149,7 @@ body {
 
 .content-title h1:hover {
     transform: translateY(-5px) rotate(1deg);
-    box-shadow: 0 15px 40px rgba(106, 17, 203, 0.4);
+
 }
 
 .content-title h1::after {
@@ -156,14 +159,7 @@ body {
     left: -50%;
     width: 200%;
     height: 200%;
-    background: linear-gradient(
-        to bottom right,
-        rgba(255, 255, 255, 0) 0%,
-        rgba(255, 255, 255, 0) 45%,
-        rgba(255, 255, 255, 0.3) 50%,
-        rgba(255, 255, 255, 0) 55%,
-        rgba(255, 255, 255, 0) 100%
-    );
+
     transform: rotate(30deg);
     animation: shine 5s infinite;
 }
@@ -266,6 +262,7 @@ body {
 .card:hover {
     transform: translateY(-10px);
     box-shadow: 0 20px 40px rgba(106, 17, 203, 0.5);
+    background: var(--bg-light) !important;
     
     &::after {
         content: '';
@@ -275,7 +272,7 @@ body {
         right: -2px;
         bottom: -2px;
         border-radius: 12px;
-        background: linear-gradient(45deg, #6a11cb, #2575fc);
+        background: var(--bg-light) !important;
         z-index: -1;
         filter: blur(5px);
         opacity: 0.7;
@@ -494,6 +491,97 @@ input[type="date"] {
     font-family: 'Noto Serif SC', serif;
 }
 
+/* 专门针对select下拉框的跨浏览器兼容性样式 */
+select {
+    /* 移除默认样式 */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    
+    /* 添加自定义下拉箭头 */
+    background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 4 5"><path fill="%23ffffff" d="M2 0L0 2h4zm0 5L0 3h4z"/></svg>');
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 12px;
+    
+    /* 确保文字不与箭头重叠 */
+    padding-right: 40px;
+    
+    /* 强制字体大小，防止移动端自动缩放 */
+    font-size: 16px;
+    
+    /* 移动端优化 */
+    -webkit-tap-highlight-color: transparent;
+    
+    /* 确保在所有浏览器中都有一致的高度 */
+    min-height: 44px;
+    line-height: 1.4;
+    
+    /* Safari特殊处理 */
+    -webkit-border-radius: 6px;
+}
+
+/* Firefox特殊处理 */
+select::-moz-focus-inner {
+    border: 0;
+    padding: 0;
+}
+
+/* IE/Edge特殊处理 */
+select::-ms-expand {
+    display: none;
+}
+
+/* 选中状态的option样式 */
+select option {
+    background: rgba(20, 20, 30, 0.95);
+    color: var(--text-color);
+    padding: 8px 12px;
+    font-family: 'Noto Serif SC', serif;
+    font-size: 16px;
+}
+
+select option:checked {
+    background: var(--primary-color);
+    color: white;
+}
+
+/* 移动端特殊优化 */
+@media screen and (max-width: 768px) {
+    select {
+        /* 移动端确保字体大小至少16px，防止iOS自动缩放 */
+        font-size: 16px !important;
+        
+        /* 增加触摸区域 */
+        min-height: 48px;
+        
+        /* 优化移动端显示 */
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        
+        /* 移动端背景调整 */
+        background-color: rgba(0, 0, 0, 0.4);
+        
+        /* 移动端边框加强 */
+        border: 2px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    select:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(106, 17, 203, 0.3);
+    }
+}
+
+/* 超小屏幕优化 */
+@media screen and (max-width: 480px) {
+    select {
+        padding: 14px 40px 14px 16px;
+        font-size: 16px;
+        min-height: 50px;
+    }
+}
+
 textarea {
     min-height: 120px;
     resize: vertical;
@@ -621,7 +709,115 @@ input[type="date"]:focus {
     border-radius: 6px;
     font-family: inherit;
     transition: all 0.3s ease;
+    
+    /* 跨浏览器兼容性 */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    
+    /* 添加自定义下拉箭头 */
+    background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 4 5"><path fill="%23ffffff" d="M2 0L0 2h4zm0 5L0 3h4z"/></svg>');
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 10px;
+    
+    /* 确保文字不与箭头重叠 */
+    padding-right: 35px;
+    
+    /* 移动端优化 */
+    font-size: 16px;
+    min-height: 36px;
+    -webkit-tap-highlight-color: transparent;
 }
+
+.filter-controls select option {
+    background: rgba(20, 20, 30, 0.95);
+    color: var(--text-color);
+    padding: 6px 8px;
+    font-size: 16px;
+}
+
+.filter-controls select option:checked {
+    background: var(--primary-color);
+    color: white;
+}
+
+/* filter-controls移动端优化 */
+@media screen and (max-width: 768px) {
+    .filter-controls select {
+        font-size: 16px !important;
+        min-height: 40px;
+        padding: 10px 35px 10px 12px;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .filter-controls select {
+        min-height: 44px;
+        padding: 12px 35px 12px 12px;
+    }
+    
+    /* 超小屏幕用户区域优化 */
+     .user-area {
+         position: static;
+         top: auto;
+         right: auto;
+         width: 85%;
+         max-width: 320px;
+         margin: 10px auto;
+         justify-content: center;
+         flex-wrap: wrap;
+         gap: 4px;
+         padding: 8px;
+         background: rgba(0, 0, 0, 0.4);
+         border-radius: 8px;
+         order: 1;
+     }
+    
+    .user-area .login-btn,
+    .user-area .logout-btn,
+    .user-area .recharge-btn,
+    .user-area .manage-btn {
+        font-size: 0.75rem;
+        padding: 8px 10px;
+        margin: 2px;
+        flex: 1;
+        min-width: 65px;
+        max-width: 100px;
+        text-align: center;
+        border-radius: 15px;
+    }
+    
+    .user-balance {
+        width: 100%;
+        text-align: center;
+        margin: 8px 0 5px 0;
+        font-size: 0.8rem;
+        padding: 8px 12px;
+    }
+    
+    .user-welcome {
+         width: 100%;
+         text-align: center;
+         margin-bottom: 8px;
+         font-size: 0.8rem;
+     }
+     
+     /* 为包含农历信息的卡片添加flex布局 */
+     .card {
+         display: flex;
+         flex-direction: column;
+     }
+     
+     .lunar-date-info {
+          order: 2;
+          margin: 15px 0 8px;
+      }
+      
+      .mingyuan-intro {
+          order: 3;
+      }
+ }
 
 .filter-controls select:hover {
     border-color: var(--primary-color);
@@ -674,6 +870,8 @@ input[type="date"]:focus {
     transform: translateY(-8px) rotate(1deg);
     box-shadow: 0 15px 35px rgba(106, 17, 203, 0.3);
     border-color: rgba(106, 17, 203, 0.6);
+    /* 确保背景颜色不变 */
+    background: rgba(30, 30, 40, 0.85);
 }
 
 .wish-card[data-level="1"] { 
@@ -716,7 +914,7 @@ input[type="date"]:focus {
     left: 0;
     width: 100%;
     height: 100%;
-    background-image: url('../images/6bg.gif');
+
     background-position: center;
     background-repeat: no-repeat;
     opacity: 0.08;
@@ -1042,10 +1240,10 @@ input[type="date"]:focus {
 /* ==================== 统计卡片 ==================== */
 .stat-card {
     text-align: center;
-    padding: 20px;
+    padding: 15px;
     background: rgba(0, 0, 0, 0.3);
     border-radius: 10px;
-    margin-bottom: 15px;
+    margin-bottom: 10px;
     position: relative;
     overflow: hidden;
     transition: all 0.3s ease;
@@ -1054,25 +1252,80 @@ input[type="date"]:focus {
 .stat-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 5px 15px rgba(106, 17, 203, 0.2);
+    /* 确保背景颜色不变 */
+    background: rgba(0, 0, 0, 0.3);
 }
 
 .stat-value {
-    font-size: 2.5rem;
+    font-size: 2rem;
     font-weight: bold;
     background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    margin-bottom: 5px;
+    margin-bottom: 3px;
     position: relative;
+    line-height: 1.2;
 }
 
 .stat-label {
     color: var(--text-dark);
-    font-size: 0.9rem;
+    font-size: 0.85rem;
+    line-height: 1.3;
 }
 
 .wish-chart {
     height: 250px;
+}
+
+/* ==================== 用户信息弹窗 ==================== */
+.user-info-container {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.user-info-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid rgba(106, 17, 203, 0.2);
+}
+
+.user-info-row:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.info-label {
+    width: 120px;
+    color: var(--text-dark);
+    font-size: 0.95rem;
+}
+
+.info-value {
+    flex: 1;
+    color: var(--text-color);
+    font-size: 1.05rem;
+}
+
+.recharge-btn-small {
+    margin-left: 15px;
+    padding: 5px 15px;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    border: none;
+    border-radius: 20px;
+    color: white;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.recharge-btn-small:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(106, 17, 203, 0.4);
 }
 
 /* ==================== 模态框 ==================== */
@@ -1130,10 +1383,17 @@ input[type="date"]:focus {
 }
 
 .fulfill-options {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
     gap: 15px;
     margin: 25px 0;
+    justify-content: center;
+}
+
+/* 1元和5元并列，10元和20元并列 */
+.fulfill-option {
+    width: calc(50% - 15px);
 }
 
 .fulfill-option {
@@ -1154,6 +1414,49 @@ input[type="date"]:focus {
     background: rgba(106, 17, 203, 0.4);
     color: white;
     transform: translateY(-3px);
+}
+
+.fulfill-option.selected {
+    background: rgba(106, 17, 203, 0.6);
+    color: white;
+    transform: translateY(-3px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+/* 确认支付按钮居中 */
+.payment-confirm-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+#confirmPaymentBtn {
+    padding: 12px 30px;
+    background: linear-gradient(135deg, #9c27b0, #673ab7);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+#confirmPaymentBtn:hover:not(:disabled) {
+    background: linear-gradient(135deg, #8e24aa, #5e35b1);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+}
+
+#confirmPaymentBtn:disabled,
+#confirmPaymentBtn.disabled {
+    background: #9e9e9e;
+    cursor: not-allowed;
+    opacity: 0.7;
+    transform: none;
+    box-shadow: none;
 }
 
 .fulfill-option::before {
@@ -1299,6 +1602,18 @@ input[type="date"]:focus {
 }
 
 /* ==================== 六字真言特效 ==================== */
+
+.mantra-bg {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(2.0); /* 缩放至70%大小 */
+    width: 100%;
+    height: 100%;
+    background: url('../images/6words.jpg') center/contain no-repeat;
+    opacity: 0.5;
+    z-index: -1;
+}
 .mantra-overlay {
     position: fixed;
     top: 0;
@@ -1530,6 +1845,8 @@ input[type="date"]:focus {
     transform: translateY(-5px);
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
     border-left-color: #9b71f7;
+    /* 确保背景颜色不变 */
+    background: rgba(42, 42, 42, 0.7);
 }
 
 .card-status {
@@ -1656,13 +1973,16 @@ input[type="date"]:focus {
 
 /* ==================== 用户信息区域 ==================== */
 .user-area {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 1000;
+    position: static;
     display: flex;
     align-items: center;
+    justify-content: flex-end;
     gap: 15px;
+    margin: 20px 0;
+    padding: 15px 20px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+    border: 1px solid rgba(106, 17, 203, 0.3);
 }
 
 .user-welcome {
@@ -1675,7 +1995,7 @@ input[type="date"]:focus {
     display: none;
 }
 
-.login-btn, .logout-btn {
+.login-btn, .logout-btn, .manage-btn {
     background: #8a5cf5;
     color: white;
     border: none;
@@ -1683,12 +2003,16 @@ input[type="date"]:focus {
     border-radius: 20px;
     cursor: pointer;
     font-family: 'Noto Serif SC', serif;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     transition: all 0.3s;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    margin: 2px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
 }
 
-.login-btn:hover, .logout-btn:hover {
+.login-btn:hover, .logout-btn:hover, .manage-btn:hover {
     background: #7a4ce5;
     transform: translateY(-2px);
 }
@@ -1699,6 +2023,14 @@ input[type="date"]:focus {
 
 .logout-btn:hover {
     background: #e74c3c;
+}
+
+.manage-btn {
+    background: #17a2b8;
+}
+
+.manage-btn:hover {
+    background: #138496;
 }
 
 /* ==================== 登录注册弹窗 ==================== */
@@ -2036,6 +2368,21 @@ input[type="date"]:focus {
     .user-card-item {
         padding: 12px;
     }
+    
+    /* 为包含农历信息的卡片添加flex布局 */
+    .card {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .lunar-date-info {
+        order: 2;
+        margin: 15px 0 8px;
+    }
+    
+    .mingyuan-intro {
+        order: 3;
+    }
 }
 
 @media (max-width: 576px) {
@@ -2069,12 +2416,43 @@ input[type="date"]:focus {
     }
 
     .user-area {
-        top: 10px;
-        right: 10px;
+        position: static;
+        top: auto;
+        right: auto;
+        width: 90%;
+        max-width: 350px;
+        margin: 15px auto;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 6px;
+        padding: 8px;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 8px;
+        order: 1;
     }
     
     .user-welcome {
         display: none;
+    }
+    
+    .user-area .login-btn,
+    .user-area .logout-btn,
+    .user-area .recharge-btn,
+    .user-area .manage-btn {
+        font-size: 0.8rem;
+        padding: 6px 12px;
+        margin: 2px;
+        flex: 1;
+        min-width: 70px;
+        max-width: 120px;
+        text-align: center;
+    }
+    
+    .user-balance {
+        width: 100%;
+        text-align: center;
+        margin: 5px 0;
+        font-size: 0.85rem;
     }
     
     .auth-container {
@@ -2153,6 +2531,66 @@ input[type="date"]:focus {
     font-family: 'Noto Serif SC', serif;
     font-size: 16px;
     transition: all 0.3s ease;
+}
+
+/* mingyuan-form中的select特殊样式 */
+.mingyuan-form select {
+    /* 移除默认样式 */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    
+    /* 添加自定义下拉箭头 */
+    background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 4 5"><path fill="%23ffffff" d="M2 0L0 2h4zm0 5L0 3h4z"/></svg>');
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 12px;
+    
+    /* 确保文字不与箭头重叠 */
+    padding-right: 40px;
+    
+    /* 确保在所有浏览器中都有一致的高度 */
+    min-height: 44px;
+    line-height: 1.4;
+    
+    /* 移动端优化 */
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* mingyuan-form中select的option样式 */
+.mingyuan-form select option {
+    background: rgba(20, 20, 30, 0.95);
+    color: #ffffff;
+    padding: 8px 12px;
+    font-family: 'Noto Serif SC', serif;
+    font-size: 16px;
+}
+
+.mingyuan-form select option:checked {
+    background: #6a11cb;
+    color: white;
+}
+
+/* mingyuan-form移动端优化 */
+@media screen and (max-width: 768px) {
+    .mingyuan-form select {
+        font-size: 16px !important;
+        min-height: 48px;
+        padding: 14px 40px 14px 16px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+    }
+    
+    .mingyuan-form select:focus {
+        border-color: #6a11cb;
+        box-shadow: 0 0 0 3px rgba(106, 17, 203, 0.3);
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .mingyuan-form select {
+        min-height: 50px;
+        padding: 15px 40px 15px 16px;
+    }
 }
 
 .mingyuan-form textarea {
@@ -2244,9 +2682,10 @@ input[type="date"]:focus {
     border-radius: 20px;
     cursor: pointer;
     font-family: 'Noto Serif SC', serif;
-    font-size: 14px;
-    margin-left: 10px;
+    font-size: 0.85rem;
+    margin: 2px;
     transition: all 0.3s ease;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 }
 
 .manage-btn:hover {
@@ -2258,3 +2697,359 @@ input[type="date"]:focus {
 .manage-btn i {
     margin-right: 5px;
 }
+
+/* 生肖字体图标样式 */
+.wish-card-bg-icon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 250px; /* 调整为卡片大小的70% */
+    opacity: 0.2;
+    z-index: 0;
+    pointer-events: none;
+}
+
+/* 定义生肖字体图标 - 这里需要替换为您实际使用的字体图标类名 */
+.icon-rat:before { content: "🐀"; }
+.icon-ox:before { content: "🐂"; }
+.icon-tiger:before { content: "🐅"; }
+.icon-rabbit:before { content: "🐇"; }
+.icon-dragon:before { content: "🐉"; }
+.icon-snake:before { content: "🐍"; }
+.icon-horse:before { content: "🐎"; }
+.icon-goat:before { content: "🐐"; }
+.icon-monkey:before { content: "🐒"; }
+.icon-rooster:before { content: "🐓"; }
+.icon-dog:before { content: "🐕"; }
+.icon-pig:before { content: "🐖"; }
+
+/* 确保卡片有相对定位以便绝对定位的背景图标 */
+.wish-card {
+    position: relative;
+    overflow: hidden;
+    /* 保持原有的背景颜色和其他样式 */
+}
+
+
+  /* 新增的农历日期信息样式 */
+        .lunar-date-info {
+            margin: 45px 0 35px;
+            font-size: 0.95rem;
+            color: #b8c2cc;
+        }
+        
+        .lunar-date-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            background: rgba(106, 17, 203, 0.1);
+            padding: 10px 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(106, 17, 203, 0.3);
+        }
+        
+        .lunar-date {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .lunar-yiji {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .lunar-yiji .yi {
+            color: #00b894;
+        }
+        
+        .lunar-yiji .ji {
+            color: #ff7675;
+        }
+        
+        .lunar-date i,
+        .lunar-yiji i {
+            font-size: 0.9em;
+        }
+        
+        @media (max-width: 768px) {
+            .lunar-date-container {
+                flex-direction: column;
+                gap: 8px;
+                align-items: center;
+            }
+            
+            .lunar-yiji {
+                gap: 10px;
+            }
+            
+            /* 为包含农历信息的卡片添加flex布局 */
+            .card {
+                display: flex;
+                flex-direction: column;
+            }
+            
+            .lunar-date-info {
+                 order: 1;
+                 margin: 20px 0 10px;
+             }
+             
+             .mingyuan-intro {
+                 order: 3;
+             }
+        }
+
+        .energy-chart-label {
+            text-align: center;
+            font-size: 12px;
+            color: #b8c2cc;
+            margin-top: 20px;
+            font-family: 'Noto Serif SC', serif;
+            width: 100%;  /* 确保容器宽度足够 */
+            display: block; /* 确保文本可以居中 */
+        }
+
+/* 用户余额和充值按钮样式 */
+.user-balance {
+    background: rgba(106, 17, 203, 0.1);
+    padding: 10px 15px;
+    border-radius: 8px;
+    border: 1px solid rgba(106, 17, 203, 0.3);
+    color: var(--text-color);
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    margin-top: 10px;
+}
+
+.user-balance i {
+    color: #f1c40f;
+    margin-right: 5px;
+}
+
+.recharge-btn {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin: 2px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.recharge-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(106, 17, 203, 0.3);
+}
+
+/* 充值弹窗样式 */
+.recharge-modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(5px);
+}
+
+.recharge-container {
+    background: rgba(20, 40, 80, 0.95);
+    margin: 10% auto;
+    padding: 30px;
+    border: 2px solid #f1c40f;
+    width: 90%;
+    max-width: 500px;
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(106, 17, 203, 0.3);
+}
+
+.recharge-header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.recharge-header h2 {
+    color: #ffffff;
+    margin-bottom: 5px;
+    text-shadow: 0 0 5px rgba(106, 17, 203, 0.8);
+}
+
+.recharge-header p {
+    color: #e0e0e0;
+}
+
+.close-recharge {
+    color: #ffffff;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-shadow: 0 0 5px rgba(106, 17, 203, 0.8);
+}
+
+.close-recharge:hover {
+    color: #f1c40f;
+}
+
+.recharge-form .form-group {
+    margin-bottom: 20px;
+}
+
+.recharge-form label {
+    display: block;
+    margin-bottom: 8px;
+    color: #ffffff;
+    font-weight: 500;
+}
+
+.recharge-form input[type="number"] {
+    width: 100%;
+    padding: 12px 15px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 6px;
+    color: #ffffff;
+    font-family: 'Noto Serif SC', serif;
+    transition: all 0.3s ease;
+}
+
+.recharge-form input[type="number"]:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(106, 17, 203, 0.3);
+}
+
+.payment-methods {
+    display: flex;
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.payment-option {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    cursor: pointer;
+    padding: 15px 20px;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    text-align: center;
+    min-width: 150px;
+    border: 1px solid gold; /* 添加金色外框 */
+}
+
+.payment-option[for="alipay"] {
+    background: #007AFF !important;
+    border: 2px solid #f1c40f !important;
+    box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.5) !important;
+}
+
+.payment-option[for="wechat"] {
+    background: #09BB07 !important;
+    border: 2px solid #f1c40f !important;
+    box-shadow: 0 0 0 2px rgba(9, 187, 7, 0.5) !important;
+}
+
+.payment-option[for="alipay"]:hover {
+    background: #0066CC;
+    transform: translateY(-3px);
+    border: 2px solid #f8d64e;
+    box-shadow: 0 5px 15px rgba(0, 102, 204, 0.5);
+}
+
+.payment-option[for="wechat"]:hover {
+    background: #07A305;
+    transform: translateY(-3px);
+    border: 2px solid #f8d64e;
+    box-shadow: 0 5px 15px rgba(7, 163, 5, 0.5);
+}
+
+.payment-option i {
+    font-size: 24px;
+    color: #ffffff;
+}
+
+.payment-option input[type="radio"] {
+    margin-right: 5px;
+}
+
+.payment-tag {
+    font-size: 12px;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-top: 5px;
+}
+
+.recharge-form .recharge-btn {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1rem;
+    margin-top: 30px;
+    transition: all 0.3s ease;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.main-page .recharge-btn {
+    width: auto;
+    padding: 12px 30px;
+    margin-left: auto;
+}
+
+.recharge-form .recharge-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(106, 17, 203, 0.4);
+}
+
+.recharge-message {
+    margin-top: 15px;
+    padding: 10px;
+    border-radius: 5px;
+    text-align: center;
+    font-size: 0.9rem;
+}
+
+.liuyao-link {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: linear-gradient(145deg, #d4af37, #b8971a);
+            color: #1a1a2e;
+            padding: 8px 16px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .liuyao-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+            background: linear-gradient(145deg, #e6c34d, #c9a41f);
+        }
