@@ -3433,7 +3433,8 @@ function determineStrengthType(pillars) {
     
     // 其他部分调用API
     const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
-    const apiKey = 'sk-b2950087a9d5427392762814114b22a9';
+    // 使用代理服务器，不直接暴露API Key
+    const apiKey = 'placeholder_key_for_local_dev_only';
     
     // 使用 currentYear（2025）、currentMonth、currentDay
     const currentDateStr = `${currentYear}-${currentMonth.toString().padStart(2, '0')}-${currentDay.toString().padStart(2, '0')}`;
@@ -3774,7 +3775,8 @@ function determineStrengthType(pillars) {
     // 获取八字问答答案
     async function getBaziAnswer(question) {
         const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
-        const apiKey = 'sk-b2950087a9d5427392762814114b22a9';
+        // 使用代理服务器，不直接暴露API Key
+        const apiKey = 'placeholder_key_for_local_dev_only';
     // 使用 currentYear（2025）、currentMonth、currentDay
         const currentDateStr = `${currentYear}-${currentMonth.toString().padStart(2, '0')}-${currentDay.toString().padStart(2, '0')}`;
         const cacheKey = `qa:${generateBaziHashKey(birthData)}:${question}`;

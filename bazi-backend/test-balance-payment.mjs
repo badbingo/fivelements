@@ -4,8 +4,8 @@ import fetch from 'node-fetch';
 async function testBalancePayment() {
   try {
     // 生成一个有效的JWT token用于测试
-    // 使用与后端相同的JWT_SECRET和用户ID
-    const JWT_SECRET = 'your_jwt_secret_key';
+    // 注意：实际环境中应从环境变量获取JWT_SECRET
+    const JWT_SECRET = process.env.JWT_SECRET || 'test_jwt_secret_placeholder';
     const userId = 6; // Owen用户的ID
     
     // 简化版的JWT生成函数

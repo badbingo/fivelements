@@ -7,7 +7,7 @@ const app = express();
 const port = process.env.PORT || 3001;
 
 // 从环境变量获取API密钥
-const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY || 'sk-f2d1b566bb8d47bbb90b97b64e1153d7';
+const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY || 'placeholder_key_for_local_dev_only';
 
 if (!process.env.DEEPSEEK_API_KEY) {
     console.warn('警告: 未设置DEEPSEEK_API_KEY环境变量，使用默认密钥（不推荐用于生产环境）');

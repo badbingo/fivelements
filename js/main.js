@@ -2076,7 +2076,8 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // 其他部分调用API
         const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
-        const apiKey = 'sk-b2950087a9d5427392762814114b22a9';
+        // 使用代理服务器，不直接暴露API Key
+        const apiKey = 'placeholder_key_for_local_dev_only';
         const currentDateStr = currentDate.getFullYear() + '-' + 
                               (currentDate.getMonth() + 1).toString().padStart(2, '0') + '-' + 
                               currentDate.getDate().toString().padStart(2, '0');
@@ -2333,7 +2334,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // 获取八字问答答案
     async function getBaziAnswer(question) {
     const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
-    const apiKey = 'sk-b2950087a9d5427392762814114b22a9';
+    // 使用代理服务器，不直接暴露API Key
+    const apiKey = 'placeholder_key_for_local_dev_only';
     const cacheKey = `qa:${generateBaziHashKey(birthData)}:${question}`;
     
     // 检查缓存
