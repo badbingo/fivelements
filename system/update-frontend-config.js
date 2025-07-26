@@ -36,8 +36,12 @@ function updateFrontendConfig() {
         let content = fs.readFileSync(bazinewPath, 'utf8');
         
         // 替换API URL
-        const oldPattern = /const apiUrl = ['"].*?['"]/g;
+        const oldPattern = /const apiUrl = ['"](.*?)['"]\s*;/g;
         const newApiUrl = `const apiUrl = '${apiUrl}'`;
+        
+        // 确保apiKey也被定义
+        const apiKeyPattern = /const apiKey = ['"](.*?)['"]\s*;/g;
+        const newApiKey = `const apiKey = 'placeholder_key_for_local_dev_only'`;
         
         if (content.match(oldPattern)) {
           content = content.replace(oldPattern, newApiUrl);
@@ -66,6 +70,18 @@ function updateFrontendConfig() {
           
           if (content.match(oldPattern)) {
             content = content.replace(oldPattern, `const apiUrl = '${apiUrl}'`);
+            
+            // 检查并确保apiKey存在
+            const apiKeyPattern = /const apiKey = ['"](.*?)['"]\s*;/g;
+            if (!content.match(apiKeyPattern)) {
+              // 在apiUrl后添加apiKey定义
+              content = content.replace(
+                `const apiUrl = '${apiUrl}';`, 
+                `const apiUrl = '${apiUrl}';
+            const apiKey = 'placeholder_key_for_local_dev_only';`
+              );
+            }
+            
             fs.writeFileSync(filePath, content, 'utf8');
             console.log(`✅ ${filename} 已更新`);
           }
