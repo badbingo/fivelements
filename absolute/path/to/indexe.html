@@ -1,0 +1,90 @@
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0) rotate(0deg);
+    }
+    25% {
+        transform: translateY(-15px) rotate(2deg);
+    }
+    75% {
+        transform: translateY(10px) rotate(-2deg);
+    }
+}
+
+@keyframes glow {
+    0%, 100% {
+        box-shadow: 0 0 20px var(--glow-color);
+    }
+    50% {
+        box-shadow: 0 0 40px var(--glow-color);
+    }
+}
+
+:root {
+    --primary-color: #2c0051;  /* 更深邃的紫色 */
+    --secondary-color: #4a0080;
+    --accent-color: #8000ff;
+    --dark-color: #0a0014;
+    --light-color: #e6e0ff;
+    --glow-color: rgba(128, 0, 255, 0.6);
+}
+
+body {
+    background: var(--dark-color);
+    background-image: 
+        radial-gradient(circle at 10% 20%, rgba(128, 0, 255, 0.15) 0%, transparent 30%),
+        radial-gradient(circle at 90% 80%, rgba(74, 0, 128, 0.15) 0%, transparent 30%),
+        radial-gradient(circle at 50% 50%, rgba(44, 0, 81, 0.1) 0%, transparent 50%);
+}
+
+.central-node {
+    background: radial-gradient(circle at center, var(--accent-color), var(--primary-color));
+    box-shadow: 0 0 30px var(--glow-color),
+                inset 0 0 20px rgba(128, 0, 255, 0.6),
+                0 0 50px rgba(128, 0, 255, 0.3);
+}
+
+.node {
+    backdrop-filter: blur(10px);
+    background: rgba(44, 0, 81, 0.3);
+    border: 1px solid rgba(128, 0, 255, 0.3);
+    box-shadow: 0 0 20px rgba(128, 0, 255, 0.2);
+}
+
+.connector {
+    background: linear-gradient(90deg, var(--accent-color), transparent);
+    height: 1px;
+    box-shadow: 0 0 10px var(--glow-color);
+    opacity: 0.6;
+}
+
+.node {
+    animation: float 6s ease-in-out infinite, glow 4s ease-in-out infinite;
+}
+
+// 在particles创建部分添加
+for (let i = 0; i < 50; i++) {  // 增加粒子数量
+    const particle = document.createElement('div');
+    particle.classList.add('particle');
+    particle.style.left = `${Math.random() * 100}%`;
+    particle.style.top = `${Math.random() * 100}%`;
+    const size = Math.random() * 4 + 1;  // 更大的粒子
+    particle.style.width = `${size}px`;
+    particle.style.height = particle.style.width;
+    particle.style.animationDuration = `${Math.random() * 15 + 10}s`;
+    particle.style.animationDelay = `${Math.random() * 5}s`;
+    // 添加发光效果
+    particle.style.boxShadow = `0 0 ${size * 2}px rgba(128, 0, 255, 0.8)`;
+    particlesContainer.appendChild(particle);
+}
+
+// 添加鼠标移动光效
+document.addEventListener('mousemove', (e) => {
+    const x = e.clientX;
+    const y = e.clientY;
+    document.body.style.backgroundImage = `
+        radial-gradient(circle at ${x}px ${y}px, rgba(128, 0, 255, 0.15) 0%, transparent 10%),
+        radial-gradient(circle at 10% 20%, rgba(128, 0, 255, 0.15) 0%, transparent 30%),
+        radial-gradient(circle at 90% 80%, rgba(74, 0, 128, 0.15) 0%, transparent 30%),
+        radial-gradient(circle at 50% 50%, rgba(44, 0, 81, 0.1) 0%, transparent 50%)
+    `;
+});

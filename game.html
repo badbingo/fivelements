@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="机缘八字命理游戏 - 五行相生相克的奥秘">
+    <meta name="keywords" content="机缘命理,八字,五行,游戏,命理知识">
+    <title>五行之道 - 八字命理游戏</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style1.css">
+    <link rel="stylesheet" href="css/game.css">
+</head>
+<body>
+    <div class="background-overlay"></div>
+
+    <header class="game-header">
+        <h1 class="header-title">五行之道 <span class="ming-character">游</span>戏</h1>
+        <div class="header-subtitle">探索八字命理的奥秘 · 体验五行相生相克的力量</div>
+    </header>   
+    
+    <div class="game-container">
+        <div class="game-sidebar">
+            <div class="player-info">
+                <div class="avatar-container">
+                    <div class="avatar-circle">
+                        <i class="fas fa-user-astronaut"></i>
+                    </div>
+                </div>
+                <div class="player-stats">
+                    <div class="player-name">游客</div>
+                    <div class="player-level">等级: <span id="player-level">1</span></div>
+                    <div class="player-score">分数: <span id="player-score">0</span></div>
+                </div>
+            </div>
+            
+            <div class="element-powers">
+                <h3>五行能量</h3>
+                <div class="element-bar">
+                    <div class="element-icon wood"><i class="fas fa-leaf"></i></div>
+                    <div class="progress-container">
+                        <div class="progress-bar" id="wood-power" style="width: 20%;"></div>
+                    </div>
+                    <div class="element-value">20</div>
+                </div>
+                <div class="element-bar">
+                    <div class="element-icon fire"><i class="fas fa-fire"></i></div>
+                    <div class="progress-container">
+                        <div class="progress-bar" id="fire-power" style="width: 20%;"></div>
+                    </div>
+                    <div class="element-value">20</div>
+                </div>
+                <div class="element-bar">
+                    <div class="element-icon earth"><i class="fas fa-mountain"></i></div>
+                    <div class="progress-container">
+                        <div class="progress-bar" id="earth-power" style="width: 20%;"></div>
+                    </div>
+                    <div class="element-value">20</div>
+                </div>
+                <div class="element-bar">
+                    <div class="element-icon metal"><i class="fas fa-coins"></i></div>
+                    <div class="progress-container">
+                        <div class="progress-bar" id="metal-power" style="width: 20%;"></div>
+                    </div>
+                    <div class="element-value">20</div>
+                </div>
+                <div class="element-bar">
+                    <div class="element-icon water"><i class="fas fa-water"></i></div>
+                    <div class="progress-container">
+                        <div class="progress-bar" id="water-power" style="width: 20%;"></div>
+                    </div>
+                    <div class="element-value">20</div>
+                </div>
+            </div>
+            
+            <div class="game-controls">
+                <button id="start-game" class="btn hover-red"><i class="fas fa-play"></i> 开始游戏</button>
+                <button id="instructions-btn" class="btn btn-outline"><i class="fas fa-book"></i> 游戏说明</button>
+                <button id="leaderboard-btn" class="btn btn-outline"><i class="fas fa-trophy"></i> 排行榜</button>
+            </div>
+        </div>
+        
+        <div class="game-main">
+            <div class="game-board" id="game-board">
+                <!-- 游戏开始前的欢迎界面 -->
+                <div class="welcome-screen" id="welcome-screen">
+                    <div class="welcome-content">
+                        <h2>欢迎来到五行之道</h2>
+                        <p>这是一个基于八字命理的益智游戏，通过游戏了解五行相生相克的奥秘。</p>
+                        <p>点击"开始游戏"按钮开始您的五行之旅！</p>
+                        <div class="element-circle">
+                            <div class="element wood"><i class="fas fa-leaf"></i></div>
+                            <div class="element fire"><i class="fas fa-fire"></i></div>
+                            <div class="element earth"><i class="fas fa-mountain"></i></div>
+                            <div class="element metal"><i class="fas fa-coins"></i></div>
+                            <div class="element water"><i class="fas fa-water"></i></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 游戏区域 -->
+                <div class="game-play-area" id="game-play-area" style="display: none;">
+                    <!-- 游戏内容将通过JavaScript动态生成 -->
+                </div>
+            </div>
+            
+            <div class="game-info">
+                <div class="game-status">
+                    <div class="status-item">
+                        <i class="fas fa-clock"></i>
+                        <span>时间: <span id="game-timer">60</span>秒</span>
+                    </div>
+                    <div class="status-item">
+                        <i class="fas fa-star"></i>
+                        <span>回合: <span id="game-round">1</span>/10</span>
+                    </div>
+                    <div class="status-item">
+                        <i class="fas fa-bolt"></i>
+                        <span>连击: <span id="combo-count">0</span></span>
+                    </div>
+                </div>
+                
+                <div class="game-message" id="game-message">
+                    准备开始游戏...
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 游戏说明模态框 -->
+    <div class="modal" id="instructions-modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>游戏说明</h2>
+            <div class="instructions-content">
+                <h3>游戏目标</h3>
+                <p>在"五行之道"游戏中，您将通过匹配五行元素（木、火、土、金、水）来获取分数，同时学习八字命理中五行相生相克的规则。</p>
+                
+                <h3>游戏规则</h3>
+                <ol>
+                    <li><strong>五行相生:</strong> 木生火、火生土、土生金、金生水、水生木</li>
+                    <li><strong>五行相克:</strong> 木克土、土克水、水克火、火克金、金克木</li>
+                    <li>每轮游戏中，您需要根据屏幕提示选择正确的五行关系</li>
+                    <li>答对得分，连续答对可获得连击加成</li>
+                    <li>答错会减少相应五行的能量</li>
+                    <li>完成10轮挑战后，根据您的得分和五行平衡度评定最终等级</li>
+                </ol>
+                
+                <h3>游戏模式</h3>
+                <ul>
+                    <li><strong>基础模式:</strong> 学习五行相生相克的基本规则</li>
+                    <li><strong>八字模式:</strong> 结合天干地支，进行更复杂的命理判断</li>
+                    <li><strong>挑战模式:</strong> 限时答题，考验您对五行系统的掌握程度</li>
+                </ul>
+                
+                <h3>操作方法</h3>
+                <p>点击屏幕上的五行元素图标进行选择，根据提示完成每轮挑战。</p>
+                
+                <div class="element-relationships">
+                    <h4>五行相生关系</h4>
+                    <div class="relationship-diagram">
+                        <div class="element wood"><i class="fas fa-leaf"></i></div>
+                        <div class="arrow">→</div>
+                        <div class="element fire"><i class="fas fa-fire"></i></div>
+                        <div class="arrow">→</div>
+                        <div class="element earth"><i class="fas fa-mountain"></i></div>
+                        <div class="arrow">→</div>
+                        <div class="element metal"><i class="fas fa-coins"></i></div>
+                        <div class="arrow">→</div>
+                        <div class="element water"><i class="fas fa-water"></i></div>
+                        <div class="arrow">→</div>
+                        <div class="element wood"><i class="fas fa-leaf"></i></div>
+                    </div>
+                    
+                    <h4>五行相克关系</h4>
+                    <div class="relationship-diagram">
+                        <div class="element wood"><i class="fas fa-leaf"></i></div>
+                        <div class="arrow克">⊸</div>
+                        <div class="element earth"><i class="fas fa-mountain"></i></div>
+                        <div class="arrow克">⊸</div>
+                        <div class="element water"><i class="fas fa-water"></i></div>
+                        <div class="arrow克">⊸</div>
+                        <div class="element fire"><i class="fas fa-fire"></i></div>
+                        <div class="arrow克">⊸</div>
+                        <div class="element metal"><i class="fas fa-coins"></i></div>
+                        <div class="arrow克">⊸</div>
+                        <div class="element wood"><i class="fas fa-leaf"></i></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 排行榜模态框 -->
+    <div class="modal" id="leaderboard-modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>排行榜</h2>
+            <div class="leaderboard-content">
+                <table class="leaderboard-table">
+                    <thead>
+                        <tr>
+                            <th>排名</th>
+                            <th>玩家</th>
+                            <th>分数</th>
+                            <th>等级</th>
+                            <th>五行平衡</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboard-body">
+                        <!-- 排行榜数据将通过JavaScript动态生成 -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 游戏结果模态框 -->
+    <div class="modal" id="result-modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>游戏结果</h2>
+            <div class="result-content" id="result-content">
+                <!-- 游戏结果将通过JavaScript动态生成 -->
+            </div>
+            <div class="result-actions">
+                <button id="play-again" class="btn hover-red"><i class="fas fa-redo"></i> 再玩一次</button>
+                <button id="share-result" class="btn btn-outline"><i class="fas fa-share-alt"></i> 分享结果</button>
+            </div>
+        </div>
+    </div>
+    
+    <script src="js/lunar.js"></script>
+    <script src="js/game.js"></script>
+</body>
+</html>
