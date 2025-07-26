@@ -1015,6 +1015,176 @@
             }
         }
     }
+
+    /* 模态框样式 */
+    .payment-modal, .recharge-modal, .auth-modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(5px);
+    }
+
+    .payment-container, .recharge-container, .auth-container {
+        position: relative;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        margin: 5% auto;
+        padding: 2rem;
+        border-radius: 20px;
+        width: 90%;
+        max-width: 500px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        color: white;
+    }
+
+    .close-payment, .close-recharge, .close-auth {
+        position: absolute;
+        right: 20px;
+        top: 20px;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+        color: white;
+        opacity: 0.7;
+        transition: opacity 0.3s;
+    }
+
+    .close-payment:hover, .close-recharge:hover, .close-auth:hover {
+        opacity: 1;
+    }
+
+    .payment-header, .recharge-header, .auth-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .payment-header h2, .recharge-header h2, .auth-header h2 {
+        margin: 0 0 0.5rem 0;
+        font-size: 1.8rem;
+    }
+
+    .payment-header p, .recharge-header p, .auth-header p {
+        margin: 0;
+        opacity: 0.9;
+    }
+
+    .modal-form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .modal-form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+    }
+
+    .modal-form-group input {
+        width: 100%;
+        padding: 12px;
+        border: none;
+        border-radius: 10px;
+        font-size: 1rem;
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+        backdrop-filter: blur(10px);
+        box-sizing: border-box;
+    }
+
+    .modal-form-group input::placeholder {
+        color: rgba(255, 255, 255, 0.7);
+    }
+
+    .payment-methods {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .payment-option {
+        display: flex;
+        align-items: center;
+        padding: 15px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .payment-option:hover {
+        background: rgba(255, 255, 255, 0.2);
+    }
+
+    .payment-option input {
+        margin-right: 10px;
+        width: auto;
+    }
+
+    .payment-option i {
+        margin-right: 10px;
+        font-size: 1.2rem;
+    }
+
+    .payment-amount {
+        text-align: center;
+        margin: 1.5rem 0;
+        font-size: 1.2rem;
+    }
+
+    .payment-btn, .recharge-btn, .auth-btn {
+        width: 100%;
+        padding: 15px;
+        background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .payment-btn:hover, .recharge-btn:hover, .auth-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .payment-message, .recharge-message, .auth-message {
+        margin-top: 1rem;
+        text-align: center;
+        font-weight: 500;
+    }
+
+    .auth-tabs {
+        display: flex;
+        margin-bottom: 2rem;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .auth-tab {
+        flex: 1;
+        padding: 12px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .auth-tab.active {
+        background: rgba(255, 255, 255, 0.2);
+    }
+
+    .auth-form {
+        display: none;
+    }
+
+    .auth-form.active {
+        display: block;
+    }
     </style>
 </head>
 <body>
@@ -1038,6 +1208,17 @@
                 <div class="card-header">
                     <i class="fas fa-user-edit"></i>
                     <h2>请输入您的出生信息</h2>
+                    <!-- 用户信息区域 - 右上角 -->
+                    <div class="user-area" style="position: absolute; top: 15px; right: 20px; display: flex; align-items: center; gap: 10px; font-size: 0.9rem;">
+                        <div class="user-welcome" id="userWelcome" style="display: none;">欢迎, <span id="usernameDisplay"></span></div>
+                        <div class="user-balance" style="display:none; color: var(--gold-color);" id="userBalance">
+                            <i class="fas fa-coins"></i> 余额: ¥<span id="balanceAmount">0</span>
+                        </div>
+                        <button class="btn" style="padding: 8px 15px; font-size: 0.8rem; background: var(--secondary-color); color: white;" id="loginBtn">登录/注册</button>
+                        <button class="btn" style="padding: 8px 15px; font-size: 0.8rem; background: var(--gold-color); color: white; display:none;" id="rechargeBtn"><i class="fas fa-plus"></i> 充值</button>
+                        <button class="btn" style="padding: 8px 15px; font-size: 0.8rem; background: var(--success-color); color: white; display:none;" id="manageBtn"><i class="fas fa-id-card"></i> 管理</button>
+                        <button class="btn" style="padding: 8px 15px; font-size: 0.8rem; background: var(--danger-color); color: white; display:none;" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> 退出</button>
+                    </div>
                 </div>
                 
                 <div class="form-grid">
@@ -1146,6 +1327,17 @@
                 </div>
             </div>
 
+            <!-- 详批八字付费按钮 -->
+            <div class="card" id="payment-section">
+                <div class="btn-center">
+                    <button class="btn btn-primary" id="detailed-analysis-btn" style="font-size: 1.2rem; padding: 20px 40px; background: linear-gradient(135deg, var(--gold-color), #e67e22); border: none;">
+                        <i class="fas fa-star"></i> 详批八字（20元每次）
+                    </button>
+                </div>
+            </div>
+
+            <!-- 隐藏的付费内容区域 -->
+            <div id="paid-content" style="display: none;">
             <!-- Fate Level Analysis -->
             <div class="analysis-grid">
                 <div class="analysis-card">
@@ -1296,6 +1488,7 @@
                     <div class="analysis-content" id="health-content"></div>
                 </div>
             </div>
+            </div> <!-- 结束隐藏的付费内容区域 -->
             
             <div class="btn-center">
                 <button class="btn btn-primary" id="recalculate-btn">
@@ -1303,6 +1496,141 @@
                 </button>
             </div>
         </section>
+    </div>
+
+    <!-- 支付弹窗 -->
+    <div class="payment-modal" id="paymentModal" style="display: none;">
+        <div class="payment-container">
+            <span class="close-payment" id="closePayment">&times;</span>
+            <div class="payment-header">
+                <h2><i class="fas fa-star"></i> 详批八字</h2>
+                <p>选择支付方式完成付费（20元）</p>
+            </div>
+            
+            <form id="paymentForm" class="payment-form">
+                <div class="form-group">
+                    <label>支付方式</label>
+                    <div class="payment-methods">
+                        <label class="payment-option">
+                            <input type="radio" name="paymentMethod" value="alipay" checked>
+                            <i class="fab fa-alipay"></i> 支付宝
+                        </label>
+                        <label class="payment-option">
+                            <input type="radio" name="paymentMethod" value="wechat">
+                            <i class="fab fa-weixin"></i> 微信支付
+                        </label>
+                        <label class="payment-option">
+                            <input type="radio" name="paymentMethod" value="balance">
+                            <i class="fas fa-wallet"></i> 余额支付
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="payment-amount">
+                    <span>支付金额：<strong>20元</strong></span>
+                </div>
+                
+                <button type="submit" class="payment-btn">
+                    <span id="paymentText">立即支付</span>
+                    <span id="paymentSpinner" style="display:none;">处理中...</span>
+                </button>
+                
+                <div id="paymentMessage" class="payment-message"></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 充值弹窗 -->
+    <div class="recharge-modal" id="rechargeModal" style="display: none;">
+        <div class="recharge-container">
+            <span class="close-recharge" id="closeRecharge">&times;</span>
+            <div class="recharge-header">
+                <h2><i class="fas fa-coins"></i> 账户充值</h2>
+                <p>请填写充值金额并选择支付方式</p>
+            </div>
+            
+            <form id="rechargeForm" class="recharge-form">
+                <div class="form-group">
+                    <label for="rechargeAmount">充值金额</label>
+                    <input type="number" id="rechargeAmount" placeholder="请输入充值金额" min="1" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>支付方式</label>
+                    <div class="payment-methods">
+                        <label class="payment-option">
+                            <input type="radio" name="paymentMethod" value="alipay" checked>
+                            <i class="fab fa-alipay"></i> 支付宝
+                        </label>
+                        <label class="payment-option">
+                            <input type="radio" name="paymentMethod" value="wechat">
+                            <i class="fab fa-weixin"></i> 微信支付
+                        </label>
+                    </div>
+                </div>
+                
+                <button type="submit" class="recharge-btn">
+                    <span id="rechargeText">立即充值</span>
+                    <span id="rechargeSpinner" style="display:none;">处理中...</span>
+                </button>
+                
+                <div id="rechargeMessage" class="recharge-message"></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 登录注册弹窗 -->
+    <div class="auth-modal" id="authModal" style="display: none;">
+        <div class="auth-container">
+            <span class="close-auth" id="closeAuth">&times;</span>
+            <div class="auth-header">
+                <h2><i class="fas fa-user-circle"></i> 用户中心</h2>
+                <p>登录或注册以使用付费功能</p>
+            </div>
+            
+            <div class="auth-tabs">
+                <div class="auth-tab active" id="loginTab">登录</div>
+                <div class="auth-tab" id="registerTab">注册</div>
+            </div>
+            
+            <!-- 登录表单 -->
+            <form id="loginForm" class="auth-form active">
+                <div class="form-group">
+                    <label for="loginUsername">用户名</label>
+                    <input type="text" id="loginUsername" placeholder="请输入用户名" required>
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">密码</label>
+                    <input type="password" id="loginPassword" placeholder="请输入密码" required>
+                </div>
+                <button type="submit" class="auth-btn">
+                    <span id="loginText">登录</span>
+                    <span id="loginSpinner" style="display:none;">登录中...</span>
+                </button>
+                <div id="loginMessage" class="auth-message"></div>
+            </form>
+            
+            <!-- 注册表单 -->
+            <form id="registerForm" class="auth-form">
+                <div class="form-group">
+                    <label for="registerUsername">用户名</label>
+                    <input type="text" id="registerUsername" placeholder="请输入用户名" required>
+                </div>
+                <div class="form-group">
+                    <label for="registerPassword">密码</label>
+                    <input type="password" id="registerPassword" placeholder="请输入密码" required>
+                </div>
+                <div class="form-group">
+                    <label for="confirmPassword">确认密码</label>
+                    <input type="password" id="confirmPassword" placeholder="请再次输入密码" required>
+                </div>
+                <button type="submit" class="auth-btn">
+                    <span id="registerText">注册</span>
+                    <span id="registerSpinner" style="display:none;">注册中...</span>
+                </button>
+                <div id="registerMessage" class="auth-message"></div>
+            </form>
+        </div>
     </div>
 
     <!-- Scripts -->
@@ -1321,11 +1649,21 @@
         const recalculateBtn = document.getElementById('recalculate-btn');
         const birthTimeInput = document.getElementById('birth-time');
 
+        // API配置
+        const API_BASE = 'https://bazi-backend.owenjass.workers.dev';
+        const API_URL = `${API_BASE}/api`;
+        
+        // 支付状态
+        let isPaid = false;
+
         // 初始化
         document.addEventListener('DOMContentLoaded', function() {
             setupEventListeners();
             setupTabSystem();
             setupAnalysisButtons();
+            setupUserSystem();
+            setupPaymentSystem();
+            checkLoginStatus();
         });
 
         // 设置事件监听器
@@ -1333,6 +1671,388 @@
             calculateBtn.addEventListener('click', handleCalculate);
             recalculateBtn.addEventListener('click', handleRecalculate);
             setupBaziQA();
+        }
+        
+        // 设置用户系统
+        function setupUserSystem() {
+            const loginBtn = document.getElementById('loginBtn');
+            const logoutBtn = document.getElementById('logoutBtn');
+            const authModal = document.getElementById('authModal');
+            const closeAuth = document.getElementById('closeAuth');
+            const loginTab = document.getElementById('loginTab');
+            const registerTab = document.getElementById('registerTab');
+            const loginForm = document.getElementById('loginForm');
+            const registerForm = document.getElementById('registerForm');
+            
+            // 登录按钮点击
+            loginBtn.addEventListener('click', () => {
+                authModal.style.display = 'block';
+            });
+            
+            // 退出按钮点击
+            logoutBtn.addEventListener('click', () => {
+                logout();
+            });
+            
+            // 关闭模态框
+            closeAuth.addEventListener('click', () => {
+                authModal.style.display = 'none';
+            });
+            
+            // 点击外部关闭
+            authModal.addEventListener('click', (e) => {
+                if (e.target === authModal) {
+                    authModal.style.display = 'none';
+                }
+            });
+            
+            // 标签页切换
+            loginTab.addEventListener('click', () => {
+                loginTab.classList.add('active');
+                registerTab.classList.remove('active');
+                loginForm.classList.add('active');
+                registerForm.classList.remove('active');
+            });
+            
+            registerTab.addEventListener('click', () => {
+                registerTab.classList.add('active');
+                loginTab.classList.remove('active');
+                registerForm.classList.add('active');
+                loginForm.classList.remove('active');
+            });
+            
+            // 登录表单提交
+            loginForm.addEventListener('submit', handleLogin);
+            
+            // 注册表单提交
+            registerForm.addEventListener('submit', handleRegister);
+        }
+        
+        // 设置支付系统
+        function setupPaymentSystem() {
+            const detailedAnalysisBtn = document.getElementById('detailed-analysis-btn');
+            const paymentModal = document.getElementById('paymentModal');
+            const closePayment = document.getElementById('closePayment');
+            const paymentForm = document.getElementById('paymentForm');
+            const rechargeBtn = document.getElementById('rechargeBtn');
+            const rechargeModal = document.getElementById('rechargeModal');
+            const closeRecharge = document.getElementById('closeRecharge');
+            const rechargeForm = document.getElementById('rechargeForm');
+            
+            // 详批八字按钮点击
+            detailedAnalysisBtn.addEventListener('click', () => {
+                if (!localStorage.getItem('token')) {
+                    alert('请先登录');
+                    document.getElementById('authModal').style.display = 'block';
+                    return;
+                }
+                paymentModal.style.display = 'block';
+            });
+            
+            // 关闭支付模态框
+            closePayment.addEventListener('click', () => {
+                paymentModal.style.display = 'none';
+            });
+            
+            // 支付表单提交
+            paymentForm.addEventListener('submit', handlePayment);
+            
+            // 充值按钮点击
+            if (rechargeBtn) {
+                rechargeBtn.addEventListener('click', () => {
+                    rechargeModal.style.display = 'block';
+                });
+            }
+            
+            // 关闭充值模态框
+            if (closeRecharge) {
+                closeRecharge.addEventListener('click', () => {
+                    rechargeModal.style.display = 'none';
+                });
+            }
+            
+            // 充值表单提交
+            if (rechargeForm) {
+                rechargeForm.addEventListener('submit', handleRecharge);
+            }
+        }
+        
+        // 检查登录状态
+        function checkLoginStatus() {
+            const token = localStorage.getItem('token');
+            if (token) {
+                updateUIForLoggedInUser();
+                updateBalance();
+            }
+        }
+        
+        // 更新已登录用户的UI
+        function updateUIForLoggedInUser() {
+            const username = localStorage.getItem('username');
+            document.getElementById('loginBtn').style.display = 'none';
+            document.getElementById('userWelcome').style.display = 'block';
+            document.getElementById('usernameDisplay').textContent = username;
+            document.getElementById('userBalance').style.display = 'block';
+            document.getElementById('rechargeBtn').style.display = 'inline-block';
+            document.getElementById('manageBtn').style.display = 'inline-block';
+            document.getElementById('logoutBtn').style.display = 'inline-block';
+        }
+        
+        // 更新余额显示
+        async function updateBalance() {
+            try {
+                const response = await fetch(`${API_URL}/user/balance`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    document.getElementById('balanceAmount').textContent = data.balance || 0;
+                }
+            } catch (error) {
+                console.error('获取余额失败:', error);
+            }
+        }
+        
+        // 处理登录
+        async function handleLogin(e) {
+            e.preventDefault();
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+            const loginMessage = document.getElementById('loginMessage');
+            const loginSpinner = document.getElementById('loginSpinner');
+            const loginText = document.getElementById('loginText');
+            
+            loginSpinner.style.display = 'inline';
+            loginText.style.display = 'none';
+            
+            try {
+                const response = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('username', username);
+                    loginMessage.textContent = '登录成功！';
+                    loginMessage.style.color = 'lightgreen';
+                    
+                    setTimeout(() => {
+                        document.getElementById('authModal').style.display = 'none';
+                        updateUIForLoggedInUser();
+                        updateBalance();
+                    }, 1000);
+                } else {
+                    loginMessage.textContent = data.message || '登录失败';
+                    loginMessage.style.color = 'red';
+                }
+            } catch (error) {
+                loginMessage.textContent = '网络错误，请稍后重试';
+                loginMessage.style.color = 'red';
+            } finally {
+                loginSpinner.style.display = 'none';
+                loginText.style.display = 'inline';
+            }
+        }
+        
+        // 处理注册
+        async function handleRegister(e) {
+            e.preventDefault();
+            const username = document.getElementById('registerUsername').value;
+            const password = document.getElementById('registerPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const registerMessage = document.getElementById('registerMessage');
+            const registerSpinner = document.getElementById('registerSpinner');
+            const registerText = document.getElementById('registerText');
+            
+            if (password !== confirmPassword) {
+                registerMessage.textContent = '两次输入的密码不一致';
+                registerMessage.style.color = 'red';
+                return;
+            }
+            
+            registerSpinner.style.display = 'inline';
+            registerText.style.display = 'none';
+            
+            try {
+                const response = await fetch(`${API_URL}/auth/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    registerMessage.textContent = '注册成功！请登录';
+                    registerMessage.style.color = 'lightgreen';
+                    
+                    setTimeout(() => {
+                        document.getElementById('loginTab').click();
+                    }, 1000);
+                } else {
+                    registerMessage.textContent = data.message || '注册失败';
+                    registerMessage.style.color = 'red';
+                }
+            } catch (error) {
+                registerMessage.textContent = '网络错误，请稍后重试';
+                registerMessage.style.color = 'red';
+            } finally {
+                registerSpinner.style.display = 'none';
+                registerText.style.display = 'inline';
+            }
+        }
+        
+        // 处理支付
+        async function handlePayment(e) {
+            e.preventDefault();
+            const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
+            const paymentMessage = document.getElementById('paymentMessage');
+            const paymentSpinner = document.getElementById('paymentSpinner');
+            const paymentText = document.getElementById('paymentText');
+            
+            paymentSpinner.style.display = 'inline';
+            paymentText.style.display = 'none';
+            
+            try {
+                if (paymentMethod === 'balance') {
+                    // 余额支付
+                    const response = await fetch(`${API_URL}/payment/balance`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        },
+                        body: JSON.stringify({ amount: 20, type: 'bazi_analysis' })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        paymentMessage.textContent = '支付成功！';
+                        paymentMessage.style.color = 'lightgreen';
+                        isPaid = true;
+                        
+                        setTimeout(() => {
+                            document.getElementById('paymentModal').style.display = 'none';
+                            showPaidContent();
+                            updateBalance();
+                        }, 1000);
+                    } else {
+                        paymentMessage.textContent = data.message || '支付失败';
+                        paymentMessage.style.color = 'red';
+                    }
+                } else {
+                    // 第三方支付
+                    const response = await fetch(`${API_URL}/payment/create`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        },
+                        body: JSON.stringify({ 
+                            amount: 20, 
+                            paymentMethod, 
+                            type: 'bazi_analysis' 
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        // 跳转到支付页面
+                        window.open(data.paymentUrl, '_blank');
+                        paymentMessage.textContent = '正在跳转支付页面...';
+                        paymentMessage.style.color = 'lightblue';
+                    } else {
+                        paymentMessage.textContent = data.message || '创建支付订单失败';
+                        paymentMessage.style.color = 'red';
+                    }
+                }
+            } catch (error) {
+                paymentMessage.textContent = '网络错误，请稍后重试';
+                paymentMessage.style.color = 'red';
+            } finally {
+                paymentSpinner.style.display = 'none';
+                paymentText.style.display = 'inline';
+            }
+        }
+        
+        // 处理充值
+        async function handleRecharge(e) {
+            e.preventDefault();
+            const amount = document.getElementById('rechargeAmount').value;
+            const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
+            const rechargeMessage = document.getElementById('rechargeMessage');
+            const rechargeSpinner = document.getElementById('rechargeSpinner');
+            const rechargeText = document.getElementById('rechargeText');
+            
+            rechargeSpinner.style.display = 'inline';
+            rechargeText.style.display = 'none';
+            
+            try {
+                const response = await fetch(`${API_URL}/payment/recharge`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({ amount, paymentMethod })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    // 跳转到支付页面
+                    window.open(data.paymentUrl, '_blank');
+                    rechargeMessage.textContent = '正在跳转支付页面...';
+                    rechargeMessage.style.color = 'lightblue';
+                } else {
+                    rechargeMessage.textContent = data.message || '创建充值订单失败';
+                    rechargeMessage.style.color = 'red';
+                }
+            } catch (error) {
+                rechargeMessage.textContent = '网络错误，请稍后重试';
+                rechargeMessage.style.color = 'red';
+            } finally {
+                rechargeSpinner.style.display = 'none';
+                rechargeText.style.display = 'inline';
+            }
+        }
+        
+        // 显示付费内容
+        function showPaidContent() {
+            document.getElementById('paid-content').style.display = 'block';
+            document.getElementById('payment-section').style.display = 'none';
+        }
+        
+        // 退出登录
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('username');
+            
+            // 重置UI
+            document.getElementById('loginBtn').style.display = 'inline-block';
+            document.getElementById('userWelcome').style.display = 'none';
+            document.getElementById('userBalance').style.display = 'none';
+            document.getElementById('rechargeBtn').style.display = 'none';
+            document.getElementById('manageBtn').style.display = 'none';
+            document.getElementById('logoutBtn').style.display = 'none';
+            
+            // 重置支付状态
+            isPaid = false;
+            document.getElementById('paid-content').style.display = 'none';
+            document.getElementById('payment-section').style.display = 'block';
         }
         
         // 设置八字问答功能
@@ -1577,6 +2297,17 @@ contentElement.classList.add('show');
             // 重置当前八字数据
             currentBaziData = null;
             window.currentBaziData = null;
+            
+            // 重置支付状态
+            isPaid = false;
+            const paidContent = document.getElementById('paid-content');
+            const paymentSection = document.getElementById('payment-section');
+            if (paidContent) {
+                paidContent.style.display = 'none';
+            }
+            if (paymentSection) {
+                paymentSection.style.display = 'block';
+            }
             
             // 重置表单
             document.getElementById('name').value = '';
@@ -4400,7 +5131,7 @@ contentElement.classList.add('show');
              }
              
              // 使用本地代理服务器
-             const apiUrl = 'https://deepseek-api-proxy.owenjass.workers.dev/api/deepseek';
+             const apiUrl = 'https://deepseek-api-proxy.owenjass.workers.dev/api/deepseek'
              // 使用代理服务器，不直接暴露API Key
              const apiKey = 'placeholder_key_for_local_dev_only';
              
