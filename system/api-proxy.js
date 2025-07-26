@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const fetch = require('node-fetch');
+const path = require('path');
 require('dotenv').config();
 
 const app = express();
@@ -15,6 +16,17 @@ if (!process.env.DEEPSEEK_API_KEY) {
 
 app.use(cors());
 app.use(express.json());
+
+// 提供静态文件服务
+app.use(express.static(path.join(__dirname, '..')));
+
+// 添加路由处理/system/路径下的文件
+app.use('/system', express.static(__dirname));
+
+// 根路径处理
+app.get('/', (req, res) => {
+    res.json({ message: 'DeepSeek API代理服务器', status: 'running', endpoints: ['/api/deepseek'] });
+});
 
 // 代理DeepSeek API请求
 app.post('/api/deepseek', async (req, res) => {
