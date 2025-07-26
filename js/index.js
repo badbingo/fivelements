@@ -8,7 +8,8 @@ function base64Decode(str) {
   return Uint8Array.from(atob(str), c => c.charCodeAt(0));
 }
 
-const JWT_SECRET = 'your_jwt_secret_key';
+// 注意：前端不应存储敏感密钥，此处仅用于本地开发测试
+const JWT_SECRET = 'frontend_placeholder_key_for_local_dev_only';
 
 // ✅ 生成 JWT
 function generateJWT(payload, secret) {

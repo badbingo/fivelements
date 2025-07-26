@@ -516,7 +516,8 @@ document.addEventListener('DOMContentLoaded', function() {
     
     async function getMarriageAnalysis(section, maleData, femaleData) {
         const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
-        const apiKey = 'sk-b2950087a9d5427392762814114b22a9';
+        // 使用代理服务器，不直接暴露API Key
+        const apiKey = 'placeholder_key_for_local_dev_only';
         
         const cacheKey = `${maleData.date}-${maleData.time}-${femaleData.date}-${femaleData.time}-${section}`;
         if (analysisCache[cacheKey]) {

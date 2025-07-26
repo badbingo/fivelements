@@ -4,7 +4,7 @@ import worker from './src/index.js';
 
 // 模拟Cloudflare Worker环境
 const env = {
-  JWT_SECRET: 'your_jwt_secret_key',
+  JWT_SECRET: process.env.JWT_SECRET || 'test_jwt_secret_placeholder', // 实际环境中应从环境变量获取
   D1_TOKEN: 'mock_d1_token',
   DB: {
     userBalance: 25.0,
