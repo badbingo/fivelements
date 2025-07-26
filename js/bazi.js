@@ -3432,7 +3432,7 @@ function determineStrengthType(pillars) {
     }
     
     // 其他部分调用API
-    const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
+    const apiUrl = 'https://deepseek-api-proxy.owenjass.workers.dev/api/deepseek';
     // 使用代理服务器，不直接暴露API Key
     const apiKey = 'placeholder_key_for_local_dev_only';
     
@@ -3774,7 +3774,7 @@ function determineStrengthType(pillars) {
 
     // 获取八字问答答案
     async function getBaziAnswer(question) {
-        const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
+        const apiUrl = 'https://deepseek-api-proxy.owenjass.workers.dev/api/deepseek';
         // 使用代理服务器，不直接暴露API Key
         const apiKey = 'placeholder_key_for_local_dev_only';
 
