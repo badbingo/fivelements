@@ -1306,7 +1306,7 @@
     </div>
 
     <!-- Scripts -->
-    <script src="./lunar.js"></script>
+    <script src="../js/lunar.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script>
         // 全局变量
@@ -4220,16 +4220,8 @@ contentElement.classList.add('show');
          function formatMarkdownContent(content) {
              // 基本的Markdown转HTML处理
              let formatted = content
-                 // 移除所有#字符和---分隔符
+                 // 移除所有#字符
                  .replace(/#/g, '')
-                 .replace(/---+/g, '')
-                 .replace(/===+/g, '')
-                 .replace(/___+/g, '')
-                 // 移除其他奇怪符号
-                 .replace(/[\*]{3,}/g, '')
-                 .replace(/[-]{3,}/g, '')
-                 .replace(/[=]{3,}/g, '')
-                 .replace(/[_]{3,}/g, '')
                  // 处理标题（不显示#符号）
                  .replace(/^\s*(.*?)\s*$/gm, function(match, text) {
                      // 检测是否为标题格式（连续的大写字母或重要关键词）
@@ -4339,7 +4331,8 @@ contentElement.classList.add('show');
                  const response = await fetch(apiUrl, {
                      method: 'POST',
                      headers: {
-                         'Content-Type': 'application/json'
+                         'Content-Type': 'application/json',
+                         'Authorization': `Bearer ${apiKey}`
                      },
                      body: JSON.stringify({
                          model: "deepseek-chat",
@@ -4566,7 +4559,8 @@ contentElement.classList.add('show');
                  const response = await fetch(apiUrl, {
                      method: 'POST',
                      headers: {
-                         'Content-Type': 'application/json'
+                         'Content-Type': 'application/json',
+                         'Authorization': `Bearer ${apiKey}`
                      },
                      body: JSON.stringify({
                          model: "deepseek-chat",
