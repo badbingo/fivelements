@@ -17,6 +17,327 @@
     <!-- Chart.js 和插件 -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+    <script src="../js/wwpay.js" defer></script>
+<script src="../js/lunar.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+   
+    <script>
+      // 配置后端地址（必须修改！）
+      const API_BASE = 'https://bazi-backend.owenjass.workers.dev';
+      const API_URL = `${API_BASE}/api`;
+      
+      // 充值功能
+document.addEventListener('DOMContentLoaded', function() {
+    // 确保WWPay类可用
+    if (typeof WWPay === 'undefined') {
+        console.error('WWPay类未定义，请检查wwpay.js是否加载成功');
+        return;
+    }
+    
+    // 使用全局的wwPay实例
+    const rechargeBtn = document.getElementById('rechargeBtn');
+    const rechargeModal = document.getElementById('rechargeModal');
+    const closeRecharge = document.getElementById('closeRecharge');
+    const rechargeForm = document.getElementById('rechargeForm');
+          
+          // 显示充值弹窗
+          rechargeBtn.addEventListener('click', function() {
+              rechargeModal.style.display = 'block';
+          });
+          
+          // 关闭充值弹窗
+          closeRecharge.addEventListener('click', function() {
+              rechargeModal.style.display = 'none';
+          });
+          
+          // 处理充值表单提交
+          rechargeForm.addEventListener('submit', async function(e) {
+              e.preventDefault();
+              
+              const amount = document.getElementById('rechargeAmount').value;
+              const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
+              const rechargeSpinner = document.getElementById('rechargeSpinner');
+              const rechargeText = document.getElementById('rechargeText');
+              const rechargeMessage = document.getElementById('rechargeMessage');
+              
+              rechargeSpinner.style.display = 'inline-block';
+              rechargeText.style.display = 'none';
+              
+              try {
+                  // 使用全局的wwPay实例
+                  
+                  // 1. 创建充值订单
+                  const orderResponse = await window.wwPay.createRechargeOrder(amount, paymentMethod);
+                  
+                  // 2. 跳转支付平台
+                  await window.wwPay.redirectToPaymentGateway(orderResponse);
+                  
+                  // 3. 显示支付处理中提示
+                  rechargeMessage.textContent = '正在跳转支付平台...';
+                  rechargeMessage.style.color = 'white';
+                  
+              } catch (error) {
+                  rechargeMessage.textContent = error.message;
+                  rechargeMessage.style.color = 'red';
+              } finally {
+                  rechargeSpinner.style.display = 'none';
+                  rechargeText.style.display = 'inline';
+              }
+          });
+          
+          // 登录成功后显示充值按钮和余额
+          if (localStorage.getItem('token')) {
+              // 确保DOM元素存在
+              const userBalanceEl = document.getElementById('userBalance');
+              const modalBalanceEl = document.getElementById('modalBalance');
+              
+              if (rechargeBtn) rechargeBtn.style.display = 'inline-block';
+              if (userBalanceEl) userBalanceEl.style.display = 'block';
+              if (modalBalanceEl) modalBalanceEl.style.display = 'block';
+              
+              // 获取用户余额并更新显示
+              async function updateBalance() {
+                  try {
+                      const response = await fetch(`${API_URL}/user/balance`, {
+                          headers: {
+                              'Authorization': `Bearer ${localStorage.getItem('token')}`
+                          }
+                      });
+                      
+                      if (!response.ok) {
+                          throw new Error(`HTTP error! status: ${response.status}`);
+                      }
+                      
+                      const data = await response.json();
+                      
+                      // 调试日志
+                      console.log('用户数据:', data);
+                      
+                      const balanceAmountEl = document.getElementById('balanceAmount');
+                      const modalBalanceAmountEl = document.getElementById('modalBalanceAmount');
+                      
+                      if (data.balance !== undefined) {
+                          if (balanceAmountEl) balanceAmountEl.textContent = data.balance;
+                          if (modalBalanceAmountEl) modalBalanceAmountEl.textContent = data.balance;
+                      } else {
+                          console.error('API响应中缺少balance字段');
+                      }
+                  } catch (error) {
+                      console.error('获取余额失败:', error);
+                      // 显示错误提示
+                      const balanceAmountEl = document.getElementById('balanceAmount');
+                      const modalBalanceAmountEl = document.getElementById('modalBalanceAmount');
+                      if (balanceAmountEl) balanceAmountEl.textContent = '获取失败';
+                      if (modalBalanceAmountEl) modalBalanceAmountEl.textContent = '获取失败';
+                  }
+              }
+              
+              // 立即执行并设置定时刷新
+              updateBalance();
+              setInterval(updateBalance, 30000); // 每30秒刷新一次
+          }
+
+          // 登录/注册功能
+          const loginRegisterBtn = document.getElementById('loginRegisterBtn');
+          const logoutBtn = document.getElementById('logoutBtn');
+          const authModal = document.getElementById('authModal');
+          const closeAuth = document.getElementById('closeAuth');
+          const loginTab = document.getElementById('loginTab');
+          const registerTab = document.getElementById('registerTab');
+          const loginForm = document.getElementById('loginForm');
+          const registerForm = document.getElementById('registerForm');
+          const loginSpinner = document.getElementById('loginSpinner');
+          const loginText = document.getElementById('loginText');
+          const loginMessage = document.getElementById('loginMessage');
+          const registerSpinner = document.getElementById('registerSpinner');
+          const registerText = document.getElementById('registerText');
+          const registerMessage = document.getElementById('registerMessage');
+
+          // 显示登录/注册弹窗
+          loginRegisterBtn.addEventListener('click', function() {
+              authModal.style.display = 'block';
+              loginForm.classList.add('active');
+              registerForm.classList.remove('active');
+              loginTab.classList.add('active');
+              registerTab.classList.remove('active');
+              loginMessage.textContent = '';
+              registerMessage.textContent = '';
+          });
+
+          // 关闭登录/注册弹窗
+          closeAuth.addEventListener('click', function() {
+              authModal.style.display = 'none';
+          });
+
+          // 切换登录/注册表单
+          loginTab.addEventListener('click', function() {
+              loginForm.classList.add('active');
+              registerForm.classList.remove('active');
+              loginTab.classList.add('active');
+              registerTab.classList.remove('active');
+              loginMessage.textContent = '';
+          });
+
+          registerTab.addEventListener('click', function() {
+              registerForm.classList.add('active');
+              loginForm.classList.remove('active');
+              registerTab.classList.add('active');
+              loginTab.classList.remove('active');
+              registerMessage.textContent = '';
+          });
+
+          // 处理登录表单提交
+          loginForm.addEventListener('submit', async function(e) {
+              e.preventDefault();
+              const username = document.getElementById('loginUsername').value;
+              const password = document.getElementById('loginPassword').value;
+
+              loginSpinner.style.display = 'inline-block';
+              loginText.style.display = 'none';
+              loginMessage.textContent = '';
+
+              try {
+                  const response = await fetch(`${API_URL}/user/login`, {
+                      method: 'POST',
+                      headers: {
+                          'Content-Type': 'application/json'
+                      },
+                      body: JSON.stringify({ username, password })
+                  });
+
+                  const data = await response.json();
+
+                  if (response.ok) {
+                      localStorage.setItem('token', data.token);
+                      loginMessage.textContent = '登录成功！';
+                      loginMessage.style.color = 'green';
+                      authModal.style.display = 'none';
+                      updateAuthUI();
+                      updateBalance(); // 登录成功后更新余额
+                  } else {
+                      throw new Error(data.message || '登录失败');
+                  }
+              } catch (error) {
+                  loginMessage.textContent = error.message;
+                  loginMessage.style.color = 'red';
+              } finally {
+                  loginSpinner.style.display = 'none';
+                  loginText.style.display = 'inline';
+              }
+          });
+
+          // 处理注册表单提交
+          registerForm.addEventListener('submit', async function(e) {
+              e.preventDefault();
+              const username = document.getElementById('registerUsername').value;
+              const password = document.getElementById('registerPassword').value;
+              const confirmPassword = document.getElementById('registerConfirmPassword').value;
+
+              if (password !== confirmPassword) {
+                  registerMessage.textContent = '两次输入的密码不一致！';
+                  registerMessage.style.color = 'red';
+                  return;
+              }
+
+              registerSpinner.style.display = 'inline-block';
+              registerText.style.display = 'none';
+              registerMessage.textContent = '';
+
+              try {
+                  const response = await fetch(`${API_URL}/user/register`, {
+                      method: 'POST',
+                      headers: {
+                          'Content-Type': 'application/json'
+                      },
+                      body: JSON.stringify({ username, password })
+                  });
+
+                  const data = await response.json();
+
+                  if (response.ok) {
+                      registerMessage.textContent = '注册成功！请登录。';
+                      registerMessage.style.color = 'green';
+                      // 注册成功后自动切换到登录界面
+                      loginForm.classList.add('active');
+                      registerForm.classList.remove('active');
+                      loginTab.classList.add('active');
+                      registerTab.classList.remove('active');
+                      document.getElementById('loginUsername').value = username;
+                      document.getElementById('loginPassword').value = '';
+                  } else {
+                      throw new Error(data.message || '注册失败');
+                  }
+              } catch (error) {
+                  registerMessage.textContent = error.message;
+                  registerMessage.style.color = 'red';
+              } finally {
+                  registerSpinner.style.display = 'none';
+                  registerText.style.display = 'inline';
+              }
+          });
+
+          // 退出登录
+          logoutBtn.addEventListener('click', function() {
+              localStorage.removeItem('token');
+              updateAuthUI();
+              // 清除余额显示
+              document.getElementById('balanceAmount').textContent = '0';
+              // 隐藏充值按钮和余额
+              document.getElementById('rechargeBtn').style.display = 'none';
+              document.getElementById('userBalance').style.display = 'none';
+          });
+
+          // 更新认证UI状态
+          function updateAuthUI() {
+              if (localStorage.getItem('token')) {
+                  loginRegisterBtn.style.display = 'none';
+                  logoutBtn.style.display = 'inline-block';
+                  rechargeBtn.style.display = 'inline-block';
+                  userBalance.style.display = 'block';
+              } else {
+                  loginRegisterBtn.style.display = 'inline-block';
+                  logoutBtn.style.display = 'none';
+                  rechargeBtn.style.display = 'none';
+                  userBalance.style.display = 'none';
+              }
+          }
+
+          // 页面加载时检查登录状态并更新UI
+          updateAuthUI();
+
+          // 获取用户余额并更新显示 (已在DOMContentLoaded中定义，这里仅为确保函数可用)
+          async function updateBalance() {
+              try {
+                  const response = await fetch(`${API_URL}/user/balance`, {
+                      headers: {
+                          'Authorization': `Bearer ${localStorage.getItem('token')}`
+                      }
+                  });
+
+                  if (!response.ok) {
+                      throw new Error(`HTTP error! status: ${response.status}`);
+                  }
+
+                  const data = await response.json();
+
+                  if (data.balance !== undefined) {
+                      document.getElementById('balanceAmount').textContent = data.balance;
+                  } else {
+                      console.error('API响应中缺少balance字段');
+                  }
+              } catch (error) {
+                  console.error('获取余额失败:', error);
+                  document.getElementById('balanceAmount').textContent = '获取失败';
+              }
+          }
+
+          // 如果已登录，立即执行并设置定时刷新
+          if (localStorage.getItem('token')) {
+              updateBalance();
+              setInterval(updateBalance, 30000); // 每30秒刷新一次
+          }
+      });
+    </script>
     
     
     <style>
@@ -197,6 +518,759 @@
         .btn-primary:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 20px rgba(52, 152, 219, 0.3);
+        }
+
+        /* 从 wwstyle.css 复制的样式 */
+        :root {
+            --primary-color: #6a11cb;
+            --secondary-color: #2575fc;
+            --text-color: #e0e0e0;
+            --text-light: #b8c2cc;
+            --text-dark: #8a94a6;
+            --bg-dark: rgba(10, 10, 20, 0.7);
+            --bg-light: rgba(20, 20, 30, 0.7);
+            --border-color: rgba(106, 17, 203, 0.3);
+            
+            /* 愿望卡片等级颜色 */
+            --level-1: rgba(20, 20, 30, 0.7);
+            --level-2: rgba(26, 58, 95, 0.7);
+            --level-3: rgba(93, 64, 55, 0.7);
+            --level-4: rgba(127, 0, 0, 0.7);
+            --level-5: rgba(150, 110, 20, 0.8);
+            
+            /* 能量条等级颜色 */
+            --bar-1: #6a11cb;
+            --bar-2: #2575fc;
+            --bar-3: #d35400;
+            --bar-4: #c0392b;
+            --bar-5: #f1c40f;
+        }
+
+        body {
+            font-family: 'Noto Serif SC', serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background: #000000;
+            position: relative;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ==================== 背景动画 ==================== */
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.2; }
+            50% { opacity: 1; }
+        }
+
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            overflow: hidden;
+        }
+
+        .star {
+            position: absolute;
+            background-color: white;
+            border-radius: 50%;
+            animation: twinkle 3s infinite;
+        }
+
+        #particles-js {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: -1;
+        }
+
+        .background-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(
+                circle at center, 
+                rgba(106, 17, 203, 0.15) 0%, 
+                rgba(10, 10, 20, 0.95) 100%
+            );
+            z-index: -1;
+            opacity: 0.8;
+        }
+
+        /* ==================== 主内容容器 ==================== */
+        .content-container {
+            max-width: 1200px;
+            margin: 30px auto 80px;
+            padding: 50px 60px;
+            background: #1a237e;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-color);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.5s ease;
+            background-image: url('../images/dragon.gif');
+            background-repeat: no-repeat;
+            background-position: top center;
+            background-size: auto;
+        }
+
+        .content-container:hover {
+            box-shadow: 0 15px 40px rgba(106, 17, 203, 0.4);
+            /* 确保背景颜色不变 */
+            background-color: #1a237e;
+            background-image: url('../images/dragon.gif');
+        }
+
+        .content-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(106, 17, 203, 0.1) 0%, rgba(37, 117, 252, 0.05) 100%);
+            z-index: -1;
+        }
+
+        /* ==================== 标题区域 ==================== */
+        .content-title {
+            text-align: center;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .content-title h1 {
+            font-size: 4.5rem;
+            font-family: 'Ma Shan Zheng', cursive;
+            font-weight: 800;
+            color: white;
+            padding: 20px 50px;
+            display: inline-block;
+
+            text-shadow: 0 2px 10px rgba(106, 17, 203, 0.5);
+            margin-bottom: 10px;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .content-title h1:hover {
+            transform: translateY(-5px) rotate(1deg);
+
+        }
+
+        .content-title h1::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+
+            transform: rotate(30deg);
+            animation: shine 5s infinite;
+        }
+
+        @keyframes shine {
+            0% { left: -50%; }
+            100% { left: 150%; }
+        }
+
+        .content-title p {
+            color: var(--text-light);
+            font-size: 1.2rem;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.8;
+            position: relative;
+            padding: 15px 0;
+        }
+
+        .content-title p::before,
+        .content-title p::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 2px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+        }
+
+        .content-title p::before {
+            top: 0;
+        }
+
+        .content-title p::after {
+            bottom: 0;
+        }
+
+        /* 从 wwstyle.css 复制的样式 (201-400行) */
+        .content-title p::before,
+        .content-title p::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 2px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+        }
+
+        .content-title p::before {
+            top: 0;
+        }
+
+        .content-title p::after {
+            bottom: 0;
+        }
+
+        /* ==================== 愿望池区域 ==================== */
+        .wishing-pool-section {
+            margin-top: 50px;
+            text-align: center;
+        }
+
+        .wishing-pool-section h2 {
+            font-size: 2.5rem;
+            color: white;
+            margin-bottom: 20px;
+            font-family: 'Ma Shan Zheng', cursive;
+            text-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+        }
+
+        .wishing-pool-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .wish-card {
+            background: var(--level-1);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            text-align: left;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 220px;
+        }
+
+        .wish-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0) 100%);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .wish-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            border-color: var(--primary-color);
+        }
+
+        .wish-card.level-2 { background: var(--level-2); }
+        .wish-card.level-3 { background: var(--level-3); }
+        .wish-card.level-4 { background: var(--level-4); }
+        .wish-card.level-5 { background: var(--level-5); }
+
+        .wish-card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .wish-card-header i {
+            font-size: 1.8rem;
+            color: var(--primary-color);
+            margin-right: 10px;
+        }
+
+        .wish-card-header h3 {
+            font-size: 1.4rem;
+            color: white;
+            font-weight: 600;
+        }
+
+        .wish-card p {
+            font-size: 1rem;
+            color: var(--text-light);
+            margin-bottom: 15px;
+            flex-grow: 1;
+            position: relative;
+            z-index: 1;
+        }
+
+        .wish-card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9rem;
+            color: var(--text-dark);
+            position: relative;
+            z-index: 1;
+        }
+
+        .wish-card-footer span i {
+            margin-right: 5px;
+            color: var(--secondary-color);
+        }
+
+        .wish-card-footer .date {
+            font-style: italic;
+        }
+
+        .wish-card-footer .status {
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .wish-card-footer .status.fulfilled { color: var(--success-color); }
+        .wish-card-footer .status.pending { color: var(--warning-color); }
+
+        /* ==================== 许愿表单 ==================== */
+        .make-wish-section {
+            margin-top: 50px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .make-wish-section h2 {
+            font-size: 2rem;
+            color: white;
+            margin-bottom: 25px;
+            text-align: center;
+            font-family: 'Ma Shan Zheng', cursive;
+        }
+
+        .wish-form .form-group {
+            margin-bottom: 20px;
+        }
+
+        .wish-form label {
+            display: block;
+            color: var(--text-light);
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .wish-form input[type="text"],
+        .wish-form textarea,
+        .wish-form select {
+            width: 100%;
+            padding: 12px 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(0, 0, 0, 0.3);
+            color: white;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .wish-form input[type="text"]:focus,
+        .wish-form textarea:focus,
+        .wish-form select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .wish-form textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .wish-form .btn-submit {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .wish-form .btn-submit:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        /* ==================== 充值弹窗样式 ==================== */
+        .recharge-modal,
+        .auth-modal {
+            display: none; /* 默认隐藏 */
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .recharge-container,
+        .auth-container {
+            background-color: #1a237e;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.5);
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            animation: fadeInScale 0.3s ease-out;
+        }
+
+        @keyframes fadeInScale {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .close-recharge,
+        .close-auth {
+            color: #aaa;
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .close-recharge:hover,
+        .close-recharge:focus,
+        .close-auth:hover,
+        .close-auth:focus {
+            color: white;
+        }
+
+        .recharge-header,
+        .auth-header {
+            text-align: center;
+            margin-bottom: 25px;
+            color: white;
+        }
+
+        .recharge-header h2,
+        .auth-header h2 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            font-family: 'Ma Shan Zheng', cursive;
+        }
+
+        .recharge-header p,
+        .auth-header p {
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+
+        .recharge-form .form-group,
+        .auth-form .form-group {
+            margin-bottom: 20px;
+        }
+
+        .recharge-form label,
+        .auth-form label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-light);
+            font-weight: 500;
+        }
+
+        .recharge-form input[type="number"],
+        .recharge-form input[type="text"],
+        .recharge-form input[type="password"],
+        .auth-form input[type="text"],
+        .auth-form input[type="password"] {
+            width: calc(100% - 24px);
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(0, 0, 0, 0.3);
+            color: white;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .recharge-form input:focus,
+        .auth-form input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .payment-methods {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .payment-option {
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.08);
+            padding: 12px 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .payment-option:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: var(--secondary-color);
+        }
+
+        .payment-option input[type="radio"] {
+            margin-right: 12px;
+            accent-color: var(--primary-color);
+            transform: scale(1.2);
+        }
+
+        .payment-option i {
+            font-size: 1.5rem;
+            margin-right: 10px;
+            color: var(--primary-color);
+        }
+
+        .payment-option .payment-tag {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 5px;
+            font-size: 0.75rem;
+            margin-left: auto;
+        }
+
+        .recharge-btn,
+        .auth-btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .recharge-btn:hover,
+        .auth-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .recharge-message,
+        .auth-message {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 0.9rem;
+            color: red;
+        }
+
+        /* 登录注册弹窗特有样式 */
+        .auth-tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .auth-tab {
+            flex: 1;
+            text-align: center;
+            padding: 12px 0;
+            cursor: pointer;
+            color: var(--text-light);
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+        }
+
+        .auth-tab.active {
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .auth-form {
+            display: none; /* 默认隐藏 */
+        }
+
+        .auth-form.active {
+            display: block;
+        }
+
+        /* 管理条样式 */
+        .info-input-container {
+            position: relative;
+            /* 根据实际布局调整宽度和定位 */
+            width: 100%; /* 示例宽度 */
+            margin: 20px auto; /* 示例居中 */
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+
+        .management-bar {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .management-bar span {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .management-bar button {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .management-bar button:hover {
+            background-color: #0056b3;
+        }
+
+        /* 从 wwstyle.css 复制的样式 (401-600行) */
+        .auth-switch-link {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 0.9rem;
+        }
+
+        .auth-switch-link a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .auth-switch-link a:hover {
+            text-decoration: underline;
+        }
+
+        /* ==================== 响应式设计 ==================== */
+        @media (max-width: 768px) {
+            .content-container {
+                padding: 20px;
+            }
+
+            .content-title h1 {
+                font-size: 2.5rem;
+            }
+
+            .content-title p {
+                font-size: 1.1rem;
+            }
+
+            .wishing-pool-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .wish-card {
+                padding: 20px;
+            }
+
+            .make-wish-section {
+                padding: 20px;
+            }
+
+            .recharge-container,
+            .auth-container {
+                padding: 20px;
+            }
+
+            .recharge-header h2,
+            .auth-header h2 {
+                font-size: 1.8rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .content-title h1 {
+                font-size: 2rem;
+            }
+
+            .content-title p {
+                font-size: 1rem;
+            }
+
+            .recharge-header h2,
+            .auth-header h2 {
+                font-size: 1.5rem;
+            }
+
+            .recharge-form input,
+            .auth-form input,
+            .recharge-btn,
+            .auth-btn {
+                font-size: 0.9rem;
+                padding: 10px;
+            }
+
+            .payment-option {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .payment-option i {
+                margin-bottom: 5px;
+            }
+
+            .payment-option .payment-tag {
+                margin-left: 0;
+                margin-top: 5px;
+            }
         }
 
         .btn-center {
@@ -1018,6 +2092,114 @@
     </style>
 </head>
 <body>
+    <div class="info-input-container">
+        <div class="management-bar">
+            <span id="userBalance" style="display:none;">余额: <span id="balanceAmount">0</span></span>
+            <button id="rechargeBtn" style="display:none;">充值</button>
+            <button id="loginRegisterBtn">登录/注册</button>
+            <button id="logoutBtn" style="display:none;">退出</button>
+        </div>
+        <!-- 其他信息输入内容将放在这里 -->
+    <!-- 充值弹窗 -->
+    <div class="recharge-modal" id="rechargeModal">
+        <div class="recharge-container">
+            <span class="close-recharge" id="closeRecharge">&times;</span>
+            <div class="recharge-header">
+                <h2><i class="fas fa-coins"></i> 账户充值</h2>
+                <p>请填写充值金额并选择支付方式</p>
+            </div>
+            
+            <form id="rechargeForm" class="recharge-form">
+                <div class="form-group">
+                    <label for="rechargeAmount">充值金额</label>
+                    <input type="number" id="rechargeAmount" placeholder="请输入充值金额" min="1" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>支付方式</label>
+                    <div class="payment-methods">
+                        <label class="payment-option">
+                            <input type="radio" name="paymentMethod" value="alipay" checked>
+                            <i class="fab fa-alipay"></i> 支付宝 <span class="payment-tag">全球支付</span>
+                        </label>
+                        <label class="payment-option">
+                            <input type="radio" name="paymentMethod" value="wechat">
+                            <i class="fab fa-weixin"></i> 微信支付 <span class="payment-tag">国内支付</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <button type="submit" class="recharge-btn">
+                    <span id="rechargeText">立即充值</span>
+                    <span id="rechargeSpinner" style="display:none;">处理中...</span>
+                </button>
+                
+                <div id="rechargeMessage" class="recharge-message"></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 半透明登录注册弹窗 -->
+    <div class="auth-modal" id="authModal">
+        <div class="auth-container">
+            <span class="close-auth" id="closeAuth">&times;</span>
+            <div class="auth-header">
+                <h2><i class="fas fa-user-circle"></i> 命缘池</h2>
+                <p>登录或注册以管理您的愿望</p>
+            </div>
+            
+            <div class="auth-tabs">
+                <div class="auth-tab active" id="loginTab">登录</div>
+                <div class="auth-tab" id="registerTab">注册</div>
+            </div>
+            
+           <!-- 登录表单 -->
+            <form id="loginForm" class="auth-form active">
+                <div class="form-group">
+                    <label for="loginUsername">用户名</label>
+                    <input type="text" id="loginUsername" placeholder="请输入用户名" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="loginPassword">密码</label>
+                    <input type="password" id="loginPassword" placeholder="请输入密码" required>
+                </div>
+
+                <button type="submit" class="auth-btn">
+                    <span id="loginText">登录</span>
+                    <span id="loginSpinner" style="display:none;">处理中...</span>
+                </button>
+
+                <div id="loginMessage" class="auth-message"></div>
+            </form>
+
+            <!-- 注册表单 -->
+            <form id="registerForm" class="auth-form">
+                <div class="form-group">
+                    <label for="registerUsername">用户名</label>
+                    <input type="text" id="registerUsername" placeholder="请输入用户名" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="registerPassword">密码</label>
+                    <input type="password" id="registerPassword" placeholder="请输入密码" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="registerConfirmPassword">确认密码</label>
+                    <input type="password" id="registerConfirmPassword" placeholder="请再次输入密码" required>
+                </div>
+
+                <button type="submit" class="auth-btn">
+                    <span id="registerText">注册</span>
+                    <span id="registerSpinner" style="display:none;">处理中...</span>
+                </button>
+
+                <div id="registerMessage" class="auth-message"></div>
+            </form>
+        </div>
+    </div>
+    </div>
     <!-- 加载遮罩 -->
     <div id="loadingOverlay" class="loading-overlay" style="display: none;">
         <div class="loading beautiful-spinner"></div>
