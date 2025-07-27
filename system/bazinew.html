@@ -26,6 +26,36 @@
       const API_BASE = 'https://bazi-backend.owenjass.workers.dev';
       const API_URL = `${API_BASE}/api`;
       
+      // 添加API错误处理函数
+      async function handleApiResponse(response) {
+          // 检查响应状态
+          if (!response.ok) {
+              const errorText = await response.text();
+              try {
+                  // 尝试解析错误信息为JSON
+                  const errorJson = JSON.parse(errorText);
+                  throw new Error(errorJson.message || '请求失败');
+              } catch (e) {
+                  // 如果不是JSON格式，直接使用文本
+                  throw new Error(errorText || `HTTP错误: ${response.status}`);
+              }
+          }
+          
+          // 检查响应是否为空
+          const text = await response.text();
+          if (!text) {
+              return {}; // 返回空对象，避免JSON解析错误
+          }
+          
+          try {
+              // 尝试解析JSON
+              return JSON.parse(text);
+          } catch (e) {
+              console.error('JSON解析错误:', e, '原始响应:', text);
+              throw new Error('服务器返回了无效的数据格式');
+          }
+      }
+      
       // 充值功能
 document.addEventListener('DOMContentLoaded', function() {
     // 确保WWPay类可用
@@ -104,11 +134,8 @@ document.addEventListener('DOMContentLoaded', function() {
                           }
                       });
                       
-                      if (!response.ok) {
-                          throw new Error(`HTTP error! status: ${response.status}`);
-                      }
-                      
-                      const data = await response.json();
+                      // 使用新的API响应处理函数
+                      const data = await handleApiResponse(response);
                       
                       // 调试日志
                       console.log('用户数据:', data);
@@ -205,20 +232,19 @@ document.addEventListener('DOMContentLoaded', function() {
                       body: JSON.stringify({ username, password })
                   });
 
-                  const data = await response.json();
-
-                  if (response.ok) {
-                      localStorage.setItem('token', data.token);
-                      loginMessage.textContent = '登录成功！';
-                      loginMessage.style.color = 'green';
-                      authModal.style.display = 'none';
-                      updateAuthUI();
-                      updateBalance(); // 登录成功后更新余额
-                  } else {
-                      throw new Error(data.message || '登录失败');
-                  }
+                  // 使用新的API响应处理函数
+                  const data = await handleApiResponse(response);
+                  
+                  // 如果代码执行到这里，说明响应已成功解析
+                  localStorage.setItem('token', data.token);
+                  loginMessage.textContent = '登录成功！';
+                  loginMessage.style.color = 'green';
+                  authModal.style.display = 'none';
+                  updateAuthUI();
+                  updateBalance(); // 登录成功后更新余额
               } catch (error) {
-                  loginMessage.textContent = error.message;
+                  console.error('登录失败:', error);
+                  loginMessage.textContent = error.message || '登录失败，请稍后再试';
                   loginMessage.style.color = 'red';
               } finally {
                   loginSpinner.style.display = 'none';
@@ -252,23 +278,22 @@ document.addEventListener('DOMContentLoaded', function() {
                       body: JSON.stringify({ username, password })
                   });
 
-                  const data = await response.json();
-
-                  if (response.ok) {
-                      registerMessage.textContent = '注册成功！请登录。';
-                      registerMessage.style.color = 'green';
-                      // 注册成功后自动切换到登录界面
-                      loginForm.classList.add('active');
-                      registerForm.classList.remove('active');
-                      loginTab.classList.add('active');
-                      registerTab.classList.remove('active');
-                      document.getElementById('loginUsername').value = username;
-                      document.getElementById('loginPassword').value = '';
-                  } else {
-                      throw new Error(data.message || '注册失败');
-                  }
+                  // 使用新的API响应处理函数
+                  const data = await handleApiResponse(response);
+                  
+                  // 如果代码执行到这里，说明响应已成功解析
+                  registerMessage.textContent = '注册成功！请登录。';
+                  registerMessage.style.color = 'green';
+                  // 注册成功后自动切换到登录界面
+                  loginForm.classList.add('active');
+                  registerForm.classList.remove('active');
+                  loginTab.classList.add('active');
+                  registerTab.classList.remove('active');
+                  document.getElementById('loginUsername').value = username;
+                  document.getElementById('loginPassword').value = '';
               } catch (error) {
-                  registerMessage.textContent = error.message;
+                  console.error('注册失败:', error);
+                  registerMessage.textContent = error.message || '注册失败，请稍后再试';
                   registerMessage.style.color = 'red';
               } finally {
                   registerSpinner.style.display = 'none';
@@ -314,20 +339,35 @@ document.addEventListener('DOMContentLoaded', function() {
                       }
                   });
 
-                  if (!response.ok) {
-                      throw new Error(`HTTP error! status: ${response.status}`);
-                  }
-
-                  const data = await response.json();
+                  // 使用新的API响应处理函数
+                  const data = await handleApiResponse(response);
 
                   if (data.balance !== undefined) {
-                      document.getElementById('balanceAmount').textContent = data.balance;
+                      const balanceEl = document.getElementById('balanceAmount');
+                      if (balanceEl) {
+                          balanceEl.textContent = data.balance;
+                      }
+                      
+                      // 更新模态框中的余额显示（如果存在）
+                      const modalBalanceEl = document.getElementById('modalBalanceAmount');
+                      if (modalBalanceEl) {
+                          modalBalanceEl.textContent = data.balance;
+                      }
                   } else {
                       console.error('API响应中缺少balance字段');
                   }
               } catch (error) {
                   console.error('获取余额失败:', error);
-                  document.getElementById('balanceAmount').textContent = '获取失败';
+                  const balanceEl = document.getElementById('balanceAmount');
+                  if (balanceEl) {
+                      balanceEl.textContent = '获取失败';
+                  }
+                  
+                  // 更新模态框中的余额显示（如果存在）
+                  const modalBalanceEl = document.getElementById('modalBalanceAmount');
+                  if (modalBalanceEl) {
+                      modalBalanceEl.textContent = '获取失败';
+                  }
               }
           }
 
