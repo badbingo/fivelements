@@ -23,8 +23,19 @@
    
     <script>
       // 配置后端地址（必须修改！）
-      const API_BASE = 'https://bazi-backend.owenjass.workers.dev';
+      const API_BASE = 'https://mybazi.net';
       const API_URL = `${API_BASE}/api`;
+      
+      // 添加API服务器状态检查
+      async function checkApiServer() {
+          try {
+              const response = await fetch(`${API_URL}/status`, { method: 'GET' });
+              return response.ok;
+          } catch (error) {
+              console.error('API服务器连接失败:', error);
+              return false;
+          }
+      }
       
       // 添加API错误处理函数
       async function handleApiResponse(response) {
@@ -224,6 +235,12 @@ document.addEventListener('DOMContentLoaded', function() {
               loginMessage.textContent = '';
 
               try {
+                  // 先检查API服务器状态
+                  const isApiServerAvailable = await checkApiServer();
+                  if (!isApiServerAvailable) {
+                      throw new Error('服务器连接失败，请稍后再试');
+                  }
+                  
                   const response = await fetch(`${API_URL}/user/login`, {
                       method: 'POST',
                       headers: {
@@ -244,7 +261,12 @@ document.addEventListener('DOMContentLoaded', function() {
                   updateBalance(); // 登录成功后更新余额
               } catch (error) {
                   console.error('登录失败:', error);
-                  loginMessage.textContent = error.message || '登录失败，请稍后再试';
+                  // 提供更友好的错误提示
+                  if (error.message.includes('Not Found')) {
+                      loginMessage.textContent = '服务器连接失败，请稍后再试';
+                  } else {
+                      loginMessage.textContent = error.message || '登录失败，请稍后再试';
+                  }
                   loginMessage.style.color = 'red';
               } finally {
                   loginSpinner.style.display = 'none';
@@ -270,6 +292,12 @@ document.addEventListener('DOMContentLoaded', function() {
               registerMessage.textContent = '';
 
               try {
+                  // 先检查API服务器状态
+                  const isApiServerAvailable = await checkApiServer();
+                  if (!isApiServerAvailable) {
+                      throw new Error('服务器连接失败，请稍后再试');
+                  }
+                  
                   const response = await fetch(`${API_URL}/user/register`, {
                       method: 'POST',
                       headers: {
@@ -293,7 +321,12 @@ document.addEventListener('DOMContentLoaded', function() {
                   document.getElementById('loginPassword').value = '';
               } catch (error) {
                   console.error('注册失败:', error);
-                  registerMessage.textContent = error.message || '注册失败，请稍后再试';
+                  // 提供更友好的错误提示
+                  if (error.message.includes('Not Found')) {
+                      registerMessage.textContent = '服务器连接失败，请稍后再试';
+                  } else {
+                      registerMessage.textContent = error.message || '注册失败，请稍后再试';
+                  }
                   registerMessage.style.color = 'red';
               } finally {
                   registerSpinner.style.display = 'none';
@@ -333,6 +366,12 @@ document.addEventListener('DOMContentLoaded', function() {
           // 获取用户余额并更新显示 (已在DOMContentLoaded中定义，这里仅为确保函数可用)
           async function updateBalance() {
               try {
+                  // 先检查API服务器状态
+                  const isApiServerAvailable = await checkApiServer();
+                  if (!isApiServerAvailable) {
+                      throw new Error('服务器连接失败，请稍后再试');
+                  }
+                  
                   const response = await fetch(`${API_URL}/user/balance`, {
                       headers: {
                           'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -358,9 +397,15 @@ document.addEventListener('DOMContentLoaded', function() {
                   }
               } catch (error) {
                   console.error('获取余额失败:', error);
+                  // 提供更友好的错误提示
+                  let errorMessage = '获取失败';
+                  if (error.message.includes('Not Found') || error.message.includes('服务器连接失败')) {
+                      errorMessage = '连接失败';
+                  }
+                  
                   const balanceEl = document.getElementById('balanceAmount');
                   if (balanceEl) {
-                      balanceEl.textContent = '获取失败';
+                      balanceEl.textContent = errorMessage;
                   }
                   
                   // 更新模态框中的余额显示（如果存在）
@@ -371,10 +416,29 @@ document.addEventListener('DOMContentLoaded', function() {
               }
           }
 
-          // 如果已登录，立即执行并设置定时刷新
+          // 如果已登录，先检查API服务器状态，然后执行并设置定时刷新
           if (localStorage.getItem('token')) {
-              updateBalance();
-              setInterval(updateBalance, 30000); // 每30秒刷新一次
+              // 先检查API服务器状态
+              checkApiServer().then(isAvailable => {
+                  if (isAvailable) {
+                      updateBalance();
+                      // 设置定时刷新，但先检查API服务器状态
+                      setInterval(async () => {
+                          const isApiServerAvailable = await checkApiServer();
+                          if (isApiServerAvailable) {
+                              updateBalance();
+                          }
+                      }, 30000); // 每30秒刷新一次
+                  } else {
+                      console.error('API服务器连接失败，无法获取余额');
+                      const balanceEl = document.getElementById('balanceAmount');
+                      if (balanceEl) {
+                          balanceEl.textContent = '连接失败';
+                      }
+                  }
+              }).catch(error => {
+                  console.error('检查API服务器状态失败:', error);
+              });
           }
       });
     </script>
