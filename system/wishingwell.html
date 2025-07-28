@@ -94,7 +94,7 @@ document.addEventListener('DOMContentLoaded', function() {
               // 获取用户余额并更新显示
               async function updateBalance() {
                   try {
-                      const response = await fetch(`${API_URL}/user/balance`, {
+                      const response = await fetch(`${API_URL}/api/user/balance`, {
                           headers: {
                               'Authorization': `Bearer ${localStorage.getItem('token')}`
                           }
@@ -946,13 +946,26 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('loginText').style.display = 'none';
         
         try {
+            console.log('开始登录请求，API地址:', `${API_BASE}/api/login`);
             const response = await fetch(`${API_BASE}/api/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name: username, password })
             });
             
-            const result = await response.json();
+            console.log('收到响应，状态码:', response.status);
+            console.log('响应头:', Object.fromEntries(response.headers.entries()));
+            
+            let result;
+            try {
+                const responseText = await response.text();
+                console.log('原始响应内容:', responseText);
+                result = JSON.parse(responseText);
+                console.log('解析后的响应数据:', result);
+            } catch (parseError) {
+                console.error('JSON解析错误:', parseError);
+                throw new Error('服务器返回了无效的响应格式');
+            }
             
             if (!response.ok) {
                 throw new Error(result.error || '登录失败');
@@ -996,7 +1009,19 @@ document.addEventListener('DOMContentLoaded', function() {
             
         } catch (error) {
             console.error('登录错误:', error);
-            showAuthMessage(loginMessage, error.message, 'error');
+            let errorMessage = '登录过程中发生错误';
+            if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                errorMessage = '网络连接失败，请检查网络连接';
+            } else if (error.message) {
+                errorMessage = error.message;
+            }
+            
+            // 如果是服务器错误，提供更友好的提示
+            if (errorMessage.includes('登录过程中发生错误')) {
+                errorMessage = '服务器暂时无法处理登录请求，请稍后重试或联系管理员';
+            }
+            
+            showAuthMessage(loginMessage, errorMessage, 'error');
             document.getElementById('loginUsername').value = username;
         } finally {
             submitLogin.disabled = false;
@@ -2385,24 +2410,11 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 初始化支付系统
     function initPaymentSystem() {
-        // 加载支付脚本
-        const script = document.createElement('script');
-        script.src = '/js/wwpay.js';
-        script.onload = () => {
-            console.log('wwpay.js 加载成功');
-            // WWPay实例化已在wwpay.js的DOMContentLoaded事件中处理，避免重复创建
-            
-            // 确认支付按钮事件已在WWPay类中处理，无需重复绑定
-            
-            // 注意：金额选择事件已在WWPay类中处理，无需重复绑定
-            
-            // 将redirectToCharge函数暴露给全局
-            window.redirectToCharge = redirectToCharge;
-        };
-        script.onerror = (error) => {
-            console.error('wwpay.js 加载失败:', error);
-        };
-        document.head.appendChild(script);
+        // wwpay.js已通过script标签加载，无需动态加载
+        console.log('支付系统初始化完成');
+        
+        // 将redirectToCharge函数暴露给全局
+        window.redirectToCharge = redirectToCharge;
     }
     
     // 主初始化函数
