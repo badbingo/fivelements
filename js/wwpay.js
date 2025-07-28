@@ -22,7 +22,7 @@ class WWPay {
     // 系统配置
     this.config = {
       paymentGateway: {
-        apiBase: 'https://bazi-backend.owenjass.workers.dev',
+        apiBase: 'https://api.mybazi.net',
         apiUrl: 'https://zpayz.cn/submit.php',
         pid: '2025051013380915',
         key: 'UsXrSwn0wft5SeLB0LaQfecvJmpkS18T',
@@ -83,9 +83,26 @@ class WWPay {
   /* ========== 初始化方法 ========== */
 
   // 处理充值请求
+  // 检查API服务器状态
+  async checkApiServer() {
+    try {
+      const response = await fetch(`${this.config.paymentGateway.apiBase}/api/status`, { method: 'GET' });
+      return response.ok;
+    } catch (error) {
+      this.logError('API服务器连接失败:', error);
+      return false;
+    }
+  }
+  
   async processRecharge(amount, paymentMethod) {
     try {
       this.log(`发起充值流程: ${amount}元, 方式: ${paymentMethod}`);
+      
+      // 0. 检查API服务器状态
+      const isApiServerAvailable = await this.checkApiServer();
+      if (!isApiServerAvailable) {
+        throw new Error('服务器连接失败，请稍后再试');
+      }
       
       // 1. 创建充值订单
       const orderResponse = await this.createRechargeOrder(amount, paymentMethod);
@@ -116,12 +133,33 @@ class WWPay {
         })
       });
       
+      // 检查响应状态
       if (!response.ok) {
-        throw new Error(await response.text());
+        const errorText = await response.text();
+        try {
+          // 尝试解析错误信息为JSON
+          const errorJson = JSON.parse(errorText);
+          throw new Error(errorJson.message || '请求失败');
+        } catch (e) {
+          // 如果不是JSON格式，直接使用文本
+          throw new Error(errorText || `HTTP错误: ${response.status}`);
+        }
       }
       
-      const data = await response.json();
-      return data.success;
+      // 检查响应是否为空
+      const text = await response.text();
+      if (!text) {
+        return false; // 返回失败，避免JSON解析错误
+      }
+      
+      try {
+        // 尝试解析JSON
+        const data = JSON.parse(text);
+        return data.success;
+      } catch (e) {
+        console.error('JSON解析错误:', e, '原始响应:', text);
+        throw new Error('服务器返回了无效的数据格式');
+      }
       
     } catch (error) {
       this.logError('支付验证失败', error);
@@ -130,23 +168,49 @@ class WWPay {
   }
 
   async createRechargeOrder(amount, method) {
-    const response = await fetch(`${this.config.paymentGateway.apiBase}/api/recharge/orders`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
-      },
-      body: JSON.stringify({
-        amount: parseFloat(amount),
-        paymentMethod: method
-      })
-    });
-    
-    if (!response.ok) {
-      throw new Error(await response.text());
+    try {
+      const response = await fetch(`${this.config.paymentGateway.apiBase}/api/recharge/orders`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          amount: parseFloat(amount),
+          paymentMethod: method
+        })
+      });
+      
+      // 检查响应状态
+      if (!response.ok) {
+        const errorText = await response.text();
+        try {
+          // 尝试解析错误信息为JSON
+          const errorJson = JSON.parse(errorText);
+          throw new Error(errorJson.message || '请求失败');
+        } catch (e) {
+          // 如果不是JSON格式，直接使用文本
+          throw new Error(errorText || `HTTP错误: ${response.status}`);
+        }
+      }
+      
+      // 检查响应是否为空
+      const text = await response.text();
+      if (!text) {
+        return {}; // 返回空对象，避免JSON解析错误
+      }
+      
+      try {
+        // 尝试解析JSON
+        return JSON.parse(text);
+      } catch (e) {
+        console.error('JSON解析错误:', e, '原始响应:', text);
+        throw new Error('服务器返回了无效的数据格式');
+      }
+    } catch (error) {
+      this.logError('创建充值订单失败', error);
+      throw error;
     }
-    
-    return response.json();
   }
   
   async redirectToPaymentGateway(order) {
@@ -1124,7 +1188,7 @@ class WWPay {
        }
        
      const methodsHtml = `
-   <div class="payment-methods" id="payment-methods-section" style="display: flex; flex-direction: column; gap: 20px;">
+   <div class="payment-methods" id="payment-methods-section" style="display: flex; flex-direction: column; gap: 20px; align-items: center; justify-content: center; position: relative; background: #222c3a; border-radius: 16px; border: 2px solid #52c41a; box-shadow: 0 8px 32px rgba(0,0,0,0.25); padding: 36px 32px; min-width: 340px; max-width: 95vw; margin: 0 auto;">
      <!-- 第一层：标题和余额显示 -->
      <div style="display: flex; justify-content: space-between; align-items: center;">
        <h4 style="color: white; margin: 0;">
@@ -1351,27 +1415,27 @@ class WWPay {
                           color: white; padding: 12px 20px; border: none; border-radius: 8px; 
                           min-width: 120px; text-align: center; cursor: pointer;
                           transition: all 0.3s ease;">
-             <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
-               <i class="${method.icon}" style="font-size: 20px;"></i>
-               <span class="wwpay-method-name" style="font-size: 14px; font-weight: bold;">${method.name}</span>
-               <span class="wwpay-method-hint" style="font-size: 11px; opacity: 0.9;">${method.hint}</span>
-             </div>
-           </button>
-         `).join('')}
-       </div>
-       
-       <!-- 确认按钮 -->
-       <div style="display: flex; justify-content: center;">
-         <button id="confirmPaymentBtn" 
-                 style="padding: 12px 40px; background: #52c41a; color: white; border: none; 
-                        border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer;
-                        transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(82, 196, 26, 0.3);">
-           <i class="fas fa-check-circle" style="margin-right: 8px;"></i> 
-           确认支付 ¥${this.state.selectedAmount}
-         </button>
-       </div>
-     </div>
-   `;
+                 <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
+                   <i class="${method.icon}" style="font-size: 20px;"></i>
+                   <span class="wwpay-method-name" style="font-size: 14px; font-weight: bold;">${method.name}</span>
+                   <span class="wwpay-method-hint" style="font-size: 11px; opacity: 0.9;">${method.hint}</span>
+                 </div>
+               </button>
+             `).join('')}
+           </div>
+           
+           <!-- 确认按钮 -->
+           <div style="display: flex; justify-content: center;">
+             <button id="confirmPaymentBtn" 
+                   style="padding: 12px 40px; background: #52c41a; color: white; border: none; 
+                          border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer;
+                          transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(82, 196, 26, 0.3);">
+               <i class="fas fa-check-circle" style="margin-right: 8px;"></i> 
+               确认支付 ¥${this.state.selectedAmount}
+             </button>
+           </div>
+         </div>
+       `;
        
        const modalContent = document.querySelector('#fulfillModal .modal-content');
        if (modalContent) {
@@ -1407,9 +1471,25 @@ class WWPay {
     }
   }
 
+  // 修复logError未定义导致的TypeError
+  logError(context, error) {
+    this.safeLogError(context, error);
+  }
+
   handlePaymentError(error) {
     this.safeLogError('支付处理失败', error);
-    this.showGuaranteedToast(`支付失败: ${error.message}`, 'error');
+    
+    // 提供更友好的错误提示
+    let errorMessage = '支付失败';
+    if (error.message.includes('Not Found') || error.message.includes('服务器连接失败')) {
+      errorMessage = '服务器连接失败，请稍后再试';
+    } else if (error.message.includes('无效的数据格式')) {
+      errorMessage = '服务器响应格式错误，请稍后再试';
+    } else if (error.message) {
+      errorMessage = `支付失败: ${error.message}`;
+    }
+    
+    this.showGuaranteedToast(errorMessage, 'error');
     this.hideFullscreenLoading();
     this.state.processing = false;
     this.updateConfirmButtonState();
