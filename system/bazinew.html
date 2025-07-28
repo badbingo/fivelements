@@ -1523,7 +1523,33 @@
                 }
 
                 .payment-methods {
-                    flex-direction: column;
+                    display: flex;
+                    flex-direction: row;
+                    justify-content: space-between;
+                    gap: 10px;
+                }
+                .payment-option {
+                    flex: 1;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 10px;
+                    border: 1px solid #ddd;
+                    border-radius: 8px;
+                    background-color: #f8f9fa;
+                    cursor: pointer;
+                    transition: background-color 0.3s;
+                }
+                .payment-option:hover {
+                    background-color: #e9ecef;
+                }
+                .payment-option input {
+                    margin-right: 8px;
+                }
+                .payment-tag {
+                    margin-left: 5px;
+                    font-size: 0.8em;
+                    color: #666;
                 }
             }
     </style>
@@ -1560,6 +1586,10 @@
                         <label class="payment-option">
                             <input type="radio" name="paymentMethod" value="wechat">
                             <i class="fab fa-weixin"></i> 微信支付 <span class="payment-tag">国内支付</span>
+                        </label>
+                        <label class="payment-option">
+                            <input type="radio" name="paymentMethod" value="balance">
+                            <i class="fas fa-wallet"></i> 余额支付 <span class="payment-tag">账户余额</span>
                         </label>
                     </div>
                 </div>
@@ -1658,13 +1688,13 @@
         <!-- Header -->
         <header class="header">
             <h1><i class="fas fa-yin-yang"></i> 专业八字预测系统</h1>
-            <p>精准排盘 · 详细分析 · 专业预测</p>            
+            <p>精准排盘 · 详细分析 · 专业预测</p>
         </header>
 
         <!-- Input Section -->
         <section class="input-section" id="input-section">
             <div class="card" style="position: relative;">
-             <!-- 用户信息区域 - 移动到信息输入container右上角 -->
+                <!-- 用户信息区域 - 移动到信息输入container右上角 -->
                 <div class="user-area">
                     <div class="user-welcome" id="userWelcome" style="display:none;">欢迎, <span id="usernameDisplay"></span></div>
                     <div class="user-balance" style="display:none; margin: 5px 0;" id="userBalance">
@@ -1674,7 +1704,8 @@
                     <button class="recharge-btn" id="rechargeBtn" style="display:none; margin: 2px;"><i class="fas fa-plus"></i> 充值</button>
                     <button class="manage-btn" id="manageBtn" style="display:none;"><i class="fas fa-id-card"></i> 管理</button>
                     <button class="logout-btn" id="logoutBtn" style="display:none;"><i class="fas fa-sign-out-alt"></i> 退出</button>
-                </div>   
+                </div>
+                
                 <div class="card-header">
                     <i class="fas fa-user-edit"></i>
                     <h2>请输入您的出生信息</h2>
@@ -1785,6 +1816,19 @@
                     <!-- 起运时间分析 -->
                 </div>
             </div>
+
+            <!-- 详批八字按钮和介绍 -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-unlock"></i>
+                    <h2>详批八字（20元每次）</h2>
+                </div>
+                <p>详批八字系统提供全面专业的八字分析，包括性格、事业、财富、婚姻、健康等详细解读。</p>
+                <button class="btn btn-primary" id="detailed-analysis-btn">立即详批</button>
+            </div>
+
+            <!-- 隐藏内容 -->
+            <div id="paid-content" style="display: none;">
 
             <!-- Fate Level Analysis -->
             <div class="analysis-grid">
@@ -1936,6 +1980,7 @@
                     <div class="analysis-content" id="health-content"></div>
                 </div>
             </div>
+            </div> <!-- 关闭 paid-content -->
             
             <div class="btn-center">
                 <button class="btn btn-primary" id="recalculate-btn">
@@ -5255,7 +5300,7 @@ contentElement.classList.add('show');
          /* ==================== 用户管理功能 ==================== */
 
          // API配置
-         const API_BASE = 'https://bazi-backend.owenjass.workers.dev';
+         const API_BASE = 'https://api.mybazi.net';
          const API_URL = `${API_BASE}/api`;
 
          // DOM元素
@@ -5317,6 +5362,13 @@ contentElement.classList.add('show');
                  });
                  
                  if (!response.ok) {
+                     if (response.status === 401) {
+                         // 处理未授权错误
+                         localStorage.removeItem('token');
+                         localStorage.removeItem('username');
+                         checkLoginStatus();
+                         throw new Error('会话已过期，请重新登录');
+                     }
                      throw new Error(`HTTP error! status: ${response.status}`);
                  }
                  
@@ -5327,9 +5379,10 @@ contentElement.classList.add('show');
                      balanceAmountEl.textContent = data.balance;
                  }
              } catch (error) {
-                 console.error('获取余额失败:', error);
                  const balanceAmountEl = document.getElementById('balanceAmount');
                  if (balanceAmountEl) balanceAmountEl.textContent = '获取失败';
+                 // 显示用户消息
+                 showAuthMessage(document.getElementById('rechargeMessage') || loginMessage, error.message, 'error');
              }
          }
 
@@ -5538,11 +5591,24 @@ contentElement.classList.add('show');
              rechargeSpinner.style.display = 'inline-block';
              rechargeText.style.display = 'none';
              
+             if (!localStorage.getItem('token')) {
+                 rechargeMessage.textContent = '请先登录后再进行充值';
+                 rechargeMessage.style.color = 'red';
+                 rechargeSpinner.style.display = 'none';
+                 rechargeText.style.display = 'inline';
+                 return;
+             }
+             
              try {
-                 // 这里可以添加实际的充值逻辑
-                 rechargeMessage.textContent = '充值功能开发中，敬请期待...';
-                 rechargeMessage.style.color = '#f39c12';
-                 
+                 const wwPayInstance = new WWPay();
+                 await wwPayInstance.processRecharge(amount, paymentMethod);
+                 rechargeMessage.textContent = '支付处理中...';
+                 rechargeMessage.style.color = '#28a745';
+                 // 支付成功后显示隐藏内容
+                 const paidContent = document.getElementById('paid-content');
+                 if (paidContent) {
+                     paidContent.style.display = 'block';
+                 }
              } catch (error) {
                  rechargeMessage.textContent = error.message;
                  rechargeMessage.style.color = 'red';
@@ -5636,10 +5702,27 @@ contentElement.classList.add('show');
          // 页面加载完成后初始化用户管理
          document.addEventListener('DOMContentLoaded', function() {
              initUserManagement();
+
+             // 处理详批按钮点击
+             const detailedBtn = document.getElementById('detailed-analysis-btn');
+             if (detailedBtn) {
+                 detailedBtn.addEventListener('click', function() {
+                     const rechargeAmount = document.getElementById('rechargeAmount');
+                     if (rechargeAmount) {
+                         rechargeAmount.value = '20';
+                         rechargeAmount.readOnly = true;
+                     }
+                     // 显示充值模态，但实际为支付详批
+                     rechargeModal.style.display = 'block';
+                 });
+             }
          });
+
+         
 
      </script>
     </div> <!-- 闭合 container -->
     </div> <!-- 闭合 page-container -->
+<script src="../js/wwpay.js"></script>
 </body>
 </html>
