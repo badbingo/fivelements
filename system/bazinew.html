@@ -1018,20 +1018,19 @@
 
             /* 用户管理区域样式 */
             .user-area {
-                position: absolute;
-                top: 15px;
-                right: 15px;
                 display: flex;
+                justify-content: center;
                 align-items: center;
                 gap: 10px;
-                z-index: 10;
                 background: rgba(255, 255, 255, 0.95);
-                padding: 8px 12px;
+                padding: 15px 20px;
                 border-radius: 20px;
                 border: 1px solid rgba(139, 69, 19, 0.2);
                 box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
                 backdrop-filter: blur(10px);
                 transition: all 0.3s ease;
+                margin: 20px auto;
+                max-width: 600px;
             }
 
             .user-area:hover {
@@ -1057,7 +1056,7 @@
                 box-shadow: 0 2px 4px rgba(255, 215, 0, 0.3);
             }
 
-            .login-btn, .logout-btn, .recharge-btn, .manage-btn {
+            .login-btn, .logout-btn, .recharge-btn {
                 background: linear-gradient(135deg, #8B4513, #A0522D);
                 color: white;
                 border: none;
@@ -1073,7 +1072,7 @@
                 font-weight: 500;
             }
 
-            .login-btn:hover, .logout-btn:hover, .recharge-btn:hover, .manage-btn:hover {
+            .login-btn:hover, .logout-btn:hover, .recharge-btn:hover {
                 background: linear-gradient(135deg, #A0522D, #CD853F);
                 transform: translateY(-1px);
                 box-shadow: 0 4px 8px rgba(139, 69, 19, 0.3);
@@ -1087,13 +1086,7 @@
                 background: linear-gradient(135deg, #32CD32, #90EE90);
             }
 
-            .manage-btn {
-                background: linear-gradient(135deg, #4169E1, #6495ED);
-            }
 
-            .manage-btn:hover {
-                background: linear-gradient(135deg, #6495ED, #87CEEB);
-            }
 
             /* 认证弹窗样式 */
             .auth-modal {
@@ -1392,44 +1385,106 @@
 
             .payment-methods {
                 display: flex;
-                flex-direction: column;
-                gap: 10px;
+                flex-direction: row;
+                justify-content: space-between;
+                gap: 15px;
             }
 
             .payment-option {
+                flex: 1;
                 display: flex;
+                flex-direction: column;
                 align-items: center;
-                padding: 12px 15px;
-                border: 2px solid rgba(34, 139, 34, 0.2);
-                border-radius: 8px;
+                justify-content: center;
+                padding: 20px;
+                border: 2px solid transparent;
+                border-radius: 12px;
+                background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
                 cursor: pointer;
                 transition: all 0.3s ease;
-                background: rgba(255, 255, 255, 0.8);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+                position: relative;
+                overflow: hidden;
             }
 
             .payment-option:hover {
-                border-color: #228B22;
-                background: rgba(34, 139, 34, 0.05);
+                transform: translateY(-2px);
+                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+                border-color: #52c41a;
+            }
+
+            .payment-option:has(input:checked) {
+                background: linear-gradient(135deg, #52c41a 0%, #73d13d 100%);
+                color: white;
+                border-color: #52c41a;
+                box-shadow: 0 6px 20px rgba(82, 196, 26, 0.3);
+            }
+
+            .payment-option:has(input:checked) .payment-tag {
+                color: rgba(255, 255, 255, 0.9);
             }
 
             .payment-option input[type="radio"] {
-                margin-right: 10px;
-                width: auto;
+                display: none;
             }
 
             .payment-option i {
-                margin-right: 8px;
-                font-size: 18px;
+                font-size: 1.8em;
+                margin-bottom: 8px;
             }
 
+            .payment-main {
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  text-align: center;
+                  font-size: 2.2em;
+                  font-weight: 600;
+                  margin-bottom: 6px;
+              }
+
             .payment-tag {
-                margin-left: auto;
-                background: rgba(34, 139, 34, 0.1);
-                color: #228B22;
-                padding: 2px 8px;
-                border-radius: 10px;
-                font-size: 12px;
-            }
+                 font-size: 0.8em;
+                 color: #666;
+                 font-weight: 400;
+                 padding: 2px 8px;
+                 background: rgba(0, 0, 0, 0.05);
+                 border-radius: 12px;
+                 margin-top: 4px;
+                 text-align: center;
+                 display: block;
+                 width: 100%;
+             }
+
+             /* 余额支付特殊样式 */
+             .payment-option:has(input[value="balance"]) {
+                 background: linear-gradient(135deg, #722ed1 0%, #9254de 100%);
+                 color: white;
+             }
+
+             .payment-option:has(input[value="balance"]:checked) {
+                 background: linear-gradient(135deg, #531dab 0%, #722ed1 100%);
+                 border-color: #722ed1;
+                 box-shadow: 0 6px 20px rgba(114, 46, 209, 0.3);
+             }
+
+             .payment-option:has(input[value="balance"]) .payment-tag {
+                 color: rgba(255, 255, 255, 0.9);
+                 background: rgba(255, 255, 255, 0.2);
+             }
+
+             /* 余额不足时的禁用样式 */
+             .payment-option:has(input[value="balance"]:disabled) {
+                 opacity: 0.5;
+                 cursor: not-allowed;
+                 background: linear-gradient(135deg, #d9d9d9 0%, #f0f0f0 100%);
+                 color: #999;
+             }
+
+             .payment-option:has(input[value="balance"]:disabled):hover {
+                 transform: none;
+                 box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+             }
 
             .recharge-form .recharge-btn {
                 width: 100%;
@@ -1526,30 +1581,62 @@
                     display: flex;
                     flex-direction: row;
                     justify-content: space-between;
-                    gap: 10px;
+                    gap: 15px;
                 }
                 .payment-option {
                     flex: 1;
                     display: flex;
+                    flex-direction: column;
                     align-items: center;
                     justify-content: center;
-                    padding: 10px;
-                    border: 1px solid #ddd;
-                    border-radius: 8px;
-                    background-color: #f8f9fa;
+                    padding: 20px;
+                    border: 2px solid transparent;
+                    border-radius: 12px;
+                    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
                     cursor: pointer;
-                    transition: background-color 0.3s;
+                    transition: all 0.3s ease;
+                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+                    position: relative;
+                    overflow: hidden;
                 }
                 .payment-option:hover {
-                    background-color: #e9ecef;
+                    transform: translateY(-2px);
+                    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+                    border-color: #52c41a;
+                }
+                .payment-option:has(input:checked) {
+                    background: linear-gradient(135deg, #52c41a 0%, #73d13d 100%);
+                    color: white;
+                    border-color: #52c41a;
+                    box-shadow: 0 6px 20px rgba(82, 196, 26, 0.3);
+                }
+                .payment-option:has(input:checked) .payment-tag {
+                    color: rgba(255, 255, 255, 0.9);
                 }
                 .payment-option input {
-                    margin-right: 8px;
+                    display: none;
                 }
+                .payment-option i {
+                    font-size: 1.8em;
+                    margin-bottom: 8px;
+                }
+                .payment-main {
+                     display: flex;
+                     align-items: center;
+                     justify-content: center;
+                     text-align: center;
+                     font-size: 1.1em;
+                     font-weight: 600;
+                     margin-bottom: 6px;
+                 }
                 .payment-tag {
-                    margin-left: 5px;
                     font-size: 0.8em;
                     color: #666;
+                    font-weight: 400;
+                    padding: 2px 8px;
+                    background: rgba(0, 0, 0, 0.05);
+                    border-radius: 12px;
+                    margin-top: 4px;
                 }
             }
     </style>
@@ -1580,22 +1667,28 @@
                     <label>支付方式</label>
                     <div class="payment-methods">
                         <label class="payment-option">
+                            <input type="radio" name="paymentMethod" value="balance" id="balancePayment">
+                            <i class="fas fa-wallet"></i>
+                            <div class="payment-main">余额支付</div>
+                            <span class="payment-tag" id="balanceTag">余额: ¥<span id="userBalanceDisplay">0</span></span>
+                        </label>
+                        <label class="payment-option">
                             <input type="radio" name="paymentMethod" value="alipay" checked>
-                            <i class="fab fa-alipay"></i> 支付宝 <span class="payment-tag">全球支付</span>
+                            <i class="fab fa-alipay"></i>
+                            <div class="payment-main">支付宝</div>
+                            <span class="payment-tag">全球支付</span>
                         </label>
                         <label class="payment-option">
                             <input type="radio" name="paymentMethod" value="wechat">
-                            <i class="fab fa-weixin"></i> 微信支付 <span class="payment-tag">国内支付</span>
-                        </label>
-                        <label class="payment-option">
-                            <input type="radio" name="paymentMethod" value="balance">
-                            <i class="fas fa-wallet"></i> 余额支付 <span class="payment-tag">账户余额</span>
+                            <i class="fab fa-weixin"></i>
+                            <div class="payment-main">微信支付</div>
+                            <span class="payment-tag">国内支付</span>
                         </label>
                     </div>
                 </div>
                 
                 <button type="submit" class="recharge-btn">
-                    <span id="rechargeText">立即充值</span>
+                    <span id="rechargeText">立即支付</span>
                     <span id="rechargeSpinner" style="display:none;">处理中...</span>
                 </button>
                 
@@ -1691,20 +1784,20 @@
             <p>精准排盘 · 详细分析 · 专业预测</p>
         </header>
 
+        <!-- 用户信息区域 -->
+        <div class="user-area">
+            <div class="user-welcome" id="userWelcome" style="display:none;">欢迎, <span id="usernameDisplay"></span></div>
+            <div class="user-balance" style="display:none; margin: 5px 0;" id="userBalance">
+                <i class="fas fa-coins"></i> 余额: ¥<span id="balanceAmount">0</span>
+            </div>
+            <button class="login-btn" id="loginBtn">登录/注册</button>
+            <button class="recharge-btn" id="rechargeBtn" style="display:none; margin: 2px;"><i class="fas fa-plus"></i> 充值</button>
+            <button class="logout-btn" id="logoutBtn" style="display:none;"><i class="fas fa-sign-out-alt"></i> 退出</button>
+        </div>
+
         <!-- Input Section -->
         <section class="input-section" id="input-section">
-            <div class="card" style="position: relative;">
-                <!-- 用户信息区域 - 移动到信息输入container右上角 -->
-                <div class="user-area">
-                    <div class="user-welcome" id="userWelcome" style="display:none;">欢迎, <span id="usernameDisplay"></span></div>
-                    <div class="user-balance" style="display:none; margin: 5px 0;" id="userBalance">
-                        <i class="fas fa-coins"></i> 余额: ¥<span id="balanceAmount">0</span>
-                    </div>
-                    <button class="login-btn" id="loginBtn">登录/注册</button>
-                    <button class="recharge-btn" id="rechargeBtn" style="display:none; margin: 2px;"><i class="fas fa-plus"></i> 充值</button>
-                    <button class="manage-btn" id="manageBtn" style="display:none;"><i class="fas fa-id-card"></i> 管理</button>
-                    <button class="logout-btn" id="logoutBtn" style="display:none;"><i class="fas fa-sign-out-alt"></i> 退出</button>
-                </div>
+            <div class="card">
                 
                 <div class="card-header">
                     <i class="fas fa-user-edit"></i>
@@ -5308,7 +5401,7 @@ contentElement.classList.add('show');
          const usernameDisplay = document.getElementById('usernameDisplay');
          const loginBtn = document.getElementById('loginBtn');
          const logoutBtn = document.getElementById('logoutBtn');
-         const manageBtn = document.getElementById('manageBtn');
+
          const rechargeBtn = document.getElementById('rechargeBtn');
          const authModal = document.getElementById('authModal');
          const rechargeModal = document.getElementById('rechargeModal');
@@ -5336,7 +5429,7 @@ contentElement.classList.add('show');
                  usernameDisplay.textContent = username;
                  loginBtn.style.display = 'none';
                  logoutBtn.style.display = 'block';
-                 manageBtn.style.display = 'block';
+
                  rechargeBtn.style.display = 'inline-block';
                  document.getElementById('userBalance').style.display = 'block';
                  
@@ -5346,7 +5439,7 @@ contentElement.classList.add('show');
                  userWelcome.style.display = 'none';
                  loginBtn.style.display = 'block';
                  logoutBtn.style.display = 'none';
-                 manageBtn.style.display = 'none';
+
                  rechargeBtn.style.display = 'none';
                  document.getElementById('userBalance').style.display = 'none';
              }
@@ -5378,11 +5471,49 @@ contentElement.classList.add('show');
                  if (data.balance !== undefined && balanceAmountEl) {
                      balanceAmountEl.textContent = data.balance;
                  }
+                 
+                 // 同时更新充值弹窗中的余额显示
+                 await updateBalanceDisplay();
              } catch (error) {
                  const balanceAmountEl = document.getElementById('balanceAmount');
                  if (balanceAmountEl) balanceAmountEl.textContent = '获取失败';
                  // 显示用户消息
                  showAuthMessage(document.getElementById('rechargeMessage') || loginMessage, error.message, 'error');
+             }
+         }
+
+         // 更新充值弹窗中的余额显示
+         async function updateBalanceDisplay() {
+             try {
+                 const response = await fetch(`${API_URL}/user/balance`, {
+                     headers: {
+                         'Authorization': `Bearer ${localStorage.getItem('token')}`
+                     }
+                 });
+                 
+                 if (response.ok) {
+                     const data = await response.json();
+                     const userBalanceDisplay = document.getElementById('userBalanceDisplay');
+                     const balancePayment = document.getElementById('balancePayment');
+                     
+                     if (data.balance !== undefined && userBalanceDisplay) {
+                         userBalanceDisplay.textContent = data.balance;
+                         
+                         // 如果余额不足，禁用余额支付选项
+                         const rechargeAmount = document.getElementById('rechargeAmount').value;
+                         if (balancePayment && rechargeAmount) {
+                             if (parseFloat(data.balance) < parseFloat(rechargeAmount)) {
+                                 balancePayment.disabled = true;
+                                 balancePayment.parentElement.style.opacity = '0.5';
+                             } else {
+                                 balancePayment.disabled = false;
+                                 balancePayment.parentElement.style.opacity = '1';
+                             }
+                         }
+                     }
+                 }
+             } catch (error) {
+                 console.error('更新余额显示失败:', error);
              }
          }
 
@@ -5600,10 +5731,48 @@ contentElement.classList.add('show');
              }
              
              try {
-                 const wwPayInstance = new WWPay();
-                 await wwPayInstance.processRecharge(amount, paymentMethod);
-                 rechargeMessage.textContent = '支付处理中...';
-                 rechargeMessage.style.color = '#28a745';
+                 if (paymentMethod === 'balance') {
+                    // 余额支付处理 - 直接调用扣费接口
+                    const token = localStorage.getItem('token');
+                    if (!token) {
+                        throw new Error('请先登录');
+                    }
+                    
+                    const response = await fetch(`${API_BASE}/api/user/deduct`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ 
+                            amount: parseFloat(amount), 
+                            reason: '八字分析服务' 
+                        })
+                    });
+                    
+                    if (!response.ok) {
+                        const errorData = await response.json().catch(() => ({}));
+                        throw new Error(errorData.error || '余额支付失败');
+                    }
+                    
+                    // 支付成功后的处理
+                    rechargeMessage.textContent = '余额支付成功！';
+                    rechargeMessage.style.color = '#28a745';
+                    // 更新余额显示
+                    await updateBalanceDisplay();
+                    await updateBalance();
+                    // 关闭弹窗
+                    setTimeout(() => {
+                        document.getElementById('rechargeModal').style.display = 'none';
+                    }, 1500);
+                 } else {
+                     // 其他支付方式
+                     const wwPayInstance = new WWPay();
+                     await wwPayInstance.processRecharge(amount, paymentMethod);
+                     rechargeMessage.textContent = '支付处理中...';
+                     rechargeMessage.style.color = '#28a745';
+                 }
+                 
                  // 支付成功后显示隐藏内容
                  const paidContent = document.getElementById('paid-content');
                  if (paidContent) {
@@ -5687,16 +5856,19 @@ contentElement.classList.add('show');
              if (rechargeBtn) {
                  rechargeBtn.addEventListener('click', () => {
                      rechargeModal.style.display = 'block';
+                     // 初始化余额显示
+                     updateBalanceDisplay();
                  });
              }
              
-             // 管理按钮事件
-             if (manageBtn) {
-                 manageBtn.addEventListener('click', () => {
-                     // 这里可以添加管理页面跳转逻辑
-                     alert('管理功能开发中，敬请期待...');
+             // 充值金额输入框事件
+             const rechargeAmount = document.getElementById('rechargeAmount');
+             if (rechargeAmount) {
+                 rechargeAmount.addEventListener('input', () => {
+                     updateBalanceDisplay();
                  });
              }
+
          }
 
          // 页面加载完成后初始化用户管理
@@ -5714,6 +5886,8 @@ contentElement.classList.add('show');
                      }
                      // 显示充值模态，但实际为支付详批
                      rechargeModal.style.display = 'block';
+                     // 初始化余额显示
+                     updateBalanceDisplay();
                  });
              }
          });
