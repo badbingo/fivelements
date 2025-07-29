@@ -98,12 +98,6 @@ class WWPay {
     try {
       this.log(`发起充值流程: ${amount}元, 方式: ${paymentMethod}`);
       
-      // 0. 检查API服务器状态
-      const isApiServerAvailable = await this.checkApiServer();
-      if (!isApiServerAvailable) {
-        throw new Error('服务器连接失败，请稍后再试');
-      }
-      
       // 1. 创建充值订单
       const orderResponse = await this.createRechargeOrder(amount, paymentMethod);
       
@@ -1203,13 +1197,13 @@ class WWPay {
      </div>
  
      <!-- 第二层：支付按钮（居中） -->
-     <div style="display: flex; justify-content: center; gap: 15px; flex-wrap: wrap;">
+     <div style="display: flex; justify-content: center; gap: 10px; flex-wrap: nowrap;">
        ${availableMethods.map(method => `
          <button class="wwpay-method-btn ${method.id === this.state.selectedMethod ? 'active' : ''}" 
                  data-type="${method.id}" 
                  style="background: ${method.id === this.state.selectedMethod ? method.activeColor : method.color}; 
-                        color: white; padding: 12px 20px; border: none; border-radius: 8px; 
-                        min-width: 120px; text-align: center; cursor: pointer;
+                        color: white; padding: 12px 15px; border: none; border-radius: 8px; 
+                        min-width: 100px; text-align: center; cursor: pointer;
                         transition: all 0.3s ease;">
            <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
              <i class="${method.icon}" style="font-size: 20px;"></i>
@@ -1355,7 +1349,7 @@ class WWPay {
          return null;
        }
        
-       const response = await fetch(`${this.config.paymentGateway.apiBase}/api/users/balance`, {
+       const response = await fetch(`${this.config.paymentGateway.apiBase}/api/user/balance`, {
          headers: {
            'Authorization': `Bearer ${token}`
          }
