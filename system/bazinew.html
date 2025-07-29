@@ -1653,13 +1653,13 @@
         <div class="recharge-container">
             <span class="close-recharge" id="closeRecharge">&times;</span>
             <div class="recharge-header">
-                <h2><i class="fas fa-coins"></i> 账户充值</h2>
-                <p>请填写充值金额并选择支付方式</p>
+                <h2><i class="fas fa-coins"></i> 详批支付</h2>
+                <p>选择一种支付方式</p>
             </div>
             
             <form id="rechargeForm" class="recharge-form">
                 <div class="form-group">
-                    <label for="rechargeAmount">充值金额</label>
+                    <label for="rechargeAmount">付款金额</label>
                     <input type="number" id="rechargeAmount" placeholder="请输入充值金额" min="1" required>
                 </div>
                 
@@ -1667,22 +1667,22 @@
                     <label>支付方式</label>
                     <div class="payment-methods">
                         <label class="payment-option">
-                            <input type="radio" name="paymentMethod" value="balance" id="balancePayment">
-                            <i class="fas fa-wallet"></i>
-                            <div class="payment-main">余额支付</div>
-                            <span class="payment-tag" id="balanceTag">余额: ¥<span id="userBalanceDisplay">0</span></span>
-                        </label>
-                        <label class="payment-option">
                             <input type="radio" name="paymentMethod" value="alipay" checked>
                             <i class="fab fa-alipay"></i>
-                            <div class="payment-main">支付宝</div>
+                            <div class="payment-main" style="font-size: 110%;">支付宝</div>
                             <span class="payment-tag">全球支付</span>
                         </label>
                         <label class="payment-option">
                             <input type="radio" name="paymentMethod" value="wechat">
                             <i class="fab fa-weixin"></i>
-                            <div class="payment-main">微信支付</div>
+                            <div class="payment-main" style="font-size: 110%;">微信支付</div>
                             <span class="payment-tag">国内支付</span>
+                        </label>
+                        <label class="payment-option">
+                            <input type="radio" name="paymentMethod" value="balance" id="balancePayment">
+                            <i class="fas fa-wallet"></i>
+                            <div class="payment-main" style="font-size: 110%;">余额支付</div>
+                            <span class="payment-tag" id="balanceTag">余额: ¥<span id="userBalanceDisplay">0</span></span>
                         </label>
                     </div>
                 </div>
@@ -1911,17 +1911,19 @@
             </div>
 
             <!-- 详批八字按钮和介绍 -->
-            <div class="card">
+            <div class="card" style="background: linear-gradient(135deg, #fffbf0, #fff8e1); border: 2px solid #f0c674;">
                 <div class="card-header">
                     <i class="fas fa-unlock"></i>
                     <h2>详批八字（20元每次）</h2>
                 </div>
-                <p>详批八字系统提供全面专业的八字分析，包括性格、事业、财富、婚姻、健康等详细解读。</p>
-                <button class="btn btn-primary" id="detailed-analysis-btn">立即详批</button>
+                <p style="font-weight: bold;">专业八字详批，深度解析您的一生运势！ 本系统基于传统命理精髓，结合现代算法，为您提供全面精准的八字分析，包括：命格等级评分（格局层次）、财富等级评分（财源特质）、命理全解（五行平衡、用神忌神）、十年大运走势、流年吉凶提示、流月运势波动，以及专项分析您的性格潜能、事业财富机遇、婚姻感情匹配度和子女缘份，助您把握人生关键节点。</p>
+                <div class="btn-center">
+                    <button class="btn btn-primary" id="detailed-analysis-btn">立即详批</button>
+                </div>
             </div>
 
             <!-- 隐藏内容 -->
-            <div id="paid-content" style="display: none;">
+            <div id="paid-content" style="display: none; background: linear-gradient(135deg, #fffbf0, #fff8e1); border-radius: 12px; padding: 20px; border: 2px solid #f0c674; margin-bottom: 30px;">
 
             <!-- Fate Level Analysis -->
             <div class="analysis-grid">
@@ -2076,7 +2078,7 @@
             </div> <!-- 关闭 paid-content -->
             
             <div class="btn-center">
-                <button class="btn btn-primary" id="recalculate-btn">
+                <button class="btn btn-primary" id="recalculate-btn" onclick="location.reload()">
                     <i class="fas fa-redo"></i> 重新测算
                 </button>
             </div>
@@ -5778,6 +5780,15 @@ contentElement.classList.add('show');
                  if (paidContent) {
                      paidContent.style.display = 'block';
                  }
+                 
+                 // 支付成功后禁用详批按钮
+                 const detailedBtn = document.getElementById('detailed-analysis-btn');
+                 if (detailedBtn) {
+                     detailedBtn.disabled = true;
+                     detailedBtn.innerHTML = '<i class="fas fa-check"></i> 已支付';
+                     detailedBtn.style.opacity = '0.6';
+                     detailedBtn.style.cursor = 'not-allowed';
+                 }
              } catch (error) {
                  rechargeMessage.textContent = error.message;
                  rechargeMessage.style.color = 'red';
@@ -5874,11 +5885,24 @@ contentElement.classList.add('show');
          // 页面加载完成后初始化用户管理
          document.addEventListener('DOMContentLoaded', function() {
              initUserManagement();
-
-             // 处理详批按钮点击
+             
+             // 确保页面重新加载后隐藏付费内容
+             const paidContent = document.getElementById('paid-content');
+             if (paidContent) {
+                 paidContent.style.display = 'none';
+             }
+             
+             // 重置详批按钮状态
              const detailedBtn = document.getElementById('detailed-analysis-btn');
              if (detailedBtn) {
+                 detailedBtn.disabled = false;
+                 detailedBtn.innerHTML = '立即详批';
+                 detailedBtn.style.opacity = '1';
+                 detailedBtn.style.cursor = 'pointer';
+                 
                  detailedBtn.addEventListener('click', function() {
+                     if (this.disabled) return;
+                     
                      const rechargeAmount = document.getElementById('rechargeAmount');
                      if (rechargeAmount) {
                          rechargeAmount.value = '20';
