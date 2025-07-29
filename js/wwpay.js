@@ -98,18 +98,58 @@ class WWPay {
     try {
       this.log(`发起充值流程: ${amount}元, 方式: ${paymentMethod}`);
       
-      // 1. 创建充值订单
-      const orderResponse = await this.createRechargeOrder(amount, paymentMethod);
-      
-      // 2. 跳转支付平台
-      await this.redirectToPaymentGateway(orderResponse);
-      
-      // 3. 启动支付状态轮询
-      // 不再需要轮询状态检查
-// this.startPaymentStatusCheck(orderResponse.orderId);
+      if (paymentMethod === 'balance') {
+        // 余额充值：直接调用余额支付接口
+        const token = localStorage.getItem('token');
+        if (!token) {
+          throw new Error('请先登录');
+        }
+        
+        const response = await fetch(`${this.config.paymentGateway.apiBase}/api/pay_with_balance`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            amount: parseFloat(amount),
+            service: 'bazi'
+          })
+        });
+        
+        if (!response.ok) {
+          let errorMessage = '余额充值失败';
+          try {
+            const result = await response.json();
+            errorMessage = result.error || errorMessage;
+          } catch (e) {
+            // 如果响应不是JSON格式，使用状态文本
+            errorMessage = response.statusText || errorMessage;
+          }
+          throw new Error(errorMessage);
+        }
+
+        let result;
+        try {
+          result = await response.json();
+        } catch (e) {
+          // 如果响应不是JSON格式，创建一个默认的成功响应
+          result = { success: true, message: '余额充值成功' };
+        }
+        this.log('余额充值成功:', result);
+        return result;
+      } else {
+        // 其他支付方式：使用原有流程
+        // 1. 创建充值订单
+        const orderResponse = await this.createRechargeOrder(amount, paymentMethod);
+        
+        // 2. 跳转支付平台
+        await this.redirectToPaymentGateway(orderResponse);
+      }
       
     } catch (error) {
       this.handlePaymentError(error);
+      throw error;
     }
   }
   
@@ -1259,33 +1299,77 @@ class WWPay {
          throw new Error('请先登录');
        }
        
-       // 2. 调用余额支付接口
-       this.log('发送余额支付请求到后端API');
-       const response = await fetch(`${this.config.paymentGateway.apiBase}/api/payments/balance`, {
-         method: 'POST',
-         headers: {
-           'Content-Type': 'application/json',
-           'Authorization': `Bearer ${token}`
-         },
-         body: JSON.stringify({
-           wishId: this.state.currentWishId,
-           amount: this.state.selectedAmount,
-           orderId: orderId
-         })
-       });
+       // 2. 根据场景调用不同的接口
+       let response;
+       if (this.state.currentWishId === 'recharge') {
+         // 充值场景
+         this.log('发送余额充值请求到后端API');
+         response = await fetch(`${this.config.paymentGateway.apiBase}/api/recharge/balance`, {
+           method: 'POST',
+           headers: {
+             'Content-Type': 'application/json',
+             'Authorization': `Bearer ${token}`
+           },
+           body: JSON.stringify({
+             amount: this.state.selectedAmount,
+             orderId: orderId,
+             method: 'balance'
+           })
+         });
+       } else if (this.state.currentWishId === 'bazi') {
+         // 八字支付场景
+         this.log('发送八字余额支付请求到后端API');
+         response = await fetch(`${this.config.paymentGateway.apiBase}/api/bazi/balance`, {
+           method: 'POST',
+           headers: {
+             'Content-Type': 'application/json',
+             'Authorization': `Bearer ${token}`
+           },
+           body: JSON.stringify({
+             amount: this.state.selectedAmount,
+             orderId: orderId,
+             service: 'bazi'
+           })
+         });
+       } else {
+         // 愿望支付场景
+         this.log('发送余额支付请求到后端API');
+         response = await fetch(`${this.config.paymentGateway.apiBase}/api/payments/balance`, {
+           method: 'POST',
+           headers: {
+             'Content-Type': 'application/json',
+             'Authorization': `Bearer ${token}`
+           },
+           body: JSON.stringify({
+             wishId: this.state.currentWishId,
+             amount: this.state.selectedAmount,
+             orderId: orderId
+           })
+         });
+       }
        this.log('收到后端API响应');
        
        // 3. 处理响应
-       const result = await response.json();
+       let result;
+       try {
+         result = await response.json();
+       } catch (e) {
+         // 如果响应不是JSON格式（如"Not Found"），处理为错误
+         if (!response.ok) {
+           throw new Error(`服务器错误: ${response.status} ${response.statusText}`);
+         }
+         // 如果是成功响应但不是JSON，创建默认成功响应
+         result = { success: true, message: '支付成功' };
+       }
        
        if (!response.ok) {
          // 处理特定错误
-         if (result.error === '余额不足') {
+         if (result && result.error === '余额不足') {
            throw new Error('余额不足，请充值后再试');
-         } else if (result.error === '愿望不存在') {
+         } else if (result && result.error === '愿望不存在') {
            throw new Error('愿望不存在或已被删除');
          } else {
-           throw new Error(result.error || '余额支付失败');
+           throw new Error((result && result.error) || `服务器错误: ${response.status} ${response.statusText}`);
          }
        }
        
