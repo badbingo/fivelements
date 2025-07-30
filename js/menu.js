@@ -45,7 +45,15 @@ class NavigationMenu {
             const menuItem = document.createElement('li');
             
             // 检查当前页面是否为该菜单项
-            const isCurrent = window.location.pathname.includes(item.url);
+            // 提取当前页面的文件名
+            const currentPath = window.location.pathname;
+            const currentFile = currentPath.substring(currentPath.lastIndexOf('/') + 1);
+            
+            // 提取菜单项URL的文件名
+            const itemFile = item.url.substring(item.url.lastIndexOf('/') + 1);
+            
+            // 比较文件名而不是整个路径
+            const isCurrent = currentFile === itemFile;
             
             menuItem.className = isCurrent ? 'nav-item current' : 'nav-item';
             
@@ -88,6 +96,7 @@ class NavigationMenu {
                 width: 100%;
                 position: relative;
                 z-index: 1000;
+                font-family: 'Noto Serif SC', 'Microsoft YaHei', sans-serif !important;
             }
             
             /* 现代导航栏 */
@@ -95,25 +104,61 @@ class NavigationMenu {
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-                padding: 1rem 2rem;
+                padding: 0.8rem 2.5rem;
                 background: #000000;
                 color: white;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+                position: relative;
+                overflow: hidden;
+            }
+            
+            /* 添加动态背景效果 */
+            .modern-nav::before {
+                content: '';
+                position: absolute;
+                top: -50%;
+                left: -50%;
+                width: 200%;
+                height: 200%;
+                background: radial-gradient(circle, rgba(255, 255, 255, 0.03) 0%, transparent 40%);
+                animation: navGlow 15s infinite linear;
+                z-index: 0;
+            }
+            
+            @keyframes navGlow {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
             }
             
             /* Logo样式 */
             .nav-logo {
                 display: flex;
                 align-items: center;
-                font-size: 1.5rem;
+                font-size: 1.6rem;
                 font-weight: 700;
                 color: #fff;
-                
+                position: relative;
+                z-index: 1;
+                text-shadow: 0 2px 10px rgba(255, 153, 0, 0.3);
+                transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+                font-family: 'Noto Serif SC', 'Microsoft YaHei', sans-serif !important;
+            }
+            
+            .nav-logo:hover {
+                transform: scale(1.05);
             }
             
             .nav-logo i {
-                margin-right: 0.5rem;
+                margin-right: 0.7rem;
                 color: #ff9900;
-                font-size: 1.8rem;
+                font-size: 2rem;
+                filter: drop-shadow(0 0 8px rgba(255, 153, 0, 0.5));
+                animation: dragonFloat 3s ease-in-out infinite;
+            }
+            
+            @keyframes dragonFloat {
+                0%, 100% { transform: translateY(0) rotate(0deg); }
+                50% { transform: translateY(-5px) rotate(5deg); }
             }
             
             /* 导航链接 */
@@ -122,40 +167,102 @@ class NavigationMenu {
                 list-style: none;
                 margin: 0;
                 padding: 0;
+                position: relative;
+                z-index: 1;
             }
             
             .nav-item {
-                margin: 0 0.5rem;
+                margin: 0 0.8rem;
                 position: relative;
             }
             
             .nav-item a {
                 display: flex;
                 align-items: center;
-                padding: 0.5rem 1rem;
+                padding: 0.6rem 1.2rem;
                 color: rgba(255, 255, 255, 0.9);
                 text-decoration: none;
                 font-weight: 500;
-                border-radius: 4px;
-                transition: all 0.3s ease;
+                border-radius: 8px;
+                transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+                position: relative;
+                overflow: hidden;
+                letter-spacing: 0.5px;
+                font-family: 'Noto Serif SC', 'Microsoft YaHei', sans-serif !important;
+            }
+            
+            .nav-item a::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+                transform: translateY(100%);
+                transition: transform 0.4s ease;
+                z-index: -1;
+                border-radius: 8px;
+            }
+            
+            .nav-item a:hover::before {
+                transform: translateY(0);
             }
             
             .nav-item a i {
-                margin-right: 0.5rem;
-                font-size: 1.1rem;
+                margin-right: 0.6rem;
+                font-size: 1.2rem;
+                transition: all 0.4s ease;
             }
             
             .nav-item a:hover {
-                background: rgba(255, 255, 255, 0.1);
                 color: white;
-                transform: translateY(-2px);
+                transform: translateY(-3px);
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
             }
             
+            .nav-item a:hover i {
+                transform: scale(1.2) rotate(10deg);
+                color: #ff9900;
+            }
+            
+            /* 当前页面高亮效果 */
             .nav-item.current a {
-                background: rgba(255, 153, 0, 0.2);
+                background: rgba(255, 153, 0, 0.15);
                 color: #ff9900;
                 font-weight: 600;
-                
+                border: 1px solid rgba(255, 153, 0, 0.3);
+                box-shadow: 0 0 15px rgba(255, 153, 0, 0.4);
+                transform: translateY(-3px);
+                position: relative;
+            }
+            
+            .nav-item.current a::after {
+                content: '';
+                position: absolute;
+                bottom: -3px;
+                left: 50%;
+                width: 40%;
+                height: 3px;
+                background: linear-gradient(90deg, transparent, #ff9900, transparent);
+                transform: translateX(-50%);
+                border-radius: 3px;
+                animation: glowLine 1.5s infinite alternate;
+            }
+            
+            @keyframes glowLine {
+                0% { opacity: 0.5; width: 30%; }
+                100% { opacity: 1; width: 60%; }
+            }
+            
+            .nav-item.current a i {
+                color: #ff9900;
+                animation: iconPulse 1.5s infinite alternate;
+            }
+            
+            @keyframes iconPulse {
+                0% { transform: scale(1); }
+                100% { transform: scale(1.2); }
             }
             
             /* 移动菜单按钮 */
@@ -163,12 +270,18 @@ class NavigationMenu {
                 display: none;
                 font-size: 1.5rem;
                 cursor: pointer;
-                padding: 0.5rem;
-                border-radius: 4px;
+                padding: 0.6rem;
+                border-radius: 50%;
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                transition: all 0.3s ease;
+                position: relative;
+                z-index: 1;
             }
             
             .mobile-menu-btn:hover {
                 background: rgba(255, 255, 255, 0.1);
+                transform: rotate(90deg);
             }
             
             /* 响应式设计 */
@@ -176,7 +289,7 @@ class NavigationMenu {
                 .modern-nav {
                     flex-direction: column;
                     align-items: flex-start;
-                    padding: 1rem;
+                    padding: 1rem 1.5rem;
                 }
                 
                 .nav-logo {
@@ -195,6 +308,12 @@ class NavigationMenu {
                     width: 100%;
                     margin-top: 1rem;
                     display: none;
+                    animation: slideDown 0.5s ease forwards;
+                }
+                
+                @keyframes slideDown {
+                    from { opacity: 0; transform: translateY(-10px); }
+                    to { opacity: 1; transform: translateY(0); }
                 }
                 
                 .modern-nav.mobile-open .nav-links {
@@ -202,13 +321,27 @@ class NavigationMenu {
                 }
                 
                 .nav-item {
-                    margin: 0.25rem 0;
+                    margin: 0.4rem 0;
                     width: 100%;
                 }
                 
                 .nav-item a {
                     width: 100%;
-                    padding: 0.75rem 1rem;
+                    padding: 0.8rem 1.2rem;
+                    border-radius: 8px;
+                    background: rgba(255, 255, 255, 0.03);
+                    border: 1px solid rgba(255, 255, 255, 0.05);
+                    margin: 2px 0;
+                    transition: all 0.3s ease;
+                }
+                
+                .nav-item a:hover {
+                    background: rgba(255, 255, 255, 0.08);
+                    transform: translateX(5px);
+                }
+                
+                .nav-item.current a {
+                    border-left: 3px solid #ff9900;
                 }
             }
         `;
