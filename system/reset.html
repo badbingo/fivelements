@@ -67,10 +67,30 @@
       border: none;
       border-radius: 0.5rem;
       cursor: pointer;
-      transition: background 0.3s;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
     button:hover {
       background: #2b6cb0;
+    }
+    button:disabled {
+      background: #90cdf4;
+      cursor: not-allowed;
+    }
+    .spinner {
+      display: none;
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 0.8s linear infinite;
+      margin-right: 8px;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
     }
     .message {
       margin-top: 1rem;
@@ -92,7 +112,7 @@
         <input type="password" id="confirmPassword" placeholder="确认新密码" required />
         <span class="toggle-password">👁️</span>
       </div>
-      <button type="submit">提交重设</button>
+      <button type="submit"><span class="spinner"></span><span class="button-text">提交重设</span></button>
       <div class="message" id="message"></div>
     </form>
   </div>
@@ -126,6 +146,9 @@
       const newPassword = document.getElementById('newPassword').value;
       const confirmPassword = document.getElementById('confirmPassword').value;
       const msg = document.getElementById('message');
+      const submitButton = document.querySelector('button[type="submit"]');
+      const spinner = submitButton.querySelector('.spinner');
+      const buttonText = submitButton.querySelector('.button-text');
 
       if (newPassword !== confirmPassword) {
         msg.textContent = '两次输入的密码不一致';
@@ -140,6 +163,11 @@
         return;
       }
       console.log('获取到token:', token);
+
+      // 显示加载状态
+      submitButton.disabled = true;
+      spinner.style.display = 'block';
+      buttonText.textContent = '发送中...';
 
       try {
         console.log('准备发送重置密码请求到:', `${API_BASE}/api/reset-password`);
@@ -162,7 +190,6 @@
         } catch (parseErr) {
           console.error('解析响应JSON失败:', parseErr);
           msg.textContent = '服务器响应格式错误';
-          return;
         }
         
         if (res.ok) {
@@ -173,6 +200,13 @@
       } catch (err) {
         console.error('请求错误:', err);
         msg.textContent = '网络错误，请稍后重试';
+      } finally {
+        // 无论成功或失败，1秒后恢复按钮状态
+        setTimeout(() => {
+          submitButton.disabled = false;
+          spinner.style.display = 'none';
+          buttonText.textContent = '提交重设';
+        }, 1000);
       }
     });
   </script>
