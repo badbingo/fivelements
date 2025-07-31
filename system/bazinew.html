@@ -5915,6 +5915,15 @@ contentElement.classList.add('show');
                  detailedBtn.addEventListener('click', function() {
                      if (this.disabled) return;
                      
+                     // 检查用户是否已登录
+                     const token = localStorage.getItem('token');
+                     if (!token) {
+                         alert('请先登录后再进行详批');
+                         toggleAuthModal(true);
+                         switchAuthTab('login');
+                         return;
+                     }
+                     
                      const rechargeAmount = document.getElementById('rechargeAmount');
                      if (rechargeAmount) {
                          rechargeAmount.value = '20';
@@ -5928,7 +5937,59 @@ contentElement.classList.add('show');
              }
          });
 
+         // 检查用户登录状态
+         function checkLoginStatus() {
+             const token = localStorage.getItem('token');
+             const username = localStorage.getItem('username');
+             
+             const loginBtn = document.getElementById('loginBtn');
+             const userWelcome = document.getElementById('userWelcome');
+             const usernameDisplay = document.getElementById('usernameDisplay');
+             const rechargeBtn = document.getElementById('rechargeBtn');
+             const logoutBtn = document.getElementById('logoutBtn');
+             const userBalance = document.getElementById('userBalance');
+             
+             if (token && username) {
+                 // 用户已登录
+                 loginBtn.style.display = 'none';
+                 userWelcome.style.display = 'block';
+                 usernameDisplay.textContent = username;
+                 rechargeBtn.style.display = 'inline-block';
+                 logoutBtn.style.display = 'inline-block';
+                 userBalance.style.display = 'block';
+                 // 加载用户余额
+                 loadUserBalance();
+             } else {
+                 // 用户未登录
+                 loginBtn.style.display = 'inline-block';
+                 userWelcome.style.display = 'none';
+                 rechargeBtn.style.display = 'none';
+                 logoutBtn.style.display = 'none';
+                 userBalance.style.display = 'none';
+             }
+         }
          
+         // 加载用户余额
+         async function loadUserBalance() {
+             const token = localStorage.getItem('token');
+             if (!token) return;
+             
+             try {
+                 const response = await fetch(`${API_BASE}/api/user/balance`, {
+                     headers: {
+                         'Authorization': `Bearer ${token}`
+                     }
+                 });
+                 
+                 if (response.ok) {
+                     const data = await response.json();
+                     const balance = data.balance || 0;
+                     document.getElementById('balanceAmount').textContent = balance.toFixed(2);
+                 }
+             } catch (error) {
+                 console.error('获取用户余额失败:', error);
+             }
+         }
 
      </script>
     </div> <!-- 闭合 container -->
