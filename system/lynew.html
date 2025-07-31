@@ -1501,7 +1501,7 @@
             
             <!-- 使用说明 -->
             <div class="usage-info">
-                <p id="dailyUsageInfo"><i class="fas fa-info-circle"></i> 每日可免费使用1次AI解卦，超出需付费2元/次</p>
+                <p id="dailyUsageInfo"><i class="fas fa-info-circle"></i> 每日可免费使用1次深度解卦，超出需付费2元/次</p>
             </div>
         </header>
         
@@ -1594,12 +1594,12 @@
                 </div>
                 
                 <div class="ai-analysis" id="aiAnalysis">
-                    <h3 class="ai-title"><i class="fas fa-brain"></i> AI深度解卦</h3>
+                    <h3 class="ai-title"><i class="fas fa-brain"></i> 系统深度解卦</h3>
                     <div class="ai-content" id="aiContent">
-                        <p>完成占卜后，点击下方按钮获取AI对卦象的深度解读</p>
-                        <p>AI将结合您的具体问题提供专业分析和建议</p>
+                        <p>完成占卜后，点击下方按钮获取系统对卦象的深度解读</p>
+                        <p>系统将结合您的具体问题提供专业分析和建议</p>
                     </div>
-                    <button class="ai-btn" id="aiBtn" disabled><i class="fas fa-robot"></i> 获取AI解卦分析</button>
+                    <button class="ai-btn" id="aiBtn" disabled><i class="fas fa-robot"></i> 获取深度解卦分析</button>
                 </div>
             </div>
         </div>
@@ -1923,7 +1923,7 @@
             questionInput.value = "";
             
             // 重置AI区域
-            aiContent.innerHTML = '<p>完成占卜后，点击下方按钮获取AI对卦象的深度解读</p><p>AI将结合您的具体问题提供专业分析和建议</p>';
+            aiContent.innerHTML = '<p>完成占卜后，点击下方按钮获取系统对卦象的深度解读</p><p>系统将结合您的具体问题提供专业分析和建议</p>';
             
             // 重置AI按钮点击状态
             aiBtnClicked = false;
@@ -2219,11 +2219,11 @@
             const aiBtn = document.getElementById('aiBtn');
             
             if (dailyUsageCount === 0) {
-                usageInfo.innerHTML = '<i class="fas fa-gift"></i> 今日还可免费使用1次AI解卦';
-                aiBtn.innerHTML = '<i class="fas fa-robot"></i> 获取AI解卦分析（今日1次免费）';
+                usageInfo.innerHTML = '<i class="fas fa-gift"></i> 今日还可免费使用1次深度解卦';
+                aiBtn.innerHTML = '<i class="fas fa-robot"></i> 获取深度解卦分析（今日1次免费）';
             } else {
-                usageInfo.innerHTML = '<i class="fas fa-coins"></i> 今日免费次数已用完，继续使用AI解卦需付费2元/次';
-                aiBtn.innerHTML = '<i class="fas fa-robot"></i> 获取AI解卦分析（每次2元）';
+                usageInfo.innerHTML = '<i class="fas fa-coins"></i> 今日免费次数已用完，继续使用深度解卦需付费2元/次';
+                aiBtn.innerHTML = '<i class="fas fa-robot"></i> 获取深度解卦分析（每次2元）';
             }
         }
         
@@ -2265,7 +2265,7 @@
         async function checkPaymentAndAnalyze() {
             const token = localStorage.getItem('token');
             if (!token) {
-                alert('请先登录后使用AI解卦功能');
+                alert('请先登录后使用深度解卦功能');
                 document.getElementById('authModal').style.display = 'flex';
                 return false;
             }
@@ -2277,7 +2277,7 @@
             
             // 需要付费
             if (userBalance < 2) {
-                alert('余额不足，请充值后继续使用AI解卦功能');
+                alert('余额不足，请充值后继续使用深度解卦功能');
                 document.getElementById('rechargeModal').style.display = 'flex';
                 return false;
             }
@@ -2290,7 +2290,7 @@
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${token}`
                     },
-                    body: JSON.stringify({ amount: 2, reason: 'AI解卦分析' })
+                    body: JSON.stringify({ amount: 2, reason: '深度解卦分析' })
                 });
                 
                 if (response.ok) {
@@ -2331,7 +2331,7 @@
             aiContent.innerHTML = `
                 <div class="ai-loading">
                     <div class="spinner"></div>
-                    <p>AI正在深度分析卦象，请稍候...</p>
+                    <p>系统正在深度分析卦象，请稍候...</p>
                 </div>
             `;
             
@@ -2419,7 +2419,7 @@
                 console.error("API调用失败:", error);
                 aiContent.innerHTML = `
                     <div class="ai-error">
-                        <p>AI解卦服务暂时不可用</p>
+                        <p>深度解卦服务暂时不可用</p>
                         <p>错误信息: ${error.message}</p>
                         <p>请稍后再试或查看控制台获取更多信息</p>
                     </div>
@@ -2436,7 +2436,7 @@
                                     'Content-Type': 'application/json',
                                     'Authorization': `Bearer ${token}`
                                 },
-                                body: JSON.stringify({ amount: 2, reason: 'AI解卦分析失败退款' })
+                                body: JSON.stringify({ amount: 2, reason: '深度解卦分析失败退款' })
                             });
                             userBalance += 2;
                             document.getElementById('balanceAmount').textContent = userBalance.toFixed(2);
