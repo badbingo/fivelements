@@ -74,13 +74,16 @@
   </div>
 
   <script>
+    // API配置
+    const API_BASE = 'https://api.mybazi.net';
+    
     document.getElementById('forgotForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const email = document.getElementById('email').value;
       const message = document.getElementById('message');
 
       try {
-        const res = await fetch('https://bazi-backend.owenjass.workers.dev/api/request-reset', {
+        const res = await fetch(`${API_BASE}/api/request-reset`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email })
@@ -94,9 +97,11 @@
           message.textContent = result.error || '发送失败，请确认邮箱已注册';
         }
       } catch (err) {
+        console.error('请求错误:', err);
         message.textContent = '网络错误，请稍后重试';
       }
     });
+  
   </script>
 </body>
 </html>
