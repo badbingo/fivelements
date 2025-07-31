@@ -98,6 +98,15 @@
   </div>
 
   <script>
+    // 页面加载时检查URL参数
+    window.addEventListener('DOMContentLoaded', () => {
+      const params = new URLSearchParams(window.location.search);
+      console.log('URL参数:', Object.fromEntries(params.entries()));
+    });
+    
+    // API配置
+    const API_BASE = 'https://api.mybazi.net';
+    
     // 切换密码显示/隐藏
     document.querySelectorAll('.toggle-password').forEach(icon => {
       icon.addEventListener('click', function() {
@@ -127,23 +136,42 @@
       const token = params.get('token');
       if (!token) {
         msg.textContent = '链接无效，请重新申请重设密码';
+        console.error('未找到token参数');
         return;
       }
+      console.log('获取到token:', token);
 
       try {
-        const res = await fetch('https://bazi-backend.owenjass.workers.dev/api/reset-password', {
+        console.log('准备发送重置密码请求到:', `${API_BASE}/api/reset-password`);
+        console.log('请求数据:', { token, newPassword: '***' });
+        
+        const res = await fetch(`${API_BASE}/api/reset-password`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ token, newPassword })
         });
 
-        const result = await res.json();
+        console.log('API响应状态:', res.status);
+        const responseText = await res.text();
+        console.log('API原始响应:', responseText);
+        
+        let result;
+        try {
+          result = JSON.parse(responseText);
+          console.log('API响应内容:', result);
+        } catch (parseErr) {
+          console.error('解析响应JSON失败:', parseErr);
+          msg.textContent = '服务器响应格式错误';
+          return;
+        }
+        
         if (res.ok) {
           msg.textContent = '密码重设成功，请重新登录';
         } else {
           msg.textContent = result.error || '重设失败，请稍后重试';
         }
       } catch (err) {
+        console.error('请求错误:', err);
         msg.textContent = '网络错误，请稍后重试';
       }
     });
