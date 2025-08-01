@@ -28,10 +28,9 @@ const pathNameMap = {
     'special': '特殊格局',
     'bazi-test': '八字试题',
     'system': '洞察天机',
-    'bazi': '机缘命理系统',
-    'hehun': '八字合婚系统',
+    'bazi': '在线八字详批',
     'liuyao': '六爻起卦',
-    'zf': '灵阵法门',
+    'wishingwell': '许愿池',
     'about': '关于我们'
 };
 
@@ -332,10 +331,9 @@ function createNavigation() {
             href: '#',
             wuxing: 'water',
             dropdown: [
-                { text: '机缘命理系统', href: '/system/bazi.html' },
-                { text: '八字合婚系统', href: '/system/hehun.html' },
-                { text: '六爻起卦', href: '/system/liuyao.html' },
-                { text: '灵阵法门', href: '/system/zf.html' }
+                { text: '在线八字详批', href: '/system/bazinew.html' },
+                { text: '六爻起卦', href: '/system/lynew.html' },
+                { text: '许愿池', href: '/system/wishingwell.html' }
             ]
         },
         {
