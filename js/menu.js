@@ -8,7 +8,7 @@ class NavigationMenu {
         this.menuItems = [
             { name: '八字详批', url: '../system/bazinew.html', icon: 'fa-solid fa-calendar-days' },
             { name: '六爻占卜', url: '../system/lynew.html', icon: 'fa-solid fa-yin-yang' },
-            { name: '命缘池', url: '../system/wishingwell.html', icon: 'fa-solid fa-water' }
+            { name: '许愿池', url: '../system/wishingwell.html', icon: 'fa-solid fa-water' }
         ];
         this.init();
     }
