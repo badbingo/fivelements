@@ -480,113 +480,252 @@
             text-align: center;
             margin: 0 auto;
             position: absolute;
-            bottom: 100px;
+            bottom: 80px;
             left: 50%;
             transform: translateX(-50%);
             z-index: 10;
-            background: radial-gradient(ellipse at center, rgba(255, 183, 77, 0.15) 0%, transparent 70%);
-            padding: 30px 50px;
-            border-radius: 30px;
-            border: 1px solid rgba(255, 183, 77, 0.1);
-            box-shadow: 0 0 30px rgba(255, 183, 77, 0.1);
+            perspective: 1000px;
+        }
+        
+        /* 香炉图片设计 */
+        .incense-burner {
+            position: relative;
+            width: 240px;
+            height: 180px;
+            margin: 0 auto;
+            background-image: url('../images/burner.gif');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.3));
+            animation: burnerGlow 3s ease-in-out infinite;
+        }
+        
+        @keyframes burnerGlow {
+            0%, 100% { 
+                filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.3)) brightness(1);
+            }
+            50% { 
+                filter: drop-shadow(0 10px 20px rgba(255, 183, 77, 0.4)) brightness(1.1);
+            }
+        }
+        
+        /* 移除沙土效果 */
+        .incense-sand {
+            display: none;
+        }
+        
+        /* 香的容器 */
+        .incense-sticks {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            gap: 30px;
+            height: 100px;
+            position: absolute;
+            top: -60px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
         }
         
         .incense {
-            display: inline-block;
-            width: 8px;
-            height: 140px;
-            background: linear-gradient(to bottom, #D2691E, #8B4513);
-            margin: 0 35px;
             position: relative;
-            border-radius: 4px;
+            width: 5px;
+            height: 80px;
+            background: linear-gradient(to bottom, 
+                #8B4513 0%, 
+                #A0522D 20%, 
+                #CD853F 40%, 
+                #D2691E 60%, 
+                #8B4513 100%);
+            border-radius: 3px 3px 1px 1px;
             cursor: pointer;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 2px 15px rgba(139, 69, 19, 0.4);
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 
+                0 2px 8px rgba(139, 69, 19, 0.4),
+                inset 1px 0 2px rgba(210, 105, 30, 0.3),
+                inset -1px 0 2px rgba(139, 69, 19, 0.3);
+            transform-origin: bottom center;
+            animation: incenseIdle 4s ease-in-out infinite;
         }
-
+        
+        @keyframes incenseIdle {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(1deg); }
+            75% { transform: rotate(-1deg); }
+        }
+        
         .incense::before {
             content: '';
             position: absolute;
-            bottom: 0;
+            bottom: -6px;
             left: 50%;
             transform: translateX(-50%);
-            width: 16px;
-            height: 16px;
-            background: linear-gradient(to bottom, #CD853F, #8B4513);
+            width: 8px;
+            height: 6px;
+            background: radial-gradient(ellipse at center, #8B7355, #654321);
             border-radius: 50%;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
         }
-
+        
         .incense:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 5px 15px rgba(139, 69, 19, 0.4);
+            transform: translateY(-8px) scale(1.05);
+            box-shadow: 
+                0 8px 20px rgba(139, 69, 19, 0.6),
+                0 0 15px rgba(255, 183, 77, 0.4),
+                inset 1px 0 2px rgba(210, 105, 30, 0.3),
+                inset -1px 0 2px rgba(139, 69, 19, 0.3);
+            animation: none;
         }
         
-        .incense.lit::after {
-            content: '';
-            position: absolute;
-            top: -30px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 3px;
-            height: 30px;
-            background: linear-gradient(to bottom, #FFD700, #FFA500);
-            border-radius: 2px 2px 0 0;
-            box-shadow: 0 0 20px #FFD700;
-            animation: flicker 0.5s ease-in-out infinite alternate;
-        }
-
-        @keyframes flicker {
-            0% { opacity: 0.8; height: 28px; }
-            100% { opacity: 1; height: 32px; }
-        }
-        
-        .incense.lit::before {
-            content: '';
+        .incense:hover::after {
+            content: '点击点燃';
             position: absolute;
             top: -40px;
             left: 50%;
             transform: translateX(-50%);
-            width: 30px;
-            height: 30px;
-            background: radial-gradient(ellipse at center, rgba(255, 183, 77, 0.9) 0%, rgba(255, 167, 38, 0) 70%);
-            border-radius: 50%;
-            animation: smoke 5s infinite ease-out;
-            filter: blur(3px);
-            mix-blend-mode: screen;
+            background: rgba(26, 26, 46, 0.95);
+            color: var(--primary-color);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            animation: tooltipFloat 0.3s ease-out;
         }
-
+        
+        @keyframes tooltipFloat {
+            from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+            to { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+        
+        /* 点燃状态的香 */
+        .incense.lit {
+            animation: incenseBurning 2s ease-in-out infinite;
+        }
+        
+        @keyframes incenseBurning {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(0.5deg); }
+            75% { transform: rotate(-0.5deg); }
+        }
+        
+        /* 火焰效果 */
         .incense.lit::after {
             content: '';
             position: absolute;
-            top: -45px;
+            top: -25px;
             left: 50%;
             transform: translateX(-50%);
-            width: 40px;
-            height: 40px;
-            background: radial-gradient(ellipse at center, rgba(255, 183, 77, 0.4) 0%, transparent 70%);
-            border-radius: 50%;
-            animation: glow 2s infinite ease-in-out;
-            filter: blur(5px);
-            mix-blend-mode: screen;
-        }
-
-        @keyframes glow {
-            0%, 100% { transform: translateX(-50%) scale(0.8); opacity: 0.4; }
-            50% { transform: translateX(-50%) scale(1.2); opacity: 0.6; }
+            width: 8px;
+            height: 20px;
+            background: linear-gradient(to top, 
+                #FF4500 0%, 
+                #FF6347 30%, 
+                #FFD700 60%, 
+                #FFA500 100%);
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            box-shadow: 
+                0 0 15px #FF4500,
+                0 0 25px #FFD700,
+                0 0 35px rgba(255, 69, 0, 0.3);
+            animation: flameFlicker 0.3s ease-in-out infinite alternate;
+            filter: blur(0.5px);
         }
         
-        @keyframes smoke {
-            0% { transform: translateX(-50%) scale(0.8) rotate(0deg); opacity: 0.9; }
-            25% { transform: translateX(-60%) translateY(-25px) scale(1.5) rotate(5deg); opacity: 0.7; }
-            50% { transform: translateX(-40%) translateY(-50px) scale(2) rotate(-5deg); opacity: 0.5; }
-            75% { transform: translateX(-55%) translateY(-75px) scale(2.5) rotate(5deg); opacity: 0.3; }
-            100% { transform: translateX(-45%) translateY(-100px) scale(3) rotate(-5deg); opacity: 0; }
+        @keyframes flameFlicker {
+            0% { 
+                opacity: 0.9; 
+                height: 18px; 
+                transform: translateX(-50%) scale(0.95);
+            }
+            100% { 
+                opacity: 1; 
+                height: 22px; 
+                transform: translateX(-50%) scale(1.05);
+            }
+        }
+        
+        /* 烟雾效果 */
+        .incense.lit::before {
+            content: '';
+            position: absolute;
+            top: -35px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 20px;
+            background: radial-gradient(ellipse at center, 
+                rgba(200, 200, 200, 0.8) 0%, 
+                rgba(180, 180, 180, 0.6) 30%, 
+                rgba(160, 160, 160, 0.3) 60%, 
+                transparent 100%);
+            border-radius: 50%;
+            animation: smokeRise 4s infinite ease-out;
+            filter: blur(2px);
+            mix-blend-mode: screen;
+        }
+        
+        @keyframes smokeRise {
+            0% { 
+                transform: translateX(-50%) scale(0.5) rotate(0deg); 
+                opacity: 0.8; 
+            }
+            25% { 
+                transform: translateX(-45%) translateY(-30px) scale(1.2) rotate(10deg); 
+                opacity: 0.6; 
+            }
+            50% { 
+                transform: translateX(-55%) translateY(-60px) scale(1.8) rotate(-15deg); 
+                opacity: 0.4; 
+            }
+            75% { 
+                transform: translateX(-40%) translateY(-90px) scale(2.2) rotate(20deg); 
+                opacity: 0.2; 
+            }
+            100% { 
+                transform: translateX(-50%) translateY(-120px) scale(2.8) rotate(-10deg); 
+                opacity: 0; 
+            }
+        }
+        
+        /* 点燃时的光效 */
+        .incense.lit {
+            box-shadow: 
+                0 2px 8px rgba(139, 69, 19, 0.4),
+                0 0 20px rgba(255, 69, 0, 0.3),
+                0 0 40px rgba(255, 215, 0, 0.2),
+                inset 1px 0 2px rgba(210, 105, 30, 0.3),
+                inset -1px 0 2px rgba(139, 69, 19, 0.3);
+        }
+        
+        /* 点燃成功的粒子效果 */
+        .incense-spark {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: #FFD700;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: sparkFly 1s ease-out forwards;
+        }
+        
+        @keyframes sparkFly {
+            0% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(0) translateY(-50px);
+            }
         }
         
         .wealth-incantation {
             display: none;
-            background: rgba(26, 26, 46, 0.95);
+            background: rgba(26, 26, 46, 0.8);
             padding: 2rem;
             border-radius: 20px;
             border: 2px solid var(--border-color);
@@ -1189,9 +1328,14 @@
             </div>
             
             <div class="incense-container" id="incenseContainer">
-                <div class="incense" id="incense1"></div>
-                <div class="incense" id="incense2"></div>
-                <div class="incense" id="incense3"></div>
+                <div class="incense-burner">
+                    <div class="incense-sand"></div>
+                </div>
+                <div class="incense-sticks">
+                    <div class="incense" id="incense1"></div>
+                    <div class="incense" id="incense2"></div>
+                    <div class="incense" id="incense3"></div>
+                </div>
             </div>
             
             <div class="wealth-incantation" id="wealthIncantation">
@@ -1364,17 +1508,32 @@
             baziHeader.textContent = name || '八字命盘';
             
             try {
-                // 创建阳历日期对象
-                const solarDate = new Date(year, month - 1, day);
+                // 将hour转换为实际的小时数
+                let hourValue;
+                switch(parseInt(hour)) {
+                    case 0: hourValue = 0; break;  // 子时 23:00-01:00，取00:00
+                    case 1: hourValue = 2; break;  // 丑时 01:00-03:00，取02:00
+                    case 2: hourValue = 4; break;  // 寅时 03:00-05:00，取04:00
+                    case 3: hourValue = 6; break;  // 卯时 05:00-07:00，取06:00
+                    case 4: hourValue = 8; break;  // 辰时 07:00-09:00，取08:00
+                    case 5: hourValue = 10; break; // 巳时 09:00-11:00，取10:00
+                    case 6: hourValue = 12; break; // 午时 11:00-13:00，取12:00
+                    case 7: hourValue = 14; break; // 未时 13:00-15:00，取14:00
+                    case 8: hourValue = 16; break; // 申时 15:00-17:00，取16:00
+                    case 9: hourValue = 18; break; // 酉时 17:00-19:00，取18:00
+                    case 10: hourValue = 20; break; // 戌时 19:00-21:00，取20:00
+                    case 11: hourValue = 22; break; // 亥时 21:00-23:00，取22:00
+                    default: hourValue = 12; // 默认取正午
+                }
+                
+                // 使用Solar.fromYmdHms创建阳历日期对象，包含时间信息
+                const solar = Solar.fromYmdHms(year, month, day, hourValue, 0, 0);
                 
                 // 转换为农历日期
-                const lunarDate = Lunar.fromDate(solarDate);
+                const lunar = solar.getLunar();
                 
                 // 获取八字信息
-                const bazi = lunarDate.getEightChar();
-                
-                // 获取时辰地支
-                const timeZhi = LunarUtil.ZHI[hour % 12];
+                const bazi = lunar.getEightChar();
                 
                 // 清空现有内容
                 baziGrid.innerHTML = '';
@@ -1384,7 +1543,7 @@
                     { name: '年柱', value: bazi.getYearGan() + bazi.getYearZhi() },
                     { name: '月柱', value: bazi.getMonthGan() + bazi.getMonthZhi() },
                     { name: '日柱', value: bazi.getDayGan() + bazi.getDayZhi() },
-                    { name: '时柱', value: bazi.getTimeGan() + timeZhi }
+                    { name: '时柱', value: bazi.getTimeGan() + bazi.getTimeZhi() }
                 ];
                 
                 // 添加八字到网格
@@ -1416,28 +1575,34 @@
             incenses.forEach((incense, index) => {
                 incense.addEventListener('click', function() {
                     if (!this.classList.contains('lit')) {
-                        this.classList.add('lit');
-                        litCount++;
+                        // 添加点燃效果
+                        createIncenseLightEffect(this);
                         
-                        // 更新进度信息
-                        document.getElementById('ritualStatus').textContent = 
-                            `已点燃 ${litCount}/3 根香${litCount < 3 ? '，请继续点击下一根' : ''}`;
-                        
-                        // 更新保存的进度
-                        const savedProgress = JSON.parse(localStorage.getItem('wealthMatrixProgress'));
-                        if (savedProgress) {
-                            savedProgress.incenseLit[index] = true;
-                            if (litCount === 3) {
-                                savedProgress.phase = 'incenseCountdown';
-                                savedProgress.incenseStartTime = Date.now();
+                        // 延迟添加lit类，让效果更自然
+                        setTimeout(() => {
+                            this.classList.add('lit');
+                            litCount++;
+                            
+                            // 更新进度信息
+                            document.getElementById('ritualStatus').textContent = 
+                                `已点燃 ${litCount}/3 根香${litCount < 3 ? '，请继续点击下一根' : ''}`;
+                            
+                            // 更新保存的进度
+                            const savedProgress = JSON.parse(localStorage.getItem('wealthMatrixProgress'));
+                            if (savedProgress) {
+                                savedProgress.incenseLit[index] = true;
+                                if (litCount === 3) {
+                                    savedProgress.phase = 'incenseCountdown';
+                                    savedProgress.incenseStartTime = Date.now();
+                                }
+                                saveProgress(savedProgress);
                             }
-                            saveProgress(savedProgress);
-                        }
-                        
-                        // 如果全部点燃，开始倒计时
-                        if (litCount === 3) {
-                            startIncenseCountdown(name);
-                        }
+                            
+                            // 如果全部点燃，开始倒计时
+                            if (litCount === 3) {
+                                startIncenseCountdown(name);
+                            }
+                        }, 300);
                     }
                 });
             });
@@ -1446,7 +1611,7 @@
         // 点香倒计时
         function startIncenseCountdown(name) {
             // 更新进度信息
-            document.getElementById('ritualStatus').textContent = '香已全部点燃，阵法进行中...';
+            document.getElementById('ritualStatus').textContent = '香已全部点燃，聚财阵法正式启动...';
             
             // 显示进度条
             const progressContainer = document.getElementById('progressContainer');
@@ -1456,6 +1621,12 @@
             // 显示聚财灵咒
             const incantation = document.getElementById('wealthIncantation');
             incantation.style.display = 'block';
+            
+            // 添加香炉发光效果
+            const burner = document.querySelector('.incense-burner');
+            if (burner) {
+                burner.style.animation = 'burnerGlow 2s ease-in-out infinite';
+            }
             
             const startTime = Date.now();
             let elapsedSeconds = 0;
@@ -1495,6 +1666,37 @@
                 startTime: startTime,
                 elapsedSeconds: 0
             });
+        }
+        
+        // 创建点香时的粒子效果
+        function createIncenseLightEffect(incenseElement) {
+            const rect = incenseElement.getBoundingClientRect();
+            const container = document.querySelector('.incense-container');
+            
+            // 创建多个火花粒子
+            for (let i = 0; i < 8; i++) {
+                const spark = document.createElement('div');
+                spark.className = 'incense-spark';
+                
+                // 随机位置和方向
+                const angle = (Math.PI * 2 * i) / 8 + (Math.random() - 0.5) * 0.5;
+                const distance = 20 + Math.random() * 30;
+                const x = Math.cos(angle) * distance;
+                const y = Math.sin(angle) * distance;
+                
+                spark.style.left = `${rect.left - container.getBoundingClientRect().left + rect.width/2}px`;
+                spark.style.top = `${rect.top - container.getBoundingClientRect().top}px`;
+                spark.style.transform = `translate(${x}px, ${y}px)`;
+                
+                container.appendChild(spark);
+                
+                // 移除粒子
+                setTimeout(() => {
+                    if (spark.parentNode) {
+                        spark.parentNode.removeChild(spark);
+                    }
+                }, 1000);
+            }
         }
 
         // 继续点香倒计时
