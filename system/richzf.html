@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>天罡聚财阵</title>
+    <script src="https://cdn.jsdelivr.net/npm/lunar-javascript/lunar.min.js"></script>
     <script src="../js/lunar.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=ZCOOL+XiaoWei&family=Noto+Serif+SC:wght@400;700&display=swap');
@@ -204,9 +205,26 @@
             flex-direction: column;
             padding: 2rem;
             position: relative;
-            background: radial-gradient(circle at center, rgba(30, 30, 30, 0.7) 0%, rgba(20, 20, 20, 0.9) 100%);
+            background: black;
             align-items: center;
             justify-content: flex-start;
+            position: relative;
+        }
+        
+        .ritual-panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('../images/fubg.jpg');
+            background-position: center center;
+            background-repeat: no-repeat;
+            background-size: contain;
+            opacity: 0.2; /* 80%透明度 */
+            z-index: 0;
+            pointer-events: none;
         }
         
         /* New Centered Bazi Display */
@@ -320,6 +338,7 @@
             -webkit-backdrop-filter: blur(10px);
             position: relative;
             overflow: hidden;
+            z-index: 1;
         }
 
         .form-container::before {
@@ -426,6 +445,7 @@
             border-radius: 50%;
             padding: 20px;
             box-shadow: 0 0 50px rgba(255, 183, 77, 0.1);
+            z-index: 1;
         }
         
         .matrix {
@@ -1082,28 +1102,9 @@
             to { transform: translate(-50%, -50%) rotate(0deg); }
         }
         
-        .particles {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 0;
-        }
+        /* 粒子特效已删除 */
         
-        .particle {
-            position: absolute;
-            font-size: 1rem;
-            color: var(--primary-color);
-            opacity: 0.8;
-            animation: float 15s infinite ease-in-out;
-        }
-        
-        @keyframes float {
-            0%, 100% { transform: translate(0, 0); }
-            50% { transform: translate(10px, -10px); }
-        }
+        /* float动画已删除 */
         
         /* End Ritual Button */
         .end-ritual-btn {
@@ -1206,7 +1207,7 @@
     <div class="circle circle-2"></div>
     <div class="circle circle-3"></div>
     
-    <div class="particles" id="particles"></div>
+    <!-- 粒子特效已删除 -->
     <div class="gold-coins" id="goldCoins"></div>
     
     <div class="final-effect" id="finalEffect">
@@ -1406,8 +1407,7 @@
             // 检查是否有保存的进度
             checkSavedProgress();
 
-            // 初始化粒子效果
-            createParticles();
+            // 粒子特效初始化已删除
         });
 
         // 检查是否有保存的进度
@@ -1553,17 +1553,17 @@
                 const lunar = solar.getLunar();
                 
                 // 获取八字信息
-                const bazi = lunar.getEightChar();
+                const eightChar = lunar.getEightChar();
                 
                 // 清空现有内容
                 baziGrid.innerHTML = '';
                 
                 // 八字四柱
                 const pillars = [
-                    { name: '年柱', value: bazi.getYearGan() + bazi.getYearZhi() },
-                    { name: '月柱', value: bazi.getMonthGan() + bazi.getMonthZhi() },
-                    { name: '日柱', value: bazi.getDayGan() + bazi.getDayZhi() },
-                    { name: '时柱', value: bazi.getTimeGan() + bazi.getTimeZhi() }
+                    { name: '年柱', value: eightChar.getYear() },
+                    { name: '月柱', value: eightChar.getMonth() },
+                    { name: '日柱', value: eightChar.getDay() },
+                    { name: '时柱', value: eightChar.getTime() }
                 ];
                 
                 // 添加八字到网格
@@ -2010,24 +2010,7 @@
             }, 5000);
         }
 
-        // 创建粒子效果
-        function createParticles() {
-            const particles = document.getElementById('particles');
-            particles.innerHTML = '';
-            
-            const symbols = ['💰', '💵', '💴', '💶', '💷', '💸', '💹', '🪙', '💎', '🏆', '🏅', '🥇', '💲', '₿', '💳', '🧾', '💱'];
-            
-            for (let i = 0; i < 100; i++) {
-                const particle = document.createElement('div');
-                particle.className = 'particle';
-                particle.textContent = symbols[Math.floor(Math.random() * symbols.length)];
-                particle.style.left = `${Math.random() * 100}vw`;
-                particle.style.top = `${Math.random() * 100}vh`;
-                particle.style.animationDelay = `${Math.random() * 5}s`;
-                particle.style.animationDuration = `${Math.random() * 10 + 10}s`;
-                particles.appendChild(particle);
-            }
-        }
+        // 粒子特效函数已删除
 
         // 创建金币雨
         function createCoinRain() {
