@@ -35,6 +35,10 @@ class NavigationMenu {
         const logoArea = document.createElement('div');
         logoArea.className = 'nav-logo';
         logoArea.innerHTML = '<i class="fa-solid fa-dragon"></i> <span>麦八字</span>';
+        logoArea.style.cursor = 'pointer';
+        logoArea.addEventListener('click', () => {
+            window.location.href = '../index.html';
+        });
         
         // 创建菜单项容器
         const menuList = document.createElement('ul');
