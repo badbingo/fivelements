@@ -333,7 +333,7 @@ function createNavigation() {
             dropdown: [
                 { text: '在线八字详批', href: '/system/bazinew.html' },
                 { text: '六爻起卦', href: '/system/lynew.html' },
-                { text: '许愿池', href: '/system/wishingwell.html' }
+                { text: '许愿池', href: '/system/wwopening.html' }
             ]
         },
         {
