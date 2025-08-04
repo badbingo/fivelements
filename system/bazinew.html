@@ -285,16 +285,17 @@
         }
 
         /* Chart Container - 优化版 */
-        .chart-container {
-            position: relative;
-            height: 400px;
-            margin: 35px 0;
-            border-radius: 12px;
-            background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.85));
-            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
-            padding: 20px;
-            backdrop-filter: blur(5px);
-            overflow: hidden;
+        .chart-container,
+        .current-chart-container {
+            position: relative !important;
+            height: 250px !important;
+            margin: 35px 0 !important;
+            border-radius: 12px !important;
+            background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.85)) !important;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08) !important;
+            padding: 20px !important;
+            backdrop-filter: blur(5px) !important;
+            overflow: hidden !important;
         }
         
         .chart-container::before {
@@ -1642,6 +1643,92 @@
                     margin-top: 4px;
                 }
             }
+
+        /* 响应式设计 - 身强身弱分析对比 */
+        @media (max-width: 1024px) {
+            .strength-comparison-container {
+                flex-direction: column !important;
+                gap: 20px !important;
+            }
+            
+            .original-strength-section,
+            .current-strength-section {
+                min-height: 350px;
+            }
+            
+            .chart-container,
+            .current-chart-container {
+                height: 250px !important;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .card {
+                padding: 20px;
+                margin-bottom: 20px;
+            }
+            
+            .strength-comparison-container {
+                min-height: auto !important;
+            }
+            
+            .original-strength-section,
+            .current-strength-section {
+                padding: 15px;
+                min-height: 300px;
+            }
+            
+            .section-header h3 {
+                font-size: 1rem !important;
+            }
+            
+            .chart-container,
+            .current-chart-container {
+                height: 200px !important;
+            }
+            
+            .comparison-note {
+                padding: 12px;
+            }
+            
+            .comparison-note p {
+                font-size: 0.85rem !important;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .header h1 {
+                font-size: 2rem !important;
+            }
+            
+            .header p {
+                font-size: 1rem !important;
+            }
+            
+            .card-header h2 {
+                font-size: 1.3rem;
+            }
+            
+            .original-strength-section,
+            .current-strength-section {
+                padding: 12px;
+                min-height: 280px;
+            }
+            
+            .chart-container,
+            .current-chart-container {
+                height: 180px !important;
+                padding: 8px;
+            }
+            
+            .chart-description {
+                padding: 12px !important;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1736,9 +1823,10 @@
                 
                 <div class="forgot-password">
                     <a href="#" onclick="window.open('forgot.html','_blank','width=500,height=400,left='+(screen.width-500)/2+',top='+(screen.height-400)/2+',menubar=no,toolbar=no,location=no');return false;">
-                      忘记密码?
-                    </a>                
+                        忘记密码?
+                    </a>
                 </div>
+                
                 <div id="loginMessage" class="auth-message"></div>
             </form>
             
@@ -1887,19 +1975,65 @@
                 </div>
             </div>
 
-            <!-- Strength Analysis -->
+            <!-- Combined Strength Analysis -->
             <div class="card">
                 <div class="card-header">
                     <i class="fas fa-balance-scale"></i>
-                    <h2>身强身弱分析</h2>
+                    <h2>身强身弱分析对比</h2>
+                    <p style="margin: 5px 0 0 0; font-size: 0.9rem; color: var(--text-secondary); font-weight: normal;">原命局与当前运势的力量对比分析</p>
                 </div>
-                <div class="strength-analysis-frame" style="display: flex; flex-direction: row; gap: 20px; flex-wrap: wrap;">
-                    <div class="chart-container" style="flex: 1; min-width: 300px; min-height: 350px;">
-                        <canvas id="strength-chart"></canvas>
+                
+                <!-- 左右布局容器 -->
+                <div class="strength-comparison-container" style="display: flex; gap: 25px; min-height: 400px;">
+                    
+                    <!-- 左侧：原命局分析 -->
+                    <div class="original-strength-section" style="flex: 1; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 12px; padding: 20px; border: 2px solid #dee2e6; position: relative; overflow: hidden;">
+                        <!-- 装饰性背景元素 -->
+                        <div style="position: absolute; top: -20px; right: -20px; width: 80px; height: 80px; background: linear-gradient(45deg, #6c757d, #adb5bd); border-radius: 50%; opacity: 0.1;"></div>
+                        
+                        <div class="section-header" style="display: flex; align-items: center; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 2px solid #6c757d;">
+                            <i class="fas fa-yin-yang" style="color: #6c757d; font-size: 1.3rem; margin-right: 10px;"></i>
+                            <h3 style="margin: 0; color: #495057; font-weight: 600; font-size: 1.1rem;">原命局分析</h3>
+                        </div>
+                        
+                        <div class="strength-analysis-frame" style="display: flex; flex-direction: column; gap: 15px;">
+                            <div class="chart-container" style="height: 250px !important; background: white; border-radius: 8px; padding: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+                                <canvas id="strength-chart"></canvas>
+                            </div>
+                            <div class="chart-description" id="strength-description" style="background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border-left: 4px solid #6c757d;">
+                                <!-- 身强身弱分析描述 -->
+                            </div>
+                        </div>
                     </div>
-                    <div class="chart-description" id="strength-description" style="flex: 1; min-width: 300px; background-color: #f9f9f9; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-                        <!-- 身强身弱分析描述 -->
+                    
+                    <!-- 右侧：当前分析 -->
+                    <div class="current-strength-section" style="flex: 1; background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); border-radius: 12px; padding: 20px; border: 2px solid #2196f3; position: relative; overflow: hidden;">
+                        <!-- 装饰性背景元素 -->
+                        <div style="position: absolute; top: -20px; right: -20px; width: 80px; height: 80px; background: linear-gradient(45deg, #2196f3, #64b5f6); border-radius: 50%; opacity: 0.15;"></div>
+                        
+                        <div class="section-header" style="display: flex; align-items: center; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 2px solid #2196f3;">
+                            <i class="fas fa-clock" style="color: #2196f3; font-size: 1.3rem; margin-right: 10px;"></i>
+                            <h3 style="margin: 0; color: #1976d2; font-weight: 600; font-size: 1.1rem;">当前运势分析</h3>
+                        </div>
+                        
+                        <div class="current-strength-analysis-frame" style="display: flex; flex-direction: column; gap: 15px;">
+                            <div class="current-chart-container" style="height: 250px !important; background: white; border-radius: 8px; padding: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+                                <canvas id="current-strength-chart"></canvas>
+                            </div>
+                            <div class="chart-description" id="current-strength-description" style="background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border-left: 4px solid #2196f3;">
+                                <!-- 当前身强身弱分析描述 -->
+                            </div>
+                        </div>
                     </div>
+                </div>
+                
+                <!-- 对比说明 -->
+                <div class="comparison-note" style="margin-top: 20px; padding: 15px; background: linear-gradient(90deg, #fff3e0 0%, #ffe0b2 100%); border-radius: 8px; border-left: 4px solid #ff9800;">
+                    <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                        <i class="fas fa-info-circle" style="color: #f57c00; margin-right: 8px;"></i>
+                        <strong style="color: #ef6c00;">分析说明</strong>
+                    </div>
+                    <p style="margin: 0; color: #bf360c; font-size: 0.9rem; line-height: 1.5;">左侧显示您的原命局身强身弱状态，右侧显示加入当前大运和流年后的身强身弱变化。通过对比可以了解当前运势对您命局力量的影响程度。</p>
                 </div>
             </div>
 
@@ -2106,6 +2240,7 @@
         let currentBaziData = null;
         let elementsChart = null;
         let strengthChart = null;
+        let currentStrengthChart = null;
 
         // DOM元素
         const inputSection = document.getElementById('input-section');
@@ -2443,6 +2578,9 @@ contentElement.classList.add('show');
             const lunar = solar.getLunar();
             const eightChar = lunar.getEightChar();
             
+            // 将eightChar保存到window对象，供其他函数使用
+            window.eightChar = eightChar;
+            
             // 获取四柱信息
             const yearPillar = eightChar.getYear();
             const monthPillar = eightChar.getMonth();
@@ -2467,8 +2605,8 @@ contentElement.classList.add('show');
             const elements = calculateElements(yearStr, monthStr, dayStr, hourStr, hiddenStems);
             
             // 计算身强身弱
-            // 计算起运时间
-            const luckTiming = calculateLuckTiming(formData.gender, lunar);
+            // 计算起运时间，传入原始阳历日期
+            const luckTiming = calculateLuckTiming(formData.gender, lunar, date);
             
             // 定义四柱对象
             const pillars = {
@@ -2599,6 +2737,26 @@ contentElement.classList.add('show');
             return elements;
         }
 
+        // 五行关系判断工具函数
+        function is_generating(e1, e2) {
+            // e1是否能生e2
+            return (e1 === '木' && e2 === '火') || (e1 === '火' && e2 === '土') ||
+                   (e1 === '土' && e2 === '金') || (e1 === '金' && e2 === '水') ||
+                   (e1 === '水' && e2 === '木');
+        }
+        
+        function is_restricting(e1, e2) {
+            // e1是否能克e2
+            return (e1 === '木' && e2 === '土') || (e1 === '土' && e2 === '水') ||
+                   (e1 === '水' && e2 === '火') || (e1 === '火' && e2 === '金') ||
+                   (e1 === '金' && e2 === '木');
+        }
+        
+        function is_outputting(e1, e2) {
+            // e1是否能泄e2（e2生e1）
+            return is_generating(e2, e1);
+        }
+
         // 计算身强身弱
         function calculateStrength(dayStem, elements, monthBranch, passedBranches = []) {
             // 确保输入是字符串
@@ -2695,30 +2853,83 @@ contentElement.classList.add('show');
             });
             
             // 统一处理所有合化的加减分
-            let combinationDeduction = 0;
-            const combinationTypes = ['tianGanWuHe', 'diZhiLiuHe', 'diZhiSanHe'];
+            let combinationSupportStrength = 0; // 合化增强的力量
+            let combinationWeakenStrength = 0;  // 合化削弱的力量
+            const combinationTypes = ['tianGanWuHe', 'diZhiLiuHe', 'diZhiSanHe', 'diZhiSanHui'];
             combinationTypes.forEach(type => {
+                if (!combined[type]) return; // 如果该类型不存在，跳过
                 combined[type].forEach(comb => {
                     const heElement = comb.element;
-                    let multiplier = (type === 'diZhiSanHe' ? (comb.count === 3 ? 5 : 3) : (type === 'tianGanWuHe' ? 3 : 2));
+                    // 专业命理评分规则 - 按照传统命理重要性排序
+                    const SCORE_RULES = {
+                        'diZhiSanHui': 8,  // 三会局8分（能量最强）
+                        'diZhiSanHe': 6,   // 三合局6分
+                        'diZhiLiuHe': 3,   // 六合局3分
+                        'tianGanWuHe': 2   // 天干合2分（需通根验证）
+                    };
+                    let multiplier = SCORE_RULES[type];
+
+                    // 天干合化专业规则检查
+                    if(type === 'tianGanWuHe') {
+                        // 检查是否为绊合（只合不化）
+                        if (comb.onlyBind) {
+                            // 绊合：双方力量减弱但性质不变，减少原有力量
+                            const bindReduction = 1; // 绊合减少1分力量
+                            
+                            // 从原有五行力量中扣除
+                            const stem1Element = stemElementMap[comb.gan1];
+                            const stem2Element = stemElementMap[comb.gan2];
+                            
+                            if (getSupportElements(dayElement).includes(stem1Element)) {
+                                supportStrength -= bindReduction * 0.5;
+                                console.log(`天干绊合 ${comb.gan1}${comb.gan2} 减弱生扶力量 ${bindReduction * 0.5}`);
+                            } else if (getWeakenElements(dayElement).includes(stem1Element)) {
+                                weakenStrength -= bindReduction * 0.5;
+                                console.log(`天干绊合 ${comb.gan1}${comb.gan2} 减弱克泄力量 ${bindReduction * 0.5}`);
+                            }
+                            
+                            if (getSupportElements(dayElement).includes(stem2Element)) {
+                                supportStrength -= bindReduction * 0.5;
+                            } else if (getWeakenElements(dayElement).includes(stem2Element)) {
+                                weakenStrength -= bindReduction * 0.5;
+                            }
+                            
+                            console.log(`天干${comb.gan1}${comb.gan2}绊合：${comb.bindReason}，双方力量减弱`);
+                            return; // 绊合不产生新的五行力量
+                        }
+                        
+                        // 合化成功：按新的五行性质计算
+                        console.log(`天干${comb.gan1}${comb.gan2}合化${heElement}成功：${comb.supportType}`);
+                    }
+
+                    // 地支合化天干透出检查 - 如果天干透出合化后的五行，能量加倍
+                    if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') && comb.hasTransparent) {
+                        multiplier *= 1.5; // 透出时能量增加50%
+                        console.log(`${type} 天干透出${heElement}，能量增强至 ${multiplier}`);
+                    }
+
                     if (getSupportElements(dayElement).includes(heElement)) {
                         supportStrength += multiplier;
-                        combinationDeduction += multiplier; // 增强，正值
+                        combinationSupportStrength += multiplier;
                         console.log(`${type} ${comb.gan1 || comb.zhi1 || comb.type || comb.branches} 合化${heElement} 生助日主，增加生扶 ${multiplier}`);
                     } else if (getWeakenElements(dayElement).includes(heElement)) {
-                        supportStrength -= multiplier;
-                        combinationDeduction -= multiplier; // 削弱，负值
-                        console.log(`${type} ${comb.gan1 || comb.zhi1 || comb.type || comb.branches} 合化${heElement} 克泄日主，减少生扶 ${multiplier}`);
+                        weakenStrength += multiplier;
+                        combinationWeakenStrength += multiplier;
+                        console.log(`${type} ${comb.gan1 || comb.zhi1 || comb.type || comb.branches} 合化${heElement} 克泄日主，增加克泄 ${multiplier}`);
                     } else {
                         console.log(`${type} ${comb.gan1 || comb.zhi1 || comb.type || comb.branches} 合化${heElement} 中性影响`);
                     }
                 });
             });
-            combined.deduction = combinationDeduction;
+            
+            // 计算合化的净影响
+            const netCombinationEffect = combinationSupportStrength - combinationWeakenStrength;
+            combined.deduction = netCombinationEffect;
+            
             // 设置整体effect
-            if (combinationDeduction > 0) {
+            if (netCombinationEffect > 0) {
                 combined.effect = 'strengthen';
-            } else if (combinationDeduction < 0) {
+            } else if (netCombinationEffect < 0) {
                 combined.effect = 'weaken';
             } else {
                 combined.effect = 'neutral';
@@ -2744,7 +2955,7 @@ contentElement.classList.add('show');
             const strengthRatio = supportStrength / (supportStrength + weakenStrength);
             
             // 打印调试信息
-            console.log(`身强身弱计算 - 日主:${dayStem}(${dayElement}), 生扶力量:${supportStrength}, 克泄力量:${weakenStrength}, 比例:${(strengthRatio * 100).toFixed(1)}%, 月令得分:${monthScore}`);
+            console.log(`身强身弱计算 - 日主:${dayStem}(${dayElement}), 生扶力量:${supportStrength}, 克泄力量:${weakenStrength}, 比例:${(strengthRatio * 100).toFixed(2)}%, 月令得分:${monthScore}`);
             
             let type, description;
             
@@ -2847,22 +3058,190 @@ contentElement.classList.add('show');
                 console.error('获取八字信息失败:', e);
             }
             
-            // 检查相邻天干五合
+            // 检查天干是否透出指定五行的辅助函数
+            function checkTransparentElement(element, stems) {
+                const elementToStems = {
+                    'wood': ['甲', '乙'],
+                    'fire': ['丙', '丁'],
+                    'earth': ['戊', '己'],
+                    'metal': ['庚', '辛'],
+                    'water': ['壬', '癸']
+                };
+                
+                const targetStems = elementToStems[element] || [];
+                return stems.some(stem => targetStems.includes(stem));
+            }
+            
+            // 检查地支是否支持天干合化的专业函数
+            function checkHehuaSupport(hehuaElement, allBranches, monthBranch) {
+                // 定义各五行对应的强根地支
+                const elementStrongRoots = {
+                    'earth': ['辰', '戌', '丑', '未'], // 土的强根
+                    'metal': ['申', '酉', '戌', '丑'], // 金的强根
+                    'water': ['亥', '子', '丑', '辰'], // 水的强根
+                    'wood': ['寅', '卯', '辰', '未'], // 木的强根
+                    'fire': ['巳', '午', '未', '戌']  // 火的强根
+                };
+                
+                // 定义月令旺衰影响
+                const monthElementMap = {
+                    '子': 'water', '丑': 'earth', '寅': 'wood', '卯': 'wood',
+                    '辰': 'earth', '巳': 'fire', '午': 'fire', '未': 'earth',
+                    '申': 'metal', '酉': 'metal', '戌': 'earth', '亥': 'water'
+                };
+                
+                const strongRoots = elementStrongRoots[hehuaElement] || [];
+                const monthElement = monthElementMap[monthBranch];
+                
+                // 检查地支中是否有强根支撑
+                const hasStrongRoot = allBranches.some(branch => strongRoots.includes(branch));
+                
+                // 检查月令是否有利于合化
+                const monthSupport = monthElement === hehuaElement;
+                const monthOppose = getOpposingElement(hehuaElement) === monthElement;
+                
+                // 合化成功的条件判断
+                if (hasStrongRoot && monthSupport) {
+                    return {
+                        canHehua: true,
+                        type: '地支强根+月令旺',
+                        details: `地支有${strongRoots.filter(root => allBranches.includes(root)).join('、')}强根，月令${monthBranch}助旺${getElementChinese(hehuaElement)}`
+                    };
+                } else if (hasStrongRoot && !monthOppose) {
+                    return {
+                        canHehua: true,
+                        type: '地支强根支撑',
+                        details: `地支有${strongRoots.filter(root => allBranches.includes(root)).join('、')}强根支撑${getElementChinese(hehuaElement)}`
+                    };
+                } else if (monthSupport && allBranches.filter(branch => strongRoots.includes(branch)).length >= 2) {
+                    return {
+                        canHehua: true,
+                        type: '月令旺+多重根',
+                        details: `月令${monthBranch}旺${getElementChinese(hehuaElement)}，地支多重根气支撑`
+                    };
+                } else {
+                    let reason = '';
+                    if (!hasStrongRoot) {
+                        reason += `地支无${getElementChinese(hehuaElement)}强根`;
+                    }
+                    if (monthOppose) {
+                        reason += (reason ? '，' : '') + `月令${monthBranch}克制${getElementChinese(hehuaElement)}`;
+                    }
+                    if (!monthSupport && !hasStrongRoot) {
+                        reason = `地支无强根且月令不助`;
+                    }
+                    
+                    return {
+                        canHehua: false,
+                        reason: reason || '条件不足'
+                    };
+                }
+            }
+            
+            // 获取五行中文名称
+            function getElementChinese(element) {
+                const elementNames = {
+                    'wood': '木', 'fire': '火', 'earth': '土', 'metal': '金', 'water': '水'
+                };
+                return elementNames[element] || element;
+            }
+            
+            // 获取相克的五行
+            function getOpposingElement(element) {
+                const opposingMap = {
+                    'wood': 'metal',  // 金克木
+                    'fire': 'water',  // 水克火
+                    'earth': 'wood',  // 木克土
+                    'metal': 'fire',  // 火克金
+                    'water': 'earth'  // 土克水
+                };
+                return opposingMap[element];
+            }
+            
+            // 检查争合和妒合情况
+            const hehuaConflicts = new Map(); // 记录每个天干的合化对象
+            const stemCounts = {}; // 统计每个天干出现次数
+            
+            // 统计天干出现次数（用于检查妒合）
+            allStems.forEach(stem => {
+                stemCounts[stem] = (stemCounts[stem] || 0) + 1;
+            });
+            
+            // 检查相邻天干五合（按照专业规则：位置相邻且地支支持）
             for (let i = 0; i < allStems.length - 1; i++) {
                 const stem1 = allStems[i];
-                const stem2 = allStems[i+1];
+                const stem2 = allStems[i + 1];
                 const pair1 = stem1 + stem2;
                 const pair2 = stem2 + stem1;
                 
                 if (tianGanHeHua[pair1] || tianGanHeHua[pair2]) {
                     const hehuaElement = tianGanHeHua[pair1] || tianGanHeHua[pair2];
-                    combined.tianGanWuHe.push({
-                        gan1: stem1,
-                        gan2: stem2,
-                        element: hehuaElement,
-                        positions: [i, i+1]
-                    });
-                    console.log(`发现相邻天干五合: ${stem1}${stem2} 合化为${hehuaElement}`);
+                    
+                    // 检查争合和妒合
+                    let hasConflict = false;
+                    let conflictType = '';
+                    
+                    // 检查争合：一天干与相邻两天干相合
+                    if (hehuaConflicts.has(stem1)) {
+                        hasConflict = true;
+                        conflictType = `争合：${stem1}同时与${hehuaConflicts.get(stem1)}和${stem2}相合`;
+                    }
+                    if (hehuaConflicts.has(stem2)) {
+                        hasConflict = true;
+                        conflictType = `争合：${stem2}同时与${hehuaConflicts.get(stem2)}和${stem1}相合`;
+                    }
+                    
+                    // 检查妒合：两相同天干争合一天干
+                    if (stemCounts[stem1] > 1 || stemCounts[stem2] > 1) {
+                        hasConflict = true;
+                        const repeatStem = stemCounts[stem1] > 1 ? stem1 : stem2;
+                        conflictType = `妒合：${repeatStem}重复出现${stemCounts[repeatStem]}次争合`;
+                    }
+                    
+                    // 记录合化关系
+                    hehuaConflicts.set(stem1, stem2);
+                    hehuaConflicts.set(stem2, stem1);
+                    
+                    // 检查地支是否支持合化
+                    const isSupported = checkHehuaSupport(hehuaElement, allBranches, monthBranch);
+                    
+                    // 如果有争合或妒合，合化力量分散，降低成功率
+                    let finalCanHehua = isSupported.canHehua;
+                    let finalReason = isSupported.reason;
+                    
+                    if (hasConflict && finalCanHehua) {
+                        finalCanHehua = false;
+                        finalReason = conflictType + '，合化力量分散';
+                    }
+                    
+                    if (finalCanHehua) {
+                        combined.tianGanWuHe.push({
+                            gan1: stem1,
+                            gan2: stem2,
+                            element: hehuaElement,
+                            positions: [i, i + 1],
+                            isAdjacent: true,
+                            supportType: isSupported.type,
+                            supportDetails: isSupported.details,
+                            hasConflict: hasConflict,
+                            conflictType: hasConflict ? conflictType : null
+                        });
+                        console.log(`发现相邻天干五合: ${stem1}${stem2} 合化为${hehuaElement}（${isSupported.type}）${hasConflict ? ' - ' + conflictType : ''}`);
+                    } else {
+                        // 只合不化，作为绊合处理
+                        combined.tianGanWuHe.push({
+                            gan1: stem1,
+                            gan2: stem2,
+                            element: hehuaElement,
+                            positions: [i, i + 1],
+                            isAdjacent: true,
+                            onlyBind: true,
+                            bindReason: finalReason,
+                            hasConflict: hasConflict,
+                            conflictType: hasConflict ? conflictType : null
+                        });
+                        console.log(`发现相邻天干绊合: ${stem1}${stem2} 只合不化（${finalReason}）`);
+                    }
                 }
             }
             
@@ -2875,13 +3254,16 @@ contentElement.classList.add('show');
                 
                 if (diZhiLiuHe[pair1] || diZhiLiuHe[pair2]) {
                     const hehuaElement = diZhiLiuHe[pair1] || diZhiLiuHe[pair2];
+                    // 检查天干是否透出合化后的五行
+                    const hasTransparent = checkTransparentElement(hehuaElement, allStems);
                     combined.diZhiLiuHe.push({
                         zhi1: branch1,
                         zhi2: branch2,
                         element: hehuaElement,
-                        positions: [i, i+1]
+                        positions: [i, i+1],
+                        hasTransparent: hasTransparent
                     });
-                    console.log(`发现相邻地支六合: ${branch1}${branch2} 合化为${hehuaElement}`);
+                    console.log(`发现相邻地支六合: ${branch1}${branch2} 合化为${hehuaElement}${hasTransparent ? '（天干透出）' : ''}`);
                 }
             }
             
@@ -2898,32 +3280,85 @@ contentElement.classList.add('show');
             
             // 检查连续地支三合（只检查全三合，连续三个位置的地支set匹配）
             if (allBranches && allBranches.length >= 3) {
-                console.log('检查连续三合局，地支:', branches);
+                console.log('检查连续三合局，地支:', allBranches);
                 
                 let bestMatch = null;
                 
+                let sanheStartIndex = -1;
                 for (let i = 0; i <= allBranches.length - 3; i++) {
                     const trio = allBranches.slice(i, i+3).sort().join('');
                     for (const sanhe of diZhiSanHe) {
                         const sanheSorted = sanhe.branches.sort().join('');
                         if (trio === sanheSorted) {
+                            // 检查天干是否透出合化后的五行
+                            const hasTransparent = checkTransparentElement(sanhe.element, allStems);
                             bestMatch = {
                                 type: sanhe.branches.join(''),
                                 element: sanhe.element,
                                 count: 3,
                                 branches: allBranches.slice(i, i+3).join(''),
-                                isFullSanhe: true
+                                isFullSanhe: true,
+                                hasTransparent: hasTransparent,
+                                startIndex: i
                             };
+                            sanheStartIndex = i;
                             combined.diZhiSanHe.push(bestMatch);
-                            console.log(`发现连续全三合局: ${bestMatch.branches} 合化为${sanhe.element}`);
+                            console.log(`发现连续全三合局: ${bestMatch.branches} 合化为${sanhe.element}${hasTransparent ? '（天干透出）' : ''}`);
                             break;
                         }
                     }
                     if (bestMatch) break; // 只记录一个最佳
                 }
                 
-                if (bestMatch) {
+                if (bestMatch && sanheStartIndex >= 0) {
                     combined.sanhe = bestMatch;
+                    
+                    // 三合局优先级处理：移除与三合局地支重叠的六合
+                    const sanhePositions = [sanheStartIndex, sanheStartIndex+1, sanheStartIndex+2]; // 三合局的位置
+                    combined.diZhiLiuHe = combined.diZhiLiuHe.filter(liuhe => {
+                        // 检查六合的位置是否与三合局重叠
+                        const hasOverlap = liuhe.positions.some(pos => sanhePositions.includes(pos));
+                        if (hasOverlap) {
+                            console.log(`三合局优先：移除与三合局重叠的六合 ${liuhe.zhi1}${liuhe.zhi2}`);
+                            return false;
+                        }
+                        return true;
+                    });
+                }
+            }
+            
+            // 检查地支三会局
+            const diZhiSanHui = [
+                {branches: ['寅', '卯', '辰'], element: 'wood'},  // 东方三会木局
+                {branches: ['巳', '午', '未'], element: 'fire'},  // 南方三会火局
+                {branches: ['申', '酉', '戌'], element: 'metal'}, // 西方三会金局
+                {branches: ['亥', '子', '丑'], element: 'water'}  // 北方三会水局
+            ];
+            
+            combined.diZhiSanHui = [];
+            if (allBranches && allBranches.length >= 3) {
+                console.log('检查三会局，地支:', allBranches);
+                
+                for (let i = 0; i <= allBranches.length - 3; i++) {
+                    const trio = allBranches.slice(i, i+3).sort().join('');
+                    for (const sanhui of diZhiSanHui) {
+                        const sanhuiSorted = sanhui.branches.sort().join('');
+                        if (trio === sanhuiSorted) {
+                            // 检查天干是否透出合化后的五行
+                            const hasTransparent = checkTransparentElement(sanhui.element, allStems);
+                            const sanhuiMatch = {
+                                type: sanhui.branches.join(''),
+                                element: sanhui.element,
+                                count: 3,
+                                branches: allBranches.slice(i, i+3).join(''),
+                                isFullSanHui: true,
+                                hasTransparent: hasTransparent
+                            };
+                            combined.diZhiSanHui.push(sanhuiMatch);
+                            console.log(`发现连续全三会局: ${sanhuiMatch.branches} 会化为${sanhui.element}${hasTransparent ? '（天干透出）' : ''}`);
+                            break;
+                        }
+                    }
                 }
             }
             
@@ -2940,12 +3375,18 @@ contentElement.classList.add('show');
                 
                 // 检查天干五合
                 combined.tianGanWuHe.forEach(comb => {
-                    if (getSupportElements(dayElement).includes(comb.element)) {
-                        hasStrengthening = true;
-                        console.log(`天干五合 ${comb.gan1}${comb.gan2} 合化${comb.element} 生助日主`);
-                    } else if (getWeakenElements(dayElement).includes(comb.element)) {
-                        hasWeakening = true;
-                        console.log(`天干五合 ${comb.gan1}${comb.gan2} 合化${comb.element} 克泄日主`);
+                    if (comb.onlyBind) {
+                        // 绊合对日主的影响较小，主要是减弱双方力量
+                        console.log(`天干五合 ${comb.gan1}${comb.gan2} 绊合（${comb.bindReason}），双方力量减弱`);
+                    } else {
+                        // 合化成功按新的五行性质判断
+                        if (getSupportElements(dayElement).includes(comb.element)) {
+                            hasStrengthening = true;
+                            console.log(`天干五合 ${comb.gan1}${comb.gan2} 合化${comb.element}成功（${comb.supportType}）生助日主`);
+                        } else if (getWeakenElements(dayElement).includes(comb.element)) {
+                            hasWeakening = true;
+                            console.log(`天干五合 ${comb.gan1}${comb.gan2} 合化${comb.element}成功（${comb.supportType}）克泄日主`);
+                        }
                     }
                 });
                 
@@ -2992,6 +3433,8 @@ contentElement.classList.add('show');
         
         // 获取月令强度
         function getMonthStrength(dayElement, monthBranch, combined) {
+            console.log(`getMonthStrength调试 - dayElement: ${dayElement}, monthBranch: ${monthBranch}`);
+            
             const branchElementMap = {
                 '子': 'water', '丑': 'earth',
                 '寅': 'wood', '卯': 'wood',
@@ -3001,18 +3444,33 @@ contentElement.classList.add('show');
                 '戌': 'earth', '亥': 'water'
             };
             
+            // 地支藏干映射
+            const BRANCH_ELEMENTS = {
+                '子': {main: 'water', hidden: ['癸']},
+                '丑': {main: 'earth', hidden: ['己', '癸', '辛']},
+                '寅': {main: 'wood', hidden: ['甲', '丙', '戊']},
+                '卯': {main: 'wood', hidden: ['乙']},
+                '辰': {main: 'earth', hidden: ['戊', '乙', '癸']},
+                '巳': {main: 'fire', hidden: ['丙', '庚', '戊']},
+                '午': {main: 'fire', hidden: ['丁', '己']},
+                '未': {main: 'earth', hidden: ['己', '丁', '乙']},
+                '申': {main: 'metal', hidden: ['庚', '壬', '戊']},
+                '酉': {main: 'metal', hidden: ['辛']},
+                '戌': {main: 'earth', hidden: ['戊', '辛', '丁']},
+                '亥': {main: 'water', hidden: ['壬', '甲']}
+            };
+            
             // 如果月支被合化，使用合化后的元素
             let monthElement = combined.hasOwnProperty('monthElement') ? 
                 combined.monthElement : branchElementMap[monthBranch];
             
-            // 考虑三合的影响
-            if (combined.hasOwnProperty('sanhe')) {
-                // 如果有三合局，考虑三合的影响
-                const sanhe = combined.sanhe;
-                if (sanhe.count === 3) { // 全三合，影响更大
-                    monthElement = sanhe.element; // 使用三合的五行
-                }
-            }
+            console.log(`月令元素初始值: ${monthElement}`);
+            
+            // 注意：三合局不应该改变月令的基本五行属性
+            // 三合局的影响在合化计算中单独处理
+            // 月令得分应该基于月支本身的五行
+            
+            console.log(`最终月令元素: ${monthElement}`);
             
             if (!monthElement) return 0; // 如果无法确定月令元素，返回0
             
@@ -3058,9 +3516,9 @@ contentElement.classList.add('show');
         
         // 检查是否从格
         function checkFollowingPattern(dayElement, monthBranch, strengthRatio, supportStrength, weakenStrength, monthScore) {
-            const effective_weaken = weakenStrength + (monthScore < 0 ? -monthScore : 0);
-            if (supportStrength <= 5 && effective_weaken >= 15) {
-                console.log(`从弱格判断: 生扶力量${supportStrength} <= 5, 有效克泄力量${effective_weaken} >= 15`);
+            // 从弱格判断：生扶力量小于等于5且克泄力量大于等于15（不包含月令负分）
+            if (supportStrength <= 5 && weakenStrength >= 15) {
+                console.log(`从弱格判断: 生扶力量${supportStrength} <= 5, 克泄力量${weakenStrength} >= 15`);
                 return {
                     isFollowing: true,
                     type: '从弱',
@@ -3095,7 +3553,7 @@ contentElement.classList.add('show');
             
             // 传统从弱格判断（作为备用）
             if (strengthRatio < 0.3 && weakenElements.includes(monthElement)) {
-                console.log(`传统从弱格判断: 比例${(strengthRatio * 100).toFixed(1)}% < 30%, 月令克泄日主`);
+                console.log(`传统从弱格判断: 比例${(strengthRatio * 100).toFixed(2)}% < 30%, 月令克泄日主`);
                 return {
                     isFollowing: true,
                     type: '从弱',
@@ -3105,7 +3563,7 @@ contentElement.classList.add('show');
             
             // 从强格：身强而用生扶
             if (strengthRatio > 0.7 && supportElements.includes(monthElement)) {
-                console.log(`从强格判断: 比例${(strengthRatio * 100).toFixed(1)}% > 70%, 月令生扶日主`);
+                console.log(`从强格判断: 比例${(strengthRatio * 100).toFixed(2)}% > 70%, 月令生扶日主`);
                 return {
                     isFollowing: true,
                     type: '从强',
@@ -3140,19 +3598,131 @@ contentElement.classList.add('show');
             return weakenMap[element] || [];
         }
 
-        // 计算起运时间 - 根据正确的八字起运算法
-        function calculateLuckTiming(gender, lunar) {
+        // 根据传统命理规则计算大运序列
+        function calculateDayunSequence(monthGanZhi, isForward, startAge) {
+            // 六十甲子表
+            const jiaZi = [
+                '甲子', '乙丑', '丙寅', '丁卯', '戊辰', '己巳', '庚午', '辛未', '壬申', '癸酉',
+                '甲戌', '乙亥', '丙子', '丁丑', '戊寅', '己卯', '庚辰', '辛巳', '壬午', '癸未',
+                '甲申', '乙酉', '丙戌', '丁亥', '戊子', '己丑', '庚寅', '辛卯', '壬辰', '癸巳',
+                '甲午', '乙未', '丙申', '丁酉', '戊戌', '己亥', '庚子', '辛丑', '壬寅', '癸卯',
+                '甲辰', '乙巳', '丙午', '丁未', '戊申', '己酉', '庚戌', '辛亥', '壬子', '癸丑',
+                '甲寅', '乙卯', '丙辰', '丁巳', '戊午', '己未', '庚申', '辛酉', '壬戌', '癸亥'
+            ];
+            
+            // 找到月柱在六十甲子中的位置
+            const monthIndex = jiaZi.indexOf(monthGanZhi);
+            if (monthIndex === -1) {
+                console.error('无法找到月柱:', monthGanZhi);
+                return [];
+            }
+            
+            const dayunList = [];
+            
+            for (let i = 0; i < 10; i++) {
+                let dayunIndex;
+                if (isForward) {
+                    // 顺排：月柱后一位开始
+                    dayunIndex = (monthIndex + i + 1) % 60;
+                } else {
+                    // 逆排：月柱前一位开始
+                    dayunIndex = (monthIndex - i - 1 + 60) % 60;
+                }
+                
+                const dayunGanZhi = jiaZi[dayunIndex];
+                const dayunStartAge = startAge + i * 10;
+                const dayunEndAge = dayunStartAge + 9;
+                
+                dayunList.push({
+                    ganZhi: dayunGanZhi,
+                    startAge: dayunStartAge,
+                    endAge: dayunEndAge,
+                    index: i + 1
+                });
+            }
+            
+            return dayunList;
+        }
+
+        // 获取当前大运信息
+        function getCurrentDayun() {
             try {
-                // 获取出生时间信息
-                const solar = lunar.getSolar();
-                const birthDate = new Date(
-                    solar.getYear(),
-                    solar.getMonth() - 1,
-                    solar.getDay(),
-                    solar.getHour(),
-                    solar.getMinute(),
-                    solar.getSecond()
-                );
+                const today = new Date();
+                const currentYear = today.getFullYear();
+                
+                console.log('getCurrentDayun调试信息:');
+                console.log('window.eightChar存在:', !!window.eightChar);
+                
+                // 从八字信息获取基本信息
+                const eightChar = window.eightChar;
+                if (eightChar && window.currentBaziData && window.currentBaziData.luckTiming) {
+                    // 获取起运信息
+                    const luckTiming = window.currentBaziData.luckTiming;
+                    const isForward = luckTiming.direction === '顺排';
+                    const startAge = luckTiming.age;
+                    
+                    // 获取月柱干支
+                    const monthGanZhi = eightChar.getMonth();
+                    
+                    console.log('月柱干支:', monthGanZhi);
+                    console.log('起运方向:', luckTiming.direction);
+                    console.log('起运年龄:', startAge);
+                    
+                    // 计算大运序列
+                    const dayunList = calculateDayunSequence(monthGanZhi, isForward, startAge);
+                    
+                    // 计算当前年龄（虚岁）
+                    const birthYear = eightChar.getLunar().getSolar().getYear();
+                    const currentAge = currentYear - birthYear + 1; // 使用虚岁计算
+                    
+                    console.log('出生年份:', birthYear, '当前年份:', currentYear, '当前年龄:', currentAge);
+                    console.log('大运列表长度:', dayunList.length);
+                    
+                    // 打印所有大运
+                    dayunList.forEach((dayun, index) => {
+                        console.log(`第${index + 1}步大运: ${dayun.ganZhi}, 起始年龄: ${dayun.startAge}, 结束年龄: ${dayun.endAge}`);
+                    });
+                    
+                    // 查找当前大运
+                    for (const dayun of dayunList) {
+                        if (currentAge >= dayun.startAge && currentAge <= dayun.endAge) {
+                            console.log(`找到当前大运: ${dayun.ganZhi}`);
+                            return {
+                                ganZhi: dayun.ganZhi,
+                                startAge: dayun.startAge,
+                                endAge: dayun.endAge,
+                                currentAge: currentAge
+                            };
+                        }
+                    }
+                    
+                    console.log('未找到匹配的大运');
+                } else {
+                    console.log('缺少必要的八字信息或起运信息');
+                }
+                
+                return {
+                    ganZhi: '未知',
+                    startAge: 0,
+                    endAge: 0,
+                    currentAge: 0
+                };
+            } catch (error) {
+                console.error('获取当前大运失败:', error);
+                return {
+                    ganZhi: '计算错误',
+                    startAge: 0,
+                    endAge: 0,
+                    currentAge: 0
+                };
+            }
+        }
+
+        // 计算起运时间 - 根据正确的八字起运算法
+        function calculateLuckTiming(gender, lunar, originalBirthDate) {
+            try {
+                // 直接使用原始的阳历出生日期，避免转换误差
+                const birthDate = originalBirthDate;
                 
                 // 获取年柱天干
                 const eightChar = lunar.getEightChar();
@@ -3160,10 +3730,19 @@ contentElement.classList.add('show');
                 const yearStr = typeof yearPillar === 'string' ? yearPillar : String(yearPillar);
                 const yearGan = yearStr.charAt(0);
                 
+                console.log('起运计算调试信息:');
+                console.log('性别:', gender);
+                console.log('年柱:', yearStr);
+                console.log('年干:', yearGan);
+                
                 // 1. 判断年柱阴阳与顺逆排
                 const yangTianGan = ['甲', '丙', '戊', '庚', '壬'];
                 const yinTianGan = ['乙', '丁', '己', '辛', '癸'];
                 const isMale = gender === 'male';
+                
+                console.log('是否男性:', isMale);
+                console.log('年干是否阳干:', yangTianGan.includes(yearGan));
+                console.log('年干是否阴干:', yinTianGan.includes(yearGan));
                 
                 let direction;
                 if ((yangTianGan.includes(yearGan) && isMale) || (yinTianGan.includes(yearGan) && !isMale)) {
@@ -3172,8 +3751,10 @@ contentElement.classList.add('show');
                     direction = '逆排'; // 阴年男 or 阳年女
                 }
                 
+                console.log('起运方向:', direction);
+                
                 // 2. 计算出生日到最近节气的天数差
-                const daysDiff = getDaysToJieQi(birthDate, direction, solar.getYear());
+                const daysDiff = getDaysToJieQi(birthDate, direction, birthDate.getFullYear());
                 
                 // 3. 起运年龄计算
                 const years = Math.floor(daysDiff / 3); // 3天 = 1岁
@@ -3276,6 +3857,577 @@ contentElement.classList.add('show');
             } catch (error) {
                 console.error(`获取${year}年${jieQiName}节气时间失败:`, error);
                 return null;
+            }
+        }
+
+        // 计算当前身强身弱（加入大运和流年）
+        function calculateCurrentStrength(dayStem, elements, monthBranch, currentYear) {
+            try {
+                // 获取当前流年干支
+                const today = new Date();
+                const currentLunar = Lunar.fromDate(today);
+                const currentYearGanZhi = currentLunar.getYearInGanZhi();
+                const currentYearStem = currentYearGanZhi.charAt(0);
+                const currentYearBranch = currentYearGanZhi.charAt(1);
+                
+                // 获取当前大运信息
+                let currentDayunStem = '';
+                let currentDayunBranch = '';
+                
+                try {
+                    // 使用getCurrentDayun函数获取当前大运信息，保持一致性
+                    const currentDayunInfo = getCurrentDayun();
+                    if (currentDayunInfo && currentDayunInfo.ganZhi && currentDayunInfo.ganZhi !== '未知' && currentDayunInfo.ganZhi !== '计算错误') {
+                        currentDayunStem = currentDayunInfo.ganZhi.charAt(0);
+                        currentDayunBranch = currentDayunInfo.ganZhi.charAt(1);
+                    } else {
+                        // 如果getCurrentDayun也失败，则不添加大运影响
+                        console.log('无法获取当前大运信息，跳过大运影响计算');
+                        currentDayunStem = '';
+                        currentDayunBranch = '';
+                    }
+                } catch (e) {
+                    console.log('获取大运信息失败:', e);
+                    currentDayunStem = '';
+                    currentDayunBranch = '';
+                }
+                
+                console.log(`当前流年: ${currentYear}年${currentYearGanZhi}, 当前大运: ${currentDayunStem}${currentDayunBranch}`);
+                
+                // 复制原始五行分布
+                const currentElements = { ...elements };
+                
+                // 获取天干地支对应的五行
+                const stemElementMap = {
+                    '甲': 'wood', '乙': 'wood',
+                    '丙': 'fire', '丁': 'fire',
+                    '戊': 'earth', '己': 'earth',
+                    '庚': 'metal', '辛': 'metal',
+                    '壬': 'water', '癸': 'water'
+                };
+                
+                const branchElementMap = {
+                    '子': 'water', '丑': 'earth', '寅': 'wood', '卯': 'wood',
+                    '辰': 'earth', '巳': 'fire', '午': 'fire', '未': 'earth',
+                    '申': 'metal', '酉': 'metal', '戌': 'earth', '亥': 'water'
+                };
+                
+                // 地支藏干映射
+                const BRANCH_ELEMENTS = {
+                    '子': {main: 'water', hidden: ['癸']},
+                    '丑': {main: 'earth', hidden: ['己', '癸', '辛']},
+                    '寅': {main: 'wood', hidden: ['甲', '丙', '戊']},
+                    '卯': {main: 'wood', hidden: ['乙']},
+                    '辰': {main: 'earth', hidden: ['戊', '乙', '癸']},
+                    '巳': {main: 'fire', hidden: ['丙', '庚', '戊']},
+                    '午': {main: 'fire', hidden: ['丁', '己']},
+                    '未': {main: 'earth', hidden: ['己', '丁', '乙']},
+                    '申': {main: 'metal', hidden: ['庚', '壬', '戊']},
+                    '酉': {main: 'metal', hidden: ['辛']},
+                    '戌': {main: 'earth', hidden: ['戊', '辛', '丁']},
+                    '亥': {main: 'water', hidden: ['壬', '甲']}
+                };
+                
+                // 加入流年天干地支的五行力量
+                const yearStemElement = stemElementMap[currentYearStem];
+                const yearBranchElement = branchElementMap[currentYearBranch];
+                
+                if (yearStemElement) {
+                    currentElements[yearStemElement] += 1.5; // 流年天干权重
+                }
+                if (yearBranchElement) {
+                    currentElements[yearBranchElement] += 2.0; // 流年地支权重
+                }
+                
+                // 加入大运天干地支的五行力量
+                const dayunStemElement = stemElementMap[currentDayunStem];
+                const dayunBranchElement = branchElementMap[currentDayunBranch];
+                
+                if (dayunStemElement) {
+                    currentElements[dayunStemElement] += 1.2; // 大运天干权重
+                }
+                if (dayunBranchElement) {
+                    currentElements[dayunBranchElement] += 1.8; // 大运地支权重
+                }
+                
+                // 获取所有干支用于合化检查
+                const allStems = [];
+                const allBranches = [];
+                
+                // 原八字干支
+                try {
+                    const pillars = window.currentPillars || {};
+                    if (pillars.year) {
+                        allStems.push(pillars.year.charAt(0));
+                        allBranches.push(pillars.year.charAt(1));
+                    }
+                    if (pillars.month) {
+                        allStems.push(pillars.month.charAt(0));
+                        allBranches.push(pillars.month.charAt(1));
+                    }
+                    if (pillars.day) {
+                        allStems.push(pillars.day.charAt(0));
+                        allBranches.push(pillars.day.charAt(1));
+                    }
+                    if (pillars.hour) {
+                        allStems.push(pillars.hour.charAt(0));
+                        allBranches.push(pillars.hour.charAt(1));
+                    }
+                } catch (e) {
+                    console.error('获取八字信息失败:', e);
+                }
+                
+                // 加入流年和大运干支
+                allStems.push(currentYearStem, currentDayunStem);
+                allBranches.push(currentYearBranch, currentDayunBranch);
+                
+                // 检查合化（流年和大运可以与任意八字干支合化）
+                const currentCombined = checkCurrentCombinations(dayStem, allStems, allBranches, currentYearStem, currentYearBranch, currentDayunStem, currentDayunBranch);
+                
+                // 计算月令得分（保持不变）
+                let monthScore = getMonthStrength(stemElementMap[dayStem], monthBranch, currentCombined);
+                
+                // 计算生扶和克泄力量
+                const dayElement = stemElementMap[dayStem];
+                const supportElements = getSupportElements(dayElement);
+                const weakenElements = getWeakenElements(dayElement);
+                
+                let supportStrength = 0;
+                let weakenStrength = 0;
+                
+                supportElements.forEach(element => {
+                    supportStrength += currentElements[element];
+                });
+                
+                weakenElements.forEach(element => {
+                    weakenStrength += currentElements[element];
+                });
+                
+                // 处理合化影响
+                let combinationDeduction = 0;
+                const combinationTypes = ['tianGanWuHe', 'diZhiLiuHe', 'diZhiSanHe', 'diZhiSanHui'];
+                combinationTypes.forEach(type => {
+                    if (currentCombined[type]) {
+                        currentCombined[type].forEach(comb => {
+                            const heElement = comb.element;
+                            // 专业命理评分规则
+const SCORE_RULES = {
+  'diZhiSanHui': 8,  // 三会局8分（能量最强）
+  'diZhiSanHe': 6,   // 三合局6分
+  'diZhiLiuHe': 3,   // 六合局3分
+  'tianGanWuHe': 2   // 天干合需通根验证
+};
+let multiplier = SCORE_RULES[type];
+
+// 天干合化通根检查
+if(type === 'tianGanWuHe') {
+  const currentBranch = allBranches[comb.positions[0]];
+  const hiddenElements = BRANCH_ELEMENTS[currentBranch]?.hidden || [];
+  if(!hiddenElements.includes(comb.gan1) && !hiddenElements.includes(comb.gan2)) {
+    console.log(`天干${comb.gan1}${comb.gan2}合化无效：地支${currentBranch}无通根`);
+    return;
+  }
+}
+
+// 地支合化天干透出检查 - 如果天干透出合化后的五行，能量加倍
+if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') && comb.hasTransparent) {
+  multiplier *= 1.5; // 透出时能量增加50%
+  console.log(`${type} 天干透出${heElement}，能量增强至 ${multiplier}`);
+}
+                            if (getSupportElements(dayElement).includes(heElement)) {
+                                supportStrength += multiplier;
+                                combinationDeduction += multiplier;
+                            } else if (getWeakenElements(dayElement).includes(heElement)) {
+                                supportStrength -= multiplier;
+                                combinationDeduction -= multiplier;
+                            }
+                        });
+                    }
+                });
+                
+                currentCombined.deduction = combinationDeduction;
+                
+                // 判断身强身弱
+                const strengthRatio = supportStrength / (supportStrength + weakenStrength);
+                const strengthPercentage = (strengthRatio - 0.5) * 100; // 转换为百分比，以50%为基准
+                
+                // 打印调试信息
+                console.log(`当前身强身弱计算 - 日主:${dayStem}(${dayElement}), 生扶力量:${supportStrength}, 克泄力量:${weakenStrength}, 比例:${(strengthRatio * 100).toFixed(2)}%, 月令得分:${monthScore}`);
+                
+                let type, description;
+                
+                // 判断是否从格（使用与原始函数相同的逻辑）
+                const isFollowing = checkFollowingPattern(dayElement, monthBranch, strengthRatio, supportStrength, weakenStrength, monthScore);
+                
+                if (isFollowing.isFollowing) {
+                    type = isFollowing.type;
+                    description = '加入当前大运和流年后，' + isFollowing.description;
+                } else if (strengthRatio >= 0.60) {
+                    type = '身强';
+                    description = '加入当前大运和流年后，日主力量强旺，能够承担财官，适合主动出击，喜用财官。';
+                } else if (strengthRatio >= 0.40 && strengthRatio < 0.60) {
+                    type = '均衡';
+                    description = '加入当前大运和流年后，日主力量适中，五行较为平衡，运势平稳，喜用印比。';
+                } else {
+                    type = '身弱';
+                    description = '加入当前大运和流年后，日主力量偏弱，需要生扶，宜守不宜攻，喜用印比。';
+                }
+                
+                // 获取当前大运信息用于显示
+                const displayDayunInfo = getCurrentDayun();
+                const displayDayun = (displayDayunInfo && displayDayunInfo.ganZhi && displayDayunInfo.ganZhi !== '未知' && displayDayunInfo.ganZhi !== '计算错误') 
+                    ? displayDayunInfo.ganZhi 
+                    : '未知';
+                
+                return {
+                    type: type,
+                    ratio: strengthRatio,
+                    strengthPercentage: strengthPercentage,
+                    supportStrength: supportStrength,
+                    weakenStrength: weakenStrength,
+                    description: description,
+                    monthScore: monthScore,
+                    combined: currentCombined,
+                    currentYear: currentYear,
+                    currentYearGanZhi: currentYearGanZhi,
+                    currentDayun: displayDayun,
+                    elements: currentElements
+                };
+                
+            } catch (error) {
+                console.error('计算当前身强身弱失败:', error);
+                return {
+                    type: '计算失败',
+                    ratio: 0.5,
+                    supportStrength: 0,
+                    weakenStrength: 0,
+                    description: '无法计算当前身强身弱，请检查数据。',
+                    monthScore: 0,
+                    combined: {},
+                    currentYear: currentYear,
+                    currentYearGanZhi: '',
+                    currentDayun: '',
+                    elements: elements
+                };
+            }
+        }
+        
+        // 检查当前合化情况（包括流年大运）
+        function checkCurrentCombinations(dayStem, allStems, allBranches, yearStem, yearBranch, dayunStem, dayunBranch) {
+            const combined = {
+                tianGanWuHe: [],
+                diZhiLiuHe: [],
+                diZhiSanHe: [],
+                deduction: 0
+            };
+            
+            // 天干五合规则
+            const tianGanHeHua = {
+                '甲己': 'earth', '乙庚': 'metal', '丙辛': 'water',
+                '丁壬': 'wood', '戊癸': 'fire'
+            };
+            
+            // 地支六合规则
+            const diZhiLiuHe = {
+                '子丑': 'earth', '寅亥': 'wood', '卯戌': 'fire',
+                '辰酉': 'metal', '巳申': 'water', '午未': 'earth'
+            };
+            
+            // 地支三合规则
+            const diZhiSanHe = [
+                {branches: ['申', '子', '辰'], element: 'water'},
+                {branches: ['亥', '卯', '未'], element: 'wood'},
+                {branches: ['寅', '午', '戌'], element: 'fire'},
+                {branches: ['巳', '酉', '丑'], element: 'metal'}
+            ];
+            
+            // 检查天干五合（流年大运可以与任意八字天干合化）
+            for (let i = 0; i < allStems.length; i++) {
+                for (let j = i + 1; j < allStems.length; j++) {
+                    const stem1 = allStems[i];
+                    const stem2 = allStems[j];
+                    const pair1 = stem1 + stem2;
+                    const pair2 = stem2 + stem1;
+                    
+                    if (tianGanHeHua[pair1] || tianGanHeHua[pair2]) {
+                        const hehuaElement = tianGanHeHua[pair1] || tianGanHeHua[pair2];
+                        
+                        // 检查地支通根（简化版）
+                        let hasRoot = true; // 暂时简化，认为都有通根
+                        
+                        if (hasRoot) {
+                            combined.tianGanWuHe.push({
+                                gan1: stem1,
+                                gan2: stem2,
+                                element: hehuaElement,
+                                positions: [i, j],
+                                isCurrentYear: (stem1 === yearStem || stem2 === yearStem),
+                                isCurrentDayun: (stem1 === dayunStem || stem2 === dayunStem)
+                            });
+                        }
+                    }
+                }
+            }
+            
+            // 检查地支六合
+            for (let i = 0; i < allBranches.length; i++) {
+                for (let j = i + 1; j < allBranches.length; j++) {
+                    const branch1 = allBranches[i];
+                    const branch2 = allBranches[j];
+                    const pair1 = branch1 + branch2;
+                    const pair2 = branch2 + branch1;
+                    
+                    if (diZhiLiuHe[pair1] || diZhiLiuHe[pair2]) {
+                        const hehuaElement = diZhiLiuHe[pair1] || diZhiLiuHe[pair2];
+                        combined.diZhiLiuHe.push({
+                            zhi1: branch1,
+                            zhi2: branch2,
+                            element: hehuaElement,
+                            positions: [i, j],
+                            isCurrentYear: (branch1 === yearBranch || branch2 === yearBranch),
+                            isCurrentDayun: (branch1 === dayunBranch || branch2 === dayunBranch)
+                        });
+                    }
+                }
+            }
+            
+            // 检查地支三合
+            diZhiSanHe.forEach(sanhe => {
+                const matches = [];
+                sanhe.branches.forEach(branch => {
+                    const indices = allBranches.map((b, i) => b === branch ? i : -1).filter(i => i !== -1);
+                    if (indices.length > 0) {
+                        matches.push({branch, indices});
+                    }
+                });
+                
+                if (matches.length >= 2) {
+                    combined.diZhiSanHe.push({
+                        type: sanhe.branches.join(''),
+                        element: sanhe.element,
+                        count: matches.length,
+                        branches: matches.map(m => m.branch).join(''),
+                        isCurrentYear: matches.some(m => m.indices.some(idx => allBranches[idx] === yearBranch)),
+                        isCurrentDayun: matches.some(m => m.indices.some(idx => allBranches[idx] === dayunBranch))
+                    });
+                }
+            });
+            
+            return combined;
+        }
+
+        // 显示当前身强身弱分析图表
+        function displayCurrentStrengthChart(currentStrengthData) {
+            console.log('显示当前身强身弱分析，数据:', currentStrengthData);
+            
+            const canvas = document.getElementById('current-strength-chart');
+            const ctx = canvas.getContext('2d');
+            
+            // 调试信息：检查数据值
+            console.log('当前运势图表数据:', {
+                supportStrength: currentStrengthData.supportStrength,
+                weakenStrength: currentStrengthData.weakenStrength,
+                canvasWidth: canvas.clientWidth,
+                canvasHeight: canvas.clientHeight
+            });
+            
+            // 强制重置canvas尺寸
+            canvas.style.width = '100%';
+            canvas.style.height = '100%';
+            
+            if (currentStrengthChart) {
+                currentStrengthChart.destroy();
+            }
+            
+            currentStrengthChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['生扶力量', '克泄力量'],
+                    datasets: [{
+                        label: '力量对比',
+                        data: [currentStrengthData.supportStrength, currentStrengthData.weakenStrength],
+                        backgroundColor: [
+                            '#27ae60', // 生扶 - 绿色
+                            '#e74c3c'  // 克泄 - 红色
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#fff',
+                        barThickness: 60,
+                        maxBarThickness: 80
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    layout: {
+                        padding: {
+                            left: 10,
+                            right: 10,
+                            top: 10,
+                            bottom: 10
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.label}: ${context.parsed.y}点`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0,0,0,0.1)'
+                            },
+                            title: {
+                                display: true,
+                                text: '力量值',
+                                font: {
+                                    size: 12
+                                }
+                            },
+                            ticks: {
+                                font: {
+                                    size: 11
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // 显示当前身强身弱分析描述
+            const description = document.getElementById('current-strength-description');
+            
+            // 根据不同类型设置不同的图标和颜色
+            let typeIcon, typeColor;
+            switch(currentStrengthData.type) {
+                case '身强':
+                    typeIcon = 'fa-fire';
+                    typeColor = '#e74c3c';
+                    break;
+                case '身弱':
+                    typeIcon = 'fa-snowflake';
+                    typeColor = '#3498db';
+                    break;
+                case '均衡':
+                    typeIcon = 'fa-balance-scale';
+                    typeColor = '#f39c12';
+                    break;
+                case '从强':
+                    typeIcon = 'fa-arrow-up';
+                    typeColor = '#9b59b6';
+                    break;
+                case '从弱':
+                    typeIcon = 'fa-arrow-down';
+                    typeColor = '#2ecc71';
+                    break;
+                default:
+                    typeIcon = 'fa-balance-scale';
+                    typeColor = '#7f8c8d';
+            }
+            
+            description.innerHTML = `
+                <h4><i class="fas fa-clock"></i> 当前身强身弱分析</h4>
+                <div style="background-color: #e8f6f3; padding: 12px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #1abc9c;">
+                    <p style="margin: 0; font-size: 0.95rem;"><strong>当前流年:</strong> ${currentStrengthData.currentYear}年 ${currentStrengthData.currentYearGanZhi}</p>
+                    <p style="margin: 5px 0 0 0; font-size: 0.95rem;"><strong>当前大运:</strong> ${currentStrengthData.currentDayun}</p>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                    <div style="background-color: ${typeColor}; color: white; padding: 5px 10px; border-radius: 5px; margin-right: 10px;">
+                        <i class="fas ${typeIcon}"></i> ${currentStrengthData.type}
+                    </div>
+                    <div>力量比例: ${currentStrengthData.strengthPercentage.toFixed(2)}%</div>
+                </div>
+                <p><strong>生扶力量:</strong> ${currentStrengthData.supportStrength.toFixed(2)}点</p>
+                <p><strong>克泄力量:</strong> ${currentStrengthData.weakenStrength.toFixed(2)}点</p>
+                ${currentStrengthData.monthScore ? `<p><strong>月令得分:</strong> ${currentStrengthData.monthScore}点</p>` : ''}
+                ${currentStrengthData.combined && currentStrengthData.combined.effect ? `<p><strong>合化影响:</strong> ${currentStrengthData.combined.effect === 'strengthen' ? '增强日主' : '削弱日主'}</p>` : ''}
+                ${currentStrengthData.combined && currentStrengthData.combined.deduction ? `<p><strong>合化扣分:</strong> <span style="color: #e74c3c; font-weight: bold;">${currentStrengthData.combined.deduction}点</span></p>` : ''}
+                <div class="current-hehua-info">
+                ${currentStrengthData.combined && (currentStrengthData.combined.tianGanWuHe.length > 0 || currentStrengthData.combined.diZhiLiuHe.length > 0 || currentStrengthData.combined.diZhiSanHe.length > 0) ? 
+                   `<div style="background-color: #fff3cd; padding: 15px; border-radius: 8px; margin: 15px 0; border: 2px solid #ffc107; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+                       <h5 style="color: #856404; margin-top: 0; font-size: 16px;"><i class="fas fa-link"></i> 当前合化信息</h5>
+                       ${currentStrengthData.combined.tianGanWuHe.length > 0 ? 
+                           `<div style="margin-bottom: 10px;">
+                               <p><strong>天干五合:</strong> ${currentStrengthData.combined.tianGanWuHe.map(h => {
+                                   const elementName = h.element === 'wood' ? '木' : h.element === 'fire' ? '火' : h.element === 'earth' ? '土' : h.element === 'metal' ? '金' : '水';
+                                   const yearFlag = h.isCurrentYear ? '(流年)' : '';
+                                   const dayunFlag = h.isCurrentDayun ? '(大运)' : '';
+                                   return `${h.gan1}${h.gan2}合${elementName}${yearFlag}${dayunFlag}`;
+                               }).join('、')}</p>
+                           </div>` : ''}
+                       ${currentStrengthData.combined.diZhiLiuHe.length > 0 ? 
+                           `<div style="margin-bottom: 10px;">
+                               <p><strong>地支六合:</strong> ${currentStrengthData.combined.diZhiLiuHe.map(h => {
+                                   const elementName = h.element === 'wood' ? '木' : h.element === 'fire' ? '火' : h.element === 'earth' ? '土' : h.element === 'metal' ? '金' : '水';
+                                   const yearFlag = h.isCurrentYear ? '(流年)' : '';
+                                   const dayunFlag = h.isCurrentDayun ? '(大运)' : '';
+                                   return `${h.zhi1}${h.zhi2}合${elementName}${yearFlag}${dayunFlag}`;
+                               }).join('、')}</p>
+                           </div>` : ''}
+                       ${currentStrengthData.combined.diZhiSanHe.length > 0 ? 
+                           `<div style="margin-bottom: 10px;">
+                               <p><strong>地支三合:</strong> ${currentStrengthData.combined.diZhiSanHe.map(h => {
+                                   const elementName = h.element === 'wood' ? '木' : h.element === 'fire' ? '火' : h.element === 'earth' ? '土' : h.element === 'metal' ? '金' : '水';
+                                   const yearFlag = h.isCurrentYear ? '(流年)' : '';
+                                   const dayunFlag = h.isCurrentDayun ? '(大运)' : '';
+                                   return `${h.type}三合${elementName}(${h.count === 3 ? '全三合' : '半三合'})${yearFlag}${dayunFlag}`;
+                               }).join('、')}</p>
+                           </div>` : ''}
+                       <p><strong>对日主影响:</strong> <span style="color: ${currentStrengthData.combined.effect === 'strengthen' ? '#27ae60' : currentStrengthData.combined.effect === 'weaken' ? '#e74c3c' : '#7f8c8d'}; font-weight: bold;">${currentStrengthData.combined.effect === 'strengthen' ? '增强日主' : currentStrengthData.combined.effect === 'weaken' ? '削弱日主' : '影响中性'}</span></p>
+                       ${currentStrengthData.combined.deduction ? `<p><strong>力量扣减:</strong> <span style="color: #e74c3c; font-weight: bold;">${currentStrengthData.combined.deduction}点</span> (合化影响)</p>` : ''}
+                   </div>` : `<div style="background-color: #f8f9fa; padding: 15px; border-radius: 8px; margin: 15px 0; border: 1px dashed #ccc;">
+                       <p style="color: #7f8c8d; margin: 0;"><i class="fas fa-info-circle"></i> 未检测到当前合化</p>
+                   </div>`}
+                </div>
+                <p><strong>分析说明:</strong> ${currentStrengthData.description}</p>
+            `;
+            
+            // 调整图表容器和描述容器的样式，确保左右并排显示
+            const currentStrengthAnalysisFrame = document.querySelector('.current-strength-analysis-frame');
+            const currentChartContainer = document.querySelector('.current-chart-container');
+            const currentDescriptionContainer = document.getElementById('current-strength-description');
+            
+            if (currentStrengthAnalysisFrame && currentChartContainer && currentDescriptionContainer) {
+                // 确保上下排列显示
+                currentStrengthAnalysisFrame.style.display = 'flex';
+                currentStrengthAnalysisFrame.style.flexDirection = 'column';
+                currentStrengthAnalysisFrame.style.gap = '20px';
+                currentStrengthAnalysisFrame.style.flexWrap = 'wrap';
+                
+                // 设置图表容器样式 - 注释掉以避免覆盖CSS样式
+                // currentChartContainer.style.flex = '1';
+                // currentChartContainer.style.minWidth = '300px';
+                // currentChartContainer.style.minHeight = '350px';
+                // currentChartContainer.style.backgroundColor = '#ffffff';
+                // currentChartContainer.style.padding = '15px';
+                // currentChartContainer.style.borderRadius = '8px';
+                // currentChartContainer.style.boxShadow = '0 2px 4px rgba(0,0,0,0.05)';
+                
+                // 设置描述容器样式
+                currentDescriptionContainer.style.flex = '1';
+                currentDescriptionContainer.style.minWidth = '300px';
+                currentDescriptionContainer.style.padding = '15px';
+                currentDescriptionContainer.style.backgroundColor = '#f9f9f9';
+                currentDescriptionContainer.style.borderRadius = '8px';
+                currentDescriptionContainer.style.boxShadow = '0 2px 4px rgba(0,0,0,0.05)';
             }
         }
 
@@ -3864,6 +5016,28 @@ contentElement.classList.add('show');
             displayBaziChart(baziData);
             displayElementsChart(baziData);
             displayStrengthChart(baziData);
+            
+            // 计算并显示当前身强身弱分析
+            try {
+                const currentYear = new Date().getFullYear();
+                const dayStem = baziData.pillars.day[0];
+                const monthBranch = baziData.pillars.month[1];
+                const currentStrengthData = calculateCurrentStrength(dayStem, baziData.elements, monthBranch, currentYear);
+                displayCurrentStrengthChart(currentStrengthData);
+            } catch (error) {
+                console.error('计算当前身强身弱分析失败:', error);
+                // 显示错误信息
+                const description = document.getElementById('current-strength-description');
+                if (description) {
+                    description.innerHTML = `
+                        <h4><i class="fas fa-clock"></i> 当前身强身弱分析</h4>
+                        <div style="background-color: #f8d7da; padding: 15px; border-radius: 8px; border: 1px solid #f5c6cb; color: #721c24;">
+                            <p><i class="fas fa-exclamation-triangle"></i> 计算当前身强身弱分析时出现错误，请稍后重试。</p>
+                        </div>
+                    `;
+                }
+            }
+            
             displayLuckTiming(baziData);
             displayFateLevel(baziData);
             displayWealthLevel(baziData);
@@ -4197,7 +5371,7 @@ contentElement.classList.add('show');
                             callbacks: {
                                 label: function(context) {
                                     const total = context.dataset.data.reduce((sum, val) => sum + val, 0);
-                                    const percentage = ((context.parsed / total) * 100).toFixed(1);
+                                    const percentage = ((context.parsed / total) * 100).toFixed(2);
                                     return `${context.label}: ${context.parsed}点 (${percentage}%)`;
                                 }
                             }
@@ -4211,7 +5385,7 @@ contentElement.classList.add('show');
                                 family: "'Noto Serif SC', serif"
                             },
                             formatter: (value, ctx) => {
-                                const percentage = ((value / total) * 100).toFixed(0);
+                                const percentage = ((value / total) * 100).toFixed(2);
                                 return percentage > 5 ? `${percentage}%` : '';
                             },
                             anchor: 'center',
@@ -4325,19 +5499,19 @@ contentElement.classList.add('show');
                         <div style="min-width: 120px; margin-bottom: 8px;">
                             <span style="font-weight: bold; color: ${elementColors[strongest].main};">最强五行：</span>
                             <span style="background: linear-gradient(135deg, ${elementColors[strongest].gradient[0]}, ${elementColors[strongest].gradient[1]}); padding: 3px 10px; border-radius: 20px; color: #fff; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                                ${elementNames[strongest]} (${((elements[strongest]/total)*100).toFixed(1)}%)
+                                ${elementNames[strongest]} (${((elements[strongest]/total)*100).toFixed(2)}%)
                             </span>
                         </div>
                         <div style="min-width: 120px; margin-bottom: 8px;">
                             <span style="font-weight: bold; color: ${elementColors[weakest].main};">最弱五行：</span>
                             <span style="background: linear-gradient(135deg, ${elementColors[weakest].gradient[0]}, ${elementColors[weakest].gradient[1]}); padding: 3px 10px; border-radius: 20px; color: #fff; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                                ${elementNames[weakest]} (${((elements[weakest]/total)*100).toFixed(1)}%)
+                                ${elementNames[weakest]} (${((elements[weakest]/total)*100).toFixed(2)}%)
                             </span>
                         </div>
                         <div style="min-width: 120px; margin-bottom: 8px;">
                             <span style="font-weight: bold; color: #2c3e50;">平衡度：</span>
                             <span style="background: linear-gradient(135deg, ${balanceLevel === '极佳' ? 'rgba(39, 174, 96, 0.9), rgba(46, 204, 113, 0.9)' : balanceLevel === '良好' ? 'rgba(46, 204, 113, 0.9), rgba(39, 174, 96, 0.9)' : balanceLevel === '一般' ? 'rgba(243, 156, 18, 0.9), rgba(230, 126, 34, 0.9)' : 'rgba(231, 76, 60, 0.9), rgba(192, 57, 43, 0.9)'}); padding: 3px 10px; border-radius: 20px; color: #fff; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                                ${balanceLevel} (${balancePercentage.toFixed(0)}%)
+                                ${balanceLevel} (${balancePercentage.toFixed(2)}%)
                             </span>
                         </div>
                     </div>
@@ -4345,11 +5519,11 @@ contentElement.classList.add('show');
                     <div style="margin-top: 12px;">
                         <p style="margin: 0; line-height: 1.6; font-size: 0.95rem;">
                             <strong>五行分布：</strong><br>
-                            <span style="display: inline-block; margin: 5px 5px 5px 0; padding: 4px 10px; background-color: ${elementColors.wood.light}; color: white; border-radius: 15px; font-weight: bold;">木 ${elements.wood}点 (${((elements.wood/total)*100).toFixed(1)}%)</span>
-                            <span style="display: inline-block; margin: 5px 5px 5px 0; padding: 4px 10px; background-color: ${elementColors.fire.light}; color: white; border-radius: 15px; font-weight: bold;">火 ${elements.fire}点 (${((elements.fire/total)*100).toFixed(1)}%)</span>
-                            <span style="display: inline-block; margin: 5px 5px 5px 0; padding: 4px 10px; background-color: ${elementColors.earth.light}; color: white; border-radius: 15px; font-weight: bold;">土 ${elements.earth}点 (${((elements.earth/total)*100).toFixed(1)}%)</span>
-                            <span style="display: inline-block; margin: 5px 5px 5px 0; padding: 4px 10px; background-color: ${elementColors.metal.light}; color: white; border-radius: 15px; font-weight: bold;">金 ${elements.metal}点 (${((elements.metal/total)*100).toFixed(1)}%)</span>
-                            <span style="display: inline-block; margin: 5px 5px 5px 0; padding: 4px 10px; background-color: ${elementColors.water.light}; color: white; border-radius: 15px; font-weight: bold;">水 ${elements.water}点 (${((elements.water/total)*100).toFixed(1)}%)</span>
+                            <span style="display: inline-block; margin: 5px 5px 5px 0; padding: 4px 10px; background-color: ${elementColors.wood.light}; color: white; border-radius: 15px; font-weight: bold;">木 ${elements.wood}点 (${((elements.wood/total)*100).toFixed(2)}%)</span>
+                            <span style="display: inline-block; margin: 5px 5px 5px 0; padding: 4px 10px; background-color: ${elementColors.fire.light}; color: white; border-radius: 15px; font-weight: bold;">火 ${elements.fire}点 (${((elements.fire/total)*100).toFixed(2)}%)</span>
+                            <span style="display: inline-block; margin: 5px 5px 5px 0; padding: 4px 10px; background-color: ${elementColors.earth.light}; color: white; border-radius: 15px; font-weight: bold;">土 ${elements.earth}点 (${((elements.earth/total)*100).toFixed(2)}%)</span>
+                            <span style="display: inline-block; margin: 5px 5px 5px 0; padding: 4px 10px; background-color: ${elementColors.metal.light}; color: white; border-radius: 15px; font-weight: bold;">金 ${elements.metal}点 (${((elements.metal/total)*100).toFixed(2)}%)</span>
+                            <span style="display: inline-block; margin: 5px 5px 5px 0; padding: 4px 10px; background-color: ${elementColors.water.light}; color: white; border-radius: 15px; font-weight: bold;">水 ${elements.water}点 (${((elements.water/total)*100).toFixed(2)}%)</span>
                         </p>
                     </div>
                 </div>
@@ -4473,8 +5647,21 @@ contentElement.classList.add('show');
                 }
             }
             
-            const ctx = document.getElementById('strength-chart').getContext('2d');
+            const canvas = document.getElementById('strength-chart');
+            const ctx = canvas.getContext('2d');
             const strengthAnalysis = baziData.strengthAnalysis;
+            
+            // 调试信息：检查数据值
+            console.log('原命局图表数据:', {
+                supportStrength: strengthAnalysis.supportStrength,
+                weakenStrength: strengthAnalysis.weakenStrength,
+                canvasWidth: canvas.clientWidth,
+                canvasHeight: canvas.clientHeight
+            });
+            
+            // 强制重置canvas尺寸
+            canvas.style.width = '100%';
+            canvas.style.height = '100%';
             
             if (strengthChart) {
                 strengthChart.destroy();
@@ -4492,12 +5679,22 @@ contentElement.classList.add('show');
                             '#e74c3c'  // 克泄 - 红色
                         ],
                         borderWidth: 2,
-                        borderColor: '#fff'
+                        borderColor: '#fff',
+                        barThickness: 60,
+                        maxBarThickness: 80
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    layout: {
+                        padding: {
+                            left: 10,
+                            right: 10,
+                            top: 10,
+                            bottom: 10
+                        }
+                    },
                     plugins: {
                         legend: {
                             display: false
@@ -4511,11 +5708,32 @@ contentElement.classList.add('show');
                          }
                      },
                      scales: {
+                         x: {
+                             grid: {
+                                 display: false
+                             },
+                             ticks: {
+                                 font: {
+                                     size: 12
+                                 }
+                             }
+                         },
                          y: {
                              beginAtZero: true,
+                             grid: {
+                                 color: 'rgba(0,0,0,0.1)'
+                             },
                              title: {
                                  display: true,
-                                 text: '力量值'
+                                 text: '力量值',
+                                 font: {
+                                     size: 12
+                                 }
+                             },
+                             ticks: {
+                                 font: {
+                                     size: 11
+                                 }
                              }
                          }
                      }
@@ -4559,10 +5777,10 @@ contentElement.classList.add('show');
                      <div style="background-color: ${typeColor}; color: white; padding: 5px 10px; border-radius: 5px; margin-right: 10px;">
                          <i class="fas ${typeIcon}"></i> ${strengthAnalysis.type}
                      </div>
-                     <div>力量比例: ${(strengthAnalysis.ratio * 100).toFixed(1)}%</div>
+                     <div>力量比例: ${(strengthAnalysis.ratio * 100).toFixed(2)}%</div>
                  </div>
-                 <p><strong>生扶力量:</strong> ${strengthAnalysis.supportStrength.toFixed(1)}点</p>
-                 <p><strong>克泄力量:</strong> ${strengthAnalysis.weakenStrength.toFixed(1)}点</p>
+                 <p><strong>生扶力量:</strong> ${strengthAnalysis.supportStrength.toFixed(2)}点</p>
+                 <p><strong>克泄力量:</strong> ${strengthAnalysis.weakenStrength.toFixed(2)}点</p>
                  ${strengthAnalysis.monthScore ? `<p><strong>月令得分:</strong> ${strengthAnalysis.monthScore}点</p>` : ''}
                  ${strengthAnalysis.combined && strengthAnalysis.combined.effect ? `<p><strong>合化影响:</strong> ${strengthAnalysis.combined.effect === 'strengthen' ? '增强日主' : '削弱日主'}</p>` : ''}
                  ${strengthAnalysis.combined && strengthAnalysis.combined.deduction ? `<p><strong>合化扣分:</strong> <span style="color: #e74c3c; font-weight: bold;">${strengthAnalysis.combined.deduction}点</span></p>` : ''}
@@ -4597,24 +5815,24 @@ contentElement.classList.add('show');
              const descriptionContainer = document.getElementById('strength-description');
              
              if (strengthAnalysisFrame && chartContainer && descriptionContainer) {
-                 // 确保左右并排显示
-                 strengthAnalysisFrame.style.display = 'flex';
-                 strengthAnalysisFrame.style.flexDirection = 'row';
-                 strengthAnalysisFrame.style.gap = '20px';
-                 strengthAnalysisFrame.style.flexWrap = 'wrap';
+                 // 确保上下排列显示
+                strengthAnalysisFrame.style.display = 'flex';
+                strengthAnalysisFrame.style.flexDirection = 'column';
+                strengthAnalysisFrame.style.gap = '15px';
+                strengthAnalysisFrame.style.flexWrap = 'nowrap';
                  
-                 // 设置图表容器样式
-                 chartContainer.style.flex = '1';
-                 chartContainer.style.minWidth = '300px';
-                 chartContainer.style.minHeight = '350px';
-                 chartContainer.style.backgroundColor = '#ffffff';
-                 chartContainer.style.padding = '15px';
-                 chartContainer.style.borderRadius = '8px';
-                 chartContainer.style.boxShadow = '0 2px 4px rgba(0,0,0,0.05)';
+                 // 设置图表容器样式 - 注释掉以避免覆盖CSS样式
+                // chartContainer.style.flex = 'none';
+                // chartContainer.style.width = '100%';
+                // chartContainer.style.height = '250px';
+                 // chartContainer.style.backgroundColor = '#ffffff';
+                 // chartContainer.style.padding = '15px';
+                 // chartContainer.style.borderRadius = '8px';
+                 // chartContainer.style.boxShadow = '0 2px 4px rgba(0,0,0,0.05)';
                  
                  // 设置描述容器样式
-                 descriptionContainer.style.flex = '1';
-                 descriptionContainer.style.minWidth = '300px';
+                descriptionContainer.style.flex = 'none';
+                descriptionContainer.style.width = '100%';
                  descriptionContainer.style.padding = '15px';
                  descriptionContainer.style.backgroundColor = '#f9f9f9';
                  descriptionContainer.style.borderRadius = '8px';
@@ -4627,6 +5845,9 @@ contentElement.classList.add('show');
              const luckTiming = document.getElementById('luck-timing');
              const timing = baziData.luckTiming;
              
+             // 获取当前大运信息
+             const currentDayun = getCurrentDayun();
+             
              luckTiming.innerHTML = `
                  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
                      <div class="analysis-card">
@@ -4638,6 +5859,7 @@ contentElement.classList.add('show');
                          <div style="margin-top: 10px; font-size: 0.9rem; color: var(--text-secondary);">
                              <p><strong>排列方式：</strong>${timing.direction}</p>
                              <p><strong>节气天数：</strong>${timing.daysDiff}天</p>
+                             <p><strong>当前大运：</strong><span style="color: var(--primary-color); font-weight: bold;">${currentDayun.ganZhi}</span> (${currentDayun.startAge}-${currentDayun.endAge}岁，当前${currentDayun.currentAge}岁)</p>
                          </div>
                      </div>
                      <div class="analysis-card">
@@ -5085,7 +6307,14 @@ contentElement.classList.add('show');
              const monthPillarStr = data.pillars?.month || '月柱未知';
              const dayPillarStr = data.pillars?.day || '日柱未知';
              const hourPillarStr = data.pillars?.hour || '时柱未知';
-             const strengthStr = data.strengthAnalysis?.type || '身强身弱未知';
+             // 计算当前身强身弱（包含大运和流年影响）
+             const currentStrengthData = calculateCurrentStrength(
+                 data.pillars?.day?.charAt(0) || '',
+                 data.elements || {},
+                 data.pillars?.month?.charAt(1) || '',
+                 new Date().getFullYear()
+             );
+             const strengthStr = currentStrengthData?.type || '身强身弱未知';
              const startingAgeStr = data.luckTiming?.description || '起运时间未知';
              
              // 构建prompt
@@ -5101,7 +6330,7 @@ contentElement.classList.add('show');
              prompt += `月柱：${monthPillarStr}\n`;
              prompt += `日柱：${dayPillarStr}\n`;
              prompt += `时柱：${hourPillarStr}\n`;
-             prompt += `身强身弱：${strengthStr}\n`;
+             prompt += `当前身强身弱：${strengthStr}\n`;
              prompt += `起运时间：${startingAgeStr}\n\n`;
              
              prompt += `【用户问题】\n${question}\n\n`;
@@ -5213,10 +6442,17 @@ contentElement.classList.add('show');
              const monthPillarStr = data.pillars?.month || '月柱未知';
              const dayPillarStr = data.pillars?.day || '日柱未知';
              const hourPillarStr = data.pillars?.hour || '时柱未知';
-             const strengthStr = data.strengthAnalysis?.type || '身强身弱未知';
+             // 计算当前身强身弱（包含大运和流年影响）
+             const currentStrengthData = calculateCurrentStrength(
+                 data.pillars?.day?.charAt(0) || '',
+                 data.elements || {},
+                 data.pillars?.month?.charAt(1) || '',
+                 new Date().getFullYear()
+             );
+             const strengthStr = currentStrengthData?.type || '身强身弱未知';
              const startingAgeStr = data.luckTiming?.description || '起运时间未知';
              
-            const baziFullInfo = `${userName}，${genderStr}，八字信息是：${yearPillarStr}，${monthPillarStr}，${dayPillarStr}，${hourPillarStr}，命主为${strengthStr}，${startingAgeStr}。`;
+            const baziFullInfo = `${userName}，${genderStr}，八字信息是：${yearPillarStr}，${monthPillarStr}，${dayPillarStr}，${hourPillarStr}，当前身强身弱为${strengthStr}，${startingAgeStr}。`;
             const baziInfo = {
             baziFullInfo,
             yearPillar: yearPillarStr,
@@ -5244,7 +6480,7 @@ contentElement.classList.add('show');
                  prompt += `\n\n`;
              }
              
-             prompt += `**重要说明：以上八字、身强身弱判断和起运时间均为本地精确计算结果。您必须严格基于这些信息进行分析，绝对不要自行重新计算或使用其他值。**\n\n`;
+             prompt += `**重要说明：以上八字、当前身强身弱判断（已包含大运和流年影响）和起运时间均为本地精确计算结果。您必须严格基于这些信息进行分析，绝对不要自行重新计算或使用其他值。**\n\n`;
              
              // 根据分析类型添加特定提示
              switch (analysisType) {
@@ -5260,7 +6496,7 @@ contentElement.classList.add('show');
                      break;
                      
                  case 'annual-fortune':
-                     prompt += `请基于以上本地计算的准确八字信息（包括身强身弱和起运时间），进行详细的流年运势分析。请不要重新计算八字、身强身弱或起运时间，直接使用提供的信息。分析内容应包括：\n`;
+                     prompt += `请基于以上本地计算的准确八字信息（包括当前身强身弱和起运时间），进行详细的流年运势分析。请不要重新计算八字、当前身强身弱或起运时间，直接使用提供的信息。分析内容应包括：\n`;
                      prompt += `1. ${currentYear}年${currentYearGanZhi}年整体运势概述\n`;
                      prompt += `2. 事业发展与工作机遇分析\n`;
                      prompt += `3. 财运分析（正财与偏财）\n`;
@@ -5271,7 +6507,7 @@ contentElement.classList.add('show');
                      break;
                      
                  case 'monthly-fortune':
-                     prompt += `请基于以上本地计算的准确八字信息（包括身强身弱和起运时间），进行详细的流月运势分析。请不要重新计算八字、身强身弱或起运时间，直接使用提供的信息。分析内容应包括：\n`;
+                     prompt += `请基于以上本地计算的准确八字信息（包括当前身强身弱和起运时间），进行详细的流月运势分析。请不要重新计算八字、当前身强身弱或起运时间，直接使用提供的信息。分析内容应包括：\n`;
                      prompt += `1. ${currentYear}年各月运势总体趋势\n`;
                      prompt += `2. 按季节分析（春、夏、秋、冬）各月运势特点\n`;
                      prompt += `3. 重点月份的机遇与挑战\n`;
@@ -5281,7 +6517,7 @@ contentElement.classList.add('show');
                      break;
                      
                  case 'decade-fortune':
-                     prompt += `请基于以上本地计算的准确八字信息（包括身强身弱和起运时间），进行详细的十年大运分析。请不要重新计算八字、身强身弱或起运时间，直接使用提供的信息。分析内容应包括：\n`;
+                     prompt += `请基于以上本地计算的准确八字信息（包括当前身强身弱和起运时间），进行详细的十年大运分析。请不要重新计算八字、当前身强身弱或起运时间，直接使用提供的信息。分析内容应包括：\n`;
                      prompt += `1. 人生各阶段大运走势概述\n`;
                      prompt += `2. 青年期（20-30岁）运势与发展方向\n`;
                      prompt += `3. 壮年期（30-40岁）事业与财富高峰期分析\n`;
@@ -5292,7 +6528,7 @@ contentElement.classList.add('show');
                      break;
                      
                  case 'personality':
-                     prompt += `请基于以上本地计算的准确八字信息（包括身强身弱和起运时间），进行详细的性格分析。请不要重新计算八字、身强身弱或起运时间，直接使用提供的信息。分析内容应包括：\n`;
+                     prompt += `请基于以上本地计算的准确八字信息（包括当前身强身弱和起运时间），进行详细的性格分析。请不要重新计算八字、当前身强身弱或起运时间，直接使用提供的信息。分析内容应包括：\n`;
                      prompt += `1. 核心性格特质与天赋才能\n`;
                      prompt += `2. 性格优势与特长详解\n`;
                      prompt += `3. 性格中需要注意的弱点\n`;
@@ -5303,7 +6539,7 @@ contentElement.classList.add('show');
                      break;
                      
                  case 'career':
-                     prompt += `请基于以上本地计算的准确八字信息（包括身强身弱和起运时间），进行详细的事业财富分析。请不要重新计算八字、身强身弱或起运时间，直接使用提供的信息。分析内容应包括：\n`;
+                     prompt += `请基于以上本地计算的准确八字信息（包括当前身强身弱和起运时间），进行详细的事业财富分析。请不要重新计算八字、当前身强身弱或起运时间，直接使用提供的信息。分析内容应包括：\n`;
                      prompt += `1. 最适合的职业领域与行业\n`;
                      prompt += `2. 职业发展路径与关键转折点\n`;
                      prompt += `3. 事业成功的关键因素\n`;
@@ -5314,7 +6550,7 @@ contentElement.classList.add('show');
                      break;
                      
                  case 'marriage':
-                     prompt += `请基于以上本地计算的准确八字信息（包括身强身弱和起运时间），进行详细的婚姻分析。请不要重新计算八字、身强身弱或起运时间，直接使用提供的信息。分析内容应包括：\n`;
+                     prompt += `请基于以上本地计算的准确八字信息（包括当前身强身弱和起运时间），进行详细的婚姻分析。请不要重新计算八字、当前身强身弱或起运时间，直接使用提供的信息。分析内容应包括：\n`;
                      prompt += `1. 婚姻运势与缘分总体评估\n`;
                      prompt += `2. 理想伴侣的性格与特质描述\n`;
                      prompt += `3. 婚姻生活的特点与模式\n`;
@@ -5325,7 +6561,7 @@ contentElement.classList.add('show');
                      break;
                      
                  case 'children':
-                     prompt += `请基于以上本地计算的准确八字信息（包括身强身弱和起运时间），进行详细的子女分析。请不要重新计算八字、身强身弱或起运时间，直接使用提供的信息。分析内容应包括：\n`;
+                     prompt += `请基于以上本地计算的准确八字信息（包括当前身强身弱和起运时间），进行详细的子女分析。请不要重新计算八字、当前身强身弱或起运时间，直接使用提供的信息。分析内容应包括：\n`;
                      prompt += `1. 子女缘分与数量预测\n`;
                      prompt += `2. 子女可能的性格特点\n`;
                      prompt += `3. 亲子关系的特点与互动模式\n`;
@@ -5336,7 +6572,7 @@ contentElement.classList.add('show');
                      break;
                      
                  case 'health':
-                     prompt += `请基于以上本地计算的准确八字信息（包括身强身弱和起运时间），进行详细的健康分析。请不要重新计算八字、身强身弱或起运时间，直接使用提供的信息。分析内容应包括：\n`;
+                     prompt += `请基于以上本地计算的准确八字信息（包括当前身强身弱和起运时间），进行详细的健康分析。请不要重新计算八字、当前身强身弱或起运时间，直接使用提供的信息。分析内容应包括：\n`;
                      prompt += `1. 先天体质与健康状况评估\n`;
                      prompt += `2. 需要特别关注的身体系统\n`;
                      prompt += `3. 不同年龄段的健康风险\n`;
@@ -5347,7 +6583,7 @@ contentElement.classList.add('show');
                      break;
                      
                  default:
-                     prompt += `请基于以上本地计算的准确八字信息（包括身强身弱和起运时间），进行全面的命理分析。请不要重新计算八字、身强身弱或起运时间，直接使用提供的信息。\n`;
+                     prompt += `请基于以上本地计算的准确八字信息（包括当前身强身弱和起运时间），进行全面的命理分析。请不要重新计算八字、当前身强身弱或起运时间，直接使用提供的信息。\n`;
              }
              
              prompt += `\n请用人性化、清晰的语言表达，避免过于专业的术语，使普通人也能理解。分析要全面、深入、具体，不要笼统。`;
@@ -5408,8 +6644,8 @@ contentElement.classList.add('show');
          /* ==================== 用户管理功能 ==================== */
 
          // API配置
-         const API_BASE = 'https://api.mybazi.net';
-         const API_URL = `${API_BASE}/api`;
+          const API_BASE = 'https://api.mybazi.net';
+          const API_URL = `${API_BASE}/api`;
 
          // DOM元素
          const userWelcome = document.getElementById('userWelcome');
