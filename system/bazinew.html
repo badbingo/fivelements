@@ -910,15 +910,92 @@
         }
         
         .qa-content {
-            line-height: 1.6;
+            line-height: 1.7;
             color: #333;
             font-size: 0.95em;
         }
         
-        .qa-content br {
-            margin-bottom: 8px;
+        /* 新增样式：段落标题 */
+        .qa-content .qa-section-title {
+            color: #2c3e50;
+            font-weight: 700;
+            font-size: 1.05em;
+            margin: 18px 0 12px 0;
+            padding: 8px 12px;
+            background: linear-gradient(135deg, #f1f3f4 0%, #e8eaf6 100%);
+            border-left: 4px solid #3498db;
+            border-radius: 6px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
         
+        /* 新增样式：段落内容 */
+        .qa-content .qa-paragraph {
+            margin: 12px 0;
+            padding: 0;
+            text-align: justify;
+            line-height: 1.65;
+            text-indent: 0;
+        }
+        
+        /* 新增样式：列表容器 */
+        .qa-content .qa-list {
+            margin: 12px 0;
+            padding-left: 0;
+            list-style: none;
+            background: rgba(248, 249, 250, 0.6);
+            border-radius: 6px;
+            padding: 10px;
+        }
+        
+        /* 新增样式：列表项 */
+        .qa-content .qa-list-item {
+            margin: 6px 0;
+            padding: 6px 12px;
+            background: white;
+            border-radius: 4px;
+            border-left: 3px solid #17a2b8;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            position: relative;
+        }
+        
+        .qa-content .qa-list-item:before {
+            content: "▸";
+            color: #17a2b8;
+            font-weight: bold;
+            position: absolute;
+            left: -8px;
+            top: 6px;
+        }
+        
+        /* 新增样式：高亮文本 */
+        .qa-content .qa-highlight {
+            color: #e74c3c;
+            font-weight: 600;
+            background: rgba(231, 76, 60, 0.1);
+            padding: 1px 3px;
+            border-radius: 3px;
+        }
+        
+        /* 新增样式：强调文本 */
+        .qa-content .qa-emphasis {
+            color: #8e44ad;
+            font-style: italic;
+            background: rgba(142, 68, 173, 0.1);
+            padding: 1px 3px;
+            border-radius: 3px;
+        }
+        
+        /* 新增样式：关键词 */
+        .qa-content .qa-keyword {
+            color: #2980b9;
+            font-weight: 600;
+            background: rgba(41, 128, 185, 0.1);
+            padding: 2px 4px;
+            border-radius: 3px;
+            border: 1px solid rgba(41, 128, 185, 0.2);
+        }
+        
+        /* 兼容旧样式 */
         .qa-content h1, .qa-content h2, .qa-content h3 {
             color: #2c3e50;
             margin: 15px 0 10px 0;
@@ -6233,46 +6310,59 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
          
          // Markdown内容格式化函数
          function formatMarkdownContent(content) {
-             // 基本的Markdown转HTML处理
+             // 清理和预处理内容
              let formatted = content
+                 .trim()
+                 // 移除多余的空行，保留段落间距
+                 .replace(/\n{3,}/g, '\n\n')
+                 // 移除行首行尾空格
+                 .replace(/^\s+|\s+$/gm, '')
                  // 移除所有#字符
-                 .replace(/#/g, '')
-                 // 处理标题（不显示#符号）
-                 .replace(/^\s*(.*?)\s*$/gm, function(match, text) {
-                     // 检测是否为标题格式（连续的大写字母或重要关键词）
-                     if (text.match(/^[一二三四五六七八九十、]+[、.]/) || 
-                         text.match(/^\d+[、.]/) ||
-                         text.match(/^(总结|结论|建议|分析|概述|要点|重点|注意|提醒)[:：]?/)) {
-                         return '<h3>' + text + '</h3>';
-                     }
-                     return text;
-                 })
-                 // 处理粗体
-                 .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                 // 处理斜体
-                 .replace(/\*(.*?)\*/g, '<em>$1</em>')
-                 // 处理列表项
-                 .replace(/^- (.*$)/gm, '<li>$1</li>')
-                 .replace(/^\* (.*$)/gm, '<li>$1</li>')
-                 .replace(/^\d+\. (.*$)/gm, '<li>$1</li>')
-                 // 处理换行
-                 .replace(/\n\n/g, '</p><p>')
-                 .replace(/\n/g, '<br>');
+                 .replace(/#/g, '');
              
-             // 包装列表项
-             formatted = formatted.replace(/(<li>.*?<\/li>)/gs, function(match) {
-                 if (!match.includes('<ul>') && !match.includes('<ol>')) {
-                     return '<ul>' + match + '</ul>';
+             // 按段落分割处理
+             const paragraphs = formatted.split(/\n\n+/);
+             const processedParagraphs = [];
+             
+             for (let paragraph of paragraphs) {
+                 if (!paragraph.trim()) continue;
+                 
+                 // 检测标题格式
+                 if (paragraph.match(/^[一二三四五六七八九十、]+[、.]/) || 
+                     paragraph.match(/^\d+[、.]/) ||
+                     paragraph.match(/^(总结|结论|建议|分析|概述|要点|重点|注意|提醒|性格|事业|财运|婚姻|健康|运势)[:：]?/)) {
+                     processedParagraphs.push(`<div class="qa-section-title">${paragraph}</div>`);
+                     continue;
                  }
-                 return match;
-             });
-             
-             // 包装段落
-             if (!formatted.startsWith('<h') && !formatted.startsWith('<ul') && !formatted.startsWith('<ol')) {
-                 formatted = '<p>' + formatted + '</p>';
+                 
+                 // 检测列表项
+                 if (paragraph.match(/^[\s]*[-*]\s/) || paragraph.match(/^[\s]*\d+[.、]\s/)) {
+                     const listItems = paragraph.split('\n')
+                         .filter(line => line.trim())
+                         .map(line => {
+                             const cleanLine = line.replace(/^[\s]*[-*\d+.、]\s*/, '').trim();
+                             return `<li class="qa-list-item">${cleanLine}</li>`;
+                         })
+                         .join('');
+                     processedParagraphs.push(`<ul class="qa-list">${listItems}</ul>`);
+                     continue;
+                 }
+                 
+                 // 处理普通段落
+                 let processedParagraph = paragraph
+                     // 处理粗体
+                     .replace(/\*\*(.*?)\*\*/g, '<strong class="qa-highlight">$1</strong>')
+                     // 处理斜体
+                     .replace(/\*(.*?)\*/g, '<em class="qa-emphasis">$1</em>')
+                     // 处理关键词高亮
+                     .replace(/(身强|身弱|喜用神|忌神|大运|流年|财运|事业|婚姻|健康)/g, '<span class="qa-keyword">$1</span>')
+                     // 处理换行为空格，保持段落紧凑
+                     .replace(/\n/g, ' ');
+                 
+                 processedParagraphs.push(`<p class="qa-paragraph">${processedParagraph}</p>`);
              }
              
-             return formatted;
+             return processedParagraphs.join('');
          }
          
          // 八字问答API调用
