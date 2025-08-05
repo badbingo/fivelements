@@ -3969,6 +3969,132 @@ contentElement.classList.add('show');
             }
         }
 
+        // 十二长生状态表
+        function getTwelveStagesTable() {
+            return {
+                '甲': { 长生: '亥', 沐浴: '子', 冠带: '丑', 临官: '寅', 帝旺: '卯', 衰: '辰', 病: '巳', 死: '午', 墓: '未', 绝: '申', 胎: '酉', 养: '戌' },
+                '乙': { 长生: '午', 沐浴: '巳', 冠带: '辰', 临官: '卯', 帝旺: '寅', 衰: '丑', 病: '子', 死: '亥', 墓: '戌', 绝: '酉', 胎: '申', 养: '未' },
+                '丙': { 长生: '寅', 沐浴: '卯', 冠带: '辰', 临官: '巳', 帝旺: '午', 衰: '未', 病: '申', 死: '酉', 墓: '戌', 绝: '亥', 胎: '子', 养: '丑' },
+                '丁': { 长生: '酉', 沐浴: '申', 冠带: '未', 临官: '午', 帝旺: '巳', 衰: '辰', 病: '卯', 死: '寅', 墓: '丑', 绝: '子', 胎: '亥', 养: '戌' },
+                '戊': { 长生: '寅', 沐浴: '卯', 冠带: '辰', 临官: '巳', 帝旺: '午', 衰: '未', 病: '申', 死: '酉', 墓: '戌', 绝: '亥', 胎: '子', 养: '丑' },
+                '己': { 长生: '酉', 沐浴: '申', 冠带: '未', 临官: '午', 帝旺: '巳', 衰: '辰', 病: '卯', 死: '寅', 墓: '丑', 绝: '子', 胎: '亥', 养: '戌' },
+                '庚': { 长生: '巳', 沐浴: '午', 冠带: '未', 临官: '申', 帝旺: '酉', 衰: '戌', 病: '亥', 死: '子', 墓: '丑', 绝: '寅', 胎: '卯', 养: '辰' },
+                '辛': { 长生: '子', 沐浴: '亥', 冠带: '戌', 临官: '酉', 帝旺: '申', 衰: '未', 病: '午', 死: '巳', 墓: '辰', 绝: '卯', 胎: '寅', 养: '丑' },
+                '壬': { 长生: '申', 沐浴: '酉', 冠带: '戌', 临官: '亥', 帝旺: '子', 衰: '丑', 病: '寅', 死: '卯', 墓: '辰', 绝: '巳', 胎: '午', 养: '未' },
+                '癸': { 长生: '卯', 沐浴: '寅', 冠带: '丑', 临官: '子', 帝旺: '亥', 衰: '戌', 病: '酉', 死: '申', 墓: '未', 绝: '午', 胎: '巳', 养: '辰' }
+            };
+        }
+        
+        // 计算十二长生状态
+        function calculateTwelveStages(dayStem, luckTiming, currentAge) {
+            const stagesTable = getTwelveStagesTable();
+            const dayStages = stagesTable[dayStem];
+            
+            if (!dayStages) {
+                console.error('无法找到日主天干对应的十二长生表:', dayStem);
+                return [];
+            }
+            
+            // 生成大运列表
+            const dayunList = generateDayunList(luckTiming);
+            
+            // 计算每个大运对应的十二长生状态
+            const twelveStages = [];
+            
+            dayunList.forEach((dayun, index) => {
+                const dayunZhi = dayun.ganZhi.charAt(1); // 获取大运地支
+                
+                // 查找该地支在十二长生中的状态
+                let stageName = '未知';
+                for (const [stage, zhi] of Object.entries(dayStages)) {
+                    if (zhi === dayunZhi) {
+                        stageName = stage;
+                        break;
+                    }
+                }
+                
+                // 计算年龄范围
+                const startAge = luckTiming.age + index * 10;
+                const endAge = startAge + 9;
+                
+                // 获取状态描述和颜色
+                const stageInfo = getStageInfo(stageName);
+                
+                twelveStages.push({
+                    name: stageName,
+                    dayun: dayun.ganZhi,
+                    energy: stageInfo.energy,
+                    color: stageInfo.color,
+                    description: stageInfo.description,
+                    ageRange: `${startAge}-${endAge}岁`,
+                    isCurrent: currentAge >= startAge && currentAge <= endAge
+                });
+            });
+            
+            return twelveStages;
+        }
+        
+        // 获取十二长生状态信息
+        function getStageInfo(stageName) {
+            const stageInfoMap = {
+                '长生': { energy: '初生', color: '#4CAF50', description: '新生力量，充满希望与活力' },
+                '沐浴': { energy: '洗礼', color: '#2196F3', description: '清洗净化，重新开始人生' },
+                '冠带': { energy: '成长', color: '#FF9800', description: '逐渐成熟，展现才华能力' },
+                '临官': { energy: '建功', color: '#9C27B0', description: '建功立业，权威地位显现' },
+                '帝旺': { energy: '巅峰', color: '#F44336', description: '达到人生顶峰，威势最强' },
+                '衰': { energy: '衰退', color: '#795548', description: '力量开始减弱，需要调整' },
+                '病': { energy: '困顿', color: '#607D8B', description: '遇到阻碍困难，需要休养' },
+                '死': { energy: '终结', color: '#424242', description: '旧事物结束，准备新的开始' },
+                '墓': { energy: '收藏', color: '#9E9E9E', description: '收敛蓄积，等待时机' },
+                '绝': { energy: '断绝', color: '#37474F', description: '彻底断绝，重新孕育' },
+                '胎': { energy: '孕育', color: '#8BC34A', description: '新生命孕育，潜力萌发' },
+                '养': { energy: '蓄养', color: '#CDDC39', description: '积蓄力量，培养根基' },
+                '未知': { energy: '未知', color: '#9E9E9E', description: '状态未明，需要进一步分析' }
+            };
+            
+            return stageInfoMap[stageName] || stageInfoMap['未知'];
+        }
+        
+        // 生成大运列表
+        function generateDayunList(luckTiming) {
+            try {
+                // 使用现有的calculateDayunSequence函数
+                const eightChar = window.eightChar;
+                if (!eightChar) {
+                    console.error('无法获取八字信息');
+                    return [];
+                }
+                
+                // 获取月柱干支
+                const monthGanZhi = eightChar.getMonth();
+                const isForward = luckTiming.direction === '顺排';
+                const startAge = luckTiming.age;
+                
+                // 计算大运序列
+                const dayunSequence = calculateDayunSequence(monthGanZhi, isForward, startAge);
+                
+                // 转换为所需格式
+                return dayunSequence.map(dayun => ({
+                    ganZhi: dayun.ganZhi,
+                    startAge: dayun.startAge,
+                    endAge: dayun.endAge
+                }));
+            } catch (error) {
+                console.error('生成大运列表失败:', error);
+                // 返回默认的大运列表
+                return [
+                    { ganZhi: '甲子', startAge: 0, endAge: 9 },
+                    { ganZhi: '乙丑', startAge: 10, endAge: 19 },
+                    { ganZhi: '丙寅', startAge: 20, endAge: 29 },
+                    { ganZhi: '丁卯', startAge: 30, endAge: 39 },
+                    { ganZhi: '戊辰', startAge: 40, endAge: 49 },
+                    { ganZhi: '己巳', startAge: 50, endAge: 59 },
+                    { ganZhi: '庚午', startAge: 60, endAge: 69 },
+                    { ganZhi: '辛未', startAge: 70, endAge: 79 }
+                ];
+            }
+        }
+
         // 计算起运时间 - 根据正确的八字起运算法
         function calculateLuckTiming(gender, lunar, originalBirthDate) {
             try {
@@ -6099,18 +6225,12 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
              // 获取当前大运信息
              const currentDayun = getCurrentDayun();
              
-             // 12长生状态数据
-             const twelveStages = [
-                 { name: '长生', dayun: '甲寅', energy: '初生', color: '#4CAF50', description: '新生力量，充满希望', ageRange: '0-9岁' },
-                 { name: '沐浴', dayun: '乙卯', energy: '洗礼', color: '#2196F3', description: '清洗净化，重新开始', ageRange: '10-19岁' },
-                 { name: '冠带', dayun: '丙辰', energy: '成长', color: '#FF9800', description: '逐渐成熟，展现才华', ageRange: '20-29岁' },
-                 { name: '临官', dayun: '丁巳', energy: '建功', color: '#9C27B0', description: '建功立业，权威显现', ageRange: '30-39岁' },
-                 { name: '帝旺', dayun: '戊午', energy: '巅峰', color: '#F44336', description: '达到顶峰，威势最强', ageRange: '40-49岁' },
-                 { name: '衰', dayun: '己未', energy: '衰退', color: '#795548', description: '力量减弱，需要调整', ageRange: '50-59岁' },
-                 { name: '病', dayun: '庚申', energy: '困顿', color: '#607D8B', description: '遇到阻碍，需要休养', ageRange: '60-69岁' },
-                 { name: '死', dayun: '辛酉', energy: '终结', color: '#424242', description: '旧事物结束，准备新生', ageRange: '70-79岁' },
-                 { name: '养', dayun: '壬戌', energy: '蓄养', color: '#8BC34A', description: '积蓄力量，孕育新机', ageRange: '80-89岁' }
-             ];
+             // 获取日主天干和当前年龄
+             const dayStem = baziData.pillars?.day?.charAt(0) || '甲'; // 获取日主天干，默认为甲
+             const currentAge = currentDayun?.currentAge || 25; // 默认年龄25岁
+             
+             // 动态计算12长生状态数据
+             const twelveStages = calculateTwelveStages(dayStem, timing, currentAge);
              
              luckTiming.innerHTML = `
                  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 25px;">
@@ -6143,14 +6263,15 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
                          ${twelveStages.map(stage => `
                              <div style="
                                  background: linear-gradient(135deg, ${stage.color}15, ${stage.color}08);
-                                 border: 1px solid ${stage.color}30;
+                                 border: ${stage.isCurrent ? `2px solid ${stage.color}` : `1px solid ${stage.color}30`};
                                  border-radius: 10px;
                                  padding: 12px;
                                  text-align: center;
                                  transition: all 0.3s ease;
                                  position: relative;
                                  overflow: hidden;
-                             " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 25px ${stage.color}25'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+                                 ${stage.isCurrent ? `box-shadow: 0 4px 15px ${stage.color}40; transform: scale(1.02);` : ''}
+                             " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 25px ${stage.color}25'" onmouseout="this.style.transform='${stage.isCurrent ? 'scale(1.02)' : 'translateY(0)'}'; this.style.boxShadow='${stage.isCurrent ? `0 4px 15px ${stage.color}40` : 'none'}'">
                                  <div style="
                                      position: absolute;
                                      top: 0;
@@ -6164,7 +6285,7 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
                                      font-weight: bold;
                                      color: ${stage.color};
                                      margin-bottom: 6px;
-                                 ">${stage.name}</div>
+                                 ">${stage.name}${stage.isCurrent ? ' <span style="color: var(--gold-color); font-size: 0.8rem;">●当前</span>' : ''}</div>
                                  <div style="
                                      font-size: 0.85rem;
                                      color: var(--text-secondary);
