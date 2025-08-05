@@ -8,6 +8,7 @@ class NavigationMenu {
         this.menuItems = [
             { name: '八字详批', url: '../system/bazinew.html', icon: 'fa-solid fa-calendar-days' },
             { name: '六爻占卜', url: '../system/lynew.html', icon: 'fa-solid fa-yin-yang' },
+            { name: '天罡聚财阵', url: '../system/richzf.html', icon: 'fa-solid fa-coins' },
             { name: '许愿池', url: '../system/wishingwell.html', icon: 'fa-solid fa-water' }
         ];
         this.init();
@@ -23,6 +24,13 @@ class NavigationMenu {
     }
 
     createMenu() {
+        // 检查是否已经存在导航菜单
+        const existingNav = document.querySelector('.nav-menu-container');
+        if (existingNav) {
+            console.log('Navigation menu already exists, skipping creation');
+            return;
+        }
+        
         // 创建导航容器
         const navContainer = document.createElement('div');
         navContainer.className = 'nav-menu-container';
@@ -86,9 +94,14 @@ class NavigationMenu {
         // 添加样式
         this.addStyles();
         
-        // 将导航栏添加到页面顶部
-        const body = document.body;
-        body.insertBefore(navContainer, body.firstChild);
+        // 将导航栏添加到指定容器或页面顶部
+        const targetContainer = document.getElementById('navMenuContainer');
+        if (targetContainer) {
+            targetContainer.appendChild(navContainer);
+        } else {
+            const body = document.body;
+            body.insertBefore(navContainer, body.firstChild);
+        }
     }
     
     addStyles() {
@@ -356,4 +369,8 @@ class NavigationMenu {
 }
 
 // 初始化导航菜单
-const navMenu = new NavigationMenu();
+if (!window.navigationMenuInitialized) {
+    const navMenu = new NavigationMenu();
+    navMenu.init();
+    window.navigationMenuInitialized = true;
+}
