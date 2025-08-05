@@ -2339,7 +2339,7 @@
                 </div>
                 <div class="bazi-qa-input-section">
                     <div class="bazi-qa-input-wrapper">
-                        <input type="text" id="bazi-qa-input" placeholder="请输入您的八字相关问题，例如：我的命格等级得分是怎么算出来的？今年财运方面怎么样？今年在健康方面要注意些什么？" />
+                        <input type="text" id="bazi-qa-input" placeholder="请输入您的八字相关问题，例如：我的事业运势如何？什么时候适合结婚？财运方面需要注意什么？" />
                         <button class="bazi-qa-submit" id="bazi-qa-submit">
                             <i class="fas fa-paper-plane"></i> 提问
                         </button>
@@ -6099,8 +6099,21 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
              // 获取当前大运信息
              const currentDayun = getCurrentDayun();
              
+             // 12长生状态数据
+             const twelveStages = [
+                 { name: '长生', dayun: '甲寅', energy: '初生', color: '#4CAF50', description: '新生力量，充满希望', ageRange: '0-9岁' },
+                 { name: '沐浴', dayun: '乙卯', energy: '洗礼', color: '#2196F3', description: '清洗净化，重新开始', ageRange: '10-19岁' },
+                 { name: '冠带', dayun: '丙辰', energy: '成长', color: '#FF9800', description: '逐渐成熟，展现才华', ageRange: '20-29岁' },
+                 { name: '临官', dayun: '丁巳', energy: '建功', color: '#9C27B0', description: '建功立业，权威显现', ageRange: '30-39岁' },
+                 { name: '帝旺', dayun: '戊午', energy: '巅峰', color: '#F44336', description: '达到顶峰，威势最强', ageRange: '40-49岁' },
+                 { name: '衰', dayun: '己未', energy: '衰退', color: '#795548', description: '力量减弱，需要调整', ageRange: '50-59岁' },
+                 { name: '病', dayun: '庚申', energy: '困顿', color: '#607D8B', description: '遇到阻碍，需要休养', ageRange: '60-69岁' },
+                 { name: '死', dayun: '辛酉', energy: '终结', color: '#424242', description: '旧事物结束，准备新生', ageRange: '70-79岁' },
+                 { name: '养', dayun: '壬戌', energy: '蓄养', color: '#8BC34A', description: '积蓄力量，孕育新机', ageRange: '80-89岁' }
+             ];
+             
              luckTiming.innerHTML = `
-                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 25px;">
                      <div class="analysis-card">
                          <h4><i class="fas fa-clock"></i> 起运年龄</h4>
                          <p style="font-size: 2rem; font-weight: bold; color: var(--secondary-color); margin: 10px 0;">
@@ -6118,6 +6131,76 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
                          <p>起运时间是命理学中的重要概念，标志着人生运势的正式开始。</p>
                          <p>计算方法：根据年柱天干阴阳和性别确定顺排或逆排，然后计算出生日到最近节气的天数，3天折合1岁。</p>
                          <p>在起运之前，主要受父母和家庭环境影响；起运之后，个人运势开始发挥主导作用。</p>
+                     </div>
+                 </div>
+                 
+                 <!-- 12长生分析容器 -->
+                 <div class="analysis-card" style="margin-top: 20px;">
+                     <h4 style="margin-bottom: 20px; color: var(--primary-color); display: flex; align-items: center; gap: 8px;">
+                         <i class="fas fa-yin-yang"></i> 十二长生运势分析
+                     </h4>
+                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px;">
+                         ${twelveStages.map(stage => `
+                             <div style="
+                                 background: linear-gradient(135deg, ${stage.color}15, ${stage.color}08);
+                                 border: 1px solid ${stage.color}30;
+                                 border-radius: 10px;
+                                 padding: 12px;
+                                 text-align: center;
+                                 transition: all 0.3s ease;
+                                 position: relative;
+                                 overflow: hidden;
+                             " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 25px ${stage.color}25'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+                                 <div style="
+                                     position: absolute;
+                                     top: 0;
+                                     left: 0;
+                                     right: 0;
+                                     height: 3px;
+                                     background: linear-gradient(90deg, ${stage.color}, ${stage.color}80);
+                                 "></div>
+                                 <div style="
+                                     font-size: 1.1rem;
+                                     font-weight: bold;
+                                     color: ${stage.color};
+                                     margin-bottom: 6px;
+                                 ">${stage.name}</div>
+                                 <div style="
+                                     font-size: 0.85rem;
+                                     color: var(--text-secondary);
+                                     margin-bottom: 4px;
+                                 ">大运: <span style="color: var(--primary-color); font-weight: 600;">${stage.dayun}</span></div>
+                                 <div style="
+                                     font-size: 0.8rem;
+                                     color: ${stage.color};
+                                     font-weight: 600;
+                                     margin-bottom: 4px;
+                                 ">能量: ${stage.energy}</div>
+                                 <div style="
+                                     font-size: 0.8rem;
+                                     color: var(--primary-color);
+                                     font-weight: 600;
+                                     margin-bottom: 6px;
+                                 ">年龄: ${stage.ageRange}</div>
+                                 <div style="
+                                     font-size: 0.75rem;
+                                     color: var(--text-secondary);
+                                     line-height: 1.3;
+                                 ">${stage.description}</div>
+                             </div>
+                         `).join('')}
+                     </div>
+                     <div style="
+                         margin-top: 15px;
+                         padding: 12px;
+                         background: rgba(var(--primary-color-rgb), 0.08);
+                         border-radius: 8px;
+                         border-left: 4px solid var(--primary-color);
+                     ">
+                         <p style="margin: 0; font-size: 0.85rem; color: var(--text-secondary); line-height: 1.4;">
+                             <i class="fas fa-lightbulb" style="color: var(--gold-color); margin-right: 5px;"></i>
+                             十二长生代表生命力的循环变化，从长生到死再到养，体现了事物发展的自然规律。了解当前所处的长生阶段，有助于把握人生节奏，顺势而为。
+                         </p>
                      </div>
                  </div>
              `;
