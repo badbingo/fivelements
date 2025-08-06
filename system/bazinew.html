@@ -2212,17 +2212,66 @@
                 <div class="card-header">
                     <i class="fas fa-chart-pie"></i>
                     <h2>五行力量分布与分析</h2>
+                    <p style="margin: 5px 0 0 0; font-size: 0.9rem; color: var(--text-secondary); font-weight: normal;">原命局与当前运势的五行力量对比分析</p>
                 </div>
-                <div class="elements-analysis-frame" style="display: flex; flex-direction: column; gap: 20px; margin-top: 20px;">
-                    <div class="chart-container" style="width: 100%; min-height: 350px; margin: 0 auto;">
-                        <canvas id="elements-chart"></canvas>
+                
+                <!-- 双图表布局容器 -->
+                <div class="elements-comparison-container" style="display: flex; gap: 25px; min-height: 450px; margin-bottom: 20px;">
+                    
+                    <!-- 左侧：原命局五行分布 -->
+                    <div class="original-elements-section" style="flex: 1; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 12px; padding: 20px; border: 2px solid #dee2e6; position: relative; overflow: hidden;">
+                        <!-- 装饰性背景元素 -->
+                        <div style="position: absolute; top: -20px; right: -20px; width: 80px; height: 80px; background: linear-gradient(45deg, #6c757d, #adb5bd); border-radius: 50%; opacity: 0.1;"></div>
+                        
+                        <div class="section-header" style="display: flex; align-items: center; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 2px solid #6c757d;">
+                            <i class="fas fa-yin-yang" style="color: #6c757d; font-size: 1.3rem; margin-right: 10px;"></i>
+                            <h3 style="margin: 0; color: #495057; font-weight: 600; font-size: 1.1rem;">原命局五行分布</h3>
+                        </div>
+                        
+                        <div class="original-elements-frame" style="display: flex; flex-direction: column; gap: 15px;">
+                            <div class="chart-container" style="height: 280px !important; background: white; border-radius: 8px; padding: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+                                <canvas id="original-elements-chart"></canvas>
+                            </div>
+                            <div id="original-elements-summary" style="background: white; padding: 12px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border-left: 4px solid #6c757d; font-size: 0.9rem;">
+                                <!-- 原命局五行分布概览 -->
+                            </div>
+                        </div>
                     </div>
-                    <div id="elements-summary" style="width: 100%; background-color: #f9f9f9; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin: 0 auto;">
-                        <!-- 五行分布概览将在这里显示 -->
+                    
+                    <!-- 右侧：当前五行分布 -->
+                    <div class="current-elements-section" style="flex: 1; background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%); border-radius: 12px; padding: 20px; border: 2px solid #4caf50; position: relative; overflow: hidden;">
+                        <!-- 装饰性背景元素 -->
+                        <div style="position: absolute; top: -20px; right: -20px; width: 80px; height: 80px; background: linear-gradient(45deg, #4caf50, #81c784); border-radius: 50%; opacity: 0.15;"></div>
+                        
+                        <div class="section-header" style="display: flex; align-items: center; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 2px solid #4caf50;">
+                            <i class="fas fa-clock" style="color: #4caf50; font-size: 1.3rem; margin-right: 10px;"></i>
+                            <h3 style="margin: 0; color: #2e7d32; font-weight: 600; font-size: 1.1rem;">当前五行分布</h3>
+                            <span style="margin-left: auto; font-size: 0.8rem; color: #388e3c; background: rgba(76, 175, 80, 0.1); padding: 4px 8px; border-radius: 4px;">含大运流年</span>
+                        </div>
+                        
+                        <div class="current-elements-frame" style="display: flex; flex-direction: column; gap: 15px;">
+                            <div class="current-chart-container" style="height: 280px !important; background: white; border-radius: 8px; padding: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+                                <canvas id="current-elements-chart"></canvas>
+                            </div>
+                            <div id="current-elements-summary" style="background: white; padding: 12px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border-left: 4px solid #4caf50; font-size: 0.9rem;">
+                                <!-- 当前五行分布概览 -->
+                            </div>
+                        </div>
                     </div>
-                    <div class="chart-description" id="elements-description" style="width: 100%; background-color: #f9f9f9; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin: 0 auto;">
-                        <!-- 五行分析描述 -->
+                </div>
+                
+                <!-- 五行分析描述 -->
+                <div class="chart-description" id="elements-description" style="width: 100%; background-color: #f9f9f9; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin: 0 auto;">
+                    <!-- 五行分析描述 -->
+                </div>
+                
+                <!-- 对比说明 -->
+                <div class="comparison-note" style="margin-top: 15px; padding: 15px; background: linear-gradient(90deg, #e8f5e8 0%, #c8e6c9 100%); border-radius: 8px; border-left: 4px solid #4caf50;">
+                    <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                        <i class="fas fa-info-circle" style="color: #2e7d32; margin-right: 8px;"></i>
+                        <strong style="color: #1b5e20;">分析说明</strong>
                     </div>
+                    <p style="margin: 0; color: #2e7d32; font-size: 0.9rem; line-height: 1.5;">左侧显示您的原命局五行分布状态，右侧显示加入当前大运和流年后的五行力量变化。通过对比可以了解当前运势对您五行平衡的影响程度，以及哪些五行得到加强或削弱。</p>
                 </div>
             </div>
 
@@ -3969,6 +4018,23 @@ contentElement.classList.add('show');
             }
         }
 
+        // 获取指定年份的天干地支
+        function getYearGanZhi(year) {
+            // 天干地支数组（正确顺序）
+            const tianGan = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
+            const diZhi = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
+            
+            // 以1984年甲子年为基准计算
+            const baseYear = 1984;
+            const yearDiff = year - baseYear;
+            
+            // 计算天干地支索引
+            const ganIndex = (yearDiff % 10 + 10) % 10;
+            const zhiIndex = (yearDiff % 12 + 12) % 12;
+            
+            return tianGan[ganIndex] + diZhi[zhiIndex];
+        }
+
         // 十二长生状态表
         function getTwelveStagesTable() {
             return {
@@ -5391,7 +5457,7 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
         function displayResults(baziData) {
             displayBasicInfo(baziData);
             displayBaziChart(baziData);
-            displayElementsChart(baziData);
+            displayElementsChartComplete(baziData);
             displayStrengthChart(baziData);
             
             // 计算并显示当前身强身弱分析
@@ -5593,6 +5659,40 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
                         </tr>
                     </tbody>
                 </table>
+                
+                <!-- 大运流年信息表格 -->
+                <div style="margin-top: 20px;">
+                    <table class="bazi-table">
+                        <thead>
+                            <tr>
+                                <th>运程</th>
+                                <th class="pillar-header">当前大运</th>
+                                <th class="pillar-header">流年</th>
+                                <th class="pillar-header">运程信息</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${(() => {
+                                const currentYear = new Date().getFullYear();
+                                const currentDayun = getCurrentDayun();
+                                const yearGanZhi = getYearGanZhi(currentYear);
+                                
+                                return `
+                                <tr>
+                                    <td><strong>干支</strong></td>
+                                    <td class="stem">${coloredStem(currentDayun.ganZhi[0])}${coloredBranch(currentDayun.ganZhi[1])}</td>
+                                    <td class="stem">${coloredStem(yearGanZhi[0])}${coloredBranch(yearGanZhi[1])}</td>
+                                    <td style="text-align: left; padding: 10px;">
+                                        <div style="font-size: 0.9em; color: #666; margin-bottom: 5px;">大运: ${currentDayun.startAge}-${currentDayun.endAge}岁</div>
+                                        <div style="font-size: 0.9em; color: #666;">当前: ${currentDayun.currentAge}岁 (${currentYear}年)</div>
+                                    </td>
+                                </tr>
+                                `;
+                            })()} 
+                        </tbody>
+                    </table>
+                </div>
+                
                 <div style="margin-top: 25px; padding: 20px; background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,255,255,0.7)); border-radius: 12px; box-shadow: 0 3px 10px rgba(0,0,0,0.05); backdrop-filter: blur(5px);">
                     <div style="display: flex; flex-wrap: wrap; justify-content: space-around; align-items: center;">
                         <div style="flex: 1; min-width: 200px; padding: 10px; text-align: center; border-right: 1px solid rgba(233, 236, 239, 0.5);">
@@ -5624,13 +5724,23 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
             return elementMap[stem] || '';
         }
 
-        // 显示五行图表
+        // 显示五行图表（双图表版本）
         function displayElementsChart(baziData) {
-            const ctx = document.getElementById('elements-chart').getContext('2d');
-            const elements = baziData.elements;
+            // 显示原命局五行分布
+            displayOriginalElementsChart(baziData.elements);
             
-            if (elementsChart) {
-                elementsChart.destroy();
+            // 计算并显示当前五行分布（包含大运流年）
+            const currentYear = new Date().getFullYear();
+            const currentElements = calculateCurrentElements(baziData.elements, currentYear);
+            displayCurrentElementsChart(currentElements, currentYear);
+        }
+        
+        // 显示原命局五行分布图表
+        function displayOriginalElementsChart(elements) {
+            const ctx = document.getElementById('original-elements-chart').getContext('2d');
+            
+            if (window.originalElementsChart) {
+                window.originalElementsChart.destroy();
             }
             
             // 增强的五行颜色 - 更专业的配色方案
@@ -5681,8 +5791,8 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
                 return gradient;
             };
             
-            // 创建增强的环形图
-            elementsChart = new Chart(ctx, {
+            // 创建原命局五行环形图
+            window.originalElementsChart = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
                     labels: ['木', '火', '土', '金', '水'],
@@ -5785,9 +5895,8 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
                 }
             });
             
-            // 显示增强的五行分析描述
-            const description = document.getElementById('elements-description');
-            const summary = document.getElementById('elements-summary');
+            // 显示原命局五行概览
+            const originalSummary = document.getElementById('original-elements-summary');
             const strongest = Object.keys(elements).reduce((a, b) => elements[a] > elements[b] ? a : b);
             const weakest = Object.keys(elements).reduce((a, b) => elements[a] < elements[b] ? a : b);
             
@@ -5869,44 +5978,447 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
             const secondStrongest = sortedElements[1][0];
             const secondWeakest = sortedElements[3][0];
             
-            // 显示五行分布概览（放在图表下方）
-            summary.innerHTML = `
-                <div style="background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(240,240,240,0.7)); padding: 15px; border-radius: 10px; box-shadow: 0 3px 8px rgba(0,0,0,0.08);">
-                    <div style="display: flex; justify-content: space-between; flex-wrap: wrap; margin-bottom: 12px;">
-                        <div style="min-width: 120px; margin-bottom: 8px;">
-                            <span style="font-weight: bold; color: ${elementColors[strongest].main};">最强五行：</span>
-                            <span style="background: linear-gradient(135deg, ${elementColors[strongest].gradient[0]}, ${elementColors[strongest].gradient[1]}); padding: 3px 10px; border-radius: 20px; color: #fff; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                                ${elementNames[strongest]} (${((elements[strongest]/total)*100).toFixed(2)}%)
+            // 显示原命局五行分布概览
+            originalSummary.innerHTML = `
+                <div style="background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(240,240,240,0.7)); padding: 12px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.06);">
+                    <div style="margin-bottom: 8px; font-size: 0.85rem;">
+                        <span style="color: #2e7d32; font-weight: bold;">原命局：</span>
+                        <span style="color: #1976d2;">先天五行分布</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; flex-wrap: wrap; margin-bottom: 8px;">
+                        <div style="min-width: 100px; margin-bottom: 4px; font-size: 0.85rem;">
+                            <span style="font-weight: bold; color: ${elementColors[strongest].main};">最强：</span>
+                            <span style="background: ${elementColors[strongest].light}; padding: 2px 6px; border-radius: 12px; color: #fff; font-weight: bold; font-size: 0.8rem;">
+                                ${elementNames[strongest]} ${((elements[strongest]/total)*100).toFixed(1)}%
                             </span>
                         </div>
-                        <div style="min-width: 120px; margin-bottom: 8px;">
-                            <span style="font-weight: bold; color: ${elementColors[weakest].main};">最弱五行：</span>
-                            <span style="background: linear-gradient(135deg, ${elementColors[weakest].gradient[0]}, ${elementColors[weakest].gradient[1]}); padding: 3px 10px; border-radius: 20px; color: #fff; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                                ${elementNames[weakest]} (${((elements[weakest]/total)*100).toFixed(2)}%)
-                            </span>
-                        </div>
-                        <div style="min-width: 120px; margin-bottom: 8px;">
-                            <span style="font-weight: bold; color: #2c3e50;">平衡度：</span>
-                            <span style="background: linear-gradient(135deg, ${balanceLevel === '极佳' ? 'rgba(39, 174, 96, 0.9), rgba(46, 204, 113, 0.9)' : balanceLevel === '良好' ? 'rgba(46, 204, 113, 0.9), rgba(39, 174, 96, 0.9)' : balanceLevel === '一般' ? 'rgba(243, 156, 18, 0.9), rgba(230, 126, 34, 0.9)' : 'rgba(231, 76, 60, 0.9), rgba(192, 57, 43, 0.9)'}); padding: 3px 10px; border-radius: 20px; color: #fff; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                                ${balanceLevel} (${balancePercentage.toFixed(2)}%)
+                        <div style="min-width: 100px; margin-bottom: 4px; font-size: 0.85rem;">
+                            <span style="font-weight: bold; color: ${elementColors[weakest].main};">最弱：</span>
+                            <span style="background: ${elementColors[weakest].light}; padding: 2px 6px; border-radius: 12px; color: #fff; font-weight: bold; font-size: 0.8rem;">
+                                ${elementNames[weakest]} ${((elements[weakest]/total)*100).toFixed(1)}%
                             </span>
                         </div>
                     </div>
-                    
-                    <div style="margin-top: 12px;">
-                        <p style="margin: 0; line-height: 1.6; font-size: 0.95rem;">
-                            <strong>五行分布：</strong><br>
-                            <span style="display: inline-block; margin: 5px 5px 5px 0; padding: 4px 10px; background-color: ${elementColors.wood.light}; color: white; border-radius: 15px; font-weight: bold;">木 ${elements.wood}点 (${((elements.wood/total)*100).toFixed(2)}%)</span>
-                            <span style="display: inline-block; margin: 5px 5px 5px 0; padding: 4px 10px; background-color: ${elementColors.fire.light}; color: white; border-radius: 15px; font-weight: bold;">火 ${elements.fire}点 (${((elements.fire/total)*100).toFixed(2)}%)</span>
-                            <span style="display: inline-block; margin: 5px 5px 5px 0; padding: 4px 10px; background-color: ${elementColors.earth.light}; color: white; border-radius: 15px; font-weight: bold;">土 ${elements.earth}点 (${((elements.earth/total)*100).toFixed(2)}%)</span>
-                            <span style="display: inline-block; margin: 5px 5px 5px 0; padding: 4px 10px; background-color: ${elementColors.metal.light}; color: white; border-radius: 15px; font-weight: bold;">金 ${elements.metal}点 (${((elements.metal/total)*100).toFixed(2)}%)</span>
-                            <span style="display: inline-block; margin: 5px 5px 5px 0; padding: 4px 10px; background-color: ${elementColors.water.light}; color: white; border-radius: 15px; font-weight: bold;">水 ${elements.water}点 (${((elements.water/total)*100).toFixed(2)}%)</span>
-                        </p>
+                    <div style="font-size: 0.8rem; line-height: 1.4;">
+                        <span style="color: #2c3e50;">五行分布：</span>
+                        <span style="color: ${elementColors.wood.main};">木${elements.wood.toFixed(1)}</span> |
+                        <span style="color: ${elementColors.fire.main};">火${elements.fire.toFixed(1)}</span> |
+                        <span style="color: ${elementColors.earth.main};">土${elements.earth.toFixed(1)}</span> |
+                        <span style="color: ${elementColors.metal.main};">金${elements.metal.toFixed(1)}</span> |
+                        <span style="color: ${elementColors.water.main};">水${elements.water.toFixed(1)}</span>
                     </div>
                 </div>
             `;
+        }
+        
+        // 计算当前五行分布（包含大运流年）
+        function calculateCurrentElements(originalElements, currentYear) {
+            try {
+                // 获取当前流年干支
+                const today = new Date();
+                const currentLunar = Lunar.fromDate(today);
+                const currentYearGanZhi = currentLunar.getYearInGanZhi();
+                const currentYearStem = currentYearGanZhi.charAt(0);
+                const currentYearBranch = currentYearGanZhi.charAt(1);
+                
+                // 获取当前大运信息
+                let currentDayunStem = '';
+                let currentDayunBranch = '';
+                
+                try {
+                    const currentDayunInfo = getCurrentDayun();
+                    if (currentDayunInfo && currentDayunInfo.ganZhi && currentDayunInfo.ganZhi !== '未知' && currentDayunInfo.ganZhi !== '计算错误') {
+                        currentDayunStem = currentDayunInfo.ganZhi.charAt(0);
+                        currentDayunBranch = currentDayunInfo.ganZhi.charAt(1);
+                    }
+                } catch (e) {
+                    console.log('获取大运信息失败:', e);
+                }
+                
+                // 复制原始五行分布
+                const currentElements = { ...originalElements };
+                
+                // 获取天干地支对应的五行
+                const stemElementMap = {
+                    '甲': 'wood', '乙': 'wood',
+                    '丙': 'fire', '丁': 'fire',
+                    '戊': 'earth', '己': 'earth',
+                    '庚': 'metal', '辛': 'metal',
+                    '壬': 'water', '癸': 'water'
+                };
+                
+                const branchElementMap = {
+                    '子': 'water', '丑': 'earth', '寅': 'wood', '卯': 'wood',
+                    '辰': 'earth', '巳': 'fire', '午': 'fire', '未': 'earth',
+                    '申': 'metal', '酉': 'metal', '戌': 'earth', '亥': 'water'
+                };
+                
+                // 加入流年天干地支的五行力量
+                const yearStemElement = stemElementMap[currentYearStem];
+                const yearBranchElement = branchElementMap[currentYearBranch];
+                
+                if (yearStemElement) {
+                    currentElements[yearStemElement] += 1.5; // 流年天干权重
+                }
+                if (yearBranchElement) {
+                    currentElements[yearBranchElement] += 2.0; // 流年地支权重
+                }
+                
+                // 加入大运天干地支的五行力量
+                const dayunStemElement = stemElementMap[currentDayunStem];
+                const dayunBranchElement = branchElementMap[currentDayunBranch];
+                
+                if (dayunStemElement) {
+                    currentElements[dayunStemElement] += 1.2; // 大运天干权重
+                }
+                if (dayunBranchElement) {
+                    currentElements[dayunBranchElement] += 1.8; // 大运地支权重
+                }
+                
+                return {
+                    elements: currentElements,
+                    yearGanZhi: currentYearGanZhi,
+                    dayunGanZhi: currentDayunStem + currentDayunBranch
+                };
+            } catch (error) {
+                console.error('计算当前五行分布失败:', error);
+                return {
+                    elements: originalElements,
+                    yearGanZhi: '',
+                    dayunGanZhi: ''
+                };
+            }
+        }
+        
+        // 显示当前五行分布图表
+        function displayCurrentElementsChart(currentData, currentYear) {
+            const ctx = document.getElementById('current-elements-chart').getContext('2d');
+            const elements = currentData.elements;
             
-            // 显示五行分析描述
+            if (window.currentElementsChart) {
+                window.currentElementsChart.destroy();
+            }
+            
+            // 增强的五行颜色 - 更专业的配色方案
+            const elementColors = {
+                wood: {
+                    main: '#2ecc71',
+                    light: 'rgba(46, 204, 113, 0.8)',
+                    border: 'rgba(46, 204, 113, 1)',
+                    gradient: ['rgba(46, 204, 113, 0.9)', 'rgba(39, 174, 96, 0.9)']
+                },
+                fire: {
+                    main: '#e74c3c',
+                    light: 'rgba(231, 76, 60, 0.8)',
+                    border: 'rgba(231, 76, 60, 1)',
+                    gradient: ['rgba(231, 76, 60, 0.9)', 'rgba(192, 57, 43, 0.9)']
+                },
+                earth: {
+                    main: '#f39c12',
+                    light: 'rgba(243, 156, 18, 0.8)',
+                    border: 'rgba(243, 156, 18, 1)',
+                    gradient: ['rgba(243, 156, 18, 0.9)', 'rgba(211, 84, 0, 0.9)']
+                },
+                metal: {
+                    main: '#95a5a6',
+                    light: 'rgba(149, 165, 166, 0.8)',
+                    border: 'rgba(149, 165, 166, 1)',
+                    gradient: ['rgba(149, 165, 166, 0.9)', 'rgba(127, 140, 141, 0.9)']
+                },
+                water: {
+                    main: '#3498db',
+                    light: 'rgba(52, 152, 219, 0.8)',
+                    border: 'rgba(52, 152, 219, 1)',
+                    gradient: ['rgba(52, 152, 219, 0.9)', 'rgba(41, 128, 185, 0.9)']
+                }
+            };
+            
+            // 注册Chart.js插件
+            Chart.register(ChartDataLabels);
+            
+            // 计算总分
+            const total = Object.values(elements).reduce((sum, val) => sum + val, 0);
+            
+            // 创建渐变背景
+            const createGradient = (ctx, colors) => {
+                const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+                gradient.addColorStop(0, colors[0]);
+                gradient.addColorStop(1, colors[1]);
+                return gradient;
+            };
+            
+            // 创建当前五行环形图
+            window.currentElementsChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['木', '火', '土', '金', '水'],
+                    datasets: [{
+                        data: [elements.wood, elements.fire, elements.earth, elements.metal, elements.water],
+                        backgroundColor: [
+                            createGradient(ctx, elementColors.wood.gradient),
+                            createGradient(ctx, elementColors.fire.gradient),
+                            createGradient(ctx, elementColors.earth.gradient),
+                            createGradient(ctx, elementColors.metal.gradient),
+                            createGradient(ctx, elementColors.water.gradient)
+                        ],
+                        borderColor: [
+                            elementColors.wood.border,
+                            elementColors.fire.border,
+                            elementColors.earth.border,
+                            elementColors.metal.border,
+                            elementColors.water.border
+                        ],
+                        borderWidth: 2,
+                        hoverBorderWidth: 4,
+                        hoverBorderColor: '#fff',
+                        hoverOffset: 10
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '60%',
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                padding: 20,
+                                font: {
+                                    size: 14,
+                                    weight: 'bold',
+                                    family: "'Noto Serif SC', serif"
+                                },
+                                usePointStyle: true,
+                                pointStyle: 'rectRounded'
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                            titleColor: '#333',
+                            bodyColor: '#333',
+                            borderColor: '#ddd',
+                            borderWidth: 1,
+                            cornerRadius: 10,
+                            padding: 15,
+                            boxPadding: 8,
+                            usePointStyle: true,
+                            titleFont: {
+                                size: 16,
+                                weight: 'bold',
+                                family: "'Noto Serif SC', serif"
+                            },
+                            bodyFont: {
+                                size: 14,
+                                family: "'Noto Serif SC', serif"
+                            },
+                            callbacks: {
+                                label: function(context) {
+                                    const total = context.dataset.data.reduce((sum, val) => sum + val, 0);
+                                    const percentage = ((context.parsed / total) * 100).toFixed(2);
+                                    return `${context.label}: ${context.parsed.toFixed(1)}点 (${percentage}%)`;
+                                }
+                            }
+                        },
+                        datalabels: {
+                            color: '#fff',
+                            textShadow: '0 1px 2px rgba(0,0,0,0.2)',
+                            font: {
+                                weight: 'bold',
+                                size: 14,
+                                family: "'Noto Serif SC', serif"
+                            },
+                            formatter: (value, ctx) => {
+                                const percentage = ((value / total) * 100).toFixed(2);
+                                return percentage > 5 ? `${percentage}%` : '';
+                            },
+                            anchor: 'center',
+                            align: 'center',
+                            offset: 0,
+                            borderWidth: 2,
+                            borderRadius: 4,
+                            backgroundColor: function(context) {
+                                return context.dataset.backgroundColor[context.dataIndex];
+                            },
+                            opacity: 0.9
+                        }
+                    },
+                    animation: {
+                        animateScale: true,
+                        animateRotate: true,
+                        duration: 2000,
+                        easing: 'easeOutQuart'
+                    }
+                }
+            });
+            
+            // 显示当前五行概览
+            const currentSummary = document.getElementById('current-elements-summary');
+            const strongest = Object.keys(elements).reduce((a, b) => elements[a] > elements[b] ? a : b);
+            const weakest = Object.keys(elements).reduce((a, b) => elements[a] < elements[b] ? a : b);
+            
+            const elementNames = {
+                wood: '木', fire: '火', earth: '土', metal: '金', water: '水'
+            };
+            
+            // 计算五行平衡度
+            const avg = total / 5;
+            const deviation = Object.values(elements).reduce((sum, val) => sum + Math.abs(val - avg), 0) / total;
+            const balancePercentage = (1 - deviation) * 100;
+            let balanceLevel;
+            if (balancePercentage >= 85) balanceLevel = '极佳';
+            else if (balancePercentage >= 70) balanceLevel = '良好';
+            else if (balancePercentage >= 50) balanceLevel = '一般';
+            else balanceLevel = '失衡';
+            
+            currentSummary.innerHTML = `
+                <div style="background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(240,240,240,0.7)); padding: 12px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.06);">
+                    <div style="margin-bottom: 8px; font-size: 0.85rem;">
+                        <span style="color: #2e7d32; font-weight: bold;">当前运势：</span>
+                        <span style="color: #1976d2;">${currentYear}年${currentData.yearGanZhi}</span>
+                        ${currentData.dayunGanZhi ? `<span style="margin-left: 8px; color: #388e3c;">大运${currentData.dayunGanZhi}</span>` : ''}
+                    </div>
+                    <div style="display: flex; justify-content: space-between; flex-wrap: wrap; margin-bottom: 8px;">
+                        <div style="min-width: 100px; margin-bottom: 4px; font-size: 0.85rem;">
+                            <span style="font-weight: bold; color: ${elementColors[strongest].main};">最强：</span>
+                            <span style="background: ${elementColors[strongest].light}; padding: 2px 6px; border-radius: 12px; color: #fff; font-weight: bold; font-size: 0.8rem;">
+                                ${elementNames[strongest]} ${((elements[strongest]/total)*100).toFixed(1)}%
+                            </span>
+                        </div>
+                        <div style="min-width: 100px; margin-bottom: 4px; font-size: 0.85rem;">
+                            <span style="font-weight: bold; color: ${elementColors[weakest].main};">最弱：</span>
+                            <span style="background: ${elementColors[weakest].light}; padding: 2px 6px; border-radius: 12px; color: #fff; font-weight: bold; font-size: 0.8rem;">
+                                ${elementNames[weakest]} ${((elements[weakest]/total)*100).toFixed(1)}%
+                            </span>
+                        </div>
+                    </div>
+                    <div style="font-size: 0.8rem; line-height: 1.4;">
+                        <span style="color: #2c3e50;">五行分布：</span>
+                        <span style="color: ${elementColors.wood.main};">木${elements.wood.toFixed(1)}</span> |
+                        <span style="color: ${elementColors.fire.main};">火${elements.fire.toFixed(1)}</span> |
+                        <span style="color: ${elementColors.earth.main};">土${elements.earth.toFixed(1)}</span> |
+                        <span style="color: ${elementColors.metal.main};">金${elements.metal.toFixed(1)}</span> |
+                        <span style="color: ${elementColors.water.main};">水${elements.water.toFixed(1)}</span>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // 更新五行分析描述函数
+        function updateElementsDescription(originalElements, currentElements) {
+            const description = document.getElementById('elements-description');
+            
+            const elementNames = {
+                wood: '木', fire: '火', earth: '土', metal: '金', water: '水'
+            };
+            
+            // 计算变化
+            const changes = {};
+            Object.keys(originalElements).forEach(element => {
+                changes[element] = currentElements.elements[element] - originalElements[element];
+            });
+            
+            // 找出变化最大的五行
+            const maxIncrease = Object.keys(changes).reduce((a, b) => changes[a] > changes[b] ? a : b);
+            const maxDecrease = Object.keys(changes).reduce((a, b) => changes[a] < changes[b] ? a : b);
+            
+            description.innerHTML = `
+                <h4 style="color: #2c3e50; margin-bottom: 15px; font-size: 1.1rem; border-bottom: 2px solid #4caf50; padding-bottom: 8px;">
+                    <i class="fas fa-chart-bar"></i> 五行力量对比分析
+                </h4>
+                
+                <div style="background: linear-gradient(135deg, rgba(76, 175, 80, 0.1), rgba(76, 175, 80, 0.05)); padding: 15px; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); border-left: 4px solid #4caf50;">
+                    <p style="margin: 0 0 10px 0; font-size: 0.95rem; line-height: 1.5;">
+                        <strong>运势影响分析：</strong>当前大运和流年的加入，使您的五行力量发生了显著变化。
+                        ${changes[maxIncrease] > 0 ? `<span style="color: #2e7d32; font-weight: bold;">${elementNames[maxIncrease]}力量增强最多（+${changes[maxIncrease].toFixed(1)}点）</span>` : ''}${changes[maxIncrease] > 0 && changes[maxDecrease] < 0 ? '，' : ''}${changes[maxDecrease] < 0 ? `<span style="color: #d32f2f; font-weight: bold;">${elementNames[maxDecrease]}力量减弱（${changes[maxDecrease].toFixed(1)}点）</span>` : ''}
+                    </p>
+                    
+                    <p style="margin: 0 0 10px 0; font-size: 0.95rem; line-height: 1.5;">
+                        <strong>当前运势特点：</strong>
+                        ${currentElements.yearGanZhi ? `${new Date().getFullYear()}年${currentElements.yearGanZhi}年为您带来了${getYearInfluence(currentElements.yearGanZhi)}的能量。` : ''}
+                        ${currentElements.dayunGanZhi ? `当前大运${currentElements.dayunGanZhi}进一步${getDayunInfluence(currentElements.dayunGanZhi)}。` : ''}
+                    </p>
+                    
+                    <p style="margin: 0; font-size: 0.95rem; line-height: 1.5;">
+                        <strong>运势建议：</strong>
+                        ${getTimingAdvice(maxIncrease, maxDecrease, changes)}
+                    </p>
+                </div>
+            `;
+        }
+        
+        // 获取流年影响描述
+        function getYearInfluence(yearGanZhi) {
+            const yearStem = yearGanZhi.charAt(0);
+            const yearBranch = yearGanZhi.charAt(1);
+            
+            const stemInfluence = {
+                '甲': '积极进取', '乙': '温和包容',
+                '丙': '热情活力', '丁': '细致温暖',
+                '戊': '稳重踏实', '己': '谨慎细心',
+                '庚': '果断坚毅', '辛': '精致优雅',
+                '壬': '灵活变通', '癸': '深沉内敛'
+            };
+            
+            return stemInfluence[yearStem] || '平衡';
+        }
+        
+        // 获取大运影响描述
+        function getDayunInfluence(dayunGanZhi) {
+            const dayunStem = dayunGanZhi.charAt(0);
+            
+            const stemInfluence = {
+                '甲': '增强了您的创新能力', '乙': '提升了您的适应性',
+                '丙': '激发了您的表现力', '丁': '增进了您的人际关系',
+                '戊': '稳固了您的基础', '己': '提高了您的执行力',
+                '庚': '强化了您的决断力', '辛': '精进了您的技能',
+                '壬': '拓展了您的视野', '癸': '深化了您的思考'
+            };
+            
+            return stemInfluence[dayunStem] || '平衡了您的能量';
+        }
+        
+        // 获取时机建议
+        function getTimingAdvice(maxIncrease, maxDecrease, changes) {
+            const elementNames = {
+                wood: '木', fire: '火', earth: '土', metal: '金', water: '水'
+            };
+            
+            const advice = {
+                wood: '适合学习、创新、规划新项目',
+                fire: '适合表现、社交、推广宣传',
+                earth: '适合稳固基础、储蓄理财',
+                metal: '适合整理、决策、执行计划',
+                water: '适合思考、调研、灵活应变'
+            };
+            
+            let result = '';
+            if (changes[maxIncrease] > 1) {
+                result += `当前${elementNames[maxIncrease]}力量强盛，${advice[maxIncrease]}。`;
+            }
+            if (changes[maxDecrease] < -0.5) {
+                result += `需要注意${elementNames[maxDecrease]}力量不足，建议通过相应方式进行补充。`;
+            }
+            
+            return result || '五行力量相对平衡，适合稳步发展。';
+        }
+        
+        // 修改原有的displayElementsChart调用，添加描述更新
+        function displayElementsChartComplete(baziData) {
+            // 显示原命局五行分布
+            displayOriginalElementsChart(baziData.elements);
+            
+            // 计算并显示当前五行分布（包含大运流年）
+            const currentYear = new Date().getFullYear();
+            const currentElements = calculateCurrentElements(baziData.elements, currentYear);
+            displayCurrentElementsChart(currentElements, currentYear);
+            
+            // 更新五行分析描述
+            updateElementsDescription(baziData.elements, currentElements);
+        }
+        
+        // 显示五行分析描述（保留原有功能）
+        function displayOriginalElementsDescription() {
+            const description = document.getElementById('elements-description');
             description.innerHTML = `
                 <h4 style="color: #2c3e50; margin-bottom: 15px; font-size: 1.2rem; border-bottom: 2px solid #3498db; padding-bottom: 8px;">
                     <i class="fas fa-chart-bar"></i> 五行分析
