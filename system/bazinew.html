@@ -8450,12 +8450,18 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
             return branchMap[dayStem] || [];
         }
         
-        // 计算大运流年修正 - 优先使用 currentBaziData
+        // 计算大运流年修正 - 优先使用 currentBaziData，考虑格局类型
         function calculateLuckAdjustment(pillars, currentYear) {
             const dayStr = typeof pillars.day === 'string' ? pillars.day : String(pillars.day);
             const dayStem = dayStr.charAt(0);
             
             let adjustment = 0;
+            
+            // 获取格局类型
+            let strengthType = null;
+            if (window.currentBaziData && window.currentBaziData.strengthAnalysis) {
+                strengthType = window.currentBaziData.strengthAnalysis.type;
+            }
             
             // 优先从 currentBaziData 读取当前流年信息（若有）
             let yearStem, yearBranch;
@@ -8478,30 +8484,88 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
                 yearBranch = getYearBranch(currentYear);
             }
             
-            // 1. 财星流年加成
+            // 获取各种十神
             const zhengCai = getZhengCai(dayStem);
             const pianCai = getPianCai(dayStem);
-            
-            if (yearStem === zhengCai || yearStem === pianCai) {
-                adjustment += 15; // 财星流年，财运亨通
-            }
-            
-            // 2. 食伤流年 (生财)
             const shiShangStars = getShiShangStars(dayStem);
-            if (shiShangStars.includes(yearStem)) {
-                adjustment += 10; // 食伤流年，利于生财
-            }
-            
-            // 3. 比劫流年 (夺财)
             const biJieStars = getBiJieStars(dayStem);
-            if (biJieStars.includes(yearStem)) {
-                adjustment -= 8; // 比劫流年，财运受阻
+            const wealthBranches = getWealthBranches(dayStem);
+            
+            // 根据格局类型调整判断逻辑
+            if (strengthType === '从强') {
+                // 从强格：比劫印星为喜用，财官食伤为忌神
+                
+                // 1. 比劫流年（从强格喜用）
+                if (biJieStars.includes(yearStem)) {
+                    adjustment += 12; // 从强格比劫流年，助力财运
+                }
+                
+                // 2. 印星流年（从强格喜用）
+                const yinStars = getYinStars(dayStem);
+                if (yinStars.includes(yearStem)) {
+                    adjustment += 10; // 从强格印星流年，稳固根基
+                }
+                
+                // 3. 财星流年（从强格忌神）
+                if (yearStem === zhengCai || yearStem === pianCai) {
+                    adjustment -= 10; // 从强格财星流年，财运受阻
+                }
+                
+                // 4. 食伤流年（从强格忌神）
+                if (shiShangStars.includes(yearStem)) {
+                    adjustment -= 8; // 从强格食伤流年，泄身不利
+                }
+                
+            } else if (strengthType === '从弱') {
+                // 从弱格：财官食伤为喜用，比劫印星为忌神
+                
+                // 1. 财星流年（从弱格喜用）
+                if (yearStem === zhengCai || yearStem === pianCai) {
+                    adjustment += 15; // 从弱格财星流年，顺势得财
+                }
+                
+                // 2. 食伤流年（从弱格喜用）
+                if (shiShangStars.includes(yearStem)) {
+                    adjustment += 12; // 从弱格食伤流年，泄身生财
+                }
+                
+                // 3. 比劫流年（从弱格忌神）
+                if (biJieStars.includes(yearStem)) {
+                    adjustment -= 12; // 从弱格比劫流年，逆势不利
+                }
+                
+                // 4. 印星流年（从弱格忌神）
+                const yinStars = getYinStars(dayStem);
+                if (yinStars.includes(yearStem)) {
+                    adjustment -= 10; // 从弱格印星流年，助身破格
+                }
+                
+            } else {
+                // 普通格局：传统判断方式
+                
+                // 1. 财星流年加成
+                if (yearStem === zhengCai || yearStem === pianCai) {
+                    adjustment += 15; // 财星流年，财运亨通
+                }
+                
+                // 2. 食伤流年 (生财)
+                if (shiShangStars.includes(yearStem)) {
+                    adjustment += 10; // 食伤流年，利于生财
+                }
+                
+                // 3. 比劫流年 (夺财)
+                if (biJieStars.includes(yearStem)) {
+                    adjustment -= 8; // 比劫流年，财运受阻
+                }
             }
             
-            // 4. 三合财局判断
-            const wealthBranches = getWealthBranches(dayStem);
+            // 4. 三合财局判断（所有格局通用）
             if (wealthBranches.includes(yearBranch)) {
-                adjustment += 12; // 地支财星，根基稳固
+                if (strengthType === '从强') {
+                    adjustment -= 6; // 从强格地支财星不利
+                } else {
+                    adjustment += 12; // 其他格局地支财星有利
+                }
             }
             
             return adjustment;
