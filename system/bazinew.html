@@ -5506,20 +5506,57 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
                     hour: hourStr
                 };
                 
-                // 使用新的专业评分算法
+                // 基础评分：使用新的专业评分算法（总计120分）
                 const seasonScore = calculateAdvancedSeasonScore(safePillars);
                 const balanceScore = calculateAdvancedBalanceScore(safePillars);
                 const patternScore = calculateAdvancedPatternScore(safePillars);
                 const godsScore = calculateAdvancedGodsScore(safePillars);
                 const combinationScore = calculateAdvancedCombinationScore(safePillars);
                 
-                const total = seasonScore + balanceScore + patternScore + godsScore + combinationScore;
+                // 进阶与修正评分（总计60分）
+                const dayMasterStrength = calculateDayMasterStrengthScore(safePillars);
+                const usefulGodScore = calculateUsefulGodScore(safePillars);
+                const tabooGodControl = calculateTabooGodControlScore(safePillars);
+                const kongWangPenalty = calculateKongWangPenalty(safePillars);
+                const luckSupport = calculateLuckSupportScore(safePillars);
+                const dayunCoordination = calculateDayunCoordinationScore(safePillars);
+                
+                // 格局与特效评分（总计30分）
+                const noblesSupport = calculateNoblesSupportScore(safePillars);
+                const specialPatternBonus = calculateSpecialPatternBonus(safePillars);
+                const levelBonus = calculateLevelBonus(safePillars);
+                
+                // 调候用神评分（单独计算）
+                const adjustmentScore = calculateSeasonalAdjustmentScore(safePillars);
+                
+                // 基础模块合计（用于“基础合计”展示：季节助力、五行平衡、格局结构、十神影响、组合刑冲、调候用神）
+                const baseModulesTotal = seasonScore + balanceScore + patternScore + godsScore + combinationScore + adjustmentScore;
+                // 取消固定基础分，保持为0
+                const baseScore = 0;
+                
+                const total = baseModulesTotal +
+                             dayMasterStrength + usefulGodScore + tabooGodControl - kongWangPenalty +
+                             luckSupport + dayunCoordination + noblesSupport + specialPatternBonus +
+                             levelBonus + baseScore;
+                
                 fateScoreDetails = {
                     seasonScore,
                     balanceScore,
                     patternScore,
                     godsScore,
                     combinationScore,
+                    adjustmentScore,
+                    dayMasterStrength,
+                    usefulGodScore,
+                    tabooGodControl,
+                    kongWangPenalty,
+                    luckSupport,
+                    dayunCoordination,
+                    noblesSupport,
+                    specialPatternBonus,
+                    levelBonus,
+                    // 基础合计展示为基础模块合计
+                    baseScore: baseModulesTotal,
                     total
                 };
                 fateScoreValue = Math.round(total);
@@ -6606,13 +6643,14 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
             return false;
         }
 
-        // 获取命运等级
+        // 获取命运等级 - 适配去掉固定50分后的评分系统（约130-140分制）
         function getFateLevel(score) {
-            if (score >= 85) return { name: "天赐鸿运 ★★★★★", class: "excellent" };
-            if (score >= 70) return { name: "福星高照 ★★★★☆", class: "good" };
-            if (score >= 50) return { name: "安常守分 ★★★☆☆", class: "average" };
-            if (score >= 30) return { name: "勤能补拙 ★★☆☆☆", class: "struggling" };
-            return { name: "逆水行舟 ★☆☆☆☆", class: "needs-improvement" };
+            if (score >= 150) return { name: "天赐鸿运 ★★★★★", class: "excellent" };      // 150+：天赐鸿运（五星）
+            if (score >= 120) return { name: "福星高照 ★★★★☆", class: "good" };          // 120-149：福星高照（四星）
+            if (score >= 95) return { name: "安常守分 ★★★☆☆", class: "average" };        // 95-119：安常守分（三星）
+            if (score >= 70) return { name: "勤能补拙 ★★☆☆☆", class: "struggling" };     // 70-94：勤能补拙（二星）
+            if (score >= 45) return { name: "力争上游 ★☆☆☆☆", class: "basic" };          // 45-69：力争上游（一星）
+            return { name: "逆水行舟 ☆☆☆☆☆", class: "needs-improvement" };             // <45：逆水行舟（零星）
         }
 
         // 获取命格描述
@@ -6722,6 +6760,9 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
                 
                 // 移除100分上限，显示真实财富评分
                 
+                // 基础模块合计（食伤生财、印绶护身、财星能量、财星位置、财富库藏、自坐财库、财气通门户、日主承载）
+                const baseModulesTotal = shishangScore + yinshouScore + wealthStarScore + wealthPositionScore + wealthVaultScore + dayMasterCapacity + selfVaultScore + portalScore;
+                
                 wealthScoreDetails = {
                     shishangScore,
                     yinshouScore,
@@ -6743,7 +6784,8 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
                     favorableBalance,
                     seasonalWealthPotential,
                     wealthProtectionScore,
-                    baseScore,
+                    // 基础合计为基础模块总和
+                    baseScore: baseModulesTotal,
                     total
                 };
                 wealthScoreValue = Math.round(total);
@@ -7316,19 +7358,71 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
                     });
                 }
                 
-                // 3. 化气格识别（简化版）
+                // 3. 化气格识别（超严格版）- 需要多重条件同时满足
                 const stems = [pillars.year.charAt(0), pillars.month.charAt(0), pillars.day.charAt(0), pillars.hour.charAt(0)];
                 const chemicalCombinations = [
-                    ['甲', '己'], ['乙', '庚'], ['丙', '辛'], ['丁', '壬'], ['戊', '癸']
+                    ['甲', '己', '土'], ['乙', '庚', '金'], ['丙', '辛', '水'], ['丁', '壬', '木'], ['戊', '癸', '火']
                 ];
                 
-                for (const combo of chemicalCombinations) {
-                    if (stems.includes(combo[0]) && stems.includes(combo[1])) {
-                        patterns.push({
-                            name: '化气格',
-                            description: `${combo[0]}${combo[1]}化气，格局特殊`,
-                            bonus: 20
-                        });
+                // 严格化气格条件：
+                // 1. 日干必须参与化合（月日化合或日时化合）
+                // 2. 化神必须在天干中透出
+                // 3. 化神得月令旺气
+                // 4. 无明显破格因素
+                
+                const dayIndex = 2; // 日干在stems数组中的位置
+                const dayStem = stems[dayIndex];
+                
+                for (const [stem1, stem2, element] of chemicalCombinations) {
+                    let isValidChemical = false;
+                    let chemicalDescription = '';
+                    
+                    // 只认可日干参与的化合：月日化合或日时化合
+                    if (dayStem === stem1) {
+                        if (stems[1] === stem2) { // 月日化合
+                            isValidChemical = true;
+                            chemicalDescription = '月日化合';
+                        } else if (stems[3] === stem2) { // 日时化合
+                            isValidChemical = true;
+                            chemicalDescription = '日时化合';
+                        }
+                    } else if (dayStem === stem2) {
+                        if (stems[1] === stem1) { // 月日化合
+                            isValidChemical = true;
+                            chemicalDescription = '月日化合';
+                        } else if (stems[3] === stem1) { // 日时化合
+                            isValidChemical = true;
+                            chemicalDescription = '日时化合';
+                        }
+                    }
+                    
+                    if (isValidChemical) {
+                        // 检查化神是否透出
+                        const chemicalElementStems = {
+                            '土': ['戊', '己'],
+                            '金': ['庚', '辛'],
+                            '水': ['壬', '癸'],
+                            '木': ['甲', '乙'],
+                            '火': ['丙', '丁']
+                        };
+                        
+                        const hasChemicalStemTransparent = stems.some(stem => 
+                            chemicalElementStems[element] && chemicalElementStems[element].includes(stem)
+                        );
+                        
+                        // 检查化神是否得月令之气
+                        const monthBranch = pillars.month.slice(1);
+                        const monthElement = getBranchElement(monthBranch);
+                        const isChemicalSupported = monthElement === element || isGenerateElement(monthElement, element);
+                        
+                        // 只有同时满足化神透出且得月令之气才认定为化气格
+                        if (hasChemicalStemTransparent && isChemicalSupported) {
+                            patterns.push({
+                                name: '化气格',
+                                description: `${stem1}${stem2}化${element}（${chemicalDescription}），化神透出得令`,
+                                bonus: 18
+                            });
+                        }
                         break;
                     }
                 }
@@ -8561,6 +8655,250 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
                 '甲寅': ['子', '丑'], '乙卯': ['子', '丑'], '丙辰': ['子', '丑'], '丁巳': ['子', '丑'], '戊午': ['子', '丑'], '己未': ['子', '丑'], '庚申': ['子', '丑'], '辛酉': ['子', '丑'], '壬戌': ['子', '丑'], '癸亥': ['子', '丑']
             };
         }
+
+        // 计算日主强弱分数 (0~10分)
+        function calculateDayMasterStrengthScore(pillars) {
+            const dayStrength = calculateSimpleDayStrength(pillars);
+            
+            if (dayStrength >= 40 && dayStrength <= 60) {
+                return 10; // 中和最佳
+            } else if (dayStrength >= 30 && dayStrength <= 70) {
+                return 8; // 稍有偏颇
+            } else if (dayStrength >= 20 && dayStrength <= 80) {
+                return 6; // 偏弱或偏强
+            } else {
+                return 3; // 过弱或过强
+            }
+        }
+
+        // 计算用神得力分数 (0~12分)
+        function calculateUsefulGodScore(pillars) {
+            return evaluateYongShen(pillars);
+        }
+
+        // 计算忌神制约分数 (0~8分)
+        function calculateTabooGodControlScore(pillars) {
+            const dayElement = getStemElement(pillars.day.charAt(0));
+            const dayStrength = calculateSimpleDayStrength(pillars);
+            let score = 0;
+            
+            if (dayStrength > 70) {
+                // 身强时，制约比劫、印星
+                if (hasKillControl(pillars)) score += 3;
+                if (hasInjuringOfficer(pillars)) score += 2;
+            } else if (dayStrength < 30) {
+                // 身弱时，制约财星、食伤
+                if (hasWealthRobbery(pillars)) score += 3;
+                if (hasOwlSnatching(pillars)) score += 2;
+            } else {
+                // 中和时，制约突出的忌神
+                const tenGodsCount = countTenGods(pillars);
+                const maxCount = Math.max(...Object.values(tenGodsCount));
+                if (maxCount <= 2) score += 3; // 无明显忌神
+            }
+            
+            return Math.min(8, score);
+        }
+
+        // 计算流年助力分数 (0~10分)
+        function calculateLuckSupportScore(pillars) {
+            try {
+                // 使用已有的流年调整函数
+                const currentYear = new Date().getFullYear();
+                const adjustment = calculateLuckAdjustment(pillars, currentYear);
+                
+                // 将调整值转换为0-10分
+                if (adjustment >= 15) return 10;
+                else if (adjustment >= 10) return 8;
+                else if (adjustment >= 5) return 6;
+                else if (adjustment >= 0) return 4;
+                else if (adjustment >= -5) return 2;
+                else return 0;
+            } catch (e) {
+                return 5; // 默认中等分数
+            }
+        }
+
+        // 计算大运配合分数 (0~8分)
+        function calculateDayunCoordinationScore(pillars) {
+            try {
+                const dayunStrength = calculateDayunStrength(pillars);
+                const dayStrength = calculateSimpleDayStrength(pillars);
+                
+                // 身强喜泄耗，身弱喜生助
+                if (dayStrength > 60 && dayunStrength < 0) return 8; // 身强遇弱运
+                else if (dayStrength < 40 && dayunStrength > 0) return 8; // 身弱遇强运
+                else if (dayStrength >= 40 && dayStrength <= 60) return 6; // 中和配任何运
+                else return 3; // 配合一般
+            } catch (e) {
+                return 4; // 默认分数
+            }
+        }
+
+        // 计算贵人助力分数 (0~6分)
+        function calculateNoblesSupportScore(pillars) {
+            const dayStem = pillars.day.charAt(0);
+            const dayBranch = pillars.day.charAt(1);
+            const branches = [pillars.year.charAt(1), pillars.month.charAt(1), pillars.day.charAt(1), pillars.hour.charAt(1)];
+            let score = 0;
+            
+            // 天乙贵人
+            const tianYiNobles = getTianYiNoble(dayStem);
+            if (branches.some(branch => tianYiNobles.includes(branch))) score += 2;
+            
+            // 文昌贵人
+            const wenChangNoble = getWenChangNoble(dayStem);
+            if (branches.includes(wenChangNoble)) score += 1.5;
+            
+            // 天德贵人
+            const tianDeNoble = getTianDeNoble(pillars.month.charAt(1));
+            if ([pillars.year.charAt(0), pillars.month.charAt(0), pillars.hour.charAt(0)].includes(tianDeNoble)) score += 1.5;
+            
+            // 月德贵人
+            const yueDeNoble = getYueDeNoble(pillars.month.charAt(1));
+            if ([pillars.year.charAt(0), pillars.month.charAt(0), pillars.hour.charAt(0)].includes(yueDeNoble)) score += 1;
+            
+            return Math.min(6, score);
+        }
+
+        // 计算特殊格局加分 (0~20分)
+        function calculateSpecialPatternBonus(pillars) {
+            const specialPattern = identifySpecialPattern(pillars);
+            const specialPatterns = identifySpecialPatterns(pillars);
+            
+            let bonus = 0;
+            
+            // 来自identifySpecialPattern的分数
+            if (specialPattern.type !== 'normal') {
+                if (specialPattern.type === 'zhuanwang') bonus += 18;
+                else if (specialPattern.type === 'congqiang') bonus += 15;
+                else if (specialPattern.type === 'congruo') bonus += 12;
+            }
+            
+            // 来自identifySpecialPatterns的额外分数
+            specialPatterns.forEach(pattern => {
+                if (pattern.bonus > 0) {
+                    bonus += Math.min(pattern.bonus, 10); // 限制单个格局最高10分
+                }
+            });
+            
+            return Math.min(20, bonus);
+        }
+
+        // 计算命格层次加分 (0~15分)
+        function calculateLevelBonus(pillars) {
+            let bonus = 0;
+            const dayElement = getStemElement(pillars.day.charAt(0));
+            const tenGodsCount = countTenGods(pillars);
+            
+            // 三奇贵人格局
+            if (hasSanQi(pillars)) bonus += 8;
+            
+            // 官印相生格局
+            if (tenGodsCount.正官 > 0 && tenGodsCount.正印 > 0) bonus += 6;
+            
+            // 食神制杀格局
+            if (tenGodsCount.食神 > 0 && tenGodsCount.七杀 > 0) bonus += 5;
+            
+            // 财官双美格局
+            if (tenGodsCount.正财 > 0 && tenGodsCount.正官 > 0) bonus += 4;
+            
+            // 印绶格高层次
+            if (tenGodsCount.正印 >= 2) bonus += 3;
+            
+            return Math.min(15, bonus);
+        }
+
+        // 计算调候用神分数 (0~8分)
+        function calculateSeasonalAdjustmentScore(pillars) {
+            const monthBranch = pillars.month.charAt(1);
+            const dayElement = getStemElement(pillars.day.charAt(0));
+            let score = 0;
+            
+            // 冬季调候 - 需要火暖局
+            if (['子', '丑', '亥'].includes(monthBranch)) {
+                const tenGodsCount = countTenGods(pillars);
+                if (dayElement === '木' || dayElement === '水') {
+                    if (tenGodsCount.食神 > 0 || tenGodsCount.伤官 > 0) score += 4; // 木火通明
+                }
+                if (dayElement === '金') {
+                    if (tenGodsCount.食神 > 0) score += 3; // 金水伤官
+                }
+            }
+            
+            // 夏季调候 - 需要水润燥
+            else if (['午', '未', '巳'].includes(monthBranch)) {
+                if (dayElement === '火' || dayElement === '土') {
+                    const tenGodsCount = countTenGods(pillars);
+                    if (tenGodsCount.正官 > 0 || tenGodsCount.七杀 > 0) score += 4; // 火土需水调候
+                }
+            }
+            
+            // 春秋季节相对平和
+            else {
+                score += 2; // 基础调候分数
+            }
+            
+            return Math.min(8, score);
+        }
+
+        // 天乙贵人查法
+        function getTianYiNoble(dayStem) {
+            const tianYiMap = {
+                '甲': ['丑', '未'], '乙': ['子', '申'], '丙': ['亥', '酉'], '丁': ['亥', '酉'],
+                '戊': ['丑', '未'], '己': ['子', '申'], '庚': ['丑', '未'], '辛': ['午', '寅'],
+                '壬': ['卯', '巳'], '癸': ['卯', '巳']
+            };
+            return tianYiMap[dayStem] || [];
+        }
+
+        // 文昌贵人查法
+        function getWenChangNoble(dayStem) {
+            const wenChangMap = {
+                '甲': '巳', '乙': '午', '丙': '申', '丁': '酉', '戊': '申',
+                '己': '酉', '庚': '亥', '辛': '子', '壬': '寅', '癸': '卯'
+            };
+            return wenChangMap[dayStem] || '巳';
+        }
+
+        // 天德贵人查法（按月支）
+        function getTianDeNoble(monthBranch) {
+            const tianDeMap = {
+                '子': '丁', '丑': '丁', '寅': '丙', '卯': '甲', '辰': '甲',
+                '巳': '癸', '午': '壬', '未': '壬', '申': '辛', '酉': '庚',
+                '戌': '庚', '亥': '乙'
+            };
+            return tianDeMap[monthBranch] || '丁';
+        }
+
+        // 月德贵人查法（按月支）
+        function getYueDeNoble(monthBranch) {
+            const yueDeMap = {
+                '子': '丙', '丑': '甲', '寅': '壬', '卯': '庚', '辰': '丙',
+                '巳': '甲', '午': '壬', '未': '庚', '申': '丁', '酉': '乙',
+                '戌': '癸', '亥': '己'
+            };
+            return yueDeMap[monthBranch] || '丙';
+        }
+
+        // 检查三奇格局
+        function hasSanQi(pillars) {
+            const stems = [pillars.year.charAt(0), pillars.month.charAt(0), pillars.day.charAt(0), pillars.hour.charAt(0)];
+            
+            // 乙丙丁三奇
+            const hasYi = stems.includes('乙');
+            const hasBing = stems.includes('丙');
+            const hasDing = stems.includes('丁');
+            if (hasYi && hasBing && hasDing) return true;
+            
+            // 甲戊庚三奇
+            const hasJia = stems.includes('甲');
+            const hasWu = stems.includes('戊');
+            const hasGeng = stems.includes('庚');
+            if (hasJia && hasWu && hasGeng) return true;
+            
+            return false;
+        }
         
         // 专业八字：否决条款（传统版）
         function applyTraditionalVetoRules(score, pillars) {
@@ -8728,15 +9066,15 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
 
         // calculateWealthTimingScore函数已被新的财富潜力评分替代
 
-        // 获取财富等级 - 基于专业命理无上限评分系统
+        // 获取财富等级 - 适配新评分系统（无上限但常见范围至150+）
         function getWealthLevel(score) {
-            // 调整为以150为理论上限的等级划分，使多数人约100分获得四星
-            if (score >= 130) return { name: "超格富贵 ★★★★★", class: "legendary-rich" };   // 130-150：超格富贵
-            if (score >= 105) return { name: "制度富贵 ★★★★☆", class: "ultra-rich" };      // 105-129：制度富贵（高四星）
-            if (score >= 80) return { name: "技术致富 ★★★★☆", class: "very-rich" };        // 80-104：技术致富（四星）
-            if (score >= 60) return { name: "勤勉小富 ★★★☆☆", class: "moderately-rich" };   // 60-79：勤勉小富（三星）
-            if (score >= 40) return { name: "小康水平 ★★☆☆☆", class: "somewhat-rich" };     // 40-59：小康（两星）
-            if (score >= 20) return { name: "基本温饱 ★☆☆☆☆", class: "basic-wealth" };      // 20-39：基本温饱（一星）
+            // 调整阈值，使新系统下约100分为四星、130分为五星起步
+            if (score >= 130) return { name: "超格富贵 ★★★★★", class: "legendary-rich" };   // 130+：超格富贵（五星）
+            if (score >= 100) return { name: "制度富贵 ★★★★☆", class: "ultra-rich" };      // 100-129：制度富贵（四星）
+            if (score >= 75) return { name: "技术致富 ★★★★☆", class: "very-rich" };        // 75-99：技术致富（高四星/低四星）
+            if (score >= 55) return { name: "勤勉小富 ★★★☆☆", class: "moderately-rich" };   // 55-74：勤勉小富（三星）
+            if (score >= 35) return { name: "小康水平 ★★☆☆☆", class: "somewhat-rich" };     // 35-54：小康（二星）
+            if (score >= 20) return { name: "基本温饱 ★☆☆☆☆", class: "basic-wealth" };      // 20-34：基本温饱（一星）
             return { name: "平常级别 ☆☆☆☆☆", class: "wealth-average" };                   // <20：普通水平（零星）
         }
 
@@ -10143,65 +10481,109 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
                              <h4 style="color: var(--primary-color); margin-bottom: 15px;">
                                  <i class="fas fa-calculator"></i> 命格等级评分构成
                              </h4>
-                             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px;">
-                                 <div style="background: rgba(52, 152, 219, 0.1); border: 1px solid rgba(52, 152, 219, 0.2); border-radius: 8px; padding: 15px;">
-                                     <h6 style="color: #3498db; margin-bottom: 10px;">季节助力得分</h6>
-                                     <div style="font-size: 1.5rem; font-weight: bold; color: #2c3e50; margin-bottom: 8px;">
-                                         ${Number(fateLevel.details.seasonScore || 0).toFixed(2)} 分
+
+                             <div style="margin-bottom: 20px;">
+                                 <h5 style="color: var(--primary-color); margin-bottom: 12px;">
+                                     <i class="fas fa-layer-group"></i> 基础模块评分
+                                 </h5>
+                                 <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px;">
+                                     <div style="background: rgba(52, 152, 219, 0.08); border: 1px solid rgba(52, 152, 219, 0.15); border-radius: 6px; padding: 12px;">
+                                         <strong style="color: #3498db;">季节助力：</strong> ${Number(fateLevel.details.seasonScore || 0).toFixed(2)} 分
+                                         <br><small style="color: #666;">月令得气、通根透干的力量</small>
                                      </div>
-                                     <p style="font-size: 0.9rem; color: #666; margin: 0;">
-                                         月令得气、通根透干、调候等因素的综合评分，反映日主在出生月份的旺衰程度。
-                                     </p>
+                                     <div style="background: rgba(39, 174, 96, 0.08); border: 1px solid rgba(39, 174, 96, 0.15); border-radius: 6px; padding: 12px;">
+                                         <strong style="color: #27ae60;">五行平衡：</strong> ${Number(fateLevel.details.balanceScore || 0).toFixed(2)} 分
+                                         <br><small style="color: #666;">八字五行分布的均衡性</small>
+                                     </div>
+                                     <div style="background: rgba(155, 89, 182, 0.08); border: 1px solid rgba(155, 89, 182, 0.15); border-radius: 6px; padding: 12px;">
+                                         <strong style="color: #9b59b6;">格局结构：</strong> ${Number(fateLevel.details.patternScore || 0).toFixed(2)} 分
+                                         <br><small style="color: #666;">特殊格局的识别与完整性</small>
+                                     </div>
+                                     <div style="background: rgba(230, 126, 34, 0.08); border: 1px solid rgba(230, 126, 34, 0.15); border-radius: 6px; padding: 12px;">
+                                         <strong style="color: #e67e22;">十神影响：</strong> ${Number(fateLevel.details.godsScore || 0).toFixed(2)} 分
+                                         <br><small style="color: #666;">十神配置的协调性</small>
+                                     </div>
+                                     <div style="background: rgba(231, 76, 60, 0.08); border: 1px solid rgba(231, 76, 60, 0.15); border-radius: 6px; padding: 12px;">
+                                         <strong style="color: #e74c3c;">组合刑冲：</strong> ${Number(fateLevel.details.combinationScore || 0).toFixed(2)} 分
+                                         <br><small style="color: #666;">地支组合关系的影响</small>
+                                     </div>
+                                     <div style="background: rgba(52, 73, 94, 0.08); border: 1px solid rgba(52, 73, 94, 0.15); border-radius: 6px; padding: 12px;">
+                                         <strong style="color: #34495e;">调候用神：</strong> ${Number(fateLevel.details.adjustmentScore || 0).toFixed(2)} 分
+                                         <br><small style="color: #666;">调候用神的配置效果</small>
+                                     </div>
                                  </div>
-                                 
-                                 <div style="background: rgba(39, 174, 96, 0.1); border: 1px solid rgba(39, 174, 96, 0.2); border-radius: 8px; padding: 15px;">
-                                     <h6 style="color: #27ae60; margin-bottom: 10px;">五行平衡得分</h6>
-                                     <div style="font-size: 1.5rem; font-weight: bold; color: #2c3e50; margin-bottom: 8px;">
-                                         ${Number(fateLevel.details.balanceScore || 0).toFixed(2)} 分
+                             </div>
+
+                             <div style="margin-bottom: 20px;">
+                                 <h5 style="color: var(--warning-color); margin-bottom: 12px;">
+                                     <i class="fas fa-cogs"></i> 进阶与修正评分
+                                 </h5>
+                                 <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px;">
+                                     <div style="background: rgba(52, 152, 219, 0.08); border: 1px solid rgba(52, 152, 219, 0.15); border-radius: 6px; padding: 12px;">
+                                         <strong style="color: #3498db;">日主强弱：</strong> ${Number(fateLevel.details.dayMasterStrength || 0).toFixed(2)} 分
+                                         <br><small style="color: #666;">日主旺衰程度评估</small>
                                      </div>
-                                     <p style="font-size: 0.9rem; color: #666; margin: 0;">
-                                         八字中五行分布的均衡性，考虑相生相克关系，评估命格的稳定性和协调度。
-                                     </p>
+                                     <div style="background: rgba(39, 174, 96, 0.08); border: 1px solid rgba(39, 174, 96, 0.15); border-radius: 6px; padding: 12px;">
+                                         <strong style="color: #27ae60;">用神得力：</strong> ${Number(fateLevel.details.usefulGodScore || 0).toFixed(2)} 分
+                                         <br><small style="color: #666;">用神在八字中的力量</small>
+                                     </div>
+                                     <div style="background: rgba(155, 89, 182, 0.08); border: 1px solid rgba(155, 89, 182, 0.15); border-radius: 6px; padding: 12px;">
+                                         <strong style="color: #9b59b6;">忌神制约：</strong> ${Number(fateLevel.details.tabooGodControl || 0).toFixed(2)} 分
+                                         <br><small style="color: #666;">忌神的制约程度</small>
+                                     </div>
+                                     <div style="background: rgba(230, 126, 34, 0.08); border: 1px solid rgba(230, 126, 34, 0.15); border-radius: 6px; padding: 12px;">
+                                         <strong style="color: #e67e22;">空亡减分：</strong> -${Number(fateLevel.details.kongWangPenalty || 0).toFixed(2)} 分
+                                         <br><small style="color: #666;">空亡对命格的负面影响</small>
+                                     </div>
+                                     <div style="background: rgba(231, 76, 60, 0.08); border: 1px solid rgba(231, 76, 60, 0.15); border-radius: 6px; padding: 12px;">
+                                         <strong style="color: #e74c3c;">流年助力：</strong> ${Number(fateLevel.details.luckSupport || 0).toFixed(2)} 分
+                                         <br><small style="color: #666;">当前流年的促进作用</small>
+                                     </div>
+                                     <div style="background: rgba(52, 73, 94, 0.08); border: 1px solid rgba(52, 73, 94, 0.15); border-radius: 6px; padding: 12px;">
+                                         <strong style="color: #34495e;">大运配合：</strong> ${Number(fateLevel.details.dayunCoordination || 0).toFixed(2)} 分
+                                         <br><small style="color: #666;">当前大运与命格的配合</small>
+                                     </div>
                                  </div>
-                                 
-                                 <div style="background: rgba(155, 89, 182, 0.1); border: 1px solid rgba(155, 89, 182, 0.2); border-radius: 8px; padding: 15px;">
-                                     <h6 style="color: #9b59b6; margin-bottom: 10px;">格局结构得分</h6>
-                                     <div style="font-size: 1.5rem; font-weight: bold; color: #2c3e50; margin-bottom: 8px;">
-                                         ${Number(fateLevel.details.patternScore || 0).toFixed(2)} 分
+                             </div>
+
+                             <div style="margin-bottom: 20px;">
+                                 <h5 style="color: var(--danger-color); margin-bottom: 12px;">
+                                     <i class="fas fa-star"></i> 格局与特效评分
+                                 </h5>
+                                 <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px;">
+                                     <div style="background: rgba(52, 152, 219, 0.08); border: 1px solid rgba(52, 152, 219, 0.15); border-radius: 6px; padding: 12px;">
+                                         <strong style="color: #3498db;">贵人助力：</strong> ${Number(fateLevel.details.noblesSupport || 0).toFixed(2)} 分
+                                         <br><small style="color: #666;">天乙贵人等神煞的作用</small>
                                      </div>
-                                     <p style="font-size: 0.9rem; color: #666; margin: 0;">
-                                         识别特殊格局（如从格、化格等）及其完整性，评估命格层次的高低。
-                                     </p>
-                                 </div>
-                                 
-                                 <div style="background: rgba(230, 126, 34, 0.1); border: 1px solid rgba(230, 126, 34, 0.2); border-radius: 8px; padding: 15px;">
-                                     <h6 style="color: #e67e22; margin-bottom: 10px;">十神影响得分</h6>
-                                     <div style="font-size: 1.5rem; font-weight: bold; color: #2c3e50; margin-bottom: 8px;">
-                                         ${Number(fateLevel.details.godsScore || 0).toFixed(2)} 分
+                                     <div style="background: rgba(39, 174, 96, 0.08); border: 1px solid rgba(39, 174, 96, 0.15); border-radius: 6px; padding: 12px;">
+                                         <strong style="color: #27ae60;">特殊格局：</strong> ${Number(fateLevel.details.specialPatternBonus || 0).toFixed(2)} 分
+                                         <br><small style="color: #666;">从格、化格等特殊格局加成</small>
                                      </div>
-                                     <p style="font-size: 0.9rem; color: #666; margin: 0;">
-                                         正官、七杀、正印、偏印、比肩、劫财、食神、伤官、正财、偏财的配置和作用。
-                                     </p>
-                                 </div>
-                                 
-                                 <div style="background: rgba(231, 76, 60, 0.1); border: 1px solid rgba(231, 76, 60, 0.2); border-radius: 8px; padding: 15px;">
-                                     <h6 style="color: #e74c3c; margin-bottom: 10px;">组合刑冲得分</h6>
-                                     <div style="font-size: 1.5rem; font-weight: bold; color: #2c3e50; margin-bottom: 8px;">
-                                         ${Number(fateLevel.details.combinationScore || 0).toFixed(2)} 分
+                                     <div style="background: rgba(155, 89, 182, 0.08); border: 1px solid rgba(155, 89, 182, 0.15); border-radius: 6px; padding: 12px;">
+                                         <strong style="color: #9b59b6;">命格层次：</strong> ${Number(fateLevel.details.levelBonus || 0).toFixed(2)} 分
+                                         <br><small style="color: #666;">整体命格层次的评估</small>
                                      </div>
-                                     <p style="font-size: 0.9rem; color: #666; margin: 0;">
-                                         地支三合、六合、相冲、相刑、相害等组合关系对命格的影响评估。
-                                     </p>
                                  </div>
                              </div>
                              
-                             <div style="margin-top: 20px; padding: 15px; background: rgba(52, 73, 94, 0.05); border-radius: 8px; border-left: 4px solid var(--primary-color);">
+                             <div style="padding: 15px; background: rgba(52, 73, 94, 0.05); border-radius: 8px; border-left: 4px solid var(--primary-color);">
                                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                                      <h5 style="margin: 0; color: var(--primary-color);">
-                                         <i class="fas fa-chart-line"></i> 评分汇总
+                                         <i class="fas fa-chart-line"></i> 命格评分汇总
                                      </h5>
-                                     <div style="font-size: 1.2rem; font-weight: bold; color: var(--gold-color);">
-                                         总分：${Number(fateLevel.details.total || 0).toFixed(2)} 分
+                                     <div style="display: flex; gap: 15px;">
+                                         <div style="text-align: center;">
+                                             <div style="font-size: 0.9rem; color: #666;">基础合计</div>
+                                             <div style="font-size: 1.1rem; font-weight: bold; color: var(--primary-color);">
+                                                 ${Number(fateLevel.details.baseScore || 0).toFixed(2)} 分
+                                             </div>
+                                         </div>
+                                         <div style="text-align: center;">
+                                             <div style="font-size: 0.9rem; color: #666;">最终得分</div>
+                                             <div style="font-size: 1.3rem; font-weight: bold; color: var(--gold-color);">
+                                                 ${Number(fateLevel.details.total || 0).toFixed(2)} 分
+                                             </div>
+                                         </div>
                                      </div>
                                  </div>
                                  <p style="font-size: 0.9rem; color: #666; margin: 0; line-height: 1.5;">
