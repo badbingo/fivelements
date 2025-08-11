@@ -3506,6 +3506,16 @@ contentElement.classList.add('show');
             // 计算身强身弱
             const strengthAnalysis = calculateStrength(dayStr, elements, monthStr, allBranches);
             
+            // 在计算命格等级前，提前写入当前强弱分析到全局，供从格判断使用
+            if (!window.currentBaziData) window.currentBaziData = {};
+            window.currentBaziData.strengthAnalysis = strengthAnalysis;
+            window.currentBaziData.pillars = pillars;
+            window.currentBaziData.luckTiming = luckTiming;
+            
+            // 提前计算当前大运信息，避免下游重复计算
+            const currentDayunInfo = getCurrentDayun();
+            window.currentBaziData.currentDayun = currentDayunInfo;
+            
             // 计算命格等级
             const fateLevel = calculateFateLevel(pillars);
             
@@ -3517,6 +3527,9 @@ contentElement.classList.add('show');
             const currentSolar = Solar.fromDate(currentDate);
             const currentLunar = currentSolar.getLunar();
             const currentYearGanZhi = currentLunar.getYearInGanZhi();
+            // 写入全局缓存，避免重复计算
+            if (!window.currentBaziData) window.currentBaziData = {};
+            window.currentBaziData.currentYearGanZhi = currentYearGanZhi;
             
             return {
                 name: formData.name,
@@ -3535,6 +3548,7 @@ contentElement.classList.add('show');
                 elements: elements,
                 strengthAnalysis: strengthAnalysis,
                 luckTiming: luckTiming,
+                currentDayun: currentDayunInfo,  // 新增：当前大运信息
                 fateLevel: fateLevel,
                 wealthLevel: wealthLevel,
                 currentYearGanZhi: currentYearGanZhi,  // 新增：当前流年干支
@@ -6473,8 +6487,15 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
             return false;
         }
 
-        // 判断从强格
+        // 判断从强格 - 直接使用已计算的身强身弱分析结果
         function isCongQiangGe(dayStem, stems, branches) {
+            // 优先使用已计算的身强身弱分析结果
+            if (window.currentBaziData && window.currentBaziData.strengthAnalysis) {
+                const analysis = window.currentBaziData.strengthAnalysis;
+                return analysis.type === '从强';
+            }
+            
+            // 备用计算方法（原有逻辑）
             let count = 0;
             stems.forEach(function(stem) {
                 if (isSameElement(stem, dayStem) || isGenerateElement(stem, dayStem)) {
@@ -6489,8 +6510,15 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
             return count >= 6;
         }
 
-        // 判断从弱格
+        // 判断从弱格 - 直接使用已计算的身强身弱分析结果
         function isCongRuoGe(dayStem, stems, branches) {
+            // 优先使用已计算的身强身弱分析结果
+            if (window.currentBaziData && window.currentBaziData.strengthAnalysis) {
+                const analysis = window.currentBaziData.strengthAnalysis;
+                return analysis.type === '从弱';
+            }
+            
+            // 备用计算方法（原有逻辑）
             let count = 0;
             stems.forEach(function(stem) {
                 if (isSameElement(stem, dayStem) || isGenerateElement(stem, dayStem)) {
@@ -6795,15 +6823,15 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
 
         // 辅助函数定义
         function isShishang(dayElement, element) {
-            // 食神: 同阴阳的偏印, 伤官: 异阴阳的偏印 (简化)
+            // 食伤: 日主所生的五行 (食神和伤官)
             const shishangMap = {
-                '木': ['水'], '火': ['木'], '土': ['火'], '金': ['土'], '水': ['金']
+                '木': ['火'], '火': ['土'], '土': ['金'], '金': ['水'], '水': ['木']
             };
             return shishangMap[dayElement]?.includes(element);
         }
 
         function isYinshou(dayElement, element) {
-            // 正印/偏印: 生日的元素
+            // 正印/偏印: 生日主的元素
             const yinshouMap = {
                 '木': ['水'], '火': ['木'], '土': ['火'], '金': ['土'], '水': ['金']
             };
@@ -6824,11 +6852,11 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
                    isWealth(getStemElement(pillars.day.charAt(0)), getBranchElement(pillars.month.slice(1)));
         }
 
-        // 计算食伤能量 - 作为财富源头 (30分) - 优化版
+        // 计算食伤能量 - 作为财富源头 (15分) - 修正版
           function calculateShishangEnergy(pillars) {
              const dayElement = getStemElement(pillars.day.charAt(0));
              const dayStrength = calculateSimpleDayStrength(pillars);
-             let energy = 0;
+             let score = 0;
              let shishangCount = 0;
              let wealthCount = 0;
              
@@ -6837,11 +6865,11 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
                  const stem = pillars[pos].charAt(0);
                  const branch = pillars[pos].slice(1);
                  if (isShishang(dayElement, getStemElement(stem))) {
-                     energy += 3; // 食伤在天干，降低分数
+                     score += 3; // 食伤在天干，基础得分
                      shishangCount++;
                  }
                  if (isShishang(dayElement, getBranchElement(branch))) {
-                     energy += 2; // 在地支，降低分数
+                     score += 2; // 食伤在地支，基础得分
                      shishangCount++;
                  }
                  if (isWealth(dayElement, getStemElement(stem)) || isWealth(dayElement, getBranchElement(branch))) {
@@ -6851,21 +6879,21 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
              
              // 食伤生财组合 - 富贵之源
              if (shishangCount > 0 && wealthCount > 0) {
-                 energy += 8; // 食伤生财，降低分数
+                 score += 5; // 食伤生财组合奖励
                  
                  // 身强食伤生财更佳
                  if (dayStrength >= 60) {
-                     energy += 4; // 身强能驾驭食伤，降低分数
+                     score += 3; // 身强能驾驭食伤
                  }
              }
              
              // 伤官佩印格局检查
              const yinCount = countYinStars(pillars);
              if (shishangCount >= 2 && yinCount >= 1 && dayStrength >= 40 && dayStrength <= 70) {
-                 energy += 6; // 伤官佩印，降低分数
+                 score += 2; // 伤官佩印格局
              }
              
-             return Math.min(15, Math.round(energy)); // 降低上限到15分
+             return Math.min(15, Math.round(score));
          }
 
         // 计算印绶支持 - 护身担财 (20分) - 优化版
@@ -7297,12 +7325,35 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
                return Math.max(0, Math.round(adjustedScore));
             }
             
-            // 新增：特殊格局识别模块
+            // 新增：特殊格局识别模块 - 优化版，优先使用 strengthAnalysis.type
             function identifySpecialPatterns(pillars) {
                 const dayElement = getStemElement(pillars.day.charAt(0));
                 const patterns = [];
                 
-                // 1. 从财格识别 - 修正版
+                // 优先使用已计算的身强身弱分析结果
+                if (window.currentBaziData && window.currentBaziData.strengthAnalysis) {
+                    const analysis = window.currentBaziData.strengthAnalysis;
+                    
+                    // 1. 从强格识别
+                    if (analysis.type === '从强') {
+                        patterns.push({
+                            name: '从强格',
+                            description: '日主极强，从比劫印星之势，宜用食伤财星',
+                            bonus: 25 // 从强格财富潜力很高
+                        });
+                    }
+                    
+                    // 2. 从弱格识别  
+                    if (analysis.type === '从弱') {
+                        patterns.push({
+                            name: '从弱格',
+                            description: '日主极弱，从财官食伤之势，富贵可期',
+                            bonus: 30 // 从弱格往往财富更好
+                        });
+                    }
+                }
+                
+                // 财星相关格局分析（补充分析）
                 let wealthCount = 0;
                 ['year', 'month', 'day', 'hour'].forEach(pos => {
                     const stem = pillars[pos].charAt(0);
@@ -7313,9 +7364,12 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
                 
                 const biJieCount = countBiJieStars(pillars);
                 const yinCount = countYinStars(pillars);
+                const dayStrength = calculateSimpleDayStrength(pillars);
                 
-                if (wealthCount >= 2 && biJieCount === 0 && yinCount <= 1) {
-                    const dayStrength = calculateSimpleDayStrength(pillars);
+                // 3. 从财格识别 - 备用方案（当无 strengthAnalysis 时）
+                if ((!window.currentBaziData || !window.currentBaziData.strengthAnalysis) && 
+                    wealthCount >= 2 && biJieCount === 0 && yinCount <= 1) {
+                    
                     const wealthStrength = calculateWealthStrength(pillars);
                     
                     // 真从财格：日主极弱(≤35)且财星数量多(≥4)
@@ -7323,7 +7377,7 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
                         patterns.push({
                             name: '真从财格',
                             description: '日主极弱从财星之势，富贵可期',
-                            bonus: 20 // 调整真从财格奖励，避免得分过高
+                            bonus: 30 // 真从财格财富潜力很高
                         });
                     }
                     // 假从财格：日主较弱但财星较多
@@ -7331,11 +7385,19 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
                         patterns.push({
                             name: '假从财格',
                             description: '日主偏弱，财星较旺，中等富贵',
-                            bonus: 12 // 调整假从财格奖励
+                            bonus: 18 // 假从财格有一定财富潜力
                         });
                     }
-                    // 身不胜财：财多身弱的不利格局
-                    else {
+                }
+                
+                // 4. 身不胜财检查（通用）
+                if (dayStrength < 40 && wealthCount >= 3 && (biJieCount + yinCount) === 0) {
+                    // 排除已识别的从格
+                    const hasFromPattern = patterns.some(p => 
+                        p.name.includes('从强') || p.name.includes('从弱') || p.name.includes('从财')
+                    );
+                    
+                    if (!hasFromPattern) {
                         patterns.push({
                             name: '身不胜财',
                             description: '财星过多，日主承载不足',
@@ -8397,11 +8459,17 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
             
             // 优先从 currentBaziData 读取当前流年信息（若有）
             let yearStem, yearBranch;
-            if (window.currentBaziData && window.currentBaziData.currentYearGanZhi) {
-                const ygz = window.currentBaziData.currentYearGanZhi;
-                if (typeof ygz === 'string' && ygz.length >= 2) {
+            if (window.currentBaziData) {
+                if (window.currentBaziData.currentYearGanZhi && typeof window.currentBaziData.currentYearGanZhi === 'string' && window.currentBaziData.currentYearGanZhi.length >= 2) {
+                    const ygz = window.currentBaziData.currentYearGanZhi;
                     yearStem = ygz.charAt(0);
                     yearBranch = ygz.charAt(1);
+                }
+                // 兼容：从 baziData 返回对象读取
+                if ((!yearStem || !yearBranch) && window.currentBaziData.currentYearGanZhi) {
+                    const ygz2 = window.currentBaziData.currentYearGanZhi;
+                    yearStem = ygz2.charAt(0);
+                    yearBranch = ygz2.charAt(1);
                 }
             }
             // 退化到本地简化计算
@@ -8446,24 +8514,24 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
             const stagesTable = getTwelveStagesTable();
             const stageMap = {"长生":6, "沐浴":4, "冠带":5, "临官":8, "帝旺":10, "衰":-4, "病":-6, "死":-8, "墓":-9, "绝":-10, "胎":-3, "养":-2};
             
-            // 优先从 currentBaziData 推断当前大运地支
+            // 优先从 currentBaziData 缓存中获取当前大运地支，避免重复计算
             let dayunZhi = null;
-            if (window.currentBaziData && window.currentBaziData.luckTiming) {
-                try {
-                    const currentDayun = getCurrentDayun();
-                    if (currentDayun && typeof currentDayun.ganZhi === 'string' && currentDayun.ganZhi.length >= 2) {
-                        dayunZhi = currentDayun.ganZhi.charAt(1);
-                    }
-                } catch (e) {
-                    console.warn('获取当前大运失败，使用备用逻辑:', e);
+            if (window.currentBaziData && window.currentBaziData.currentDayun) {
+                const currentDayun = window.currentBaziData.currentDayun;
+                if (currentDayun && typeof currentDayun.ganZhi === 'string' && currentDayun.ganZhi.length >= 2) {
+                    dayunZhi = currentDayun.ganZhi.charAt(1);
                 }
             }
             
-            // 回退：通过简化逻辑或空值检查
+            // 回退：如果缓存不可用，则调用 getCurrentDayun()
             if (!dayunZhi) {
-                const currentDayunFallback = getCurrentDayun();
-                if (currentDayunFallback && typeof currentDayunFallback.ganZhi === 'string' && currentDayunFallback.ganZhi.length >= 2) {
-                    dayunZhi = currentDayunFallback.ganZhi.charAt(1);
+                try {
+                    const currentDayunFallback = getCurrentDayun();
+                    if (currentDayunFallback && typeof currentDayunFallback.ganZhi === 'string' && currentDayunFallback.ganZhi.length >= 2) {
+                        dayunZhi = currentDayunFallback.ganZhi.charAt(1);
+                    }
+                } catch (e) {
+                    console.warn('获取当前大运失败:', e);
                 }
             }
             
