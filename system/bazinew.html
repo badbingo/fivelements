@@ -6671,14 +6671,15 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
             return false;
         }
 
-        // 获取命运等级 - 适配去掉固定50分后的评分系统（约130-140分制）
+        // 获取命运等级 - 适配去掉固定50分后的评分系统（约130-140分制），改为6星制
         function getFateLevel(score) {
-            if (score >= 150) return { name: "天赐鸿运 ★★★★★", class: "excellent" };      // 150+：天赐鸿运（五星）
-            if (score >= 120) return { name: "福星高照 ★★★★☆", class: "good" };          // 120-149：福星高照（四星）
-            if (score >= 95) return { name: "安常守分 ★★★☆☆", class: "average" };        // 95-119：安常守分（三星）
-            if (score >= 70) return { name: "勤能补拙 ★★☆☆☆", class: "struggling" };     // 70-94：勤能补拙（二星）
-            if (score >= 45) return { name: "力争上游 ★☆☆☆☆", class: "basic" };          // 45-69：力争上游（一星）
-            return { name: "逆水行舟 ☆☆☆☆☆", class: "needs-improvement" };             // <45：逆水行舟（零星）
+            if (score >= 170) return { name: "帝王之命 ★★★★★★", class: "emperor" };       // 170+：帝王之命（六星）
+            if (score >= 150) return { name: "天赐鸿运 ★★★★★☆", class: "excellent" };    // 150-169：天赐鸿运（五星）
+            if (score >= 120) return { name: "福星高照 ★★★★☆☆", class: "good" };        // 120-149：福星高照（四星）
+            if (score >= 95) return { name: "安常守分 ★★★☆☆☆", class: "average" };      // 95-119：安常守分（三星）
+            if (score >= 70) return { name: "勤能补拙 ★★☆☆☆☆", class: "struggling" };   // 70-94：勤能补拙（二星）
+            if (score >= 45) return { name: "力争上游 ★☆☆☆☆☆", class: "basic" };        // 45-69：力争上游（一星）
+            return { name: "逆水行舟 ☆☆☆☆☆☆", class: "needs-improvement" };           // <45：逆水行舟（零星）
         }
 
         // 获取命格描述
@@ -9234,16 +9235,16 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
 
         // calculateWealthTimingScore函数已被新的财富潜力评分替代
 
-        // 获取财富等级 - 适配新评分系统（无上限但常见范围至150+）
+        // 获取财富等级 - 适配新评分系统（无上限但常见范围至150+），改为6星制
         function getWealthLevel(score) {
-            // 调整阈值，使新系统下约100分为四星、130分为五星起步
-            if (score >= 130) return { name: "超格富贵 ★★★★★", class: "legendary-rich" };   // 130+：超格富贵（五星）
-            if (score >= 100) return { name: "制度富贵 ★★★★☆", class: "ultra-rich" };      // 100-129：制度富贵（四星）
-            if (score >= 75) return { name: "技术致富 ★★★★☆", class: "very-rich" };        // 75-99：技术致富（高四星/低四星）
-            if (score >= 55) return { name: "勤勉小富 ★★★☆☆", class: "moderately-rich" };   // 55-74：勤勉小富（三星）
-            if (score >= 35) return { name: "小康水平 ★★☆☆☆", class: "somewhat-rich" };     // 35-54：小康（二星）
-            if (score >= 20) return { name: "基本温饱 ★☆☆☆☆", class: "basic-wealth" };      // 20-34：基本温饱（一星）
-            return { name: "平常级别 ☆☆☆☆☆", class: "wealth-average" };                   // <20：普通水平（零星）
+            // 调整阈值：100分≈四星起，130分≈五星起，160分≈六星起
+            if (score >= 160) return { name: "超格富贵 ★★★★★★", class: "legendary-rich" };   // 160+：六星
+            if (score >= 130) return { name: "制度富贵 ★★★★★☆", class: "ultra-rich" };        // 130-159：五星
+            if (score >= 100) return { name: "技术致富 ★★★★☆☆", class: "very-rich" };          // 100-129：四星
+            if (score >= 75) return { name: "勤勉小富 ★★★☆☆☆", class: "moderately-rich" };     // 75-99：三星
+            if (score >= 55) return { name: "小康水平 ★★☆☆☆☆", class: "somewhat-rich" };       // 55-74：二星
+            if (score >= 35) return { name: "基本温饱 ★☆☆☆☆☆", class: "basic-wealth" };        // 35-54：一星
+            return { name: "平常级别 ☆☆☆☆☆☆", class: "wealth-average" };                     // <35：零星
         }
 
         // 获取财富描述 - 基于优化后的专业命理理论
