@@ -6784,7 +6784,8 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
                 total = total + favorableBalance + seasonalWealthPotential + wealthProtectionScore - kongWangPenalty;
                 
                 // 应用传统否决条款（升级版）
-                total = applyTraditionalVetoRules(total, safePillars);
+                const vetoResult = applyTraditionalVetoRules(total, safePillars);
+                total = vetoResult.adjustedScore;
                 
                 // 移除100分上限，显示真实财富评分
                 
@@ -6814,6 +6815,10 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
                     wealthProtectionScore,
                     // 基础合计为基础模块总和
                     baseScore: baseModulesTotal,
+                    // 否决条款详情
+                    vetoDetails: vetoResult.details,
+                    // 否决条款前的分数
+                    beforeVetoScore: baseModulesTotal + tenGodsBonus + specialBonus + balanceAdjustment + luckAdjustment + dayunStrength + favorableBalance + seasonalWealthPotential + wealthProtectionScore - kongWangPenalty,
                     total
                 };
                 wealthScoreValue = Math.round(total);
@@ -7196,6 +7201,12 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
               let bonus = 0;
               const dayElement = getStemElement(pillars.day.charAt(0));
               
+              // 获取当前格局类型
+              let patternType = '普通格局';
+              if (window.currentBaziData && window.currentBaziData.strengthAnalysis) {
+                  patternType = window.currentBaziData.strengthAnalysis.type || '普通格局';
+              }
+              
               // 官星带财库检查
               const hasOfficer = ['year', 'month', 'hour'].some(pos => {
                   const stem = pillars[pos].charAt(0);
@@ -7211,7 +7222,7 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
                   bonus += 25; // 官星带财库
               }
               
-              // 劫财夺财无制检查
+              // 劫财夺财无制检查 - 考虑格局类型
               const robbingWealth = ['year', 'month', 'hour'].filter(pos => {
                   const stem = pillars[pos].charAt(0);
                   const stemElement = getStemElement(stem);
@@ -7224,7 +7235,17 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
               });
               
               if (robbingWealth > 0 && !hasControl) {
-                  bonus -= 20; // 劫财夺财无制
+                  // 根据格局类型调整比劫的影响
+                  if (patternType === '从强') {
+                      // 从强格：比劫是用神，不扣分，反而加分
+                      bonus += 15; // 比劫助身，有利财运
+                  } else if (patternType === '从弱') {
+                      // 从弱格：比劫是忌神，扣分更重
+                      bonus -= 25; // 比劫夺财，严重不利
+                  } else {
+                      // 普通格局：按原逻辑扣分
+                      bonus -= 20; // 劫财夺财无制
+                  }
               }
               
               // 暗拱财局检查（简化版）
@@ -9035,6 +9056,7 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
         // 专业八字：否决条款（传统版）
         function applyTraditionalVetoRules(score, pillars) {
             let adjusted = score;
+            const details = [];
             const dayElement = getStemElement(pillars.day.charAt(0));
             const dayStrength = calculateSimpleDayStrength(pillars);
             
@@ -9047,7 +9069,9 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
             const biJieCount = countBiJieStars(pillars);
             const yinCount = countYinStars(pillars);
             if (dayStrength < 40 && wealthCount >= 3 && (biJieCount + yinCount) === 0) {
+                const before = adjusted;
                 adjusted = Math.min(adjusted, 70);
+                details.push({ name: '财多身弱不担财', type: 'cap', from: before, to: adjusted, note: '日主<40且财星≥3且无印比' });
             }
             
             // 比劫夺财无制
@@ -9056,7 +9080,11 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
                     const stem = pillars[pos].charAt(0);
                     return isOfficer(dayElement, getStemElement(stem));
                 });
-                if (!hasOfficerControl) adjusted *= 0.7;
+                if (!hasOfficerControl) {
+                    const before = adjusted;
+                    adjusted = adjusted * 0.7;
+                    details.push({ name: '比劫夺财无制', type: 'multiply', factor: 0.7, from: before, to: adjusted, note: '比劫≥2且财星≥1且无官杀制' });
+                }
             }
             
             // 伤官见官
@@ -9067,13 +9095,21 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
                 if (isShishang(dayElement, elem)) shiShangCount++;
                 if (isOfficer(dayElement, elem)) guanCount++;
             });
-            if (shiShangCount >= 1 && guanCount >= 1) adjusted *= 0.8;
+            if (shiShangCount >= 1 && guanCount >= 1) {
+                const before = adjusted;
+                adjusted = adjusted * 0.8;
+                details.push({ name: '伤官见官', type: 'multiply', factor: 0.8, from: before, to: adjusted });
+            }
             
             // 全局无财库，封顶
             const hasWealthVault = ['year', 'month', 'day', 'hour'].some(pos => ['辰', '戌', '丑', '未'].includes(pillars[pos].charAt(1)));
-            if (!hasWealthVault && adjusted > 80) adjusted = Math.min(adjusted, 80);
+            if (!hasWealthVault && adjusted > 80) {
+                const before = adjusted;
+                adjusted = Math.min(adjusted, 80);
+                details.push({ name: '全局无财库封顶', type: 'cap', from: before, to: adjusted });
+            }
             
-            return Math.max(0, Math.round(adjusted));
+            return { adjustedScore: Math.max(0, Math.round(adjusted)), details };
         }
         
         // 获取财星
@@ -10858,6 +10894,12 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
                                              </div>
                                          </div>
                                          <div style="text-align: center;">
+                                             <div style="font-size: 0.9rem; color: #666;">否决前</div>
+                                             <div style="font-size: 1.1rem; font-weight: bold; color: #8e44ad;">
+                                                 ${Math.round(wealthLevel.details.beforeVetoScore || 0)} 分
+                                             </div>
+                                         </div>
+                                         <div style="text-align: center;">
                                              <div style="font-size: 0.9rem; color: #666;">最终得分</div>
                                              <div style="font-size: 1.3rem; font-weight: bold; color: var(--success-color);">
                                                  ${wealthLevel.score || 0} 分
@@ -10865,6 +10907,26 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
                                          </div>
                                      </div>
                                  </div>
+                                 ${Array.isArray(wealthLevel.details.vetoDetails) && wealthLevel.details.vetoDetails.length > 0 ? `
+                                 <div style="padding: 12px 12px 6px; background: rgba(231, 76, 60, 0.05); border-radius: 8px; border-left: 4px solid #e74c3c; margin-top: 10px;">
+                                     <div style="font-weight: bold; color: #e74c3c; margin-bottom: 6px;"><i class="fas fa-ban"></i> 传统否决条款</div>
+                                     ${wealthLevel.details.vetoDetails.map(item => {
+                                         if (item.type === 'multiply') {
+                                             return `<div style="color:#c0392b; font-size: 0.95rem; margin: 6px 0;">
+                                                 ${item.name} × ${item.factor}：${Math.round(item.from)} → ${Math.round(item.to)} 分
+                                             </div>`;
+                                         } else if (item.type === 'cap') {
+                                             return `<div style="color:#c0392b; font-size: 0.95rem; margin: 6px 0;">
+                                                 ${item.name} 封顶：${Math.round(item.from)} → ${Math.round(item.to)} 分
+                                             </div>`;
+                                         } else {
+                                             return `<div style="color:#c0392b; font-size: 0.95rem; margin: 6px 0;">
+                                                 ${item.name}：${Math.round(item.from)} → ${Math.round(item.to)} 分
+                                             </div>`;
+                                         }
+                                     }).join('')}
+                                 </div>
+                                 ` : ''}
                                  <p style="font-size: 0.9rem; color: #666; margin: 0; line-height: 1.5;">
                                      财富等级评分综合考虑八字中的财星配置、生财机制、库藏能力、流通状况等多个维度，结合传统命理与现代分析方法，为您提供专业的财运评估。
                                  </p>
@@ -11358,6 +11420,12 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
                                          </div>
                                      </div>
                                      <div style="text-align: center;">
+                                         <div style="font-size: 0.9rem; color: #666;">否决前</div>
+                                         <div style="font-size: 1.1rem; font-weight: bold; color: #8e44ad;">
+                                             ${Math.round(wealthScoreDetails.beforeVetoScore || 0)} 分
+                                         </div>
+                                     </div>
+                                     <div style="text-align: center;">
                                          <div style="font-size: 0.9rem; color: #666;">最终得分</div>
                                          <div style="font-size: 1.3rem; font-weight: bold; color: var(--success-color);">
                                              ${wealthScoreDetails.total || 0} 分
@@ -11365,6 +11433,26 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
                                      </div>
                                  </div>
                              </div>
+                             ${Array.isArray(wealthScoreDetails.vetoDetails) && wealthScoreDetails.vetoDetails.length > 0 ? `
+                             <div style="padding: 12px 12px 6px; background: rgba(231, 76, 60, 0.05); border-radius: 8px; border-left: 4px solid #e74c3c; margin-top: 10px;">
+                                 <div style="font-weight: bold; color: #e74c3c; margin-bottom: 6px;"><i class="fas fa-ban"></i> 传统否决条款</div>
+                                 ${wealthScoreDetails.vetoDetails.map(item => {
+                                     if (item.type === 'multiply') {
+                                         return `<div style="color:#c0392b; font-size: 0.95rem; margin: 6px 0;">
+                                             ${item.name} × ${item.factor}：${Math.round(item.from)} → ${Math.round(item.to)} 分
+                                         </div>`;
+                                     } else if (item.type === 'cap') {
+                                         return `<div style="color:#c0392b; font-size: 0.95rem; margin: 6px 0;">
+                                             ${item.name} 封顶：${Math.round(item.from)} → ${Math.round(item.to)} 分
+                                         </div>`;
+                                     } else {
+                                         return `<div style="color:#c0392b; font-size: 0.95rem; margin: 6px 0;">
+                                             ${item.name}：${Math.round(item.from)} → ${Math.round(item.to)} 分
+                                         </div>`;
+                                     }
+                                 }).join('')}
+                             </div>
+                             ` : ''}
                              <p style="font-size: 0.9rem; color: #666; margin: 0; line-height: 1.5;">
                                  财富等级评分综合考虑八字中的财星配置、生财机制、库藏能力、流通状况等多个维度，
                                  结合传统命理与现代分析方法，为您提供专业的财运评估。
