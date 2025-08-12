@@ -4412,9 +4412,19 @@ contentElement.classList.add('show');
         
         // 检查是否从格
         function checkFollowingPattern(dayElement, monthBranch, strengthRatio, supportStrength, weakenStrength, monthScore) {
-            // 从弱格判断：生扶力量小于等于5且克泄力量大于等于15（不包含月令负分）
-            if (supportStrength <= 5 && weakenStrength >= 15) {
-                console.log(`从弱格判断: 生扶力量${supportStrength} <= 5, 克泄力量${weakenStrength} >= 15`);
+            // 极弱直判从弱：生扶≈0 或 力量比例≤10%
+            if (supportStrength <= 1 || strengthRatio <= 0.10) {
+                console.log(`从弱格判断(极弱): 生扶力量${supportStrength} <= 1 或 比例${(strengthRatio * 100).toFixed(2)}% <= 10%`);
+                return {
+                    isFollowing: true,
+                    type: '从弱',
+                    description: '日主极弱，生扶力量几乎为零（或远低于克泄），命局以克泄日主的五行为用神，顺势而为，喜用财官。'
+                };
+            }
+            
+            // 从弱格判断：生扶≤5 且 克泄≥12（不包含月令负分）
+            if (supportStrength <= 5 && weakenStrength >= 12) {
+                console.log(`从弱格判断: 生扶力量${supportStrength} <= 5, 克泄力量${weakenStrength} >= 12`);
                 return {
                     isFollowing: true,
                     type: '从弱',
@@ -4437,9 +4447,9 @@ contentElement.classList.add('show');
             const supportElements = getSupportElements(dayElement);
             const weakenElements = getWeakenElements(dayElement);
             
-            // 从弱格：生扶力量小于等于5且克泄力量大于等于15
-            if (supportStrength <= 5 && weakenStrength >= 15) {
-                console.log(`从弱格判断: 生扶力量${supportStrength} <= 5, 克泄力量${weakenStrength} >= 15`);
+            // 兜底：生扶≤5 且 克泄≥12
+            if (supportStrength <= 5 && weakenStrength >= 12) {
+                console.log(`从弱格判断(兜底): 生扶力量${supportStrength} <= 5, 克泄力量${weakenStrength} >= 12`);
                 return {
                     isFollowing: true,
                     type: '从弱',
@@ -5086,9 +5096,17 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
                 
                 currentCombined.deduction = combinationDeduction;
                 
+                // 处理负数生扶力量的情况
+                if (supportStrength < 0) {
+                    // 如果生扶力量为负，将其归入克泄力量
+                    weakenStrength += Math.abs(supportStrength);
+                    supportStrength = 0;
+                }
+                
                 // 判断身强身弱
-                const strengthRatio = supportStrength / (supportStrength + weakenStrength);
-                const strengthPercentage = (strengthRatio - 0.5) * 100; // 转换为百分比，以50%为基准
+                const totalStrength = supportStrength + weakenStrength;
+                const strengthRatio = totalStrength > 0 ? supportStrength / totalStrength : 0;
+                const strengthPercentage = strengthRatio * 100; // 转换为百分比
                 
                 // 打印调试信息
                 console.log(`当前身强身弱计算 - 日主:${dayStem}(${dayElement}), 生扶力量:${supportStrength}, 克泄力量:${weakenStrength}, 比例:${(strengthRatio * 100).toFixed(2)}%, 月令得分:${monthScore}`);
@@ -5180,6 +5198,10 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
                 {branches: ['巳', '酉', '丑'], element: 'metal'}
             ];
             
+            // 使用Set来避免重复合化
+            const processedTianGan = new Set();
+            const processedDiZhi = new Set();
+            
             // 检查天干五合（流年大运可以与任意八字天干合化）
             for (let i = 0; i < allStems.length; i++) {
                 for (let j = i + 1; j < allStems.length; j++) {
@@ -5188,8 +5210,12 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
                     const pair1 = stem1 + stem2;
                     const pair2 = stem2 + stem1;
                     
-                    if (tianGanHeHua[pair1] || tianGanHeHua[pair2]) {
+                    // 创建唯一标识，按字母顺序排序避免重复
+                    const uniqueKey = [stem1, stem2].sort().join('');
+                    
+                    if ((tianGanHeHua[pair1] || tianGanHeHua[pair2]) && !processedTianGan.has(uniqueKey)) {
                         const hehuaElement = tianGanHeHua[pair1] || tianGanHeHua[pair2];
+                        processedTianGan.add(uniqueKey);
                         
                         // 检查地支通根（简化版）
                         let hasRoot = true; // 暂时简化，认为都有通根
@@ -5216,8 +5242,13 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
                     const pair1 = branch1 + branch2;
                     const pair2 = branch2 + branch1;
                     
-                    if (diZhiLiuHe[pair1] || diZhiLiuHe[pair2]) {
+                    // 创建唯一标识，按字母顺序排序避免重复
+                    const uniqueKey = [branch1, branch2].sort().join('');
+                    
+                    if ((diZhiLiuHe[pair1] || diZhiLiuHe[pair2]) && !processedDiZhi.has(uniqueKey)) {
                         const hehuaElement = diZhiLiuHe[pair1] || diZhiLiuHe[pair2];
+                        processedDiZhi.add(uniqueKey);
+                        
                         combined.diZhiLiuHe.push({
                             zhi1: branch1,
                             zhi2: branch2,
@@ -5251,6 +5282,16 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
                     });
                 }
             });
+            
+            // 若存在三合，则与其共享任意一个地支的六合不再单独计算（避免重复计入）
+            if (combined.diZhiSanHe.length > 0 && combined.diZhiLiuHe.length > 0) {
+                const sanHeBranchSet = new Set();
+                combined.diZhiSanHe.forEach(h => {
+                    const branches = (h.type || '').split('');
+                    branches.forEach(b => sanHeBranchSet.add(b));
+                });
+                combined.diZhiLiuHe = combined.diZhiLiuHe.filter(h => !sanHeBranchSet.has(h.zhi1) && !sanHeBranchSet.has(h.zhi2));
+            }
             
             return combined;
         }
