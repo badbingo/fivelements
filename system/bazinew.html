@@ -3884,6 +3884,22 @@ contentElement.classList.add('show');
             };
         }
         
+        // 全局地支藏干映射（供合化判断共用）
+        const BRANCH_ELEMENTS = {
+            '子': {main: 'water', hidden: ['癸']},
+            '丑': {main: 'earth', hidden: ['己', '癸', '辛']},
+            '寅': {main: 'wood', hidden: ['甲', '丙', '戊']},
+            '卯': {main: 'wood', hidden: ['乙']},
+            '辰': {main: 'earth', hidden: ['戊', '乙', '癸']},
+            '巳': {main: 'fire', hidden: ['丙', '庚', '戊']},
+            '午': {main: 'fire', hidden: ['丁', '己']},
+            '未': {main: 'earth', hidden: ['己', '丁', '乙']},
+            '申': {main: 'metal', hidden: ['庚', '壬', '戊']},
+            '酉': {main: 'metal', hidden: ['辛']},
+            '戌': {main: 'earth', hidden: ['戊', '辛', '丁']},
+            '亥': {main: 'water', hidden: ['壬', '甲']}
+        };
+
         // 检查合化情况
         function checkCombinations(dayStem, monthBranch, branches) {
             const combined = {
@@ -4034,6 +4050,9 @@ contentElement.classList.add('show');
                 }
             }
             
+            // 将函数暴露到全局作用域，供其他函数调用
+            window.checkHehuaSupport = checkHehuaSupport;
+            
             // 获取五行中文名称
             function getElementChinese(element) {
                 const elementNames = {
@@ -4063,7 +4082,7 @@ contentElement.classList.add('show');
                 stemCounts[stem] = (stemCounts[stem] || 0) + 1;
             });
             
-            // 检查相邻天干五合（按照专业规则：位置相邻且地支支持）
+            // 检查相邻天干五合（本命局专用：必须相邻且地支有根）
             for (let i = 0; i < allStems.length - 1; i++) {
                 const stem1 = allStems[i];
                 const stem2 = allStems[i + 1];
@@ -4098,12 +4117,25 @@ contentElement.classList.add('show');
                     hehuaConflicts.set(stem1, stem2);
                     hehuaConflicts.set(stem2, stem1);
                     
-                    // 检查地支是否支持合化
+                    // 本命局天干五合：检查地支通根（对应位置的地支藏干中是否包含两个合化天干）
+                    const branch1 = allBranches[i];
+                    const branch2 = allBranches[i + 1];
+                    const hasRoot1 = BRANCH_ELEMENTS[branch1]?.hidden?.includes(stem1) || false;
+                    const hasRoot2 = BRANCH_ELEMENTS[branch2]?.hidden?.includes(stem2) || false;
+                    const hasRoot = hasRoot1 || hasRoot2;
+                    
+                    // 检查地支是否支持合化（月令、季节等支持）
                     const isSupported = checkHehuaSupport(hehuaElement, allBranches, monthBranch);
                     
-                    // 如果有争合或妒合，合化力量分散，降低成功率
-                    let finalCanHehua = isSupported.canHehua;
-                    let finalReason = isSupported.reason;
+                    // 本命局要求更严格：必须有地支通根且季节支持
+                    let finalCanHehua = hasRoot && isSupported.canHehua;
+                    let finalReason = '';
+                    
+                    if (!hasRoot) {
+                        finalReason = `地支无通根：${branch1}不藏${stem1}且${branch2}不藏${stem2}`;
+                    } else if (!isSupported.canHehua) {
+                        finalReason = isSupported.reason;
+                    }
                     
                     if (hasConflict && finalCanHehua) {
                         finalCanHehua = false;
@@ -4117,12 +4149,14 @@ contentElement.classList.add('show');
                             element: hehuaElement,
                             positions: [i, i + 1],
                             isAdjacent: true,
+                            hasRoot: hasRoot,
+                            rootDetails: `${hasRoot1 ? branch1+'藏'+stem1 : ''}${hasRoot1 && hasRoot2 ? '、' : ''}${hasRoot2 ? branch2+'藏'+stem2 : ''}`,
                             supportType: isSupported.type,
                             supportDetails: isSupported.details,
                             hasConflict: hasConflict,
                             conflictType: hasConflict ? conflictType : null
                         });
-                        console.log(`发现相邻天干五合: ${stem1}${stem2} 合化为${hehuaElement}（${isSupported.type}）${hasConflict ? ' - ' + conflictType : ''}`);
+                        console.log(`本命局天干五合成功: ${stem1}${stem2} 合化为${hehuaElement}（相邻+通根：${hasRoot1 ? branch1+'藏'+stem1 : ''}${hasRoot1 && hasRoot2 ? '、' : ''}${hasRoot2 ? branch2+'藏'+stem2 : ''}）`);
                     } else {
                         // 只合不化，作为绊合处理
                         combined.tianGanWuHe.push({
@@ -4136,7 +4170,7 @@ contentElement.classList.add('show');
                             hasConflict: hasConflict,
                             conflictType: hasConflict ? conflictType : null
                         });
-                        console.log(`发现相邻天干绊合: ${stem1}${stem2} 只合不化（${finalReason}）`);
+                        console.log(`本命局天干绊合: ${stem1}${stem2} 只合不化（${finalReason}）`);
                     }
                 }
             }
@@ -5068,14 +5102,10 @@ const SCORE_RULES = {
 };
 let multiplier = SCORE_RULES[type];
 
-// 天干合化通根检查
-if(type === 'tianGanWuHe') {
-  const currentBranch = allBranches[comb.positions[0]];
-  const hiddenElements = BRANCH_ELEMENTS[currentBranch]?.hidden || [];
-  if(!hiddenElements.includes(comb.gan1) && !hiddenElements.includes(comb.gan2)) {
-    console.log(`天干${comb.gan1}${comb.gan2}合化无效：地支${currentBranch}无通根`);
-    return;
-  }
+// 天干合化：依据checkCurrentCombinations的通根判定
+if (type === 'tianGanWuHe' && typeof comb.hasRoot !== 'undefined' && !comb.hasRoot) {
+  console.log(`忽略天干合化：${comb.gan1}${comb.gan2} 无通根支持`);
+  return;
 }
 
 // 地支合化天干透出检查 - 如果天干透出合化后的五行，能量加倍
@@ -5156,6 +5186,7 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
                 return {
                     type: '计算失败',
                     ratio: 0.5,
+                    strengthPercentage: 50,
                     supportStrength: 0,
                     weakenStrength: 0,
                     description: '无法计算当前身强身弱，请检查数据。',
@@ -5202,7 +5233,7 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
             const processedTianGan = new Set();
             const processedDiZhi = new Set();
             
-            // 检查天干五合（流年大运可以与任意八字天干合化）
+            // 检查天干五合（流年/大运：不要求相邻，但必须地支有根）
             for (let i = 0; i < allStems.length; i++) {
                 for (let j = i + 1; j < allStems.length; j++) {
                     const stem1 = allStems[i];
@@ -5217,18 +5248,54 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
                         const hehuaElement = tianGanHeHua[pair1] || tianGanHeHua[pair2];
                         processedTianGan.add(uniqueKey);
                         
-                        // 检查地支通根（简化版）
-                        let hasRoot = true; // 暂时简化，认为都有通根
+                        // 检查是否涉及流年或大运（天干五合新机制）
+                        const involvesYearOrDayun = (stem1 === yearStem || stem2 === yearStem || 
+                                                    stem1 === dayunStem || stem2 === dayunStem);
                         
-                        if (hasRoot) {
-                            combined.tianGanWuHe.push({
-                                gan1: stem1,
-                                gan2: stem2,
-                                element: hehuaElement,
-                                positions: [i, j],
-                                isCurrentYear: (stem1 === yearStem || stem2 === yearStem),
-                                isCurrentDayun: (stem1 === dayunStem || stem2 === dayunStem)
-                            });
+                        if (involvesYearOrDayun) {
+                            // 流年/大运天干五合：不要求相邻，但必须地支有根
+                            let hasRoot = false;
+                            let rootDetails = '';
+                            
+                            // 检查对应位置的地支是否有通根支持
+                            const branch1 = allBranches[i];
+                            const branch2 = allBranches[j];
+                            
+                            // 获取月令用于通根检查
+                            let currentMonthBranch = '';
+                            try {
+                                const pillars = window.currentPillars || {};
+                                currentMonthBranch = pillars.month ? pillars.month.charAt(1) : '';
+                            } catch (e) {
+                                console.log('获取月令失败，使用默认值');
+                                currentMonthBranch = '';
+                            }
+                            
+                            // 检查合化天干在对应地支中的通根支持
+                            const rootInfo = checkHehuaSupport(hehuaElement, [branch1, branch2], currentMonthBranch);
+                            hasRoot = rootInfo.canHehua;
+                            rootDetails = rootInfo.details || rootInfo.reason || '';
+                            
+                            if (hasRoot) {
+                                combined.tianGanWuHe.push({
+                                    gan1: stem1,
+                                    gan2: stem2,
+                                    element: hehuaElement,
+                                    positions: [i, j],
+                                    hasRoot: hasRoot,
+                                    rootDetails: rootDetails,
+                                    isCurrentYear: (stem1 === yearStem || stem2 === yearStem),
+                                    isCurrentDayun: (stem1 === dayunStem || stem2 === dayunStem),
+                                    type: '流年大运合化',
+                                    strengthType: rootInfo.type
+                                });
+                                console.log(`流年/大运天干五合成功：${stem1}${stem2}合化${hehuaElement}，通根支持：${rootDetails}，强度：${rootInfo.type}`);
+                            } else {
+                                console.log(`流年/大运天干五合失败：${stem1}${stem2}合化无效，原因：${rootDetails}`);
+                            }
+                        } else {
+                            // 本命局内部天干五合（已在其他地方处理，这里暂不处理）
+                            console.log(`本命局内部天干五合：${stem1}${stem2}，由本命局合化逻辑处理`);
                         }
                     }
                 }
