@@ -4015,11 +4015,11 @@ contentElement.classList.add('show');
                 description = '日主力量偏弱，需要生扶，宜守不宜攻，喜用印比。';
             }
             
-            // 特殊情况：如果月令得分为负且生扶力量不足，但不是从格，才强制判断为身弱
-            if (!isFollowing.isFollowing && monthScore < 0 && supportStrength <= weakenStrength) {
+            // 特殊情况：如果月令得分为负且生扶力量明显不足，但不是从格，才强制判断为身弱
+            if (!isFollowing.isFollowing && monthScore < 0 && supportStrength < weakenStrength * 0.8) {
                 type = '身弱';
-                description = '日主在月令失势，生扶力量不足，判断为身弱，喜用印比。';
-                console.log(`特殊修正：月令得分${monthScore}，生扶${supportStrength}<=克泄${weakenStrength}，强制判断为身弱`);
+                description = '日主在月令失势，生扶力量明显不足，判断为身弱，喜用印比。';
+                console.log(`特殊修正：月令得分${monthScore}，生扶${supportStrength}<克泄${weakenStrength}*0.8，强制判断为身弱`);
             }
             
             return {
@@ -5429,11 +5429,11 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
                     description = '加入当前大运和流年后，日主力量偏弱，需要生扶，宜守不宜攻，喜用印比。';
                 }
                 
-                // 特殊情况：如果月令得分为负且生扶力量不足，且不是从格，强制判断为身弱
-                if (monthScore < 0 && supportStrength <= weakenStrength && !isFollowing.isFollowing) {
+                // 特殊情况：如果月令得分为负且生扶力量明显不足，且不是从格，强制判断为身弱
+                if (monthScore < 0 && supportStrength < weakenStrength * 0.8 && !isFollowing.isFollowing) {
                     type = '身弱';
-                    description = '加入当前大运和流年后，日主在月令失势，生扶力量不足，判断为身弱，喜用印比。';
-                    console.log(`特殊修正（大运流年）：月令得分${monthScore}，生扶${supportStrength}<=克泄${weakenStrength}，强制判断为身弱`);
+                    description = '加入当前大运和流年后，日主在月令失势，生扶力量明显不足，判断为身弱，喜用印比。';
+                    console.log(`特殊修正（大运流年）：月令得分${monthScore}，生扶${supportStrength}<克泄${weakenStrength}*0.8，强制判断为身弱`);
                 }
                 
                 // 格局稳定性检查：防止身强身弱变化过大
