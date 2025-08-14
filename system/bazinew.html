@@ -3603,32 +3603,54 @@ contentElement.classList.add('show');
                 typeof hour === 'string' ? hour : String(hour)
             ];
             
-            // 计算天干地支
-            const pillarWeights = [1.0, 1.2, 1.0, 0.8]; // 年月日时的权重
+            // 按照传统八字理论调整权重分配
+            // 月令占33%，其他柱位按传统权重分配
+            const pillarWeights = {
+                stem: [1.0, 2.0, 1.2, 0.8], // 年月日时天干权重，月干加强
+                branch: [0.8, 3.0, 1.0, 0.6] // 年月日时地支权重，月支大幅加强（月令）
+            };
+            
             pillars.forEach((pillar, index) => {
                 if (pillar && pillar.length >= 2) {
                     const stem = pillar.charAt(0);
                     const branch = pillar.charAt(1);
-                    const weight = pillarWeights[index];
                     
-                    if (elementMap[stem]) elements[elementMap[stem]] += 2 * weight; // 天干权重2，乘以柱位权重
-                    if (elementMap[branch]) elements[elementMap[branch]] += 1 * weight; // 地支权重1，乘以柱位权重
+                    if (elementMap[stem]) {
+                        elements[elementMap[stem]] += pillarWeights.stem[index];
+                    }
+                    if (elementMap[branch]) {
+                        elements[elementMap[branch]] += pillarWeights.branch[index];
+                    }
                 }
             });
             
-            // 计算藏干
-            const hiddenStemWeights = [0.5, 0.6, 0.5, 0.4]; // 年月日时藏干的权重
+            // 计算藏干，月令藏干权重加强
+            const hiddenStemWeights = [0.3, 1.5, 0.4, 0.2]; // 年月日时藏干权重，月令藏干加强
             Object.entries(hiddenStems).forEach(([pillar, stems], index) => {
-                stems.forEach(stem => {
+                stems.forEach((stem, stemIndex) => {
                     if (elementMap[stem]) {
-                        const weight = hiddenStemWeights[index];
-                        elements[elementMap[stem]] += 0.5 * weight; // 藏干权重0.5，乘以柱位权重
+                        let weight = hiddenStemWeights[index];
+                        // 月令主气权重最高，中气次之，余气最低
+                        if (index === 1) { // 月令
+                            if (stemIndex === 0) weight *= 1.0; // 主气
+                            else if (stemIndex === 1) weight *= 0.6; // 中气
+                            else weight *= 0.3; // 余气
+                        }
+                        elements[elementMap[stem]] += weight;
                     }
                 });
             });
             
+            // 计算总分并验证月令权重
+            const total = Object.values(elements).reduce((sum, val) => sum + val, 0);
+            const monthBranchElement = elementMap[pillars[1].charAt(1)];
+            const monthElementTotal = elements[monthBranchElement];
+            const monthPercentage = ((monthElementTotal / total) * 100).toFixed(1);
+            
             // 打印调试信息
             console.log('五行分布计算结果:', elements);
+            console.log(`总分: ${total.toFixed(2)}`);
+            console.log(`月令五行(${pillars[1].charAt(1)}-${monthBranchElement}): ${monthElementTotal.toFixed(2)}, 占比: ${monthPercentage}%`);
             
             return elements;
         }
@@ -3748,6 +3770,8 @@ contentElement.classList.add('show');
                 weakenStrength += elements[element];
             });
             
+            console.log(`初始计算 - 生扶力量:${supportStrength}, 克泄力量:${weakenStrength}`);
+            
             // 统一处理所有合化的加减分
             let combinationSupportStrength = 0; // 合化增强的力量
             let combinationWeakenStrength = 0;  // 合化削弱的力量
@@ -3861,15 +3885,22 @@ contentElement.classList.add('show');
             if (isFollowing.isFollowing) {
                 type = isFollowing.type;
                 description = isFollowing.description;
-            } else if (strengthRatio >= 0.60) { // 调整阈值，使身强判断更准确
+            } else if (strengthRatio >= 0.65) { // 提高身强判断阈值，更严格
                 type = '身强';
                 description = '日主力量强旺，能够承担财官，适合主动出击，喜用财官。';
-            } else if (strengthRatio >= 0.40 && strengthRatio < 0.60) { // 调整均衡范围
+            } else if (strengthRatio >= 0.45 && strengthRatio < 0.65) { // 调整均衡范围
                 type = '均衡';
                 description = '日主力量适中，五行较为平衡，运势平稳，喜用印比。';
             } else {
                 type = '身弱';
                 description = '日主力量偏弱，需要生扶，宜守不宜攻，喜用印比。';
+            }
+            
+            // 特殊情况：如果月令得分为负且生扶力量不足，但不是从格，才强制判断为身弱
+            if (!isFollowing.isFollowing && monthScore < 0 && supportStrength <= weakenStrength) {
+                type = '身弱';
+                description = '日主在月令失势，生扶力量不足，判断为身弱，喜用印比。';
+                console.log(`特殊修正：月令得分${monthScore}，生扶${supportStrength}<=克泄${weakenStrength}，强制判断为身弱`);
             }
             
             return {
@@ -4076,11 +4107,15 @@ contentElement.classList.add('show');
             // 检查争合和妒合情况
             const hehuaConflicts = new Map(); // 记录每个天干的合化对象
             const stemCounts = {}; // 统计每个天干出现次数
+            const processedPairs = new Set(); // 记录已处理的合化对，避免重复计算
             
             // 统计天干出现次数（用于检查妒合）
             allStems.forEach(stem => {
                 stemCounts[stem] = (stemCounts[stem] || 0) + 1;
             });
+            
+            console.log('天干统计:', stemCounts);
+            console.log('天干序列:', allStems);
             
             // 检查相邻天干五合（本命局专用：必须相邻且地支有根）
             for (let i = 0; i < allStems.length - 1; i++) {
@@ -4088,6 +4123,7 @@ contentElement.classList.add('show');
                 const stem2 = allStems[i + 1];
                 const pair1 = stem1 + stem2;
                 const pair2 = stem2 + stem1;
+                const pairKey = [stem1, stem2].sort().join(''); // 标准化的配对键
                 
                 if (tianGanHeHua[pair1] || tianGanHeHua[pair2]) {
                     const hehuaElement = tianGanHeHua[pair1] || tianGanHeHua[pair2];
@@ -4111,7 +4147,15 @@ contentElement.classList.add('show');
                         hasConflict = true;
                         const repeatStem = stemCounts[stem1] > 1 ? stem1 : stem2;
                         conflictType = `妒合：${repeatStem}重复出现${stemCounts[repeatStem]}次争合`;
+                        console.log(`发现妒合：${repeatStem}重复${stemCounts[repeatStem]}次`);
                     }
+                    
+                    // 如果已经处理过这个配对，跳过（避免重复计算争合）
+                    if (processedPairs.has(pairKey)) {
+                        console.log(`跳过重复配对：${stem1}${stem2}`);
+                        continue;
+                    }
+                    processedPairs.add(pairKey);
                     
                     // 记录合化关系
                     hehuaConflicts.set(stem1, stem2);
@@ -4127,19 +4171,17 @@ contentElement.classList.add('show');
                     // 检查地支是否支持合化（月令、季节等支持）
                     const isSupported = checkHehuaSupport(hehuaElement, allBranches, monthBranch);
                     
-                    // 本命局要求更严格：必须有地支通根且季节支持
-                    let finalCanHehua = hasRoot && isSupported.canHehua;
+                    // 本命局要求更严格：必须有地支通根且季节支持，且无争合妒合
+                    let finalCanHehua = hasRoot && isSupported.canHehua && !hasConflict;
                     let finalReason = '';
                     
-                    if (!hasRoot) {
+                    if (hasConflict) {
+                        finalReason = conflictType + '，合化失败';
+                        console.log(`合化失败：${stem1}${stem2} - ${conflictType}`);
+                    } else if (!hasRoot) {
                         finalReason = `地支无通根：${branch1}不藏${stem1}且${branch2}不藏${stem2}`;
                     } else if (!isSupported.canHehua) {
                         finalReason = isSupported.reason;
-                    }
-                    
-                    if (hasConflict && finalCanHehua) {
-                        finalCanHehua = false;
-                        finalReason = conflictType + '，合化力量分散';
                     }
                     
                     if (finalCanHehua) {
@@ -4446,23 +4488,23 @@ contentElement.classList.add('show');
         
         // 检查是否从格
         function checkFollowingPattern(dayElement, monthBranch, strengthRatio, supportStrength, weakenStrength, monthScore) {
-            // 极弱直判从弱：生扶≈0 或 力量比例≤10%
-            if (supportStrength <= 1 || strengthRatio <= 0.10) {
-                console.log(`从弱格判断(极弱): 生扶力量${supportStrength} <= 1 或 比例${(strengthRatio * 100).toFixed(2)}% <= 10%`);
-                return {
-                    isFollowing: true,
-                    type: '从弱',
-                    description: '日主极弱，生扶力量几乎为零（或远低于克泄），命局以克泄日主的五行为用神，顺势而为，喜用财官。'
-                };
-            }
-            
-            // 从弱格判断：生扶≤5 且 克泄≥12（不包含月令负分）
-            if (supportStrength <= 5 && weakenStrength >= 12) {
-                console.log(`从弱格判断: 生扶力量${supportStrength} <= 5, 克泄力量${weakenStrength} >= 12`);
+            // 从弱格判断：力量比例≤25% 且 生扶力量很少
+            if (strengthRatio <= 0.25 && supportStrength <= 12) {
+                console.log(`从弱格判断: 比例${(strengthRatio * 100).toFixed(2)}% <= 25%, 生扶力量${supportStrength} <= 12`);
                 return {
                     isFollowing: true,
                     type: '从弱',
                     description: '日主极弱，生扶力量不足，命局以克泄日主的五行为用神，顺势而为，喜用财官。'
+                };
+            }
+            
+            // 极弱直判从弱：生扶≤3 或 力量比例≤12%
+            if (supportStrength <= 3 || strengthRatio <= 0.12) {
+                console.log(`从弱格判断(极弱): 生扶力量${supportStrength} <= 3 或 比例${(strengthRatio * 100).toFixed(2)}% <= 12%`);
+                return {
+                    isFollowing: true,
+                    type: '从弱',
+                    description: '日主极弱，生扶力量几乎为零（或远低于克泄），命局以克泄日主的五行为用神，顺势而为，喜用财官。'
                 };
             }
             const branchElementMap = {
@@ -4481,19 +4523,9 @@ contentElement.classList.add('show');
             const supportElements = getSupportElements(dayElement);
             const weakenElements = getWeakenElements(dayElement);
             
-            // 兜底：生扶≤5 且 克泄≥12
-            if (supportStrength <= 5 && weakenStrength >= 12) {
-                console.log(`从弱格判断(兜底): 生扶力量${supportStrength} <= 5, 克泄力量${weakenStrength} >= 12`);
-                return {
-                    isFollowing: true,
-                    type: '从弱',
-                    description: '日主极弱，生扶力量不足，命局以克泄日主的五行为用神，顺势而为，喜用财官。'
-                };
-            }
-            
-            // 传统从弱格判断（作为备用）
-            if (strengthRatio < 0.3 && weakenElements.includes(monthElement)) {
-                console.log(`传统从弱格判断: 比例${(strengthRatio * 100).toFixed(2)}% < 30%, 月令克泄日主`);
+            // 传统从弱格判断：比例≤30% 且 月令克泄日主
+            if (strengthRatio <= 0.30 && weakenElements.includes(monthElement)) {
+                console.log(`传统从弱格判断: 比例${(strengthRatio * 100).toFixed(2)}% <= 30%, 月令克泄日主`);
                 return {
                     isFollowing: true,
                     type: '从弱',
@@ -4501,9 +4533,19 @@ contentElement.classList.add('show');
                 };
             }
             
+            // 兜底从弱格判断：生扶≤10 且 克泄≥12
+            if (supportStrength <= 10 && weakenStrength >= 12) {
+                console.log(`从弱格判断(兜底): 生扶力量${supportStrength} <= 10, 克泄力量${weakenStrength} >= 12`);
+                return {
+                    isFollowing: true,
+                    type: '从弱',
+                    description: '日主极弱，生扶力量不足，命局以克泄日主的五行为用神，顺势而为，喜用财官。'
+                };
+            }
+            
             // 从强格：身强而用生扶
-            if (strengthRatio > 0.7 && supportElements.includes(monthElement)) {
-                console.log(`从强格判断: 比例${(strengthRatio * 100).toFixed(2)}% > 70%, 月令生扶日主`);
+            if (strengthRatio >= 0.85 && supportElements.includes(monthElement)) {
+                console.log(`从强格判断: 比例${(strengthRatio * 100).toFixed(2)}% >= 85%, 月令生扶日主`);
                 return {
                     isFollowing: true,
                     type: '从强',
@@ -4976,9 +5018,11 @@ contentElement.classList.add('show');
                 }
                 
                 console.log(`当前流年: ${currentYear}年${currentYearGanZhi}, 当前大运: ${currentDayunStem}${currentDayunBranch}`);
+                console.log('原始五行分布:', elements);
                 
                 // 复制原始五行分布
                 const currentElements = { ...elements };
+                console.log('复制后的五行分布:', currentElements);
                 
                 // 获取天干地支对应的五行
                 const stemElementMap = {
@@ -5033,6 +5077,10 @@ contentElement.classList.add('show');
                     currentElements[dayunBranchElement] += 1.8; // 大运地支权重
                 }
                 
+                console.log('加入大运流年后的五行分布:', currentElements);
+                console.log(`流年干支: ${currentYearStem}(${yearStemElement}) ${currentYearBranch}(${yearBranchElement})`);
+                console.log(`大运干支: ${currentDayunStem}(${dayunStemElement}) ${currentDayunBranch}(${dayunBranchElement})`);
+                
                 // 获取所有干支用于合化检查
                 const allStems = [];
                 const allBranches = [];
@@ -5075,16 +5123,26 @@ contentElement.classList.add('show');
                 const supportElements = getSupportElements(dayElement);
                 const weakenElements = getWeakenElements(dayElement);
                 
+                console.log(`当前运势计算 - 日主:${dayStem}(${dayElement})`);
+                console.log('生扶五行:', supportElements);
+                console.log('克泄五行:', weakenElements);
+                
                 let supportStrength = 0;
                 let weakenStrength = 0;
                 
                 supportElements.forEach(element => {
-                    supportStrength += currentElements[element];
+                    const elementStrength = currentElements[element] || 0;
+                    supportStrength += elementStrength;
+                    console.log(`生扶五行 ${element}: ${elementStrength}`);
                 });
                 
                 weakenElements.forEach(element => {
-                    weakenStrength += currentElements[element];
+                    const elementStrength = currentElements[element] || 0;
+                    weakenStrength += elementStrength;
+                    console.log(`克泄五行 ${element}: ${elementStrength}`);
                 });
+                
+                console.log(`初始计算（当前运势） - 生扶力量:${supportStrength}, 克泄力量:${weakenStrength}`);
                 
                 // 处理合化影响
                 let combinationDeduction = 0;
@@ -5117,7 +5175,7 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
                                 supportStrength += multiplier;
                                 combinationDeduction += multiplier;
                             } else if (getWeakenElements(dayElement).includes(heElement)) {
-                                supportStrength -= multiplier;
+                                weakenStrength += multiplier;
                                 combinationDeduction -= multiplier;
                             }
                         });
@@ -5149,15 +5207,22 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
                 if (isFollowing.isFollowing) {
                     type = isFollowing.type;
                     description = '加入当前大运和流年后，' + isFollowing.description;
-                } else if (strengthRatio >= 0.60) {
+                } else if (strengthRatio >= 0.65) {
                     type = '身强';
                     description = '加入当前大运和流年后，日主力量强旺，能够承担财官，适合主动出击，喜用财官。';
-                } else if (strengthRatio >= 0.40 && strengthRatio < 0.60) {
+                } else if (strengthRatio >= 0.45 && strengthRatio < 0.65) {
                     type = '均衡';
                     description = '加入当前大运和流年后，日主力量适中，五行较为平衡，运势平稳，喜用印比。';
                 } else {
                     type = '身弱';
                     description = '加入当前大运和流年后，日主力量偏弱，需要生扶，宜守不宜攻，喜用印比。';
+                }
+                
+                // 特殊情况：如果月令得分为负且生扶力量不足，且不是从格，强制判断为身弱
+                if (monthScore < 0 && supportStrength <= weakenStrength && !isFollowing.isFollowing) {
+                    type = '身弱';
+                    description = '加入当前大运和流年后，日主在月令失势，生扶力量不足，判断为身弱，喜用印比。';
+                    console.log(`特殊修正（大运流年）：月令得分${monthScore}，生扶${supportStrength}<=克泄${weakenStrength}，强制判断为身弱`);
                 }
                 
                 // 获取当前大运信息用于显示
@@ -5628,38 +5693,39 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
                     hour: hourStr
                 };
                 
-                // 基础评分：使用新的专业评分算法（总计120分）
-                const seasonScore = calculateAdvancedSeasonScore(safePillars);
-                const balanceScore = calculateAdvancedBalanceScore(safePillars);
-                const patternScore = calculateAdvancedPatternScore(safePillars);
-                const godsScore = calculateAdvancedGodsScore(safePillars);
-                const combinationScore = calculateAdvancedCombinationScore(safePillars);
+                // 核心基础评分（总计70分）- 传统八字命理核心要素
+                const seasonScore = Math.round(calculateAdvancedSeasonScore(safePillars) * 0.67); // 20分
+                const balanceScore = Math.round(calculateAdvancedBalanceScore(safePillars) * 0.6);  // 15分
+                const patternScore = Math.round(calculateAdvancedPatternScore(safePillars) * 0.6);  // 15分
+                const godsScore = Math.round(calculateAdvancedGodsScore(safePillars) * 0.5);        // 10分
+                const combinationScore = Math.round(calculateAdvancedCombinationScore(safePillars) * 0.67); // 10分
                 
-                // 进阶与修正评分（总计60分）
-                const dayMasterStrength = calculateDayMasterStrengthScore(safePillars);
-                const usefulGodScore = calculateUsefulGodScore(safePillars);
-                const tabooGodControl = calculateTabooGodControlScore(safePillars);
-                const kongWangPenalty = calculateKongWangPenalty(safePillars);
-                const luckSupport = calculateLuckSupportScore(safePillars);
-                const dayunCoordination = calculateDayunCoordinationScore(safePillars);
+                // 辅助修正评分（总计20分）
+                const dayMasterStrength = Math.round(calculateDayMasterStrengthScore(safePillars) * 0.6); // 6分
+                const usefulGodScore = Math.round(calculateUsefulGodScore(safePillars) * 0.5);       // 6分
+                const tabooGodControl = Math.round(calculateTabooGodControlScore(safePillars) * 0.5); // 4分
+                const adjustmentScore = Math.round(calculateSeasonalAdjustmentScore(safePillars) * 0.5); // 4分
                 
-                // 格局与特效评分（总计30分）
-                const noblesSupport = calculateNoblesSupportScore(safePillars);
-                const specialPatternBonus = calculateSpecialPatternBonus(safePillars);
-                const levelBonus = calculateLevelBonus(safePillars);
+                // 运势与特殊加分（总计10分）
+                const luckSupport = Math.round(calculateLuckSupportScore(safePillars) * 0.3);       // 3分
+                const dayunCoordination = Math.round(calculateDayunCoordinationScore(safePillars) * 0.25); // 2分
+                const noblesSupport = Math.round(calculateNoblesSupportScore(safePillars) * 0.33);  // 2分
+                const levelBonus = Math.round(calculateLevelBonus(safePillars) * 0.2);              // 3分
                 
-                // 调候用神评分（单独计算）
-                const adjustmentScore = calculateSeasonalAdjustmentScore(safePillars);
+                // 特殊格局加分（可超出100分上限）
+                const specialPatternBonus = Math.round(calculateSpecialPatternBonus(safePillars) * 0.5); // 最高15分
+                
+                // 扣分项
+                const kongWangPenalty = Math.round(calculateKongWangPenalty(safePillars) * 0.33); // 最高5分扣除
                 
                 // 基础模块合计（用于“基础合计”展示：季节助力、五行平衡、格局结构、十神影响、组合刑冲、调候用神）
                 const baseModulesTotal = seasonScore + balanceScore + patternScore + godsScore + combinationScore + adjustmentScore;
                 // 取消固定基础分，保持为0
                 const baseScore = 0;
                 
-                const total = baseModulesTotal +
-                             dayMasterStrength + usefulGodScore + tabooGodControl - kongWangPenalty +
-                             luckSupport + dayunCoordination + noblesSupport + specialPatternBonus +
-                             levelBonus + baseScore;
+                const total = 10 + seasonScore + balanceScore + patternScore + godsScore + combinationScore +
+                             dayMasterStrength + usefulGodScore + tabooGodControl + adjustmentScore +
+                             luckSupport + dayunCoordination + noblesSupport + levelBonus + specialPatternBonus - kongWangPenalty;
                 
                 fateScoreDetails = {
                     seasonScore,
@@ -5677,11 +5743,13 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
                     noblesSupport,
                     specialPatternBonus,
                     levelBonus,
-                    // 基础合计展示为基础模块合计
-                    baseScore: baseModulesTotal,
+                    // 基础合计展示为核心模块合计
+                    baseScore: seasonScore + balanceScore + patternScore + godsScore + combinationScore,
                     total
                 };
-                fateScoreValue = Math.round(total);
+                
+                // 确保分数在合理范围内（10-120分）
+                fateScoreValue = Math.max(10, Math.min(120, Math.round(total)));
             }
             return fateScoreValue;
         }
@@ -6807,24 +6875,24 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
             return false;
         }
 
-        // 获取命运等级 - 适配去掉固定50分后的评分系统（约130-140分制），改为6星制，最高设定在150+
+        // 获取命运等级 - 适配新的120分满分制度，改为5星制
         function getFateLevel(score) {
-            if (score >= 150) return { name: "帝王之命 ★★★★★★", class: "emperor" };       // 150+：帝王之命（六星）
-            if (score >= 125) return { name: "天赐鸿运 ★★★★★☆", class: "excellent" };    // 125-149：天赐鸿运（五星）
-            if (score >= 105) return { name: "福星高照 ★★★★☆☆", class: "good" };        // 105-124：福星高照（四星）
-            if (score >= 85) return { name: "安常守分 ★★★☆☆☆", class: "average" };       // 85-104：安常守分（三星）
-            if (score >= 65) return { name: "勤能补拙 ★★☆☆☆☆", class: "struggling" };    // 65-84：勤能补拙（二星）
-            if (score >= 45) return { name: "力争上游 ★☆☆☆☆☆", class: "basic" };         // 45-64：力争上游（一星）
-            return { name: "逆水行舟 ☆☆☆☆☆☆", class: "needs-improvement" };            // <45：逆水行舟（零星）
+            if (score >= 100) return { name: "帝王之命 ★★★★★", class: "emperor" };       // 100+：帝王之命（五星）
+            if (score >= 80) return { name: "天赐鸿运 ★★★★☆", class: "excellent" };     // 80-99：天赐鸿运（四星）
+            if (score >= 60) return { name: "福星高照 ★★★☆☆", class: "good" };         // 60-79：福星高照（三星）
+            if (score >= 40) return { name: "安常守分 ★★☆☆☆", class: "average" };        // 40-59：安常守分（二星）
+            if (score >= 20) return { name: "勤能补拙 ★☆☆☆☆", class: "struggling" };     // 20-39：勤能补拙（一星）
+            return { name: "逆水行舟 ☆☆☆☆☆", class: "needs-improvement" };             // <20：逆水行舟（零星）
         }
 
         // 获取命格描述
         function getFateDescription(score) {
-            if (score >= 85) return '天赋异禀，福泽深厚，一生运势极佳';
-            if (score >= 70) return '聪明才智，运势较佳，发展前景良好';
-            if (score >= 50) return '资质良好，发展平稳，需要努力进取';
-            if (score >= 30) return '普通命格，需要勤奋努力方能成功';
-            return '命途坎坷，需要坚持不懈，逆境求生';
+            if (score >= 100) return '命格极佳，天赋卓越，一生富贵荣华，前程似锦';
+            if (score >= 80) return '天赋异禀，福泽深厚，运势极佳，发展顺遂';
+            if (score >= 60) return '聪明才智，运势较佳，发展前景良好，努力可成';
+            if (score >= 40) return '资质良好，发展平稳，需要努力进取，稳中求进';
+            if (score >= 20) return '普通命格，需要勤奋努力方能成功，持之以恒';
+            return '命途坎坷，需要坚持不懈，逆境求生，自强不息';
         }
 
 
@@ -6872,15 +6940,15 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
                     hour: hourStr
                 };
                 
-                // 进一步优化的专业八字财富算法
-                const shishangScore = calculateShishangEnergy(safePillars);         // 食伤生财 (15分)
-                const yinshouScore = calculateYinshouSupport(safePillars);          // 印绶护身 (8分)
-                const wealthStarScore = calculateWealthStarEnergy(safePillars);      // 财星能量 (12分)
-                const wealthPositionScore = calculateWealthPosition(safePillars);    // 财星位置 (8分)
+                // 优化的专业八字财富算法 - 调整权重分配
+                const wealthPositionScore = calculateWealthPosition(safePillars);    // 财星位置 (20分) - 最重要
+                const dayMasterCapacity = calculateDayMasterCapacity(safePillars);   // 日主承载力 (15分) - 身财平衡
+                const shishangScore = calculateShishangEnergy(safePillars);         // 食伤生财 (12分) - 生财之源
+                const wealthStarScore = calculateWealthStarEnergy(safePillars);      // 财星能量 (10分)
                 const wealthVaultScore = calculateWealthVault(safePillars);          // 财富库 (8分)
-                const dayMasterCapacity = calculateDayMasterCapacity(safePillars);   // 日主承载力 (10分)
-                const selfVaultScore = calculateSelfSittingVault(safePillars);       // 自坐财库 (8分)
-                const portalScore = calculateWealthPortal(safePillars);             // 财气通门户 (8分)
+                const yinshouScore = calculateYinshouSupport(safePillars);          // 印绶护身 (6分)
+                const selfVaultScore = calculateSelfSittingVault(safePillars);       // 自坐财库 (6分)
+                const portalScore = calculateWealthPortal(safePillars);             // 财气通门户 (5分)
                 const fromWealthScore = calculateFromWealthGrid(safePillars);        // 从财格 (0分，已废弃)
                 
                 // 基础分数
@@ -7021,11 +7089,11 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
              
              // 食伤生财组合 - 富贵之源
              if (shishangCount > 0 && wealthCount > 0) {
-                 score += 5; // 食伤生财组合奖励
+                 score += 4; // 食伤生财组合奖励
                  
                  // 身强食伤生财更佳
                  if (dayStrength >= 60) {
-                     score += 3; // 身强能驾驭食伤
+                     score += 2; // 身强能驾驭食伤
                  }
              }
              
@@ -7035,10 +7103,10 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
                  score += 2; // 伤官佩印格局
              }
              
-             return Math.min(15, Math.round(score));
+             return Math.min(12, Math.round(score)); // 调整上限到12分
          }
 
-        // 计算印绶支持 - 护身担财 (20分) - 优化版
+        // 计算印绶支持 - 护身担财 (6分) - 优化版
          function calculateYinshouSupport(pillars) {
              const dayElement = getStemElement(pillars.day.charAt(0));
              const dayStrength = calculateSimpleDayStrength(pillars);
@@ -7051,27 +7119,27 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
                  const stem = pillars[pos].charAt(0);
                  const branch = pillars[pos].slice(1);
                  if (isYinshou(dayElement, getStemElement(stem))) {
-                     score += (pos === 'month' ? 10 : 5); // 月令印星最重要
+                     score += (pos === 'month' ? 3 : 1); // 月令印星最重要
                      yinCount++;
                  }
                  if (isYinshou(dayElement, getBranchElement(branch))) {
-                     score += 3;
+                     score += 1;
                      yinCount++;
                  }
              });
              
              // 身弱财旺时印星的重要性
              if (dayStrength < 50 && wealthStrength > 60) {
-                 score += yinCount * 5; // 身弱财旺，印星护身
+                 score += yinCount * 1; // 身弱财旺，印星护身
              }
              
              // 印星化杀生身 - 贵格
              const officerCount = calculateOfficerPresence(pillars);
              if (yinCount >= 1 && officerCount >= 1) {
-                 score += 8; // 印星化杀，转危为安
+                 score += 2; // 印星化杀，转危为安
              }
              
-             return Math.min(8, score); // 降低上限到8分
+             return Math.min(6, score); // 调整上限到6分
          }
 
         // 计算财星能量 - 优化版（增加财星质量系数）
@@ -7106,7 +7174,7 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
              const flowFactor = calculateWealthFlow(pillars);
              totalEnergy *= flowFactor;
              
-             const score = Math.min(12, totalEnergy); // 降低上限到12分
+             const score = Math.min(10, totalEnergy); // 调整上限到10分
              return Math.max(0, Math.round(score));
          }
          
@@ -7760,7 +7828,7 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
             return isElementSupported(dayElement, wealthElement) || dayElement === wealthElement;
         }
 
-        // 计算财星位置分数 (20分) - 优化版
+        // 计算财星位置分数 (20分) - 专业命理优化版
         function calculateWealthPosition(pillars) {
             let score = 0;
             const dayStem = pillars.day.charAt(0);
@@ -7769,30 +7837,33 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
             const pianCai = getPianCai(dayStem);
             const wealthBranches = getWealthBranches(dayStem);
 
-            // 月令财星 - 财气通门户
-            if (pillars.month.charAt(0) === zhengCai || pillars.month.charAt(0) === pianCai) {
-                score += 12; // 月干见财
-            }
+            // 月令财星 - 财气通门户（最重要）
             if (wealthBranches.includes(pillars.month.charAt(1))) {
-                score += 15; // 月支见财，财气通门户
+                score += 8; // 月支见财，财气通门户，最重要
+            }
+            if (pillars.month.charAt(0) === zhengCai || pillars.month.charAt(0) === pianCai) {
+                score += 6; // 月干见财
             }
             
             // 时上偏财格 - 晚年富贵
             if (pillars.hour.charAt(0) === pianCai) {
-                score += 10; // 时上偏财，晚年发达
+                score += 5; // 时上偏财，晚年发达
             }
             
             // 日坐财星 - 配偶助财
             if (wealthBranches.includes(pillars.day.charAt(1))) {
-                score += 8; // 日支见财，配偶助财
+                score += 4; // 日支见财，配偶助财
                 if (dayStrength >= 60) {
-                    score += 5; // 身强坐财更佳
+                    score += 2; // 身强坐财更佳
                 }
             }
             
             // 年柱财星 - 祖业或早年财运
             if (pillars.year.charAt(0) === zhengCai || pillars.year.charAt(0) === pianCai) {
-                score += 6; // 年干见财
+                score += 3; // 年干见财
+            }
+            if (wealthBranches.includes(pillars.year.charAt(1))) {
+                score += 2; // 年支见财
             }
 
             return Math.min(20, score);
@@ -7877,14 +7948,14 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
             return Math.min(8, score); // 降低上限到8分
         }
         
-        // 计算自坐财库 (10分)
+        // 计算自坐财库 (6分)
         function calculateSelfSittingVault(pillars) {
             const dayElement = getStemElement(pillars.day.charAt(0));
             const dayBranch = pillars.day.charAt(1);
             const vaults = ['辰', '戌', '丑', '未'];
             const vaultElements = { '辰': '土', '戌': '土', '丑': '土', '未': '土' };
             if (vaults.includes(dayBranch) && isWealth(dayElement, vaultElements[dayBranch])) {
-                return 8; // 降低自坐财库分数
+                return 6; // 调整自坐财库分数
             }
             return 0;
         }
@@ -7900,27 +7971,27 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
             
             // 月令财星 - 财气通门户的核心
             if (wealthBranches.includes(monthBranch)) {
-                score += 15; // 月令见财，财气通门户
+                score += 3; // 月令见财，财气通门户
                 
                 // 身强配财星更佳
                 if (dayStrength >= 60) {
-                    score += 8; // 身强能胜财
+                    score += 1; // 身强能胜财
                 }
                 
                 // 有食伤生财更佳
                 const hasShishang = calculateShishangEnergy(pillars) > 0;
                 if (hasShishang) {
-                    score += 5; // 食伤生财，源源不断
+                    score += 1; // 食伤生财，源源不断
                 }
             }
             
             // 时柱见财星 - 晚年富贵
             const hourBranch = pillars.hour.charAt(1);
             if (wealthBranches.includes(hourBranch)) {
-                score += 8; // 时上见财，晚年富足
+                score += 2; // 时上见财，晚年富足
             }
             
-            return Math.min(8, score); // 降低上限到8分
+            return Math.min(5, score); // 调整上限到5分
         }
         
         // 计算从财格分数 - 已废弃，统一由identifySpecialPatterns处理
@@ -8569,26 +8640,26 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
                 capacityRatio = yinScore + biJieScore; // 无财星时直接用帮扶力量
             }
             
-            // 3. 最终承载力评分
-            let score = 10; // 基础分
+            // 3. 最终承载力评分 - 调整为15分制
+            let score = 5; // 基础分
             
             // 身强程度加分
             if (strengthPoints >= 3) {
-                score += 10; // 身强
+                score += 8; // 身强
             } else if (strengthPoints >= 2) {
-                score += 5; // 身中等
+                score += 4; // 身中等
             }
             
             // 承载系数调整
             if (capacityRatio > 1.5) {
-                score += 10; // 可担财
+                score += 6; // 可担财
             } else if (capacityRatio > 0.8) {
-                score += 5; // 正常承载
+                score += 3; // 正常承载
             } else if (wealthScore > 0) {
-                score -= 5; // 不担财时扣分
+                score -= 2; // 不担财时扣分
             }
             
-            return Math.max(0, Math.min(10, score)); // 降低上限到10分
+            return Math.max(0, Math.min(15, score)); // 调整上限到15分
         }
         
         // 获取支持日主的地支
@@ -9068,11 +9139,16 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
             // 来自identifySpecialPatterns的额外分数
             specialPatterns.forEach(pattern => {
                 if (pattern.bonus > 0) {
-                    bonus += Math.min(pattern.bonus, 10); // 限制单个格局最高10分
+                    // 从强格和从弱格允许更高加分，其他格局限制为10分
+                    if (pattern.name === '从强格' || pattern.name === '从弱格') {
+                        bonus += Math.min(pattern.bonus, 25); // 从格最高25分
+                    } else {
+                        bonus += Math.min(pattern.bonus, 10); // 其他格局最高10分
+                    }
                 }
             });
             
-            return Math.min(20, bonus);
+            return Math.min(30, bonus); // 提高上限以支持从格的高加分
         }
 
         // 计算命格层次加分 (0~15分)
@@ -9371,26 +9447,25 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
 
         // calculateWealthTimingScore函数已被新的财富潜力评分替代
 
-        // 获取财富等级 - 适配新评分系统（无上限但常见范围至150+），改为6星制，最高设定在150+
+        // 获取财富等级 - 改为5星制，适配120分满分制度
         function getWealthLevel(score) {
-            // 调整阈值：130分≈五星起，150+为六星
-            if (score >= 150) return { name: "超格富贵 ★★★★★★", class: "legendary-rich" };   // 150+：六星
-            if (score >= 130) return { name: "制度富贵 ★★★★★☆", class: "ultra-rich" };        // 130-149：五星
-            if (score >= 105) return { name: "技术致富 ★★★★☆☆", class: "very-rich" };          // 105-129：四星
-            if (score >= 85) return { name: "勤勉小富 ★★★☆☆☆", class: "moderately-rich" };     // 85-104：三星
-            if (score >= 65) return { name: "小康水平 ★★☆☆☆☆", class: "somewhat-rich" };       // 65-84：二星
-            if (score >= 45) return { name: "基本温饱 ★☆☆☆☆☆", class: "basic-wealth" };        // 45-64：一星
-            return { name: "平常级别 ☆☆☆☆☆☆", class: "wealth-average" };                     // <45：零星
+            // 调整为5星制，分数区间更合理
+            if (score >= 100) return { name: "超格富贵 ★★★★★", class: "legendary-rich" };   // 100+：五星
+            if (score >= 80) return { name: "制度富贵 ★★★★☆", class: "ultra-rich" };        // 80-99：四星
+            if (score >= 60) return { name: "技术致富 ★★★☆☆", class: "very-rich" };          // 60-79：三星
+            if (score >= 40) return { name: "勤勉小富 ★★☆☆☆", class: "moderately-rich" };     // 40-59：二星
+            if (score >= 20) return { name: "小康水平 ★☆☆☆☆", class: "somewhat-rich" };       // 20-39：一星
+            return { name: "平常级别 ☆☆☆☆☆", class: "wealth-average" };                     // <20：零星
         }
 
-        // 获取财富描述 - 基于优化后的专业命理理论
+        // 获取财富描述 - 基于优化后的专业命理理论，适配5星制
         function getWealthDescription(score) {
-            if (score >= 130) return '超格富贵命局，财星格局完美，十神配合得当，具备顶级富豪潜质，财富可达十亿级以上，适合大型产业投资或金融运作';
-            if (score >= 105) return '制度富贵之命，财星旺盛且有利，格局上乘，日主有力承载，具备亿级富豪潜质，适合大型企业经营或高端投资';
-            if (score >= 80) return '技术致富格局，财星强劲配合得当，善于创新发展，可通过专业技能或科技创业达到数千万级资产';
-            if (score >= 60) return '勤勉小富之命，财星中等但稳定，格局平衡，通过持续努力可积累数百万至千万级财富，适合稳健经营';
-            if (score >= 40) return '小康水平命局，财星尚可，需要努力经营和理财规划，可达到百万级小康生活水平';
-            if (score >= 20) return '基本温饱之命，财运一般，需通过勤奋工作维持稳定生活，建议加强技能提升和理财意识';
+            if (score >= 100) return '超格富贵命局，财星格局完美，十神配合得当，具备顶级富豪潜质，财富可达亿级以上，适合大型产业投资或金融运作';
+            if (score >= 80) return '制度富贵之命，财星旺盛且有利，格局上乘，日主有力承载，具备千万级富豪潜质，适合大型企业经营或高端投资';
+            if (score >= 60) return '技术致富格局，财星强劲配合得当，善于创新发展，可通过专业技能或科技创业达到数百万级资产';
+            if (score >= 40) return '勤勉小富之命，财星中等但稳定，格局平衡，通过持续努力可积累百万级财富，适合稳健经营';
+            if (score >= 20) return '小康水平命局，财星尚可，需要努力经营和理财规划，可达到小康生活水平';
+            if (score >= 10) return '基本温饱之命，财运一般，需通过勤奋工作维持稳定生活，建议加强技能提升和理财意识';
             return '财运平常，需注重开源节流，逐步改善财务状况，避免高风险投资，以稳为主';
         }
 
@@ -10602,7 +10677,14 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
                         <h5 style="color: #3498db; margin-top: 0; font-size: 16px;"><i class="fas fa-link"></i> 合化信息</h5>
                         ${strengthAnalysis.combined.tianGanWuHe.length > 0 ? 
                             `<div style="margin-bottom: 10px;">
-                                <p><strong>天干五合:</strong> ${strengthAnalysis.combined.tianGanWuHe.map(h => `${h.gan1}${h.gan2}合${h.element === 'wood' ? '木' : h.element === 'fire' ? '火' : h.element === 'earth' ? '土' : h.element === 'metal' ? '金' : '水'}`).join('、')}</p>
+                                <p><strong>天干五合:</strong> ${strengthAnalysis.combined.tianGanWuHe.map(h => {
+                                    const elementName = h.element === 'wood' ? '木' : h.element === 'fire' ? '火' : h.element === 'earth' ? '土' : h.element === 'metal' ? '金' : '水';
+                                    if (h.onlyBind) {
+                                        return `${h.gan1}${h.gan2}绊合(${h.bindReason || '只合不化'})`;
+                                    } else {
+                                        return `${h.gan1}${h.gan2}合${elementName}`;
+                                    }
+                                }).join('、')}</p>
                             </div>` : ''}
                         ${strengthAnalysis.combined.diZhiLiuHe.length > 0 ? 
                             `<div style="margin-bottom: 10px;">
