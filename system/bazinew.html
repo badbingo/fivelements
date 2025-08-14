@@ -3653,9 +3653,46 @@ contentElement.classList.add('show');
                 });
             });
             
+            // 确保月令五行占33%的比例
+            const monthBranchElement = elementMap[pillars[1].charAt(1)];
+            if (monthBranchElement) {
+                const currentTotal = Object.values(elements).reduce((sum, val) => sum + val, 0);
+                const currentMonthRatio = elements[monthBranchElement] / currentTotal;
+                
+                // 如果月令占比不是33%，则调整权重
+                if (Math.abs(currentMonthRatio - 0.33) > 0.01) {
+                    const targetMonthValue = currentTotal * 0.33 / (1 - 0.33); // 目标月令值
+                    const adjustmentFactor = targetMonthValue / elements[monthBranchElement];
+                    
+                    // 重新计算，确保月令占33%
+                    const tempElements = { wood: 0, fire: 0, earth: 0, metal: 0, water: 0 };
+                    
+                    // 先计算非月令五行的总和
+                    let nonMonthTotal = 0;
+                    Object.keys(elements).forEach(element => {
+                        if (element !== monthBranchElement) {
+                            tempElements[element] = elements[element];
+                            nonMonthTotal += elements[element];
+                        }
+                    });
+                    
+                    // 月令五行设为总和的33%，其他五行按比例调整为67%
+                    const finalTotal = nonMonthTotal / 0.67;
+                    tempElements[monthBranchElement] = finalTotal * 0.33;
+                    
+                    Object.keys(tempElements).forEach(element => {
+                        if (element !== monthBranchElement) {
+                            tempElements[element] = tempElements[element] * 0.67 / nonMonthTotal * finalTotal;
+                        }
+                    });
+                    
+                    // 更新elements
+                    Object.assign(elements, tempElements);
+                }
+            }
+            
             // 计算总分并验证月令权重
             const total = Object.values(elements).reduce((sum, val) => sum + val, 0);
-            const monthBranchElement = elementMap[pillars[1].charAt(1)];
             const monthElementTotal = elements[monthBranchElement];
             const monthPercentage = ((monthElementTotal / total) * 100).toFixed(1);
             
