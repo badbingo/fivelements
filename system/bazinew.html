@@ -10221,6 +10221,11 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
             const strongest = Object.keys(elements).reduce((a, b) => elements[a] > elements[b] ? a : b);
             const weakest = Object.keys(elements).reduce((a, b) => elements[a] < elements[b] ? a : b);
             
+            // 获取第二强和第二弱的五行
+            const sortedElements = Object.entries(elements).sort((a, b) => b[1] - a[1]);
+            const secondStrongest = sortedElements[1][0];
+            const secondWeakest = sortedElements[3][0];
+            
             const elementNames = {
                 wood: '木', fire: '火', earth: '土', metal: '金', water: '水'
             };
@@ -10304,11 +10309,6 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
             else if (balancePercentage >= 70) balanceLevel = '良好';
             else if (balancePercentage >= 50) balanceLevel = '一般';
             else balanceLevel = '失衡';
-            
-            // 获取第二强和第二弱的五行
-            const sortedElements = Object.entries(elements).sort((a, b) => b[1] - a[1]);
-            const secondStrongest = sortedElements[1][0];
-            const secondWeakest = sortedElements[3][0];
             
             // 显示原命局五行分布概览
             originalSummary.innerHTML = `
