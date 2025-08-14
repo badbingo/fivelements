@@ -109,6 +109,9 @@ class EarthTransformationCalculator {
             branch: branch,
             position: position,
             hasTransformation: false,
+            originalElement: 'earth',
+            newElement: null,
+            transformationType: null,
             waterSources: [],
             reductionRate: 0,
             waterIncrease: 0,
@@ -161,14 +164,20 @@ class EarthTransformationCalculator {
             if (waterInfluence >= 1.5) {
                 result.reductionRate = 0.7; // 土力减弱70%
                 result.waterIncrease = 0.5; // 增加50%水力
+                result.newElement = 'water';
+                result.transformationType = 'strong';
                 result.reason = `${branch}土受强水影响，土性大幅减弱，偏向水性`;
             } else if (waterInfluence >= 1.0) {
                 result.reductionRate = 0.5; // 土力减弱50%
                 result.waterIncrease = 0.3; // 增加30%水力
+                result.newElement = 'water';
+                result.transformationType = 'medium';
                 result.reason = `${branch}土受中等水影响，土性减弱，略偏水性`;
             } else {
                 result.reductionRate = 0.3; // 土力减弱30%
                 result.waterIncrease = 0.2; // 增加20%水力
+                result.newElement = null;
+                result.transformationType = 'weakened';
                 result.reason = `${branch}土受轻微水影响，土性略有减弱`;
             }
         }
