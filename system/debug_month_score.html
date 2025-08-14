@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>月令得分调试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-case {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .result {
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #e8f5e8;
+            border-left: 4px solid #4caf50;
+        }
+        .debug-info {
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>月令得分调试工具</h1>
+        
+        <div class="test-case">
+            <h3>测试案例：壬子 癸丑 己巳 癸酉</h3>
+            <button onclick="testMonthScore()">测试月令得分计算</button>
+            <div id="result"></div>
+            <div id="debug-info"></div>
+        </div>
+    </div>
+
+    <script src="earth_transformation_calculator.js"></script>
+    <script>
+        // 五行映射
+        const stemElementMap = {
+            '甲': 'wood', '乙': 'wood',
+            '丙': 'fire', '丁': 'fire',
+            '戊': 'earth', '己': 'earth',
+            '庚': 'metal', '辛': 'metal',
+            '壬': 'water', '癸': 'water'
+        };
+        
+        const branchElementMap = {
+            '子': 'water', '丑': 'earth', '寅': 'wood', '卯': 'wood',
+            '辰': 'earth', '巳': 'fire', '午': 'fire', '未': 'earth',
+            '申': 'metal', '酉': 'metal', '戌': 'earth', '亥': 'water'
+        };
+
+        // 简化的月令得分计算函数
+        function getMonthStrength(dayElement, monthBranch) {
+            const monthElement = branchElementMap[monthBranch];
+            
+            // 基础得分逻辑
+            if (monthElement === dayElement) {
+                return 40; // 得令
+            } else if ((dayElement === 'wood' && monthElement === 'water') ||
+                      (dayElement === 'fire' && monthElement === 'wood') ||
+                      (dayElement === 'earth' && monthElement === 'fire') ||
+                      (dayElement === 'metal' && monthElement === 'earth') ||
+                      (dayElement === 'water' && monthElement === 'metal')) {
+                return 20; // 得生
+            } else {
+                return -10; // 不得令或被克
+            }
+        }
+
+        function testMonthScore() {
+            const resultDiv = document.getElementById('result');
+            const debugDiv = document.getElementById('debug-info');
+            
+            // 清空之前的结果
+            resultDiv.innerHTML = '';
+            debugDiv.innerHTML = '';
+            
+            // 测试八字：壬子 癸丑 己巳 癸酉
+            const stems = ['壬', '癸', '己', '癸'];
+            const branches = ['子', '丑', '巳', '酉'];
+            const dayStem = '己';
+            const monthBranch = '丑';
+            
+            let debugInfo = [];
+            debugInfo.push('=== 月令得分计算调试 ===');
+            debugInfo.push(`八字：${stems.join(' ')} ${branches.join(' ')}`);
+            debugInfo.push(`日主：${dayStem} (${stemElementMap[dayStem]})`);
+            debugInfo.push(`月支：${monthBranch} (${branchElementMap[monthBranch]})`);
+            
+            // 1. 计算原始月令得分
+            let monthScore = getMonthStrength(stemElementMap[dayStem], monthBranch);
+            debugInfo.push(`原始月令得分：${monthScore}`);
+            
+            // 2. 进行土性变化分析
+            const earthCalculator = new EarthTransformationCalculator();
+            const earthTransformationResult = earthCalculator.analyzeEarthTransformation(stems, branches);
+            
+            debugInfo.push('\n=== 土性变化分析 ===');
+            debugInfo.push(`是否有土性变化：${earthTransformationResult.hasAnyTransformation}`);
+            
+            if (earthTransformationResult.hasAnyTransformation) {
+                earthTransformationResult.transformations.forEach((t, index) => {
+                    debugInfo.push(`变化${index + 1}：${t.branch} - ${t.transformationType}`);
+                    debugInfo.push(`  原因：${t.reason}`);
+                    debugInfo.push(`  原始元素：${t.originalElement || '未设置'}`);
+                    debugInfo.push(`  新元素：${t.newElement}`);
+                });
+                
+                // 3. 检查月令是否发生土性变化
+                const monthBranchTransformation = earthTransformationResult.transformations.find(t => t.branch === monthBranch);
+                
+                if (monthBranchTransformation) {
+                    debugInfo.push('\n=== 月令土性变化影响 ===');
+                    debugInfo.push(`月支 ${monthBranch} 发生土性变化`);
+                    debugInfo.push(`变化类型：${monthBranchTransformation.transformationType}`);
+                    debugInfo.push(`原始元素：${monthBranchTransformation.originalElement}`);
+                    debugInfo.push(`新元素：${monthBranchTransformation.newElement}`);
+                    
+                    // 4. 应用月令得分调整
+                    if (monthBranchTransformation.originalElement === 'earth') {
+                        const originalScore = monthScore;
+                        
+                        if (monthBranchTransformation.newElement === 'water') {
+                            if (stemElementMap[dayStem] === 'earth') {
+                                monthScore = -10;
+                                debugInfo.push(`湿土转水性，对土日主完全失去生扶变为克制：${originalScore} -> ${monthScore}`);
+                            }
+                        }
+                    } else {
+                        debugInfo.push('月令原始元素不是土，不进行调整');
+                    }
+                } else {
+                    debugInfo.push('\n月令未发生土性变化');
+                }
+            }
+            
+            // 显示结果
+            resultDiv.innerHTML = `
+                <div class="result">
+                    <h4>计算结果</h4>
+                    <p><strong>最终月令得分：${monthScore}</strong></p>
+                    <p>土性变化：${earthTransformationResult.hasAnyTransformation ? '是' : '否'}</p>
+                </div>
+            `;
+            
+            debugDiv.innerHTML = `<pre>${debugInfo.join('\n')}</pre>`;
+        }
+    </script>
+</body>
+</html>

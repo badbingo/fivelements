@@ -16,11 +16,12 @@
     <script src="../js/wwpay.js" defer></script>
 <script src="../js/lunar.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+<script src="../js/menu.js" defer></script>
    
     <script>
       // 配置后端地址（必须修改！）
-      const API_BASE = 'https://bazi-backend.owenjass.workers.dev';
-      const API_URL = `${API_BASE}/api`;
+      const API_BASE = 'https://api.mybazi.net';
+      const API_URL = `${API_BASE}`;
       
       // 充值功能
 document.addEventListener('DOMContentLoaded', function() {
@@ -94,7 +95,7 @@ document.addEventListener('DOMContentLoaded', function() {
               // 获取用户余额并更新显示
               async function updateBalance() {
                   try {
-                      const response = await fetch(`${API_URL}/user/balance`, {
+                      const response = await fetch(`${API_URL}/api/user/balance`, {
                           headers: {
                               'Authorization': `Bearer ${localStorage.getItem('token')}`
                           }
@@ -213,7 +214,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 </button>
                 
                 <div class="forgot-password">
-                    <a href="#" id="forgotPasswordLink">忘记密码?</a>
+                    <a href="#" onclick="window.open('forgot.html','_blank','width=500,height=400,left='+(screen.width-500)/2+',top='+(screen.height-400)/2+',menubar=no,toolbar=no,location=no');return false;">
+                        忘记密码?
+                    </a>
                 </div>
                 
                 <div id="loginMessage" class="auth-message"></div>
@@ -260,9 +263,7 @@ document.addEventListener('DOMContentLoaded', function() {
     <main class="content-container" style="position: relative;">
         
         <section class="content-title" style="position: relative;">
-            <a href="lynew.html" class="liuyao-link">
-                <i class="fas fa-yin-yang"></i> 六爻占卜
-            </a>
+
             <h1>命缘池</h1>
             <p>以八字为引，聚众生愿力，助你愿望成真</p>
             
@@ -299,7 +300,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="intro-text">
                         <p>命缘池，乃上古道门所传“愿力汇聚”之秘法，以生辰八字为钥，启动个体命理之频，借天地元气、宇宙灵识，共筑一方灵性之境。凡得入池者，皆非偶然，乃命运召唤而至，有缘之人自来无误。</p>
                         <p>于池前静心许愿之时，你之八字便化为能量符印，随愿而动，投入池中灵脉。池中自有十二灵兽应愿守护，六字真言“唵嘛呢叭咪吽”清心净念，使愿力得以纯化、升频。愿念真诚，则天地自感，善念如涟漪层层荡开，汇聚成形，随仙家法则而回响。</p>
-                        <p>每五次加持，愿力更进一步。得多人加持，频率愈强，显化愈疾。若三十日内得偿所愿，切记还愿——愿之始于心，亦当终于心。</p>
+                        <p>每五次加持，愿力更进一步。得多人加持，频率愈强，显化愈疾。若九十日内得偿所愿，切记还愿——愿之始于心，亦当终于心。</p>
                     </div>
                     <div class="intro-image">
                         <div class="energy-chart">
@@ -555,7 +556,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <li>愿望内容需真诚具体，避免模糊或负面表述</li>
                         <li>在加持他人愿望时，请保持善念，能量会回馈于你</li>
                         <li>愿望达成后请及时还愿，完成能量循环</li>
-                        <li>每个愿望有效期为30天，到期后自动从池中移除</li>
+                        <li>每个愿望有效期为90天，到期后自动从池中移除</li>
                     </ul>
                     <br>
                     <div class="disclaimer-box">
@@ -946,13 +947,26 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('loginText').style.display = 'none';
         
         try {
+            console.log('开始登录请求，API地址:', `${API_BASE}/api/login`);
             const response = await fetch(`${API_BASE}/api/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name: username, password })
             });
             
-            const result = await response.json();
+            console.log('收到响应，状态码:', response.status);
+            console.log('响应头:', Object.fromEntries(response.headers.entries()));
+            
+            let result;
+            try {
+                const responseText = await response.text();
+                console.log('原始响应内容:', responseText);
+                result = JSON.parse(responseText);
+                console.log('解析后的响应数据:', result);
+            } catch (parseError) {
+                console.error('JSON解析错误:', parseError);
+                throw new Error('服务器返回了无效的响应格式');
+            }
             
             if (!response.ok) {
                 throw new Error(result.error || '登录失败');
@@ -996,7 +1010,19 @@ document.addEventListener('DOMContentLoaded', function() {
             
         } catch (error) {
             console.error('登录错误:', error);
-            showAuthMessage(loginMessage, error.message, 'error');
+            let errorMessage = '登录过程中发生错误';
+            if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                errorMessage = '网络连接失败，请检查网络连接';
+            } else if (error.message) {
+                errorMessage = error.message;
+            }
+            
+            // 如果是服务器错误，提供更友好的提示
+            if (errorMessage.includes('登录过程中发生错误')) {
+                errorMessage = '服务器暂时无法处理登录请求，请稍后重试或联系管理员';
+            }
+            
+            showAuthMessage(loginMessage, errorMessage, 'error');
             document.getElementById('loginUsername').value = username;
         } finally {
             submitLogin.disabled = false;
@@ -1124,19 +1150,7 @@ document.addEventListener('DOMContentLoaded', function() {
         loginForm.addEventListener('submit', handleLogin);
         registerForm.addEventListener('submit', handleRegister);
 
-        document.getElementById('forgotPasswordLink').addEventListener('click', function(e) {
-            e.preventDefault();
-            const width = 500;
-            const height = 400;
-            const left = (screen.width - width) / 2;
-            const top = (screen.height - height) / 2;
-            
-            window.open(
-                'forgot.html', 
-                'ForgotPassword', 
-                `width=${width},height=${height},left=${left},top=${top},resizable=no`
-            );
-        });
+        // 忘记密码链接已通过HTML的onclick事件处理，不需要在这里添加事件监听
         
         logoutBtn.addEventListener('click', handleLogout);
     }
@@ -1205,8 +1219,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 const createdDate = new Date(wish.created_at);
                 const expiresAt = new Date(createdDate);
-                expiresAt.setDate(expiresAt.getDate() + 30);
+                expiresAt.setDate(expiresAt.getDate() + 90);
                 const daysLeft = Math.max(0, Math.ceil((expiresAt - new Date()) / (86400000)));
+                // 当倒计时为0天时，卡片将被自动删除
                 
                 const statusLabel = wish.is_fulfilled ? 
                     '<span class="card-status" style="background:#55efc420;color:#55efc4"><i class="fas fa-check-circle"></i> 已还愿</span>' :
@@ -1554,8 +1569,9 @@ document.addEventListener('DOMContentLoaded', function() {
             
             const createdDate = new Date(wish.created_at);
             const expiresAt = new Date(createdDate);
-            expiresAt.setDate(expiresAt.getDate() + 30);
+            expiresAt.setDate(expiresAt.getDate() + 90);
             const daysLeft = Math.max(0, Math.ceil((expiresAt - new Date()) / (86400000)));
+            // 当倒计时为0天时，卡片将被自动删除
             
             wishCard.innerHTML = `
                 <div class="wish-header">
@@ -2127,10 +2143,10 @@ document.addEventListener('DOMContentLoaded', function() {
             window.energyChart = new Chart(ctx.getContext('2d'), {
                 type: 'line',
                 data: {
-                    labels: ['1月', '2月', '3月', '4月', '5月', '6月', '7月'],
+                    labels: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月'],
                     datasets: [{
                         label: '能量强度',
-                        data: [45, 49, 60, 51, 66, 75, 79],
+                        data: [45, 49, 60, 51, 66, 75, 79, 63],
                         borderColor: '#6a11cb',
                         backgroundColor: 'rgba(106, 17, 203, 0.1)',
                         borderWidth: 2,
@@ -2383,24 +2399,11 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 初始化支付系统
     function initPaymentSystem() {
-        // 加载支付脚本
-        const script = document.createElement('script');
-        script.src = '/js/wwpay.js';
-        script.onload = () => {
-            console.log('wwpay.js 加载成功');
-            // WWPay实例化已在wwpay.js的DOMContentLoaded事件中处理，避免重复创建
-            
-            // 确认支付按钮事件已在WWPay类中处理，无需重复绑定
-            
-            // 注意：金额选择事件已在WWPay类中处理，无需重复绑定
-            
-            // 将redirectToCharge函数暴露给全局
-            window.redirectToCharge = redirectToCharge;
-        };
-        script.onerror = (error) => {
-            console.error('wwpay.js 加载失败:', error);
-        };
-        document.head.appendChild(script);
+        // wwpay.js已通过script标签加载，无需动态加载
+        console.log('支付系统初始化完成');
+        
+        // 将redirectToCharge函数暴露给全局
+        window.redirectToCharge = redirectToCharge;
     }
     
     // 主初始化函数

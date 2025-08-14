@@ -6,6 +6,7 @@ import worker from './src/index.js';
 const env = {
   JWT_SECRET: process.env.JWT_SECRET || 'test_jwt_secret_placeholder', // 实际环境中应从环境变量获取
   D1_TOKEN: 'mock_d1_token',
+  ENVIRONMENT: 'local',
   DB: {
     userBalance: 25.0,
     wishFulfilled: false,
@@ -20,6 +21,17 @@ const env = {
           console.log('Params:', params);
           return {
             first: async () => {
+              // 模拟用户登录查询
+              if (query.includes('SELECT * FROM users WHERE name = ?') && params[0] === 'Owen') {
+                return {
+                  id: 6,
+                  name: 'Owen',
+                  email: 'owen@example.com',
+                  password: 'a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3', // 'hello' 的 SHA-256
+                  balance: env.DB.userBalance,
+                  created_at: Date.now()
+                };
+              }
               // 模拟数据库查询结果
               if (query.includes('SELECT balance FROM users WHERE id = ?') && params[0] === 6) {
                 return { balance: env.DB.userBalance };

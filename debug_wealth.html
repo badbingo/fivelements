@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>八字财富评分调试</title>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .case { border: 1px solid #ccc; margin: 20px 0; padding: 15px; }
+        .detail { margin: 5px 0; }
+        .score { font-weight: bold; color: #d32f2f; }
+        .analysis { background: #f5f5f5; padding: 10px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>八字财富评分调试分析</h1>
+    
+    <div class="case">
+        <h2>案例1：男，1973年2月2日18时</h2>
+        <div class="detail">八字：壬子 癸丑 己巳 癸酉</div>
+        <div class="detail">日主：己土</div>
+        <div class="analysis">
+            <h3>财星分析：</h3>
+            <div>己土克水，财星为水</div>
+            <div>年柱壬子：壬水★财星，子水★财星</div>
+            <div>月柱癸丑：癸水★财星，丑土</div>
+            <div>日柱己巳：己土（日主），巳火</div>
+            <div>时柱癸酉：癸水★财星，酉金</div>
+            <div class="score">财星数量：4个（年干壬、年支子、月干癸、时干癸）</div>
+        </div>
+        
+        <div class="analysis">
+            <h3>特殊情况分析：</h3>
+            <div>1. 财库检查：丑土为财库（水库）✓</div>
+            <div>2. 比劫检查：无明显比劫夺财</div>
+            <div>3. 食伤生财：无明显食伤</div>
+            <div>4. 身财平衡：己土日主在丑月，财星过旺（4个财星）</div>
+            <div>5. <strong>关键问题：财多身弱，可能构成身不胜财的格局</strong></div>
+        </div>
+    </div>
+    
+    <div class="case">
+        <h2>案例2：女，1978年7月22日2时</h2>
+        <div class="detail">八字：戊午 己未 乙酉 丁丑</div>
+        <div class="detail">日主：乙木</div>
+        <div class="analysis">
+            <h3>财星分析：</h3>
+            <div>乙木克土，财星为土</div>
+            <div>年柱戊午：戊土★财星，午火</div>
+            <div>月柱己未：己土★财星，未土★财星</div>
+            <div>日柱乙酉：乙木（日主），酉金</div>
+            <div>时柱丁丑：丁火，丑土★财星</div>
+            <div class="score">财星数量：4个（年干戊、月干己、月支未、时支丑）</div>
+        </div>
+        
+        <div class="analysis">
+            <h3>特殊情况分析：</h3>
+            <div>1. 财库检查：未土、丑土为财库（土库）✓</div>
+            <div>2. 比劫检查：无明显比劫夺财</div>
+            <div>3. 食伤生财：丁火为食神，生财星土</div>
+            <div>4. 身财平衡：乙木日主在未月失令，财星过旺（4个财星）</div>
+            <div>5. <strong>关键问题：财多身弱，可能构成身不胜财的格局</strong></div>
+        </div>
+    </div>
+    
+    <div class="analysis">
+        <h2>问题分析：</h2>
+        <div>基于正确的八字，两个案例都是<strong>财多身弱</strong>的格局，理论上不应该得到100分满分：</div>
+        
+        <h3>案例1分析（壬子 癸丑 己巳 癸酉）：</h3>
+        <div>• 己土日主在丑月（冬季），身弱</div>
+        <div>• 财星过多：壬水、子水、癸水（2个）= 4个财星</div>
+        <div>• 典型的<strong>身不胜财</strong>格局，应该扣分而非加分</div>
+        
+        <h3>案例2分析（戊午 己未 乙酉 丁丑）：</h3>
+        <div>• 乙木日主在未月（夏季土旺），身弱</div>
+        <div>• 财星过多：戊土、己土、未土、丑土 = 4个财星</div>
+        <div>• 同样是<strong>身不胜财</strong>格局，应该扣分而非加分</div>
+        
+        <h3>算法问题推测：</h3>
+        <div>1. <strong>身财平衡算法错误</strong>：可能将财多身弱误判为有利格局</div>
+        <div>2. <strong>财库加分过度</strong>：两个案例都有财库，可能被过度加分</div>
+        <div>3. <strong>特殊格局误判</strong>：可能被错误识别为"从财格"而大幅加分</div>
+        <div>4. <strong>否决条款失效</strong>：身不胜财的否决条款可能没有正确执行</div>
+        
+        <h3>建议检查项目：</h3>
+        <div>1. 重点检查calculateBodyWealthBalance函数的身财平衡逻辑</div>
+        <div>2. 检查identifySpecialPatterns中从财格的识别条件是否过于宽松</div>
+        <div>3. 检查applyVetoRules中身不胜财的否决条款</div>
+        <div>4. 检查财库和财星计算是否存在重复加分</div>
+    </div>
+    
+    <button onclick="testInBrowser()">在浏览器中测试</button>
+    
+    <script>
+        function testInBrowser() {
+            // 打开bazinew.html进行实际测试
+            window.open('/system/bazinew.html', '_blank');
+        }
+    </script>
+</body>
+</html>

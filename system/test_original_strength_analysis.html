@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>原命局身强身弱分析测试</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-case {
+            background: #e8f4fd;
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 4px solid #2196F3;
+            border-radius: 5px;
+        }
+        .result {
+            background: #e8f5e8;
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 4px solid #4CAF50;
+            border-radius: 5px;
+        }
+        .problem {
+            background: #ffeaa7;
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 4px solid #fdcb6e;
+            border-radius: 5px;
+        }
+        .debug {
+            background: #f8f9fa;
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #dee2e6;
+            border-radius: 3px;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+        }
+        button {
+            background: #2196F3;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        button:hover {
+            background: #1976D2;
+        }
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+        }
+        .comparison-table th, .comparison-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        .comparison-table th {
+            background-color: #f2f2f2;
+        }
+    </style>
+    <script src="earth_transformation_calculator.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>原命局身强身弱分析测试</h1>
+        <p>测试土性变化对原命局分析中月令得分的影响</p>
+        
+        <div class="test-case">
+            <h3>测试八字：壬子 癸丑 己巳 癸酉</h3>
+            <p><strong>日主：</strong>己土</p>
+            <p><strong>月令：</strong>丑土（湿土）</p>
+            <p><strong>预期：</strong>丑土在水旺环境下转化为水性，己土日主月令得分应从40分变为-10分</p>
+        </div>
+        
+        <button onclick="testOriginalStrengthAnalysis()">测试原命局分析</button>
+        <button onclick="clearResults()">清空结果</button>
+        
+        <div id="results"></div>
+    </div>
+
+    <script>
+        // 基础映射
+        const stemElementMap = {
+            '甲': 'wood', '乙': 'wood',
+            '丙': 'fire', '丁': 'fire',
+            '戊': 'earth', '己': 'earth',
+            '庚': 'metal', '辛': 'metal',
+            '壬': 'water', '癸': 'water'
+        };
+        
+        const branchElementMap = {
+            '子': 'water', '丑': 'earth', '寅': 'wood', '卯': 'wood',
+            '辰': 'earth', '巳': 'fire', '午': 'fire', '未': 'earth',
+            '申': 'metal', '酉': 'metal', '戌': 'earth', '亥': 'water'
+        };
+        
+        // 月令得分计算函数（简化版）
+        function getMonthStrength(dayElement, monthBranch) {
+            const monthElement = branchElementMap[monthBranch];
+            
+            if (monthElement === dayElement) {
+                return 40; // 得令
+            } else if (isGenerateElement(monthElement, dayElement)) {
+                return 20; // 得生
+            } else if (isGenerateElement(dayElement, monthElement)) {
+                return -20; // 被克
+            } else {
+                return 0; // 不得令
+            }
+        }
+        
+        // 判断五行生克关系
+        function isGenerateElement(from, to) {
+            const generateMap = {
+                'wood': 'fire',
+                'fire': 'earth',
+                'earth': 'metal',
+                'metal': 'water',
+                'water': 'wood'
+            };
+            return generateMap[from] === to;
+        }
+        
+        function addResult(content, className = '') {
+            const results = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = className;
+            div.innerHTML = content;
+            results.appendChild(div);
+        }
+        
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+        
+        function testOriginalStrengthAnalysis() {
+            clearResults();
+            
+            // 测试八字
+            const stems = ['壬', '癸', '己', '癸'];
+            const branches = ['子', '丑', '巳', '酉'];
+            const dayStem = '己';
+            const monthBranch = '丑';
+            const dayElement = stemElementMap[dayStem];
+            
+            addResult('<h3>🧪 原命局身强身弱分析测试</h3>', 'test-case');
+            
+            // 1. 传统月令得分计算
+            const traditionalMonthScore = getMonthStrength(dayElement, monthBranch);
+            addResult(`<h4>1. 传统月令得分计算</h4>
+                <p>日主：${dayStem}(${dayElement})</p>
+                <p>月支：${monthBranch}(${branchElementMap[monthBranch]})</p>
+                <p>传统月令得分：${traditionalMonthScore}分</p>`, 'debug');
+            
+            // 2. 土性变化分析
+            if (typeof EarthTransformationCalculator !== 'undefined') {
+                const earthCalculator = new EarthTransformationCalculator();
+                const earthResult = earthCalculator.analyzeEarthTransformation(stems, branches);
+                
+                addResult(`<h4>2. 土性变化分析</h4>
+                    <p>是否有土性变化：${earthResult.hasAnyTransformation}</p>`, 'debug');
+                
+                if (earthResult.hasAnyTransformation) {
+                    earthResult.transformations.forEach((t, index) => {
+                        addResult(`<p>变化${index + 1}：${t.branch} - ${t.transformationType}</p>
+                            <p>原因：${t.reason}</p>
+                            <p>原始元素：${t.originalElement}</p>
+                            <p>新元素：${t.newElement}</p>`, 'debug');
+                    });
+                    
+                    // 3. 检查月令土性变化影响
+                    const monthBranchTransformation = earthResult.transformations.find(t => t.branch === monthBranch);
+                    
+                    if (monthBranchTransformation && monthBranchTransformation.originalElement === 'earth') {
+                        let adjustedMonthScore = traditionalMonthScore;
+                        const originalScore = adjustedMonthScore;
+                        
+                        addResult(`<h4>3. 月令土性变化影响</h4>
+                            <p>月支 ${monthBranch} 发生土性变化</p>
+                            <p>变化类型：${monthBranchTransformation.transformationType}</p>`, 'debug');
+                        
+                        if (monthBranchTransformation.newElement === 'water') {
+                            // 湿土转化为水性
+                            if (dayElement === 'earth') {
+                                adjustedMonthScore = -10; // 土日主失去生扶变为克制
+                                addResult(`<p>调整逻辑：湿土转水性，土日主月令得分调整：${originalScore} → ${adjustedMonthScore}</p>`, 'result');
+                            }
+                        } else if (monthBranchTransformation.newElement === 'fire') {
+                            // 燥土转化为火性
+                            if (dayElement === 'earth') {
+                                adjustedMonthScore = 20; // 土日主得生
+                                addResult(`<p>调整逻辑：燥土转火性，土日主月令得分调整：${originalScore} → ${adjustedMonthScore}</p>`, 'result');
+                            }
+                        }
+                        
+                        // 4. 结果对比
+                        addResult(`<h4>4. 月令得分对比</h4>
+                            <table class="comparison-table">
+                                <tr>
+                                    <th>计算方式</th>
+                                    <th>月令得分</th>
+                                    <th>说明</th>
+                                </tr>
+                                <tr>
+                                    <td>传统计算</td>
+                                    <td>${traditionalMonthScore}分</td>
+                                    <td>丑土生己土，得令</td>
+                                </tr>
+                                <tr>
+                                    <td>考虑土性变化</td>
+                                    <td>${adjustedMonthScore}分</td>
+                                    <td>丑土转水性，克制己土</td>
+                                </tr>
+                            </table>`, 'result');
+                        
+                        // 5. 判断是否符合预期
+                        const isExpected = (adjustedMonthScore === -10 && dayElement === 'earth');
+                        addResult(`<h4>5. 测试结果</h4>
+                            <p><strong>预期结果：</strong>己土日主月令得分从40分变为-10分</p>
+                            <p><strong>实际结果：</strong>己土日主月令得分从${traditionalMonthScore}分变为${adjustedMonthScore}分</p>
+                            <p><strong>测试状态：</strong>${isExpected ? '✅ 通过' : '❌ 未通过'}</p>`, isExpected ? 'result' : 'problem');
+                    } else {
+                        addResult(`<h4>3. 月令土性变化影响</h4>
+                            <p>月支 ${monthBranch} 未发生土性变化或不是土性地支</p>`, 'problem');
+                    }
+                } else {
+                    addResult(`<p>未检测到土性变化</p>`, 'problem');
+                }
+            } else {
+                addResult(`<p>❌ EarthTransformationCalculator 未定义</p>`, 'problem');
+            }
+        }
+        
+        // 页面加载时自动测试
+        window.onload = function() {
+            testOriginalStrengthAnalysis();
+        };
+    </script>
+</body>
+</html>

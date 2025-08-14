@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>八字计算调试</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .debug-section {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            border-left: 4px solid #007bff;
+        }
+        .error {
+            background: #ffebee;
+            color: #c62828;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            border-left: 4px solid #f44336;
+        }
+        .success {
+            background: #e8f5e8;
+            color: #2e7d32;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            border-left: 4px solid #4caf50;
+        }
+        .calculation {
+            background: #fff3e0;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 14px;
+            border-left: 4px solid #ff9800;
+        }
+        button {
+            background: #1976d2;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #1565c0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>八字身强身弱计算调试</h1>
+        
+        <div class="debug-section">
+            <h3>测试命主信息</h3>
+            <p><strong>性别：</strong>男</p>
+            <p><strong>出生时间：</strong>1987年12月24日 9:00</p>
+            <p><strong>八字：</strong>丁卯（年） 壬子（月） 丁未（日） 乙巳（时）</p>
+            <p><strong>日主：</strong>丁火</p>
+        </div>
+        
+        <button onclick="debugCalculation()">开始调试计算</button>
+        <button onclick="clearResults()">清除结果</button>
+        
+        <div id="results"></div>
+    </div>
+
+    <script>
+        // 模拟八字数据
+        const testBaziData = {
+            year: '丁卯',
+            month: '壬子', 
+            day: '丁未',
+            hour: '乙巳',
+            dayStem: '丁',
+            dayElement: 'fire',
+            monthBranch: '子'
+        };
+        
+        // 五行元素映射
+        const stemElementMap = {
+            '甲': 'wood', '乙': 'wood',
+            '丙': 'fire', '丁': 'fire', 
+            '戊': 'earth', '己': 'earth',
+            '庚': 'metal', '辛': 'metal',
+            '壬': 'water', '癸': 'water'
+        };
+        
+        const branchElementMap = {
+            '子': 'water', '丑': 'earth', '寅': 'wood', '卯': 'wood',
+            '辰': 'earth', '巳': 'fire', '午': 'fire', '未': 'earth', 
+            '申': 'metal', '酉': 'metal', '戌': 'earth', '亥': 'water'
+        };
+        
+        // 地支藏干
+        const BRANCH_ELEMENTS = {
+            '子': {main: 'water', hidden: ['癸']},
+            '丑': {main: 'earth', hidden: ['己', '癸', '辛']},
+            '寅': {main: 'wood', hidden: ['甲', '丙', '戊']},
+            '卯': {main: 'wood', hidden: ['乙']},
+            '辰': {main: 'earth', hidden: ['戊', '乙', '癸']},
+            '巳': {main: 'fire', hidden: ['丙', '庚', '戊']},
+            '午': {main: 'fire', hidden: ['丁', '己']},
+            '未': {main: 'earth', hidden: ['己', '丁', '乙']},
+            '申': {main: 'metal', hidden: ['庚', '壬', '戊']},
+            '酉': {main: 'metal', hidden: ['辛']},
+            '戌': {main: 'earth', hidden: ['戊', '辛', '丁']},
+            '亥': {main: 'water', hidden: ['壬', '甲']}
+        };
+        
+        function debugCalculation() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<h3>调试结果</h3>';
+            
+            try {
+                // 1. 分析八字基本信息
+                addResult('=== 八字基本信息分析 ===', 'debug-section');
+                const stems = ['丁', '壬', '丁', '乙'];
+                const branches = ['卯', '子', '未', '巳'];
+                
+                addResult(`天干：${stems.join(' ')}`, 'calculation');
+                addResult(`地支：${branches.join(' ')}`, 'calculation');
+                addResult(`日主：${testBaziData.dayStem}火`, 'calculation');
+                addResult(`月令：${testBaziData.monthBranch}水`, 'calculation');
+                
+                // 2. 分析天干五合
+                addResult('=== 天干五合分析 ===', 'debug-section');
+                const hehuaAnalysis = analyzeDetailedHehua(stems);
+                addResult(hehuaAnalysis, 'calculation');
+                
+                // 3. 计算五行分布
+                addResult('=== 五行分布计算 ===', 'debug-section');
+                const elements = calculateDetailedElements(stems, branches);
+                addResult(createElementTable(elements), 'calculation');
+                
+                // 4. 月令得分计算
+                addResult('=== 月令得分计算 ===', 'debug-section');
+                const monthScore = calculateMonthScore(testBaziData.dayElement, testBaziData.monthBranch);
+                addResult(`月令得分：${monthScore}分`, 'calculation');
+                addResult(`计算依据：丁火日主在子水月，水克火，被克，得分-20`, 'calculation');
+                
+                // 5. 生扶克泄力量计算
+                addResult('=== 生扶克泄力量计算 ===', 'debug-section');
+                const strengthAnalysis = calculateDetailedStrength(testBaziData.dayElement, elements);
+                addResult(strengthAnalysis, 'calculation');
+                
+                // 6. 最终身强身弱判断
+                addResult('=== 最终身强身弱判断 ===', 'debug-section');
+                const finalAnalysis = makeFinalJudgment(strengthAnalysis, monthScore);
+                addResult(finalAnalysis, finalAnalysis.includes('错误') ? 'error' : 'success');
+                
+            } catch (error) {
+                addResult('计算过程中出现错误：' + error.message, 'error');
+                console.error('调试错误：', error);
+            }
+        }
+        
+        function analyzeDetailedHehua(stems) {
+            const tianGanHeHua = {
+                '甲己': 'earth', '乙庚': 'metal', '丙辛': 'water',
+                '丁壬': 'wood', '戊癸': 'fire'
+            };
+            
+            let analysis = '';
+            const stemCounts = {};
+            const hehuaPairs = [];
+            
+            // 统计天干出现次数
+            stems.forEach(stem => {
+                stemCounts[stem] = (stemCounts[stem] || 0) + 1;
+            });
+            
+            analysis += `天干统计：${JSON.stringify(stemCounts)}\n`;
+            
+            // 检查相邻天干五合
+            for (let i = 0; i < stems.length - 1; i++) {
+                const stem1 = stems[i];
+                const stem2 = stems[i + 1];
+                const pair1 = stem1 + stem2;
+                const pair2 = stem2 + stem1;
+                
+                if (tianGanHeHua[pair1] || tianGanHeHua[pair2]) {
+                    const hehuaElement = tianGanHeHua[pair1] || tianGanHeHua[pair2];
+                    hehuaPairs.push({stem1, stem2, element: hehuaElement, position: i});
+                    analysis += `发现天干五合：${stem1}${stem2} 合化${hehuaElement}（位置${i}-${i+1}）\n`;
+                }
+            }
+            
+            // 检查争合和妒合
+            if (hehuaPairs.length > 0) {
+                analysis += '\n争合妒合分析：\n';
+                
+                // 检查妒合（重复天干）
+                Object.keys(stemCounts).forEach(stem => {
+                    if (stemCounts[stem] > 1) {
+                        analysis += `妒合：${stem}重复出现${stemCounts[stem]}次\n`;
+                    }
+                });
+                
+                // 对于丁壬合木的情况
+                const dingCount = stemCounts['丁'] || 0;
+                const renCount = stemCounts['壬'] || 0;
+                
+                if (dingCount > 1 && renCount >= 1) {
+                    analysis += `特别分析：两个丁争合一个壬，属于妒合，合化失败\n`;
+                    analysis += `结论：天干丁壬只合不化，形成绊合，双方力量减弱\n`;
+                } else if (dingCount >= 1 && renCount > 1) {
+                    analysis += `特别分析：一个丁与两个壬相合，属于争合，合化失败\n`;
+                }
+            }
+            
+            return analysis;
+        }
+        
+        function calculateDetailedElements(stems, branches) {
+            const elements = {
+                wood: 0, fire: 0, earth: 0, metal: 0, water: 0
+            };
+            
+            let details = '天干五行计算：\n';
+            
+            // 计算天干五行
+            stems.forEach((stem, index) => {
+                const element = stemElementMap[stem];
+                if (element) {
+                    elements[element] += 1;
+                    details += `${stem}(${element}) +1\n`;
+                }
+            });
+            
+            details += '\n地支主气计算：\n';
+            // 计算地支五行（主气）
+            branches.forEach((branch, index) => {
+                const element = branchElementMap[branch];
+                if (element) {
+                    elements[element] += 1;
+                    details += `${branch}(${element}) +1\n`;
+                }
+            });
+            
+            details += '\n地支藏干计算：\n';
+            // 计算地支藏干（权重0.5）
+            branches.forEach((branch, index) => {
+                const branchInfo = BRANCH_ELEMENTS[branch];
+                if (branchInfo && branchInfo.hidden) {
+                    branchInfo.hidden.forEach(hiddenStem => {
+                        const element = stemElementMap[hiddenStem];
+                        if (element) {
+                            elements[element] += 0.5;
+                            details += `${branch}藏${hiddenStem}(${element}) +0.5\n`;
+                        }
+                    });
+                }
+            });
+            
+            elements.details = details;
+            return elements;
+        }
+        
+        function createElementTable(elements) {
+            let table = '<table>';
+            table += '<tr><th>五行</th><th>力量</th><th>说明</th></tr>';
+            
+            const elementNames = {
+                wood: '木', fire: '火', earth: '土', metal: '金', water: '水'
+            };
+            
+            Object.keys(elementNames).forEach(element => {
+                table += `<tr><td>${elementNames[element]}</td><td>${elements[element]}</td><td>${element === 'fire' ? '日主同类' : ''}</td></tr>`;
+            });
+            
+            table += '</table>';
+            table += '<br>' + elements.details.replace(/\n/g, '<br>');
+            return table;
+        }
+        
+        function calculateMonthScore(dayElement, monthBranch) {
+            const monthElement = branchElementMap[monthBranch];
+            const supportElements = getSupportElements(dayElement);
+            const weakenElements = getWeakenElements(dayElement);
+            
+            if (monthElement === dayElement) {
+                return 40; // 得令
+            } else if (supportElements.includes(monthElement)) {
+                return 20; // 得生
+            } else if (weakenElements.includes(monthElement)) {
+                return -20; // 被克
+            } else {
+                return 0; // 不得令
+            }
+        }
+        
+        function calculateDetailedStrength(dayElement, elements) {
+            const supportElements = getSupportElements(dayElement);
+            const weakenElements = getWeakenElements(dayElement);
+            
+            let supportStrength = 0;
+            let weakenStrength = 0;
+            let analysis = '';
+            
+            analysis += '生扶力量计算：\n';
+            supportElements.forEach(element => {
+                const strength = elements[element];
+                supportStrength += strength;
+                analysis += `${element}(${getElementChinese(element)})：${strength}\n`;
+            });
+            analysis += `生扶力量总计：${supportStrength}\n\n`;
+            
+            analysis += '克泄力量计算：\n';
+            weakenElements.forEach(element => {
+                const strength = elements[element];
+                weakenStrength += strength;
+                analysis += `${element}(${getElementChinese(element)})：${strength}\n`;
+            });
+            analysis += `克泄力量总计：${weakenStrength}\n\n`;
+            
+            const ratio = supportStrength / (supportStrength + weakenStrength);
+            analysis += `力量比例：${supportStrength} / (${supportStrength} + ${weakenStrength}) = ${(ratio * 100).toFixed(2)}%\n`;
+            
+            return {
+                supportStrength,
+                weakenStrength,
+                ratio,
+                analysis
+            };
+        }
+        
+        function makeFinalJudgment(strengthAnalysis, monthScore) {
+            const { supportStrength, weakenStrength, ratio } = strengthAnalysis;
+            const totalScore = monthScore + supportStrength - weakenStrength;
+            
+            let analysis = `最终计算：\n`;
+            analysis += `月令得分：${monthScore}\n`;
+            analysis += `生扶力量：${supportStrength}\n`;
+            analysis += `克泄力量：${weakenStrength}\n`;
+            analysis += `总分：${monthScore} + ${supportStrength} - ${weakenStrength} = ${totalScore}\n`;
+            analysis += `力量比例：${(ratio * 100).toFixed(2)}%\n\n`;
+            
+            let judgment, description;
+            if (ratio >= 0.60) {
+                judgment = '身强';
+                description = '日主力量强旺，能够承担财官，适合主动出击，喜用财官。';
+            } else if (ratio >= 0.40) {
+                judgment = '均衡';
+                description = '日主力量适中，五行较为平衡，运势平稳，喜用印比。';
+            } else {
+                judgment = '身弱';
+                description = '日主力量偏弱，需要生扶，宜守不宜攻，喜用印比。';
+            }
+            
+            analysis += `判断结果：${judgment}\n`;
+            analysis += `说明：${description}\n\n`;
+            
+            // 问题分析
+            if (judgment === '身强' && ratio > 0.6) {
+                analysis += '❌ 问题分析：\n';
+                analysis += '1. 天干丁壬争合被错误计算，应该是妒合失败\n';
+                analysis += '2. 丁火在子水月应该是身弱，不应该是身强\n';
+                analysis += '3. 力量比例61.76%明显过高，存在计算错误\n';
+            }
+            
+            return analysis;
+        }
+        
+        function getSupportElements(element) {
+            const supportMap = {
+                'wood': ['water', 'wood'],
+                'fire': ['wood', 'fire'],
+                'earth': ['fire', 'earth'],
+                'metal': ['earth', 'metal'],
+                'water': ['metal', 'water']
+            };
+            return supportMap[element] || [];
+        }
+        
+        function getWeakenElements(element) {
+            const weakenMap = {
+                'wood': ['metal', 'fire', 'earth'],
+                'fire': ['water', 'earth', 'metal'],
+                'earth': ['wood', 'metal', 'water'],
+                'metal': ['fire', 'water', 'wood'],
+                'water': ['earth', 'wood', 'fire']
+            };
+            return weakenMap[element] || [];
+        }
+        
+        function getElementChinese(element) {
+            const elementNames = {
+                'wood': '木', 'fire': '火', 'earth': '土', 'metal': '金', 'water': '水'
+            };
+            return elementNames[element] || element;
+        }
+        
+        function addResult(content, className = '') {
+            const resultsDiv = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = className;
+            div.innerHTML = content.replace(/\n/g, '<br>');
+            resultsDiv.appendChild(div);
+        }
+        
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+    </script>
+</body>
+</html>

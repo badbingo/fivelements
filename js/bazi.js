@@ -1,11 +1,12 @@
+// 确保全局能获取当前日期（动态获取当前年份）
+const currentDate = new Date(); // 自动获取当前日期
+const currentYear = currentDate.getFullYear(); 
+const currentMonth = currentDate.getMonth() + 1; // 1-12
+const currentDay = currentDate.getDate(); // 1-31
+const currentHour = currentDate.getHours(); // 0-23
+const currentMinute = currentDate.getMinutes(); // 0-59
+
 document.addEventListener('DOMContentLoaded', function() {
-    // 确保全局能获取当前日期（动态获取2025年a）
-    const currentDate = new Date(); // 自动获取当前日期（2025）
-    const currentYear = currentDate.getFullYear(); // 2025
-    const currentMonth = currentDate.getMonth() + 1; // 1-12
-    const currentDay = currentDate.getDate(); // 1-31
-    const currentHour = currentDate.getHours(); // 0-23
-    const currentMinute = currentDate.getMinutes(); // 0-59
     // 增强版缓存对象v2.2
     const baziCache = {
         data: {},
@@ -2965,22 +2966,50 @@ function determineStrengthType(pillars) {
     function calculateScores() {
         let support = 0, weaken = 0;
         
-        // 天干力量计算
+        // 天干力量计算（新增合化判断）
         stems.forEach(stem => {
             const elem = getElementIndex(stem);
-            if (elem === dayElement) support += 1.5;
-            else if (elem === (dayElement + 4) % 5) support += 1;   // 印
-            else if (elem === (dayElement + 3) % 5) weaken += 1;    // 官杀
-            else if (elem === (dayElement + 2) % 5) weaken += 1.5; // 财
-            else if (elem === (dayElement + 1) % 5) weaken += 1.2; // 食伤
+            
+            // 天干合化有效性判断
+            const combineValid = checkTianGanCombineValidity(stem, pillars);
+            const combineElem = combineValid ? getCombineResult(stem) : null;
+            
+            if(combineElem) {
+                // 合化成功按新五行计算
+                const newElem = getElementIndex(combineElem);
+                if (newElem === dayElement) support += 2.0;
+                else if (newElem === (dayElement + 4) % 5) support += 1.5;
+                else if (newElem === (dayElement + 3) % 5) weaken += 1.5;
+                else if (newElem === (dayElement + 2) % 5) weaken += 2.0;
+                else if (newElem === (dayElement + 1) % 5) weaken += 1.5;
+            } else {
+                // 常规计算
+                if (elem === dayElement) support += 1.5;
+                else if (elem === (dayElement + 4) % 5) support += 1;
+                else if (elem === (dayElement + 3) % 5) weaken += 1;
+                else if (elem === (dayElement + 2) % 5) weaken += 1.5;
+                else if (elem === (dayElement + 1) % 5) weaken += 1.2;
+            }
         });
 
-        // 地支力量计算（含藏干）
+        // 地支力量计算（含藏干和合化）
         branches.forEach((branch, idx) => {
             const hiddenStems = getHiddenStems(branch);
+            
+            // 三会三合六合检测
+            const combination = checkDizhiCombination(branch, branches);
+            let combinationWeight = 1.0;
+            if(combination.sanhui) combinationWeight = 1.5;
+            else if(combination.sanhe) combinationWeight = 1.2;
+            else if(combination.liuhe) combinationWeight = 1.0;
+            
             hiddenStems.split('').forEach((stem, i) => {
                 const elem = getElementIndex(stem);
-                const weight = [0.6, 0.3, 0.1][i] || 0;
+                let weight = [0.6, 0.3, 0.1][i] * combinationWeight;
+                
+                // 透干检测
+                const isTouGan = stems.some(s => getElementIndex(s) === elem);
+                if(isTouGan) weight *= 1.3;
                 
                 if (elem === dayElement) support += weight * 3;
                 else if (elem === (dayElement + 4) % 5) support += weight * 2;
@@ -3432,11 +3461,11 @@ function determineStrengthType(pillars) {
     }
     
     // 其他部分调用API
-    const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
+    const apiUrl = 'https://deepseek-api-proxy.owenjass.workers.dev/api/deepseek';
     // 使用代理服务器，不直接暴露API Key
     const apiKey = 'placeholder_key_for_local_dev_only';
     
-    // 使用 currentYear（2025）、currentMonth、currentDay
+    // 使用 currentYear、currentMonth、currentDay 获取当前日期
     const currentDateStr = `${currentYear}-${currentMonth.toString().padStart(2, '0')}-${currentDay.toString().padStart(2, '0')}`;
         
         let prompt = `请严格按照以下规则进行专业八字排盘，确保所有计算准确无误：
@@ -3473,7 +3502,7 @@ function determineStrengthType(pillars) {
     4. 起运时间计算方法
         * 起运岁数 =（出生到下一个节气或上一个节气的天数）÷ 3（注意：阳男1973年2月2日17:00出生（未过立春），下一个节气是顺排到立春（1973年2月4日7:04）而非惊蛰，间隔天数 = 1天14小时4分 → 折合6个月10天起运）
         * 顺排≠换月节气：阳男顺排是找出生后第一个节气（可能与本月节气相同，如本例立春=丑月结束）
-        * 逆排陷阱： 阴男1995年8月8日4:00出生（立秋8月8日8:12未到），逆排需找小暑7月7日18:01（非上一个立夏）
+        * 逆排陷阱：阴男1995年8月8日4:00出生（立秋8月8日8:12未到），逆排需找小暑7月7日18:01（非上一个立夏）
         * 节气交接日出生者需先判断是否已过节气时刻
         * 跨年逆排时（如小寒前出生）需找上年大雪
         * 节气临界点：出生在立春前X天，年柱是XX（如壬子），因未过立春，顺排的下一个节气应该是立春
@@ -3774,7 +3803,7 @@ function determineStrengthType(pillars) {
 
     // 获取八字问答答案
     async function getBaziAnswer(question) {
-        const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
+        const apiUrl = 'https://deepseek-api-proxy.owenjass.workers.dev/api/deepseek';
         // 使用代理服务器，不直接暴露API Key
         const apiKey = 'placeholder_key_for_local_dev_only';
     // 使用 currentYear（2025）、currentMonth、currentDay
@@ -3817,7 +3846,7 @@ function determineStrengthType(pillars) {
     4. 起运时间计算方法
         * 起运岁数 =（出生到下一个节气或上一个节气的天数）÷ 3（注意：阳男1973年2月2日17:00出生（未过立春），下一个节气是顺排到立春（1973年2月4日7:04）而非惊蛰，间隔天数 = 1天14小时4分 → 折合6个月10天起运）
         * 顺排≠换月节气：阳男顺排是找出生后第一个节气（可能与本月节气相同，如本例立春=丑月结束）
-        * 逆排陷阱： 阴男1995年8月8日4:00出生（立秋8月8日8:12未到），逆排需找小暑7月7日18:01（非上一个立夏）
+        * 逆排陷阱：阴男1995年8月8日4:00出生（立秋8月8日8:12未到），逆排需找小暑7月7日18:01（非上一个立夏）
         * 节气交接日出生者需先判断是否已过节气时刻
         * 跨年逆排时（如小寒前出生）需找上年大雪
         * 节气临界点：出生在立春前X天，年柱是XX（如壬子），因未过立春，顺排的下一个节气应该是立春

@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>土性变化月令得分测试</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-case {
+            border: 1px solid #ddd;
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 5px;
+            background: #f9f9f9;
+        }
+        .result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .success { background: #d4edda; border: 1px solid #c3e6cb; }
+        .warning { background: #fff3cd; border: 1px solid #ffeaa7; }
+        .error { background: #f8d7da; border: 1px solid #f5c6cb; }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #0056b3; }
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        .comparison-table th, .comparison-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        .comparison-table th {
+            background: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>土性变化对月令得分影响测试</h1>
+        <p>测试用户反馈的八字案例：<strong>壬子 癸丑 己巳 癸酉</strong></p>
+        
+        <div class="test-case">
+            <h3>测试案例：己土日主，丑月</h3>
+            <p><strong>八字：</strong>壬子 癸丑 己巳 癸酉</p>
+            <p><strong>分析要点：</strong></p>
+            <ul>
+                <li>己土日主，丑为湿土月令</li>
+                <li>天干三癸一壬，水势极旺</li>
+                <li>巳酉丑三合金局，丑土被拉向金性</li>
+                <li>丑土在强水环境下应偏向水性，减弱对己土的生扶</li>
+            </ul>
+            
+            <button onclick="testEarthTransformation()">测试土性变化分析</button>
+            <button onclick="compareMonthScores()">对比月令得分</button>
+            <button onclick="testFullCalculation()">完整身强身弱测试</button>
+            <button onclick="clearResults()">清空结果</button>
+        </div>
+        
+        <div id="results"></div>
+    </div>
+
+    <script src="earth_transformation_calculator.js"></script>
+    <script>
+        // 测试数据
+        const testBazi = {
+            stems: ['壬', '癸', '己', '癸'],
+            branches: ['子', '丑', '巳', '酉'],
+            dayStem: '己',
+            monthBranch: '丑'
+        };
+        
+        // 五行映射
+        const stemElementMap = {
+            '甲': 'wood', '乙': 'wood', '丙': 'fire', '丁': 'fire',
+            '戊': 'earth', '己': 'earth', '庚': 'metal', '辛': 'metal',
+            '壬': 'water', '癸': 'water'
+        };
+        
+        const branchElementMap = {
+            '子': 'water', '丑': 'earth', '寅': 'wood', '卯': 'wood',
+            '辰': 'earth', '巳': 'fire', '午': 'fire', '未': 'earth',
+            '申': 'metal', '酉': 'metal', '戌': 'earth', '亥': 'water'
+        };
+        
+        function addResult(content, type = 'info') {
+            const results = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = `result ${type}`;
+            div.innerHTML = content;
+            results.appendChild(div);
+        }
+        
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+        
+        // 测试土性变化分析
+        function testEarthTransformation() {
+            addResult('<h3>🌍 土性变化分析测试</h3>', 'info');
+            
+            const earthCalculator = new EarthTransformationCalculator();
+            const result = earthCalculator.analyzeEarthTransformation(testBazi.stems, testBazi.branches);
+            
+            addResult(`<h4>分析结果：</h4>
+                <p><strong>是否有土性变化：</strong>${result.hasAnyTransformation ? '是' : '否'}</p>
+                <p><strong>变化详情：</strong></p>
+                <pre>${JSON.stringify(result.transformations, null, 2)}</pre>
+                <p><strong>五行调整：</strong></p>
+                <pre>${JSON.stringify(result.elementAdjustments, null, 2)}</pre>`, 'info');
+            
+            if (result.wetEarthChanges && result.wetEarthChanges.length > 0) {
+                addResult(`<h4>湿土变化详情：</h4>
+                    <pre>${JSON.stringify(result.wetEarthChanges, null, 2)}</pre>`, 'success');
+            }
+            
+            if (result.dryEarthChanges && result.dryEarthChanges.length > 0) {
+                addResult(`<h4>燥土变化详情：</h4>
+                    <pre>${JSON.stringify(result.dryEarthChanges, null, 2)}</pre>`, 'success');
+            }
+        }
+        
+        // 对比月令得分
+        function compareMonthScores() {
+            addResult('<h3>📊 月令得分对比测试</h3>', 'info');
+            
+            const earthCalculator = new EarthTransformationCalculator();
+            const earthResult = earthCalculator.analyzeEarthTransformation(testBazi.stems, testBazi.branches);
+            
+            // 传统月令得分计算
+            const traditionalScore = calculateTraditionalMonthScore();
+            
+            // 考虑土性变化的月令得分
+            const transformedScore = calculateTransformedMonthScore(earthResult);
+            
+            addResult(`
+                <table class="comparison-table">
+                    <tr>
+                        <th>计算方式</th>
+                        <th>月令得分</th>
+                        <th>计算依据</th>
+                        <th>说明</th>
+                    </tr>
+                    <tr>
+                        <td>传统计算</td>
+                        <td>${traditionalScore}分</td>
+                        <td>丑土生己土，得令</td>
+                        <td>按丑土原始属性计算</td>
+                    </tr>
+                    <tr>
+                        <td>土性变化计算</td>
+                        <td>${transformedScore}分</td>
+                        <td>丑土在水旺环境下土性减弱</td>
+                        <td>考虑环境影响后的实际得分</td>
+                    </tr>
+                    <tr>
+                        <td>差异</td>
+                        <td>${transformedScore - traditionalScore}分</td>
+                        <td colspan="2">${transformedScore < traditionalScore ? '土性变化显著降低月令得分' : '无显著影响'}</td>
+                    </tr>
+                </table>
+            `, 'warning');
+        }
+        
+        // 传统月令得分计算
+        function calculateTraditionalMonthScore() {
+            const dayElement = stemElementMap[testBazi.dayStem]; // earth
+            const monthElement = branchElementMap[testBazi.monthBranch]; // earth
+            
+            if (dayElement === monthElement) {
+                return 40; // 得令
+            }
+            return 0;
+        }
+        
+        // 考虑土性变化的月令得分计算
+        function calculateTransformedMonthScore(earthResult) {
+            let score = calculateTraditionalMonthScore();
+            
+            if (earthResult.hasAnyTransformation) {
+                const monthTransformation = earthResult.transformations.find(t => t.branch === testBazi.monthBranch);
+                if (monthTransformation && monthTransformation.originalElement === 'earth') {
+                    if (monthTransformation.newElement === 'water') {
+                        // 湿土转水性，对土日主生扶大减
+                        score = Math.round(score * 0.2); // 减少80%
+                    } else if (monthTransformation.transformationType === 'weakened') {
+                        // 土性减弱
+                        score = Math.round(score * 0.5); // 减少50%
+                    }
+                }
+            }
+            
+            return score;
+        }
+        
+        // 完整身强身弱测试
+        function testFullCalculation() {
+            addResult('<h3>⚖️ 完整身强身弱分析测试</h3>', 'info');
+            
+            // 计算五行分布
+            const elements = calculateElements();
+            addResult(`<h4>五行分布：</h4>
+                <p>木: ${elements.wood}, 火: ${elements.fire}, 土: ${elements.earth}, 金: ${elements.metal}, 水: ${elements.water}</p>`, 'info');
+            
+            // 应用土性变化
+            const earthCalculator = new EarthTransformationCalculator();
+            const earthResult = earthCalculator.analyzeEarthTransformation(testBazi.stems, testBazi.branches);
+            
+            if (earthResult.hasAnyTransformation) {
+                Object.keys(earthResult.elementAdjustments).forEach(element => {
+                    const adjustment = earthResult.elementAdjustments[element];
+                    if (adjustment !== 0) {
+                        elements[element] = Math.max(0, elements[element] + adjustment);
+                    }
+                });
+                addResult(`<h4>土性变化后五行分布：</h4>
+                    <p>木: ${elements.wood}, 火: ${elements.fire}, 土: ${elements.earth}, 金: ${elements.metal}, 水: ${elements.water}</p>`, 'success');
+            }
+            
+            // 计算生扶克泄力量
+            const dayElement = 'earth';
+            const supportElements = ['earth', 'fire']; // 土火生扶土
+            const weakenElements = ['wood', 'metal', 'water']; // 木金水克泄土
+            
+            let supportStrength = 0;
+            let weakenStrength = 0;
+            
+            supportElements.forEach(element => {
+                supportStrength += elements[element] || 0;
+            });
+            
+            weakenElements.forEach(element => {
+                weakenStrength += elements[element] || 0;
+            });
+            
+            // 月令得分
+            const monthScore = calculateTransformedMonthScore(earthResult);
+            supportStrength += Math.max(0, monthScore / 10); // 月令得分转换为力量
+            
+            // 三合局影响
+            if (testBazi.branches.includes('巳') && testBazi.branches.includes('酉') && testBazi.branches.includes('丑')) {
+                weakenStrength += 2; // 巳酉丑合金，增加克泄力量
+                addResult('<p><strong>三合局影响：</strong>巳酉丑三合金局，增加克泄力量2点</p>', 'warning');
+            }
+            
+            const totalStrength = supportStrength + weakenStrength;
+            const ratio = totalStrength > 0 ? supportStrength / totalStrength : 0;
+            
+            let pattern;
+            if (ratio <= 0.18) {
+                pattern = '从弱';
+            } else if (ratio >= 0.80) {
+                pattern = '从强';
+            } else if (ratio >= 0.55) {
+                pattern = '身强';
+            } else {
+                pattern = '身弱';
+            }
+            
+            addResult(`
+                <table class="comparison-table">
+                    <tr>
+                        <th>项目</th>
+                        <th>数值</th>
+                        <th>说明</th>
+                    </tr>
+                    <tr>
+                        <td>生扶力量</td>
+                        <td>${supportStrength.toFixed(2)}点</td>
+                        <td>土火五行 + 月令得分</td>
+                    </tr>
+                    <tr>
+                        <td>克泄力量</td>
+                        <td>${weakenStrength.toFixed(2)}点</td>
+                        <td>木金水五行 + 三合局影响</td>
+                    </tr>
+                    <tr>
+                        <td>力量比例</td>
+                        <td>${(ratio * 100).toFixed(2)}%</td>
+                        <td>生扶力量 / 总力量</td>
+                    </tr>
+                    <tr>
+                        <td>月令得分</td>
+                        <td>${monthScore}点</td>
+                        <td>考虑土性变化后</td>
+                    </tr>
+                    <tr>
+                        <td>判断结果</td>
+                        <td><strong>${pattern}</strong></td>
+                        <td>${pattern === '从弱' ? '✅ 符合用户预期' : '❌ 与用户预期不符'}</td>
+                    </tr>
+                </table>
+            `, pattern === '从弱' ? 'success' : 'error');
+        }
+        
+        // 计算基础五行分布
+        function calculateElements() {
+            const elements = { wood: 0, fire: 0, earth: 0, metal: 0, water: 0 };
+            
+            // 天干
+            testBazi.stems.forEach(stem => {
+                const element = stemElementMap[stem];
+                if (element) elements[element] += 1;
+            });
+            
+            // 地支
+            testBazi.branches.forEach(branch => {
+                const element = branchElementMap[branch];
+                if (element) elements[element] += 1;
+            });
+            
+            return elements;
+        }
+    </script>
+</body>
+</html>

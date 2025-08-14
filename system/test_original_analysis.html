@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>原命局分析土性变化测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-case {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background: #f9f9f9;
+        }
+        .result {
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        .success { background-color: #d4edda; border: 1px solid #c3e6cb; }
+        .error { background-color: #f8d7da; border: 1px solid #f5c6cb; }
+        .info { background-color: #d1ecf1; border: 1px solid #bee5eb; }
+        .warning { background-color: #fff3cd; border: 1px solid #ffeaa7; }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #0056b3; }
+        .debug-info {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>原命局分析土性变化测试</h1>
+        
+        <div class="test-case">
+            <h3>测试案例：壬子 癸丑 己巳 癸酉</h3>
+            <p>预期：丑土在水旺环境下转化为水性，己土日主月令得分应从40分变为-10分</p>
+            <button onclick="testOriginalAnalysis()">测试原命局分析</button>
+            <div id="result"></div>
+            <div id="debug-info" class="debug-info"></div>
+        </div>
+    </div>
+
+    <script src="earth_transformation_calculator.js"></script>
+    <script>
+        // 五行映射
+        const stemElementMap = {
+            '甲': 'wood', '乙': 'wood',
+            '丙': 'fire', '丁': 'fire',
+            '戊': 'earth', '己': 'earth',
+            '庚': 'metal', '辛': 'metal',
+            '壬': 'water', '癸': 'water'
+        };
+        
+        const branchElementMap = {
+            '子': 'water', '丑': 'earth', '寅': 'wood', '卯': 'wood',
+            '辰': 'earth', '巳': 'fire', '午': 'fire', '未': 'earth',
+            '申': 'metal', '酉': 'metal', '戌': 'earth', '亥': 'water'
+        };
+
+        // 模拟原命局分析中的月令得分计算
+        function simulateOriginalAnalysis() {
+            const passedStems = ['壬', '癸', '己', '癸'];
+            const passedBranches = ['子', '丑', '巳', '酉'];
+            const dayStem = '己';
+            const monthBranch = '丑';
+            const dayElement = stemElementMap[dayStem];
+            
+            let debugLog = [];
+            debugLog.push('=== 原命局分析模拟 ===');
+            debugLog.push(`八字：${passedStems.join(' ')} ${passedBranches.join(' ')}`);
+            debugLog.push(`日主：${dayStem} (${dayElement})`);
+            debugLog.push(`月支：${monthBranch} (${branchElementMap[monthBranch]})`);
+            
+            // 1. 计算原始月令得分
+            let monthScore = getBasicMonthScore(dayElement, monthBranch);
+            debugLog.push(`原始月令得分：${monthScore}`);
+            
+            // 2. 检查土性变化
+            if (typeof analyzeEarthTransformation === 'function') {
+                debugLog.push('\n=== 土性变化分析 ===');
+                const earthResult = analyzeEarthTransformation(passedStems, passedBranches);
+                debugLog.push(`土性变化结果：${JSON.stringify(earthResult, null, 2)}`);
+                
+                if (earthResult.hasAnyTransformation) {
+                    const monthBranchTransformation = earthResult.transformations.find(t => t.branch === monthBranch);
+                    debugLog.push(`月支变化：${JSON.stringify(monthBranchTransformation, null, 2)}`);
+                    
+                    if (monthBranchTransformation && monthBranchTransformation.originalElement === 'earth') {
+                        const originalScore = monthScore;
+                        
+                        if (monthBranchTransformation.newElement === 'water') {
+                            if (dayElement === 'earth') {
+                                monthScore = -10;
+                                debugLog.push(`土性变化：${monthBranch}湿土转水性，土日主月令得分调整：${originalScore} → ${monthScore}`);
+                            }
+                        }
+                    }
+                } else {
+                    debugLog.push('未检测到土性变化');
+                }
+            } else {
+                debugLog.push('analyzeEarthTransformation 函数未找到');
+            }
+            
+            debugLog.push(`\n最终月令得分：${monthScore}`);
+            
+            return {
+                monthScore: monthScore,
+                debugLog: debugLog.join('\n')
+            };
+        }
+        
+        function getBasicMonthScore(dayElement, monthBranch) {
+            const monthElement = branchElementMap[monthBranch];
+            
+            if (monthElement === dayElement) {
+                return 40; // 得令
+            } else if ((dayElement === 'wood' && monthElement === 'water') ||
+                      (dayElement === 'fire' && monthElement === 'wood') ||
+                      (dayElement === 'earth' && monthElement === 'fire') ||
+                      (dayElement === 'metal' && monthElement === 'earth') ||
+                      (dayElement === 'water' && monthElement === 'metal')) {
+                return 20; // 得生
+            } else {
+                return -10; // 不得令或被克
+            }
+        }
+        
+        function addResult(content, type = 'info') {
+            const resultDiv = document.getElementById('result');
+            const div = document.createElement('div');
+            div.className = `result ${type}`;
+            div.innerHTML = content;
+            resultDiv.appendChild(div);
+        }
+        
+        function testOriginalAnalysis() {
+            const resultDiv = document.getElementById('result');
+            const debugDiv = document.getElementById('debug-info');
+            
+            // 清空之前的结果
+            resultDiv.innerHTML = '';
+            debugDiv.innerHTML = '';
+            
+            try {
+                const result = simulateOriginalAnalysis();
+                
+                addResult(`<h4>测试结果</h4><p><strong>最终月令得分：${result.monthScore}分</strong></p>`, 
+                          result.monthScore === -10 ? 'success' : 'error');
+                
+                if (result.monthScore === -10) {
+                    addResult('✅ 测试通过：土性变化逻辑正确工作，月令得分从40分调整为-10分', 'success');
+                } else {
+                    addResult('❌ 测试失败：土性变化逻辑未生效，月令得分仍为40分', 'error');
+                }
+                
+                debugDiv.textContent = result.debugLog;
+                
+            } catch (error) {
+                addResult(`❌ 测试出错：${error.message}`, 'error');
+                debugDiv.textContent = `错误详情：\n${error.stack}`;
+            }
+        }
+    </script>
+</body>
+</html>

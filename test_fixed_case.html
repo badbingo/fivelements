@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>修正后的八字测试</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .container { max-width: 1000px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; }
+        .test-case { background: #e8f4fd; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+        .result { background: #f0f8e8; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+        .highlight { color: #d32f2f; font-weight: bold; }
+        .good { color: #388e3c; font-weight: bold; }
+        .score { font-size: 24px; font-weight: bold; color: #1976d2; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>修正后的财富评分测试</h1>
+        
+        <div class="test-case">
+            <h2>测试案例：超2亿资产女性</h2>
+            <p><strong>八字：</strong>戊午，己未，乙酉，丁丑</p>
+            <p><strong>出生：</strong>1978年7月22日2时</p>
+            <p><strong>实际资产：</strong>超过2亿</p>
+        </div>
+        
+        <div class="result">
+            <h2>评分结果</h2>
+            <div id="scoreResult"></div>
+        </div>
+        
+        <div class="result">
+            <h2>详细分析</h2>
+            <div id="detailAnalysis"></div>
+        </div>
+    </div>
+
+    <script>
+        // 从系统文件复制必要函数
+        function getStemElement(stem) {
+            const stemElements = {
+                '甲': '木', '乙': '木', '丙': '火', '丁': '火', '戊': '土',
+                '己': '土', '庚': '金', '辛': '金', '壬': '水', '癸': '水'
+            };
+            return stemElements[stem] || '未知';
+        }
+        
+        function getBranchElement(branch) {
+            const branchElements = {
+                '子': '水', '丑': '土', '寅': '木', '卯': '木', '辰': '土', '巳': '火',
+                '午': '火', '未': '土', '申': '金', '酉': '金', '戌': '土', '亥': '水'
+            };
+            return branchElements[branch] || '未知';
+        }
+        
+        function isWealth(dayElement, element) {
+            const wealthMap = {
+                '木': ['土'], '火': ['金'], '土': ['水'], '金': ['木'], '水': ['火']
+            };
+            return wealthMap[dayElement]?.includes(element);
+        }
+        
+        function calculateSimpleDayStrength(pillars) {
+            const dayElement = getStemElement(pillars.day.charAt(0));
+            const monthBranch = pillars.month.charAt(1);
+            let strength = 50;
+            
+            const seasonStrength = {
+                '木': { '寅': 30, '卯': 25, '辰': 10, '巳': -10, '午': -15, '未': -5, '申': -20, '酉': -25, '戌': -5, '亥': 15, '子': 10, '丑': 5 },
+                '火': { '寅': 15, '卯': 10, '辰': 5, '巳': 25, '午': 30, '未': 15, '申': -5, '酉': -10, '戌': 10, '亥': -20, '子': -25, '丑': -5 },
+                '土': { '寅': -5, '卯': -10, '辰': 20, '巳': 10, '午': 15, '未': 25, '申': 5, '酉': 0, '戌': 20, '亥': -10, '子': -15, '丑': 25 },
+                '金': { '寅': -20, '卯': -25, '辰': -5, '巳': -10, '午': -15, '未': -5, '申': 25, '酉': 30, '戌': 10, '亥': 5, '子': 0, '丑': 15 },
+                '水': { '寅': 10, '卯': 5, '辰': -5, '巳': -25, '午': -30, '未': -15, '申': 15, '酉': 10, '戌': -10, '亥': 25, '子': 30, '丑': 5 }
+            };
+            
+            strength += seasonStrength[dayElement]?.[monthBranch] || 0;
+            
+            const positions = ['year', 'month', 'hour'];
+            positions.forEach(pos => {
+                const stem = pillars[pos].charAt(0);
+                const branch = pillars[pos].charAt(1);
+                const stemElement = getStemElement(stem);
+                const branchElement = getBranchElement(branch);
+                
+                if (stemElement === dayElement) strength += 8;
+                if (branchElement === dayElement) strength += 5;
+                
+                const yinElements = { '木': ['水'], '火': ['木'], '土': ['火'], '金': ['土'], '水': ['金'] };
+                if (yinElements[dayElement]?.includes(stemElement)) strength += 6;
+                if (yinElements[dayElement]?.includes(branchElement)) strength += 4;
+                
+                const guanShaElements = { '木': ['金'], '火': ['水'], '土': ['木'], '金': ['火'], '水': ['土'] };
+                if (guanShaElements[dayElement]?.includes(stemElement)) strength -= 6;
+                if (guanShaElements[dayElement]?.includes(branchElement)) strength -= 4;
+                
+                const shiShangElements = { '木': ['火'], '火': ['土'], '土': ['金'], '金': ['水'], '水': ['木'] };
+                if (shiShangElements[dayElement]?.includes(stemElement)) strength -= 4;
+                if (shiShangElements[dayElement]?.includes(branchElement)) strength -= 3;
+                
+                if (isWealth(dayElement, stemElement)) strength -= 5;
+                if (isWealth(dayElement, branchElement)) strength -= 3;
+            });
+            
+            return Math.max(10, Math.min(100, strength));
+        }
+        
+        function testCase() {
+            const pillars = {
+                year: '戊午',
+                month: '己未',
+                day: '乙酉', 
+                hour: '丁丑'
+            };
+            
+            const dayElement = getStemElement(pillars.day.charAt(0)); // 乙木
+            const dayStrength = calculateSimpleDayStrength(pillars);
+            
+            // 计算财星数量
+            let wealthCount = 0;
+            ['year', 'month', 'day', 'hour'].forEach(pos => {
+                const stem = pillars[pos].charAt(0);
+                const branch = pillars[pos].charAt(1);
+                if (isWealth(dayElement, getStemElement(stem))) wealthCount++;
+                if (isWealth(dayElement, getBranchElement(branch))) wealthCount++;
+            });
+            
+            // 判断格局
+            let pattern = '';
+            let bonus = 0;
+            
+            if (dayStrength <= 35 && wealthCount >= 4) {
+                pattern = '真从财格';
+                bonus = 35;
+            } else if (dayStrength <= 50 && wealthCount >= 3) {
+                pattern = '假从财格';
+                bonus = 20;
+            } else {
+                pattern = '身不胜财';
+                bonus = -15;
+            }
+            
+            // 模拟基础分数（简化）
+            const baseScore = 45; // 假设基础分数
+            const finalScore = Math.min(100, baseScore + bonus);
+            
+            document.getElementById('scoreResult').innerHTML = `
+                <p class="score">财富评分：${finalScore}分</p>
+                <p><strong>格局：</strong><span class="${bonus > 0 ? 'good' : 'highlight'}">${pattern}</span></p>
+                <p><strong>格局加分：</strong><span class="${bonus > 0 ? 'good' : 'highlight'}">${bonus > 0 ? '+' : ''}${bonus}分</span></p>
+            `;
+            
+            document.getElementById('detailAnalysis').innerHTML = `
+                <h3>详细数据</h3>
+                <p><strong>日主强度：</strong>${dayStrength}</p>
+                <p><strong>财星数量：</strong>${wealthCount}</p>
+                <p><strong>财星分布：</strong></p>
+                <ul>
+                    <li>年干戊土(财星) ✓</li>
+                    <li>年支午火(非财星)</li>
+                    <li>月干己土(财星) ✓</li>
+                    <li>月支未土(财星) ✓</li>
+                    <li>日干乙木(日主)</li>
+                    <li>日支酉金(非财星)</li>
+                    <li>时干丁火(非财星)</li>
+                    <li>时支丑土(财星) ✓</li>
+                </ul>
+                
+                <h3>格局分析</h3>
+                <p>乙木日主，生于未月土旺之时，四柱见戊己未丑四个土，土为乙木之财星。</p>
+                <p>日主强度${dayStrength}，财星数量${wealthCount}个，符合<strong>${pattern}</strong>的条件。</p>
+                
+                ${pattern === '真从财格' ? 
+                    '<p class="good">✓ 真从财格：日主极弱从财星之势，反而是大富之命！</p>' :
+                    pattern === '假从财格' ?
+                    '<p class="good">✓ 假从财格：日主偏弱但财星旺盛，中等富贵格局。</p>' :
+                    '<p class="highlight">✗ 身不胜财：财多身弱，算法认为是不利格局。</p>'
+                }
+                
+                <h3>现实验证</h3>
+                <p class="good">实际资产超过2亿，证明这确实是极佳的财富格局！</p>
+            `;
+        }
+        
+        window.onload = testCase;
+    </script>
+</body>
+</html>

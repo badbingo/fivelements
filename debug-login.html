@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录调试测试</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 600px; margin: 0 auto; }
+        .form-group { margin: 10px 0; }
+        input, button { padding: 8px; margin: 5px; }
+        .log { background: #f5f5f5; padding: 10px; margin: 10px 0; border-radius: 4px; white-space: pre-wrap; }
+        .error { color: red; }
+        .success { color: green; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>登录调试测试</h1>
+        <div class="form-group">
+            <input type="text" id="username" placeholder="用户名" value="test">
+            <input type="password" id="password" placeholder="密码" value="test123">
+            <button onclick="testLogin()">测试登录</button>
+        </div>
+        <div id="logs" class="log"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'https://api.mybazi.net';
+        
+        function log(message, type = 'info') {
+            const logs = document.getElementById('logs');
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type === 'error' ? 'error' : type === 'success' ? 'success' : '';
+            logs.innerHTML += `<div class="${className}">[${timestamp}] ${message}</div>`;
+            logs.scrollTop = logs.scrollHeight;
+        }
+        
+        async function testLogin() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            log('开始登录测试...');
+            log(`API地址: ${API_BASE}/api/login`);
+            log(`用户名: ${username}`);
+            
+            try {
+                log('发送登录请求...');
+                
+                const response = await fetch(`${API_BASE}/api/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: username, password })
+                });
+                
+                log(`收到响应，状态码: ${response.status}`);
+                log(`响应状态: ${response.ok ? '成功' : '失败'}`);
+                
+                const headers = {};
+                response.headers.forEach((value, key) => {
+                    headers[key] = value;
+                });
+                log(`响应头: ${JSON.stringify(headers, null, 2)}`);
+                
+                let result;
+                try {
+                    const responseText = await response.text();
+                    log(`原始响应内容: ${responseText}`);
+                    
+                    if (responseText) {
+                        result = JSON.parse(responseText);
+                        log(`解析后的响应数据: ${JSON.stringify(result, null, 2)}`);
+                    } else {
+                        log('响应内容为空', 'error');
+                        return;
+                    }
+                } catch (parseError) {
+                    log(`JSON解析错误: ${parseError.message}`, 'error');
+                    return;
+                }
+                
+                if (!response.ok) {
+                    log(`登录失败: ${result.error || '未知错误'}`, 'error');
+                } else {
+                    log('登录成功！', 'success');
+                    log(`Token: ${result.token}`);
+                }
+                
+            } catch (error) {
+                log(`网络错误: ${error.message}`, 'error');
+                log(`错误类型: ${error.name}`);
+                log(`完整错误: ${error.stack}`);
+            }
+        }
+        
+        // 页面加载时清空日志
+        window.onload = function() {
+            log('调试页面已加载，准备测试登录功能');
+        };
+    </script>
+</body>
+</html>

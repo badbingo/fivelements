@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>财富得分分析</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .bazi-info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .score-breakdown {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+        .pattern-info {
+            background: #fff3e0;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+        .highlight {
+            color: #d32f2f;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>财富得分分析 - 戊午，己未，乙酉，丁丑</h1>
+        
+        <div class="bazi-info">
+            <h3>八字信息</h3>
+            <p><strong>性别：</strong>女</p>
+            <p><strong>出生：</strong>1978年7月22日2时</p>
+            <p><strong>八字：</strong>戊午，己未，乙酉，丁丑</p>
+            <p><strong>日主：</strong>乙木</p>
+        </div>
+        
+        <div id="analysis-result"></div>
+        
+        <button onclick="analyzeScore()" style="padding: 10px 20px; background: #1976d2; color: white; border: none; border-radius: 5px; cursor: pointer;">开始分析</button>
+    </div>
+
+    <script>
+        // 基础函数
+        function getStemElement(stem) {
+            const elements = {
+                '甲': '木', '乙': '木', '丙': '火', '丁': '火', '戊': '土',
+                '己': '土', '庚': '金', '辛': '金', '壬': '水', '癸': '水'
+            };
+            return elements[stem];
+        }
+        
+        function getBranchElement(branch) {
+            const elements = {
+                '子': '水', '丑': '土', '寅': '木', '卯': '木', '辰': '土', '巳': '火',
+                '午': '火', '未': '土', '申': '金', '酉': '金', '戌': '土', '亥': '水'
+            };
+            return elements[branch];
+        }
+        
+        function isWealth(dayElement, targetElement) {
+            const wealthRelations = {
+                '木': ['土'],
+                '火': ['金'],
+                '土': ['水'],
+                '金': ['木'],
+                '水': ['火']
+            };
+            return wealthRelations[dayElement]?.includes(targetElement);
+        }
+        
+        function calculateSimpleDayStrength(pillars) {
+            const dayElement = getStemElement(pillars.day.charAt(0));
+            let strength = 10; // 基础分
+            
+            // 月令支持
+            const monthBranch = pillars.month.charAt(1);
+            const monthElement = getBranchElement(monthBranch);
+            if (monthElement === dayElement) strength += 20;
+            else if (isGenerating(monthElement, dayElement)) strength += 10;
+            else if (isRestricting(monthElement, dayElement)) strength -= 10;
+            
+            // 天干支持
+            ['year', 'month', 'hour'].forEach(pos => {
+                const stem = pillars[pos].charAt(0);
+                const element = getStemElement(stem);
+                if (element === dayElement) strength += 8;
+                else if (isGenerating(element, dayElement)) strength += 5;
+                else if (isRestricting(element, dayElement)) strength -= 5;
+            });
+            
+            // 地支支持
+            ['year', 'month', 'day', 'hour'].forEach(pos => {
+                const branch = pillars[pos].charAt(1);
+                const element = getBranchElement(branch);
+                if (element === dayElement) strength += 6;
+                else if (isGenerating(element, dayElement)) strength += 3;
+                else if (isRestricting(element, dayElement)) strength -= 3;
+            });
+            
+            return Math.max(0, strength);
+        }
+        
+        function isGenerating(e1, e2) {
+            const relations = {
+                '木': '火', '火': '土', '土': '金', '金': '水', '水': '木'
+            };
+            return relations[e1] === e2;
+        }
+        
+        function isRestricting(e1, e2) {
+            const relations = {
+                '木': '土', '火': '金', '土': '水', '金': '木', '水': '火'
+            };
+            return relations[e1] === e2;
+        }
+        
+        function analyzeScore() {
+            const pillars = {
+                year: '戊午',
+                month: '己未', 
+                day: '乙酉',
+                hour: '丁丑'
+            };
+            
+            const dayElement = getStemElement(pillars.day.charAt(0)); // 乙木
+            
+            // 计算财星数量
+            let wealthCount = 0;
+            ['year', 'month', 'day', 'hour'].forEach(pos => {
+                const stem = pillars[pos].charAt(0);
+                const branch = pillars[pos].charAt(1);
+                if (isWealth(dayElement, getStemElement(stem))) wealthCount++;
+                if (isWealth(dayElement, getBranchElement(branch))) wealthCount++;
+            });
+            
+            // 计算日主强度
+            const dayStrength = calculateSimpleDayStrength(pillars);
+            
+            // 基础财富分数（假设为45）
+            let baseScore = 45;
+            
+            // 判断格局
+            let pattern = '';
+            let bonus = 0;
+            
+            if (dayStrength <= 35 && wealthCount >= 4) {
+                pattern = '真从财格';
+                bonus = 20; // 调整后的奖励
+            } else if (dayStrength <= 50 && wealthCount >= 3) {
+                pattern = '假从财格';
+                bonus = 12; // 调整后的奖励
+            } else {
+                pattern = '普通格局';
+                bonus = 0;
+            }
+            
+            const finalScore = baseScore + bonus;
+            
+            // 显示结果
+            document.getElementById('analysis-result').innerHTML = `
+                <div class="score-breakdown">
+                    <h3>得分分析</h3>
+                    <p><strong>日主强度：</strong>${dayStrength}分</p>
+                    <p><strong>财星数量：</strong>${wealthCount}个</p>
+                    <p><strong>基础得分：</strong>${baseScore}分</p>
+                    <p><strong>识别格局：</strong><span class="highlight">${pattern}</span></p>
+                    <p><strong>格局奖励：</strong><span class="highlight">${bonus > 0 ? '+' : ''}${bonus}分</span></p>
+                    <p><strong>最终得分：</strong><span class="highlight">${finalScore}分</span></p>
+                </div>
+                
+                <div class="pattern-info">
+                    <h3>格局说明</h3>
+                    <p><strong>真从财格条件：</strong>日主强度 ≤ 35 且 财星数量 ≥ 4</p>
+                    <p><strong>假从财格条件：</strong>日主强度 ≤ 50 且 财星数量 ≥ 3</p>
+                    <p><strong>当前情况：</strong>日主强度${dayStrength}，财星${wealthCount}个</p>
+                    <div style="background: #ffebee; padding: 10px; border-radius: 5px; margin-top: 10px;">
+                        <p><strong>调整说明：</strong></p>
+                        <p>• 真从财格奖励：35分 → 20分</p>
+                        <p>• 假从财格奖励：20分 → 12分</p>
+                        <p>• 调整后得分：45 + ${bonus} = ${finalScore}分（更加合理）</p>
+                    </div>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>

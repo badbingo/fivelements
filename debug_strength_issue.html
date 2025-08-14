@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>身强身弱计算问题调试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+        }
+        .debug-section {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin: 10px 0;
+            background-color: #f9f9f9;
+        }
+        .highlight {
+            background-color: #ffeb3b;
+            padding: 2px 4px;
+        }
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+        .success {
+            color: green;
+            font-weight: bold;
+        }
+        .warning {
+            color: orange;
+            font-weight: bold;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 10px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <h1>身强身弱计算问题调试</h1>
+    <p>分析八字：甲申，甲戌，辛未，甲午</p>
+    
+    <div class="debug-section">
+        <h2>问题描述</h2>
+        <p>原命局分析：身强 67.20%</p>
+        <p>当前运势分析：从弱 28.03%</p>
+        <p><span class="error">变化过大，需要检查计算逻辑</span></p>
+    </div>
+    
+    <div class="debug-section">
+        <h2>八字基本信息</h2>
+        <table>
+            <tr><th>柱位</th><th>干支</th><th>天干五行</th><th>地支五行</th></tr>
+            <tr><td>年柱</td><td>甲申</td><td>甲(木)</td><td>申(金)</td></tr>
+            <tr><td>月柱</td><td>甲戌</td><td>甲(木)</td><td>戌(土)</td></tr>
+            <tr><td>日柱</td><td>辛未</td><td>辛(金)</td><td>未(土)</td></tr>
+            <tr><td>时柱</td><td>甲午</td><td>甲(木)</td><td>午(火)</td></tr>
+        </table>
+        <p><strong>日主：</strong>辛金</p>
+        <p><strong>月令：</strong>戌土（土生金，有利日主）</p>
+    </div>
+    
+    <div class="debug-section">
+        <h2>原命局五行分布分析</h2>
+        <div id="original-analysis"></div>
+    </div>
+    
+    <div class="debug-section">
+        <h2>当前运势分析（2025年乙巳，大运丙子）</h2>
+        <div id="current-analysis"></div>
+    </div>
+    
+    <div class="debug-section">
+        <h2>合化情况分析</h2>
+        <div id="combination-analysis"></div>
+    </div>
+    
+    <div class="debug-section">
+        <h2>问题诊断</h2>
+        <div id="diagnosis"></div>
+    </div>
+
+    <script>
+        // 基础数据
+        const bazi = {
+            year: '甲申',
+            month: '甲戌', 
+            day: '辛未',
+            hour: '甲午'
+        };
+        
+        const currentYear = 2025;
+        const currentYearGanZhi = '乙巳';
+        const currentDayun = '丙子';
+        
+        // 五行映射
+        const stemElementMap = {
+            '甲': 'wood', '乙': 'wood',
+            '丙': 'fire', '丁': 'fire', 
+            '戊': 'earth', '己': 'earth',
+            '庚': 'metal', '辛': 'metal',
+            '壬': 'water', '癸': 'water'
+        };
+        
+        const branchElementMap = {
+            '子': 'water', '丑': 'earth', '寅': 'wood', '卯': 'wood',
+            '辰': 'earth', '巳': 'fire', '午': 'fire', '未': 'earth',
+            '申': 'metal', '酉': 'metal', '戌': 'earth', '亥': 'water'
+        };
+        
+        // 计算原命局五行分布
+        function calculateOriginalElements() {
+            const elements = {
+                wood: 0, fire: 0, earth: 0, metal: 0, water: 0
+            };
+            
+            // 天干
+            elements[stemElementMap['甲']] += 1; // 年干
+            elements[stemElementMap['甲']] += 1; // 月干
+            elements[stemElementMap['辛']] += 1; // 日干
+            elements[stemElementMap['甲']] += 1; // 时干
+            
+            // 地支
+            elements[branchElementMap['申']] += 1; // 年支
+            elements[branchElementMap['戌']] += 1; // 月支
+            elements[branchElementMap['未']] += 1; // 日支
+            elements[branchElementMap['午']] += 1; // 时支
+            
+            return elements;
+        }
+        
+        // 计算当前运势五行分布
+        function calculateCurrentElements() {
+            const elements = calculateOriginalElements();
+            
+            // 加入流年
+            elements[stemElementMap['乙']] += 1.5; // 流年天干
+            elements[branchElementMap['巳']] += 2.0; // 流年地支
+            
+            // 加入大运
+            elements[stemElementMap['丙']] += 1.2; // 大运天干
+            elements[branchElementMap['子']] += 1.8; // 大运地支
+            
+            return elements;
+        }
+        
+        // 获取生扶五行
+        function getSupportElements(dayElement) {
+            const supportMap = {
+                'metal': ['earth', 'metal'], // 土生金，金助金
+                'wood': ['water', 'wood'],   // 水生木，木助木
+                'water': ['metal', 'water'], // 金生水，水助水
+                'fire': ['wood', 'fire'],    // 木生火，火助火
+                'earth': ['fire', 'earth']   // 火生土，土助土
+            };
+            return supportMap[dayElement] || [];
+        }
+        
+        // 获取克泄五行
+        function getWeakenElements(dayElement) {
+            const weakenMap = {
+                'metal': ['fire', 'water', 'wood'], // 火克金，金生水，金克木
+                'wood': ['metal', 'fire', 'earth'], // 金克木，木生火，木克土
+                'water': ['earth', 'wood', 'fire'], // 土克水，水生木，水克火
+                'fire': ['water', 'earth', 'metal'], // 水克火，火生土，火克金
+                'earth': ['wood', 'metal', 'water']  // 木克土，土生金，土克水
+            };
+            return weakenMap[dayElement] || [];
+        }
+        
+        // 分析合化情况
+        function analyzeCombinations() {
+            const combinations = [];
+            
+            // 检查地支六合：未午合土
+            combinations.push({
+                type: '地支六合',
+                detail: '未午合土',
+                effect: '增强土的力量，对辛金日主有生扶作用',
+                strength: 3
+            });
+            
+            // 检查当前运势的合化
+            // 申子辰三合水（半三合，大运子与年支申）
+            combinations.push({
+                type: '地支三合（当前）',
+                detail: '申子辰三合水（半三合）',
+                effect: '大运子与年支申形成半三合，增强水的力量，水克火但对金有生扶作用',
+                strength: 3
+            });
+            
+            // 寅午戌三合火（半三合，时支午与月支戌）
+            combinations.push({
+                type: '地支三合（原局）',
+                detail: '寅午戌三合火（半三合）',
+                effect: '时支午与月支戌形成半三合，增强火的力量，火克金',
+                strength: 3
+            });
+            
+            return combinations;
+        }
+        
+        // 分析原命局
+        function analyzeOriginal() {
+            const elements = calculateOriginalElements();
+            const dayElement = 'metal'; // 辛金
+            const supportElements = getSupportElements(dayElement);
+            const weakenElements = getWeakenElements(dayElement);
+            
+            let supportStrength = 0;
+            let weakenStrength = 0;
+            
+            supportElements.forEach(element => {
+                supportStrength += elements[element];
+            });
+            
+            weakenElements.forEach(element => {
+                weakenStrength += elements[element];
+            });
+            
+            // 加入合化影响（未午合土）
+            supportStrength += 3; // 未午合土，增强土的力量
+            
+            const ratio = supportStrength / (supportStrength + weakenStrength);
+            
+            return {
+                elements,
+                supportStrength,
+                weakenStrength,
+                ratio,
+                percentage: (ratio * 100).toFixed(2)
+            };
+        }
+        
+        // 分析当前运势
+        function analyzeCurrent() {
+            const elements = calculateCurrentElements();
+            const dayElement = 'metal'; // 辛金
+            const supportElements = getSupportElements(dayElement);
+            const weakenElements = getWeakenElements(dayElement);
+            
+            let supportStrength = 0;
+            let weakenStrength = 0;
+            
+            supportElements.forEach(element => {
+                supportStrength += elements[element];
+            });
+            
+            weakenElements.forEach(element => {
+                weakenStrength += elements[element];
+            });
+            
+            // 加入合化影响
+            supportStrength += 3; // 未午合土（原局）
+            weakenStrength += 3; // 申子辰半三合水（对金有复杂影响）
+            weakenStrength += 3; // 寅午戌半三合火（火克金）
+            
+            // 特别处理：申子辰三合水的影响
+            // 水对金既有生扶作用（金生水），也有泄耗作用
+            // 在当前大运流年的影响下，可能更多体现为泄耗
+            supportStrength -= 3; // 修正：申子辰三合水主要是泄耗金的力量
+            
+            const ratio = supportStrength / (supportStrength + weakenStrength);
+            
+            return {
+                elements,
+                supportStrength,
+                weakenStrength,
+                ratio,
+                percentage: (ratio * 100).toFixed(2)
+            };
+        }
+        
+        // 显示分析结果
+        function displayAnalysis() {
+            const original = analyzeOriginal();
+            const current = analyzeCurrent();
+            const combinations = analyzeCombinations();
+            
+            // 原命局分析
+            document.getElementById('original-analysis').innerHTML = `
+                <h3>原命局五行分布</h3>
+                <table>
+                    <tr><th>五行</th><th>数量</th></tr>
+                    <tr><td>木</td><td>${original.elements.wood}</td></tr>
+                    <tr><td>火</td><td>${original.elements.fire}</td></tr>
+                    <tr><td>土</td><td>${original.elements.earth}</td></tr>
+                    <tr><td>金</td><td>${original.elements.metal}</td></tr>
+                    <tr><td>水</td><td>${original.elements.water}</td></tr>
+                </table>
+                <p><strong>生扶力量：</strong>${original.supportStrength}点（土${original.elements.earth} + 金${original.elements.metal} + 合化加分3）</p>
+                <p><strong>克泄力量：</strong>${original.weakenStrength}点（火${original.elements.fire} + 水${original.elements.water} + 木${original.elements.wood}）</p>
+                <p><strong>力量比例：</strong>${original.percentage}%</p>
+                <p><strong>判断：</strong><span class="success">身强</span></p>
+            `;
+            
+            // 当前运势分析
+            document.getElementById('current-analysis').innerHTML = `
+                <h3>当前运势五行分布（加入2025乙巳年，大运丙子）</h3>
+                <table>
+                    <tr><th>五行</th><th>数量</th></tr>
+                    <tr><td>木</td><td>${current.elements.wood.toFixed(1)}</td></tr>
+                    <tr><td>火</td><td>${current.elements.fire.toFixed(1)}</td></tr>
+                    <tr><td>土</td><td>${current.elements.earth.toFixed(1)}</td></tr>
+                    <tr><td>金</td><td>${current.elements.metal.toFixed(1)}</td></tr>
+                    <tr><td>水</td><td>${current.elements.water.toFixed(1)}</td></tr>
+                </table>
+                <p><strong>生扶力量：</strong>${current.supportStrength}点</p>
+                <p><strong>克泄力量：</strong>${current.weakenStrength}点</p>
+                <p><strong>力量比例：</strong>${current.percentage}%</p>
+                <p><strong>判断：</strong><span class="error">从弱</span></p>
+            `;
+            
+            // 合化分析
+            let combinationHtml = '<h3>合化情况详细分析</h3>';
+            combinations.forEach(comb => {
+                combinationHtml += `
+                    <div style="margin: 10px 0; padding: 10px; border-left: 3px solid #007cba;">
+                        <strong>${comb.type}：</strong>${comb.detail}<br>
+                        <strong>影响：</strong>${comb.effect}<br>
+                        <strong>力量：</strong>${comb.strength}点
+                    </div>
+                `;
+            });
+            document.getElementById('combination-analysis').innerHTML = combinationHtml;
+            
+            // 问题诊断
+            document.getElementById('diagnosis').innerHTML = `
+                <h3>问题分析</h3>
+                <div class="warning">
+                    <p><strong>主要问题：</strong></p>
+                    <ol>
+                        <li><strong>大运流年影响过大：</strong>丙子大运和乙巳流年大幅增加了火和水的力量</li>
+                        <li><strong>合化计算可能有误：</strong>申子辰三合水的影响计算可能不准确</li>
+                        <li><strong>从格判断标准：</strong>从弱格的判断标准可能过于宽松</li>
+                        <li><strong>力量权重问题：</strong>大运流年的权重可能设置过高</li>
+                    </ol>
+                </div>
+                
+                <div class="success">
+                    <p><strong>建议修正：</strong></p>
+                    <ol>
+                        <li>调整大运流年的权重系数，避免影响过大</li>
+                        <li>重新审视申子辰三合水对辛金的实际影响</li>
+                        <li>提高从格判断的阈值标准</li>
+                        <li>考虑月令戌土对日主的根基作用</li>
+                    </ol>
+                </div>
+                
+                <div class="highlight">
+                    <p><strong>核心问题：</strong>原命局身强67.20%到当前运势28.03%的变化幅度达到39.17%，这种变化在传统命理中是不合理的。正常情况下，大运流年的影响应该是渐进性的，不应该导致如此剧烈的身强身弱转换。</p>
+                </div>
+            `;
+        }
+        
+        // 页面加载完成后执行分析
+        window.onload = function() {
+            displayAnalysis();
+        };
+    </script>
+</body>
+</html>

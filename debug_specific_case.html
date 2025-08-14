@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>特定八字案例调试</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .container { max-width: 1000px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; background: #fafafa; }
+        .error { color: red; font-weight: bold; }
+        .success { color: green; font-weight: bold; }
+        .info { color: blue; }
+        .debug-step { margin: 10px 0; padding: 10px; background: #eff6ff; border-left: 4px solid #2563eb; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>特定八字案例调试：财富分数计算</h1>
+        
+        <div class="section">
+            <h3>八字信息</h3>
+            <p><strong>性别：</strong>女</p>
+            <p><strong>出生时间：</strong>1976-07-12 6:00</p>
+            <p><strong>八字：</strong>丙辰，乙未，乙丑，己卯</p>
+            <p><strong>大运：</strong>庚寅，流年：乙巳</p>
+        </div>
+
+        <div class="section">
+            <h3>分数计算调试</h3>
+            <div id="debug-output"></div>
+        </div>
+
+        <button onclick="debugCalculation()">开始调试计算</button>
+    </div>
+
+    <script>
+        function debugCalculation() {
+            const output = document.getElementById('debug-output');
+            let html = '';
+            
+            // 根据用户提供的实际分数
+            html += '<div class="debug-step"><h4>第一步：基础模块分数（用户提供）</h4>';
+            
+            const baseModules = {
+                '食伤生财': 8,
+                '印绶护身': 0,
+                '财星能量': 10,
+                '财星位置': 20,
+                '财富库藏': 8,
+                '自坐财库': 8,
+                '财气通门户': 8,
+                '日主承载': 10
+            };
+            
+            let baseTotal = 0;
+            for (let [name, value] of Object.entries(baseModules)) {
+                baseTotal += value;
+                html += `<p>${name}：${value}分</p>`;
+            }
+            html += `<p class="info"><strong>基础模块合计：${baseTotal}分</strong></p>`;
+            
+            // Step 2: 进阶修正
+            html += '</div><div class="debug-step"><h4>第二步：进阶与修正分数（用户提供）</h4>';
+            const adjustments = {
+                '喜忌平衡': 6,
+                '季节财运': 4,
+                '财星保护': 14,
+                '空亡扣分': 0,
+                '流年修正': -8,
+                '大运强弱': 10
+            };
+            
+            let adjustedTotal = baseTotal;
+            for (let [name, value] of Object.entries(adjustments)) {
+                adjustedTotal += value;
+                html += `<p>${name}：${value > 0 ? '+' : ''}${value}分</p>`;
+            }
+            
+            // Step 3: 格局特效
+            html += '</div><div class="debug-step"><h4>第三步：格局与特效分数（用户提供）</h4>';
+            const special = {
+                '十神特效': -20,
+                '特殊格局': 0,
+                '身财平衡': 15
+            };
+            
+            for (let [name, value] of Object.entries(special)) {
+                adjustedTotal += value;
+                html += `<p>${name}：${value > 0 ? '+' : ''}${value}分</p>`;
+            }
+            
+            html += `<p class="info"><strong>用户显示基础合计：72分</strong></p>`;
+            html += `<p class="info"><strong>我们计算的合计：${adjustedTotal}分</strong></p>`;
+            
+            // Step 4: 传统否决条款分析
+            html += '</div><div class="debug-step"><h4>第四步：传统否决条款分析</h4>';
+            
+            // 八字：丙辰，乙未，乙丑，己卯
+            html += '<p><strong>八字分析：</strong></p>';
+            html += '<p>年柱：丙辰（丙火干，辰土支）</p>';
+            html += '<p>月柱：乙未（乙木干，未土支）</p>';
+            html += '<p>日柱：乙丑（乙木干，丑土支）</p>';
+            html += '<p>时柱：己卯（己土干，卯木支）</p>';
+            
+            // 日主乙木的分析
+            html += '<p><strong>日主乙木的十神分析：</strong></p>';
+            
+            // 比劫星：甲、乙、寅、卯（同类）
+            const biJieFound = ['乙（月干）', '卯（时支）'];
+            html += `<p>比劫星：${biJieFound.join('、')} = 2个</p>`;
+            
+            // 财星：戊、己、辰、戌、丑、未（木克土）
+            const wealthFound = ['丙（年干，火为乙木所生，非财星）', '辰（年支）', '乙（月干，非财星）', '未（月支）', '丑（日支）', '己（时干）'];
+            const actualWealth = ['辰（年支）', '未（月支）', '丑（日支）', '己（时干）'];
+            html += `<p>财星：${actualWealth.join('、')} = 4个</p>`;
+            
+            // 官杀星：庚、辛、申、酉（金克木）
+            html += `<p>官杀星：无 = 0个</p>`;
+            
+            html += '<p><strong>否决条款检查：</strong></p>';
+            html += '<p>1. 比劫数量 ≥ 2？ ✓ （2个）</p>';
+            html += '<p>2. 财星数量 ≥ 1？ ✓ （4个）</p>';
+            html += '<p>3. 无官杀制约？ ✓ （0个官杀）</p>';
+            html += '<p class="error"><strong>触发"比劫夺财无制"否决条款</strong></p>';
+            
+            const beforeVeto = 72;
+            const afterVeto = Math.round(beforeVeto * 0.7);
+            html += `<p class="error"><strong>计算：${beforeVeto} × 0.7 = ${afterVeto}分</strong></p>`;
+            
+            // 检查是否还有其他封顶规则
+            html += '<p><strong>其他否决条款检查：</strong></p>';
+            html += '<p>财多身弱不担财：需要身强度分析...</p>';
+            html += '<p>伤官见官：需要检查食伤和官星...</p>';
+            html += '<p>全局无财库：八字中有辰、丑、未土库 ✓</p>';
+            
+            // 最终结果对比
+            html += '</div><div class="debug-step"><h4>结论</h4>';
+            html += `<p class="success"><strong>理论计算结果：${afterVeto}分</strong></p>`;
+            html += `<p class="info"><strong>用户实际显示：65分</strong></p>`;
+            html += `<p><strong>差异分析：</strong>还可能有其他调整因素，如身强身弱的具体计算、或者其他隐含的否决条款。需要进一步检查完整的计算逻辑。</p>`;
+            
+            html += '</div>';
+            
+            output.innerHTML = html;
+        }
+    </script>
+</body>
+</html>

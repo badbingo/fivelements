@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>土性变化测试 - 壬子癸丑己巳癸酉</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            margin: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+        }
+        .bazi-info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 5px solid #007bff;
+        }
+        .analysis-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            background: #fafafa;
+        }
+        .debug-section {
+            background: #e8f4f8;
+            border-left: 4px solid #17a2b8;
+        }
+        .calculation {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+        }
+        .result {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+        }
+        .problem {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+        }
+        .highlight {
+            background: #ffeb3b;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 5px;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        .comparison-table th, .comparison-table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: center;
+        }
+        .comparison-table th {
+            background: #f8f9fa;
+            font-weight: bold;
+        }
+        .earth-transformation {
+            background: #fff8e1;
+            border: 2px solid #ff9800;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .earth-transformation h3 {
+            color: #e65100;
+            margin-top: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>土性变化分析测试</h1>
+        
+        <div class="bazi-info">
+            <h3>八字信息</h3>
+            <p><strong>八字：</strong>壬子 癸丑 己巳 癸酉</p>
+            <p><strong>日主：</strong>己土</p>
+            <p><strong>月令：</strong>丑土（冬月湿土）</p>
+            <p><strong>用户观点：</strong>应为从弱格，因为巳酉丑合金局减弱丑土能量，丑为湿土遇水更偏向水性</p>
+        </div>
+        
+        <div class="earth-transformation">
+            <h3>🌍 土性变化理论分析</h3>
+            <p><strong>传统命理观点：</strong></p>
+            <ul>
+                <li><strong>湿土特性：</strong>丑为湿土，含水气较重，在水旺的环境中容易"从水"</li>
+                <li><strong>三合局影响：</strong>巳酉丑三合金局，丑土被"拉"向金性，减弱其土性</li>
+                <li><strong>环境影响：</strong>天干三癸水一壬水，地支子水，水势极旺</li>
+                <li><strong>土性转化：</strong>在强水环境中，湿土（丑）更多体现水的特性而非土性</li>
+            </ul>
+        </div>
+        
+        <button onclick="analyzeEarthTransformation()">分析土性变化</button>
+        <button onclick="compareCalculations()">对比计算结果</button>
+        <button onclick="clearResults()">清空结果</button>
+        
+        <div id="results"></div>
+    </div>
+
+    <script>
+        // 基础映射
+        const stemElementMap = {
+            '甲': 'wood', '乙': 'wood',
+            '丙': 'fire', '丁': 'fire',
+            '戊': 'earth', '己': 'earth',
+            '庚': 'metal', '辛': 'metal',
+            '壬': 'water', '癸': 'water'
+        };
+        
+        const branchElementMap = {
+            '子': 'water', '丑': 'earth',
+            '寅': 'wood', '卯': 'wood',
+            '辰': 'earth', '巳': 'fire',
+            '午': 'fire', '未': 'earth',
+            '申': 'metal', '酉': 'metal',
+            '戌': 'earth', '亥': 'water'
+        };
+        
+        const BRANCH_ELEMENTS = {
+            '子': {main: 'water', hidden: ['癸']},
+            '丑': {main: 'earth', hidden: ['己', '癸', '辛']},
+            '寅': {main: 'wood', hidden: ['甲', '丙', '戊']},
+            '卯': {main: 'wood', hidden: ['乙']},
+            '辰': {main: 'earth', hidden: ['戊', '乙', '癸']},
+            '巳': {main: 'fire', hidden: ['丙', '庚', '戊']},
+            '午': {main: 'fire', hidden: ['丁', '己']},
+            '未': {main: 'earth', hidden: ['己', '丁', '乙']},
+            '申': {main: 'metal', hidden: ['庚', '壬', '戊']},
+            '酉': {main: 'metal', hidden: ['辛']},
+            '戌': {main: 'earth', hidden: ['戊', '辛', '丁']},
+            '亥': {main: 'water', hidden: ['壬', '甲']}
+        };
+        
+        function addResult(content, className = '') {
+            const resultsDiv = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = `analysis-section ${className}`;
+            div.innerHTML = content;
+            resultsDiv.appendChild(div);
+        }
+        
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+        
+        // 计算原始五行分布
+        function calculateOriginalElements() {
+            const elements = {
+                wood: 0, fire: 0, earth: 0, metal: 0, water: 0
+            };
+            
+            // 天干：壬 癸 己 癸
+            const stems = ['壬', '癸', '己', '癸'];
+            stems.forEach(stem => {
+                const element = stemElementMap[stem];
+                elements[element] += 1;
+            });
+            
+            // 地支：子 丑 巳 酉
+            const branches = ['子', '丑', '巳', '酉'];
+            branches.forEach(branch => {
+                const element = branchElementMap[branch];
+                elements[element] += 1;
+                
+                // 地支藏干
+                const hiddenStems = BRANCH_ELEMENTS[branch].hidden;
+                hiddenStems.forEach((hiddenStem, index) => {
+                    const hiddenElement = stemElementMap[hiddenStem];
+                    const weight = index === 0 ? 0.6 : (index === 1 ? 0.3 : 0.1);
+                    elements[hiddenElement] += weight;
+                });
+            });
+            
+            return elements;
+        }
+        
+        // 获取生扶五行
+        function getSupportElements(dayElement) {
+            const supportMap = {
+                'metal': ['earth', 'metal'],
+                'wood': ['water', 'wood'],
+                'water': ['metal', 'water'],
+                'fire': ['wood', 'fire'],
+                'earth': ['fire', 'earth']
+            };
+            return supportMap[dayElement] || [];
+        }
+        
+        // 获取克泄五行
+        function getWeakenElements(dayElement) {
+            const weakenMap = {
+                'metal': ['fire', 'water', 'wood'],
+                'wood': ['metal', 'fire', 'earth'],
+                'water': ['earth', 'wood', 'fire'],
+                'fire': ['water', 'earth', 'metal'],
+                'earth': ['wood', 'metal', 'water']
+            };
+            return weakenMap[dayElement] || [];
+        }
+        
+        // 分析土性变化
+        function analyzeEarthTransformation() {
+            clearResults();
+            
+            addResult('=== 土性变化分析 ===', 'debug-section');
+            
+            // 1. 基础五行分布
+            const elements = calculateOriginalElements();
+            addResult(`<h4>1. 基础五行分布</h4>
+                <p>木: ${elements.wood.toFixed(2)}</p>
+                <p>火: ${elements.fire.toFixed(2)}</p>
+                <p>土: ${elements.earth.toFixed(2)}</p>
+                <p>金: ${elements.metal.toFixed(2)}</p>
+                <p>水: ${elements.water.toFixed(2)}</p>`, 'calculation');
+            
+            // 2. 分析巳酉丑三合金局
+            addResult(`<h4>2. 巳酉丑三合金局分析</h4>
+                <p><strong>三合成员：</strong>巳火、酉金、丑土</p>
+                <p><strong>合化结果：</strong>三合金局，增强金的力量</p>
+                <p><strong>对丑土的影响：</strong></p>
+                <ul>
+                    <li>丑土参与三合金局，其土性被"拉"向金性</li>
+                    <li>丑土中的辛金藏干被激活，土生金的作用增强</li>
+                    <li>丑土本身的土性力量被削弱</li>
+                </ul>`, 'calculation');
+            
+            // 3. 分析湿土遇水的变化
+            addResult(`<h4>3. 湿土遇水变性分析</h4>
+                <p><strong>丑土特性：</strong>丑为湿土，本身含水气</p>
+                <p><strong>水势分析：</strong></p>
+                <ul>
+                    <li>天干：壬水、癸水、癸水（3个水干）</li>
+                    <li>地支：子水（1个水支）</li>
+                    <li>总计：4个水的力量</li>
+                </ul>
+                <p><strong>变性机制：</strong></p>
+                <ul>
+                    <li>在强水环境中，湿土（丑）容易"从水"</li>
+                    <li>丑土中的癸水藏干被激活</li>
+                    <li>土克水的关系被削弱，甚至逆转</li>
+                </ul>`, 'calculation');
+            
+            // 4. 计算传统方式vs考虑土性变化
+            const traditionalCalc = calculateTraditional();
+            const transformedCalc = calculateWithEarthTransformation();
+            
+            addResult(`<h4>4. 计算结果对比</h4>
+                <table class="comparison-table">
+                    <tr>
+                        <th>计算方式</th>
+                        <th>生扶力量</th>
+                        <th>克泄力量</th>
+                        <th>身强身弱比例</th>
+                        <th>判断结果</th>
+                    </tr>
+                    <tr>
+                        <td>传统计算</td>
+                        <td>${traditionalCalc.supportStrength.toFixed(2)}</td>
+                        <td>${traditionalCalc.weakenStrength.toFixed(2)}</td>
+                        <td>${(traditionalCalc.ratio * 100).toFixed(2)}%</td>
+                        <td>${traditionalCalc.type}</td>
+                    </tr>
+                    <tr>
+                        <td>考虑土性变化</td>
+                        <td>${transformedCalc.supportStrength.toFixed(2)}</td>
+                        <td>${transformedCalc.weakenStrength.toFixed(2)}</td>
+                        <td>${(transformedCalc.ratio * 100).toFixed(2)}%</td>
+                        <td>${transformedCalc.type}</td>
+                    </tr>
+                </table>`, 'result');
+            
+            // 5. 分析差异原因
+            addResult(`<h4>5. 差异分析</h4>
+                <p><strong>主要差异：</strong></p>
+                <ul>
+                    <li>传统计算：丑土完全按土性计算，对己土有生扶作用</li>
+                    <li>土性变化：丑土在水旺+三合金局影响下，土性减弱，甚至偏向水性</li>
+                    <li>结果影响：${transformedCalc.ratio < traditionalCalc.ratio ? '身强身弱比例降低' : '身强身弱比例提高'}</li>
+                </ul>
+                <p><strong>用户观点验证：</strong></p>
+                <p>${transformedCalc.type === '从弱' ? '✅ 考虑土性变化后确实判断为从弱格' : '❌ 即使考虑土性变化，仍未达到从弱格标准'}</p>`, 'result');
+        }
+        
+        // 传统计算方式
+        function calculateTraditional() {
+            const elements = calculateOriginalElements();
+            const dayElement = 'earth'; // 己土
+            const supportElements = getSupportElements(dayElement);
+            const weakenElements = getWeakenElements(dayElement);
+            
+            let supportStrength = 0;
+            let weakenStrength = 0;
+            
+            supportElements.forEach(element => {
+                supportStrength += elements[element];
+            });
+            
+            weakenElements.forEach(element => {
+                weakenStrength += elements[element];
+            });
+            
+            // 加入三合局影响（传统方式）
+            supportStrength += 2; // 巳酉丑合金局，金生土（间接生扶）
+            
+            const totalStrength = supportStrength + weakenStrength;
+            const ratio = totalStrength > 0 ? supportStrength / totalStrength : 0;
+            
+            let type;
+            if (ratio <= 0.18) {
+                type = '从弱';
+            } else if (ratio >= 0.90) {
+                type = '从强';
+            } else if (ratio >= 0.65) {
+                type = '身强';
+            } else if (ratio >= 0.45) {
+                type = '均衡';
+            } else {
+                type = '身弱';
+            }
+            
+            return {
+                supportStrength,
+                weakenStrength,
+                ratio,
+                type
+            };
+        }
+        
+        // 考虑土性变化的计算方式
+        function calculateWithEarthTransformation() {
+            const elements = calculateOriginalElements();
+            const dayElement = 'earth'; // 己土
+            const supportElements = getSupportElements(dayElement);
+            const weakenElements = getWeakenElements(dayElement);
+            
+            let supportStrength = 0;
+            let weakenStrength = 0;
+            
+            supportElements.forEach(element => {
+                supportStrength += elements[element];
+            });
+            
+            weakenElements.forEach(element => {
+                weakenStrength += elements[element];
+            });
+            
+            // 土性变化调整
+            // 1. 丑土在三合金局中土性减弱
+            supportStrength -= 0.8; // 减少丑土对己土的生扶
+            
+            // 2. 丑土在强水环境中偏向水性
+            const waterStrength = elements.water;
+            if (waterStrength >= 3) { // 水势强旺
+                supportStrength -= 0.5; // 进一步减少土的生扶力量
+                weakenStrength += 0.8; // 丑土偏向水性，增加克泄力量
+            }
+            
+            // 3. 巳酉丑三合金局的影响
+            weakenStrength += 2.5; // 三合金局增强金的力量，金泄土
+            
+            const totalStrength = supportStrength + weakenStrength;
+            const ratio = totalStrength > 0 ? supportStrength / totalStrength : 0;
+            
+            let type;
+            if (ratio <= 0.18) {
+                type = '从弱';
+            } else if (ratio >= 0.90) {
+                type = '从强';
+            } else if (ratio >= 0.65) {
+                type = '身强';
+            } else if (ratio >= 0.45) {
+                type = '均衡';
+            } else {
+                type = '身弱';
+            }
+            
+            return {
+                supportStrength,
+                weakenStrength,
+                ratio,
+                type
+            };
+        }
+        
+        // 对比不同计算方式
+        function compareCalculations() {
+            clearResults();
+            
+            addResult('=== 计算方式对比分析 ===', 'debug-section');
+            
+            const traditional = calculateTraditional();
+            const transformed = calculateWithEarthTransformation();
+            
+            addResult(`<h4>详细计算过程</h4>
+                <h5>传统计算方式：</h5>
+                <p>生扶力量：火(${calculateOriginalElements().fire.toFixed(2)}) + 土(${calculateOriginalElements().earth.toFixed(2)}) + 三合金局(2.0) = ${traditional.supportStrength.toFixed(2)}</p>
+                <p>克泄力量：木(${calculateOriginalElements().wood.toFixed(2)}) + 金(${calculateOriginalElements().metal.toFixed(2)}) + 水(${calculateOriginalElements().water.toFixed(2)}) = ${traditional.weakenStrength.toFixed(2)}</p>
+                <p>身强身弱比例：${traditional.supportStrength.toFixed(2)} / (${traditional.supportStrength.toFixed(2)} + ${traditional.weakenStrength.toFixed(2)}) = ${(traditional.ratio * 100).toFixed(2)}%</p>
+                <p>判断结果：<span class="highlight">${traditional.type}</span></p>
+                
+                <h5>考虑土性变化：</h5>
+                <p>生扶力量调整：原${traditional.supportStrength.toFixed(2)} - 丑土减弱(0.8) - 湿土从水(0.5) = ${transformed.supportStrength.toFixed(2)}</p>
+                <p>克泄力量调整：原${traditional.weakenStrength.toFixed(2)} + 丑土从水(0.8) + 三合金局(2.5) = ${transformed.weakenStrength.toFixed(2)}</p>
+                <p>身强身弱比例：${transformed.supportStrength.toFixed(2)} / (${transformed.supportStrength.toFixed(2)} + ${transformed.weakenStrength.toFixed(2)}) = ${(transformed.ratio * 100).toFixed(2)}%</p>
+                <p>判断结果：<span class="highlight">${transformed.type}</span></p>`, 'calculation');
+            
+            const ratioChange = Math.abs(transformed.ratio - traditional.ratio) * 100;
+            const isFromWeak = transformed.type === '从弱';
+            
+            addResult(`<h4>结论</h4>
+                <p><strong>比例变化：</strong>${(traditional.ratio * 100).toFixed(2)}% → ${(transformed.ratio * 100).toFixed(2)}%，变化幅度${ratioChange.toFixed(2)}%</p>
+                <p><strong>类型变化：</strong>${traditional.type} → ${transformed.type}</p>
+                <p><strong>用户观点：</strong>${isFromWeak ? '✅ 验证正确，确实应为从弱格' : '❌ 仍未达到从弱格标准'}</p>
+                <p><strong>建议：</strong>${isFromWeak ? '将土性变化逻辑加入身强身弱计算中' : '需要进一步调整土性变化的计算参数'}</p>`, isFromWeak ? 'result' : 'problem');
+        }
+        
+        // 页面加载时自动分析
+        window.onload = function() {
+            analyzeEarthTransformation();
+        };
+    </script>
+</body>
+</html>

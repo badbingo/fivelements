@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>API测试</title>
+</head>
+<body>
+    <h1>API连接测试</h1>
+    <button onclick="testLogin()">测试登录API</button>
+    <div id="result"></div>
+    
+    <script>
+        async function testLogin() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '测试中...';
+            
+            try {
+                console.log('开始测试API连接...');
+                const response = await fetch('https://api.mybazi.net/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: 'test', password: 'test' })
+                });
+                
+                console.log('Response status:', response.status);
+                console.log('Response headers:', response.headers);
+                
+                const result = await response.json();
+                console.log('Response data:', result);
+                
+                if (response.status === 401) {
+                    resultDiv.innerHTML = `<p style="color: green;">✅ API连接正常！返回401错误（用户名密码错误）是预期的。</p>`;
+                } else {
+                    resultDiv.innerHTML = `<p>状态码: ${response.status}</p><p>响应: ${JSON.stringify(result)}</p>`;
+                }
+            } catch (error) {
+                console.error('API测试错误:', error);
+                resultDiv.innerHTML = `<p style="color: red;">❌ API连接失败: ${error.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html>
