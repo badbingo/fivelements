@@ -3654,7 +3654,13 @@ contentElement.classList.add('show');
             });
             
             // 确保月令五行占33%的比例
+            console.log('=== 月令占比修复调试 ===');
+            console.log('pillars参数:', pillars);
+            console.log('pillars[1]:', pillars[1]);
+            console.log('月支字符:', pillars[1] ? pillars[1].charAt(1) : 'undefined');
             const monthBranchElement = elementMap[pillars[1].charAt(1)];
+            console.log('monthBranchElement:', monthBranchElement);
+            console.log('elementMap:', elementMap);
             if (monthBranchElement) {
                 const currentTotal = Object.values(elements).reduce((sum, val) => sum + val, 0);
                 const currentMonthRatio = elements[monthBranchElement] / currentTotal;
@@ -3723,6 +3729,14 @@ contentElement.classList.add('show');
             console.log(`月令五行(${pillars[1].charAt(1)}-${monthBranchElement}): ${monthElementTotal.toFixed(2)}, 占比: ${monthPercentage}%`);
             console.log('=========================');
             
+            // 调试返回值
+            console.log('=== calculateElements 返回值调试 ===');
+            console.log('返回的elements对象:', elements);
+            Object.entries(elements).forEach(([key, value]) => {
+                console.log(`${key}: ${value} (类型: ${typeof value})`);
+            });
+            console.log('=====================================');
+            
             return elements; // 返回英文五行名称，保持与其他函数的兼容性
         }
 
@@ -3739,6 +3753,100 @@ contentElement.classList.add('show');
             const result = calculateElements(testPillars[0], testPillars[1], testPillars[2], testPillars[3], testHiddenStems);
             console.log('测试完成，请查看上方输出结果');
             return result;
+        };
+        
+        // 测试图表显示的函数
+        window.testChartDisplay = function() {
+            console.log('=== 测试图表显示 ===');
+            const testPillars = ['丙戌', '庚寅', '己丑', '丁卯'];
+            const testHiddenStems = {
+                year: getHiddenStems('戌'),
+                month: getHiddenStems('寅'),
+                day: getHiddenStems('丑'),
+                hour: getHiddenStems('卯')
+            };
+            
+            // 计算五行分布
+            const elements = calculateElements(testPillars[0], testPillars[1], testPillars[2], testPillars[3], testHiddenStems);
+            console.log('calculateElements 返回的数据:', elements);
+            
+            // 直接调用图表显示函数
+            console.log('直接调用 displayOriginalElementsChart...');
+            displayOriginalElementsChart(elements);
+            
+            console.log('=== 测试完成 ===');
+            return elements;
+        };
+        
+        // 调试当前baziData的函数
+        window.debugCurrentBaziData = function() {
+            console.log('=== 调试当前baziData ===');
+            if (window.currentBaziData && window.currentBaziData.elements) {
+                console.log('当前baziData.elements:', window.currentBaziData.elements);
+                const total = Object.values(window.currentBaziData.elements).reduce((sum, val) => sum + val, 0);
+                console.log('总和:', total.toFixed(2));
+                
+                // 计算各五行占比
+                Object.entries(window.currentBaziData.elements).forEach(([element, value]) => {
+                    const percentage = ((value / total) * 100).toFixed(1);
+                    console.log(`${element}: ${value.toFixed(2)} (${percentage}%)`);
+                });
+                
+                // 检查数据类型
+                console.log('数据类型检查:');
+                Object.entries(window.currentBaziData.elements).forEach(([element, value]) => {
+                    console.log(`${element}: ${value} (类型: ${typeof value})`);
+                });
+                
+                // 重新显示图表
+                console.log('重新显示图表...');
+                displayOriginalElementsChart(window.currentBaziData.elements);
+            } else {
+                console.log('没有找到currentBaziData或elements数据');
+            }
+            console.log('=== 调试完成 ===');
+        };
+        
+        // 调试图表数据的函数
+        window.debugChartData = function() {
+            console.log('=== 调试图表数据 ===');
+            if (window.originalElementsChart && window.originalElementsChart.data) {
+                const chartData = window.originalElementsChart.data.datasets[0].data;
+                console.log('图表中的数据:', chartData);
+                const chartTotal = chartData.reduce((sum, val) => sum + val, 0);
+                console.log('图表数据总和:', chartTotal.toFixed(2));
+                
+                // 计算图表中各五行占比
+                const labels = window.originalElementsChart.data.labels;
+                chartData.forEach((value, index) => {
+                    const percentage = ((value / chartTotal) * 100).toFixed(1);
+                    console.log(`${labels[index]}: ${value.toFixed(2)} (${percentage}%)`);
+                });
+            } else {
+                console.log('没有找到图表数据');
+            }
+            console.log('=== 调试完成 ===');
+        };
+        
+        // 强制刷新图表的函数
+        window.forceRefreshChart = function() {
+            console.log('=== 强制刷新图表 ===');
+            if (window.currentBaziData && window.currentBaziData.elements) {
+                console.log('使用当前baziData.elements刷新图表:', window.currentBaziData.elements);
+                
+                // 销毁现有图表
+                if (window.originalElementsChart) {
+                    window.originalElementsChart.destroy();
+                }
+                
+                // 重新创建图表
+                displayOriginalElementsChart(window.currentBaziData.elements);
+                
+                console.log('图表已强制刷新');
+            } else {
+                console.log('没有可用的baziData.elements数据');
+            }
+            console.log('=== 刷新完成 ===');
         };
 
         // 五行关系判断工具函数
@@ -10068,6 +10176,13 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
         
         // 显示原命局五行分布图表
         function displayOriginalElementsChart(elements) {
+            // 添加调试信息，查看接收到的数据
+            console.log('=== displayOriginalElementsChart 接收到的数据 ===');
+            console.log('elements 参数:', elements);
+            const elementsTotal = Object.values(elements || {}).reduce((sum, val) => sum + (val || 0), 0);
+            console.log('elements 总和:', elementsTotal);
+            console.log('===============================================');
+            
             // 检查 elements 参数是否有效
             if (!elements || typeof elements !== 'object') {
                 console.error('displayOriginalElementsChart: elements 参数无效:', elements);
@@ -10153,13 +10268,21 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
                 return gradient;
             };
             
+            // 调试传递给Chart.js的数据
+            const chartData = [elements.wood, elements.fire, elements.earth, elements.metal, elements.water];
+            console.log('=== 传递给Chart.js的数据调试 ===');
+            console.log('chartData:', chartData);
+            console.log('chartData 各元素类型:', chartData.map(v => `${v} (${typeof v})`));
+            console.log('elements对象:', elements);
+            console.log('================================');
+            
             // 创建原命局五行环形图
             window.originalElementsChart = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
                     labels: ['木', '火', '土', '金', '水'],
                     datasets: [{
-                        data: [elements.wood, elements.fire, elements.earth, elements.metal, elements.water],
+                        data: chartData,
                         backgroundColor: [
                             createGradient(ctx, elementColors.wood.gradient),
                             createGradient(ctx, elementColors.fire.gradient),
@@ -10236,7 +10359,13 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
                             formatter: (value, ctx) => {
                                 const dataTotal = ctx.dataset.data.reduce((sum, val) => sum + val, 0);
                                 const percentage = ((value / dataTotal) * 100).toFixed(2);
-                                console.log(`五行标签显示 - 值: ${value}, 总和: ${dataTotal}, 百分比: ${percentage}%`);
+                                console.log(`=== datalabels formatter 调试 ===`);
+                                console.log(`值: ${value} (类型: ${typeof value})`);
+                                console.log(`总和: ${dataTotal} (类型: ${typeof dataTotal})`);
+                                console.log(`百分比: ${percentage}%`);
+                                console.log(`ctx.dataset.data:`, ctx.dataset.data);
+                                console.log(`ctx.dataset.data 各元素类型:`, ctx.dataset.data.map(v => typeof v));
+                                console.log(`===============================`);
                                 return percentage > 5 ? `${percentage}%` : '';
                             },
                             anchor: 'center',
