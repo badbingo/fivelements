@@ -3927,6 +3927,11 @@ contentElement.classList.add('show');
                     '辰': 'earth', '巳': 'fire', '午': 'fire', '未': 'earth',
                     '申': 'metal', '酉': 'metal', '戌': 'earth', '亥': 'water'
                 };
+             
+             // 定义五行中文名称映射
+             const elementNames = {
+                 wood: '木', fire: '火', earth: '土', metal: '金', water: '水'
+             };
                 
                 // 使用增强版五行计算
                 enhancedResult = earthCalculator.calculateEnhancedElements(allStems, allBranches, BRANCH_ELEMENTS);
@@ -10754,7 +10759,123 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
         
         // 显示五行分析描述（保留原有功能）
         function displayOriginalElementsDescription() {
-            const description = document.getElementById('elements-description');
+            // 获取原始五行数据
+            const elements = originalElements;
+            
+            // 计算最强和最弱的五行
+            const strongest = Object.keys(elements).reduce((a, b) => elements[a] > elements[b] ? a : b);
+            const weakest = Object.keys(elements).reduce((a, b) => elements[a] < elements[b] ? a : b);
+            
+            // 获取第二强和第二弱的五行
+            const sortedElements = Object.entries(elements).sort((a, b) => b[1] - a[1]);
+            const secondStrongest = sortedElements[1][0];
+            const secondWeakest = sortedElements[3][0];
+            
+            // 定义键名（strongest 和 weakest 已经是英文键名）
+            const strongestKey = strongest;
+            const weakestKey = weakest;
+            const secondStrongestKey = secondStrongest;
+            const secondWeakestKey = secondWeakest;
+            
+            // 定义五行颜色
+            const elementColors = {
+                wood: {
+                    main: '#2ecc71',
+                    light: 'rgba(46, 204, 113, 0.8)',
+                    border: 'rgba(46, 204, 113, 1)',
+                    gradient: ['rgba(46, 204, 113, 0.9)', 'rgba(39, 174, 96, 0.9)']
+                },
+                fire: {
+                    main: '#e74c3c',
+                    light: 'rgba(231, 76, 60, 0.8)',
+                    border: 'rgba(231, 76, 60, 1)',
+                    gradient: ['rgba(231, 76, 60, 0.9)', 'rgba(192, 57, 43, 0.9)']
+                },
+                earth: {
+                    main: '#f39c12',
+                    light: 'rgba(243, 156, 18, 0.8)',
+                    border: 'rgba(243, 156, 18, 1)',
+                    gradient: ['rgba(243, 156, 18, 0.9)', 'rgba(211, 84, 0, 0.9)']
+                },
+                metal: {
+                    main: '#95a5a6',
+                    light: 'rgba(149, 165, 166, 0.8)',
+                    border: 'rgba(149, 165, 166, 1)',
+                    gradient: ['rgba(149, 165, 166, 0.9)', 'rgba(127, 140, 141, 0.9)']
+                },
+                water: {
+                    main: '#3498db',
+                    light: 'rgba(52, 152, 219, 0.8)',
+                    border: 'rgba(52, 152, 219, 1)',
+                    gradient: ['rgba(52, 152, 219, 0.9)', 'rgba(41, 128, 185, 0.9)']
+                }
+            };
+            
+            // 定义五行特性
+            const elementProperties = {
+                wood: {
+                    nature: '生长、向上、扩展',
+                    character: '仁爱、正直、进取、创新、灵活、善变',
+                    career: '教育、文化、艺术、法律、环保、植物相关行业、创意设计、新兴产业',
+                    health: '肝胆系统、眼睛、肌腱、神经、头部',
+                    favorable: '东方、绿色环境、春季、早晨',
+                    icon: 'fa-tree',
+                    personality: '富有创造力，善于变通，但可能缺乏持久力，容易三分钟热度',
+                    career_detail: '适合需要创新和灵活思维的工作，不适合过于机械化的工作',
+                    health_advice: '注意肝脏健康，保持规律作息，避免过度疲劳，多做户外运动'
+                },
+                fire: {
+                    nature: '向上、光明、温暖',
+                    character: '热情、活泼、积极、礼貌、文明、急躁',
+                    career: '娱乐、广告、餐饮、能源、化工、电子、通讯、演艺、媒体',
+                    health: '心脏、血管、小肠、舌头、面部',
+                    favorable: '南方、红色环境、夏季、中午',
+                    icon: 'fa-fire',
+                    personality: '热情开朗，善于表达，但可能急躁冲动，缺乏耐心',
+                    career_detail: '适合需要沟通和表现力的工作，不适合需要长期专注的工作',
+                    health_advice: '注意心血管健康，控制情绪波动，避免过度兴奋，保持心态平和'
+                },
+                earth: {
+                    nature: '承载、稳定、包容',
+                    character: '诚实、守信、稳重、包容、勤劳、固执',
+                    career: '房地产、建筑、农业、畜牧、土木、陶瓷、中介、管理、服务',
+                    health: '脾胃、肌肉、四肢、口唇、消化系统',
+                    favorable: '中央、黄色环境、季节交替、下午',
+                    icon: 'fa-mountain',
+                    personality: '踏实稳重，值得信赖，但可能过于保守，缺乏变通',
+                    career_detail: '适合需要稳定和责任心的工作，不适合变化太快的工作',
+                    health_advice: '注意脾胃健康，规律饮食，避免暴饮暴食，适当运动增强体质'
+                },
+                metal: {
+                    nature: '收敛、向内、坚硬',
+                    character: '果断、公正、条理、自律、理性、刚毅',
+                    career: '金融、IT、机械、汽车、珠宝、军警、法律、精密工业',
+                    health: '肺部、大肠、皮肤、鼻子、呼吸系统',
+                    favorable: '西方、白色环境、秋季、傍晚',
+                    icon: 'fa-coins',
+                    personality: '条理分明，做事果断，公正严明，但可能过于刚硬，缺乏柔性',
+                    career_detail: '适合需要精确和规范的工作，不适合需要灵活变通的工作',
+                    health_advice: '注意呼吸系统健康，保持环境清洁，避免过度压抑情绪，适当放松'
+                },
+                water: {
+                    nature: '向下、流动、适应',
+                    character: '智慧、灵活、交际、适应力强、深沉、多变',
+                    career: '贸易、运输、旅游、水产、外交、销售、咨询、信息传播',
+                    health: '肾脏、膀胱、耳朵、骨骼、生殖系统',
+                    favorable: '北方、水域环境、冬季、夜晚',
+                    icon: 'fa-water',
+                    personality: '思维灵活，适应力强，善于沟通，但可能多虑，缺乏决断',
+                    career_detail: '适合需要交流和变通的工作，不适合固定模式的工作',
+                    health_advice: '注意肾脏健康，保持充足睡眠，避免过度疲劳，保持水分摄入'
+                }
+             };
+             
+             // 定义五行中文名称映射
+             const elementNames = {
+                 wood: '木', fire: '火', earth: '土', metal: '金', water: '水'
+             };
+             
+             const description = document.getElementById('elements-description');
             description.innerHTML = `
                 <h4 style="color: #2c3e50; margin-bottom: 15px; font-size: 1.2rem; border-bottom: 2px solid #3498db; padding-bottom: 8px;">
                     <i class="fas fa-chart-bar"></i> 五行分析
@@ -10762,7 +10883,7 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
                 
                 <div style="margin-bottom: 18px;">
                     <h5 style="color: ${elementColors[strongestKey].main}; font-size: 1.1rem; margin-bottom: 10px; display: flex; align-items: center;">
-                        <i class="fas ${elementProperties[strongestKey].icon}" style="margin-right: 8px;"></i> ${strongest}的特性与影响
+                        <i class="fas ${elementProperties[strongestKey].icon}" style="margin-right: 8px;"></i> ${elementNames[strongest]}的特性与影响
                     </h5>
                     <div style="background: linear-gradient(135deg, rgba(${strongestKey === 'wood' ? '46, 204, 113, 0.15' : strongestKey === 'fire' ? '231, 76, 60, 0.15' : strongestKey === 'earth' ? '243, 156, 18, 0.15' : strongestKey === 'metal' ? '149, 165, 166, 0.15' : '52, 152, 219, 0.15'}, 1), rgba(${strongestKey === 'wood' ? '46, 204, 113, 0.05' : strongestKey === 'fire' ? '231, 76, 60, 0.05' : strongestKey === 'earth' ? '243, 156, 18, 0.05' : strongestKey === 'metal' ? '149, 165, 166, 0.05' : '52, 152, 219, 0.05'}, 1)); padding: 15px; border-radius: 10px; margin-bottom: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); border-left: 4px solid ${elementColors[strongestKey].main};">
                         <p style="margin: 0 0 8px 0; font-size: 0.95rem;"><strong>性质：</strong>${elementProperties[strongestKey].nature}</p>
@@ -10783,10 +10904,10 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
                     <div style="background: linear-gradient(135deg, rgba(52, 152, 219, 0.15), rgba(52, 152, 219, 0.05)); padding: 15px; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); border-left: 4px solid #3498db;">
                         <p style="margin: 0 0 10px 0; font-size: 0.95rem;">${getFiveElementsAdvice(strongest, weakest)}</p>
                         <p style="margin: 0 0 10px 0; font-size: 0.95rem;"><strong>五行组合特点：</strong>
-                            ${strongest}${secondStrongest !== strongest ? `和${secondStrongest}` : ''}较强，表现为${elementProperties[strongestKey].character.split('、')[0]}${secondStrongest !== strongest ? `和${elementProperties[secondStrongestKey].character.split('、')[0]}` : ''}的特质突出。
-                            ${weakest === strongest ? '' : `${weakest}较弱，可能缺乏${elementProperties[weakestKey].character.split('、')[0]}的特质。`}
+                            ${elementNames[strongest]}${secondStrongest !== strongest ? `和${elementNames[secondStrongest]}` : ''}较强，表现为${elementProperties[strongestKey].character.split('、')[0]}${secondStrongest !== strongest ? `和${elementProperties[secondStrongestKey].character.split('、')[0]}` : ''}的特质突出。
+                            ${weakest === strongest ? '' : `${elementNames[weakest]}较弱，可能缺乏${elementProperties[weakestKey].character.split('、')[0]}的特质。`}
                         </p>
-                        <p style="margin: 0; font-size: 0.95rem;"><strong>补充${weakest}的方法：</strong>
+                        <p style="margin: 0; font-size: 0.95rem;"><strong>补充${elementNames[weakest]}的方法：</strong>
                             ${weakestKey === 'wood' ? '多接触绿色植物，在东方位置活动，春季出行，佩戴绿色饰品，多吃绿色蔬菜' : 
                               weakestKey === 'fire' ? '增加红色装饰，在南方位置活动，夏季出行，佩戴红色饰品，适当晒太阳' : 
                               weakestKey === 'earth' ? '使用黄色、棕色物品，在中央位置活动，季节交替时多出门，多吃黄色食物' : 
