@@ -4488,9 +4488,9 @@ contentElement.classList.add('show');
         
         // 检查是否从格
         function checkFollowingPattern(dayElement, monthBranch, strengthRatio, supportStrength, weakenStrength, monthScore) {
-            // 从弱格判断：力量比例≤25% 且 生扶力量很少
-            if (strengthRatio <= 0.25 && supportStrength <= 12) {
-                console.log(`从弱格判断: 比例${(strengthRatio * 100).toFixed(2)}% <= 25%, 生扶力量${supportStrength} <= 12`);
+            // 从弱格判断：力量比例≤18% 且 生扶力量很少 (更严格的标准)
+            if (strengthRatio <= 0.18 && supportStrength <= 8) {
+                console.log(`从弱格判断: 比例${(strengthRatio * 100).toFixed(2)}% <= 18%, 生扶力量${supportStrength} <= 8`);
                 return {
                     isFollowing: true,
                     type: '从弱',
@@ -4498,9 +4498,9 @@ contentElement.classList.add('show');
                 };
             }
             
-            // 极弱直判从弱：生扶≤3 或 力量比例≤12%
-            if (supportStrength <= 3 || strengthRatio <= 0.12) {
-                console.log(`从弱格判断(极弱): 生扶力量${supportStrength} <= 3 或 比例${(strengthRatio * 100).toFixed(2)}% <= 12%`);
+            // 极弱直判从弱：生扶≤2 或 力量比例≤8% (更严格的标准)
+            if (supportStrength <= 2 || strengthRatio <= 0.08) {
+                console.log(`从弱格判断(极弱): 生扶力量${supportStrength} <= 2 或 比例${(strengthRatio * 100).toFixed(2)}% <= 8%`);
                 return {
                     isFollowing: true,
                     type: '从弱',
@@ -4523,9 +4523,9 @@ contentElement.classList.add('show');
             const supportElements = getSupportElements(dayElement);
             const weakenElements = getWeakenElements(dayElement);
             
-            // 传统从弱格判断：比例≤30% 且 月令克泄日主
-            if (strengthRatio <= 0.30 && weakenElements.includes(monthElement)) {
-                console.log(`传统从弱格判断: 比例${(strengthRatio * 100).toFixed(2)}% <= 30%, 月令克泄日主`);
+            // 传统从弱格判断：比例≤22% 且 月令克泄日主 (更严格的标准)
+            if (strengthRatio <= 0.22 && weakenElements.includes(monthElement)) {
+                console.log(`传统从弱格判断: 比例${(strengthRatio * 100).toFixed(2)}% <= 22%, 月令克泄日主`);
                 return {
                     isFollowing: true,
                     type: '从弱',
@@ -4533,9 +4533,9 @@ contentElement.classList.add('show');
                 };
             }
             
-            // 兜底从弱格判断：生扶≤10 且 克泄≥12
-            if (supportStrength <= 10 && weakenStrength >= 12) {
-                console.log(`从弱格判断(兜底): 生扶力量${supportStrength} <= 10, 克泄力量${weakenStrength} >= 12`);
+            // 兜底从弱格判断：生扶≤6 且 克泄≥15 (更严格的标准)
+            if (supportStrength <= 6 && weakenStrength >= 15) {
+                console.log(`从弱格判断(兜底): 生扶力量${supportStrength} <= 6, 克泄力量${weakenStrength} >= 15`);
                 return {
                     isFollowing: true,
                     type: '从弱',
@@ -4543,9 +4543,9 @@ contentElement.classList.add('show');
                 };
             }
             
-            // 从强格：身强而用生扶
-            if (strengthRatio >= 0.85 && supportElements.includes(monthElement)) {
-                console.log(`从强格判断: 比例${(strengthRatio * 100).toFixed(2)}% >= 85%, 月令生扶日主`);
+            // 从强格：身强而用生扶 (更严格的标准)
+            if (strengthRatio >= 0.90 && supportElements.includes(monthElement) && supportStrength >= 18) {
+                console.log(`从强格判断: 比例${(strengthRatio * 100).toFixed(2)}% >= 90%, 月令生扶日主, 生扶力量${supportStrength} >= 18`);
                 return {
                     isFollowing: true,
                     type: '从强',
@@ -5060,10 +5060,10 @@ contentElement.classList.add('show');
                 const yearBranchElement = branchElementMap[currentYearBranch];
                 
                 if (yearStemElement) {
-                    currentElements[yearStemElement] += 1.5; // 流年天干权重
+                    currentElements[yearStemElement] += 0.8; // 流年天干权重 (降低从1.5到0.8)
                 }
                 if (yearBranchElement) {
-                    currentElements[yearBranchElement] += 2.0; // 流年地支权重
+                    currentElements[yearBranchElement] += 1.2; // 流年地支权重 (降低从2.0到1.2)
                 }
                 
                 // 加入大运天干地支的五行力量
@@ -5071,10 +5071,10 @@ contentElement.classList.add('show');
                 const dayunBranchElement = branchElementMap[currentDayunBranch];
                 
                 if (dayunStemElement) {
-                    currentElements[dayunStemElement] += 1.2; // 大运天干权重
+                    currentElements[dayunStemElement] += 0.6; // 大运天干权重 (降低从1.2到0.6)
                 }
                 if (dayunBranchElement) {
-                    currentElements[dayunBranchElement] += 1.8; // 大运地支权重
+                    currentElements[dayunBranchElement] += 1.0; // 大运地支权重 (降低从1.8到1.0)
                 }
                 
                 console.log('加入大运流年后的五行分布:', currentElements);
@@ -5223,6 +5223,55 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
                     type = '身弱';
                     description = '加入当前大运和流年后，日主在月令失势，生扶力量不足，判断为身弱，喜用印比。';
                     console.log(`特殊修正（大运流年）：月令得分${monthScore}，生扶${supportStrength}<=克泄${weakenStrength}，强制判断为身弱`);
+                }
+                
+                // 格局稳定性检查：防止身强身弱变化过大
+                try {
+                    const originalStrength = calculateStrength(dayStem, elements, monthBranch);
+                    if (originalStrength && originalStrength.ratio !== undefined) {
+                        const originalRatio = originalStrength.ratio;
+                        const currentRatio = strengthRatio;
+                        const ratioChange = Math.abs(currentRatio - originalRatio);
+                        
+                        // 如果变化超过30%，进行调整
+                        if (ratioChange > 0.30) {
+                            console.log(`格局稳定性检查：原命局比例${(originalRatio * 100).toFixed(2)}%，当前比例${(currentRatio * 100).toFixed(2)}%，变化${(ratioChange * 100).toFixed(2)}%过大`);
+                            
+                            // 调整当前比例，使其变化不超过25%
+                            const maxChange = 0.25;
+                            let adjustedRatio;
+                            if (currentRatio > originalRatio) {
+                                adjustedRatio = originalRatio + maxChange;
+                            } else {
+                                adjustedRatio = originalRatio - maxChange;
+                            }
+                            
+                            // 确保调整后的比例在合理范围内
+                            adjustedRatio = Math.max(0.05, Math.min(0.95, adjustedRatio));
+                            
+                            // 重新判断身强身弱类型
+                            const adjustedFollowing = checkFollowingPattern(dayElement, monthBranch, adjustedRatio, supportStrength, weakenStrength, monthScore);
+                            
+                            if (adjustedFollowing.isFollowing) {
+                                type = adjustedFollowing.type;
+                                description = '经格局稳定性调整后，' + adjustedFollowing.description;
+                            } else if (adjustedRatio >= 0.65) {
+                                type = '身强';
+                                description = '经格局稳定性调整后，日主力量强旺，能够承担财官，适合主动出击，喜用财官。';
+                            } else if (adjustedRatio >= 0.45 && adjustedRatio < 0.65) {
+                                type = '均衡';
+                                description = '经格局稳定性调整后，日主力量适中，五行较为平衡，运势平稳，喜用印比。';
+                            } else {
+                                type = '身弱';
+                                description = '经格局稳定性调整后，日主力量偏弱，需要生扶，宜守不宜攻，喜用印比。';
+                            }
+                            
+                            console.log(`格局稳定性调整：${(currentRatio * 100).toFixed(2)}% -> ${(adjustedRatio * 100).toFixed(2)}%，类型：${type}`);
+                            strengthRatio = adjustedRatio;
+                        }
+                    }
+                } catch (stabilityError) {
+                    console.warn('格局稳定性检查失败，使用原始计算结果:', stabilityError);
                 }
                 
                 // 获取当前大运信息用于显示
