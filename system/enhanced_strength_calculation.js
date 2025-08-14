@@ -329,6 +329,32 @@ class EarthTransformationCalculator {
         
         return result;
     }
+    
+    /**
+     * 获取土性变化的详细说明
+     * @param {Array} transformations - 土性变化数组
+     * @returns {string} 变化说明
+     */
+    getTransformationDescription(transformations) {
+        if (transformations.length === 0) {
+            return '无土性变化';
+        }
+        
+        const descriptions = transformations.map(t => {
+            switch (t.transformationType) {
+                case 'strong':
+                    return `${t.branch}土受强水影响，土性大幅减弱，偏向水性（土力-${(t.reductionRate * 100).toFixed(0)}%，水力+${(t.waterIncrease * 100).toFixed(0)}%）`;
+                case 'medium':
+                    return `${t.branch}土受中等水影响，土性减弱，略偏水性（土力-${(t.reductionRate * 100).toFixed(0)}%，水力+${(t.waterIncrease * 100).toFixed(0)}%）`;
+                case 'weakened':
+                    return `${t.branch}土受轻微水影响，土性略有减弱（土力-${(t.reductionRate * 100).toFixed(0)}%，水力+${(t.waterIncrease * 100).toFixed(0)}%）`;
+                default:
+                    return `${t.branch}发生未知变化`;
+            }
+        });
+        
+        return descriptions.join('；');
+    }
 }
 
 // 导出模块
