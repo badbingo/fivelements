@@ -3660,40 +3660,45 @@ contentElement.classList.add('show');
                 const currentMonthRatio = elements[monthBranchElement] / currentTotal;
                 
                 console.log(`月令调整前 - 月支: ${pillars[1].charAt(1)}, 五行: ${monthBranchElement}, 当前占比: ${(currentMonthRatio * 100).toFixed(1)}%`);
+                console.log('调整前五行分布:', JSON.parse(JSON.stringify(elements)));
                 
-                // 如果月令占比不是33%，则调整权重
-                if (Math.abs(currentMonthRatio - 0.33) > 0.01) {
-                    console.log('月令占比偏离33%，开始调整...');
-                    
-                    // 重新计算，确保月令占33%
-                    const tempElements = { wood: 0, fire: 0, earth: 0, metal: 0, water: 0 };
-                    
-                    // 先计算非月令五行的总和
-                    let nonMonthTotal = 0;
+                // 强制调整月令占比到33%
+                console.log('强制调整月令占比到33%...');
+                
+                // 计算其他五行的总和（排除月令五行）
+                let otherElementsTotal = 0;
+                const otherElements = {};
+                Object.keys(elements).forEach(element => {
+                    if (element !== monthBranchElement) {
+                        otherElements[element] = elements[element];
+                        otherElementsTotal += elements[element];
+                    }
+                });
+                
+                // 如果其他五行总和为0，给每个非月令五行分配少量权重
+                if (otherElementsTotal === 0) {
                     Object.keys(elements).forEach(element => {
                         if (element !== monthBranchElement) {
-                            tempElements[element] = elements[element];
-                            nonMonthTotal += elements[element];
+                            otherElements[element] = 0.1;
+                            otherElementsTotal += 0.1;
                         }
                     });
-                    
-                    // 月令五行设为总和的33%，其他五行按比例调整为67%
-                    const finalTotal = nonMonthTotal / 0.67;
-                    tempElements[monthBranchElement] = finalTotal * 0.33;
-                    
-                    Object.keys(tempElements).forEach(element => {
-                        if (element !== monthBranchElement) {
-                            tempElements[element] = tempElements[element] * 0.67 / nonMonthTotal * finalTotal;
-                        }
-                    });
-                    
-                    // 更新elements
-                    Object.assign(elements, tempElements);
-                    
-                    console.log('月令占比调整完成');
-                } else {
-                    console.log('月令占比已接近33%，无需调整');
                 }
+                
+                // 重新分配：月令33%，其他67%
+                const targetTotal = otherElementsTotal / 0.67;
+                const monthElementValue = targetTotal * 0.33;
+                
+                // 更新月令五行
+                elements[monthBranchElement] = monthElementValue;
+                
+                // 按比例调整其他五行
+                Object.keys(otherElements).forEach(element => {
+                    elements[element] = (otherElements[element] / otherElementsTotal) * (targetTotal * 0.67);
+                });
+                
+                console.log('月令占比调整完成');
+                console.log('调整后五行分布:', JSON.parse(JSON.stringify(elements)));
             }
             
             // 计算总分并验证月令权重
