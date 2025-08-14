@@ -3697,12 +3697,29 @@ contentElement.classList.add('show');
             const monthPercentage = ((monthElementTotal / total) * 100).toFixed(1);
             
             // 打印调试信息
-            console.log('五行分布计算结果:', elements);
+            console.log('=== 五行分布计算结果 ===');
+            console.log('五行分布:', elements);
             console.log(`总分: ${total.toFixed(2)}`);
             console.log(`月令五行(${pillars[1].charAt(1)}-${monthBranchElement}): ${monthElementTotal.toFixed(2)}, 占比: ${monthPercentage}%`);
+            console.log('=========================');
             
             return elements;
         }
+
+        // 测试函数 - 可在控制台调用
+        window.testMonthElementRatio = function() {
+            console.log('测试月令占比修复效果...');
+            const testPillars = ['丙戌', '庚寅', '己丑', '丁卯'];
+            const testHiddenStems = {
+                year: getHiddenStems('戌'),
+                month: getHiddenStems('寅'),
+                day: getHiddenStems('丑'),
+                hour: getHiddenStems('卯')
+            };
+            const result = calculateElements(testPillars[0], testPillars[1], testPillars[2], testPillars[3], testHiddenStems);
+            console.log('测试完成，请查看上方输出结果');
+            return result;
+        };
 
         // 五行关系判断工具函数
         function is_generating(e1, e2) {
