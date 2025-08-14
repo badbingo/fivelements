@@ -1741,66 +1741,66 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 计算十年大运
     function calculateDecadeFortune(lunar, gender) {
-    const yearGan = lunar.getYearGan();
-    const yearZhi = lunar.getYearZhi();
-    const isMale = gender === 'male';
-    const isYangYear = ['甲', '丙', '戊', '庚', '壬'].includes(yearGan);
-    const isForward = (isYangYear && isMale) || (!isYangYear && !isMale);
-    
-    const solar = lunar.getSolar();
-    const jieQiName = isForward ? '立春' : '大寒';
-    const targetJieQi = lunar.getJieQi(jieQiName);
-    
-    let daysDiff = 15; // 默认值
-    
-    try {
-        // 尝试获取节气日期
-        if (targetJieQi && typeof targetJieQi.getSolar === 'function') {
-            const targetSolar = targetJieQi.getSolar();
-            daysDiff = Math.abs(solar.diffDays(targetSolar));
-        } else if (targetJieQi && targetJieQi.solar) {
-            // 备选方案：如果节气对象有solar属性
-            daysDiff = Math.abs(solar.diffDays(targetJieQi.solar));
+        const yearGan = lunar.getYearGan();
+        const yearZhi = lunar.getYearZhi();
+        const isMale = gender === 'male';
+        const isYangYear = ['甲', '丙', '戊', '庚', '壬'].includes(yearGan);
+        const isForward = (isYangYear && isMale) || (!isYangYear && !isMale);
+        
+        const solar = lunar.getSolar();
+        const jieQiName = isForward ? '立春' : '大寒';
+        const targetJieQi = lunar.getJieQi(jieQiName);
+        
+        let daysDiff = 15; // 默认值
+        
+        try {
+            // 尝试获取节气日期
+            if (targetJieQi && typeof targetJieQi.getSolar === 'function') {
+                const targetSolar = targetJieQi.getSolar();
+                daysDiff = Math.abs(solar.diffDays(targetSolar));
+            } else if (targetJieQi && targetJieQi.solar) {
+                // 备选方案：如果节气对象有solar属性
+                daysDiff = Math.abs(solar.diffDays(targetJieQi.solar));
+            }
+        } catch (e) {
+            console.warn('计算节气间隔失败，使用默认值:', e);
         }
-    } catch (e) {
-        console.warn('计算节气间隔失败，使用默认值:', e);
-    }
-    
-    const startAge = Math.floor(daysDiff / 3);
-    const zhiOrder = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
-    let currentZhiIndex = zhiOrder.indexOf(yearZhi);
-    
-    const ganOrder = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
-    let currentGanIndex = ganOrder.indexOf(yearGan);
-    
-    const fortunes = [];
-    for (let i = 0; i < 8; i++) {
-        currentZhiIndex = isForward ? 
-            (currentZhiIndex + 1) % 12 : 
-            (currentZhiIndex - 1 + 12) % 12;
-        currentGanIndex = isForward ?
-            (currentGanIndex + 1) % 10 :
-            (currentGanIndex - 1 + 10) % 10;
         
-        const gan = ganOrder[currentGanIndex];
-        const zhi = zhiOrder[currentZhiIndex];
-        const baseScore = 60 + Math.floor(Math.random() * 20);
-        const trendBonus = isForward ? i * 2 : (7 - i) * 2;
-        const score = Math.min(90, baseScore + trendBonus);
+        const startAge = Math.floor(daysDiff / 3);
+        const zhiOrder = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
+        let currentZhiIndex = zhiOrder.indexOf(yearZhi);
         
-        fortunes.push({
-            ageRange: `${startAge + i * 10}-${startAge + (i + 1) * 10}岁`,
-            ganZhi: gan + zhi,
-            score: score
-        });
+        const ganOrder = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
+        let currentGanIndex = ganOrder.indexOf(yearGan);
+        
+        const fortunes = [];
+        for (let i = 0; i < 8; i++) {
+            currentZhiIndex = isForward ? 
+                (currentZhiIndex + 1) % 12 : 
+                (currentZhiIndex - 1 + 12) % 12;
+            currentGanIndex = isForward ?
+                (currentGanIndex + 1) % 10 :
+                (currentGanIndex - 1 + 10) % 10;
+            
+            const gan = ganOrder[currentGanIndex];
+            const zhi = zhiOrder[currentZhiIndex];
+            const baseScore = 60 + Math.floor(Math.random() * 20);
+            const trendBonus = isForward ? i * 2 : (7 - i) * 2;
+            const score = Math.min(90, baseScore + trendBonus);
+            
+            fortunes.push({
+                ageRange: `${startAge + i * 10}-${startAge + (i + 1) * 10}岁`,
+                ganZhi: gan + zhi,
+                score: score
+            });
+        }
+        
+        return {
+            isForward: isForward,
+            startAge: startAge,
+            fortunes: fortunes
+        };
     }
-    
-    return {
-        isForward: isForward,
-        startAge: startAge,
-        fortunes: fortunes
-    };
-}
 
     // 计算赌博运势
     function calculateGamblingFortune(birthData, birthLunar) {
@@ -1891,15 +1891,20 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         profiles.forEach(function(profile, index) {
             const hour = parseInt(profile.time.split(':')[0]);
-            const timeMap = {
-                23: '子时', 0: '子时',
-                1: '丑时', 3: '寅时',
-                5: '卯时', 7: '辰时',
-                9: '巳时', 11: '午时',
-                13: '未时', 15: '申时',
-                17: '酉时', 19: '戌时',
-                21: '亥时'
-           };
+        const timeMap = {
+            23: '子时', 0: '子时', 1: '子时',
+            2: '丑时', 3: '丑时',
+            4: '寅时', 5: '寅时',
+            6: '卯时', 7: '卯时',
+            8: '辰时', 9: '辰时',
+            10: '巳时', 11: '巳时',
+            12: '午时', 13: '午时',
+            14: '未时', 15: '未时',
+            16: '申时', 17: '申时',
+            18: '酉时', 19: '酉时',
+            20: '戌时', 21: '戌时',
+            22: '亥时'
+        };
             const profileElement = document.createElement('div');
             profileElement.className = 'saved-profile';
             profileElement.innerHTML = `
@@ -1960,14 +1965,19 @@ document.addEventListener('DOMContentLoaded', function() {
         const birthDisplay = document.getElementById('user-birth-display');
         const hour = parseInt(birthData.time.split(':')[0]);
         const timeMap = {
-            23: '子时 (23-1)', 0: '子时 (23-1)',
-            1: '丑时 (1-3)', 3: '寅时 (3-5)',
-            5: '卯时 (5-7)', 7: '辰时 (7-9)',
-            9: '巳时 (9-11)', 11: '午时 (11-13)',
-            13: '未时 (13-15)', 15: '申时 (15-17)',
-            17: '酉时 (17-19)', 19: '戌时 (19-21)',
-            21: '亥时 (21-23)'
-       };
+            23: '子时 (23-1)', 0: '子时 (23-1)', 1: '子时 (23-1)',
+            2: '丑时 (1-3)', 3: '丑时 (1-3)',
+            4: '寅时 (3-5)', 5: '寅时 (3-5)',
+            6: '卯时 (5-7)', 7: '卯时 (5-7)',
+            8: '辰时 (7-9)', 9: '辰时 (7-9)',
+            10: '巳时 (9-11)', 11: '巳时 (9-11)',
+            12: '午时 (11-13)', 13: '午时 (11-13)',
+            14: '未时 (13-15)', 15: '未时 (13-15)',
+            16: '申时 (15-17)', 17: '申时 (15-17)',
+            18: '酉时 (17-19)', 19: '酉时 (17-19)',
+            20: '戌时 (19-21)', 21: '戌时 (19-21)',
+            22: '亥时 (21-23)'
+        };
         nameDisplay.textContent = birthData.name || '匿名用户';
         birthDisplay.textContent = birthData.date.replace(/-/g, '/') + ' ' + timeMap[hour];
         
@@ -2333,16 +2343,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 获取八字问答答案
     async function getBaziAnswer(question) {
-    const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
-    // 使用代理服务器，不直接暴露API Key
-    const apiKey = 'placeholder_key_for_local_dev_only';
-    const cacheKey = `qa:${generateBaziHashKey(birthData)}:${question}`;
-    
-    // 检查缓存
-    const cachedResponse = baziCache.get(cacheKey);
-    if (cachedResponse) {
-        return cachedResponse;
-    }
+        const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
+        // 使用代理服务器，不直接暴露API Key
+        const apiKey = 'placeholder_key_for_local_dev_only';
+        const cacheKey = `qa:${generateBaziHashKey(birthData)}:${question}`;
+        
+        // 检查缓存
+        const cachedResponse = baziCache.get(cacheKey);
+        if (cachedResponse) {
+            return cachedResponse;
+        }
     
     const prompt = `【八字专业问答规范】请严格遵循以下规则回答：
 1. 回答必须基于传统八字命理学知识
@@ -2406,4 +2416,11 @@ document.addEventListener('DOMContentLoaded', function() {
         return '获取答案失败，请稍后重试';
     }
 }
+
+    // 设置十神点击事件处理器
+    function setupTenGodsClickHandlers() {
+        // 这里可以添加十神点击事件的处理逻辑
+        console.log('设置十神点击事件处理器');
+    }
+
 });

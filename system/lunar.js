@@ -707,7 +707,7 @@
 
       //序号：大雪以前-3，大雪到小寒之间-2，小寒到立春之间-1，立春之后0
       var index = -3;
-      for(i=0;i<size;i+=2){
+      for(var i=0;i<size;i+=2){
         end = o.jieQi[LunarUtil.JIE_QI_IN_USE[i]];
         var ymd = solar.toYmd();
         var symd = null==start?ymd:start.toYmd();
@@ -723,7 +723,7 @@
 
       start = null;
       index = -3;
-      for(i=0;i<size;i+=2){
+      for(var i=0;i<size;i+=2){
         end = o.jieQi[LunarUtil.JIE_QI_IN_USE[i]];
         var time = solar.toYmdHms();
         var stime = null==start?time:start.toYmdHms();
@@ -2689,10 +2689,10 @@
             w -= 365.2422;
           }
           // 25个节气时刻(北京时间)，从冬至开始到下一个冬至以后
-          for (i = 0; i < 26; i++) {
+          for (var i = 0; i < 26; i++) {
             jq.push(ShouXingUtil.calcQi(w + 15.2184 * i));
           }
-          for (i = 0, j = LunarUtil.JIE_QI_IN_USE.length; i < j; i++) {
+          for (var i = 0, j = LunarUtil.JIE_QI_IN_USE.length; i < j; i++) {
             if (i === 0) {
               jd = ShouXingUtil.qiAccurate2(jq[0] - 15.2184);
             } else if (i <= 26) {
@@ -2709,11 +2709,11 @@
             w -= 29.53;
           }
           // 递推每月初一
-          for (i = 0; i < 16; i++) {
+          for (var i = 0; i < 16; i++) {
             hs.push(ShouXingUtil.calcShuo(w + 29.5306 * i));
           }
           // 每月
-          for (i = 0; i < 15; i++) {
+          for (var i = 0; i < 15; i++) {
             dayCounts.push(Math.floor(hs[i + 1] - hs[i]));
             months.push(i);
           }
@@ -2913,7 +2913,7 @@
             if (n > 0) {
               while (true) {
                 size = months.length;
-                for (i = 0; i < size; i++) {
+                for (var i = 0; i < size; i++) {
                   m = months[i];
                   if (m.getYear() === iy && m.getMonth() === im) {
                     index = i;
@@ -2935,7 +2935,7 @@
             } else {
               while (true) {
                 size = months.length;
-                for (i = 0; i < size; i++) {
+                for (var i = 0; i < size; i++) {
                   m = months[i];
                   if (m.getYear() === iy && m.getMonth() === im) {
                     index = i;
@@ -3504,7 +3504,7 @@
         if (jd < f1 || jd >= f3) {
           d = Math.floor(this.shuoHigh(Math.floor((jd + pc - 2451551) / 29.5306) * Math.PI * 2) + 0.5);
         } else if (jd >= f1 && jd < f2) {
-          for (i = 0; i < size; i += 2) {
+          for (var i = 0; i < size; i += 2) {
             if (jd + pc < this.SHUO_KB[i + 2]) {
               break;
             }

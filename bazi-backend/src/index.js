@@ -1,36 +1,18 @@
-function base64Encode(bytes) {
-  return btoa(String.fromCharCode(...bytes)).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
-}
-
-function base64Decode(str) {
-  str = str.replace(/-/g, '+').replace(/_/g, '/');
-  while (str.length % 4) str += '=';
-  return Uint8Array.from(atob(str), c => c.charCodeAt(0));
-}
-
-// 注意：JWT_SECRET 应从环境变量获取，此处仅作为本地开发备用
-const JWT_SECRET = 'placeholder_for_local_dev_only';
+import { SignJWT } from 'jose';
+import { jwtVerify } from 'jose';
 
 // ✅ 生成 JWT
-function generateJWT(payload, secret) {
-  const header = { alg: 'HS256', typ: 'JWT' };
-  const encodedHeader = base64Encode(new TextEncoder().encode(JSON.stringify(header)));
-  const encodedPayload = base64Encode(new TextEncoder().encode(JSON.stringify(payload)));
-  const signature = base64Encode(new TextEncoder().encode(`${encodedHeader}.${encodedPayload}.${secret}`));  // 简化签名方式（演示用）
-  return `${encodedHeader}.${encodedPayload}.${signature}`;
+async function generateJWT(payload, secret) {
+  return await new SignJWT(payload)
+    .setProtectedHeader({ alg: 'HS256' })
+    .sign(new TextEncoder().encode(secret));
 }
 
 // ✅ 验证 JWT
-function verifyJWT(token, secret) {
+async function verifyJWT(token, secret) {
   try {
-    const [encodedHeader, encodedPayload, signature] = token.split('.');
-    const expectedSignature = base64Encode(new TextEncoder().encode(`${encodedHeader}.${encodedPayload}.${secret}`));
-    if (signature !== expectedSignature) {
-      console.log('JWT 签名不匹配');
-      return null;
-    }
-    const payloadStr = new TextDecoder().decode(base64Decode(encodedPayload));
-    return JSON.parse(payloadStr);
+    const { payload } = await jwtVerify(token, new TextEncoder().encode(secret));
+    return payload;
   } catch (err) {
     console.log('JWT 验证错误:', err.message);
     return null;
@@ -74,7 +56,7 @@ async function sendResetEmail(toEmail, emailContent, env) {
 async function createD1Session(env) {
   try {
     // 在本地环境中，返回一个模拟的会话令牌
-    if (typeof process !== 'undefined' && process.env.NODE_ENV !== 'production') {
+    if (env.ENVIRONMENT === 'local') {
       console.log('Using mock D1 session token for local development');
       return 'mock_session_token_for_local_dev';
     }
@@ -106,12 +88,8 @@ async function createD1Session(env) {
 
 export default {
   async fetch(request, env, ctx) {
-    // 创建 D1 读副本会话
-    let db = env.DB; // 默认使用主数据库
-    const sessionToken = await createD1Session(env).catch(() => null);
-    if (sessionToken) {
-      db = env.DB.withSession(sessionToken); // 使用读副本
-    }
+    // 直接使用主数据库，避免会话令牌问题
+    const db = env.DB;
 
     const { method } = request;
     const url = new URL(request.url);
@@ -119,8 +97,7 @@ export default {
     const corsHeaders = {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-      'Access-Control-Allow-Credentials': 'true'
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization'
     };
 
     if (method === 'OPTIONS') {
@@ -129,63 +106,92 @@ export default {
 
     // 注册接口
     if (url.pathname === '/api/register' && method === 'POST') {
-      const { name, email, password } = await request.json();
+      try {
+        const { name, email, password } = await request.json();
 
-      // 检查用户名或邮箱是否已存在
-      const existingUser = await db.prepare(`SELECT * FROM users WHERE name = ? OR email = ?`)
-        .bind(name, email).first();
-      if (existingUser) {
-        return new Response(JSON.stringify({ error: '用户名或邮箱已被使用' }), {
-          status: 409,
+        // 检查用户名或邮箱是否已存在
+        const existingUser = await db.prepare(`SELECT * FROM users WHERE name = ? OR email = ?`)
+          .bind(name, email).first();
+        if (existingUser) {
+          return new Response(JSON.stringify({ error: '用户名或邮箱已被使用' }), {
+            status: 409,
+            headers: { 'Content-Type': 'application/json', ...corsHeaders }
+          });
+        }
+
+        const hashed = await hashPassword(password);
+        const createdAt = Date.now(); // 使用时间戳（INTEGER 类型）
+
+        await db.prepare(`
+          INSERT INTO users (name, email, password, created_at)
+          VALUES (?, ?, ?, ?)
+        `).bind(name, email, hashed, createdAt).run();
+
+        return new Response(JSON.stringify({ success: true }), {
+          headers: { 'Content-Type': 'application/json', ...corsHeaders }
+        });
+      } catch (error) {
+        console.error('Register error:', error);
+        return new Response(JSON.stringify({ error: '注册过程中发生错误' }), {
+          status: 500,
           headers: { 'Content-Type': 'application/json', ...corsHeaders }
         });
       }
-
-      const hashed = await hashPassword(password);
-      const createdAt = Date.now(); // 使用时间戳（INTEGER 类型）
-
-      await db.prepare(`
-        INSERT INTO users (name, email, password, created_at)
-        VALUES (?, ?, ?, ?)
-      `).bind(name, email, hashed, createdAt).run();
-
-      return new Response(JSON.stringify({ success: true }), {
-        headers: { 'Content-Type': 'application/json', ...corsHeaders }
-      });
     }
 
     // 登录接口
     if (url.pathname === '/api/login' && method === 'POST') {
-    const { name, password } = await request.json();
-    const hashed = await hashPassword(password);  // 你原本的加密逻辑
+      try {
+        const { name, password } = await request.json();
+        const hashed = await hashPassword(password);
 
-    const user = await db.prepare(`SELECT * FROM users WHERE name = ?`).bind(name).first();
-    if (!user || user.password !== hashed) {
-      return new Response(JSON.stringify({ error: '用户名或密码错误' }), {
-        status: 401,
-        headers: { 'Content-Type': 'application/json', ...corsHeaders }
-      });
-    }
+        const user = await db.prepare(`SELECT * FROM users WHERE name = ?`).bind(name).first();
+        if (!user || user.password !== hashed) {
+          return new Response(JSON.stringify({ error: '用户名或密码错误' }), {
+            status: 401,
+            headers: { 'Content-Type': 'application/json', ...corsHeaders }
+          });
+        }
 
-    const token = generateJWT({ id: user.id, name: user.name }, env.JWT_SECRET);
-    return new Response(JSON.stringify({ token }), {
-      headers: { 'Content-Type': 'application/json', ...corsHeaders }
-    });
-  }
-
-    // 请求重设密码接口
-    if (url.pathname === '/api/request-reset' && method === 'POST') {
-      const { email } = await request.json();
-      const user = await db.prepare(`SELECT * FROM users WHERE email = ?`).bind(email).first();
-      if (!user) {
-        // 不暴露是否存在
-        return new Response(JSON.stringify({ success: true }), {
+        const token = await generateJWT({ id: user.id, name: user.name }, env.JWT_SECRET);
+        return new Response(JSON.stringify({ token }), {
+          headers: { 'Content-Type': 'application/json', ...corsHeaders }
+        });
+      } catch (error) {
+        console.error('Login error:', error);
+        return new Response(JSON.stringify({ error: '登录过程中发生错误' }), {
+          status: 500,
           headers: { 'Content-Type': 'application/json', ...corsHeaders }
         });
       }
-      const token = generateJWT({ id: user.id, exp: Math.floor(Date.now() / 1000) + 600 }, env.JWT_SECRET); // 10分钟有效
-      const link = `https://mybazi.net/system/reset.html?token=${token}`;
+    }
+
+    // 请求重设密码接口
+    if (url.pathname === '/api/request-reset' && method === 'POST') {
       try {
+        const { email } = await request.json();
+        console.log('收到重置密码请求，邮箱:', email);
+        
+        const user = await db.prepare(`SELECT * FROM users WHERE email = ?`).bind(email).first();
+        if (!user) {
+          console.log('用户不存在:', email);
+          // 不暴露是否存在
+          return new Response(JSON.stringify({ success: true }), {
+            headers: { 'Content-Type': 'application/json', ...corsHeaders }
+          });
+        }
+        
+        console.log('为用户生成重置令牌:', user.id);
+        // 设置过期时间为10分钟后
+        const expTime = Math.floor(Date.now() / 1000) + 600;
+        const token = await generateJWT({ id: user.id, exp: expTime }, env.JWT_SECRET);
+        console.log('生成的令牌长度:', token.length);
+        
+        // 使用环境变量中的RESET_URL_BASE
+        const resetUrlBase = env.RESET_URL_BASE || 'https://mybazi.net/system/reset.html';
+        const link = `${resetUrlBase}?token=${token}`;
+        console.log('重置链接:', link);
+        
         // 修改邮件内容，包含用户名
         const emailContent = `尊敬的 ${user.name}，\n\n点击以下链接重设你的密码：\n\n${link}\n\n链接10分钟内有效。`;
         
@@ -194,6 +200,7 @@ export default {
           headers: { 'Content-Type': 'application/json', ...corsHeaders }
         });
       } catch (err) {
+        console.error('请求重置密码错误:', err);
         return new Response(JSON.stringify({ error: err.message }), {
           status: 500,
           headers: { 'Content-Type': 'application/json', ...corsHeaders }
@@ -203,50 +210,45 @@ export default {
 
     // 提交新密码接口
     if (url.pathname === '/api/reset-password' && method === 'POST') {
-      const { token, newPassword } = await request.json();
-      const payload = verifyJWT(token);
-      if (!payload || payload.exp < Math.floor(Date.now() / 1000)) {
-        return new Response(JSON.stringify({ error: '链接已过期或无效' }), {
-          status: 400,
+      try {
+        const { token, newPassword } = await request.json();
+        console.log('收到重置密码请求，token长度:', token ? token.length : 0);
+        
+        const payload = await verifyJWT(token, env.JWT_SECRET);
+        console.log('JWT验证结果:', payload ? '成功' : '失败');
+        
+        if (!payload) {
+          return new Response(JSON.stringify({ error: '无效的重置令牌' }), {
+            status: 400,
+            headers: { 'Content-Type': 'application/json', ...corsHeaders }
+          });
+        }
+        
+        if (payload.exp < Math.floor(Date.now() / 1000)) {
+          console.log('令牌已过期，过期时间:', new Date(payload.exp * 1000).toISOString());
+          return new Response(JSON.stringify({ error: '重置链接已过期' }), {
+            status: 400,
+            headers: { 'Content-Type': 'application/json', ...corsHeaders }
+          });
+        }
+        
+        console.log('准备更新用户ID的密码:', payload.id);
+        const hashed = await hashPassword(newPassword);
+        await db.prepare(`UPDATE users SET password = ? WHERE id = ?`).bind(hashed, payload.id).run();
+        
+        return new Response(JSON.stringify({ success: true }), {
+          headers: { 'Content-Type': 'application/json', ...corsHeaders }
+        });
+      } catch (error) {
+        console.error('重置密码错误:', error);
+        return new Response(JSON.stringify({ error: '重置密码过程中发生错误', message: error.message }), {
+          status: 500,
           headers: { 'Content-Type': 'application/json', ...corsHeaders }
         });
       }
-      const hashed = await hashPassword(newPassword);
-      await db.prepare(`UPDATE users SET password = ? WHERE id = ?`).bind(hashed, payload.id).run();
-      return new Response(JSON.stringify({ success: true }), {
-        headers: { 'Content-Type': 'application/json', ...corsHeaders }
-      });
     }
 
-    // 获取用户余额接口
-  if (url.pathname === '/api/users/balance' && method === 'GET') {
-    try {
-      const authHeader = request.headers.get('Authorization');
-      if (!authHeader?.startsWith('Bearer ')) {
-        return new Response(JSON.stringify({ error: '未授权' }), { status: 401, headers: corsHeaders });
-      }
-
-      const token = authHeader.split(' ')[1];
-      const payload = verifyJWT(token, env.JWT_SECRET);
-      if (!payload || !payload.id) {
-        return new Response(JSON.stringify({ error: '无效的用户信息' }), { status: 401, headers: corsHeaders });
-      }
-
-      const user = await db.prepare(`SELECT balance FROM users WHERE id = ?`).bind(payload.id).first();
-      if (!user) {
-        return new Response(JSON.stringify({ error: '用户不存在' }), { status: 404, headers: corsHeaders });
-      }
-
-      return new Response(JSON.stringify({ balance: user.balance }), {
-        headers: { 'Content-Type': 'application/json', ...corsHeaders }
-      });
-    } catch (error) {
-      return new Response(JSON.stringify({ error: error.message }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json', ...corsHeaders }
-      });
-    }
-  }
+    // 获取用户余额接口 - 已移除重复定义，使用文件末尾的统一实现
 
     // 获取用户每日使用次数接口
     if (url.pathname === '/api/user/daily-usage' && method === 'GET') {
@@ -260,7 +262,7 @@ export default {
         }
 
         const token = authHeader.split(' ')[1];
-        const payload = verifyJWT(token, env.JWT_SECRET);
+        const payload = await verifyJWT(token, env.JWT_SECRET);
         if (!payload?.id) {
           return new Response(JSON.stringify({ error: '无效令牌' }), { 
             status: 401,
@@ -321,7 +323,7 @@ export default {
         }
 
         const token = authHeader.split(' ')[1];
-        const payload = verifyJWT(token, env.JWT_SECRET);
+        const payload = await verifyJWT(token, env.JWT_SECRET);
         if (!payload?.id) {
           return new Response(JSON.stringify({ error: '无效令牌' }), { 
             status: 401,
@@ -371,6 +373,9 @@ export default {
 
     // 用户扣费接口
     if (url.pathname === '/api/user/deduct' && method === 'POST') {
+
+    // 余额支付接口
+    if (url.pathname === '/api/pay_with_balance' && method === 'POST') {
       try {
         // 1. 验证请求
         const authHeader = request.headers.get('Authorization');
@@ -382,7 +387,113 @@ export default {
         }
         
         const token = authHeader.split(' ')[1];
-        const payload = verifyJWT(token, env.JWT_SECRET);
+        const payload = await verifyJWT(token, env.JWT_SECRET);
+        if (!payload?.id) {
+          return new Response(JSON.stringify({ error: '无效令牌' }), { 
+            status: 401,
+            headers: { 'Content-Type': 'application/json', ...corsHeaders }
+          });
+        }
+
+        const { amount, service } = await request.json();
+        if (!amount || amount <= 0 || !service) {
+          return new Response(JSON.stringify({ error: '参数无效' }), { 
+            status: 400,
+            headers: { 'Content-Type': 'application/json', ...corsHeaders }
+          });
+        }
+
+        // 2. 检查用户余额
+        const user = await db.prepare(
+          `SELECT id, balance FROM users WHERE id = ?`
+        ).bind(payload.id).first();
+        
+        if (!user) {
+          return new Response(JSON.stringify({ error: '用户不存在' }), { 
+            status: 404,
+            headers: { 'Content-Type': 'application/json', ...corsHeaders }
+          });
+        }
+        
+        if (user.balance < amount) {
+          return new Response(JSON.stringify({ 
+            error: '余额不足',
+            currentBalance: user.balance,
+            requiredAmount: amount
+          }), { 
+            status: 400,
+            headers: { 'Content-Type': 'application/json', ...corsHeaders }
+          });
+        }
+
+        // 3. 生成交易ID
+        const transactionId = crypto.randomUUID();
+        const timestamp = Math.floor(Date.now() / 1000);
+
+        // 4. 执行扣费操作
+        const batchResult = await db.batch([
+          db.prepare(
+            `UPDATE users SET balance = balance - ? WHERE id = ?`
+          ).bind(amount, payload.id),
+          
+          db.prepare(
+            `INSERT INTO transactions 
+            (id, user_id, amount, type, status, description, created_at)
+            VALUES (?, ?, ?, 'deduct', 'completed', ?, ?)`
+          ).bind(
+            transactionId,
+            payload.id,
+            amount,
+            `服务扣费: ${service}`,
+            timestamp
+          )
+        ]);
+
+        // 5. 检查批量操作结果
+        if (!batchResult.every(r => r.success)) {
+          console.error('扣费批量操作失败:', batchResult);
+          throw new Error('数据库操作失败');
+        }
+
+        // 6. 获取更新后的余额
+        const updatedUser = await db.prepare(
+          `SELECT balance FROM users WHERE id = ?`
+        ).bind(payload.id).first();
+
+        return new Response(JSON.stringify({
+          success: true,
+          transactionId,
+          newBalance: updatedUser.balance,
+          message: '支付成功'
+        }), {
+          headers: { 'Content-Type': 'application/json', ...corsHeaders }
+        });
+
+      } catch (error) {
+        console.error('支付错误:', error);
+        
+        return new Response(JSON.stringify({
+          success: false,
+          error: '支付处理失败',
+          message: '系统异常，请稍后重试'
+        }), { 
+          status: 500,
+          headers: { 'Content-Type': 'application/json', ...corsHeaders }
+        });
+      }
+    }
+      try {
+        // 1. 验证请求
+        const authHeader = request.headers.get('Authorization');
+        if (!authHeader?.startsWith('Bearer ')) {
+          return new Response(JSON.stringify({ error: '未授权' }), { 
+            status: 401,
+            headers: { 'Content-Type': 'application/json', ...corsHeaders }
+          });
+        }
+        
+        const token = authHeader.split(' ')[1];
+        const payload = await verifyJWT(token, env.JWT_SECRET);
         if (!payload?.id) {
           return new Response(JSON.stringify({ error: '无效令牌' }), { 
             status: 401,
@@ -491,7 +602,7 @@ export default {
         }
         
         const token = authHeader.split(' ')[1];
-        const payload = verifyJWT(token, env.JWT_SECRET);
+        const payload = await verifyJWT(token, env.JWT_SECRET);
         if (!payload?.id) {
           return new Response(JSON.stringify({ error: '无效令牌' }), { 
             status: 401,
@@ -589,7 +700,7 @@ export default {
         }
         
         const token = authHeader.split(' ')[1];
-        const payload = verifyJWT(token, env.JWT_SECRET);
+        const payload = await verifyJWT(token, env.JWT_SECRET);
         if (!payload?.id) {
           return new Response(JSON.stringify({ error: '无效令牌' }), { 
             status: 401,
@@ -701,7 +812,7 @@ export default {
         }
         
         const token = authHeader.split(' ')[1];
-        const payload = verifyJWT(token, env.JWT_SECRET);
+        const payload = await verifyJWT(token, env.JWT_SECRET);
         if (!payload?.id) {
           return new Response(JSON.stringify({ error: '无效令牌' }), { 
             status: 401,
@@ -843,7 +954,7 @@ export default {
         }
 
         const token = authHeader.substring(7);
-        const payload = verifyJWT(token, JWT_SECRET);
+        const payload = await verifyJWT(token, env.JWT_SECRET);
         if (!payload) {
           return new Response(JSON.stringify({ error: '无效的认证令牌' }), { 
             status: 401,
@@ -1152,7 +1263,7 @@ export default {
         if (authHeader && authHeader.startsWith('Bearer ')) {
           // 有认证信息，按用户删除逻辑处理
           const token = authHeader.substring(7);
-          const decoded = verifyJWT(token, env.JWT_SECRET);
+          const decoded = await verifyJWT(token, env.JWT_SECRET);
           if (!decoded) {
             return new Response(JSON.stringify({ error: '无效的认证令牌' }), {
               status: 401,
@@ -1214,7 +1325,7 @@ if (url.pathname === '/api/user/wishes' && method === 'GET') {
         }
         
         const token = authHeader.split(' ')[1];
-        const payload = verifyJWT(token, env.JWT_SECRET);
+        const payload = await verifyJWT(token, env.JWT_SECRET);
         if (!payload || !payload.id) {
             return new Response(JSON.stringify({ error: '无效令牌' }), {
                 status: 401,
@@ -1325,7 +1436,7 @@ if (url.pathname === '/api/user/wishes' && method === 'GET') {
         }
 
         const token = authHeader.split(' ')[1];
-        const payload = verifyJWT(token, env.JWT_SECRET);
+        const payload = await verifyJWT(token, env.JWT_SECRET);
         if (!payload || !payload.id) {
           return new Response(JSON.stringify({ error: '无效的用户信息' }), { status: 401, headers: corsHeaders });
         }
@@ -1435,7 +1546,7 @@ if (url.pathname === '/api/user/wishes' && method === 'GET') {
             const token = authHeader.split(' ')[1];
             let payload;
             try {
-              payload = verifyJWT(token);
+              payload = await verifyJWT(token, env.JWT_SECRET);
             } catch (e) {
               return new Response(JSON.stringify({ error: '无效令牌' }), {
                 status: 401,
@@ -1566,7 +1677,7 @@ if (url.pathname === '/api/user/wishes' && method === 'GET') {
           }
           
           const token = authHeader.split(' ')[1];
-          const payload = verifyJWT(token, env.JWT_SECRET);
+          const payload = await verifyJWT(token, env.JWT_SECRET);
           if (!payload || !payload.id) {
             return new Response(JSON.stringify({ error: '无效令牌' }), {
               status: 401,
@@ -1751,7 +1862,7 @@ if (url.pathname === '/api/user/wishes' && method === 'GET') {
         }
         
         const token = authHeader.split(' ')[1];
-        const payload = verifyJWT(token, env.JWT_SECRET);
+        const payload = await verifyJWT(token, env.JWT_SECRET);
         if (!payload || !payload.id) {
           return new Response(JSON.stringify({ error: '无效令牌' }), {
             status: 401,
@@ -1809,7 +1920,7 @@ if (url.pathname === '/api/user/wishes' && method === 'GET') {
           const { amount, paymentMethod } = await request.json();
           const authHeader = request.headers.get('Authorization');
           const token = authHeader.split(' ')[1];
-          const payload = verifyJWT(token, env.JWT_SECRET);
+          const payload = await verifyJWT(token, env.JWT_SECRET);
           
           // 生成唯一订单号
           const orderId = `R${Date.now()}${Math.floor(Math.random()*1000)}`;
@@ -1951,7 +2062,7 @@ if (url.pathname === '/api/user/wishes' && method === 'GET') {
         }
         
         const token = authHeader.split(' ')[1];
-        const payload = verifyJWT(token, env.JWT_SECRET);
+        const payload = await verifyJWT(token, env.JWT_SECRET);
         if (!payload || !payload.id) {
           return new Response(JSON.stringify({ error: '无效令牌' }), {
             status: 401,
@@ -1974,4 +2085,3 @@ if (url.pathname === '/api/user/wishes' && method === 'GET') {
       return new Response('Not Found', { status: 404, headers: corsHeaders });
   }
 };
-

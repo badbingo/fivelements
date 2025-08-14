@@ -29,7 +29,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const compatibilityMeter = document.getElementById('compatibility-meter');
     const recommendation = document.getElementById('recommendation');
     
-    const currentDate = new Date(2025, 3, 3);
+    // 使用当前系统日期
+    const currentDate = new Date();
     let maleData = {};
     let femaleData = {};
     let loadedSections = {};
@@ -515,7 +516,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     async function getMarriageAnalysis(section, maleData, femaleData) {
-        const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
+        const apiUrl = 'https://deepseek-api-proxy.owenjass.workers.dev/api/deepseek';
         // 使用代理服务器，不直接暴露API Key
         const apiKey = 'placeholder_key_for_local_dev_only';
         
@@ -527,7 +528,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 15000);
         
-        const currentDateStr = '2025年4月3日';
+        // 使用currentDate变量动态生成当前日期字符串
+        const currentDateStr = `${currentDate.getFullYear()}年${currentDate.getMonth() + 1}月${currentDate.getDate()}日`;
         
         let prompt = `当前日期：${currentDateStr}\n根据以下双方八字信息进行八字排盘：
 1. 从强格判定
@@ -544,7 +546,7 @@ document.addEventListener('DOMContentLoaded', function() {
 4. 起运时间计算方法
     * 起运岁数 =（出生到下一个节气或上一个节气的天数）÷ 3（注意：阳男1973年2月2日17:00出生（未过立春），下一个节气是顺排到立春（1973年2月4日7:04）而非惊蛰，间隔天数 = 1天14小时4分 → 折合6个月10天起运）
     * 顺排≠换月节气：阳男顺排是找出生后第一个节气（可能与本月节气相同，如本例立春=丑月结束）
-    * 逆排陷阱： 阴男1995年8月8日4:00出生（立秋8月8日8:12未到），逆排需找小暑7月7日18:01（非上一个立夏）
+    * 逆排陷阱：阴男1995年8月8日4:00出生（立秋8月8日8:12未到），逆排需找小暑7月7日18:01（非上一个立夏）
     * 节气交接日出生者需先判断是否已过节气时刻
     * 跨年逆排时（如小寒前出生）需找上年大雪
     * 节气临界点：出生在立春前X天，年柱是XX（如壬子），因未过立春，顺排的下一个节气应该是立春

@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>大运缓存测试 - 验证不重复计算</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .test-section h3 {
+            color: #333;
+            margin-top: 0;
+        }
+        .log {
+            background: #f8f8f8;
+            padding: 10px;
+            border-left: 3px solid #007cba;
+            font-family: monospace;
+            font-size: 14px;
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            background: #e7f3ff;
+            border-radius: 4px;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .warning { background: #fff3cd; color: #856404; }
+        .error { background: #f8d7da; color: #721c24; }
+        button {
+            background: #007cba;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #005a8a;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>大运缓存测试 - 验证不重复计算</h1>
+        <p>此测试用于验证命格等级和财富等级计算中，大运信息是否正确使用缓存，避免重复计算。</p>
+        
+        <div class="test-section">
+            <h3>测试八字数据</h3>
+            <button onclick="testDayunCache()">开始测试</button>
+            <button onclick="clearLogs()">清空日志</button>
+            <div id="test-data" class="result">
+                <strong>测试八字：</strong>甲子年 丙寅月 戊午日 丁巳时<br>
+                <strong>性别：</strong>男<br>
+                <strong>测试目的：</strong>验证 getCurrentDayun() 调用次数，确保使用缓存
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h3>函数调用监控</h3>
+            <div id="call-log" class="log">等待测试开始...</div>
+        </div>
+        
+        <div class="test-section">
+            <h3>缓存使用情况</h3>
+            <div id="cache-status" class="result">未开始测试</div>
+        </div>
+        
+        <div class="test-section">
+            <h3>计算结果对比</h3>
+            <div id="results" class="result">未开始测试</div>
+        </div>
+    </div>
+
+    <script src="../js/lunar.js"></script>
+    <script>
+        // 监控函数调用的工具
+        let originalGetCurrentDayun = null;
+        let getCurrentDayunCallCount = 0;
+        let callLog = [];
+        
+        function clearLogs() {
+            document.getElementById('call-log').textContent = '';
+            document.getElementById('cache-status').textContent = '日志已清空';
+            document.getElementById('results').textContent = '日志已清空';
+            getCurrentDayunCallCount = 0;
+            callLog = [];
+        }
+        
+        function logCall(message) {
+            callLog.push(new Date().toLocaleTimeString() + ': ' + message);
+            document.getElementById('call-log').textContent = callLog.join('\n');
+            console.log(message);
+        }
+        
+        // 模拟计算函数
+        function mockCalculateBazi() {
+            // 模拟八字数据
+            const formData = {
+                name: '测试',
+                gender: '男',
+                birthDate: '1984-02-15',
+                birthTime: '10:30'
+            };
+            
+            // 模拟 solar 和 lunar 对象
+            const date = new Date(formData.birthDate + 'T' + formData.birthTime + ':00');
+            const solar = Solar.fromDate(date);
+            const lunar = solar.getLunar();
+            const eightChar = lunar.getEightChar();
+            
+            // 保存到 window 对象
+            window.eightChar = eightChar;
+            
+            // 模拟四柱
+            const pillars = {
+                year: '甲子',
+                month: '丙寅',
+                day: '戊午',
+                hour: '丁巳'
+            };
+            
+            // 模拟起运时间计算
+            const luckTiming = {
+                age: 3,
+                direction: '顺排',
+                description: '3岁起运'
+            };
+            
+            // 设置全局数据
+            window.currentBaziData = {
+                pillars: pillars,
+                luckTiming: luckTiming
+            };
+            
+            logCall('模拟八字数据设置完成');
+            
+            // 这里应该调用真实的 getCurrentDayun 来设置缓存
+            if (typeof getCurrentDayun === 'function') {
+                const currentDayun = getCurrentDayun();
+                window.currentBaziData.currentDayun = currentDayun;
+                logCall('当前大运信息已缓存: ' + JSON.stringify(currentDayun));
+            }
+            
+            return {
+                pillars: pillars,
+                luckTiming: luckTiming,
+                currentDayun: window.currentBaziData.currentDayun
+            };
+        }
+        
+        // 模拟命格等级计算
+        function mockCalculateFateLevel(pillars) {
+            logCall('开始计算命格等级...');
+            
+            // 检查是否有缓存的当前大运
+            if (window.currentBaziData && window.currentBaziData.currentDayun) {
+                logCall('使用缓存的大运信息进行命格计算');
+                return { score: 85, details: { dayunCoordination: 8 } };
+            } else {
+                logCall('警告: 没有找到缓存的大运信息，可能会重复计算');
+                return { score: 80, details: { dayunCoordination: 6 } };
+            }
+        }
+        
+        // 模拟财富等级计算
+        function mockCalculateWealthLevel(pillars) {
+            logCall('开始计算财富等级...');
+            
+            // 检查是否有缓存的当前大运
+            if (window.currentBaziData && window.currentBaziData.currentDayun) {
+                logCall('使用缓存的大运信息进行财富计算');
+                return { score: 78, details: { dayunStrength: 6 } };
+            } else {
+                logCall('警告: 没有找到缓存的大运信息，可能会重复计算');
+                return { score: 75, details: { dayunStrength: 4 } };
+            }
+        }
+        
+        function testDayunCache() {
+            logCall('=== 开始大运缓存测试 ===');
+            
+            // 清理之前的数据
+            window.currentBaziData = null;
+            window.eightChar = null;
+            
+            // 步骤1: 模拟八字计算
+            logCall('步骤1: 模拟八字计算');
+            const baziData = mockCalculateBazi();
+            
+            // 步骤2: 检查缓存状态
+            logCall('步骤2: 检查缓存状态');
+            const cacheStatus = {
+                hasLuckTiming: !!(window.currentBaziData && window.currentBaziData.luckTiming),
+                hasCurrentDayun: !!(window.currentBaziData && window.currentBaziData.currentDayun),
+                hasCurrentYear: !!(window.currentBaziData && window.currentBaziData.currentYearGanZhi)
+            };
+            
+            logCall('缓存状态: ' + JSON.stringify(cacheStatus, null, 2));
+            
+            // 步骤3: 测试命格等级计算
+            logCall('步骤3: 测试命格等级计算');
+            const fateLevel = mockCalculateFateLevel(baziData.pillars);
+            
+            // 步骤4: 测试财富等级计算
+            logCall('步骤4: 测试财富等级计算');
+            const wealthLevel = mockCalculateWealthLevel(baziData.pillars);
+            
+            // 步骤5: 汇总结果
+            logCall('步骤5: 汇总测试结果');
+            
+            const summary = {
+                cacheUsed: cacheStatus.hasLuckTiming && cacheStatus.hasCurrentDayun,
+                fateScore: fateLevel.score,
+                wealthScore: wealthLevel.score,
+                getCurrentDayunCalls: getCurrentDayunCallCount
+            };
+            
+            // 显示结果
+            document.getElementById('cache-status').innerHTML = `
+                <strong>缓存使用情况:</strong><br>
+                起运时间缓存: ${cacheStatus.hasLuckTiming ? '✓' : '✗'}<br>
+                当前大运缓存: ${cacheStatus.hasCurrentDayun ? '✓' : '✗'}<br>
+                当前流年缓存: ${cacheStatus.hasCurrentYear ? '✓' : '✗'}
+            `;
+            
+            document.getElementById('results').innerHTML = `
+                <strong>计算结果:</strong><br>
+                命格等级: ${fateLevel.score} 分<br>
+                财富等级: ${wealthLevel.score} 分<br>
+                getCurrentDayun调用次数: ${getCurrentDayunCallCount}<br>
+                <br>
+                <strong>优化效果:</strong><br>
+                ${summary.cacheUsed ? 
+                    '<span class="success">✓ 成功使用缓存，避免重复计算</span>' : 
+                    '<span class="warning">⚠ 未使用缓存，可能存在重复计算</span>'
+                }
+            `;
+            
+            logCall('=== 测试完成 ===');
+        }
+        
+        // 监控 getCurrentDayun 函数调用
+        function setupMonitoring() {
+            if (typeof getCurrentDayun === 'function') {
+                originalGetCurrentDayun = getCurrentDayun;
+                window.getCurrentDayun = function() {
+                    getCurrentDayunCallCount++;
+                    logCall('getCurrentDayun() 被调用 (第' + getCurrentDayunCallCount + '次)');
+                    return originalGetCurrentDayun.apply(this, arguments);
+                };
+                logCall('getCurrentDayun 监控已设置');
+            } else {
+                logCall('警告: getCurrentDayun 函数未找到');
+            }
+        }
+        
+        // 页面加载完成后设置监控
+        window.addEventListener('load', function() {
+            setupMonitoring();
+            logCall('页面加载完成，监控系统已就绪');
+        });
+    </script>
+</body>
+</html>

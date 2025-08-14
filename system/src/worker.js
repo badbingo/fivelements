@@ -44,7 +44,7 @@ async function handleRequest(request) {
     }
 
     // 调用DeepSeek API
-    const deepseekResponse = await fetch('https://api.deepseek.com/chat/completions', {
+    const deepseekResponse = await fetch('https://api.deepseek.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

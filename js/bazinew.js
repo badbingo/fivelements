@@ -74,6 +74,8 @@ function initializeElements() {
     elements.scoreCards = document.querySelectorAll('.score-card');
     elements.elementsChart = document.querySelector('.elements-chart-container');
     elements.analysisContent = document.querySelector('.analysis-content');
+    elements.unlockSection = document.getElementById('unlock-section');
+    elements.paidSection = document.getElementById('paid-section');
     
     // 标签页
     elements.analysisTabs = document.querySelectorAll('.tab-btn');
@@ -118,6 +120,25 @@ function initializeEventListeners() {
     
     // 键盘事件
     document.addEventListener('keydown', handleKeyDown);
+
+    // 解锁按钮事件监听
+    const unlockBtn = document.getElementById('unlock-btn');
+    if (unlockBtn) {
+        unlockBtn.addEventListener('click', function() {
+            // 触发bazinew.html中定义的支付模态框显示逻辑
+            // 假设bazinew.html中已经有相应的事件监听器来处理unlock-btn的点击
+            // 这里不需要重复实现支付逻辑，只需确保点击事件能被bazinew.html捕获
+        });
+    }
+
+    // 页面加载时根据支付状态初始化显示
+    if (localStorage.getItem('baziPaid') === 'true') {
+        if (elements.unlockSection) elements.unlockSection.style.display = 'none';
+        if (elements.paidSection) elements.paidSection.style.display = 'block';
+    } else {
+        if (elements.unlockSection) elements.unlockSection.style.display = 'block';
+        if (elements.paidSection) elements.paidSection.style.display = 'none';
+    }
 }
 
 // 导航菜单切换
@@ -166,6 +187,13 @@ function handleFormSubmit(event) {
 // 计算处理
 function handleCalculate() {
     if (!validateForm()) {
+        return;
+    }
+    
+    // 检查用户是否已支付
+    if (typeof window.wwPay !== 'undefined' && localStorage.getItem('baziPaid') !== 'true') {
+        alert('请先解锁完整分析内容！');
+        document.getElementById('unlock-btn').click();
         return;
     }
     
@@ -543,6 +571,17 @@ function displayResults(results) {
     if (elements.resultsSection) {
         elements.resultsSection.style.display = 'block';
         elements.resultsSection.classList.add('fade-in');
+
+        // 检查支付状态，控制付费内容显示
+        const unlockSection = document.getElementById('unlock-section');
+        const paidSection = document.getElementById('paid-section');
+        if (localStorage.getItem('baziPaid') === 'true') {
+            if (unlockSection) unlockSection.style.display = 'none';
+            if (paidSection) paidSection.style.display = 'block';
+        } else {
+            if (unlockSection) unlockSection.style.display = 'block';
+            if (paidSection) paidSection.style.display = 'none';
+        }
     }
 }
 

@@ -99,8 +99,8 @@ function checkDeploymentReadiness() {
     if (checkExists(bazinewPath)) {
         try {
             const content = fs.readFileSync(bazinewPath, 'utf8');
-            if (content.includes('deepseek-api-proxy.owenjass.workers.dev')) {
-                log('  ✅ API URL 已配置为 Cloudflare Workers', 'green');
+            if (content.includes('api.mybazi.net')) {
+                log('  ✅ API URL 已配置为正确的后端地址', 'green');
             } else {
                 log('  ⚠️  API URL 可能需要更新', 'yellow');
                 warnings.push('API配置');

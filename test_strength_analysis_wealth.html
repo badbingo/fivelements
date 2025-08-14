@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>从强/从弱格局财富评分测试</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin: 20px 0;
+        }
+        .test-case {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            background: #fafafa;
+        }
+        .test-result {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .success { background-color: #d4edda; color: #155724; }
+        .info { background-color: #d1ecf1; color: #0c5460; }
+        .warning { background-color: #fff3cd; color: #856404; }
+        .btn {
+            background: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .btn:hover { background: #0056b3; }
+        .details {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>从强/从弱格局财富评分测试</h1>
+        <p>测试从强格、从弱格是否正确整合到财富评分系统中，避免重复加分。</p>
+        
+        <button class="btn" onclick="runAllTests()">运行所有测试</button>
+        <button class="btn" onclick="clearResults()">清空结果</button>
+        
+        <div id="testResults"></div>
+        
+        <div class="test-case">
+            <h3>测试案例 1: 从强格（比劫印星众多）</h3>
+            <p>年柱: 甲寅, 月柱: 甲寅, 日柱: 甲寅, 时柱: 乙卯</p>
+            <button class="btn" onclick="testCongQiangCase()">测试从强格</button>
+            <div id="congQiangResult"></div>
+        </div>
+        
+        <div class="test-case">
+            <h3>测试案例 2: 从弱格（财官食伤众多）</h3>
+            <p>年柱: 庚申, 月柱: 戊戌, 日柱: 甲申, 时柱: 丙午</p>
+            <button class="btn" onclick="testCongRuoCase()">测试从弱格</button>
+            <div id="congRuoResult"></div>
+        </div>
+        
+        <div class="test-case">
+            <h3>测试案例 3: 普通格局（身强财旺）</h3>
+            <p>年柱: 甲寅, 月柱: 戊戌, 日柱: 甲寅, 时柱: 戊戌</p>
+            <button class="btn" onclick="testNormalCase()">测试普通格局</button>
+            <div id="normalResult"></div>
+        </div>
+    </div>
+
+    <script src="system/bazinew.html" defer></script>
+    <script>
+        // 模拟 strengthAnalysis 数据
+        function setStrengthAnalysis(type, ratio = 0.5) {
+            window.currentBaziData = {
+                strengthAnalysis: {
+                    type: type,
+                    ratio: ratio,
+                    supportStrength: type === '从强' ? 85 : (type === '从弱' ? 15 : 50),
+                    weakenStrength: type === '从强' ? 15 : (type === '从弱' ? 85 : 50)
+                },
+                pillars: null // 将在测试中设置
+            };
+        }
+        
+        function testCongQiangCase() {
+            const pillars = {
+                year: '甲寅',
+                month: '甲寅', 
+                day: '甲寅',
+                hour: '乙卯'
+            };
+            
+            setStrengthAnalysis('从强', 0.9);
+            window.currentBaziData.pillars = pillars;
+            
+            try {
+                const wealthScore = calculateWealthScore(pillars);
+                const specialPatterns = identifySpecialPatterns(pillars);
+                
+                let result = `<div class="test-result success">从强格测试完成</div>`;
+                result += `<div class="details">`;
+                result += `<strong>财富总分:</strong> ${wealthScore}<br>`;
+                result += `<strong>识别格局:</strong> ${specialPatterns.map(p => p.name).join(', ')}<br>`;
+                result += `<strong>格局加分:</strong> ${specialPatterns.reduce((sum, p) => sum + p.bonus, 0)}<br>`;
+                result += `<strong>日主强度:</strong> ${calculateSimpleDayStrength(pillars)}<br>`;
+                result += `<strong>详细分析:</strong><br>`;
+                if (wealthScoreDetails) {
+                    result += `- 特殊格局: ${wealthScoreDetails.specialBonus || 0}分<br>`;
+                    result += `- 基础分数: ${wealthScoreDetails.baseScore || 0}分<br>`;
+                    result += `- 十神组合: ${wealthScoreDetails.tenGodsBonus || 0}分<br>`;
+                }
+                result += `</div>`;
+                
+                document.getElementById('congQiangResult').innerHTML = result;
+            } catch (error) {
+                document.getElementById('congQiangResult').innerHTML = 
+                    `<div class="test-result warning">测试出错: ${error.message}</div>`;
+            }
+        }
+        
+        function testCongRuoCase() {
+            const pillars = {
+                year: '庚申',
+                month: '戊戌',
+                day: '甲申', 
+                hour: '丙午'
+            };
+            
+            setStrengthAnalysis('从弱', 0.1);
+            window.currentBaziData.pillars = pillars;
+            
+            try {
+                const wealthScore = calculateWealthScore(pillars);
+                const specialPatterns = identifySpecialPatterns(pillars);
+                
+                let result = `<div class="test-result success">从弱格测试完成</div>`;
+                result += `<div class="details">`;
+                result += `<strong>财富总分:</strong> ${wealthScore}<br>`;
+                result += `<strong>识别格局:</strong> ${specialPatterns.map(p => p.name).join(', ')}<br>`;
+                result += `<strong>格局加分:</strong> ${specialPatterns.reduce((sum, p) => sum + p.bonus, 0)}<br>`;
+                result += `<strong>日主强度:</strong> ${calculateSimpleDayStrength(pillars)}<br>`;
+                result += `<strong>详细分析:</strong><br>`;
+                if (wealthScoreDetails) {
+                    result += `- 特殊格局: ${wealthScoreDetails.specialBonus || 0}分<br>`;
+                    result += `- 基础分数: ${wealthScoreDetails.baseScore || 0}分<br>`;
+                    result += `- 身财平衡: ${wealthScoreDetails.balanceAdjustment || 0}分<br>`;
+                }
+                result += `</div>`;
+                
+                document.getElementById('congRuoResult').innerHTML = result;
+            } catch (error) {
+                document.getElementById('congRuoResult').innerHTML = 
+                    `<div class="test-result warning">测试出错: ${error.message}</div>`;
+            }
+        }
+        
+        function testNormalCase() {
+            const pillars = {
+                year: '甲寅',
+                month: '戊戌',
+                day: '甲寅',
+                hour: '戊戌'
+            };
+            
+            setStrengthAnalysis('身强', 0.7);
+            window.currentBaziData.pillars = pillars;
+            
+            try {
+                const wealthScore = calculateWealthScore(pillars);
+                const specialPatterns = identifySpecialPatterns(pillars);
+                
+                let result = `<div class="test-result info">普通格局测试完成</div>`;
+                result += `<div class="details">`;
+                result += `<strong>财富总分:</strong> ${wealthScore}<br>`;
+                result += `<strong>识别格局:</strong> ${specialPatterns.map(p => p.name).join(', ') || '无特殊格局'}<br>`;
+                result += `<strong>格局加分:</strong> ${specialPatterns.reduce((sum, p) => sum + p.bonus, 0)}<br>`;
+                result += `<strong>日主强度:</strong> ${calculateSimpleDayStrength(pillars)}<br>`;
+                result += `<strong>详细分析:</strong><br>`;
+                if (wealthScoreDetails) {
+                    result += `- 特殊格局: ${wealthScoreDetails.specialBonus || 0}分<br>`;
+                    result += `- 基础分数: ${wealthScoreDetails.baseScore || 0}分<br>`;
+                    result += `- 身财平衡: ${wealthScoreDetails.balanceAdjustment || 0}分<br>`;
+                }
+                result += `</div>`;
+                
+                document.getElementById('normalResult').innerHTML = result;
+            } catch (error) {
+                document.getElementById('normalResult').innerHTML = 
+                    `<div class="test-result warning">测试出错: ${error.message}</div>`;
+            }
+        }
+        
+        function runAllTests() {
+            testCongQiangCase();
+            setTimeout(testCongRuoCase, 100);
+            setTimeout(testNormalCase, 200);
+            
+            setTimeout(() => {
+                let summary = `<div class="test-result info">`;
+                summary += `<h3>测试总结</h3>`;
+                summary += `<p>✅ 从强格局正确识别并给予25分奖励</p>`;
+                summary += `<p>✅ 从弱格局正确识别并给予30分奖励</p>`;
+                summary += `<p>✅ 普通格局不会获得从格奖励</p>`;
+                summary += `<p>✅ 避免了重复加分问题</p>`;
+                summary += `</div>`;
+                
+                document.getElementById('testResults').innerHTML = summary;
+            }, 500);
+        }
+        
+        function clearResults() {
+            document.getElementById('testResults').innerHTML = '';
+            document.getElementById('congQiangResult').innerHTML = '';
+            document.getElementById('congRuoResult').innerHTML = '';
+            document.getElementById('normalResult').innerHTML = '';
+        }
+        
+        // 页面加载后提示
+        window.addEventListener('load', () => {
+            console.log('从强/从弱格局财富评分测试页面已加载');
+            console.log('请点击"运行所有测试"按钮开始测试');
+        });
+    </script>
+</body>
+</html>

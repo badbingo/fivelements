@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>身强身弱调整效果测试</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-case {
+            border: 1px solid #ddd;
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 8px;
+            background: #fafafa;
+        }
+        .result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .original { background: #e3f2fd; }
+        .current { background: #f3e5f5; }
+        .comparison { background: #fff3e0; }
+        .improvement { background: #e8f5e8; }
+        .warning { background: #ffebee; }
+        h1, h2, h3 { color: #333; }
+        .highlight { font-weight: bold; color: #d32f2f; }
+        .success { color: #388e3c; }
+        .info { color: #1976d2; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>身强身弱调整效果测试</h1>
+        <p>测试调整后的身强身弱计算是否更加稳定和准确</p>
+        
+        <div class="test-case">
+            <h2>测试案例：甲申 甲戌 辛未 甲午</h2>
+            <p><strong>当前运势：</strong>2025年乙巳，大运丙子</p>
+            
+            <div id="testResults"></div>
+        </div>
+        
+        <div class="test-case">
+            <h2>调整说明</h2>
+            <div class="result improvement">
+                <h3>已实施的调整：</h3>
+                <ul>
+                    <li><strong>大运流年权重降低：</strong>
+                        <ul>
+                            <li>流年天干：1.5 → 0.8 (降低47%)</li>
+                            <li>流年地支：2.0 → 1.2 (降低40%)</li>
+                            <li>大运天干：1.2 → 0.6 (降低50%)</li>
+                            <li>大运地支：1.8 → 1.0 (降低44%)</li>
+                        </ul>
+                    </li>
+                    <li><strong>从格判断标准更严格：</strong>
+                        <ul>
+                            <li>从弱格：比例≤25% → ≤18%，生扶≤12 → ≤8</li>
+                            <li>极弱从弱：生扶≤3 → ≤2，比例≤12% → ≤8%</li>
+                            <li>传统从弱：比例≤30% → ≤22%</li>
+                            <li>兜底从弱：生扶≤10 → ≤6，克泄≥12 → ≥15</li>
+                            <li>从强格：比例≥85% → ≥90%，增加生扶≥18的条件</li>
+                        </ul>
+                    </li>
+                    <li><strong>格局稳定性检查：</strong>
+                        <ul>
+                            <li>限制身强身弱比例变化不超过25%</li>
+                            <li>防止原命局与当前运势差异过大</li>
+                            <li>保持格局的基本稳定性</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 模拟八字数据
+        const testBazi = {
+            year: { stem: '甲', branch: '申' },
+            month: { stem: '甲', branch: '戌' },
+            day: { stem: '辛', branch: '未' },
+            hour: { stem: '甲', branch: '午' }
+        };
+        
+        const currentYear = 2025;
+        const currentYearGanZhi = '乙巳';
+        const currentDayun = '丙子';
+        
+        // 五行映射
+        const stemElementMap = {
+            '甲': 'wood', '乙': 'wood',
+            '丙': 'fire', '丁': 'fire',
+            '戊': 'earth', '己': 'earth',
+            '庚': 'metal', '辛': 'metal',
+            '壬': 'water', '癸': 'water'
+        };
+        
+        const branchElementMap = {
+            '子': 'water', '丑': 'earth',
+            '寅': 'wood', '卯': 'wood',
+            '辰': 'earth', '巳': 'fire',
+            '午': 'fire', '未': 'earth',
+            '申': 'metal', '酉': 'metal',
+            '戌': 'earth', '亥': 'water'
+        };
+        
+        // 计算原始五行分布
+        function calculateElements(bazi) {
+            const elements = {
+                wood: 0, fire: 0, earth: 0, metal: 0, water: 0
+            };
+            
+            // 天干
+            elements[stemElementMap[bazi.year.stem]] += 1;
+            elements[stemElementMap[bazi.month.stem]] += 1;
+            elements[stemElementMap[bazi.day.stem]] += 1;
+            elements[stemElementMap[bazi.hour.stem]] += 1;
+            
+            // 地支
+            elements[branchElementMap[bazi.year.branch]] += 1;
+            elements[branchElementMap[bazi.month.branch]] += 1;
+            elements[branchElementMap[bazi.day.branch]] += 1;
+            elements[branchElementMap[bazi.hour.branch]] += 1;
+            
+            // 地支藏干（简化版）
+            const branchHiddenMap = {
+                '申': [['metal', 1], ['water', 0.5], ['earth', 0.3]],
+                '戌': [['earth', 1], ['metal', 0.5], ['fire', 0.3]],
+                '未': [['earth', 1], ['wood', 0.5], ['fire', 0.3]],
+                '午': [['fire', 1], ['earth', 0.5], ['wood', 0.3]]
+            };
+            
+            Object.keys(branchHiddenMap).forEach(branch => {
+                if ([bazi.year.branch, bazi.month.branch, bazi.day.branch, bazi.hour.branch].includes(branch)) {
+                    branchHiddenMap[branch].forEach(([element, weight]) => {
+                        elements[element] += weight;
+                    });
+                }
+            });
+            
+            return elements;
+        }
+        
+        // 获取生扶五行
+        function getSupportElements(element) {
+            const supportMap = {
+                'wood': ['water', 'wood'],
+                'fire': ['wood', 'fire'],
+                'earth': ['fire', 'earth'],
+                'metal': ['earth', 'metal'],
+                'water': ['metal', 'water']
+            };
+            return supportMap[element] || [];
+        }
+        
+        // 获取克泄五行
+        function getWeakenElements(element) {
+            const weakenMap = {
+                'wood': ['metal', 'fire', 'earth'],
+                'fire': ['water', 'earth', 'metal'],
+                'earth': ['wood', 'metal', 'water'],
+                'metal': ['fire', 'water', 'wood'],
+                'water': ['earth', 'wood', 'fire']
+            };
+            return weakenMap[element] || [];
+        }
+        
+        // 计算身强身弱（原命局）
+        function calculateOriginalStrength(dayStem, elements, monthBranch) {
+            const dayElement = stemElementMap[dayStem];
+            const supportElements = getSupportElements(dayElement);
+            const weakenElements = getWeakenElements(dayElement);
+            
+            let supportStrength = 0;
+            let weakenStrength = 0;
+            
+            Object.keys(elements).forEach(element => {
+                if (supportElements.includes(element)) {
+                    supportStrength += elements[element];
+                } else if (weakenElements.includes(element)) {
+                    weakenStrength += elements[element];
+                }
+            });
+            
+            const totalStrength = supportStrength + weakenStrength;
+            const ratio = totalStrength > 0 ? supportStrength / totalStrength : 0;
+            
+            let type;
+            if (ratio >= 0.65) {
+                type = '身强';
+            } else if (ratio >= 0.45) {
+                type = '均衡';
+            } else {
+                type = '身弱';
+            }
+            
+            return {
+                type,
+                ratio,
+                supportStrength,
+                weakenStrength,
+                percentage: ratio * 100
+            };
+        }
+        
+        // 计算当前运势身强身弱（调整前的权重）
+        function calculateCurrentStrengthOld(dayStem, elements, monthBranch) {
+            const dayElement = stemElementMap[dayStem];
+            const currentElements = { ...elements };
+            
+            // 旧权重设置
+            currentElements['wood'] += 1.5; // 乙巳年天干
+            currentElements['fire'] += 2.0; // 乙巳年地支
+            currentElements['fire'] += 1.2; // 丙子大运天干
+            currentElements['water'] += 1.8; // 丙子大运地支
+            
+            const supportElements = getSupportElements(dayElement);
+            const weakenElements = getWeakenElements(dayElement);
+            
+            let supportStrength = 0;
+            let weakenStrength = 0;
+            
+            Object.keys(currentElements).forEach(element => {
+                if (supportElements.includes(element)) {
+                    supportStrength += currentElements[element];
+                } else if (weakenElements.includes(element)) {
+                    weakenStrength += currentElements[element];
+                }
+            });
+            
+            const totalStrength = supportStrength + weakenStrength;
+            const ratio = totalStrength > 0 ? supportStrength / totalStrength : 0;
+            
+            // 旧的从格判断标准
+            let type;
+            if (ratio <= 0.25 && supportStrength <= 12) {
+                type = '从弱';
+            } else if (ratio >= 0.85) {
+                type = '从强';
+            } else if (ratio >= 0.65) {
+                type = '身强';
+            } else if (ratio >= 0.45) {
+                type = '均衡';
+            } else {
+                type = '身弱';
+            }
+            
+            return {
+                type,
+                ratio,
+                supportStrength,
+                weakenStrength,
+                percentage: ratio * 100
+            };
+        }
+        
+        // 计算当前运势身强身弱（调整后的权重）
+        function calculateCurrentStrengthNew(dayStem, elements, monthBranch) {
+            const dayElement = stemElementMap[dayStem];
+            const currentElements = { ...elements };
+            
+            // 新权重设置（降低后）
+            currentElements['wood'] += 0.8; // 乙巳年天干
+            currentElements['fire'] += 1.2; // 乙巳年地支
+            currentElements['fire'] += 0.6; // 丙子大运天干
+            currentElements['water'] += 1.0; // 丙子大运地支
+            
+            const supportElements = getSupportElements(dayElement);
+            const weakenElements = getWeakenElements(dayElement);
+            
+            let supportStrength = 0;
+            let weakenStrength = 0;
+            
+            Object.keys(currentElements).forEach(element => {
+                if (supportElements.includes(element)) {
+                    supportStrength += currentElements[element];
+                } else if (weakenElements.includes(element)) {
+                    weakenStrength += currentElements[element];
+                }
+            });
+            
+            const totalStrength = supportStrength + weakenStrength;
+            const ratio = totalStrength > 0 ? supportStrength / totalStrength : 0;
+            
+            // 新的从格判断标准（更严格）
+            let type;
+            if (ratio <= 0.18 && supportStrength <= 8) {
+                type = '从弱';
+            } else if (ratio >= 0.90 && supportStrength >= 18) {
+                type = '从强';
+            } else if (ratio >= 0.65) {
+                type = '身强';
+            } else if (ratio >= 0.45) {
+                type = '均衡';
+            } else {
+                type = '身弱';
+            }
+            
+            // 格局稳定性检查
+            const originalStrength = calculateOriginalStrength(dayStem, elements, monthBranch);
+            const ratioChange = Math.abs(ratio - originalStrength.ratio);
+            
+            if (ratioChange > 0.25) {
+                const maxChange = 0.25;
+                let adjustedRatio;
+                if (ratio > originalStrength.ratio) {
+                    adjustedRatio = originalStrength.ratio + maxChange;
+                } else {
+                    adjustedRatio = originalStrength.ratio - maxChange;
+                }
+                
+                adjustedRatio = Math.max(0.05, Math.min(0.95, adjustedRatio));
+                
+                // 重新判断类型
+                if (adjustedRatio <= 0.18 && supportStrength <= 8) {
+                    type = '从弱';
+                } else if (adjustedRatio >= 0.90 && supportStrength >= 18) {
+                    type = '从强';
+                } else if (adjustedRatio >= 0.65) {
+                    type = '身强';
+                } else if (adjustedRatio >= 0.45) {
+                    type = '均衡';
+                } else {
+                    type = '身弱';
+                }
+                
+                return {
+                    type,
+                    ratio: adjustedRatio,
+                    originalRatio: ratio,
+                    supportStrength,
+                    weakenStrength,
+                    percentage: adjustedRatio * 100,
+                    stabilityAdjusted: true
+                };
+            }
+            
+            return {
+                type,
+                ratio,
+                supportStrength,
+                weakenStrength,
+                percentage: ratio * 100,
+                stabilityAdjusted: false
+            };
+        }
+        
+        // 运行测试
+        function runTest() {
+            const elements = calculateElements(testBazi);
+            const original = calculateOriginalStrength(testBazi.day.stem, elements, testBazi.month.branch);
+            const currentOld = calculateCurrentStrengthOld(testBazi.day.stem, elements, testBazi.month.branch);
+            const currentNew = calculateCurrentStrengthNew(testBazi.day.stem, elements, testBazi.month.branch);
+            
+            const resultsDiv = document.getElementById('testResults');
+            
+            const oldChange = Math.abs(currentOld.ratio - original.ratio);
+            const newChange = Math.abs(currentNew.ratio - original.ratio);
+            
+            resultsDiv.innerHTML = `
+                <div class="result original">
+                    <h3>原命局身强身弱</h3>
+                    <p><strong>类型：</strong>${original.type}</p>
+                    <p><strong>比例：</strong>${original.percentage.toFixed(2)}%</p>
+                    <p><strong>生扶力量：</strong>${original.supportStrength.toFixed(2)}</p>
+                    <p><strong>克泄力量：</strong>${original.weakenStrength.toFixed(2)}</p>
+                </div>
+                
+                <div class="result warning">
+                    <h3>调整前（旧权重）</h3>
+                    <p><strong>类型：</strong><span class="highlight">${currentOld.type}</span></p>
+                    <p><strong>比例：</strong><span class="highlight">${currentOld.percentage.toFixed(2)}%</span></p>
+                    <p><strong>生扶力量：</strong>${currentOld.supportStrength.toFixed(2)}</p>
+                    <p><strong>克泄力量：</strong>${currentOld.weakenStrength.toFixed(2)}</p>
+                    <p><strong>与原命局差异：</strong><span class="highlight">${(oldChange * 100).toFixed(2)}%</span></p>
+                </div>
+                
+                <div class="result improvement">
+                    <h3>调整后（新权重）</h3>
+                    <p><strong>类型：</strong><span class="success">${currentNew.type}</span></p>
+                    <p><strong>比例：</strong><span class="success">${currentNew.percentage.toFixed(2)}%</span></p>
+                    <p><strong>生扶力量：</strong>${currentNew.supportStrength.toFixed(2)}</p>
+                    <p><strong>克泄力量：</strong>${currentNew.weakenStrength.toFixed(2)}</p>
+                    <p><strong>与原命局差异：</strong><span class="success">${(newChange * 100).toFixed(2)}%</span></p>
+                    ${currentNew.stabilityAdjusted ? '<p><strong>格局稳定性调整：</strong><span class="info">已启用</span></p>' : ''}
+                    ${currentNew.originalRatio ? `<p><strong>调整前比例：</strong>${(currentNew.originalRatio * 100).toFixed(2)}%</p>` : ''}
+                </div>
+                
+                <div class="result comparison">
+                    <h3>改进效果对比</h3>
+                    <p><strong>差异减少：</strong>${(oldChange * 100).toFixed(2)}% → ${(newChange * 100).toFixed(2)}% 
+                        <span class="success">(减少${((oldChange - newChange) * 100).toFixed(2)}%)</span></p>
+                    <p><strong>稳定性提升：</strong>${newChange < oldChange ? '<span class="success">✓ 显著改善</span>' : '<span class="warning">需要进一步调整</span>'}</p>
+                    <p><strong>格局合理性：</strong>${currentNew.type !== '从弱' && currentNew.type !== '从强' ? '<span class="success">✓ 避免了不合理的从格判断</span>' : '<span class="info">仍为从格，需要验证合理性</span>'}</p>
+                </div>
+            `;
+        }
+        
+        // 页面加载后运行测试
+        document.addEventListener('DOMContentLoaded', runTest);
+    </script>
+</body>
+</html>
