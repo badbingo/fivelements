@@ -10652,6 +10652,20 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
                 wood: '木', fire: '火', earth: '土', metal: '金', water: '水'
             };
             
+            // 检查 currentElements 是否有效
+            if (!currentElements || !currentElements.elements) {
+                console.error('currentElements 数据无效:', currentElements);
+                description.innerHTML = `
+                    <h4 style="color: #2c3e50; margin-bottom: 15px; font-size: 1.1rem; border-bottom: 2px solid #e74c3c; padding-bottom: 8px;">
+                        <i class="fas fa-exclamation-triangle"></i> 五行分析
+                    </h4>
+                    <div style="background-color: #f8d7da; padding: 15px; border-radius: 8px; border: 1px solid #f5c6cb; color: #721c24;">
+                        <p><i class="fas fa-exclamation-triangle"></i> 五行数据加载失败，请刷新页面重试。</p>
+                    </div>
+                `;
+                return;
+            }
+            
             // 计算变化
             const changes = {};
             Object.keys(originalElements).forEach(element => {
@@ -10758,7 +10772,24 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
         }
         
         // 显示五行分析描述（保留原有功能）
-        function displayOriginalElementsDescription() {
+        function displayOriginalElementsDescription(originalElements) {
+            // 检查参数是否有效
+            if (!originalElements) {
+                console.error('originalElements 参数无效');
+                const description = document.getElementById('elements-description');
+                if (description) {
+                    description.innerHTML = `
+                        <h4 style="color: #2c3e50; margin-bottom: 15px; font-size: 1.1rem; border-bottom: 2px solid #e74c3c; padding-bottom: 8px;">
+                            <i class="fas fa-exclamation-triangle"></i> 五行分析
+                        </h4>
+                        <div style="background-color: #f8d7da; padding: 15px; border-radius: 8px; border: 1px solid #f5c6cb; color: #721c24;">
+                            <p><i class="fas fa-exclamation-triangle"></i> 五行数据无效，请重新计算。</p>
+                        </div>
+                    `;
+                }
+                return;
+            }
+            
             // 获取原始五行数据
             const elements = originalElements;
             
