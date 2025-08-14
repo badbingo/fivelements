@@ -3772,7 +3772,7 @@ contentElement.classList.add('show');
             if (typeof EarthTransformationCalculator !== 'undefined') {
                 const earthCalculator = new EarthTransformationCalculator();
                 const earthResult = earthCalculator.analyzeEarthTransformation(passedStems, passedBranches);
-                if (earthResult.hasAnyTransformation) {
+                if (earthResult.hasTransformation) {
                     const monthBranchTransformation = earthResult.transformations.find(t => t.branch === monthBranch);
                     if (monthBranchTransformation && monthBranchTransformation.originalElement === 'earth') {
                         const originalScore = monthScore;
@@ -5266,7 +5266,7 @@ contentElement.classList.add('show');
                 console.log('最终五行分布:', currentElements);
                 
                 // 如果有土性变化，输出详细说明
-                if (enhancedResult.earthTransformation.hasAnyTransformation) {
+                if (enhancedResult.earthTransformation.hasTransformation) {
                     console.log('土性变化说明:', earthCalculator.getTransformationDescription(enhancedResult.earthTransformation.transformations));
                 }
                 
@@ -5288,7 +5288,7 @@ contentElement.classList.add('show');
                 let monthScore = getMonthStrength(stemElementMap[dayStem], monthBranch, currentCombined);
                 
                 // 应用土性变化对月令得分的影响
-                if (enhancedResult.earthTransformation.hasAnyTransformation) {
+                if (enhancedResult.earthTransformation.hasTransformation) {
                     const monthBranchTransformation = enhancedResult.earthTransformation.transformations.find(t => t.branch === monthBranch);
                     if (monthBranchTransformation) {
                         console.log(`=== 月令土性变化影响 ===`);
@@ -5504,7 +5504,7 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
                     currentYearGanZhi: currentYearGanZhi,
                     currentDayun: displayDayun,
                     elements: currentElements,
-                    earthTransformation: enhancedResult.earthTransformation || { hasAnyTransformation: false, transformations: [] }
+                    earthTransformation: enhancedResult.earthTransformation || { hasTransformation: false, transformations: [] }
                 };
                 
             } catch (error) {
@@ -5528,7 +5528,7 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
                     currentYearGanZhi: '',
                     currentDayun: '',
                     elements: elements,
-                    earthTransformation: { hasAnyTransformation: false, transformations: [], wetEarthChanges: [], dryEarthChanges: [] }
+                    earthTransformation: { hasTransformation: false, transformations: [], wetEarthChanges: [], dryEarthChanges: [] }
                 };
             }
         }
