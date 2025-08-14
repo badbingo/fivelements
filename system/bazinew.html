@@ -3718,7 +3718,7 @@ contentElement.classList.add('show');
             console.log(`月令五行(${pillars[1].charAt(1)}-${monthBranchElement}): ${monthElementTotal.toFixed(2)}, 占比: ${monthPercentage}%`);
             console.log('=========================');
             
-            return chineseElements;
+            return elements; // 返回英文五行名称，保持与其他函数的兼容性
         }
 
         // 测试函数 - 可在控制台调用
@@ -10063,6 +10063,37 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
         
         // 显示原命局五行分布图表
         function displayOriginalElementsChart(elements) {
+            // 检查 elements 参数是否有效
+            if (!elements || typeof elements !== 'object') {
+                console.error('displayOriginalElementsChart: elements 参数无效:', elements);
+                const description = document.getElementById('elements-description');
+                if (description) {
+                    description.innerHTML = `
+                        <div style="background-color: #f8d7da; padding: 15px; border-radius: 8px; border: 1px solid #f5c6cb; color: #721c24;">
+                            <p><i class="fas fa-exclamation-triangle"></i> 五行数据无效，无法显示原命局五行分布。</p>
+                        </div>
+                    `;
+                }
+                return;
+            }
+            
+            // 检查五行属性是否存在
+            const requiredElements = ['wood', 'fire', 'earth', 'metal', 'water'];
+            for (const element of requiredElements) {
+                if (typeof elements[element] !== 'number') {
+                    console.error(`displayOriginalElementsChart: 缺少或无效的五行属性 ${element}:`, elements[element]);
+                    const description = document.getElementById('elements-description');
+                    if (description) {
+                        description.innerHTML = `
+                            <div style="background-color: #f8d7da; padding: 15px; border-radius: 8px; border: 1px solid #f5c6cb; color: #721c24;">
+                                <p><i class="fas fa-exclamation-triangle"></i> 五行数据结构不完整，缺少 ${element} 属性。</p>
+                            </div>
+                        `;
+                    }
+                    return;
+                }
+            }
+            
             const ctx = document.getElementById('original-elements-chart').getContext('2d');
             
             if (window.originalElementsChart) {
@@ -10759,6 +10790,20 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
         
         // 修改原有的displayElementsChart调用，添加描述更新
         function displayElementsChartComplete(baziData) {
+            // 检查 baziData 和 elements 是否有效
+            if (!baziData || !baziData.elements) {
+                console.error('baziData 或 baziData.elements 无效:', baziData);
+                const description = document.getElementById('elements-description');
+                if (description) {
+                    description.innerHTML = `
+                        <div style="background-color: #f8d7da; padding: 15px; border-radius: 8px; border: 1px solid #f5c6cb; color: #721c24;">
+                            <p><i class="fas fa-exclamation-triangle"></i> 五行数据无效，无法显示五行分析。</p>
+                        </div>
+                    `;
+                }
+                return;
+            }
+            
             // 显示原命局五行分布
             displayOriginalElementsChart(baziData.elements);
             
