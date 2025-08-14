@@ -3659,10 +3659,11 @@ contentElement.classList.add('show');
                 const currentTotal = Object.values(elements).reduce((sum, val) => sum + val, 0);
                 const currentMonthRatio = elements[monthBranchElement] / currentTotal;
                 
+                console.log(`月令调整前 - 月支: ${pillars[1].charAt(1)}, 五行: ${monthBranchElement}, 当前占比: ${(currentMonthRatio * 100).toFixed(1)}%`);
+                
                 // 如果月令占比不是33%，则调整权重
                 if (Math.abs(currentMonthRatio - 0.33) > 0.01) {
-                    const targetMonthValue = currentTotal * 0.33 / (1 - 0.33); // 目标月令值
-                    const adjustmentFactor = targetMonthValue / elements[monthBranchElement];
+                    console.log('月令占比偏离33%，开始调整...');
                     
                     // 重新计算，确保月令占33%
                     const tempElements = { wood: 0, fire: 0, earth: 0, metal: 0, water: 0 };
@@ -3688,6 +3689,10 @@ contentElement.classList.add('show');
                     
                     // 更新elements
                     Object.assign(elements, tempElements);
+                    
+                    console.log('月令占比调整完成');
+                } else {
+                    console.log('月令占比已接近33%，无需调整');
                 }
             }
             
@@ -3696,14 +3701,24 @@ contentElement.classList.add('show');
             const monthElementTotal = elements[monthBranchElement];
             const monthPercentage = ((monthElementTotal / total) * 100).toFixed(1);
             
+            // 转换为中文五行名称（页面显示需要）
+            const chineseElements = {
+                '木': elements.wood,
+                '火': elements.fire,
+                '土': elements.earth,
+                '金': elements.metal,
+                '水': elements.water
+            };
+            
             // 打印调试信息
             console.log('=== 五行分布计算结果 ===');
-            console.log('五行分布:', elements);
+            console.log('英文五行分布:', elements);
+            console.log('中文五行分布:', chineseElements);
             console.log(`总分: ${total.toFixed(2)}`);
             console.log(`月令五行(${pillars[1].charAt(1)}-${monthBranchElement}): ${monthElementTotal.toFixed(2)}, 占比: ${monthPercentage}%`);
             console.log('=========================');
             
-            return elements;
+            return chineseElements;
         }
 
         // 测试函数 - 可在控制台调用
