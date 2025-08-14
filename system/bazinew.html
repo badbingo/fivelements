@@ -21,6 +21,9 @@
     <!-- 导航菜单 -->
     <script src="../js/menu.js" defer></script>
     
+    <!-- 增强版五行计算器（包含土性变化逻辑） -->
+    <script src="enhanced_strength_calculation.js"></script>
+    
     
     <style>
         :root {
@@ -3494,17 +3497,26 @@ contentElement.classList.add('show');
             // 将四柱信息保存到window对象，供其他函数使用
             window.currentPillars = pillars;
             
-            // 提取地支并保存到window对象，供三合局检测使用
+            // 提取天干和地支，供土性变化分析使用
+            const allStems = [];
             const allBranches = [];
+            if (yearStr.length > 0) allStems.push(yearStr.charAt(0));
+            if (monthStr.length > 0) allStems.push(monthStr.charAt(0));
+            if (dayStr.length > 0) allStems.push(dayStr.charAt(0));
+            if (hourStr.length > 0) allStems.push(hourStr.charAt(0));
+            
             if (yearStr.length > 1) allBranches.push(yearStr.charAt(1));
             if (monthStr.length > 1) allBranches.push(monthStr.charAt(1));
             if (dayStr.length > 1) allBranches.push(dayStr.charAt(1));
             if (hourStr.length > 1) allBranches.push(hourStr.charAt(1));
+            
+            window.allStems = allStems;
             window.allBranches = allBranches;
+            console.log('设置八字天干:', window.allStems);
             console.log('设置八字地支:', window.allBranches);
             
-            // 计算身强身弱
-            const strengthAnalysis = calculateStrength(dayStr, elements, monthStr, allBranches);
+            // 计算身强身弱（传递天干和地支参数）
+            const strengthAnalysis = calculateStrength(dayStr, elements, monthStr, allBranches, allStems);
             
             // 在计算命格等级前，提前写入当前强弱分析到全局，供从格判断使用
             if (!window.currentBaziData) window.currentBaziData = {};
@@ -3676,7 +3688,7 @@ contentElement.classList.add('show');
         }
 
         // 计算身强身弱
-        function calculateStrength(dayStem, elements, monthBranch, passedBranches = []) {
+        function calculateStrength(dayStem, elements, monthBranch, passedBranches = [], passedStems = []) {
             // 确保输入是字符串
             dayStem = typeof dayStem === 'string' ? dayStem : String(dayStem);
             monthBranch = typeof monthBranch === 'string' ? monthBranch : String(monthBranch);
@@ -3755,6 +3767,112 @@ contentElement.classList.add('show');
             let monthScore = getMonthStrength(dayElement, monthBranch, combined);
             
             console.log(`月令得分计算 - 日主:${dayStem}(${dayElement}), 月支:${monthBranch}, 得分:${monthScore}`);
+            
+            // 检查土性变化对月令得分的影响（原命局分析）
+            if (typeof EarthTransformationCalculator !== 'undefined') {
+                const earthCalculator = new EarthTransformationCalculator();
+                const earthResult = earthCalculator.analyzeEarthTransformation(passedStems, passedBranches);
+                if (earthResult.hasAnyTransformation) {
+                    const monthBranchTransformation = earthResult.transformations.find(t => t.branch === monthBranch);
+                    if (monthBranchTransformation && monthBranchTransformation.originalElement === 'earth') {
+                        const originalScore = monthScore;
+                        
+                        if (monthBranchTransformation.newElement === 'water') {
+                            // 湿土转化为水性
+                            if (dayElement === 'earth') {
+                                monthScore = -10; // 土日主失去生扶变为克制
+                                console.log(`土性变化：${monthBranch}湿土转水性，土日主月令得分调整：${originalScore} → ${monthScore}`);
+                            } else if (dayElement === 'fire') {
+                                monthScore = -10; // 火日主被克
+                                console.log(`土性变化：${monthBranch}湿土转水性，火日主月令得分调整：${originalScore} → ${monthScore}`);
+                            } else if (dayElement === 'metal') {
+                                monthScore = 20; // 金日主得生
+                                console.log(`土性变化：${monthBranch}湿土转水性，金日主月令得分调整：${originalScore} → ${monthScore}`);
+                            }
+                        } else if (monthBranchTransformation.newElement === 'fire') {
+                            // 燥土转化为火性
+                            if (dayElement === 'wood') {
+                                monthScore = -10; // 木日主被克
+                                console.log(`土性变化：${monthBranch}燥土转火性，木日主月令得分调整：${originalScore} → ${monthScore}`);
+                            } else if (dayElement === 'earth') {
+                                monthScore = 20; // 土日主得生
+                                console.log(`土性变化：${monthBranch}燥土转火性，土日主月令得分调整：${originalScore} → ${monthScore}`);
+                            } else if (dayElement === 'metal') {
+                                monthScore = -10; // 金日主被克
+                                console.log(`土性变化：${monthBranch}燥土转火性，金日主月令得分调整：${originalScore} → ${monthScore}`);
+                            }
+                        } else if (monthBranchTransformation.transformationType === 'weakened') {
+                            // 土性减弱
+                            if (dayElement === 'earth') {
+                                monthScore = Math.round(monthScore * 0.5); // 土日主生扶减半
+                                console.log(`土性变化：${monthBranch}土性减弱，土日主月令得分调整：${originalScore} → ${monthScore}`);
+                            } else if (dayElement === 'fire') {
+                                monthScore = Math.round(monthScore * 0.7); // 火日主泄身减弱
+                                console.log(`土性变化：${monthBranch}土性减弱，火日主月令得分调整：${originalScore} → ${monthScore}`);
+                            } else if (dayElement === 'metal') {
+                                monthScore = Math.round(monthScore * 0.7); // 金日主得生减弱
+                                console.log(`土性变化：${monthBranch}土性减弱，金日主月令得分调整：${originalScore} → ${monthScore}`);
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // 使用增强版五行计算（包含土性变化和三合局影响）
+            let enhancedResult = null;
+            if (typeof EarthTransformationCalculator !== 'undefined') {
+                const earthCalculator = new EarthTransformationCalculator();
+                
+                // 获取所有天干地支
+                let allStems = [];
+                let allBranches = [];
+                
+                try {
+                    const pillars = window.currentPillars || {};
+                    if (pillars.year && pillars.year.length > 1) {
+                        allStems.push(pillars.year.charAt(0));
+                        allBranches.push(pillars.year.charAt(1));
+                    }
+                    if (pillars.month && pillars.month.length > 1) {
+                        allStems.push(pillars.month.charAt(0));
+                        allBranches.push(pillars.month.charAt(1));
+                    }
+                    if (pillars.day && pillars.day.length > 1) {
+                        allStems.push(pillars.day.charAt(0));
+                        allBranches.push(pillars.day.charAt(1));
+                    }
+                    if (pillars.hour && pillars.hour.length > 1) {
+                        allStems.push(pillars.hour.charAt(0));
+                        allBranches.push(pillars.hour.charAt(1));
+                    }
+                } catch (e) {
+                    console.error('获取八字信息失败:', e);
+                    // 使用传入的参数作为备选
+                    if (passedStems && passedStems.length > 0) allStems = passedStems;
+                    if (passedBranches && passedBranches.length > 0) allBranches = passedBranches;
+                }
+                
+                // 定义地支五行映射
+                const BRANCH_ELEMENTS = {
+                    '子': 'water', '丑': 'earth', '寅': 'wood', '卯': 'wood',
+                    '辰': 'earth', '巳': 'fire', '午': 'fire', '未': 'earth',
+                    '申': 'metal', '酉': 'metal', '戌': 'earth', '亥': 'water'
+                };
+                
+                // 使用增强版五行计算
+                enhancedResult = earthCalculator.calculateEnhancedElements(allStems, allBranches, BRANCH_ELEMENTS);
+                
+                // 更新五行分布为增强版计算结果
+                Object.keys(enhancedResult.elements).forEach(element => {
+                    elements[element] = enhancedResult.elements[element];
+                });
+                
+                console.log('=== calculateStrength中的增强版五行计算结果 ===');
+                console.log('土性变化分析:', enhancedResult.earthTransformation);
+                console.log('三合局分析:', enhancedResult.tripleAnalysis);
+                console.log('调整信息:', enhancedResult.adjustments);
+                console.log('最终五行分布:', elements);
+            }
             
             // 计算生扶力量（生我、助我）
             const supportElements = getSupportElements(dayElement);
@@ -3879,8 +3997,9 @@ contentElement.classList.add('show');
             
             let type, description;
             
-            // 判断是否从格
-            const isFollowing = checkFollowingPattern(dayElement, monthBranch, strengthRatio, supportStrength, weakenStrength, monthScore);
+            // 判断是否从格（传入三合局分析信息）
+            const tripleAnalysis = enhancedResult ? enhancedResult.tripleAnalysis : null;
+            const isFollowing = checkFollowingPattern(dayElement, monthBranch, strengthRatio, supportStrength, weakenStrength, monthScore, tripleAnalysis);
             
             if (isFollowing.isFollowing) {
                 type = isFollowing.type;
@@ -4487,7 +4606,24 @@ contentElement.classList.add('show');
         }
         
         // 检查是否从格
-        function checkFollowingPattern(dayElement, monthBranch, strengthRatio, supportStrength, weakenStrength, monthScore) {
+        function checkFollowingPattern(dayElement, monthBranch, strengthRatio, supportStrength, weakenStrength, monthScore, tripleAnalysis) {
+            // 特殊情况：三合局导致的从弱格（针对巳酉丑三合金局等情况）
+            if (tripleAnalysis && tripleAnalysis.hasTriple) {
+                const tripleInfo = tripleAnalysis.tripleInfo;
+                if (tripleInfo.type === '巳酉丑' && dayElement === 'earth') {
+                    // 己土日主遇巳酉丑三合金局，巳火生扶力量被大幅削弱
+                    if (strengthRatio <= 0.40 && supportStrength <= 10) {
+                        console.log(`三合金局从弱格: 巳酉丑合金削弱巳火生扶，比例${(strengthRatio * 100).toFixed(2)}% <= 40%, 生扶力量${supportStrength} <= 10`);
+                        return {
+                            isFollowing: true,
+                            type: '从弱',
+                            description: '巳酉丑三合金局成立，巳火生扶力量被大幅削弱，日主失去主要生扶来源，宜从弱论命，喜用财官。'
+                        };
+                    }
+                }
+                // 其他三合局的特殊判断可以在此添加
+            }
+            
             // 从弱格判断：力量比例≤18% 且 生扶力量很少 (更严格的标准)
             if (strengthRatio <= 0.18 && supportStrength <= 8) {
                 console.log(`从弱格判断: 比例${(strengthRatio * 100).toFixed(2)}% <= 18%, 生扶力量${supportStrength} <= 8`);
@@ -4988,6 +5124,9 @@ contentElement.classList.add('show');
         // 计算当前身强身弱（加入大运和流年）
         function calculateCurrentStrength(dayStem, elements, monthBranch, currentYear) {
             try {
+                // 初始化土性变化计算器
+                const earthCalculator = new EarthTransformationCalculator();
+                
                 // 获取当前流年干支
                 const today = new Date();
                 const currentLunar = Lunar.fromDate(today);
@@ -5081,7 +5220,7 @@ contentElement.classList.add('show');
                 console.log(`流年干支: ${currentYearStem}(${yearStemElement}) ${currentYearBranch}(${yearBranchElement})`);
                 console.log(`大运干支: ${currentDayunStem}(${dayunStemElement}) ${currentDayunBranch}(${dayunBranchElement})`);
                 
-                // 获取所有干支用于合化检查
+                // 获取所有干支用于土性变化分析和合化检查
                 const allStems = [];
                 const allBranches = [];
                 
@@ -5112,11 +5251,83 @@ contentElement.classList.add('show');
                 allStems.push(currentYearStem, currentDayunStem);
                 allBranches.push(currentYearBranch, currentDayunBranch);
                 
+                // 使用增强版五行计算（包含土性变化和三合局影响）
+                const enhancedResult = earthCalculator.calculateEnhancedElements(allStems, allBranches, BRANCH_ELEMENTS);
+                
+                // 更新五行分布为增强版计算结果
+                Object.keys(enhancedResult.elements).forEach(element => {
+                    currentElements[element] = enhancedResult.elements[element];
+                });
+                
+                console.log('=== 增强版五行计算结果 ===');
+                console.log('土性变化分析:', enhancedResult.earthTransformation);
+                console.log('三合局分析:', enhancedResult.tripleAnalysis);
+                console.log('调整信息:', enhancedResult.adjustments);
+                console.log('最终五行分布:', currentElements);
+                
+                // 如果有土性变化，输出详细说明
+                if (enhancedResult.earthTransformation.hasAnyTransformation) {
+                    console.log('土性变化说明:', earthCalculator.getTransformationDescription(enhancedResult.earthTransformation.transformations));
+                }
+                
+                // 如果有三合局，输出详细说明
+                if (enhancedResult.tripleAnalysis.hasTriple) {
+                    const tripleInfo = enhancedResult.tripleAnalysis.tripleInfo;
+                    console.log(`三合局影响: ${tripleInfo.type}${tripleInfo.isComplete ? '全' : '半'}三合${tripleInfo.element === 'metal' ? '金' : tripleInfo.element}局`);
+                    if (tripleInfo.type === '巳酉丑') {
+                        console.log('巳火生扶力量被三合金局削弱');
+                    }
+                }
+                
+                // allStems和allBranches已在上面声明和初始化
+                
                 // 检查合化（流年和大运可以与任意八字干支合化）
                 const currentCombined = checkCurrentCombinations(dayStem, allStems, allBranches, currentYearStem, currentYearBranch, currentDayunStem, currentDayunBranch);
                 
-                // 计算月令得分（保持不变）
+                // 计算月令得分（考虑土性变化）
                 let monthScore = getMonthStrength(stemElementMap[dayStem], monthBranch, currentCombined);
+                
+                // 应用土性变化对月令得分的影响
+                if (enhancedResult.earthTransformation.hasAnyTransformation) {
+                    const monthBranchTransformation = enhancedResult.earthTransformation.transformations.find(t => t.branch === monthBranch);
+                    if (monthBranchTransformation) {
+                        console.log(`=== 月令土性变化影响 ===`);
+                        console.log(`月支 ${monthBranch} 发生土性变化:`, monthBranchTransformation);
+                        
+                        // 如果月令是土，且发生了土性变化
+                        if (monthBranchTransformation.originalElement === 'earth') {
+                            const originalScore = monthScore;
+                            
+                            // 根据土性变化的强度调整月令得分
+                            if (monthBranchTransformation.newElement === 'water') {
+                                // 湿土转化为水性，完全作水看
+                                if (stemElementMap[dayStem] === 'earth') {
+                                    // 对土日主完全失去生扶，变为克制
+                                    monthScore = -10;
+                                    console.log(`湿土转水性，对土日主完全失去生扶变为克制：${originalScore} -> ${monthScore}`);
+                                } else if (stemElementMap[dayStem] === 'fire') {
+                                    // 对火日主变为克制
+                                    monthScore = -15;
+                                    console.log(`湿土转水性，对火日主变为克制：${originalScore} -> ${monthScore}`);
+                                }
+                            } else if (monthBranchTransformation.newElement === 'fire') {
+                                // 燥土转化为火性
+                                if (stemElementMap[dayStem] === 'earth') {
+                                    monthScore = Math.round(monthScore * 0.3); // 减少70%
+                                    console.log(`燥土转火性，对土日主生扶减少：${originalScore} -> ${monthScore}`);
+                                } else if (stemElementMap[dayStem] === 'metal') {
+                                    // 对金日主变为克制
+                                    monthScore = -15;
+                                    console.log(`燥土转火性，对金日主变为克制：${originalScore} -> ${monthScore}`);
+                                }
+                            } else if (monthBranchTransformation.transformationType === 'weakened') {
+                                // 土性减弱但未完全转化
+                                monthScore = Math.round(monthScore * 0.5); // 减少50%
+                                console.log(`土性减弱，月令得分减半：${originalScore} -> ${monthScore}`);
+                            }
+                        }
+                    }
+                }
                 
                 // 计算生扶和克泄力量
                 const dayElement = stemElementMap[dayStem];
@@ -5201,8 +5412,8 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
                 
                 let type, description;
                 
-                // 判断是否从格（使用与原始函数相同的逻辑）
-                const isFollowing = checkFollowingPattern(dayElement, monthBranch, strengthRatio, supportStrength, weakenStrength, monthScore);
+                // 判断是否从格（使用与原始函数相同的逻辑，传入三合局分析信息）
+                const isFollowing = checkFollowingPattern(dayElement, monthBranch, strengthRatio, supportStrength, weakenStrength, monthScore, enhancedResult.tripleAnalysis);
                 
                 if (isFollowing.isFollowing) {
                     type = isFollowing.type;
@@ -5249,8 +5460,8 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
                             // 确保调整后的比例在合理范围内
                             adjustedRatio = Math.max(0.05, Math.min(0.95, adjustedRatio));
                             
-                            // 重新判断身强身弱类型
-                            const adjustedFollowing = checkFollowingPattern(dayElement, monthBranch, adjustedRatio, supportStrength, weakenStrength, monthScore);
+                            // 重新判断身强身弱类型（传入三合局分析信息）
+                            const adjustedFollowing = checkFollowingPattern(dayElement, monthBranch, adjustedRatio, supportStrength, weakenStrength, monthScore, enhancedResult.tripleAnalysis);
                             
                             if (adjustedFollowing.isFollowing) {
                                 type = adjustedFollowing.type;
@@ -5292,7 +5503,8 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
                     currentYear: currentYear,
                     currentYearGanZhi: currentYearGanZhi,
                     currentDayun: displayDayun,
-                    elements: currentElements
+                    elements: currentElements,
+                    earthTransformation: enhancedResult.earthTransformation || { hasAnyTransformation: false, transformations: [] }
                 };
                 
             } catch (error) {
@@ -5305,11 +5517,18 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
                     weakenStrength: 0,
                     description: '无法计算当前身强身弱，请检查数据。',
                     monthScore: 0,
-                    combined: {},
+                    combined: {
+                        tianGanWuHe: [],
+                        diZhiLiuHe: [],
+                        diZhiSanHe: [],
+                        effect: null,
+                        deduction: 0
+                    },
                     currentYear: currentYear,
                     currentYearGanZhi: '',
                     currentDayun: '',
-                    elements: elements
+                    elements: elements,
+                    earthTransformation: { hasAnyTransformation: false, transformations: [], wetEarthChanges: [], dryEarthChanges: [] }
                 };
             }
         }
@@ -10749,6 +10968,25 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
                         <p style="color: #7f8c8d; margin: 0;"><i class="fas fa-info-circle"></i> 未检测到合化</p>
                     </div>`}
                  </div>
+                 ${strengthAnalysis.earthTransformation ? 
+                    `<div style="background-color: #fff3cd; padding: 15px; border-radius: 8px; margin: 15px 0; border: 2px solid #ffc107; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+                        <h5 style="color: #856404; margin-top: 0; font-size: 16px;"><i class="fas fa-mountain"></i> 土性变化分析</h5>
+                        ${strengthAnalysis.earthTransformation.wetEarthChanges.length > 0 ? 
+                            `<div style="margin-bottom: 10px;">
+                                <p><strong>湿土变化:</strong> ${strengthAnalysis.earthTransformation.wetEarthChanges.map(change => 
+                                    `${change.earthBranch}${change.reason}做${change.newElement === 'water' ? '水' : change.newElement === 'fire' ? '火' : change.newElement === 'earth' ? '土' : change.newElement === 'metal' ? '金' : '木'}看(${change.reason})`
+                                ).join('、')}</p>
+                            </div>` : ''}
+                        ${strengthAnalysis.earthTransformation.dryEarthChanges.length > 0 ? 
+                            `<div style="margin-bottom: 10px;">
+                                <p><strong>燥土变化:</strong> ${strengthAnalysis.earthTransformation.dryEarthChanges.map(change => 
+                                    `${change.earthBranch}${change.reason}做${change.newElement === 'water' ? '水' : change.newElement === 'fire' ? '火' : change.newElement === 'earth' ? '土' : change.newElement === 'metal' ? '金' : '木'}看(${change.reason})`
+                                ).join('、')}</p>
+                            </div>` : ''}
+                        ${strengthAnalysis.earthTransformation.wetEarthChanges.length === 0 && strengthAnalysis.earthTransformation.dryEarthChanges.length === 0 ? 
+                            `<p style="color: #856404; margin: 0;"><i class="fas fa-info-circle"></i> 未检测到土性变化</p>` : 
+                            `<p><strong>变化影响:</strong> <span style="color: #856404; font-weight: bold;">已应用到五行力量计算中</span></p>`}
+                    </div>` : ''}
                  <p><strong>分析说明:</strong> ${strengthAnalysis.description}</p>
              `;
              
