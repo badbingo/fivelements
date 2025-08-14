@@ -3806,6 +3806,8 @@ function determineStrengthType(pillars) {
         const apiUrl = 'https://deepseek-api-proxy.owenjass.workers.dev/api/deepseek';
         // 使用代理服务器，不直接暴露API Key
         const apiKey = 'placeholder_key_for_local_dev_only';
+
+        
     // 使用 currentYear（2025）、currentMonth、currentDay
         const currentDateStr = `${currentYear}-${currentMonth.toString().padStart(2, '0')}-${currentDay.toString().padStart(2, '0')}`;
         const cacheKey = `qa:${generateBaziHashKey(birthData)}:${question}`;
