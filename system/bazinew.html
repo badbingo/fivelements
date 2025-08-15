@@ -7534,11 +7534,17 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
                 // 运势与特殊加分（总计10分）
                 const luckSupport = Math.round(calculateLuckSupportScore(safePillars) * 0.3);       // 3分
                 const dayunCoordination = Math.round(calculateDayunCoordinationScore(safePillars) * 0.25); // 2分
-                const noblesSupport = Math.round(calculateNoblesSupportScore(safePillars) * 0.33);  // 2分
+                
+                // 根据特殊格局调整贵人助力和格局加分的系数
+                const baziData = window.currentBaziData || {};
+                const specialPattern = detectSpecialPattern(safePillars, baziData);
+                const isHighNoblePattern = specialPattern && (specialPattern.includes('日贵') || specialPattern.includes('魁罡'));
+                
+                const noblesSupport = Math.round(calculateNoblesSupportScore(safePillars) * (isHighNoblePattern ? 0.8 : 0.33));  // 高贵格局提高贵人助力系数
                 const levelBonus = Math.round(calculateLevelBonus(safePillars) * 0.2);              // 3分
                 
-                // 特殊格局加分（可超出100分上限）
-                const specialPatternBonus = Math.round(calculateSpecialPatternBonus(safePillars) * 0.5); // 最高15分
+                // 特殊格局加分（可超出100分上限）- 提高系数以体现格局价值
+                const specialPatternBonus = Math.round(calculateSpecialPatternBonus(safePillars) * (isHighNoblePattern ? 0.8 : 0.6)); // 高贵格局最高20分，其他格局最高18分
                 
                 // 扣分项
                 const kongWangPenalty = Math.round(calculateKongWangPenalty(safePillars) * 0.33); // 最高5分扣除
@@ -8876,9 +8882,35 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
                 const tenGodsBonus = calculateTenGodsEffects(safePillars);
                 baseScore += tenGodsBonus;
                 
-                // 特殊格局识别和加分
-                const specialPatterns = identifySpecialPatterns(safePillars);
-                const specialBonus = specialPatterns.reduce((sum, pattern) => sum + pattern.bonus, 0);
+                // 特殊格局识别和加分 - 直接调用八字排盘的特殊格局计算结果
+                const baziData = window.currentBaziData || {};
+                const specialPattern = detectSpecialPattern(safePillars, baziData);
+                let specialBonus = 0;
+                
+                if (specialPattern && specialPattern !== '无') {
+                    // 调整财富等级中的特殊格局加分，突出高贵格局的财富价值
+                    if (specialPattern.includes('从财')) {
+                        specialBonus += 25; // 从财格对财富最有利
+                    } else if (specialPattern.includes('日贵')) {
+                        specialBonus += 20; // 日贵格 - 贵人相助，财富丰厚
+                    } else if (specialPattern.includes('魁罡')) {
+                        specialBonus += 18; // 魁罡格 - 刚强有力，财富可观
+                    } else if (specialPattern.includes('从弱') || specialPattern.includes('从儿')) {
+                        specialBonus += 15; // 从弱格、从儿格对财富有利
+                    } else if (specialPattern.includes('专旺')) {
+                        specialBonus += 14; // 专旺格
+                    } else if (specialPattern.includes('化气')) {
+                        specialBonus += 12; // 化气格
+                    } else if (specialPattern.includes('金神')) {
+                        specialBonus += 11; // 金神格
+                    } else if (specialPattern.includes('从强')) {
+                        specialBonus += 8; // 从强格对财富相对不利
+                    } else if (specialPattern.includes('三奇')) {
+                        specialBonus += 10; // 三奇贵人格
+                    } else {
+                        specialBonus += 6; // 其他特殊格局
+                    }
+                }
                 baseScore += specialBonus;
                 
                 // 身财平衡调整
@@ -8926,7 +8958,7 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
                     portalScore,
                     fromWealthScore,
                     tenGodsBonus,
-                    specialPatterns,
+                    specialPatterns: specialPattern && specialPattern !== '无' ? [{ name: specialPattern, bonus: specialBonus }] : [],
                     specialBonus,
                     balanceAdjustment,
                     luckAdjustment,
@@ -11040,33 +11072,42 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
             return Math.min(6, score);
         }
 
-        // 计算特殊格局加分 (0~20分)
+        // 计算特殊格局加分 (0~30分) - 直接调用八字排盘的特殊格局计算结果
         function calculateSpecialPatternBonus(pillars) {
-            const specialPattern = identifySpecialPattern(pillars);
-            const specialPatterns = identifySpecialPatterns(pillars);
+            // 直接调用八字排盘中的特殊格局检测函数
+            const baziData = window.currentBaziData || {};
+            const specialPattern = detectSpecialPattern(pillars, baziData);
             
             let bonus = 0;
             
-            // 来自identifySpecialPattern的分数
-            if (specialPattern.type !== 'normal') {
-                if (specialPattern.type === 'zhuanwang') bonus += 18;
-                else if (specialPattern.type === 'congqiang') bonus += 15;
-                else if (specialPattern.type === 'congruo') bonus += 12;
+            if (specialPattern && specialPattern !== '无') {
+                // 重新设计特殊格局加分体系，突出高贵格局的价值
+                if (specialPattern.includes('日贵')) {
+                    bonus += 25; // 日贵格 - 最高贵格局之一
+                } else if (specialPattern.includes('魁罡')) {
+                    bonus += 22; // 魁罡格 - 刚强贵格
+                } else if (specialPattern.includes('专旺')) {
+                    bonus += 20; // 专旺格 - 专一成格
+                } else if (specialPattern.includes('从强')) {
+                    bonus += 18; // 从强格
+                } else if (specialPattern.includes('化气')) {
+                    bonus += 16; // 化气格 - 五行化合成格
+                } else if (specialPattern.includes('从财')) {
+                    bonus += 15; // 从财格 - 从弱格中最佳
+                } else if (specialPattern.includes('从弱') || specialPattern.includes('从杀') || specialPattern.includes('从儿')) {
+                    bonus += 12; // 其他从弱格系列
+                } else if (specialPattern.includes('金神')) {
+                    bonus += 14; // 金神格 - 特殊贵格
+                } else if (specialPattern.includes('三奇')) {
+                    bonus += 10; // 三奇贵人格
+                } else if (specialPattern.includes('六秀') || specialPattern.includes('井栏')) {
+                    bonus += 8; // 六秀日、井栏叉格等
+                } else {
+                    bonus += 6; // 其他特殊格局
+                }
             }
             
-            // 来自identifySpecialPatterns的额外分数
-            specialPatterns.forEach(pattern => {
-                if (pattern.bonus > 0) {
-                    // 从强格和从弱格允许更高加分，其他格局限制为10分
-                    if (pattern.name === '从强格' || pattern.name === '从弱格') {
-                        bonus += Math.min(pattern.bonus, 25); // 从格最高25分
-                    } else {
-                        bonus += Math.min(pattern.bonus, 10); // 其他格局最高10分
-                    }
-                }
-            });
-            
-            return Math.min(30, bonus); // 提高上限以支持从格的高加分
+            return Math.min(30, bonus); // 最高30分
         }
 
         // 计算命格层次加分 (0~15分)
@@ -11570,6 +11611,8 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
                                 <th>运程</th>
                                 <th class="pillar-header">当前大运</th>
                                 <th class="pillar-header">流年</th>
+                                <th class="pillar-header">流月</th>
+                                <th class="pillar-header">流日</th>
                                 <th class="pillar-header">运程信息</th>
                             </tr>
                         </thead>
@@ -11579,14 +11622,23 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
                                 const currentDayun = getCurrentDayun();
                                 const yearGanZhi = getYearGanZhi(currentYear);
                                 
+                                // 获取当前月份和日期干支
+                                const today = new Date();
+                                const currentSolar = Solar.fromDate(today);
+                                const currentLunar = currentSolar.getLunar();
+                                const monthGanZhi = currentLunar.getMonthInGanZhiExact();
+                                const dayGanZhi = currentLunar.getDayInGanZhiExact();
+                                
                                 return `
                                 <tr>
                                     <td><strong>干支</strong></td>
                                     <td class="stem">${coloredStem(currentDayun.ganZhi[0])}${coloredBranch(currentDayun.ganZhi[1])}</td>
                                     <td class="stem">${coloredStem(yearGanZhi[0])}${coloredBranch(yearGanZhi[1])}</td>
+                                    <td class="stem">${coloredStem(monthGanZhi[0])}${coloredBranch(monthGanZhi[1])}</td>
+                                    <td class="stem">${coloredStem(dayGanZhi[0])}${coloredBranch(dayGanZhi[1])}</td>
                                     <td style="text-align: left; padding: 10px;">
                                         <div style="font-size: 0.9em; color: #666; margin-bottom: 5px;">大运: ${currentDayun.startAge}-${currentDayun.endAge}岁</div>
-                                        <div style="font-size: 0.9em; color: #666;">当前: ${currentDayun.currentAge}岁 (${currentYear}年)</div>
+                                        <div style="font-size: 0.9em; color: #666;">当前: ${currentDayun.currentAge}岁 (${currentYear}年${today.getMonth() + 1}月${today.getDate()}日)</div>
                                     </td>
                                 </tr>
                                 `;
@@ -11601,11 +11653,22 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
                             <div style="font-size: 0.85em; color: #7f8c8d; margin-bottom: 4px;">年命纳音</div>
                             <div style="font-size: 1.2em; font-weight: 600; color: #2c3e50;">${baziData.lunar.getYearNaYin()}</div>
                         </div>
-                        <div style="flex: 1; min-width: 200px; padding: 8px; text-align: center;">
+                        <div style="flex: 1; min-width: 200px; padding: 8px; text-align: center; border-right: 1px solid rgba(233, 236, 239, 0.5);">
                             <div style="font-size: 0.85em; color: #7f8c8d; margin-bottom: 4px;">日主</div>
                             <div style="font-size: 1.2em; font-weight: 600;">
                                 <span style="display: inline-block; padding: 4px 12px; border-radius: 20px; background: linear-gradient(135deg, rgba(${getElementRGB(elementMap[pillars.day[0]])}, 0.2), rgba(${getElementRGB(elementMap[pillars.day[0]])}, 0.05)); color: ${elementColors[elementMap[pillars.day[0]]] || '#000'}; text-shadow: 0 1px 1px rgba(0,0,0,0.1);">
                                     ${pillars.day[0]}${getElementName(pillars.day[0])}命
+                                </span>
+                            </div>
+                        </div>
+                        <div style="flex: 1; min-width: 200px; padding: 8px; text-align: center;">
+                            <div style="font-size: 0.85em; color: #7f8c8d; margin-bottom: 4px;">特殊格局</div>
+                            <div style="font-size: 1.2em; font-weight: 600;">
+                                <span style="display: inline-block; padding: 4px 12px; border-radius: 20px; background: linear-gradient(135deg, rgba(138, 43, 226, 0.2), rgba(138, 43, 226, 0.05)); color: #8a2be2; text-shadow: 0 1px 1px rgba(0,0,0,0.1);">
+                                    ${(() => {
+                                        const specialPattern = detectSpecialPattern(pillars, baziData);
+                                        return specialPattern || '无';
+                                    })()}
                                 </span>
                             </div>
                         </div>
@@ -11624,6 +11687,355 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
                 '壬': '水', '癸': '水'
             };
             return elementMap[stem] || '';
+        }
+
+        // 特殊格局检测函数
+        function detectSpecialPattern(pillars, baziData) {
+            try {
+                const yearStem = pillars.year.charAt(0), yearBranch = pillars.year.charAt(1);
+                const monthStem = pillars.month.charAt(0), monthBranch = pillars.month.charAt(1);
+                const dayStem = pillars.day.charAt(0), dayBranch = pillars.day.charAt(1);
+                const timeStem = pillars.hour.charAt(0), timeBranch = pillars.hour.charAt(1);
+                
+                const stems = [yearStem, monthStem, dayStem, timeStem];
+                const branches = [yearBranch, monthBranch, dayBranch, timeBranch];
+                
+                // 1. 检测从格类
+                const congPattern = detectCongPattern(stems, branches, dayStem);
+                if (congPattern) return congPattern;
+                
+                // 2. 检测专旺格
+                const zhuanwangPattern = detectZhuanwangPattern(stems, branches, dayStem);
+                if (zhuanwangPattern) return zhuanwangPattern;
+                
+                // 3. 检测化气格
+                const huaqiPattern = detectHuaqiPattern(stems, branches, dayStem, monthBranch);
+                if (huaqiPattern) return huaqiPattern;
+                
+                // 4. 检测贵人格局
+                const guirenPattern = detectGuirenPattern(stems, branches, dayStem, dayBranch);
+                if (guirenPattern) return guirenPattern;
+                
+                // 5. 检测禄马格局
+                const lumaPattern = detectLumaPattern(stems, branches, dayStem, dayBranch);
+                if (lumaPattern) return lumaPattern;
+                
+                // 6. 检测特殊日时格局
+                const specialDayPattern = detectSpecialDayPattern(dayStem, dayBranch, timeStem, timeBranch);
+                if (specialDayPattern) return specialDayPattern;
+                
+                // 7. 检测神煞格局
+                const shenshaPattern = detectShenshaPattern(stems, branches, dayStem, dayBranch);
+                if (shenshaPattern) return shenshaPattern;
+                
+                return null; // 无特殊格局
+            } catch (error) {
+                console.error('特殊格局检测出错:', error);
+                return null;
+            }
+        }
+        
+        // 检测从格类
+        function detectCongPattern(stems, branches, dayStem) {
+            // 直接调用现有的身强身弱分析结果，不重新计算
+            console.log('=== 从格检测调试信息（使用现有身强身弱分析）===');
+            console.log('八字:', stems.join(''), branches.join(''));
+            console.log('日干:', dayStem);
+            
+            // 优先使用全局的身强身弱分析结果
+            let strengthAnalysis = null;
+            
+            // 尝试从全局变量获取身强身弱分析结果
+            if (window.currentBaziData && window.currentBaziData.strengthAnalysis) {
+                strengthAnalysis = window.currentBaziData.strengthAnalysis;
+                console.log('使用全局身强身弱分析结果:', strengthAnalysis);
+                console.log('strengthAnalysis.type:', strengthAnalysis.type);
+                console.log('strengthAnalysis.strengthType:', strengthAnalysis.strengthType);
+            } else if (window.strengthAnalysisResult) {
+                strengthAnalysis = window.strengthAnalysisResult;
+                console.log('使用全局strengthAnalysisResult:', strengthAnalysis);
+                console.log('strengthAnalysisResult.type:', strengthAnalysis.type);
+                console.log('strengthAnalysisResult.strengthType:', strengthAnalysis.strengthType);
+            } else {
+                // 如果没有现成的结果，临时计算一次
+                console.log('未找到现有身强身弱分析结果，进行临时计算');
+                const dayElement = getElementFromStem(dayStem);
+                const elementCounts = countElements(stems, branches);
+                const monthBranch = branches[1]; // 月支
+                
+                try {
+                    strengthAnalysis = calculateStrength(dayStem, elementCounts, monthBranch, branches, stems);
+                    console.log('临时计算的身强身弱分析结果:', strengthAnalysis);
+                } catch (error) {
+                    console.error('临时计算身强身弱失败:', error);
+                    return null;
+                }
+            }
+            
+            if (!strengthAnalysis) {
+                console.log('无法获取身强身弱分析结果');
+                return null;
+            }
+            
+            const strengthType = strengthAnalysis.type;
+            console.log('身强身弱类型:', strengthType);
+            
+            // 根据身强身弱分析结果判断从格
+            if (strengthType === '从强' || strengthType === '极强（从强）') {
+                console.log('判断结果: 从强格（基于身强身弱分析）');
+                return '从强格';
+            }
+            
+            if (strengthType === '从弱' || strengthType === '极弱（从弱）' || strengthType.includes('从弱')) {
+                // 从弱格需要进一步细分为从财格、从杀格、从儿格等
+                const dayElement = getElementFromStem(dayStem);
+                const elementCounts = countElements(stems, branches);
+                const dominantElement = Object.keys(elementCounts).reduce((a, b) => 
+                    elementCounts[a] > elementCounts[b] ? a : b);
+                
+                console.log('日主五行:', dayElement, '主导五行:', dominantElement);
+                
+                // 从财格：财星力量最强（日主克的五行为财星）
+                if ((dayElement === 'wood' && dominantElement === 'earth') ||
+                    (dayElement === 'fire' && dominantElement === 'metal') ||
+                    (dayElement === 'earth' && dominantElement === 'water') ||
+                    (dayElement === 'metal' && dominantElement === 'wood') ||
+                    (dayElement === 'water' && dominantElement === 'fire')) {
+                    console.log('判断结果: 从财格（基于身强身弱分析）');
+                    return '从财格';
+                }
+                
+                // 从官杀格：克日主的五行为官杀
+                if ((dayElement === 'wood' && dominantElement === 'metal') ||
+                    (dayElement === 'fire' && dominantElement === 'water') ||
+                    (dayElement === 'earth' && dominantElement === 'wood') ||
+                    (dayElement === 'metal' && dominantElement === 'fire') ||
+                    (dayElement === 'water' && dominantElement === 'earth')) {
+                    console.log('判断结果: 从杀格（基于身强身弱分析）');
+                    return '从杀格';
+                }
+                
+                // 从食伤格：日主生的五行为食伤
+                if ((dayElement === 'wood' && dominantElement === 'fire') ||
+                    (dayElement === 'fire' && dominantElement === 'earth') ||
+                    (dayElement === 'earth' && dominantElement === 'metal') ||
+                    (dayElement === 'metal' && dominantElement === 'water') ||
+                    (dayElement === 'water' && dominantElement === 'wood')) {
+                    console.log('判断结果: 从儿格（基于身强身弱分析）');
+                    return '从儿格';
+                }
+                
+                // 其他从格（按主导五行命名）
+                const elementNames = {
+                    'wood': '从木格',
+                    'fire': '从火格', 
+                    'earth': '从土格',
+                    'metal': '从金格',
+                    'water': '从水格'
+                };
+                
+                if (elementNames[dominantElement]) {
+                    console.log('判断结果:', elementNames[dominantElement], '（基于身强身弱分析）');
+                    return elementNames[dominantElement];
+                }
+                
+                console.log('判断结果: 从弱格（基于身强身弱分析）');
+                return '从弱格';
+            }
+            
+            console.log('判断结果: 无特殊格局（基于身强身弱分析）');
+            console.log('========================');
+            return null;
+        }
+        
+        // 检测专旺格
+        function detectZhuanwangPattern(stems, branches, dayStem) {
+            const dayElement = getElementFromStem(dayStem);
+            const elementCounts = countElements(stems, branches);
+            const totalStrength = Object.values(elementCounts).reduce((sum, val) => sum + val, 0);
+            
+            // 某一五行力量占90%以上
+            for (const [element, strength] of Object.entries(elementCounts)) {
+                if (strength / totalStrength >= 0.9) {
+                    if (element === 'wood') return '曲直格';
+                    if (element === 'fire') return '炎上格';
+                    if (element === 'earth') return '稼穑格';
+                    if (element === 'metal') return '从革格';
+                    if (element === 'water') return '润下格';
+                }
+            }
+            
+            return null;
+        }
+        
+        // 检测化气格
+        function detectHuaqiPattern(stems, branches, dayStem, monthBranch) {
+            const hehuaPairs = {
+                '甲己': '土', '乙庚': '金', '丙辛': '水', '丁壬': '木', '戊癸': '火'
+            };
+            
+            // 检查日干与其他天干的合化
+            for (let i = 0; i < stems.length; i++) {
+                if (i === 2) continue; // 跳过日干自己
+                const pair1 = dayStem + stems[i];
+                const pair2 = stems[i] + dayStem;
+                
+                if (hehuaPairs[pair1] || hehuaPairs[pair2]) {
+                    const hehuaElement = hehuaPairs[pair1] || hehuaPairs[pair2];
+                    // 检查月令是否支持化气
+                    if (isSeasonSupport(hehuaElement, monthBranch)) {
+                        return `${pair1 || pair2}化${getElementChinese(hehuaElement)}格`;
+                    }
+                }
+            }
+            
+            return null;
+        }
+        
+        // 检测贵人格局
+        function detectGuirenPattern(stems, branches, dayStem, dayBranch) {
+            // 日贵格
+            const dayNobles = {
+                '甲': ['丑', '未'], '戊': ['丑', '未'],
+                '乙': ['子', '申'], '己': ['子', '申'],
+                '丙': ['亥', '酉'], '丁': ['亥', '酉'],
+                '庚': ['丑', '未'], '辛': ['寅', '午'],
+                '壬': ['卯', '巳'], '癸': ['卯', '巳']
+            };
+            
+            if (dayNobles[dayStem] && dayNobles[dayStem].includes(dayBranch)) {
+                return '日贵格';
+            }
+            
+            // 三奇贵人格
+            const stemsStr = stems.join('');
+            if (stemsStr.includes('甲戊庚') || stemsStr.includes('乙丙丁') || stemsStr.includes('壬癸辛')) {
+                return '三奇贵人格';
+            }
+            
+            return null;
+        }
+        
+        // 检测禄马格局
+        function detectLumaPattern(stems, branches, dayStem, dayBranch) {
+            // 建禄格
+            const luPositions = {
+                '甲': '寅', '乙': '卯', '丙': '巳', '丁': '午',
+                '戊': '巳', '己': '午', '庚': '申', '辛': '酉',
+                '壬': '亥', '癸': '子'
+            };
+            
+            if (luPositions[dayStem] === dayBranch) {
+                return '建禄格';
+            }
+            
+            // 禄元互换格
+            const yearStem = stems[0], monthStem = stems[1], timeStem = stems[3];
+            if ((luPositions[dayStem] === branches[0] && luPositions[yearStem] === dayBranch) ||
+                (luPositions[dayStem] === branches[1] && luPositions[monthStem] === dayBranch) ||
+                (luPositions[dayStem] === branches[3] && luPositions[timeStem] === dayBranch)) {
+                return '禄元互换格';
+            }
+            
+            return null;
+        }
+        
+        // 检测特殊日时格局
+        function detectSpecialDayPattern(dayStem, dayBranch, timeStem, timeBranch) {
+            // 天元一气格
+            if (dayStem === timeStem && dayBranch === timeBranch) {
+                return '天元一气格';
+            }
+            
+            // 魁罡格
+            const kuigangDays = ['庚戌', '庚辰', '戊戌', '壬辰'];
+            if (kuigangDays.includes(dayStem + dayBranch)) {
+                return '魁罡格';
+            }
+            
+            return null;
+        }
+        
+        // 检测神煞格局
+        function detectShenshaPattern(stems, branches, dayStem, dayBranch) {
+            // 金神格
+            const jinShenCombos = ['乙丑', '己巳', '癸酉'];
+            for (let i = 0; i < stems.length; i++) {
+                if (jinShenCombos.includes(stems[i] + branches[i])) {
+                    return '金神格';
+                }
+            }
+            
+            return null;
+        }
+        
+        // 辅助函数：获取天干对应的五行
+        function getElementFromStem(stem) {
+            const elementMap = {
+                '甲': 'wood', '乙': 'wood',
+                '丙': 'fire', '丁': 'fire',
+                '戊': 'earth', '己': 'earth',
+                '庚': 'metal', '辛': 'metal',
+                '壬': 'water', '癸': 'water'
+            };
+            return elementMap[stem];
+        }
+        
+        // 辅助函数：统计五行力量
+        function countElements(stems, branches) {
+            const counts = { wood: 0, fire: 0, earth: 0, metal: 0, water: 0 };
+            
+            // 统计天干
+            stems.forEach(stem => {
+                const element = getElementFromStem(stem);
+                if (element) counts[element] += 1;
+            });
+            
+            // 统计地支（简化版）
+            const branchElements = {
+                '子': 'water', '丑': 'earth', '寅': 'wood', '卯': 'wood',
+                '辰': 'earth', '巳': 'fire', '午': 'fire', '未': 'earth',
+                '申': 'metal', '酉': 'metal', '戌': 'earth', '亥': 'water'
+            };
+            
+            branches.forEach(branch => {
+                const element = branchElements[branch];
+                if (element) counts[element] += 1;
+            });
+            
+            return counts;
+        }
+        
+        // 辅助函数：获取支持日主的五行
+        function getSupportElements(dayElement) {
+            const supportMap = {
+                'wood': ['wood', 'water'],
+                'fire': ['fire', 'wood'],
+                'earth': ['earth', 'fire'],
+                'metal': ['metal', 'earth'],
+                'water': ['water', 'metal']
+            };
+            return supportMap[dayElement] || [];
+        }
+        
+        // 辅助函数：检查季节是否支持化气
+        function isSeasonSupport(element, monthBranch) {
+            const seasonMap = {
+                'wood': ['寅', '卯', '辰'],
+                'fire': ['巳', '午', '未'],
+                'earth': ['辰', '戌', '丑', '未'],
+                'metal': ['申', '酉', '戌'],
+                'water': ['亥', '子', '丑']
+            };
+            return seasonMap[element] && seasonMap[element].includes(monthBranch);
+        }
+        
+        // 辅助函数：获取五行中文名称
+        function getElementChinese(element) {
+            const names = {
+                'wood': '木', 'fire': '火', 'earth': '土', 'metal': '金', 'water': '水'
+            };
+            return names[element] || element;
         }
 
         // 显示五行图表（双图表版本）
