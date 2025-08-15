@@ -22,7 +22,404 @@
     <script src="../js/menu.js" defer></script>
     
     <!-- 增强版五行计算器（包含土性变化逻辑） -->
-    <script src="enhanced_strength_calculation.js"></script>
+    <script>
+/**
+ * 增强版身强身弱计算模块
+ * 包含土性变化逻辑的实现
+ * 作者：八字系统
+ * 日期：2024
+ */
+
+// 土性变化计算逻辑
+class EarthTransformationCalculator {
+    constructor() {
+        // 湿土定义（容易受水影响的土）
+        this.wetEarth = ['丑', '辰'];
+        
+        // 燥土定义（不易受水影响的土）
+        this.dryEarth = ['未', '戌'];
+        
+        // 水元素（天干地支）
+        this.waterStems = ['壬', '癸'];
+        this.waterBranches = ['子', '亥'];
+        
+        // 三合局定义
+        this.tripleCombinations = {
+            '申子辰': { element: 'water', branches: ['申', '子', '辰'] },
+            '亥卯未': { element: 'wood', branches: ['亥', '卯', '未'] },
+            '寅午戌': { element: 'fire', branches: ['寅', '午', '戌'] },
+            '巳酉丑': { element: 'metal', branches: ['巳', '酉', '丑'] }
+        };
+    }
+    
+    /**
+     * 分析三合局对土的影响
+     * @param {Array} branches - 地支数组
+     * @returns {Object} 三合局分析结果
+     */
+    analyzeTripleCombinations(branches) {
+        const result = {
+            hasTriple: false,
+            tripleInfo: null,
+            earthImpact: {
+                affected: false,
+                reduction: 0,
+                reason: ''
+            }
+        };
+        
+        // 检查巳酉丑三合金局
+        const siYouChou = ['巳', '酉', '丑'];
+        const foundBranches = siYouChou.filter(branch => branches.includes(branch));
+        
+        if (foundBranches.length >= 2) {
+            result.hasTriple = true;
+            result.tripleInfo = {
+                type: '巳酉丑',
+                element: 'metal',
+                count: foundBranches.length,
+                branches: foundBranches,
+                isComplete: foundBranches.length === 3
+            };
+            
+            // 如果丑土参与合金局
+            if (foundBranches.includes('丑')) {
+                result.earthImpact.affected = true;
+                result.earthImpact.reduction = foundBranches.length === 3 ? 0.7 : 0.5; // 全三合减弱更多
+                result.earthImpact.reason = `丑土参与${foundBranches.length === 3 ? '全' : '半'}三合金局，土气被金泄，力量减弱${(result.earthImpact.reduction * 100).toFixed(0)}%`;
+            }
+        }
+        
+        return result;
+    }
+    
+    /**
+     * 分析湿土遇水变性
+     * @param {Array} stems - 天干数组
+     * @param {Array} branches - 地支数组
+     * @returns {Object} 土性变化分析结果
+     */
+    analyzeEarthTransformation(stems, branches) {
+        const transformations = [];
+        const elementAdjustments = {
+            wood: 0, fire: 0, earth: 0, metal: 0, water: 0
+        };
+        
+        branches.forEach((branch, index) => {
+            if (this.wetEarth.includes(branch)) {
+                const transformation = this.checkWetEarthTransformation(stems, branches, index);
+                if (transformation.hasTransformation) {
+                    transformations.push(transformation);
+                    // 应用变化到五行调整
+                    elementAdjustments.earth -= transformation.reductionRate;
+                    elementAdjustments.water += transformation.waterIncrease;
+                }
+            }
+        });
+        
+        return {
+            hasTransformation: transformations.length > 0,
+            hasAnyTransformation: transformations.length > 0,
+            transformations: transformations,
+            elementAdjustments: elementAdjustments,
+            totalEarthReduction: transformations.reduce((sum, t) => sum + t.reductionRate, 0),
+            totalWaterIncrease: transformations.reduce((sum, t) => sum + t.waterIncrease, 0)
+        };
+    }
+    
+    /**
+     * 检查单个湿土的变性情况
+     * @param {Array} stems - 天干数组
+     * @param {Array} branches - 地支数组
+     * @param {number} position - 湿土在地支中的位置
+     * @returns {Object} 变性分析结果
+     */
+    checkWetEarthTransformation(stems, branches, position) {
+        const branch = branches[position];
+        const stem = stems[position];
+        
+        const result = {
+            branch: branch,
+            position: position,
+            hasTransformation: false,
+            originalElement: 'earth',
+            newElement: null,
+            transformationType: null,
+            waterSources: [],
+            reductionRate: 0,
+            waterIncrease: 0,
+            reason: ''
+        };
+        
+        let waterInfluence = 0;
+        const waterSources = [];
+        
+        // 1. 检查本柱天干是否为水
+        if (this.waterStems.includes(stem)) {
+            waterInfluence += 0.8; // 本柱天干水影响最大
+            waterSources.push(`本柱天干${stem}`);
+        }
+        
+        // 2. 检查相邻地支是否为水
+        if (position > 0 && this.waterBranches.includes(branches[position - 1])) {
+            waterInfluence += 0.6;
+            waterSources.push(`左邻地支${branches[position - 1]}`);
+        }
+        if (position < branches.length - 1 && this.waterBranches.includes(branches[position + 1])) {
+            waterInfluence += 0.6;
+            waterSources.push(`右邻地支${branches[position + 1]}`);
+        }
+        
+        // 3. 检查其他天干水的影响
+        stems.forEach((s, i) => {
+            if (i !== position && this.waterStems.includes(s)) {
+                waterInfluence += 0.4;
+                const positionName = ['年', '月', '日', '时'][i];
+                waterSources.push(`${positionName}干${s}`);
+            }
+        });
+        
+        // 4. 检查其他地支水的影响
+        branches.forEach((b, i) => {
+            if (i !== position && Math.abs(i - position) > 1 && this.waterBranches.includes(b)) {
+                waterInfluence += 0.3;
+                const positionName = ['年', '月', '日', '时'][i];
+                waterSources.push(`${positionName}支${b}`);
+            }
+        });
+        
+        // 5. 判断是否发生变性
+        if (waterInfluence >= 0.5) { // 水影响达到阈值
+            result.hasTransformation = true;
+            result.waterSources = waterSources;
+            
+            // 计算土力减弱和水力增强的程度
+            if (waterInfluence >= 1.5) {
+                result.reductionRate = 0.7; // 土力减弱70%
+                result.waterIncrease = 0.5; // 增加50%水力
+                result.newElement = 'water';
+                result.transformationType = 'strong';
+                result.reason = `${branch}土受强水影响，土性大幅减弱，偏向水性`;
+            } else if (waterInfluence >= 1.0) {
+                result.reductionRate = 0.5; // 土力减弱50%
+                result.waterIncrease = 0.3; // 增加30%水力
+                result.newElement = 'water';
+                result.transformationType = 'medium';
+                result.reason = `${branch}土受中等水影响，土性减弱，略偏水性`;
+            } else {
+                result.reductionRate = 0.3; // 土力减弱30%
+                result.waterIncrease = 0.2; // 增加20%水力
+                result.newElement = null;
+                result.transformationType = 'weakened';
+                result.reason = `${branch}土受轻微水影响，土性略有减弱`;
+            }
+        }
+        
+        return result;
+    }
+    
+    /**
+     * 增强版五行力量计算
+     * @param {Array} stems - 天干数组
+     * @param {Array} branches - 地支数组
+     * @param {Object} branchElements - 地支藏干映射
+     * @returns {Object} 调整后的五行力量分布
+     */
+    calculateEnhancedElements(stems, branches, branchElements) {
+        const elements = { wood: 0, fire: 0, earth: 0, metal: 0, water: 0 };
+        
+        // 基础映射
+        const stemElementMap = {
+            '甲': 'wood', '乙': 'wood', '丙': 'fire', '丁': 'fire', '戊': 'earth',
+            '己': 'earth', '庚': 'metal', '辛': 'metal', '壬': 'water', '癸': 'water'
+        };
+        
+        const branchElementMap = {
+            '子': 'water', '丑': 'earth', '寅': 'wood', '卯': 'wood', '辰': 'earth',
+            '巳': 'fire', '午': 'fire', '未': 'earth', '申': 'metal', '酉': 'metal',
+            '戌': 'earth', '亥': 'water'
+        };
+        
+        // 1. 分析三合局影响
+        const tripleAnalysis = this.analyzeTripleCombinations(branches);
+        
+        // 2. 分析土性变化
+        const earthTransformation = this.analyzeEarthTransformation(stems, branches);
+        
+        // 3. 计算天干五行（不受土性变化影响）
+        stems.forEach(stem => {
+            const element = stemElementMap[stem];
+            if (element) elements[element] += 1;
+        });
+        
+        // 4. 计算地支主气（考虑土性变化）
+        branches.forEach((branch, index) => {
+            let element = branchElementMap[branch];
+            
+            if (element === 'earth') {
+                // 检查是否有土性变化
+                const transformation = earthTransformation.transformations.find(t => t.position === index);
+                if (transformation) {
+                    // 土力减弱，水力增强
+                    elements[element] += (1 - transformation.reductionRate);
+                    elements['water'] += transformation.waterIncrease;
+                } else {
+                    elements[element] += 1;
+                }
+            } else {
+                elements[element] += 1;
+            }
+        });
+        
+        // 5. 计算地支藏干（考虑土性变化）
+        branches.forEach((branch, index) => {
+            const branchInfo = branchElements[branch];
+            if (branchInfo && branchInfo.hidden) {
+                branchInfo.hidden.forEach(hiddenStem => {
+                    const element = stemElementMap[hiddenStem];
+                    if (element) {
+                        if (element === 'earth') {
+                            const transformation = earthTransformation.transformations.find(t => t.position === index);
+                            if (transformation) {
+                                // 藏干土力也受影响
+                                elements[element] += 0.5 * (1 - transformation.reductionRate * 0.5);
+                                elements['water'] += 0.5 * transformation.waterIncrease * 0.5;
+                            } else {
+                                elements[element] += 0.5;
+                            }
+                        } else {
+                            elements[element] += 0.5;
+                        }
+                    }
+                });
+            }
+        });
+        
+        // 6. 应用三合局影响
+        if (tripleAnalysis.hasTriple) {
+            const tripleInfo = tripleAnalysis.tripleInfo;
+            if (tripleInfo.type === '巳酉丑') {
+                // 巳酉丑合金局的影响
+                const strengthBonus = tripleInfo.isComplete ? 1.0 : 0.6;
+                elements['metal'] += strengthBonus; // 增强金力
+                elements['water'] += strengthBonus * 0.5; // 金生水
+                elements['fire'] = Math.max(0, elements['fire'] - 0.3); // 火被金克
+                
+                // 如果丑土参与，额外减弱土力
+                if (tripleAnalysis.earthImpact.affected) {
+                    elements['earth'] = Math.max(0, elements['earth'] - tripleAnalysis.earthImpact.reduction);
+                }
+            }
+        }
+        
+        // 7. 应用月令占比修复逻辑
+        const monthBranch = branches[1]; // 月支
+        if (monthBranch) {
+            const monthElement = branchElementMap[monthBranch];
+            if (monthElement && elements[monthElement] > 0) {
+                // 计算总分
+                const total = Object.values(elements).reduce((sum, val) => sum + val, 0);
+                
+                // 计算当前月令占比
+                const currentRatio = elements[monthElement] / total;
+                
+                // 如果月令占比正好是25%，说明可能需要修复
+                if (Math.abs(currentRatio - 0.25) < 0.001) {
+                    // 应用修复：月令得分 = 基础分 + 月令加成
+                    const baseScore = elements[monthElement];
+                    const monthBonus = 1.25; // 月令加成25%
+                    elements[monthElement] = baseScore + monthBonus;
+                    
+                    console.log(`月令占比修复应用: ${monthBranch}(${monthElement}) 从 ${baseScore} 调整为 ${elements[monthElement]}`);
+                }
+            }
+        }
+        
+        return {
+            elements: elements,
+            tripleAnalysis: tripleAnalysis,
+            earthTransformation: earthTransformation,
+            adjustments: {
+                tripleImpact: tripleAnalysis.hasTriple,
+                earthTransformation: earthTransformation.hasTransformation,
+                totalEarthReduction: earthTransformation.totalEarthReduction + (tripleAnalysis.earthImpact.affected ? tripleAnalysis.earthImpact.reduction : 0),
+                totalWaterIncrease: earthTransformation.totalWaterIncrease
+            }
+        };
+    }
+    
+    /**
+     * 从格判断（考虑土性变化）
+     * @param {number} supportRatio - 生扶力量比例
+     * @param {Object} analysisResult - 分析结果
+     * @returns {Object} 从格判断结果
+     */
+    analyzeCongGe(supportRatio, analysisResult) {
+        const result = {
+            isCongGe: false,
+            type: '',
+            reason: '',
+            confidence: 0
+        };
+        
+        // 从弱格判断（生扶力量极少）
+        if (supportRatio <= 0.2) {
+            result.isCongGe = true;
+            result.type = '从弱';
+            result.confidence = (0.2 - supportRatio) / 0.2; // 越小置信度越高
+            result.reason = `生扶力量仅${(supportRatio * 100).toFixed(1)}%，日主极弱，顺从克泄耗的力量`;
+            
+            // 如果有土性变化，增加置信度
+            if (analysisResult.earthTransformation && analysisResult.earthTransformation.hasTransformation) {
+                result.confidence = Math.min(1, result.confidence + 0.2);
+                result.reason += '，土性变化进一步减弱日主力量';
+            }
+        }
+        // 从强格判断（生扶力量极多）
+        else if (supportRatio >= 0.8) {
+            result.isCongGe = true;
+            result.type = '从强';
+            result.confidence = (supportRatio - 0.8) / 0.2;
+            result.reason = `生扶力量达${(supportRatio * 100).toFixed(1)}%，日主极强，顺从生扶的力量`;
+        }
+        
+        return result;
+    }
+    
+    /**
+     * 获取土性变化的详细说明
+     * @param {Array} transformations - 土性变化数组
+     * @returns {string} 变化说明
+     */
+    getTransformationDescription(transformations) {
+        if (transformations.length === 0) {
+            return '无土性变化';
+        }
+        
+        const descriptions = transformations.map(t => {
+            switch (t.transformationType) {
+                case 'strong':
+                    return `${t.branch}土受强水影响，土性大幅减弱，偏向水性（土力-${(t.reductionRate * 100).toFixed(0)}%，水力+${(t.waterIncrease * 100).toFixed(0)}%）`;
+                case 'medium':
+                    return `${t.branch}土受中等水影响，土性减弱，略偏水性（土力-${(t.reductionRate * 100).toFixed(0)}%，水力+${(t.waterIncrease * 100).toFixed(0)}%）`;
+                case 'weakened':
+                    return `${t.branch}土受轻微水影响，土性略有减弱（土力-${(t.reductionRate * 100).toFixed(0)}%，水力+${(t.waterIncrease * 100).toFixed(0)}%）`;
+                default:
+                    return `${t.branch}发生未知变化`;
+            }
+        });
+        
+        return descriptions.join('；');
+    }
+}
+
+// 导出模块
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = EarthTransformationCalculator;
+} else if (typeof window !== 'undefined') {
+    window.EarthTransformationCalculator = EarthTransformationCalculator;
+}
+    </script>
     
     
     <style>
@@ -2731,6 +3128,29 @@
                         <strong style="color: #ef6c00;">分析说明</strong>
                     </div>
                     <p style="margin: 0; color: #bf360c; font-size: 0.9rem; line-height: 1.5;">左侧显示您的原命局身强身弱状态，右侧显示加入当前大运和流年后的身强身弱变化。通过对比可以了解当前运势对您命局力量的影响程度。</p>
+                    
+                    <!-- 简化的12种身强身弱状态说明 -->
+                    <div style="margin-top: 15px; padding: 12px; background-color: #f8f9fa; border-radius: 6px; border: 1px solid #dee2e6;">
+                        <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                            <i class="fas fa-graduation-cap" style="color: #6c757d; margin-right: 8px;"></i>
+                            <strong style="color: #495057; font-size: 0.9rem;">身强身弱状态说明</strong>
+                        </div>
+                        <div style="font-size: 0.85rem; color: #6c757d; line-height: 1.4;">
+                            <span style="color: #dc3545;">极弱(≤8%)</span> → 
+                            <span style="color: #fd7e14;">很弱(8-15%)</span> → 
+                            <span style="color: #ffc107;">较弱(15-25%)</span> → 
+                            <span style="color: #20c997;">稍弱(25-35%)</span> → 
+                            <span style="color: #17a2b8;">微弱(35-42%)</span> → 
+                            <span style="color: #6f42c1;">中和偏弱(42-48%)</span> → 
+                            <span style="color: #28a745; font-weight: bold;">真正中和(48-52%)</span> → 
+                            <span style="color: #007bff;">中和偏强(52-58%)</span> → 
+                            <span style="color: #6610f2;">微强(58-65%)</span> → 
+                            <span style="color: #e83e8c;">稍强(65-75%)</span> → 
+                            <span style="color: #fd7e14;">较强(75-85%)</span> → 
+                            <span style="color: #dc3545;">极强(>85%)</span>
+                            <br><small style="color: #868e96; margin-top: 5px; display: block;">括号内为生扶日主的力量比例，中和状态最佳，过强过弱都需要调节</small>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -4034,17 +4454,41 @@ contentElement.classList.add('show');
                     if (passedBranches && passedBranches.length > 0) allBranches = passedBranches;
                 }
                 
-                // 定义地支五行映射
+                // 定义精细化地支藏干映射
                 const BRANCH_ELEMENTS = {
-                    '子': 'water', '丑': 'earth', '寅': 'wood', '卯': 'wood',
-                    '辰': 'earth', '巳': 'fire', '午': 'fire', '未': 'earth',
-                    '申': 'metal', '酉': 'metal', '戌': 'earth', '亥': 'water'
+                    '子': {main: 'water', hidden: ['癸']},
+                    '丑': {main: 'earth', hidden: ['己', '癸', '辛']},
+                    '寅': {main: 'wood', hidden: ['甲', '丙', '戊']},
+                    '卯': {main: 'wood', hidden: ['乙']},
+                    '辰': {main: 'earth', hidden: ['戊', '乙', '癸']},
+                    '巳': {main: 'fire', hidden: ['丙', '庚', '戊']},
+                    '午': {main: 'fire', hidden: ['丁', '己']},
+                    '未': {main: 'earth', hidden: ['己', '丁', '乙']},
+                    '申': {main: 'metal', hidden: ['庚', '壬', '戊']},
+                    '酉': {main: 'metal', hidden: ['辛']},
+                    '戌': {main: 'earth', hidden: ['戊', '辛', '丁']},
+                    '亥': {main: 'water', hidden: ['壬', '甲']}
                 };
-             
-             // 定义五行中文名称映射
-             const elementNames = {
-                 wood: '木', fire: '火', earth: '土', metal: '金', water: '水'
-             };
+                
+                // 精细化计算藏干权重
+                const refinedElements = { ...elements };
+                allBranches.forEach((branch, branchIndex) => {
+                    const branchInfo = BRANCH_ELEMENTS[branch];
+                    if (branchInfo && branchInfo.hidden) {
+                        branchInfo.hidden.forEach((hiddenStem, stemIndex) => {
+                            const element = stemElementMap[hiddenStem];
+                            if (element) {
+                                // 藏干权重递减：主气0.6，次气0.4，余气0.2
+                                const baseWeight = stemIndex === 0 ? 0.6 : (stemIndex === 1 ? 0.4 : 0.2);
+                                // 日支权重稍高
+                                const positionWeight = branchIndex === 2 ? 1.2 : 1.0;
+                                const finalWeight = baseWeight * positionWeight;
+                                refinedElements[element] += finalWeight;
+                                console.log(`精细化藏干：${branch}藏${hiddenStem}(${element}) +${finalWeight.toFixed(2)}`);
+                            }
+                        });
+                    }
+                });
                 
                 // 使用增强版五行计算
                 enhancedResult = earthCalculator.calculateEnhancedElements(allStems, allBranches, BRANCH_ELEMENTS);
@@ -4077,6 +4521,19 @@ contentElement.classList.add('show');
             
             console.log(`初始计算 - 生扶力量:${supportStrength}, 克泄力量:${weakenStrength}`);
             
+            // 将月令得分转换为力量点数并加入计算
+            if (monthScore > 0) {
+                // 正分加入生扶力量
+                supportStrength += monthScore / 10; // 月令得分除以10转换为力量点数
+                console.log(`月令得分${monthScore}分转换为生扶力量: +${monthScore / 10}`);
+            } else if (monthScore < 0) {
+                // 负分加入克泄力量
+                weakenStrength += Math.abs(monthScore) / 10;
+                console.log(`月令得分${monthScore}分转换为克泄力量: +${Math.abs(monthScore) / 10}`);
+            }
+            
+            console.log(`加入月令得分后 - 生扶力量:${supportStrength}, 克泄力量:${weakenStrength}`);
+            
             // 统一处理所有合化的加减分
             let combinationSupportStrength = 0; // 合化增强的力量
             let combinationWeakenStrength = 0;  // 合化削弱的力量
@@ -4088,11 +4545,17 @@ contentElement.classList.add('show');
                     // 专业命理评分规则 - 按照传统命理重要性排序
                     const SCORE_RULES = {
                         'diZhiSanHui': 8,  // 三会局8分（能量最强）
-                        'diZhiSanHe': 6,   // 三合局6分
+                        'diZhiSanHe': 6,   // 三合局6分（全三合）
                         'diZhiLiuHe': 3,   // 六合局3分
                         'tianGanWuHe': 2   // 天干合2分（需通根验证）
                     };
                     let multiplier = SCORE_RULES[type];
+                    
+                    // 半三合能量减弱：只有2个地支的三合局能量减半
+                    if (type === 'diZhiSanHe' && comb.count === 2) {
+                        multiplier = 3; // 半三合3分，比全三合6分减半
+                        console.log(`半三合${comb.type}能量减弱，分数调整为${multiplier}分`);
+                    }
 
                     // 天干合化专业规则检查
                     if(type === 'tianGanWuHe') {
@@ -4188,25 +4651,48 @@ contentElement.classList.add('show');
             const tripleAnalysis = enhancedResult ? enhancedResult.tripleAnalysis : null;
             const isFollowing = checkFollowingPattern(dayElement, monthBranch, strengthRatio, supportStrength, weakenStrength, monthScore, tripleAnalysis);
             
-            if (isFollowing.isFollowing) {
-                type = isFollowing.type;
-                description = isFollowing.description;
-            } else if (strengthRatio >= 0.65) { // 提高身强判断阈值，更严格
-                type = '身强';
-                description = '日主力量强旺，能够承担财官，适合主动出击，喜用财官。';
-            } else if (strengthRatio >= 0.45 && strengthRatio < 0.65) { // 调整均衡范围
-                type = '均衡';
-                description = '日主力量适中，五行较为平衡，运势平稳，喜用印比。';
-            } else {
-                type = '身弱';
-                description = '日主力量偏弱，需要生扶，宜守不宜攻，喜用印比。';
+            // 使用EarthTransformationCalculator的analyzeCongGe方法进行更精确的从格判断
+            let finalIsFollowing = isFollowing;
+            const earthCalculator = new EarthTransformationCalculator();
+            console.log(`earthCalculator存在:`, !!earthCalculator);
+            console.log(`enhancedResult存在:`, !!enhancedResult);
+            console.log(`enhancedResult内容:`, enhancedResult);
+            
+            if (earthCalculator && enhancedResult) {
+                const totalStrength = supportStrength + weakenStrength;
+                const supportRatio = totalStrength > 0 ? supportStrength / totalStrength : 0;
+                console.log(`从格判断调试 - 生扶力量:${supportStrength}, 克泄力量:${weakenStrength}, 总力量:${totalStrength}, 支持比例:${(supportRatio * 100).toFixed(2)}%`);
+                
+                const congGeResult = earthCalculator.analyzeCongGe(supportRatio, enhancedResult);
+                console.log(`analyzeCongGe结果:`, congGeResult);
+                
+                // 如果analyzeCongGe判断为从格且置信度较高，优先使用其结果
+                if (congGeResult.isCongGe && congGeResult.confidence > 0.1) {
+                    finalIsFollowing = {
+                        isFollowing: true,
+                        type: congGeResult.type,
+                        description: `EarthTransformationCalculator判断：${congGeResult.reason}，置信度：${(congGeResult.confidence * 100).toFixed(1)}%`
+                    };
+                    console.log(`原命局从格判断优化：使用EarthTransformationCalculator结果 - ${congGeResult.type}，置信度：${(congGeResult.confidence * 100).toFixed(1)}%`);
+                } else {
+                    console.log(`analyzeCongGe未生效 - isCongGe:${congGeResult.isCongGe}, confidence:${(congGeResult.confidence * 100).toFixed(1)}%`);
+                }
             }
             
-            // 特殊情况：如果月令得分为负且生扶力量明显不足，但不是从格，才强制判断为身弱
-            if (!isFollowing.isFollowing && monthScore < 0 && supportStrength < weakenStrength * 0.8) {
+            // 使用12级身强身弱分类系统
+            console.log(`最终从格判断状态:`, finalIsFollowing);
+            const strengthPercentage = strengthRatio * 100; // 转换为百分比
+            console.log(`传入calculateStrengthLevel的参数 - strengthRatio: ${strengthRatio}, strengthPercentage: ${strengthPercentage}`);
+            const strengthLevel = calculateStrengthLevel(strengthPercentage, supportStrength, weakenStrength, monthScore, finalIsFollowing, dayElement, monthBranch);
+            type = strengthLevel.type;
+            description = strengthLevel.description;
+            console.log(`最终身强身弱判断结果: ${type}，基于strengthPercentage: ${strengthPercentage}%`);
+            
+            // 特殊情况：只有在极端情况下才强制判断为身弱（条件更严格）
+            if (!finalIsFollowing.isFollowing && monthScore < -20 && supportStrength < weakenStrength * 0.5 && strengthPercentage > 15) {
                 type = '身弱';
-                description = '日主在月令失势，生扶力量明显不足，判断为身弱，喜用印比。';
-                console.log(`特殊修正：月令得分${monthScore}，生扶${supportStrength}<克泄${weakenStrength}*0.8，强制判断为身弱`);
+                description = '日主在月令严重失势，生扶力量极度不足，判断为身弱，喜用印比。';
+                console.log(`特殊修正：月令得分${monthScore}，生扶${supportStrength}<克泄${weakenStrength}*0.5，强制判断为身弱`);
             }
             
             return {
@@ -4221,6 +4707,142 @@ contentElement.classList.add('show');
             };
         }
         
+        // 12级身强身弱分类函数
+        function calculateStrengthLevel(strengthRatio, supportStrength, weakenStrength, monthScore, isFollowing, dayElement, monthBranch, isCurrent = false) {
+            const prefix = isCurrent ? '加入当前大运和流年后，' : '';
+            
+            // 如果是从格，直接返回从格类型
+            if (isFollowing.isFollowing) {
+                return {
+                    level: isFollowing.type === '从强' ? 12 : 1,
+                    type: isFollowing.type,
+                    description: prefix + isFollowing.description
+                };
+            }
+            
+            // 计算综合强度指标
+            const totalStrength = supportStrength + weakenStrength;
+            // 注意：第一个参数现在已经是百分比值，不需要再乘以100
+            const strengthPercentage = strengthRatio; // strengthRatio现在实际上是strengthPercentage
+            
+            // 考虑绝对力量值
+            const hasStrongSupport = supportStrength >= 15;
+            const hasWeakSupport = supportStrength <= 5;
+            const hasStrongWeaken = weakenStrength >= 15;
+            
+            let level, type, description;
+            
+            // 12级分类判断（基于原始力量比例）
+            if (strengthPercentage <= 8 && hasWeakSupport) {
+                level = 1;
+                type = '极弱（从弱）';
+                description = prefix + '日主无根无气，全局克泄耗，应顺从克泄耗的力量，忌生扶。';
+            } else if (strengthPercentage <= 15) {
+                level = 2;
+                type = '很弱';
+                description = prefix + '仅得微根或一气相助，力量微弱，急需印比生扶。';
+            } else if (strengthPercentage <= 25) {
+                level = 3;
+                type = '较弱';
+                description = prefix + '得一根或一助但被制，力量不足，喜印比忌财官。';
+            } else if (strengthPercentage <= 35) {
+                level = 4;
+                type = '稍弱';
+                description = prefix + '得令但失势，或得势但失令，力量稍显不足，宜生扶。';
+            } else if (strengthPercentage <= 42) {
+                level = 5;
+                type = '微弱';
+                description = prefix + '基本平衡但略偏弱，需要适度生扶，忌过度克泄。';
+            } else if (strengthPercentage <= 48) {
+                level = 6;
+                type = '中和偏弱';
+                description = prefix + '接近平衡但稍弱，运势较为平稳，喜印比助身。';
+            } else if (strengthPercentage >= 52 && strengthPercentage <= 58) {
+                level = 7;
+                type = '真正中和';
+                description = prefix + '五行流通平衡，极为罕见的中和之命，顺其自然最佳。';
+            } else if (strengthPercentage <= 62) {
+                level = 8;
+                type = '中和偏强';
+                description = prefix + '接近平衡但稍强，运势平稳，可适度用财官。';
+            } else if (strengthPercentage <= 68) {
+                level = 9;
+                type = '微强';
+                description = prefix + '基本平衡但略偏强，可承担一定财官，忌过度生扶。';
+            } else if (strengthPercentage <= 75) {
+                level = 10;
+                type = '稍强';
+                description = prefix + '得令或得势明显，力量较强，喜财官食伤泄秀。';
+            } else if (strengthPercentage <= 85) {
+                level = 11;
+                type = '较强';
+                description = prefix + '得令得势，根气足，力量强旺，宜用财官制约。';
+            } else {
+                level = 12;
+                type = '极强（专旺）';
+                description = prefix + '全局同一五行主导，专旺格局，顺其旺势，忌逆其性。';
+            }
+            
+            // 特殊调整：考虑月令失势的情况
+            if (monthScore < -15 && level > 4) {
+                level = Math.max(1, level - 2);
+                type = getTypeByLevel(level);
+                description = prefix + '月令严重失势，' + getDescriptionByLevel(level, prefix);
+            }
+            
+            // 特殊调整：考虑生扶力量绝对值
+            if (hasWeakSupport && level > 3) {
+                level = Math.min(3, level);
+                type = getTypeByLevel(level);
+                description = prefix + '生扶力量绝对不足，' + getDescriptionByLevel(level, prefix);
+            }
+            
+            return {
+                level: level,
+                type: type,
+                description: description,
+                adjustedPercentage: strengthPercentage
+            };
+        }
+        
+        // 根据等级获取类型
+        function getTypeByLevel(level) {
+            const types = {
+                1: '极弱（从弱）',
+                2: '很弱',
+                3: '较弱',
+                4: '稍弱',
+                5: '微弱',
+                6: '中和偏弱',
+                7: '真正中和',
+                8: '中和偏强',
+                9: '微强',
+                10: '稍强',
+                11: '较强',
+                12: '极强（专旺）'
+            };
+            return types[level] || '未知';
+        }
+        
+        // 根据等级获取描述
+        function getDescriptionByLevel(level, prefix = '') {
+            const descriptions = {
+                1: '日主无根无气，全局克泄耗，应顺从克泄耗的力量，忌生扶。',
+                2: '仅得微根或一气相助，力量微弱，急需印比生扶。',
+                3: '得一根或一助但被制，力量不足，喜印比忌财官。',
+                4: '得令但失势，或得势但失令，力量稍显不足，宜生扶。',
+                5: '基本平衡但略偏弱，需要适度生扶，忌过度克泄。',
+                6: '接近平衡但稍弱，运势较为平稳，喜印比助身。',
+                7: '五行流通平衡，极为罕见的中和之命，顺其自然最佳。',
+                8: '接近平衡但稍强，运势平稳，可适度用财官。',
+                9: '基本平衡但略偏强，可承担一定财官，忌过度生扶。',
+                10: '得令或得势明显，力量较强，喜财官食伤泄秀。',
+                11: '得令得势，根气足，力量强旺，宜用财官制约。',
+                12: '全局同一五行主导，专旺格局，顺其旺势，忌逆其性。'
+            };
+            return descriptions[level] || '力量状态未知。';
+        }
+
         // 全局地支藏干映射（供合化判断共用）
         const BRANCH_ELEMENTS = {
             '子': {main: 'water', hidden: ['癸']},
@@ -4467,27 +5089,25 @@ contentElement.classList.add('show');
                     hehuaConflicts.set(stem1, stem2);
                     hehuaConflicts.set(stem2, stem1);
                     
-                    // 本命局天干五合：检查地支通根（对应位置的地支藏干中是否包含两个合化天干）
+                    // 本命局天干五合：使用统一的通根检查逻辑（与checkCurrentCombinations保持一致）
                     const branch1 = allBranches[i];
                     const branch2 = allBranches[i + 1];
-                    const hasRoot1 = BRANCH_ELEMENTS[branch1]?.hidden?.includes(stem1) || false;
-                    const hasRoot2 = BRANCH_ELEMENTS[branch2]?.hidden?.includes(stem2) || false;
-                    const hasRoot = hasRoot1 || hasRoot2;
                     
-                    // 检查地支是否支持合化（月令、季节等支持）
-                    const isSupported = checkHehuaSupport(hehuaElement, allBranches, monthBranch);
+                    // 使用checkHehuaSupport进行统一的通根和季节支持检查
+                    const rootInfo = checkHehuaSupport(hehuaElement, [branch1, branch2], monthBranch);
+                    const hasRoot = rootInfo.canHehua;
+                    const rootDetails = rootInfo.details || rootInfo.reason || '';
                     
                     // 本命局要求更严格：必须有地支通根且季节支持，且无争合妒合
-                    let finalCanHehua = hasRoot && isSupported.canHehua && !hasConflict;
+                    let finalCanHehua = hasRoot && !hasConflict;
                     let finalReason = '';
                     
                     if (hasConflict) {
                         finalReason = conflictType + '，合化失败';
                         console.log(`合化失败：${stem1}${stem2} - ${conflictType}`);
                     } else if (!hasRoot) {
-                        finalReason = `地支无通根：${branch1}不藏${stem1}且${branch2}不藏${stem2}`;
-                    } else if (!isSupported.canHehua) {
-                        finalReason = isSupported.reason;
+                        finalReason = `地支无通根：${rootDetails}`;
+                        console.log(`天干五合无通根：${stem1}${stem2} - ${rootDetails}`);
                     }
                     
                     if (finalCanHehua) {
@@ -4498,13 +5118,14 @@ contentElement.classList.add('show');
                             positions: [i, i + 1],
                             isAdjacent: true,
                             hasRoot: hasRoot,
-                            rootDetails: `${hasRoot1 ? branch1+'藏'+stem1 : ''}${hasRoot1 && hasRoot2 ? '、' : ''}${hasRoot2 ? branch2+'藏'+stem2 : ''}`,
-                            supportType: isSupported.type,
-                            supportDetails: isSupported.details,
+                            rootDetails: rootDetails,
+                            strengthType: rootInfo.type,
+                            supportDetails: rootInfo.details,
                             hasConflict: hasConflict,
-                            conflictType: hasConflict ? conflictType : null
+                            conflictType: hasConflict ? conflictType : null,
+                            type: '本命局合化'
                         });
-                        console.log(`本命局天干五合成功: ${stem1}${stem2} 合化为${hehuaElement}（相邻+通根：${hasRoot1 ? branch1+'藏'+stem1 : ''}${hasRoot1 && hasRoot2 ? '、' : ''}${hasRoot2 ? branch2+'藏'+stem2 : ''}）`);
+                        console.log(`本命局天干五合成功: ${stem1}${stem2} 合化为${hehuaElement}（相邻+通根：${rootDetails}）`);
                     } else {
                         // 只合不化，作为绊合处理
                         combined.tianGanWuHe.push({
@@ -4516,32 +5137,85 @@ contentElement.classList.add('show');
                             onlyBind: true,
                             bindReason: finalReason,
                             hasConflict: hasConflict,
-                            conflictType: hasConflict ? conflictType : null
+                            conflictType: hasConflict ? conflictType : null,
+                            type: '本命局绊合'
                         });
                         console.log(`本命局天干绊合: ${stem1}${stem2} 只合不化（${finalReason}）`);
                     }
                 }
             }
             
-            // 检查相邻地支六合
+            // 检查相邻地支六合（修复版：添加严格的相邻性和透出检查）
+            console.log('检查地支六合，地支数组:', allBranches);
+            
+            // 定义地支的顺序位置（用于检查真正的相邻性）
+            const branchOrder = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
+            
+            // 检查是否为真正相邻的地支（在十二地支顺序中相邻）
+            function isAdjacentBranches(branch1, branch2) {
+                const index1 = branchOrder.indexOf(branch1);
+                const index2 = branchOrder.indexOf(branch2);
+                if (index1 === -1 || index2 === -1) return false;
+                
+                // 检查是否相邻（包括子亥相邻的情况）
+                const diff = Math.abs(index1 - index2);
+                return diff === 1 || diff === 11; // 相邻或者子亥相邻
+            }
+            
             for (let i = 0; i < allBranches.length - 1; i++) {
                 const branch1 = allBranches[i];
                 const branch2 = allBranches[i+1];
                 const pair1 = branch1 + branch2;
                 const pair2 = branch2 + branch1;
+                console.log(`检查地支对: ${branch1}${branch2} (${pair1}) 和 ${branch2}${branch1} (${pair2})`);
                 
                 if (diZhiLiuHe[pair1] || diZhiLiuHe[pair2]) {
                     const hehuaElement = diZhiLiuHe[pair1] || diZhiLiuHe[pair2];
-                    // 检查天干是否透出合化后的五行
+                    
+                    // 严格检查：必须在八字中相邻且在地支顺序中也相邻
+                    const isPositionAdjacent = true; // 在八字中已经是相邻位置
+                    const isBranchAdjacent = isAdjacentBranches(branch1, branch2);
+                    
+                    if (!isBranchAdjacent) {
+                        console.log(`❌ 地支六合失败: ${branch1}${branch2} - 地支不相邻，不能合化`);
+                        continue;
+                    }
+                    
+                    // 检查天干是否透出合化后的五行（六合成功的必要条件）
                     const hasTransparent = checkTransparentElement(hehuaElement, allStems);
+                    
+                    if (!hasTransparent) {
+                        console.log(`❌ 地支六合失败: ${branch1}${branch2} 合${getElementChinese(hehuaElement)} - 天干没有${getElementChinese(hehuaElement)}透出`);
+                        // 记录为绊合而非合化
+                        combined.diZhiLiuHe.push({
+                            zhi1: branch1,
+                            zhi2: branch2,
+                            element: hehuaElement,
+                            positions: [i, i+1],
+                            hasTransparent: false,
+                            onlyBind: true,
+                            bindReason: `天干没有${getElementChinese(hehuaElement)}透出`
+                        });
+                        continue;
+                    }
+                    
+                    // 六合成功
                     combined.diZhiLiuHe.push({
                         zhi1: branch1,
                         zhi2: branch2,
                         element: hehuaElement,
                         positions: [i, i+1],
-                        hasTransparent: hasTransparent
+                        hasTransparent: hasTransparent,
+                        isAdjacent: true
                     });
-                    console.log(`发现相邻地支六合: ${branch1}${branch2} 合化为${hehuaElement}${hasTransparent ? '（天干透出）' : ''}`);
+                    
+                    // 如果月支（位置1）参与六合，更新月令元素
+                    if (i === 1 || i+1 === 1) {
+                        combined.monthElement = hehuaElement;
+                        console.log(`月支参与六合: ${branch1}${branch2} 合化为${getElementChinese(hehuaElement)}，月令元素更新为${hehuaElement}`);
+                    }
+                    
+                    console.log(`✅ 地支六合成功: ${branch1}${branch2} 合化为${getElementChinese(hehuaElement)}（相邻+天干透出）`);
                 }
             }
             
@@ -4556,36 +5230,154 @@ contentElement.classList.add('show');
                 'water': '水'
             };
             
-            // 检查连续地支三合（只检查全三合，连续三个位置的地支set匹配）
-            if (allBranches && allBranches.length >= 3) {
-                console.log('检查连续三合局，地支:', allBranches);
+            // 检查地支三合（修复版：与checkCurrentCombinations保持一致的严格验证）
+            if (allBranches && allBranches.length >= 2) {
+                console.log('检查三合局（修复版），地支:', allBranches);
                 
-                let bestMatch = null;
-                
-                let sanheStartIndex = -1;
-                for (let i = 0; i <= allBranches.length - 3; i++) {
-                    const trio = allBranches.slice(i, i+3).sort().join('');
-                    for (const sanhe of diZhiSanHe) {
-                        const sanheSorted = sanhe.branches.sort().join('');
-                        if (trio === sanheSorted) {
+                // 使用与checkCurrentCombinations相同的验证逻辑
+                diZhiSanHe.forEach(sanhe => {
+                    const matches = [];
+                    const requiredBranches = sanhe.branches;
+                    
+                    // 严格检查：首先验证所有必需的地支是否都存在
+                    const existingBranches = [];
+                    requiredBranches.forEach(branch => {
+                        const indices = allBranches.map((b, i) => b === branch ? i : -1).filter(i => i !== -1);
+                        if (indices.length > 0) {
+                            matches.push({branch, indices});
+                            existingBranches.push(branch);
+                        }
+                    });
+                    
+                    // 验证半三合的有效性
+                    const isValidPartialCombination = (existing) => {
+                        if (existing.length < 2) return false;
+                        if (existing.length >= 3) return true; // 全三合
+                        
+                        // 对于半三合，必须确保存在的地支确实属于同一个三合局
+                        const validPartialCombos = {
+                            '申子辰': [['申', '子'], ['子', '辰'], ['申', '辰']],
+                            '亥卯未': [['亥', '卯'], ['卯', '未']], // 移除亥未组合
+                            '寅午戌': [['寅', '午'], ['午', '戌'], ['寅', '戌']],
+                            '巳酉丑': [['巳', '酉'], ['酉', '丑'], ['巳', '丑']]
+                        };
+                        
+                        const comboKey = requiredBranches.join('');
+                        const validCombos = validPartialCombos[comboKey] || [];
+                        
+                        const currentCombo = existing.sort();
+                        return validCombos.some(validCombo => {
+                            const sortedValid = validCombo.sort();
+                            return currentCombo.length === sortedValid.length && 
+                                   currentCombo.every((branch, index) => branch === sortedValid[index]);
+                        });
+                    };
+                    
+                    console.log(`检查三合局 ${requiredBranches.join('')}:`, {
+                        required: requiredBranches,
+                        found: matches.map(m => m.branch),
+                        allBranches: allBranches,
+                        foundCount: matches.length
+                    });
+                    
+                    // 严格要求：使用新的验证逻辑检查三合局的有效性
+                    const hasValidBranchCombination = matches.length === 3 || 
+                        (matches.length === 2 && isValidPartialCombination(existingBranches));
+                    
+                    if (hasValidBranchCombination && matches.length >= 2) {
+                        // 严格的相邻性检查：确保地支在八字中真正相邻
+                        let isValidAdjacency = false;
+                        let sanheStartIndex = -1;
+                        
+                        if (matches.length === 3) {
+                            // 全三合：必须有连续的三个位置，且三个地支都存在
+                            const allPositions = [];
+                            matches.forEach(match => {
+                                allPositions.push(...match.indices);
+                            });
+                            allPositions.sort((a, b) => a - b);
+                            
+                            // 检查是否有连续的三个位置
+                            for (let i = 0; i <= allPositions.length - 3; i++) {
+                                if (allPositions[i+1] === allPositions[i] + 1 && 
+                                    allPositions[i+2] === allPositions[i] + 2) {
+                                    // 进一步验证：确保这三个位置对应的地支确实是三合局的三个成员
+                                    const branchesAtPositions = [
+                                        allBranches[allPositions[i]],
+                                        allBranches[allPositions[i+1]], 
+                                        allBranches[allPositions[i+2]]
+                                    ];
+                                    const hasAllRequired = requiredBranches.every(branch => 
+                                        branchesAtPositions.includes(branch)
+                                    );
+                                    if (hasAllRequired) {
+                                        isValidAdjacency = true;
+                                        sanheStartIndex = allPositions[i];
+                                        break;
+                                    }
+                                }
+                            }
+                            
+                            console.log(`全三合检查 ${requiredBranches.join('')}: 位置${allPositions}, 连续性=${isValidAdjacency}`);
+                        } else if (matches.length === 2) {
+                            // 半三合：必须两个地支相邻，且确实是三合局的成员
+                            const positions = [];
+                            matches.forEach(match => {
+                                positions.push(...match.indices);
+                            });
+                            
+                            // 检查任意两个位置是否相邻
+                            for (let i = 0; i < positions.length; i++) {
+                                for (let j = i + 1; j < positions.length; j++) {
+                                    if (Math.abs(positions[i] - positions[j]) === 1) {
+                                        // 进一步验证：确保这两个位置的地支确实是三合局的成员
+                                        const branch1 = allBranches[positions[i]];
+                                        const branch2 = allBranches[positions[j]];
+                                        if (requiredBranches.includes(branch1) && requiredBranches.includes(branch2)) {
+                                            isValidAdjacency = true;
+                                            sanheStartIndex = Math.min(positions[i], positions[j]);
+                                            break;
+                                        }
+                                    }
+                                }
+                                if (isValidAdjacency) break;
+                            }
+                            
+                            console.log(`半三合检查 ${requiredBranches.join('')}: 位置${positions}, 相邻性=${isValidAdjacency}`);
+                        }
+                        
+                        // 只有通过严格验证的三合局才被认定为有效
+                        if (isValidAdjacency) {
                             // 检查天干是否透出合化后的五行
                             const hasTransparent = checkTransparentElement(sanhe.element, allStems);
-                            bestMatch = {
+                            const bestMatch = {
                                 type: sanhe.branches.join(''),
                                 element: sanhe.element,
-                                count: 3,
-                                branches: allBranches.slice(i, i+3).join(''),
-                                isFullSanhe: true,
+                                count: matches.length,
+                                branches: matches.map(m => m.branch).join(''),
+                                isFullSanhe: matches.length === 3,
                                 hasTransparent: hasTransparent,
-                                startIndex: i
+                                startIndex: sanheStartIndex,
+                                isValid: true,
+                                positions: matches.flatMap(m => m.indices)
                             };
-                            sanheStartIndex = i;
                             combined.diZhiSanHe.push(bestMatch);
-                            console.log(`发现连续全三合局: ${bestMatch.branches} 合化为${sanhe.element}${hasTransparent ? '（天干透出）' : ''}`);
-                            break;
+                            console.log(`✅ 发现有效三合局: ${bestMatch.branches} ${matches.length === 3 ? '全' : '半'}三合${sanhe.element}局${hasTransparent ? '（天干透出）' : ''}`);
+                        } else {
+                            console.log(`❌ 无效三合局: ${requiredBranches.join('')} - 地支不相邻或不完整，不能合化`);
                         }
+                    } else {
+                        console.log(`❌ 无效三合局: ${requiredBranches.join('')} - 缺少必要地支 (需要${matches.length}/3个)`);
                     }
-                    if (bestMatch) break; // 只记录一个最佳
+                });
+                
+                // 选择最佳的三合局（如果有多个）
+                let bestMatch = null;
+                let sanheStartIndex = -1;
+                if (combined.diZhiSanHe.length > 0) {
+                    // 优先选择全三合，其次选择半三合
+                    bestMatch = combined.diZhiSanHe.find(match => match.isFullSanhe) || combined.diZhiSanHe[0];
+                    sanheStartIndex = bestMatch.startIndex;
                 }
                 
                 if (bestMatch && sanheStartIndex >= 0) {
@@ -4605,7 +5397,7 @@ contentElement.classList.add('show');
                 }
             }
             
-            // 检查地支三会局
+            // 检查地支三会局（修复版：添加严格的存在性和相邻性验证）
             const diZhiSanHui = [
                 {branches: ['寅', '卯', '辰'], element: 'wood'},  // 东方三会木局
                 {branches: ['巳', '午', '未'], element: 'fire'},  // 南方三会火局
@@ -4615,29 +5407,82 @@ contentElement.classList.add('show');
             
             combined.diZhiSanHui = [];
             if (allBranches && allBranches.length >= 3) {
-                console.log('检查三会局，地支:', allBranches);
+                console.log('检查三会局（修复版），地支:', allBranches);
                 
-                for (let i = 0; i <= allBranches.length - 3; i++) {
-                    const trio = allBranches.slice(i, i+3).sort().join('');
-                    for (const sanhui of diZhiSanHui) {
-                        const sanhuiSorted = sanhui.branches.sort().join('');
-                        if (trio === sanhuiSorted) {
+                diZhiSanHui.forEach(sanhui => {
+                    const matches = [];
+                    const requiredBranches = sanhui.branches;
+                    
+                    // 严格检查：首先验证所有必需的地支是否都存在
+                    requiredBranches.forEach(branch => {
+                        const indices = allBranches.map((b, i) => b === branch ? i : -1).filter(i => i !== -1);
+                        if (indices.length > 0) {
+                            matches.push({branch, indices});
+                        }
+                    });
+                    
+                    console.log(`检查三会局 ${requiredBranches.join('')}:`, {
+                        required: requiredBranches,
+                        found: matches.map(m => m.branch),
+                        allBranches: allBranches,
+                        foundCount: matches.length
+                    });
+                    
+                    // 严格要求：必须有全部3个地支才能构成三会局
+                    if (matches.length === 3) {
+                        // 严格的相邻性检查：确保地支在八字中真正相邻
+                        let isValidAdjacency = false;
+                        
+                        // 全三会：必须有连续的三个位置，且三个地支都存在
+                        const allPositions = [];
+                        matches.forEach(match => {
+                            allPositions.push(...match.indices);
+                        });
+                        allPositions.sort((a, b) => a - b);
+                        
+                        // 检查是否有连续的三个位置
+                        for (let start = 0; start <= allPositions.length - 3; start++) {
+                            const consecutivePositions = [allPositions[start], allPositions[start + 1], allPositions[start + 2]];
+                            if (consecutivePositions[1] === consecutivePositions[0] + 1 && 
+                                consecutivePositions[2] === consecutivePositions[1] + 1) {
+                                
+                                // 验证这三个连续位置确实包含所需的三个地支
+                                const actualBranches = consecutivePositions.map(pos => allBranches[pos]);
+                                const hasAllRequired = requiredBranches.every(branch => actualBranches.includes(branch));
+                                
+                                if (hasAllRequired) {
+                                    isValidAdjacency = true;
+                                    console.log(`✅ 三会局相邻性验证通过: 位置${consecutivePositions}, 地支${actualBranches.join('')}`);
+                                    break;
+                                }
+                            }
+                        }
+                        
+                        console.log(`三会局检查 ${requiredBranches.join('')}: 位置${allPositions}, 相邻性=${isValidAdjacency}`);
+                        
+                        // 只有通过严格验证的三会局才被认定为有效
+                        if (isValidAdjacency) {
                             // 检查天干是否透出合化后的五行
                             const hasTransparent = checkTransparentElement(sanhui.element, allStems);
                             const sanhuiMatch = {
                                 type: sanhui.branches.join(''),
                                 element: sanhui.element,
                                 count: 3,
-                                branches: allBranches.slice(i, i+3).join(''),
+                                branches: matches.map(m => m.branch).join(''),
                                 isFullSanHui: true,
-                                hasTransparent: hasTransparent
+                                hasTransparent: hasTransparent,
+                                isValid: true,
+                                positions: allPositions
                             };
                             combined.diZhiSanHui.push(sanhuiMatch);
-                            console.log(`发现连续全三会局: ${sanhuiMatch.branches} 会化为${sanhui.element}${hasTransparent ? '（天干透出）' : ''}`);
-                            break;
+                            console.log(`✅ 发现有效三会局: ${sanhuiMatch.branches} 会化为${sanhui.element}${hasTransparent ? '（天干透出）' : ''}`);
+                        } else {
+                            console.log(`❌ 无效三会局: ${requiredBranches.join('')} - 地支不相邻，不能会化`);
                         }
+                    } else {
+                        console.log(`❌ 无效三会局: ${requiredBranches.join('')} - 缺少必要地支 (需要${matches.length}/3个)`);
                     }
-                }
+                });
             }
             
             // 移除半三合和特别检查，只全连续三合
@@ -4757,27 +5602,122 @@ contentElement.classList.add('show');
             const weakenElements = getWeakenElements(dayElement);
             
             // 特别处理巳酉丑三合金对己土日主的影响
+            // 检查combined.sanhe或combined.diZhiSanHe中的巳酉丑三合
+            let hasSiYouChouSanhe = false;
+            
+            // 检查combined.sanhe
             if (combined.hasOwnProperty('sanhe') && 
                 combined.sanhe.type === '巳酉丑' && 
                 dayElement === 'earth') {
+                hasSiYouChouSanhe = true;
+            }
+            
+            // 检查combined.diZhiSanHe数组
+            if (combined.hasOwnProperty('diZhiSanHe') && Array.isArray(combined.diZhiSanHe)) {
+                for (const sanhe of combined.diZhiSanHe) {
+                    if ((sanhe.type === '巳酉丑' || sanhe.branches === '巳酉丑') && 
+                        sanhe.element === 'metal' && 
+                        dayElement === 'earth') {
+                        hasSiYouChouSanhe = true;
+                        console.log('在diZhiSanHe中发现巳酉丑三合金局:', sanhe);
+                        break;
+                    }
+                }
+            }
+            
+            if (hasSiYouChouSanhe) {
                 console.log('特别处理：巳酉丑三合金对己土日主的影响，月令得分 -30');
                 return -30; // 三合金对土的克制更强
             }
             
             let score = 0;
             
+            // 基础月令得分
             if (monthElement === dayElement) {
                 score = 40;  // 得令
                 console.log(`月令得分：${score} (得令，月令五行与日主相同)`);
+                
+                // 特殊加分：如果月支参与六合且合化元素与日主相同，额外加分
+                if (combined.hasOwnProperty('monthElement') && combined.monthElement === dayElement) {
+                    score += 20; // 六合增强，额外加20分
+                    console.log(`六合增强：月支参与六合合化${combined.monthElement}，与日主${dayElement}相同，额外加分20，总分：${score}`);
+                }
             } else if (supportElements.includes(monthElement)) {
                 score = 20;  // 得生
                 console.log(`月令得分：${score} (得生，月令五行生扶日主)`);
+                
+                // 特殊加分：如果月支参与六合且合化元素生扶日主，额外加分
+                if (combined.hasOwnProperty('monthElement') && supportElements.includes(combined.monthElement)) {
+                    score += 15; // 六合生扶，额外加15分
+                    console.log(`六合生扶：月支参与六合合化${combined.monthElement}，生扶日主${dayElement}，额外加分15，总分：${score}`);
+                }
             } else if (weakenElements.includes(monthElement)) {
                 score = -20; // 被克
                 console.log(`月令得分：${score} (被克，月令五行克泄日主)`);
             } else {
                 score = 0;   // 不得令
                 console.log(`月令得分：${score} (不得令，月令五行与日主无关)`);
+            }
+            
+            // 特殊处理：子丑合土对土日主的增强
+            if (dayElement === 'earth' && monthBranch === '丑') {
+                // 检查是否存在子丑合土
+                let hasZiChouHeTu = false;
+                if (combined.hasOwnProperty('diZhiLiuHe') && Array.isArray(combined.diZhiLiuHe)) {
+                    for (const liuhe of combined.diZhiLiuHe) {
+                        if (((liuhe.zhi1 === '子' && liuhe.zhi2 === '丑') || 
+                             (liuhe.zhi1 === '丑' && liuhe.zhi2 === '子')) && 
+                            liuhe.element === 'earth') {
+                            hasZiChouHeTu = true;
+                            console.log('发现子丑合土:', liuhe);
+                            break;
+                        }
+                    }
+                }
+                
+                if (hasZiChouHeTu) {
+                    // 子丑合土增强丑土的力量，给予额外加分
+                    const ziChouBonus = 10;
+                    score += ziChouBonus;
+                    console.log(`子丑合土增强：丑月土日主得到子丑合土增强，额外加分${ziChouBonus}，调整后得分：${score}`);
+                }
+            }
+            
+            // 精细化调整：考虑季节深度和节气影响
+            const seasonalAdjustment = calculateSeasonalAdjustment(monthBranch, dayElement);
+            score += seasonalAdjustment;
+            console.log(`季节深度调整：${seasonalAdjustment}，调整后月令得分：${score}`);
+            
+            // 考虑地支藏干的影响
+            const branchInfo = BRANCH_ELEMENTS[monthBranch];
+            if (branchInfo && branchInfo.hidden) {
+                let hiddenAdjustment = 0;
+                branchInfo.hidden.forEach((hiddenStem, index) => {
+                    const stemElementMap = {
+                        '甲': 'wood', '乙': 'wood', '丙': 'fire', '丁': 'fire',
+                        '戊': 'earth', '己': 'earth', '庚': 'metal', '辛': 'metal',
+                        '壬': 'water', '癸': 'water'
+                    };
+                    const hiddenElement = stemElementMap[hiddenStem];
+                    if (hiddenElement === dayElement) {
+                        // 藏干同类加分：主气+8，次气+5，余气+3
+                        const hiddenBonus = index === 0 ? 8 : (index === 1 ? 5 : 3);
+                        hiddenAdjustment += hiddenBonus;
+                        console.log(`藏干同类加分：${monthBranch}藏${hiddenStem}(${hiddenElement}) +${hiddenBonus}`);
+                    } else if (supportElements.includes(hiddenElement)) {
+                        // 藏干生扶加分：主气+4，次气+2，余气+1
+                        const hiddenBonus = index === 0 ? 4 : (index === 1 ? 2 : 1);
+                        hiddenAdjustment += hiddenBonus;
+                        console.log(`藏干生扶加分：${monthBranch}藏${hiddenStem}(${hiddenElement}) +${hiddenBonus}`);
+                    } else if (weakenElements.includes(hiddenElement)) {
+                        // 藏干克泄减分：主气-3，次气-2，余气-1
+                        const hiddenPenalty = index === 0 ? -3 : (index === 1 ? -2 : -1);
+                        hiddenAdjustment += hiddenPenalty;
+                        console.log(`藏干克泄减分：${monthBranch}藏${hiddenStem}(${hiddenElement}) ${hiddenPenalty}`);
+                    }
+                });
+                score += hiddenAdjustment;
+                console.log(`藏干调整总计：${hiddenAdjustment}，最终月令得分：${score}`);
             }
             
             // 考虑特殊情况：戊己土日主在子月、辰月、戌月的特殊表现
@@ -4799,8 +5739,8 @@ contentElement.classList.add('show');
                 const tripleInfo = tripleAnalysis.tripleInfo;
                 if (tripleInfo.type === '巳酉丑' && dayElement === 'earth') {
                     // 己土日主遇巳酉丑三合金局，巳火生扶力量被大幅削弱
-                    if (strengthRatio <= 0.40 && supportStrength <= 10) {
-                        console.log(`三合金局从弱格: 巳酉丑合金削弱巳火生扶，比例${(strengthRatio * 100).toFixed(2)}% <= 40%, 生扶力量${supportStrength} <= 10`);
+                    if (strengthRatio <= 0.15 && supportStrength <= 5) {
+                        console.log(`三合金局从弱格: 巳酉丑合金削弱巳火生扶，比例${(strengthRatio * 100).toFixed(2)}% <= 15%, 生扶力量${supportStrength} <= 5`);
                         return {
                             isFollowing: true,
                             type: '从弱',
@@ -4811,9 +5751,9 @@ contentElement.classList.add('show');
                 // 其他三合局的特殊判断可以在此添加
             }
             
-            // 从弱格判断：力量比例≤18% 且 生扶力量很少 (更严格的标准)
-            if (strengthRatio <= 0.18 && supportStrength <= 8) {
-                console.log(`从弱格判断: 比例${(strengthRatio * 100).toFixed(2)}% <= 18%, 生扶力量${supportStrength} <= 8`);
+            // 从弱格判断：力量比例≤8% 且 生扶力量很少 (严格标准)
+            if (strengthRatio <= 0.08 && supportStrength <= 5) {
+                console.log(`从弱格判断: 比例${(strengthRatio * 100).toFixed(2)}% <= 8%, 生扶力量${supportStrength} <= 5`);
                 return {
                     isFollowing: true,
                     type: '从弱',
@@ -4821,9 +5761,9 @@ contentElement.classList.add('show');
                 };
             }
             
-            // 极弱直判从弱：生扶≤2 或 力量比例≤8% (更严格的标准)
-            if (supportStrength <= 2 || strengthRatio <= 0.08) {
-                console.log(`从弱格判断(极弱): 生扶力量${supportStrength} <= 2 或 比例${(strengthRatio * 100).toFixed(2)}% <= 8%`);
+            // 极弱直判从弱：生扶≤2 或 力量比例≤5% (极严格标准)
+            if (supportStrength <= 2 || strengthRatio <= 0.05) {
+                console.log(`从弱格判断(极弱): 生扶力量${supportStrength} <= 2 或 比例${(strengthRatio * 100).toFixed(2)}% <= 5%`);
                 return {
                     isFollowing: true,
                     type: '从弱',
@@ -4846,9 +5786,9 @@ contentElement.classList.add('show');
             const supportElements = getSupportElements(dayElement);
             const weakenElements = getWeakenElements(dayElement);
             
-            // 传统从弱格判断：比例≤22% 且 月令克泄日主 (更严格的标准)
-            if (strengthRatio <= 0.22 && weakenElements.includes(monthElement)) {
-                console.log(`传统从弱格判断: 比例${(strengthRatio * 100).toFixed(2)}% <= 22%, 月令克泄日主`);
+            // 传统从弱格判断：比例≤8% 且 月令克泄日主 且 生扶力量≤5 (更严格标准)
+            if (strengthRatio <= 0.08 && weakenElements.includes(monthElement) && supportStrength <= 5) {
+                console.log(`传统从弱格判断: 比例${(strengthRatio * 100).toFixed(2)}% <= 8%, 月令克泄日主, 生扶力量${supportStrength} <= 5`);
                 return {
                     isFollowing: true,
                     type: '从弱',
@@ -4856,9 +5796,9 @@ contentElement.classList.add('show');
                 };
             }
             
-            // 兜底从弱格判断：生扶≤6 且 克泄≥15 (更严格的标准)
-            if (supportStrength <= 6 && weakenStrength >= 15) {
-                console.log(`从弱格判断(兜底): 生扶力量${supportStrength} <= 6, 克泄力量${weakenStrength} >= 15`);
+            // 兜底从弱格判断：生扶≤3 且 克泄≥20 (严格标准)
+            if (supportStrength <= 3 && weakenStrength >= 20) {
+                console.log(`从弱格判断(兜底): 生扶力量${supportStrength} <= 3, 克泄力量${weakenStrength} >= 20`);
                 return {
                     isFollowing: true,
                     type: '从弱',
@@ -4866,13 +5806,20 @@ contentElement.classList.add('show');
                 };
             }
             
-            // 从强格：身强而用生扶 (更严格的标准)
-            if (strengthRatio >= 0.90 && supportElements.includes(monthElement) && supportStrength >= 18) {
-                console.log(`从强格判断: 比例${(strengthRatio * 100).toFixed(2)}% >= 90%, 月令生扶日主, 生扶力量${supportStrength} >= 18`);
+            // 添加调试信息：记录所有从弱格判断条件的检查结果
+            console.log(`从弱格判断总结: 力量比例${(strengthRatio * 100).toFixed(2)}%, 生扶力量${supportStrength}, 克泄力量${weakenStrength}, 月令得分${monthScore}`);
+            console.log(`条件1(≤8%且生扶≤5): ${strengthRatio <= 0.08 && supportStrength <= 5}`);
+            console.log(`条件2(生扶≤2或≤5%): ${supportStrength <= 2 || strengthRatio <= 0.05}`);
+            console.log(`条件3(≤8%且月令克泄且生扶≤5): ${strengthRatio <= 0.08 && weakenElements.includes(monthElement) && supportStrength <= 5}`);
+            console.log(`条件4(生扶≤3且克泄≥20): ${supportStrength <= 3 && weakenStrength >= 20}`);
+            
+            // 从强格：身强而用生扶 (严格标准)
+            if (strengthRatio >= 0.95 && supportElements.includes(monthElement) && supportStrength >= 25 && weakenStrength <= 2) {
+                console.log(`从强格判断: 比例${(strengthRatio * 100).toFixed(2)}% >= 95%, 月令生扶日主, 生扶力量${supportStrength} >= 25, 克泄力量${weakenStrength} <= 2`);
                 return {
                     isFollowing: true,
                     type: '从强',
-                    description: '日主偏强，但命局以生扶日主的五行为用神，顺势而为，喜用印比。'
+                    description: '日主极强，克泄力量微弱，命局以生扶日主的五行为用神，顺势而为，喜用印比。'
                 };
             }
             
@@ -4901,6 +5848,76 @@ contentElement.classList.add('show');
                 'water': ['earth', 'wood', 'fire']
             };
             return weakenMap[element] || [];
+        }
+
+        // 计算季节深度调整
+        function calculateSeasonalAdjustment(monthBranch, dayElement) {
+            // 季节深度映射：每个月份在其季节中的强度
+            const seasonalDepth = {
+                // 春季：木旺
+                '寅': { season: 'spring', depth: 0.7, element: 'wood' },  // 初春，木气渐旺
+                '卯': { season: 'spring', depth: 1.0, element: 'wood' },  // 仲春，木气最旺
+                '辰': { season: 'spring', depth: 0.6, element: 'earth' }, // 季春，土气渐强
+                
+                // 夏季：火旺
+                '巳': { season: 'summer', depth: 0.7, element: 'fire' },  // 初夏，火气渐旺
+                '午': { season: 'summer', depth: 1.0, element: 'fire' },  // 仲夏，火气最旺
+                '未': { season: 'summer', depth: 0.6, element: 'earth' }, // 季夏，土气渐强
+                
+                // 秋季：金旺
+                '申': { season: 'autumn', depth: 0.7, element: 'metal' }, // 初秋，金气渐旺
+                '酉': { season: 'autumn', depth: 1.0, element: 'metal' }, // 仲秋，金气最旺
+                '戌': { season: 'autumn', depth: 0.6, element: 'earth' }, // 季秋，土气渐强
+                
+                // 冬季：水旺
+                '亥': { season: 'winter', depth: 0.7, element: 'water' },  // 初冬，水气渐旺
+                '子': { season: 'winter', depth: 1.0, element: 'water' },  // 仲冬，水气最旺
+                '丑': { season: 'winter', depth: 0.6, element: 'earth' }   // 季冬，土气渐强
+            };
+            
+            const monthInfo = seasonalDepth[monthBranch];
+            if (!monthInfo) return 0;
+            
+            let adjustment = 0;
+            
+            // 当令五行的季节深度调整
+            if (monthInfo.element === dayElement) {
+                // 日主与当令五行相同，根据季节深度调整
+                adjustment = Math.round((monthInfo.depth - 0.8) * 15); // 基准0.8，最大±3分
+                console.log(`季节深度调整：${monthBranch}月${monthInfo.element}气深度${monthInfo.depth}，日主同类调整${adjustment}`);
+            } else {
+                // 考虑五行生克关系的季节影响
+                const supportElements = getSupportElements(dayElement);
+                const weakenElements = getWeakenElements(dayElement);
+                
+                if (supportElements.includes(monthInfo.element)) {
+                    // 当令五行生扶日主
+                    adjustment = Math.round(monthInfo.depth * 8); // 最大8分
+                    console.log(`季节深度调整：${monthBranch}月${monthInfo.element}气深度${monthInfo.depth}，生扶日主调整${adjustment}`);
+                } else if (weakenElements.includes(monthInfo.element)) {
+                    // 当令五行克泄日主
+                    adjustment = -Math.round(monthInfo.depth * 6); // 最大-6分
+                    console.log(`季节深度调整：${monthBranch}月${monthInfo.element}气深度${monthInfo.depth}，克泄日主调整${adjustment}`);
+                }
+            }
+            
+            // 特殊调整：四季土月（辰、未、戌、丑）
+            if (['辰', '未', '戌', '丑'].includes(monthBranch)) {
+                if (dayElement === 'earth') {
+                    adjustment += 3; // 土日主在四季土月额外加强
+                    console.log(`四季土月特殊调整：土日主在${monthBranch}月额外+3`);
+                } else {
+                    // 其他日主在四季土月受到土气影响
+                    const earthEffect = getSupportElements(dayElement).includes('earth') ? 2 : 
+                                      getWeakenElements(dayElement).includes('earth') ? -2 : 0;
+                    adjustment += earthEffect;
+                    if (earthEffect !== 0) {
+                        console.log(`四季土月特殊调整：${dayElement}日主受土气影响${earthEffect}`);
+                    }
+                }
+            }
+            
+            return adjustment;
         }
 
         // 根据传统命理规则计算大运序列
@@ -5386,10 +6403,10 @@ contentElement.classList.add('show');
                 const yearBranchElement = branchElementMap[currentYearBranch];
                 
                 if (yearStemElement) {
-                    currentElements[yearStemElement] += 0.8; // 流年天干权重 (降低从1.5到0.8)
+                    currentElements[yearStemElement] += 0.4; // 流年天干权重 (进一步降低到0.4)
                 }
                 if (yearBranchElement) {
-                    currentElements[yearBranchElement] += 1.2; // 流年地支权重 (降低从2.0到1.2)
+                    currentElements[yearBranchElement] += 0.6; // 流年地支权重 (进一步降低到0.6)
                 }
                 
                 // 加入大运天干地支的五行力量
@@ -5397,10 +6414,10 @@ contentElement.classList.add('show');
                 const dayunBranchElement = branchElementMap[currentDayunBranch];
                 
                 if (dayunStemElement) {
-                    currentElements[dayunStemElement] += 0.6; // 大运天干权重 (降低从1.2到0.6)
+                    currentElements[dayunStemElement] += 0.3; // 大运天干权重 (进一步降低到0.3)
                 }
                 if (dayunBranchElement) {
-                    currentElements[dayunBranchElement] += 1.0; // 大运地支权重 (降低从1.8到1.0)
+                    currentElements[dayunBranchElement] += 0.5; // 大运地支权重 (进一步降低到0.5)
                 }
                 
                 console.log('加入大运流年后的五行分布:', currentElements);
@@ -5438,16 +6455,67 @@ contentElement.classList.add('show');
                 allStems.push(currentYearStem, currentDayunStem);
                 allBranches.push(currentYearBranch, currentDayunBranch);
                 
-                // 使用增强版五行计算（包含土性变化和三合局影响）
-                const enhancedResult = earthCalculator.calculateEnhancedElements(allStems, allBranches, BRANCH_ELEMENTS);
+                // 精细化计算大运流年藏干权重
+                const yearBranchInfo = BRANCH_ELEMENTS[currentYearBranch];
+                const dayunBranchInfo = BRANCH_ELEMENTS[currentDayunBranch];
                 
-                // 更新五行分布为增强版计算结果
-                Object.keys(enhancedResult.elements).forEach(element => {
-                    currentElements[element] = enhancedResult.elements[element];
-                });
+                // 流年地支藏干（权重减半）
+                if (yearBranchInfo && yearBranchInfo.hidden) {
+                    yearBranchInfo.hidden.forEach((hiddenStem, stemIndex) => {
+                        const element = stemElementMap[hiddenStem];
+                        if (element) {
+                            // 流年藏干权重：主气0.3，次气0.2，余气0.1
+                            const hiddenWeight = stemIndex === 0 ? 0.3 : (stemIndex === 1 ? 0.2 : 0.1);
+                            currentElements[element] += hiddenWeight;
+                            console.log(`流年藏干：${currentYearBranch}藏${hiddenStem}(${element}) +${hiddenWeight}`);
+                        }
+                    });
+                }
                 
-                console.log('=== 增强版五行计算结果 ===');
+                // 大运地支藏干（权重减半）
+                if (dayunBranchInfo && dayunBranchInfo.hidden) {
+                    dayunBranchInfo.hidden.forEach((hiddenStem, stemIndex) => {
+                        const element = stemElementMap[hiddenStem];
+                        if (element) {
+                            // 大运藏干权重：主气0.25，次气0.15，余气0.1
+                            const hiddenWeight = stemIndex === 0 ? 0.25 : (stemIndex === 1 ? 0.15 : 0.1);
+                            currentElements[element] += hiddenWeight;
+                            console.log(`大运藏干：${currentDayunBranch}藏${hiddenStem}(${element}) +${hiddenWeight}`);
+                        }
+                    });
+                }
+                
+                // 分析土性变化和三合局影响（但不完全替换五行分布）
+                const earthTransformation = earthCalculator.analyzeEarthTransformation(allStems, allBranches);
+                
+                // 只应用土性变化的调整，而不是完全替换五行分布
+                if (earthTransformation && earthTransformation.hasAnyTransformation && earthTransformation.elementAdjustments) {
+                    Object.keys(earthTransformation.elementAdjustments).forEach(element => {
+                        const adjustment = earthTransformation.elementAdjustments[element];
+                        if (adjustment !== 0) {
+                            currentElements[element] = Math.max(0, currentElements[element] + adjustment);
+                            console.log(`土性变化调整：${element} ${adjustment > 0 ? '+' : ''}${adjustment.toFixed(2)}`);
+                        }
+                    });
+                }
+                
+                // 创建增强结果对象以保持兼容性
+                const enhancedResult = {
+                    elements: currentElements,
+                    earthTransformation: earthTransformation || { hasAnyTransformation: false, elementAdjustments: {} },
+                    tripleAnalysis: { hasTriple: false }, // 简化三合局分析
+                    adjustments: {
+                        earthTransformation: earthTransformation && earthTransformation.hasAnyTransformation,
+                        totalEarthReduction: (earthTransformation && earthTransformation.elementAdjustments && earthTransformation.elementAdjustments.earth) || 0,
+                        totalWaterIncrease: (earthTransformation && earthTransformation.elementAdjustments && earthTransformation.elementAdjustments.water) || 0
+                    }
+                };
+                
+                console.log('=== 当前运势增强版五行计算结果 ===');
                 console.log('土性变化分析:', enhancedResult.earthTransformation);
+                console.log('精细化藏干权重已应用');
+                console.log('流年藏干权重：主气0.3，次气0.2，余气0.1');
+                console.log('大运藏干权重：主气0.25，次气0.15，余气0.1');
                 console.log('三合局分析:', enhancedResult.tripleAnalysis);
                 console.log('调整信息:', enhancedResult.adjustments);
                 console.log('最终五行分布:', currentElements);
@@ -5540,7 +6608,20 @@ contentElement.classList.add('show');
                     console.log(`克泄五行 ${element}: ${elementStrength}`);
                 });
                 
-                console.log(`初始计算（当前运势） - 生扶力量:${supportStrength}, 克泄力量:${weakenStrength}`);
+                console.log(`初始计算（当前运势） - 生扶力量:${supportStrength}, 克泄力量:${weakenStrength}`);                
+                
+                // 将月令得分转换为力量点数并加入计算
+                if (monthScore > 0) {
+                    // 正分加入生扶力量
+                    supportStrength += monthScore / 10; // 月令得分除以10转换为力量点数
+                    console.log(`月令得分${monthScore}分转换为生扶力量: +${monthScore / 10}`);
+                } else if (monthScore < 0) {
+                    // 负分加入克泄力量
+                    weakenStrength += Math.abs(monthScore) / 10;
+                    console.log(`月令得分${monthScore}分转换为克泄力量: +${Math.abs(monthScore) / 10}`);
+                }
+                
+                console.log(`加入月令得分后 - 生扶力量:${supportStrength}, 克泄力量:${weakenStrength}`);
                 
                 // 处理合化影响
                 let combinationDeduction = 0;
@@ -5552,11 +6633,17 @@ contentElement.classList.add('show');
                             // 专业命理评分规则
 const SCORE_RULES = {
   'diZhiSanHui': 8,  // 三会局8分（能量最强）
-  'diZhiSanHe': 6,   // 三合局6分
+  'diZhiSanHe': 6,   // 三合局6分（全三合）
   'diZhiLiuHe': 3,   // 六合局3分
   'tianGanWuHe': 2   // 天干合需通根验证
 };
 let multiplier = SCORE_RULES[type];
+
+// 半三合能量减弱：只有2个地支的三合局能量减半
+if (type === 'diZhiSanHe' && comb.count === 2) {
+  multiplier = 3; // 半三合3分，比全三合6分减半
+  console.log(`大运流年半三合${comb.type}能量减弱，分数调整为${multiplier}分`);
+}
 
 // 天干合化：依据checkCurrentCombinations的通根判定
 if (type === 'tianGanWuHe' && typeof comb.hasRoot !== 'undefined' && !comb.hasRoot) {
@@ -5591,7 +6678,7 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
                 
                 // 判断身强身弱
                 const totalStrength = supportStrength + weakenStrength;
-                const strengthRatio = totalStrength > 0 ? supportStrength / totalStrength : 0;
+                let strengthRatio = totalStrength > 0 ? supportStrength / totalStrength : 0;
                 const strengthPercentage = strengthRatio * 100; // 转换为百分比
                 
                 // 打印调试信息
@@ -5602,25 +6689,50 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
                 // 判断是否从格（使用与原始函数相同的逻辑，传入三合局分析信息）
                 const isFollowing = checkFollowingPattern(dayElement, monthBranch, strengthRatio, supportStrength, weakenStrength, monthScore, enhancedResult.tripleAnalysis);
                 
-                if (isFollowing.isFollowing) {
-                    type = isFollowing.type;
-                    description = '加入当前大运和流年后，' + isFollowing.description;
-                } else if (strengthRatio >= 0.65) {
-                    type = '身强';
-                    description = '加入当前大运和流年后，日主力量强旺，能够承担财官，适合主动出击，喜用财官。';
-                } else if (strengthRatio >= 0.45 && strengthRatio < 0.65) {
-                    type = '均衡';
-                    description = '加入当前大运和流年后，日主力量适中，五行较为平衡，运势平稳，喜用印比。';
-                } else {
-                    type = '身弱';
-                    description = '加入当前大运和流年后，日主力量偏弱，需要生扶，宜守不宜攻，喜用印比。';
+                // 使用EarthTransformationCalculator的analyzeCongGe方法进行更精确的从格判断
+                let finalIsFollowing = isFollowing;
+                console.log(`当前运势earthCalculator存在:`, !!earthCalculator);
+                console.log(`当前运势enhancedResult存在:`, !!enhancedResult);
+                console.log(`当前运势enhancedResult内容:`, enhancedResult);
+                
+                if (earthCalculator) {
+                    const supportRatio = totalStrength > 0 ? supportStrength / totalStrength : 0;
+                    console.log(`当前运势从格判断调试 - 生扶力量:${supportStrength}, 克泄力量:${weakenStrength}, 总力量:${totalStrength}, 支持比例:${(supportRatio * 100).toFixed(2)}%`);
+                    
+                    const congGeResult = earthCalculator.analyzeCongGe(supportRatio, enhancedResult);
+                    console.log(`当前运势analyzeCongGe结果:`, congGeResult);
+                    
+                    // 如果analyzeCongGe判断为从格且置信度较高，优先使用其结果
+                    if (congGeResult.isCongGe && congGeResult.confidence > 0.1) {
+                        finalIsFollowing = {
+                            isFollowing: true,
+                            type: congGeResult.type,
+                            description: `EarthTransformationCalculator判断：${congGeResult.reason}，置信度：${(congGeResult.confidence * 100).toFixed(1)}%`
+                        };
+                        console.log(`从格判断优化：使用EarthTransformationCalculator结果 - ${congGeResult.type}，置信度：${(congGeResult.confidence * 100).toFixed(1)}%`);
+                    } else {
+                        console.log(`当前运势analyzeCongGe未生效 - isCongGe:${congGeResult.isCongGe}, confidence:${(congGeResult.confidence * 100).toFixed(1)}%`);
+                    }
                 }
                 
-                // 特殊情况：如果月令得分为负且生扶力量明显不足，且不是从格，强制判断为身弱
-                if (monthScore < 0 && supportStrength < weakenStrength * 0.8 && !isFollowing.isFollowing) {
-                    type = '身弱';
-                    description = '加入当前大运和流年后，日主在月令失势，生扶力量明显不足，判断为身弱，喜用印比。';
-                    console.log(`特殊修正（大运流年）：月令得分${monthScore}，生扶${supportStrength}<克泄${weakenStrength}*0.8，强制判断为身弱`);
+                // 使用12级身强身弱分类系统（当前大运流年）
+                console.log(`当前运势最终从格判断状态:`, finalIsFollowing);
+                console.log(`传入calculateStrengthLevel的参数 - strengthRatio: ${strengthRatio}, strengthPercentage: ${strengthPercentage}`);
+                const currentStrengthLevel = calculateStrengthLevel(strengthPercentage, supportStrength, weakenStrength, monthScore, finalIsFollowing, dayElement, monthBranch, true);
+                type = currentStrengthLevel.type;
+                description = currentStrengthLevel.description;
+                console.log(`当前运势最终身强身弱判断结果: ${type}，基于strengthPercentage: ${strengthPercentage}%`);
+                
+                // 特殊情况：只有在极端情况下才强制判断为身弱（条件更严格）
+                if (monthScore < -20 && supportStrength < weakenStrength * 0.5 && strengthPercentage > 15) {
+                    // 只有在不是从格的情况下才强制判断为身弱
+                    if (!finalIsFollowing || !finalIsFollowing.isFollowing) {
+                        type = '身弱';
+                        description = '加入当前大运和流年后，日主在月令严重失势，生扶力量极度不足，判断为身弱，喜用印比。';
+                        console.log(`特殊修正（大运流年）：月令得分${monthScore}，生扶${supportStrength}<克泄${weakenStrength}*0.5，强制判断为身弱`);
+                    } else {
+                        console.log(`跳过特殊修正：已判断为从格 - ${finalIsFollowing.type}`);
+                    }
                 }
                 
                 // 格局稳定性检查：防止身强身弱变化过大
@@ -5650,21 +6762,32 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
                             // 重新判断身强身弱类型（传入三合局分析信息）
                             const adjustedFollowing = checkFollowingPattern(dayElement, monthBranch, adjustedRatio, supportStrength, weakenStrength, monthScore, enhancedResult.tripleAnalysis);
                             
-                            if (adjustedFollowing.isFollowing) {
-                                type = adjustedFollowing.type;
-                                description = '经格局稳定性调整后，' + adjustedFollowing.description;
-                            } else if (adjustedRatio >= 0.65) {
-                                type = '身强';
-                                description = '经格局稳定性调整后，日主力量强旺，能够承担财官，适合主动出击，喜用财官。';
-                            } else if (adjustedRatio >= 0.45 && adjustedRatio < 0.65) {
-                                type = '均衡';
-                                description = '经格局稳定性调整后，日主力量适中，五行较为平衡，运势平稳，喜用印比。';
-                            } else {
-                                type = '身弱';
-                                description = '经格局稳定性调整后，日主力量偏弱，需要生扶，宜守不宜攻，喜用印比。';
+                            // 使用EarthTransformationCalculator的analyzeCongGe方法进行更精确的从格判断
+                            let finalAdjustedFollowing = adjustedFollowing;
+                            if (earthCalculator && enhancedResult) {
+                                const totalStrength = supportStrength + weakenStrength;
+                                const adjustedSupportRatio = totalStrength > 0 ? supportStrength / totalStrength : 0;
+                                const congGeResult = earthCalculator.analyzeCongGe(adjustedSupportRatio, enhancedResult);
+                                
+                                // 如果analyzeCongGe判断为从格且置信度较高，优先使用其结果
+                                if (congGeResult.isCongGe && congGeResult.confidence > 0.1) {
+                                    finalAdjustedFollowing = {
+                                        isFollowing: true,
+                                        type: congGeResult.type,
+                                        description: `EarthTransformationCalculator判断：${congGeResult.reason}，置信度：${(congGeResult.confidence * 100).toFixed(1)}%`
+                                    };
+                                    console.log(`格局稳定性调整后从格判断优化：使用EarthTransformationCalculator结果 - ${congGeResult.type}，置信度：${(congGeResult.confidence * 100).toFixed(1)}%`);
+                                }
                             }
                             
-                            console.log(`格局稳定性调整：${(currentRatio * 100).toFixed(2)}% -> ${(adjustedRatio * 100).toFixed(2)}%，类型：${type}`);
+                            // 使用12级分类系统重新判断
+                            const adjustedPercentage = adjustedRatio * 100; // 转换为百分比
+                            console.log(`格局稳定性调整后传入calculateStrengthLevel的参数 - adjustedRatio: ${adjustedRatio}, adjustedPercentage: ${adjustedPercentage}`);
+                            const adjustedStrengthLevel = calculateStrengthLevel(adjustedPercentage, supportStrength, weakenStrength, monthScore, finalAdjustedFollowing, dayElement, monthBranch, true);
+                            type = adjustedStrengthLevel.type;
+                            description = '经格局稳定性调整后，' + adjustedStrengthLevel.description.replace('加入当前大运和流年后，', '');
+                            
+                            console.log(`格局稳定性调整：${(currentRatio * 100).toFixed(2)}% -> ${(adjustedRatio * 100).toFixed(2)}%，类型：${type}，基于adjustedPercentage: ${adjustedPercentage}%`);
                             strengthRatio = adjustedRatio;
                         }
                     }
@@ -5821,13 +6944,52 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
                 }
             }
             
-            // 检查地支六合
+            // 检查地支六合（修复版：添加严格的相邻性和透出检查）
+            console.log('当前分析-检查地支六合，地支数组:', allBranches);
+            
+            // 定义地支的顺序位置（用于检查真正的相邻性）
+            const branchOrder = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
+            
+            // 检查是否为真正相邻的地支（在十二地支顺序中相邻）
+            function isAdjacentBranches(branch1, branch2) {
+                const index1 = branchOrder.indexOf(branch1);
+                const index2 = branchOrder.indexOf(branch2);
+                if (index1 === -1 || index2 === -1) return false;
+                
+                // 检查是否相邻（包括子亥相邻的情况）
+                const diff = Math.abs(index1 - index2);
+                return diff === 1 || diff === 11; // 相邻或者子亥相邻
+            }
+            
+            // 检查天干是否透出指定五行的辅助函数
+            function checkTransparentElement(element, stems) {
+                const elementToStems = {
+                    'wood': ['甲', '乙'],
+                    'fire': ['丙', '丁'],
+                    'earth': ['戊', '己'],
+                    'metal': ['庚', '辛'],
+                    'water': ['壬', '癸']
+                };
+                
+                const targetStems = elementToStems[element] || [];
+                return stems.some(stem => targetStems.includes(stem));
+            }
+            
+            // 获取五行中文名称
+            function getElementChinese(element) {
+                const elementNames = {
+                    'wood': '木', 'fire': '火', 'earth': '土', 'metal': '金', 'water': '水'
+                };
+                return elementNames[element] || element;
+            }
+            
             for (let i = 0; i < allBranches.length; i++) {
                 for (let j = i + 1; j < allBranches.length; j++) {
                     const branch1 = allBranches[i];
                     const branch2 = allBranches[j];
                     const pair1 = branch1 + branch2;
                     const pair2 = branch2 + branch1;
+                    console.log(`当前分析-检查地支对: ${branch1}${branch2} (${pair1}) 和 ${branch2}${branch1} (${pair2})`);
                     
                     // 创建唯一标识，按字母顺序排序避免重复
                     const uniqueKey = [branch1, branch2].sort().join('');
@@ -5836,37 +6998,205 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
                         const hehuaElement = diZhiLiuHe[pair1] || diZhiLiuHe[pair2];
                         processedDiZhi.add(uniqueKey);
                         
+                        // 严格检查：必须在八字中相邻且在地支顺序中也相邻
+                        const isPositionAdjacent = Math.abs(i - j) === 1; // 在八字中相邻
+                        const isBranchAdjacent = isAdjacentBranches(branch1, branch2);
+                        
+                        if (!isPositionAdjacent) {
+                            console.log(`❌ 当前分析-地支六合失败: ${branch1}${branch2} - 在八字中不相邻（位置${i},${j}），不能合化`);
+                            continue;
+                        }
+                        
+                        if (!isBranchAdjacent) {
+                            console.log(`❌ 当前分析-地支六合失败: ${branch1}${branch2} - 地支不相邻，不能合化`);
+                            continue;
+                        }
+                        
+                        // 检查天干是否透出合化后的五行（六合成功的必要条件）
+                        const hasTransparent = checkTransparentElement(hehuaElement, allStems);
+                        
+                        if (!hasTransparent) {
+                            console.log(`❌ 当前分析-地支六合失败: ${branch1}${branch2} 合${getElementChinese(hehuaElement)} - 天干没有${getElementChinese(hehuaElement)}透出`);
+                            // 记录为绊合而非合化
+                            combined.diZhiLiuHe.push({
+                                zhi1: branch1,
+                                zhi2: branch2,
+                                element: hehuaElement,
+                                positions: [i, j],
+                                isCurrentYear: (branch1 === yearBranch || branch2 === yearBranch),
+                                isCurrentDayun: (branch1 === dayunBranch || branch2 === dayunBranch),
+                                hasTransparent: false,
+                                onlyBind: true,
+                                bindReason: `天干没有${getElementChinese(hehuaElement)}透出`
+                            });
+                            continue;
+                        }
+                        
+                        // 六合成功
                         combined.diZhiLiuHe.push({
                             zhi1: branch1,
                             zhi2: branch2,
                             element: hehuaElement,
                             positions: [i, j],
                             isCurrentYear: (branch1 === yearBranch || branch2 === yearBranch),
-                            isCurrentDayun: (branch1 === dayunBranch || branch2 === dayunBranch)
+                            isCurrentDayun: (branch1 === dayunBranch || branch2 === dayunBranch),
+                            hasTransparent: true,
+                            isAdjacent: true
                         });
+                        
+                        // 如果月支（位置1）参与六合，更新月令元素
+                        if (i === 1 || j === 1) {
+                            combined.monthElement = hehuaElement;
+                            console.log(`当前分析-月支参与六合: ${branch1}${branch2} 合化为${getElementChinese(hehuaElement)}，月令元素更新为${hehuaElement}`);
+                        }
+                        
+                        console.log(`✅ 当前分析-地支六合成功: ${branch1}${branch2} 合化为${getElementChinese(hehuaElement)}（相邻+天干透出）`);
                     }
                 }
             }
             
-            // 检查地支三合
+            // 检查地支三合（修复版：严格验证存在性和相邻性）
             diZhiSanHe.forEach(sanhe => {
                 const matches = [];
-                sanhe.branches.forEach(branch => {
+                const requiredBranches = sanhe.branches;
+                
+                // 严格检查：首先验证所有必需的地支是否都存在
+                const existingBranches = [];
+                requiredBranches.forEach(branch => {
                     const indices = allBranches.map((b, i) => b === branch ? i : -1).filter(i => i !== -1);
                     if (indices.length > 0) {
                         matches.push({branch, indices});
+                        existingBranches.push(branch);
                     }
                 });
                 
-                if (matches.length >= 2) {
-                    combined.diZhiSanHe.push({
-                        type: sanhe.branches.join(''),
-                        element: sanhe.element,
-                        count: matches.length,
-                        branches: matches.map(m => m.branch).join(''),
-                        isCurrentYear: matches.some(m => m.indices.some(idx => allBranches[idx] === yearBranch)),
-                        isCurrentDayun: matches.some(m => m.indices.some(idx => allBranches[idx] === dayunBranch))
+                // 关键修复：对于半三合，必须确保存在的地支确实能形成有效的三合组合
+                // 不能仅仅因为有2个地支就认为是半三合，必须验证这2个地支是否是三合局的有效组合
+                const isValidPartialCombination = (existing) => {
+                    if (existing.length < 2) return false;
+                    if (existing.length >= 3) return true; // 全三合
+                    
+                    // 对于半三合，必须确保存在的地支确实属于同一个三合局
+                    // 并且不能是错误的组合（比如亥卯未中只有亥未，缺少关键的卯）
+                    const validPartialCombos = {
+                         '申子辰': [['申', '子'], ['子', '辰'], ['申', '辰']],
+                         '亥卯未': [['亥', '卯'], ['卯', '未']], // 移除亥未组合，因为它们不相邻且缺少关键的卯
+                         '寅午戌': [['寅', '午'], ['午', '戌'], ['寅', '戌']],
+                         '巳酉丑': [['巳', '酉'], ['酉', '丑'], ['巳', '丑']]
+                     };
+                    
+                    const comboKey = requiredBranches.join('');
+                    const validCombos = validPartialCombos[comboKey] || [];
+                    
+                    // 检查当前存在的地支组合是否在有效的半三合列表中
+                    const currentCombo = existing.sort();
+                    return validCombos.some(validCombo => {
+                        const sortedValid = validCombo.sort();
+                        return currentCombo.length === sortedValid.length && 
+                               currentCombo.every((branch, index) => branch === sortedValid[index]);
                     });
+                };
+                
+                // 特别针对亥卯未三合局的调试
+                if (requiredBranches.join('') === '亥卯未') {
+                    console.log(`🔍 特别检查亥卯未三合局:`, {
+                        required: requiredBranches,
+                        allBranches: allBranches,
+                        found: matches.map(m => m.branch),
+                        foundCount: matches.length,
+                        详细匹配: matches
+                    });
+                }
+                
+                console.log(`检查三合局 ${requiredBranches.join('')}:`, {
+                    required: requiredBranches,
+                    found: matches.map(m => m.branch),
+                    allBranches: allBranches,
+                    foundCount: matches.length
+                });
+                
+                // 严格要求：使用新的验证逻辑检查三合局的有效性
+                // 全三合需要3个地支，半三合需要2个地支且必须是有效组合
+                const hasValidBranchCombination = matches.length === 3 || 
+                    (matches.length === 2 && isValidPartialCombination(existingBranches));
+                
+                if (hasValidBranchCombination && matches.length >= 2) {
+                    // 严格的相邻性检查：确保地支在八字中真正相邻
+                    let isValidAdjacency = false;
+                    
+                    if (matches.length === 3) {
+                        // 全三合：必须有连续的三个位置，且三个地支都存在
+                        const allPositions = [];
+                        matches.forEach(match => {
+                            allPositions.push(...match.indices);
+                        });
+                        allPositions.sort((a, b) => a - b);
+                        
+                        // 检查是否有连续的三个位置
+                        for (let i = 0; i <= allPositions.length - 3; i++) {
+                            if (allPositions[i+1] === allPositions[i] + 1 && 
+                                allPositions[i+2] === allPositions[i] + 2) {
+                                // 进一步验证：确保这三个位置对应的地支确实是三合局的三个成员
+                                const branchesAtPositions = [
+                                    allBranches[allPositions[i]],
+                                    allBranches[allPositions[i+1]], 
+                                    allBranches[allPositions[i+2]]
+                                ];
+                                const hasAllRequired = requiredBranches.every(branch => 
+                                    branchesAtPositions.includes(branch)
+                                );
+                                if (hasAllRequired) {
+                                    isValidAdjacency = true;
+                                    break;
+                                }
+                            }
+                        }
+                        
+                        console.log(`全三合检查 ${requiredBranches.join('')}: 位置${allPositions}, 连续性=${isValidAdjacency}`);
+                    } else if (matches.length === 2) {
+                        // 半三合：必须两个地支相邻，且确实是三合局的成员
+                        const positions = [];
+                        matches.forEach(match => {
+                            positions.push(...match.indices);
+                        });
+                        
+                        // 检查任意两个位置是否相邻
+                        for (let i = 0; i < positions.length; i++) {
+                            for (let j = i + 1; j < positions.length; j++) {
+                                if (Math.abs(positions[i] - positions[j]) === 1) {
+                                    // 进一步验证：确保这两个位置的地支确实是三合局的成员
+                                    const branch1 = allBranches[positions[i]];
+                                    const branch2 = allBranches[positions[j]];
+                                    if (requiredBranches.includes(branch1) && requiredBranches.includes(branch2)) {
+                                        isValidAdjacency = true;
+                                        break;
+                                    }
+                                }
+                            }
+                            if (isValidAdjacency) break;
+                        }
+                        
+                        console.log(`半三合检查 ${requiredBranches.join('')}: 位置${positions}, 相邻性=${isValidAdjacency}`);
+                    }
+                    
+                    // 只有通过严格验证的三合局才被认定为有效
+                    if (isValidAdjacency) {
+                        combined.diZhiSanHe.push({
+                            type: sanhe.branches.join(''),
+                            element: sanhe.element,
+                            count: matches.length,
+                            branches: matches.map(m => m.branch).join(''),
+                            isCurrentYear: matches.some(m => m.indices.some(idx => allBranches[idx] === yearBranch)),
+                            isCurrentDayun: matches.some(m => m.indices.some(idx => allBranches[idx] === dayunBranch)),
+                            isValid: true,
+                            positions: matches.flatMap(m => m.indices)
+                        });
+                        console.log(`✅ 有效三合局: ${requiredBranches.join('')}${matches.length === 3 ? '全' : '半'}三合${sanhe.element}局`);
+                    } else {
+                        console.log(`❌ 无效三合局: ${requiredBranches.join('')} - 地支不相邻或不完整，不能合化`);
+                    }
+                } else {
+                    console.log(`❌ 无效三合局: ${requiredBranches.join('')} - 缺少必要地支 (需要${matches.length}/3个)`);
                 }
             });
             
@@ -5996,9 +7326,51 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
             // 显示当前身强身弱分析描述
             const description = document.getElementById('current-strength-description');
             
-            // 根据不同类型设置不同的图标和颜色
+            // 根据不同类型设置不同的图标和颜色（12级分类系统）
             let typeIcon, typeColor;
             switch(currentStrengthData.type) {
+                case '极弱（从弱）':
+                case '从弱':
+                    typeIcon = 'fa-arrow-down';
+                    typeColor = '#2c3e50';
+                    break;
+                case '很弱':
+                case '较弱':
+                    typeIcon = 'fa-snowflake';
+                    typeColor = '#3498db';
+                    break;
+                case '稍弱':
+                case '微弱':
+                    typeIcon = 'fa-thermometer-quarter';
+                    typeColor = '#5dade2';
+                    break;
+                case '中和偏弱':
+                    typeIcon = 'fa-balance-scale';
+                    typeColor = '#85c1e9';
+                    break;
+                case '真正中和':
+                    typeIcon = 'fa-yin-yang';
+                    typeColor = '#f39c12';
+                    break;
+                case '中和偏强':
+                    typeIcon = 'fa-balance-scale';
+                    typeColor = '#f8c471';
+                    break;
+                case '微强':
+                case '稍强':
+                    typeIcon = 'fa-thermometer-three-quarters';
+                    typeColor = '#f7dc6f';
+                    break;
+                case '较强':
+                    typeIcon = 'fa-fire';
+                    typeColor = '#e74c3c';
+                    break;
+                case '极强（专旺）':
+                case '从强':
+                    typeIcon = 'fa-arrow-up';
+                    typeColor = '#9b59b6';
+                    break;
+                // 兼容旧版本
                 case '身强':
                     typeIcon = 'fa-fire';
                     typeColor = '#e74c3c';
@@ -6010,10 +7382,6 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
                 case '均衡':
                     typeIcon = 'fa-balance-scale';
                     typeColor = '#f39c12';
-                    break;
-                case '从强':
-                    typeIcon = 'fa-arrow-up';
-                    typeColor = '#9b59b6';
                     break;
                 case '从弱':
                     typeIcon = 'fa-arrow-down';
@@ -6079,6 +7447,8 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
                    </div>`}
                 </div>
                 <p><strong>分析说明:</strong> ${currentStrengthData.description}</p>
+                
+
             `;
             
             // 调整图表容器和描述容器的样式，确保左右并排显示
@@ -6379,17 +7749,24 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
         // 元素层面的合化效果（用于平衡分数计算，不影响原始柱对象）
         function applyElementCombinationEffects(elements, stems, branches) {
             const elementMap = getElementMap();
-            const branchSanHe = hasSanHui(branches, 'sanhe');
-            if (branchSanHe.count === 3) {
-                // 三合化一气：对应五行得到额外加成
-                elements[branchSanHe.element] = (elements[branchSanHe.element] || 0) + 3;
-            } else if (branchSanHe.count === 2) {
-                elements[branchSanHe.element] = (elements[branchSanHe.element] || 0) + 1.5;
+            
+            // 使用严格的三合局检测逻辑
+            const branchSanHe = checkStrictSanHe(branches);
+            if (branchSanHe.isValid) {
+                if (branchSanHe.count === 3) {
+                    // 三合化一气：对应五行得到额外加成
+                    elements[branchSanHe.element] = (elements[branchSanHe.element] || 0) + 3;
+                } else if (branchSanHe.count === 2) {
+                    elements[branchSanHe.element] = (elements[branchSanHe.element] || 0) + 1.5;
+                }
             }
-            const branchSanHui = hasSanHui(branches, 'sanhui');
-            if (branchSanHui.count === 3) {
+            
+            // 使用严格的三会局检测逻辑
+            const branchSanHui = checkStrictSanHui(branches);
+            if (branchSanHui.isValid && branchSanHui.count === 3) {
                 elements[branchSanHui.element] = (elements[branchSanHui.element] || 0) + 2;
             }
+            
             // 六合小幅加成
             if (hasLiuHe(branches)) {
                 // 六合不定化气，给平均小加成
@@ -6487,13 +7864,15 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
             let combinationScore = 0;
             const branches = [pillars.year.charAt(1), pillars.month.charAt(1), pillars.day.charAt(1), pillars.hour.charAt(1)];
             
-            // 1. 三合局评分
-            const sanHeResult = hasSanHui(branches, 'sanhe');
-            if (sanHeResult.count === 3) {
-                combinationScore += 12; // 完整三合
-                combinationScore += applyAdvancedCombinationEffects(pillars, sanHeResult);
-            } else if (sanHeResult.count === 2) {
-                combinationScore += 6; // 半合
+            // 1. 三合局评分 - 使用严格检测
+            const sanHeResult = checkStrictSanHe(branches);
+            if (sanHeResult.isValid) {
+                if (sanHeResult.count === 3) {
+                    combinationScore += 12; // 完整三合
+                    combinationScore += applyAdvancedCombinationEffects(pillars, sanHeResult);
+                } else if (sanHeResult.count === 2) {
+                    combinationScore += 6; // 半合
+                }
             }
             
             // 2. 六合评分
@@ -6503,15 +7882,16 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
                 combinationScore += applyAdvancedCombinationEffects(pillars, {type: 'liuhe'});
             }
             
-            // 3. 三会局评分
-            const sanHuiResult = hasSanHui(branches, 'sanhui');
-            if (sanHuiResult.count === 3) {
+            // 3. 三会局评分 - 使用严格检测
+            const sanHuiResult = checkStrictSanHui(branches);
+            if (sanHuiResult.isValid && sanHuiResult.count === 3) {
                 combinationScore += 10; // 三会局
             }
             
             // 4. 冲克刑害扣分
             const conflictPenalty = applyAdvancedConflictEffects(pillars);
             combinationScore -= conflictPenalty;
+            
             
             // 5. 空亡检查
             const voidPenalty = checkVoidPenalty(pillars);
@@ -6689,16 +8069,40 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
             const dayStrength = estimateDayStrength(pillars);
             let yongShenScore = 0;
             
-            // 根据身强身弱确定用神
-            if (dayStrength > 70) {
-                // 身强用食伤财官
-                yongShenScore += evaluateWeakeningGods(pillars);
-            } else if (dayStrength < 30) {
-                // 身弱用印比
-                yongShenScore += evaluateStrengtheningGods(pillars);
+            // 根据身强身弱确定用神（支持12级分类）
+            const strengthType = window.currentBaziData?.strengthAnalysis?.type;
+            
+            if (strengthType) {
+                // 使用12级分类系统判断
+                if (['极强（专旺）', '较强', '稍强', '微强'].includes(strengthType)) {
+                    // 强旺类型用食伤财官
+                    yongShenScore += evaluateWeakeningGods(pillars);
+                } else if (['极弱（从弱）', '很弱', '较弱', '稍弱', '微弱'].includes(strengthType)) {
+                    // 偏弱类型用印比
+                    yongShenScore += evaluateStrengtheningGods(pillars);
+                } else if (['真正中和', '中和偏弱', '中和偏强'].includes(strengthType)) {
+                    // 中和类型用调候
+                    yongShenScore += evaluateBalancingGods(pillars);
+                } else if (['从强', '从弱'].includes(strengthType)) {
+                    // 从格特殊处理
+                    if (strengthType === '从强') {
+                        yongShenScore += evaluateStrengtheningGods(pillars); // 从强顺其旺势
+                    } else {
+                        yongShenScore += evaluateWeakeningGods(pillars); // 从弱顺其弱势
+                    }
+                }
             } else {
-                // 中和用调候
-                yongShenScore += evaluateBalancingGods(pillars);
+                // 兼容旧版本数值判断
+                if (dayStrength > 70) {
+                    // 身强用食伤财官
+                    yongShenScore += evaluateWeakeningGods(pillars);
+                } else if (dayStrength < 30) {
+                    // 身弱用印比
+                    yongShenScore += evaluateStrengtheningGods(pillars);
+                } else {
+                    // 中和用调候
+                    yongShenScore += evaluateBalancingGods(pillars);
+                }
             }
             
             return Math.min(8, Math.max(0, yongShenScore));
@@ -6796,37 +8200,17 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
             return tenGodsCount;
         }
 
-        // 三合三会检查
+        // 三合三会检查（使用严格检测函数）
         function hasSanHui(branches, type = 'sanhe') {
             if (type === 'sanhe') {
-                // 三合局检查
-                const sanHeGroups = [
-                    { branches: ['申', '子', '辰'], element: '水' },
-                    { branches: ['亥', '卯', '未'], element: '木' },
-                    { branches: ['寅', '午', '戌'], element: '火' },
-                    { branches: ['巳', '酉', '丑'], element: '金' }
-                ];
-                
-                for (const group of sanHeGroups) {
-                    const count = group.branches.filter(branch => branches.includes(branch)).length;
-                    if (count >= 2) {
-                        return { count: count, element: group.element, type: 'sanhe' };
-                    }
+                const result = checkStrictSanHe(branches);
+                if (result.isValid) {
+                    return { count: result.count, element: result.element, type: 'sanhe' };
                 }
             } else if (type === 'sanhui') {
-                // 三会局检查
-                const sanHuiGroups = [
-                    { branches: ['亥', '子', '丑'], element: '水' },
-                    { branches: ['寅', '卯', '辰'], element: '木' },
-                    { branches: ['巳', '午', '未'], element: '火' },
-                    { branches: ['申', '酉', '戌'], element: '金' }
-                ];
-                
-                for (const group of sanHuiGroups) {
-                    const count = group.branches.filter(branch => branches.includes(branch)).length;
-                    if (count === 3) {
-                        return { count: count, element: group.element, type: 'sanhui' };
-                    }
+                const result = checkStrictSanHui(branches);
+                if (result.isValid) {
+                    return { count: result.count, element: result.element, type: 'sanhui' };
                 }
             }
             
@@ -7290,26 +8674,105 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
             return 2;
         }
 
-        // 判断三合
-        function hasSanHe(branches) {
+        // 严格的三合局检测函数
+        function checkStrictSanHe(branches) {
             const sanHeGroups = [
-                ['申', '子', '辰'],
-                ['亥', '卯', '未'],
-                ['寅', '午', '戌'],
-                ['巳', '酉', '丑']
+                {branches: ['申', '子', '辰'], element: 'water'},
+                {branches: ['亥', '卯', '未'], element: 'wood'},
+                {branches: ['寅', '午', '戌'], element: 'fire'},
+                {branches: ['巳', '酉', '丑'], element: 'metal'}
             ];
+            
             for (const group of sanHeGroups) {
-                let count = 0;
-                for (const branch of branches) {
-                    if (group.includes(branch)) {
-                        count++;
+                const foundBranches = [];
+                const foundIndices = [];
+                
+                // 检查每个地支是否存在并记录位置
+                for (let i = 0; i < branches.length; i++) {
+                    if (group.branches.includes(branches[i])) {
+                        foundBranches.push(branches[i]);
+                        foundIndices.push(i);
                     }
                 }
-                if (count >= 2) {
-                    return true;
+                
+                // 至少需要2个地支才能形成半三合
+                if (foundBranches.length >= 2) {
+                    let isValid = false;
+                    
+                    // 检查相邻性：对于半三合，地支必须相邻
+                    if (foundBranches.length === 2) {
+                        // 检查两个地支是否相邻
+                        if (Math.abs(foundIndices[0] - foundIndices[1]) === 1) {
+                            isValid = true;
+                        }
+                    } else if (foundBranches.length === 3) {
+                        // 全三合：检查是否有连续的三个位置
+                        foundIndices.sort((a, b) => a - b);
+                        if (foundIndices[1] === foundIndices[0] + 1 && 
+                            foundIndices[2] === foundIndices[0] + 2) {
+                            isValid = true;
+                        }
+                    }
+                    
+                    if (isValid) {
+                        return {
+                            isValid: true,
+                            count: foundBranches.length,
+                            element: group.element,
+                            type: group.branches.join(''),
+                            foundBranches: foundBranches
+                        };
+                    }
                 }
             }
-            return false;
+            
+            return {isValid: false, count: 0};
+        }
+        
+        // 严格的三会局检测函数
+        function checkStrictSanHui(branches) {
+            const sanHuiGroups = [
+                {branches: ['寅', '卯', '辰'], element: 'wood'},
+                {branches: ['巳', '午', '未'], element: 'fire'},
+                {branches: ['申', '酉', '戌'], element: 'metal'},
+                {branches: ['亥', '子', '丑'], element: 'water'}
+            ];
+            
+            for (const group of sanHuiGroups) {
+                const foundBranches = [];
+                const foundIndices = [];
+                
+                // 检查每个地支是否存在并记录位置
+                for (let i = 0; i < branches.length; i++) {
+                    if (group.branches.includes(branches[i])) {
+                        foundBranches.push(branches[i]);
+                        foundIndices.push(i);
+                    }
+                }
+                
+                // 三会局需要3个地支且必须连续
+                if (foundBranches.length === 3) {
+                    foundIndices.sort((a, b) => a - b);
+                    if (foundIndices[1] === foundIndices[0] + 1 && 
+                        foundIndices[2] === foundIndices[0] + 2) {
+                        return {
+                            isValid: true,
+                            count: 3,
+                            element: group.element,
+                            type: group.branches.join(''),
+                            foundBranches: foundBranches
+                        };
+                    }
+                }
+            }
+            
+            return {isValid: false, count: 0};
+        }
+
+        // 判断三合（保持向后兼容）
+        function hasSanHe(branches) {
+            const result = checkStrictSanHe(branches);
+            return result.isValid;
         }
 
         // 判断六合
@@ -11165,19 +12628,23 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
             const branches = window.allBranches || [];
             console.log('当前八字地支:', branches);
             
-            // 特别检查巳酉丑三合金局
-            const metalCombo = '巳酉丑';
+            // 特别检查巳酉丑三合金局（已修复：添加相邻性检查）
+            const metalCombo = ['巳', '酉', '丑'];
             const metalMatches = [];
-            let metalMatchCount = 0;
             
-            for (const char of metalCombo) {
-                if (branches.includes(char)) {
-                    metalMatchCount++;
-                    metalMatches.push(char);
+            // 检查存在性
+            metalCombo.forEach(branch => {
+                const indices = branches.map((b, i) => b === branch ? i : -1).filter(i => i !== -1);
+                if (indices.length > 0) {
+                    metalMatches.push({branch, indices});
                 }
-            }
+            });
             
-            console.log(`特别检查巳酉丑三合金局:`, metalMatches, metalMatchCount);
+            console.log(`特别检查巳酉丑三合金局:`, {
+                required: metalCombo,
+                found: metalMatches.map(m => m.branch),
+                allBranches: branches
+            });
             
             if (baziData.strengthAnalysis.combined && baziData.strengthAnalysis.combined.sanhe) {
                 console.log('三合局详情:', baziData.strengthAnalysis.combined.sanhe);
@@ -11185,23 +12652,74 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
                 console.log('没有检测到三合局');
                 
                 // 如果系统没有检测到三合局，但实际上有巳酉丑三合金局
-                if (metalMatchCount >= 2) {
-                    console.log('手动检测到巳酉丑三合金局:', metalMatches.join(''));
+                if (metalMatches.length >= 2) {
+                    // 检查相邻性
+                    let isValidCombination = false;
                     
-                    // 手动添加三合局信息
-                    if (!baziData.strengthAnalysis.combined) {
-                        baziData.strengthAnalysis.combined = {};
+                    if (metalMatches.length === 3) {
+                        // 全三合：检查是否有连续的三个位置
+                        const allPositions = [];
+                        metalMatches.forEach(match => {
+                            allPositions.push(...match.indices);
+                        });
+                        allPositions.sort((a, b) => a - b);
+                        
+                        for (let i = 0; i <= allPositions.length - 3; i++) {
+                            if (allPositions[i+1] === allPositions[i] + 1 && 
+                                allPositions[i+2] === allPositions[i] + 2) {
+                                isValidCombination = true;
+                                break;
+                            }
+                        }
+                        
+                        console.log(`手动检查巳酉丑全三合: 位置${allPositions}, 连续性=${isValidCombination}`);
+                    } else if (metalMatches.length === 2) {
+                        // 半三合：检查两个地支是否相邻
+                        const positions = [];
+                        metalMatches.forEach(match => {
+                            positions.push(...match.indices);
+                        });
+                        
+                        for (let i = 0; i < positions.length; i++) {
+                            for (let j = i + 1; j < positions.length; j++) {
+                                if (Math.abs(positions[i] - positions[j]) === 1) {
+                                    isValidCombination = true;
+                                    break;
+                                }
+                            }
+                            if (isValidCombination) break;
+                        }
+                        
+                        console.log(`手动检查巳酉丑半三合: 位置${positions}, 相邻性=${isValidCombination}`);
                     }
                     
-                    baziData.strengthAnalysis.combined.sanhe = {
-                        type: '巳酉丑',
-                        element: 'metal',
-                        count: metalMatchCount,
-                        branches: metalMatches.join(''),
-                        isFullSanhe: metalMatchCount === 3
-                    };
-                    
-                    // 移除特殊处理，使用统一effect
+                    // 只有通过相邻性检查才手动添加
+                    if (isValidCombination) {
+                        console.log('✅ 手动检测到有效的巳酉丑三合金局:', metalMatches.map(m => m.branch).join(''));
+                        
+                        // 手动添加三合局信息
+                        if (!baziData.strengthAnalysis.combined) {
+                            baziData.strengthAnalysis.combined = {};
+                        }
+                        
+                        if (!baziData.strengthAnalysis.combined.sanhe) {
+                            baziData.strengthAnalysis.combined.sanhe = [];
+                        }
+                        
+                        baziData.strengthAnalysis.combined.sanhe.push({
+                            type: '巳酉丑',
+                            element: 'metal',
+                            count: metalMatches.length,
+                            branches: metalMatches.map(m => m.branch).join(''),
+                            isValid: true,
+                            positions: metalMatches.flatMap(m => m.indices),
+                            isManuallyAdded: true
+                        });
+                    } else {
+                        console.log('❌ 手动检查巳酉丑三合金局失败: 地支不相邻，不能合化');
+                    }
+                } else {
+                    console.log('❌ 手动检查巳酉丑三合金局失败: 缺少必要地支');
                 }
             }
             
@@ -11315,23 +12833,65 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
              // 显示身强身弱分析描述
              const description = document.getElementById('strength-description');
              
-             // 根据不同类型设置不同的图标和颜色
-             let typeIcon, typeColor;
-             switch(strengthAnalysis.type) {
-                 case '身强':
-                     typeIcon = 'fa-fire';
-                     typeColor = '#e74c3c';
-                     break;
-                 case '身弱':
-                     typeIcon = 'fa-snowflake';
-                     typeColor = '#3498db';
-                     break;
-                 case '均衡':
-                     typeIcon = 'fa-balance-scale';
-                     typeColor = '#f39c12';
-                     break;
-                 case '从强':
-                     typeIcon = 'fa-arrow-up';
+             // 根据不同类型设置不同的图标和颜色（12级分类系统）
+            let typeIcon, typeColor;
+            switch(strengthAnalysis.type) {
+                case '极弱（从弱）':
+                case '从弱':
+                    typeIcon = 'fa-arrow-down';
+                    typeColor = '#2c3e50';
+                    break;
+                case '很弱':
+                case '较弱':
+                    typeIcon = 'fa-snowflake';
+                    typeColor = '#3498db';
+                    break;
+                case '稍弱':
+                case '微弱':
+                    typeIcon = 'fa-thermometer-quarter';
+                    typeColor = '#5dade2';
+                    break;
+                case '中和偏弱':
+                    typeIcon = 'fa-balance-scale';
+                    typeColor = '#85c1e9';
+                    break;
+                case '真正中和':
+                    typeIcon = 'fa-yin-yang';
+                    typeColor = '#f39c12';
+                    break;
+                case '中和偏强':
+                    typeIcon = 'fa-balance-scale';
+                    typeColor = '#f8c471';
+                    break;
+                case '微强':
+                case '稍强':
+                    typeIcon = 'fa-thermometer-three-quarters';
+                    typeColor = '#f7dc6f';
+                    break;
+                case '较强':
+                    typeIcon = 'fa-fire';
+                    typeColor = '#e74c3c';
+                    break;
+                case '极强（专旺）':
+                case '从强':
+                    typeIcon = 'fa-arrow-up';
+                    typeColor = '#9b59b6';
+                    break;
+                // 兼容旧版本
+                case '身强':
+                    typeIcon = 'fa-fire';
+                    typeColor = '#e74c3c';
+                    break;
+                case '身弱':
+                    typeIcon = 'fa-snowflake';
+                    typeColor = '#3498db';
+                    break;
+                case '均衡':
+                    typeIcon = 'fa-balance-scale';
+                    typeColor = '#f39c12';
+                    break;
+                case '从强':
+                    typeIcon = 'fa-arrow-up';
                      typeColor = '#9b59b6';
                      break;
                  case '从弱':
@@ -11405,6 +12965,8 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
                             `<p><strong>变化影响:</strong> <span style="color: #856404; font-weight: bold;">已应用到五行力量计算中</span></p>`}
                     </div>` : ''}
                  <p><strong>分析说明:</strong> ${strengthAnalysis.description}</p>
+                 
+
              `;
              
              // 调整图表容器和描述容器的样式，确保左右并排显示
