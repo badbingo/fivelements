@@ -264,6 +264,9 @@ class WWPay {
       sitename: '命缘池'
     };
     
+    // 确保CryptoJS已加载
+    await this.ensureCryptoReady();
+    
     // 生成签名
     params.sign = this.generateSignature(params);
     
@@ -641,6 +644,9 @@ class WWPay {
          })),
          sign_type: this.config.paymentGateway.signType
        };
+       
+       // 确保CryptoJS已加载
+       await this.ensureCryptoReady();
        
        // 生成签名
        paymentData.sign = this.generateSignature(paymentData);
@@ -1285,8 +1291,8 @@ class WWPay {
      }
    }
 
-  /* ========== 余额支付处理 ========== */
-   
+   /* ========== 余额支付处理 ========== */
+    
    async processBalancePayment(orderId) {
      try {
        this.log('开始余额支付流程', '订单ID:', orderId, '愿望ID:', this.state.currentWishId, '金额:', this.state.selectedAmount);
@@ -1525,6 +1531,24 @@ class WWPay {
    }
 
    /* ========== 工具方法 ========== */
+ 
+   // 确保在签名前CryptoJS可用
+   async ensureCryptoReady() {
+     if (typeof CryptoJS !== 'undefined') return;
+     if (typeof loadCryptoJS === 'function') {
+       await loadCryptoJS();
+     } else {
+       await new Promise((resolve, reject) => {
+         const script = document.createElement('script');
+         script.src = 'https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js';
+         script.integrity = 'sha512-E8QSvWZ0eCLGk4km3hxSsNmGWbLtSCSUcewDQPQWZF6pEU8GlT8a5fF32wOl1i8ftdMhssTrF/OhyGWwonTcXA==';
+         script.crossOrigin = 'anonymous';
+         script.onload = resolve;
+         script.onerror = () => reject(new Error('加载CryptoJS失败'));
+         document.head.appendChild(script);
+       });
+     }
+   }
  
    delay(ms) {
      return new Promise(resolve => setTimeout(resolve, ms));
