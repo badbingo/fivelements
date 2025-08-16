@@ -3761,16 +3761,31 @@ if (typeof module !== 'undefined' && module.exports) {
             document.getElementById('birth-date').value = record.birthDate;
             document.getElementById('birth-time').value = record.birthTime;
 
-            // 滚动到输入区域
-            document.getElementById('input-section').scrollIntoView({ 
-                behavior: 'smooth',
-                block: 'start'
-            });
+            // 检查结果区域是否已经显示
+            const resultSection = document.getElementById('result-section');
+            const isResultVisible = resultSection && resultSection.classList.contains('show');
 
-            // 自动触发计算
-            setTimeout(() => {
-                handleCalculate();
-            }, 500);
+            if (isResultVisible) {
+                // 如果结果区域已经显示，直接滚动到结果区域并重新计算
+                resultSection.scrollIntoView({ 
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+                // 自动触发计算
+                setTimeout(() => {
+                    handleCalculate();
+                }, 500);
+            } else {
+                // 如果结果区域未显示，滚动到输入区域
+                document.getElementById('input-section').scrollIntoView({ 
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+                // 自动触发计算
+                setTimeout(() => {
+                    handleCalculate();
+                }, 500);
+            }
         }
         
         // 设置八字问答功能
