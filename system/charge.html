@@ -142,12 +142,16 @@
             当前余额: <span id="currentBalance">加载中...</span>
         </div>
         
-        <button onclick="window.location.href='wishingwell.html'">返回许愿池</button>
-        <button onclick="window.location.href='lynew.html'">返回六爻占卜</button>
+        <button onclick="window.location.href='wishingwell.html'">许愿池</button>
+        <button onclick="window.location.href='lynew.html'">六爻占卜</button>
+        <button onclick="window.location.href='bazinew.html'">八字详批</button>
         <button id="contactBtn" style="display: none; background-color: #f44336;">联系客服</button>
     </div>
 
     <script>
+        // 全局后端地址（与其他页面保持一致）
+        const API_BASE = 'https://api.mybazi.net';
+
         // 从URL获取订单信息
         const urlParams = new URLSearchParams(window.location.search);
         const orderId = urlParams.get('orderId');
@@ -166,9 +170,10 @@
                     return null;
                 }
                 
-                const response = await fetch('/api/user/balance', {
+                const response = await fetch(`${API_BASE}/api/user/balance`, {
                     headers: {
-                        'Authorization': `Bearer ${token}`
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/json'
                     }
                 });
                 
@@ -228,7 +233,7 @@
             try {
               statusElement.innerHTML = `处理中${retryCount > 0 ? `(第${retryCount}次重试)` : ''} <span class="loader"></span>`;
               
-              const response = await fetch(`/api/recharge/complete?orderId=${orderId}`, {
+              const response = await fetch(`${API_BASE}/api/recharge/complete?orderId=${orderId}`, {
                 headers: {
                   'Authorization': `Bearer ${localStorage.getItem('token')}`,
                   'Accept': 'application/json'
