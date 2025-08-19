@@ -19252,14 +19252,13 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
                      // 已支付，显示详批内容
                      showDetailedAnalysis();
                  } else {
-                     // 确保页面重新加载后隐藏付费内容
+                     // 确保页面加载时隐藏付费内容（仅当未支付时）
                      const paidContent = document.getElementById('paid-content');
                      if (paidContent) {
                          paidContent.style.display = 'none';
                      }
                      
-                     // 清除任何可能的支付状态标记
-                     sessionStorage.removeItem('bazi_payment_verified');
+                     // 只清除处理中的状态，保留已验证的支付状态
                      sessionStorage.removeItem('bazi_payment_processing');
                      
                      // 重置详批按钮状态
@@ -19424,23 +19423,21 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
              alert('支付成功！详批内容已为您展示。');
          }
          
-         // 监听页面可见性变化，防止通过返回按钮绕过支付
+         // 注释掉页面可见性监听器，避免切换标签页时清除支付状态
+         // 原监听器会在用户切换标签页时错误地处理支付状态
+         /*
          document.addEventListener('visibilitychange', function() {
              if (document.visibilityState === 'visible') {
-                 // 页面重新可见时，检查支付状态
                  const isProcessing = sessionStorage.getItem('bazi_payment_processing');
                  const isVerified = sessionStorage.getItem('bazi_payment_verified');
                  
-                 // 如果正在支付流程中但未验证，清除状态并重置按钮
                  if (isProcessing === 'true' && isVerified !== 'true') {
                      sessionStorage.removeItem('bazi_payment_processing');
-                     // 确保详批内容隐藏
                      const paidContent = document.getElementById('paid-content');
                      if (paidContent) {
                          paidContent.style.display = 'none';
                      }
                      
-                     // 重置详批按钮状态，允许重新支付
                      const detailedBtn = document.getElementById('detailed-analysis-btn');
                      if (detailedBtn) {
                          detailedBtn.disabled = false;
@@ -19448,9 +19445,12 @@ if((type === 'diZhiLiuHe' || type === 'diZhiSanHe' || type === 'diZhiSanHui') &&
                          detailedBtn.style.opacity = '1';
                          detailedBtn.style.cursor = 'pointer';
                      }
+                 } else if (isVerified === 'true') {
+                     showDetailedAnalysis();
                  }
              }
          });
+         */
          
          // 根据财富等级评分计算支付金额
          function calculatePaymentAmount(wealthScore) {
