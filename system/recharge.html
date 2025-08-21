@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="账户充值 - 安全便捷的在线充值服务">
+    <meta name="keywords" content="充值,支付宝,微信支付,在线支付">
+    <title>账户充值 - 八字命理系统</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="../js/wwpay.js" defer></script>
+    
+    <style>
+        :root {
+            --primary-color: #6a11cb;
+            --secondary-color: #2575fc;
+            --accent-color: #f1c40f;
+            --text-color: #ffffff;
+            --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Serif SC', serif;
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            color: #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .recharge-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 20px;
+            max-width: 480px;
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .recharge-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2, #f093fb, #f5576c);
+            background-size: 300% 100%;
+            animation: gradientShift 3s ease-in-out infinite;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .recharge-header {
+            text-align: center;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .back-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border: none;
+            padding: 12px 20px;
+            border-radius: 50px;
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+            cursor: pointer;
+        }
+
+        .back-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+            background: linear-gradient(135deg, #5a67d8, #6b46c1);
+        }
+
+        .recharge-header h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .recharge-header p {
+            font-size: 14px;
+            color: #64748b;
+            margin: 0;
+            font-weight: 400;
+        }
+
+        .user-info {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(248, 250, 252, 0.9));
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 16px;
+            padding: 15px;
+            margin-bottom: 10px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .user-info h3 {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .user-detail {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 16px 20px;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.08), rgba(118, 75, 162, 0.08));
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.12);
+        }
+
+        .user-detail:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 22px rgba(102, 126, 234, 0.18);
+        }
+
+        .user-detail:last-child {
+            margin-bottom: 0;
+        }
+
+        .user-detail .label {
+            color: #334155;
+            font-weight: 600;
+        }
+
+        .user-detail .value {
+            color: #111827;
+            font-weight: 700;
+            font-size: 15px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .balance-value {
+            color: var(--accent-color) !important;
+            font-size: 1.2rem;
+        }
+
+        .recharge-form {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(248, 250, 252, 0.9));
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 16px;
+            padding: 15px;
+            margin-top: 10px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-group {
+            margin-bottom: 10px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+        .form-group input[type="number"] {
+            width: 100%;
+            padding: 15px 20px;
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid #667eea;
+            border-radius: 15px;
+            color: #1e293b;
+            font-family: 'Noto Serif SC', serif;
+            font-size: 15px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+
+        .form-group input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15);
+            background: rgba(255, 255, 255, 0.95);
+            transform: translateY(-2px);
+        }
+
+        .payment-methods {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .payment-option {
+            background: rgba(255, 255, 255, 0.15);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 14px;
+            padding: 15px 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            color: #ffffff;
+        }
+
+        .payment-option::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+            transition: left 0.5s ease;
+            z-index: 0;
+        }
+
+        .payment-option:hover {
+            border-color: #667eea;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.25);
+        }
+
+        .payment-option:hover::before {
+            left: 100%;
+        }
+
+        .payment-option input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .payment-option.selected {
+            border: 3px solid #667eea;
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
+        }
+
+        .payment-option.selected::before {
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        }
+
+        .payment-option.alipay {
+            border-color: rgba(22, 119, 255, 0.5);
+            background: linear-gradient(135deg, #1677ff, #3b82f6);
+        }
+
+        .payment-option.alipay:hover {
+            border-color: #3b82f6;
+            background: linear-gradient(135deg, #2a7dff, #5393ff);
+        }
+
+        .payment-option.alipay.selected {
+            border-color: #1677ff;
+            background: linear-gradient(135deg, #1677ff, #4f94ff);
+            box-shadow: 0 15px 40px rgba(22, 119, 255, 0.5);
+        }
+
+        .payment-option.wechat {
+            border-color: rgba(34, 197, 94, 0.5);
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+        }
+
+        .payment-option.wechat:hover {
+            border-color: #22c55e;
+            background: linear-gradient(135deg, #2fd374, #1eb059);
+        }
+
+        .payment-option.wechat.selected {
+            border-color: #22c55e;
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            box-shadow: 0 15px 40px rgba(34, 197, 94, 0.5);
+        }
+
+        .payment-content {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+
+        .payment-option i {
+            font-size: 1.8em;
+            margin-bottom: 6px;
+            color: #ffffff;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+        }
+
+        .payment-option .payment-name {
+            font-weight: 600;
+            color: #ffffff;
+            font-size: 0.9em;
+            filter: drop-shadow(0 1px 2px rgba(0,0,0,0.2));
+        }
+
+        .payment-option .payment-tag {
+            font-size: 0.75rem;
+            background: rgba(255, 255, 255, 0.3);
+            padding: 3px 8px;
+            border-radius: 999px;
+            color: #ffffff;
+            margin-top: 6px;
+            display: inline-block;
+            filter: drop-shadow(0 1px 2px rgba(0,0,0,0.2));
+        }
+
+        .payment-option.selected .payment-tag {
+            background: rgba(255, 255, 255, 0.5);
+            font-weight: 600;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 16px 24px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border: none;
+            border-radius: 16px;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 15px;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 35px rgba(102, 126, 234, 0.4);
+            background: linear-gradient(135deg, #5a67d8, #6b46c1);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        @media (max-width: 480px) {
+            .recharge-container {
+                padding: 15px;
+            }
+            
+            .recharge-header h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="recharge-container">
+        <div class="recharge-header">
+            <div class="header-top">
+                <a href="javascript:history.back()" class="back-btn">
+                    <i class="fas fa-arrow-left"></i>
+                    返回
+                </a>
+            </div>
+            <h1>账户充值</h1>
+            <p>选择充值金额和支付方式</p>
+        </div>
+
+        <div class="user-info">
+            <h3>账户信息</h3>
+            <div class="user-detail">
+                <span class="label">用户名</span>
+                <span class="value">示例用户</span>
+            </div>
+            <div class="user-detail">
+                <span class="label">当前余额</span>
+                <span class="value balance-value">￥0.00</span>
+            </div>
+        </div>
+
+        <div class="recharge-form">
+            <div class="form-group">
+                <label for="amount">充值金额</label>
+                <input type="number" id="amount" name="amount" placeholder="请输入充值金额" min="1" step="0.01">
+            </div>
+
+            <div class="form-group">
+                <label>支付方式</label>
+                <div class="payment-methods">
+                    <div class="payment-option alipay" data-method="alipay">
+                        <input type="radio" name="paymentMethod" value="alipay" id="alipay">
+                        <div class="payment-content">
+                            <i class="fab fa-alipay"></i>
+                            <div class="payment-name">支付宝</div>
+                            <div class="payment-tag ">全球支付</div>
+                        </div>
+                    </div>
+                    <div class="payment-option wechat" data-method="wechat">
+                        <input type="radio" name="paymentMethod" value="wxpay" id="wechat">
+                        <div class="payment-content">
+                            <i class="fab fa-weixin"></i>
+                            <div class="payment-name">微信支付</div>
+                            <div class="payment-tag">国内支付</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="submit-btn">
+                立即充值
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // 支付方式选择功能 + 充值对接
+        document.addEventListener('DOMContentLoaded', async function() {
+            // 兜底：确保wwPay实例存在
+            if (typeof window.wwPay === 'undefined' && typeof WWPay !== 'undefined') {
+                window.wwPay = new WWPay();
+            }
+             const paymentOptions = document.querySelectorAll('.payment-option');
+             const paymentRadios = document.querySelectorAll('input[name="paymentMethod"]');
+             const submitBtn = document.querySelector('.submit-btn');
+             const amountInput = document.getElementById('amount');
+             const usernameEl = document.querySelector('.user-info .user-detail:nth-child(2) .value');
+             const balanceEl = document.querySelector('.balance-value');
+            if (window.wwPay && typeof window.wwPay.resetPaymentState === 'function') {
+            try { window.wwPay.resetPaymentState(); } catch (e) { console.warn('重置支付状态失败', e); }
+            }
+            // 从localStorage/URL读取用户信息
+            const urlParams = new URLSearchParams(window.location.search);
+            const passedUsername = urlParams.get('username');
+            const lsUsername = localStorage.getItem('username');
+            const displayName = passedUsername || lsUsername || '未登录';
+            if (usernameEl) usernameEl.textContent = displayName;
+
+            // 如果存在预设金额（从bazinew跳转携带）
+            const presetAmount = urlParams.get('amount');
+            if (presetAmount) {
+                amountInput.value = presetAmount;
+            }
+
+            // 获取并显示余额（需要token）
+            try {
+                if (window.wwPay && typeof window.wwPay.getUserBalance === 'function') {
+                    const bal = await window.wwPay.getUserBalance();
+                    if (bal !== null && balanceEl) {
+                        balanceEl.textContent = `￥${Number(bal).toFixed(2)}`;
+                    }
+                }
+            } catch (e) {
+                console.warn('获取余额失败', e);
+            }
+
+            // 默认选中支付宝
+            if (paymentOptions.length > 0) {
+                paymentOptions[0].classList.add('selected');
+                paymentRadios[0].checked = true;
+            }
+
+            // 点击支付选项
+            paymentOptions.forEach((option, index) => {
+                option.addEventListener('click', function() {
+                    paymentOptions.forEach(opt => opt.classList.remove('selected'));
+                    paymentRadios.forEach(radio => radio.checked = false);
+                    this.classList.add('selected');
+                    paymentRadios[index].checked = true;
+                });
+            });
+
+            // 真实提交：调用wwPay创建订单并跳转
+            submitBtn.addEventListener('click', async function(e) {
+                e.preventDefault();
+                const amount = parseFloat(amountInput.value);
+                const selectedRadio = document.querySelector('input[name="paymentMethod"]:checked');
+
+                if (!amount || amount <= 0) {
+                    alert('请输入有效的充值金额');
+                    amountInput.focus();
+                    return;
+                }
+                if (!selectedRadio) {
+                    alert('请选择支付方式');
+                    return;
+                }
+
+                // 将页面的方法映射到wwPay方法期望的值
+                let method = selectedRadio.value; // 'alipay' | 'wechat'
+                if (method === 'wechat') method = 'wxpay';
+
+                // 检查登录
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    alert('请先登录后再充值');
+                    return;
+                }
+
+                // UI锁定
+                submitBtn.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+                submitBtn.textContent = '处理中...';
+                submitBtn.disabled = true;
+
+                try {
+                    if (!window.wwPay) {
+                        alert('支付系统初始化中，请稍候再试');
+                        return;
+                    }
+
+                    // 余额支付未来可能支持，这里按wishingwell逻辑：创建充值订单并跳转网关
+                    const orderResp = await window.wwPay.createRechargeOrder(amount, method);
+                    await window.wwPay.redirectToPaymentGateway(orderResp);
+                } catch (err) {
+                    console.error('充值失败:', err);
+                    alert(err && err.message ? err.message : '充值失败，请稍后重试');
+                } finally {
+                    submitBtn.style.background = '';
+                    submitBtn.textContent = '立即充值';
+                    submitBtn.disabled = false;
+                }
+            });
+        });
+    </script>
+</body>
+</html>
