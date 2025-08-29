@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>测试今日农历</title>
+    <script src="js/lunar.js"></script>
+</head>
+<body>
+    <h1>测试今日农历日期</h1>
+    <div id="result"></div>
+    
+    <script>
+        // 测试今天的日期 2025年8月26日
+        const today = new Date(2025, 7, 26); // 月份从0开始，所以8月是7
+        const solar = Solar.fromDate(today);
+        const lunar = solar.getLunar();
+        
+        const result = document.getElementById('result');
+        result.innerHTML = `
+            <p>公历日期: ${solar.getYear()}年${solar.getMonth()}月${solar.getDay()}日</p>
+            <p>农历日期: ${lunar.getYear()}年${lunar.getMonthInChinese()}${lunar.getDayInChinese()}</p>
+            <p>完整农历: ${lunar.toString()}</p>
+        `;
+        
+        console.log('公历:', solar.toString());
+        console.log('农历:', lunar.toString());
+        console.log('农历年:', lunar.getYear());
+        console.log('农历月:', lunar.getMonth());
+        console.log('农历日:', lunar.getDay());
+        console.log('农历月中文:', lunar.getMonthInChinese());
+        console.log('农历日中文:', lunar.getDayInChinese());
+    </script>
+</body>
+</html>

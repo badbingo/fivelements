@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>调试当前土性变化逻辑</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .info { background-color: #e3f2fd; border-left: 4px solid #2196f3; }
+        .success { background-color: #e8f5e8; border-left: 4px solid #4caf50; }
+        .warning { background-color: #fff3e0; border-left: 4px solid #ff9800; }
+        .error { background-color: #ffebee; border-left: 4px solid #f44336; }
+        pre {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        button {
+            background: #2196f3;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #1976d2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 调试当前土性变化逻辑</h1>
+        <p><strong>测试八字：</strong>壬子 癸丑 己巳 癸酉</p>
+        <p><strong>问题：</strong>月令得分应该从40分变为-10分，但实际仍显示40分</p>
+        
+        <button onclick="testEarthTransformation()">测试土性变化分析</button>
+        <button onclick="testMonthScoreCalculation()">测试月令得分计算</button>
+        <button onclick="testFullLogic()">测试完整逻辑</button>
+        <button onclick="clearResults()">清空结果</button>
+        
+        <div id="results"></div>
+    </div>
+
+    <script src="enhanced_strength_calculation.js"></script>
+    <script>
+        // 测试八字数据
+        const testBazi = {
+            stems: ['壬', '癸', '己', '癸'],
+            branches: ['子', '丑', '巳', '酉'],
+            monthBranch: '丑',
+            dayStem: '己'
+        };
+        
+        function addResult(content, type = 'info') {
+            const results = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = `result ${type}`;
+            div.innerHTML = content;
+            results.appendChild(div);
+        }
+        
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+        
+        // 测试土性变化分析
+        function testEarthTransformation() {
+            addResult('<h3>🌍 土性变化分析测试</h3>', 'info');
+            
+            try {
+                const earthCalculator = new EarthTransformationCalculator();
+                const result = earthCalculator.analyzeEarthTransformation(testBazi.stems, testBazi.branches);
+                
+                addResult(`<h4>分析结果：</h4>
+                    <p><strong>是否有土性变化：</strong>${result.hasTransformation ? '是' : '否'}</p>
+                    <p><strong>变化数量：</strong>${result.transformations.length}</p>`, 'info');
+                
+                if (result.transformations.length > 0) {
+                    result.transformations.forEach((trans, index) => {
+                        addResult(`<h4>变化 ${index + 1}：</h4>
+                            <p><strong>地支：</strong>${trans.branch}</p>
+                            <p><strong>位置：</strong>${trans.position}</p>
+                            <p><strong>是否变化：</strong>${trans.hasTransformation ? '是' : '否'}</p>
+                            <p><strong>水源：</strong>${trans.waterSources.join(', ')}</p>
+                            <p><strong>原因：</strong>${trans.reason}</p>
+                            <pre>${JSON.stringify(trans, null, 2)}</pre>`, 'success');
+                    });
+                } else {
+                    addResult('<p>❌ 没有检测到土性变化</p>', 'error');
+                }
+                
+                // 检查月支丑土是否被识别
+                const monthTransformation = result.transformations.find(t => t.branch === '丑');
+                if (monthTransformation) {
+                    addResult(`<h4>✅ 月支丑土变化检测：</h4>
+                        <p><strong>变化状态：</strong>${monthTransformation.hasTransformation ? '已变化' : '未变化'}</p>
+                        <p><strong>水影响源：</strong>${monthTransformation.waterSources.join(', ')}</p>`, 'success');
+                } else {
+                    addResult('<h4>❌ 月支丑土变化检测：</h4><p>未找到丑土的变化记录</p>', 'error');
+                }
+                
+            } catch (error) {
+                addResult(`<h4>❌ 错误：</h4><p>${error.message}</p><pre>${error.stack}</pre>`, 'error');
+            }
+        }
+        
+        // 测试月令得分计算
+        function testMonthScoreCalculation() {
+            addResult('<h3>📊 月令得分计算测试</h3>', 'info');
+            
+            try {
+                // 模拟 getMonthStrength 函数
+                function getMonthStrength(dayElement, monthBranch) {
+                    // 己土生于丑月，同类相助
+                    if (dayElement === 'earth' && monthBranch === '丑') {
+                        return 40; // 传统得分
+                    }
+                    return 0;
+                }
+                
+                const earthCalculator = new EarthTransformationCalculator();
+                const earthResult = earthCalculator.analyzeEarthTransformation(testBazi.stems, testBazi.branches);
+                
+                // 计算传统月令得分
+                let monthScore = getMonthStrength('earth', '丑');
+                addResult(`<p><strong>传统月令得分：</strong>${monthScore}分</p>`, 'info');
+                
+                // 应用土性变化逻辑
+                if (earthResult.hasTransformation) {
+                    const monthBranchTransformation = earthResult.transformations.find(t => t.branch === '丑');
+                    if (monthBranchTransformation && monthBranchTransformation.hasTransformation) {
+                        addResult(`<h4>🔄 应用土性变化：</h4>
+                            <p><strong>月支：</strong>${monthBranchTransformation.branch}</p>
+                            <p><strong>变化状态：</strong>${monthBranchTransformation.hasTransformation}</p>
+                            <p><strong>原因：</strong>${monthBranchTransformation.reason}</p>`, 'info');
+                        
+                        const originalScore = monthScore;
+                        
+                        // 根据变化强度调整得分
+                        if (monthBranchTransformation.reductionRate >= 0.5) {
+                            // 湿土转化为水性，对土日主完全失去生扶，变为克制
+                            monthScore = -10;
+                            addResult(`<p><strong>调整后月令得分：</strong>${originalScore} → ${monthScore}分（湿土转水性，对土日主变为克制）</p>`, 'success');
+                        } else {
+                            // 土性减弱
+                            monthScore = Math.round(monthScore * 0.5);
+                            addResult(`<p><strong>调整后月令得分：</strong>${originalScore} → ${monthScore}分（土性减弱）</p>`, 'warning');
+                        }
+                    } else {
+                        addResult('<p>❌ 月支丑土未发生变化，月令得分保持不变</p>', 'error');
+                    }
+                } else {
+                    addResult('<p>❌ 没有检测到任何土性变化</p>', 'error');
+                }
+                
+            } catch (error) {
+                addResult(`<h4>❌ 错误：</h4><p>${error.message}</p><pre>${error.stack}</pre>`, 'error');
+            }
+        }
+        
+        // 测试完整逻辑
+        function testFullLogic() {
+            addResult('<h3>🔧 完整逻辑测试</h3>', 'info');
+            
+            try {
+                const earthCalculator = new EarthTransformationCalculator();
+                
+                // 1. 分析水影响
+                addResult('<h4>1. 分析水影响：</h4>', 'info');
+                const waterInfluences = [];
+                
+                // 检查天干水
+                testBazi.stems.forEach((stem, index) => {
+                    if (['壬', '癸'].includes(stem)) {
+                        const positionName = ['年', '月', '日', '时'][index];
+                        waterInfluences.push(`${positionName}干${stem}`);
+                    }
+                });
+                
+                // 检查地支水
+                testBazi.branches.forEach((branch, index) => {
+                    if (['子', '亥'].includes(branch)) {
+                        const positionName = ['年', '月', '日', '时'][index];
+                        waterInfluences.push(`${positionName}支${branch}`);
+                    }
+                });
+                
+                addResult(`<p><strong>水影响源：</strong>${waterInfluences.join(', ')}</p>`, 'info');
+                
+                // 2. 检查丑土位置的水影响
+                addResult('<h4>2. 检查丑土（月支）的水影响：</h4>', 'info');
+                const uglyPosition = 1; // 月支位置
+                let waterInfluence = 0;
+                
+                // 本柱天干（癸）
+                if (testBazi.stems[uglyPosition] === '癸') {
+                    waterInfluence += 0.8;
+                    addResult('<p>✅ 本柱天干癸水：+0.8</p>', 'success');
+                }
+                
+                // 相邻地支（子）
+                if (testBazi.branches[uglyPosition - 1] === '子') {
+                    waterInfluence += 0.6;
+                    addResult('<p>✅ 左邻地支子水：+0.6</p>', 'success');
+                }
+                
+                // 其他天干水
+                testBazi.stems.forEach((stem, index) => {
+                    if (index !== uglyPosition && ['壬', '癸'].includes(stem)) {
+                        waterInfluence += 0.4;
+                        const positionName = ['年', '月', '日', '时'][index];
+                        addResult(`<p>✅ ${positionName}干${stem}：+0.4</p>`, 'success');
+                    }
+                });
+                
+                addResult(`<p><strong>总水影响：</strong>${waterInfluence}</p>`, waterInfluence >= 0.5 ? 'success' : 'warning');
+                addResult(`<p><strong>是否达到变化阈值（≥0.5）：</strong>${waterInfluence >= 0.5 ? '是' : '否'}</p>`, waterInfluence >= 0.5 ? 'success' : 'error');
+                
+                // 3. 调用实际的土性变化分析
+                addResult('<h4>3. 实际土性变化分析结果：</h4>', 'info');
+                const result = earthCalculator.analyzeEarthTransformation(testBazi.stems, testBazi.branches);
+                addResult(`<pre>${JSON.stringify(result, null, 2)}</pre>`, 'info');
+                
+            } catch (error) {
+                addResult(`<h4>❌ 错误：</h4><p>${error.message}</p><pre>${error.stack}</pre>`, 'error');
+            }
+        }
+    </script>
+</body>
+</html>

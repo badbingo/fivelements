@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>测试特定八字 - 壬子癸丑己巳癸酉</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .result {
+            background: #f8f9fa;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border-left: 4px solid #007bff;
+        }
+        .highlight {
+            background: #ffeb3b;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .console-output {
+            background: #000;
+            color: #0f0;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>测试特定八字：壬子癸丑己巳癸酉</h1>
+        
+        <div class="result">
+            <h3>八字信息</h3>
+            <p><strong>年柱：</strong>壬子</p>
+            <p><strong>月柱：</strong>癸丑</p>
+            <p><strong>日柱：</strong>己巳</p>
+            <p><strong>时柱：</strong>癸酉</p>
+            <p><strong>日主：</strong>己土</p>
+        </div>
+        
+        <button onclick="testBaziCalculation()">测试baziphone.html算法</button>
+        <button onclick="clearResults()">清空结果</button>
+        
+        <div id="results"></div>
+        <div id="console-output" class="console-output" style="display:none;"></div>
+    </div>
+
+    <script>
+        // 重写console.log来捕获输出
+        const originalConsoleLog = console.log;
+        let consoleOutput = '';
+        console.log = function(...args) {
+            const message = args.map(arg => 
+                typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
+            ).join(' ');
+            consoleOutput += message + '\n';
+            originalConsoleLog.apply(console, args);
+            
+            // 更新控制台输出显示
+            const consoleDiv = document.getElementById('console-output');
+            if (consoleDiv) {
+                consoleDiv.textContent = consoleOutput;
+                consoleDiv.scrollTop = consoleDiv.scrollHeight;
+            }
+        };
+        
+        function addResult(content, className = '') {
+            const resultsDiv = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = `result ${className}`;
+            div.innerHTML = content;
+            resultsDiv.appendChild(div);
+        }
+        
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+            consoleOutput = '';
+            document.getElementById('console-output').textContent = '';
+            document.getElementById('console-output').style.display = 'none';
+        }
+        
+        function testBaziCalculation() {
+            clearResults();
+            
+            // 设置测试八字
+            const year = '壬子';
+            const month = '癸丑';
+            const day = '己巳';
+            const hour = '癸酉';
+            
+            addResult(`<h3>开始测试八字计算</h3>
+                <p>八字：${year} ${month} ${day} ${hour}</p>`);
+            
+            // 模拟baziphone.html的环境
+            window.currentPillars = {
+                year: year,
+                month: month,
+                day: day,
+                hour: hour
+            };
+            
+            // 初始化基础五行分布
+            const elements = {
+                wood: 0,
+                fire: 0,
+                earth: 0,
+                metal: 0,
+                water: 0
+            };
+            
+            // 天干五行映射
+            const stemElementMap = {
+                '甲': 'wood', '乙': 'wood',
+                '丙': 'fire', '丁': 'fire',
+                '戊': 'earth', '己': 'earth',
+                '庚': 'metal', '辛': 'metal',
+                '壬': 'water', '癸': 'water'
+            };
+            
+            // 地支五行映射
+            const branchElementMap = {
+                '子': 'water', '丑': 'earth', '寅': 'wood', '卯': 'wood',
+                '辰': 'earth', '巳': 'fire', '午': 'fire', '未': 'earth',
+                '申': 'metal', '酉': 'metal', '戌': 'earth', '亥': 'water'
+            };
+            
+            // 计算天干五行
+            [year[0], month[0], day[0], hour[0]].forEach(stem => {
+                const element = stemElementMap[stem];
+                if (element) elements[element] += 1;
+            });
+            
+            // 计算地支五行
+            [year[1], month[1], day[1], hour[1]].forEach(branch => {
+                const element = branchElementMap[branch];
+                if (element) elements[element] += 1;
+            });
+            
+            console.log('初始五行分布:', elements);
+            
+            // 显示控制台输出
+            document.getElementById('console-output').style.display = 'block';
+            
+            try {
+                // 模拟必要的函数
+                window.getSupportElements = function(dayElement) {
+                    const supportMap = {
+                        'wood': ['wood', 'water'],
+                        'fire': ['fire', 'wood'],
+                        'earth': ['earth', 'fire'],
+                        'metal': ['metal', 'earth'],
+                        'water': ['water', 'metal']
+                    };
+                    return supportMap[dayElement] || [];
+                };
+                
+                window.getWeakenElements = function(dayElement) {
+                    const weakenMap = {
+                        'wood': ['metal', 'fire', 'earth'],
+                        'fire': ['water', 'earth', 'metal'],
+                        'earth': ['wood', 'metal', 'water'],
+                        'metal': ['fire', 'water', 'wood'],
+                        'water': ['earth', 'wood', 'fire']
+                    };
+                    return weakenMap[dayElement] || [];
+                };
+                
+                window.getMonthStrength = function(dayElement, monthBranch, combined) {
+                    // 简化的月令得分计算
+                    console.log(`月令得分计算 - 日主:${dayElement}, 月支:${monthBranch}`);
+                    
+                    // 己土在丑月的基础得分
+                    if (dayElement === 'earth' && monthBranch === '丑') {
+                        return -10; // 根据之前的分析，应该是-10分
+                    }
+                    
+                    return 0;
+                };
+                
+                window.checkCombinations = function(dayStem, monthBranch, passedBranches) {
+                    console.log('检查合化情况...');
+                    
+                    // 检查巳酉丑三合金局
+                    const branches = ['子', '丑', '巳', '酉'];
+                    const hasTriple = branches.includes('巳') && branches.includes('酉') && branches.includes('丑');
+                    
+                    const result = {
+                        tianGanWuHe: [],
+                        diZhiLiuHe: [],
+                        diZhiSanHe: [],
+                        diZhiSanHui: []
+                    };
+                    
+                    if (hasTriple) {
+                        result.diZhiSanHe.push({
+                            type: '巳酉丑',
+                            element: 'metal',
+                            count: 3,
+                            branches: ['巳', '酉', '丑']
+                        });
+                        console.log('发现巳酉丑三合金局');
+                    }
+                    
+                    // 检查子丑合土
+                    if (branches.includes('子') && branches.includes('丑')) {
+                        result.diZhiLiuHe.push({
+                            zhi1: '子',
+                            zhi2: '丑',
+                            element: 'earth'
+                        });
+                        console.log('发现子丑合土');
+                    }
+                    
+                    return result;
+                };
+                
+                window.checkFollowingPattern = function(dayElement, monthBranch, strengthRatio, supportStrength, weakenStrength, monthScore, tripleAnalysis) {
+                    console.log('检查从格模式...');
+                    
+                    // 简化的从格判断
+                    if (supportStrength < weakenStrength * 0.2 && monthScore < 0) {
+                        return {
+                            isFollowing: true,
+                            type: '从弱',
+                            description: '日主极弱，从弱格'
+                        };
+                    }
+                    
+                    return {
+                        isFollowing: false,
+                        type: '',
+                        description: ''
+                    };
+                };
+                
+                // 模拟EarthTransformationCalculator
+                window.EarthTransformationCalculator = function() {
+                    this.calculateEnhancedElements = function(allStems, allBranches, BRANCH_ELEMENTS) {
+                        console.log('使用增强版五行计算...');
+                        return {
+                            elements: elements,
+                            earthTransformation: { hasTransformation: false },
+                            tripleAnalysis: { hasTriple: true, type: '巳酉丑金局' },
+                            adjustments: []
+                        };
+                    };
+                    
+                    this.analyzeCongGe = function(supportRatio, enhancedResult) {
+                        console.log('分析从格...');
+                        return {
+                            isCongGe: supportRatio < 0.15,
+                            type: '从弱',
+                            confidence: supportRatio < 0.15 ? 0.8 : 0.1,
+                            reason: '生扶力量过弱'
+                        };
+                    };
+                };
+                
+                window.calculateStrengthLevel = function(strengthPercentage, supportStrength, weakenStrength, monthScore, isFollowing, dayElement, monthBranch) {
+                    console.log(`计算强度等级 - 百分比:${strengthPercentage}%, 从格:${isFollowing.isFollowing}`);
+                    
+                    if (isFollowing.isFollowing) {
+                        return {
+                            type: isFollowing.type,
+                            description: isFollowing.description
+                        };
+                    }
+                    
+                    if (strengthPercentage < 30) {
+                        return {
+                            type: '身弱',
+                            description: '日主偏弱'
+                        };
+                    } else if (strengthPercentage > 70) {
+                        return {
+                            type: '身强',
+                            description: '日主偏强'
+                        };
+                    } else {
+                        return {
+                            type: '中和',
+                            description: '日主中和'
+                        };
+                    }
+                };
+                
+                // 手动计算结果
+                const dayStem = day[0]; // 己
+                const monthBranch = month[1]; // 丑
+                const passedStems = [year[0], month[0], day[0], hour[0]];
+                const passedBranches = [year[1], month[1], day[1], hour[1]];
+                
+                console.log('开始手动计算...');
+                console.log('日主:', dayStem, '月支:', monthBranch);
+                console.log('天干:', passedStems);
+                console.log('地支:', passedBranches);
+                
+                // 手动计算生扶克泄力量
+                const dayElement = 'earth';
+                const supportElements = ['earth', 'fire'];
+                const weakenElements = ['wood', 'metal', 'water'];
+                
+                let supportStrength = 0;
+                let weakenStrength = 0;
+                
+                supportElements.forEach(element => {
+                    supportStrength += elements[element];
+                });
+                
+                weakenElements.forEach(element => {
+                    weakenStrength += elements[element];
+                });
+                
+                console.log(`基础计算 - 生扶:${supportStrength}, 克泄:${weakenStrength}`);
+                
+                // 月令得分
+                const monthScore = -10;
+                weakenStrength += Math.abs(monthScore) / 10;
+                
+                console.log(`加入月令得分后 - 生扶:${supportStrength}, 克泄:${weakenStrength}`);
+                
+                // 合化影响
+                // 巳酉丑三合金局：6分克泄
+                weakenStrength += 6;
+                // 子丑合土：3分生扶
+                supportStrength += 3;
+                
+                console.log(`加入合化后 - 生扶:${supportStrength}, 克泄:${weakenStrength}`);
+                
+                const strengthRatio = supportStrength / (supportStrength + weakenStrength);
+                const strengthPercentage = strengthRatio * 100;
+                
+                addResult(`<h3>手动计算结果</h3>
+                    <p><strong>生扶力量：</strong>${supportStrength.toFixed(2)}</p>
+                    <p><strong>克泄力量：</strong>${weakenStrength.toFixed(2)}</p>
+                    <p><strong>强度百分比：</strong>${strengthPercentage.toFixed(2)}%</p>
+                    <p><strong>月令得分：</strong>${monthScore}</p>
+                    <p class="highlight">预期结果：生扶2.63，克泄19.63，百分比11.80%</p>`);
+                
+            } catch (error) {
+                addResult(`<h3>计算错误</h3>
+                    <p>错误信息：${error.message}</p>
+                    <p>堆栈：${error.stack}</p>`);
+            }
+        }
+        
+        // 页面加载时自动测试
+        window.onload = function() {
+            testBaziCalculation();
+        };
+    </script>
+</body>
+</html>

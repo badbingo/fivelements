@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>从格检测简单调试</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .debug { background: #f0f0f0; padding: 10px; margin: 10px 0; }
+        .result { padding: 10px; margin: 10px 0; border: 1px solid #ccc; }
+    </style>
+</head>
+<body>
+    <h1>从格检测简单调试</h1>
+    
+    <button onclick="testDirectly()">直接测试戊午己未乙酉丁丑</button>
+    
+    <div id="output"></div>
+    
+    <script>
+        function getElementFromStem(stem) {
+            const elementMap = {
+                '甲': 'wood', '乙': 'wood',
+                '丙': 'fire', '丁': 'fire',
+                '戊': 'earth', '己': 'earth',
+                '庚': 'metal', '辛': 'metal',
+                '壬': 'water', '癸': 'water'
+            };
+            return elementMap[stem];
+        }
+        
+        function countElements(stems, branches) {
+            const counts = { wood: 0, fire: 0, earth: 0, metal: 0, water: 0 };
+            
+            // 统计天干
+            stems.forEach(stem => {
+                const element = getElementFromStem(stem);
+                if (element) counts[element] += 1;
+            });
+            
+            // 统计地支（简化版）
+            const branchElements = {
+                '子': 'water', '丑': 'earth', '寅': 'wood', '卯': 'wood',
+                '辰': 'earth', '巳': 'fire', '午': 'fire', '未': 'earth',
+                '申': 'metal', '酉': 'metal', '戌': 'earth', '亥': 'water'
+            };
+            
+            branches.forEach(branch => {
+                const element = branchElements[branch];
+                if (element) counts[element] += 1;
+            });
+            
+            return counts;
+        }
+        
+        function testDirectly() {
+            const output = document.getElementById('output');
+            output.innerHTML = '';
+            
+            // 测试数据：戊午己未乙酉丁丑
+            const stems = ['戊', '己', '乙', '丁'];
+            const branches = ['午', '未', '酉', '丑'];
+            const dayStem = '乙';
+            
+            output.innerHTML += '<div class="debug"><h3>测试数据</h3>';
+            output.innerHTML += '<p>天干: ' + stems.join(' ') + '</p>';
+            output.innerHTML += '<p>地支: ' + branches.join(' ') + '</p>';
+            output.innerHTML += '<p>日干: ' + dayStem + '</p></div>';
+            
+            // 步骤1：获取日主五行
+            const dayElement = getElementFromStem(dayStem);
+            output.innerHTML += '<div class="debug"><h3>步骤1：日主五行</h3>';
+            output.innerHTML += '<p>日干 ' + dayStem + ' 对应五行: ' + dayElement + '</p></div>';
+            
+            // 步骤2：统计五行
+            const elementCounts = countElements(stems, branches);
+            output.innerHTML += '<div class="debug"><h3>步骤2：五行统计</h3>';
+            output.innerHTML += '<p>木: ' + elementCounts.wood + '</p>';
+            output.innerHTML += '<p>火: ' + elementCounts.fire + '</p>';
+            output.innerHTML += '<p>土: ' + elementCounts.earth + '</p>';
+            output.innerHTML += '<p>金: ' + elementCounts.metal + '</p>';
+            output.innerHTML += '<p>水: ' + elementCounts.water + '</p></div>';
+            
+            // 步骤3：找主导五行
+            const dominantElement = Object.keys(elementCounts).reduce((a, b) => 
+                elementCounts[a] > elementCounts[b] ? a : b);
+            output.innerHTML += '<div class="debug"><h3>步骤3：主导五行</h3>';
+            output.innerHTML += '<p>主导五行: ' + dominantElement + ' (数量: ' + elementCounts[dominantElement] + ')</p></div>';
+            
+            // 步骤4：判断从财格
+            const isFromWealth = (dayElement === 'wood' && dominantElement === 'earth');
+            output.innerHTML += '<div class="debug"><h3>步骤4：从财格判断</h3>';
+            output.innerHTML += '<p>日主五行: ' + dayElement + '</p>';
+            output.innerHTML += '<p>主导五行: ' + dominantElement + '</p>';
+            output.innerHTML += '<p>是否为从财格 (木克土): ' + isFromWealth + '</p></div>';
+            
+            // 最终结果
+            let result = '无';
+            if (isFromWealth) {
+                result = '从财格';
+            }
+            
+            output.innerHTML += '<div class="result"><h3>最终结果</h3>';
+            output.innerHTML += '<p style="font-size: 18px; font-weight: bold; color: ' + (result === '从财格' ? 'green' : 'red') + ';">检测结果: ' + result + '</p></div>';
+        }
+    </script>
+</body>
+</html>

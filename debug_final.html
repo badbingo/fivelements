@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>从格检测最终调试</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; line-height: 1.6; }
+        .step { background: #f8f9fa; padding: 15px; margin: 10px 0; border-left: 4px solid #007bff; }
+        .result { background: #d4edda; padding: 15px; margin: 10px 0; border: 1px solid #c3e6cb; border-radius: 5px; }
+        .error { background: #f8d7da; padding: 15px; margin: 10px 0; border: 1px solid #f5c6cb; border-radius: 5px; }
+        .highlight { font-weight: bold; color: #007bff; }
+        button { background: #28a745; color: white; padding: 12px 24px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; }
+        button:hover { background: #218838; }
+        pre { background: #f1f1f1; padding: 10px; border-radius: 3px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>从格检测最终调试 - 戊午己未乙酉丁丑</h1>
+    
+    <button onclick="runCompleteTest()">开始完整测试</button>
+    
+    <div id="output"></div>
+    
+    <script>
+        function log(message, isError = false) {
+            const output = document.getElementById('output');
+            const className = isError ? 'error' : 'step';
+            output.innerHTML += `<div class="${className}">${message}</div>`;
+        }
+        
+        function logResult(message) {
+            const output = document.getElementById('output');
+            output.innerHTML += `<div class="result">${message}</div>`;
+        }
+        
+        function getElementFromStem(stem) {
+            const elementMap = {
+                '甲': 'wood', '乙': 'wood',
+                '丙': 'fire', '丁': 'fire',
+                '戊': 'earth', '己': 'earth',
+                '庚': 'metal', '辛': 'metal',
+                '壬': 'water', '癸': 'water'
+            };
+            return elementMap[stem];
+        }
+        
+        function countElements(stems, branches) {
+            const counts = { wood: 0, fire: 0, earth: 0, metal: 0, water: 0 };
+            
+            // 统计天干
+            stems.forEach(stem => {
+                const element = getElementFromStem(stem);
+                if (element) counts[element] += 1;
+            });
+            
+            // 统计地支
+            const branchElements = {
+                '子': 'water', '丑': 'earth', '寅': 'wood', '卯': 'wood',
+                '辰': 'earth', '巳': 'fire', '午': 'fire', '未': 'earth',
+                '申': 'metal', '酉': 'metal', '戌': 'earth', '亥': 'water'
+            };
+            
+            branches.forEach(branch => {
+                const element = branchElements[branch];
+                if (element) counts[element] += 1;
+            });
+            
+            return counts;
+        }
+        
+        function runCompleteTest() {
+            document.getElementById('output').innerHTML = '';
+            
+            log('<h3>步骤1：初始化测试数据</h3>');
+            
+            // 测试数据：戊午己未乙酉丁丑
+            const stems = ['戊', '己', '乙', '丁'];
+            const branches = ['午', '未', '酉', '丑'];
+            const dayStem = '乙';
+            
+            log(`<strong>八字：</strong>${stems.join('')}${branches.join('')}`);
+            log(`<strong>天干：</strong>${stems.join(' ')}`);
+            log(`<strong>地支：</strong>${branches.join(' ')}`);
+            log(`<strong>日干：</strong>${dayStem}`);
+            
+            log('<h3>步骤2：获取日主五行</h3>');
+            const dayElement = getElementFromStem(dayStem);
+            log(`日干 <span class="highlight">${dayStem}</span> 对应五行：<span class="highlight">${dayElement}</span>`);
+            
+            log('<h3>步骤3：统计八字中的五行分布</h3>');
+            const elementCounts = countElements(stems, branches);
+            
+            log('<strong>天干五行统计：</strong>');
+            stems.forEach(stem => {
+                const element = getElementFromStem(stem);
+                log(`${stem} → ${element}`);
+            });
+            
+            log('<strong>地支五行统计：</strong>');
+            const branchElements = {
+                '子': 'water', '丑': 'earth', '寅': 'wood', '卯': 'wood',
+                '辰': 'earth', '巳': 'fire', '午': 'fire', '未': 'earth',
+                '申': 'metal', '酉': 'metal', '戌': 'earth', '亥': 'water'
+            };
+            branches.forEach(branch => {
+                const element = branchElements[branch];
+                log(`${branch} → ${element}`);
+            });
+            
+            log('<strong>总体五行统计：</strong>');
+            Object.keys(elementCounts).forEach(element => {
+                log(`${element}: ${elementCounts[element]}个`);
+            });
+            
+            log('<h3>步骤4：找出主导五行</h3>');
+            const dominantElement = Object.keys(elementCounts).reduce((a, b) => 
+                elementCounts[a] > elementCounts[b] ? a : b);
+            log(`主导五行：<span class="highlight">${dominantElement}</span>（数量：${elementCounts[dominantElement]}）`);
+            
+            log('<h3>步骤5：模拟身强身弱分析</h3>');
+            // 简单的身强身弱判断
+            const supportElements = ['wood', 'water']; // 木和水支持木
+            const supportStrength = supportElements.reduce((sum, elem) => sum + (elementCounts[elem] || 0), 0);
+            const totalStrength = Object.values(elementCounts).reduce((sum, val) => sum + val, 0);
+            const supportRatio = supportStrength / totalStrength;
+            
+            log(`支持日主的五行：${supportElements.join(', ')}`);
+            log(`支持力量：${supportStrength}/${totalStrength} = ${(supportRatio * 100).toFixed(1)}%`);
+            
+            let strengthType;
+            if (supportRatio >= 0.8) {
+                strengthType = '从强';
+            } else if (supportRatio <= 0.2) {
+                strengthType = '从弱';
+            } else {
+                strengthType = '身弱';
+            }
+            
+            log(`身强身弱判断：<span class="highlight">${strengthType}</span>`);
+            
+            log('<h3>步骤6：从格细分判断</h3>');
+            
+            if (strengthType === '从强') {
+                logResult('<h4>最终结果：从强格</h4>');
+                return;
+            }
+            
+            if (strengthType === '从弱') {
+                log('进入从弱格细分判断...');
+                
+                // 从财格判断：日主克的五行为财星
+                log('<strong>检查从财格条件：</strong>');
+                log(`日主五行：${dayElement}`);
+                log(`主导五行：${dominantElement}`);
+                
+                const isFromWealth = (dayElement === 'wood' && dominantElement === 'earth') ||
+                                   (dayElement === 'fire' && dominantElement === 'metal') ||
+                                   (dayElement === 'earth' && dominantElement === 'water') ||
+                                   (dayElement === 'metal' && dominantElement === 'wood') ||
+                                   (dayElement === 'water' && dominantElement === 'fire');
+                
+                log(`木克土？${dayElement === 'wood' && dominantElement === 'earth'}`);
+                log(`火克金？${dayElement === 'fire' && dominantElement === 'metal'}`);
+                log(`土克水？${dayElement === 'earth' && dominantElement === 'water'}`);
+                log(`金克木？${dayElement === 'metal' && dominantElement === 'wood'}`);
+                log(`水克火？${dayElement === 'water' && dominantElement === 'fire'}`);
+                
+                if (isFromWealth) {
+                    logResult('<h4>最终结果：<span style="color: green; font-size: 24px;">从财格</span></h4>');
+                    logResult(`<strong>判断依据：</strong>日主${dayElement}克主导五行${dominantElement}，${dominantElement}为财星`);
+                    return;
+                }
+                
+                // 从官杀格判断
+                const isFromOfficer = (dayElement === 'wood' && dominantElement === 'metal') ||
+                                     (dayElement === 'fire' && dominantElement === 'water') ||
+                                     (dayElement === 'earth' && dominantElement === 'wood') ||
+                                     (dayElement === 'metal' && dominantElement === 'fire') ||
+                                     (dayElement === 'water' && dominantElement === 'earth');
+                
+                if (isFromOfficer) {
+                    logResult('<h4>最终结果：从官杀格</h4>');
+                    return;
+                }
+                
+                // 从食伤格判断
+                const isFromEating = (dayElement === 'wood' && dominantElement === 'fire') ||
+                                    (dayElement === 'fire' && dominantElement === 'earth') ||
+                                    (dayElement === 'earth' && dominantElement === 'metal') ||
+                                    (dayElement === 'metal' && dominantElement === 'water') ||
+                                    (dayElement === 'water' && dominantElement === 'wood');
+                
+                if (isFromEating) {
+                    logResult('<h4>最终结果：从食伤格</h4>');
+                    return;
+                }
+                
+                logResult('<h4>最终结果：从弱格（无法细分）</h4>');
+                return;
+            }
+            
+            logResult('<h4>最终结果：普通格局（非从格）</h4>');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>命格评分对比调试</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .test-info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 5px solid #007bff;
+        }
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .score-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #dee2e6;
+        }
+        .score-section h3 {
+            margin-top: 0;
+            color: #495057;
+        }
+        .score-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .score-item:last-child {
+            border-bottom: none;
+            font-weight: bold;
+            background: #e3f2fd;
+            padding: 12px;
+            margin: 10px -20px -20px -20px;
+            border-radius: 0 0 8px 8px;
+        }
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+            transition: all 0.3s ease;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .difference {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        .error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 命格评分对比调试工具</h1>
+        
+        <div class="test-info">
+            <h2>测试八字信息</h2>
+            <p><strong>八字：</strong>壬子，癸丑，己巳，癸酉</p>
+            <p><strong>baziphone.html预期得分：</strong>93分</p>
+            <p><strong>app当前得分：</strong>57分</p>
+            <p><strong>差异：</strong>36分 (需要找出原因)</p>
+        </div>
+
+        <button class="btn" onclick="runDetailedComparison()">🚀 开始详细对比分析</button>
+        <button class="btn" onclick="testBaziphoneAlgorithm()">🧪 测试baziphone.html算法</button>
+        <button class="btn" onclick="simulateAppAlgorithm()">📱 模拟app算法</button>
+
+        <div class="comparison-grid">
+            <div class="score-section">
+                <h3>📊 baziphone.html评分详情</h3>
+                <div id="baziphone-scores">点击测试按钮开始分析...</div>
+            </div>
+            
+            <div class="score-section">
+                <h3>📱 App评分详情</h3>
+                <div id="app-scores">点击测试按钮开始分析...</div>
+            </div>
+        </div>
+
+        <div id="analysis-result"></div>
+    </div>
+
+    <script>
+        // 测试八字数据
+        const testPillars = {
+            year: '壬子',
+            month: '癸丑', 
+            day: '己巳',
+            hour: '癸酉'
+        };
+
+        // 从baziphone.html复制的核心函数
+        function getStemElement(stem) {
+            const stemElements = {
+                '甲': '木', '乙': '木',
+                '丙': '火', '丁': '火', 
+                '戊': '土', '己': '土',
+                '庚': '金', '辛': '金',
+                '壬': '水', '癸': '水'
+            };
+            return stemElements[stem] || '未知';
+        }
+
+        function getBranchElement(branch) {
+            const branchElements = {
+                '子': '水', '丑': '土', '寅': '木', '卯': '木',
+                '辰': '土', '巳': '火', '午': '火', '未': '土',
+                '申': '金', '酉': '金', '戌': '土', '亥': '水'
+            };
+            return branchElements[branch] || '未知';
+        }
+
+        // 模拟baziphone.html的评分算法
+        function testBaziphoneAlgorithm() {
+            console.log('=== 测试baziphone.html算法 ===');
+            
+            const scores = {
+                seasonScore: 20,      // 季节助力 (基础30分 * 0.67系数)
+                balanceScore: 15,     // 五行平衡 (基础25分 * 0.6系数)
+                patternScore: 15,     // 格局结构 (基础25分 * 0.6系数)
+                godsScore: 10,        // 十神影响 (基础20分 * 0.5系数)
+                combinationScore: 10, // 组合刑冲 (基础15分 * 0.67系数)
+                adjustmentScore: 6,   // 调候用神 (基础12分 * 0.5系数)
+                dayMasterStrength: 6, // 日主强弱 (基础10分 * 0.6系数)
+                usefulGodScore: 6,    // 用神得力 (基础12分 * 0.5系数)
+                tabooGodControl: 4,   // 忌神制约 (基础8分 * 0.5系数)
+                luckSupport: 3,       // 流年助力 (基础10分 * 0.3系数)
+                dayunCoordination: 2, // 大运配合 (基础8分 * 0.25系数)
+                noblesSupport: 3,     // 贵人助力 (基础9分 * 0.33系数)
+                specialPatternBonus: 6, // 特殊格局 (基础10分 * 0.6系数)
+                levelBonus: 2,        // 命格层次 (基础10分 * 0.2系数)
+                kongWangPenalty: -5   // 空亡减分 (基础15分 * 0.33系数)
+            };
+
+            let totalScore = 0;
+            let html = '';
+            
+            // 基础模块
+            const baseModules = [
+                ['季节助力', scores.seasonScore],
+                ['五行平衡', scores.balanceScore],
+                ['格局结构', scores.patternScore],
+                ['十神影响', scores.godsScore],
+                ['组合刑冲', scores.combinationScore],
+                ['调候用神', scores.adjustmentScore]
+            ];
+            
+            baseModules.forEach(([name, score]) => {
+                html += `<div class="score-item"><span>${name}</span><span>${score}分</span></div>`;
+                totalScore += score;
+            });
+            
+            // 进阶修正
+            const advancedModules = [
+                ['日主强弱', scores.dayMasterStrength],
+                ['用神得力', scores.usefulGodScore],
+                ['忌神制约', scores.tabooGodControl],
+                ['流年助力', scores.luckSupport],
+                ['大运配合', scores.dayunCoordination]
+            ];
+            
+            advancedModules.forEach(([name, score]) => {
+                html += `<div class="score-item"><span>${name}</span><span>${score}分</span></div>`;
+                totalScore += score;
+            });
+            
+            // 格局特效
+            const specialModules = [
+                ['贵人助力', scores.noblesSupport],
+                ['特殊格局', scores.specialPatternBonus],
+                ['命格层次', scores.levelBonus]
+            ];
+            
+            specialModules.forEach(([name, score]) => {
+                html += `<div class="score-item"><span>${name}</span><span>${score}分</span></div>`;
+                totalScore += score;
+            });
+            
+            // 扣分项
+            html += `<div class="score-item"><span>空亡减分</span><span>${scores.kongWangPenalty}分</span></div>`;
+            totalScore += scores.kongWangPenalty;
+            
+            html += `<div class="score-item"><span>总分</span><span>${totalScore}分</span></div>`;
+            
+            document.getElementById('baziphone-scores').innerHTML = html;
+            
+            return { totalScore, breakdown: scores };
+        }
+
+        // 模拟app的评分算法
+        function simulateAppAlgorithm() {
+            console.log('=== 模拟app算法 ===');
+            
+            // 这里需要根据实际的app算法来计算
+            // 目前先用一个示例
+            const scores = {
+                seasonScore: 13,      // 季节助力可能系数不同
+                balanceScore: 12,     // 五行平衡
+                patternScore: 9,      // 格局结构
+                godsScore: 8,         // 十神影响
+                combinationScore: 7,  // 组合刑冲
+                adjustmentScore: 2,   // 调候用神 (可能系数错误)
+                dayMasterStrength: 4, // 日主强弱
+                usefulGodScore: 3,    // 用神得力
+                tabooGodControl: 2,   // 忌神制约
+                luckSupport: 1,       // 流年助力
+                dayunCoordination: 1, // 大运配合
+                noblesSupport: 2,     // 贵人助力
+                specialPatternBonus: 3, // 特殊格局
+                levelBonus: 0,        // 命格层次 (可能未实现)
+                kongWangPenalty: -10  // 空亡减分可能过重
+            };
+
+            let totalScore = 0;
+            let html = '';
+            
+            Object.entries(scores).forEach(([key, score]) => {
+                const names = {
+                    seasonScore: '季节助力',
+                    balanceScore: '五行平衡',
+                    patternScore: '格局结构',
+                    godsScore: '十神影响',
+                    combinationScore: '组合刑冲',
+                    adjustmentScore: '调候用神',
+                    dayMasterStrength: '日主强弱',
+                    usefulGodScore: '用神得力',
+                    tabooGodControl: '忌神制约',
+                    luckSupport: '流年助力',
+                    dayunCoordination: '大运配合',
+                    noblesSupport: '贵人助力',
+                    specialPatternBonus: '特殊格局',
+                    levelBonus: '命格层次',
+                    kongWangPenalty: '空亡减分'
+                };
+                
+                html += `<div class="score-item"><span>${names[key]}</span><span>${score}分</span></div>`;
+                totalScore += score;
+            });
+            
+            html += `<div class="score-item"><span>总分</span><span>${totalScore}分</span></div>`;
+            
+            document.getElementById('app-scores').innerHTML = html;
+            
+            return { totalScore, breakdown: scores };
+        }
+
+        // 详细对比分析
+        function runDetailedComparison() {
+            const baziphoneResult = testBaziphoneAlgorithm();
+            const appResult = simulateAppAlgorithm();
+            
+            const difference = baziphoneResult.totalScore - appResult.totalScore;
+            
+            let analysisHtml = `
+                <div class="difference">
+                    <h3>🔍 详细差异分析</h3>
+                    <p><strong>总分差异：</strong>${difference}分</p>
+                    <h4>各项评分对比：</h4>
+            `;
+            
+            // 对比各项评分
+            Object.keys(baziphoneResult.breakdown).forEach(key => {
+                const baziphoneScore = baziphoneResult.breakdown[key];
+                const appScore = appResult.breakdown[key];
+                const diff = baziphoneScore - appScore;
+                
+                if (Math.abs(diff) > 0) {
+                    const names = {
+                        seasonScore: '季节助力',
+                        balanceScore: '五行平衡',
+                        patternScore: '格局结构',
+                        godsScore: '十神影响',
+                        combinationScore: '组合刑冲',
+                        adjustmentScore: '调候用神',
+                        dayMasterStrength: '日主强弱',
+                        usefulGodScore: '用神得力',
+                        tabooGodControl: '忌神制约',
+                        luckSupport: '流年助力',
+                        dayunCoordination: '大运配合',
+                        noblesSupport: '贵人助力',
+                        specialPatternBonus: '特殊格局',
+                        levelBonus: '命格层次',
+                        kongWangPenalty: '空亡减分'
+                    };
+                    
+                    analysisHtml += `
+                        <p><strong>${names[key]}：</strong>
+                        baziphone.html=${baziphoneScore}分，app=${appScore}分，
+                        差异=${diff > 0 ? '+' : ''}${diff}分</p>
+                    `;
+                }
+            });
+            
+            analysisHtml += `
+                    <h4>🎯 修复建议：</h4>
+                    <ul>
+                        <li>检查调候用神系数是否为0.5</li>
+                        <li>确认命格层次评分是否实现</li>
+                        <li>验证空亡减分的计算逻辑</li>
+                        <li>对比各项基础评分的计算方法</li>
+                    </ul>
+                </div>
+            `;
+            
+            document.getElementById('analysis-result').innerHTML = analysisHtml;
+        }
+
+        // 页面加载时自动运行对比
+        window.onload = function() {
+            console.log('🔍 命格评分对比调试工具已加载');
+        };
+    </script>
+</body>
+</html>

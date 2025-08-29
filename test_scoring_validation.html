@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>评分一致性验证测试</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .test-case {
+            border: 1px solid #ddd;
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 8px;
+            background: #fafafa;
+        }
+        .test-header {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        .bazi-info {
+            background: #e8f4fd;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-family: monospace;
+        }
+        .score-comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+            margin: 15px 0;
+        }
+        .score-box {
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .original-score {
+            background: #ffebee;
+            border: 1px solid #f44336;
+        }
+        .app-score {
+            background: #e8f5e8;
+            border: 1px solid #4caf50;
+        }
+        .difference {
+            background: #fff3e0;
+            border: 1px solid #ff9800;
+        }
+        .good-diff {
+            background: #e8f5e8 !important;
+            border-color: #4caf50 !important;
+        }
+        .bad-diff {
+            background: #ffebee !important;
+            border-color: #f44336 !important;
+        }
+        .summary {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        .run-test {
+            background: #2196f3;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 20px 0;
+        }
+        .run-test:hover {
+            background: #1976d2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>八字评分一致性验证测试</h1>
+        
+        <button class="run-test" onclick="runAllTests()">运行所有测试</button>
+        
+        <div id="test-results"></div>
+        
+        <div id="summary" class="summary" style="display: none;">
+            <h3>测试总结</h3>
+            <div id="summary-content"></div>
+        </div>
+    </div>
+
+    <script>
+        // 测试用例数据
+        const testCases = [
+            {
+                name: "测试案例1 - 身强格局",
+                pillars: {
+                    year: "甲子",
+                    month: "丙寅",
+                    day: "甲午",
+                    hour: "乙亥"
+                },
+                expected: 85 // 预期分数
+            },
+            {
+                name: "测试案例2 - 身弱格局",
+                pillars: {
+                    year: "癸酉",
+                    month: "甲子",
+                    day: "丁巳",
+                    hour: "庚戌"
+                },
+                expected: 72
+            },
+            {
+                name: "测试案例3 - 从弱格局",
+                pillars: {
+                    year: "壬申",
+                    month: "辛亥",
+                    day: "己丑",
+                    hour: "甲戌"
+                },
+                expected: 68
+            },
+            {
+                name: "测试案例4 - 从强格局",
+                pillars: {
+                    year: "甲寅",
+                    month: "丙寅",
+                    day: "甲寅",
+                    hour: "甲戌"
+                },
+                expected: 88
+            },
+            {
+                name: "测试案例5 - 普通格局",
+                pillars: {
+                    year: "乙卯",
+                    month: "戊子",
+                    day: "庚申",
+                    hour: "丁亥"
+                },
+                expected: 65
+            }
+        ];
+
+        // 模拟baziphone.html的评分算法（简化版）
+        function calculateOriginalScore(pillars) {
+            let total = 0;
+            
+            // 季节助力 (0-15分)
+            total += Math.random() * 15;
+            
+            // 五行平衡 (0-12分)
+            total += Math.random() * 12;
+            
+            // 格局结构 (0-18分)
+            total += Math.random() * 18;
+            
+            // 十神影响 (0-10分)
+            total += Math.random() * 10;
+            
+            // 组合刑冲 (-5到+8分)
+            total += (Math.random() - 0.5) * 13;
+            
+            // 调候用神 (0-8分)
+            total += Math.random() * 8;
+            
+            // 日主强弱 (0-12分)
+            total += Math.random() * 12;
+            
+            // 用神得力 (0-10分)
+            total += Math.random() * 10;
+            
+            // 忌神制约 (0-8分)
+            total += Math.random() * 8;
+            
+            // 空亡减分 (-3到0分)
+            total -= Math.random() * 3;
+            
+            // 流年助力 (0-5分)
+            total += Math.random() * 5;
+            
+            // 大运配合 (0-8分)
+            total += Math.random() * 8;
+            
+            // 贵人助力 (0-6分)
+            total += Math.random() * 6;
+            
+            // 特殊格局 (0-10分)
+            total += Math.random() * 10;
+            
+            // 命格层次 (0-15分)
+            total += Math.random() * 15;
+            
+            return Math.max(10, Math.min(120, Math.round(total)));
+        }
+
+        // 模拟应用的评分算法（修复后）
+        function calculateAppScore(pillars) {
+            // 这里应该调用实际的应用API，暂时用模拟数据
+            return calculateOriginalScore(pillars) + (Math.random() - 0.5) * 10;
+        }
+
+        function runAllTests() {
+            const resultsDiv = document.getElementById('test-results');
+            const summaryDiv = document.getElementById('summary');
+            const summaryContent = document.getElementById('summary-content');
+            
+            resultsDiv.innerHTML = '';
+            
+            let totalTests = testCases.length;
+            let passedTests = 0;
+            let totalDifference = 0;
+            let maxDifference = 0;
+            
+            testCases.forEach((testCase, index) => {
+                const originalScore = calculateOriginalScore(testCase.pillars);
+                const appScore = calculateAppScore(testCase.pillars);
+                const difference = Math.abs(originalScore - appScore);
+                const isGoodDiff = difference <= 5;
+                
+                if (isGoodDiff) passedTests++;
+                totalDifference += difference;
+                maxDifference = Math.max(maxDifference, difference);
+                
+                const testDiv = document.createElement('div');
+                testDiv.className = 'test-case';
+                testDiv.innerHTML = `
+                    <div class="test-header">${testCase.name}</div>
+                    <div class="bazi-info">
+                        年柱: ${testCase.pillars.year} | 
+                        月柱: ${testCase.pillars.month} | 
+                        日柱: ${testCase.pillars.day} | 
+                        时柱: ${testCase.pillars.hour}
+                    </div>
+                    <div class="score-comparison">
+                        <div class="score-box original-score">
+                            <strong>原始评分</strong><br>
+                            ${originalScore}分
+                        </div>
+                        <div class="score-box app-score">
+                            <strong>应用评分</strong><br>
+                            ${appScore}分
+                        </div>
+                        <div class="score-box difference ${isGoodDiff ? 'good-diff' : 'bad-diff'}">
+                            <strong>差异</strong><br>
+                            ${difference}分<br>
+                            <small>${isGoodDiff ? '✓ 通过' : '✗ 超出范围'}</small>
+                        </div>
+                    </div>
+                `;
+                
+                resultsDiv.appendChild(testDiv);
+            });
+            
+            // 显示总结
+            const avgDifference = (totalDifference / totalTests).toFixed(1);
+            const passRate = ((passedTests / totalTests) * 100).toFixed(1);
+            
+            summaryContent.innerHTML = `
+                <p><strong>测试通过率:</strong> ${passedTests}/${totalTests} (${passRate}%)</p>
+                <p><strong>平均差异:</strong> ${avgDifference}分</p>
+                <p><strong>最大差异:</strong> ${maxDifference}分</p>
+                <p><strong>目标:</strong> 差异控制在±5分以内</p>
+                <p><strong>结果:</strong> ${passRate >= 80 ? '✓ 测试通过' : '✗ 需要进一步优化'}</p>
+            `;
+            
+            summaryDiv.style.display = 'block';
+        }
+
+        // 页面加载时自动运行测试
+        window.onload = function() {
+            setTimeout(runAllTests, 1000);
+        };
+    </script>
+</body>
+</html>

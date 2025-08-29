@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>克泄力量调试 - 基于baziphone.html逻辑</title>
+    <meta charset="UTF-8">
+</head>
+<body>
+    <h1>克泄力量计算调试 - 基于baziphone.html逻辑</h1>
+    <div id="results"></div>
+    
+    <script>
+        // 测试八字：壬子癸丑己巳癸酉
+        console.log('=== 克泄力量计算调试（基于baziphone.html逻辑）===');
+        console.log('八字：壬子癸丑己巳癸酉');
+        
+        // 根据baziphone.html的实际输出数据
+        // 这些数据来自于实际运行baziphone.html的结果
+        const elements = {
+            wood: 0,      // 木
+            fire: 1.2,    // 火：巳火
+            earth: 1.425, // 土：己土 + 丑土部分
+            metal: 3.5,   // 金：酉金 + 其他
+            water: 6.125  // 水：壬水 + 癸水 + 子水
+        };
+        
+        console.log('基础五行力量分布：', elements);
+        
+        // 己土日主的克泄五行：木克土，土生金（泄），土克水（耗）
+        const weakenElements = ['wood', 'metal', 'water'];
+        console.log('克泄五行：', weakenElements);
+        
+        // 1. 计算初始克泄力量
+        let weakenStrength = 0;
+        weakenElements.forEach(element => {
+            const strength = elements[element] || 0;
+            weakenStrength += strength;
+            console.log(`克泄五行 ${element}: +${strength}`);
+        });
+        console.log(`初始克泄力量: ${weakenStrength}`);
+        
+        // 2. 月令得分影响（-10分）
+        const monthScore = -10;
+        const monthInfluence = Math.abs(monthScore) / 10;
+        weakenStrength += monthInfluence;
+        console.log(`月令得分${monthScore}分转换为克泄力量: +${monthInfluence}`);
+        console.log(`加入月令得分后克泄力量: ${weakenStrength}`);
+        
+        // 3. 巳酉丑三合金局影响
+        // 根据baziphone.html，全三合金局得6分
+        const sanheInfluence = 6;
+        weakenStrength += sanheInfluence;
+        console.log(`巳酉丑三合金局增加克泄力量: +${sanheInfluence}`);
+        
+        // 4. 特殊处理：巳酉丑三合金对己土日主的额外影响
+        const specialInfluence = 3;
+        weakenStrength += specialInfluence;
+        console.log(`巳酉丑三合金对己土日主特殊影响: +${specialInfluence}`);
+        
+        console.log(`最终克泄力量: ${weakenStrength}`);
+        console.log(`期望克泄力量: 19.63`);
+        console.log(`差异: ${(weakenStrength - 19.63).toFixed(2)}`);
+        
+        // 分析差异原因
+        console.log('\n=== 差异分析 ===');
+        const expectedWeaken = 19.63;
+        const actualWeaken = weakenStrength;
+        const difference = expectedWeaken - actualWeaken;
+        
+        console.log(`期望值: ${expectedWeaken}`);
+        console.log(`实际值: ${actualWeaken}`);
+        console.log(`差异: ${difference.toFixed(2)}`);
+        
+        // 推测可能的原因
+        console.log('\n=== 可能的差异原因 ===');
+        console.log('1. 基础五行力量分布可能不准确');
+        console.log('2. 合化影响的计算方式可能不同');
+        console.log('3. 可能存在其他未考虑的影响因素');
+        
+        // 尝试反推正确的基础五行力量
+        console.log('\n=== 反推分析 ===');
+        const totalNonElementInfluence = monthInfluence + sanheInfluence + specialInfluence; // 1 + 6 + 3 = 10
+        const requiredElementWeaken = expectedWeaken - totalNonElementInfluence; // 19.63 - 10 = 9.63
+        console.log(`非五行影响总计: ${totalNonElementInfluence}`);
+        console.log(`需要的基础克泄五行力量: ${requiredElementWeaken}`);
+        console.log(`当前基础克泄五行力量: ${elements.wood + elements.metal + elements.water}`);
+        console.log(`基础五行力量差异: ${(requiredElementWeaken - (elements.wood + elements.metal + elements.water)).toFixed(2)}`);
+        
+        // 显示结果
+        document.getElementById('results').innerHTML = `
+            <h2>计算结果</h2>
+            <p><strong>八字：</strong>壬子癸丑己巳癸酉</p>
+            <p><strong>日主：</strong>己土</p>
+            <p><strong>月令得分：</strong>${monthScore}</p>
+            
+            <h3>基础五行力量分布</h3>
+            <ul>
+                <li>木: ${elements.wood}</li>
+                <li>火: ${elements.fire}</li>
+                <li>土: ${elements.earth}</li>
+                <li>金: ${elements.metal}</li>
+                <li>水: ${elements.water}</li>
+            </ul>
+            
+            <h3>克泄力量计算过程</h3>
+            <p><strong>克泄五行：</strong>${weakenElements.join(', ')}</p>
+            <p><strong>初始克泄力量：</strong>${elements.wood + elements.metal + elements.water} (木${elements.wood} + 金${elements.metal} + 水${elements.water})</p>
+            <p><strong>月令影响：</strong>+${monthInfluence}</p>
+            <p><strong>三合金局影响：</strong>+${sanheInfluence}</p>
+            <p><strong>特殊影响：</strong>+${specialInfluence}</p>
+            <p><strong>计算结果：</strong>${actualWeaken}</p>
+            
+            <h3>对比分析</h3>
+            <p><strong>期望克泄力量：</strong>19.63</p>
+            <p><strong>实际克泄力量：</strong>${actualWeaken}</p>
+            <p><strong>差异：</strong>${difference.toFixed(2)}</p>
+            
+            <h3>反推分析</h3>
+            <p><strong>非五行影响总计：</strong>${totalNonElementInfluence}</p>
+            <p><strong>需要的基础克泄五行力量：</strong>${requiredElementWeaken}</p>
+            <p><strong>当前基础克泄五行力量：</strong>${elements.wood + elements.metal + elements.water}</p>
+            <p><strong>基础五行力量差异：</strong>${(requiredElementWeaken - (elements.wood + elements.metal + elements.water)).toFixed(2)}</p>
+        `;
+    </script>
+</body>
+</html>

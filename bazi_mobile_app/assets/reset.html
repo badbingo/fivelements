@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>重设密码 - 八字命理</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      background: linear-gradient(to bottom right, #f9fafb, #e2e8f0);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .container {
+      background: white;
+      padding: 2.5rem;
+      border-radius: 1rem;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 400px;
+    }
+    h2 {
+      margin-bottom: 1.5rem;
+      font-size: 1.5rem;
+      text-align: center;
+      color: #1a202c;
+    }
+    .input-group {
+      position: relative;
+      margin-bottom: 1rem;
+    }
+    input {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid #cbd5e0;
+      border-radius: 0.5rem;
+      font-size: 1rem;
+      transition: 0.3s;
+      box-sizing: border-box;
+    }
+    input:focus {
+      border-color: #3182ce;
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(66, 153, 225, 0.4);
+    }
+    .toggle-password {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      color: #718096;
+      user-select: none;
+    }
+    .toggle-password:hover {
+      color: #3182ce;
+    }
+    button {
+      width: 100%;
+      padding: 0.75rem;
+      background: #3182ce;
+      color: white;
+      font-size: 1rem;
+      border: none;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    button:hover {
+      background: #2b6cb0;
+    }
+    button:disabled {
+      background: #90cdf4;
+      cursor: not-allowed;
+    }
+    .spinner {
+      display: none;
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 0.8s linear infinite;
+      margin-right: 8px;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .message {
+      margin-top: 1rem;
+      font-size: 0.95rem;
+      color: #2d3748;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>重设密码</h2>
+    <form id="resetForm">
+      <div class="input-group">
+        <input type="password" id="newPassword" placeholder="请输入新密码" required />
+        <span class="toggle-password">👁️</span>
+      </div>
+      <div class="input-group">
+        <input type="password" id="confirmPassword" placeholder="确认新密码" required />
+        <span class="toggle-password">👁️</span>
+      </div>
+      <button type="submit"><span class="spinner"></span><span class="button-text">提交重设</span></button>
+      <div class="message" id="message"></div>
+    </form>
+  </div>
+
+  <script>
+    // 页面加载时检查URL参数
+    window.addEventListener('DOMContentLoaded', () => {
+      const params = new URLSearchParams(window.location.search);
+      console.log('URL参数:', Object.fromEntries(params.entries()));
+    });
+    
+    // API配置
+    const API_BASE = 'https://api.mybazi.net';
+    
+    // 切换密码显示/隐藏
+    document.querySelectorAll('.toggle-password').forEach(icon => {
+      icon.addEventListener('click', function() {
+        const input = this.previousElementSibling;
+        if (input.type === 'password') {
+          input.type = 'text';
+          this.textContent = '👁️';
+        } else {
+          input.type = 'password';
+          this.textContent = '👁️';
+        }
+      });
+    });
+
+    document.getElementById('resetForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const newPassword = document.getElementById('newPassword').value;
+      const confirmPassword = document.getElementById('confirmPassword').value;
+      const msg = document.getElementById('message');
+      const submitButton = document.querySelector('button[type="submit"]');
+      const spinner = submitButton.querySelector('.spinner');
+      const buttonText = submitButton.querySelector('.button-text');
+
+      if (newPassword !== confirmPassword) {
+        msg.textContent = '两次输入的密码不一致';
+        return;
+      }
+
+      const params = new URLSearchParams(window.location.search);
+      const token = params.get('token');
+      if (!token) {
+        msg.textContent = '链接无效，请重新申请重设密码';
+        console.error('未找到token参数');
+        return;
+      }
+      console.log('获取到token:', token);
+
+      // 显示加载状态
+      submitButton.disabled = true;
+      spinner.style.display = 'block';
+      buttonText.textContent = '发送中...';
+
+      try {
+        console.log('准备发送重置密码请求到:', `${API_BASE}/api/reset-password`);
+        console.log('请求数据:', { token, newPassword: '***' });
+        
+        const res = await fetch(`${API_BASE}/api/reset-password`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token, newPassword })
+        });
+
+        console.log('API响应状态:', res.status);
+        const responseText = await res.text();
+        console.log('API原始响应:', responseText);
+        
+        let result;
+        try {
+          result = JSON.parse(responseText);
+          console.log('API响应内容:', result);
+        } catch (parseErr) {
+          console.error('解析响应JSON失败:', parseErr);
+          msg.textContent = '服务器响应格式错误';
+        }
+        
+        if (res.ok) {
+          msg.textContent = '密码重设成功，请重新登录';
+        } else {
+          msg.textContent = result.error || '重设失败，请稍后重试';
+        }
+      } catch (err) {
+        console.error('请求错误:', err);
+        msg.textContent = '网络错误，请稍后重试';
+      } finally {
+        // 无论成功或失败，1秒后恢复按钮状态
+        setTimeout(() => {
+          submitButton.disabled = false;
+          spinner.style.display = 'none';
+          buttonText.textContent = '提交重设';
+        }, 1000);
+      }
+    });
+  </script>
+</body>
+</html>

@@ -39,6 +39,30 @@ jobs:
             echo "No package.json found, skipping npm install"
           fi
         
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.3'
+          channel: 'stable'
+          
+      - name: Build Flutter Web App
+        run: |
+          cd bazi_mobile_app
+          flutter pub get
+          flutter build web --release
+          
+      - name: Copy Flutter Web Build
+        run: |
+          # 复制Flutter Web构建结果到根目录
+          cp -r bazi_mobile_app/build/web/* ./
+          # 确保保留原有的静态文件
+          if [ -d "css" ]; then
+            echo "保留原有CSS文件"
+          fi
+          if [ -d "js" ]; then
+            echo "保留原有JS文件"
+          fi
+        
       - name: Update API Configuration
         run: |
           # 检查是否设置了WORKERS_URL环境变量

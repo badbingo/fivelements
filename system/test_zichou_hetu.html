@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>子丑合土月令得分测试</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+        }
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+        }
+        .test-case {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 5px solid #007bff;
+        }
+        .result {
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #28a745;
+        }
+        .result.error {
+            border-left-color: #dc3545;
+            background: #f8d7da;
+        }
+        .result.warning {
+            border-left-color: #ffc107;
+            background: #fff3cd;
+        }
+        .result.success {
+            border-left-color: #28a745;
+            background: #d4edda;
+        }
+        .result.info {
+            border-left-color: #17a2b8;
+            background: #d1ecf1;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        .comparison-table th, .comparison-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        .comparison-table th {
+            background: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 子丑合土月令得分测试</h1>
+        <div class="test-case">
+            <h3>用户反馈问题</h3>
+            <p><strong>问题描述：</strong>八字中有子丑合土，月令是丑，日主是土，但月令得分只有33分，用户认为应该至少40分</p>
+            <p><strong>用户期望：</strong>子丑合土天干透出，应该增加月令（丑）的土能量，月令不应该低于40分</p>
+        </div>
+        
+        <button onclick="testZiChouHeTu()">测试子丑合土月令得分</button>
+        <button onclick="testDifferentCases()">测试不同情况对比</button>
+        <button onclick="clearResults()">清空结果</button>
+        
+        <div id="results"></div>
+    </div>
+
+    <script>
+        // 基础映射
+        const stemElementMap = {
+            '甲': 'wood', '乙': 'wood',
+            '丙': 'fire', '丁': 'fire',
+            '戊': 'earth', '己': 'earth',
+            '庚': 'metal', '辛': 'metal',
+            '壬': 'water', '癸': 'water'
+        };
+        
+        const branchElementMap = {
+            '子': 'water', '丑': 'earth', '寅': 'wood', '卯': 'wood',
+            '辰': 'earth', '巳': 'fire', '午': 'fire', '未': 'earth',
+            '申': 'metal', '酉': 'metal', '戌': 'earth', '亥': 'water'
+        };
+        
+        function addResult(content, type = 'info') {
+            const results = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = `result ${type}`;
+            div.innerHTML = content;
+            results.appendChild(div);
+        }
+        
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+        
+        // 模拟六合检测
+        function checkLiuHe(branches) {
+            const diZhiLiuHe = {
+                '子丑': 'earth',
+                '寅亥': 'wood',
+                '卯戌': 'fire',
+                '辰酉': 'metal',
+                '巳申': 'water',
+                '午未': 'earth'
+            };
+            
+            const combinations = [];
+            for (let i = 0; i < branches.length; i++) {
+                for (let j = i + 1; j < branches.length; j++) {
+                    const pair1 = branches[i] + branches[j];
+                    const pair2 = branches[j] + branches[i];
+                    if (diZhiLiuHe[pair1] || diZhiLiuHe[pair2]) {
+                        const element = diZhiLiuHe[pair1] || diZhiLiuHe[pair2];
+                        combinations.push({
+                            zhi1: branches[i],
+                            zhi2: branches[j],
+                            element: element,
+                            positions: [i, j]
+                        });
+                    }
+                }
+            }
+            return combinations;
+        }
+        
+        // 模拟月令得分计算
+        function calculateMonthStrength(dayElement, monthBranch, combined = {}) {
+            let monthElement = combined.hasOwnProperty('monthElement') ? 
+                combined.monthElement : branchElementMap[monthBranch];
+            
+            let score = 0;
+            
+            // 基础月令得分
+            if (monthElement === dayElement) {
+                score = 40;  // 得令
+                
+                // 特殊加分：如果月支参与六合且合化元素与日主相同，额外加分
+                if (combined.hasOwnProperty('monthElement') && combined.monthElement === dayElement) {
+                    score += 20; // 六合增强，额外加20分
+                }
+            } else {
+                // 其他情况的得分逻辑
+                const supportElements = getSupportElements(dayElement);
+                if (supportElements.includes(monthElement)) {
+                    score = 20;  // 得生
+                    
+                    // 特殊加分：如果月支参与六合且合化元素生扶日主，额外加分
+                    if (combined.hasOwnProperty('monthElement') && supportElements.includes(combined.monthElement)) {
+                        score += 15; // 六合生扶，额外加15分
+                    }
+                } else {
+                    score = -20; // 被克或不得令
+                }
+            }
+            
+            return score;
+        }
+        
+        function getSupportElements(dayElement) {
+            const supportMap = {
+                'wood': ['water', 'wood'],
+                'fire': ['wood', 'fire'],
+                'earth': ['fire', 'earth'],
+                'metal': ['earth', 'metal'],
+                'water': ['metal', 'water']
+            };
+            return supportMap[dayElement] || [];
+        }
+        
+        function testZiChouHeTu() {
+            addResult('<h3>🧪 子丑合土月令得分测试</h3>', 'info');
+            
+            // 测试案例：有子丑合土的八字
+            const testBranches = ['子', '丑', '巳', '酉']; // 假设的地支组合
+            const dayElement = 'earth'; // 土日主
+            const monthBranch = '丑'; // 丑月
+            
+            addResult(`<p><strong>测试八字地支：</strong>${testBranches.join(' ')}</p>
+                      <p><strong>日主：</strong>${dayElement} (土)</p>
+                      <p><strong>月支：</strong>${monthBranch} (丑土)</p>`, 'info');
+            
+            // 1. 检测六合
+            const liuHeCombinations = checkLiuHe(testBranches);
+            addResult(`<h4>1. 六合检测结果：</h4>`, 'info');
+            
+            if (liuHeCombinations.length > 0) {
+                liuHeCombinations.forEach(comb => {
+                    addResult(`<p>✅ 发现六合：${comb.zhi1}${comb.zhi2} 合化${comb.element === 'earth' ? '土' : comb.element}</p>`, 'success');
+                });
+            } else {
+                addResult('<p>❌ 未发现六合组合</p>', 'error');
+            }
+            
+            // 2. 检查月支是否参与六合
+            const monthInLiuHe = liuHeCombinations.find(comb => 
+                comb.zhi1 === monthBranch || comb.zhi2 === monthBranch
+            );
+            
+            let combined = {};
+            if (monthInLiuHe) {
+                combined.monthElement = monthInLiuHe.element;
+                addResult(`<h4>2. 月支参与六合：</h4>
+                          <p>✅ 月支${monthBranch}参与${monthInLiuHe.zhi1}${monthInLiuHe.zhi2}合化${monthInLiuHe.element === 'earth' ? '土' : monthInLiuHe.element}</p>
+                          <p>月令元素更新为：${monthInLiuHe.element === 'earth' ? '土' : monthInLiuHe.element}</p>`, 'success');
+            } else {
+                addResult('<h4>2. 月支参与六合：</h4><p>❌ 月支未参与六合</p>', 'warning');
+            }
+            
+            // 3. 计算月令得分
+            const monthScore = calculateMonthStrength(dayElement, monthBranch, combined);
+            
+            addResult(`<h4>3. 月令得分计算：</h4>
+                      <table class="comparison-table">
+                        <tr>
+                          <th>计算项目</th>
+                          <th>数值</th>
+                          <th>说明</th>
+                        </tr>
+                        <tr>
+                          <td>基础月令得分</td>
+                          <td>${monthScore}分</td>
+                          <td>${monthScore >= 40 ? '✅ 符合预期' : '❌ 低于预期40分'}</td>
+                        </tr>
+                        <tr>
+                          <td>月支原始属性</td>
+                          <td>${branchElementMap[monthBranch] === 'earth' ? '土' : branchElementMap[monthBranch]}</td>
+                          <td>丑土本气</td>
+                        </tr>
+                        <tr>
+                          <td>六合影响</td>
+                          <td>${monthInLiuHe ? monthInLiuHe.element === 'earth' ? '土' : monthInLiuHe.element : '无'}</td>
+                          <td>${monthInLiuHe ? '子丑合土增强' : '无六合影响'}</td>
+                        </tr>
+                      </table>`, monthScore >= 40 ? 'success' : 'error');
+            
+            // 4. 分析问题
+            if (monthScore < 40) {
+                addResult(`<h4>❌ 问题分析：</h4>
+                          <p>月令得分${monthScore}分低于用户期望的40分</p>
+                          <p><strong>可能原因：</strong></p>
+                          <ul>
+                            <li>六合检测逻辑有问题</li>
+                            <li>月令得分计算逻辑有问题</li>
+                            <li>子丑合土的加分没有正确应用</li>
+                          </ul>`, 'error');
+            } else {
+                addResult(`<h4>✅ 计算正确：</h4>
+                          <p>月令得分${monthScore}分符合预期</p>`, 'success');
+            }
+        }
+        
+        function testDifferentCases() {
+            addResult('<h3>📊 不同情况对比测试</h3>', 'info');
+            
+            const testCases = [
+                {
+                    name: '无六合的丑月土日主',
+                    branches: ['寅', '丑', '巳', '酉'],
+                    dayElement: 'earth',
+                    monthBranch: '丑'
+                },
+                {
+                    name: '有子丑合土的丑月土日主',
+                    branches: ['子', '丑', '巳', '酉'],
+                    dayElement: 'earth',
+                    monthBranch: '丑'
+                },
+                {
+                    name: '有子丑合土但非土日主',
+                    branches: ['子', '丑', '巳', '酉'],
+                    dayElement: 'water',
+                    monthBranch: '丑'
+                }
+            ];
+            
+            testCases.forEach((testCase, index) => {
+                const liuHeCombinations = checkLiuHe(testCase.branches);
+                const monthInLiuHe = liuHeCombinations.find(comb => 
+                    comb.zhi1 === testCase.monthBranch || comb.zhi2 === testCase.monthBranch
+                );
+                
+                let combined = {};
+                if (monthInLiuHe) {
+                    combined.monthElement = monthInLiuHe.element;
+                }
+                
+                const monthScore = calculateMonthStrength(testCase.dayElement, testCase.monthBranch, combined);
+                
+                addResult(`<h4>案例${index + 1}：${testCase.name}</h4>
+                          <p><strong>地支：</strong>${testCase.branches.join(' ')}</p>
+                          <p><strong>日主：</strong>${testCase.dayElement}</p>
+                          <p><strong>六合：</strong>${monthInLiuHe ? `${monthInLiuHe.zhi1}${monthInLiuHe.zhi2}合${monthInLiuHe.element}` : '无'}</p>
+                          <p><strong>月令得分：</strong>${monthScore}分</p>`, 'info');
+            });
+        }
+    </script>
+</body>
+</html>

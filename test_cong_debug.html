@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>从格检测完整调试</title>
+</head>
+<body>
+    <h1>从格检测完整调试</h1>
+    <div id="result"></div>
+    
+    <script>
+        // 从bazinew.html复制的完整函数
+        function getElementFromStem(stem) {
+            const elementMap = {
+                '甲': 'wood', '乙': 'wood',
+                '丙': 'fire', '丁': 'fire',
+                '戊': 'earth', '己': 'earth',
+                '庚': 'metal', '辛': 'metal',
+                '壬': 'water', '癸': 'water'
+            };
+            return elementMap[stem];
+        }
+        
+        function countElements(stems, branches) {
+            const counts = { wood: 0, fire: 0, earth: 0, metal: 0, water: 0 };
+            
+            // 统计天干
+            stems.forEach(stem => {
+                const element = getElementFromStem(stem);
+                if (element) counts[element] += 1;
+            });
+            
+            // 统计地支
+            const branchElements = {
+                '子': 'water', '丑': 'earth', '寅': 'wood', '卯': 'wood',
+                '辰': 'earth', '巳': 'fire', '午': 'fire', '未': 'earth',
+                '申': 'metal', '酉': 'metal', '戌': 'earth', '亥': 'water'
+            };
+            
+            branches.forEach(branch => {
+                const element = branchElements[branch];
+                if (element) counts[element] += 1;
+            });
+            
+            return counts;
+        }
+        
+        function detectCongPattern(stems, branches, dayStem) {
+            console.log('=== 从格检测调试信息 ===');
+            console.log('八字:', stems.join(''), branches.join(''));
+            console.log('日干:', dayStem);
+            
+            // 模拟身强身弱分析结果
+            const strengthAnalysis = {
+                type: '从弱',
+                score: 15,
+                level: 2
+            };
+            
+            console.log('身强身弱分析结果:', strengthAnalysis);
+            
+            const strengthType = strengthAnalysis.type;
+            console.log('身强身弱类型:', strengthType);
+            
+            // 根据身强身弱分析结果判断从格
+            if (strengthType === '从强' || strengthType === '极强（从强）') {
+                console.log('判断结果: 从强格');
+                return '从强格';
+            }
+            
+            if (strengthType === '从弱' || strengthType === '极弱（从弱）') {
+                const dayElement = getElementFromStem(dayStem);
+                const elementCounts = countElements(stems, branches);
+                const dominantElement = Object.keys(elementCounts).reduce((a, b) => 
+                    elementCounts[a] > elementCounts[b] ? a : b);
+                
+                console.log('日主五行:', dayElement, '主导五行:', dominantElement);
+                console.log('五行统计:', elementCounts);
+                
+                // 从财格：财星力量最强（日主克的五行为财星）
+                if ((dayElement === 'wood' && dominantElement === 'earth') ||
+                    (dayElement === 'fire' && dominantElement === 'metal') ||
+                    (dayElement === 'earth' && dominantElement === 'water') ||
+                    (dayElement === 'metal' && dominantElement === 'wood') ||
+                    (dayElement === 'water' && dominantElement === 'fire')) {
+                    console.log('判断结果: 从财格');
+                    return '从财格';
+                }
+                
+                // 从官杀格：克日主的五行为官杀
+                if ((dayElement === 'wood' && dominantElement === 'metal') ||
+                    (dayElement === 'fire' && dominantElement === 'water') ||
+                    (dayElement === 'earth' && dominantElement === 'wood') ||
+                    (dayElement === 'metal' && dominantElement === 'fire') ||
+                    (dayElement === 'water' && dominantElement === 'earth')) {
+                    console.log('判断结果: 从杀格');
+                    return '从杀格';
+                }
+                
+                // 从食伤格：日主生的五行为食伤
+                if ((dayElement === 'wood' && dominantElement === 'fire') ||
+                    (dayElement === 'fire' && dominantElement === 'earth') ||
+                    (dayElement === 'earth' && dominantElement === 'metal') ||
+                    (dayElement === 'metal' && dominantElement === 'water') ||
+                    (dayElement === 'water' && dominantElement === 'wood')) {
+                    console.log('判断结果: 从儿格');
+                    return '从儿格';
+                }
+                
+                console.log('从弱格但无法确定具体类型');
+                return '从弱格';
+            }
+            
+            console.log('不是从格');
+            return null;
+        }
+        
+        // 测试戊午己未乙酉丁丑
+        const testBazi = '戊午己未乙酉丁丑';
+        const stems = [testBazi[0], testBazi[2], testBazi[4], testBazi[6]];
+        const branches = [testBazi[1], testBazi[3], testBazi[5], testBazi[7]];
+        const dayStem = testBazi[4];
+        
+        console.log('=== 开始测试 ===');
+        console.log('完整八字:', testBazi);
+        console.log('天干数组:', stems);
+        console.log('地支数组:', branches);
+        console.log('日干:', dayStem);
+        
+        const result = detectCongPattern(stems, branches, dayStem);
+        console.log('最终结果:', result);
+        
+        document.getElementById('result').innerHTML = `
+            <p><strong>测试八字:</strong> ${testBazi}</p>
+            <p><strong>天干:</strong> ${stems.join('')}</p>
+            <p><strong>地支:</strong> ${branches.join('')}</p>
+            <p><strong>日干:</strong> ${dayStem}</p>
+            <p><strong>检测结果:</strong> ${result || '无'}</p>
+            <p><strong>详细信息请查看控制台</strong></p>
+        `;
+    </script>
+</body>
+</html>

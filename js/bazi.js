@@ -2806,27 +2806,38 @@ function calculateLuckStartingTime(lunar, gender) {
             solar.getSecond() || 0
         );
         
+        console.log('🔍 后端起运时间计算调试:');
+        console.log('出生时间:', birthDate);
+        
         // 判断顺排/逆排
         const yearGan = lunar.getYearGan();
         const isYangYear = ['甲', '丙', '戊', '庚', '壬'].includes(yearGan);
         const isMale = gender === 'male';
         const isForward = (isYangYear && isMale) || (!isYangYear && !isMale);
         
+        console.log('年干:', yearGan, '是否阳年:', isYangYear, '是否男性:', isMale, '方向:', isForward ? '顺排' : '逆排');
+        
         // 获取精确换月节气时间
         const jieQiTime = findCorrectJieQi(birthDate, isForward);
         if (!jieQiTime) throw new Error('找不到换月节气时间');
         
+        console.log('目标节气时间:', jieQiTime);
+        
         // 计算时间差（毫秒）
         const diffMs = Math.abs(jieQiTime - birthDate);
+        const totalDays = diffMs / (1000 * 60 * 60 * 24);
+        
+        console.log('时间差(天):', totalDays);
         
         // 精确转换算法：3天 = 1年
-        const totalDays = diffMs / (1000 * 60 * 60 * 24);
         const years = Math.floor(totalDays / 3);
         const remainingDays = totalDays % 3;
         
-        // 转换剩余天数为月/日
-        const months = Math.floor(remainingDays * 4); // 1天 = 4个月
+        // 转换剩余天数为月：3天=1年=12个月，所以1天=4个月
+        const months = Math.floor(remainingDays * 4);
         const days = Math.floor((remainingDays * 4 - months) * 30);
+        
+        console.log('计算结果:', years, '岁', months, '个月', days, '天');
         
         // 处理临界情况（出生在节气交接时刻）
         const isJieQiBorn = diffMs < 1000 * 60 * 5; // 5分钟内
@@ -2834,11 +2845,20 @@ function calculateLuckStartingTime(lunar, gender) {
             return `${isForward ? '出生即起运' : '需特殊计算起运时间'}`;
         }
         
-        return `${years}岁${months}个月${days}天起运`;
+        if (years === 0 && months === 0) {
+            return `${days}天起运`;
+        } else if (years === 0) {
+            return `${months}个月起运`;
+        } else if (months === 0) {
+            return `${years}岁起运`;
+        } else {
+            return `${years}岁${months}个月起运`;
+        }
         
     } catch (e) {
         console.error('起运时间计算错误:', e);
         // 使用备用算法
+        const solar = lunar.getSolar();
         const birthYear = solar.getYear();
         const birthMonth = solar.getMonth();
         const startAge = 8 - (birthYear % 10) + (birthMonth > 5 ? 0.5 : 0);

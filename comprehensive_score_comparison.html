@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>综合评分对比分析</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .comparison { display: flex; gap: 20px; }
+        .column { flex: 1; border: 1px solid #ccc; padding: 15px; }
+        .score-item { margin: 5px 0; padding: 5px; background: #f9f9f9; }
+        .difference { background: #ffcccc; }
+        .total { font-weight: bold; background: #ccffcc; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+        th { background: #f0f0f0; }
+    </style>
+</head>
+<body>
+    <h1>八字评分对比分析 - 戊午，己未，乙酉，丁丑</h1>
+    
+    <div class="comparison">
+        <div class="column">
+            <h3>baziphone.html 评分结构 (93分)</h3>
+            <div id="html-scores"></div>
+        </div>
+        <div class="column">
+            <h3>Flutter App 评分结构 (58分)</h3>
+            <div id="app-scores"></div>
+        </div>
+    </div>
+    
+    <h3>详细对比表</h3>
+    <table id="comparison-table">
+        <thead>
+            <tr>
+                <th>评分项目</th>
+                <th>baziphone.html</th>
+                <th>Flutter App</th>
+                <th>差异</th>
+                <th>可能原因</th>
+            </tr>
+        </thead>
+        <tbody id="comparison-body">
+        </tbody>
+    </table>
+    
+    <script>
+        // baziphone.html的评分结构 (基于之前的分析)
+        const htmlScores = {
+            '基础分': 10,
+            '季节助力': Math.round(18 * 0.67), // 12分
+            '五行平衡': Math.round(15 * 0.5),  // 8分
+            '格局结构': Math.round(20 * 0.5),  // 10分
+            '十神影响': Math.round(12 * 0.33), // 4分
+            '组合刑冲': Math.round(8 * 0.33),  // 3分
+            '调候用神': Math.round(12 * 0.5),  // 6分
+            '日主强弱': Math.round(15 * 0.67), // 10分
+            '用神得力': Math.round(18 * 0.5),  // 9分
+            '忌神制约': Math.round(10 * 0.33), // 3分
+            '流年助力': Math.round(8 * 0.33),  // 3分
+            '大运配合': Math.round(10 * 0.33), // 3分
+            '贵人助力': Math.round(12 * 0.33), // 4分
+            '特殊格局': Math.round(15 * 0.6),  // 9分
+            '命格层次': Math.round(15 * 0.2),  // 3分
+            '空亡减分': -Math.round(15 * 0.33) // -5分
+        };
+        
+        // Flutter App的评分结构 (推测)
+        const appScores = {
+            '基础分': 10,
+            '季节助力': Math.round(18 * 0.33), // 6分 (系数可能不对)
+            '五行平衡': Math.round(15 * 0.33), // 5分 (系数可能不对)
+            '格局结构': Math.round(20 * 0.33), // 7分 (系数可能不对)
+            '十神影响': Math.round(12 * 0.33), // 4分
+            '组合刑冲': Math.round(8 * 0.33),  // 3分
+            '调候用神': Math.round(12 * 0.33), // 4分 (系数可能不对)
+            '日主强弱': Math.round(15 * 0.33), // 5分 (系数可能不对)
+            '用神得力': Math.round(18 * 0.33), // 6分 (系数可能不对)
+            '忌神制约': Math.round(10 * 0.33), // 3分
+            '流年助力': Math.round(8 * 0.33),  // 3分
+            '大运配合': Math.round(10 * 0.33), // 3分
+            '贵人助力': Math.round(12 * 0.33), // 4分
+            '特殊格局': Math.round(15 * 0.33), // 5分 (系数可能不对)
+            '命格层次': Math.round(0 * 0.2),   // 0分 (之前被硬编码为0)
+            '空亡减分': -Math.round(15 * 0.33) // -5分
+        };
+        
+        // 计算总分
+        const htmlTotal = Object.values(htmlScores).reduce((sum, score) => sum + score, 0);
+        const appTotal = Object.values(appScores).reduce((sum, score) => sum + score, 0);
+        
+        // 显示HTML评分
+        let htmlContent = '';
+        for (const [item, score] of Object.entries(htmlScores)) {
+            htmlContent += `<div class="score-item">${item}: ${score}分</div>`;
+        }
+        htmlContent += `<div class="score-item total">总分: ${htmlTotal}分</div>`;
+        document.getElementById('html-scores').innerHTML = htmlContent;
+        
+        // 显示App评分
+        let appContent = '';
+        for (const [item, score] of Object.entries(appScores)) {
+            appContent += `<div class="score-item">${item}: ${score}分</div>`;
+        }
+        appContent += `<div class="score-item total">总分: ${appTotal}分</div>`;
+        document.getElementById('app-scores').innerHTML = appContent;
+        
+        // 生成对比表
+        const comparisonBody = document.getElementById('comparison-body');
+        for (const item of Object.keys(htmlScores)) {
+            const htmlScore = htmlScores[item];
+            const appScore = appScores[item];
+            const difference = appScore - htmlScore;
+            
+            let reason = '';
+            if (item === '命格层次' && difference < 0) {
+                reason = '之前被硬编码为0，现已修复';
+            } else if (Math.abs(difference) > 2) {
+                reason = '系数可能不一致';
+            } else if (difference === 0) {
+                reason = '一致';
+            } else {
+                reason = '轻微差异';
+            }
+            
+            const row = comparisonBody.insertRow();
+            row.innerHTML = `
+                <td>${item}</td>
+                <td>${htmlScore}</td>
+                <td>${appScore}</td>
+                <td style="color: ${difference > 0 ? 'green' : difference < 0 ? 'red' : 'black'}">${difference > 0 ? '+' : ''}${difference}</td>
+                <td>${reason}</td>
+            `;
+            
+            if (Math.abs(difference) > 2) {
+                row.style.backgroundColor = '#ffeeee';
+            }
+        }
+        
+        // 添加总分行
+        const totalRow = comparisonBody.insertRow();
+        totalRow.innerHTML = `
+            <td><strong>总分</strong></td>
+            <td><strong>${htmlTotal}</strong></td>
+            <td><strong>${appTotal}</strong></td>
+            <td style="color: ${appTotal - htmlTotal > 0 ? 'green' : 'red'}; font-weight: bold;">${appTotal - htmlTotal > 0 ? '+' : ''}${appTotal - htmlTotal}</td>
+            <td><strong>综合差异</strong></td>
+        `;
+        totalRow.style.backgroundColor = '#eeffee';
+        
+        console.log('HTML总分:', htmlTotal);
+        console.log('App总分:', appTotal);
+        console.log('差异:', appTotal - htmlTotal);
+    </script>
+</body>
+</html>

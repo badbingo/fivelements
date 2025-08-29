@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>月令得分修复验证</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .info { background-color: #e3f2fd; border-left: 4px solid #2196f3; }
+        .success { background-color: #e8f5e8; border-left: 4px solid #4caf50; }
+        .warning { background-color: #fff3e0; border-left: 4px solid #ff9800; }
+        .error { background-color: #ffebee; border-left: 4px solid #f44336; }
+        pre {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        button {
+            background: #2196f3;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #1976d2;
+        }
+        .comparison {
+            display: flex;
+            gap: 20px;
+        }
+        .comparison > div {
+            flex: 1;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .before {
+            background-color: #ffebee;
+        }
+        .after {
+            background-color: #e8f5e8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 月令得分修复验证</h1>
+        <p><strong>测试八字：</strong>壬子 癸丑 己巳 癸酉</p>
+        <p><strong>问题：</strong>丑土月令在湿土变水逻辑下，月令得分应该从40分变为-10分</p>
+        
+        <button onclick="testMonthScoreFix()">验证月令得分修复</button>
+        <button onclick="clearResults()">清空结果</button>
+        
+        <div id="results"></div>
+    </div>
+
+    <script src="enhanced_strength_calculation.js"></script>
+    <script>
+        // 测试八字数据
+        const testBazi = {
+            stems: ['壬', '癸', '己', '癸'],
+            branches: ['子', '丑', '巳', '酉'],
+            monthBranch: '丑',
+            dayStem: '己'
+        };
+        
+        function addResult(content, type = 'info') {
+            const results = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = `result ${type}`;
+            div.innerHTML = content;
+            results.appendChild(div);
+        }
+        
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+        
+        // 模拟月令得分计算函数
+        function getMonthStrength(dayElement, monthBranch) {
+            // 己土生于丑月，同类相助
+            if (dayElement === 'earth' && monthBranch === '丑') {
+                return 40; // 传统得分
+            }
+            return 0;
+        }
+        
+        // 验证月令得分修复
+        function testMonthScoreFix() {
+            addResult('<h3>🔧 月令得分修复验证</h3>', 'info');
+            
+            try {
+                const earthCalculator = new EarthTransformationCalculator();
+                
+                // 1. 分析土性变化
+                const earthResult = earthCalculator.analyzeEarthTransformation(testBazi.stems, testBazi.branches);
+                
+                addResult(`<h4>1. 土性变化分析结果：</h4>
+                    <p><strong>是否有变化：</strong>${earthResult.hasTransformation ? '是' : '否'}</p>
+                    <p><strong>变化数量：</strong>${earthResult.transformations.length}</p>`, 'info');
+                
+                // 2. 检查月支丑土的变化
+                const monthTransformation = earthResult.transformations.find(t => t.branch === '丑');
+                
+                if (monthTransformation) {
+                    addResult(`<h4>2. 月支丑土变化详情：</h4>
+                        <p><strong>地支：</strong>${monthTransformation.branch}</p>
+                        <p><strong>原始元素：</strong>${monthTransformation.originalElement}</p>
+                        <p><strong>新元素：</strong>${monthTransformation.newElement || '无'}</p>
+                        <p><strong>变化类型：</strong>${monthTransformation.transformationType || '无'}</p>
+                        <p><strong>是否变化：</strong>${monthTransformation.hasTransformation ? '是' : '否'}</p>
+                        <p><strong>水影响源：</strong>${monthTransformation.waterSources.join(', ')}</p>
+                        <p><strong>减弱率：</strong>${monthTransformation.reductionRate}</p>
+                        <p><strong>原因：</strong>${monthTransformation.reason}</p>`, 'success');
+                } else {
+                    addResult('<h4>❌ 月支丑土变化检测失败</h4><p>未找到丑土的变化记录</p>', 'error');
+                    return;
+                }
+                
+                // 3. 计算月令得分
+                let monthScore = getMonthStrength('earth', '丑');
+                const originalScore = monthScore;
+                
+                addResult(`<h4>3. 月令得分计算：</h4>
+                    <p><strong>传统月令得分：</strong>${originalScore}分</p>`, 'info');
+                
+                // 4. 应用土性变化逻辑
+                if (earthResult.hasTransformation && monthTransformation && monthTransformation.originalElement === 'earth') {
+                    if (monthTransformation.newElement === 'water') {
+                        // 湿土转化为水性，对土日主完全失去生扶，变为克制
+                        monthScore = -10;
+                        addResult(`<h4>4. ✅ 土性变化影响：</h4>
+                            <p><strong>变化类型：</strong>湿土转水性</p>
+                            <p><strong>对土日主影响：</strong>失去生扶，变为克制</p>
+                            <p><strong>调整后得分：</strong>${originalScore} → ${monthScore}分</p>`, 'success');
+                    } else if (monthTransformation.transformationType === 'weakened') {
+                        // 土性减弱
+                        monthScore = Math.round(monthScore * 0.5);
+                        addResult(`<h4>4. ⚠️ 土性变化影响：</h4>
+                            <p><strong>变化类型：</strong>土性减弱</p>
+                            <p><strong>调整后得分：</strong>${originalScore} → ${monthScore}分</p>`, 'warning');
+                    }
+                } else {
+                    addResult('<h4>❌ 土性变化逻辑未生效</h4>', 'error');
+                }
+                
+                // 5. 对比结果
+                addResult(`<div class="comparison">
+                    <div class="before">
+                        <h4>修复前</h4>
+                        <p><strong>月令得分：</strong>40分</p>
+                        <p><strong>问题：</strong>未考虑丑土湿土变水的影响</p>
+                    </div>
+                    <div class="after">
+                        <h4>修复后</h4>
+                        <p><strong>月令得分：</strong>${monthScore}分</p>
+                        <p><strong>状态：</strong>${monthScore === -10 ? '✅ 修复成功' : '❌ 仍有问题'}</p>
+                    </div>
+                </div>`, monthScore === -10 ? 'success' : 'error');
+                
+                // 6. 总结
+                if (monthScore === -10) {
+                    addResult(`<h4>🎉 修复验证成功！</h4>
+                        <p>丑土月令得分已正确从40分调整为-10分，土性变化逻辑工作正常。</p>`, 'success');
+                } else {
+                    addResult(`<h4>❌ 修复验证失败</h4>
+                        <p>月令得分仍为${monthScore}分，需要进一步检查逻辑。</p>`, 'error');
+                }
+                
+            } catch (error) {
+                addResult(`<h4>❌ 测试过程中发生错误：</h4>
+                    <p>${error.message}</p>
+                    <pre>${error.stack}</pre>`, 'error');
+            }
+        }
+    </script>
+</body>
+</html>

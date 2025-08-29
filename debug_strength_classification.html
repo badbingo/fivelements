@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>身强身弱分类调试</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-case {
+            border: 1px solid #ddd;
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 5px;
+            background: #f9f9f9;
+        }
+        .result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .correct { background-color: #d4edda; border: 1px solid #c3e6cb; }
+        .incorrect { background-color: #f8d7da; border: 1px solid #f5c6cb; }
+        .debug { background-color: #fff3cd; border: 1px solid #ffeaa7; }
+        h1, h2 { color: #333; }
+        .highlight { font-weight: bold; color: #d63384; }
+        .code { font-family: monospace; background: #f8f9fa; padding: 2px 4px; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>身强身弱分类调试 - 23.72%问题分析</h1>
+        
+        <div class="test-case">
+            <h2>问题描述</h2>
+            <p>用户报告：力量比例 <span class="highlight">23.72%</span> 被分类为 <span class="highlight">"中和偏强"</span>，但按照算法应该是 <span class="highlight">"较弱"</span></p>
+            <p>用户数据：</p>
+            <ul>
+                <li>力量比例: 23.72%</li>
+                <li>生扶力量: 6.63点</li>
+                <li>克泄力量: 21.30点</li>
+                <li>月令得分: -15点</li>
+                <li>合化扣分: -12点</li>
+            </ul>
+        </div>
+        
+        <div id="testResults"></div>
+        
+        <button onclick="runDebugTest()">运行调试测试</button>
+    </div>
+
+    <script>
+        // 复制calculateStrengthLevel函数的核心逻辑
+        function calculateStrengthLevel(strengthRatio, supportStrength, weakenStrength, monthScore, isFollowing, dayElement, monthBranch, isCurrent = false) {
+            const prefix = isCurrent ? '加入当前大运和流年后，' : '';
+            
+            // 如果是从格，直接返回从格类型
+            if (isFollowing && isFollowing.isFollowing) {
+                return {
+                    level: isFollowing.type === '从强' ? 12 : 1,
+                    type: isFollowing.type,
+                    description: prefix + isFollowing.description
+                };
+            }
+            
+            // 计算综合强度指标
+            const totalStrength = supportStrength + weakenStrength;
+            const strengthPercentage = strengthRatio * 100;
+            
+            // 考虑绝对力量值
+            const hasStrongSupport = supportStrength >= 15;
+            const hasWeakSupport = supportStrength <= 5;
+            const hasStrongWeaken = weakenStrength >= 15;
+            
+            let level, type, description;
+            
+            // 12级分类判断（基于原始力量比例）
+            if (strengthPercentage <= 8 && hasWeakSupport) {
+                level = 1;
+                type = '极弱（从弱）';
+                description = prefix + '日主无根无气，全局克泄耗，应顺从克泄耗的力量，忌生扶。';
+            } else if (strengthPercentage <= 15) {
+                level = 2;
+                type = '很弱';
+                description = prefix + '仅得微根或一气相助，力量微弱，急需印比生扶。';
+            } else if (strengthPercentage <= 25) {
+                level = 3;
+                type = '较弱';
+                description = prefix + '得一根或一助但被制，力量不足，喜印比忌财官。';
+            } else if (strengthPercentage <= 35) {
+                level = 4;
+                type = '稍弱';
+                description = prefix + '得令但失势，或得势但失令，力量稍显不足，宜生扶。';
+            } else if (strengthPercentage <= 42) {
+                level = 5;
+                type = '微弱';
+                description = prefix + '基本平衡但略偏弱，需要适度生扶，忌过度克泄。';
+            } else if (strengthPercentage <= 48) {
+                level = 6;
+                type = '中和偏弱';
+                description = prefix + '接近平衡但稍弱，运势较为平稳，喜印比助身。';
+            } else if (strengthPercentage >= 52 && strengthPercentage <= 58) {
+                level = 7;
+                type = '真正中和';
+                description = prefix + '五行流通平衡，极为罕见的中和之命，顺其自然最佳。';
+            } else if (strengthPercentage <= 62) {
+                level = 8;
+                type = '中和偏强';
+                description = prefix + '接近平衡但稍强，运势平稳，可适度用财官。';
+            } else if (strengthPercentage <= 68) {
+                level = 9;
+                type = '微强';
+                description = prefix + '基本平衡但略偏强，可承担一定财官，忌过度生扶。';
+            } else if (strengthPercentage <= 75) {
+                level = 10;
+                type = '稍强';
+                description = prefix + '得令或得势明显，力量较强，喜财官食伤泄秀。';
+            } else if (strengthPercentage <= 85) {
+                level = 11;
+                type = '较强';
+                description = prefix + '得令得势，根气足，力量强旺，宜用财官制约。';
+            } else {
+                level = 12;
+                type = '极强（专旺）';
+                description = prefix + '全局同一五行主导，专旺格局，顺其旺势，忌逆其性。';
+            }
+            
+            // 特殊调整：考虑月令失势的情况
+            if (monthScore < -15 && level > 4) {
+                const originalLevel = level;
+                level = Math.max(1, level - 2);
+                type = getTypeByLevel(level);
+                description = prefix + '月令严重失势，' + getDescriptionByLevel(level, prefix);
+                console.log(`月令失势调整：${originalLevel} -> ${level}`);
+            }
+            
+            // 特殊调整：考虑生扶力量绝对值
+            if (hasWeakSupport && level > 3) {
+                const originalLevel = level;
+                level = Math.min(3, level);
+                type = getTypeByLevel(level);
+                description = prefix + '生扶力量绝对不足，' + getDescriptionByLevel(level, prefix);
+                console.log(`生扶力量不足调整：${originalLevel} -> ${level}`);
+            }
+            
+            return {
+                level: level,
+                type: type,
+                description: description,
+                adjustedPercentage: strengthPercentage,
+                hasWeakSupport: hasWeakSupport,
+                monthScore: monthScore
+            };
+        }
+        
+        // 根据等级获取类型
+        function getTypeByLevel(level) {
+            const types = {
+                1: '极弱（从弱）',
+                2: '很弱',
+                3: '较弱',
+                4: '稍弱',
+                5: '微弱',
+                6: '中和偏弱',
+                7: '真正中和',
+                8: '中和偏强',
+                9: '微强',
+                10: '稍强',
+                11: '较强',
+                12: '极强（专旺）'
+            };
+            return types[level] || '未知';
+        }
+        
+        // 根据等级获取描述
+        function getDescriptionByLevel(level, prefix = '') {
+            const descriptions = {
+                1: '日主无根无气，全局克泄耗，应顺从克泄耗的力量，忌生扶。',
+                2: '仅得微根或一气相助，力量微弱，急需印比生扶。',
+                3: '得一根或一助但被制，力量不足，喜印比忌财官。',
+                4: '得令但失势，或得势但失令，力量稍显不足，宜生扶。',
+                5: '基本平衡但略偏弱，需要适度生扶，忌过度克泄。',
+                6: '接近平衡但稍弱，运势较为平稳，喜印比助身。',
+                7: '五行流通平衡，极为罕见的中和之命，顺其自然最佳。',
+                8: '接近平衡但稍强，运势平稳，可适度用财官。',
+                9: '基本平衡但略偏强，可承担一定财官，忌过度生扶。',
+                10: '得令或得势明显，力量较强，喜财官食伤泄秀。',
+                11: '得令得势，根气足，力量强旺，宜用财官制约。',
+                12: '全局同一五行主导，专旺格局，顺其旺势，忌逆其性。'
+            };
+            return descriptions[level] || '力量状态未知。';
+        }
+        
+        function addResult(content, className = '') {
+            const resultsDiv = document.getElementById('testResults');
+            const div = document.createElement('div');
+            div.className = `result ${className}`;
+            div.innerHTML = content;
+            resultsDiv.appendChild(div);
+        }
+        
+        function clearResults() {
+            document.getElementById('testResults').innerHTML = '';
+        }
+        
+        function runDebugTest() {
+            clearResults();
+            
+            addResult('<h2>调试测试结果</h2>');
+            
+            // 用户报告的数据
+            const userStrengthRatio = 23.72 / 100; // 转换为小数
+            const userSupportStrength = 6.63;
+            const userWeakenStrength = 21.30;
+            const userMonthScore = -15;
+            
+            // 测试不同的从格状态
+            const testCases = [
+                {
+                    name: '用户数据 - 非从格',
+                    strengthRatio: userStrengthRatio,
+                    supportStrength: userSupportStrength,
+                    weakenStrength: userWeakenStrength,
+                    monthScore: userMonthScore,
+                    isFollowing: { isFollowing: false },
+                    isCurrent: true
+                },
+                {
+                    name: '用户数据 - 假设从弱格',
+                    strengthRatio: userStrengthRatio,
+                    supportStrength: userSupportStrength,
+                    weakenStrength: userWeakenStrength,
+                    monthScore: userMonthScore,
+                    isFollowing: { isFollowing: true, type: '从弱', description: '测试从弱格' },
+                    isCurrent: true
+                }
+            ];
+            
+            testCases.forEach(testCase => {
+                addResult(`<h3>${testCase.name}</h3>`);
+                
+                const result = calculateStrengthLevel(
+                    testCase.strengthRatio,
+                    testCase.supportStrength,
+                    testCase.weakenStrength,
+                    testCase.monthScore,
+                    testCase.isFollowing,
+                    'fire', // 假设日主为火
+                    '子', // 假设月支为子
+                    testCase.isCurrent
+                );
+                
+                const expectedType = '较弱';
+                const isCorrect = result.type === expectedType;
+                
+                addResult(`
+                    <p><strong>输入数据：</strong></p>
+                    <ul>
+                        <li>力量比例: ${(testCase.strengthRatio * 100).toFixed(2)}%</li>
+                        <li>生扶力量: ${testCase.supportStrength}</li>
+                        <li>克泄力量: ${testCase.weakenStrength}</li>
+                        <li>月令得分: ${testCase.monthScore}</li>
+                        <li>是否从格: ${testCase.isFollowing.isFollowing ? testCase.isFollowing.type : '否'}</li>
+                    </ul>
+                    <p><strong>计算结果：</strong></p>
+                    <ul>
+                        <li>等级: ${result.level}</li>
+                        <li>类型: <span class="highlight">${result.type}</span></li>
+                        <li>期望类型: <span class="highlight">${expectedType}</span></li>
+                        <li>是否正确: <span class="${isCorrect ? 'correct' : 'incorrect'}">${isCorrect ? '✓ 正确' : '✗ 错误'}</span></li>
+                        <li>hasWeakSupport: ${result.hasWeakSupport}</li>
+                    </ul>
+                    <p><strong>描述：</strong>${result.description}</p>
+                `, isCorrect ? 'correct' : 'incorrect');
+            });
+            
+            // 分析问题
+            addResult(`
+                <h3>问题分析</h3>
+                <p>根据calculateStrengthLevel函数的逻辑：</p>
+                <ol>
+                    <li><strong>基础分类：</strong>23.72%应该落在 <span class="code">strengthPercentage <= 25</span> 的范围内，对应level 3（较弱）</li>
+                    <li><strong>生扶力量检查：</strong>6.63点 > 5点，所以 <span class="code">hasWeakSupport = false</span></li>
+                    <li><strong>月令失势检查：</strong>-15点 = -15，不满足 <span class="code">monthScore < -15</span> 的条件</li>
+                    <li><strong>结论：</strong>按照代码逻辑，23.72%应该被正确分类为"较弱"</li>
+                </ol>
+                <p class="highlight">如果用户看到的是"中和偏强"，可能的原因：</p>
+                <ul>
+                    <li>1. 实际计算中的strengthRatio不是23.72%</li>
+                    <li>2. 从格判断逻辑影响了结果</li>
+                    <li>3. 显示逻辑与计算逻辑不一致</li>
+                    <li>4. 其他特殊调整逻辑被触发</li>
+                </ul>
+            `, 'debug');
+        }
+    </script>
+</body>
+</html>

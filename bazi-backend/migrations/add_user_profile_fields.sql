@@ -1,0 +1,10 @@
+-- 为用户表添加八字信息和头像字段
+ALTER TABLE users ADD COLUMN avatar VARCHAR(50) DEFAULT 'rat';
+ALTER TABLE users ADD COLUMN bazi_info TEXT;
+ALTER TABLE users ADD COLUMN real_name VARCHAR(100);
+ALTER TABLE users ADD COLUMN gender VARCHAR(10);
+ALTER TABLE users ADD COLUMN birth_date DATE;
+ALTER TABLE users ADD COLUMN birth_time VARCHAR(20);
+ALTER TABLE users ADD COLUMN birth_location VARCHAR(200);
+ALTER TABLE users ADD COLUMN lunar_date VARCHAR(50);
+ALTER TABLE users ADD COLUMN bazi_chart VARCHAR(500);

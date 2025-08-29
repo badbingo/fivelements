@@ -1418,8 +1418,8 @@ class WWPay {
          const newBalance = await this.getUserBalance();
          if (newBalance !== null) {
            balanceElements.forEach(el => {
-             if (el.textContent.includes('¥') || el.textContent.includes('余额')) {
-               el.textContent = `余额: ¥${newBalance.toFixed(2)}`;
+             if (el.textContent.includes('¥') || el.textContent.includes('$') || el.textContent.includes('余额')) {
+               el.textContent = `余额: $${newBalance.toFixed(2)}`;
              }
            });
          }

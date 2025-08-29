@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>季节助力算法对比</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .comparison { display: flex; gap: 20px; }
+        .version { border: 1px solid #ccc; padding: 15px; flex: 1; }
+        .result { background: #f0f0f0; padding: 10px; margin: 10px 0; }
+        button { padding: 10px 20px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>季节助力算法对比测试</h1>
+    <p>测试八字：壬子，癸丑，己巳，癸酉</p>
+    
+    <div class="comparison">
+        <div class="version">
+            <h2>baziphone.html版本</h2>
+            <div id="html-result" class="result">点击计算按钮查看结果</div>
+            <button onclick="calculateHtmlVersion()">计算HTML版本</button>
+        </div>
+        
+        <div class="version">
+            <h2>App版本（模拟）</h2>
+            <div id="app-result" class="result">点击计算按钮查看结果</div>
+            <button onclick="calculateAppVersion()">计算App版本</button>
+        </div>
+    </div>
+
+<script>
+// 测试八字
+const testPillars = {
+    year: '壬子',
+    month: '癸丑', 
+    day: '己巳',
+    hour: '癸酉'
+};
+
+// HTML版本的算法（从baziphone.html复制）
+function calculateHtmlVersion() {
+    const dayStem = testPillars.day.charAt(0);
+    const monthBranch = testPillars.month.charAt(1);
+    
+    // 月令得分基础
+    let baseScore = calculateMonthlyStrength(dayStem, monthBranch);
+    
+    // 通根透干加分
+    const rootScore = calculateRootStrength(dayStem, testPillars);
+    
+    // 透干加分
+    const transparentScore = calculateTransparentStrength(dayStem, testPillars);
+    
+    // 调候因子
+    const seasonalAdjustment = calculateSeasonalAdjustment(dayStem, monthBranch);
+    
+    const finalScore = (baseScore + rootScore + transparentScore) * seasonalAdjustment;
+    const clampedScore = Math.max(0, Math.min(30, finalScore));
+    const adjustedScore = Math.round(clampedScore * 0.67);
+    
+    document.getElementById('html-result').innerHTML = `
+        <strong>HTML版本计算结果：</strong><br>
+        日主: ${dayStem}, 月支: ${monthBranch}<br>
+        月令基础分: ${baseScore}<br>
+        通根加分: ${rootScore}<br>
+        透干加分: ${transparentScore}<br>
+        调候因子: ${seasonalAdjustment}<br>
+        原始总分: ${baseScore + rootScore + transparentScore}<br>
+        调候调整后: ${finalScore}<br>
+        最终限制后: ${clampedScore}<br>
+        <strong>系数调整后(×0.67): ${adjustedScore}</strong>
+    `;
+}
+
+// App版本的算法（模拟）
+function calculateAppVersion() {
+    const dayStem = testPillars.day.charAt(0);
+    const monthBranch = testPillars.month.charAt(1);
+    
+    // 使用相同的算法
+    let baseScore = calculateMonthlyStrength(dayStem, monthBranch);
+    const rootScore = calculateRootStrength(dayStem, testPillars);
+    const transparentScore = calculateTransparentStrength(dayStem, testPillars);
+    const seasonalAdjustment = calculateSeasonalAdjustment(dayStem, monthBranch);
+    
+    const finalScore = (baseScore + rootScore + transparentScore) * seasonalAdjustment;
+    const clampedScore = Math.max(0, Math.min(30, finalScore));
+    const adjustedScore = Math.round(clampedScore * 0.67);
+    
+    document.getElementById('app-result').innerHTML = `
+        <strong>App版本计算结果：</strong><br>
+        日主: ${dayStem}, 月支: ${monthBranch}<br>
+        月令基础分: ${baseScore}<br>
+        通根加分: ${rootScore}<br>
+        透干加分: ${transparentScore}<br>
+        调候因子: ${seasonalAdjustment}<br>
+        原始总分: ${baseScore + rootScore + transparentScore}<br>
+        调候调整后: ${finalScore}<br>
+        最终限制后: ${clampedScore}<br>
+        <strong>系数调整后(×0.67): ${adjustedScore}</strong>
+    `;
+}
+
+// 月令强弱评分
+function calculateMonthlyStrength(dayStem, monthBranch) {
+    const strengthMap = {
+        // 木日主
+        '甲': { '寅': 25, '卯': 30, '辰': 20, '巳': 8, '午': 12, '未': 15, '申': 5, '酉': 3, '戌': 12, '亥': 18, '子': 15, '丑': 10 },
+        '乙': { '寅': 20, '卯': 25, '辰': 18, '巳': 10, '午': 15, '未': 18, '申': 3, '酉': 5, '戌': 10, '亥': 20, '子': 18, '丑': 12 },
+        // 火日主
+        '丙': { '寅': 18, '卯': 15, '辰': 10, '巳': 25, '午': 30, '未': 20, '申': 8, '酉': 5, '戌': 15, '亥': 3, '子': 5, '丑': 8 },
+        '丁': { '寅': 15, '卯': 12, '辰': 8, '巳': 20, '午': 25, '未': 18, '申': 5, '酉': 8, '戌': 12, '亥': 5, '子': 3, '丑': 10 },
+        // 土日主
+        '戊': { '寅': 8, '卯': 5, '辰': 25, '巳': 20, '午': 18, '未': 30, '申': 12, '酉': 15, '戌': 25, '亥': 3, '子': 5, '丑': 20 },
+        '己': { '寅': 5, '卯': 8, '辰': 20, '巳': 18, '午': 15, '未': 25, '申': 10, '酉': 12, '戌': 20, '亥': 5, '子': 8, '丑': 25 },
+        // 金日主
+        '庚': { '寅': 3, '卯': 5, '辰': 12, '巳': 8, '午': 5, '未': 10, '申': 25, '酉': 30, '戌': 15, '亥': 8, '子': 10, '丑': 18 },
+        '辛': { '寅': 5, '卯': 3, '辰': 10, '巳': 5, '午': 8, '未': 12, '申': 20, '酉': 25, '戌': 12, '亥': 10, '子': 12, '丑': 20 },
+        // 水日主
+        '壬': { '寅': 10, '卯': 8, '辰': 5, '巳': 3, '午': 5, '未': 8, '申': 15, '酉': 12, '戌': 8, '亥': 25, '子': 30, '丑': 18 },
+        '癸': { '寅': 8, '卯': 10, '辰': 8, '巳': 5, '午': 3, '未': 10, '申': 12, '酉': 15, '戌': 5, '亥': 20, '子': 25, '丑': 15 }
+    };
+    
+    return strengthMap[dayStem]?.[monthBranch] || 10;
+}
+
+// 通根强度计算
+function calculateRootStrength(dayStem, pillars) {
+    const branches = [pillars.year.charAt(1), pillars.month.charAt(1), pillars.day.charAt(1), pillars.hour.charAt(1)];
+    const elementMap = getElementMap();
+    const dayElement = elementMap[dayStem];
+    
+    let rootScore = 0;
+    
+    branches.forEach((branch, index) => {
+        const hiddenStems = getHiddenStems(branch);
+        const mainStem = hiddenStems[0]; // 主气
+        
+        // 主气同类加分
+        if (elementMap[mainStem] === dayElement) {
+            const weight = index === 2 ? 1.5 : 1.0; // 日支权重更高
+            rootScore += 8 * weight;
+        }
+        
+        // 藏干同类加分
+        hiddenStems.slice(1).forEach(stem => {
+            if (elementMap[stem] === dayElement) {
+                const weight = index === 2 ? 1.2 : 0.8;
+                rootScore += 3 * weight;
+            }
+        });
+    });
+    
+    return Math.min(15, rootScore);
+}
+
+// 透干强度计算
+function calculateTransparentStrength(dayStem, pillars) {
+    const stems = [pillars.year.charAt(0), pillars.month.charAt(0), pillars.hour.charAt(0)];
+    const elementMap = getElementMap();
+    const dayElement = elementMap[dayStem];
+    
+    let transparentScore = 0;
+    
+    stems.forEach((stem, index) => {
+        if (elementMap[stem] === dayElement) {
+            const weight = index === 1 ? 1.2 : 1.0; // 月干权重稍高
+            transparentScore += 6 * weight;
+        }
+    });
+    
+    return Math.min(12, transparentScore);
+}
+
+// 调候因子计算
+function calculateSeasonalAdjustment(dayStem, monthBranch) {
+    const adjustmentMap = {
+        '甲': { '寅': 1.1, '卯': 1.2, '辰': 1.0, '巳': 0.8, '午': 0.7, '未': 0.8, '申': 0.9, '酉': 0.8, '戌': 0.9, '亥': 1.0, '子': 0.9, '丑': 0.9 },
+        '乙': { '寅': 1.0, '卯': 1.1, '辰': 1.0, '巳': 0.9, '午': 1.0, '未': 1.0, '申': 0.7, '酉': 0.6, '戌': 0.8, '亥': 1.1, '子': 1.0, '丑': 0.9 },
+        '丙': { '寅': 1.0, '卯': 0.9, '辰': 0.8, '巳': 1.2, '午': 1.3, '未': 1.1, '申': 0.8, '酉': 0.7, '戌': 0.9, '亥': 0.6, '子': 0.5, '丑': 0.7 },
+        '丁': { '寅': 0.9, '卯': 0.8, '辰': 0.7, '巳': 1.1, '午': 1.2, '未': 1.0, '申': 0.7, '酉': 0.8, '戌': 0.8, '亥': 0.7, '子': 0.6, '丑': 0.8 },
+        '戊': { '寅': 0.8, '卯': 0.7, '辰': 1.2, '巳': 1.1, '午': 1.0, '未': 1.3, '申': 0.9, '酉': 1.0, '戌': 1.2, '亥': 0.6, '子': 0.5, '丑': 1.0 },
+        '己': { '寅': 0.7, '卯': 0.8, '辰': 1.1, '巳': 1.0, '午': 0.9, '未': 1.2, '申': 0.8, '酉': 0.9, '戌': 1.1, '亥': 0.7, '子': 0.6, '丑': 1.1 },
+        '庚': { '寅': 0.6, '卯': 0.5, '辰': 0.8, '巳': 0.9, '午': 0.7, '未': 0.8, '申': 1.3, '酉': 1.4, '戌': 1.0, '亥': 0.8, '子': 0.9, '丑': 1.0 },
+        '辛': { '寅': 0.7, '卯': 0.6, '辰': 0.9, '巳': 0.8, '午': 0.8, '未': 0.9, '申': 1.2, '酉': 1.3, '戌': 0.9, '亥': 0.9, '子': 1.0, '丑': 1.1 },
+        '壬': { '寅': 0.9, '卯': 0.8, '辰': 0.7, '巳': 0.6, '午': 0.5, '未': 0.7, '申': 1.0, '酉': 0.9, '戌': 0.8, '亥': 1.3, '子': 1.4, '丑': 1.1 },
+        '癸': { '寅': 0.8, '卯': 0.9, '辰': 0.8, '巳': 0.7, '午': 0.6, '未': 0.8, '申': 0.9, '酉': 1.0, '戌': 0.7, '亥': 1.2, '子': 1.3, '丑': 1.0 }
+    };
+    
+    return adjustmentMap[dayStem]?.[monthBranch] || 1.0;
+}
+
+// 五行映射
+function getElementMap() {
+    return {
+        '甲': '木', '乙': '木',
+        '丙': '火', '丁': '火',
+        '戊': '土', '己': '土',
+        '庚': '金', '辛': '金',
+        '壬': '水', '癸': '水'
+    };
+}
+
+// 地支藏干
+function getHiddenStems(branch) {
+    const hiddenStemsMap = {
+        '子': ['癸'],
+        '丑': ['己', '癸', '辛'],
+        '寅': ['甲', '丙', '戊'],
+        '卯': ['乙'],
+        '辰': ['戊', '乙', '癸'],
+        '巳': ['丙', '戊', '庚'],
+        '午': ['丁', '己'],
+        '未': ['己', '丁', '乙'],
+        '申': ['庚', '壬', '戊'],
+        '酉': ['辛'],
+        '戌': ['戊', '辛', '丁'],
+        '亥': ['壬', '甲']
+    };
+    
+    return hiddenStemsMap[branch] || [];
+}
+</script>
+</body>
+</html>

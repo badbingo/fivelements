@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>调试页面</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .debug-info {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .debug-item {
+            margin-bottom: 10px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-left: 4px solid #007bff;
+        }
+        .token-info {
+            word-break: break-all;
+            font-family: monospace;
+            background: #e9ecef;
+            padding: 10px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>LocalStorage 调试信息</h1>
+    
+    <div class="debug-info">
+        <h3>Token 信息</h3>
+        <div class="debug-item">
+            <strong>Token 存在:</strong> <span id="tokenExists">检查中...</span>
+        </div>
+        <div class="debug-item">
+            <strong>Token 值:</strong>
+            <div id="tokenValue" class="token-info">检查中...</div>
+        </div>
+    </div>
+    
+    <div class="debug-info">
+        <h3>所有 LocalStorage 数据</h3>
+        <div id="allStorage" class="debug-item">检查中...</div>
+    </div>
+    
+    <div class="debug-info">
+        <h3>操作</h3>
+        <button onclick="clearStorage()">清除所有 LocalStorage</button>
+        <button onclick="setTestToken()">设置测试 Token</button>
+        <button onclick="location.reload()">刷新页面</button>
+    </div>
+    
+    <script>
+        function checkStorage() {
+            // 检查token
+            const token = localStorage.getItem('token');
+            document.getElementById('tokenExists').textContent = token ? '是' : '否';
+            document.getElementById('tokenValue').textContent = token || '无';
+            
+            // 显示所有localStorage数据
+            const allData = {};
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                allData[key] = localStorage.getItem(key);
+            }
+            document.getElementById('allStorage').innerHTML = '<pre>' + JSON.stringify(allData, null, 2) + '</pre>';
+        }
+        
+        function clearStorage() {
+            localStorage.clear();
+            checkStorage();
+            alert('LocalStorage 已清除');
+        }
+        
+        function setTestToken() {
+            localStorage.setItem('token', 'test-token-123');
+            checkStorage();
+            alert('测试 Token 已设置');
+        }
+        
+        // 页面加载时检查
+        document.addEventListener('DOMContentLoaded', checkStorage);
+    </script>
+</body>
+</html>

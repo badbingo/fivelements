@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>简单从格测试</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test { background: #f0f0f0; padding: 15px; margin: 10px 0; border-radius: 5px; }
+        .result { background: #e8f5e8; padding: 10px; margin: 10px 0; border: 1px solid #4CAF50; border-radius: 5px; }
+        .error { background: #ffe8e8; padding: 10px; margin: 10px 0; border: 1px solid #f44336; border-radius: 5px; }
+        button { background: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+    </style>
+</head>
+<body>
+    <h1>从格检测简单测试</h1>
+    
+    <div class="test">
+        <h3>测试案例：戊午己未乙酉丁丑</h3>
+        <p>预期结果：从财格（乙木日主，土旺为财星）</p>
+        <button onclick="testCongPattern()">开始测试</button>
+        <div id="result"></div>
+    </div>
+    
+    <script>
+        function getElementFromStem(stem) {
+            const elementMap = {
+                '甲': 'wood', '乙': 'wood',
+                '丙': 'fire', '丁': 'fire',
+                '戊': 'earth', '己': 'earth',
+                '庚': 'metal', '辛': 'metal',
+                '壬': 'water', '癸': 'water'
+            };
+            return elementMap[stem];
+        }
+        
+        function countElements(stems, branches) {
+            const counts = { wood: 0, fire: 0, earth: 0, metal: 0, water: 0 };
+            
+            // 统计天干
+            stems.forEach(stem => {
+                const element = getElementFromStem(stem);
+                if (element) counts[element] += 1;
+            });
+            
+            // 统计地支
+            const branchElements = {
+                '子': 'water', '丑': 'earth', '寅': 'wood', '卯': 'wood',
+                '辰': 'earth', '巳': 'fire', '午': 'fire', '未': 'earth',
+                '申': 'metal', '酉': 'metal', '戌': 'earth', '亥': 'water'
+            };
+            
+            branches.forEach(branch => {
+                const element = branchElements[branch];
+                if (element) counts[element] += 1;
+            });
+            
+            return counts;
+        }
+        
+        function detectCongPattern(stems, branches, dayStem) {
+            console.log('=== 从格检测开始 ===');
+            console.log('天干:', stems);
+            console.log('地支:', branches);
+            console.log('日干:', dayStem);
+            
+            // 获取日主五行
+            const dayElement = getElementFromStem(dayStem);
+            console.log('日主五行:', dayElement);
+            
+            // 统计五行
+            const elementCounts = countElements(stems, branches);
+            console.log('五行统计:', elementCounts);
+            
+            // 找主导五行
+            const dominantElement = Object.keys(elementCounts).reduce((a, b) => 
+                elementCounts[a] > elementCounts[b] ? a : b);
+            console.log('主导五行:', dominantElement, '数量:', elementCounts[dominantElement]);
+            
+            // 模拟从弱格判断（假设这是从弱格）
+            console.log('假设为从弱格，开始细分判断...');
+            
+            // 从财格判断：日主克的五行为财星
+            if ((dayElement === 'wood' && dominantElement === 'earth') ||
+                (dayElement === 'fire' && dominantElement === 'metal') ||
+                (dayElement === 'earth' && dominantElement === 'water') ||
+                (dayElement === 'metal' && dominantElement === 'wood') ||
+                (dayElement === 'water' && dominantElement === 'fire')) {
+                console.log('符合从财格条件！');
+                return '从财格';
+            }
+            
+            // 从官杀格判断：克日主的五行为官杀
+            if ((dayElement === 'wood' && dominantElement === 'metal') ||
+                (dayElement === 'fire' && dominantElement === 'water') ||
+                (dayElement === 'earth' && dominantElement === 'wood') ||
+                (dayElement === 'metal' && dominantElement === 'fire') ||
+                (dayElement === 'water' && dominantElement === 'earth')) {
+                console.log('符合从官杀格条件！');
+                return '从官杀格';
+            }
+            
+            // 从食伤格判断：日主生的五行为食伤
+            if ((dayElement === 'wood' && dominantElement === 'fire') ||
+                (dayElement === 'fire' && dominantElement === 'earth') ||
+                (dayElement === 'earth' && dominantElement === 'metal') ||
+                (dayElement === 'metal' && dominantElement === 'water') ||
+                (dayElement === 'water' && dominantElement === 'wood')) {
+                console.log('符合从食伤格条件！');
+                return '从食伤格';
+            }
+            
+            console.log('不符合任何从格条件');
+            return '从弱格';
+        }
+        
+        function testCongPattern() {
+            const resultDiv = document.getElementById('result');
+            
+            try {
+                // 测试数据：戊午己未乙酉丁丑
+                const stems = ['戊', '己', '乙', '丁'];
+                const branches = ['午', '未', '酉', '丑'];
+                const dayStem = '乙';
+                
+                console.log('开始测试从格检测...');
+                const result = detectCongPattern(stems, branches, dayStem);
+                
+                resultDiv.innerHTML = `
+                    <div class="result">
+                        <h4>检测结果</h4>
+                        <p><strong>八字：</strong>${stems.join('')}${branches.join('')}</p>
+                        <p><strong>日干：</strong>${dayStem}</p>
+                        <p><strong>从格类型：</strong><span style="color: ${result === '从财格' ? 'green' : 'red'}; font-weight: bold;">${result}</span></p>
+                        <p><strong>预期结果：</strong>从财格</p>
+                        <p><strong>测试状态：</strong><span style="color: ${result === '从财格' ? 'green' : 'red'}; font-weight: bold;">${result === '从财格' ? '✓ 通过' : '✗ 失败'}</span></p>
+                    </div>
+                `;
+                
+                console.log('测试完成，结果:', result);
+                
+            } catch (error) {
+                console.error('测试出错:', error);
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h4>测试出错</h4>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

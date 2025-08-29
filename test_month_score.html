@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>月令得分测试</title>
+</head>
+<body>
+    <h1>月令得分测试</h1>
+    <div id="result"></div>
+    
+    <script>
+        // 复制baziphone.html中的相关函数
+        function getSupportElements(element) {
+            const supportMap = {
+                'wood': ['water', 'wood'],
+                'fire': ['wood', 'fire'],
+                'earth': ['fire', 'earth'],
+                'metal': ['earth', 'metal'],
+                'water': ['metal', 'water']
+            };
+            return supportMap[element] || [];
+        }
+        
+        function getWeakenElements(element) {
+            const weakenMap = {
+                'wood': ['metal', 'fire', 'earth'],
+                'fire': ['water', 'earth', 'metal'],
+                'earth': ['wood', 'metal', 'water'],
+                'metal': ['fire', 'water', 'wood'],
+                'water': ['earth', 'wood', 'fire']
+            };
+            return weakenMap[element] || [];
+        }
+        
+        function calculateSeasonalAdjustment(monthBranch, dayElement) {
+            const seasonalDepth = {
+                '寅': { season: 'spring', depth: 0.7, element: 'wood' },
+                '卯': { season: 'spring', depth: 1.0, element: 'wood' },
+                '辰': { season: 'spring', depth: 0.6, element: 'earth' },
+                '巳': { season: 'summer', depth: 0.7, element: 'fire' },
+                '午': { season: 'summer', depth: 1.0, element: 'fire' },
+                '未': { season: 'summer', depth: 0.6, element: 'earth' },
+                '申': { season: 'autumn', depth: 0.7, element: 'metal' },
+                '酉': { season: 'autumn', depth: 1.0, element: 'metal' },
+                '戌': { season: 'autumn', depth: 0.6, element: 'earth' },
+                '亥': { season: 'winter', depth: 0.7, element: 'water' },
+                '子': { season: 'winter', depth: 1.0, element: 'water' },
+                '丑': { season: 'winter', depth: 0.6, element: 'earth' }
+            };
+            
+            const monthInfo = seasonalDepth[monthBranch];
+            if (!monthInfo) return 0;
+            
+            let adjustment = 0;
+            const supportElements = getSupportElements(dayElement);
+            const weakenElements = getWeakenElements(dayElement);
+            
+            if (monthInfo.element === dayElement) {
+                adjustment = Math.round((monthInfo.depth - 0.8) * 15);
+            } else {
+                if (supportElements.includes(monthInfo.element)) {
+                    adjustment = Math.round(monthInfo.depth * 8);
+                } else if (weakenElements.includes(monthInfo.element)) {
+                    adjustment = -Math.round(monthInfo.depth * 6);
+                }
+            }
+            
+            // 四季土月特殊调整
+            if (['辰', '未', '戌', '丑'].includes(monthBranch)) {
+                if (dayElement === 'earth') {
+                    adjustment += 3;
+                } else {
+                    const earthEffect = supportElements.includes('earth') ? 2 : 
+                                      weakenElements.includes('earth') ? -2 : 0;
+                    adjustment += earthEffect;
+                }
+            }
+            
+            return adjustment;
+        }
+        
+        function calculateHiddenStemAdjustment(monthBranch, dayElement) {
+            const branchHiddenStems = {
+                '子': ['癸'],
+                '丑': ['己', '癸', '辛'],
+                '寅': ['甲', '丙', '戊'],
+                '卯': ['乙'],
+                '辰': ['戊', '乙', '癸'],
+                '巳': ['丙', '庚', '戊'],
+                '午': ['丁', '己'],
+                '未': ['己', '丁', '乙'],
+                '申': ['庚', '壬', '戊'],
+                '酉': ['辛'],
+                '戌': ['戊', '辛', '丁'],
+                '亥': ['壬', '甲']
+            };
+            
+            const hiddenStems = branchHiddenStems[monthBranch] || [];
+            if (hiddenStems.length === 0) return 0;
+            
+            let hiddenAdjustment = 0;
+            const supportElements = getSupportElements(dayElement);
+            const weakenElements = getWeakenElements(dayElement);
+            
+            const stemElementMap = {
+                '甲': 'wood', '乙': 'wood', '丙': 'fire', '丁': 'fire',
+                '戊': 'earth', '己': 'earth', '庚': 'metal', '辛': 'metal',
+                '壬': 'water', '癸': 'water'
+            };
+            
+            hiddenStems.forEach((hiddenStem, index) => {
+                const hiddenElement = stemElementMap[hiddenStem];
+                if (hiddenElement === dayElement) {
+                    const hiddenBonus = index === 0 ? 8 : (index === 1 ? 5 : 3);
+                    hiddenAdjustment += hiddenBonus;
+                    console.log(`藏干同类加分：${monthBranch}藏${hiddenStem}(${hiddenElement}) +${hiddenBonus}`);
+                } else if (supportElements.includes(hiddenElement)) {
+                    const hiddenBonus = index === 0 ? 4 : (index === 1 ? 2 : 1);
+                    hiddenAdjustment += hiddenBonus;
+                    console.log(`藏干生扶加分：${monthBranch}藏${hiddenStem}(${hiddenElement}) +${hiddenBonus}`);
+                } else if (weakenElements.includes(hiddenElement)) {
+                    const hiddenPenalty = index === 0 ? -3 : (index === 1 ? -2 : -1);
+                    hiddenAdjustment += hiddenPenalty;
+                    console.log(`藏干克泄减分：${monthBranch}藏${hiddenStem}(${hiddenElement}) ${hiddenPenalty}`);
+                }
+            });
+            
+            return hiddenAdjustment;
+        }
+        
+        // 测试乙日干在未月的月令得分
+        function testMonthScore() {
+            const dayElement = 'wood'; // 乙木
+            const monthBranch = '未'; // 未月
+            const monthElement = 'earth'; // 未土
+            
+            console.log('=== 乙日干未月月令得分测试 ===');
+            
+            // 基础得分
+            let score = -20; // 被克
+            console.log(`基础得分：${score}分（土克木）`);
+            
+            // 季节深度调整
+            const seasonalAdjustment = calculateSeasonalAdjustment(monthBranch, dayElement);
+            score += seasonalAdjustment;
+            console.log(`季节深度调整：${seasonalAdjustment}分，累计：${score}分`);
+            
+            // 藏干调整
+            const hiddenAdjustment = calculateHiddenStemAdjustment(monthBranch, dayElement);
+            score += hiddenAdjustment;
+            console.log(`藏干调整：${hiddenAdjustment}分，最终：${score}分`);
+            
+            document.getElementById('result').innerHTML = `
+                <h2>乙日干未月月令得分计算结果</h2>
+                <p>基础得分：-20分（土克木）</p>
+                <p>季节深度调整：${seasonalAdjustment}分</p>
+                <p>藏干调整：${hiddenAdjustment}分</p>
+                <p><strong>最终得分：${score}分</strong></p>
+                <p>用户期望：-21分</p>
+                <p>差异：${score - (-21)}分</p>
+            `;
+            
+            return score;
+        }
+        
+        // 执行测试
+        testMonthScore();
+    </script>
+</body>
+</html>

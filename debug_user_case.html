@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户案例调试</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .debug-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .highlight {
+            background-color: #fff3cd;
+            padding: 10px;
+            border-left: 4px solid #ffc107;
+            margin: 10px 0;
+        }
+        .error {
+            background-color: #f8d7da;
+            padding: 10px;
+            border-left: 4px solid #dc3545;
+            margin: 10px 0;
+        }
+        .success {
+            background-color: #d4edda;
+            padding: 10px;
+            border-left: 4px solid #28a745;
+            margin: 10px 0;
+        }
+        .code {
+            background-color: #f8f9fa;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: monospace;
+            font-size: 0.9em;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .input-group {
+            margin: 10px 0;
+        }
+        label {
+            display: inline-block;
+            width: 150px;
+            font-weight: bold;
+        }
+        input {
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            width: 200px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>用户案例调试 - 23.72%分类问题</h1>
+        
+        <div class="debug-section">
+            <h3>测试数据输入</h3>
+            <div class="input-group">
+                <label>力量比例(%):</label>
+                <input type="number" id="strengthRatio" value="23.72" step="0.01">
+            </div>
+            <div class="input-group">
+                <label>生扶力量:</label>
+                <input type="number" id="supportStrength" value="6.63" step="0.01">
+            </div>
+            <div class="input-group">
+                <label>克泄力量:</label>
+                <input type="number" id="weakenStrength" value="21.30" step="0.01">
+            </div>
+            <div class="input-group">
+                <label>月令得分:</label>
+                <input type="number" id="monthScore" value="-15" step="1">
+            </div>
+            <button onclick="testClassification()">测试分类</button>
+            <button onclick="testWithDifferentRatios()">测试不同比例</button>
+        </div>
+        
+        <div id="results" class="debug-section">
+            <h3>测试结果</h3>
+            <p>点击上方按钮开始测试...</p>
+        </div>
+        
+        <div class="debug-section">
+            <h3>可能的问题原因分析</h3>
+            <div class="highlight">
+                <strong>理论分析：</strong>
+                <ul>
+                    <li>23.72% 应该被分类为 "较弱" (≤ 25%)</li>
+                    <li>但用户看到的是 "中和偏强" (52-62%)</li>
+                    <li>这表明实际计算中的力量比例可能不是23.72%</li>
+                </ul>
+            </div>
+            
+            <div class="error">
+                <strong>可能的原因：</strong>
+                <ol>
+                    <li><strong>计算错误：</strong>实际的strengthRatio计算有误</li>
+                    <li><strong>数据传递错误：</strong>显示的23.72%不是用于分类的实际值</li>
+                    <li><strong>从格判断影响：</strong>从格逻辑覆盖了正常分类</li>
+                    <li><strong>稳定性调整：</strong>格局稳定性检查修改了结果</li>
+                    <li><strong>特殊修正逻辑：</strong>其他特殊情况的修正被触发</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 复制calculateStrengthLevel函数的核心逻辑
+        function calculateStrengthLevel(strengthRatio, supportStrength, weakenStrength, monthScore, isFollowing = {isFollowing: false}) {
+            const prefix = '';
+            
+            // 如果是从格，直接返回从格类型
+            if (isFollowing.isFollowing) {
+                return {
+                    level: isFollowing.type === '从强' ? 12 : 1,
+                    type: isFollowing.type,
+                    description: prefix + isFollowing.description
+                };
+            }
+            
+            // 计算综合强度指标
+            const totalStrength = supportStrength + weakenStrength;
+            const strengthPercentage = strengthRatio; // 这里直接使用传入的百分比值
+            
+            // 考虑绝对力量值
+            const hasStrongSupport = supportStrength >= 15;
+            const hasWeakSupport = supportStrength <= 5;
+            const hasStrongWeaken = weakenStrength >= 15;
+            
+            let level, type, description;
+            
+            // 12级分类判断
+            if (strengthPercentage <= 8 && hasWeakSupport) {
+                level = 1;
+                type = '极弱（从弱）';
+                description = prefix + '日主无根无气，全局克泄耗，应顺从克泄耗的力量，忌生扶。';
+            } else if (strengthPercentage <= 15) {
+                level = 2;
+                type = '很弱';
+                description = prefix + '仅得微根或一气相助，力量微弱，急需印比生扶。';
+            } else if (strengthPercentage <= 25) {
+                level = 3;
+                type = '较弱';
+                description = prefix + '得一根或一助但被制，力量不足，喜印比忌财官。';
+            } else if (strengthPercentage <= 35) {
+                level = 4;
+                type = '稍弱';
+                description = prefix + '得令但失势，或得势但失令，力量稍显不足，宜生扶。';
+            } else if (strengthPercentage <= 42) {
+                level = 5;
+                type = '微弱';
+                description = prefix + '基本平衡但略偏弱，需要适度生扶，忌过度克泄。';
+            } else if (strengthPercentage <= 48) {
+                level = 6;
+                type = '中和偏弱';
+                description = prefix + '接近平衡但稍弱，运势较为平稳，喜印比助身。';
+            } else if (strengthPercentage >= 52 && strengthPercentage <= 58) {
+                level = 7;
+                type = '真正中和';
+                description = prefix + '五行流通平衡，极为罕见的中和之命，顺其自然最佳。';
+            } else if (strengthPercentage <= 62) {
+                level = 8;
+                type = '中和偏强';
+                description = prefix + '接近平衡但稍强，运势平稳，可适度用财官。';
+            } else if (strengthPercentage <= 68) {
+                level = 9;
+                type = '微强';
+                description = prefix + '基本平衡但略偏强，可承担一定财官，忌过度生扶。';
+            } else if (strengthPercentage <= 75) {
+                level = 10;
+                type = '稍强';
+                description = prefix + '得令或得势明显，力量较强，喜财官食伤泄秀。';
+            } else if (strengthPercentage <= 85) {
+                level = 11;
+                type = '较强';
+                description = prefix + '得令得势，根气足，力量强旺，宜用财官制约。';
+            } else {
+                level = 12;
+                type = '极强（专旺）';
+                description = prefix + '全局同一五行主导，专旺格局，顺其旺势，忌逆其性。';
+            }
+            
+            // 特殊调整：考虑月令失势的情况
+            if (monthScore < -15 && level > 4) {
+                level = Math.max(1, level - 2);
+                type = getTypeByLevel(level);
+                description = prefix + '月令严重失势，' + getDescriptionByLevel(level, prefix);
+            }
+            
+            // 特殊调整：考虑生扶力量绝对值
+            if (hasWeakSupport && level > 3) {
+                level = Math.min(3, level);
+                type = getTypeByLevel(level);
+                description = prefix + '生扶力量绝对不足，' + getDescriptionByLevel(level, prefix);
+            }
+            
+            return {
+                level: level,
+                type: type,
+                description: description,
+                adjustedPercentage: strengthPercentage
+            };
+        }
+        
+        function getTypeByLevel(level) {
+            const types = {
+                1: '极弱（从弱）',
+                2: '很弱',
+                3: '较弱',
+                4: '稍弱',
+                5: '微弱',
+                6: '中和偏弱',
+                7: '真正中和',
+                8: '中和偏强',
+                9: '微强',
+                10: '稍强',
+                11: '较强',
+                12: '极强（专旺）'
+            };
+            return types[level] || '未知';
+        }
+        
+        function getDescriptionByLevel(level, prefix = '') {
+            // 简化的描述函数
+            return '调整后的描述';
+        }
+        
+        function addResult(content, className = '') {
+            const resultsDiv = document.getElementById('results');
+            const p = document.createElement('p');
+            p.innerHTML = content;
+            if (className) {
+                p.className = className;
+            }
+            resultsDiv.appendChild(p);
+        }
+        
+        function clearResults() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<h3>测试结果</h3>';
+        }
+        
+        function testClassification() {
+            clearResults();
+            
+            const strengthRatio = parseFloat(document.getElementById('strengthRatio').value);
+            const supportStrength = parseFloat(document.getElementById('supportStrength').value);
+            const weakenStrength = parseFloat(document.getElementById('weakenStrength').value);
+            const monthScore = parseInt(document.getElementById('monthScore').value);
+            
+            addResult(`<strong>输入数据：</strong>`, 'highlight');
+            addResult(`力量比例: ${strengthRatio}%`);
+            addResult(`生扶力量: ${supportStrength}`);
+            addResult(`克泄力量: ${weakenStrength}`);
+            addResult(`月令得分: ${monthScore}`);
+            
+            // 测试分类
+            const result = calculateStrengthLevel(strengthRatio, supportStrength, weakenStrength, monthScore);
+            
+            addResult(`<strong>分类结果：</strong>`, 'success');
+            addResult(`类型: ${result.type}`);
+            addResult(`等级: ${result.level}`);
+            addResult(`描述: ${result.description}`);
+            
+            // 分析
+            addResult(`<strong>分析：</strong>`, 'highlight');
+            if (strengthRatio <= 25) {
+                addResult(`✓ ${strengthRatio}% ≤ 25%，应该被分类为"较弱"`, 'success');
+            } else if (strengthRatio <= 62) {
+                addResult(`⚠ ${strengthRatio}% ≤ 62%，会被分类为"中和偏强"`, 'error');
+            }
+            
+            if (result.type === '较弱' && strengthRatio === 23.72) {
+                addResult(`✓ 分类正确！23.72%被正确分类为"较弱"`, 'success');
+            } else if (result.type === '中和偏强') {
+                addResult(`❌ 问题确认！${strengthRatio}%被错误分类为"中和偏强"`, 'error');
+                addResult(`这说明实际系统中传入calculateStrengthLevel的值可能不是${strengthRatio}%`, 'error');
+            }
+        }
+        
+        function testWithDifferentRatios() {
+            clearResults();
+            
+            const supportStrength = parseFloat(document.getElementById('supportStrength').value);
+            const weakenStrength = parseFloat(document.getElementById('weakenStrength').value);
+            const monthScore = parseInt(document.getElementById('monthScore').value);
+            
+            addResult(`<strong>测试不同力量比例的分类结果：</strong>`, 'highlight');
+            
+            const testRatios = [20, 23.72, 25, 30, 40, 50, 55, 60, 62, 65];
+            
+            testRatios.forEach(ratio => {
+                const result = calculateStrengthLevel(ratio, supportStrength, weakenStrength, monthScore);
+                const color = ratio === 23.72 ? 'style="color: red; font-weight: bold;"' : '';
+                addResult(`<span ${color}>${ratio}% → ${result.type}</span>`);
+            });
+            
+            addResult(`<strong>关键发现：</strong>`, 'error');
+            addResult(`如果要让23.72%被分类为"中和偏强"，实际传入的值必须在52-62%之间`);
+            addResult(`这表明系统中存在数据转换或计算错误`);
+        }
+    </script>
+</body>
+</html>

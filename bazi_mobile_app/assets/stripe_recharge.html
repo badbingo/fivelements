@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Stripe充值 - 安全便捷的在线充值服务">
+    <meta name="keywords" content="充值,Stripe,在线支付">
+    <title>Stripe充值 - 八字命理系统</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://js.stripe.com/v3/"></script>
+    <!-- 简化版的余额获取功能 -->
+    <script>
+        // 简化版的WWPay类，只包含获取余额功能
+        class SimpleWWPay {
+            constructor() {
+                // 使用生产环境API地址
+                this.apiBase = 'https://api.mybazi.net';
+            }
+            
+            async getUserBalance() {
+                try {
+                    const token = localStorage.getItem('token');
+                    if (!token) {
+                        console.log('用户未登录，无法获取余额');
+                        return null;
+                    }
+                    
+                    console.log('发送余额请求到:', `${this.apiBase}/api/user/balance`);
+                    const response = await fetch(`${this.apiBase}/api/user/balance`, {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+                    
+                    console.log('余额API响应状态:', response.status);
+                    console.log('余额API响应头:', JSON.stringify([...response.headers.entries()]));
+                    
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        console.log('余额API错误响应内容:', errorText);
+                        throw new Error(`获取余额失败: ${response.status} - ${errorText}`);
+                    }
+                    
+                    const responseText = await response.text();
+                    console.log('余额API原始响应:', responseText);
+                    
+                    const data = JSON.parse(responseText);
+                    console.log('余额API解析后数据:', data);
+                    console.log('余额值:', data.balance);
+                    return data.balance || 0;
+                } catch (error) {
+                    console.error('获取用户余额失败:', error);
+                    return null;
+                }
+            }
+        }
+        
+        // 创建全局实例
+        window.wwPay = new SimpleWWPay();
+        window.WWPay = SimpleWWPay;
+    </script>
+    
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --secondary-color: #6366f1;
+            --accent-color: #fbbf24;
+            --text-color: #1f2937;
+            --bg-gradient: linear-gradient(135deg, #a5b4fc 0%, #818cf8 100%);
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Serif SC', serif;
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            color: var(--text-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.25rem;
+        }
+
+        .recharge-container {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+            max-width: 28rem;
+            width: 100%;
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .recharge-header {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+
+
+        h1 {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        p {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+
+        .user-info {
+            background: rgba(243, 244, 246, 0.8);
+            border-radius: 1rem;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .user-info h3 {
+            font-size: 1.125rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+
+        .user-detail {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+        }
+
+        .label {
+            font-weight: 500;
+        }
+
+        .value {
+            font-weight: 600;
+            color: var(--secondary-color);
+        }
+
+        .balance-value {
+            color: var(--accent-color);
+        }
+
+        .recharge-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: var(--text-color);
+        }
+
+        input[type="number"] {
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
+        }
+
+        #card-element {
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            background: white;
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 0.75rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+    </style>
+</head>
+<body>
+    <div class="recharge-container">
+        <div class="recharge-header">
+            <h1>余额充值</h1>
+            <p>输入充值金额并使用Stripe支付</p>
+        </div>
+
+        <div class="user-info">
+            <h3>账户信息</h3>
+            <div class="user-detail">
+                <span class="label">用户名</span>
+                <span class="value">示例用户</span>
+            </div>
+            <div class="user-detail">
+                <span class="label">当前余额</span>
+                <span class="value balance-value">$0.00</span>
+            </div>
+        </div>
+
+        <div class="recharge-form">
+            <div class="form-group">
+                <label for="amount">充值金额</label>
+                <input type="number" id="amount" name="amount" placeholder="请输入充值金额" min="1" step="0.01">
+            </div>
+
+            <div class="form-group">
+                <label>信用卡信息</label>
+                <div style="display: flex; justify-content: space-around; margin: 10px 0;">
+                    <!-- Visa SVG -->
+                    <svg width="50" height="32" viewBox="0 0 50 32" xmlns="http://www.w3.org/2000/svg"><rect width="50" height="32" rx="4" fill="#1A1F71"/><text x="5" y="22" font-family="Arial" font-size="8" fill="#FFF" font-weight="bold">VISA</text><path d="M5 5H45V27H5Z" fill="none" stroke="#F9A825" stroke-width="1"/></svg>
+                    <!-- Mastercard SVG -->
+                    <svg width="50" height="32" viewBox="0 0 50 32" xmlns="http://www.w3.org/2000/svg"><rect width="50" height="32" rx="4" fill="#000"/><circle cx="18" cy="16" r="9" fill="#EB001B"/><circle cx="32" cy="16" r="9" fill="#F79E1B" opacity="0.8"/><circle cx="25" cy="16" r="9" fill="#FF5F00" opacity="0.6"/></svg>
+                    <!-- American Express SVG -->
+                    <svg width="50" height="32" viewBox="0 0 50 32" xmlns="http://www.w3.org/2000/svg"><rect width="50" height="32" rx="4" fill="#0079C1"/><rect x="2" y="7" width="46" height="18" fill="#FFF"/><text x="4" y="20" font-family="Arial" font-size="7" fill="#0079C1">AMERICAN EXPRESS</text></svg>
+                    <!-- Discover SVG -->
+                    <svg width="50" height="32" viewBox="0 0 50 32" xmlns="http://www.w3.org/2000/svg"><rect width="50" height="32" rx="4" fill="#FF6000"/><text x="4" y="22" font-family="Arial" font-size="8" fill="#FFF">DISCOVER</text><circle cx="40" cy="16" r="5" fill="#FFF"/><circle cx="40" cy="16" r="4" fill="#FF6000"/></svg>
+                </div>
+                <div id="card-element"></div>
+            </div>
+
+            <button type="submit" class="submit-btn" id="submit-stripe">
+                立即充值
+            </button>
+            <div id="error-message" style="color: red; margin-top: 1rem; text-align: center; display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        // 全局函数：更新用户信息显示
+        window.updateUserInfo = function(username, token) {
+            const usernameEl = document.querySelector('.user-info .user-detail:nth-child(2) .value');
+            const balanceEl = document.querySelector('.balance-value');
+            
+            if (usernameEl && username) {
+                usernameEl.textContent = username;
+            }
+            
+            // 如果有token，尝试获取余额
+            if (token && window.wwPay && typeof window.wwPay.getUserBalance === 'function') {
+                window.wwPay.getUserBalance().then(function(bal) {
+                    if (bal !== null && balanceEl) {
+                        balanceEl.textContent = `$${Number(bal).toFixed(2)}`;
+                    }
+                }).catch(function(e) {
+                    console.log('获取余额失败: ' + e);
+                });
+            }
+        };
+
+        // 重写console.log以便在Flutter中查看
+        const originalConsoleLog = console.log;
+        console.log = function(...args) {
+            const message = args.map(arg => 
+                typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
+            ).join(' ');
+            
+            // 发送到Flutter
+            if (window.ConsoleLog && window.ConsoleLog.postMessage) {
+                window.ConsoleLog.postMessage(message);
+            }
+            
+            // 保持原有功能
+            originalConsoleLog.apply(console, args);
+        };
+
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log('页面加载完成，开始初始化...');
+            console.log('SimpleWWPay类是否可用:', typeof SimpleWWPay);
+            console.log('window.wwPay是否存在:', typeof window.wwPay);
+            
+            // 等待一下确保所有脚本都加载完成
+            await new Promise(resolve => setTimeout(resolve, 100));
+            
+            // 兜底：确保wwPay实例存在
+            if (typeof window.wwPay === 'undefined' && typeof SimpleWWPay !== 'undefined') {
+                console.log('创建新的SimpleWWPay实例');
+                try {
+                    window.wwPay = new SimpleWWPay();
+                    console.log('SimpleWWPay实例创建成功');
+                } catch (e) {
+                    console.error('创建SimpleWWPay实例失败:', e);
+                }
+            }
+            
+            console.log('WWPay实例状态:', window.wwPay ? '存在' : '不存在');
+            if (window.wwPay) {
+                console.log('getUserBalance方法:', typeof window.wwPay.getUserBalance);
+                console.log('WWPay实例方法:', Object.getOwnPropertyNames(Object.getPrototypeOf(window.wwPay)));
+            }
+
+            const usernameEl = document.querySelector('.user-info .user-detail:nth-child(2) .value');
+            const balanceEl = document.querySelector('.balance-value');
+
+            // 从localStorage/URL读取用户信息
+            const urlParams = new URLSearchParams(window.location.search);
+            const passedUsername = urlParams.get('username');
+            const lsUsername = localStorage.getItem('username');
+            const lsToken = localStorage.getItem('token');
+            const displayName = passedUsername || lsUsername || '未登录';
+            
+            console.log('用户信息:', { displayName, hasToken: !!lsToken });
+            
+            if (usernameEl) usernameEl.textContent = displayName;
+
+            // 获取并显示余额（需要token）
+            try {
+                console.log('=== 开始获取余额调试 ===');
+                console.log('lsToken存在:', !!lsToken);
+                console.log('window.wwPay存在:', !!window.wwPay);
+                console.log('getUserBalance方法存在:', !!(window.wwPay && typeof window.wwPay.getUserBalance === 'function'));
+                console.log('balanceEl存在:', !!balanceEl);
+                
+                if (lsToken && window.wwPay && typeof window.wwPay.getUserBalance === 'function') {
+                    console.log('开始获取用户余额...');
+                    const bal = await window.wwPay.getUserBalance();
+                    console.log('获取到的余额:', bal);
+                    if (bal !== null && balanceEl) {
+                        const formattedBalance = `$${Number(bal).toFixed(2)}`;
+                        balanceEl.textContent = formattedBalance;
+                        console.log('余额显示已更新为:', formattedBalance);
+                    } else {
+                        console.log('余额为null或balanceEl不存在 - bal:', bal, 'balanceEl:', !!balanceEl);
+                    }
+                } else {
+                    console.log('无法获取余额 - token:', !!lsToken, 'wwPay:', !!window.wwPay, 'getUserBalance:', typeof window.wwPay?.getUserBalance);
+                }
+            } catch (e) {
+                console.error('获取余额失败:', e);
+            }
+        });
+
+        // 监听来自Flutter的消息
+        window.addEventListener('message', function(event) {
+            if (event.data && event.data.type === 'userInfo') {
+                const { username, token } = event.data;
+                if (username && token) {
+                    localStorage.setItem('username', username);
+                    localStorage.setItem('token', token);
+                    window.updateUserInfo(username, token);
+                }
+            }
+        });
+
+        function showError(message) {
+            const errorEl = document.getElementById('error-message');
+            if (errorEl) {
+                errorEl.textContent = message;
+                errorEl.style.display = message ? 'block' : 'none';
+            }
+        }
+
+        const stripe = Stripe('pk_live_51Rxt6JPtzVI3SiDgGwqwjQ84PDqZiDySTr6ozLB6U6lrB2lACQ1m4o6WepL1ll6HxQzoUJHmM0tV7dqyZyY3jPeG00OkoeWfmF');
+        const elements = stripe.elements();
+        const card = elements.create('card');
+        card.mount('#card-element');
+
+        const submitBtn = document.getElementById('submit-stripe');
+        submitBtn.addEventListener('click', async function(e) {
+            e.preventDefault();
+            submitBtn.disabled = true;
+            submitBtn.textContent = '充值中...';
+            document.getElementById('loading').style.display = 'flex';
+            try {
+                const amount = parseFloat(document.getElementById('amount').value);
+                window.JSLog.postMessage('金额: ' + amount);
+                if (!amount || amount <= 0) {
+                    showError('请输入有效的充值金额');
+                    return;
+                }
+
+                const token = localStorage.getItem('token');
+                window.JSLog.postMessage('Token: ' + (token ? '存在' : '不存在'));
+                if (!token) {
+                    showError('请先登录');
+                    return;
+                }
+
+                const API_BASE = 'https://api.mybazi.net';
+                window.JSLog.postMessage('API_BASE: ' + API_BASE);
+
+                // 调用后端创建支付意图
+                window.JSLog.postMessage('正在调用后端API...');
+                const response = await fetch(`${API_BASE}/api/create-payment-intent`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ amount: Math.round(amount * 100) }) // cents
+                });
+                window.JSLog.postMessage('响应状态: ' + response.status);
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    showError('创建支付意图失败: ' + errorText);
+                    return;
+                }
+
+                const { clientSecret } = await response.json();
+                window.JSLog.postMessage('Client Secret: ' + clientSecret);
+
+                window.JSLog.postMessage('正在确认支付...');
+                const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+                    payment_method: { card: card }
+                });
+
+                if (error) {
+                    console.log('Stripe Error:', error);
+                    showError('支付失败: ' + error.message);
+                    window.JSLog.postMessage(`Stripe错误: ${error.message} | Code: ${error.code || 'N/A'} | Type: ${error.type || 'N/A'}`);
+                } else if (paymentIntent.status === 'succeeded') {
+                    window.JSLog.postMessage('充值成功！');
+                    showError(''); // 清除错误消息
+                    // 更新本地余额
+                    try {
+                        if (window.wwPay && typeof window.wwPay.getUserBalance === 'function') {
+                            const bal = await window.wwPay.getUserBalance();
+                            if (bal !== null) {
+                                const balanceEl = document.querySelector('.balance-value');
+                                if (balanceEl) {
+                                    balanceEl.textContent = `$${Number(bal).toFixed(2)}`;
+                                }
+                            }
+                        }
+                    } catch (e) {
+                        window.JSLog.postMessage('更新余额失败: ' + e);
+                    }
+                    // 通知Flutter充值成功，让Flutter处理页面导航
+                    if (window.FlutterRechargeSuccess && window.FlutterRechargeSuccess.postMessage) {
+                        window.FlutterRechargeSuccess.postMessage('success');
+                    }
+                }
+            } catch (error) {
+                alert(`支付过程中发生错误: ${error.message}`);
+                window.JSLog.postMessage('支付过程中发生错误: ' + error.message);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = '立即充值';
+                document.getElementById('loading').style.display = 'none';
+            }
+        });
+
+
+    </script>
+    <div id="loading" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; justify-content: center; align-items: center;">
+        <i class="fas fa-spinner fa-spin" style="font-size: 3em; color: white;"></i>
+    </div>
+</body>
+</html>
