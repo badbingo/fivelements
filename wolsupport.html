@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wheel of Life - App Support</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            margin: -20px -20px 40px -20px;
+        }
+        
+        .app-icon {
+            width: 80px;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+        }
+        
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        
+        .subtitle {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .language-selector {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .lang-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        
+        .lang-btn:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+        }
+        
+        .lang-btn.active {
+            background: #764ba2;
+            box-shadow: 0 4px 15px rgba(118, 75, 162, 0.4);
+        }
+        
+        .language-content {
+            display: none;
+        }
+        
+        .language-content.active {
+            display: block;
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .section {
+            margin-bottom: 30px;
+            padding: 25px;
+            background: #f8f9ff;
+            border-radius: 15px;
+            border-left: 5px solid #667eea;
+        }
+        
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+            display: flex;
+            align-items: center;
+        }
+        
+        .section h2::before {
+            content: "✨";
+            margin-right: 10px;
+            font-size: 1.2em;
+        }
+        
+        .contact-info {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+            padding: 30px;
+            border-radius: 15px;
+            margin-top: 30px;
+        }
+        
+        .contact-info h2 {
+            color: white;
+            margin-bottom: 20px;
+        }
+        
+        .email-link {
+            color: #fff;
+            text-decoration: none;
+            font-size: 1.2em;
+            font-weight: 600;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 12px 25px;
+            border-radius: 25px;
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+        
+        .email-link:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .feature-list li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+        }
+        
+        .feature-list li::before {
+            content: "🌟";
+            position: absolute;
+            left: 0;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                margin: 10px;
+                padding: 15px;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+            
+            .lang-btn {
+                padding: 8px 15px;
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="app-icon">🎯</div>
+            <h1>Wheel of Life</h1>
+            <div class="subtitle">Your Personal Growth Companion</div>
+        </div>
+        
+        <div class="language-selector">
+            <button class="lang-btn active" onclick="showLanguage('en')">English</button>
+            <button class="lang-btn" onclick="showLanguage('zh')">中文</button>
+            <button class="lang-btn" onclick="showLanguage('ja')">日本語</button>
+            <button class="lang-btn" onclick="showLanguage('es')">Español</button>
+        </div>
+        
+        <!-- English Content -->
+        <div id="en" class="language-content active">
+            <div class="section">
+                <h2>About Wheel of Life</h2>
+                <p>Wheel of Life is a comprehensive personal development app that helps you balance and improve different areas of your life through chakra meditation, crystal healing, and mindfulness practices. Our app combines ancient wisdom with modern technology to guide you on your journey of self-discovery and spiritual growth.</p>
+            </div>
+            
+            <div class="section">
+                <h2>Key Features</h2>
+                <ul class="feature-list">
+                    <li>7 Chakra Meditation & Balancing</li>
+                    <li>Crystal Healing Guidance</li>
+                    <li>Personalized Energy Pet Companion</li>
+                    <li>Daily Mindfulness Tasks</li>
+                    <li>Moon Phase Synchronization</li>
+                    <li>AI-Powered Insights</li>
+                    <li>Progress Tracking & Analytics</li>
+                    <li>Multi-language Support</li>
+                </ul>
+            </div>
+            
+            <div class="section">
+                <h2>Support & FAQ</h2>
+                <p><strong>Q: How do I unlock premium features?</strong><br>
+                A: Premium features can be unlocked through in-app purchase. This includes advanced meditation sessions, exclusive crystal healing guides, and enhanced AI insights.</p>
+                
+                <p><strong>Q: Is my data secure?</strong><br>
+                A: Yes, we use industry-standard encryption to protect your personal data and meditation progress. Your privacy is our top priority.</p>
+                
+                <p><strong>Q: Can I use the app offline?</strong><br>
+                A: Most features work offline, including meditation sessions and daily tasks. Some AI features require internet connection.</p>
+            </div>
+            
+            <div class="section">
+                <h2>Privacy Policy</h2>
+                <p>We respect your privacy and are committed to protecting your personal information. We collect minimal data necessary for app functionality and never share your personal information with third parties without your consent. All meditation data and personal insights remain private and secure on your device.</p>
+            </div>
+        </div>
+        
+        <!-- Chinese Content -->
+        <div id="zh" class="language-content">
+            <div class="section">
+                <h2>关于生命之轮</h2>
+                <p>生命之轮是一款综合性的个人发展应用，通过脉轮冥想、水晶疗愈和正念练习，帮助您平衡和改善生活的各个方面。我们的应用将古老智慧与现代技术相结合，引导您踏上自我发现和精神成长的旅程。</p>
+            </div>
+            
+            <div class="section">
+                <h2>主要功能</h2>
+                <ul class="feature-list">
+                    <li>七脉轮冥想与平衡</li>
+                    <li>水晶疗愈指导</li>
+                    <li>个性化能量宠物伙伴</li>
+                    <li>每日正念任务</li>
+                    <li>月相同步</li>
+                    <li>AI智能洞察</li>
+                    <li>进度跟踪与分析</li>
+                    <li>多语言支持</li>
+                </ul>
+            </div>
+            
+            <div class="section">
+                <h2>支持与常见问题</h2>
+                <p><strong>问：如何解锁高级功能？</strong><br>
+                答：高级功能可通过应用内购买解锁，包括高级冥想课程、独家水晶疗愈指南和增强的AI洞察功能。</p>
+                
+                <p><strong>问：我的数据安全吗？</strong><br>
+                答：是的，我们使用行业标准加密技术保护您的个人数据和冥想进度。您的隐私是我们的首要任务。</p>
+                
+                <p><strong>问：可以离线使用应用吗？</strong><br>
+                答：大部分功能都支持离线使用，包括冥想课程和每日任务。部分AI功能需要网络连接。</p>
+            </div>
+            
+            <div class="section">
+                <h2>隐私政策</h2>
+                <p>我们尊重您的隐私，致力于保护您的个人信息。我们只收集应用功能所需的最少数据，未经您同意绝不与第三方分享您的个人信息。所有冥想数据和个人洞察都在您的设备上保持私密和安全。</p>
+            </div>
+        </div>
+        
+        <!-- Japanese Content -->
+        <div id="ja" class="language-content">
+            <div class="section">
+                <h2>ホイール・オブ・ライフについて</h2>
+                <p>ホイール・オブ・ライフは、チャクラ瞑想、クリスタルヒーリング、マインドフルネス実践を通じて、人生のさまざまな分野のバランスを取り、改善するのに役立つ包括的な自己啓発アプリです。古代の知恵と現代技術を組み合わせ、自己発見と精神的成長の旅をガイドします。</p>
+            </div>
+            
+            <div class="section">
+                <h2>主な機能</h2>
+                <ul class="feature-list">
+                    <li>7つのチャクラ瞑想とバランシング</li>
+                    <li>クリスタルヒーリングガイダンス</li>
+                    <li>パーソナライズされたエネルギーペット</li>
+                    <li>毎日のマインドフルネスタスク</li>
+                    <li>月の満ち欠けとの同期</li>
+                    <li>AI搭載インサイト</li>
+                    <li>進捗追跡と分析</li>
+                    <li>多言語サポート</li>
+                </ul>
+            </div>
+            
+            <div class="section">
+                <h2>サポートとよくある質問</h2>
+                <p><strong>Q: プレミアム機能をアンロックするには？</strong><br>
+                A: プレミアム機能はアプリ内購入でアンロックできます。高度な瞑想セッション、独占的なクリスタルヒーリングガイド、強化されたAIインサイトが含まれます。</p>
+                
+                <p><strong>Q: データは安全ですか？</strong><br>
+                A: はい、業界標準の暗号化を使用してお客様の個人データと瞑想の進捗を保護しています。プライバシーが最優先事項です。</p>
+                
+                <p><strong>Q: オフラインでアプリを使用できますか？</strong><br>
+                A: 瞑想セッションや毎日のタスクなど、ほとんどの機能がオフラインで動作します。一部のAI機能にはインターネット接続が必要です。</p>
+            </div>
+            
+            <div class="section">
+                <h2>プライバシーポリシー</h2>
+                <p>私たちはお客様のプライバシーを尊重し、個人情報の保護に取り組んでいます。アプリの機能に必要な最小限のデータのみを収集し、お客様の同意なしに第三者と個人情報を共有することはありません。すべての瞑想データと個人的な洞察は、お客様のデバイス上でプライベートかつ安全に保たれます。</p>
+            </div>
+        </div>
+        
+        <!-- Spanish Content -->
+        <div id="es" class="language-content">
+            <div class="section">
+                <h2>Acerca de Rueda de la Vida</h2>
+                <p>Rueda de la Vida es una aplicación integral de desarrollo personal que te ayuda a equilibrar y mejorar diferentes áreas de tu vida a través de la meditación de chakras, sanación con cristales y prácticas de atención plena. Nuestra aplicación combina la sabiduría antigua con la tecnología moderna para guiarte en tu viaje de autodescubrimiento y crecimiento espiritual.</p>
+            </div>
+            
+            <div class="section">
+                <h2>Características Principales</h2>
+                <ul class="feature-list">
+                    <li>Meditación y Equilibrio de 7 Chakras</li>
+                    <li>Guía de Sanación con Cristales</li>
+                    <li>Mascota Energética Personalizada</li>
+                    <li>Tareas Diarias de Atención Plena</li>
+                    <li>Sincronización con Fases Lunares</li>
+                    <li>Perspectivas Impulsadas por IA</li>
+                    <li>Seguimiento de Progreso y Análisis</li>
+                    <li>Soporte Multiidioma</li>
+                </ul>
+            </div>
+            
+            <div class="section">
+                <h2>Soporte y Preguntas Frecuentes</h2>
+                <p><strong>P: ¿Cómo desbloqueo las funciones premium?</strong><br>
+                R: Las funciones premium se pueden desbloquear mediante compra dentro de la aplicación. Esto incluye sesiones de meditación avanzadas, guías exclusivas de sanación con cristales y perspectivas de IA mejoradas.</p>
+                
+                <p><strong>P: ¿Están seguros mis datos?</strong><br>
+                R: Sí, utilizamos encriptación estándar de la industria para proteger tus datos personales y progreso de meditación. Tu privacidad es nuestra máxima prioridad.</p>
+                
+                <p><strong>P: ¿Puedo usar la aplicación sin conexión?</strong><br>
+                R: La mayoría de las funciones funcionan sin conexión, incluyendo sesiones de meditación y tareas diarias. Algunas funciones de IA requieren conexión a internet.</p>
+            </div>
+            
+            <div class="section">
+                <h2>Política de Privacidad</h2>
+                <p>Respetamos tu privacidad y estamos comprometidos a proteger tu información personal. Recopilamos datos mínimos necesarios para la funcionalidad de la aplicación y nunca compartimos tu información personal con terceros sin tu consentimiento. Todos los datos de meditación y perspectivas personales permanecen privados y seguros en tu dispositivo.</p>
+            </div>
+        </div>
+        
+        <div class="contact-info">
+            <h2>📧 Contact Support</h2>
+            <p>Need help or have questions? We're here to support you!</p>
+            <a href="mailto:mybazi88@gmail.com" class="email-link">mybazi88@gmail.com</a>
+        </div>
+        
+        <div class="footer">
+            <p>© 2024 Wheel of Life App. All rights reserved.</p>
+            <p>Designed with ❤️ for your spiritual journey</p>
+        </div>
+    </div>
+    
+    <script>
+        function showLanguage(lang) {
+            // Hide all language content
+            const contents = document.querySelectorAll('.language-content');
+            contents.forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Remove active class from all buttons
+            const buttons = document.querySelectorAll('.lang-btn');
+            buttons.forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Show selected language content
+            document.getElementById(lang).classList.add('active');
+            
+            // Add active class to clicked button
+            event.target.classList.add('active');
+        }
+    </script>
+</body>
+</html>
