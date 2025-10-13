@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小周天速成 - 传统道家养生修炼应用</title>
+    <meta name="description" content="小周天速成是一款专业的道家养生修炼应用，21天系统化课程，科学指导，助您掌握传统小周天功法">
+    <meta name="keywords" content="小周天,道家养生,气功,修炼,健康,冥想,传统文化">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        /* 导航栏 */
+        .navbar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            z-index: 1000;
+            padding: 15px 0;
+            transition: all 0.3s ease;
+        }
+
+        .navbar.scrolled {
+            background: rgba(255, 255, 255, 0.98);
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            font-size: 1.5em;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+            font-size: 20px;
+            color: white;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 30px;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #333;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: #667eea;
+        }
+
+        .download-btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 12px 25px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: transform 0.3s ease;
+        }
+
+        .download-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        /* 英雄区域 */
+        .hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/><circle cx="50" cy="10" r="0.5" fill="white" opacity="0.1"/><circle cx="10" cy="60" r="0.5" fill="white" opacity="0.1"/><circle cx="90" cy="40" r="0.5" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            opacity: 0.3;
+        }
+
+        .hero-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-content h1 {
+            font-size: 3.5em;
+            font-weight: 800;
+            color: white;
+            margin-bottom: 20px;
+            line-height: 1.2;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .hero-content .subtitle {
+            font-size: 1.3em;
+            color: rgba(255,255,255,0.9);
+            margin-bottom: 30px;
+            font-weight: 300;
+        }
+
+        .hero-content .description {
+            font-size: 1.1em;
+            color: rgba(255,255,255,0.8);
+            margin-bottom: 40px;
+            line-height: 1.8;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn-primary {
+            background: white;
+            color: #667eea;
+            padding: 15px 30px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1em;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+        }
+
+        .btn-secondary {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1em;
+            transition: all 0.3s ease;
+            border: 2px solid rgba(255,255,255,0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-3px);
+        }
+
+        .hero-image {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .phone-mockup {
+            width: 300px;
+            height: 600px;
+            background: linear-gradient(45deg, #2c3e50, #34495e);
+            border-radius: 40px;
+            padding: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            position: relative;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .phone-screen {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 25px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .app-icon-large {
+            width: 80px;
+            height: 80px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        /* 内容区域 */
+        .section {
+            padding: 100px 0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5em;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+
+        .section-subtitle {
+            text-align: center;
+            font-size: 1.2em;
+            color: #666;
+            margin-bottom: 60px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* 起源介绍 */
+        .origin-section {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        }
+
+        .origin-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+        }
+
+        .origin-text {
+            font-size: 1.1em;
+            line-height: 1.8;
+            color: #555;
+        }
+
+        .origin-text h3 {
+            font-size: 1.4em;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .origin-text p {
+            margin-bottom: 20px;
+        }
+
+        .origin-visual {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .yin-yang {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #2c3e50 50%, white 50%);
+            position: relative;
+            animation: rotate 20s linear infinite;
+        }
+
+        .yin-yang::before,
+        .yin-yang::after {
+            content: '';
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+        }
+
+        .yin-yang::before {
+            top: 0;
+            left: 50px;
+            background: white;
+        }
+
+        .yin-yang::after {
+            bottom: 0;
+            left: 50px;
+            background: #2c3e50;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* 好处介绍 */
+        .benefits-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+            margin-top: 60px;
+        }
+
+        .benefit-card {
+            background: white;
+            padding: 40px 30px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .benefit-card:hover {
+            transform: translateY(-10px);
+        }
+
+        .benefit-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: white;
+            margin: 0 auto 20px;
+        }
+
+        .benefit-card h3 {
+            font-size: 1.3em;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .benefit-card p {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        /* 应用功能 */
+        .features-section {
+            background: #f8f9fa;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-top: 60px;
+        }
+
+        .feature-item {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        }
+
+        .feature-item h4 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .feature-item p {
+            color: #666;
+            font-size: 0.95em;
+        }
+
+        /* 下载区域 */
+        .download-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+        }
+
+        .download-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 40px;
+            flex-wrap: wrap;
+        }
+
+        .store-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 15px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255,255,255,0.3);
+        }
+
+        .store-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-3px);
+        }
+
+        .store-icon {
+            font-size: 30px;
+        }
+
+        .store-text {
+            text-align: left;
+        }
+
+        .store-text .small {
+            font-size: 0.8em;
+            opacity: 0.8;
+        }
+
+        .store-text .large {
+            font-size: 1.1em;
+            font-weight: 600;
+        }
+
+        /* 页脚 */
+        .footer {
+            background: #2c3e50;
+            color: white;
+            padding: 60px 0 30px;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .footer-section h4 {
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .footer-section p,
+        .footer-section a {
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            line-height: 1.8;
+        }
+
+        .footer-section a:hover {
+            color: white;
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 30px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.6);
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .hero-container {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .hero-content h1 {
+                font-size: 2.5em;
+            }
+
+            .origin-content {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .phone-mockup {
+                width: 250px;
+                height: 500px;
+            }
+
+            .section-title {
+                font-size: 2em;
+            }
+
+            .hero-buttons {
+                justify-content: center;
+            }
+
+            .download-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+
+        /* 滚动动画 */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.6s ease;
+        }
+
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <div class="logo-icon">🧘</div>
+                小周天速成
+            </div>
+            <ul class="nav-links">
+                <li><a href="#home">首页</a></li>
+                <li><a href="#origin">起源</a></li>
+                <li><a href="#benefits">功效</a></li>
+                <li><a href="#features">功能</a></li>
+                <li><a href="#download">下载</a></li>
+            </ul>
+            <a href="#download" class="download-btn">立即下载</a>
+        </div>
+    </nav>
+
+    <!-- 英雄区域 -->
+    <section class="hero" id="home">
+        <div class="hero-container">
+            <div class="hero-content">
+                <h1>小周天速成</h1>
+                <p class="subtitle">传统道家养生修炼应用</p>
+                <p class="description">
+                    21天系统化课程，科学指导传统小周天功法。结合现代科技与古老智慧，
+                    让您在忙碌的现代生活中，轻松掌握道家养生精髓，提升身心健康。
+                </p>
+                <div class="hero-buttons">
+                    <a href="#download" class="btn-primary">免费下载</a>
+                    <a href="#origin" class="btn-secondary">了解更多</a>
+                </div>
+            </div>
+            <div class="hero-image">
+                <div class="phone-mockup">
+                    <div class="phone-screen">
+                        <div class="app-icon-large">🧘</div>
+                        <h3>小周天速成</h3>
+                        <p>21天修炼课程</p>
+                        <p>专业指导 · 科学练习</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 起源介绍 -->
+    <section class="section origin-section" id="origin">
+        <div class="container">
+            <h2 class="section-title fade-in">小周天的起源与传承</h2>
+            <p class="section-subtitle fade-in">
+                探索千年道家养生智慧，传承古老修炼精髓
+            </p>
+            <div class="origin-content">
+                <div class="origin-text fade-in">
+                    <h3>历史渊源</h3>
+                    <p>
+                        小周天功法起源于中国古代道家修炼体系，最早可追溯至春秋战国时期。
+                        《黄帝内经》、《道德经》等经典著作中都有相关记载。历经两千多年的传承与发展，
+                        小周天已成为道家养生修炼的核心功法之一。
+                    </p>
+                    
+                    <h3>理论基础</h3>
+                    <p>
+                        小周天以中医经络学说为基础，通过调息、调心、调身的方法，
+                        引导体内真气沿任督二脉循环运行。任脉主阴，督脉主阳，
+                        二脉相通形成一个完整的能量循环系统，达到阴阳平衡、气血调和的效果。
+                    </p>
+
+                    <h3>现代价值</h3>
+                    <p>
+                        现代医学研究表明，小周天练习能够有效调节自律神经系统，
+                        改善血液循环，增强免疫力，对缓解压力、改善睡眠、
+                        提升专注力等方面都有显著效果。
+                    </p>
+                </div>
+                <div class="origin-visual fade-in">
+                    <div class="yin-yang"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 功效好处 -->
+    <section class="section" id="benefits">
+        <div class="container">
+            <h2 class="section-title fade-in">练习小周天的诸多好处</h2>
+            <p class="section-subtitle fade-in">
+                科学验证的健康功效，让您身心受益
+            </p>
+            <div class="benefits-grid">
+                <div class="benefit-card fade-in">
+                    <div class="benefit-icon">🧠</div>
+                    <h3>提升专注力</h3>
+                    <p>通过调息练习，增强大脑专注力和记忆力，提高工作学习效率，让思维更加清晰敏锐。</p>
+                </div>
+                <div class="benefit-card fade-in">
+                    <div class="benefit-icon">😴</div>
+                    <h3>改善睡眠质量</h3>
+                    <p>调节自律神经系统，缓解身心压力，帮助快速入睡，提升深度睡眠质量。</p>
+                </div>
+                <div class="benefit-card fade-in">
+                    <div class="benefit-icon">💪</div>
+                    <h3>增强体质</h3>
+                    <p>促进气血循环，增强免疫力，提升身体抵抗力，让您拥有更健康的体魄。</p>
+                </div>
+                <div class="benefit-card fade-in">
+                    <div class="benefit-icon">🧘</div>
+                    <h3>缓解压力</h3>
+                    <p>通过深度放松练习，有效缓解工作生活压力，保持内心平静与和谐。</p>
+                </div>
+                <div class="benefit-card fade-in">
+                    <div class="benefit-icon">⚡</div>
+                    <h3>提升精力</h3>
+                    <p>激活体内能量循环，消除疲劳，让您精力充沛，活力满满地面对每一天。</p>
+                </div>
+                <div class="benefit-card fade-in">
+                    <div class="benefit-icon">🎯</div>
+                    <h3>平衡情绪</h3>
+                    <p>调和阴阳气血，稳定情绪波动，培养内在平静，提升情绪管理能力。</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 应用功能 -->
+    <section class="section features-section" id="features">
+        <div class="container">
+            <h2 class="section-title fade-in">如何使用小周天速成App</h2>
+            <p class="section-subtitle fade-in">
+                专业指导，科学练习，让修炼变得简单高效
+            </p>
+            <div class="features-grid">
+                <div class="feature-item fade-in">
+                    <h4>📚 21天系统课程</h4>
+                    <p>从入门到精通，循序渐进的21天完整课程体系，每天15-30分钟，轻松掌握小周天功法。</p>
+                </div>
+                <div class="feature-item fade-in">
+                    <h4>🎵 专业音频指导</h4>
+                    <p>资深导师录制的专业指导音频，清晰的步骤说明和呼吸引导，让您练习更加准确。</p>
+                </div>
+                <div class="feature-item fade-in">
+                    <h4>🗺️ 经络穴位图</h4>
+                    <p>高清经络穴位图解，直观展示气息运行路径，帮助您准确定位和理解练习要点。</p>
+                </div>
+                <div class="feature-item fade-in">
+                    <h4>⏱️ 智能计时器</h4>
+                    <p>内置专业计时器，自动记录练习时长，帮助您建立规律的练习习惯。</p>
+                </div>
+                <div class="feature-item fade-in">
+                    <h4>📊 进度跟踪</h4>
+                    <p>详细的练习记录和进度统计，可视化展示您的修炼历程和成长轨迹。</p>
+                </div>
+                <div class="feature-item fade-in">
+                    <h4>🎨 个性化设置</h4>
+                    <p>支持音量调节、背景音乐选择等个性化设置，打造专属的练习环境。</p>
+                </div>
+                <div class="feature-item fade-in">
+                    <h4>📱 离线使用</h4>
+                    <p>支持离线使用，无需网络连接，随时随地都能进行练习，不受环境限制。</p>
+                </div>
+                <div class="feature-item fade-in">
+                    <h4>🏆 成就系统</h4>
+                    <p>丰富的成就徽章和里程碑奖励，激励您坚持练习，享受修炼的乐趣。</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 下载区域 -->
+    <section class="section download-section" id="download">
+        <div class="container">
+            <h2 class="section-title fade-in">立即下载开始您的修炼之旅</h2>
+            <p class="section-subtitle fade-in">
+                免费下载，专业指导，21天掌握传统小周天功法
+            </p>
+            <div class="download-buttons">
+                <a href="#" class="store-btn fade-in">
+                    <div class="store-icon">🍎</div>
+                    <div class="store-text">
+                        <div class="small">Download on the</div>
+                        <div class="large">App Store</div>
+                    </div>
+                </a>
+                <a href="#" class="store-btn fade-in">
+                    <div class="store-icon">🤖</div>
+                    <div class="store-text">
+                        <div class="small">GET IT ON</div>
+                        <div class="large">Google Play</div>
+                    </div>
+                </a>
+                <a href="#" class="store-btn fade-in">
+                    <div class="store-icon">📱</div>
+                    <div class="store-text">
+                        <div class="small">扫码下载</div>
+                        <div class="large">二维码</div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- 页脚 -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>关于我们</h4>
+                    <p>小周天速成致力于传承和推广传统道家养生文化，结合现代科技，让更多人受益于古老的修炼智慧。</p>
+                </div>
+                <div class="footer-section">
+                    <h4>联系方式</h4>
+                    <p>邮箱：contact@xiaozhouttian.com</p>
+                    <p>客服热线：400-123-4567</p>
+                    <p>工作时间：周一至周五 9:00-18:00</p>
+                </div>
+                <div class="footer-section">
+                    <h4>相关链接</h4>
+                    <p><a href="privacy-policy.html">隐私政策</a></p>
+                    <p><a href="#">用户协议</a></p>
+                    <p><a href="#">常见问题</a></p>
+                    <p><a href="#">意见反馈</a></p>
+                </div>
+                <div class="footer-section">
+                    <h4>关注我们</h4>
+                    <p>微信公众号：小周天速成</p>
+                    <p>微博：@小周天速成官方</p>
+                    <p>抖音：小周天速成</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 小周天速成. 保留所有权利. | 京ICP备12345678号</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // 导航栏滚动效果
+        window.addEventListener('scroll', function() {
+            const navbar = document.getElementById('navbar');
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+
+        // 平滑滚动
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // 滚动动画
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver(function(entries) {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.fade-in').forEach(el => {
+            observer.observe(el);
+        });
+
+        // 移动端菜单切换（如需要）
+        function toggleMobileMenu() {
+            // 移动端菜单逻辑
+        }
+    </script>
+</body>
+</html>
